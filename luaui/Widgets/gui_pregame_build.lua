@@ -32,6 +32,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spEcho = Spring.Echo
 
 local spTestBuildOrder = Spring.TestBuildOrder
+local spTestBuildOrderOverlap = Spring.TestBuildOrderOverlap
 
 local spawnWarpInFrame = Game.spawnWarpInFrame
 
@@ -79,6 +80,8 @@ local BUILDING_COUNT_FUDGE_FACTOR = 1.4
 local BUILDING_DETECTION_TOLERANCE = 10
 local HALF = 0.5
 local MAX_DRAG_BUILD_COUNT = 200
+-- Keep the production behavior by default: the future commander footprint blocks pregame builds.
+local ALLOW_BUILD_QUEUE_OVER_COMMANDER = false
 
 local function buildFacingHandler(command, line, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -133,6 +136,8 @@ local function handleBuildMenu(shift)
 end
 
 local FORCE_SHOW_REASON = "gui_pregame_build"
+local DoBuildingsClash
+
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
@@ -217,10 +222,14 @@ local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 		)
 	)
 	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
-
+	local removedCount = SubLogic.removeOverlappingBuildQueueItems(buildQueue, DoBuildingsClash)
 	if result.substitutionFailed then
 		spEcho(string.format("[gui_pregame_build] %s", result.summaryMessage))
 	end
+	if removedCount > 0 then
+		spEcho(string.format("[Pregame Build] Removed %d queued build order%s that overlap after changing faction.", removedCount, removedCount == 1 and "" or "s"))
+	end
+	forceRefreshCache = true
 end
 
 local function handleSelectedBuildingConversion(
@@ -329,6 +338,28 @@ function widget:Initialize()
 	end
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
+	end
+	WG["pregame-build"].getCancelledQueuedBuilds = function(unitDefID, x, y, z, facing, cancelledBuilds)
+		for i = #cancelledBuilds, 1, -1 do
+			cancelledBuilds[i] = nil
+		end
+		if not preGamestartPlayer then
+			return false, false
+		end
+		local proposedBuild = { unitDefID, x, y, z, facing }
+		local overlapsQueuedBuild = false
+		local cancelsQueuedBuild = false
+		for i = 1, #buildQueue do
+			if buildQueue[i][1] > 0 then
+				local overlaps, cancels = DoBuildingsClash(proposedBuild, buildQueue[i])
+				overlapsQueuedBuild = overlapsQueuedBuild or overlaps
+				cancelsQueuedBuild = cancelsQueuedBuild or cancels
+				if cancels then
+					cancelledBuilds[#cancelledBuilds + 1] = buildQueue[i]
+				end
+			end
+		end
+		return overlapsQueuedBuild, cancelsQueuedBuild
 	end
 	WG["pregame-build"].getBuildPositions = function()
 		return buildModeState.buildPositions
@@ -653,7 +684,7 @@ local function getGhostBuildingUnderCursor(mouseX, mouseY)
 	return nil
 end
 
-local function DoBuildingsClash(buildingData1, buildingData2)
+local function DoBuildingRectanglesClash(buildingData1, buildingData2)
 	local building1Width, building1Height = GetBuildingDimensions(buildingData1[1], buildingData1[5])
 	local building2Width, building2Height = GetBuildingDimensions(buildingData2[1], buildingData2[5])
 
@@ -663,7 +694,34 @@ local function DoBuildingsClash(buildingData1, buildingData2)
 	local xDistance = mathAbs(buildingData1[2] - buildingData2[2])
 	local zDistance = mathAbs(buildingData1[4] - buildingData2[4])
 
-	return xDistance < halfBuilding1Width + halfBuilding2Width and zDistance < halfBuilding1Height + halfBuilding2Height
+	local overlaps = xDistance < halfBuilding1Width + halfBuilding2Width and zDistance < halfBuilding1Height + halfBuilding2Height
+	local cancels = overlaps
+		and xDistance <= mathMax(building1Width, building2Width) * HALF
+		and zDistance <= mathMax(building1Height, building2Height) * HALF
+
+	return overlaps, cancels
+end
+
+DoBuildingsClash = function(buildingData1, buildingData2)
+	if spTestBuildOrderOverlap then
+		return spTestBuildOrderOverlap(
+			{ buildingData2[1], buildingData2[2], buildingData2[3], buildingData2[4], buildingData2[5] or 0 },
+			{ buildingData1[1], buildingData1[2], buildingData1[3], buildingData1[4], buildingData1[5] or 0 }
+		)
+	end
+
+	-- Compatibility with engines that predate Spring.TestBuildOrderOverlap.
+	-- buildingData1 is the proposed build and buildingData2 is earlier in the queue.
+	return DoBuildingRectanglesClash(buildingData1, buildingData2)
+end
+
+local function DoesBuildClashWithCommander(buildData, cx, cy, cz)
+	if ALLOW_BUILD_QUEUE_OVER_COMMANDER or cx == -100 then
+		return false
+	end
+
+	local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
+	return DoBuildingRectanglesClash(buildData, { startDefID, cbx, cby, cbz, 1 })
 end
 
 local function removeUnitShape(id)
@@ -788,18 +846,18 @@ function widget:Update(dt)
 				local hasConflicts = false
 
 				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
-				if cx ~= -100 then
-					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-					if DoBuildingsClash(buildDataPos, { startDefID, cbx, cby, cbz, 1 }) then
-						hasConflicts = true
-					end
+				if DoesBuildClashWithCommander(buildDataPos, cx, cy, cz) then
+					hasConflicts = true
 				end
 
 				if not hasConflicts then
 					for i = #buildQueue, 1, -1 do
-						if buildQueue[i][1] > 0 and DoBuildingsClash(buildDataPos, buildQueue[i]) then
-							tableRemove(buildQueue, i)
-							hasConflicts = true
+						if buildQueue[i][1] > 0 then
+							local overlaps, cancels = DoBuildingsClash(buildDataPos, buildQueue[i])
+							if cancels then
+								tableRemove(buildQueue, i)
+							end
+							hasConflicts = hasConflicts or overlaps
 						end
 					end
 				end
@@ -976,11 +1034,8 @@ function widget:MousePress(mx, my, button)
 					local hasConflicts = false
 
 					local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
-					if cx ~= -100 then
-						local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-						if DoBuildingsClash(buildDataPos, { startDefID, cbx, cby, cbz, 1 }) then
-							hasConflicts = true
-						end
+					if DoesBuildClashWithCommander(buildDataPos, cx, cy, cz) then
+						hasConflicts = true
 					end
 
 					if
@@ -1047,31 +1102,26 @@ function widget:MousePress(mx, my, button)
 			buildModeState.buildPositions = {}
 			return true
 		end
-
-		if (meta or not shift) and cx ~= -100 then
-			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-
-			if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then
-				return true
-			end
+		if (meta or not shift) and DoesBuildClashWithCommander(buildData, cx, cy, cz) then
+			return true
 		end
 
 		if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
 			local hasConflicts = false
 
 			local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
-			if cx ~= -100 then
-				local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-				if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then
-					hasConflicts = true
-				end
+			if DoesBuildClashWithCommander(buildData, cx, cy, cz) then
+				hasConflicts = true
 			end
 
 			if not hasConflicts then
 				for i = #buildQueue, 1, -1 do
-					if buildQueue[i][1] > 0 and DoBuildingsClash(buildData, buildQueue[i]) then
-						tableRemove(buildQueue, i)
-						hasConflicts = true
+					if buildQueue[i][1] > 0 then
+						local overlaps, cancels = DoBuildingsClash(buildData, buildQueue[i])
+						if cancels then
+							tableRemove(buildQueue, i)
+						end
+						hasConflicts = hasConflicts or overlaps
 					end
 				end
 			end
@@ -1119,7 +1169,7 @@ function widget:MousePress(mx, my, button)
 		end
 		local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
 
-		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
+		if not ALLOW_BUILD_QUEUE_OVER_COMMANDER and DoBuildingRectanglesClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
 			return true
 		end
 	end
@@ -1313,7 +1363,12 @@ function widget:DrawWorld()
 			local isSpawned = alpha >= ALPHA_SPAWNED
 			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
-			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
+			local cancels = false
+			if selBuildData then
+				local _, candidateCancels = DoBuildingsClash(selBuildData, buildData)
+				cancels = candidateCancels
+			end
+			if cancels then
 				DrawBuilding(buildData, BORDER_COLOR_CLASH, false, alpha)
 			else
 				DrawBuilding(buildData, borderColor, false, alpha)
@@ -1335,11 +1390,7 @@ function widget:DrawWorld()
 	end
 
 	local function checkCommanderClash(previewBuildData, cx, cy, cz)
-		if cx == -100 then
-			return false
-		end
-		local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-		return DoBuildingsClash(previewBuildData, { startDefID, cbx, cby, cbz, 1 })
+		return DoesBuildClashWithCommander(previewBuildData, cx, cy, cz)
 	end
 
 	local function checkMexValidity(posX, posZ, isMex)
@@ -1516,14 +1567,25 @@ function widget:DrawWorld()
 	if selBuildData and showSelectedBuilding then
 		local drawSelectedOutline = WG["buildsquare-gl4"] == nil
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
+		local overlapsQueuedBuild = false
+		local cancelsQueuedBuild = false
+		for i = 1, #buildQueue do
+			if buildQueue[i][1] > 0 then
+				local overlaps, cancels = DoBuildingsClash(selBuildData, buildQueue[i])
+				overlapsQueuedBuild = overlapsQueuedBuild or overlaps
+				cancelsQueuedBuild = cancelsQueuedBuild or cancels
+			end
+		end
+		-- Cancellation takes precedence in CommandAI. Only an overlap with no
+		-- cancellation candidate rejects the proposed build.
+		local rejectedByQueuedBuild = overlapsQueuedBuild and not cancelsQueuedBuild
 		local testOrder = spTestBuildOrder(
 			selBuildQueueDefID,
 			selBuildData[2],
 			selBuildData[3],
 			selBuildData[4],
 			selBuildData[5]
-		) ~= 0
-
+		) ~= 0 and not rejectedByQueuedBuild
 		local isSelectedSpawned = false
 		local selectedAlpha = ALPHA_DEFAULT
 		local getBuildQueueSpawnStatus = WG.getBuildQueueSpawnStatus
