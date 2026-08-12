@@ -81,7 +81,7 @@ local zombieModeConfigs           = {
 	nightmare = {
 		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
 		rezMin = 60,
-		rezMax = 180,
+		rezMax = 120,
 		countMin = 2,
 		countMax = 6,
 		zombieCorpses = false
@@ -89,7 +89,7 @@ local zombieModeConfigs           = {
 	akumu = {
 		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
 		rezMin = 60,
-		rezMax = 180,
+		rezMax = 120,
 		countMin = 2,
 		countMax = 8,
 		zombieCorpses = true
@@ -653,20 +653,12 @@ local function clearCorpseRezRulesParam(featureID)
 	spSetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
 end
 
-local function setCorpseWasZombieRulesParam(featureID)
-	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, 1, PUBLIC_RULES_PARAM_ACCESS)
-end
-
-local function clearCorpseWasZombieRulesParam(featureID)
-	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
-end
-
 local function isWasZombieCorpse(featureID, corpseData)
 	if corpseData and corpseData.wasZombie then
 		return true
 	end
 	local wasZombieParam = spGetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM)
-	return wasZombieParam and wasZombieParam == 1
+	return wasZombieParam == 1
 end
 
 local function resetSpawn(featureID, featureData, featureDefData)
@@ -1059,7 +1051,7 @@ function gadget:FeatureCreated(featureID, allyTeam, sourceID)
 	if sourceID and pendingWasZombieUnits[sourceID] then
 		wasZombie = true
 		pendingWasZombieUnits[sourceID] = nil
-		setCorpseWasZombieRulesParam(featureID)
+		spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, 1, PUBLIC_RULES_PARAM_ACCESS)
 	end
 	if sourceID and pendingUnitXp[sourceID] then
 		pastXp = pendingUnitXp[sourceID].xp
@@ -1072,7 +1064,7 @@ end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	clearCorpseRezRulesParam(featureID)
-	clearCorpseWasZombieRulesParam(featureID)
+	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
 	corpsesData[featureID] = nil
 end
 
