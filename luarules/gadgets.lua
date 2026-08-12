@@ -497,8 +497,11 @@ end
 
 -- [SyntheticCallinName] := EngineCallinName[]
 local syntheticCallinHold = {
+	MetaUnitAdded         = { 'UnitGiven', 'UnitCreated' },
+	MetaUnitRemoved       = { 'UnitTaken', 'UnitDestroyed' },
 	UnitBuildStepsPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
 	FeatureBuildStepsPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
+	UnitAutoTargetRange   = { 'AllowWeaponTarget' },
 }
 
 local callinHoldSummary = {}
@@ -1133,9 +1136,12 @@ function gadgetHandler:UpdateCallIn(name)
 	local callinHolds = syntheticCallinHold[name]
 	if callinHolds then
 		-- Synthetic call-ins are dispatched by the game so have no engine hook.
-		syntheticCallinUpdate[name](#self[listName] > 0)
-		for _, backer in ipairs(callinHolds) do
-			self:UpdateCallIn(backer)
+		local handleUpdate = syntheticCallinUpdate[name]
+		if handleUpdate then
+			handleUpdate(#self[listName] > 0)
+		end
+		for _, callin in ipairs(callinHolds) do
+			self:UpdateCallIn(callin)
 		end
 		return
 	end
@@ -2100,11 +2106,6 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		end
 	end
 	return allowed, result
-end
-
-function gadgetHandler:UnitAutoTargetRange(attackerID, autoTargetRange)
-	-- Implementation stub for g:UnitAutoTargetRange. See g:AllowWeaponTarget, above.
-	-- This is needed for gadgetHandler to "see" this callin and build its call list.
 end
 
 function gadgetHandler:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID)

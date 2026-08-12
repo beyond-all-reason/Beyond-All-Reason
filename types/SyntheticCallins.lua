@@ -1,0 +1,37 @@
+---@meta
+
+---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
+---@class SyntheticCallins
+---
+---Runs for every unit gained by a team, whether built, given, or spawned.
+---
+---Dispatch: g:UnitCreated, g:UnitGiven.
+---@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---
+---Runs for every unit lost to a team, whether destroyed or taken.
+---
+---Dispatch: g:UnitDestroyed, g:UnitTaken.
+---@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---
+---Returns the auto-target search radius for a unit's command AI, replacing the
+---radius it was given. Each subscriber is chained onto the previous result, and
+---a radius of zero or less disallows the search.
+---
+---Optionally replaces the autotarget search radius for a unit's command AI.
+---
+---Any return value of zero or less discontinues the chain and prevents the search.
+---
+---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
+---@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
+---
+---Runs once per unit that was allowed progress on a build step that frame,
+---which includes all build steps from build, repair, reclaim, and capture.
+---
+---Dispatched from g:GameFramePost; marked in g:AllowUnitBuildStep.
+---@field UnitBuildStepsPost? fun(self, unitID: integer)
+---
+---Runs once per feature that was allowed progress on a build step that frame,
+---which includes all build steps from build, repair, reclaim, and capture.
+---
+---Dispatched from g:GameFramePost; marked in g:AllowFeatureBuildStep.
+---@field FeatureBuildStepsPost? fun(self, featureID: integer)
