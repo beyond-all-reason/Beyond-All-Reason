@@ -63,4 +63,113 @@ for name, callinHolds in pairs(syntheticCallinHold) do
 	end
 end
 
+--------------------------------------------------------------------------------
+--  Build step marks  ----------------------------------------------------------
 return syntheticCallinHold, callinHoldSummary
+
+local unitStepMarked,    unitStepList,    unitStepCount    = {}, {}, {}
+local featureStepMarked, featureStepList, featureStepCount = {}, {}, {}
+
+local function dropUnitBuildStepMarks()
+	for i = 1, unitStepCount[1] or 0 do
+		unitStepMarked[unitStepList[i]] = nil
+	end
+	unitStepCount[1] = nil
+end
+
+local function dropFeatureBuildStepMarks()
+	for i = 1, featureStepCount[1] or 0 do
+		featureStepMarked[featureStepList[i]] = nil
+	end
+	featureStepCount[1] = nil
+end
+
+local syntheticCallinUpdate = {
+	UnitBuildStepsPost = function(active)
+		if active then
+			unitStepCount[1] = unitStepCount[1] or 0
+		else
+			dropUnitBuildStepMarks()
+		end
+	end,
+	FeatureBuildStepsPost = function(active)
+		if active then
+			featureStepCount[1] = featureStepCount[1] or 0
+		else
+			dropFeatureBuildStepMarks()
+		end
+	end,
+}
+
+--------------------------------------------------------------------------------
+--  Dispatch  -------------------------------------------------------------------
+--
+--  We can attach to the gadgetHandler at load time, so callins are declared here.
+
+function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.MetaUnitAddedList) do
+		g:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	end
+end
+
+function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.MetaUnitRemovedList) do
+		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	end
+end
+
+function gadgetHandler:UnitBuildStepsPost()
+	local count = unitStepCount[1]
+	if not count or count == 0 then
+		return
+	end
+	unitStepCount[1] = 0
+
+	-- Clear marks first so a subscriber that throws does not leave any marks.
+	for i = 1, count do
+		unitStepMarked[unitStepList[i]] = nil
+	end
+
+	local list = self.UnitBuildStepsPostList
+	for i = 1, count do
+		local unitID = unitStepList[i]
+		for _, g in ipairs(list) do
+			g:UnitBuildStepsPost(unitID)
+		end
+	end
+end
+
+function gadgetHandler:FeatureBuildStepsPost()
+	local count = featureStepCount[1]
+	if not count or count == 0 then
+		return
+	end
+	featureStepCount[1] = 0
+
+	-- Clear marks first so a subscriber that throws does not leave any marks.
+	for i = 1, count do
+		featureStepMarked[featureStepList[i]] = nil
+	end
+
+	local list = self.FeatureBuildStepsPostList
+	for i = 1, count do
+		local featureID = featureStepList[i]
+		for _, g in ipairs(list) do
+			g:FeatureBuildStepsPost(featureID)
+		end
+	end
+end
+
+return {
+	hold              = syntheticCallinHold,   -- [SyntheticCallinName] := EngineCallinName[]
+	holdSummary       = callinHoldSummary,     -- [EngineCallinName]    := SyntheticCallinListName[]
+	update            = syntheticCallinUpdate, -- [SyntheticCallinName] := handleUpdateCallin
+
+	unitStepMarked    = unitStepMarked,
+	unitStepList      = unitStepList,
+	unitStepCount     = unitStepCount,
+
+	featureStepMarked = featureStepMarked,
+	featureStepList   = featureStepList,
+	featureStepCount  = featureStepCount,
+}

@@ -481,98 +481,19 @@ end
 --
 --  Synthetic callins
 --
---  The registry of which callins these are, and of the engine callins that have
---  to stay installed to produce them, lives in synthetic_callins.lua. Their own
---  state and dispatch stay here, next to the callins that drive them.
---
---  [SyntheticCallinName] := EngineCallinName[], [EngineCallinName] := ListName[]
-local syntheticCallinHold, callinHoldSummary = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
+--  The game injects some of its own callins into the engine-driven event system:
+local synthetic = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
+local syntheticCallinHold   = synthetic.hold
+local callinHoldSummary     = synthetic.holdSummary
+local syntheticCallinUpdate = synthetic.update
 
--- Summary callins of per-frame build steps:
--- gadget:UnitBuildStepsPost(unitID)
--- gadget:FeatureBuildStepsPost(featureID)
+local unitStepMarked = synthetic.unitStepMarked
+local unitStepList = synthetic.unitStepList
+local unitStepCount = synthetic.unitStepCount
 
-local markUnitSteps = false
-local unitStepMarked = {}
-local unitStepList = {}
-local unitStepCount = 0
-
-local markFeatureSteps = false
-local featureStepMarked = {}
-local featureStepList = {}
-local featureStepCount = 0
-
-local function dropUnitBuildStepMarks()
-	for i = 1, unitStepCount do
-		unitStepMarked[unitStepList[i]] = nil
-	end
-	unitStepCount = 0
-end
-
-local function dropFeatureBuildStepMarks()
-	for i = 1, featureStepCount do
-		featureStepMarked[featureStepList[i]] = nil
-	end
-	featureStepCount = 0
-end
-
--- [SyntheticCallinName] := handleUpdateCallin
-local syntheticCallinUpdate = {
-	UnitBuildStepsPost = function(active)
-		if not active and markUnitSteps then
-			dropUnitBuildStepMarks()
-		end
-		markUnitSteps = active
-	end,
-	FeatureBuildStepsPost = function(active)
-		if not active and markFeatureSteps then
-			dropFeatureBuildStepMarks()
-		end
-		markFeatureSteps = active
-	end,
-}
-
-function gadgetHandler:UnitBuildStepsPost()
-	local count = unitStepCount
-	if count == 0 then
-		return
-	end
-	unitStepCount = 0
-
-	-- Clear marks first so a subscriber that throws does not leave any marks.
-	for i = 1, count do
-		unitStepMarked[unitStepList[i]] = nil
-	end
-
-	local list = self.UnitBuildStepsPostList
-	for i = 1, count do
-		local unitID = unitStepList[i]
-		for _, g in ipairs(list) do
-			g:UnitBuildStepsPost(unitID)
-		end
-	end
-end
-
-function gadgetHandler:FeatureBuildStepsPost()
-	local count = featureStepCount
-	if count == 0 then
-		return
-	end
-	featureStepCount = 0
-
-	-- Clear marks first so a subscriber that throws does not leave any marks.
-	for i = 1, count do
-		featureStepMarked[featureStepList[i]] = nil
-	end
-
-	local list = self.FeatureBuildStepsPostList
-	for i = 1, count do
-		local featureID = featureStepList[i]
-		for _, g in ipairs(list) do
-			g:FeatureBuildStepsPost(featureID)
-		end
-	end
-end
+local featureStepMarked = synthetic.featureStepMarked
+local featureStepList = synthetic.featureStepList
+local featureStepCount = synthetic.featureStepCount
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1767,20 +1688,6 @@ end
 --  LuaRules Game call-ins
 --
 
-function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.MetaUnitAddedList) do
-		g:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	end
-	return
-end
-
-function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.MetaUnitRemovedList) do
-		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	end
-	return
-end
-
 function gadgetHandler:DrawProjectile(projectileID, drawMode)
 	for _, g in ipairs(self.DrawProjectileList) do
 		if g:DrawProjectile(projectileID, drawMode) then
@@ -1903,10 +1810,13 @@ end
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
 
-	if markUnitSteps and not unitStepMarked[unitID] then
+	tracy.ZoneBeginN("G:AllowUnitBuildStepOuter")
+	local marks = unitStepCount[1]
+	if marks and not unitStepMarked[unitID] then
 		unitStepMarked[unitID] = true
-		unitStepCount = unitStepCount + 1
-		unitStepList[unitStepCount] = unitID
+		marks = marks + 1
+		unitStepCount[1] = marks
+		unitStepList[marks] = unitID
 	end
 
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
@@ -1916,7 +1826,8 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 			return false
 		end
 	end
-	tracy.ZoneEnd()
+	tracy.ZoneEnd("G:AllowUnitBuildStep")
+	tracy.ZoneEnd("G:AllowUnitBuildStepOuter")
 	return true
 end
 
@@ -1950,17 +1861,23 @@ end
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
 											 featureID, featureDefID, part)
-	if markFeatureSteps and not featureStepMarked[featureID] then
+	tracy.ZoneBeginN("G:AllowFeatureBuildStepOuter")
+	local marks = featureStepCount[1]
+	if marks and not featureStepMarked[featureID] then
 		featureStepMarked[featureID] = true
-		featureStepCount = featureStepCount + 1
-		featureStepList[featureStepCount] = featureID
+		marks = marks + 1
+		featureStepCount[1] = marks
+		featureStepList[marks] = featureID
 	end
 
+	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
 			return false
 		end
 	end
+	tracy.ZoneEnd("G:AllowFeatureBuildStep")
+	tracy.ZoneEnd("G:AllowFeatureBuildStepOuter")
 	return true
 end
 
