@@ -41,6 +41,8 @@ local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local ALLY_UNITS = Spring.ALLY_UNITS
 
+local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
+
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
@@ -117,7 +119,7 @@ local function getLeashRadius(unitID)
 end
 
 local function sendHome(builderID, info)
-	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, 0)
+	spGiveOrderToUnit(builderID, CMD_MOVE, { info.homeX, info.homeY, info.homeZ }, CMD_OPT_INTERNAL)
 	activeRepairs[builderID] = nil
 end
 
@@ -425,7 +427,7 @@ function widget:GameFrame(frame)
 					activeReclaimers[allyReclaimerID] = bestTarget
 					reclaimBlacklist[bestTarget] = math.huge
 				else
-					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget)
+					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget, CMD_OPT_INTERNAL)
 
 					activeRepairs[builderID] = {
 						targetID = bestTarget,
