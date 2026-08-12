@@ -22575,26 +22575,6 @@ local unitLights = {
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
 	},
-	['armminebomber'] = {
-		thruster1 = {
-			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = -15, posy = 0, posz = -62.5, radius = 22,
-							color2r = 1, color2g = 0.6, color2b = 0.2, colortime = 7,
-							r = 0.88, g = 0.5, b = 0.14, a = 0.1,
-							modelfactor = 0.4, specular = 0, scattering = 1.2, lensflare = 0,
-							lifetime = 0, sustain = 0, selfshadowing = 0},
-		},
-		thruster2 = {
-			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 15, posy = 0, posz = -62.5, radius = 22,
-							color2r = 1, color2g = 0.6, color2b = 0.2, colortime = 7,
-							r = 0.88, g = 0.5, b = 0.14, a = 0.1,
-							modelfactor = 0.4, specular = 0, scattering = 1.2, lensflare = 0,
-							lifetime = 0, sustain = 0, selfshadowing = 0},
-		},
-	},
 	['armliche'] = {
 		thruster1 = {
 			lightType = 'point',
