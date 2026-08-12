@@ -1,40 +1,26 @@
 require("spec_helper")
 
 local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
-
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-
--- Mock tracking and provide trackedUnitIDs directly.
-local trackedUnitIDs = {}
-GG['MissionAPI'].trackedUnitIDs   = trackedUnitIDs
-GG['MissionAPI'].Modules.Tracking = {
-    IsUnitNameUntracked = function(name) return trackedUnitIDs[name] == nil end,
-}
-
--- Mock Loadout
-GG['MissionAPI'].Modules.Loadout = {
-    ConvertOrdersTargetingNames = function(orders) return orders end,
-}
+local Builders = VFS.Include("spec/builders/index.lua")
 
 local actions  = VFS.Include('luarules/mission_api/actions/issue_orders.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-local function clearTracking()
-    for k in pairs(trackedUnitIDs) do trackedUnitIDs[k] = nil end
-end
+local missionApi = GG['MissionAPI']
 
-local function seedUnit(name, id)
-    trackedUnitIDs[name]       = trackedUnitIDs[name] or {}
-    trackedUnitIDs[name][id]   = true
+local function seedUnits(name, ...)
+    local builder = Builders.MissionApi.new()
+    for _, unitID in ipairs({ ... }) do
+        builder:WithTrackedUnit(name, unitID)
+    end
+    builder:Install()
 end
 
 describe("mission_api.actions.issue_orders", function()
 
     before_each(function()
-        clearTracking()
+        Builders.MissionApi.new():Install()
         _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
@@ -53,20 +39,21 @@ describe("mission_api.actions.issue_orders", function()
         end)
 
         it("calls GiveOrderArrayToUnitMap with the tracked unit map and converted orders", function()
-            seedUnit('bots', 101)
-            seedUnit('bots', 102)
+            seedUnits('bots', 101, 102)
             local orders = { { 10, {}, {} } }
             action.actionFunction('bots', orders)
             assert.are.equal(1, #Spring._giveOrderCalls)
-            assert.are.same(trackedUnitIDs['bots'], Spring._giveOrderCalls[1].unitMap)
+            assert.are.same(missionApi.trackedUnitIDs['bots'], Spring._giveOrderCalls[1].unitMap)
         end)
 
         it("passes the result of ConvertOrdersTargetingNames as the orders", function()
-            seedUnit('scout', 5)
             local convertedOrders = { { 999, {}, {} } }
-            GG['MissionAPI'].Modules.Loadout.ConvertOrdersTargetingNames = function(orders)
-                return convertedOrders
-            end
+            Builders.MissionApi.new()
+                :WithTrackedUnit('scout', 5)
+                :WithModule('Loadout', {
+                    ConvertOrdersTargetingNames = function() return convertedOrders end,
+                })
+                :Install()
             action.actionFunction('scout', {})
             assert.are.same(convertedOrders, Spring._giveOrderCalls[1].orders)
         end)

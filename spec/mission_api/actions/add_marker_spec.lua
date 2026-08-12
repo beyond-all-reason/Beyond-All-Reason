@@ -1,23 +1,18 @@
 require("spec_helper")
 
 local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
-
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-GG['MissionAPI'].markerNames = {}
+local Builders = VFS.Include("spec/builders/index.lua")
 
 local actions  = VFS.Include('luarules/mission_api/actions/add_marker.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
+local missionApi = GG['MissionAPI']
+
 describe("mission_api.actions.add_marker", function()
 
     before_each(function()
-        -- reset shared state and Spring spy
-        for k in pairs(GG['MissionAPI'].markerNames) do
-            GG['MissionAPI'].markerNames[k] = nil
-        end
+        Builders.MissionApi.new():Install()
         _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
@@ -43,12 +38,12 @@ describe("mission_api.actions.add_marker", function()
         it("stores the position in markerNames when a name is given", function()
             local pos = { x = 1, y = 2, z = 3 }
             action.actionFunction(pos, 'label', 'myMarker')
-            assert.are.same(pos, GG['MissionAPI'].markerNames['myMarker'])
+            assert.are.same(pos, missionApi.markerNames['myMarker'])
         end)
 
         it("does not store anything in markerNames when name is nil", function()
             action.actionFunction({ x = 0, y = 0, z = 0 }, 'label', nil)
-            assert.are.same({}, GG['MissionAPI'].markerNames)
+            assert.are.same({}, missionApi.markerNames)
         end)
 
         it("passes false as the local flag to MarkerAddPoint", function()
