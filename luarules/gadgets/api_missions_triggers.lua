@@ -4,6 +4,7 @@ local doesUnitHaveName
 local untrackUnitID
 local doesFeatureHaveName
 local untrackFeatureID
+local updateTimers
 
 function gadget:GetInfo()
 	return {
@@ -154,6 +155,9 @@ function gadget:Initialize()
 	doesFeatureHaveName     = tracking.DoesFeatureHaveName
 	untrackFeatureID        = tracking.UntrackFeatureID
 
+	local timers            = GG['MissionAPI'].Modules.Timers
+	updateTimers            = timers.UpdateTimers
+
 	triggerContext = {
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
@@ -163,6 +167,7 @@ function gadget:Initialize()
 		PreviousUnitsInAreas     = previousUnitsInAreas,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
+		GetTimerFrames           = timers.GetTimerFrames,
 	}
 
 	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
@@ -191,6 +196,8 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(frameNumber)
+	updateTimers()
+
 	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
 		teamReclaimIncomeSnapshot = teamReclaimIncome
