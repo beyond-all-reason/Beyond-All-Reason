@@ -3,19 +3,15 @@
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
 ---@class SyntheticCallins
 ---
----Runs for every unit gained by a team, whether built, given, or spawned.
+---Runs for every unit gained by a team, regardless of how it was gained.
 ---
 ---Dispatch: g:UnitCreated, g:UnitGiven.
 ---@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
 ---
----Runs for every unit lost to a team, whether destroyed or taken.
+---Runs for every unit lost to a team, regardless of how it was lost.
 ---
 ---Dispatch: g:UnitDestroyed, g:UnitTaken.
 ---@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
----
----Returns the auto-target search radius for a unit's command AI, replacing the
----radius it was given. Each subscriber is chained onto the previous result, and
----a radius of zero or less disallows the search.
 ---
 ---Optionally replaces the autotarget search radius for a unit's command AI.
 ---
