@@ -560,7 +560,7 @@ function widget:Initialize()
 	WG['commandsfx'].setUseTeamColors = function(value)
 		useTeamColors = value
 	end
-	WG['commandsfx'].setUseTeamColorsWhenSpec = function()
+	WG['commandsfx'].getUseTeamColorsWhenSpec = function()
 		return useTeamColorsWhenSpec
 	end
 	WG['commandsfx'].setUseTeamColorsWhenSpec = function(value)
