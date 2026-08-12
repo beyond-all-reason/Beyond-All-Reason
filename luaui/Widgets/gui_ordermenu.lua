@@ -168,6 +168,13 @@ local commandTextCache = {}
 local cachedWaitState = nil
 local hasWaitCommand = false
 local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
+local firestateChangedListener
+
+local function onSelectedUnitFirestateChanged(unitID, state)
+	if unitID == cachedFirstUnit then
+		doUpdate = true
+	end
+end
 
 -- Cancel target button visibility tracking
 local cancelTargetPollSec = 0
@@ -641,6 +648,10 @@ function widget:Initialize()
 		end,
 	})
 	installFirestateNotifyHooks()
+	if WG['firestate'] and WG['firestate'].addFirestateChangedListener then
+		firestateChangedListener = onSelectedUnitFirestateChanged
+		WG['firestate'].addFirestateChangedListener(firestateChangedListener)
+	end
 	reloadBindings()
 	activeCommand = select(4, spGetActiveCommand())
 	widget:ViewResize()
@@ -732,6 +743,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	if WG['firestate'] and WG['firestate'].removeFirestateChangedListener and firestateChangedListener then
+		WG['firestate'].removeFirestateChangedListener(firestateChangedListener)
+		firestateChangedListener = nil
+	end
 	clearStateLightDisplayLists()
 	if WG['guishader'] and displayListGuiShader then
 		WG['guishader'].DeleteDlist('ordermenu')

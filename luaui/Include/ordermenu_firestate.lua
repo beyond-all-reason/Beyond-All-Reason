@@ -73,7 +73,7 @@ local labelByVirtualIndexEnabled = {
 
 local function resolveVirtualIndex(unitID)
 	local userFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
-	if userFirestate == nil then
+	if userFirestate == nil or userFirestate == CustomFirestateDefs.UNKNOWN then
 		return nil
 	end
 	local virtualIndexByState = Spring.GetModOptions().experimental_defend_firestate and virtualIndexByStateEnabled or virtualIndexByStateDisabled

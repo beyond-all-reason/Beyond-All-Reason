@@ -61,18 +61,23 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
 		if not cloakFireState[unitDefID] then return end
 
-		if cmdParams[1] == 1 then -- store current fire state and cloak
+		if cmdParams[1] == 1 then
+			local currentFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
+			if currentFirestate == CustomFirestateDefs.UNKNOWN then
+				return
+			end
 			cloakActive[unitID] = true
-			decloakFireState[unitID] = CustomFirestateDefs.getUnitUserFirestate(unitID) --store last state
+			decloakFireState[unitID] = currentFirestate
 			local cloaktargetstate = cloakFireState[unitDefID]
 			local cloakTargetUserState = CustomFirestateDefs.fromEngineFirestate(cloaktargetstate)
-			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= cloakTargetUserState then
+			if currentFirestate ~= cloakTargetUserState then
 				WG['firestate'].setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
 			end
-		else -- decloak and restore previous fire state
+		else
 			local decloaktargetState = decloakFireState[unitID] or CustomFirestateDefs.HOLD_FIRE
-			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= decloaktargetState then
-				WG['firestate'].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
+			local currentFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
+			if currentFirestate ~= CustomFirestateDefs.UNKNOWN and currentFirestate ~= decloaktargetState then
+				WG['firestate'].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false })
 			end
 			cloakActive[unitID] = nil
 			decloakFireState[unitID] = nil
@@ -82,7 +87,10 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam then
-		decloakFireState[unitID] = CustomFirestateDefs.getUnitUserFirestate(unitID)	-- 1=firestate
+		local currentFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
+		if currentFirestate ~= CustomFirestateDefs.UNKNOWN then
+			decloakFireState[unitID] = currentFirestate
+		end
 	else
 		decloakFireState[unitID] = nil
 		cloakActive[unitID] = nil

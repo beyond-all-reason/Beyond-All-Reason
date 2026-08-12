@@ -1,7 +1,7 @@
 local customFirestateDefs = {
-	RULES_PARAM = "user_firestate",
 	PARAM_USER_INITIATED = 2,
 
+	UNKNOWN = -1,
 	HOLD_FIRE = 0,
 	DEFEND = 1,
 	RETURN_FIRE = 2,
@@ -83,15 +83,17 @@ end
 
 function customFirestateDefs.getUnitUserFirestate(unitID)
 	if not Spring.ValidUnitID(unitID) then
-		return nil
+		return customFirestateDefs.UNKNOWN
 	end
-	if Spring.GetModOptions().experimental_defend_firestate then
-		local rulesState = Spring.GetUnitRulesParam(unitID, customFirestateDefs.RULES_PARAM)
-		if rulesState ~= nil then
-			return rulesState
-		end
+	local firestateApi = WG and WG['firestate']
+	if firestateApi and firestateApi.getUnitFirestate then
+		return firestateApi.getUnitFirestate(unitID)
 	end
-	return customFirestateDefs.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+	local engineFirestate = select(1, Spring.GetUnitStates(unitID, false))
+	if engineFirestate == nil then
+		return customFirestateDefs.UNKNOWN
+	end
+	return customFirestateDefs.fromEngineFirestate(engineFirestate)
 end
 
 function customFirestateDefs.stateLabel(cmd)

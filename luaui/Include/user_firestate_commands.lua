@@ -8,6 +8,7 @@ How to issue a firestate change from your widget:
   2. Pick a state from CustomFirestateDefs:
        HOLD_FIRE, DEFEND, RETURN_FIRE, FIRE_AT_WILL, FIRE_AT_ALL
        DEFEND is the new mode (hold fire unless a nearby enemy threatens you).
+       Do not issue UNKNOWN (-1); that is only returned when firestate is unknown.
 
   3. Call one of these:
        WG['firestate'].setSelectionFirestate(state, Spring.GetSelectedUnits(), opts)
@@ -21,8 +22,9 @@ How to issue a firestate change from your widget:
 
 How to read a unit's current firestate:
 
-  local state = CustomFirestateDefs.getUnitUserFirestate(unitID)
-  -- returns a CustomFirestateDefs value (e.g. DEFEND), or nil if invalid
+  local state = WG['firestate'].getUnitFirestate(unitID)
+  -- or: CustomFirestateDefs.getUnitUserFirestate(unitID)
+  -- returns a CustomFirestateDefs value (e.g. DEFEND), or CustomFirestateDefs.UNKNOWN (-1)
 ]]
 
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
@@ -30,7 +32,6 @@ local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 
-local spGiveOrder = Spring.GiveOrder
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 WG['firestate'] = WG['firestate'] or {}
@@ -56,11 +57,7 @@ local function issueToUnit(unitID, userState, userInitiated)
 	if engineFirestate == nil then
 		return false
 	end
-	if Spring.GetModOptions().experimental_defend_firestate then
-		spGiveOrderToUnit(unitID, CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
-	else
-		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { engineFirestate }, 0)
-	end
+	spGiveOrderToUnit(unitID, CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
 	return true
 end
 
@@ -85,14 +82,8 @@ local function setSelectionFirestate(userState, unitIDs, opts)
 	local userInitiated = opts.userInitiated and true or false
 	stageFirestate(unitIDs, userState, userInitiated)
 	notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
-	if Spring.GetModOptions().experimental_defend_firestate then
-		spGiveOrder(CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
-	else
-		local engineFirestate = CustomFirestateDefs.toEngineFirestate(userState)
-		if engineFirestate == nil then
-			return false
-		end
-		spGiveOrder(CMD_FIRE_STATE, { engineFirestate }, 0)
+	for index = 1, #unitIDs do
+		issueToUnit(unitIDs[index], userState, userInitiated)
 	end
 	return true
 end
