@@ -351,6 +351,11 @@ local callInLists = {
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
 	"UnitAutoTargetRange",
+
+	-- Synthetic callins
+	-- "UnitBuildStepsPost",
+	-- "FeatureBuildStepsPost",
+
 	-- unsynced
 	"DrawProjectile",
 	"RecvSkirmishAIMessage",
@@ -470,6 +475,42 @@ do
 		gadgetHandler[listname .. 'List'] = {}
 	end
 end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Synthetic callins
+--
+--  These are artificially created within the game code to emulate the behaviors
+--  of engine-driven callins. We are filling the gaps produced by the engine's
+--  event system, in many cases, so code built on top of these foundations needs
+--  to keep up with the times and adapt as the gaps fill in from the other side.
+--
+--  [IMPORTANT]
+--  > The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
+--  > 
+--  > Synthetic callins that subscribe to engine callins are kept installed for
+--  > as long as anything subscribes to them. These _must_ be recorded below or
+--  > can become unhooked whenever no addon happens to subscribe to their base.
+
+-- [SyntheticCallinName] := EngineCallinName[]
+local syntheticCallinHold = {
+	UnitBuildStepsPost    = { 'AllowUnitBuildStep',    'GameFramePost' },
+	FeatureBuildStepsPost = { 'AllowFeatureBuildStep', 'GameFramePost' },
+}
+
+local callinHoldSummary = {}
+for name, subscriptions in pairs(syntheticCallinHold) do
+	for _, backer in ipairs(subscriptions) do
+		local lists = callinHoldSummary[backer]
+		if not lists then
+			lists = {}
+			callinHoldSummary[backer] = lists
+		end
+		lists[#lists + 1] = name .. 'List'
+	end
+end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1007,7 +1048,19 @@ function gadgetHandler:UpdateCallIn(name)
 		return
 	end
 
-	if forceUpdate or #self[listName] > 0 then
+	local wantedUpdate = #self[listName] > 0
+
+	local summaries = callinHoldSummary[name]
+	if summaries and not wantedUpdate then
+		for _, summaryList in ipairs(summaries) do
+			if #self[summaryList] > 0 then
+				wantedUpdate = true
+				break
+			end
+		end
+	end
+
+	if forceUpdate or wantedUpdate then
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
