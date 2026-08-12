@@ -885,6 +885,7 @@ local function drawGroundRect(box, r, g, b, a, fillA)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		local gridStep = 64
 		for z = z1, z2 - gridStep, gridStep do
+			-- stylua: ignore start
 			glBeginEnd(GL_QUADS, function()
 				for x = x1, x2 - gridStep, gridStep do
 					local nx = min(x + gridStep, x2)
@@ -895,6 +896,7 @@ local function drawGroundRect(box, r, g, b, a, fillA)
 					glVertex(x,  spGetGroundHeight(x,  nz) + y_offset, nz)
 				end
 			end)
+			-- stylua: ignore end
 		end
 	end
 	glColor(1, 1, 1, 1)

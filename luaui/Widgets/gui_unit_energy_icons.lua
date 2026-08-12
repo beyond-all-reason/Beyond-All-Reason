@@ -180,8 +180,8 @@ local function updateStalling()
 			--Previous implementation of such a mechanism led to the energy symbols then remaining when the condition was reached(worked for all but starfall)
 			for unitID, unitDefID in pairs(units) do
 				local unitEnergy = select(4, spGetUnitResources(unitID))
-				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
-					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])) then
+				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] -- more neededEnergy than we have
+					and (not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])) then
 
 					if not Spring.GetUnitIsBeingBuilt(unitID) and
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn

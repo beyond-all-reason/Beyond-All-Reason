@@ -1,3 +1,4 @@
+-- stylua: ignore start
 ---@type table<string, number>
 local unitOrderTable = {
 -- UNITS
@@ -842,6 +843,7 @@ local unitOrderTable = {
    ['armatl']         = 260500,
    ['coratl']         = 260600,
 }
+-- stylua: ignore end
 
 ---@type table<string, number>
 local newUnitOrder = {}
