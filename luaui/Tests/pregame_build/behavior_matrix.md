@@ -20,20 +20,20 @@ The case “inside the cancel region without yardmap overlap” cannot be tested
 | Placement scenario                            | Earlier queued build   | Non-BuildSquare GL4 preview  | BuildSquare GL4 preview                                   | Click result                                          |
 |-----------------------------------------------|------------------------|------------------------------|-----------------------------------------------------------|-------------------------------------------------------|
 | Free space                                    | —                      | Green square                 | All cells green                                           | New build is queued                                   |
-| Terrain obstruction, with yardmap overlap     | —                      | Red square                   | All cells red                                             | New build is not queued                               |
-| Terrain obstruction, without yardmap overlap  | —                      | Green square                 | Overlapping cells red and rest yellow                     | New build is queued                                   |
+| Terrain obstruction on occupied yardmap cells, or invalid slope/other constraints | — | Red square | All cells red | New build is not queued |
+| Terrain obstruction only on open yardmap cells | —                     | Green square                 | Overlapping cells red and rest yellow 🟢 → all cells green | New build is queued                                  |
 | Slight queue overlap, with yardmap overlap    | Keeps its green square | Red square                   | All cells red, regardless of which cells overlap          | Nothing happens                                       |
 | Slight queue overlap, without yardmap overlap | Keeps its green square | Red square 🟢 → green square | All cells red 🟢 → all cells green                        | Nothing happens 🟢 → new build is queued              |
 | Inside cancel region, with yardmap overlap    | Gets a red square      | Green square                 | Red outline; overlapping cells red; remaining cells green | Earlier build is dequeued                             |
-| Over commander/builder                        | —                      | Green square                 | All cells green                                           | A red square appears briefly; new build is not queued |
+| Over commander/builder                        | —                      | Green square                 | All cells green                                           | A red square appears briefly; new build is not queued 🟢 → new build is queued |
 
 ## In-game
 
 | Placement scenario                                   | Earlier queued build         | Non-BuildSquare GL4 preview                                                                             | BuildSquare GL4 preview                                                                                       | Click result                             |
 |------------------------------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|------------------------------------------|
 | Free space                                           | —                            | All cells green                                                                                         | All cells green                                                                                               | New build is queued                      |
-| Terrain obstruction, with yardmap overlap            | —                            | Overlapping cells red and rest yellow                                                                   | Cells intersecting the footprint rectangle are red; rest yellow                                               | New build is not queued                  |
-| Terrain obstruction, without yardmap overlap         | —                            | Overlapping cells red and rest yellow                                                                   | Cells intersecting the footprint rectangle are red; rest yellow                                               | New build is NOT queued                  |
+| Terrain obstruction on occupied yardmap cells, or invalid slope/other constraints | — | Overlapping cells red and rest yellow | Cells intersecting the footprint rectangle are red; rest yellow. For invalid slope, no individual cells are red | New build is not queued |
+| Terrain obstruction only on open yardmap cells       | —                            | All cells green                                                                                         | All cells green                                                                                               | New build is queued                      |
 | Completed building, with yardmap overlap             | —                            | Yardmap-conflicting cells red; rest yellow                                                              | Yardmap-conflicting cells red; rest yellow                                                                    | New build is not queued                  |
 | Completed building, without yardmap overlap          | —                            | Same as free space                                                                                      | Same as free space                                                                                            | New build is queued                      |
 | Slight queue overlap, with yardmap overlap           | Keeps its green square       | Cells intersecting the earlier build’s outline red; rest yellow 🟢 → only yardmap-conflicting cells red | Cells intersecting the earlier build’s outline red; rest yellow 🟢 → only yardmap-conflicting cells red       | Nothing happens                          |
@@ -51,18 +51,16 @@ Cases that were consistent both before and after the change are omitted.
 
 | Placement scenario | Before: pregame vs in-game | After: pregame vs in-game | Status |
 |---|---|---|---|
-| Terrain obstruction, with yardmap overlap | Both reject the build, but pregame shows the whole footprint red while in-game distinguishes red and yellow cells | Unchanged | 🟡 **Remains:** previews differ |
-| Terrain obstruction, without yardmap overlap | Pregame queues the build with a green outline; in-game rejects it with a red/yellow preview | Unchanged | 🔴 **Remains:** click behavior differs |
+| Terrain obstruction on occupied yardmap cells | Both reject the build, but pregame shows the whole footprint red while in-game distinguishes red and yellow cells | Unchanged | 🟡 **Remains:** previews differ |
+| Terrain obstruction only on open yardmap cells | Both queue the build, but the pregame GL4 preview falsely shows blocked cells while the in-game preview is green | Both previews are green and both queue the build | 🟢 **Resolved** |
 | Slight queue overlap, with yardmap overlap | Both reject the build, but pregame shows the whole footprint red while in-game distinguishes yardmap-conflicting cells | Both still reject the build; pregame remains entirely red while in-game now marks only yardmap-conflicting cells red | 🟡 **Remains:** previews differ |
 | Slight queue overlap, without yardmap overlap | Both reject the build, with different blocked previews | Both show a green preview and queue the new build | 🟢 **Resolved** |
 | Inside cancel region, with yardmap overlap | Both dequeue the earlier build, but pregame and in-game highlight the cancellation differently | Both mark the earlier build and overlapping cells red and dequeue it, but outline and remaining-cell colors still differ | 🟡 **Remains:** previews differ |
-| Over commander/builder | Pregame rejects the build despite a green preview; in-game marks occupied cells yellow and queues it | Unchanged | 🔴 **Remains:** intentional pregame restriction |
+| Over commander/builder | Pregame rejects the build despite a green preview; in-game marks occupied cells yellow and queues it | Both queue the build; the commander moves out of the footprint before building | 🟢 **Resolved** |
 
 ## Design notes
 
-- Pregame placement over the commander/builder can be made configurable, but allowing it is probably undesirable.
-- Allowing construction when invalid terrain intersects only open yardmap cells might be desirable, but would require a
-  substantial change.
+- The former pregame commander restriction was introduced by BAR PR #1515 to address issue #803, where an already-spawned commander could start constructing over itself. That original behavior no longer reproduces: at game start the commander moves out of the footprint before building. The restriction remains configurable in `gui_pregame_build.lua`, and disabling placement also makes both pregame previews red.
 
 ## Automated coverage
 
@@ -73,10 +71,10 @@ Cases that were consistent both before and after the change are omitted.
 | Pregame slight queue overlap, with yardmap overlap | `test_yardmap_queue_behavior.lua` verifies the engine classification used by pregame, but not the pregame Lua queue mutation. | Engine result verified; click remains manual | Same |
 | Pregame slight queue overlap, without yardmap overlap | The same test verifies that the API changes from rectangle overlap to no overlap. The pregame widget consumes this API, but its click remains manual. | Engine result verified; click remains manual | Engine result verified; click remains manual |
 | Pregame cancel-region overlap | The same test verifies the engine cancellation classification. Actual pregame removal remains manual. | Engine result verified; click remains manual | Same |
-| Pregame commander/builder restriction | Not automated. | Manual result only | Manual result only |
+| Pregame commander/builder placement | Not automated. | Manual result only | Manual result only |
 | In-game free space | `test_yardmap_queue_behavior.lua`: the first real constructor build command remains queued. | Accepted | Accepted |
 | In-game terrain obstruction on an occupied yardmap cell | `test_world_obstruction_behavior.lua`: raises one occupied solar cell by 200 elmos and sends a real build command. | Rejected | Rejected |
-| In-game terrain obstruction on an open yardmap cell | The same test raises one open corner yardmap cell by 200 elmos. This explicitly tests terrain versus yardmap openness. | Rejected | Rejected |
+| In-game terrain deformation centered on an open yardmap cell | The same test raises terrain by 200 elmos at an open corner cell. The deformation can affect neighboring height/slope samples, so it does not isolate terrain validity to that single open cell. | Rejected | Rejected |
 | Completed building, with yardmap overlap | Creates a completed solar, then sends a conflicting real solar command. | Rejected | Rejected |
 | Completed building, without yardmap overlap | Creates a completed solar, then sends a diagonally interlocking real solar command. | Accepted | Accepted; placed-unit yardmaps predate this change |
 | Slight queued overlap, with yardmap overlap | Real constructor queue contains one command after the conflicting second command. | Rejected | Rejected |

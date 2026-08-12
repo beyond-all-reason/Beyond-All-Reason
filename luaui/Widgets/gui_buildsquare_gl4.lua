@@ -1808,6 +1808,10 @@ local function collectPregameBuildSquare()
 	end
 
 	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
+	local doesBuildClashWithCommander = pregameBuild.doesBuildClashWithCommander
+	if doesBuildClashWithCommander then
+		placementValid = placementValid and not doesBuildClashWithCommander(unitDefID, x, buildHeight, z, facing)
+	end
 	local getCancelledQueuedBuilds = pregameBuild.getCancelledQueuedBuilds
 	if getCancelledQueuedBuilds then
 		local overlapsQueuedBuild, cancelsQueuedBuild =
