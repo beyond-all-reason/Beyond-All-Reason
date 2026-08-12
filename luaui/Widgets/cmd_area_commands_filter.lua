@@ -99,16 +99,15 @@ for defId, def in pairs(UnitDefs) do
 end
 
 local canAttack, canCapture, canReclaim = {}, {}, {}
-local canGuard, canRepair, canResurrect, canTransport = {}, {}, {}, {}
+local canGuard, canRepair, canResurrect = {}, {}, {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	canAttack[unitDefID]    = unitDef.canAttack and unitDef.maxWeaponRange > 0 or nil
 	canCapture[unitDefID]   = unitDef.canCapture or nil
 	canGuard[unitDefID]     = unitDef.canGuard or nil
-	canRepair[unitDefID]    = unitDef.canRepair or unitDef.canAssist or nil
+	canRepair[unitDefID]    = unitDef.canRepair or unitDef.canAssist or nil -- assist without repair is nanoframes only, decided per target
 	canReclaim[unitDefID]   = unitDef.canReclaim or nil
 	canResurrect[unitDefID] = unitDef.canResurrect or nil
-	canTransport[unitDefID] = transportDefs[unitDefID] and true or nil
 end
 
 ---------------------------------------------------------------------------------------
@@ -528,7 +527,7 @@ local areaToTargetCommands = {
 	[CMD.GUARD]                         = commandConfig({ UNIT },          ALLY_UNITS,  canGuard),
 	[CMD.REPAIR]                        = commandConfig({ UNIT },          ALLY_UNITS,  canRepair),
 	[CMD.RECLAIM]                       = commandConfig({ UNIT, FEATURE }, ALL_UNITS,   canReclaim, nil, true),
-	[CMD.LOAD_UNITS]                    = commandConfig({ UNIT },          ALL_UNITS,   canTransport, loadUnitsHandler),
+	[CMD.LOAD_UNITS]                    = commandConfig({ UNIT },          ALL_UNITS,   transportDefs, loadUnitsHandler),
 	[CMD.RESURRECT]                     = commandConfig({ FEATURE },       nil,         canResurrect),
 }
 
@@ -724,14 +723,14 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local selectedUnits = getCapableUnits(spGetSelectedUnits(), command.capableDefs)
-	if not selectedUnits then
-		return false
-	end
-
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 	local targetType, targetId = spTraceScreenRay(spWorldToScreenCoords(cmdX, cmdY, cmdZ))
 	if not hasSplitModifiers(options) and not command.allowedTargetTypes[targetType] then
+		return false
+	end
+
+	local selectedUnits = getCapableUnits(spGetSelectedUnits(), command.capableDefs)
+	if not selectedUnits then
 		return false
 	end
 
