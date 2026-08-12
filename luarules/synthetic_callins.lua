@@ -4,30 +4,23 @@
 --  file:    synthetic_callins.lua
 --  brief:   registry of the callins that gadgets.lua dispatches for itself
 --
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---  Synthetic callins  ---------------------------------------------------------
---
 --  These are artificially created within the game code to emulate the behaviors
 --  of engine-driven callins. We are filling the gaps produced by the engine's
 --  event system, in many cases, so code built on top of these foundations needs
 --  to keep up with the times and adapt as the gaps fill in from the other side.
 --
---  [IMPORTANT]
---  > Add each callin to the handler state that dispatches it, below.
---  >
---  > The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
---  >
---  > Synthetic callins that subscribe to engine callins are kept installed for
---  > as long as anything subscribes to them. These _must_ be recorded here or
---  > can become unhooked whenever no addon happens to subscribe to their base.
---  >
---  > A synthetic callin that keeps per-frame state also needs an update hook in
---  > `syntheticCallinUpdate`, in gadgets.lua, next to the state it drops.
+--  Adding a new callin:
+--  1. Add the callin's envs and subscriptions to syntheticCallins.
+--  2. If using mark-and-sweep, add the callin to syntheticCallinMarks.
+--  3. If the callin tracks any state, add it to syntheticCallinUpdate.
+--  4. Add the callin's implementation (and locals) to the Dispatch section.
 
--- [HandlerState] := [SyntheticCallinName] := EngineCallinName[]
+--------------------------------------------------------------------------------
+--  Declarations  --------------------------------------------------------------
+
+-- Synthetic callins that subscribe to engine callins are kept installed for
+-- as long as anything subscribes to them. These _must_ be recorded here or
+-- can become unhooked whenever no addon happens to subscribe to their base.
 local syntheticCallins = {
 	shared = {
 		MetaUnitAdded   = { 'UnitGiven', 'UnitCreated' },
@@ -87,6 +80,9 @@ end
 
 -- [markPrefix] := { marked, list, count, drop }
 local marks = {}
+
+-- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
+-- We have to handle dropping tracked state, etc., during updates on our own.
 local syntheticCallinUpdate = {}
 
 for name, prefix in pairs(syntheticCallinMarks) do
@@ -114,9 +110,9 @@ end
 --------------------------------------------------------------------------------
 --  Dispatch  ------------------------------------------------------------------
 --
---  We can attach to the gadgetHandler at load time, so callins are declared here.
+--  The gadgetHandler is available at load time, so we implement callins here.
 --  
---  UnitAutoTargetRange has its implementation in gadgets.lua, instead.
+--  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
 
 function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.MetaUnitAddedList) do
