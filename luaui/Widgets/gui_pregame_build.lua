@@ -80,8 +80,11 @@ local BUILDING_COUNT_FUDGE_FACTOR = 1.4
 local BUILDING_DETECTION_TOLERANCE = 10
 local HALF = 0.5
 local MAX_DRAG_BUILD_COUNT = 200
--- Keep the production behavior by default: the future commander footprint blocks pregame builds.
-local ALLOW_BUILD_QUEUE_OVER_COMMANDER = false
+-- BAR PR #1515 introduced the restriction for issue #803, where an already-spawned
+-- commander could build over itself. That case no longer reproduces: at game start
+-- the commander walks out of the footprint before executing the queued build.
+local ALLOW_BUILD_QUEUE_OVER_COMMANDER = true
+local DoesBuildClashWithCommander
 
 local function buildFacingHandler(command, line, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -344,6 +347,10 @@ function widget:Initialize()
 	end
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
+	end
+	WG["pregame-build"].doesBuildClashWithCommander = function(unitDefID, x, y, z, facing)
+		local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
+		return DoesBuildClashWithCommander({ unitDefID, x, y, z, facing }, cx, cy, cz)
 	end
 	WG["pregame-build"].getCancelledQueuedBuilds = function(unitDefID, x, y, z, facing, cancelledBuilds)
 		for i = #cancelledBuilds, 1, -1 do
@@ -722,7 +729,7 @@ DoBuildingsClash = function(buildingData1, buildingData2)
 	return DoBuildingRectanglesClash(buildingData1, buildingData2)
 end
 
-local function DoesBuildClashWithCommander(buildData, cx, cy, cz)
+DoesBuildClashWithCommander = function(buildData, cx, cy, cz)
 	if ALLOW_BUILD_QUEUE_OVER_COMMANDER or cx == -100 then
 		return false
 	end
