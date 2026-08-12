@@ -183,6 +183,9 @@ local flexCallIns = {
 	'FeatureDestroyed',
 	'UnsyncedHeightMapUpdate',
 }
+if Engine.FeatureSupport.nanoParticleUpdateCallin then
+	flexCallIns[#flexCallIns + 1] = 'NanoParticleUpdate'
+end
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
 	flexCallInMap[ci] = true
@@ -3043,6 +3046,15 @@ function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
+	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	local list = self.NanoParticleUpdateList
+	for i = #list, 1, -1 do
+		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
