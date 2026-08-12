@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Construction Turrets range assist",
+		name    = "Construction Turrets Range Assist",
 		desc    = "When a command is given to nanos, this widget will check if each nanos is in range to execute it. If not the command will not be given to the out of range nanos. Use CTRL to skip this widget.",
 		author  = "mreasyfrag",
 		date    = "30/05/2026",
