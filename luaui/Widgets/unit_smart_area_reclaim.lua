@@ -48,7 +48,9 @@ local sort = table.sort
 
 local RECLAIM = CMD.RECLAIM
 local MOVE = CMD.MOVE
+local INSERT = CMD.INSERT
 local OPT_SHIFT = CMD.OPT_SHIFT
+local OPT_ALT = CMD.OPT_ALT
 
 local abs = math.abs
 local sqrt = math.sqrt
@@ -167,20 +169,28 @@ local function stationary(rList)
 end
 
 
-local function issue(rList, shift)
+local function issue(rList, shift, meta)
 	local opts = {}
+	local insertPos = {}
 
 	for i=1, #rList do
 		local item = rList[i]
 		local uid, fid = item[3], item[4]
 
-		local opt = {}
-		if opts[uid] ~= nil or shift then
-			opt = OPT_SHIFT
-		end
+		if meta then
+			-- insert at the front of the queue, keeping the order computed above
+			local pos = insertPos[uid] or 0
+			GiveOrderToUnit(uid, INSERT, {pos, RECLAIM, 0, fid+maxUnits}, OPT_ALT)
+			insertPos[uid] = pos + 1
+		else
+			local opt = {}
+			if opts[uid] ~= nil or shift then
+				opt = OPT_SHIFT
+			end
 
-		GiveOrderToUnit(uid, RECLAIM, {fid+maxUnits}, opt)
-		opts[uid] = 1
+			GiveOrderToUnit(uid, RECLAIM, {fid+maxUnits}, opt)
+			opts[uid] = 1
+		end
 	end
 end
 
@@ -259,13 +269,17 @@ function widget:CommandNotify(id, params, options)
 			end
 
 			local ux, _, uz = GetUnitPosition(uid)
-			if options.shift then
+			if options.shift or options.meta then
 				local cmds = storeReclaimOrders(uid)
-				for ci=#cmds, 1, -1 do
-					local cmd = cmds[ci]
-					if cmd.id == MOVE then
-						ux, uz = cmd.params[1], cmd.params[3]
-						break
+				-- appended orders start where the queue ends; inserted ones run
+				-- first, so those keep the unit's current position
+				if options.shift and not options.meta then
+					for ci=#cmds, 1, -1 do
+						local cmd = cmds[ci]
+						if cmd.id == MOVE then
+							ux, uz = cmd.params[1], cmd.params[3]
+							break
+						end
 					end
 				end
 			end
@@ -325,12 +339,12 @@ function widget:CommandNotify(id, params, options)
 					local dx, dz = ux-fx, uz-fz
 					local item = {dx, dz, uid, fid}
 					if mobiles[uid] ~= nil then
-						if not options.shift or checkNoDuplicateOrder(uid, fid) then
+						if not (options.shift or options.meta) or checkNoDuplicateOrder(uid, fid) then
 							mListCount = mListCount + 1
 							mList[mListCount] = item
 						end
 					elseif stationaries[uid] ~= nil then
-						if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
+						if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not (options.shift or options.meta) or checkNoDuplicateOrder(uid, fid)) then
 							sListCount = sListCount + 1
 							sList[sListCount] = item
 						end
@@ -346,13 +360,13 @@ function widget:CommandNotify(id, params, options)
 		local issued = false
 		if mobileb then
 			mList = tsp(mList)
-			issue(mList, options.shift)
+			issue(mList, options.shift, options.meta)
 			issued = true
 		end
 
 		if stationaryb then
 			sList = stationary(sList)
-			issue(sList, options.shift)
+			issue(sList, options.shift, options.meta)
 			issued = true
 		end
 
