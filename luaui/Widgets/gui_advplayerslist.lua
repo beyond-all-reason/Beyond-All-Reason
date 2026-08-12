@@ -3233,43 +3233,36 @@ function DrawEraser(posY, time)
     gl_Color(1, 1, 1, 1)
 end
 
-local ConvertRGBToClosestName
-do -- keep the palette out of the main chunk's local scope (200 locals limit) while creating it only once
-    local palette = {
-        { key = 'blue', r = 11, g = 62, b = 243 },
-        { key = 'lime', r = 12, g = 233, b = 8 },
-        { key = 'aqua', r = 0, g = 245, b = 229 },
-        { key = 'purple', r = 105, g = 65, b = 242 },
-        { key = 'mint', r = 143, g = 255, b = 148 },
-        { key = 'green', r = 27, g = 112, b = 47 },
-        { key = 'lightBlue', r = 124, g = 194, b = 255 },
-        { key = 'lavender', r = 162, g = 148, b = 255 },
-        { key = 'red', r = 255, g = 16, b = 5 },
-        { key = 'yellow', r = 255, g = 210, b = 0 },
-        { key = 'orange', r = 255, g = 97, b = 7 },
-        { key = 'pink', r = 248, g = 8, b = 137 },
-        { key = 'cream', r = 252, g = 238, b = 164 },
-        { key = 'maroon', r = 138, g = 40, b = 40 },
-        { key = 'rose', r = 241, g = 144, b = 179 },
-        { key = 'bronze', r = 200, g = 139, b = 47 },
-    }
-    ConvertRGBToClosestName = function(r, g, b)
-        local bestKey = palette[1].key
-        local bestDist = math.huge
-        for i = 1, #palette do
-            local c = palette[i]
-            -- "redmean" distance: cheap approximation of perceptual color difference
-            local rmean = (r + c.r) * 0.5
-            local dr, dg, db = r - c.r, g - c.g, b - c.b
-            local d = (2 + rmean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rmean) / 256) * db * db
-            if d < bestDist then
-                bestDist = d
-                bestKey = c.key
+-- every color the game assigns is named in common/configs/team_colors.lua and matches exactly;
+-- the perceptual nearest-match handles everything else (host-defined colors, anonymous mode)
+-- (built inside a function so the tables dont count against the main chunk's 200 locals limit)
+local ConvertRGBToClosestName = (function()
+    local palette = {}
+    local exactNames = {}
+    for hex, key in pairs(VFS.Include("common/configs/team_colors.lua").colorNames) do
+        local r, g, b = tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16)
+        palette[#palette + 1] = { key = key, r = r, g = g, b = b }
+        exactNames[r * 65536 + g * 256 + b] = key
+    end
+    return function(r, g, b)
+        local bestKey = exactNames[r * 65536 + g * 256 + b]
+        if not bestKey then
+            local bestDist = math.huge
+            for i = 1, #palette do
+                local c = palette[i]
+                -- "redmean" distance: cheap approximation of perceptual color difference
+                local rmean = (r + c.r) * 0.5
+                local dr, dg, db = r - c.r, g - c.g, b - c.b
+                local d = (2 + rmean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rmean) / 256) * db * db
+                if d < bestDist then
+                    bestDist = d
+                    bestKey = c.key
+                end
             end
         end
         return Spring.I18N('ui.playersList.color.' .. bestKey)
     end
-end
+end)()
 
 function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
 	local pTip = player[playerID]
