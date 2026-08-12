@@ -649,13 +649,13 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 
 	if isAlliedTarget then
 		if allegiance == ENEMY_UNITS then
-			return
+			return nil, true
 		end
 		allegiance = filterTeam and targetTeam
 			or (protectAllies and targetTeam == myTeamID and MY_UNITS or ALLY_UNITS)
 	else
 		if allegiance == ALLY_UNITS then
-			return
+			return nil, true
 		end
 		allegiance = ENEMY_UNITS -- Enemy teams cannot be distinguished, but neutral vs hostile can.
 		if filterTeam and spGetUnitNeutral(targetId) then
@@ -718,7 +718,7 @@ local function narrowFeatures(featuresInArea, targetId, options)
 	local filterTech = hasUnitDefName and not filterType and options.ctrl
 
 	if not filterType and not filterTech then
-		return hasSplitModifiers(options) and featuresInArea or nil
+		return nil, true
 	end
 
 	local featureDefId = spGetFeatureDefID(targetId)
@@ -749,8 +749,28 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, canTarget)
 	if not featuresInArea then
 		return
 	end
-	local filteredTargets = narrowFeatures(featuresInArea, targetId, options)
+	local filteredTargets, seedUnusable = narrowFeatures(featuresInArea, targetId, options)
+	if seedUnusable then
+		return nil, true
+	end
 	return filteredTargets and toFeatureTargetIDs(filteredTargets)
+end
+
+---Everything the command can act on when both features and units are targetable.
+---With no (valid) hovered object, we no longer know which object type to target.
+local function gatherTargets(command, cmdX, cmdZ, radius)
+	-- TODO: It's not clear that features should be prioritized.
+	if command.allowedTargetTypes[FEATURE] then
+		local featuresInArea = gatherFeatures(cmdX, cmdZ, radius, command.canTarget)
+		if featuresInArea then
+			return toFeatureTargetIDs(featuresInArea)
+		end
+	end
+	if command.allowedTargetTypes[UNIT] then
+		-- TODO: It's not clear that ENEMY_UNITS instead of MY_UNITS should be the selection.
+		local allegiance = command.protectAllies and ENEMY_UNITS or command.targetAllegiance
+		return gatherUnits(cmdX, cmdZ, radius, allegiance)
+	end
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -763,13 +783,15 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	if not hasSplitModifiers(options) and not hasFilterModifiers(options) then
+	local split = hasSplitModifiers(options)
+	if not split and not hasFilterModifiers(options) then
 		return false
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 	local targetType, targetId = spTraceScreenRay(spWorldToScreenCoords(cmdX, cmdY, cmdZ))
-	if not hasSplitModifiers(options) and not command.allowedTargetTypes[targetType] then
+	local seedType = command.allowedTargetTypes[targetType] and targetType
+	if not seedType and not split then
 		return false
 	end
 
@@ -778,11 +800,25 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local filteredTargets =
-		(targetType == FEATURE and filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget))
-		or (targetType == UNIT and filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies))
-	if not filteredTargets then
-		return false
+	local filteredTargets, seedUnusable
+	if seedType == FEATURE then
+		filteredTargets, seedUnusable = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
+	elseif seedType == UNIT then
+		filteredTargets, seedUnusable = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
+	else
+		seedUnusable = true
+	end
+
+	if seedUnusable then
+		if not split then
+			return false
+		end
+		filteredTargets = gatherTargets(command, cmdX, cmdZ, radius)
+		if not filteredTargets then
+			return false
+		end
+	elseif not filteredTargets then
+		return true
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
