@@ -63,6 +63,7 @@ local ALL_UNITS = Spring.ALL_UNITS
 local MY_UNITS = Spring.MY_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local MIXED = "mixed"
 local UNIT_ID_MAX = Game.maxUnits
 
 -- featureId is normalised to Game.maxUnits + featureId because of:
@@ -398,17 +399,18 @@ local function byDistanceToTarget(position, closestFirst)
 	end
 end
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, mixedTargets)
-	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
+local distanceByType = {
+	[UNIT]    = byDistanceToUnit,
+	[FEATURE] = byDistanceToFeature,
+	[MIXED]   = byDistanceToTarget,
+}
+
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, targetsType)
 	if not filteredTargets[1] then
 		return
-	elseif mixedTargets then
-		tableSort(filteredTargets, byDistanceToTarget(avgPosition, closestFirst))
-	elseif filteredTargets[1] <= UNIT_ID_MAX then
-		tableSort(filteredTargets, byDistanceToUnit(avgPosition, closestFirst))
-	else
-		tableSort(filteredTargets, byDistanceToFeature(avgPosition, closestFirst))
 	end
+	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
+	tableSort(filteredTargets, distanceByType[targetsType](avgPosition, closestFirst))
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
@@ -489,7 +491,7 @@ local function splitTargets(selectedUnits, filteredTargets)
 end
 
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, targetsType)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
@@ -498,21 +500,21 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options, mixed
 	local ordersIssued = 0
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
-		sortTargetsByDistance(selectedUnitTable, targets, true, mixedTargets)
+		sortTargetsByDistance(selectedUnitTable, targets, true, targetsType)
 		ordersIssued = ordersIssued + giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
 	return ordersIssued
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, targetsType)
 	if options.shift and options.meta then
-		return splitOrders(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
+		return splitOrders(cmdId, selectedUnits, filteredTargets, options, targetsType)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
 		local closestFirst = not options.meta
-		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, mixedTargets)
+		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, targetsType)
 		return giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
@@ -804,13 +806,13 @@ local function gatherTargets(command, cmdX, cmdZ, radius, options)
 			for index = 1, #unitsInArea do
 				targets[count + index] = unitsInArea[index]
 			end
-			return targets, true -- `true` => mixed list
+			return targets, MIXED
 		elseif unitsInArea then
-			return unitsInArea
+			return unitsInArea, UNIT
 		end
 	end
 
-	return targets
+	return targets, FEATURE
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -849,7 +851,7 @@ function widget:CommandNotify(cmdId, params, options)
 		filtered = false
 	end
 
-	local mixedTargets
+	local targetsType = seedType
 	if filtered then
 		if not filteredTargets then
 			return true
@@ -858,14 +860,14 @@ function widget:CommandNotify(cmdId, params, options)
 		if not split then
 			return false
 		end
-		filteredTargets, mixedTargets = gatherTargets(command, cmdX, cmdZ, radius, options)
+		filteredTargets, targetsType = gatherTargets(command, cmdX, cmdZ, radius, options)
 		if not filteredTargets then
 			return false
 		end
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
-	return command.handle(cmdId, selectedUnits, filteredTargets, options, mixedTargets) > 0
+	return command.handle(cmdId, selectedUnits, filteredTargets, options, targetsType) > 0
 end
 
 local function initialize()
