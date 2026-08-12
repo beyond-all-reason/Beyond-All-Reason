@@ -3993,13 +3993,48 @@ local icontypes = {
 	default = {
 		size = 1,
 		radiusadjust = 1,
+		drawOrder = 1, -- unidentified radar contacts are usually mobiles; keep them above structures
 	},
 }
+
+-- Assign each icontype a drawOrder for the engine's icon sorting (UnitIconsSorted
+-- config): structures (0) draw below ground units (1), air units (2) and commanders (3).
+-- Icontypes are named after their unit def, so classify by parsing the raw unit files;
+-- this parser runs engine-side without access to UnitDefs.
+local ORDER_STRUCTURE, ORDER_GROUND, ORDER_AIR, ORDER_COMMANDER = 0, 1, 2, 3
+
+local function isTrue(v)
+	return v == true or v == 1 or v == "true" or v == "1"
+end
+
+local function unitDrawOrder(def)
+	local cp = def.customparams or {}
+	if isTrue(def.canfly) then
+		return ORDER_AIR
+	elseif isTrue(cp.iscommander) or isTrue(cp.isdecoycommander) or isTrue(cp.isscavcommander) or isTrue(cp.isscavdecoycommander) then
+		return ORDER_COMMANDER
+	elseif (tonumber(def.speed) or 0) == 0 then
+		return ORDER_STRUCTURE
+	end
+	return ORDER_GROUND
+end
+
+for _, file in ipairs(VFS.DirList('units/', '*.lua', nil, true)) do
+	local success, defs = pcall(VFS.Include, file)
+	if success and type(defs) == 'table' then
+		for unitName, def in pairs(defs) do
+			local icontype = icontypes[unitName]
+			if icontype and type(def) == 'table' and icontype.drawOrder == nil then
+				icontype.drawOrder = unitDrawOrder(def)
+			end
+		end
+	end
+end
 
 local newIcontypes = {}
 for name, params in pairs(icontypes) do
 	newIcontypes[name] = params
-	newIcontypes[name..'_scav'] = { size = params.size or 1 }
+	newIcontypes[name..'_scav'] = { size = params.size or 1, drawOrder = params.drawOrder }
 	if params.bitmap then
 		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('/', '/inverted/')
 	end
