@@ -833,8 +833,10 @@ function widget:CommandNotify(cmdId, params, options)
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 	local targetType, targetId = spTraceScreenRay(spWorldToScreenCoords(cmdX, cmdY, cmdZ))
-	local seedType = command.allowedTargetTypes[targetType] and targetType
-	if not seedType and not split then
+	if not command.allowedTargetTypes[targetType] then
+		targetType = nil
+	end
+	if not targetType and not split then
 		return false
 	end
 
@@ -844,15 +846,14 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local filtered, filteredTargets
-	if seedType == FEATURE then
+	if targetType == FEATURE then
 		filtered, filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
-	elseif seedType == UNIT then
+	elseif targetType == UNIT then
 		filtered, filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
 	else
 		filtered = false
 	end
 
-	local targetsType = seedType
 	if filtered then
 		if not filteredTargets then
 			return true
@@ -861,14 +862,14 @@ function widget:CommandNotify(cmdId, params, options)
 		if not split then
 			return false
 		end
-		filteredTargets, targetsType = gatherTargets(command, cmdX, cmdZ, radius, options)
+		filteredTargets, targetType = gatherTargets(command, cmdX, cmdZ, radius, options)
 		if not filteredTargets then
 			return false
 		end
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
-	return command.handle(cmdId, selectedUnits, filteredTargets, options, targetsType) > 0
+	return command.handle(cmdId, selectedUnits, filteredTargets, options, targetType) > 0
 end
 
 local function initialize()
