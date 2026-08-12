@@ -124,7 +124,6 @@ local colorSpecStr, colorAllyStr, colorOtherAllyStr, colorGameStr, colorConsoleS
 
 -- Layout (keep local for performance)
 local maxPlayernameWidth, lineSpaceWidth, backgroundPadding = 50, 24*config.widgetScale, usedFontSize
-local longestPlayername = '(s) [xx]playername'
 
 -- State tables to reduce local variable count
 local state = {
@@ -565,9 +564,15 @@ end
 
 function widget:LanguageChanged()
 	I18N = {
+		ui = {
+			chat = {
+				channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
+				channelScopeTeam = Spring.I18N('ui.chat.channelScopeTeam'),
+				channelScopeSpec = Spring.I18N('ui.chat.channelScopeSpec'),
+			},
+		},
 		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
 		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
-		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
 		label = Spring.I18N('ui.chat.label'),
@@ -1308,6 +1313,17 @@ local function extractChannelPrefix(text)
 	return text, 'all'
 end
 
+local function getChannelScopeLabel(channelScope)
+	if channelScope == 'ALL' then
+		return '[' .. I18N.ui.chat.channelScopeAll .. ']'
+	elseif channelScope == 'TEAM' then
+		return '[' .. I18N.ui.chat.channelScopeTeam .. ']'
+	elseif channelScope == 'SPEC' then
+		return '[' .. I18N.ui.chat.channelScopeSpec .. ']'
+	end
+	return '[' .. channelScope .. ']'
+end
+
 -- Helper function to get colored player name
 local function getColoredPlayerName(name, gameFrame, isSpectator)
 	local displayName = (playernames[name] and playernames[name][7]) or name
@@ -1335,9 +1351,9 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
 				end
 			end
-			return teamColor .. '■ ' .. colorSpecStr .. '(s) ' .. displayName
+			return teamColor .. '■ ' .. colorSpecStr .. getChannelScopeLabel('SPEC') .. ' ' .. displayName
 		end
-		return colorSpecStr .. '(s) ' .. displayName
+		return colorSpecStr .. getChannelScopeLabel('SPEC') .. ' ' .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
 end
@@ -1373,6 +1389,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		text = cleanUserText(text)
 		if channel == 'all' then
 			channelScope = 'ALL'
+		elseif channel == 'allies' then
+			channelScope = 'TEAM'
+		elseif channel == 'spectators' then
+			channelScope = 'SPEC'
 		end
 
 		if channel == 'allies' then
@@ -1384,6 +1404,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		nameText = getColoredPlayerName(name, gameFrame, false)
+		if channelScope == 'ALL' or channelScope == 'TEAM' then
+			local scopeColor = channelScope == 'TEAM' and colorAllyStr or (ColorString(0.78, 0.78, 0.78) or '')
+			nameText = scopeColor .. getChannelScopeLabel(channelScope) .. ' ' .. nameText
+		end
 		line = c .. text
 
 	-- spectator message
@@ -1404,6 +1428,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		text = cleanUserText(text)
 		if channel == 'all' then
 			channelScope = 'ALL'
+		elseif channel == 'spectators' then
+			channelScope = 'SPEC'
 		end
 		c = (channel ~= 'all') and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
 
@@ -1751,12 +1777,8 @@ drawChatLine = function(i)
 			font:End()
 		end
 	end
-	if chatLines[i].channelScope and chatLines[i].lineType ~= LineTypes.System then
-		local localizedScope = chatLines[i].channelScope
-		if chatLines[i].channelScope == 'ALL' and I18N.channelScopeAll and I18N.channelScopeAll ~= '' then
-			localizedScope = I18N.channelScopeAll
-		end
-		local scopeLabel = '[' .. localizedScope .. ']'
+	if chatLines[i].channelScope and not ((chatLines[i].channelScope == 'ALL' or chatLines[i].channelScope == 'TEAM') and chatLines[i].lineType == LineTypes.Player) and chatLines[i].lineType ~= LineTypes.System then
+		local scopeLabel = getChannelScopeLabel(chatLines[i].channelScope)
 		local scopeFontSize = usedFontSize * 0.72
 		font3:Begin(true)
 		font3:SetOutlineColor(0, 0, 0, 1)
@@ -3602,21 +3624,17 @@ function widget:ViewResize()
 	font3 = WG['fonts'].getFont(3)
 
 	-- get longest player name and calc its width
-	if not font or not longestPlayername then
+	if not font then
 		return
 	end
-	local namePrefix = '(s)'
-	local namePrefixWidth = font:GetTextWidth(namePrefix)
-	maxPlayernameWidth = (namePrefixWidth + font:GetTextWidth(longestPlayername)) * usedFontSize
+	local namePrefixWidth = math.max(font:GetTextWidth(getChannelScopeLabel('ALL') .. ' '), font:GetTextWidth(getChannelScopeLabel('TEAM') .. ' '), font:GetTextWidth(getChannelScopeLabel('SPEC') .. ' '))
+	maxPlayernameWidth = namePrefixWidth * usedFontSize
 	for _, playerID in ipairs(playersList) do
 		local name = spGetPlayerInfo(playerID, false)
 		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		if name ~= longestPlayername then
-			local nameWidth = (namePrefixWidth + font:GetTextWidth(name)) * usedFontSize
-			if nameWidth > maxPlayernameWidth then
-				longestPlayername = name
-				maxPlayernameWidth = nameWidth
-			end
+		local nameWidth = (namePrefixWidth + font:GetTextWidth(name)) * usedFontSize
+		if nameWidth > maxPlayernameWidth then
+			maxPlayernameWidth = nameWidth
 		end
 	end
 	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
