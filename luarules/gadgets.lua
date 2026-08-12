@@ -1931,17 +1931,18 @@ end
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 										  unitID, unitDefID, part)
 
+	if markUnitSteps and not unitStepMarked[unitID] then
+		unitStepMarked[unitID] = true
+		unitStepCount = unitStepCount + 1
+		unitStepList[unitStepCount] = unitID
+	end
+
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
 			return false
 		end
-	end
-	if markUnitSteps and not unitStepMarked[unitID] then
-		unitStepMarked[unitID] = true
-		unitStepCount = unitStepCount + 1
-		unitStepList[unitStepCount] = unitID
 	end
 	tracy.ZoneEnd()
 	return true
@@ -1977,15 +1978,16 @@ end
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
 											 featureID, featureDefID, part)
-	for _, g in ipairs(self.AllowFeatureBuildStepList) do
-		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
-			return false
-		end
-	end
 	if markFeatureSteps and not featureStepMarked[featureID] then
 		featureStepMarked[featureID] = true
 		featureStepCount = featureStepCount + 1
 		featureStepList[featureStepCount] = featureID
+	end
+
+	for _, g in ipairs(self.AllowFeatureBuildStepList) do
+		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
+			return false
+		end
 	end
 	return true
 end
