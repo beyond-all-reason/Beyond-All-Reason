@@ -48,7 +48,6 @@ end
 
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
-_G.VFS._cache = _G.VFS._cache or {}
 
 _G.VFS.FileExists = function(path)
     -- First try the exact path provided
@@ -77,12 +76,9 @@ _G.VFS.FileExists = function(path)
     return _G.VFS._ci_file_cache[cleanPath:lower()] ~= nil
 end
 
-_G.VFS.Include = function(path, env, mode)
-    -- Check cache first
-    if _G.VFS._cache[path] then
-        return _G.VFS._cache[path]
-    end
+_G.VFS._sources = _G.VFS._sources or {}
 
+_G.VFS.Include = function(path, env, mode)
     -- Try direct path first
     local realPath = path
     local file = io.open(path, "r")
@@ -103,19 +99,34 @@ _G.VFS.Include = function(path, env, mode)
     end
 
     -- Use loadfile/dofile instead of require to better simulate VFS and handle case-insensitive paths
-    local chunk, err = loadfile(realPath)
-    if chunk then
-        -- Handle environment if provided
-        if env then
-            setfenv(chunk, env)
+    -- The engine re-executes an included file on every call, so only the source
+    -- text is reused: caching the result hands two defs the same table when one
+    -- unit file includes another, and whichever loads second mutates the first.
+    -- Each call compiles its own chunk, so a nested include of a path already on
+    -- the include stack cannot retarget the environment of the outer one.
+    local source = _G.VFS._sources[realPath]
+    if source == nil then
+        local sourceFile = io.open(realPath, "r")
+        source = sourceFile and sourceFile:read("*a") or false
+        if sourceFile then
+            sourceFile:close()
         end
-        
-        local success, result = pcall(chunk)
-        if success then
-            _G.VFS._cache[path] = result
-            return result
+        _G.VFS._sources[realPath] = source
+    end
+
+    if source then
+        local chunk, compileError = loadstring(source, "@" .. realPath)
+        if chunk then
+            setfenv(chunk, env or _G)
+
+            local success, result = pcall(chunk)
+            if success then
+                return result
+            else
+                print("Error loading " .. path .. ": " .. tostring(result))
+            end
         else
-            print("Error loading " .. path .. ": " .. tostring(result))
+            print("Error compiling " .. path .. ": " .. tostring(compileError))
         end
     end
     
@@ -128,12 +139,10 @@ _G.VFS.Include = function(path, env, mode)
 
     local success, result = pcall(require, mod)
     if success then
-        _G.VFS._cache[path] = result
         return result
     else
         -- Instead of erroring, return an empty table for missing files
         -- This allows unitdefs.lua and other files to continue loading even if some dependencies are missing
-        _G.VFS._cache[path] = {}
         return {}
     end
 end
