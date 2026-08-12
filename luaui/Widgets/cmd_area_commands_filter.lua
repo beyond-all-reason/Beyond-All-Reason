@@ -767,9 +767,7 @@ local function gatherTargets(command, cmdX, cmdZ, radius)
 		end
 	end
 	if command.allowedTargetTypes[UNIT] then
-		-- TODO: It's not clear that ENEMY_UNITS instead of MY_UNITS should be the selection.
-		local allegiance = command.protectAllies and ENEMY_UNITS or command.targetAllegiance
-		return gatherUnits(cmdX, cmdZ, radius, allegiance)
+		return gatherUnits(cmdX, cmdZ, radius, command.targetAllegiance)
 	end
 end
 
