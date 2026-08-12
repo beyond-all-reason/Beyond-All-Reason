@@ -127,7 +127,7 @@ local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
 end
 
-local getFeaturePosition; do
+local getFeaturePosition, toFeatureTargetIDs; do
 	local function getFeaturePositionFromObjectID(targetID)
 		return spGetFeaturePosition(targetID)
 	end
@@ -135,6 +135,17 @@ local getFeaturePosition; do
 		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
 	end
 	getFeaturePosition = offsetFeatureID and getFeaturePositionFromOffsetID or getFeaturePositionFromObjectID
+
+	local function asObjectIDs(featureIDs)
+		return featureIDs
+	end
+	local function toOffsetIDs(featureIDs)
+		for index = 1, #featureIDs do
+			featureIDs[index] = featureIDs[index] + UNIT_ID_MAX
+		end
+		return featureIDs
+	end
+	toFeatureTargetIDs = offsetFeatureID and toOffsetIDs or asObjectIDs
 end
 
 ----------------------------------------------------------------------------------------------------------
@@ -495,14 +506,19 @@ local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
 	return ordersIssued
 end
 
+local function isResurrectable(featureID)
+	return (spGetFeatureResurrect(featureID) or "") ~= ""
+end
+
 ---@class CommandConfig
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
 ---@field capableDefs table<number, true> The defs that can ever perform the command.
+---@field canTarget function? Whether the command can act on an object at all.
 ---@field protectAllies boolean? Unfiltered commands target your own units instead of allies.
 
-local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler, protectAllies)
+local function commandConfig(targetTypes, targetAllegiance, capableDefs, canTarget, handler, protectAllies)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -513,6 +529,7 @@ local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler
 		allowedTargetTypes = allowedTargetTypes,
 		targetAllegiance   = targetAllegiance,
 		capableDefs        = capableDefs,
+		canTarget          = canTarget,
 		protectAllies      = protectAllies,
 	}
 	return config
@@ -526,9 +543,9 @@ local areaToTargetCommands = {
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT },          ENEMY_UNITS, canAttack),
 	[CMD.GUARD]                         = commandConfig({ UNIT },          ALLY_UNITS,  canGuard),
 	[CMD.REPAIR]                        = commandConfig({ UNIT },          ALLY_UNITS,  canRepair),
-	[CMD.RECLAIM]                       = commandConfig({ UNIT, FEATURE }, ALL_UNITS,   canReclaim, nil, true),
-	[CMD.LOAD_UNITS]                    = commandConfig({ UNIT },          ALL_UNITS,   transportDefs, loadUnitsHandler),
-	[CMD.RESURRECT]                     = commandConfig({ FEATURE },       nil,         canResurrect),
+	[CMD.RECLAIM]                       = commandConfig({ UNIT, FEATURE }, ALL_UNITS,   canReclaim, nil, nil, true),
+	[CMD.LOAD_UNITS]                    = commandConfig({ UNIT },          ALL_UNITS,   transportDefs, nil, loadUnitsHandler),
+	[CMD.RESURRECT]                     = commandConfig({ FEATURE },       nil,         canResurrect, isResurrectable),
 }
 
 --- The selected units that can perform the command at all.
@@ -559,44 +576,15 @@ local function getCapableUnits(selectedUnits, capableDefs)
 	return count > 0 and keep or nil
 end
 
-local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, protectAllies)
-	local targetDefId = spGetUnitDefID(targetId)
-	local targetTeam = spGetUnitTeam(targetId) or -1
-	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID -- Unit can be a ceasefired enemy.
-	local isAlliedTarget = spAreTeamsAllied(targetTeam, myTeamID) -- So prefer to check on alliance.
-
-	local filterTeam = options.ctrl
-	local filterType = targetDefId and options.alt
-	if not filterTeam and not protectAllies and isAlliedTarget and isEnemyTarget then
-		filterTeam = true -- ALLY_UNITS excludes ceasefired allyTeams.
-	end
-
-	local filterHostile, filterNeutral = false, false
-
-	if isAlliedTarget then
-		if allegiance == ENEMY_UNITS then
-			return
-		end
-		allegiance = filterTeam and targetTeam
-			or (protectAllies and targetTeam == myTeamID and MY_UNITS or ALLY_UNITS)
-	else
-		if allegiance == ALLY_UNITS then
-			return
-		end
-		allegiance = ENEMY_UNITS -- Enemy teams cannot be distinguished, but neutral vs hostile can.
-		if filterTeam and spGetUnitNeutral(targetId) then
-			filterNeutral = true -- Strange case: Targeting neutrals with Ctrl filters for neutrals.
-		else
-			filterHostile = true -- We want to replicate the behavior of exclude_walls_area_attacks.
-		end
-	end
-
+---Everything in the area that the command can target.
+local function gatherUnits(cmdX, cmdZ, radius, allegiance)
 	---@diagnostic disable-next-line: redundant-parameter -- FIXME: GetUnitsInXYZ do not document their allegiance/team param.
 	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, allegiance)
-	if not unitsInArea[1] then
-		return
-	end
+	return unitsInArea[1] and unitsInArea or nil
+end
 
+---The narrower target list based on the hovered unit.
+local function narrowUnits(unitsInArea, targetDefId, filterType, filterHostile, filterNeutral)
 	if filterType then
 		local targetsByType, count = {}, 0
 		for i = 1, #unitsInArea do
@@ -645,6 +633,46 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 	return unitsInArea
 end
 
+local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, protectAllies)
+	local targetDefId = spGetUnitDefID(targetId)
+	local targetTeam = spGetUnitTeam(targetId) or -1
+	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID -- Unit can be a ceasefired enemy.
+	local isAlliedTarget = spAreTeamsAllied(targetTeam, myTeamID) -- So prefer to check on alliance.
+
+	local filterTeam = options.ctrl
+	local filterType = targetDefId and options.alt
+	if not filterTeam and not protectAllies and isAlliedTarget and isEnemyTarget then
+		filterTeam = true -- ALLY_UNITS excludes ceasefired allyTeams.
+	end
+
+	local filterHostile, filterNeutral = false, false
+
+	if isAlliedTarget then
+		if allegiance == ENEMY_UNITS then
+			return
+		end
+		allegiance = filterTeam and targetTeam
+			or (protectAllies and targetTeam == myTeamID and MY_UNITS or ALLY_UNITS)
+	else
+		if allegiance == ALLY_UNITS then
+			return
+		end
+		allegiance = ENEMY_UNITS -- Enemy teams cannot be distinguished, but neutral vs hostile can.
+		if filterTeam and spGetUnitNeutral(targetId) then
+			filterNeutral = true -- Strange case: Targeting neutrals with Ctrl filters for neutrals.
+		else
+			filterHostile = true -- We want to replicate the behavior of exclude_walls_area_attacks.
+		end
+	end
+
+	local unitsInArea = gatherUnits(cmdX, cmdZ, radius, allegiance)
+	if not unitsInArea then
+		return
+	end
+
+	return narrowUnits(unitsInArea, targetDefId, filterType, filterHostile, filterNeutral)
+end
+
 local function getTechLevel(unitDefName)
 	local unitDef = UnitDefNames[unitDefName]
 	return unitDef and unitDef.customParams.techlevel
@@ -658,48 +686,55 @@ local function hasFilterModifiers(options)
 	return options.alt or options.ctrl
 end
 
-local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
-	local featureDefId = spGetFeatureDefID(targetId)
+---Everything in the area that the command can target.
+local function gatherFeatures(cmdX, cmdZ, radius, canTarget)
+	local featuresInArea = spGetFeaturesInCylinder(cmdX, cmdZ, radius)
+	if not featuresInArea[1] then
+		return
+	end
+	if not canTarget then
+		return featuresInArea
+	end
+
+	local targetable, count = {}, 0
+	for index = 1, #featuresInArea do
+		local featureId = featuresInArea[index]
+		if canTarget(featureId) then
+			count = count + 1
+			targetable[count] = featureId
+		end
+	end
+	if count > 0 then
+		return targetable
+	end
+end
+
+---The narrower target list based on the hovered feature.
+local function narrowFeatures(featuresInArea, targetId, options)
 	local targetUnitDefName = spGetFeatureResurrect(targetId)
 	local hasUnitDefName = (targetUnitDefName or "") ~= ""
 
 	local filterType = hasUnitDefName and options.alt
 	local filterTech = hasUnitDefName and not filterType and options.ctrl
 
-	local featuresInArea = spGetFeaturesInCylinder(cmdX, cmdZ, radius)
-	if not featuresInArea[1] then
-		return
-	end
-
 	if not filterType and not filterTech then
-		if not hasSplitModifiers(options) then
-			return
-		end
-		if offsetFeatureID then
-			for i = 1, #featuresInArea do
-				featuresInArea[i] = featuresInArea[i] + UNIT_ID_MAX
-			end
-		end
-		return featuresInArea
+		return hasSplitModifiers(options) and featuresInArea or nil
 	end
 
+	local featureDefId = spGetFeatureDefID(targetId)
 	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
 
 	local filteredTargets, count = {}, 0
-	for i = 1, #featuresInArea do
-		local featureId = featuresInArea[i]
-		local matched = false
+	for index = 1, #featuresInArea do
+		local featureId = featuresInArea[index]
+		local matched
 		if filterType then
 			-- Type out-specifies tech level, so do not check it.
 			matched = spGetFeatureDefID(featureId) == featureDefId
-		elseif filterTech then
-			local unitDefName = spGetFeatureResurrect(featureId)
-			matched = getTechLevel(unitDefName) == targetTechLevel
+		else
+			matched = getTechLevel(spGetFeatureResurrect(featureId)) == targetTechLevel
 		end
 		if matched then
-			if offsetFeatureID then
-				featureId = featureId + UNIT_ID_MAX
-			end
 			count = count + 1
 			filteredTargets[count] = featureId
 		end
@@ -707,6 +742,15 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	if count > 0 then
 		return filteredTargets
 	end
+end
+
+local function filterFeatures(targetId, cmdX, cmdZ, radius, options, canTarget)
+	local featuresInArea = gatherFeatures(cmdX, cmdZ, radius, canTarget)
+	if not featuresInArea then
+		return
+	end
+	local filteredTargets = narrowFeatures(featuresInArea, targetId, options)
+	return filteredTargets and toFeatureTargetIDs(filteredTargets)
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -735,7 +779,7 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local filteredTargets =
-		(targetType == FEATURE and filterFeatures(targetId, cmdX, cmdZ, radius, options))
+		(targetType == FEATURE and filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget))
 		or (targetType == UNIT and filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies))
 	if not filteredTargets then
 		return false
