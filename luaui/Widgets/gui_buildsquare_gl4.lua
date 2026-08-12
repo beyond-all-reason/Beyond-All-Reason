@@ -1439,12 +1439,16 @@ local function collectPregameBuildSquare()
 			if placementValid then
 				local worldX = x + (xi - footprint.halfXsize) * SQUARE_SIZE
 				local worldZ = z + (zi - footprint.halfZsize) * SQUARE_SIZE
-				local status = getPredictedCellStatus(
+				local status, objectStatus = getPredictedCellStatus(
 					unitDef,
 					worldX,
 					worldZ,
 					buildHeight
 				)
+				-- Match the in-game preview: terrain does not block open yardmap cells.
+				if footprint.openYardmapCells and footprint.openYardmapCells[statusIndex] then
+					status = objectStatus
+				end
 				for i = 1, #pregameCancelledBuilds do
 					local cancelledBuild = pregameCancelledBuilds[i]
 					local cancelledFootprint = getFootprintData(cancelledBuild[1], cancelledBuild[5] or 0)
