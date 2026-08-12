@@ -10,9 +10,7 @@ local widget = widget ---@type Widget
 --     But feature type "beats" feature tech since it is more specific.
 -- (4) Hovering an enemy unit and using the Ctrl "team" filter instead checks for neutrality or hostility:
 --     => hover an enemy wall with Ctrl: Filtering will keep neutral targets.
---     => hover an enemy wall w/no Ctrl: Filtering will keep hostile targets.
---     => hover an enemy Pawn with Ctrl: Filtering will keep hostile targets.
---     => hover an enemy Pawn w/no Ctrl: Filtering will keep hostile targets.
+--     => any other hover, Ctrl/no Ctrl: Filtering will keep hostile targets.
 -- (5) Shift + Space divide orders between your selected units rather than issue the same orders to all of them.
 -- (6) Shift and Space separately queue-last and queue-first as they normally would.
 -- (7) Splitting orders and filtering targets can be combined. Just mix and match the modifiers.
