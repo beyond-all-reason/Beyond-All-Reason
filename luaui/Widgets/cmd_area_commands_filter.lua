@@ -77,6 +77,40 @@ local commandLimit = 2000
 
 local myTeamID, myAllyTeamID
 
+---@type table<number, TransportDef>
+local transportDefs = {}
+local cantBeTransported = {}
+local unitMass = {}
+local unitXSize = {}
+
+for defId, def in pairs(UnitDefs) do
+	if def.transportSize and def.transportSize > 0 then
+		---@class TransportDef
+		transportDefs[defId] = {
+			massLimit = def.transportMass,
+			maxCapacity = def.transportCapacity,
+			sizeLimit = def.transportSize,
+			health = def.health,
+		}
+	end
+	unitMass[defId] = def.mass
+	unitXSize[defId] = def.xsize
+	cantBeTransported[defId] = def.cantBeTransported
+end
+
+local canAttack, canCapture, canReclaim = {}, {}, {}
+local canGuard, canRepair, canResurrect, canTransport = {}, {}, {}, {}
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	canAttack[unitDefID]    = unitDef.canAttack and unitDef.maxWeaponRange > 0 or nil
+	canCapture[unitDefID]   = unitDef.canCapture or nil
+	canGuard[unitDefID]     = unitDef.canGuard or nil
+	canRepair[unitDefID]    = unitDef.canRepair or unitDef.canAssist or nil
+	canReclaim[unitDefID]   = unitDef.canReclaim or nil
+	canResurrect[unitDefID] = unitDef.canResurrect or nil
+	canTransport[unitDefID] = transportDefs[unitDefID] and true or nil
+end
+
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
@@ -113,27 +147,6 @@ end
 -- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
 -- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
 local springFootprintScale = Game.footprintScale
-
----@type table<number, TransportDef>
-local transportDefs = {}
-local cantBeTransported = {}
-local unitMass = {}
-local unitXSize = {}
-
-for defId, def in pairs(UnitDefs) do
-	if def.transportSize and def.transportSize > 0 then
-		---@class TransportDef
-		transportDefs[defId] = {
-			massLimit = def.transportMass,
-			maxCapacity = def.transportCapacity,
-			sizeLimit = def.transportSize,
-			health = def.health,
-		}
-	end
-	unitMass[defId] = def.mass
-	unitXSize[defId] = def.xsize
-	cantBeTransported[defId] = def.cantBeTransported
-end
 
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets)
@@ -370,6 +383,7 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	maxCommands = maxCommands or commandLimit
 	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
+	local ordersIssued = 0
 	for i, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
 		if not firstTarget or options.shift then
@@ -381,10 +395,12 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
 		end
 		firstTarget = false
+		ordersIssued = ordersIssued + 1
 		if i * selectedUnitsLen > maxCommands then
-			return
+			return ordersIssued
 		end
 	end
+	return ordersIssued
 end
 
 local function splitTargets(selectedUnits, filteredTargets)
@@ -447,52 +463,47 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	local selectedUnitTable = { 0 }
+	local ordersIssued = 0
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
 		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
+		ordersIssued = ordersIssued + giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
+	return ordersIssued
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
 local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
-		splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		return splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
 		local closestFirst = not options.meta
 		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
-		giveOrders(cmdId, selectedUnits, filteredTargets, options)
+		return giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
---- Each transport picks one target
+--- Each transport picks one target. Every selected unit is a transport by this point.
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local transports = {}
-	for _, unitId in ipairs(selectedUnits) do
-		local unitDefId = spGetUnitDefID(unitId)
-		if unitDefId and transportDefs[unitDefId] then
-			transports[#transports + 1] = unitId
-		end
-	end
-	if #transports == 0 then
-		return
-	end
-	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets)
+	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
+	local ordersIssued = 0
 	for transportId, targetIds in pairs(passengerAssignments) do
-		giveOrders(cmdId, { transportId }, targetIds, options)
+		ordersIssued = ordersIssued + giveOrders(cmdId, { transportId }, targetIds, options)
 	end
+	return ordersIssued
 end
 
 ---@class CommandConfig
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field capableDefs table<number, true> The defs that can ever perform the command.
 ---@field protectAllies boolean? Unfiltered commands target your own units instead of allies.
 
-local function commandConfig(targetTypes, targetAllegiance, handler, protectAllies)
+local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler, protectAllies)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -502,6 +513,7 @@ local function commandConfig(targetTypes, targetAllegiance, handler, protectAlli
 		handle             = handler or defaultHandler,
 		allowedTargetTypes = allowedTargetTypes,
 		targetAllegiance   = targetAllegiance,
+		capableDefs        = capableDefs,
 		protectAllies      = protectAllies,
 	}
 	return config
@@ -509,16 +521,44 @@ end
 
 ---@type table<number, CommandConfig>
 local areaToTargetCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
-	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
-	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, nil, true),
-	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, loadUnitsHandler),
-	[CMD.RESURRECT] = commandConfig({ FEATURE }),
+	[CMD.ATTACK]                        = commandConfig({ UNIT },          ENEMY_UNITS, canAttack),
+	[CMD.CAPTURE]                       = commandConfig({ UNIT },          ENEMY_UNITS, canCapture),
+	[GameCMD.UNIT_SET_TARGET]           = commandConfig({ UNIT },          ENEMY_UNITS, canAttack),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT },          ENEMY_UNITS, canAttack),
+	[CMD.GUARD]                         = commandConfig({ UNIT },          ALLY_UNITS,  canGuard),
+	[CMD.REPAIR]                        = commandConfig({ UNIT },          ALLY_UNITS,  canRepair),
+	[CMD.RECLAIM]                       = commandConfig({ UNIT, FEATURE }, ALL_UNITS,   canReclaim, nil, true),
+	[CMD.LOAD_UNITS]                    = commandConfig({ UNIT },          ALL_UNITS,   canTransport, loadUnitsHandler),
+	[CMD.RESURRECT]                     = commandConfig({ FEATURE },       nil,         canResurrect),
 }
+
+--- The selected units that can perform the command at all.
+local function getCapableUnits(selectedUnits, capableDefs)
+	local firstDrop
+	for index = 1, #selectedUnits do
+		if not capableDefs[spGetUnitDefID(selectedUnits[index])] then
+			firstDrop = index
+			break
+		end
+	end
+
+	if not firstDrop then
+		return selectedUnits[1] and selectedUnits or nil
+	end
+
+	local keep, count = {}, firstDrop - 1
+	for index = 1, count do
+		keep[index] = selectedUnits[index]
+	end
+	for index = firstDrop + 1, #selectedUnits do
+		local unitID = selectedUnits[index]
+		if capableDefs[spGetUnitDefID(unitID)] then
+			count = count + 1
+			keep[count] = unitID
+		end
+	end
+	return count > 0 and keep or nil
+end
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, protectAllies)
 	local targetDefId = spGetUnitDefID(targetId)
@@ -684,8 +724,8 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local selectedUnits = spGetSelectedUnits()
-	if not selectedUnits[1] then
+	local selectedUnits = getCapableUnits(spGetSelectedUnits(), command.capableDefs)
+	if not selectedUnits then
 		return false
 	end
 
@@ -702,8 +742,8 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	command.handle(cmdId, selectedUnits, filteredTargets, options)
-	return true
+	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
+	return command.handle(cmdId, selectedUnits, filteredTargets, options) > 0
 end
 
 local function initialize()
