@@ -74,6 +74,7 @@ local UNIT_ID_MAX = Game.maxUnits
 local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID
 
 local commandLimit = 2000
+local metaMixesTargets = true -- quick flag for testing whether this is weird
 
 local myTeamID, myAllyTeamID
 
@@ -378,10 +379,33 @@ local function byDistanceToFeature(position, closestFirst)
 	end
 end
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
+local function targetPosition(targetID)
+	if targetID <= UNIT_ID_MAX then
+		return toPositionTable(spGetUnitPosition(targetID))
+	end
+	return toPositionTable(getFeaturePosition(targetID))
+end
+
+local function byDistanceToTarget(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			return distanceSq(position, targetPosition(targetIdA))
+				< distanceSq(position, targetPosition(targetIdB))
+		end
+	else
+		return function(targetIdA, targetIdB)
+			return distanceSq(position, targetPosition(targetIdA))
+				> distanceSq(position, targetPosition(targetIdB))
+		end
+	end
+end
+
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, mixedTargets)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
 	if not filteredTargets[1] then
 		return
+	elseif mixedTargets then
+		tableSort(filteredTargets, byDistanceToTarget(avgPosition, closestFirst))
 	elseif filteredTargets[1] <= UNIT_ID_MAX then
 		tableSort(filteredTargets, byDistanceToUnit(avgPosition, closestFirst))
 	else
@@ -467,7 +491,7 @@ local function splitTargets(selectedUnits, filteredTargets)
 end
 
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
@@ -476,21 +500,21 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local ordersIssued = 0
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
-		sortTargetsByDistance(selectedUnitTable, targets, true)
+		sortTargetsByDistance(selectedUnitTable, targets, true, mixedTargets)
 		ordersIssued = ordersIssued + giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
 	return ordersIssued
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
 	if options.shift and options.meta then
-		return splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		return splitOrders(cmdId, selectedUnits, filteredTargets, options, mixedTargets)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
 		local closestFirst = not options.meta
-		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
+		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, mixedTargets)
 		return giveOrders(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
@@ -758,17 +782,31 @@ end
 
 ---Everything the command can act on when both features and units are targetable.
 ---With no (valid) hovered object, we no longer know which object type to target.
-local function gatherTargets(command, cmdX, cmdZ, radius)
-	-- TODO: It's not clear that features should be prioritized.
-	if command.allowedTargetTypes[FEATURE] then
+local function gatherTargets(command, cmdX, cmdZ, radius, options)
+	local targets
+
+	local allowFeatures = command.allowedTargetTypes[FEATURE]
+	if allowFeatures then
 		local featuresInArea = gatherFeatures(cmdX, cmdZ, radius, command.canTarget)
-		if featuresInArea then
-			return toFeatureTargetIDs(featuresInArea)
+		targets = featuresInArea and toFeatureTargetIDs(featuresInArea)
+	end
+
+	-- CMD_RECLAIM really does a trillion things and makes handling it rough.
+	-- Here, we catch that the engine combines features+units only with meta.
+	if command.allowedTargetTypes[UNIT] and (not allowFeatures or (metaMixesTargets and options.meta)) then
+		local unitsInArea = gatherUnits(cmdX, cmdZ, radius, command.targetAllegiance)
+		if unitsInArea and targets then
+			local count = #targets
+			for index = 1, #unitsInArea do
+				targets[count + index] = unitsInArea[index]
+			end
+			return targets, true -- `true` => mixed list
+		elseif unitsInArea then
+			return unitsInArea
 		end
 	end
-	if command.allowedTargetTypes[UNIT] then
-		return gatherUnits(cmdX, cmdZ, radius, command.targetAllegiance)
-	end
+
+	return targets
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -798,20 +836,20 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local filteredTargets, seedUnusable
+	local filteredTargets, unfiltered, mixedTargets
 	if seedType == FEATURE then
-		filteredTargets, seedUnusable = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
+		filteredTargets, unfiltered = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
 	elseif seedType == UNIT then
-		filteredTargets, seedUnusable = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
+		filteredTargets, unfiltered = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
 	else
-		seedUnusable = true
+		unfiltered = true
 	end
 
-	if seedUnusable then
+	if unfiltered then
 		if not split then
 			return false
 		end
-		filteredTargets = gatherTargets(command, cmdX, cmdZ, radius)
+		filteredTargets, mixedTargets = gatherTargets(command, cmdX, cmdZ, radius, options)
 		if not filteredTargets then
 			return false
 		end
@@ -820,7 +858,7 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
-	return command.handle(cmdId, selectedUnits, filteredTargets, options) > 0
+	return command.handle(cmdId, selectedUnits, filteredTargets, options, mixedTargets) > 0
 end
 
 local function initialize()
