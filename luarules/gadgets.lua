@@ -481,40 +481,12 @@ end
 --
 --  Synthetic callins
 --
---  These are artificially created within the game code to emulate the behaviors
---  of engine-driven callins. We are filling the gaps produced by the engine's
---  event system, in many cases, so code built on top of these foundations needs
---  to keep up with the times and adapt as the gaps fill in from the other side.
+--  The registry of which callins these are, and of the engine callins that have
+--  to stay installed to produce them, lives in synthetic_callins.lua. Their own
+--  state and dispatch stay here, next to the callins that drive them.
 --
---  [IMPORTANT]
---  > Add each callin to `syntheticCallinHold` and to `syntheticCallinUpdate`.
---  > 
---  > The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
---  > 
---  > Synthetic callins that subscribe to engine callins are kept installed for
---  > as long as anything subscribes to them. These _must_ be recorded below or
---  > can become unhooked whenever no addon happens to subscribe to their base.
-
--- [SyntheticCallinName] := EngineCallinName[]
-local syntheticCallinHold = {
-	MetaUnitAdded         = { 'UnitGiven', 'UnitCreated' },
-	MetaUnitRemoved       = { 'UnitTaken', 'UnitDestroyed' },
-	UnitBuildStepsPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
-	FeatureBuildStepsPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
-	UnitAutoTargetRange   = { 'AllowWeaponTarget' },
-}
-
-local callinHoldSummary = {}
-for name, subscriptions in pairs(syntheticCallinHold) do
-	for _, backer in ipairs(subscriptions) do
-		local lists = callinHoldSummary[backer]
-		if not lists then
-			lists = {}
-			callinHoldSummary[backer] = lists
-		end
-		lists[#lists + 1] = name .. 'List'
-	end
-end
+--  [SyntheticCallinName] := EngineCallinName[], [EngineCallinName] := ListName[]
+local syntheticCallinHold, callinHoldSummary = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
 
 -- Summary callins of per-frame build steps:
 -- gadget:UnitBuildStepsPost(unitID)
