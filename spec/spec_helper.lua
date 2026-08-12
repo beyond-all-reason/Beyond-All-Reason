@@ -38,9 +38,41 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
     print(...)
 end
 
+-- math.bit_and is a Recoil MathExtra addition, not standard Lua, so it needs a stand-in.
+_G.math.bit_and = _G.math.bit_and or function(...)
+    local result
+    for _, value in ipairs({ ... }) do
+        if result == nil then
+            result = value
+        else
+            local folded, bit = 0, 1
+            while result > 0 and value > 0 do
+                if result % 2 == 1 and value % 2 == 1 then
+                    folded = folded + bit
+                end
+                result = math.floor(result / 2)
+                value = math.floor(value / 2)
+                bit = bit * 2
+            end
+            result = folded
+        end
+    end
+    return result or 0
+end
+
 _G.GG = _G.GG or {}
 
-_G.CMD     = _G.CMD or {}
+-- Command ids and option bits, as numbered in rts/Sim/Units/CommandAI/Command.h.
+_G.CMD = _G.CMD or {
+    MOVE         = 10,
+    REPAIR       = 40,
+    OPT_META     = 4,
+    OPT_INTERNAL = 8,
+    OPT_RIGHT    = 16,
+    OPT_SHIFT    = 32,
+    OPT_CTRL     = 64,
+    OPT_ALT      = 128,
+}
 _G.GameCMD = _G.GameCMD or {}
 
 _G.unpack = _G.unpack or table.unpack or function(t, i, j)
@@ -145,6 +177,16 @@ end
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `VFS.Include("common/tablefunctions.lua")` is called
 VFS.Include("common/tablefunctions.lua")
 
+-- Mission API modules, in load order. Trigger files read them at include time.
+function _G.RegisterMissionApiModules()
+    _G.GG['MissionAPI'] = _G.GG['MissionAPI'] or {}
+    local modules = _G.GG['MissionAPI'].Modules or {}
+    _G.GG['MissionAPI'].Modules = modules
+    modules.ParameterTypes = modules.ParameterTypes or VFS.Include('luarules/mission_api/parameter_types.lua')
+    modules.IdleStates     = modules.IdleStates     or VFS.Include('luarules/mission_api/idle_states.lua')
+    return modules
+end
+
 _G.VFS.SubDirs = function(path)
     -- Check case-insensitive cache for correct directory path
     if not _G.VFS._ci_file_cache then
@@ -218,7 +260,8 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
     if recursive then
         cmd = string.format("find %s %s -type f", searchDir, name_pattern)
     else
-        cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
+        -- -maxdepth is global rather than positional, so it precedes the tests it applies to.
+        cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
     end
 
     local handle = io.popen(cmd)
