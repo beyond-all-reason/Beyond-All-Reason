@@ -1,4 +1,5 @@
 # August
+• [Cortex Spybot] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
 • [Floating AA turrets] Stats made to match their land counterparts
 
 # July
