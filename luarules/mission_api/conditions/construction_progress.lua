@@ -12,6 +12,7 @@ end
 
 return {
 	type = 'ConstructionProgress',
+	kind = 'event',
 	parameters = {
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },

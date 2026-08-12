@@ -1,24 +1,33 @@
 ---
 --- Statistics engine for the Mission API.
 ---
---- Owns the shared per-trigger counting for the statistics trigger types
---- (TotalUnitsLost/Built/Killed/Captured, UnitsOwned) and bridges those events
---- to managed objectives.
+--- Owns the shared per-condition counting for the statistics condition types
+--- (TotalUnitsLost/Built/Killed/Captured, UnitsOwned), which declare no call-ins
+--- of their own.
+---
+--- The TotalUnits* types are events: cumulative tallies that only ever rise, so
+--- each matching occurrence is handed to ActivateTrigger, which applies `count`.
+--- UnitsOwned is a metric: a level that moves in both directions, so its running
+--- value is handed to EvaluateMetric, which applies `atLeast`/`atMost`.
 ---
 --- Trigger activation and iteration belong to the triggers gadget, so they are
 --- injected via Init() rather than imported.
 ---
 
 local statisticsTriggerCounts = {}
-local processTriggersOfType, activateTrigger
+local processTriggersOfType, activateTrigger, evaluateMetric, conditionKinds
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
-	activateTrigger = dependencies.activateTrigger
+	activateTrigger       = dependencies.activateTrigger
+	evaluateMetric        = dependencies.evaluateMetric
+	conditionKinds        = dependencies.conditionKinds
 end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
 	unitNames = unitNames or {}
+
+	local isMetric = conditionKinds[triggerType] == 'metric'
 
 	processTriggersOfType(triggerType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamID then
@@ -33,30 +42,14 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 
 		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
-		-- quantity > 0: fire each time the count crosses a milestone (quantity, 2*quantity, ...), and only when incrementing.
-		-- quantity == 0 is a special case: fire only when count reaches 0
-		local quantity = trigger.parameters.quantity
-		if quantity > 0 and direction > 0 then
-			local nextThreshold = (trigger.repeatCount + 1) * quantity
-			if statisticsTriggerCounts[triggerID] >= nextThreshold then
-				activateTrigger(trigger)
-			end
-		elseif quantity == 0 and statisticsTriggerCounts[triggerID] == 0 then
+		if isMetric then
+			-- A level: compare the running value against the condition's bounds.
+			evaluateMetric(trigger, statisticsTriggerCounts[triggerID])
+		elseif direction > 0 then
+			-- A tally: report the occurrence and let `count` decide whether it fires.
 			activateTrigger(trigger)
 		end
 	end)
-
-	-- Update managed objectives:
-	for _, managedObjective in ipairs(GG["MissionAPI"].ManagedObjectives[triggerType] or {}) do
-		GG["MissionAPI"].Modules.Objectives.UpdateObjectiveProgress(
-			managedObjective.objectiveID,
-			teamID,
-			unitDefName,
-			unitNames,
-			direction,
-			managedObjective
-		)
-	end
 end
 
 local function increment(triggerType, teamID, unitDefName, unitNames)

@@ -2,7 +2,8 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
+local metricTypes = GG['MissionAPI'].ConditionDefinitions.MetricTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local stages = {
@@ -31,44 +32,57 @@ local objectives = {
 
 	objectiveWithInvalidSchemaTypes = {
 		textKey = "schema_type_check",
-		amount = 'notANumber',   -- error: amount must be a number
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
 		coop = 'notABoolean',    -- error: coop must be a boolean
 	},
 
-	objectiveWithTriggerHavingSettings = {
-		textKey = "trigger_must_not_have_settings",
-		trigger = {
-			settings = { repeating = true },  -- error: trigger must not have a settings field
-			type = triggerTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-		},
+	objectiveWithUnknownField = {
+		textKey = "unknown_field",
+		type = metricTypes.UnitsOwned,
+		parameters = { teamID = 0, unitName = 'someUnits' },
+		atMostt = 0,             -- error: unknown field (typo for atMost)
 	},
 
-	objectiveWithInvalidTriggerType = {
-		textKey = "trigger_with_invalid_type",
-		trigger = {
-			type = 'invalidType',  -- error: invalid trigger type
-		},
+	objectiveWithInvalidType = {
+		textKey = "invalid_type",
+		type = 'invalidType',    -- error: invalid condition type
 	},
 
-	objectiveWithMissingTriggerType = {
-		textKey = "trigger_with_missing_type",
-		trigger = {
-			parameters = { seconds = 100000000 },  -- error: missing trigger type
-		},
+	objectiveWithMissingType = {
+		textKey = "missing_type",
+		parameters = { seconds = 100000000 },  -- error: missing type
 	},
 
 	objectiveWithInvalidNextStage = {
 		textKey = "invalid_next_stage",
-		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		onComplete = {
+			nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
+		},
 	},
 
-	objectiveWithTriggerHavingActions = {
-		textKey = "trigger_must_not_have_actions",
-		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = { seconds = 100000000 },
-			actions = { 'someAction' },  -- error: objective trigger must not have actions
+	objectiveWithWrongThresholdForKind = {
+		textKey = "wrong_threshold",
+		type = metricTypes.UnitsOwned,
+		parameters = { teamID = 0, unitName = 'someUnits' },
+		count = 3,               -- error: metrics use atLeast/atMost, not count
+	},
+
+	objectiveWithMissingMetricBound = {
+		textKey = "missing_bound",
+		type = metricTypes.UnitsOwned,
+		parameters = { teamID = 0, unitName = 'someUnits' },
+		-- error: metric conditions require atLeast and/or atMost
+	},
+
+	objectiveWithInvalidOnCompleteAction = {
+		textKey = "invalid_oncomplete_action",
+		type = eventTypes.TimeElapsed,
+		parameters = { seconds = 100000000 },
+		onComplete = {
+			actions = { 'noSuchAction' },  -- error: action does not exist
 		},
 	},
 }
@@ -84,7 +98,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidActionID = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 100000000,
 		},
@@ -92,7 +106,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidTypesInSettings = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		settings = {
 			prerequisites = { 'invalidTriggerID' },
 			repeating = 0,
@@ -108,7 +122,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllyTeamID = {
-		type = triggerTypes.UnitSpotted,
+		type = eventTypes.UnitSpotted,
 		parameters = {
 			spottingAllyTeamID = 777,
 		},
@@ -116,7 +130,7 @@ local triggers = {
 	},
 
 	triggerWithInvalidAreaType = {
-		type = triggerTypes.FeatureCreated,
+		type = eventTypes.FeatureCreated,
 		parameters = {
 			area = 'notATable',
 		},
@@ -124,22 +138,24 @@ local triggers = {
 	},
 
 	triggerWithInvalidResourceIncomeSourcesType = {
-		type = triggerTypes.ResourceIncome,
+		type = metricTypes.ResourceIncome,
 		parameters = {
 			teamID = 0,
-			metal = 10,
+			resource = 'metal',
 			sources = 'notATable',
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 
 	triggerWithInvalidResourceIncomeSources = {
-		type = triggerTypes.ResourceIncome,
+		type = metricTypes.ResourceIncome,
 		parameters = {
 			teamID = 0,
-			metal = 10,
+			resource = 'metal',
 			sources = { 'invalidSource1', false, 123 },
 		},
+		atLeast = 10,
 		actions = { 'actionMissingType' },
 	},
 }

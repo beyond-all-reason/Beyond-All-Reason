@@ -2,5 +2,6 @@
 -- call-in (declares no callins).
 return {
 	type = 'Victory',
+	kind = 'event',
 	parameters = {},
 }

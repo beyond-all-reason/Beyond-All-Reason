@@ -24,8 +24,8 @@ local function loadMission(scriptPath)
 	local rawTriggers = mission.Triggers or {}
 	local rawActions = mission.Actions or {}
 
-	GG['MissionAPI'].CurrentStageID = initialStage
 	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(stages)
+	GG['MissionAPI'].Modules.Stages.SetInitialStage(initialStage)
 	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
@@ -34,7 +34,7 @@ local function loadMission(scriptPath)
 
 	local validation = VFS.Include('luarules/mission_api/validation.lua')
 	validation.ValidateStages(GG['MissionAPI'].Stages)
-	validation.ValidateObjectives(GG['MissionAPI'].Objectives)
+	validation.ValidateObjectives(GG['MissionAPI'].Objectives, rawActions)
 	validation.ValidateInitialStage(initialStage)
 	validation.ValidateTriggers(GG['MissionAPI'].Triggers, rawActions)
 	validation.ValidateActions(GG['MissionAPI'].Actions)
@@ -43,13 +43,15 @@ local function loadMission(scriptPath)
 	if GG['MissionAPI'].HasValidationErrors then
 		GG['MissionAPI'] = nil -- stops gadget api_missions_triggers from loading
 		gadgetHandler:RemoveGadget()
-		return
+		return false
 	end
 
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include('luarules/mission_api/parameter_processing.lua')
 	parameterProcessing.ProcessActionParameters(GG['MissionAPI'].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG['MissionAPI'].Triggers)
+
+	return true
 end
 
 function gadget:Initialize()
@@ -81,12 +83,12 @@ function gadget:Initialize()
 	GG['MissionAPI'].markerNames            = {}
 	GG['MissionAPI'].soundFiles             = {}
 	GG['MissionAPI'].soundQueue             = {}
-	GG['MissionAPI'].ManagedObjectives      = {}
 	GG['MissionAPI'].Modules                = {}
 	GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 	GG['MissionAPI'].Modules.Tracking       = VFS.Include('luarules/mission_api/tracking.lua')
 	GG['MissionAPI'].Modules.Loadout        = VFS.Include('luarules/mission_api/loadout.lua')
 	GG['MissionAPI'].Modules.Sounds         = VFS.Include('luarules/mission_api/sounds.lua')
+	GG['MissionAPI'].Modules.Stages         = VFS.Include('luarules/mission_api/stages.lua')
 	GG['MissionAPI'].Modules.Objectives     = VFS.Include('luarules/mission_api/objectives.lua')
 	GG['MissionAPI'].Modules.SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
 	GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
@@ -97,10 +99,17 @@ function gadget:Initialize()
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 	GG['MissionAPI'].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
-	GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+	triggersController = VFS.Include('luarules/mission_api/conditions_loader.lua')
+	GG['MissionAPI'].ConditionDefinitions = triggersController.LoadConditionDefinitions()
 
-	loadMission(scriptPath)
+	-- Bails out when the mission failed validation, having already removed this
+	-- gadget and cleared GG['MissionAPI'].
+	if not loadMission(scriptPath) then
+		return
+	end
+
+	-- needs actions from the mission:
+	GG['MissionAPI'].Modules.ActionsDispatcher = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 end
 
 function gadget:GamePreload()
@@ -109,7 +118,7 @@ function gadget:GamePreload()
 	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout)
 
 	if GG['MissionAPI'].CurrentStageID then
-		Spring.Echo("Stage set to: " .. GG['MissionAPI'].CurrentStageID)
+		GG['MissionAPI'].Modules.Stages.Announce(GG['MissionAPI'].CurrentStageID)
 	end
 end
 

@@ -1,9 +1,9 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes  = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 	addMarkers = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 2,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
 	drawLines = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 6,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
 	eraseMarker = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 9,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
 	clearAll = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},

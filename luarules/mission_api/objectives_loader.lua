@@ -1,87 +1,75 @@
-local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local stagesLoader = VFS.Include('luarules/mission_api/stages_loader.lua')
 
 --[[
 	objectiveID = {
 		textKey = "complete_objective",
-		amount = 3,
-		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = {
-				seconds = 3,
-			},
+
+		-- The condition, written exactly as on a trigger:
+		type = eventTypes.ConstructionFinished,
+		parameters = { unitDefName = 'corak', teamID = 0 },
+		count = 3,                        -- events; metrics use atLeast / atMost
+
+		onComplete = {
+			nextStage = 'secondStage',
+			actions = { 'spawnReinforcements' },
 		},
-		nextStage = 'secondStage',
 		coop = true,
 	},
 ]]
 
+local OBJECTIVE_CONDITION_PREFIX = '__objective_'
+
+--- Each objective contributes a condition record to the same space the triggers
+--- gadget dispatches over, so objectives reuse all 27 condition handlers rather
+--- than duplicating their matching logic.
+---
+--- The record carries `onActivate` instead of `actions`: activation completes
+--- the objective rather than invoking mission actions. Records are never
+--- repeating, which is what makes completion latched.
+local function buildConditionRecord(objectiveID, objective, objectiveStages)
+	return {
+		type       = objective.type,
+		parameters = objective.parameters or {},
+		count      = objective.count,
+		atLeast    = objective.atLeast,
+		atMost     = objective.atMost,
+		settings   = {
+			stages = objectiveStages,
+		},
+		onActivate = function()
+			GG['MissionAPI'].Modules.Objectives.Complete(objectiveID)
+		end,
+		onProgress = function(progress)
+			GG['MissionAPI'].Modules.Objectives.ReportProgress(objectiveID, progress)
+		end,
+	}
+end
+
+--- The value an objective counts towards, used for UI progress. Metrics approach
+--- whichever bound they declare; events count occurrences towards `count`, which
+--- defaults to 1 because a bare event completes on its first occurrence.
+local function targetOf(objective)
+	if objective.atLeast ~= nil then
+		return objective.atLeast
+	end
+	if objective.atMost ~= nil then
+		return objective.atMost
+	end
+	return objective.count or 1
+end
+
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local objectives = rawObjectives or {}
-
-	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
-	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
-		GG["MissionAPI"].TriggerDefinitions.Parameters,
-		parameterTypes.Types.Quantity
-	)
-
-	-- Build objective-to-stages mapping from stages structure
-	local objectiveToStages = {}
-	for stageID, stageData in pairs(stages or {}) do
-		if type(stageData) == "table" and type(stageData.objectives) == "table" then
-			for _, objectiveID in ipairs(stageData.objectives) do
-				if not objectiveToStages[objectiveID] then
-					objectiveToStages[objectiveID] = {}
-				end
-				table.insert(objectiveToStages[objectiveID], stageID)
-			end
-		end
-	end
+	local stagesByObjective = stagesLoader.IndexStagesByObjective(stages)
 
 	for objectiveID, objective in pairs(objectives) do
-		local objectiveStages = objectiveToStages[objectiveID] or {}
+		if type(objectiveID) == 'string' and type(objective) == 'table' and objective.type ~= nil then
+			objective.completed = false
+			objective.progress = 0
+			objective.target = targetOf(objective)
 
-		if type(objectiveID) == "string" and type(objective) == "table" and type(objective.trigger) == "table" then
-			local amount = objective.amount
-			local triggerType = objective.trigger.type
-			local triggerParameters = type(objective.trigger.parameters) == "table" and objective.trigger.parameters
-				or {}
-
-			if triggerTypesWithQuantity[triggerType] then
-				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
-				table.ensureTable(GG["MissionAPI"].ManagedObjectives, triggerType)
-				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
-					objectiveID = objectiveID,
-					amount = amount,
-					nextStage = objective.nextStage,
-					stages = objectiveStages,
-					parameters = triggerParameters,
-				})
-			else
-				-- Non-managed objective: synthesize trigger + action as usual.
-				local isRepeating = amount ~= nil
-				local maxRepeats = type(amount) == "number" and amount > 1 and (amount - 1) or nil
-				local triggerID = "__objective_" .. objectiveID
-				local actionID = "__updateObjective_" .. objectiveID
-
-				rawTriggers[triggerID] = {
-					type = triggerType,
-					parameters = triggerParameters,
-					settings = {
-						stages = objectiveStages,
-						repeating = isRepeating,
-						maxRepeats = maxRepeats,
-					},
-					actions = { actionID },
-				}
-
-				rawActions[actionID] = {
-					type = actionTypes.UpdateObjective,
-					parameters = {
-						objectiveID = objectiveID,
-					},
-				}
-			end
+			rawTriggers[OBJECTIVE_CONDITION_PREFIX .. objectiveID] =
+				buildConditionRecord(objectiveID, objective, stagesByObjective[objectiveID] or {})
 		end
 	end
 
@@ -90,4 +78,5 @@ end
 
 return {
 	ProcessRawObjectives = processRawObjectives,
+	ObjectiveConditionPrefix = OBJECTIVE_CONDITION_PREFIX,
 }

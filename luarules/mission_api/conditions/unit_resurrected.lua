@@ -2,6 +2,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
 	type = 'UnitResurrected',
+	kind = 'event',
 	parameters = {
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },

@@ -1,114 +1,112 @@
 ---
---- Shared helpers for objective progress/completion and stage advancement.
+--- Objective progress and completion for the Mission API.
+---
+--- One engine for both condition kinds. The objective's condition record does
+--- the watching (see objectives_loader); this module only decides what a
+--- completion means.
+---
+--- Completion is latched: a completed objective never becomes incomplete again,
+--- even if the metric it watched moves back out of range.
 ---
 
-local function changeStage(stageID)
-	GG["MissionAPI"].CurrentStageID = stageID
-	Spring.Echo("Stage set to: " .. stageID)
-end
-
---- Advance to nextStage if the objective is completed and every other objective
---- in the current stage with the same nextStage is also complete.
-local function tryAdvanceStage(objective)
-	local nextStage = objective.nextStage
-
-	if not objective.completed then
-		return
-	end
-	if not nextStage then
-		return
-	end
-
-	local currentStageID = GG["MissionAPI"].CurrentStageID
-	local currentStage = GG["MissionAPI"].Stages[currentStageID]
-	if not currentStage then
-		return
-	end
-
-	for _, otherObjectiveID in pairs(currentStage.objectives) do
-		local otherObjective = GG["MissionAPI"].Objectives[otherObjectiveID]
-		if otherObjective.nextStage == nextStage and not otherObjective.completed then
-			return
-		end
-	end
-
-	changeStage(nextStage)
+local function getStages()
+	return GG['MissionAPI'].Modules.Stages
 end
 
 -- placeholder until UI widget exists
 local function echoObjectiveUpdate(objectiveID, objective)
-	Spring.Echo(
-		"Objective updated: "
-			.. objectiveID
-			.. " | "
-			.. (objective.textKey or "")
-			.. " | progress: "
-			.. tostring(objective.progress)
-			.. " | amount: "
-			.. tostring(objective.amount)
-			.. " | completed: "
-			.. tostring(objective.completed)
-	)
+	Spring.Echo("Objective updated: " .. objectiveID
+		.. " | " .. (objective.textKey or '')
+		.. " | progress: " .. tostring(objective.progress)
+		.. " | target: " .. tostring(objective.target)
+		.. " | completed: " .. tostring(objective.completed))
 end
 
---- Update objective progress for a managed (statistics-based) objective.
---- Called when the trigger's event fires with updated counts.
-local function updateObjectiveProgress(
-	objectiveID,
-	eventTeamID,
-	eventUnitDefName,
-	eventUnitNames,
-	direction,
-	managedObjMetadata
-)
-	if eventTeamID ~= managedObjMetadata.parameters.teamID then
-		return
-	end
-	if managedObjMetadata.parameters.unitDefName and eventUnitDefName ~= managedObjMetadata.parameters.unitDefName then
-		return
-	end
-	if
-		managedObjMetadata.parameters.unitName and not (eventUnitNames or {})[managedObjMetadata.parameters.unitName]
-	then
-		return
+--- Advances to onComplete.nextStage once every objective in the current stage
+--- that shares that nextStage is also complete.
+local function tryAdvanceStage(objective)
+	local nextStage = objective.onComplete and objective.onComplete.nextStage
+
+	if not objective.completed then return end
+	if not nextStage then return end
+
+	local stages = getStages()
+	local currentStage = stages.GetStage(stages.GetCurrentStageID())
+	if not currentStage then return end
+
+	for _, otherObjectiveID in pairs(currentStage.objectives) do
+		local otherObjective = GG['MissionAPI'].Objectives[otherObjectiveID]
+		local otherNextStage = otherObjective and otherObjective.onComplete and otherObjective.onComplete.nextStage
+		if otherNextStage == nextStage and not otherObjective.completed then
+			return
+		end
 	end
 
-	-- Track count regardless of stage:
-	managedObjMetadata._count = (managedObjMetadata._count or 0) + direction
+	stages.ChangeStage(nextStage)
+end
 
-	if
-		next(managedObjMetadata.stages)
-		and not table.contains(managedObjMetadata.stages, GG["MissionAPI"].CurrentStageID)
-	then
-		return
+local function runCompletionActions(objective)
+	local actionIDs = objective.onComplete and objective.onComplete.actions
+	if not actionIDs then return end
+
+	local dispatcher = GG['MissionAPI'].Modules.ActionsDispatcher
+	if not dispatcher then return end
+
+	for _, actionID in ipairs(actionIDs) do
+		dispatcher.Invoke(actionID)
 	end
+end
 
-	local objective = GG["MissionAPI"].Objectives[objectiveID]
-	if objective.completed then
-		return
-	end
+--- Records progress for the UI. Events report how many occurrences have been
+--- tallied out of `count`; metrics report the value last sampled against the
+--- bound they are being compared with.
+local function reportProgress(objectiveID, progress)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+	if not objective or objective.completed then return end
 
-	objective.progress = managedObjMetadata._count
+	objective.progress = progress
+	echoObjectiveUpdate(objectiveID, objective)
+end
 
-	local isComplete
-	local amount = managedObjMetadata.amount
-	if amount == nil then
-		isComplete = true
-	elseif amount == 0 then
-		isComplete = managedObjMetadata._count == 0
-	else
-		isComplete = managedObjMetadata._count >= amount
-	end
+--- Called when an objective's condition is satisfied.
+local function complete(objectiveID)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+	if not objective or objective.completed then return end
 
-	objective.completed = isComplete
+	objective.completed = true
+	objective.progress = objective.target
+
+	runCompletionActions(objective)
 	tryAdvanceStage(objective)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+--- Author-facing UpdateObjective action: set completion and/or text directly.
+local function update(objectiveID, completed, textKey)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+	if not objective or objective.completed then return end
+
+	if textKey then
+		objective.textKey = textKey
+	end
+
+	if completed then
+		complete(objectiveID)
+		return
+	end
+
+	if completed == nil and textKey == nil then
+		complete(objectiveID)
+		return
+	end
 
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
 return {
-	ChangeStage = changeStage,
-	TryAdvanceStage = tryAdvanceStage,
-	UpdateObjectiveProgress = updateObjectiveProgress,
+	Complete            = complete,
+	Update              = update,
+	ReportProgress      = reportProgress,
+	TryAdvanceStage     = tryAdvanceStage,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

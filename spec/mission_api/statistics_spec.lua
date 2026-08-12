@@ -1,13 +1,19 @@
 require("spec_helper")
 
-local statistics = VFS.Include("luarules/mission_api/statistics.lua")
+local statistics = VFS.Include('luarules/mission_api/statistics.lua')
 
 describe("mission_api.statistics", function()
-	local TRIGGER_TYPE = 1
+	-- TotalUnits* are cumulative tallies, so they are events; UnitsOwned is a
+	-- level that moves both ways, so it is a metric. The engine routes them
+	-- differently: events report each occurrence, metrics report their value.
+	local EVENT_TYPE = 1
+	local METRIC_TYPE = 2
 
-	local triggers -- triggerID -> trigger
-	local activated -- ordered list of activated triggers
-	local objectiveUpdates -- ordered list of managed-objective update calls
+	local conditionKinds = { [EVENT_TYPE] = 'event', [METRIC_TYPE] = 'metric' }
+
+	local triggers   -- triggerID -> trigger
+	local activated  -- ordered list of activated triggers
+	local measured   -- ordered list of { trigger, value } handed to EvaluateMetric
 
 	-- Fakes injected in place of the gadget's trigger core:
 	local function processTriggersOfType(triggerType, func)
@@ -20,9 +26,13 @@ describe("mission_api.statistics", function()
 
 	local function activateTrigger(trigger)
 		activated[#activated + 1] = trigger
-		-- Mimic a valid repeating activation so milestone thresholds advance. Return value is ignored.
 		trigger.triggered = true
 		trigger.repeatCount = trigger.repeatCount + 1
+		return true
+	end
+
+	local function evaluateMetric(trigger, value)
+		measured[#measured + 1] = { trigger = trigger, value = value }
 		return true
 	end
 
@@ -31,145 +41,125 @@ describe("mission_api.statistics", function()
 	end
 
 	before_each(function()
-		triggers = {}
+		triggers  = {}
 		activated = {}
-		objectiveUpdates = {}
-		GG["MissionAPI"] = {
-			ManagedObjectives = {},
-			Modules = {
-				Objectives = {
-					-- Spy: record every argument it receives so tests can assert on them.
-					UpdateObjectiveProgress = function(
-						objectiveID,
-						teamID,
-						unitDefName,
-						unitNames,
-						direction,
-						managedObjective
-					)
-						objectiveUpdates[#objectiveUpdates + 1] = {
-							objectiveID = objectiveID,
-							teamID = teamID,
-							unitDefName = unitDefName,
-							unitNames = unitNames,
-							direction = direction,
-							managedObjective = managedObjective,
-						}
-					end,
-				},
-			},
-		}
-		statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+		measured  = {}
+		GG['MissionAPI'] = {}
+		statistics.Init({
+			processTriggersOfType = processTriggersOfType,
+			activateTrigger       = activateTrigger,
+			evaluateMetric        = evaluateMetric,
+			conditionKinds        = conditionKinds,
+		})
 	end)
 
 	-- Note: statisticsTriggerCounts is module-private and persists for the whole
 	-- run, so each test uses a unique triggerID to stay isolated.
 
-	it("fires when the count reaches quantity", function()
-		triggers.reach = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
+	describe("event conditions (TotalUnits*)", function()
 
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(0, #activated)
+		it("reports every matching occurrence, leaving `count` to the caller", function()
+			triggers.eventEach = makeTrigger(EVENT_TYPE, { teamID = 0 })
 
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(1, #activated)
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(3, #activated)
+		end)
+
+		it("does not report decrements, since a tally only rises", function()
+			triggers.eventDown = makeTrigger(EVENT_TYPE, { teamID = 0 })
+
+			statistics.Decrement(EVENT_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(0, #activated)
+		end)
+
+		it("never routes an event through EvaluateMetric", function()
+			triggers.eventNotMetric = makeTrigger(EVENT_TYPE, { teamID = 0 })
+
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(0, #measured)
+		end)
 	end)
 
-	it("re-fires at each quantity milestone (2*q, 3*q, ...)", function()
-		triggers.milestones = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
+	describe("metric conditions (UnitsOwned)", function()
 
-		for _ = 1, 6 do
-			statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		end
+		it("reports the running value on increment", function()
+			triggers.metricUp = makeTrigger(METRIC_TYPE, { teamID = 0 })
 
-		-- milestones crossed at counts 2, 4, 6
-		assert.are.equal(3, #activated)
+			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(2, #measured)
+			assert.are.equal(1, measured[1].value)
+			assert.are.equal(2, measured[2].value)
+		end)
+
+		it("reports the running value on decrement, because a level moves both ways", function()
+			triggers.metricDown = makeTrigger(METRIC_TYPE, { teamID = 0 })
+
+			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Decrement(METRIC_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(2, #measured)
+			assert.are.equal(1, measured[1].value)
+			assert.are.equal(0, measured[2].value)
+		end)
+
+		it("never routes a metric through ActivateTrigger directly", function()
+			triggers.metricNotEvent = makeTrigger(METRIC_TYPE, { teamID = 0 })
+
+			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Decrement(METRIC_TYPE, 0, 'armwar', {})
+
+			assert.are.equal(0, #activated)
+		end)
 	end)
 
-	it("does not fire before the next milestone", function()
-		triggers.partial = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 3 })
+	describe("filters", function()
 
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(0, #activated)
+		it("filters by teamID", function()
+			triggers.filterTeam = makeTrigger(EVENT_TYPE, { teamID = 0 })
+
+			statistics.Increment(EVENT_TYPE, 1, 'armwar', {})
+			assert.are.equal(0, #activated)
+
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			assert.are.equal(1, #activated)
+		end)
+
+		it("filters by unitDefName", function()
+			triggers.filterDef = makeTrigger(EVENT_TYPE, { teamID = 0, unitDefName = 'armwar' })
+
+			statistics.Increment(EVENT_TYPE, 0, 'corak', {})
+			assert.are.equal(0, #activated)
+
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			assert.are.equal(1, #activated)
+		end)
+
+		it("filters by unitName", function()
+			triggers.filterName = makeTrigger(EVENT_TYPE, { teamID = 0, unitName = 'bots' })
+
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', { others = true })
+			assert.are.equal(0, #activated)
+
+			statistics.Increment(EVENT_TYPE, 0, 'armwar', { bots = true })
+			assert.are.equal(1, #activated)
+		end)
+
+		it("applies filters to metrics too", function()
+			triggers.filterMetric = makeTrigger(METRIC_TYPE, { teamID = 0, unitDefName = 'armwar' })
+
+			statistics.Increment(METRIC_TYPE, 0, 'corak', {})
+			assert.are.equal(0, #measured)
+
+			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			assert.are.equal(1, #measured)
+		end)
 	end)
 
-	it("counts decrements against the milestone", function()
-		triggers.net = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 2 })
-
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {}) -- count 1
-		statistics.Decrement(TRIGGER_TYPE, 0, "armwar", {}) -- count 0
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {}) -- count 1
-		assert.are.equal(0, #activated) -- still below quantity 2
-
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {}) -- count 2
-		assert.are.equal(1, #activated) -- milestone reached
-	end)
-
-	it("with quantity 0, fires only when the count reaches 0", function()
-		triggers.zero = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 0 })
-
-		-- Leaving 0 (count 0 -> 1) does not fire.
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(0, #activated)
-
-		-- Returning to 0 (count 1 -> 0) fires.
-		statistics.Decrement(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(1, #activated)
-
-		-- It fires again each time the count returns to 0, but never on the way up.
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(1, #activated)
-		statistics.Decrement(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(2, #activated)
-	end)
-
-	it("filters by teamID", function()
-		triggers.filterTeam = makeTrigger(TRIGGER_TYPE, { teamID = 5, quantity = 1 })
-
-		-- Wrong team: no match.
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(0, #activated)
-
-		-- Right team: fires.
-		statistics.Increment(TRIGGER_TYPE, 5, "armwar", {})
-		assert.are.equal(1, #activated)
-	end)
-
-	it("filters by unitDefName", function()
-		triggers.filterDef = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 1, unitDefName = "armcom" })
-
-		-- Wrong unit def: no match.
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-		assert.are.equal(0, #activated)
-
-		-- Matching unit def: fires.
-		statistics.Increment(TRIGGER_TYPE, 0, "armcom", {})
-		assert.are.equal(1, #activated)
-	end)
-
-	it("filters by unitName", function()
-		triggers.filterNamed = makeTrigger(TRIGGER_TYPE, { teamID = 0, quantity = 1, unitName = "boss" })
-
-		-- Required unit name absent: no match.
-		statistics.Increment(TRIGGER_TYPE, 0, "armcom", {})
-		assert.are.equal(0, #activated)
-
-		-- Required unit name present: fires.
-		statistics.Increment(TRIGGER_TYPE, 0, "armcom", { boss = true })
-		assert.are.equal(1, #activated)
-	end)
-
-	it("forwards events to managed objectives even with no matching triggers", function()
-		GG["MissionAPI"].ManagedObjectives[TRIGGER_TYPE] = { { objectiveID = "obj" } }
-
-		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
-
-		assert.are.equal(1, #objectiveUpdates)
-		local objectiveUpdate = objectiveUpdates[1]
-		assert.are.equal("obj", objectiveUpdate.objectiveID)
-		assert.are.equal(0, objectiveUpdate.teamID)
-		assert.are.equal("armwar", objectiveUpdate.unitDefName)
-		assert.are.equal(1, objectiveUpdate.direction)
-	end)
 end)
