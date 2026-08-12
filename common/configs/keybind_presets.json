@@ -1,0 +1,9 @@
+{
+	"presets": [
+		{ "name": "Grid", "file": "luaui/configs/hotkeys/grid_keys.txt" },
+		{ "name": "Grid (60% Keyboard)", "file": "luaui/configs/hotkeys/grid_keys_60pct.txt" },
+		{ "name": "Legacy", "file": "luaui/configs/hotkeys/legacy_keys.txt" },
+		{ "name": "Legacy (60% Keyboard)", "file": "luaui/configs/hotkeys/legacy_keys_60pct.txt" },
+		{ "name": "Custom", "file": "uikeys.txt", "custom": true }
+	]
+}

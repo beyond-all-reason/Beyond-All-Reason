@@ -329,6 +329,9 @@ local layouts = {
 	'workman',
 }
 
+-- Single-letter modifier abbreviations (uikeys.txt: A/C/M/S, * for Any).
+local modAbbrev = { A = "ALT+", C = "CTRL+", M = "META+", S = "SHIFT+" }
+
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
 		return ""
@@ -336,37 +339,47 @@ local function sanitizeKey(key, layout)
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	key = key:upper():gsub("ANY%+", '')
+	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
 	key = key:gsub("SC_(.)", function(c)
 		return scanToCode[layout][c] or c
 	end)
+	-- The backslash key comes through as the keysym word, missing the SC_ mapping above.
+	key = key:gsub("BACKSLASH", "\\")
+	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
+	key = key:gsub("%f[%u]([ACMS])%+", function(m) return modAbbrev[m] end)
 
 	return key
 end
 
-local keybindingLayouts = {
-	'Grid', -- the first element will be the default value if a fallback is ever needed
-	'Grid (60% Keyboard)',
-	'Legacy',
-	'Legacy (60% Keyboard)',
-	'Custom'
-}
+-- Preset registry from the shared cross-surface contract (also consumed by Chobby
+-- / the lobby); the first entry is the default fallback.
+-- Source of truth: common/configs/keybind_presets.json
+local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local ok, decoded = pcall(Json.decode, VFS.LoadFile('common/configs/keybind_presets.json'))
+local presetList = ok and type(decoded) == 'table' and decoded.presets or nil
+if type(presetList) ~= 'table' or #presetList == 0 then
+	-- Boot even if the shared registry is missing/corrupt: presets gate the editor,
+	-- the settings menu, and the hotkeys widget, so fall back to the built-in list.
+	Spring.Echo('[keyboard_layouts] could not load common/configs/keybind_presets.json; using built-in preset fallback')
+	presetList = {
+		{ name = 'Grid', file = 'luaui/configs/hotkeys/grid_keys.txt' },
+		{ name = 'Grid (60% Keyboard)', file = 'luaui/configs/hotkeys/grid_keys_60pct.txt' },
+		{ name = 'Legacy', file = 'luaui/configs/hotkeys/legacy_keys.txt' },
+		{ name = 'Legacy (60% Keyboard)', file = 'luaui/configs/hotkeys/legacy_keys_60pct.txt' },
+		{ name = 'Custom', file = 'uikeys.txt' },
+	}
+end
 
-local keybindingPresets = {
-	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
-	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
-	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
-	[keybindingLayouts[5]] = 'uikeys.txt',
-}
-
+local keybindingLayouts = {}
+local keybindingPresets = {}
 local keybindingLayoutFiles = {}
 local presetKeybindings = {}
 
-for i, v in ipairs(keybindingLayouts) do
-	local file = keybindingPresets[v]
-	keybindingLayoutFiles[i] = file
-	presetKeybindings[file] = v
+for i, preset in ipairs(presetList) do
+	keybindingLayouts[i] = preset.name
+	keybindingPresets[preset.name] = preset.file
+	keybindingLayoutFiles[i] = preset.file
+	presetKeybindings[preset.file] = preset.name
 end
 
 return {
