@@ -673,13 +673,13 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 
 	if isAlliedTarget then
 		if allegiance == ENEMY_UNITS then
-			return nil, true
+			return false, nil
 		end
 		allegiance = filterTeam and targetTeam
 			or (protectAllies and targetTeam == myTeamID and MY_UNITS or ALLY_UNITS)
 	else
 		if allegiance == ALLY_UNITS then
-			return nil, true
+			return false, nil
 		end
 		allegiance = ENEMY_UNITS -- Enemy teams cannot be distinguished, but neutral vs hostile can.
 		if filterTeam and spGetUnitNeutral(targetId) then
@@ -691,10 +691,10 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 
 	local unitsInArea = gatherUnits(cmdX, cmdZ, radius, allegiance)
 	if not unitsInArea then
-		return
+		return true, nil
 	end
 
-	return narrowUnits(unitsInArea, targetDefId, filterType, filterHostile, filterNeutral)
+	return true, narrowUnits(unitsInArea, targetDefId, filterType, filterHostile, filterNeutral)
 end
 
 local function getTechLevel(unitDefName)
@@ -771,13 +771,13 @@ end
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options, canTarget)
 	local featuresInArea = gatherFeatures(cmdX, cmdZ, radius, canTarget)
 	if not featuresInArea then
-		return
+		return false, nil
 	end
 	local filteredTargets, seedUnusable = narrowFeatures(featuresInArea, targetId, options)
 	if seedUnusable then
-		return nil, true
+		return true, nil
 	end
-	return filteredTargets and toFeatureTargetIDs(filteredTargets)
+	return true, filteredTargets and toFeatureTargetIDs(filteredTargets)
 end
 
 ---Everything the command can act on when both features and units are targetable.
@@ -836,16 +836,21 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local filteredTargets, unfiltered, mixedTargets
+	local filtered, filteredTargets
 	if seedType == FEATURE then
-		filteredTargets, unfiltered = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
+		filtered, filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, command.canTarget)
 	elseif seedType == UNIT then
-		filteredTargets, unfiltered = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
+		filtered, filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
 	else
-		unfiltered = true
+		filtered = true
 	end
 
-	if unfiltered then
+	local mixedTargets
+	if filtered then
+		if not filteredTargets then
+			return true
+		end
+	else
 		if not split then
 			return false
 		end
@@ -853,8 +858,6 @@ function widget:CommandNotify(cmdId, params, options)
 		if not filteredTargets then
 			return false
 		end
-	elseif not filteredTargets then
-		return true
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
