@@ -23,11 +23,7 @@ function test()
 	local y = Spring.GetGroundHeight(x, z)
 
 	unitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			"armpw",
-			locals.x, locals.y, locals.z,
-			0, 0
-		)
+		return Spring.CreateUnit("armpw", locals.x, locals.y, locals.z, 0, 0)
 	end)
 
 	assert(table.count(widget.activeSelfD) == 0)
@@ -55,7 +51,6 @@ function test()
 	-- remove move order
 	Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.MOVE }, { "alt" })
 	Test.waitUntil(function()
-		return table.count(widget.activeSelfD) == 1
-			and table.count(widget.queuedSelfD) == 0
+		return table.count(widget.activeSelfD) == 1 and table.count(widget.queuedSelfD) == 0
 	end, 10)
 end

@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
 		author = "Anarchid, Sprung, SethDGamre",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -63,7 +63,7 @@ end
 
 for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
-	if weaponDef.type == 'DGun' then
+	if weaponDef.type == "DGun" then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunDef[weaponDefID] = weaponDef
 		dgunDef[weaponDefID].ttl = generateWeaponTtlFunction(weaponDef)
@@ -160,9 +160,23 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID,
-							   attackerDefID, attackerTeam)
-	if dgunDef[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+function gadget:UnitPreDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	if
+		dgunDef[weaponDefID]
+		and isCommander[attackerDefID]
+		and (isCommander[unitDefID] or isDecoyCommander[unitDefID])
+	then
 		if isDecoyCommander[unitDefID] then
 			return dgunDef[weaponDefID].damages[0]
 		else
@@ -178,7 +192,21 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+local function shieldPreDamaged(
+	proID,
+	proOwnerID,
+	shieldEmitterWeaponNum,
+	shieldCarrierUnitID,
+	bounceProjectile,
+	beamEmitterWeaponNum,
+	beamEmitterUnitID,
+	startX,
+	startY,
+	startZ,
+	hitX,
+	hitY,
+	hitZ
+)
 	if proID > -1 and dgunData[proID] then
 		local proData = dgunData[proID]
 		local weaponDefID = proData.weaponDefID
