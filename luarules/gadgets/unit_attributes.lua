@@ -275,15 +275,11 @@ local function UpdateReloadSpeed(unitID, unitDefID, weaponMods, speedFactor, gam
 			local nextReload = gameFrame + (reloadState - gameFrame) * newReload / reloadTime
 			-- Add HALF_FRAME to round reloadTime to the closest multiple of 1/30, since the the engine rounds down to a multiple of 1/30.
 			if w.burstRate then
-				spSetUnitWeaponState(
-					unitID,
-					i,
-					{
-						reloadTime = newReload + HALF_FRAME,
-						reloadState = nextReload,
-						burstRate = w.burstRate / moddedSpeed + HALF_FRAME,
-					}
-				)
+				spSetUnitWeaponState(unitID, i, {
+					reloadTime = newReload + HALF_FRAME,
+					reloadState = nextReload,
+					burstRate = w.burstRate / moddedSpeed + HALF_FRAME,
+				})
 			else
 				spSetUnitWeaponState(unitID, i, { reloadTime = newReload + HALF_FRAME, reloadState = nextReload })
 			end

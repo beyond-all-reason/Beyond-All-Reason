@@ -97,21 +97,20 @@ function gadget:GameFrame(frame)
 							Spring.GiveOrderToUnit(
 								unitID,
 								-turret,
-								{ x + math.random(-data.range, data.range), y, z + math.random(-data.range, data.range) },
+								{
+									x + math.random(-data.range, data.range),
+									y,
+									z + math.random(-data.range, data.range),
+								},
 								{}
 							)
 							if data.isFactory then
 								for i = 1, math.random(1, 5) do
-									Spring.GiveOrderToUnit(
-										unitID,
-										-turret,
-										{
-											x + math.random(-data.range, data.range),
-											y,
-											z + math.random(-data.range, data.range),
-										},
-										{}
-									)
+									Spring.GiveOrderToUnit(unitID, -turret, {
+										x + math.random(-data.range, data.range),
+										y,
+										z + math.random(-data.range, data.range),
+									}, {})
 								end
 							else
 								lastTurretFrame = frame

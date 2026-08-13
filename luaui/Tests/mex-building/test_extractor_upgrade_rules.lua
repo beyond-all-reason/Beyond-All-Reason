@@ -63,3 +63,5 @@ function test()
 		)
 	end
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

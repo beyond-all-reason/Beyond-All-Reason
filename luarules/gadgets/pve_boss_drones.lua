@@ -635,27 +635,17 @@ function gadget:GameFrame(frame)
 			if stats.owner then
 				local x, y, z = Spring.GetUnitPosition(stats.owner)
 				if math.random(0, 4) == 0 then
-					Spring.GiveOrderToUnit(
-						droneID,
-						CMD.PATROL,
-						{
-							x + math.random(-stats.fightRadius, stats.fightRadius),
-							y,
-							z + math.random(-stats.fightRadius, stats.fightRadius),
-						},
-						{ "shift" }
-					)
+					Spring.GiveOrderToUnit(droneID, CMD.PATROL, {
+						x + math.random(-stats.fightRadius, stats.fightRadius),
+						y,
+						z + math.random(-stats.fightRadius, stats.fightRadius),
+					}, { "shift" })
 				elseif math.random(0, 6) == 0 then
-					Spring.GiveOrderToUnit(
-						droneID,
-						CMD.PATROL,
-						{
-							x + math.random(-stats.fightRadius, stats.fightRadius),
-							y,
-							z + math.random(-stats.fightRadius, stats.fightRadius),
-						},
-						{}
-					)
+					Spring.GiveOrderToUnit(droneID, CMD.PATROL, {
+						x + math.random(-stats.fightRadius, stats.fightRadius),
+						y,
+						z + math.random(-stats.fightRadius, stats.fightRadius),
+					}, {})
 				end
 			else
 				if math.random(0, 10) == 0 then

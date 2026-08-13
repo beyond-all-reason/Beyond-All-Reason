@@ -2133,15 +2133,12 @@ local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0
 			squadParams.weight = 1
 		end
 		for _ = 1, squadParams.weight do
-			table.insert(
-				squadSpawnOptionsTable[squadParams.type],
-				{
-					minAnger = squadParams.minAnger,
-					maxAnger = squadParams.maxAnger,
-					units = squadParams.units,
-					weight = squadParams.weight,
-				}
-			)
+			table.insert(squadSpawnOptionsTable[squadParams.type], {
+				minAnger = squadParams.minAnger,
+				maxAnger = squadParams.maxAnger,
+				units = squadParams.units,
+				weight = squadParams.weight,
+			})
 		end
 	end
 end
