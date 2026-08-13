@@ -28,7 +28,7 @@
 ---
 ---The unit can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost; mark: g:AllowUnitBuildStep.
+---Dispatch: g:GameFramePost, batched; mark: g:AllowUnitBuildStep.
 ---@field UnitBuildStepPost? fun(self, unitID: integer)
 ---
 ---Runs once per feature that had a build step attempted that frame, whether
@@ -36,7 +36,7 @@
 ---
 ---The feature can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost; mark: g:AllowFeatureBuildStep.
+---Dispatch: g:GameFramePost, batched; mark: g:AllowFeatureBuildStep.
 ---@field FeatureBuildStepPost? fun(self, featureID: integer)
 ---
 ---Runs once per unit that had build steps attempted that frame, passing the
@@ -45,7 +45,7 @@
 ---
 ---The unit can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost; mark: g:AllowUnitBuildStep.
+---Dispatch: g:GameFramePost, batched; mark: g:AllowUnitBuildStep.
 ---@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
 ---
 ---Runs once per feature that had build steps attempted that frame, passing
@@ -54,5 +54,5 @@
 ---
 ---The feature can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost; mark: g:AllowFeatureBuildStep.
+---Dispatch: g:GameFramePost, batched; mark: g:AllowFeatureBuildStep.
 ---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
