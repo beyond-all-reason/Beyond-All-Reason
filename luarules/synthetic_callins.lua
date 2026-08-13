@@ -28,7 +28,7 @@ local syntheticCallins = {
 	},
 
 	synced = {
-		UnitAutoTargetRange   = { 'AllowWeaponTarget' },
+		UnitAutoTargetRange  = { 'AllowWeaponTarget' },
 		UnitBuildStepPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
 		FeatureBuildStepPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
 	},
