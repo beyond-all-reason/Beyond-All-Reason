@@ -1,9 +1,11 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function playMusic(soundfile)
-    if GG["music"] then
-        GG["music"].GadgetPlayMusicTrack(soundfile)
+    if not GG["music"] then
+        error("[Mission API] Music API unavailable (api_music.lua gadget not loaded), cannot play: " .. tostring(soundfile))
     end
+
+    GG["music"].GadgetPlayMusicTrack(soundfile)
 end
 
 return {
