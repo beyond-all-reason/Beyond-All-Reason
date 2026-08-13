@@ -65,7 +65,7 @@ function test()
 
 	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
-	assert(#(widget.blueprints) == 1)
+	assert(#widget.blueprints == 1)
 
 	Test.clearMap()
 
@@ -84,16 +84,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE),
-		1,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 

@@ -11,11 +11,11 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    function gadget:Initialize()
+	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("GadgetPlayMusicTrack", BroadcastEvent)
 	end
 
-    function BroadcastEvent(_, trackFilePath)
+	function BroadcastEvent(_, trackFilePath)
 		if Script.LuaUI("GadgetPlayMusicTrack") then
 			Script.LuaUI.GadgetPlayMusicTrack(trackFilePath)
 		end
@@ -26,9 +26,9 @@ GG["music"] = {}
 
 ---@param trackFilePath string Full Path to music track
 GG["music"].GadgetPlayMusicTrack = function(trackFilePath)
-    if gadgetHandler:IsSyncedCode() then
-        SendToUnsynced("GadgetPlayMusicTrack", trackFilePath)
-    else
-        BroadcastEvent("GadgetPlayMusicTrack", trackFilePath)
-    end
+	if gadgetHandler:IsSyncedCode() then
+		SendToUnsynced("GadgetPlayMusicTrack", trackFilePath)
+	else
+		BroadcastEvent("GadgetPlayMusicTrack", trackFilePath)
+	end
 end

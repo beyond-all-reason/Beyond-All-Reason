@@ -32,7 +32,7 @@ return {
 		turnrate = 400,
 		upright = false,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Kaludjo",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/t2",

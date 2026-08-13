@@ -2,13 +2,13 @@ local widget = widget ---@class Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Ignore Self",
-		desc    = "Avoid self-targeting with default commands (e.g. Guard on self)",
-		author  = "efrec",
-		date    = "2025-10-13",
+		name = "Ignore Self",
+		desc = "Avoid self-targeting with default commands (e.g. Guard on self)",
+		author = "efrec",
+		date = "2025-10-13",
 		version = "v1.0",
 		license = "GNU GPL, v2 or later",
-		layer   = -1e9, -- before other w:DefaultCommand
+		layer = -1e9, -- before other w:DefaultCommand
 		enabled = true,
 	}
 end
@@ -236,7 +236,8 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local description, result =
+		sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)

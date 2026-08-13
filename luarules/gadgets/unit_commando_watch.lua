@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		date = "Aug 17, 2010",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -31,7 +31,7 @@ MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true
 local isBuilding = {}
 local isCommando = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'cormando') then
+	if string.find(ud.name, "cormando") then
 		isCommando[udid] = true
 	end
 	if ud.isBuilding then
@@ -39,7 +39,18 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
 	if isCommando[unitDefID] then
 		if weaponID < 0 then
 			local x, y, z = Spring.GetUnitPosition(unitID)

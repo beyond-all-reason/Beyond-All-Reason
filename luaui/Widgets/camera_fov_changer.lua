@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name      = "FOV changer",
-	desc      = "Changes the camera's field of view, either by a relative amount or to a specific value",
-	author    = "Floris, Chronographer",
-	date      = "April 10, 2019",
-	license   = "GNU GPL, v2 or later",
-	layer     = 999999,
-	enabled   = false
+		name = "FOV changer",
+		desc = "Changes the camera's field of view, either by a relative amount or to a specific value",
+		author = "Floris, Chronographer",
+		date = "April 10, 2019",
+		license = "GNU GPL, v2 or later",
+		layer = 999999,
+		enabled = false,
 	}
 end
 
@@ -21,7 +21,7 @@ local spEcho = Spring.Echo
 --------------------------------------------------------------------------------
 -- Bindable actions:	fov [number] - Set Field of View to [number] or 45 degrees
 -- 						fov_inc [number] - Increase Field of View [number] or 5 degrees
--- 						fov_dec [number] - Decrease Field of View [number] or 5 degrees	
+-- 						fov_dec [number] - Decrease Field of View [number] or 5 degrees
 --------------------------------------------------------------------------------
 local FOV_DEFAULT = 40
 local STEP_DEFAULT = 5
@@ -33,7 +33,7 @@ local function limitFieldOfView(fov)
 	if fov < 0 then
 		return 0
 	elseif fov > 100 then -- glitches beyond 100
-		return 100 
+		return 100
 	else
 		return fov
 	end
@@ -48,8 +48,8 @@ local function updateFieldOfView(fovTarget, direction)
 		current_cam_state.fov = limitFieldOfView(fovTarget)
 	end
 
-	spEcho('FOV: '..current_cam_state.fov)
-	Spring.SetCameraState(current_cam_state, WG['options'] and WG['options'].getCameraSmoothness() or 2)
+	spEcho("FOV: " .. current_cam_state.fov)
+	Spring.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
 end
 
 local function fieldOfViewHandler(_, _, args, data, isRepeat, isRelease)
@@ -62,9 +62,9 @@ local function fieldOfViewHandler(_, _, args, data, isRepeat, isRelease)
 end
 
 function widget:Initialize()
-    widgetHandler:AddAction("fov_inc", fieldOfViewHandler, {direction = 1}, "pt")
-    widgetHandler:AddAction("fov_dec", fieldOfViewHandler, {direction = -1}, "pt")
-	widgetHandler:AddAction("fov", fieldOfViewHandler, {direction = 0}, "pt")
+	widgetHandler:AddAction("fov_inc", fieldOfViewHandler, { direction = 1 }, "pt")
+	widgetHandler:AddAction("fov_dec", fieldOfViewHandler, { direction = -1 }, "pt")
+	widgetHandler:AddAction("fov", fieldOfViewHandler, { direction = 0 }, "pt")
 end
 
 function widget:Shutdown()

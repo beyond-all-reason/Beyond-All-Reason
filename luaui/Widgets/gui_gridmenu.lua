@@ -108,12 +108,12 @@ local modKeyMultiplier = {
 	click = {
 		ctrl = 20,
 		shift = 5,
-		right = -1
+		right = -1,
 	},
 	keyPress = {
 		ctrl = -1,
-		shift = 5
-	}
+		shift = 5,
+	},
 }
 
 -------------------------------------------------------------------------------
@@ -154,7 +154,7 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
+local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -368,7 +368,6 @@ local isPregame
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
-
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
@@ -399,7 +398,10 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+local startUnits = string.split(
+	Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"),
+	"|"
+)
 local startBuildOptions = {}
 for _, uDefIDString in ipairs(startUnits) do
 	local uDefID = tonumber(uDefIDString)
@@ -1164,7 +1166,7 @@ local function queueUnit(uDefID, opts, quantity)
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				for _ = 1,quantity do
+				for _ = 1, quantity do
 					spGiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
@@ -1214,7 +1216,7 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	if quantity >= cap then
 		multiqueue_quantity = math.floor(quantity / cap)
 		queueUnit(uDefID, opts, multiqueue_quantity)
-		quantity = math.fmod(quantity,cap)
+		quantity = math.fmod(quantity, cap)
 	end
 	return quantity
 end
@@ -1253,7 +1255,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
-			updateQuotaNumber(uDefID,quantity)
+			updateQuotaNumber(uDefID, quantity)
 			return true
 		else
 			if args[3] and args[3] == "builder" then
@@ -1270,11 +1272,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
 			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-			quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 100, { "ctrl", "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 20, { "ctrl", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 5, { "shift", alt and "alt", removing and "right" })
 			--queue the remaining units
-			multiQueue(uDefID,quantity,1,{ alt and "alt", removing and "right" })
+			multiQueue(uDefID, quantity, 1, { alt and "alt", removing and "right" })
 
 			return true
 		end
@@ -1387,7 +1389,6 @@ function widget:Initialize()
 	WG["buildmenu"] = {}
 
 	doUpdateClock = os.clock()
-
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1557,7 +1558,9 @@ function widget:Initialize()
 	---@param unitDefID number The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	local function setHighlight(unitDefID, color)
-		if not unitDefID then return end
+		if not unitDefID then
+			return
+		end
 		local items = highlight.items
 		if not items[unitDefID] then
 			highlight.count = highlight.count + 1
@@ -1650,7 +1653,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG["fonts"].getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1891,11 +1894,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG["guishader"] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
 		else
-			WG['guishader'].RemoveDlist('buildmenu')
+			WG["guishader"].RemoveDlist("buildmenu")
 		end
 	end
 
@@ -2050,7 +2053,9 @@ local function drawButton(rect)
 end
 
 local function drawHighlights()
-	if highlight.count == 0 or not next(highlight.items) then return end
+	if highlight.count == 0 or not next(highlight.items) then
+		return
+	end
 	local now = os.clock()
 	for uDefID, hl in pairs(highlight.items) do
 		local cellId = uDefCellIds[uDefID]
@@ -2070,7 +2075,7 @@ local function drawHighlights()
 			local brighten = 0.10 + 0.22 * pulse
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
 			gl.Color(r * brighten, g * brighten, b * brighten, 1)
-			gl.Texture('#' .. uDefID)
+			gl.Texture("#" .. uDefID)
 			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
 			gl.Texture(false)
 
@@ -2086,9 +2091,18 @@ local function drawHighlights()
 			local glowAlpha = 0.10 + 0.20 * pulse
 			local glowWidth = thickness * 3
 			WG.FlowUI.Draw.RectRoundOutline(
-				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
-				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
-				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+				x1 + thickness,
+				y1 + thickness,
+				x2 - thickness,
+				y2 - thickness,
+				math_max(0, cs - thickness),
+				glowWidth,
+				1,
+				1,
+				1,
+				1,
+				{ r, g, b, glowAlpha },
+				{ r, g, b, 0 }
 			)
 
 			gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -2148,13 +2162,13 @@ local function drawCell(rect)
 	end
 
 	-- unit icon
-	local texprefix = ''
+	local texprefix = ""
 	if disabled then
 		gl.Color(0.4, 0.4, 0.4, 1)
-		texprefix = 't0.3,0.3,0.3'
+		texprefix = "t0.3,0.3,0.3"
 	elseif underConstructionDim then
 		gl.Color(0.77, 0.77, 0.77, 1)
-		texprefix = 't0.63,0.63,0.63'
+		texprefix = "t0.63,0.63,0.63"
 	else
 		gl.Color(1, 1, 1, 1)
 	end
@@ -2348,7 +2362,7 @@ local function drawCell(rect)
 		local textWidth = font2:GetTextWidth(quotaText) * queueFontSize
 		if textWidth > 0.75 * cellInnerSize then
 			local newFontSize = queueFontSize * 0.75 * cellInnerSize / textWidth
-			textPad = textPad * newFontSize/queueFontSize
+			textPad = textPad * newFontSize / queueFontSize
 			textWidth = font2:GetTextWidth(quotaText) * newFontSize
 			queueFontSize = newFontSize
 		end
@@ -2368,7 +2382,9 @@ local function drawCell(rect)
 		font2:Print(
 			"\255\255\130\190" .. quotaText,
 			rect.x + cellPadding + textPad,
-			rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*queueFontSize)/2,
+			rect.y
+				+ cellPadding
+				+ (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber) * queueFontSize) / 2,
 			queueFontSize,
 			"o"
 		)
@@ -2619,7 +2635,6 @@ local function drawBuilder(rect)
 end
 
 local function drawBuilders()
-
 	-- draw builders
 	for i = 1, selectedBuildersCount do
 		drawBuilder(builderRects[i])
@@ -2650,8 +2665,8 @@ end
 
 local function drawBuildMenu()
 	font2:Begin(true)
-	font2:SetTextColor(1,1,1,1)
-	font2:SetOutlineColor(0,0,0,1)
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
@@ -2676,7 +2691,8 @@ local function drawBuildMenu()
 
 	-- under-construction warning replaces/precedes other factory controls
 	if builderIsFactory and backgroundRect.opts.builderUnderConstruction then
-		local warningText = "\255\255\200\50" .. Spring.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
+		local warningText = "\255\255\200\50"
+			.. Spring.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
 		local fontSize = pageFontSize * 1.1
 		local containerHeight = categoriesRect:getHeight()
 		local fontHeight = font2:GetTextHeight(warningText) * fontSize
@@ -2809,7 +2825,12 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
+							if
+								builderIsFactory
+								and WG.Quotas
+								and WG.Quotas.isOnQuotaMode(activeBuilderID)
+								and not alt
+							then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl
@@ -2830,8 +2851,12 @@ function widget:MousePress(x, y, button)
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							local function decreaseQuota()
 								local amount = modKeyMultiplier.click.right
-								if ctrl then amount = amount * modKeyMultiplier.click.ctrl end
-								if shift then amount = amount * modKeyMultiplier.click.shift end
+								if ctrl then
+									amount = amount * modKeyMultiplier.click.ctrl
+								end
+								if shift then
+									amount = amount * modKeyMultiplier.click.shift
+								end
 								updateQuotaNumber(unitDefID, amount)
 							end
 
@@ -2843,7 +2868,11 @@ function widget:MousePress(x, y, button)
 							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
 							local queueCount = tonumber(cellRect.opts.queuenr or 0)
 							local quotas = WG.Quotas and WG.Quotas.getQuotas()
-							local currentQuota = (quotas and quotas[activeBuilderID] and quotas[activeBuilderID][unitDefID]) or 0
+							local currentQuota = (
+								quotas
+								and quotas[activeBuilderID]
+								and quotas[activeBuilderID][unitDefID]
+							) or 0
 
 							if isQuotaMode then
 								if currentQuota > 0 then
@@ -2888,21 +2917,21 @@ local function checkGuishaderBuilders()
 			end
 			dlistGuishaderBuilders = gl.CreateList(function()
 				RectRound(
-						buildersRect.x,
-						buildersRect.y,
-						buildersRect.xEnd + (bgpadding * 2),
-						buildersRect.yEnd + bgpadding + (iconMargin * 2),
-						elementCorner
+					buildersRect.x,
+					buildersRect.y,
+					buildersRect.xEnd + (bgpadding * 2),
+					buildersRect.yEnd + bgpadding + (iconMargin * 2),
+					elementCorner
 				)
 			end)
 			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
 			dlistGuishaderBuildersNext = gl.CreateList(function()
 				RectRound(
-						nextBuilderRect.x,
-						nextBuilderRect.y,
-						nextBuilderRect.xEnd,
-						nextBuilderRect.yEnd,
-						elementCorner * 0.5
+					nextBuilderRect.x,
+					nextBuilderRect.y,
+					nextBuilderRect.xEnd,
+					nextBuilderRect.yEnd,
+					elementCorner * 0.5
 				)
 			end)
 			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
@@ -2933,7 +2962,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-
 		if WG["guishader"] then
 			if dlistGuishader then
 				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
@@ -2951,40 +2979,50 @@ function widget:DrawScreen()
 			end
 			redraw = nil
 			if not buildmenuBgTex then
-				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
+				buildmenuBgTex = gl.CreateTexture(
+					math_floor(backgroundRect.xEnd - backgroundRect.x),
+					math_floor(buildersRectYend - backgroundRect.y),
+					{
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					}
+				)
 			end
 			if buildmenuBgTex then
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenuBg()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(
+						2 / math_floor(backgroundRect.xEnd - backgroundRect.x),
+						2 / math_floor(buildersRectYend - backgroundRect.y),
+						0
+					)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenuBg()
+				end, true)
 			end
 			if not buildmenuTex then
-				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
+				buildmenuTex = gl.CreateTexture(
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
+					math_floor(buildersRectYend - backgroundRect.y) * 2,
+					{ --*(vsy<1400 and 2 or 2)
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					}
+				)
 			end
 			if buildmenuTex and gridmenuUnitpicsWarmDone and not warmedGridmenuUnitpicThisFrame then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenu()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(
+						2 / math_floor(backgroundRect.xEnd - backgroundRect.x),
+						2 / math_floor(buildersRectYend - backgroundRect.y),
+						0
+					)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenu()
+				end, true)
 			end
 			if not gridmenuUnitpicsWarmDone or warmedGridmenuUnitpicThisFrame then
 				redraw = true
@@ -2992,11 +3030,25 @@ function widget:DrawScreen()
 		end
 		if buildmenuBgTex then
 			-- background element
-			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+			gl.R2tHelper.BlendTexRect(
+				buildmenuBgTex,
+				backgroundRect.x,
+				backgroundRect.y,
+				backgroundRect.xEnd,
+				buildersRectYend,
+				true
+			)
 		end
 		if buildmenuTex then
 			-- content
-			gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+			gl.R2tHelper.BlendTexRect(
+				buildmenuTex,
+				backgroundRect.x,
+				backgroundRect.y,
+				backgroundRect.xEnd,
+				buildersRectYend,
+				true
+			)
 		end
 
 		-- draw attention highlights (animated, on top of cached content)

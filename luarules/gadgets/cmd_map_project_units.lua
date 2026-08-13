@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name    = "Map Project Unit Loadout",
-		desc    = "Synced export and replay of the map's unit loadout for map projects",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Map Project Unit Loadout",
+		desc = "Synced export and replay of the map's unit loadout for map projects",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -42,15 +42,15 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local EXPORT_HEADER = "$mpunits_export$"
-local BEGIN_HEADER  = "$mpunits_begin$"
-local DATA_HEADER   = "$mpunits_data$"
-local END_HEADER    = "$mpunits_end$"
+local BEGIN_HEADER = "$mpunits_begin$"
+local DATA_HEADER = "$mpunits_data$"
+local END_HEADER = "$mpunits_end$"
 
 local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
-local pending = nil     -- entries accumulated between $mpunits_begin$ and $mpunits_end$
-local pendingBad = 0    -- entries dropped at parse time (unknown unit def)
-local ackCounter = 0    -- incremented per completed replace; mirrored to mpu_ack
+local pending = nil -- entries accumulated between $mpunits_begin$ and $mpunits_end$
+local pendingBad = 0 -- entries dropped at parse time (unknown unit def)
+local ackCounter = 0 -- incremented per completed replace; mirrored to mpu_ack
 
 -- Heading (-32768..32767) to CreateUnit facing 0..3 (same quantization as
 -- unit_scenario_loadout.lua — the loadout format stays scenario-compatible).
@@ -77,11 +77,15 @@ local function exportAllUnits()
 		local def = defID and UnitDefs[defID]
 		local x, _, z = Spring.GetUnitPosition(uid)
 		if def and x then
-			data[#data + 1] = format("%s %.1f %.1f %d %d %d",
-				def.name, x, z,
+			data[#data + 1] = format(
+				"%s %.1f %.1f %d %d %d",
+				def.name,
+				x,
+				z,
 				Spring.GetUnitHeading(uid) or 0,
 				Spring.GetUnitTeam(uid) or 0,
-				Spring.GetUnitNeutral(uid) and 1 or 0)
+				Spring.GetUnitNeutral(uid) and 1 or 0
+			)
 		end
 	end
 	SendToUnsynced("mpunits_save_begin", #data)
@@ -133,8 +137,15 @@ local function replaceAllUnits()
 	Spring.SetGameRulesParam("mpu_removed", removed)
 	Spring.SetGameRulesParam("mpu_remapped", remapped)
 	Spring.SetGameRulesParam("mpu_ack", ackCounter)
-	Spring.Echo(string.format("[Map Project Units] loadout applied: %d spawned, %d failed, %d pre-existing removed%s",
-		spawned, failed, removed, remapped > 0 and (", " .. remapped .. " remapped to Gaia (team missing/dead)") or ""))
+	Spring.Echo(
+		string.format(
+			"[Map Project Units] loadout applied: %d spawned, %d failed, %d pre-existing removed%s",
+			spawned,
+			failed,
+			removed,
+			remapped > 0 and (", " .. remapped .. " remapped to Gaia (team missing/dead)") or ""
+		)
+	)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
@@ -160,8 +171,12 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, #DATA_HEADER) == DATA_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
-		if not pending then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
+		if not pending then
+			return true
+		end
 		local payload = msg:sub(#DATA_HEADER + 1)
 		for entry in payload:gmatch("[^|]+") do
 			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
@@ -186,8 +201,12 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg == END_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
-		if not pending then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
+		if not pending then
+			return true
+		end
 		replaceAllUnits()
 		pending = nil
 		pendingBad = 0

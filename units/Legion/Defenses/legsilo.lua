@@ -30,7 +30,7 @@ return {
 			buildinggrounddecalsizey = 10,
 			buildinggrounddecalsizex = 10,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'nuke',
+			unitgroup = "nuke",
 			model_author = "Tharsy",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
