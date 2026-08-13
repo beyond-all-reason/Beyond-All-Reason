@@ -97,14 +97,14 @@ local function drawContent()
 end
 
 local function refreshUiDrawing()
-	if WG["guishader"] then
+	if WG.guishader then
 		if guishaderList then
 			guishaderList = glDeleteList(guishaderList)
 		end
 		guishaderList = glCreateList(function()
 			RectRound(left, bottom, right, top, elementCorner, 1, 0, 0, 1)
 		end)
-		WG["guishader"].InsertDlist(guishaderList, "unittotals", true)
+		WG.guishader.InsertDlist(guishaderList, "unittotals", true)
 	end
 
 	if right - left >= 1 and top - bottom >= 1 then
@@ -129,10 +129,10 @@ end
 
 local function updatePosition(force)
 	local prevPos = advplayerlistPos
-	if WG["music"] and WG["music"].GetPosition and WG["music"].GetPosition() then
-		advplayerlistPos = WG["music"].GetPosition()
-	elseif WG["advplayerlist_api"] ~= nil then
-		advplayerlistPos = WG["advplayerlist_api"].GetPosition()
+	if WG.music and WG.music.GetPosition and WG.music.GetPosition() then
+		advplayerlistPos = WG.music.GetPosition()
+	elseif WG.advplayerlist_api ~= nil then
+		advplayerlistPos = WG.advplayerlist_api.GetPosition()
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		advplayerlistPos = { 0, vsx - (220 * scale), 0, vsx, scale }
@@ -157,8 +157,8 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
-	WG["unittotals"] = {}
-	WG["unittotals"].GetPosition = function()
+	WG.unittotals = {}
+	WG.unittotals.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
 end
@@ -168,8 +168,8 @@ function widget:PlayerChanged()
 end
 
 function widget:Shutdown()
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("unittotals")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("unittotals")
 	end
 	for i = 1, #drawlist do
 		glDeleteList(drawlist[i])
@@ -183,7 +183,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
-	WG["unittotals"] = nil
+	WG.unittotals = nil
 end
 
 function widget:Update(dt)
@@ -210,7 +210,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound

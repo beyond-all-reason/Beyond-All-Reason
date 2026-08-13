@@ -52,7 +52,7 @@ local exampleLight = {
 
 local unitLights = {
 
-	["armpw"] = {
+	armpw = {
 		headlightpw = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "head", -- invalid ones will attach to the worldpos of the unit
@@ -204,7 +204,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armwar"] = {
+	armwar = {
 		arm1 = {
 			lightType = "point",
 			pieceName = "luparm",
@@ -331,7 +331,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfatf"] = {
+	armfatf = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "light",
@@ -458,7 +458,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfrad"] = {
+	armfrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -685,7 +685,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamex"] = {
+	armamex = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -712,7 +712,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsonar"] = {
+	armsonar = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -814,7 +814,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armrad"] = {
+	armrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -966,7 +966,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corrad"] = {
+	corrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -993,7 +993,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfrad"] = {
+	corfrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "turret",
@@ -1020,7 +1020,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortide"] = {
+	cortide = {
 		energy1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -1078,7 +1078,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmart"] = {
+	armmart = {
 		-- front = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'sleeve',
@@ -1164,7 +1164,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armferret"] = {
+	armferret = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -1266,7 +1266,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrhapsis"] = {
+	legrhapsis = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "searchLight",
@@ -1293,7 +1293,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armkraken"] = {
+	armkraken = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -1595,7 +1595,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armflak"] = {
+	armflak = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -1898,7 +1898,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfflak"] = {
+	armfflak = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -2103,7 +2103,7 @@ local unitLights = {
 		},
 	},
 
-	["armdl"] = {
+	armdl = {
 		top = {
 			lightType = "point",
 			pieceName = "turret",
@@ -2367,7 +2367,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cordl"] = {
+	cordl = {
 		depthchargeflashl = {
 			lightType = "point",
 			pieceName = "turret",
@@ -2569,7 +2569,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmark"] = {
+	armmark = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "torso",
@@ -2596,7 +2596,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaradk"] = {
+	legaradk = {
 		leggreenblob = {
 			lightType = "point",
 			pieceName = "dishTower",
@@ -2624,7 +2624,7 @@ local unitLights = {
 		},
 	},
 
-	["legavrad"] = {
+	legavrad = {
 		greenbloba = {
 			lightType = "point",
 			pieceName = "radarlight1",
@@ -2726,7 +2726,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corvoyr"] = {
+	corvoyr = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "torso",
@@ -2878,7 +2878,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortrem"] = {
+	cortrem = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -3163,7 +3163,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corvroc"] = {
+	corvroc = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -3384,7 +3384,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmerl"] = {
+	armmerl = {
 		eyesleft = {
 			lightType = "beam",
 			pieceName = "base",
@@ -3478,7 +3478,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortron"] = {
+	cortron = {
 		--UNStockpiled
 		base1 = {
 			lightType = "beam",
@@ -3930,7 +3930,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armseer"] = {
+	armseer = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "eye",
@@ -3982,7 +3982,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corvrad"] = {
+	corvrad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -4170,7 +4170,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armarad"] = {
+	armarad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -4398,7 +4398,7 @@ local unitLights = {
 		},
 	},
 
-	["corarad"] = {
+	corarad = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -4426,7 +4426,7 @@ local unitLights = {
 		},
 	},
 
-	["armtarg"] = {
+	armtarg = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "base",
@@ -4482,7 +4482,7 @@ local unitLights = {
 		},
 	},
 
-	["armllt"] = {
+	armllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -4761,7 +4761,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corllt"] = {
+	corllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -4855,7 +4855,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhllt"] = {
+	corhllt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret2",
@@ -4998,7 +4998,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corhlt"] = {
+	corhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -5117,7 +5117,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmercury"] = {
+	armmercury = {
 		base2 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -5398,7 +5398,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbeamer"] = {
+	armbeamer = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -5744,7 +5744,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armassistdrone_land"] = {
+	armassistdrone_land = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -5821,7 +5821,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corassistdrone_land"] = {
+	corassistdrone_land = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -5898,7 +5898,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armnanotct2"] = {
+	armnanotct2 = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano1",
@@ -5925,7 +5925,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cornanotct2"] = {
+	cornanotct2 = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -5952,7 +5952,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legnanotc"] = {
+	legnanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -5979,7 +5979,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legmohoconct"] = {
+	legmohoconct = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -6031,7 +6031,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legmohocon"] = {
+	legmohocon = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -6083,7 +6083,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legnanotcplat"] = {
+	legnanotcplat = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -6110,7 +6110,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armnanotc"] = {
+	armnanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -6262,7 +6262,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cornanotc"] = {
+	cornanotc = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "emitnano",
@@ -6339,7 +6339,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armhlt"] = {
+	armhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunl",
@@ -6541,7 +6541,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfhlt"] = {
+	armfhlt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunl",
@@ -6752,7 +6752,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armrl"] = {
+	armrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -6921,7 +6921,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfrt"] = {
+	armfrt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -7173,7 +7173,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corrl"] = {
+	corrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -7301,7 +7301,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfrt"] = {
+	corfrt = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -7429,7 +7429,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcir"] = {
+	armcir = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "spindle",
@@ -7569,7 +7569,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormadsam"] = {
+	cormadsam = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "launcher",
@@ -7647,7 +7647,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corflak"] = {
+	corflak = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunbase",
@@ -7725,7 +7725,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corenaa"] = {
+	corenaa = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "gunbase",
@@ -7803,7 +7803,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfrock"] = {
+	corfrock = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -7881,7 +7881,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corerad"] = {
+	corerad = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -7985,7 +7985,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armjamt"] = {
+	armjamt = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8112,7 +8112,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corshroud"] = {
+	corshroud = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8139,7 +8139,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armjuno"] = {
+	armjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
@@ -8366,7 +8366,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corjuno"] = {
+	corjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
@@ -8393,7 +8393,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legjuno"] = {
+	legjuno = {
 		top = {
 			lightType = "point",
 			pieceName = "junoSphere",
@@ -8420,7 +8420,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armjam"] = {
+	armjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8472,7 +8472,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corjamt"] = {
+	corjamt = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8499,7 +8499,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coreter"] = {
+	coreter = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8688,7 +8688,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armaser"] = {
+	armaser = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8715,7 +8715,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corspec"] = {
+	corspec = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -8742,7 +8742,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legavjam"] = {
+	legavjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "cloaklight",
@@ -8769,7 +8769,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legajamk"] = {
+	legajamk = {
 		legcloaklightred = {
 			lightType = "point",
 			pieceName = "blob",
@@ -8796,7 +8796,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavyradjamship"] = {
+	leganavyradjamship = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "cloaklight",
@@ -8923,7 +8923,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armveil"] = {
+	armveil = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "jam",
@@ -9151,7 +9151,7 @@ local unitLights = {
 		},
 	},
 
-	["corsiegebreaker"] = {
+	corsiegebreaker = {
 
 		eyes1 = {
 			lightType = "point",
@@ -9411,7 +9411,7 @@ local unitLights = {
 		},
 	},
 
-	["corack"] = {
+	corack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -9658,7 +9658,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legack"] = {
+	legack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -9760,7 +9760,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legamphtank"] = {
+	legamphtank = {
 		frontlight = {
 			lightType = "point",
 			pieceName = "base",
@@ -9812,7 +9812,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaabot"] = {
+	legaabot = {
 		frontlight1 = {
 			lightType = "point",
 			pieceName = "frontLight1",
@@ -9965,7 +9965,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legadveconv"] = {
+	legadveconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "lightFlare1",
@@ -10092,7 +10092,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavaleconv"] = {
+	leganavaleconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "toprightLight",
@@ -10219,7 +10219,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legeconv"] = {
+	legeconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -10296,7 +10296,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leghp"] = {
+	leghp = {
 		buildlight1 = {
 			lightType = "cone",
 			pieceName = "buildlight1Point",
@@ -10499,7 +10499,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legfhp"] = {
+	legfhp = {
 		buildlight1 = {
 			lightType = "cone",
 			pieceName = "buildlight1Point",
@@ -10702,7 +10702,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legfeconv"] = {
+	legfeconv = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -10992,7 +10992,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leguwestore"] = {
+	leguwestore = {
 		sidelight1 = {
 			lightType = "point",
 			pieceName = "sidelight1",
@@ -11415,7 +11415,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legscout"] = {
+	legscout = {
 		bodylight = {
 			lightType = "point",
 			pieceName = "bodylight",
@@ -11442,7 +11442,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leggat"] = {
+	leggat = {
 		gatbodylighta = {
 			lightType = "point",
 			pieceName = "body",
@@ -11494,7 +11494,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legafcv"] = {
+	legafcv = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "conLight1",
@@ -11596,7 +11596,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legvcarry"] = {
+	legvcarry = {
 		lightglowtarget = {
 			lightType = "point",
 			pieceName = "targetLightGlow",
@@ -11648,7 +11648,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armack"] = {
+	armack = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight1emit",
@@ -11925,7 +11925,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfark"] = {
+	armfark = {
 		armbuildlight = {
 			lightType = "point",
 			pieceName = "armhexl_emit",
@@ -12160,7 +12160,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfido"] = {
+	armfido = {
 		-- eyesglow = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -12430,7 +12430,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armham"] = {
+	armham = {
 		body = {
 			lightType = "point",
 			pieceName = "torso",
@@ -12482,7 +12482,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armshltx"] = {
+	armshltx = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -13016,7 +13016,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armasy"] = {
+	armasy = {
 		buildlight1 = { -- this is the lightname
 			lightType = "point",
 			pieceName = "beam1",
@@ -13618,7 +13618,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coraap"] = {
+	coraap = {
 		buildlight1A = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -14120,7 +14120,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coramsub"] = {
+	coramsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -14397,7 +14397,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legamsub"] = {
+	legamsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -14599,7 +14599,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coralab"] = {
+	coralab = {
 		buildflash = {
 			lightType = "point",
 			pieceName = "cagelight",
@@ -14951,7 +14951,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corasy"] = {
+	corasy = {
 		buildflash1 = {
 			lightType = "point",
 			pieceName = "cagelight1",
@@ -15353,7 +15353,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corgant"] = {
+	corgant = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -15830,7 +15830,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsy"] = {
+	corsy = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -16032,7 +16032,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armason"] = {
+	armason = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -16159,7 +16159,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsub"] = {
+	armsub = {
 		headlighttorpedo = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -16312,7 +16312,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armroy"] = {
+	armroy = {
 		sidelightl = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -16626,7 +16626,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcs"] = {
+	armcs = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -16903,7 +16903,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corpt"] = {
+	corpt = {
 		searchlightaa = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -17018,7 +17018,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcs"] = {
+	corcs = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -17210,7 +17210,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcsa"] = {
+	armcsa = {
 		buildlight = {
 			lightType = "point",
 			pieceName = "emit",
@@ -17471,7 +17471,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcsa"] = {
+	corcsa = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano",
@@ -17685,7 +17685,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armdronecarry"] = {
+	armdronecarry = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -17762,7 +17762,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armtrident"] = {
+	armtrident = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -17814,7 +17814,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armdronecarryland"] = {
+	armdronecarryland = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -17891,7 +17891,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcarry"] = {
+	armcarry = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoemit1",
@@ -18395,7 +18395,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armantiship"] = {
+	armantiship = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "radar",
@@ -18674,7 +18674,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cordrone"] = {
+	cordrone = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -18701,7 +18701,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cordronecarry"] = {
+	cordronecarry = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -18753,7 +18753,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsentinel"] = {
+	corsentinel = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -18805,7 +18805,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cordronecarryair"] = {
+	cordronecarryair = {
 		tower = {
 			lightType = "point",
 			pieceName = "base",
@@ -18857,7 +18857,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcarry"] = {
+	corcarry = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -19009,7 +19009,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corantiship"] = {
+	corantiship = {
 		eyesfronttop = {
 			lightType = "beam",
 			pieceName = "base",
@@ -19384,7 +19384,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfship"] = {
+	corfship = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -19772,7 +19772,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coracsub"] = {
+	coracsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -19904,7 +19904,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armacsub"] = {
+	armacsub = {
 		buildflash = {
 			lightType = "point",
 			pieceName = "base",
@@ -20040,7 +20040,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormls"] = {
+	cormls = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano",
@@ -20154,7 +20154,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corshark"] = {
+	corshark = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -20278,7 +20278,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cordesolator"] = {
+	cordesolator = {
 		nukelight = {
 			lightType = "cone",
 			pieceName = "firing1",
@@ -20408,7 +20408,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coronager"] = {
+	coronager = {
 		engine = {
 			lightType = "point",
 			pieceName = "base",
@@ -20460,7 +20460,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corblackhy"] = {
+	corblackhy = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "tur1",
@@ -21159,7 +21159,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfblackhyt4"] = {
+	corfblackhyt4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -21486,7 +21486,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormship"] = {
+	cormship = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -21749,7 +21749,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcrus"] = {
+	corcrus = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "sleeve", -- invalid ones will attach to the worldpos of the unit
@@ -22180,7 +22180,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corbats"] = {
+	corbats = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "turretb",
@@ -22557,7 +22557,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corssub"] = {
+	corssub = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -22662,7 +22662,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corarch"] = {
+	corarch = {
 		searchlight1 = {
 			lightType = "cone",
 			pieceName = "sleeve",
@@ -22796,7 +22796,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmship"] = {
+	armmship = {
 		frontlight = {
 			lightType = "beam",
 			pieceName = "base",
@@ -23191,7 +23191,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsjam"] = {
+	armsjam = {
 		mid1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -23302,7 +23302,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armsubk"] = {
+	armsubk = {
 		headlighttorpedo = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -23480,7 +23480,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armseadragon"] = {
+	armseadragon = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -23544,7 +23544,7 @@ local unitLights = {
 		-- },
 	},
 
-	["armexcalibur"] = {
+	armexcalibur = {
 		antenna = {
 			lightType = "point",
 			pieceName = "antenna",
@@ -23672,7 +23672,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbats"] = {
+	armbats = {
 		top = {
 			lightType = "point",
 			pieceName = "base",
@@ -23934,7 +23934,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armepoch"] = {
+	armepoch = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "misbox2",
@@ -24659,7 +24659,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfepocht4"] = {
+	armfepocht4 = {
 		turret1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -25086,7 +25086,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcrus"] = {
+	armcrus = {
 		teamtopglow = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -25345,7 +25345,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armserp"] = {
+	armserp = {
 		headlighttorpedo1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -25436,7 +25436,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armaas"] = {
+	armaas = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "base",
@@ -25765,7 +25765,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmls"] = {
+	armmls = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoemit",
@@ -25944,7 +25944,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armrecl"] = {
+	armrecl = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare",
@@ -26071,7 +26071,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corplat"] = {
+	corplat = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -26373,7 +26373,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coravp"] = {
+	coravp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -26825,7 +26825,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armdecade"] = {
+	armdecade = {
 		frontlight = {
 			lightType = "beam",
 			pieceName = "base",
@@ -27171,7 +27171,7 @@ local unitLights = {
 		},
 	},
 
-	["coresupp"] = {
+	coresupp = {
 		-- front = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -27494,7 +27494,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armlship"] = {
+	armlship = {
 		back = {
 			lightType = "point",
 			pieceName = "base",
@@ -27800,7 +27800,7 @@ local unitLights = {
 			},
 		},
 	},
-	["correcl"] = {
+	correcl = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -28233,7 +28233,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corsd"] = {
+	corsd = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -28260,7 +28260,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corscreamer"] = {
+	corscreamer = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -28468,7 +28468,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corsub"] = {
+	corsub = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -28570,7 +28570,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corpship"] = {
+	corpship = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -28700,7 +28700,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsjam"] = {
+	corsjam = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -28885,7 +28885,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corroy"] = {
+	corroy = {
 		eyeshighfront = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -29147,7 +29147,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armpt"] = {
+	armpt = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -29274,7 +29274,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armpship"] = {
+	armpship = {
 		-- front1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -29393,7 +29393,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsy"] = {
+	armsy = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -29770,7 +29770,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armavp"] = {
+	armavp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -30353,7 +30353,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armalab"] = {
+	armalab = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -30750,7 +30750,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamsub"] = {
+	armamsub = {
 		buildlight1 = { -- this is the lightname
 			lightType = "point",
 			pieceName = "beam1",
@@ -31080,7 +31080,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armplat"] = {
+	armplat = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -31232,7 +31232,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armaap"] = {
+	armaap = {
 		buildlightflare1 = {
 			lightType = "point",
 			pieceName = "cagelight_emit1",
@@ -31871,7 +31871,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corlab"] = {
+	corlab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -32069,7 +32069,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["leglab"] = {
+	leglab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -32246,7 +32246,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legsy"] = {
+	legsy = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "beam1",
@@ -32398,7 +32398,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legadvshipyard"] = {
+	legadvshipyard = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -32800,7 +32800,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corvp"] = {
+	corvp = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -33145,7 +33145,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corhp"] = {
+	corhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -33447,7 +33447,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfhp"] = {
+	corfhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -33749,7 +33749,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corap"] = {
+	corap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -33976,7 +33976,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corapt3"] = {
+	corapt3 = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -34103,7 +34103,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legap"] = {
+	legap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -34255,7 +34255,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaap"] = {
+	legaap = {
 		greenblob = {
 			lightType = "point",
 			pieceName = "blink",
@@ -34432,7 +34432,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legalab"] = {
+	legalab = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "flare1",
@@ -34584,7 +34584,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legafus"] = {
+	legafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -34629,7 +34629,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legafust3"] = {
+	legafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -34690,7 +34690,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legapt3"] = {
+	legapt3 = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nano1",
@@ -34817,7 +34817,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armhp"] = {
+	armhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -35069,7 +35069,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfhp"] = {
+	armfhp = {
 		buildlight = {
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -35321,7 +35321,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armvp"] = {
+	armvp = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -35573,7 +35573,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armap"] = {
+	armap = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -35829,7 +35829,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armlab"] = {
+	armlab = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -36014,7 +36014,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armck"] = {
+	armck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -36142,7 +36142,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armart"] = {
+	armart = {
 		light = {
 			lightType = "point",
 			pieceName = "turret",
@@ -36319,7 +36319,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armflash"] = {
+	armflash = {
 		back1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -36589,7 +36589,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfav"] = {
+	corfav = {
 		back = {
 			lightType = "point",
 			pieceName = "base",
@@ -36716,7 +36716,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfav"] = {
+	armfav = {
 		light = {
 			lightType = "point",
 			pieceName = "base",
@@ -36843,7 +36843,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armjanus"] = {
+	armjanus = {
 		turretlamp = {
 			lightType = "point",
 			pieceName = "turret",
@@ -37063,7 +37063,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armpincer"] = {
+	armpincer = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -37241,7 +37241,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsaber"] = {
+	armsaber = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -37343,7 +37343,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsb"] = {
+	armsb = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -37545,7 +37545,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsam"] = {
+	armsam = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -37735,7 +37735,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armstump"] = {
+	armstump = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -37862,7 +37862,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcrash"] = {
+	corcrash = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -37990,7 +37990,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfast"] = {
+	corfast = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -38092,7 +38092,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cornecro"] = {
+	cornecro = {
 		corbuildlight = {
 			lightType = "point",
 			pieceName = "corhexl_emit",
@@ -38219,7 +38219,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armrectr"] = {
+	armrectr = {
 		armbuildlight = {
 			lightType = "point",
 			pieceName = "armhexl_emit",
@@ -38339,7 +38339,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmlv"] = {
+	armmlv = {
 		backpack = {
 			lightType = "point",
 			pieceName = "base",
@@ -38541,7 +38541,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbanth"] = {
+	armbanth = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "turret",
@@ -39217,7 +39217,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corkarg"] = {
+	corkarg = {
 		eyesbeam = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -39521,7 +39521,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corjugg"] = {
+	corjugg = {
 		antenna1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -40016,7 +40016,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armvang"] = {
+	armvang = {
 		top = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -40704,7 +40704,7 @@ local unitLights = {
 	-- 						lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- 	},
 	-- },
-	["corkorg"] = {
+	corkorg = {
 		-- searchlight = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'head',
@@ -40919,7 +40919,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcom"] = {
+	armcom = {
 		headlightarmcom = {
 			lightType = "cone",
 			pieceName = "head",
@@ -41650,7 +41650,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcomlvl3"] = {
+	armcomlvl3 = {
 		headlightarmcom = {
 			lightType = "cone",
 			pieceName = "head",
@@ -42154,7 +42154,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcomboss"] = {
+	armcomboss = {
 		--headlightarmcom = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
@@ -42441,7 +42441,7 @@ local unitLights = {
 		},
 	},
 
-	["scavengerbossv4_normal"] = {
+	scavengerbossv4_normal = {
 		vortex1 = {
 			lightType = "point",
 			pieceName = "vortex3",
@@ -42744,7 +42744,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legcom"] = {
+	legcom = {
 		headlightcomteam = {
 			lightType = "cone",
 			pieceName = "head",
@@ -42999,7 +42999,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcom"] = {
+	corcom = {
 		headlightcorcoml = {
 			lightType = "cone",
 			pieceName = "head",
@@ -43650,7 +43650,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcomboss"] = {
+	corcomboss = {
 		--headlightcorcom = {
 		--	lightType = 'cone',
 		--	pieceName = 'head',
@@ -43861,7 +43861,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbull"] = {
+	armbull = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -44206,7 +44206,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcroc"] = {
+	armcroc = {
 		frontlighteye = {
 			lightType = "beam",
 			pieceName = "base",
@@ -44301,7 +44301,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armconsul"] = {
+	armconsul = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -44578,7 +44578,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcan"] = {
+	corcan = {
 		footfront1 = {
 			lightType = "point",
 			pieceName = "lfoot",
@@ -44813,7 +44813,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corspy"] = {
+	corspy = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -44840,7 +44840,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormando"] = {
+	cormando = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -44974,7 +44974,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormandot4"] = {
+	cormandot4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "head",
@@ -45076,7 +45076,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corphantom"] = {
+	corphantom = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "body",
@@ -45104,7 +45104,7 @@ local unitLights = {
 		},
 	},
 
-	["cortoast"] = {
+	cortoast = {
 		doorlight1a = {
 			lightType = "beam",
 			pieceName = "door1",
@@ -45219,7 +45219,7 @@ local unitLights = {
 		},
 	},
 
-	["corvipe"] = {
+	corvipe = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -45406,7 +45406,7 @@ local unitLights = {
 		},
 	},
 
-	["corparrow"] = {
+	corparrow = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -45636,7 +45636,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormart"] = {
+	cormart = {
 		rackbl1 = {
 			lightType = "point",
 			pieceName = "trackbl",
@@ -46137,7 +46137,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corban"] = {
+	corban = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -46500,7 +46500,7 @@ local unitLights = {
 			},
 		},
 	},
-	["correap"] = {
+	correap = {
 		-- headlight = { -- this is the lightname
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'base', -- invalid ones will attach to the worldpos of the unit
@@ -46775,7 +46775,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhrk"] = {
+	corhrk = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -46952,7 +46952,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corak"] = {
+	corak = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -47123,7 +47123,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgator"] = {
+	corgator = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "justattachtobase", -- invalid ones will attach to the worldpos of the unit
@@ -47250,7 +47250,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corca"] = {
+	corca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "nano",
@@ -47461,7 +47461,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfink"] = {
+	corfink = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -47563,7 +47563,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsb"] = {
+	corsb = {
 		thrustera = {
 			lightType = "point",
 			pieceName = "base",
@@ -47690,7 +47690,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cords"] = {
+	cords = {
 		antenna = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -48242,7 +48242,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsfig"] = {
+	corsfig = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -48344,7 +48344,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corseap"] = {
+	corseap = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -48446,7 +48446,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corhunt"] = {
+	corhunt = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -48523,7 +48523,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcut"] = {
+	corcut = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -48708,7 +48708,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corhurc"] = {
+	corhurc = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -48910,7 +48910,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corshad"] = {
+	corshad = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -49082,7 +49082,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cortitan"] = {
+	cortitan = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -49318,7 +49318,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coraca"] = {
+	coraca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "nano",
@@ -49495,7 +49495,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfig"] = {
+	armfig = {
 		front1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -49672,7 +49672,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armca"] = {
+	armca = {
 		--nanolightarmca = {
 		--	lightType = 'cone',
 		--	pieceName = 'nano',
@@ -49935,7 +49935,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armpb"] = {
+	armpb = {
 		turrettop = {
 			lightType = "point",
 			pieceName = "turret",
@@ -50273,7 +50273,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armtide"] = {
+	armtide = {
 		enabled_mainglowbeam = {
 			lightType = "beam",
 			pieceName = "base",
@@ -50330,7 +50330,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armthund"] = {
+	armthund = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -50681,7 +50681,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armstil"] = {
+	armstil = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -50956,7 +50956,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armhawk"] = {
+	armhawk = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -51083,7 +51083,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armpeep"] = {
+	armpeep = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -51235,7 +51235,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armkam"] = {
+	armkam = {
 		front1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -51362,7 +51362,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armlance"] = {
+	armlance = {
 		thrust = {
 			lightType = "point",
 			pieceName = "thrust1",
@@ -51439,7 +51439,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbrawl"] = {
+	armbrawl = {
 		frontcockpit = {
 			lightType = "point",
 			pieceName = "base",
@@ -51595,7 +51595,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armpnix"] = {
+	armpnix = {
 		front1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -51847,7 +51847,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armaca"] = {
+	armaca = {
 		buildlight = {
 			lightType = "point",
 			pieceName = "nanolight",
@@ -52135,7 +52135,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgremlin"] = {
+	armgremlin = {
 		-- cloaklightred1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'flleg',
@@ -52286,7 +52286,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamd"] = {
+	armamd = {
 		orangelightamd = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -52517,7 +52517,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfmd"] = {
+	corfmd = {
 		orangelightcenter = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -52771,7 +52771,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corvalk"] = {
+	corvalk = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -53242,7 +53242,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corhvytrans"] = {
+	corhvytrans = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -53668,7 +53668,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armemp"] = {
+	armemp = {
 		emplight1 = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -53876,7 +53876,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgplat"] = {
+	armgplat = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -54028,7 +54028,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armatl"] = {
+	armatl = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -54130,7 +54130,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coratl"] = {
+	coratl = {
 		torpedoflash1 = {
 			lightType = "point",
 			pieceName = "turret",
@@ -54182,7 +54182,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armatlas"] = {
+	armatlas = {
 		jetm = {
 			lightType = "point",
 			pieceName = "base",
@@ -54475,7 +54475,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armhvytrans"] = {
+	armhvytrans = {
 		jetbltop = {
 			lightType = "point",
 			pieceName = "jetbl",
@@ -54827,7 +54827,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armeyes"] = {
+	armeyes = {
 		light = {
 			lightType = "point",
 			pieceName = "sphere",
@@ -54879,7 +54879,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coreyes"] = {
+	coreyes = {
 		eyeglow = {
 			lightType = "point",
 			pieceName = "sphere",
@@ -55006,7 +55006,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armanni"] = {
+	armanni = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "light",
@@ -55396,7 +55396,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armannit3"] = {
+	armannit3 = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "light",
@@ -55698,7 +55698,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armblade"] = {
+	armblade = {
 		fan = {
 			lightType = "point",
 			pieceName = "base",
@@ -55834,7 +55834,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armdfly"] = {
+	armdfly = {
 		flashtop = {
 			lightType = "point",
 			pieceName = "barrel",
@@ -56259,7 +56259,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corbw"] = {
+	corbw = {
 		emplight = {
 			lightType = "point",
 			pieceName = "base",
@@ -56386,7 +56386,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corawac"] = {
+	corawac = {
 		dish = {
 			lightType = "point",
 			pieceName = "base",
@@ -56563,7 +56563,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armseap"] = {
+	armseap = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -56615,7 +56615,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsfig"] = {
+	armsfig = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -56760,7 +56760,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsehak"] = {
+	armsehak = {
 		greenblob1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -57048,7 +57048,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armliche"] = {
+	armliche = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57325,7 +57325,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corape"] = {
+	corape = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "rjet",
@@ -57427,7 +57427,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armawac"] = {
+	armawac = {
 		greenblob1 = {
 			lightType = "point",
 			pieceName = "dish",
@@ -57629,7 +57629,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormine4"] = {
+	cormine4 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57656,7 +57656,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfmine3"] = {
+	corfmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57708,7 +57708,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormine3"] = {
+	cormine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57760,7 +57760,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormine2"] = {
+	cormine2 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57787,7 +57787,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormine1"] = {
+	cormine1 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57814,7 +57814,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfmine3"] = {
+	armfmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57841,7 +57841,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmine3"] = {
+	armmine3 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57868,7 +57868,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmine2"] = {
+	armmine2 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57895,7 +57895,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmine1"] = {
+	armmine1 = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -57922,7 +57922,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsd"] = {
+	armsd = {
 		antenna = {
 			lightType = "point",
 			pieceName = "base",
@@ -57974,7 +57974,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armvulc"] = {
+	armvulc = {
 		whitemid1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -58750,7 +58750,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armtl"] = {
+	armtl = {
 		barrel1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -58877,7 +58877,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortl"] = {
+	cortl = {
 		torpedoflash = {
 			lightType = "point",
 			pieceName = "gun",
@@ -58904,7 +58904,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbotrail"] = {
+	armbotrail = {
 		top = {
 			lightType = "point",
 			pieceName = "rail",
@@ -58956,7 +58956,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfus"] = {
+	armfus = {
 		fusionglow1 = {
 			lightType = "point",
 			pieceName = "emit1",
@@ -59720,7 +59720,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corfus"] = {
+	corfus = {
 		-- fusionglowcoretimed = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'emit',
@@ -60081,7 +60081,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legfus"] = {
+	legfus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60133,7 +60133,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corafus"] = {
+	corafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60466,7 +60466,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corafust3"] = {
+	corafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60502,7 +60502,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armafus"] = {
+	armafus = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60579,7 +60579,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armafust3"] = {
+	armafust3 = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60640,7 +60640,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["resourcecheat"] = {
+	resourcecheat = {
 		fusionglow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -60692,7 +60692,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armzeus"] = {
+	armzeus = {
 		eyes = {
 			lightType = "point",
 			pieceName = "torso",
@@ -60819,7 +60819,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armclaw"] = {
+	armclaw = {
 		weaponglow = {
 			lightType = "point",
 			pieceName = "glow",
@@ -60871,7 +60871,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armyork"] = {
+	armyork = {
 		searchlightsource = {
 			lightType = "beam",
 			pieceName = "turret",
@@ -61120,7 +61120,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmanni"] = {
+	armmanni = {
 		antenna = {
 			lightType = "point",
 			pieceName = "sleeve",
@@ -61284,7 +61284,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armlatnk"] = {
+	armlatnk = {
 		lightningweaponglow = {
 			lightType = "point",
 			pieceName = "emit_spark",
@@ -61520,7 +61520,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armsptk"] = {
+	armsptk = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -61672,7 +61672,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsptkt4"] = {
+	armsptkt4 = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -61799,7 +61799,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armspid"] = {
+	armspid = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "flare",
@@ -61951,7 +61951,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armjeth"] = {
+	armjeth = {
 		eyes = {
 			lightType = "point",
 			pieceName = "torso",
@@ -62104,7 +62104,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfboy"] = {
+	armfboy = {
 		top = {
 			lightType = "point",
 			pieceName = "turret",
@@ -62356,7 +62356,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfast"] = {
+	armfast = {
 		top = {
 			lightType = "point",
 			pieceName = "head",
@@ -62561,7 +62561,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armscab"] = {
+	armscab = {
 		eyes = {
 			lightType = "point",
 			pieceName = "body",
@@ -62690,7 +62690,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmav"] = {
+	armmav = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -62904,7 +62904,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armrock"] = {
+	armrock = {
 		barrel = {
 			lightType = "point",
 			pieceName = "lmisspod",
@@ -63016,7 +63016,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coramph"] = {
+	coramph = {
 		front1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -63118,7 +63118,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamph"] = {
+	armamph = {
 		top = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -63246,7 +63246,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armaak"] = {
+	armaak = {
 		top = {
 			lightType = "point",
 			pieceName = "torso",
@@ -63349,7 +63349,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coraak"] = {
+	coraak = {
 		top = {
 			lightType = "point",
 			pieceName = "flakgun",
@@ -63427,7 +63427,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsent"] = {
+	corsent = {
 		-- top = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'turret',
@@ -63489,7 +63489,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armflea"] = {
+	armflea = {
 		body = {
 			lightType = "point",
 			pieceName = "torso",
@@ -63550,7 +63550,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corpyro"] = {
+	corpyro = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "lloarm",
@@ -63702,7 +63702,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsumo"] = {
+	corsumo = {
 		-- eyesl = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -64230,7 +64230,7 @@ local unitLights = {
 	-- 						lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- 	},
 	-- },
-	["corsala"] = {
+	corsala = {
 		teamtopfront = {
 			lightType = "point",
 			pieceName = "turret",
@@ -64421,7 +64421,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cortermite"] = {
+	cortermite = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -64582,7 +64582,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corthermite"] = {
+	corthermite = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -64609,7 +64609,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corstorm"] = {
+	corstorm = {
 		eyes = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -64710,7 +64710,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormort"] = {
+	cormort = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -64887,7 +64887,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corthud"] = {
+	corthud = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'torso',
@@ -64976,7 +64976,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsktl"] = {
+	corsktl = {
 		-- eyes = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -65040,7 +65040,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corroach"] = {
+	corroach = {
 		-- baseback = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -65152,7 +65152,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legsnapper"] = {
+	legsnapper = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -65204,7 +65204,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legca"] = {
+	legca = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "beam",
@@ -65331,7 +65331,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legatrans"] = {
+	legatrans = {
 		lgThrust = {
 			lightType = "cone",
 			pieceName = "leftGroundThrust",
@@ -65511,7 +65511,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legcib"] = {
+	legcib = {
 		eyes = {
 			lightType = "point",
 			pieceName = "chassis",
@@ -65588,7 +65588,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legmos"] = {
+	legmos = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -65690,7 +65690,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legkam"] = {
+	legkam = {
 		thrustMain = {
 			lightType = "cone",
 			pieceName = "thrust",
@@ -65767,7 +65767,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legatorpbomber"] = {
+	legatorpbomber = {
 		thrustrightAJet = {
 			lightType = "cone",
 			pieceName = "rightAJet",
@@ -65869,7 +65869,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaheattank"] = {
+	legaheattank = {
 
 		gunglow1 = {
 			lightType = "point",
@@ -65922,7 +65922,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legionnaire"] = {
+	legionnaire = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -66024,7 +66024,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legvenator"] = {
+	legvenator = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "lthrust",
@@ -66077,7 +66077,7 @@ local unitLights = {
 		},
 	},
 
-	["legphoenix"] = {
+	legphoenix = {
 		dish = {
 			lightType = "point",
 			pieceName = "base",
@@ -66255,7 +66255,7 @@ local unitLights = {
 		},
 	},
 
-	["legbastion"] = {
+	legbastion = {
 		dish = {
 			lightType = "point",
 			pieceName = "ambienttop",
@@ -66408,7 +66408,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavyartyship"] = {
+	leganavyartyship = {
 		exhaustlights = {
 			lightType = "point",
 			pieceName = "cell2",
@@ -66460,7 +66460,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavyflagship"] = {
+	leganavyflagship = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "torus1",
@@ -66682,7 +66682,7 @@ local unitLights = {
 	-- 					modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 	-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 	-- },
-	["legbart"] = {
+	legbart = {
 		cannisterlight = {
 			lightType = "point",
 			pieceName = "cannisterFlare",
@@ -66709,7 +66709,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leginf"] = {
+	leginf = {
 		cannisterlightl = {
 			lightType = "point",
 			pieceName = "leftCannisterLight",
@@ -66861,7 +66861,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legeheatraymech"] = {
+	legeheatraymech = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "torso",
@@ -67355,7 +67355,7 @@ local unitLights = {
 		},
 	},
 
-	["legeheatraymech_old"] = {
+	legeheatraymech_old = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "bigToroidLight",
@@ -67491,7 +67491,7 @@ local unitLights = {
 		},
 	},
 
-	["legehovertank"] = {
+	legehovertank = {
 		bigtoroid = {
 			lightType = "point",
 			pieceName = "outter_ring",
@@ -67594,7 +67594,7 @@ local unitLights = {
 		},
 	},
 
-	["armvader"] = {
+	armvader = {
 		-- redlight = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'body',
@@ -67633,7 +67633,7 @@ local unitLights = {
 		-- },
 	},
 
-	["armthor"] = {
+	armthor = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -68046,7 +68046,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armthundt4"] = {
+	armthundt4 = {
 		tipleft = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -68420,7 +68420,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsnipe"] = {
+	armsnipe = {
 		-- headreddot = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'head',
@@ -68574,7 +68574,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corvamp"] = {
+	corvamp = {
 		thruster1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -68676,7 +68676,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corveng"] = {
+	corveng = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -68853,7 +68853,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corseah"] = {
+	corseah = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -69116,7 +69116,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcrwt4"] = {
+	corcrwt4 = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -69493,7 +69493,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcrw"] = {
+	corcrw = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -69870,7 +69870,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcrwh"] = {
+	corcrwh = {
 		flamelight = {
 			lightType = "point",
 			pieceName = "sleevef",
@@ -70573,7 +70573,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armwin"] = {
+	armwin = {
 		light1 = {
 			lightType = "point",
 			pieceName = "emit",
@@ -70650,7 +70650,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armwint2"] = {
+	armwint2 = {
 		light = {
 			lightType = "point",
 			pieceName = "base",
@@ -70677,7 +70677,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corwin"] = {
+	corwin = {
 		antennalight = {
 			lightType = "point",
 			pieceName = "cradle",
@@ -70755,7 +70755,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corestor"] = {
+	corestor = {
 		top = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71004,7 +71004,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coruwfus"] = {
+	coruwfus = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71031,7 +71031,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coruwmmm"] = {
+	coruwmmm = {
 		botright = {
 			lightType = "beam",
 			pieceName = "emit",
@@ -71294,7 +71294,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["coruwmme"] = {
+	coruwmme = {
 		metalglowtop = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71346,7 +71346,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coruwes"] = {
+	coruwes = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71373,7 +71373,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coruwadves"] = {
+	coruwadves = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71516,7 +71516,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armestor"] = {
+	armestor = {
 		top = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71720,7 +71720,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmstor"] = {
+	armmstor = {
 		mid = {
 			lightType = "point",
 			pieceName = "base",
@@ -71756,7 +71756,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormstor"] = {
+	cormstor = {
 		mid = {
 			lightType = "point",
 			pieceName = "base",
@@ -71792,7 +71792,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armuwmex"] = {
+	armuwmex = {
 		light = {
 			lightType = "point",
 			pieceName = "spinner",
@@ -71819,7 +71819,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armuwes"] = {
+	armuwes = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -71946,7 +71946,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armuwadves"] = {
+	armuwadves = {
 		light1 = {
 			lightType = "point",
 			pieceName = "emit1",
@@ -72226,7 +72226,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armbrtha"] = {
+	armbrtha = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -72745,7 +72745,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armgmm"] = {
+	armgmm = {
 		-- light = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -73188,7 +73188,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corbhmth"] = {
+	corbhmth = {
 		corner1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -73427,7 +73427,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corgeo"] = {
+	corgeo = {
 		--top1 = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -73547,7 +73547,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coruwgeo"] = {
+	coruwgeo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -73649,7 +73649,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corageo"] = {
+	corageo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -73826,7 +73826,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coruwageo"] = {
+	coruwageo = {
 		chimney = {
 			lightType = "point",
 			pieceName = "base",
@@ -74003,7 +74003,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgeo"] = {
+	armgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -74419,7 +74419,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgeo"] = {
+	armgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -74836,7 +74836,7 @@ local unitLights = {
 		},
 	},
 
-	["armuwgeo"] = {
+	armuwgeo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -75022,7 +75022,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["legestor"] = {
+	legestor = {
 		rturbb = {
 			lightType = "point",
 			pieceName = "base",
@@ -75049,7 +75049,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leggeo"] = {
+	leggeo = {
 		turb1 = {
 			lightType = "point",
 			pieceName = "turbine",
@@ -75076,7 +75076,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leguwgeo"] = {
+	leguwgeo = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "turbine",
@@ -75128,7 +75128,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legageo"] = {
+	legageo = {
 		aturbf = {
 			lightType = "point",
 			pieceName = "turbinef",
@@ -75205,7 +75205,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrampart"] = {
+	legrampart = {
 		rturbb = {
 			lightType = "point",
 			pieceName = "turbinef",
@@ -75357,7 +75357,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armageo"] = {
+	armageo = {
 		--light = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -75842,7 +75842,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armuwageo"] = {
+	armuwageo = {
 		--light = {
 		--	lightType = 'point',
 		--	pieceName = 'base',
@@ -76181,7 +76181,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armuwmme"] = {
+	armuwmme = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -76433,7 +76433,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmoho"] = {
+	armmoho = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -76669,7 +76669,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armshockwave"] = {
+	armshockwave = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -76921,7 +76921,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsolar"] = {
+	corsolar = {
 		light_small_1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -77348,7 +77348,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmex"] = {
+	armmex = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -77493,7 +77493,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsolar"] = {
+	armsolar = {
 		light = {
 			lightType = "point",
 			pieceName = "emit",
@@ -77520,7 +77520,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armadvsol"] = {
+	armadvsol = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "base",
@@ -77616,7 +77616,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["cormex"] = {
+	cormex = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -77736,7 +77736,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corexp"] = {
+	corexp = {
 		base = {
 			lightType = "point",
 			pieceName = "base",
@@ -77888,7 +77888,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormoho"] = {
+	cormoho = {
 		side1 = {
 			lightType = "point",
 			pieceName = "column",
@@ -77965,7 +77965,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coradvsol"] = {
+	coradvsol = {
 		glow = {
 			lightType = "point",
 			pieceName = "emit",
@@ -77993,7 +77993,7 @@ local unitLights = {
 		},
 	},
 
-	["legadvsol"] = {
+	legadvsol = {
 		glow1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -78071,7 +78071,7 @@ local unitLights = {
 		},
 	},
 
-	["cormakr"] = {
+	cormakr = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "light",
@@ -78214,7 +78214,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfmkr"] = {
+	corfmkr = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -78393,7 +78393,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armuwmmm"] = {
+	armuwmmm = {
 		-- light1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'light1',
@@ -78588,7 +78588,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armmakr"] = {
+	armmakr = {
 		side1cone = {
 			lightType = "cone",
 			pieceName = "light",
@@ -78675,7 +78675,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["armfmkr"] = {
+	armfmkr = {
 		enabled1 = {
 			lightType = "point",
 			pieceName = "light",
@@ -78752,7 +78752,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormmkr"] = {
+	cormmkr = {
 		enabled_top = {
 			lightType = "point",
 			pieceName = "light",
@@ -78854,7 +78854,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmmkr"] = {
+	armmmkr = {
 		-- enabled_cone1x = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'light',
@@ -78969,7 +78969,7 @@ local unitLights = {
 			},
 		},
 	},
-	["lootboxbronze"] = {
+	lootboxbronze = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -79121,7 +79121,7 @@ local unitLights = {
 			},
 		},
 	},
-	["lootboxsilver"] = {
+	lootboxsilver = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -79273,7 +79273,7 @@ local unitLights = {
 			},
 		},
 	},
-	["lootboxgold"] = {
+	lootboxgold = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -79425,7 +79425,7 @@ local unitLights = {
 			},
 		},
 	},
-	["lootboxplatinum"] = {
+	lootboxplatinum = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -79577,7 +79577,7 @@ local unitLights = {
 			},
 		},
 	},
-	["lootboxsilver"] = {
+	lootboxsilver = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blinka",
@@ -79729,7 +79729,7 @@ local unitLights = {
 			},
 		},
 	},
-	["scavbeacon_t1"] = {
+	scavbeacon_t1 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -79906,184 +79906,7 @@ local unitLights = {
 			},
 		},
 	},
-	["scavbeacon_t2"] = {
-		blinka = {
-			lightType = "point",
-			pieceName = "blink1",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 50,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 1,
-			},
-		},
-		blinkb = {
-			lightType = "point",
-			pieceName = "blink2",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 50,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-		blinkc = {
-			lightType = "point",
-			pieceName = "blink3",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 50,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-		blinkd = {
-			lightType = "point",
-			pieceName = "blink4",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 50,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-		blinktop = {
-			lightType = "point",
-			pieceName = "blinktop",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 100,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-		blinkinside = {
-			lightType = "point",
-			pieceName = "blinkinside",
-			lightConfig = {
-				posx = 0,
-				posy = 1,
-				posz = 0,
-				radius = 100,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.85000002,
-				modelfactor = 1,
-				specular = 1,
-				scattering = 1,
-				lensflare = 10,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-		emit = {
-			lightType = "point",
-			pieceName = "emit",
-			lightConfig = {
-				posx = 0,
-				posy = 0,
-				posz = 0,
-				radius = 150,
-				color2r = 0,
-				color2g = 0,
-				color2b = 0,
-				colortime = 0,
-				r = -1,
-				g = 1,
-				b = 1,
-				a = 0.5,
-				modelfactor = 0.1,
-				specular = 1.6,
-				scattering = 1.5,
-				lensflare = 0,
-				lifetime = 0,
-				sustain = 0,
-				selfshadowing = 0,
-			},
-		},
-	},
-	["scavbeacon_t3"] = {
+	scavbeacon_t2 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -80260,7 +80083,7 @@ local unitLights = {
 			},
 		},
 	},
-	["scavbeacon_t4"] = {
+	scavbeacon_t3 = {
 		blinka = {
 			lightType = "point",
 			pieceName = "blink1",
@@ -80437,7 +80260,184 @@ local unitLights = {
 			},
 		},
 	},
-	["armsilo"] = {
+	scavbeacon_t4 = {
+		blinka = {
+			lightType = "point",
+			pieceName = "blink1",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 50,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 1,
+			},
+		},
+		blinkb = {
+			lightType = "point",
+			pieceName = "blink2",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 50,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+		blinkc = {
+			lightType = "point",
+			pieceName = "blink3",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 50,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+		blinkd = {
+			lightType = "point",
+			pieceName = "blink4",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 50,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+		blinktop = {
+			lightType = "point",
+			pieceName = "blinktop",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 100,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+		blinkinside = {
+			lightType = "point",
+			pieceName = "blinkinside",
+			lightConfig = {
+				posx = 0,
+				posy = 1,
+				posz = 0,
+				radius = 100,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.85000002,
+				modelfactor = 1,
+				specular = 1,
+				scattering = 1,
+				lensflare = 10,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+		emit = {
+			lightType = "point",
+			pieceName = "emit",
+			lightConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 150,
+				color2r = 0,
+				color2g = 0,
+				color2b = 0,
+				colortime = 0,
+				r = -1,
+				g = 1,
+				b = 1,
+				a = 0.5,
+				modelfactor = 0.1,
+				specular = 1.6,
+				scattering = 1.5,
+				lensflare = 0,
+				lifetime = 0,
+				sustain = 0,
+				selfshadowing = 0,
+			},
+		},
+	},
+	armsilo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -80839,7 +80839,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsilo"] = {
+	corsilo = {
 		top1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -81141,7 +81141,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legsilo"] = {
+	legsilo = {
 		launchlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit1",
@@ -81218,7 +81218,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corint"] = {
+	corint = {
 		teamflashr = {
 			lightType = "point",
 			pieceName = "turret",
@@ -81317,7 +81317,7 @@ local unitLights = {
 		-- 		lifetime = 300, sustain = 1, selfshadowing = 0},
 		-- },
 	},
-	["corgplat"] = {
+	corgplat = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -81344,7 +81344,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corfhlt"] = {
+	corfhlt = {
 		eyes = {
 			lightType = "point",
 			pieceName = "turret1",
@@ -81396,7 +81396,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corcv"] = {
+	corcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -81549,7 +81549,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legcv"] = {
+	legcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -81601,7 +81601,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legacv"] = {
+	legacv = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "conLightA",
@@ -81703,7 +81703,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legavantinuke"] = {
+	legavantinuke = {
 		cannisterlightambient = {
 			lightType = "point",
 			pieceName = "base",
@@ -81880,7 +81880,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legnavyconship"] = {
+	legnavyconship = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare",
@@ -82008,7 +82008,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legnavyrezsub"] = {
+	legnavyrezsub = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare",
@@ -82060,7 +82060,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavyengineer"] = {
+	leganavyengineer = {
 		--spin lights
 		buildlight1a = { --top spinning light
 			lightType = "cone",
@@ -82213,7 +82213,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leganavyconsub"] = {
+	leganavyconsub = {
 		--spin lights
 		buildlight1a = { --top spinning light
 			lightType = "cone",
@@ -82366,7 +82366,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legnavyaaship"] = {
+	legnavyaaship = {
 		greenblobA = {
 			lightType = "point",
 			pieceName = "dishA",
@@ -82418,7 +82418,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaca"] = {
+	legaca = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanoFlare1",
@@ -82520,7 +82520,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legwhisper"] = {
+	legwhisper = {
 		airjet1 = {
 			lightType = "cone",
 			pieceName = "bigAirJet1",
@@ -82798,7 +82798,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legafigdef"] = {
+	legafigdef = {
 		airjet1 = {
 			lightType = "cone",
 			pieceName = "leftAirjet",
@@ -82875,7 +82875,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrezbot"] = {
+	legrezbot = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "buildLightFlareLeft",
@@ -83028,7 +83028,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legamphlab"] = {
+	legamphlab = {
 		buildlight1 = { --top spinning light
 			lightType = "cone",
 			pieceName = "buildFlare1",
@@ -83384,7 +83384,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leggant"] = {
+	leggant = {
 		nanolight1 = {
 			lightType = "point",
 			pieceName = "nanofr",
@@ -83745,7 +83745,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legch"] = {
+	legch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -83797,7 +83797,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armraz"] = {
+	armraz = {
 		searchlightl = {
 			lightType = "cone",
 			pieceName = "torso",
@@ -84268,7 +84268,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0 },
 		-- },
 	},
-	["armmar"] = {
+	armmar = {
 		foot1 = {
 			lightType = "point",
 			pieceName = "rfoot",
@@ -84875,7 +84875,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armamb"] = {
+	armamb = {
 		-- sleeve1beam = { --needs BOS update to show/hide part - light shines through closed version
 		-- 	lightType = 'beam',
 		-- 	pieceName = 'turret',
@@ -84938,7 +84938,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armguard"] = {
+	armguard = {
 		base1 = {
 			lightType = "point",
 			pieceName = "head",
@@ -85216,7 +85216,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corpun"] = {
+	corpun = {
 		-- base1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'head',
@@ -85373,7 +85373,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corbuzz"] = {
+	corbuzz = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -85763,7 +85763,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corcat"] = {
+	corcat = {
 		eyes = {
 			lightType = "point",
 			pieceName = "head",
@@ -86099,7 +86099,7 @@ local unitLights = {
 		},
 	},
 
-	["corshiva"] = {
+	corshiva = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "torso",
@@ -86319,7 +86319,7 @@ local unitLights = {
 		},
 	},
 
-	["cordoom"] = {
+	cordoom = {
 		-- searchlightmaintop = {
 		-- 	lightType = 'cone',
 		-- 	pieceName = 'mainbarrel',
@@ -86558,7 +86558,7 @@ local unitLights = {
 		},
 	},
 
-	["corfdoom"] = {
+	corfdoom = {
 		searchlightyellow = {
 			lightType = "cone",
 			pieceName = "barrelb",
@@ -86716,7 +86716,7 @@ local unitLights = {
 		},
 	},
 
-	["cordemon"] = {
+	cordemon = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "head",
@@ -87060,7 +87060,7 @@ local unitLights = {
 			},
 		},
 	},
-	["coracv"] = {
+	coracv = {
 		buildlight1 = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -87349,7 +87349,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgol"] = {
+	corgol = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -87918,7 +87918,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corgolt4"] = {
+	corgolt4 = {
 		base1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -88070,7 +88070,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormabm"] = {
+	cormabm = {
 		orangelightcenter = {
 			lightType = "point",
 			pieceName = "orangelight",
@@ -88577,7 +88577,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corgarp"] = {
+	corgarp = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -88604,7 +88604,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corlevlr"] = {
+	corlevlr = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -88863,7 +88863,7 @@ local unitLights = {
 		-- 					lifetime = 0, sustain = 0, selfshadowing = 0},
 		-- },
 	},
-	["corraid"] = {
+	corraid = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "justattachtobase", -- invalid ones will attach to the worldpos of the unit
@@ -88965,7 +88965,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corwolv"] = {
+	corwolv = {
 		headlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -89067,7 +89067,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormlv"] = {
+	cormlv = {
 		nanolight = {
 			lightType = "point",
 			pieceName = "flare",
@@ -89344,7 +89344,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legmlv"] = {
+	legmlv = {
 		eyes1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -89396,7 +89396,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrwall"] = {
+	legrwall = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -89523,7 +89523,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legjav"] = {
+	legjav = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "torso",
@@ -89650,7 +89650,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legbunk"] = {
+	legbunk = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "torch",
@@ -89677,7 +89677,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legkark"] = {
+	legkark = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "armortorso",
@@ -89829,7 +89829,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormuskrat"] = {
+	cormuskrat = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -90024,7 +90024,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legotter"] = {
+	legotter = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -90151,7 +90151,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormist"] = {
+	cormist = {
 		-- eyes1 = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -90235,7 +90235,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armbeaver"] = {
+	armbeaver = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -90413,7 +90413,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armch"] = {
+	armch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -90640,7 +90640,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corhal"] = {
+	corhal = {
 		back1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -90848,7 +90848,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsh"] = {
+	corsh = {
 		thruster = {
 			lightType = "point",
 			pieceName = "base",
@@ -90875,7 +90875,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corch"] = {
+	corch = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -91077,7 +91077,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsnap"] = {
+	corsnap = {
 		lightfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -91132,7 +91132,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsh"] = {
+	corsh = {
 		lightfront = {
 			lightType = "beam",
 			pieceName = "base",
@@ -91212,7 +91212,7 @@ local unitLights = {
 			},
 		},
 	},
-	["cormh"] = {
+	cormh = {
 		lightfront1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -91395,7 +91395,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armah"] = {
+	armah = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -91498,7 +91498,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armanac"] = {
+	armanac = {
 		front = {
 			lightType = "point",
 			pieceName = "base",
@@ -91725,7 +91725,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armmh"] = {
+	armmh = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -91877,7 +91877,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armsh"] = {
+	armsh = {
 		searchlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "base", -- invalid ones will attach to the worldpos of the unit
@@ -91954,7 +91954,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armlun"] = {
+	armlun = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "base",
@@ -92107,7 +92107,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corah"] = {
+	corah = {
 		eyes = {
 			lightType = "point",
 			pieceName = "base",
@@ -92185,7 +92185,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corsok"] = {
+	corsok = {
 		lightfront1 = {
 			lightType = "beam",
 			pieceName = "base",
@@ -92602,7 +92602,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armcv"] = {
+	armcv = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -92780,7 +92780,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armacv"] = {
+	armacv = {
 		buildflash1 = {
 			lightType = "point",
 			pieceName = "ldoor",
@@ -92967,7 +92967,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corck"] = {
+	corck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -93169,7 +93169,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legck"] = {
+	legck = {
 		buildlight = { -- this is the lightname
 			lightType = "cone",
 			pieceName = "cagelight_emit",
@@ -93321,7 +93321,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legaceb"] = {
+	legaceb = {
 		tankglow = {
 			lightType = "point",
 			pieceName = "torso",
@@ -93423,7 +93423,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrail"] = {
+	legrail = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "base",
@@ -93654,7 +93654,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legsrail"] = {
+	legsrail = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -93781,7 +93781,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legsrailt4"] = {
+	legsrailt4 = {
 		eye1 = {
 			lightType = "point",
 			pieceName = "pelvis",
@@ -93908,7 +93908,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legelrpcmech"] = {
+	legelrpcmech = {
 		chassislight1 = {
 			lightType = "point",
 			pieceName = "chassisLightLeft",
@@ -94010,7 +94010,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legstarfall"] = {
+	legstarfall = {
 		--other glows
 		otherglow1 = {
 			lightType = "point",
@@ -94138,7 +94138,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legministarfall"] = {
+	legministarfall = {
 		--other glows
 		otherglow1 = {
 			lightType = "point",
@@ -94266,7 +94266,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgate"] = {
+	armgate = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -94372,7 +94372,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armfgate"] = {
+	armfgate = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -94399,7 +94399,7 @@ local unitLights = {
 			},
 		},
 	},
-	["armgatet3"] = {
+	armgatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -94501,7 +94501,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leggatet3"] = {
+	leggatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -94603,7 +94603,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corgate"] = {
+	corgate = {
 		-- shieldglowold = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'base',
@@ -94639,7 +94639,7 @@ local unitLights = {
 			},
 		},
 	},
-	["corgatet3"] = {
+	corgatet3 = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "base",
@@ -94666,7 +94666,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legdeflector"] = {
+	legdeflector = {
 		shieldglow = {
 			lightType = "point",
 			pieceName = "shieldFlare",
@@ -94693,7 +94693,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrad"] = {
+	legrad = {
 		greenblobA = {
 			lightType = "point",
 			pieceName = "dishA",
@@ -94745,7 +94745,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legjam"] = {
+	legjam = {
 		cloaklightred = {
 			lightType = "point",
 			pieceName = "strut",
@@ -94772,7 +94772,7 @@ local unitLights = {
 			},
 		},
 	},
-	["leginc"] = {
+	leginc = {
 		bigheatray = {
 			lightType = "point",
 			pieceName = "flare",
@@ -94799,7 +94799,7 @@ local unitLights = {
 			},
 		},
 	},
-	["legrl"] = {
+	legrl = {
 		searchlight = {
 			lightType = "cone",
 			pieceName = "barrel",
@@ -94828,21 +94828,21 @@ local unitLights = {
 	},
 }
 
-unitLights["armtorps"] = unitLights["armmls"]
+unitLights.armtorps = unitLights.armmls
 --unitLights['coruwgeo'] = unitLights['corgeo']
 --unitLights['coruwageo'] = unitLights['corageo']
 --unitLights['armuwgeo'] = unitLights['armgeo']
 --unitLights['armuwageo'] = unitLights['armageo']
-unitLights["armshltxuw"] = unitLights["armshltx"]
-unitLights["corgantuw"] = unitLights["corgant"]
-unitLights["armdecom"] = unitLights["armcom"]
-unitLights["cordecom"] = unitLights["corcom"]
-unitLights["armcomcon"] = unitLights["armcom"]
-unitLights["corcomcon"] = unitLights["corcom"]
-unitLights["armdf"] = table.copy(unitLights["armfus"])
-unitLights["armuwfus"] = table.copy(unitLights["armfus"])
-unitLights["armckfus"] = table.copy(unitLights["armfus"])
-unitLights["legdecom"] = unitLights["legcom"]
+unitLights.armshltxuw = unitLights.armshltx
+unitLights.corgantuw = unitLights.corgant
+unitLights.armdecom = unitLights.armcom
+unitLights.cordecom = unitLights.corcom
+unitLights.armcomcon = unitLights.armcom
+unitLights.corcomcon = unitLights.corcom
+unitLights.armdf = table.copy(unitLights.armfus)
+unitLights.armuwfus = table.copy(unitLights.armfus)
+unitLights.armckfus = table.copy(unitLights.armfus)
+unitLights.legdecom = unitLights.legcom
 
 local unitEventLightsNames = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
@@ -94878,7 +94878,7 @@ local unitEventLightsNames = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptLights = {
-		["armcom"] = {
+		armcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lflare",
@@ -94907,7 +94907,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armdecom"] = {
+		armdecom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lflare",
@@ -94936,7 +94936,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corcom"] = {
+		corcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "biggun",
@@ -94965,7 +94965,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["cordecom"] = {
+		cordecom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "biggun",
@@ -94994,7 +94994,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legheavydrone"] = {
+		legheavydrone = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -95023,7 +95023,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leghelios"] = {
+		leghelios = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "turret",
@@ -95052,7 +95052,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legkark"] = {
+		legkark = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rflare",
@@ -95081,7 +95081,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legcom"] = {
+		legcom = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -95161,7 +95161,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["legjav"] = {
+		legjav = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lbarrel",
@@ -95216,7 +95216,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legrwall"] = {
+		legrwall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rgbarrel",
@@ -95245,7 +95245,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corint"] = {
+		corint = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "light",
@@ -95300,7 +95300,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armbrtha"] = {
+		armbrtha = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -95383,7 +95383,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legaheattank"] = {
+		legaheattank = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "gun",
@@ -95437,7 +95437,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["legelrpcmech"] = {
+		legelrpcmech = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightTopFlare",
@@ -95740,7 +95740,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["leganavyartyship"] = {
+		leganavyartyship = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightTopFlare1",
@@ -96037,7 +96037,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["leglrpc"] = {
+		leglrpc = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrelA",
@@ -96332,7 +96332,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legstarfall"] = {
+		legstarfall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -96865,7 +96865,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legministarfall"] = {
+		legministarfall = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -97319,7 +97319,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leglraa"] = {
+		leglraa = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare",
@@ -97400,7 +97400,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armvulc"] = {
+		armvulc = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel01",
@@ -97511,7 +97511,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armsnipe"] = {
+		armsnipe = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel2",
@@ -97541,7 +97541,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legrail"] = {
+		legrail = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "beam",
 				pieceName = "flare",
@@ -97604,7 +97604,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsrail"] = {
+		legsrail = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "flare1",
@@ -97661,7 +97661,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsrailt4"] = {
+		legsrailt4 = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "beam",
 				pieceName = "flare1",
@@ -97721,7 +97721,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legerailtank"] = {
+		legerailtank = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightFlare",
@@ -97805,7 +97805,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legphoenix"] = {
+		legphoenix = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "ringlight",
@@ -97835,7 +97835,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legbastion"] = {
+		legbastion = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lightpoint",
@@ -97865,7 +97865,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["leganavyflagship"] = {
+		leganavyflagship = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "torus3",
@@ -97895,7 +97895,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legeheatraymech"] = {
+		legeheatraymech = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightToroidLight",
@@ -97951,7 +97951,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["legeheatraymech_old"] = {
+		legeheatraymech_old = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "rightToroidLight",
@@ -98008,7 +98008,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["cordemon"] = {
+		cordemon = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lfbarrel2",
@@ -98065,7 +98065,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corthermite"] = {
+		corthermite = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel1",
@@ -98149,7 +98149,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsiegebreaker"] = {
+		corsiegebreaker = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel_glow",
@@ -98207,7 +98207,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsok"] = {
+		corsok = {
 			[1] = {
 				lightType = "point",
 				pieceName = "flare1",
@@ -98267,7 +98267,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armraz"] = {
+		armraz = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lcannon",
@@ -98430,7 +98430,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corcat"] = {
+		corcat = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "lturret",
@@ -98537,7 +98537,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armanni"] = {
+		armanni = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -98565,7 +98565,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		[UnitDefNames["armexcalibur"].id] = {
+		[UnitDefNames.armexcalibur.id] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "barrel",
@@ -98594,7 +98594,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["corsilo"] = {
+		corsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -98653,7 +98653,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["legsilo"] = {
+		legsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -98712,7 +98712,7 @@ local unitEventLightsNames = {
 			},
 		},
 
-		["armsilo"] = {
+		armsilo = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = "point",
 				pieceName = "base",
@@ -98774,7 +98774,7 @@ local unitEventLightsNames = {
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle = {
-		["armcom"] = {
+		armcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -98801,7 +98801,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["corcom"] = {
+		corcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -98828,7 +98828,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["legcom"] = {
+		legcom = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -98855,7 +98855,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armck"] = {
+		armck = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -98884,7 +98884,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armcv"] = {
+		armcv = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -98912,7 +98912,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armbeaver"] = {
+		armbeaver = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -98940,7 +98940,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armca"] = {
+		armca = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -98968,7 +98968,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armcsa"] = {
+		armcsa = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -98996,7 +98996,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armcs"] = {
+		armcs = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99073,7 +99073,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armacsub"] = {
+		armacsub = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99100,7 +99100,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armch"] = {
+		armch = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99152,7 +99152,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armack"] = {
+		armack = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99179,7 +99179,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armacv"] = {
+		armacv = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99206,7 +99206,7 @@ local unitEventLightsNames = {
 				},
 			},
 		},
-		["armaca"] = {
+		armaca = {
 			idleBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99312,7 +99312,7 @@ local unitEventLightsNames = {
 	},
 
 	UnitCloaked = {
-		["armcom"] = {
+		armcom = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -99379,7 +99379,7 @@ local unitEventLightsNames = {
 	},
 
 	UnitDecloaked = {
-		["armcom"] = {
+		armcom = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "head",
@@ -99437,7 +99437,7 @@ local unitEventLightsNames = {
 	},
 
 	StockpileChanged = {
-		["legmos"] = {
+		legmos = {
 			cloakBlink = {
 				lightType = "point",
 				pieceName = "base",
@@ -99621,13 +99621,13 @@ local armComTable =
 	{ "armcomlvl2", "armcomlvl4", "armcomlvl5", "armcomlvl6", "armcomlvl7", "armcomlvl8", "armcomlvl9", "armcomlvl10" }
 for _, name in pairs(armComTable) do
 	if name == "armcomlvl2" then
-		unitLights[name] = table.copy(unitLights["armcom"])
+		unitLights[name] = table.copy(unitLights.armcom)
 	else
-		unitLights[name] = table.copy(unitLights["armcomlvl3"])
+		unitLights[name] = table.copy(unitLights.armcomlvl3)
 	end
-	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked["armcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["armcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["armcom"])
+	unitEventLightsNames.UnitDecloaked[name] = table.copy(unitEventLightsNames.UnitDecloaked.armcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.armcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.armcom)
 end
 
 --duplicate lights from corcom for Cortex Evocom
@@ -99643,9 +99643,9 @@ local corComTable = {
 	"corcomlvl10",
 }
 for _, name in pairs(corComTable) do
-	unitLights[name] = table.copy(unitLights["corcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["corcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["corcom"])
+	unitLights[name] = table.copy(unitLights.corcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.corcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.corcom)
 end
 
 --duplicate lights from legcom for Legion Evocom
@@ -99664,9 +99664,9 @@ local legComTable = {
 	"legdecomlvl10",
 }
 for _, name in pairs(legComTable) do
-	unitLights[name] = table.copy(unitLights["legcom"])
-	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle["legcom"])
-	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights["legcom"])
+	unitLights[name] = table.copy(unitLights.legcom)
+	unitEventLightsNames.UnitIdle[name] = table.copy(unitEventLightsNames.UnitIdle.legcom)
+	unitEventLightsNames.UnitScriptLights[name] = table.copy(unitEventLightsNames.UnitScriptLights.legcom)
 end
 
 --duplicate lights from scavengerbossv4_normal for all scavengerbossv4 variants
@@ -99678,7 +99678,7 @@ local scavengerBossV4Table = {
 	"scavengerbossv4_epic",
 }
 for _, name in pairs(scavengerBossV4Table) do
-	unitLights[name] = table.copy(unitLights["scavengerbossv4_normal"])
+	unitLights[name] = table.copy(unitLights.scavengerbossv4_normal)
 end
 
 --AND THE REST
@@ -99945,7 +99945,7 @@ local xmaslightbase = {
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 -- add colorful xmas lights to a percentage of certain snowy trees
-if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then --and  os.date("%d") <= "26"
+if Spring.Utilities.Gametype.GetCurrentHolidays().xmas then --and  os.date("%d") <= "26"
 	local snowy_tree_keys = { allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60 }
 	local xmasColors = {
 		[1] = { 234, 13, 13 }, -- red

@@ -51,11 +51,11 @@ function widget:Initialize()
 	-- (threshold uses the 1/d*d power)
 	spSetShockFrontFactors(minArea, minPower, distAdj)
 
-	WG["camerashake"] = {}
-	WG["camerashake"].getStrength = function()
+	WG.camerashake = {}
+	WG.camerashake.getStrength = function()
 		return powerScale
 	end
-	WG["camerashake"].setStrength = function(value)
+	WG.camerashake.setStrength = function(value)
 		powerScale = mathFloor(value)
 		if powerScale <= 0 then
 			minPower = 0

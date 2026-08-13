@@ -52,11 +52,11 @@ function widget:Initialize()
 	state.vsx = vsx
 	state.vsy = vsy
 	state.isGUIHidden = spIsGUIHidden()
-	WG["sharedstate"] = state
+	WG.sharedstate = state
 end
 
 function widget:Shutdown()
-	WG["sharedstate"] = nil
+	WG.sharedstate = nil
 end
 
 function widget:PlayerChanged(playerID)

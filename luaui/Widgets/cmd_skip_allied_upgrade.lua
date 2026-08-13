@@ -56,7 +56,7 @@ end
 
 function widget:Initialize()
 	toggleIsActive = false
-	WG["skip_allied_upgrade"] = SkipAlliedUpgradeWidget
+	WG.skip_allied_upgrade = SkipAlliedUpgradeWidget
 
 	widgetHandler:AddAction("toggle_allied_upgrade", function()
 		toggleIsActive = true

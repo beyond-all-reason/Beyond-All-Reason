@@ -513,7 +513,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailfighter"] = {
+	missiletrailfighter = {
 		engine = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -615,7 +615,7 @@ local definitions = {
 		--},
 	},
 
-	["missiletrailtiny"] = {
+	missiletrailtiny = {
 		--groundflash = {
 		--  circlealpha        = 0,
 		--  circlegrowth       = 0,
@@ -729,7 +729,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailsmall"] = {
+	missiletrailsmall = {
 		engine = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -1011,7 +1011,7 @@ local definitions = {
 		--    },
 		--},
 	},
-	["missiletrailviper"] = {
+	missiletrailviper = {
 		--groundflash = {
 		--  circlealpha        = 0,
 		--  circlegrowth       = 0,
@@ -1187,7 +1187,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailmedium"] = {
+	missiletrailmedium = {
 		engine = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -1436,7 +1436,7 @@ local definitions = {
 		--},
 	},
 
-	["missiletraillarge"] = {
+	missiletraillarge = {
 		fire = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1632,7 +1632,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailbomber"] = {
+	missiletrailbomber = {
 		coreflame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1689,7 +1689,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailaa"] = {
+	missiletrailaa = {
 		engine = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -1733,7 +1733,7 @@ local definitions = {
 		},
 	},
 
-	["flaktrailaa"] = {
+	flaktrailaa = {
 		trail = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -1757,7 +1757,7 @@ local definitions = {
 		},
 	},
 
-	["flaktrailaamg"] = {
+	flaktrailaamg = {
 		trail = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -2141,7 +2141,7 @@ local definitions = {
 		--},
 	},
 
-	["nuketrail"] = {
+	nuketrail = {
 		groundflash = {
 			circlealpha = 0,
 			circlegrowth = 0,
@@ -2448,7 +2448,7 @@ local definitions = {
 		},
 	},
 
-	["missiletrailgunship"] = { -- unused
+	missiletrailgunship = { -- unused
 		coreflame = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -2560,7 +2560,7 @@ local definitions = {
 			},
 		},
 	},
-	["cruisemissiletrail"] = {
+	cruisemissiletrail = {
 		groundflash = {
 			circlealpha = 0,
 			circlegrowth = 0,
@@ -3082,13 +3082,13 @@ local definitions = {
 	},
 }
 
-definitions["antimissiletrail"] = table.copy(definitions["cruisemissiletrail"])
-definitions["antimissiletrail"].smokeandfire.properties.colormap =
+definitions.antimissiletrail = table.copy(definitions.cruisemissiletrail)
+definitions.antimissiletrail.smokeandfire.properties.colormap =
 	[[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
-definitions["antimissiletrail"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
-definitions["antimissiletrail"].fireglow.properties.colormap = [[0.4 0.4 0.9 0.01   0.3 0.3 0.8 0.007  0.3 0.3 0.6 0]]
-definitions["antimissiletrail"].fireglowbright.count = 1
-definitions["antimissiletrail"].exhale.count = 0
+definitions.antimissiletrail.sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
+definitions.antimissiletrail.fireglow.properties.colormap = [[0.4 0.4 0.9 0.01   0.3 0.3 0.8 0.007  0.3 0.3 0.6 0]]
+definitions.antimissiletrail.fireglowbright.count = 1
+definitions.antimissiletrail.exhale.count = 0
 definitions["antimissiletrail-starburst"] = table.copy(definitions["cruisemissiletrail-starburst"])
 definitions["antimissiletrail-starburst"].smokeandfire.properties.colormap =
 	[[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
@@ -3110,14 +3110,14 @@ definitions["missiletrailsmall-red-smoke"] = table.copy(definitions["missiletrai
 definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.length = [[-11 r1.5]]
 definitions["missiletrailsmall-red-smoke"].exhaustengine.properties.size = 2.5
 --definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
-definitions["missiletrailmedium-red"] = table.copy(definitions["missiletrailmedium"])
+definitions["missiletrailmedium-red"] = table.copy(definitions.missiletrailmedium)
 definitions["missiletrailmedium-red"].engine.properties.colormap =
 	[[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
 --definitions["missiletrailmedium-red"].fire.propertiescolormap  = [[0.9 0.5 0.16 0.15   0.44 0.2 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
 definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.25 0.1 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-red"].sparks.properties.colormap =
 	[[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
-definitions["missiletraillarge-red"] = table.copy(definitions["missiletraillarge"])
+definitions["missiletraillarge-red"] = table.copy(definitions.missiletraillarge)
 definitions["missiletraillarge-red"].fire = nil
 definitions["missiletraillarge-red"].fireglow = nil
 definitions["missiletraillarge-red"].smoke = nil
@@ -3125,7 +3125,7 @@ definitions["missiletraillarge-red"].smoke2 = nil
 definitions["missiletraillarge-red"].sparks.properties.colormap =
 	[[1 0.85 0.7 0.01   0.9 0.4 0.14 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
-definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
+definitions["missiletrailsmall-starburst"] = table.copy(definitions.missiletrailsmall)
 
 definitions["missiletrailsmall-starburst-vertical"] = table.copy(definitions["missiletrailsmall-starburst"])
 definitions["missiletrailsmall-starburst-vertical"].engine.properties.length = [[-19 r4.15]]
@@ -3136,7 +3136,7 @@ definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespe
 definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread = definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread
 	* 1.25
 
-definitions["missiletrailmedium-starburst"] = table.copy(definitions["missiletrailmedium"])
+definitions["missiletrailmedium-starburst"] = table.copy(definitions.missiletrailmedium)
 definitions["missiletrailmedium-starburst"].sparks.properties.colormap =
 	[[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap =
@@ -3150,7 +3150,7 @@ definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particles
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread
 	* 1.5
 
-definitions["missiletraillarge-starburst"] = table.copy(definitions["missiletraillarge"])
+definitions["missiletraillarge-starburst"] = table.copy(definitions.missiletraillarge)
 definitions["missiletraillarge-starburst"].smoke.properties.emitrotspread = 4
 definitions["missiletraillarge-starburst"].smoke.properties.particlespeed = definitions["missiletraillarge-starburst"].smoke.properties.particlespeed
 	* 2
@@ -3164,7 +3164,7 @@ definitions["missiletraillarge-starburst"].dustparticles.properties.colormap =
 	[[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
 definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.02 0.01   0 0 0 0.01]]
 
-definitions["missiletrail-juno"] = table.copy(definitions["missiletrailmedium"])
+definitions["missiletrail-juno"] = table.copy(definitions.missiletrailmedium)
 definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.3 0.24 0.03 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].engine.properties.colormap =
 	[[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
@@ -3192,7 +3192,7 @@ definitions["missiletrail-juno-starburst"].dustparticles.properties.particlesize
 definitions["missiletrail-juno-starburst"].fireglow.properties.particlesize = definitions["missiletrail-juno"].fireglow.properties.particlesize
 	* 1.5
 
-definitions["cruisemissiletrail-emp"] = table.copy(definitions["cruisemissiletrail"])
+definitions["cruisemissiletrail-emp"] = table.copy(definitions.cruisemissiletrail)
 definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap =
 	[[0.5 0.44 0.7 0.01   0.3 0.26 0.5 0.01    0.24 0.22 0.4 0.01    0.064 0.06 0.11 0.01     0.032 0.03 0.065 0.01   0.053 0.05 0.2 0.01   0 0 0 0.01]]
 definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.17 0.15 0.25 0.01   0 0 0 0.01]]
@@ -3202,7 +3202,7 @@ definitions["cruisemissiletrail-emp"].sparks2.properties.colormap =
 	[[0.66 0.6 1.0 0.01   0.5 0.45 0.9 0.01  0.27 0.25 0.65 0]]
 definitions["cruisemissiletrail-emp"].fireglowbright = nil
 
-definitions["cruisemissiletrail-tacnuke"] = table.copy(definitions["cruisemissiletrail"])
+definitions["cruisemissiletrail-tacnuke"] = table.copy(definitions.cruisemissiletrail)
 definitions["cruisemissiletrail-tacnuke"].smokeandfire.properties.colormap =
 	[[0.7 0.6 0.45 0.01   0.44 0.33 0.06 0.01    0.34 0.15 0 0.01    0.09 0.025 0 0.01     0.05 0.01 0 0.01   0.024 0.01 0 0.01   0.014 0.002 0 0.01   0 0 0 0.01]]
 

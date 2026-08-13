@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local COM_BLAST = WeaponDefNames["commanderexplosion"].id
+local COM_BLAST = WeaponDefNames.commanderexplosion.id
 
 function gadget:UnitPreDamaged(
 	unitID,
