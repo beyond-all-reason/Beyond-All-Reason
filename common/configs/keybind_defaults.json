@@ -1159,31 +1159,27 @@
 				},
 				{
 					"keyset": "Ctrl+f7",
-					"action": "HideInterface"
+					"action": "hideinterface"
 				},
 				{
 					"keyset": "Any+f5",
-					"action": "LastMsgPos"
+					"action": "lastmsgpos"
 				},
 				{
 					"keyset": "Any+f6",
-					"action": "ShowPathTraversability"
+					"action": "showpathtraversability"
 				},
 				{
 					"keyset": "Any+f7",
-					"action": "ShowMetalMap"
+					"action": "showmetalmap"
 				},
 				{
 					"keyset": "Any+f8",
-					"action": "ShowElevation"
+					"action": "showelevation"
 				},
 				{
 					"keyset": "f10",
 					"action": "options"
-				},
-				{
-					"keyset": "f11",
-					"action": "luaui selector"
 				},
 				{
 					"keyset": "Any+f12",
@@ -1275,7 +1271,7 @@
 				},
 				{
 					"keyset": "backspace",
-					"action": "MuteSound"
+					"action": "mutesound"
 				},
 				{
 					"keyset": "numpad+",
@@ -2424,31 +2420,27 @@
 				},
 				{
 					"keyset": "Ctrl+meta+7",
-					"action": "HideInterface"
+					"action": "hideinterface"
 				},
 				{
 					"keyset": "meta+5",
-					"action": "LastMsgPos"
+					"action": "lastmsgpos"
 				},
 				{
 					"keyset": "meta+6",
-					"action": "ShowPathTraversability"
+					"action": "showpathtraversability"
 				},
 				{
 					"keyset": "meta+7",
-					"action": "ShowMetalMap"
+					"action": "showmetalmap"
 				},
 				{
 					"keyset": "meta+8",
-					"action": "ShowElevation"
+					"action": "showelevation"
 				},
 				{
 					"keyset": "f10",
 					"action": "options"
-				},
-				{
-					"keyset": "f11",
-					"action": "luaui selector"
 				},
 				{
 					"keyset": "Any+f12",
@@ -2540,7 +2532,7 @@
 				},
 				{
 					"keyset": "backspace",
-					"action": "MuteSound"
+					"action": "mutesound"
 				},
 				{
 					"keyset": "numpad+",
@@ -3313,11 +3305,11 @@
 				},
 				{
 					"keyset": "Any+home",
-					"action": "increaseViewRadius"
+					"action": "increaseviewradius"
 				},
 				{
 					"keyset": "Any+end",
-					"action": "decreaseViewRadius"
+					"action": "decreaseviewradius"
 				},
 				{
 					"keyset": "Alt+insert",
@@ -3593,39 +3585,35 @@
 				},
 				{
 					"keyset": "Any+f1",
-					"action": "ShowElevation"
+					"action": "showelevation"
 				},
 				{
 					"keyset": "Any+f2",
-					"action": "ShowPathTraversability"
+					"action": "showpathtraversability"
 				},
 				{
 					"keyset": "Any+f3",
-					"action": "LastMsgPos"
+					"action": "lastmsgpos"
 				},
 				{
 					"keyset": "Any+f4",
-					"action": "ShowMetalMap"
+					"action": "showmetalmap"
 				},
 				{
 					"keyset": "Any+f5",
-					"action": "HideInterface"
+					"action": "hideinterface"
 				},
 				{
 					"keyset": "Any+f6",
-					"action": "MuteSound"
+					"action": "mutesound"
 				},
 				{
 					"keyset": "Any+f7",
-					"action": "DynamicSky"
+					"action": "dynamicsky"
 				},
 				{
 					"keyset": "f10",
 					"action": "options"
-				},
-				{
-					"keyset": "f11",
-					"action": "luaui selector"
 				},
 				{
 					"keyset": "Any+f12",
@@ -5042,11 +5030,11 @@
 				},
 				{
 					"keyset": "Any+home",
-					"action": "increaseViewRadius"
+					"action": "increaseviewradius"
 				},
 				{
 					"keyset": "Any+end",
-					"action": "decreaseViewRadius"
+					"action": "decreaseviewradius"
 				},
 				{
 					"keyset": "Alt+insert",
@@ -5334,35 +5322,31 @@
 				},
 				{
 					"keyset": "meta+1",
-					"action": "ShowElevation"
+					"action": "showelevation"
 				},
 				{
 					"keyset": "meta+2",
-					"action": "ShowPathTraversability"
+					"action": "showpathtraversability"
 				},
 				{
 					"keyset": "meta+3",
-					"action": "LastMsgPos"
+					"action": "lastmsgpos"
 				},
 				{
 					"keyset": "meta+4",
-					"action": "ShowMetalMap"
+					"action": "showmetalmap"
 				},
 				{
 					"keyset": "meta+5",
-					"action": "HideInterface"
+					"action": "hideinterface"
 				},
 				{
 					"keyset": "meta+6",
-					"action": "MuteSound"
+					"action": "mutesound"
 				},
 				{
 					"keyset": "meta+7",
-					"action": "DynamicSky"
-				},
-				{
-					"keyset": "f11",
-					"action": "luaui selector"
+					"action": "dynamicsky"
 				},
 				{
 					"keyset": "meta+8",
