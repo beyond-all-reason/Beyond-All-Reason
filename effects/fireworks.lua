@@ -1,7 +1,7 @@
 -- 7 Fireworks effects by Steel December 2025
 
 local definitions = {
-	["fireworks_burst"] = {
+	fireworks_burst = {
 		--Larger and lives longer than others, multi colored smoke in middle looks like confetti at the end
 		stars_gold = {
 			air = true,
@@ -243,7 +243,7 @@ local definitions = {
 	},
 
 	--Blue inner ring gold outter ring
-	["fireworks_burst_1"] = {
+	fireworks_burst_1 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -536,7 +536,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_2"] = {
+	fireworks_burst_2 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -756,7 +756,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_3"] = {
+	fireworks_burst_3 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -978,7 +978,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_4"] = {
+	fireworks_burst_4 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1201,7 +1201,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_5"] = {
+	fireworks_burst_5 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1431,7 +1431,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_6"] = {
+	fireworks_burst_6 = {
 		stars = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
@@ -1629,7 +1629,7 @@ local definitions = {
 		},
 	},
 
-	["fireworks_burst_7"] = {
+	fireworks_burst_7 = {
 		sparks = {
 			air = true,
 			class = [[CSimpleParticleSystem]],

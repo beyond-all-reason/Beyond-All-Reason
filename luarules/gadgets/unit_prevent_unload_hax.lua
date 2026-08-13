@@ -65,16 +65,16 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		local dx, dy, dz, rx, ry, rz = Spring.GetUnitDirection(unitID)
 		local frame = SpGetGameFrame() + frameMargin
 		unloadedUnits[unitID] = {
-			["px"] = px,
-			["py"] = py,
-			["pz"] = pz,
-			["dx"] = dx,
-			["dy"] = dy,
-			["dz"] = dz,
-			["rx"] = rx,
-			["ry"] = ry,
-			["rz"] = rz,
-			["frame"] = frame,
+			px = px,
+			py = py,
+			pz = pz,
+			dx = dx,
+			dy = dy,
+			dz = dz,
+			rx = rx,
+			ry = ry,
+			rz = rz,
+			frame = frame,
 		}
 
 		SpSetUnitVelocity(unitID, 0, 0, 0)

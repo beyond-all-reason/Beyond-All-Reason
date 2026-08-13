@@ -22,10 +22,10 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 end
 
-GG["music"] = {}
+GG.music = {}
 
 ---@param trackFilePath string Full Path to music track
-GG["music"].GadgetPlayMusicTrack = function(trackFilePath)
+GG.music.GadgetPlayMusicTrack = function(trackFilePath)
 	if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("GadgetPlayMusicTrack", trackFilePath)
 	else

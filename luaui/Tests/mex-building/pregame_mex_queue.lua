@@ -36,8 +36,8 @@ end
 
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
 local function test()
-	local mexUnitDefId = UnitDefNames["armmex"].id
-	local metalSpots = WG["resource_spot_finder"].metalSpotsList
+	local mexUnitDefId = UnitDefNames.armmex.id
+	local metalSpots = WG.resource_spot_finder.metalSpotsList
 
 	local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local targetMex = nil

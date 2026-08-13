@@ -576,7 +576,7 @@ local function refreshUiDrawing()
 		end)
 	end
 
-	if WG["guishader"] and (isSpec or lockPlayerID) then
+	if WG.guishader and (isSpec or lockPlayerID) then
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
@@ -611,21 +611,21 @@ local function refreshUiDrawing()
 				)
 			end
 		end)
-		WG["guishader"].InsertDlist(backgroundGuishader, "playertv", true)
+		WG.guishader.InsertDlist(backgroundGuishader, "playertv", true)
 		showBackgroundGuishader = true
 	end
 end
 
 local function updatePosition()
 	local prevPos = parentPos
-	if WG["displayinfo"] ~= nil then
-		parentPos = WG["displayinfo"].GetPosition() -- returns {top,left,bottom,right,widgetScale}
-	elseif WG["unittotals"] ~= nil then
-		parentPos = WG["unittotals"].GetPosition() -- returns {top,left,bottom,right,widgetScale}
-	elseif WG["music"] ~= nil then
-		parentPos = WG["music"].GetPosition() -- returns {top,left,bottom,right,widgetScale}
-	elseif WG["advplayerlist_api"] ~= nil then
-		parentPos = WG["advplayerlist_api"].GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	if WG.displayinfo ~= nil then
+		parentPos = WG.displayinfo.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.unittotals ~= nil then
+		parentPos = WG.unittotals.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.music ~= nil then
+		parentPos = WG.music.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.advplayerlist_api ~= nil then
+		parentPos = WG.advplayerlist_api.GetPosition() -- returns {top,left,bottom,right,widgetScale}
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		parentPos = { 0, vsx - (220 * scale), 0, vsx, scale }
@@ -745,7 +745,7 @@ function widget:Update(dt)
 		updatePosition()
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			showBackgroundGuishader = nil
 			updateDrawing = true
@@ -774,8 +774,8 @@ function widget:Update(dt)
 	end
 
 	local prevRejoining = rejoining
-	if WG["rejoin"] then
-		rejoining = WG["rejoin"].showingRejoining()
+	if WG.rejoin then
+		rejoining = WG.rejoin.showingRejoining()
 	end
 	if isSpec and toggled and spGetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
@@ -840,18 +840,18 @@ function widget:Update(dt)
 	end
 
 	if (isSpec or lockPlayerID) and not rejoining then
-		if WG["tooltip"] and not toggled and not lockPlayerID then
+		if WG.tooltip and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 and not aiTeams[myTeamID] then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.tooltip"))
+				WG.tooltip.ShowTooltip("playertv", Spring.I18N("ui.playerTV.tooltip"))
 			end
 			if buttonHovered and buttonHovered == 2 then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerViewTooltip"))
+				WG.tooltip.ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerViewTooltip"))
 			end
 			if buttonHovered and buttonHovered == 3 then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerCameraTooltip"))
+				WG.tooltip.ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerCameraTooltip"))
 			end
 		end
 
@@ -865,11 +865,11 @@ end
 local function drawContent()
 	local gameFrame = spGetGameFrame()
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("playertv")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("playertv")
 		end
 	elseif backgroundGuishader and not showBackgroundGuishader then
-		WG["guishader"].InsertDlist(backgroundGuishader, "playertv", true)
+		WG.guishader.InsertDlist(backgroundGuishader, "playertv", true)
 		showBackgroundGuishader = true
 	end
 
@@ -917,7 +917,7 @@ local function drawContent()
 		end
 	end
 	if displayPlayername then
-		if WG["advplayerlist_api"] and WG.lockcamera then
+		if WG.advplayerlist_api and WG.lockcamera then
 			if
 				not lockPlayerID
 				or lockPlayerID ~= WG.lockcamera.GetPlayerID() and nextTrackingPlayerChange - os.clock() < 0
@@ -1119,7 +1119,7 @@ function widget:Initialize()
 	if isSpec and not fullview then
 		toggled2 = true
 	end
-	if WG["advplayerlist_api"] == nil then
+	if WG.advplayerlist_api == nil then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -1144,24 +1144,24 @@ function widget:Initialize()
 	tsOrderPlayers()
 
 	updatePosition()
-	WG["playertv"] = {}
-	WG["playertv"].GetPosition = function()
+	WG.playertv = {}
+	WG.playertv.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
-	WG["playertv"].isActive = function()
+	WG.playertv.isActive = function()
 		return (toggled and isSpec)
 	end
-	WG["playertv"].GetPlayerChangeDelay = function()
+	WG.playertv.GetPlayerChangeDelay = function()
 		return playerChangeDelay
 	end
-	WG["playertv"].SetPlayerChangeDelay = function(value)
+	WG.playertv.SetPlayerChangeDelay = function(value)
 		playerChangeDelay = value
 		createCountdownLists()
 	end
-	WG["playertv"].GetAlwaysDisplayName = function()
+	WG.playertv.GetAlwaysDisplayName = function()
 		return alwaysDisplayName
 	end
-	WG["playertv"].SetAlwaysDisplayName = function(value)
+	WG.playertv.SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
 
@@ -1220,8 +1220,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2, 2, 0.2, 3)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 2, 0.2, 3)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
@@ -1231,7 +1231,7 @@ function widget:ViewResize()
 	end
 	drawlistsCountdown = {}
 	drawlistsPlayername = {}
-	if WG["guishader"] and backgroundGuishader then
+	if WG.guishader and backgroundGuishader then
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
@@ -1260,8 +1260,8 @@ function widget:Shutdown()
 	end
 	drawlistsCountdown = {}
 	drawlistsPlayername = {}
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("playertv")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("playertv")
 	end
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
