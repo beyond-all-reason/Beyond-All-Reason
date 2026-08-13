@@ -11,7 +11,8 @@
 --
 --  Adding a new callin:
 --  1. Add the callin's envs and subscriptions to syntheticCallins.
---  2. If using mark-and-sweep, add the callin to syntheticCallinMarks.
+--  2. If using mark-and-sweep, add the callin to syntheticCallinMarks;
+--     if adding up a running total, instead: to syntheticCallinTotals.
 --  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
 
@@ -28,9 +29,11 @@ local syntheticCallins = {
 	},
 
 	synced = {
-		UnitAutoTargetRange  = { 'AllowWeaponTarget' },
-		UnitBuildStepPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
-		FeatureBuildStepPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
+		UnitAutoTargetRange   = { 'AllowWeaponTarget' },
+		UnitBuildStepPost     = { 'GameFramePost', 'AllowUnitBuildStep' },
+		FeatureBuildStepPost  = { 'GameFramePost', 'AllowFeatureBuildStep' },
+		UnitBuildStepTotal    = { 'GameFramePost', 'AllowUnitBuildStep' },
+		FeatureBuildStepTotal = { 'GameFramePost', 'AllowFeatureBuildStep' },
 	},
 
 	unsynced = {},
@@ -86,6 +89,11 @@ local syntheticCallinMarks = {
 	FeatureBuildStepPost = 'featureStep',
 }
 
+local syntheticCallinTotals = {
+	UnitBuildStepTotal    = 'unitStepTotal',
+	FeatureBuildStepTotal = 'featureStepTotal',
+}
+
 -- [markPrefix] := { marked, list, count, stop }
 local marks = {}
 
@@ -98,8 +106,7 @@ local function makeStopMarking(marked, list, count)
 	end
 end
 
-local function createMarks(callinName)
-	local prefix = syntheticCallinMarks[callinName]
+local function createSweep(callinName, prefix)
 	if not prefix then
 		return
 	end
@@ -116,6 +123,14 @@ local function createMarks(callinName)
 			stop()
 		end
 	end
+end
+
+local function createMarks(callinName)
+	return createSweep(callinName, syntheticCallinMarks[callinName])
+end
+
+local function createTotals(callinName)
+	return createSweep(callinName, syntheticCallinTotals[callinName])
 end
 
 -- prefix -> marked, list, count
@@ -203,6 +218,60 @@ if Script.GetSynced() then
 			end
 		end
 	end
+
+	createTotals('UnitBuildStepTotal')
+	local unitStepTotalMarked, unitStepTotalList, unitStepTotalCount = getMarksUnsafe('unitStepTotal')
+	local unitStepTotals = {}
+
+	function gadgetHandler:UnitBuildStepTotal()
+		local count = unitStepTotalCount[1]
+		if not count or count == 0 then
+			return
+		end
+		unitStepTotalCount[1] = 0
+
+		-- Clear marks first so a subscriber that throws does not leave any marks.
+		for i = 1, count do
+			local unitID = unitStepTotalList[i]
+			unitStepTotals[i] = unitStepTotalMarked[unitID]
+			unitStepTotalMarked[unitID] = nil
+		end
+
+		local list = self.UnitBuildStepTotalList
+		for i = 1, count do
+			local unitID, part = unitStepTotalList[i], unitStepTotals[i]
+			for _, g in ipairs(list) do
+				g:UnitBuildStepTotal(unitID, part)
+			end
+		end
+	end
+
+	createTotals('FeatureBuildStepTotal')
+	local featureStepTotalMarked, featureStepTotalList, featureStepTotalCount = getMarksUnsafe('featureStepTotal')
+	local featureStepTotals = {}
+
+	function gadgetHandler:FeatureBuildStepTotal()
+		local count = featureStepTotalCount[1]
+		if not count or count == 0 then
+			return
+		end
+		featureStepTotalCount[1] = 0
+
+		-- Clear marks first so a subscriber that throws does not leave any marks.
+		for i = 1, count do
+			local featureID = featureStepTotalList[i]
+			featureStepTotals[i] = featureStepTotalMarked[featureID]
+			featureStepTotalMarked[featureID] = nil
+		end
+
+		local list = self.FeatureBuildStepTotalList
+		for i = 1, count do
+			local featureID, part = featureStepTotalList[i], featureStepTotals[i]
+			for _, g in ipairs(list) do
+				g:FeatureBuildStepTotal(featureID, part)
+			end
+		end
+	end
 end
 
 -- Unsynced environment
@@ -236,12 +305,16 @@ local function install(gh)
 	-- Wrap multi-env dispatchers for single-env synthetic callins at install
 	-- to prevent errors caused by discrepancies between here and gadgets.lua
 
+	-- This is the part of lua that no cleverness can help with: composition.
+
 	if Script.GetSynced() then
 		local gameFramePost = gh.GameFramePost
 		function gh:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
 			self:UnitBuildStepPost()
 			self:FeatureBuildStepPost()
+			self:UnitBuildStepTotal()
+			self:FeatureBuildStepTotal()
 			tracy.ZoneEnd()
 			return gameFramePost(self, frameNum)
 		end

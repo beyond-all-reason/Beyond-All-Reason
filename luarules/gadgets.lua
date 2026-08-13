@@ -350,6 +350,8 @@ local callInLists = {
 	-- Synthetic callins
 	"UnitBuildStepPost",
 	"FeatureBuildStepPost",
+	"UnitBuildStepTotal",
+	"FeatureBuildStepTotal",
 
 	-- unsynced
 	"DrawProjectile",
@@ -480,6 +482,9 @@ local synthetic = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMOD
 
 local unitStepMarked,    unitStepList,    unitStepCount    = synthetic.getMarks('unitStep')
 local featureStepMarked, featureStepList, featureStepCount = synthetic.getMarks('featureStep')
+
+local unitStepTotalMarked,    unitStepTotalList,    unitStepTotalCount    = synthetic.getMarks('unitStepTotal')
+local featureStepTotalMarked, featureStepTotalList, featureStepTotalCount = synthetic.getMarks('featureStepTotal')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1888,6 +1893,19 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDe
 		unitStepList[marks] = unitID
 	end
 
+	local total = unitStepTotalMarked[unitID]
+	if total then
+		unitStepTotalMarked[unitID] = total + part
+	else
+		local totals = unitStepTotalCount[1]
+		if totals then
+			totals = totals + 1
+			unitStepTotalCount[1] = totals
+			unitStepTotalList[totals] = unitID
+			unitStepTotalMarked[unitID] = part
+		end
+	end
+
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
@@ -1934,6 +1952,19 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, 
 		marks = marks + 1
 		featureStepCount[1] = marks
 		featureStepList[marks] = featureID
+	end
+
+	local total = featureStepTotalMarked[featureID]
+	if total then
+		featureStepTotalMarked[featureID] = total + part
+	else
+		local totals = featureStepTotalCount[1]
+		if totals then
+			totals = totals + 1
+			featureStepTotalCount[1] = totals
+			featureStepTotalList[totals] = featureID
+			featureStepTotalMarked[featureID] = part
+		end
 	end
 
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
