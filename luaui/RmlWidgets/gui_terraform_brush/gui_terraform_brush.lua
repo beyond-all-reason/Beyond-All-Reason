@@ -12406,6 +12406,7 @@ local function attachEventListeners()
 			capMaxValue = 0
 			capAbsolute = true
 			capEnabled = true
+			local dm = widgetState.dmHandle
 			if dm then
 				dm.tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png"
 			end
@@ -14691,12 +14692,12 @@ function widget:Update()
 					or false
 			)
 		end
+
+		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayBtn then
 			clayBtn:SetClass("disabled", mbActive or lpActive or false)
 		end
-
-		local doc = widgetState.document
 
 		-- Blue-dot hint gating: hide dots already seen or when tips disabled,
 		-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
@@ -15145,6 +15146,7 @@ function widget:Update()
 				if sliderCapMin and ds ~= "capmin" then
 					sliderCapMin:SetAttribute("value", tostring(capMinValue))
 				end
+				local dm = widgetState.dmHandle
 				if dm then
 					dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png"
 						or "/luaui/images/terraform_brush/check_off.png"
@@ -15371,6 +15373,7 @@ function widget:Update()
 						)
 					end
 				end
+				local dustEl = getCachedEl(doc, "btn-dust-effects")
 				if dustEl then
 					dustEl:SetClass("active", state.dustEffects == true)
 					if dm then

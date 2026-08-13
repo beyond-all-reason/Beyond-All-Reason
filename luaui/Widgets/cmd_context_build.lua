@@ -26,6 +26,7 @@ local tableInsert = table.insert
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local isSpec = nil
 
 local isPregame = spGetGameFrame() == 0 and not isSpec
 

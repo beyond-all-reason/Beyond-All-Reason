@@ -2938,7 +2938,7 @@ function widget:DrawScreen()
 						{ 0, 0, 0, 0.06 }
 					)
 					glBlending(GL.SRC_ALPHA, GL.ONE)
-					---@diagnostic disable-next-line: undefined-global
+					local mb = buttonsArea.buttons[button][9]
 					RectRound(
 						buttonsArea.buttons[button][1],
 						buttonsArea.buttons[button][2],

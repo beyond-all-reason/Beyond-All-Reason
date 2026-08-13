@@ -928,6 +928,8 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("factory_preset_show")
 end
 
+local spEcho = Spring.Echo
+
 function printDebug(value)
 	if debug then
 		if type(value) == "boolean" then

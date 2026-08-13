@@ -1046,7 +1046,7 @@ local function InitStartPolygons()
 	)
 	startConeVBOTable.numVertices = numConeVertices
 	if startConeVBOTable == nil then
-		goodbye("Failed to create StartConeVBO")
+		Spring.Echo("Failed to create StartConeVBO")
 		widgetHandler:RemoveWidget()
 		return
 	end
