@@ -88,9 +88,11 @@ _G.VFS.Include = function(path, env, mode)
 
     -- Try direct path first
     local realPath = path
+    local existsOnDisk = false
     local file = io.open(path, "r")
     if file then
         file:close()
+        existsOnDisk = true
     else
         -- Check case-insensitive cache
         if not _G.VFS._ci_file_cache then
@@ -102,11 +104,12 @@ _G.VFS.Include = function(path, env, mode)
         local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
         if cachedPath then
             realPath = cachedPath
+            existsOnDisk = true
         end
     end
 
     -- Use loadfile/dofile instead of require to better simulate VFS and handle case-insensitive paths
-    local chunk, err = loadfile(realPath)
+    local chunk, loadErr = loadfile(realPath)
     if chunk then
         -- Handle environment if provided
         if env then
@@ -117,9 +120,15 @@ _G.VFS.Include = function(path, env, mode)
         if success then
             _G.VFS._cache[path] = result
             return result
-        else
-            print("Error loading " .. path .. ": " .. tostring(result))
         end
+
+        -- The file exists and compiled, but raised while executing. That is a real
+        -- bug (usually missing setup, e.g. GG['MissionAPI'] not initialised yet).
+        -- Surface it here rather than returning {} and letting the caller fail
+        -- later with a confusing "attempt to index a nil value" far from the cause.
+        error(string.format("VFS.Include failed to run '%s': %s", path, tostring(result)), 0)
+    elseif existsOnDisk then
+        error(string.format("VFS.Include failed to compile '%s': %s", path, tostring(loadErr)), 0)
     end
 
     -- Fallback to old require method if file not found on disk (e.g. standard libs)
@@ -244,3 +253,25 @@ _G.inspect = (function()
     -- fallback: no-op string (won't break prints/concats)
     return function(_) return _ end
 end)()
+
+-- Busted runs every spec file in a single Lua process, so globals left behind by
+-- one file leak into the next. Clearing GG before each file means a spec cannot
+-- accidentally depend on state another file happened to leave behind -- such a
+-- dependency now fails in every ordering instead of intermittently.
+--
+-- This only clears state, it never provides it: each spec is still responsible
+-- for its own load-time setup (e.g. GG['MissionAPI'].Modules.ParameterTypes must
+-- exist before including an action file, which reads it at load time).
+--
+-- Guarded because this file executes more than once per run (it is both
+-- require'd by specs and, for some tasks, loaded by busted as `helper`), which
+-- would otherwise register the subscriber repeatedly.
+if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
+    local ok, busted = pcall(require, "busted")
+    if ok and type(busted) == "table" and busted.subscribe then
+        _G.__SPEC_HELPER_GG_RESET_INSTALLED = true
+        busted.subscribe({ 'file', 'start' }, function()
+            _G.GG = {}
+        end)
+    end
+end
