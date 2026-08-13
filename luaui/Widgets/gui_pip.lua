@@ -7157,10 +7157,16 @@ local function GetUnitAtPoint(wx, wz)
 
 	local factoryID
 	local radarUnitID  -- Store highest priority radar-only unit
+	local bestUnitID, bestDistSq  -- Closest regular unit
 
-	-- Iterate backwards to respect draw order (units drawn last are on top)
-	for i = #miscState.pipUnits, 1, -1 do
-		local uID = miscState.pipUnits[i]
+	-- Spatial pre-filter: only consider units whose largest possible click radius can
+	-- reach the cursor. Scanning the whole pipUnits list here (10k+ units at two engine
+	-- calls each, every hover check) made hovering the PIP cost several ms per check.
+	local cylRadius = math.max(clickRadius * (cache.maxIconSize or 4), cache.maxUnitRadius or 200)
+	local candidates = Spring.GetUnitsInCylinder(wx, wz, cylRadius)
+
+	for i = 1, #candidates do
+		local uID = candidates[i]
 		local ux, uy, uz = spFunc.GetUnitPosition(uID)
 		if ux then
 			local uDefID = spFunc.GetUnitDefID(uID)
@@ -7177,7 +7183,8 @@ local function GetUnitAtPoint(wx, wz)
 			local unitRadiusSq = cache.radiusSqs[uDefID] or (config.iconRadius*config.iconRadius)
 			local clickRadiusSq = math.max(unitClickRadius * unitClickRadius, unitRadiusSq)
 
-			if dx*dx + dz*dz < clickRadiusSq then
+			local distSq = dx*dx + dz*dz
+			if distSq < clickRadiusSq then
 				-- Check if this unit is only visible via radar (not in LOS)
 				local losState = spFunc.GetUnitLosState(uID, checkAllyTeamID)
 				local isRadarOnly = losState and losState.radar and not losState.los
@@ -7193,9 +7200,11 @@ local function GetUnitAtPoint(wx, wz)
 						factoryID = uID
 					end
 				else
-					-- Non-factory unit found, return immediately if we don't have a radar unit yet
-					if not radarUnitID then
-						return uID
+					-- Closest regular unit wins (with engine-drawn icons the pipUnits
+					-- ordering no longer matches visual stacking anyway)
+					if not bestUnitID or distSq < bestDistSq then
+						bestUnitID = uID
+						bestDistSq = distSq
 					end
 				end
 			end
@@ -7203,7 +7212,7 @@ local function GetUnitAtPoint(wx, wz)
 	end
 
 	-- Return in priority order: radar units > regular units > factories
-	return radarUnitID or factoryID
+	return radarUnitID or bestUnitID or factoryID
 end
 
 local function GetFeatureAtPoint(wx, wz)
@@ -8262,6 +8271,8 @@ function widget:Initialize()
 		cache.xsizes[uDefID] = uDef.xsize * 4
 		cache.zsizes[uDefID] = uDef.zsize * 4
 		cache.radiusSqs[uDefID] = uDef.radius * uDef.radius
+		-- global maxima bound the spatial pre-filter radius in GetUnitAtPoint
+		cache.maxUnitRadius = math.max(cache.maxUnitRadius or 0, uDef.radius or 0)
 		if uDef.isFactory then
 			cache.isFactory[uDefID] = true
 		end
@@ -8270,6 +8281,7 @@ function widget:Initialize()
 		end
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
+			cache.maxIconSize = math.max(cache.maxIconSize or 1, iconTypes[uDef.iconType].size or 1)
 		end
 		-- Cache unitpic path using engine's #unitDefID syntax (handles all buildpic variations automatically)
 		cache.unitPic[uDefID] = '#' .. uDefID
@@ -12462,6 +12474,64 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	tracy.ZoneEnd()
 	return iconRadiusZoomDistMult
 end
+
+-- Engine-side icon rendering (gl.DrawMiniMapIcons, Recoil 2026.08+): one engine call
+-- draws the same icon set as the engine minimap (team colors, radar dots, LOS rules,
+-- ghost dimming, radar wobble, drawOrder sorting) for the current world rect, replacing
+-- the whole GL4 gather/sort/upload pipeline. Unit iteration and LOS filtering happen
+-- engine-side, so the cost no longer scales with per-unit Lua work.
+-- (fields on gl4Icons, not file locals: the main chunk is at Lua's 200-local limit)
+gl4Icons.engineIconsAvailable = (gl.DrawMiniMapIcons ~= nil)
+
+function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
+	tracy.ZoneBeginN("W:PIP:EngineIcons")
+
+	-- unitpics only run through the GL4 path; make sure the mode is off
+	gl4Icons.DeactivateUnitpics()
+
+	-- identical sizing to GL4DrawIcons (in pip pixels), converted to elmos at the end
+	local resScale = render.contentScale or 1
+	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local iconRadiusZoomDistMult = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale
+	local resBoost = 1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1)
+	iconRadiusZoomDistMult = iconRadiusZoomDistMult * resBoost
+	if config.iconDensityScaling then
+		local unitFraction = math.min(#miscState.pipUnits / config.iconDensityMaxUnits, 1.0)
+		local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
+		local zoomFade = 1.0 - math.min(math.max((cameraState.zoom - config.iconDensityZoomFadeStart) / (config.iconDensityZoomFadeEnd - config.iconDensityZoomFadeStart), 0), 1)
+		iconRadiusZoomDistMult = iconRadiusZoomDistMult * (1.0 - (1.0 - densityScale) * zoomFade)
+	end
+
+	-- pip pixels per elmo inside the R2T = zoom * contentScale, so this keeps icons the
+	-- same on-screen size as the GL4 path at every zoom level
+	local iconSizeElmos = iconRadiusZoomDistMult / (cameraState.zoom * resScale)
+
+	gl.DepthTest(false)
+	-- color blends normally, alpha accumulates for the premultiplied composite blit
+	gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- map the engine's rect->[0,1] output onto pip coords through the same world-to-pip
+	-- transform every other layer uses (wtp covers the 90/270 rotation dimension swaps)
+	local worldL, worldT, worldR, worldB = render.world.l, render.world.t, render.world.r, render.world.b
+	glFunc.PushMatrix()
+	glFunc.Translate(worldL * wtp.scaleX + wtp.offsetX, worldT * wtp.scaleZ + wtp.offsetZ, 0)
+	glFunc.Scale((worldR - worldL) * wtp.scaleX, (worldB - worldT) * wtp.scaleZ, 1)
+
+	-- other perspectives (tracked player / LOS view) are only permitted with a full-read
+	-- handle (fullview spectating); otherwise render our own view
+	if checkAllyTeamID and (isFullview or checkAllyTeamID == myAllyTeam) then
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false)
+	else
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos)
+	end
+
+	glFunc.PopMatrix()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	tracy.ZoneEnd()
+	return iconRadiusZoomDistMult
+end
+
 -- Helper function to draw units and features in PIP
 local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	tracy.ZoneBeginN("W:PIP:DrawUnitsAndFeatures")
@@ -12470,33 +12540,56 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Features especially can be quite large (up to ~200 units radius for big wrecks)
 	local margin = 220
 
-	-- When spectating and tracking a player, get ALL units and we'll filter by visibility in DrawUnit
-	-- Otherwise, GetUnitsInRectangle returns units visible to our team
-	tracy.ZoneBeginN("W:PIP:Units:Query")
-	if interactionState.trackingPlayerID and cameraState.mySpecState then
-		if miscState.allUnitsDirty then
-			RebuildAllUnitsCache()
-		end
-		-- Spectating and tracking: use cached all units and filter to current world rect
-		miscState.pipUnits = miscState.allUnitsCache
-		-- Filter to only units in the rectangle (do this manually since we got all units)
-		local unitsInRect = pools.unitsInRect
-		for i = #unitsInRect, 1, -1 do
-			unitsInRect[i] = nil
-		end
-		for i = 1, #miscState.pipUnits do
-			local uID = miscState.pipUnits[i]
-			local ux, _, uz = spFunc.GetUnitBasePosition(uID)
-			if ux and ux >= render.world.l - margin and ux <= render.world.r + margin and uz >= render.world.t - margin and uz <= render.world.b + margin then
-				unitsInRect[#unitsInRect + 1] = uID
-			end
-		end
-		miscState.pipUnits = unitsInRect
-	else
-		-- Normal play or spec without tracking: use standard API (returns LOS + radar units for our team)
-		miscState.pipUnits = spFunc.GetUnitsInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
+	-- The engine icon path renders without this list, so its remaining consumers
+	-- (nametags, nano streams, command queues, density counts, click hit-testing)
+	-- tolerate stale membership; requery only when the rect moved or the cache aged,
+	-- same pattern as the feature query. The GL4 icon path always queries fresh.
+	local nearUnitpicZoom = config.showUnitpics and cameraState.targetZoom >= (config.unitpicZoomThreshold - config.unitpicWarmupRange)
+	local engineIconsActive = gl4Icons.engineIconsAvailable and not nearUnitpicZoom
+	local queryL, queryT = render.world.l - margin, render.world.t - margin
+	local queryR, queryB = render.world.r + margin, render.world.b + margin
+
+	local unitQueryNeedsUpdate = true
+	if engineIconsActive and miscState.unitRectLastUpdate then
+		local movedEnough = math.abs(queryL - miscState.unitRectLastL) > 64
+			or math.abs(queryT - miscState.unitRectLastT) > 64
+			or math.abs(queryR - miscState.unitRectLastR) > 64
+			or math.abs(queryB - miscState.unitRectLastB) > 64
+		unitQueryNeedsUpdate = movedEnough or (os.clock() - miscState.unitRectLastUpdate) >= 0.20
 	end
-	tracy.ZoneEnd()
+
+	if unitQueryNeedsUpdate then
+		-- When spectating and tracking a player, get ALL units and we'll filter by visibility in DrawUnit
+		-- Otherwise, GetUnitsInRectangle returns units visible to our team
+		tracy.ZoneBeginN("W:PIP:Units:Query")
+		if interactionState.trackingPlayerID and cameraState.mySpecState then
+			if miscState.allUnitsDirty then
+				RebuildAllUnitsCache()
+			end
+			-- Spectating and tracking: use cached all units and filter to current world rect
+			miscState.pipUnits = miscState.allUnitsCache
+			-- Filter to only units in the rectangle (do this manually since we got all units)
+			local unitsInRect = pools.unitsInRect
+			for i = #unitsInRect, 1, -1 do
+				unitsInRect[i] = nil
+			end
+			for i = 1, #miscState.pipUnits do
+				local uID = miscState.pipUnits[i]
+				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
+				if ux and ux >= render.world.l - margin and ux <= render.world.r + margin and uz >= render.world.t - margin and uz <= render.world.b + margin then
+					unitsInRect[#unitsInRect + 1] = uID
+				end
+			end
+			miscState.pipUnits = unitsInRect
+		else
+			-- Normal play or spec without tracking: use standard API (returns LOS + radar units for our team)
+			miscState.pipUnits = spFunc.GetUnitsInRectangle(queryL, queryT, queryR, queryB)
+		end
+		miscState.unitRectLastL, miscState.unitRectLastT = queryL, queryT
+		miscState.unitRectLastR, miscState.unitRectLastB = queryR, queryB
+		miscState.unitRectLastUpdate = os.clock()
+		tracy.ZoneEnd()
+	end
 
 	-- Cache counts to avoid repeated length calculations
 	local unitCount = #miscState.pipUnits
@@ -12965,7 +13058,14 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			selectedSet = set
 		end
 	end
-	iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
+	-- Engine icon path: below unitpic zoom levels the engine draws the entire icon layer
+	-- in one call; the GL4 pipeline remains for unitpic mode and older engines.
+	-- (engineIconsActive is computed at the top of this function, before the unit query)
+	if engineIconsActive then
+		iconRadiusZoomDistMult = gl4Icons.DrawEngineIcons(checkAllyTeamID, fullview, myAllyTeam)
+	else
+		iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
+	end
 
 	-- Draw commander nametags above icons
 	if config.drawComNametags and cameraState.zoom >= config.comNametagZoomThreshold then
@@ -17859,7 +17959,10 @@ function widget:DrawScreen()
 	local fallbackUnitThreshold = miscState.engineMinimapActive
 		and (config.engineMinimapFallbackThreshold * 0.95)
 		or config.engineMinimapFallbackThreshold
+	-- With engine-side icon rendering (gl.DrawMiniMapIcons) the PIP scales to any unit
+	-- count at any zoom, so the whole-minimap takeover is only needed on older engines.
 	local rawUseEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
+		and not gl4Icons.engineIconsAvailable
 		and #miscState.pipUnits > fallbackUnitThreshold
 		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
 		and not interactionState.trackingPlayerID and not miscState.tvEnabled
