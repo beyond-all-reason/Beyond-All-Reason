@@ -239,8 +239,6 @@ local function buildResolvedCatalog()
 						actionLower = item.action and item.action:lower(),
 						label = label,
 						labelLower = label:lower(),
-						keyText = item.keyLabel and Spring.I18N(item.keyLabel) or "",
-						modifierOnly = item.modifierOnly,
 					}
 				end
 			end
@@ -421,24 +419,7 @@ local function rebuildRows()
 				end
 				if query == "" or categoryMatch or item.labelLower:find(query, 1, true)
 					or (item.actionLower and item.actionLower:find(query, 1, true)) then
-					if item.modifierOnly then
-						-- Read-only, but the keys still come from the profile rather than a fixed
-						-- string: capture cannot produce a bare modifier, so offering the chips
-						-- would let a player remove a binding they could never put back.
-						local shown, seen = {}, {}
-						for _, ks in ipairs(working.byAction[item.action] or {}) do
-							if not seen[ks.display] then
-								seen[ks.display] = true
-								shown[#shown + 1] = ks.display
-							end
-						end
-						groupRows[#groupRows + 1] = { type = "info", label = item.label,
-							keyText = table.concat(shown, ", ") }
-					elseif item.action then
-						groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
-					else
-						groupRows[#groupRows + 1] = { type = "info", label = item.label, keyText = item.keyText }
-					end
+					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 				end
 			end
 		end
@@ -1519,12 +1500,23 @@ local function rowChipGroups(action)
 		return cached
 	end
 
+	-- A paired action's two halves are one binding, so they read as one chip showing the bare
+	-- key. Grouping on the Shift-stripped form is what puts them together; the chip carries
+	-- both raws, so removing it takes the pair and rebinding moves the pair.
+	local pair = catalogShiftPair[action]
 	local groups, byDisplay = {}, {}
 	for _, k in ipairs(working.byAction[action] or {}) do
-		local group = byDisplay[k.display]
+		local shown = k.display
+		if pair then
+			local parts = keybindModel.splitChain(k.raw)
+			parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
+			shown = keybindModel.displayKeyset(table.concat(parts, ","), working.layout)
+		end
+
+		local group = byDisplay[shown]
 		if not group then
-			group = { display = k.display, raws = {} }
-			byDisplay[k.display] = group
+			group = { display = shown, raws = {} }
+			byDisplay[shown] = group
 			groups[#groups + 1] = group
 		end
 		group.raws[#group.raws + 1] = k.raw
@@ -1883,12 +1875,6 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	end
 
 	queueText(colorAction .. text.fit(font, row.label, keyAreaX1 - (listX1 + pad) - pad, fs), listX1 + pad, cyc, fs, "ov")
-
-	if row.type == "info" then
-		queueText(colorDim .. row.keyText, keyAreaX1, cyc, fs, "ov")
-		return
-	end
-
 
 	local c1, c2 = bottom + floor(3 * scale), top - floor(3 * scale)
 	local mets, cx, addW, rightGap = rowChipBand(row.action, fs, pad)
