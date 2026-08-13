@@ -302,7 +302,7 @@ void main() {
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
 	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	// Note that this doesn't really work well with boundary-only stenciling, due to random draw order.
+	// Note that this doesn't really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
 	// ------------ dump the stuff for FS --------------------

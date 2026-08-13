@@ -1,4 +1,3 @@
-
 if Spring.GetModOptions().teamcolors_anonymous_mode ~= "disabled" then
 	return
 end
@@ -11,7 +10,7 @@ function gadget:GetInfo()
 		desc = "Handles cosmetic-only hat behaviour",
 		author = "Beherith",
 		date = "2020",
-		license   = "GNU GPL, v2 or later",
+		license = "GNU GPL, v2 or later",
 		layer = 1000,
 		enabled = true,
 	}
@@ -25,11 +24,15 @@ function gadget:GameID(gameID)
 	-- Initialise this madness
 	local FakeRandomSeed = ""
 	-- because yes
-	for i = 1,1000 do
+	for i = 1, 1000 do
 		-- Check if the next character in the game ID is a number
 		if tonumber(string.sub(cachedGameID, i, i)) then
 			-- Make sure the number we are creating doesn't grow beyond the 32bit integrer limits
-			if (not tonumber(FakeRandomSeed)) or i <= 8 or (i > 8 and tonumber(FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))) < 10) then
+			if
+				(not tonumber(FakeRandomSeed))
+				or i <= 8
+				or (i > 8 and tonumber(FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))) < 10)
+			then
 				-- Add the next character that is for sure a number
 				FakeRandomSeed = FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))
 			else
@@ -151,10 +154,10 @@ PlayerCosmeticList = {
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
 	[142011] = { -- [BAC]OutlawElite
-		"BronzeMedalNecklace" -- Last Season Top3 Finisher
+		"BronzeMedalNecklace", -- Last Season Top3 Finisher
 	},
 	[144092] = { -- [DmE]Wraxell
-		"LegionChampionHat" -- Legion Fight Night winner
+		"LegionChampionHat", -- Legion Fight Night winner
 	},
 	[151863] = { -- Blodir
 		"VikingHat", -- Omega Series 4 Winner
@@ -197,7 +200,7 @@ PlayerCosmeticList = {
 		"CortexNationWarsGERLeftShoulder",
 		"CortexNationWarsEECLeftShoulder",
 		"CortexNationWarsUSLeftShoulder",
-	}
+	},
 }
 
 -- Cosmetic Defs
@@ -221,7 +224,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -229,7 +232,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -237,7 +240,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -245,7 +248,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -253,7 +256,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_pirate and UnitDefNames.cor_hat_pirate.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -261,7 +264,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_gnome and UnitDefNames.cor_hat_gnome.id,
-		faction = {arm = true, cor = true, leg = true},
+		faction = { arm = true, cor = true, leg = true },
 		conflictsWith = {},
 	},
 
@@ -269,7 +272,7 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "baked",
 		scriptCall = "ShowCrown",
-		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		faction = { arm = true, cor = true, leg = false }, -- we don't have this for Legion :/
 		conflictsWith = {},
 	},
 
@@ -285,7 +288,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_ger and UnitDefNames.arm_leftshoulder_nationwars_ger.id,
-		faction = {arm = true, cor = false, leg = false},
+		faction = { arm = true, cor = false, leg = false },
 		conflictsWith = {},
 	},
 
@@ -293,7 +296,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_eec and UnitDefNames.arm_leftshoulder_nationwars_eec.id,
-		faction = {arm = true, cor = false, leg = false},
+		faction = { arm = true, cor = false, leg = false },
 		conflictsWith = {},
 	},
 
@@ -301,7 +304,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_us and UnitDefNames.arm_leftshoulder_nationwars_us.id,
-		faction = {arm = true, cor = false, leg = false},
+		faction = { arm = true, cor = false, leg = false },
 		conflictsWith = {},
 	},
 
@@ -309,7 +312,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_ger and UnitDefNames.cor_leftshoulder_nationwars_ger.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = { arm = false, cor = true, leg = false },
 		conflictsWith = {},
 	},
 
@@ -317,7 +320,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_eec and UnitDefNames.cor_leftshoulder_nationwars_eec.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = { arm = false, cor = true, leg = false },
 		conflictsWith = {},
 	},
 
@@ -325,7 +328,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_us and UnitDefNames.cor_leftshoulder_nationwars_us.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = { arm = false, cor = true, leg = false },
 		conflictsWith = {},
 	},
 
@@ -337,7 +340,7 @@ CosmeticDefinitions = {
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalBronze",
-		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		faction = { arm = true, cor = true, leg = false }, -- we don't have this for Legion :/
 		conflictsWith = {},
 	},
 
@@ -345,7 +348,7 @@ CosmeticDefinitions = {
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalSilver",
-		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		faction = { arm = true, cor = true, leg = false }, -- we don't have this for Legion :/
 		conflictsWith = {},
 	},
 
@@ -353,14 +356,13 @@ CosmeticDefinitions = {
 		slot = "necklace",
 		implementation = "baked",
 		scriptCall = "ShowMedalGold",
-		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		faction = { arm = true, cor = true, leg = false }, -- we don't have this for Legion :/
 		conflictsWith = {},
 	},
 
 	------------------------------------------
 	-- Belts
 	------------------------------------------
-
 }
 
 CosmeticUnitDefIDToPiece = {}
@@ -398,7 +400,7 @@ end
 
 local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
-local Hats = {}  -- key of unitID of hat, value of wearer unitID
+local Hats = {} -- key of unitID of hat, value of wearer unitID
 
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitArmored = Spring.SetUnitArmored
@@ -469,9 +471,8 @@ local function CreateAndGiveHat(hatDefID, unitPosX, unitPosY, unitPosZ, teamID)
 end
 
 function gadget:GameFrame(gf)
-	if (gf == spawnWarpInFrame and not spawnAwardsProcessed) then
+	if gf == spawnWarpInFrame and not spawnAwardsProcessed then
 		for _, playerID in ipairs(spGetPlayerList() or {}) do
-
 			local accountID = nil
 			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = spGetPlayerInfo(playerID)
 			if accountInfo and accountInfo.accountid then
@@ -483,7 +484,8 @@ function gadget:GameFrame(gf)
 			end
 			if not spec and PlayerCosmeticList[accountID] then
 				-- Process Player
-				local playerCosmeticOptions = { hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
+				local playerCosmeticOptions =
+					{ hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
 				local playerFaction = ""
 				if true then
 					local units = spGetTeamUnits(teamID) or {}
@@ -495,7 +497,8 @@ function gadget:GameFrame(gf)
 				for i = 1, #PlayerCosmeticList[accountID] do
 					local cosmetic = PlayerCosmeticList[accountID][i]
 					if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
-						playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot]+1] = CosmeticDefinitions[cosmetic]
+						playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot] + 1] =
+							CosmeticDefinitions[cosmetic]
 					end
 				end
 
@@ -521,7 +524,7 @@ function gadget:GameFrame(gf)
 								local unitID = units[k]
 								if not unitDefHat[unitID] then
 									local unitDefID = spGetUnitDefID(unitID)
-									if stringSub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
+									if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
 										local scriptEnv = spGetUnitScriptEnv(unitID)
 										if scriptEnv then
 											if scriptEnv[list[pick].scriptCall] then
@@ -566,11 +569,9 @@ end
 
 --Returns piece position and direction in world space. The direction (dirX, dirY, dirZ) is not necessarily normalized. The position is defined as the position of the first vertex of the piece and it defines direction as the direction in which the line --from the first vertex to the second vertex points. -> e.g. hats need two null vertices
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	-- for unitID reuse, just in case
 	if unitDefHat[unitDefID] then
-
 		if DEBUG then
 			Spring.Echo("hat created", unitID, unitDefID, unitTeam, builderID)
 		end
@@ -592,7 +593,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if unitsWearingHats[unitID] ~= nil then
 		local hatID = unitsWearingHats[unitID]
 		if DEBUG then
-			Spring.Echo("A hat wearing unit was destroyed, freeing hat", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+			Spring.Echo(
+				"A hat wearing unit was destroyed, freeing hat",
+				unitID,
+				unitDefID,
+				teamID,
+				attackerID,
+				attackerDefID,
+				attackerTeamID
+			)
 		end
 		unitsWearingHats[unitID] = nil
 		if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
@@ -616,13 +625,18 @@ end
 function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if unitsWearingHats[unitID] then
 		if DEBUG then
-			Spring.Echo("A hat wearing unit was given, destroying hat", unitID, unitDefID, unitTeam, unitsWearingHats[unitID])
+			Spring.Echo(
+				"A hat wearing unit was given, destroying hat",
+				unitID,
+				unitDefID,
+				unitTeam,
+				unitsWearingHats[unitID]
+			)
 		end
 		Spring.DestroyUnit(unitsWearingHats[unitID])
 		unitsWearingHats[unitID] = nil
 	end
 	if Hats[unitID] then
-
 		local hatID = unitID
 		if unitTeam == spGetGaiaTeamID() then
 			if DEBUG then
@@ -640,7 +654,6 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			for ct, nearunitID in pairs(Spring.GetUnitsInCylinder(hx, hz, 200, unitTeam)) do
 				local neardefID = Spring.GetUnitDefID(nearunitID)
 				if unitDefCanWearHats[neardefID] then
-
 					if DEBUG then
 						Spring.Echo("Found a wearer", nearunitID, hatID, unitDefID, unitTeam)
 					end
@@ -648,7 +661,10 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					local pieceMap = Spring.GetUnitPieceMap(nearunitID)
 					local hatPoint = nil
 					for pieceName, pieceNum in pairs(pieceMap) do
-						if CosmeticUnitDefIDToPiece[unitDefID] and pieceName:find(CosmeticUnitDefIDToPiece[unitDefID], nil, true) then
+						if
+							CosmeticUnitDefIDToPiece[unitDefID]
+							and pieceName:find(CosmeticUnitDefIDToPiece[unitDefID], nil, true)
+						then
 							hatPoint = pieceNum
 							break
 						end

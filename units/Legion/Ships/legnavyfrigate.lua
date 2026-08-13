@@ -34,7 +34,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponsub',
+			unitgroup = "weaponsub",
 			model_author = "EnderRobo (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,

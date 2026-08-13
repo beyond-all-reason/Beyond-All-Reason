@@ -5,7 +5,7 @@ brainstorm beginner behaviour and errors
 - building too much defense
 - bad radar coverage
 - low command rate (apm)
-- increase buildspeed of nanos and cons = cons and nanos are built later
+- increase buildspeed of nanos and cons =cons and nanos are built later
 - bad response
 
 goals

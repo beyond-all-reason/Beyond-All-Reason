@@ -120,7 +120,7 @@ float filteredStep( in float p, in float resolution)
 // Add a nice static noise, that is slaved to screenUV and time maybe, instead of others?
 // Experiment with scanline-type shading for terrible areas
 // How should radar jammed areas be handled, if at all?
-// We dont have any sonar info, that's pretty bad in the usability front.
+// We dont have any sonar info, that's pretty bad in the usability front. 
 
 */
 

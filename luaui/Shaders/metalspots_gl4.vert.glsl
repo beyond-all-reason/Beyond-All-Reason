@@ -32,7 +32,7 @@ float heightAtWorldPos(vec2 w){
 #define VERTEXTYPE localpos_dir_angle.w
 
 #define NOTOCCUPIED visibility.x
-#define GAMEFRAMECHANGED visibility.y
+#define GAMEFRAMECHANGED visibilty.y
 
 #define TEXTWIDTH visibility.z
 #define TEXTHEIGHT visibility.w

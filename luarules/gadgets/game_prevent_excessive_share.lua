@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Prevent Excessive Share',
-		desc    = 'Prevents sharing more resources or units than the receiver can hold',
-		author  = 'Niobium',
-		date    = 'April 2012',
-		license = 'GNU GPL, v2 or later',
-		layer   = 2, -- after 'Tax Resource Sharing'
-		enabled = true
+		name = "Prevent Excessive Share",
+		desc = "Prevents sharing more resources or units than the receiver can hold",
+		author = "Niobium",
+		date = "April 2012",
+		license = "GNU GPL, v2 or later",
+		layer = 2, -- after 'Tax Resource Sharing'
+		enabled = true,
 	}
 end
 
@@ -29,10 +29,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
 	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
 	local resourceName
-	if (resourceType == 'm') or (resourceType == 'metal') then
-		resourceName = 'metal'
-	elseif (resourceType == 'e') or (resourceType == 'energy') then
-		resourceName = 'energy'
+	if (resourceType == "m") or (resourceType == "metal") then
+		resourceName = "metal"
+	elseif (resourceType == "e") or (resourceType == "energy") then
+		resourceName = "energy"
 	else
 		-- We don't handle whatever this resource is, allow it
 		return true

@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Reactive Armor",
-		desc    = "Ablative/reactive armor that degrades and restores.",
-		author  = "efrec",
+		name = "Reactive Armor",
+		desc = "Ablative/reactive armor that degrades and restores.",
+		author = "efrec",
 		version = "0.1.0",
-		date    = "2025",
+		date = "2025",
 		license = "GNU GPL, v2 or later",
-		layer   = -100, -- early or late so armored state is consistent across damage events
+		layer = -100, -- early or late so armored state is consistent across damage events
 		enabled = true,
 	}
 end
@@ -45,7 +45,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local params = {
 			health = tonumber(unitDef.customParams.reactive_armor_health),
 			frames = tonumber(unitDef.customParams.reactive_armor_restore) * gameSpeed,
-			first  = true,
+			first = true,
 		}
 
 		-- Units that are damaged are definitionally "in combat", so reduce the
@@ -114,13 +114,21 @@ local function checkReactiveArmor(unitID, unitDefID, params)
 
 	if next(missing) then
 		-- The unit script is malformed in some way and we make no attempts to recover it.
-		Spring.Log("Reactive Armor", LOG.ERROR, ("Unit script missing %s: %s"):format(table.concat(missing, ", "), UnitDefs[unitDefID].name))
+		Spring.Log(
+			"Reactive Armor",
+			LOG.ERROR,
+			("Unit script missing %s: %s"):format(table.concat(missing, ", "), UnitDefs[unitDefID].name)
+		)
 		success = false
 	end
 
 	if (params.pieces - 1) * gameSpeed > params.frames then
 		-- Armor pieces regenerate once per second until the end of the armor restore duration.
-		Spring.Log("Reactive Armor", LOG.ERROR, ("Too many armor pieces (%d) for restore time: "):format(params.pieces, UnitDefs[unitDefID].name))
+		Spring.Log(
+			"Reactive Armor",
+			LOG.ERROR,
+			("Too many armor pieces (%d) for restore time: "):format(params.pieces, UnitDefs[unitDefID].name)
+		)
 		success = false
 	end
 
@@ -139,11 +147,10 @@ local function checkReactiveArmor(unitID, unitDefID, params)
 	end
 
 	-- Fix for the different argument types used between COB and LUS.
-	params.call = (not lusEnv and callFromCob) or (
-		function(unitID, funcName, ...)
+	params.call = (not lusEnv and callFromCob)
+		or function(unitID, funcName, ...)
 			callFromLus(unitID, lusEnv[funcName], ...)
 		end
-	)
 
 	return true
 end
@@ -235,7 +242,8 @@ local function doArmorDamage(unitID, defData, damage)
 
 		if armorRestoreFrames then
 			local frames, framesMax = armorRestoreFrames.countdown, defData.frames
-			armorRestoreFrames.countdown = math_clamp(frames + math_floor(framesMax * damage / defData.health), 0, framesMax)
+			armorRestoreFrames.countdown =
+				math_clamp(frames + math_floor(framesMax * damage / defData.health), 0, framesMax)
 		elseif not armorRestoreFrames and damage > 0 then
 			unitArmorFrames[unitID] = getArmorRestoreFrames(defData) -- start armor restore timer
 		end
@@ -295,13 +303,13 @@ local function getUnitDebugInfo(unitID)
 		x = x,
 		y = y,
 		z = z,
-		unitID        = unitID,
-		unitDefID     = unitDefID,
-		unitDefName   = UnitDefs[unitDefID].name,
+		unitID = unitID,
+		unitDefID = unitDefID,
+		unitDefName = UnitDefs[unitDefID].name,
 		unitDefParams = armoredUnitDefs[unitDefID] or "none",
-		health        = Spring.GetUnitHealth(unitID),
-		armorFrames   = unitArmorFrames[unitID] or "nil",
-		armorHealth   = unitArmorHealth[unitID] or "nil",
+		health = Spring.GetUnitHealth(unitID),
+		armorFrames = unitArmorFrames[unitID] or "nil",
+		armorHealth = unitArmorHealth[unitID] or "nil",
 		inCombatUntil = regenerateFrame[unitID] or "nil",
 		unitCountdown = unitArmorFrames[unitID] and unitArmorFrames[unitID].countdown or "nil",
 	}

@@ -49,15 +49,15 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 --- STATIC VALUES
 -------------------------------------------------------------------------------
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
+local BUILDCAT_ECONOMY = BAR.I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = BAR.I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = BAR.I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = BAR.I18N("ui.buildMenu.category_production")
 local categoryTooltips = {
-	[BUILDCAT_ECONOMY] = Spring.I18N("ui.buildMenu.category_econ_descr"),
-	[BUILDCAT_COMBAT] = Spring.I18N("ui.buildMenu.category_combat_descr"),
-	[BUILDCAT_UTILITY] = Spring.I18N("ui.buildMenu.category_utility_descr"),
-	[BUILDCAT_PRODUCTION] = Spring.I18N("ui.buildMenu.category_production_descr"),
+	[BUILDCAT_ECONOMY] = BAR.I18N("ui.buildMenu.category_econ_descr"),
+	[BUILDCAT_COMBAT] = BAR.I18N("ui.buildMenu.category_combat_descr"),
+	[BUILDCAT_UTILITY] = BAR.I18N("ui.buildMenu.category_utility_descr"),
+	[BUILDCAT_PRODUCTION] = BAR.I18N("ui.buildMenu.category_production_descr"),
 }
 
 local folder = "LuaUI/Images/groupicons/"
@@ -108,12 +108,12 @@ local modKeyMultiplier = {
 	click = {
 		ctrl = 20,
 		shift = 5,
-		right = -1
+		right = -1,
 	},
 	keyPress = {
 		ctrl = -1,
-		shift = 5
-	}
+		shift = 5,
+	},
 }
 
 -------------------------------------------------------------------------------
@@ -154,7 +154,7 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
+local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -368,7 +368,6 @@ local isPregame
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
 
-
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
@@ -399,7 +398,10 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+local startUnits = string.split(
+	Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"),
+	"|"
+)
 local startBuildOptions = {}
 for _, uDefIDString in ipairs(startUnits) do
 	local uDefID = tonumber(uDefIDString)
@@ -429,7 +431,7 @@ local function resetHovered()
 		rect.opts.hovered = false
 	end
 
-	WG["buildmenu"].hoverID = nil
+	WG.buildmenu.hoverID = nil
 	labBuildModeRect.opts.hovered = false
 	nextBuilderRect.opts.hovered = false
 	backRect.opts.hovered = false
@@ -463,8 +465,8 @@ end
 local function setHoveredRectTooltip(rect, text, title, clicked)
 	setHoveredRect(rect, clicked)
 
-	if WG["tooltip"] then
-		WG["tooltip"].ShowTooltip("buildmenu", text, nil, nil, title)
+	if WG.tooltip then
+		WG.tooltip.ShowTooltip("buildmenu", text, nil, nil, title)
 	end
 end
 
@@ -480,7 +482,7 @@ local function updateHoverState()
 
 		-- builder buttons
 		if nextBuilderRect:contains(x, y) then
-			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextBuilder"))
+			setHoveredRectTooltip(nextBuilderRect, "\255\240\240\240" .. BAR.I18N("ui.buildMenu.nextBuilder"))
 
 			return
 		end
@@ -534,7 +536,7 @@ local function updateHoverState()
 			local text
 			local textColor = "\255\215\255\215"
 			if cellRect.opts.disabled then
-				text = Spring.I18N("ui.buildMenu.disabled", {
+				text = BAR.I18N("ui.buildMenu.disabled", {
 					unit = unitTranslatedHumanName[uDefID],
 					textColor = textColor,
 					warnColor = "\255\166\166\166",
@@ -544,11 +546,11 @@ local function updateHoverState()
 			end
 			local tooltip = unitTranslatedTooltip[uDefID]
 			if unitMetal_extractor[uDefID] then
-				tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+				tooltip = tooltip .. "\n" .. BAR.I18N("ui.buildMenu.areamex_tooltip")
 			end
 
 			setHoveredRectTooltip(cellRect, "\255\240\240\240" .. tooltip, text, left or right)
-			WG["buildmenu"].hoverID = uDefID
+			WG.buildmenu.hoverID = uDefID
 
 			return
 		end
@@ -572,7 +574,7 @@ local function updateHoverState()
 
 	-- build mode button
 	if builderIsFactory and (useLabBuildMode and not labBuildModeActive) and labBuildModeRect:contains(x, y) then
-		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.buildmode_descr"))
+		setHoveredRectTooltip(labBuildModeRect, "\255\240\240\240" .. BAR.I18N("ui.buildMenu.buildmode_descr"))
 
 		return
 	end
@@ -580,7 +582,7 @@ local function updateHoverState()
 	if currentCategory or labBuildModeActive then
 		-- back button
 		if backRect and backRect:contains(x, y) then
-			setHoveredRectTooltip(backRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.homePage"))
+			setHoveredRectTooltip(backRect, "\255\240\240\240" .. BAR.I18N("ui.buildMenu.homePage"))
 
 			return
 		end
@@ -588,7 +590,7 @@ local function updateHoverState()
 
 	-- paginator buttons
 	if pages > 1 and nextPageRect and nextPageRect:contains(x, y) then
-		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. Spring.I18N("ui.buildMenu.nextPage"))
+		setHoveredRectTooltip(nextPageRect, "\255\240\240\240" .. BAR.I18N("ui.buildMenu.nextPage"))
 
 		return
 	end
@@ -1089,9 +1091,9 @@ end
 
 local function pickBlueprint(uDefID)
 	local isRepeatMex = unitMetal_extractor[uDefID] and -uDefID == activeCmd
-	local cmd = (WG["areamex"] and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
-	if isRepeatMex and WG["areamex"] then
-		WG["areamex"].setAreaMexType(-uDefID)
+	local cmd = (WG.areamex and isRepeatMex and "areamex") or spGetCmdDescIndex(-uDefID)
+	if isRepeatMex and WG.areamex then
+		WG.areamex.setAreaMexType(-uDefID)
 	end
 	setActiveCommand(cmd)
 end
@@ -1164,7 +1166,7 @@ local function queueUnit(uDefID, opts, quantity)
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
-				for _ = 1,quantity do
+				for _ = 1, quantity do
 					spGiveOrderToUnit(uid, -uDefID, 0, opts)
 				end
 			end
@@ -1214,7 +1216,7 @@ local function multiQueue(uDefID, quantity, cap, opts)
 	if quantity >= cap then
 		multiqueue_quantity = math.floor(quantity / cap)
 		queueUnit(uDefID, opts, multiqueue_quantity)
-		quantity = math.fmod(quantity,cap)
+		quantity = math.fmod(quantity, cap)
 	end
 	return quantity
 end
@@ -1253,7 +1255,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 		end
 
 		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
-			updateQuotaNumber(uDefID,quantity)
+			updateQuotaNumber(uDefID, quantity)
 			return true
 		else
 			if args[3] and args[3] == "builder" then
@@ -1270,11 +1272,11 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 			end
 			--if quantity is more than 100, more than 20 or more than 5 then use engine logic for better performance (fewer for loops inside queueUnit())
-			quantity = multiQueue(uDefID,quantity,100,{ "ctrl","shift", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,20,{ "ctrl", alt and "alt", removing and "right" })
-			quantity = multiQueue(uDefID,quantity,5,{ "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 100, { "ctrl", "shift", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 20, { "ctrl", alt and "alt", removing and "right" })
+			quantity = multiQueue(uDefID, quantity, 5, { "shift", alt and "alt", removing and "right" })
 			--queue the remaining units
-			multiQueue(uDefID,quantity,1,{ alt and "alt", removing and "right" })
+			multiQueue(uDefID, quantity, 1, { alt and "alt", removing and "right" })
 
 			return true
 		end
@@ -1370,7 +1372,7 @@ function widget:Initialize()
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1379,15 +1381,14 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
-	WG["gridmenu"] = {}
-	WG["buildmenu"] = {}
+	WG.gridmenu = {}
+	WG.buildmenu = {}
 
 	doUpdateClock = os.clock()
-
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
@@ -1423,97 +1424,97 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
-	WG["gridmenu"].getActiveBuilder = function()
+	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
 	end
-	WG["gridmenu"].getAlwaysReturn = function()
+	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
 	end
-	WG["gridmenu"].setAlwaysReturn = function(value)
+	WG.gridmenu.setAlwaysReturn = function(value)
 		alwaysReturn = value
 	end
-	WG["gridmenu"].getAutoSelectFirst = function()
+	WG.gridmenu.getAutoSelectFirst = function()
 		return autoSelectFirst
 	end
-	WG["gridmenu"].setAutoSelectFirst = function(value)
+	WG.gridmenu.setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
-	WG["gridmenu"].getUseLabBuildMode = function()
+	WG.gridmenu.getUseLabBuildMode = function()
 		return useLabBuildMode
 	end
-	WG["gridmenu"].setUseLabBuildMode = function(value)
+	WG.gridmenu.setUseLabBuildMode = function(value)
 		useLabBuildMode = value
 		updateGrid()
 	end
-	WG["gridmenu"].setCurrentCategory = function(category)
+	WG.gridmenu.setCurrentCategory = function(category)
 		setCurrentCategory(category)
 	end
-	WG["gridmenu"].clearCategory = function()
+	WG.gridmenu.clearCategory = function()
 		clearCategory()
 	end
 
-	WG["gridmenu"].getCtrlKeyModifier = function()
+	WG.gridmenu.getCtrlKeyModifier = function()
 		return modKeyMultiplier.keyPress.ctrl
 	end
-	WG["gridmenu"].setCtrlKeyModifier = function(value)
+	WG.gridmenu.setCtrlKeyModifier = function(value)
 		modKeyMultiplier.keyPress.ctrl = value
 	end
-	WG["gridmenu"].getShiftKeyModifier = function()
+	WG.gridmenu.getShiftKeyModifier = function()
 		return modKeyMultiplier.keyPress.shift
 	end
-	WG["gridmenu"].setShiftKeyModifier = function(value)
+	WG.gridmenu.setShiftKeyModifier = function(value)
 		modKeyMultiplier.keyPress.shift = value
 	end
 
-	WG["buildmenu"].getGroups = function()
+	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
-	WG["buildmenu"].getOrder = function()
+	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
-	WG["buildmenu"].getShowPrice = function()
+	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
-	WG["buildmenu"].setShowPrice = function(value)
+	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		updateGrid()
 	end
-	WG["buildmenu"].getAlwaysShow = function()
+	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG["buildmenu"].setAlwaysShow = function(value)
+	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		refreshCommands()
 	end
-	WG["buildmenu"].getShowRadarIcon = function()
+	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
-	WG["buildmenu"].setShowRadarIcon = function(value)
+	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getShowGroupIcon = function()
+	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
-	WG["buildmenu"].setShowGroupIcon = function(value)
+	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		updateGrid()
 	end
-	WG["buildmenu"].getBottomPosition = function()
+	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG["buildmenu"].setBottomPosition = function(value)
+	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
 	end
-	WG["buildmenu"].getSize = function()
+	WG.buildmenu.getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
-	WG["buildmenu"].reloadBindings = function()
+	WG.buildmenu.reloadBindings = function()
 		reloadBindings()
 		refreshCommands()
 	end
-	WG["buildmenu"].getIsShowing = function()
+	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
 	---@class CostLine
@@ -1529,7 +1530,7 @@ function widget:Initialize()
 	---Override the cost display for a specific unit in the grid menu
 	---@param unitDefID number The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
-	WG["gridmenu"].setCostOverride = function(unitDefID, costData)
+	WG.gridmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
 			costOverrides[unitDefID] = costData
 			redraw = true
@@ -1539,7 +1540,7 @@ function widget:Initialize()
 
 	---Clear cost overrides for a specific unit or all units
 	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
-	WG["gridmenu"].clearCostOverrides = function(unitDefID)
+	WG.gridmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
 		else
@@ -1557,7 +1558,9 @@ function widget:Initialize()
 	---@param unitDefID number The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	local function setHighlight(unitDefID, color)
-		if not unitDefID then return end
+		if not unitDefID then
+			return
+		end
 		local items = highlight.items
 		if not items[unitDefID] then
 			highlight.count = highlight.count + 1
@@ -1588,21 +1591,21 @@ function widget:Initialize()
 		return unitDefID ~= nil and highlight.items[unitDefID] ~= nil
 	end
 
-	WG["buildmenu"].setHighlight = setHighlight
-	WG["buildmenu"].removeHighlight = removeHighlight
-	WG["buildmenu"].clearHighlights = clearHighlights
-	WG["buildmenu"].hasHighlight = hasHighlight
-	WG["gridmenu"].setHighlight = setHighlight
-	WG["gridmenu"].removeHighlight = removeHighlight
-	WG["gridmenu"].clearHighlights = clearHighlights
-	WG["gridmenu"].hasHighlight = hasHighlight
+	WG.buildmenu.setHighlight = setHighlight
+	WG.buildmenu.removeHighlight = removeHighlight
+	WG.buildmenu.clearHighlights = clearHighlights
+	WG.buildmenu.hasHighlight = hasHighlight
+	WG.gridmenu.setHighlight = setHighlight
+	WG.gridmenu.removeHighlight = removeHighlight
+	WG.gridmenu.clearHighlights = clearHighlights
+	WG.gridmenu.hasHighlight = hasHighlight
 
 	local blockedUnits = {}
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	end
 end
 
@@ -1611,7 +1614,7 @@ end
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG["guishader"] then
+	if WG.guishader then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -1620,7 +1623,7 @@ local function checkGuishader(force)
 				RectRound(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, elementCorner)
 			end)
 			if activeBuilder then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 		end
 	elseif dlistGuishader then
@@ -1650,7 +1653,7 @@ function widget:ViewResize()
 
 	activeAreaMargin = math_ceil(bgpadding * CONFIG.activeAreaMargin)
 
-	font2 = WG['fonts'].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	for i, rectOpts in ipairs(defaultCategoryOpts) do
 		defaultCategoryOpts[i].nameHeight = font2:GetTextHeight(rectOpts.name)
@@ -1659,8 +1662,8 @@ function widget:ViewResize()
 
 	backRect.opts.keyTextHeight = font2:GetTextHeight(backRect.opts.name)
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	-- if stick to bottom we know cells are 2 row by 6 column
@@ -1723,8 +1726,8 @@ function widget:ViewResize()
 		local posY = math_floor(posYEnd + ((0.74 * vsx) * width)) / vsy
 		local posX = 0
 
-		if WG["ordermenu"] and not WG["ordermenu"].getBottomPosition() then
-			local _, oposY, _, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu and not WG.ordermenu.getBottomPosition() then
+			local _, oposY, _, oheight = WG.ordermenu.getPosition()
 			if posY > oposY then
 				posY = (oposY - oheight - (widgetSpaceMargin / vsy))
 			end
@@ -1849,7 +1852,7 @@ function widget:Update(dt)
 			delayRefresh = nil
 		end
 		checkGuishader()
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 
 			if not isPregame then
@@ -1858,8 +1861,8 @@ function widget:Update(dt)
 		end
 		local prevOrdermenuLeft = ordermenuLeft
 		local prevOrdermenuHeight = ordermenuHeight
-		if WG["ordermenu"] then
-			local oposX, _, owidth, oheight = WG["ordermenu"].getPosition()
+		if WG.ordermenu then
+			local oposX, _, owidth, oheight = WG.ordermenu.getPosition()
 			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
@@ -1891,11 +1894,11 @@ function widget:Update(dt)
 		buildmenuShows = true
 	end
 
-	if WG['guishader'] and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
+	if WG.guishader and prevBuildmenuShows ~= buildmenuShows and dlistGuishader then
 		if buildmenuShows then
-			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
+			WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 		else
-			WG['guishader'].RemoveDlist('buildmenu')
+			WG.guishader.RemoveDlist("buildmenu")
 		end
 	end
 
@@ -2050,7 +2053,9 @@ local function drawButton(rect)
 end
 
 local function drawHighlights()
-	if highlight.count == 0 or not next(highlight.items) then return end
+	if highlight.count == 0 or not next(highlight.items) then
+		return
+	end
 	local now = os.clock()
 	for uDefID, hl in pairs(highlight.items) do
 		local cellId = uDefCellIds[uDefID]
@@ -2070,7 +2075,7 @@ local function drawHighlights()
 			local brighten = 0.10 + 0.22 * pulse
 			gl.Blending(GL_SRC_ALPHA, GL_ONE)
 			gl.Color(r * brighten, g * brighten, b * brighten, 1)
-			gl.Texture('#' .. uDefID)
+			gl.Texture("#" .. uDefID)
 			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
 			gl.Texture(false)
 
@@ -2086,9 +2091,18 @@ local function drawHighlights()
 			local glowAlpha = 0.10 + 0.20 * pulse
 			local glowWidth = thickness * 3
 			WG.FlowUI.Draw.RectRoundOutline(
-				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
-				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
-				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+				x1 + thickness,
+				y1 + thickness,
+				x2 - thickness,
+				y2 - thickness,
+				math_max(0, cs - thickness),
+				glowWidth,
+				1,
+				1,
+				1,
+				1,
+				{ r, g, b, glowAlpha },
+				{ r, g, b, 0 }
 			)
 
 			gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -2148,13 +2162,13 @@ local function drawCell(rect)
 	end
 
 	-- unit icon
-	local texprefix = ''
+	local texprefix = ""
 	if disabled then
 		gl.Color(0.4, 0.4, 0.4, 1)
-		texprefix = 't0.3,0.3,0.3'
+		texprefix = "t0.3,0.3,0.3"
 	elseif underConstructionDim then
 		gl.Color(0.77, 0.77, 0.77, 1)
-		texprefix = 't0.63,0.63,0.63'
+		texprefix = "t0.63,0.63,0.63"
 	else
 		gl.Color(1, 1, 1, 1)
 	end
@@ -2348,7 +2362,7 @@ local function drawCell(rect)
 		local textWidth = font2:GetTextWidth(quotaText) * queueFontSize
 		if textWidth > 0.75 * cellInnerSize then
 			local newFontSize = queueFontSize * 0.75 * cellInnerSize / textWidth
-			textPad = textPad * newFontSize/queueFontSize
+			textPad = textPad * newFontSize / queueFontSize
 			textWidth = font2:GetTextWidth(quotaText) * newFontSize
 			queueFontSize = newFontSize
 		end
@@ -2368,7 +2382,9 @@ local function drawCell(rect)
 		font2:Print(
 			"\255\255\130\190" .. quotaText,
 			rect.x + cellPadding + textPad,
-			rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*queueFontSize)/2,
+			rect.y
+				+ cellPadding
+				+ (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber) * queueFontSize) / 2,
 			queueFontSize,
 			"o"
 		)
@@ -2619,7 +2635,6 @@ local function drawBuilder(rect)
 end
 
 local function drawBuilders()
-
 	-- draw builders
 	for i = 1, selectedBuildersCount do
 		drawBuilder(builderRects[i])
@@ -2650,8 +2665,8 @@ end
 
 local function drawBuildMenu()
 	font2:Begin(true)
-	font2:SetTextColor(1,1,1,1)
-	font2:SetOutlineColor(0,0,0,1)
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 1)
 
 	local drawBackScreen = (currentCategory and not builderIsFactory)
 		or (builderIsFactory and useLabBuildMode and labBuildModeActive)
@@ -2676,7 +2691,8 @@ local function drawBuildMenu()
 
 	-- under-construction warning replaces/precedes other factory controls
 	if builderIsFactory and backgroundRect.opts.builderUnderConstruction then
-		local warningText = "\255\255\200\50" .. Spring.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
+		local warningText = "\255\255\200\50"
+			.. BAR.I18N("ui.buildMenu.underConstruction", { default = "Under Construction" })
 		local fontSize = pageFontSize * 1.1
 		local containerHeight = categoriesRect:getHeight()
 		local fontHeight = font2:GetTextHeight(warningText) * fontSize
@@ -2738,7 +2754,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -2809,7 +2825,12 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt then
+							if
+								builderIsFactory
+								and WG.Quotas
+								and WG.Quotas.isOnQuotaMode(activeBuilderID)
+								and not alt
+							then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl
@@ -2830,8 +2851,12 @@ function widget:MousePress(x, y, button)
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							local function decreaseQuota()
 								local amount = modKeyMultiplier.click.right
-								if ctrl then amount = amount * modKeyMultiplier.click.ctrl end
-								if shift then amount = amount * modKeyMultiplier.click.shift end
+								if ctrl then
+									amount = amount * modKeyMultiplier.click.ctrl
+								end
+								if shift then
+									amount = amount * modKeyMultiplier.click.shift
+								end
 								updateQuotaNumber(unitDefID, amount)
 							end
 
@@ -2843,7 +2868,11 @@ function widget:MousePress(x, y, button)
 							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
 							local queueCount = tonumber(cellRect.opts.queuenr or 0)
 							local quotas = WG.Quotas and WG.Quotas.getQuotas()
-							local currentQuota = (quotas and quotas[activeBuilderID] and quotas[activeBuilderID][unitDefID]) or 0
+							local currentQuota = (
+								quotas
+								and quotas[activeBuilderID]
+								and quotas[activeBuilderID][unitDefID]
+							) or 0
 
 							if isQuotaMode then
 								if currentQuota > 0 then
@@ -2888,29 +2917,29 @@ local function checkGuishaderBuilders()
 			end
 			dlistGuishaderBuilders = gl.CreateList(function()
 				RectRound(
-						buildersRect.x,
-						buildersRect.y,
-						buildersRect.xEnd + (bgpadding * 2),
-						buildersRect.yEnd + bgpadding + (iconMargin * 2),
-						elementCorner
+					buildersRect.x,
+					buildersRect.y,
+					buildersRect.xEnd + (bgpadding * 2),
+					buildersRect.yEnd + bgpadding + (iconMargin * 2),
+					elementCorner
 				)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
+			WG.guishader.InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
 			dlistGuishaderBuildersNext = gl.CreateList(function()
 				RectRound(
-						nextBuilderRect.x,
-						nextBuilderRect.y,
-						nextBuilderRect.xEnd,
-						nextBuilderRect.yEnd,
-						elementCorner * 0.5
+					nextBuilderRect.x,
+					nextBuilderRect.y,
+					nextBuilderRect.xEnd,
+					nextBuilderRect.yEnd,
+					elementCorner * 0.5
 				)
 			end)
-			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
+			WG.guishader.InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
 		end
 	elseif dlistGuishaderBuilders then
 		prevSelectedBuildersCount = 0
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersNext")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersNext")
 		dlistGuishaderBuilders = nil
 		dlistGuishaderBuildersNext = nil
 	end
@@ -2923,20 +2952,19 @@ end
 function widget:DrawScreen()
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not (activeBuilder or alwaysShow) then
-		if WG["guishader"] and dlistGuishader then
+		if WG.guishader and dlistGuishader then
 			if dlistGuishader then
-				WG["guishader"].RemoveDlist("buildmenu")
+				WG.guishader.RemoveDlist("buildmenu")
 			end
 			if dlistGuishaderBuilders then
-				WG["guishader"].RemoveDlist("buildmenubuilders")
-				WG["guishader"].RemoveDlist("buildmenubuildersnext")
+				WG.guishader.RemoveDlist("buildmenubuilders")
+				WG.guishader.RemoveDlist("buildmenubuildersnext")
 			end
 		end
 	else
-
-		if WG["guishader"] then
+		if WG.guishader then
 			if dlistGuishader then
-				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
+				WG.guishader.InsertDlist(dlistGuishader, "buildmenu")
 			end
 			checkGuishaderBuilders()
 		end
@@ -2951,40 +2979,50 @@ function widget:DrawScreen()
 			end
 			redraw = nil
 			if not buildmenuBgTex then
-				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
+				buildmenuBgTex = gl.CreateTexture(
+					math_floor(backgroundRect.xEnd - backgroundRect.x),
+					math_floor(buildersRectYend - backgroundRect.y),
+					{
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					}
+				)
 			end
 			if buildmenuBgTex then
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenuBg()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuBgTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(
+						2 / math_floor(backgroundRect.xEnd - backgroundRect.x),
+						2 / math_floor(buildersRectYend - backgroundRect.y),
+						0
+					)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenuBg()
+				end, true)
 			end
 			if not buildmenuTex then
-				buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x)*2, math_floor(buildersRectYend-backgroundRect.y)*2, {	--*(vsy<1400 and 2 or 2)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
+				buildmenuTex = gl.CreateTexture(
+					math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
+					math_floor(buildersRectYend - backgroundRect.y) * 2,
+					{ --*(vsy<1400 and 2 or 2)
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					}
+				)
 			end
 			if buildmenuTex and gridmenuUnitpicsWarmDone and not warmedGridmenuUnitpicThisFrame then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(buildersRectYend-backgroundRect.y), 0)
-						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						drawBuildMenu()
-					end,
-					true
-				)
+				gl.R2tHelper.RenderToTexture(buildmenuTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(
+						2 / math_floor(backgroundRect.xEnd - backgroundRect.x),
+						2 / math_floor(buildersRectYend - backgroundRect.y),
+						0
+					)
+					gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+					drawBuildMenu()
+				end, true)
 			end
 			if not gridmenuUnitpicsWarmDone or warmedGridmenuUnitpicThisFrame then
 				redraw = true
@@ -2992,11 +3030,25 @@ function widget:DrawScreen()
 		end
 		if buildmenuBgTex then
 			-- background element
-			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+			gl.R2tHelper.BlendTexRect(
+				buildmenuBgTex,
+				backgroundRect.x,
+				backgroundRect.y,
+				backgroundRect.xEnd,
+				buildersRectYend,
+				true
+			)
 		end
 		if buildmenuTex then
 			-- content
-			gl.R2tHelper.BlendTexRect(buildmenuTex, backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend, true)
+			gl.R2tHelper.BlendTexRect(
+				buildmenuTex,
+				backgroundRect.x,
+				backgroundRect.y,
+				backgroundRect.xEnd,
+				buildersRectYend,
+				true
+			)
 		end
 
 		-- draw attention highlights (animated, on top of cached content)
@@ -3109,7 +3161,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -3135,7 +3187,7 @@ function widget:SelectionChanged(newSel)
 		if alwaysShow then
 			refreshCommands()
 		else
-			WG["buildmenu"].hoverID = nil
+			WG.buildmenu.hoverID = nil
 		end
 
 		return
@@ -3164,7 +3216,7 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 end
 
 function widget:GetConfigData()
@@ -3218,7 +3270,7 @@ end
 
 function widget:UnitBlocked(unitDefID, reasons)
 	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	if not delayRefresh or delayRefresh < Spring.GetGameSeconds() then
 		delayRefresh = Spring.GetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
@@ -3233,11 +3285,11 @@ function widget:Shutdown()
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
-	if WG["guishader"] and dlistGuishader then
-		WG["guishader"].DeleteDlist("buildmenu")
-		WG["guishader"].DeleteDlist("buildmenubuilders")
-		WG["guishader"].DeleteDlist("buildmenubuildersnext")
+	if WG.guishader and dlistGuishader then
+		WG.guishader.DeleteDlist("buildmenu")
+		WG.guishader.DeleteDlist("buildmenubuilders")
+		WG.guishader.DeleteDlist("buildmenubuildersnext")
 		dlistGuishader = nil
 	end
-	WG["buildmenu"] = nil
+	WG.buildmenu = nil
 end
