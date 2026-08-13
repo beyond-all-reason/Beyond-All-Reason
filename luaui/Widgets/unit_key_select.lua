@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "Aug 24, 2024",
 		license = "Public Domain",
 		layer = 1,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -22,9 +22,9 @@ local function handleSetCommand(_, commandDef)
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("select", handleSetCommand, nil, "pt")
+	widgetHandler:AddAction("select", handleSetCommand, nil, "p")
 end
 
 function widget:Shutdown()
-	WG['keyselect'] = nil
+	WG.keyselect = nil
 end

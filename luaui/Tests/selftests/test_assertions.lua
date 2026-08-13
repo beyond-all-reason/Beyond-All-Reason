@@ -1,15 +1,14 @@
-
-function sanityChecks()
+local function sanityChecks()
 	-- Just to make sure some standard methods used here work as expected.
-	Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
+	Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, { 0 }, {})
 	SyncedProxy.Spring.ValidUnitID(20)
 	local res, err = pcall(function()
-		Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
+		Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, { 0 }, {})
 	end)
 	assert(err ~= "attempt to yield across metamethod/C-call boundary")
 end
 
-function failingTests()
+local function failingTests()
 	-- All of these fail due to error "attempt to yield across metamethod/C-call boundary"
 	-- This is something to do with how the test system is structured.
 	local res, err = pcall(function()
@@ -37,11 +36,13 @@ function failingTests()
 	end, "error")
 
 	assertThrowsMessage(function()
-		SyncedProxy.Spring.GiveOrderToUnit(20, CMD.FIRE_STATE, {0}, {})
+		SyncedProxy.Spring.GiveOrderToUnit(20, CMD.FIRE_STATE, { 0 }, {})
 	end, "[GiveOrderToUnit] invalid unitID")
 
 	assertThrowsMessage(function()
-		assertSuccessBefore(1, 10, function() return false end, "error")
+		assertSuccessBefore(1, 10, function()
+			return false
+		end, "error")
 	end, "error")
 
 	assertThrowsMessage(function()
@@ -62,7 +63,7 @@ function failingTests()
 	--
 end
 
-function failingWhileSucceedingTests()
+local function failingWhileSucceedingTests()
 	-- these ones are actually failing even when they don't throw exceptions,
 	-- it's because assertThrows is catching the exception, it's just not
 	-- the one we want.
@@ -73,19 +74,21 @@ function failingWhileSucceedingTests()
 	end)
 	assertThrows(function()
 		-- this actually throws an exception, but due to something else.
-		SyncedProxy.Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
+		SyncedProxy.Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, { 0 }, {})
 	end)
 end
 
-function testWaitUntil()
+local function testWaitUntil()
 	Test.waitUntil(function()
 		return true
 	end)
 end
 
-function testAssertSuccessBefore()
+local function testAssertSuccessBefore()
 	-- test the method succeeding
-	assertSuccessBefore(1, 10, function() return true end)
+	assertSuccessBefore(1, 10, function()
+		return true
+	end)
 	assertSuccessBefore(1, 10, function()
 		-- SyncedProxy works here
 		SyncedProxy.Spring.ValidUnitID(20)
@@ -93,11 +96,13 @@ function testAssertSuccessBefore()
 	end)
 	-- test the method never succeeding in the alloted time
 	assertThrowsMessage(function()
-		assertSuccessBefore(1, 10, function() error("error") end)
+		assertSuccessBefore(1, 10, function()
+			error("error")
+		end)
 	end, "error")
 end
 
-function testAssertThrows()
+local function testAssertThrows()
 	-- test detecting an exception
 	assertThrows(function()
 		error("error")
@@ -108,7 +113,9 @@ function testAssertThrows()
 	end)
 	-- test assert throws an error when the function doesn't
 	assertThrows(function()
-		assertThrows(function() return true end)
+		assertThrows(function()
+			return true
+		end)
 	end)
 	assertThrows(function()
 		Spring.ValidUnitID(20)
@@ -116,7 +123,7 @@ function testAssertThrows()
 	end)
 end
 
-function testAssertThrowsMessage()
+local function testAssertThrowsMessage()
 	-- test throwing a specific message
 	assertThrowsMessage(function()
 		error("error")
@@ -131,7 +138,9 @@ function testAssertThrowsMessage()
 	end, "[error]")
 	-- test it works when error ends the same as the error
 	assertThrows(function()
-		assertThrowsMessage(function() error("another error") end, "error")
+		assertThrowsMessage(function()
+			error("another error")
+		end, "error")
 	end)
 	-- test our splitting method works when the error has the same pattern
 	assertThrowsMessage(function()
@@ -148,7 +157,7 @@ function testAssertThrowsMessage()
 	end, "error")
 end
 
-function testAssertEqual()
+local function testAssertEqual()
 	-- test numeric mismatch
 	assertThrowsMessage(function()
 		assertEqual(1, 2)
@@ -170,7 +179,7 @@ function testAssertEqual()
 	assertEqual(nil, nil)
 end
 
-function test()
+local function test()
 	sanityChecks()
 	testWaitUntil()
 	testAssertThrows()
@@ -180,3 +189,5 @@ function test()
 	--failingTests()
 	failingWhileSucceedingTests()
 end
+
+return { test = test }

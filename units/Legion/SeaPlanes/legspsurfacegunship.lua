@@ -37,7 +37,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
