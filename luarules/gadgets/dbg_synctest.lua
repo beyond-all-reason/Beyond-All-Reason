@@ -27,7 +27,7 @@ local function isAuthorized(playerID, subPermission)
 		return true
 	end
 	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = BAR.Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	if
 		(

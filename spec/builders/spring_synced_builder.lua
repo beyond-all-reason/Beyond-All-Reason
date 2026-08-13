@@ -772,7 +772,7 @@ function SB:WithGlobalsDefined(fn, persist)
 			return default or 0
 		end
 	end
-	_G.Spring.Utilities = _G.Spring.Utilities
+	_G.BAR.Utilities = _G.BAR.Utilities
 		or {
 			Gametype = {
 				IsScavengers = function()

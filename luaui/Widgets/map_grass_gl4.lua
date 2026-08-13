@@ -1031,7 +1031,7 @@ local function defineUploadGrassInstanceVBOData()
 end
 
 local function LoadGrassTGA(filename)
-	local texture, loadfailed = Spring.Utilities.LoadTGA(filename)
+	local texture, loadfailed = BAR.Utilities.LoadTGA(filename)
 	if loadfailed then
 		spEcho("Grass: Failed to load image for grass:", filename, loadfailed)
 		return nil
@@ -1205,7 +1205,7 @@ local function savegrassCmd(_, _, params)
 	end
 	spEcho("Savegrass: ", filename)
 
-	texture = Spring.Utilities.NewTGA(
+	texture = BAR.Utilities.NewTGA(
 		mathFloor(mapSizeX / grassConfig.patchResolution),
 		mathFloor(mapSizeZ / grassConfig.patchResolution),
 		1
@@ -1218,7 +1218,7 @@ local function savegrassCmd(_, _, params)
 		end
 	end
 	-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
-	local saveError = Spring.Utilities.SaveTGA(texture, filename)
+	local saveError = BAR.Utilities.SaveTGA(texture, filename)
 	if saveError then
 		spEcho("Saving grass map image failed", filename, saveError)
 	end
@@ -1553,7 +1553,7 @@ function widget:Initialize()
 		if not filename or #filename < 2 then
 			filename = Game.mapName .. "_grassDist.tga"
 		end
-		local texture = Spring.Utilities.NewTGA(
+		local texture = BAR.Utilities.NewTGA(
 			mathFloor(mapSizeX / grassConfig.patchResolution),
 			mathFloor(mapSizeZ / grassConfig.patchResolution),
 			1
@@ -1566,7 +1566,7 @@ function widget:Initialize()
 			end
 		end
 		-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
-		local saveError = Spring.Utilities.SaveTGA(texture, filename)
+		local saveError = BAR.Utilities.SaveTGA(texture, filename)
 		if saveError then
 			spEcho("[Grass] Failed to save grass map: " .. filename .. " (" .. tostring(saveError) .. ")")
 			return false

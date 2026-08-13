@@ -16,7 +16,7 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.Gametype.IsFFA() or Spring.Utilities.Gametype.IsSinglePlayer() then
+if not BAR.Utilities.Gametype.IsFFA() or BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 

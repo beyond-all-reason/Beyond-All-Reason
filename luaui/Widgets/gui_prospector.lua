@@ -237,7 +237,7 @@ function widget:DrawScreen()
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
 	DrawTextWithBackground(
-		Spring.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }),
+		BAR.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }),
 		mx,
 		my,
 		textSize,
