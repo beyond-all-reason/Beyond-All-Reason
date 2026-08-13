@@ -119,8 +119,8 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if WeaponDefNames and WeaponDefNames["volcano_fireball"] then
-			volcanoFireballWeaponDefID = WeaponDefNames["volcano_fireball"].id
+		if WeaponDefNames and WeaponDefNames.volcano_fireball then
+			volcanoFireballWeaponDefID = WeaponDefNames.volcano_fireball.id
 		else
 			for weaponDefID, weaponDef in pairs(WeaponDefs) do
 				if weaponDef.name == "Volcano Fireball" then

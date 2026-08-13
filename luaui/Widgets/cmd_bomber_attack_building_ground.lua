@@ -36,7 +36,7 @@ for udid, ud in pairs(UnitDefs) do
 		isBuilding[udid] = true
 	end
 	if
-		(ud["weapons"] and ud["weapons"][1] and isBomb[ud["weapons"][1].weaponDef] == true)
+		(ud.weapons and ud.weapons[1] and isBomb[ud.weapons[1].weaponDef] == true)
 		or (
 			string.find(ud.name, "armlance")
 			or string.find(ud.name, "cortitan")

@@ -228,8 +228,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
@@ -285,8 +285,8 @@ function widget:Initialize()
 		widget:GameFrame(GetGameFrame(), true)
 	end
 
-	WG["teamstats"] = {}
-	WG["teamstats"].toggle = function(state)
+	WG.teamstats = {}
+	WG.teamstats.toggle = function(state)
 		if state ~= nil then
 			guiData.mainPanel.visible = state
 		else
@@ -296,7 +296,7 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(), true)
 		end
 	end
-	WG["teamstats"].isvisible = function()
+	WG.teamstats.isvisible = function()
 		return guiData.mainPanel.visible
 	end
 end
@@ -304,8 +304,8 @@ end
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("teamstats_window")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("teamstats_window")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)
@@ -584,7 +584,7 @@ local function DrawBackground()
 		return
 	end
 
-	gl.Color(0, 0, 0, WG["guishader"] and 0.8 or 0.85)
+	gl.Color(0, 0, 0, WG.guishader and 0.8 or 0.85)
 	local x1, y1, x2, y2 =
 		mathFloor(guiData.mainPanel.absSizes.x.min),
 		mathFloor(guiData.mainPanel.absSizes.y.min),
@@ -605,14 +605,14 @@ local function DrawBackground()
 		1,
 		WG.FlowUI.clampedOpacity
 	)
-	if WG["guishader"] then
+	if WG.guishader then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList(function()
 			RectRound(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, elementCorner)
 		end)
-		WG["guishader"].InsertDlist(backgroundGuishader, "teamstats_window")
+		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window")
 	end
 
 	if backgroundDisplayList then
@@ -631,8 +631,8 @@ end
 
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("teamstats_window")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("teamstats_window")
 		end
 		return
 	end

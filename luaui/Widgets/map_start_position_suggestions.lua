@@ -662,7 +662,7 @@ local function drawTooltip()
 	end
 
 	local xOffset, yOffset = 20, -12
-	WG["tooltip"].ShowTooltip(
+	WG.tooltip.ShowTooltip(
 		"startPositionTooltip",
 		wrappedDescriptionCache[tooltipKey],
 		x + xOffset,
@@ -672,7 +672,7 @@ local function drawTooltip()
 end
 
 local function drawTutorial()
-	if config.hasRunBefore and (not WG["notifications"] or not WG["notifications"].getTutorial()) then
+	if config.hasRunBefore and (not WG.notifications or not WG.notifications.getTutorial()) then
 		return
 	end
 

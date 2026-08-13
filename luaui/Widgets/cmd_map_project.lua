@@ -1058,7 +1058,7 @@ local function stepWeather()
 end
 
 local function stepGrass()
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api then
 		sectionSkip("grass", "grass widget not loaded")
 		return true
@@ -2314,7 +2314,7 @@ local function phaseStartposGrass(c)
 	end
 	local grassPath, grassSec = sectionFile("grass")
 	if grassPath then
-		local api = WG["grassgl4"]
+		local api = WG.grassgl4
 		if not (api and api.loadGrass) then
 			loadSkip("grass", "grass widget not loaded")
 		else
