@@ -1349,37 +1349,25 @@ local function updateResbar(res)
 		end
 
 		if refreshUi then
-			WG["tooltip"].AddTooltip(
-				res .. "_pull",
-				{
-					resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5),
-					resbarDrawinfo[res].textPull[3],
-					resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5),
-					resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4],
-				},
-				Spring.I18N("ui.topbar.resources.pullTooltip", { resource = resourceName })
-			)
-			WG["tooltip"].AddTooltip(
-				res .. "_income",
-				{
-					resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5),
-					resbarDrawinfo[res].textIncome[3],
-					resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5),
-					resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4],
-				},
-				Spring.I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName })
-			)
+			WG["tooltip"].AddTooltip(res .. "_pull", {
+				resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5),
+				resbarDrawinfo[res].textPull[3],
+				resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5),
+				resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4],
+			}, Spring.I18N("ui.topbar.resources.pullTooltip", { resource = resourceName }))
+			WG["tooltip"].AddTooltip(res .. "_income", {
+				resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5),
+				resbarDrawinfo[res].textIncome[3],
+				resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5),
+				resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4],
+			}, Spring.I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName }))
 			--WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName }))
-			WG["tooltip"].AddTooltip(
-				res .. "_storage",
-				{
-					resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75),
-					resbarDrawinfo[res].textStorage[3],
-					resbarDrawinfo[res].textStorage[2],
-					resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4],
-				},
-				Spring.I18N("ui.topbar.resources.storageTooltip", { resource = resourceName })
-			)
+			WG["tooltip"].AddTooltip(res .. "_storage", {
+				resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75),
+				resbarDrawinfo[res].textStorage[3],
+				resbarDrawinfo[res].textStorage[2],
+				resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4],
+			}, Spring.I18N("ui.topbar.resources.storageTooltip", { resource = resourceName }))
 		end
 	end
 end

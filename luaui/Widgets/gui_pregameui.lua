@@ -500,7 +500,12 @@ function widget:DrawScreen()
 					1,
 					1,
 					nil,
-					{ readyButtonColor[1] * 0.55 * mult, readyButtonColor[2] * 0.55 * mult, readyButtonColor[3] * 0.55 * mult, 1 },
+					{
+						readyButtonColor[1] * 0.55 * mult,
+						readyButtonColor[2] * 0.55 * mult,
+						readyButtonColor[3] * 0.55 * mult,
+						1,
+					},
 					{ readyButtonColor[1] * mult, readyButtonColor[2] * mult, readyButtonColor[3] * mult, 1 }
 				)
 			end

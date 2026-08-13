@@ -774,9 +774,8 @@ function widget:Update(dt)
 		end
 	elseif
 		not (
-			openedMenu >= 0 and (
-				isInRect(mx, my, boptRect) or (buildoptionsArea and isInRect(mx, my, buildoptionsArea))
-			)
+			openedMenu >= 0
+			and (isInRect(mx, my, boptRect) or (buildoptionsArea and isInRect(mx, my, buildoptionsArea)))
 		)
 	then
 		openedMenu = -1

@@ -60,7 +60,8 @@ for udid, ud in pairs(UnitDefs) do
 		isBuilder[udid] = true
 	end
 	if
-		ud.canFly and (ud.weaponCount == 0 or not ud.isFighterAirUnit or string.find(ud.name, "liche") or ud.noAutoFire)
+		ud.canFly
+		and (ud.weaponCount == 0 or not ud.isFighterAirUnit or string.find(ud.name, "liche") or ud.noAutoFire)
 	then -- liche is classified as one somehow
 		checkMustStop[udid] = true
 	end
