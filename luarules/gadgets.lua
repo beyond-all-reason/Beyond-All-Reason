@@ -1817,7 +1817,8 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
-			tracy.ZoneEnd()
+			tracy.ZoneEnd("G:AllowUnitBuildStep")
+			tracy.ZoneEnd("G:AllowUnitBuildStepOuter")
 			return false
 		end
 	end
@@ -1868,6 +1869,8 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
+			tracy.ZoneEnd("G:AllowFeatureBuildStep")
+			tracy.ZoneEnd("G:AllowFeatureBuildStepOuter")
 			return false
 		end
 	end
