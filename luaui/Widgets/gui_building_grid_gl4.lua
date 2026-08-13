@@ -30,6 +30,7 @@ local config = {
 local waterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 
 local cmdShowForUnitDefID
+local isSpec = nil
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 local gridVBO = nil -- the vertex buffer object, an array of vec2 coords

@@ -142,8 +142,8 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 			unitID,
 			unitDefID and UnitDefs[unitDefID].name or "nil",
 			unitTeam,
-			px,
-			pz
+			ux,
+			uz
 		)
 	end
 	if lastknownunitpos[unitID] then

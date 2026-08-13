@@ -597,7 +597,7 @@ local function MakeAtlasOnDemand(config)
 		local drawblanktask = {
 			id = self.blankimg,
 			w = xmax - xmin * self.xresolution,
-			h = ymax - ymin * yresolution,
+			h = ymax - ymin * self.yresolution,
 			x = xmin * self.xresolution,
 			y = ymin * self.yresolution,
 		}

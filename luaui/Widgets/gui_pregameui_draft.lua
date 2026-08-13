@@ -1,7 +1,5 @@
 local widget = widget ---@type Widget
 
-local isAI = false -- forward-decl: read in DrawState
-
 function widget:GetInfo()
 	return {
 		name = "Pregame UI - Draft Spawn Order",
@@ -220,6 +218,7 @@ local function DrawState(playerID, posX, posY)
 		or (playerReadyState[playerID] == 2)
 		or (playerReadyState[playerID] == -1)
 	local hasStartPoint = (playerReadyState[playerID] == 4)
+	local _, _, _, _, _, _, _, _, _, ai = Spring.GetPlayerInfo(playerID, false)
 	if ai then
 		gl_Color(0.1, 0.1, 0.97, 1)
 	else
@@ -1143,6 +1142,7 @@ function widget:Initialize()
 	end
 
 	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
+	local msx, msz = Game.mapSizeX, Game.mapSizeZ
 	if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
 		hasStartbox = true
 	end

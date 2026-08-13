@@ -451,8 +451,9 @@ local function CobDroneSpawnSequenceFinished(unitID, unitDefID, team, subUnitID)
 		return
 	else
 		local dockingPiece = carrierMetaList[unitID].subUnitsList[subUnitID].dockingPiece
-		local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, dockingPiece)
-		spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, dockingPiece, pieceAngle)
+		local pieceAngle = nil
+		local _, pieceAngleResult = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, dockingPiece)
+		spCallCOBScript(subUnitID, "Docked", 0, carrierMetaList[unitID].cobdockparam, dockingPiece, pieceAngleResult)
 		return
 	end
 end
@@ -509,7 +510,7 @@ local function spawnUnit(spawnData)
 							energyCost = carrierData.energyCost[dronetypeIndex]
 						else
 							local subUnitDef = UnitDefNames[dronename]
-							if subunitDef then
+							if subUnitDef then
 								metalCost = subUnitDef.metalCost
 								energyCost = subUnitDef.energyCost
 							else
@@ -664,7 +665,8 @@ local function spawnUnit(spawnData)
 								droneSpawnSequence(ownerID, subUnitID)
 								droneMetaData.activeSpawnSequence = true
 							else
-								local _, pieceAngle =
+								local pieceAngle = nil
+								local _, pieceAngleResult =
 									spCallCOBScript(ownerID, "DroneDocked", 5, pieceAngle, droneMetaData.dockingPiece)
 								spCallCOBScript(
 									subUnitID,
@@ -672,7 +674,7 @@ local function spawnUnit(spawnData)
 									0,
 									carrierData.cobdockparam,
 									droneMetaData.dockingPiece,
-									pieceAngle
+									pieceAngleResult
 								)
 							end
 						else
@@ -1815,14 +1817,16 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								if carrierMetaList[unitID].dockArmor then
 									spSetUnitArmored(subUnitID, true, carrierMetaList[unitID].dockArmor)
 								end
-								local _, pieceAngle = spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, pieceNumber)
+								local pieceAngle = nil
+								local _, pieceAngleResult =
+									spCallCOBScript(unitID, "DroneDocked", 5, pieceAngle, pieceNumber)
 								spCallCOBScript(
 									subUnitID,
 									"Docked",
 									0,
 									carrierMetaList[unitID].cobdockparam,
 									pieceNumber,
-									pieceAngle
+									pieceAngleResult
 								)
 
 								if dronetype == "abductor" then
