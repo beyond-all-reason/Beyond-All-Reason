@@ -86,7 +86,7 @@ local marks = {}
 local syntheticCallinUpdate = {}
 
 for name, prefix in pairs(syntheticCallinMarks) do
-	local marked, list, count = {}, {}, {}
+	local marked, list, count = {}, {}, { nil } -- luahax: a constant-size array
 	local drop = makeDropMarks(marked, list, count)
 
 	marks[prefix] = { marked = marked, list = list, count = count, drop = drop }
