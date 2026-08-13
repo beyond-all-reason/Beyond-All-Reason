@@ -63,9 +63,9 @@ local function createList(size)
 		WG.tooltip.AddTooltip(
 			"clearmapmarks",
 			{ xPos - usedImgSize, yPos, xPos, yPos + usedImgSize },
-			Spring.I18N("ui.clearMapmarks.tooltipctrl"),
+			BAR.I18N("ui.clearMapmarks.tooltipctrl"),
 			nil,
-			Spring.I18N("ui.clearMapmarks.tooltip")
+			BAR.I18N("ui.clearMapmarks.tooltip")
 		)
 	end
 end

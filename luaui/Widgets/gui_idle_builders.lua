@@ -238,7 +238,7 @@ local function drawContent()
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize * 0.6)
 		font2:Print(
-			Spring.I18N("ui.idleBuilders.sleeping"),
+			BAR.I18N("ui.idleBuilders.sleeping"),
 			iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) - offset,
 			iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offset + offsetY,
 			fontSize,
@@ -246,7 +246,7 @@ local function drawContent()
 		)
 		fontSize = fontSize * 1.2
 		font2:Print(
-			Spring.I18N("ui.idleBuilders.sleeping"),
+			BAR.I18N("ui.idleBuilders.sleeping"),
 			iconRect[1] + ((iconRect[3] - iconRect[1]) / 2),
 			iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offsetY,
 			fontSize,
@@ -255,7 +255,7 @@ local function drawContent()
 		fontSize = fontSize * 1.2
 		offset = (fontSize * 0.48)
 		font2:Print(
-			Spring.I18N("ui.idleBuilders.sleeping"),
+			BAR.I18N("ui.idleBuilders.sleeping"),
 			iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) + offset,
 			iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) - offset + offsetY,
 			fontSize,
@@ -719,7 +719,7 @@ local function Update()
 	then
 		hovered = true
 
-		local tooltipTitle = Spring.I18N("ui.idleBuilders.name")
+		local tooltipTitle = BAR.I18N("ui.idleBuilders.name")
 		local tooltipAddition = ""
 		if
 			backgroundRect
@@ -729,16 +729,16 @@ local function Update()
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
 					local unitDefID = existingIcons[i]
 					if unitDefID then
-						tooltipTitle = Spring.I18N(
+						tooltipTitle = BAR.I18N(
 							"ui.idleBuilders.idle",
 							{ unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" }
 						)
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = Spring.I18N("ui.idleBuilders.controls")
+							tooltipAddition = BAR.I18N("ui.idleBuilders.controls")
 								.. "\n"
-								.. Spring.I18N("ui.idleBuilders.controls1")
+								.. BAR.I18N("ui.idleBuilders.controls1")
 						else
-							tooltipAddition = tooltipAddition .. Spring.I18N("ui.idleBuilders.controls1")
+							tooltipAddition = tooltipAddition .. BAR.I18N("ui.idleBuilders.controls1")
 						end
 					end
 					break

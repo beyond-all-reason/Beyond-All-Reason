@@ -275,7 +275,7 @@ function DrawWindow()
 	)
 
 	-- title background
-	local title = Spring.I18N("ui.changelog.title")
+	local title = BAR.I18N("ui.changelog.title")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,

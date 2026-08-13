@@ -58,7 +58,7 @@ local tidePeriod = 200
 local allowDeferredMapRendering = (Spring.GetConfigInt("AllowDeferredMapRendering") == 1)
 
 -- Check if the real lava gadget is active (don't overlay on actual lava maps)
-local springLava = Spring.Lava
+local springLava = BAR.Lava
 local isRealLavaMap = springLava and springLava.isLavaMap
 
 -- Texture paths
