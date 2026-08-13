@@ -52,10 +52,10 @@ describe("keybind catalog", function()
 	-- Only the command is lowered; its arguments keep their case.
 
 	-- The editor cannot capture a bare modifier as a key, so an action bound only that way
-	-- has to be marked read-only: left editable, its remove chip would strip a binding the
-	-- player could never put back. An action bound both ways stays editable - the flag is
-	-- per action, and hiding a real key to protect a modifier would be the worse trade.
-	it("marks every purely modifier-only action read-only", function()
+	-- is not editable at all and is hidden rather than listed: shown, its remove chip would
+	-- strip a binding the player could never put back. An action bound both ways stays
+	-- listed - hiding a real key to protect a modifier would be the worse trade.
+	it("hides every purely modifier-only action", function()
 		local defaults = loadJson("common/configs/keybind_defaults.json")
 		local modifiers = { alt = true, ctrl = true, shift = true, meta = true, any = true }
 		local function isModifierOnly(keyset)
@@ -76,35 +76,53 @@ describe("keybind catalog", function()
 			end
 		end
 
-		local flagged = {}
+		local hidden = {}
 		for _, group in ipairs(catalog) do
-			for _, item in ipairs(group.items or {}) do
-				-- Guarded because a modifierOnly on a prefix or info item has no action to key
-				-- by, and indexing with nil would fail here instead of in the schema test.
-				if item.modifierOnly and item.action then flagged[item.action] = true end
+			for _, action in ipairs(group.hidden or {}) do
+				hidden[action] = true
 			end
 		end
 
 		for action, seen in pairs(kinds) do
 			if seen[true] and not seen[false] then
-				assert(flagged[action], "action is bound only to modifiers but is not marked "
-					.. "modifierOnly, so the editor would offer an edit it cannot undo: " .. action)
+				assert(hidden[action], "action is bound only to modifiers but is not hidden, so "
+					.. "the editor would offer an edit it cannot undo: " .. action)
 			end
 		end
-		for action in pairs(flagged) do
-			local seen = kinds[action]
-			assert(seen and seen[true] and not seen[false], "action is marked modifierOnly but "
-				.. "is bound to a real key, so the flag hides an editable binding: " .. action)
+
+		local listed = {}
+		for _, group in ipairs(catalog) do
+			for _, item in ipairs(group.items or {}) do
+				if item.action then listed[item.action] = true end
+			end
+		end
+		for action in pairs(hidden) do
+			assert(not listed[action], "action is both hidden and listed: " .. action)
 		end
 	end)
+	-- The engine lower-cases a command when it parses the bind line, so anything reading the
+	-- live keymap sees lower case and a capitalised id in either file matches nothing. Args
+	-- are left alone: the selection language is case-sensitive.
 	it("writes every action command in lower case", function()
+		local function check(id, where)
+			local command = id:match("^%S+") or id
+			assert(command == command:lower(), where .. " command is not lower case: " .. id)
+		end
+
 		for _, group in ipairs(catalog) do
 			for _, item in ipairs(group.items or {}) do
 				local id = item.action or item.prefix
-				if id then
-					local command = id:match("^%S+") or id
-					assert(command == command:lower(), "action command is not lower case: " .. id)
-				end
+				if id then check(id, "catalog action") end
+			end
+			for _, id in ipairs(group.hidden or {}) do
+				check(id, "hidden action")
+			end
+		end
+
+		local defaults = loadJson("common/configs/keybind_defaults.json")
+		for _, profile in ipairs(defaults.profiles) do
+			for _, bind in ipairs(profile.binds) do
+				check(bind.action, "profile bind")
 			end
 		end
 	end)
