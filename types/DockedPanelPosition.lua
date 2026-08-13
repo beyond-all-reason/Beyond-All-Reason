@@ -1,0 +1,15 @@
+---@meta
+
+--- Where a docked UI panel sits on screen, as the `GetPosition` members of the
+--- advplayerlist-adjacent widgets return it, so a panel can stack itself against a
+--- neighbour.
+---
+--- The component order is top-left-bottom-right, NOT the left-bottom-right-top order
+--- `TopBarArea` and the screen-rect tuples use. Slot 5 is a UI scale, not a coordinate.
+--- The player list's own `GetPosition` is a different, longer shape again.
+---@class DockedPanelPosition
+---@field [1] number Top edge.
+---@field [2] number Left edge.
+---@field [3] number Bottom edge.
+---@field [4] number Right edge.
+---@field [5] number UI scale the panel was laid out at.

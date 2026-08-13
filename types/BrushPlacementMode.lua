@@ -1,0 +1,15 @@
+---@meta
+
+--- What a placement tool does when the brush is applied. Shared by the decal,
+--- feature, light and weather placers, which all drive the same three-way mode
+--- switch from the terraform brush UI:
+---
+---  * `"scatter"` distributes randomly within the brush radius, and is the only
+---    mode that keeps acting while the cursor is dragged;
+---  * `"point"` places exactly one at the cursor;
+---  * `"remove"` erases what the brush touches instead of placing.
+---
+--- The tools treat `nil` as "not placing", so a nullable mode doubles as the
+--- inactive state. Not to be confused with the start position tool's unrelated
+--- `placementMode`, which is `"roundrobin"|"sequential"`.
+---@alias BrushPlacementMode "scatter"|"point"|"remove"

@@ -1,0 +1,15 @@
+---@meta
+
+--- A rectangle in Spring screen coordinates, in the order the FlowUI drawing
+--- helpers take it: `UiElement(left, bottom, right, top)` and
+--- `RectRound(left, bottom, right, top, ...)`. Y grows upward, so `[4] >= [2]`.
+---
+--- This is the codebase's most common rect convention -- the `backgroundRect` of
+--- most panels, and the area `WG['tooltip'].AddTooltip` takes. Do not confuse it
+--- with `DockedPanelPosition`, which is top-left-bottom-right and carries a fifth
+--- element, or with the drag rects some widgets build as `{x1, y1, x2, y2}`.
+---@class ScreenRect
+---@field [1] number Left edge.
+---@field [2] number Bottom edge.
+---@field [3] number Right edge.
+---@field [4] number Top edge.
