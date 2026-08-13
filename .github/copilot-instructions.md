@@ -107,6 +107,9 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 - `lux.lock` pins resolved test dependencies and `.emmyrc.json` records their paths; lux rewrites both together, so
   review them as a pair. A stale `.lux/` tree (gitignored) causes a dependency integrity error — delete `.lux/` and
   re-run rather than editing `lux.lock`.
+- lux 0.28.x appends duplicate `dependencies` and `entrypoints` entries to `lux.lock` on every cold sync (a run with
+  no `.lux/` tree), growing the file by ~13 lines each time without ever converging. Tests still pass. Do not commit
+  that churn: `git checkout -- lux.lock` afterwards, and only commit a lockfile change you made deliberately.
 - Lint: `luacheck` 1.2.0 with `.luacheckrc`; CI reports only lines changed in the PR (`.github/workflows/lint.yml`).
 - Format: StyLua with `.stylua.toml` (tabs, indent width 4, 120 columns, CRLF, sorted requires) and `.styluaignore`;
   `.editorconfig` mirrors the indent and whitespace rules.
