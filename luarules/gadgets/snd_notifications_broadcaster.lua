@@ -22,7 +22,11 @@ if not gadgetHandler:IsSyncedCode() then
 			Script.LuaUI("NotificationEvent")
 			and (
 				forceplay
-				or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))
+				or (
+					tonumber(player) and (
+						(tonumber(player) == Spring.GetLocalPlayerID()) or Spring.GetSpectatingState()
+					)
+				)
 			)
 		then
 			if forceplay then

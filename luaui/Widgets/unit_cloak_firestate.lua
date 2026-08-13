@@ -16,7 +16,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 VFS.Include("luaui/Include/user_firestate_commands.lua")
 

@@ -27,7 +27,7 @@ function SkipAlliedUpgradeWidget.filterOutAlliedSpots(spots, unitDefIdsToCheck)
 	end
 	local filteredSpots = {}
 	local nextFilteredSpotIndex = 1 -- to avoid recalculating table length in case of large 'spots' table
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	for i = 1, #spots do
 		local spot = spots[i]

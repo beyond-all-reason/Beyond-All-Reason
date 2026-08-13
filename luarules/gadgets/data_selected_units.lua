@@ -80,7 +80,7 @@ else
 	local LuaUI = Script.LuaUI
 	local tSort = table.sort
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local _, _, myIsSpec, myTeamID, myAllyTeamID = GetPlayerInfo(myPlayerID, false)
 	local CLEAR_ALL_MSG = SelectionProtocol.EncodeClear()
 

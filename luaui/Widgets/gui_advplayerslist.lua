@@ -119,7 +119,7 @@ local sp = {
 	GetMouseState = spGetMouseState,
 	GetAIInfo = Spring.GetAIInfo,
 	GetTeamRulesParam = Spring.GetTeamRulesParam,
-	GetMyTeamID = Spring.GetMyTeamID,
+	GetMyTeamID = Spring.GetLocalTeamID,
 	AreTeamsAllied = Spring.AreTeamsAllied,
 	GetTeamStatsHistory = Spring.GetTeamStatsHistory,
 }
@@ -295,7 +295,7 @@ local accountIDLookup = {} -- accountID -> playerID for fast duplicate detection
 --------------------------------------------------------------------------------
 
 -- local player info
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID = Spring.GetLocalTeamID()
 local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
@@ -861,7 +861,7 @@ function widget:PlayerChanged(playerID)
 			lastKnownTeamNames[p.team] = p.name
 		end
 	end
-	myPlayerID = Spring.GetMyPlayerID()
+	myPlayerID = Spring.GetLocalPlayerID()
 	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	myTeamID = Spring.GetLocalTeamID()
 	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))

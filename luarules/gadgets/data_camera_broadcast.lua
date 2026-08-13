@@ -49,7 +49,7 @@ else -- UNSYNCED
 	local GetCameraState = Spring.GetCameraState
 	local SetCameraState = Spring.SetCameraState
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local GetMyAllyTeamID = Spring.GetLocalAllyTeamID
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
