@@ -186,11 +186,12 @@ if Script.GetSynced() then
 			unitStepMarked[unitStepList[i]] = nil
 		end
 
-		local list = self.UnitBuildStepPostList
-		for i = 1, count do
-			local unitID = unitStepList[i]
-			for _, g in ipairs(list) do
-				g:UnitBuildStepPost(unitID)
+		-- Each subscriber receives the full batch at once, in layer order.
+		-- This is an optimization that scales into much higher event counts.
+		for _, g in ipairs(self.UnitBuildStepPostList) do
+			local callin = g.UnitBuildStepPost
+			for i = 1, count do
+				callin(g, unitStepList[i])
 			end
 		end
 	end
@@ -210,11 +211,10 @@ if Script.GetSynced() then
 			featureStepMarked[featureStepList[i]] = nil
 		end
 
-		local list = self.FeatureBuildStepPostList
-		for i = 1, count do
-			local featureID = featureStepList[i]
-			for _, g in ipairs(list) do
-				g:FeatureBuildStepPost(featureID)
+		for _, g in ipairs(self.FeatureBuildStepPostList) do
+			local callin = g.FeatureBuildStepPost
+			for i = 1, count do
+				callin(g, featureStepList[i])
 			end
 		end
 	end
@@ -237,11 +237,10 @@ if Script.GetSynced() then
 			unitStepTotalMarked[unitID] = nil
 		end
 
-		local list = self.UnitBuildStepTotalList
-		for i = 1, count do
-			local unitID, part = unitStepTotalList[i], unitStepTotals[i]
-			for _, g in ipairs(list) do
-				g:UnitBuildStepTotal(unitID, part)
+		for _, g in ipairs(self.UnitBuildStepTotalList) do
+			local callin = g.UnitBuildStepTotal
+			for i = 1, count do
+				callin(g, unitStepTotalList[i], unitStepTotals[i])
 			end
 		end
 	end
@@ -264,11 +263,10 @@ if Script.GetSynced() then
 			featureStepTotalMarked[featureID] = nil
 		end
 
-		local list = self.FeatureBuildStepTotalList
-		for i = 1, count do
-			local featureID, part = featureStepTotalList[i], featureStepTotals[i]
-			for _, g in ipairs(list) do
-				g:FeatureBuildStepTotal(featureID, part)
+		for _, g in ipairs(self.FeatureBuildStepTotalList) do
+			local callin = g.FeatureBuildStepTotal
+			for i = 1, count do
+				callin(g, featureStepTotalList[i], featureStepTotals[i])
 			end
 		end
 	end
