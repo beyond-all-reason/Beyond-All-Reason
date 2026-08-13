@@ -23,7 +23,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetAllUnits = Spring.GetAllUnits
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spEcho = Spring.Echo
 

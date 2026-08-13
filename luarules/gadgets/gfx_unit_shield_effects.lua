@@ -170,7 +170,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitPosition = Spring.GetUnitPosition
 local spIsSphereInView = Spring.IsSphereInView

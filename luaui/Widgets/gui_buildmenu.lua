@@ -20,7 +20,7 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSeconds = Spring.GetGameSeconds
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
