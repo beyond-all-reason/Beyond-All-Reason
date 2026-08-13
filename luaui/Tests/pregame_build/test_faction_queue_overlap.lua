@@ -49,3 +49,5 @@ function test()
 	assertEqual(#buildQueue, 1)
 	assertEqual(buildQueue[1][1], corSolarID)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

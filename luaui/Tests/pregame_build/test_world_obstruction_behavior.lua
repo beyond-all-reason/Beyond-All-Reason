@@ -127,3 +127,5 @@ function test()
 		assertEqual(queueBuild(builderID, { solarID, bx, by, bz, 0 }), 0, terrainCase.name)
 	end
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

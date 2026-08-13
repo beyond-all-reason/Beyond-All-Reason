@@ -93,3 +93,5 @@ function test()
 		assertEqual(#getBuildCommands(builderID), expectedBuildCommands, case.name .. ": in-game command queue")
 	end
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
