@@ -262,7 +262,7 @@ local grassInstanceVBOSize = nil
 local grassInstanceVBOStep = 4 -- 4 values per patch
 -- World-space tile grid: the instance buffer is grouped into GRID_SIZE tiles so we can
 -- frustum-cull and draw only the contiguous instance ranges of the tiles that are visible.
-local GRID_SIZE = 1024
+local GRID_SIZE = 512
 local gridPatchCols, gridPatchRows = 0, 0 -- whole-map patch grid dimensions
 local gridCols, gridRows = 0, 0 -- tile grid dimensions
 local patchesPerTileX, patchesPerTileZ = 1, 1 -- patches per tile edge
@@ -1746,39 +1746,48 @@ function widget:DrawWorldPreUnit()
 		local tileRadius = math.sqrt(halfX * halfX + halfZ * halfZ) + tileHeightSlack
 		local fadeCullSq = (fadeEnd + tileRadius) * (fadeEnd + tileRadius)
 		local spIsSphereInView = Spring.IsSphereInView
+		local spIsAABBInView = Spring.IsAABBInView
+		local rowMaxX = gridCols * tileWorldX
+		local rowMinY = minHeight - 100
+		local rowMaxY = maxHeight + 100
 		local drawnInstances = 0
 		for tz = 0, gridRows - 1 do
 			local czw = tz * tileWorldZ + halfZ
 			local ddz = czw - cz
 			local runStart, runCount = -1, 0
-			for tx = 0, gridCols - 1 do
-				local tile = tz * gridCols + tx
-				local count = tileCount[tile]
-				local visible = false
-				if count and count > 0 then
-					if placementMode then
-						visible = true
-					else
-						local cxw = tx * tileWorldX + halfX
-						local ddx = cxw - cx
-						if ddx * ddx + ddz * ddz < fadeCullSq
-							and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
-						then
+						-- Skip the whole row if its full-width span is outside the frustum.
+			local rowVisible = placementMode
+				or spIsAABBInView(0, rowMinY, tz * tileWorldZ, rowMaxX, rowMaxY, tz * tileWorldZ + tileWorldZ)
+			if rowVisible then
+				for tx = 0, gridCols - 1 do
+					local tile = tz * gridCols + tx
+					local count = tileCount[tile]
+					local visible = false
+					if count and count > 0 then
+						if placementMode then
 							visible = true
+						else
+							local cxw = tx * tileWorldX + halfX
+							local ddx = cxw - cx
+							if ddx * ddx + ddz * ddz < fadeCullSq
+								and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
+							then
+								visible = true
+							end
 						end
 					end
-				end
-				if visible then
-					if runStart < 0 then
-						runStart = tileOffset[tile]
-						runCount = count
-					else
-						runCount = runCount + count
+					if visible then
+						if runStart < 0 then
+							runStart = tileOffset[tile]
+							runCount = count
+						else
+							runCount = runCount + count
+						end
+					elseif runStart >= 0 then
+						grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, runStart)
+						drawnInstances = drawnInstances + runCount
+						runStart, runCount = -1, 0
 					end
-				elseif runStart >= 0 then
-					grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, runStart)
-					drawnInstances = drawnInstances + runCount
-					runStart, runCount = -1, 0
 				end
 			end
 			if runStart >= 0 then
@@ -1795,6 +1804,7 @@ function widget:DrawWorldPreUnit()
 		if unitBendSSBO then
 			unitBendSSBO:UnbindBufferRange(6)
 		end
+		tracy.LuaTracyPlot("GrassDrawnInstances", drawnInstances)
 
 		glTexture(0, false)
 		glTexture(1, false)
