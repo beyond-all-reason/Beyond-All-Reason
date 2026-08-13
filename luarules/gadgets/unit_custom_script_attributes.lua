@@ -59,7 +59,7 @@ local weaponAttributeDefinitions = {
 		method   = "SetSweepfireTimeWeapon",
 		params   = { "sweepfire_firetime", "sweepfire_reloadtime" },
 		requires = "any",
-		process  = function(self, def) Spring.Echo("SetSweepfireTimeWeapon for " .. def.name) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
+		process  = function(self, def) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
 	},
 	{
 		method   = "SetTurretSpeedWeapon",
