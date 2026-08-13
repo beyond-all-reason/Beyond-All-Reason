@@ -25,6 +25,7 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field _explosionCalls table
 ---@field _giveOrderCalls table
 ---@field _transferCalls table
+---@field _noSelectCalls table
 ---@field __clearCalls fun()
 ---@field GetLoggedMessages fun(): table
 ---@field __getInitialUnits fun(): table
@@ -312,6 +313,7 @@ function SB:BuildSpring()
     local explosionCalls = {}
     local giveOrderCalls = {}
     local transferCalls = {}
+    local noSelectCalls = {}
 
     local function recordSetCall(teamID, resourceType, data)
         table.insert(resourceSetCalls, {
@@ -472,10 +474,12 @@ function SB:BuildSpring()
         _explosionCalls = explosionCalls,
         _giveOrderCalls = giveOrderCalls,
         _transferCalls = transferCalls,
+        _noSelectCalls = noSelectCalls,
         __clearCalls = function()
             local tracked = {
                 resourceSetCalls, addCalls, useCalls, markerCalls, lineCalls,
                 gameOverCalls, explosionCalls, giveOrderCalls, transferCalls,
+                noSelectCalls,
             }
             for i = 1, #tracked do
                 local list = tracked[i]
@@ -573,6 +577,10 @@ function SB:BuildSpring()
         GiveOrderArrayToUnitMap = function(unitMap, orders)
             table.insert(giveOrderCalls, { unitMap = unitMap, orders = orders })
             return true
+        end,
+
+        SetUnitNoSelect = function(unitID, noSelect)
+            table.insert(noSelectCalls, { unitID = unitID, noSelect = noSelect })
         end,
 
         MarkerAddPoint = function(x, y, z, label, localOnly)
