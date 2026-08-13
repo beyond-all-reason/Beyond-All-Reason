@@ -26,7 +26,7 @@ local draftMode = Spring.GetModOptions().draft_mode
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID))
 	or myPlayerName
@@ -221,7 +221,7 @@ function widget:GameSetup(state, ready, playerStates)
 	if
 		not spec
 		and not ihavejoined
-		and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil
+		and Spring.GetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil
 	then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true

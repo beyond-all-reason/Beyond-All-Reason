@@ -790,7 +790,7 @@ else -- UNSYNCED
 	end
 
 	local function sendStartPositions()
-		local myPlayerID = Spring.GetMyPlayerID()
+		local myPlayerID = Spring.GetLocalPlayerID()
 		local players = Spring.GetPlayerList()
 		local lowestActive
 		for i = 1, #players do
