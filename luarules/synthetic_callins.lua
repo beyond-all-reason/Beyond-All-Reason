@@ -47,13 +47,28 @@ end
 local callinHoldSummary = {}
 for name, callinHolds in pairs(syntheticCallinHold) do
 	for _, callin in ipairs(callinHolds) do
-		local lists = callinHoldSummary[callin]
-		if not lists then
-			lists = {}
-			callinHoldSummary[callin] = lists
+		local listName = callin .. 'List'
+		local holders = callinHoldSummary[listName]
+		if not holders then
+			holders = {}
+			callinHoldSummary[listName] = holders
 		end
-		lists[#lists + 1] = name .. 'List'
+		holders[#holders + 1] = name .. 'List'
 	end
+end
+
+---Engine callins stay installed while a synthetic reading them has subscribers.
+function gadgetHandler:HoldsCallIn(listName)
+	local holders = callinHoldSummary[listName]
+	if not holders then
+		return false
+	end
+	for _, holder in ipairs(holders) do
+		if #self[holder] > 0 then
+			return true
+		end
+	end
+	return false
 end
 
 -- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
@@ -197,11 +212,32 @@ if not Script.GetSynced() then
 end
 
 --------------------------------------------------------------------------------
+--  Install  -------------------------------------------------------------------
+
+local function install(gh)
+	local updateCallIn = gh.UpdateCallIn
+
+	---Synthetic callins have no engine hook, so they update their holds instead.
+	function gh:UpdateCallIn(name)
+		local callinHolds = syntheticCallinHold[name]
+		if not callinHolds then
+			return updateCallIn(self, name)
+		end
+
+		local handleUpdate = syntheticCallinUpdate[name]
+		if handleUpdate then
+			handleUpdate(#self[name .. 'List'] > 0)
+		end
+		for _, callin in ipairs(callinHolds) do
+			self:UpdateCallIn(callin)
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 --  Exports  -------------------------------------------------------------------
 
 return {
-	hold        = syntheticCallinHold,   -- [SyntheticCallinName] := EngineCallinName[]
-	holdSummary = callinHoldSummary,     -- [EngineCallinName]    := SyntheticCallinListName[]
-	update      = syntheticCallinUpdate, -- [SyntheticCallinName] := handleUpdateCallin
-	getMarks    = getMarks,              -- markPrefix -> marked, list, count
+	install  = install,
+	getMarks = getMarks,
 }

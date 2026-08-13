@@ -477,9 +477,6 @@ end
 --
 --  The game injects some of its own callins into the engine-driven event system:
 local synthetic = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
-local syntheticCallinHold   = synthetic.hold
-local callinHoldSummary     = synthetic.holdSummary
-local syntheticCallinUpdate = synthetic.update
 
 local unitStepMarked,    unitStepList,    unitStepCount    = synthetic.getMarks('unitStep')
 local featureStepMarked, featureStepList, featureStepCount = synthetic.getMarks('featureStep')
@@ -1043,37 +1040,12 @@ function gadgetHandler:UpdateCallIn(name)
 
 	_G[name] = nil
 
-	local callinHolds = syntheticCallinHold[name]
-	if callinHolds then
-		-- Synthetic call-ins are dispatched by the game so have no engine hook.
-		local handleUpdate = syntheticCallinUpdate[name]
-		if handleUpdate then
-			handleUpdate(#self[listName] > 0)
-		end
-		for _, callin in ipairs(callinHolds) do
-			self:UpdateCallIn(callin)
-		end
-		return
-	end
-
 	if isHeadless and headlessDisabledCallIns[name] then
 		Script.UpdateCallIn(name)
 		return
 	end
 
-	local wantedUpdate = #self[listName] > 0
-
-	local summaries = callinHoldSummary[name]
-	if summaries and not wantedUpdate then
-		for _, summaryList in ipairs(summaries) do
-			if #self[summaryList] > 0 then
-				wantedUpdate = true
-				break
-			end
-		end
-	end
-
-	if forceUpdate or wantedUpdate then
+	if forceUpdate or #self[listName] > 0 or self:HoldsCallIn(listName) then
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
@@ -2954,5 +2926,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+synthetic.install(gadgetHandler)
 
 gadgetHandler:Initialize()
