@@ -8,17 +8,15 @@ VFS.Include("common.tablefunctions.lua")
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 
 ---@class SpringSyncedMock : SpringSynced
+--- Mocked engine calls keep the engine's PascalCase; test-only helpers are
+--- camelCase, so the two are easy to tell apart at a call site.
 ---@field GetUnitDefs fun(): table<string, UnitWrapper>
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
 ---@field GetPlayerListUnpacked fun(): TeamData[]?
 ---@field GetPlayerIdsList fun(): number[]?
 ---@field _builtTeams table
----@field setDataCalls table
----@field __resourceSetCalls table
----@field __clearResourceDataCalls fun()
 ---@field _addCalls table
 ---@field _useCalls table
----@field __clearResourceCalls fun()
 ---@field _markerCalls table
 ---@field _lineCalls table
 ---@field _gameOverCalls table
@@ -26,9 +24,9 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field _giveOrderCalls table
 ---@field _transferCalls table
 ---@field _noSelectCalls table
----@field __clearCalls fun()
+---@field clearResourceCalls fun()
+---@field clearCalls fun()
 ---@field GetLoggedMessages fun(): table
----@field __getInitialUnits fun(): table
 
 ---@class SpringSyncedBuilder : SpringSyncedMock
 ---@field modOptions table
@@ -304,7 +302,6 @@ function SB:BuildSpring()
         return team.energy, normalized
     end
 
-    local resourceSetCalls = {}
     local addCalls = {}
     local useCalls = {}
     local markerCalls = {}
@@ -315,26 +312,6 @@ function SB:BuildSpring()
     local transferCalls = {}
     local noSelectCalls = {}
 
-    local function recordSetCall(teamID, resourceType, data)
-        table.insert(resourceSetCalls, {
-            teamID = teamID,
-            resource = resourceType,
-            data = table.copy(data or {}),
-        })
-    end
-
-    local function applyResourcePatch(teamID, resourceType, patch)
-        if type(patch) ~= "table" then
-            error("ResourceData patch must be a table")
-        end
-
-        local store, normalized = getResourceStore(teamID, resourceType)
-        for key, value in pairs(patch) do
-            store[key] = value
-        end
-        store.resourceType = normalized
-        recordSetCall(teamID, normalized, patch)
-    end
 
     ---@type SpringSyncedMock
     local mock = {
@@ -406,10 +383,6 @@ function SB:BuildSpring()
             local data = getResourceStore(teamID, resourceType)
             return data.current, data.storage, data.pull, data.income, data.expense, data.shareSlider, data.sent, data.received
         end,
-        -- Convenience accessors for tests
-        __getInitialUnits = function()
-            return instance.initialUnits
-        end,
         GetUnitDefs = function()
             -- Return instance globals from WithRealUnitDefs
             if instance._globalUnitDefs then
@@ -455,16 +428,9 @@ function SB:BuildSpring()
         end,
 
         _builtTeams = builtTeams,
-        setDataCalls = resourceSetCalls,
-        __resourceSetCalls = resourceSetCalls,
-        __clearResourceDataCalls = function()
-            for i = #resourceSetCalls, 1, -1 do
-                resourceSetCalls[i] = nil
-            end
-        end,
         _addCalls = addCalls,
         _useCalls = useCalls,
-        __clearResourceCalls = function()
+        clearResourceCalls = function()
             for i = #addCalls, 1, -1 do addCalls[i] = nil end
             for i = #useCalls, 1, -1 do useCalls[i] = nil end
         end,
@@ -475,9 +441,9 @@ function SB:BuildSpring()
         _giveOrderCalls = giveOrderCalls,
         _transferCalls = transferCalls,
         _noSelectCalls = noSelectCalls,
-        __clearCalls = function()
+        clearCalls = function()
             local tracked = {
-                resourceSetCalls, addCalls, useCalls, markerCalls, lineCalls,
+                addCalls, useCalls, markerCalls, lineCalls,
                 gameOverCalls, explosionCalls, giveOrderCalls, transferCalls,
                 noSelectCalls,
             }

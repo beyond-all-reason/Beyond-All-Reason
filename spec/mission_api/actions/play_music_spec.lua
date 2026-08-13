@@ -22,7 +22,7 @@ describe("mission_api.actions.play_music", function()
     end)
 
     describe("actionFunction", function()
-        it("calls GG['music'].GadgetPlayMusicTrack with the given track", function()
+        it("calls GG['music'].GadgetPlayMusicTrack with the given track and does not raise", function()
             local calls = {}
             GG['music'] = {
                 GadgetPlayMusicTrack = function(file) calls[#calls + 1] = file end,

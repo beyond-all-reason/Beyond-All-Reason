@@ -33,7 +33,7 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field _tryAdvanceCalls table
 ---@field _updateProgressCalls table
 ---@field _echoCalls table
----@field __clearCalls fun()
+---@field clearCalls fun()
 
 ---@class MissionApiBuilder
 local MB = {}
@@ -425,7 +425,7 @@ function MB:Build()
         _echoCalls              = echoCalls,
     }
 
-    mock.__clearCalls = function()
+    mock.clearCalls = function()
         local tracked = {
             spawnUnitCalls, spawnFeatureCalls, convertOrdersCalls,
             playSoundCalls, enqueueSoundCalls, processSoundQueueCalls,

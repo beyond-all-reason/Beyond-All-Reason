@@ -242,7 +242,7 @@ describe("MissionApiBuilder", function()
             assert.are.equal("obj1", api._echoCalls[1].objectiveID)
         end)
 
-        it("clears every tracked call list via __clearCalls", function()
+        it("clears every tracked call list via clearCalls", function()
             local api = Builders.MissionApi.new():Build()
 
             api.Modules.Loadout.ConvertOrdersTargetingNames({})
@@ -256,7 +256,7 @@ describe("MissionApiBuilder", function()
             api.Modules.Objectives.UpdateObjectiveProgress("o")
             api.Modules.Objectives.EchoObjectiveUpdate("o", {})
 
-            api.__clearCalls()
+            api.clearCalls()
 
             assert.are.equal(0, #api._convertOrdersCalls)
             assert.are.equal(0, #api._spawnUnitCalls)

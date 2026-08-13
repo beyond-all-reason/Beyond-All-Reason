@@ -98,12 +98,12 @@ describe("SpringSyncedBuilder", function()
             assert.are.equal(42, spring._useCalls[1].teamID)
         end)
 
-        it("clears tracked calls via __clearResourceCalls", function()
+        it("clears tracked calls via clearResourceCalls", function()
             local spring = Builders.Spring.new():Build()
             spring.AddTeamResource(0, "metal", 10)
             spring.UseTeamResource(0, "metal", 5)
 
-            spring.__clearResourceCalls()
+            spring.clearResourceCalls()
 
             assert.are.equal(0, #spring._addCalls)
             assert.are.equal(0, #spring._useCalls)
@@ -132,7 +132,7 @@ describe("SpringSyncedBuilder", function()
         end)
     end)
 
-    describe("action call tracking", function()
+    describe("recorded calls", function()
         it("records MarkerAddPoint calls", function()
             local spring = Builders.Spring.new():Build()
 
@@ -242,7 +242,7 @@ describe("SpringSyncedBuilder", function()
             assert.is_nil(spring.GetUnitAllyTeam(123456))
         end)
 
-        it("clears every tracked call list via __clearCalls", function()
+        it("clears every tracked call list via clearCalls", function()
             local spring = Builders.Spring.new():Build()
 
             spring.AddTeamResource(0, "metal", 1)
@@ -255,7 +255,7 @@ describe("SpringSyncedBuilder", function()
             spring.TransferUnit(1, 2, false)
             spring.SetUnitNoSelect(1, true)
 
-            spring.__clearCalls()
+            spring.clearCalls()
 
             assert.are.equal(0, #spring._addCalls)
             assert.are.equal(0, #spring._useCalls)
