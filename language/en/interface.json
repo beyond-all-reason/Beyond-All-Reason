@@ -261,7 +261,6 @@
 			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
 			"For Sale": "For Sale",
 			"Not For Sale": "Not For Sale",
-
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -374,26 +373,8 @@
 				"accept": "Accept",
 				"cancel": "Cancel"
 			},
-			"chat": {
-				"title": "Chat",
-				"send": "Send chat message",
-				"alliesKey": "alt + enter",
-				"allies": "Send chat message to allies",
-				"spectatorsKey": "shift + enter",
-				"spectators": "Send chat message to spectators",
-				"ignoreKey": "ctrl + left click on name",
-				"ignore": "Ignore player"
-			},
 			"camera": {
 				"title": "Camera",
-				"zoomKey": "scrollwheel",
-				"zoom": "Zoom camera",
-				"panKey": "arrow keys / mouse at screen edge",
-				"pan": "Move camera",
-				"tiltKey": "ctrl + scrollwheel",
-				"tilt": "Change camera angle",
-				"dragKey": "middle click (+ drag)",
-				"drag": "Drag camera",
 				"flip": "Flip camera",
 				"moveForward": "Move camera forward",
 				"moveBack": "Move camera back",
@@ -402,21 +383,16 @@
 				"moveUp": "Move camera up",
 				"moveDown": "Move camera down",
 				"moveFast": "Move camera faster",
-				"moveSlow": "Move camera slower",
 				"setAnchor": "Set camera anchor %{n}",
 				"jumpAnchor": "Jump to camera anchor %{n}",
 				"pipSwitch": "Swap camera with picture-in-picture",
 				"pipCopy": "Copy camera to picture-in-picture",
 				"pipTrack": "Track selection in picture-in-picture",
 				"fovIncrease": "Increase field of view",
-				"fovDecrease": "Decrease field of view",
-				"moveReset": "Reset camera",
-				"moveRotate": "Rotate camera",
-				"moveTilt": "Tilt camera"
+				"fovDecrease": "Decrease field of view"
 			},
 			"cameraModes": {
 				"title": "Camera modes",
-				"changeKey": "ctrl + f1,2,3,4,5",
 				"change": "Change camera type",
 				"fullscreen": "Toggle fullscreen",
 				"overview": "Toggle overview camera",
@@ -445,7 +421,6 @@
 				"gameInfo": "Game info",
 				"saveGame": "Save game",
 				"screenshot": "Take screenshot",
-				"widgetSelector": "Open widget selector",
 				"firingRange": "Display firing range"
 			},
 			"sound": {
@@ -456,55 +431,43 @@
 			},
 			"selection": {
 				"title": "Selecting units",
-				"unitsKey": "left mouse (+ drag)",
-				"units": "Select or deselect units",
 				"commAppend": "Add commander to selection",
 				"commFocus": "Select and go to commander",
-				"boxAny": "Box select: all units",
-				"boxAppend": "Box select: add to selection",
-				"boxDeselect": "Box select: remove from selection",
-				"boxMobile": "Box select: mobile units only",
 				"boxIdle": "Box select: idle units only",
 				"boxSame": "Box select: matching unit types",
-				"loopActivate": "Loop select: activate",
-				"loopAdd": "Loop select: add to selection",
-				"loopInvert": "Loop select: invert selection"
-			},
-			"issueContextOrders": {
-				"orderKey": "right mouse (single click)",
-				"order": "Give order to unit(s)",
-				"formationOrderKey": "right mouse (drag)",
-				"formationOrder": "Give formation order to unit(s)"
+				"loopActivate": "Loop select: activate"
 			},
 			"orders": {
 				"title": "Orders",
-				"move": "Move",
+				"areaAttack": "Area attack",
 				"attack": "Attack",
-				"stop": "Stop (clears order queue)",
-				"repair": "Repair",
-				"reclaim": "Reclaim",
-				"resurrect": "Resurrect",
-				"patrol": "Patrol",
-				"fight": "Fight",
-				"setTarget": "Set priority target",
 				"cancelTarget": "Cancel priority target",
-				"wait": "Wait (pause current command)",
-				"waitQueued": "Wait (queued)",
+				"capture": "Capture",
 				"cloak": "Cloak",
 				"dGun": "DGun",
+				"fight": "Fight",
+				"gatherWait": "Gather wait",
+				"guard": "Guard",
+				"loadUnits": "Load units",
+				"manualLaunch": "Manual launch",
+				"move": "Move",
+				"patrol": "Patrol",
+				"reclaim": "Reclaim",
+				"repair": "Repair",
+				"restore": "Restore terrain",
+				"resurrect": "Resurrect",
 				"selfDestruct": "Self-destruct",
-				"selfDestructQueued": "Self-destruct (queued)"
-			},
-			"issueOrders": {
-				"orderKey": "left mouse (single click)",
-				"order": "Give order to unit(s)",
-				"revert": "Revert to default order",
-				"revertKey": "right mouse (single click)"
+				"selfDestructQueued": "Self-destruct (queued)",
+				"setTarget": "Set priority target",
+				"setTargetNoGround": "Set unit target",
+				"stop": "Stop (clears order queue)",
+				"stopProduction": "Stop production",
+				"unloadUnits": "Unload units",
+				"wait": "Wait (pause current command)",
+				"waitQueued": "Wait (queued)"
 			},
 			"queues": {
 				"title": "Order modifiers",
-				"append": "Add order to end of order queue",
-				"appendKey": "shift + (some order)",
 				"prepend": "Add order to start of order queue",
 				"skipCurrent": "Skip current command",
 				"cancelLast": "Cancel last command"
@@ -514,19 +477,12 @@
 				"rotateBack": "Rotate building placement (reverse)"
 			},
 			"issueBuildOrders": {
-				"orderKey": "left mouse",
-				"order": "Give build order",
-				"lineKey": "shift + (build order)",
-				"line": "Build in a line",
-				"gridKey": "shift + alt + (build order)",
-				"grid": "Build in a square",
 				"spacingUp": "Increase build spacing",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
 				"all": "Select all units",
 				"builders": "Select all constructors",
-				"removeAutoGroupKey": "alt + `",
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"sameType": "Select all units of same type as selected",
 				"damaged": "Select damaged units",
@@ -538,30 +494,13 @@
 			},
 			"drawing": {
 				"title": "Drawing",
-				"mapmarkKey": "` + dbl click",
-				"mapmark": "Place map mark",
-				"drawKey": "` + drag left mouse",
 				"draw": "Draw on map",
-				"eraseKey": "` + drag right mouse",
-				"erase": "Erase drawings and markers",
 				"drawInMap": "Draw",
 				"drawLabel": "Place label"
 			},
 			"console": {
 				"erase": "Erase all drawings and markers",
 				"pause": "Pause"
-			},
-			"moreOrders": {
-				"areaAttack": "Area attack",
-				"guard": "Guard",
-				"capture": "Capture",
-				"restore": "Restore terrain",
-				"setTargetNoGround": "Set unit target",
-				"loadUnits": "Load units",
-				"unloadUnits": "Unload units",
-				"gatherWait": "Gather wait",
-				"manualLaunch": "Manual launch",
-				"stopProduction": "Stop production"
 			},
 			"unitStates": {
 				"title": "Unit states",
@@ -611,7 +550,6 @@
 				"title": "Build",
 				"unit": "Build %{n}",
 				"areaMex": "Area mex",
-				"skipAlliedUpgrade": "Toggle skipping allied units when upgrading",
 				"split": "Split build orders between builders"
 			},
 			"blueprints": {
@@ -732,7 +670,7 @@
 			"heightTitle": "Height",
 			"heightmap": "[%{keyset}] Displays a different color for every height level",
 			"pathingTitle": "Traversability",
-			"pathing":"[%{keyset}] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
+			"pathing": "[%{keyset}] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
 			"resourcesTitle": "Resources",
 			"resources": "[%{keyset}] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
 		},
@@ -774,14 +712,14 @@
 			"airWave1": "Flying Raptors, incoming!",
 			"airWave2": "%{unitCount} Raptors!",
 			"queenIsAngry1": {
-				"one"   : "The Queen is here!",
-				"other" : "The Queens are here!"
+				"one": "The Queen is here!",
+				"other": "The Queens are here!"
 			},
 			"queenIsAngry2": "Prepare yourself for the final battle!",
 			"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
-			"resistanceUnits":{
-				"one"   : "The Queen is becoming resistant to:",
-				"other" : "The Queens are becoming resistant to:"
+			"resistanceUnits": {
+				"one": "The Queen is becoming resistant to:",
+				"other": "The Queens are becoming resistant to:"
 			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Raptors!",
@@ -794,25 +732,25 @@
 			"queenAngerAggression": "Player Aggression: +%{value}%%/s",
 			"queenAngerEco": "Economy: +%{value}%%/s",
 			"queenETA": {
-				"one"   : "Queen arrives in: %{time}.",
-				"other" : "%{count} queens arrive in: %{time}"
+				"one": "Queen arrives in: %{time}.",
+				"other": "%{count} queens arrive in: %{time}"
 			},
 			"queenHealth": {
-				"one"   : "Queen Health: %{health}%%",
-				"other" : "Queen Healths: %{health}%%"
+				"one": "Queen Health: %{health}%%",
+				"other": "Queen Healths: %{health}%%"
 			},
 			"queensKilled": "Queens Killed: %{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "Queen is resistant to:",
-				"other" : "Queens are resistant to:"
+				"one": "Queen is resistant to:",
+				"other": "Queens are resistant to:"
 			},
 			"queenStaggerActive": {
-				"one"   : "Queen is Staggered!",
-				"other" : "Queens are Staggered!"
+				"one": "Queen is Staggered!",
+				"other": "Queens are Staggered!"
 			},
 			"queenStaggerPercentage": {
-				"one"   : "Queen Stagger: %{value}%%",
-				"other" : "Queens Stagger: %{value}%%"
+				"one": "Queen Stagger: %{value}%%",
+				"other": "Queens Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -836,14 +774,14 @@
 			"firstWave1": "The Scavengers have arrived!",
 			"firstWave2": "Get ready to defend yourself!",
 			"bossIsAngry1": {
-				"one"   : "The Boss is here!",
-				"other" : "The Bosses are here!"
+				"one": "The Boss is here!",
+				"other": "The Bosses are here!"
 			},
 			"bossIsAngry2": "Prepare yourself for the final battle!",
 			"bossResistant": "The Boss is becoming resistant to %{unit} attacks!",
 			"resistanceUnits": {
-				"one"   : "The Boss is becoming resistant to:",
-				"other" : "The Bosses are becoming resistant to:"
+				"one": "The Boss is becoming resistant to:",
+				"other": "The Bosses are becoming resistant to:"
 			},
 			"wave1": "Wave %{waveNumber}",
 			"wave2": "%{unitCount} Scavs!",
@@ -856,25 +794,25 @@
 			"bossAngerAggression": "Player Aggression: +%{value}%%/s",
 			"bossAngerEco": "Economy: +%{value}%%/s",
 			"bossETA": {
-				"one"   : "Boss arrives in: %{time}.",
-				"other" : "%{count} bosses arrive in: %{time}"
+				"one": "Boss arrives in: %{time}.",
+				"other": "%{count} bosses arrive in: %{time}"
 			},
 			"bossHealth": {
-				"one"   : "Boss Health: %{health}%%",
-				"other" : "Boss Healths: %{health}%%"
+				"one": "Boss Health: %{health}%%",
+				"other": "Boss Healths: %{health}%%"
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "Boss is resistant to:",
-				"other" : "Bosses are resistant to:"
+				"one": "Boss is resistant to:",
+				"other": "Bosses are resistant to:"
 			},
 			"bossStaggerActive": {
-				"one"   : "Boss is Staggered!",
-				"other" : "Bosss are Staggered!"
+				"one": "Boss is Staggered!",
+				"other": "Bosss are Staggered!"
 			},
 			"bossStaggerPercentage": {
-				"one"   : "Boss Stagger: %{value}%%",
-				"other" : "Bosss Stagger: %{value}%%"
+				"one": "Boss Stagger: %{value}%%",
+				"other": "Bosss Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -1000,7 +938,7 @@
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} is being attacked!",
-			"cantMove":"%{unit}: Can't reach destination!"
+			"cantMove": "%{unit}: Can't reach destination!"
 		},
 		"unitShare": {
 			"shared": "shared %{units} to %{name}",
@@ -1199,15 +1137,15 @@
 			"metalIncome_title": "Metal Income",
 			"metalIncome_tooltip": "Metal income per second",
 			"energyConversionMetalIncome_title": "Metal Conversion",
-			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion" ,
+			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion",
 			"energyIncome_title": "Energy Income",
 			"energyIncome_tooltip": "Energy income per second",
 			"buildPower_title": "Build Power",
 			"buildPower_tooltip": "Build power at disposal",
 			"metalProduced_title": "Metal Produced",
-			"metalProduced_tooltip": "Total metal produced" ,
+			"metalProduced_tooltip": "Total metal produced",
 			"energyProduced_title": "Energy Produced",
-			"energyProduced_tooltip": "Total energy produced" ,
+			"energyProduced_tooltip": "Total energy produced",
 			"metalExcess_title": "Metal Excess",
 			"metalExcess_tooltip": "Total metal excess",
 			"energyExcess_title": "Energy Excess",
@@ -2094,11 +2032,11 @@
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
 		}
 	},
-	"cmd":{
-		"cheat":"Allow commands for cheating",
-		"give":"Give units (needs /cheat)",
-		"globallos":"See everything (needs /cheat)",
-		"godmode":"God mode (needs /cheat)",
+	"cmd": {
+		"cheat": "Allow commands for cheating",
+		"give": "Give units (needs /cheat)",
+		"globallos": "See everything (needs /cheat)",
+		"godmode": "God mode (needs /cheat)",
 		"advmapshading": "Control advanced map shading mode",
 		"advmodelshading": "Control advanced model shading mode",
 		"aicontrol": "Creates a new instance of a Skirmish AI, to let it control a specific team",
@@ -2334,7 +2272,7 @@
 			"AnimationMT": "Enable multithreaded execution of animation ticks",
 			"AtiHacks": "Enables graphics drivers workarounds for users with AMD proprietary drivers.\n -1:=runtime detect, 0:=off, 1:=on",
 			"AtiSwapRBFix": "No description available",
-			"AutoAddBuiltUnitsToFactoryGroup": "Controls whether or not units built by factories will inherit that factory\u0027s unit group.",
+			"AutoAddBuiltUnitsToFactoryGroup": "Controls whether or not units built by factories will inherit that factory's unit group.",
 			"AutoAddBuiltUnitsToSelectedGroup": "No description available",
 			"AutohostIP": "No description available",
 			"AutohostPort": "Which port should the engine listen on for Autohost interfact connections.",
@@ -2357,12 +2295,12 @@
 			"CameraMoveSlowMult": "The multiplier applied to speed when camera is in moveslow state.",
 			"CamFrameTimeCorrection": "Sets wether the camera interpolation factor should be the inverse of fps or last draw frame time (0 = lastdrawframetime, 1 = fpsinv)",
 			"CamFreeAngVelTime": "No description available",
-			"CamFreeAutoTilt": "When free camera is locked, AutoTilt will point the camera in the direction of the ground\u0027s slope",
+			"CamFreeAutoTilt": "When free camera is locked, AutoTilt will point the camera in the direction of the ground's slope",
 			"CamFreeEnabled": "No description available",
 			"CamFreeFOV": "No description available",
 			"CamFreeGoForward": "No description available",
 			"CamFreeGravity": "When free camera is locked, Gravity will be used if you jump off of a ground ramp.",
-			"CamFreeGroundOffset": "Determines ground handling for the free camera.\n0 - the camera can move anywhere,\n\u003c 0 - the camera is always offset from the ground height by -CamFreeGroundOffset\n\u003e 0 - the camera can be \"locked\" to the ground by using SHIFT UP_ARROW. (and will use CamFreeGroundOffset as the offset). To release the lock, simply press SHIFT DOWN_ARROW.",
+			"CamFreeGroundOffset": "Determines ground handling for the free camera.\n0 - the camera can move anywhere,\n< 0 - the camera is always offset from the ground height by -CamFreeGroundOffset\n> 0 - the camera can be \"locked\" to the ground by using SHIFT UP_ARROW. (and will use CamFreeGroundOffset as the offset). To release the lock, simply press SHIFT DOWN_ARROW.",
 			"CamFreeInvertAlt": "No description available",
 			"CamFreeScrollSpeed": "No description available",
 			"CamFreeSlide": "No description available",
@@ -2409,7 +2347,7 @@
 			"DumpGameStateOnDesync": "Enable writing clientgamestate and servergamestate dumps when a desync is detected",
 			"EdgeMoveDynamic": "If EdgeMove scrolling speed should fade with edge distance.",
 			"EdgeMoveWidth": "The width (in percent of screen size) of the EdgeMove scrolling area.",
-			"ExtraTextureUpdateRate": "EXTREME CPU-HEAVY ON MEDIUM/BIG MAPS! DON\u0027T CHANGE DEFAULT!",
+			"ExtraTextureUpdateRate": "EXTREME CPU-HEAVY ON MEDIUM/BIG MAPS! DON'T CHANGE DEFAULT!",
 			"FeatureDrawDistance": "Maximum distance at which features will be drawn.",
 			"FeatureFadeDistance": "Distance at which features will begin to fade from view.",
 			"FontFile": "Sets the font of Spring engine text.",
@@ -2436,7 +2374,7 @@
 			"GLContextMajorVersion": "No description available",
 			"GLContextMinorVersion": "No description available",
 			"GrassDetail": "Sets how detailed the engine rendered grass will be on any given map.",
-			"GroundDecals": "Controls whether ground decals underneath buildings, unit tracks \u0026 footprints as well as ground scars from explosions will be rendered.",
+			"GroundDecals": "Controls whether ground decals underneath buildings, unit tracks & footprints as well as ground scars from explosions will be rendered.",
 			"GroundDetail": "Controls how detailed the map geometry will be. On lowered settings, cliffs may appear to be jagged or \"melting\".",
 			"GroundLODScaleReflection": "No description available",
 			"GroundLODScaleRefraction": "No description available",
@@ -2474,7 +2412,7 @@
 			"LODScaleRefraction": "No description available",
 			"LODScaleShadow": "No description available",
 			"LogClientData": "No description available",
-			"LogFlushLevel": "Flush the logfile when a message\u0027s level exceeds this value. ERROR is flushed by default, WARNING is not.",
+			"LogFlushLevel": "Flush the logfile when a message's level exceeds this value. ERROR is flushed by default, WARNING is not.",
 			"LogRepeatLimit": "Allow at most this many consecutive identical messages to be logged.",
 			"LogSections": "Comma-separated list of enabled logsections, see infolog.txt / console output for possible values.",
 			"LuaGarbageCollectionMemLoadMult": "How much the amount of Lua memory in use increases the rate of garbage collection.",
@@ -2519,7 +2457,7 @@
 			"MouseDragScrollThreshold": "No description available",
 			"MouseDragSelectionThreshold": "Distance in pixels which the mouse must be dragged to trigger a selection box.",
 			"MouseRelativeModeWarp": "No description available",
-			"MSAALevel": "Enables multisample anti-aliasing; \u0027level\u0027 is the number of samples used.",
+			"MSAALevel": "Enables multisample anti-aliasing; 'level' is the number of samples used.",
 			"name": "Sets your name in the game. Since this is overridden by lobbies with your lobby username when playing, it usually only comes up when viewing replays or starting the engine directly for testing purposes.",
 			"NetworkLossFactor": "No description available",
 			"NetworkTimeout": "Number of seconds before connection to game server is considered lost.",
@@ -2533,7 +2471,7 @@
 			"PathingThreadCount": "No description available",
 			"PitchAdjust": "Adjusts sound pitch proportional to [if set to 1, the square root of] game speed. Set to 2 for linear scaling.",
 			"PreloadModels": "The engine will preload all models",
-			"RapidTagResolutionOrder": "\u0027;\u0027 separated list of domains, preference order for resolving package from rapid tags",
+			"RapidTagResolutionOrder": "';' separated list of domains, preference order for resolving package from rapid tags",
 			"ReconnectTimeout": "No description available",
 			"RendererHash": "No description available",
 			"ROAM": "Use ROAM for terrain mesh rendering: 0 to disable, 1=VBO mode to enable.",
@@ -2579,10 +2517,10 @@
 			"SoftParticles": "Soften up CEG particles on clipping edges",
 			"Sound": "Enables (OpenAL) or disables sound.",
 			"SourcePort": "No description available",
-			"SpeedControl": "Sets how server adjusts speed according to player\u0027s load (CPU), 1: use average, 2: use highest",
+			"SpeedControl": "Sets how server adjusts speed according to player's load (CPU), 1: use average, 2: use highest",
 			"SplashScreenDir": "No description available",
-			"SpringData": "List of additional data-directories, separated by \u0027;\u0027 on Windows and \u0027:\u0027 on other OSs",
-			"SpringDataRoot": "Optional custom data-directory content root (\u0027base\u0027, \u0027maps\u0027, ...) to scan for archives",
+			"SpringData": "List of additional data-directories, separated by ';' on Windows and ':' on other OSs",
+			"SpringDataRoot": "Optional custom data-directory content root ('base', 'maps', ...) to scan for archives",
 			"SSMFTexAniso": "No description available",
 			"StoreDefaultSettings": "springsettings.cfg will save the settings values, if they match the implicit defaults and were set by a user explicitly",
 			"TCPAllowConnect": "No description available",
@@ -2598,7 +2536,7 @@
 			"UnitIconDist": "No description available",
 			"UnitIconFadeStart": "No description available",
 			"UnitIconFadeVanish": "No description available",
-			"UnitIconsAsUI": "Draw unit icons like it is an UI element and not like unit\u0027s LOD.",
+			"UnitIconsAsUI": "Draw unit icons like it is an UI element and not like unit's LOD.",
 			"UnitIconScaleUI": "No description available",
 			"UnitIconsHideWithUI": "Hide unit icons when UI is hidden.",
 			"UnitLodDist": "No description available",
@@ -2680,7 +2618,7 @@
 		"reloadcegs": "Reloads CEG scripts (needs /cheat)",
 		"reloadcob": "Reloads COB scripts (needs /cheat)",
 		"skip": "Fast-forwards to a given frame, or stops fast-forwarding",
-		"luarules":{
+		"luarules": {
 			"loadmissiles": "Load missiles into all stockpile units",
 			"givecat": {
 				"_description": "[name] Select units by (multiple) category filters (add 'no' in front of filter to exclude)",
