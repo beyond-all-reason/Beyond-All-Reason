@@ -1400,8 +1400,6 @@ end
 
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
-	self:UnitBuildStepPost()
-	self:FeatureBuildStepPost()
 	tracy.ZoneBeginN("G:GameFramePost")
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do

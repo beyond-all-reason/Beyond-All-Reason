@@ -232,6 +232,24 @@ local function install(gh)
 			self:UpdateCallIn(callin)
 		end
 	end
+
+	-- Wrap multi-env dispatchers for single-env synthetic callins at install
+	-- to prevent errors caused by discrepancies between here and gadgets.lua
+
+	if Script.GetSynced() then
+		local gameFramePost = gh.GameFramePost
+		function gh:GameFramePost(frameNum)
+			tracy.ZoneBeginN("G:GameFrameSummary")
+			self:UnitBuildStepPost()
+			self:FeatureBuildStepPost()
+			tracy.ZoneEnd()
+			return gameFramePost(self, frameNum)
+		end
+	end
+
+	if not Script.GetSynced() then
+
+	end
 end
 
 --------------------------------------------------------------------------------
