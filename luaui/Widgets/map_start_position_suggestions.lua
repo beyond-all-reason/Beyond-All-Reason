@@ -6,10 +6,9 @@ function widget:GetInfo()
 		desc = "Show expert recommended starting locations on the map",
 		license = "GNU GPL, v2 or later",
 		layer = 10000,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -68,7 +67,7 @@ local config = {
 local CIRCLE_RADIUS_SQUARED = config.circleRadius * config.circleRadius
 
 local vsx, vsy = spGetViewGeometry()
-local resMult = vsy/1440
+local resMult = vsy / 1440
 
 -- engine call optimizations
 -- =========================
@@ -134,7 +133,6 @@ local glUseShader = gl.UseShader
 
 ---@alias WidgetStartPositions table<AllyTeamID, WidgetTeamStartPositionEntry[]>
 
-
 -- loading and processing code
 -- ===========================
 
@@ -179,14 +177,10 @@ local function processModoptionTeamConfig(positions, teamPositions)
 end
 
 local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
-	Spring.Log(
-		widget:GetInfo().name,
-		LOG.INFO,
-		"Searching for start positions for " .. table.toString({
-			allyTeamCount = allyTeamCount,
-			playersPerTeam = playersPerTeam,
-		})
-	)
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
+		allyTeamCount = allyTeamCount,
+		playersPerTeam = playersPerTeam,
+	}))
 
 	for _, teamConfig in ipairs(modoptionData.team) do
 		if teamConfig.playersPerTeam == playersPerTeam and teamConfig.teamCount == allyTeamCount then
@@ -218,10 +212,7 @@ local function loadStartPositions()
 		return
 	end
 
-	local positions = processModoptionTeamConfig(
-		parsed.positions,
-		selectedConfig
-	)
+	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
 
 	return positions
 end
@@ -408,7 +399,8 @@ local function drawCircle(cx, cz, radius, segments, thickness, colors, colorsGlo
 	end
 end
 
-local spawnPointAlphaZeroColor = { config.spawnPointCircleColor[1], config.spawnPointCircleColor[2], config.spawnPointCircleColor[3], 0 }
+local spawnPointAlphaZeroColor =
+	{ config.spawnPointCircleColor[1], config.spawnPointCircleColor[2], config.spawnPointCircleColor[3], 0 }
 local mathDistance2dSquared = math.distance2dSquared
 
 local function buildCircleDisplayList()
@@ -433,7 +425,8 @@ local function buildCircleDisplayList()
 					if not circleColors[colorCount] then
 						circleColors[colorCount] = { r, g, b, a }
 					else
-						circleColors[colorCount][1], circleColors[colorCount][2], circleColors[colorCount][3], circleColors[colorCount][4] = r, g, b, a
+						circleColors[colorCount][1], circleColors[colorCount][2], circleColors[colorCount][3], circleColors[colorCount][4] =
+							r, g, b, a
 					end
 				end
 			end
@@ -446,7 +439,12 @@ local function buildCircleDisplayList()
 				for j = 1, colorCount do
 					baseCount = baseCount + 1
 					if not baseCircleColors[baseCount] then
-						baseCircleColors[baseCount] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], config.spawnPointCircleColor[4] }
+						baseCircleColors[baseCount] = {
+							circleColors[j][1],
+							circleColors[j][2],
+							circleColors[j][3],
+							config.spawnPointCircleColor[4],
+						}
 					else
 						baseCircleColors[baseCount][1] = circleColors[j][1]
 						baseCircleColors[baseCount][2] = circleColors[j][2]
@@ -467,7 +465,8 @@ local function buildCircleDisplayList()
 				if not glowColors[j] then
 					glowColors[j] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha }
 				else
-					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] = circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha
+					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] =
+						circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha
 				end
 			end
 			for j = colorCount + 1, #glowColors do
@@ -478,9 +477,24 @@ local function buildCircleDisplayList()
 
 			if position.baseCenter then
 				local bx, bz = position.baseCenter.x, position.baseCenter.z
-				glColor(config.baseCenterCircleColor[1], config.baseCenterCircleColor[2], config.baseCenterCircleColor[3], config.baseCenterCircleColor[4])
+				glColor(
+					config.baseCenterCircleColor[1],
+					config.baseCenterCircleColor[2],
+					config.baseCenterCircleColor[3],
+					config.baseCenterCircleColor[4]
+				)
 				drawCircle(bx, bz, config.circleRadius, 128, config.circleThickness, config.baseCenterCircleColor, nil)
-				drawArrow(sx, spGetGroundHeight(sx, sz), sz, bx, spGetGroundHeight(bx, bz), bz, 70, spawnPointAlphaZeroColor, config.spawnPointCircleColor)
+				drawArrow(
+					sx,
+					spGetGroundHeight(sx, sz),
+					sz,
+					bx,
+					spGetGroundHeight(bx, bz),
+					bz,
+					70,
+					spawnPointAlphaZeroColor,
+					config.spawnPointCircleColor
+				)
 			end
 		end
 	end
@@ -502,16 +516,19 @@ local function getCaptions(role)
 	local roles = role:split("/")
 
 	if #roles == 1 then
-		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		title = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 	elseif #roles > 1 then
-		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+		local title1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = BAR.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
 
-		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
-		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+		local description1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = BAR.I18N(
+			"ui.startPositionSuggestions.multiRole.description",
+			{ role1 = description1, role2 = description2 }
+		)
 	end
 
 	captionsCache[role] = { title = title, description = description }
@@ -618,12 +635,9 @@ local function wrapLine(str, maxLength)
 end
 
 local function wrapText(str, maxLength)
-	local result = string.gsub(str,
-		"[^\n]*",
-		function(s)
-			return wrapLine(s, maxLength)
-		end
-	)
+	local result = string.gsub(str, "[^\n]*", function(s)
+		return wrapLine(s, maxLength)
+	end)
 	return result
 end
 
@@ -644,14 +658,11 @@ local function drawTooltip()
 	end
 
 	if not wrappedDescriptionCache[tooltipKey] then
-		wrappedDescriptionCache[tooltipKey] = wrapText(
-			getCaptions(tooltipKey).description,
-			config.tooltipMaxWidthChars
-		)
+		wrappedDescriptionCache[tooltipKey] = wrapText(getCaptions(tooltipKey).description, config.tooltipMaxWidthChars)
 	end
 
 	local xOffset, yOffset = 20, -12
-	WG["tooltip"].ShowTooltip(
+	WG.tooltip.ShowTooltip(
 		"startPositionTooltip",
 		wrappedDescriptionCache[tooltipKey],
 		x + xOffset,
@@ -661,48 +672,39 @@ local function drawTooltip()
 end
 
 local function drawTutorial()
-	if config.hasRunBefore and (not WG["notifications"] or not WG["notifications"].getTutorial()) then
+	if config.hasRunBefore and (not WG.notifications or not WG.notifications.getTutorial()) then
 		return
 	end
 
 	if not cachedTutorialText then
-		cachedTutorialText = wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
-			config.tutorialMaxWidthChars
-		)
+		cachedTutorialText = wrapText(BAR.I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
 	end
 
-	fontTutorial:SetOutlineColor(0,0,0,1)
+	fontTutorial:SetOutlineColor(0, 0, 0, 1)
 	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
-	fontTutorial:Print(
-		cachedTutorialText,
-		vsx * 0.5,
-		vsy * 0.61,
-		config.tutorialTextSize*resMult,
-		"cao"
-	)
+	fontTutorial:Print(cachedTutorialText, vsx * 0.5, vsy * 0.61, config.tutorialTextSize * resMult, "cao")
 end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	resMult = vsy/1440
+	resMult = vsy / 1440
 	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.8
 	font = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		baseFontSize*resMult,
-		(baseFontSize*resMult) / 14,
+		baseFontSize * resMult,
+		(baseFontSize * resMult) / 14,
 		1
 	)
 	fontTutorial = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14
+		config.tutorialTextSize * resMult,
+		(config.tutorialTextSize * resMult) / 14
 	)
 end
 
 function widget:GetConfigData()
 	return {
-		hasRunBefore = true
+		hasRunBefore = true,
 	}
 end
 
@@ -747,9 +749,15 @@ local function checkTooltips()
 	for allyTeamID, teamStartPosition in pairs(startPositions) do
 		for i, position in ipairs(teamStartPosition) do
 			local newKey
-			if math.distance2dSquared(mwx, mwz, position.spawnPoint.x, position.spawnPoint.z) < CIRCLE_RADIUS_SQUARED then
+			if
+				math.distance2dSquared(mwx, mwz, position.spawnPoint.x, position.spawnPoint.z) < CIRCLE_RADIUS_SQUARED
+			then
 				newKey = position.role
-			elseif position.baseCenter and math.distance2dSquared(mwx, mwz, position.baseCenter.x, position.baseCenter.z) < CIRCLE_RADIUS_SQUARED then
+			elseif
+				position.baseCenter
+				and math.distance2dSquared(mwx, mwz, position.baseCenter.x, position.baseCenter.z)
+					< CIRCLE_RADIUS_SQUARED
+			then
 				newKey = "baseCenter"
 			end
 
@@ -788,10 +796,12 @@ local function getPlacedCommanders()
 		for i = 1, #newPlacedCommanders do
 			local old = placedCommanders[i]
 			local new = newPlacedCommanders[i]
-			if old.teamID ~= new.teamID or
-			   old.position[1] ~= new.position[1] or
-			   old.position[2] ~= new.position[2] or
-			   old.position[3] ~= new.position[3] then
+			if
+				old.teamID ~= new.teamID
+				or old.position[1] ~= new.position[1]
+				or old.position[2] ~= new.position[2]
+				or old.position[3] ~= new.position[3]
+			then
 				modified = true
 				break
 			end

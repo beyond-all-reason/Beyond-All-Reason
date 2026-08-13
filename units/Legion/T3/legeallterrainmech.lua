@@ -35,7 +35,7 @@ return {
 		turnrate = 265.64999,
 		customparams = {
 			model_author = "ZephyrSkies (model), Johnathan Crimson, Darth Mikey, Protar (Concept Art)",
-            maxrange = "1300",
+			maxrange = "1300",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/T3",
 			techlevel = 3,
@@ -109,9 +109,9 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidneutral = true,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				cegtag = "starfire_arty",
-                collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
@@ -130,7 +130,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_priority = true,
@@ -173,9 +173,9 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidneutral = true,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				cegtag = "starfire_arty",
-                collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
@@ -195,7 +195,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 7,
 					exclude_preaim = true,
 					smart_backup = true,
@@ -213,7 +213,7 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "starfire_arty",
-                collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
@@ -237,14 +237,14 @@ return {
 					smart_trajectory_checker = true,
 				},
 				damage = {
-					default = 0
+					default = 0,
 				},
 			},
 			drone_controller = {
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,
-                collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
@@ -271,24 +271,24 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legheavydronesmall",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "legheavydronesmall", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1600,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 12, 				--Spawnrate roughly in seconds.
-					maxunits = 2,				--Will spawn units until this amount has been reached.
+					spawns_surface = "LAND", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 12, --Spawnrate roughly in seconds.
+					maxunits = 2, --Will spawn units until this amount has been reached.
 					startingdronecount = 0,
-					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1500,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 1000, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1500, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					deathdecayrate = 50,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 256,
 					docktohealthreshold = 33,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "32 33",
-					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 2,
 					stockpilemetal = 90,
 					stockpileenergy = 1000,
@@ -302,10 +302,10 @@ return {
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				burst = 3,
 				burstrate = 0.005,
-                collidefriendly = false,
+				collidefriendly = false,
 				--sprayangle = 20000,
 				dance = 150,
 				cegtag = "missiletrailaa",
@@ -340,7 +340,7 @@ return {
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
-                fixedlauncher = true;
+				fixedlauncher = true,
 				weaponacceleration = 300,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
@@ -369,12 +369,12 @@ return {
 				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},
-            [5] = {
+			[5] = {
 				badtargetcategory = "VTOL",
 				def = "drone_controller",
 				onlytargetcategory = "NOTSUB",
-            },
-            [4] = {
+			},
+			[4] = {
 				badtargetcategory = "SURFACE LIGHTAIRSCOUT",
 				def = "light_antiair_missile",
 				onlytargetcategory = "VTOL",

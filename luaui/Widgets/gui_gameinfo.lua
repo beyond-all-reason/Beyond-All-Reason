@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathMax = math.max
@@ -31,9 +30,9 @@ local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, sh
 local maxLines = 22
 local math_isInRect = math.isInRect
 
-local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
+local raptorsEnabled = BAR.Utilities.Gametype.IsRaptors()
 
-local content = ''
+local content = ""
 
 local tidal = Game.tidal
 local map_tidal = Spring.GetModOptions().map_tidal
@@ -57,16 +56,16 @@ end
 local defaultModoptions = VFS.Include("modoptions.lua")
 local modoptionsDefault = {}
 for key, value in pairs(defaultModoptions) do
-	modoptionsDefault[value.key] = {name = value.name, desc = value.desc, def = value.def}
+	modoptionsDefault[value.key] = { name = value.name, desc = value.desc, def = value.def }
 end
 
-local modoptions = Spring.GetModOptionsCopy()
+local modoptions = BAR.GetModOptionsCopy()
 local changedModoptions = {}
 local unchangedModoptions = {}
 local changedRaptorModoptions = {}
 local unchangedRaptorModoptions = {}
 for key, value in pairs(modoptions) do
-	if string.sub(key, 1, 8) == 'raptor_' then
+	if string.sub(key, 1, 8) == "raptor_" then
 		if raptorsEnabled then
 			if value == modoptionsDefault[key].def then
 				unchangedRaptorModoptions[key] = tostring(value)
@@ -77,27 +76,29 @@ for key, value in pairs(modoptions) do
 	end
 end
 
-
-
 local function stringifyDefTable(t, path, pathAddition)
-	if not path then path = {} end
+	if not path then
+		path = {}
+	end
 	path = table.copy(path)
 	if pathAddition then
-		path[#path+1] = pathAddition
+		path[#path + 1] = pathAddition
 	end
-	if #path > 10 then return '...' end
-	local text = ''
-	local depthSpacing = ''
-	for i=1, #path, 1 do
-		depthSpacing = depthSpacing .. '     '
+	if #path > 10 then
+		return "..."
+	end
+	local text = ""
+	local depthSpacing = ""
+	for i = 1, #path, 1 do
+		depthSpacing = depthSpacing .. "     "
 	end
 	for k, v in pairs(t) do
 		if type(v) == "table" then
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = {'
+			text = text .. "\n" .. valuegreycolor .. depthSpacing .. tostring(k) .. " = {"
 			text = text .. stringifyDefTable(v, path, k)
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '}'
+			text = text .. "\n" .. valuegreycolor .. depthSpacing .. "}"
 		else
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
+			text = text .. "\n" .. valuegreycolor .. depthSpacing .. tostring(k) .. " = " .. tostring(v)
 		end
 	end
 	return text
@@ -107,24 +108,28 @@ for key, value in pairs(modoptions) do
 	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
-		if not string.find(key, 'tweakunits') and not string.find(key, 'tweakdefs') then
+		if not string.find(key, "tweakunits") and not string.find(key, "tweakdefs") then
 			changedModoptions[key] = tostring(value)
 		else
-			if string.find(key, 'tweakdefs') then
+			if string.find(key, "tweakdefs") then
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, value)
-				changedModoptions[key] = '\n' .. (decodeSuccess and postsFuncStr or '\255\255\100\100 - '..Spring.I18N('ui.gameInfo.decodefailed').. ' - ')
+				changedModoptions[key] = "\n"
+					.. (
+						decodeSuccess and postsFuncStr
+						or "\255\255\100\100 - " .. BAR.I18N("ui.gameInfo.decodefailed") .. " - "
+					)
 			else
-        local dataRaw = string.gsub(value, '_', '=')
+				local dataRaw = string.gsub(value, "_", "=")
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
-				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, postsFuncStr)
+				local success, tweaks = pcall(BAR.Utilities.SafeLuaTableParser, postsFuncStr)
 
 				if success and type(tweaks) == "table" then
-					local text = ''
+					local text = ""
 					for name, ud in pairs(tweaks) do
 						if UnitDefNames[name] then
-							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = {'
-							text = text..stringifyDefTable(ud, {}, name)
-							text = text .. '\n' .. '}'
+							text = text .. "\n" .. valuecolor .. name .. valuegreycolor .. " = {"
+							text = text .. stringifyDefTable(ud, {}, name)
+							text = text .. "\n" .. "}"
 						end
 					end
 					changedModoptions[key] = text
@@ -143,8 +148,8 @@ local function SortFunc(myTable)
 			tableInsert(a, n)
 		end
 		table.sort(a, f)
-		local i = 0      -- iterator variable
-		local iter = function ()   -- iterator function
+		local i = 0 -- iterator variable
+		local iter = function() -- iterator function
 			i = i + 1
 			if a[i] == nil then
 				return nil
@@ -155,7 +160,7 @@ local function SortFunc(myTable)
 		return iter
 	end
 	local t = {}
-	for key,value in pairsByKeys(myTable) do
+	for key, value in pairsByKeys(myTable) do
 		tableInsert(t, { key = key, value = value })
 	end
 	return t
@@ -185,7 +190,7 @@ local widgetScale = (vsy / 1080)
 local fileLines = {}
 local totalFileLines = 0
 
-local showOnceMore = false        -- used because of GUI shader delay
+local showOnceMore = false -- used because of GUI shader delay
 
 local RectRound, UiElement, UiScroller, elementCorner
 
@@ -199,8 +204,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * 0.5) - (screenWidth / 2))
 	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
-	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -215,8 +220,8 @@ function widget:ViewResize()
 end
 
 function DrawTextarea(x, y, width, height, scrollbar)
-	local scrollbarOffsetTop = 0    -- note: wont add the offset to the bottom, only to top
-	local scrollbarOffsetBottom = 0    -- note: wont add the offset to the top, only to bottom
+	local scrollbarOffsetTop = 0 -- note: wont add the offset to the bottom, only to top
+	local scrollbarOffsetBottom = 0 -- note: wont add the offset to the top, only to bottom
 	local scrollbarMargin = 14 * widgetScale
 	local scrollbarWidth = 8 * widgetScale
 	local scrollbarPosWidth = 4 * widgetScale
@@ -243,8 +248,8 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				mathFloor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
 				mathFloor(x + width - scrollbarMargin),
 				mathFloor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
-				(#fileLines-1) * (lineSeparator + fontSizeTitle),
-				(startLine-1) * (lineSeparator + fontSizeTitle)
+				(#fileLines - 1) * (lineSeparator + fontSizeTitle),
+				(startLine - 1) * (lineSeparator + fontSizeTitle)
 			)
 		end
 	end
@@ -254,7 +259,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
-		while j < maxLines+1 do
+		while j < maxLines + 1 do
 			-- maxlines is not exact, just a failsafe
 			if (lineSeparator + fontSizeTitle) * j > height then
 				break
@@ -265,29 +270,35 @@ function DrawTextarea(x, y, width, height, scrollbar)
 
 			local numLines
 			local line = fileLines[lineKey]
-			if string.find(line, '::') then
-				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
-				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::') or '') + 1)
-				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * 0.65 * (loadedFontSize / fontSizeLine))
+			if string.find(line, "::") then
+				local cmd = string.match(line, "^[ %+a-zA-Z0-9_-]*") -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
+				local descr = string.sub(line, string.len(string.match(line, "^[ %+a-zA-Z0-9_-]*::") or "") + 1)
+				descr, numLines = font:WrapText(
+					descr,
+					(width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset)
+						* 0.65
+						* (loadedFontSize / fontSizeLine)
+				)
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break
 				end
 
 				font:SetTextColor(fontColorCommand)
-				font:Print(cmd, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(cmd, x + (18 * widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 
 				font:SetTextColor(fontColorLine)
-				font:Print(descr, x + (screenWidth*0.58), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(descr, x + (screenWidth * 0.58), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			else
 				-- line
 				font:SetTextColor(fontColorLine)
 				line = "" .. line
-				line, numLines = font:WrapText(line, (width - scrollbarMargin - scrollbarWidth) * (loadedFontSize / fontSizeLine))
+				line, numLines =
+					font:WrapText(line, (width - scrollbarMargin - scrollbarWidth) * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break
 				end
-				font:Print(line, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(line, x + (18 * widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 
@@ -301,26 +312,50 @@ end
 function DrawWindow()
 	-- title
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), mathFloor(screenY + (titleFontSize*1.7)) }
+	titleRect = {
+		screenX,
+		screenY,
+		mathFloor(
+			screenX + (font2:GetTextWidth(BAR.I18N("ui.gameInfo.title")) * titleFontSize) + (titleFontSize * 1.5)
+		),
+		mathFloor(screenY + (titleFontSize * 1.7)),
+	}
 
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
+	UiElement(
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY,
+		0,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		WG.FlowUI.clampedOpacity
+	)
 	gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(Spring.I18N('ui.gameInfo.title'), screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
+	font2:Print(
+		BAR.I18N("ui.gameInfo.title"),
+		screenX + (titleFontSize * 0.75),
+		screenY + (8 * widgetScale),
+		titleFontSize,
+		"on"
+	)
 	font2:End()
 
 	-- textarea
 	DrawTextarea(screenX, screenY - (8 * widgetScale), screenWidth, screenHeight - (24 * widgetScale), 1)
 end
 
-
-
 function widget:DrawScreen()
-
 	-- draw the help
 	if not mainDList then
 		mainDList = gl.CreateList(DrawWindow)
@@ -329,7 +364,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		-- draw the panel
 		glCallList(mainDList)
-		if WG['guishader'] then
+		if WG.guishader then
 			if backgroundGuishader then
 				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
@@ -339,19 +374,21 @@ function widget:DrawScreen()
 				-- title
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
-			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
+			WG.guishader.InsertDlist(backgroundGuishader, "gameinfo")
 		end
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+		if
+			math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
+			or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])
+		then
+			Spring.SetMouseCursor("cursornormal")
 		end
-
 	else
 		if backgroundGuishader then
-			if WG['guishader'] then
-				WG['guishader'].RemoveDlist('gameinfo')
+			if WG.guishader then
+				WG.guishader.RemoveDlist("gameinfo")
 			end
 			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
@@ -359,13 +396,12 @@ function widget:DrawScreen()
 end
 
 function widget:MouseWheel(up, value)
-
 	if show then
 		local addLines = value * -3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine > totalFileLines-maxLines then
-			startLine = totalFileLines-maxLines
+		if startLine > totalFileLines - maxLines then
+			startLine = totalFileLines - maxLines
 		end
 		if startLine < 1 then
 			startLine = 1
@@ -397,7 +433,10 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if
+			math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
+			or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])
+		then
 			return true
 		else
 			show = false
@@ -407,8 +446,8 @@ end
 
 function toggle()
 	local newShow = not show
-	if newShow and WG['topbar'] then
-		WG['topbar'].hideWindows()
+	if newShow and WG.topbar then
+		WG.topbar.hideWindows()
 	end
 	show = newShow
 
@@ -416,25 +455,101 @@ function toggle()
 end
 
 local function refreshContent()
-	content = ''
-	content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.engine') .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or Spring.I18N('ui.gameInfo.engineVersionError')) .. "\n"
+	content = ""
+	content = content
+		.. titlecolor
+		.. Game.gameName
+		.. valuegreycolor
+		.. " ("
+		.. Game.gameMutator
+		.. ") "
+		.. titlecolor
+		.. Game.gameVersion
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.engine")
+		.. separator
+		.. valuegreycolor
+		.. ((Game and Game.version) or (Engine and Engine.version) or BAR.I18N("ui.gameInfo.engineVersionError"))
+		.. "\n"
 	content = content .. "\n"
 
 	-- map info
 	content = content .. titlecolor .. Game.mapName .. "\n"
 	content = content .. valuegreycolor .. Game.mapDescription .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.size') .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.gravity') .. separator .. valuegreycolor .. Game.gravity .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.hardness') .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.tidalStrength') .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.reclaimableMetal') .. separator .. valuegreycolor .. reclaimable_metal .. keycolor .. "\n"
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.reclaimableEnergy') .. separator .. valuegreycolor .. reclaimable_energy .. keycolor .. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.size")
+		.. separator
+		.. valuegreycolor
+		.. Game.mapX
+		.. valuegreycolor
+		.. " x "
+		.. valuegreycolor
+		.. Game.mapY
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.gravity")
+		.. separator
+		.. valuegreycolor
+		.. Game.gravity
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.hardness")
+		.. separator
+		.. valuegreycolor
+		.. Game.mapHardness
+		.. keycolor
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.tidalStrength")
+		.. separator
+		.. valuegreycolor
+		.. tidal
+		.. keycolor
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.reclaimableMetal")
+		.. separator
+		.. valuegreycolor
+		.. reclaimable_metal
+		.. keycolor
+		.. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.reclaimableEnergy")
+		.. separator
+		.. valuegreycolor
+		.. reclaimable_energy
+		.. keycolor
+		.. "\n"
 
 	if Game.windMin == Game.windMax then
-		content = content .. keycolor .. Spring.I18N('ui.gameInfo.windStrength') .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
+		content = content
+			.. keycolor
+			.. BAR.I18N("ui.gameInfo.windStrength")
+			.. separator
+			.. valuegreycolor
+			.. Game.windMin
+			.. valuegreycolor
+			.. "\n"
 	else
-		content = content .. keycolor .. Spring.I18N('ui.gameInfo.windStrength') .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
+		content = content
+			.. keycolor
+			.. BAR.I18N("ui.gameInfo.windStrength")
+			.. separator
+			.. valuegreycolor
+			.. Game.windMin
+			.. valuegreycolor
+			.. "  -  "
+			.. valuegreycolor
+			.. Game.windMax
+			.. "\n"
 	end
 	local vcolor
 	if Game.waterDamage == 0 then
@@ -442,22 +557,41 @@ local function refreshContent()
 	else
 		vcolor = valuecolor
 	end
-	content = content .. keycolor .. Spring.I18N('ui.gameInfo.waterDamage') .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
+	content = content
+		.. keycolor
+		.. BAR.I18N("ui.gameInfo.waterDamage")
+		.. separator
+		.. vcolor
+		.. Game.waterDamage
+		.. keycolor
+		.. "\n"
 	content = content .. "\n"
 	if raptorsEnabled then
 		-- filter raptor modoptions
-		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.raptorOptions') .. "\n"
+		content = content .. titlecolor .. BAR.I18N("ui.gameInfo.raptorOptions") .. "\n"
 		for key, params in pairs(changedRaptorModoptions) do
-			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
+			content = content
+				.. keycolor
+				.. string.sub(params.key, 9)
+				.. separator
+				.. valuecolor
+				.. params.value
+				.. "\n"
 		end
 		for key, params in pairs(unchangedRaptorModoptions) do
-			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuegreycolor .. params.value .. "\n"
+			content = content
+				.. keycolor
+				.. string.sub(params.key, 9)
+				.. separator
+				.. valuegreycolor
+				.. params.value
+				.. "\n"
 		end
 		content = content .. "\n"
 	end
-	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
+	content = content .. titlecolor .. BAR.I18N("ui.gameInfo.modOptions") .. "\n"
 	for key, params in pairs(changedModoptions) do
-		local name = params.key	--modoptionsDefault[params.key].name
+		local name = params.key --modoptionsDefault[params.key].name
 		content = content .. keycolor .. name .. separator .. valuecolor .. params.value .. "\n"
 	end
 	for key, params in pairs(unchangedModoptions) do
@@ -470,11 +604,11 @@ local function refreshContent()
 end
 
 local function closeInfoHandler()
-  if show then
-    show = false
+	if show then
+		show = false
 
-    return true
-  end
+		return true
+	end
 end
 
 local spGetAllFeatures = Spring.GetAllFeatures
@@ -498,21 +632,21 @@ end
 function widget:Initialize()
 	refreshContent()
 
-	widgetHandler:AddAction("customgameinfo", toggle, nil, 'p')
-	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, 'p')
+	widgetHandler:AddAction("customgameinfo", toggle, nil, "p")
+	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, "p")
 
-	WG['gameinfo'] = {}
-	WG['gameinfo'].toggle = function(state)
+	WG.gameinfo = {}
+	WG.gameinfo.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG['topbar'] then
-			WG['topbar'].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 	end
-	WG['gameinfo'].isvisible = function()
+	WG.gameinfo.isvisible = function()
 		return show
 	end
 
@@ -527,8 +661,8 @@ function widget:Shutdown()
 		glDeleteList(mainDList)
 		mainDList = nil
 	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('gameinfo')
+	if WG.guishader then
+		WG.guishader.RemoveDlist("gameinfo")
 	end
 	if backgroundGuishader then
 		glDeleteList(backgroundGuishader)

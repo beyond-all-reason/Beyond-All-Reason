@@ -12,12 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local myTeamID
 
@@ -124,5 +123,5 @@ function widget:Initialize()
 
 	myTeamID = spGetMyTeamID()
 
-	widgetHandler:AddAction("selectcomm", handleSelectComm, nil, "pt")
+	widgetHandler:AddAction("selectcomm", handleSelectComm, nil, "p")
 end

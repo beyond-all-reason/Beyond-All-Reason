@@ -11,7 +11,6 @@ return {
 		collisionvolumescales = "40 20 50",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Floating Tank",
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
