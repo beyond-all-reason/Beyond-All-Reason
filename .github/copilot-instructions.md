@@ -113,7 +113,8 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 - Types: EmmyLua analyzer via `.emmyrc.json`, stubs in `types/`, engine definitions from the `recoil-lua-library`
   submodule. The codebase is at zero type errors — keep it there.
 - Integration tests: headless engine via `docker compose -f tools/headless_testing/docker-compose.yml`
-  (`.github/workflows/test_integration.yml`).
+  (`.github/workflows/test_integration.yml`). They can also be run without docker against an engine already
+  downloaded by an installed BAR client — see `tools/headless_testing/README.md`.
 - `BARScriptCompiler.exe` is an external BAR-Devtools binary, not checked into this repository. Use it only for
   `.bos` sources under `scripts/`, never for Lua.
 - `.git-blame-ignore-revs` lists bulk formatting and codemod commits; use it when reading history.
