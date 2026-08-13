@@ -3,6 +3,8 @@ require("spec_helper")
 local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
 local Builders = VFS.Include("spec/builders/index.lua")
 
+Builders.MissionApi.new():Install()
+
 local actions  = VFS.Include('luarules/mission_api/actions/transfer_units.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")

@@ -2,6 +2,8 @@ require("spec_helper")
 
 local Builders = VFS.Include("spec/builders/index.lua")
 
+Builders.MissionApi.new():Install()
+
 local actions  = VFS.Include('luarules/mission_api/actions/update_objective.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
