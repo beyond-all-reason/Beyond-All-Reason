@@ -49,12 +49,12 @@ local function updateFieldOfView(fovTarget, direction)
 	end
 
 	spEcho("FOV: " .. current_cam_state.fov)
-	Spring.SetCameraState(current_cam_state, WG["options"] and WG["options"].getCameraSmoothness() or 2)
+	Spring.SetCameraState(current_cam_state, WG.options and WG.options.getCameraSmoothness() or 2)
 end
 
 local function fieldOfViewHandler(_, _, args, data, isRepeat, isRelease)
 	local data = data or {}
-	direction = data["direction"]
+	direction = data.direction
 	local args = args or {}
 	fovTarget = (args[1] and tonumber(args[1])) or (direction == 0 and FOV_DEFAULT or STEP_DEFAULT)
 	updateFieldOfView(fovTarget, direction)

@@ -21,7 +21,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	if
-		(unitDef.minWaterDepth > 0 or unitDef.modCategories["ship"])
+		(unitDef.minWaterDepth > 0 or unitDef.modCategories.ship)
 		and not (
 			unitDef.customParams.restrictions_exclusion
 			and string.find(unitDef.customParams.restrictions_exclusion, "_nosea_")
