@@ -14,7 +14,7 @@ function test()
 	assert(WG.resource_spot_builder, "resource_spot_builder API widget not loaded")
 	assert(WG.resource_spot_builder.ExtractorCanBeUpgraded, "ExtractorCanBeUpgraded missing")
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 0
