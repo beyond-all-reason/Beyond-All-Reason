@@ -80,9 +80,9 @@ local function enum(...)
 	return result
 end
 
----@param a Point
----@param b Point
----@return Point
+---@param a Position3D
+---@param b Position3D
+---@return Position3D
 local function subtractPoints(a, b)
 	local result = {}
 	for i = 1, mathMax(#a, #b) do
@@ -91,10 +91,10 @@ local function subtractPoints(a, b)
 	return result
 end
 
----@param point Point
----@param center Point
+---@param point Position3D
+---@param center Position3D
 ---@param angle number
----@return Point
+---@return Position3D
 local function rotatePointXZ(point, center, angle)
 	local rotatedPoint = {}
 
@@ -200,6 +200,7 @@ local outlineVertexVBOLayout = {
 	{ id = 0, name = "position", size = 2 },
 }
 
+---@type InstanceVBOTable
 local outlineInstanceVBO = nil
 local outlineInstanceVBOLayout = {
 	{ id = 1, name = "position", size = 3 },
@@ -272,6 +273,11 @@ local UNIT_ALPHA = 0.6
 
 local BUILD_MODES = enum("SINGLE", "LINE", "SNAPLINE", "GRID", "BOX", "AROUND")
 
+---World-space footprint of a building, accounting for its facing.
+---@param unitDefID integer?
+---@param facing integer Build facing, `0`-`3`.
+---@return number width `0` when `unitDefID` is missing.
+---@return number depth
 local function getBuildingDimensions(unitDefID, facing)
 	if not unitDefID then
 		return 0, 0
@@ -284,6 +290,12 @@ local function getBuildingDimensions(unitDefID, facing)
 	end
 end
 
+---Axis-aligned bounds covering every unit's footprint, in blueprint-local space.
+---@param units BlueprintUnit[]
+---@return number? xMin `nil` when `units` is empty.
+---@return number? xMax
+---@return number? zMin
+---@return number? zMax
 local function getUnitsBounds(units)
 	if #units == 0 then
 		return nil, nil, nil, nil
@@ -310,6 +322,11 @@ local function getUnitsBounds(units)
 	return r.xMin, r.xMax, r.zMin, r.zMax
 end
 
+---Overall footprint of a blueprint, accounting for its facing.
+---@param blueprint Blueprint
+---@param facing integer? Build facing, `0`-`3`. Treated as unrotated when omitted.
+---@return number width `0` when the blueprint has no units.
+---@return number depth
 local function getBlueprintDimensions(blueprint, facing)
 	local xMin, xMax, zMin, zMax = getUnitsBounds(blueprint.units)
 
@@ -339,7 +356,7 @@ end
 ---
 ---Analogous to Pos2BuildPos (which positions individual units), but for whole blueprints.
 ---@param blueprint Blueprint
----@param pos Point
+---@param pos Position3D
 ---@param facing number
 local function snapBlueprint(blueprint, pos, facing)
 	local xSize, zSize = getBlueprintDimensions(blueprint, facing or 0)
@@ -532,8 +549,15 @@ local BUILD_MODES_HANDLERS = {
 	AROUND = getBuildPositionsAround,
 }
 
----@param blueprint Blueprint
----@param buildPositions table
+---A blueprint stamp location.
+---@class BuildPlacement
+---@field [1] number World X.
+---@field [2] number World Y. Always `0`: `fillRow` does not sample the ground.
+---@field [3] number World Z.
+---@field [4] integer? Build facing. Only the AROUND mode sets one; every other build
+---mode leaves this absent.
+
+---@param buildPositions BuildPlacement[]
 ---@return table
 local function createBuildings(blueprint, buildPositions)
 	local allBuildings = {}
@@ -561,7 +585,7 @@ end
 
 --- Gives build orders for a blueprint to a set of builders.
 ---@param blueprint Blueprint The blueprint to build.
----@param buildPositions table The locations to build the blueprint at.
+---@param buildPositions BuildPlacement[] The locations to build the blueprint at.
 ---@param builders number[] A list of builder unit IDs.
 ---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
 ---@param cmdOpts table Command options.
@@ -675,7 +699,7 @@ end
 
 ---Synchronize the building and outline instances with the given list of build positions.
 ---@param blueprint Blueprint
----@param buildPositions StartPoints
+---@param buildPositions BuildPlacement[]
 ---@param teamID number
 local function updateInstances(blueprint, buildPositions, teamID)
 	if isHeadless then
@@ -750,6 +774,9 @@ end
 -- api
 -- ===
 
+---Sets the blueprint currently being placed, substituting units from other factions
+---where needed. Pass `nil` to clear it and hide the ghost.
+---@param bp Blueprint?
 local function setActiveBlueprint(bp)
 	if not bp then
 		activeBlueprint = nil
@@ -796,16 +823,26 @@ local function setActiveBlueprint(bp)
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
 end
 
+---Sets the positions the active blueprint's ghost is drawn at.
+---@param buildPositions BuildPlacement[]
 local function setBlueprintPositions(buildPositions)
 	activeBuildPositions = buildPositions
 
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
 end
 
+---Works out where a blueprint should be stamped for the given placement mode.
+---@param blueprint Blueprint
+---@param mode "SINGLE"|"LINE"|"SNAPLINE"|"GRID"|"BOX"|"AROUND" A `BUILD_MODES` value.
+---@param ... any Mode-specific arguments, e.g. the drag start and end points.
+---@return BuildPlacement[] buildPositions
 local function calculateBuildPositions(blueprint, mode, ...)
 	return BUILD_MODES_HANDLERS[mode](blueprint, ...)
 end
 
+---Records which builders are selected, so the API knows what can be built and
+---which faction to substitute units to.
+---@param unitIDs integer[]
 local function setActiveBuilders(unitIDs)
 	activeBuilderBuildOptions = table.reduce(unitIDs, function(acc, cur)
 		local unitDefID = SpringGetUnitDefID(cur)
@@ -852,6 +889,10 @@ local function setActiveBuilders(unitIDs)
 	end
 end
 
+---Rebuilds a blueprint from its saved form, substituting units that are not in the
+---base game (e.g. Legion or unit-pack units) to a default faction so it stays usable.
+---@param serializedBlueprint SerializedBlueprint?
+---@return Blueprint? blueprint `nil` when the input is missing or has no `units`.
 local function createBlueprintFromSerialized(serializedBlueprint)
 	-- This function contains logic to handle blueprints with units that are not
 	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute

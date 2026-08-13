@@ -662,21 +662,27 @@ function widget:Initialize()
 	end
 
 	WG.ecostats = {}
+	---@return boolean show Whether resource values are shown as text.
 	WG.ecostats.getShowText = function()
 		return cfgResText
 	end
+	---@param value boolean Show resource values as text.
 	WG.ecostats.setShowText = function(value)
 		cfgResText = value
 	end
+	---@return boolean track Whether reclaimed resources are tracked.
 	WG.ecostats.getReclaim = function()
 		return cfgTrackReclaim
 	end
+	---@param value boolean Track reclaimed resources.
 	WG.ecostats.setReclaim = function(value)
 		cfgTrackReclaim = value
 	end
+	---@return boolean visible Only shown to spectators with full view.
 	WG.ecostats.isvisible = function()
 		return myFullview and inSpecMode
 	end
+	---@return number y Screen Y of the panel's bottom edge.
 	WG.ecostats.getWidgetPosY = function()
 		return widgetPosY
 	end

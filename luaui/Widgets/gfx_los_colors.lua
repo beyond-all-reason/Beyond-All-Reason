@@ -55,9 +55,12 @@ end
 
 function widget:Initialize()
 	WG.los = {}
+	---@return number opacity Opacity of the LOS overlay colors.
 	WG.los.getOpacity = function()
 		return opacity
 	end
+	---Sets the LOS overlay opacity and reapplies the view colors.
+	---@param value number
 	WG.los.setOpacity = function(value)
 		opacity = value
 		updateLOS()

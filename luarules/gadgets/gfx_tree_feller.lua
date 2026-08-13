@@ -317,6 +317,11 @@ if gadgetHandler:IsSyncedCode() then
 		return maxMetal == 0 and maxEnergy > 0
 	end
 
+	---Fells every tree within 125 elmos of a position, as used by the commander spawn blast.
+	---@param spawnx number
+	---@param spawny number
+	---@param spawnz number
+	---@return integer? aborted Returns `0` and stops early if a geothermal feature is in range.
 	local function ComSpawnDefoliate(spawnx, spawny, spawnz)
 		local blasted_trees = Spring.GetFeaturesInCylinder(spawnx, spawnz, 125)
 

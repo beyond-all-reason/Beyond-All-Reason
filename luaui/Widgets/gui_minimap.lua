@@ -37,6 +37,7 @@ local ratio = Game.mapX / Game.mapY
 local maxWidth = mathMin(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
 local usedWidth = mathFloor(maxWidth * vsy)
 local usedHeight = mathFloor(maxHeight * vsy)
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
@@ -138,24 +139,33 @@ function widget:Initialize()
 	_, _, _, _, minimized, maximized = Spring.GetMiniMapGeometry()
 
 	WG.minimap = {}
+	---@return number height Current minimap height in pixels, including its padding.
 	WG.minimap.getHeight = function()
 		return usedHeight + elementPadding
 	end
+	---@return integer pixels Highest the minimap may grow to.
+	---@return number fraction The same limit as a fraction of screen height.
 	WG.minimap.getMaxHeight = function()
 		return mathFloor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
+	---Sets how tall the minimap may grow, persists it, and relays out.
+	---@param value number Fraction of screen height.
 	WG.minimap.setMaxHeight = function(value)
 		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		maxAllowedHeight = value
 		widget:ViewResize()
 	end
+	---@return boolean move Whether left-clicking the minimap moves the camera.
 	WG.minimap.getLeftClickMove = function()
 		return leftClickMove
 	end
+	---Makes left-clicking the minimap move the camera, and persists the choice.
+	---@param value boolean
 	WG.minimap.setLeftClickMove = function(value)
 		leftClickMove = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
+	---@param value number Base scale for unit icons drawn on the minimap.
 	WG.minimap.setBaseIconScale = function(value)
 		baseMinimapIconScale = value
 	end

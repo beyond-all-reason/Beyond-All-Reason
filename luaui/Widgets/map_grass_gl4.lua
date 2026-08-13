@@ -1375,15 +1375,22 @@ function widget:Initialize()
 		return
 	end
 	WG.grassgl4 = {}
+	---@return number multiplier Scales how far away grass stays drawn.
 	WG.grassgl4.getDistanceMult = function()
 		return distanceMult
 	end
+	---@param value number Scales how far away grass stays drawn.
 	WG.grassgl4.setDistanceMult = function(value)
 		distanceMult = value
 	end
+	---@return boolean enabled Whether units bend the grass they walk through.
 	WG.grassgl4.getUnitBendEnabled = function()
 		return unitBendSSBO ~= nil
 	end
+	---Removes grass in a circle, thinning it out toward the edge.
+	---@param wx number
+	---@param wz number
+	---@param radius number? Defaults to one grass patch.
 	WG.grassgl4.removeGrass = function(wx, wz, radius)
 		radius = radius or grassConfig.patchResolution
 		for x = wx - radius, wx + radius, grassConfig.patchResolution do
@@ -1396,6 +1403,10 @@ function widget:Initialize()
 			end
 		end
 	end
+	---Removes all grass below a world height, e.g. to clear flooded terrain.
+	---Only acts when the height is above any previous cut, so repeated calls are cheap.
+	---@param height number
+	---@return nil
 	WG.grassgl4.removeGrassBelowHeight = function(height)
 		if #grassInstanceData == 0 then
 			return nil
@@ -1447,6 +1458,8 @@ function widget:Initialize()
 		WG.grassgl4.removeGrassBelowHeight(initLavaLevel)
 	end
 	-- Brush-aware grass painting for integration with Grass Brush tool
+	---Grass layout constants, for tools that paint into the grass map.
+	---@return {patchResolution: number, grassMinSize: number, grassMaxSize: number, mapSizeX: number, mapSizeZ: number}
 	WG.grassgl4.getConfig = function()
 		return {
 			patchResolution = grassConfig.patchResolution,
@@ -1456,6 +1469,9 @@ function widget:Initialize()
 			mapSizeZ = mapSizeZ,
 		}
 	end
+	---@param wx number
+	---@param wz number
+	---@return number density `0`-`1`; `0` outside the map or where there is no grass.
 	WG.grassgl4.getDensityAt = function(wx, wz)
 		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
 		if vboOffset < 0 or vboOffset >= #grassInstanceData then
@@ -1467,6 +1483,12 @@ function widget:Initialize()
 		end
 		return size / grassConfig.grassMaxSize
 	end
+	---Sets the grass density at a world position. Densities below the minimum size
+	---clear the patch entirely.
+	---@param wx number
+	---@param wz number
+	---@param density number `0`-`1`.
+	---@param skipAnim boolean? Apply instantly instead of animating the growth.
 	WG.grassgl4.setDensityAt = function(wx, wz, density, skipAnim)
 		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
 		if vboOffset < 0 or vboOffset >= #grassInstanceData then
@@ -1510,6 +1532,7 @@ function widget:Initialize()
 			grassInstanceVBO:Upload(gCT, 7, elemIdx)
 		end
 	end
+	---Enters grass edit mode, allocating the grass map if the map has none yet.
 	WG.grassgl4.enableEditMode = function()
 		if not placementMode then
 			placementMode = true
@@ -1522,13 +1545,18 @@ function widget:Initialize()
 			end
 		end
 	end
+	---Leaves grass edit mode.
 	WG.grassgl4.disableEditMode = function()
 		placementMode = false
 		externalBrushActive = false
 	end
+	---@return boolean editing
 	WG.grassgl4.isEditMode = function()
 		return placementMode
 	end
+	---Tells the grass system an external brush is painting, so growth animates.
+	---Turning it off flushes every pending animation to its final value.
+	---@param active boolean?
 	WG.grassgl4.setExternalBrush = function(active)
 		externalBrushActive = active and true or false
 		if not active then
@@ -1546,9 +1574,13 @@ function widget:Initialize()
 			spawnAnimCount = 0
 		end
 	end
+	---@return boolean hasGrass Whether the map has any grass data.
 	WG.grassgl4.hasGrass = function()
 		return #grassInstanceData > 0
 	end
+	---Writes the grass density map as a TGA image.
+	---@param filename string? Defaults to `<mapname>_grassDist.tga`.
+	---@return boolean saved
 	WG.grassgl4.saveGrassTGA = function(filename)
 		if not filename or #filename < 2 then
 			filename = Game.mapName .. "_grassDist.tga"
@@ -1574,16 +1606,36 @@ function widget:Initialize()
 		spEcho("[Grass] Saved grass map: " .. filename)
 		return true
 	end
+	---Writes the grass visual settings as a loadable config.
+	---@param filename string
+	---@param opts {nodate: boolean?}? Set `nodate` to leave the timestamp header out,
+	---so re-exporting an unchanged map produces a byte-identical file.
+	---@return boolean saved
 	WG.grassgl4.saveGrassConfig = function(filename, opts)
 		local ok = exportGrassConfig(filename, opts)
 		return ok
 	end
+	---Grass appearance settings, as `getVisualConfig` reports and `setVisualConfig` accepts.
+	---@class GrassVisualConfig
+	---@field mapColorFactor number? How much map colour tints the blades. Defaults to `0.6`.
+	---@field mapColorBase number? Defaults to `1.0`.
+	---@field grassBrightness number? Defaults to `1.0`.
+	---@field grassBladeColorTex string?
+	---@field mapGrassColorModTex string?
+	---@field grassWindPerturbTex string?
+
+	---@return GrassVisualConfig config
 	WG.grassgl4.getVisualConfig = function()
 		return getGrassVisualConfig()
 	end
+	---Applies grass appearance settings.
+	---@param cfg GrassVisualConfig Partial: only the fields present are applied.
+	---@return boolean applied
 	WG.grassgl4.setVisualConfig = function(cfg)
 		return setGrassVisualConfig(cfg)
 	end
+	---Loads a grass density map from a TGA image and enters edit mode.
+	---@param filename string? Defaults to `<mapname>_grassDist.tga`.
 	WG.grassgl4.loadGrass = function(filename)
 		if not filename or #filename < 2 then
 			filename = Game.mapName .. "_grassDist.tga"
@@ -1596,6 +1648,7 @@ function widget:Initialize()
 		defineUploadGrassInstanceVBOData()
 		MakeAndAttachToVAO()
 	end
+	---Removes all grass from the map.
 	WG.grassgl4.clearGrass = function()
 		cleargrassCmd(nil, nil, {})
 	end

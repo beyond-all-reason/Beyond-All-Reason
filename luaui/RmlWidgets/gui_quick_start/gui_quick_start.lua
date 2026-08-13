@@ -95,6 +95,9 @@ local function linesHaveChanged(newLines, oldLines)
 	return false
 end
 
+---Replaces the externally-supplied start positions used to preview the quick-start
+---build queue, rebuilding the UI only when they actually changed.
+---@param spawnPositions table<integer, PositionXZ>? Keyed by teamID.
 local function updateSpawnPositions(spawnPositions)
 	if not spawnPositions then
 		return
@@ -729,6 +732,16 @@ local function updateDataModel(forceUpdate)
 	end
 end
 
+---Which parts of a pregame build queue the start budget can actually pay for.
+---@class QuickStartSpawnStatus
+---@field queueSpawned table<integer, boolean> Keyed by position in `buildQueue`.
+---@field selectedSpawned boolean Whether the currently held build order would spawn.
+
+---Works out which queued buildings would be instantly spawned at game start,
+---spending the start budget in queue order.
+---@param buildQueue BuildOrder[]?
+---@param selectedBuildData BuildOrder? The build order currently held by the cursor.
+---@return QuickStartSpawnStatus
 local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	local myTeamID = spGetMyTeamID()
 	local gameRules = getCachedGameRules()

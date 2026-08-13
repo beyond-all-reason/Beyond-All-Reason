@@ -443,9 +443,12 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
 	WG.unitstats = {}
+	---Pins the unit stats panel to a specific unit.
+	---@param unitID integer? Pass `nil` to follow the cursor again.
 	WG.unitstats.showUnit = function(unitID)
 		showUnitID = unitID
 	end
+	---@return boolean showing Whether the unit stats panel is drawn.
 	WG.unitstats.isShowing = function()
 		return showStats
 	end

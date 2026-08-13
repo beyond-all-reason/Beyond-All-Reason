@@ -43,6 +43,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local jammerStencilShader = nil
 local jammerCircleShader = nil
+---@type InstanceVBOTable
 local circleInstanceVBO = nil
 
 local jammerStencilTexture
@@ -237,9 +238,11 @@ function widget:Initialize()
 	end
 
 	WG.jammerrange = {
+		---@return number opacity Opacity of the jammer range rings.
 		getOpacity = function()
 			return opacity
 		end,
+		---@param value number Opacity of the jammer range rings.
 		setOpacity = function(value)
 			opacity = value
 		end,

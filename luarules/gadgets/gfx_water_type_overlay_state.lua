@@ -226,21 +226,30 @@ function gadget:Initialize()
 	minGroundHeight = select(3, spGetGroundExtremes())
 
 	GG.WaterTypeOverlay = {
+		---@return boolean active Whether a hazardous water overlay is currently applied.
 		isActive = function()
 			return active
 		end,
+		---@return "lava"|"acid"|nil typeName `nil` while the overlay is inactive.
 		getActiveType = function()
 			return activeType
 		end,
+		---@return number level Current absolute world height of the overlay surface.
 		getLevel = function()
 			return currentLevel
 		end,
+		---@return number level Offset from the base water plane the overlay eases toward.
 		getTargetLevel = function()
 			return targetLevel
 		end,
+		---Sets the height the overlay surface eases toward, relative to the base water plane.
+		---@param level number
 		setLevel = function(level)
 			targetLevel = level
 		end,
+		---Turns the overlay on and starts damaging units in it.
+		---@param typeName "lava"|"acid"
+		---@return boolean started `false` when `typeName` is not a supported overlay type.
 		activate = function(typeName)
 			if typeName ~= "lava" and typeName ~= "acid" then
 				return false
@@ -252,6 +261,7 @@ function gadget:Initialize()
 			activeType = typeName
 			return true
 		end,
+		---Turns the overlay off and restores any unit state it changed.
 		deactivate = function()
 			if active then
 				restoreAllUnits()

@@ -524,13 +524,22 @@ function widget:Initialize()
 
 	WG.notifications = {}
 	for sound, params in pairs(notification) do
+		---Per-event getter, named `getNotification<eventName>`. Generated for every known
+		---notification, so these names are not statically visible.
+		---@return boolean enabled `false` when the event has never been configured.
 		WG.notifications["getNotification" .. sound] = function()
 			return notificationList[sound] or false
 		end
+		---Per-event setter, named `setNotification<eventName>`. Generated for every known
+		---notification, so these names are not statically visible.
+		---@param value boolean
 		WG.notifications["setNotification" .. sound] = function(value)
 			notificationList[sound] = value
 		end
 	end
+	---Lists every notification for the options UI, sorted by translated name.
+	---@return [string, boolean, string, integer][] soundInfo Each entry is
+	---`{eventName, enabled, textID, voiceFileCount}`.
 	WG.notifications.getNotificationList = function()
 		local soundInfo = {}
 
@@ -547,9 +556,12 @@ function widget:Initialize()
 
 		return soundInfo
 	end
+	---@return boolean tutorial Whether tutorial notifications play.
 	WG.notifications.getTutorial = function()
 		return tutorialMode
 	end
+	---Enables tutorial notifications, replaying ones already heard this session.
+	---@param value boolean
 	WG.notifications.setTutorial = function(value)
 		tutorialMode = value
 		if tutorialMode then
@@ -557,32 +569,47 @@ function widget:Initialize()
 		end
 		widget:PlayerChanged()
 	end
+	---@return number volume Volume notifications play at.
 	WG.notifications.getVolume = function()
 		return globalVolume
 	end
+	---@param value number Volume notifications play at.
 	WG.notifications.setVolume = function(value)
 		globalVolume = value
 	end
+	---@return boolean spoken Whether the spoken voice lines play.
 	WG.notifications.getSpoken = function()
 		return spoken
 	end
+	---@param value boolean Play the spoken voice lines.
 	WG.notifications.setSpoken = function(value)
 		spoken = value
 	end
+	---@return boolean messages Whether notifications also print to the message feed.
 	WG.notifications.getMessages = function()
 		return displayMessages
 	end
+	---@param value boolean Also print notifications to the message feed.
 	WG.notifications.setMessages = function(value)
 		displayMessages = value
 	end
+	---Queues a notification by event name. Unknown events are ignored.
+	---@param value string Event name.
+	---@param force boolean? Play even while the event is on cooldown.
 	WG.notifications.addEvent = function(value, force)
 		if notification[value] then
 			queueNotification(value, force)
 		end
 	end
+	---Queues a notification, honoring its configured delay.
+	---@param event string Event name.
+	---@param forceplay boolean? Play even while the event is on cooldown.
 	WG.notifications.queueNotification = function(event, forceplay)
 		queueNotification(event, forceplay)
 	end
+	---Plays a notification immediately, bypassing the queue and its delays.
+	---Unknown events are ignored.
+	---@param event string Event name.
 	WG.notifications.playNotification = function(event)
 		if notification[event] then
 			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
@@ -615,15 +642,40 @@ function widget:Initialize()
 		end
 	end
 
+	---Restarts an event's cooldown, so it will not replay for its configured delay.
+	---@param event string Event name.
 	WG.notifications.resetEventDelay = function(event)
 		LastPlay[event] = spGetGameFrame()
 	end
 
+	---One notification definition, as `sounds/voice/config.lua` declares them.
+	---Every field is optional: a definition may carry nothing but its sound files,
+	---which are discovered by filename rather than listed here.
+	---@class NotificationDef
+	---@field delay number? Seconds before the same event may play again. Defaults to `2`.
+	---@field stackedDelay number? Delay applied even when a play attempt failed.
+	---@field notifText string? I18N key for the on-screen message.
+	---@field notext boolean? Play the sound without showing a message.
+	---@field tutorial boolean? Only play when tutorial notifications are enabled.
+	---@field soundEffect string? Extra sound played alongside the voice line.
+	---@field resetOtherEventDelay boolean? Also reset the delay of every other event.
+	---@field rulesEnable string? Only play while this game rules param is set.
+	---@field rulesDisable string? Never play while this game rules param is set.
+	---@field rulesPlayOnlyIfEnabled string?
+	---@field rulesPlayOnlyIfDisabled string?
+
+	---Merges extra notification definitions in and reprocesses them, so another
+	---widget can add its own events.
+	---@param tableOfNotifs table<string, NotificationDef> Keyed by event name.
 	WG.notifications.addNotificationDefs = function(tableOfNotifs)
 		notificationTable = table.merge(notificationTable, tableOfNotifs)
 		processNotificationDefs()
 	end
 
+	---Plays a notification the first time a given unit type is spotted, covering the
+	---scavenger variant too.
+	---@param unitName string Unit definition name.
+	---@param notifName string Event name to play.
 	WG.notifications.addUnitDetected = function(unitName, notifName)
 		if UnitDefNames[unitName] then
 			unitsOfInterest[UnitDefNames[unitName].id] = notifName
@@ -634,12 +686,16 @@ function widget:Initialize()
 	end
 
 	RegisteredCustomNotifWidgets = {}
+	---Records that a widget supplies its own notifications, so the options UI can
+	---list it.
+	---@param widgetName string
 	WG.notifications.registerCustomNotifWidget = function(widgetName)
 		if not RegisteredCustomNotifWidgets[widgetName] then
 			RegisteredCustomNotifWidgets[widgetName] = true
 		end
 	end
 
+	---@return table<string, true> widgets Widgets that supply their own notifications.
 	WG.notifications.registeredCustomNotifWidgets = function()
 		return RegisteredCustomNotifWidgets
 	end

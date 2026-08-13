@@ -56,6 +56,7 @@ local CameraRotationModes = {
 	autoLandscape = 4,
 }
 
+---@type 1|2|3|4
 local mode
 local prevSnap
 local trackingLock = false
@@ -230,6 +231,10 @@ end
 
 function widget:Initialize()
 	WG.minimaprotationmanager = {}
+	---Switches how the minimap follows the camera, applying the new mode immediately.
+	---Invalid modes are ignored.
+	---@param newMode 1|2|3|4 A `CameraRotationModes` value: `1` none, `2` autoFlip,
+	---`3` autoRotate, `4` autoLandscape.
 	WG.minimaprotationmanager.setMode = function(newMode)
 		if isValidOption(newMode) then
 			mode = newMode
@@ -253,6 +258,7 @@ function widget:Initialize()
 		end
 	end
 
+	---@return 1|2|3|4 mode A `CameraRotationModes` value.
 	WG.minimaprotationmanager.getMode = function()
 		return mode
 	end

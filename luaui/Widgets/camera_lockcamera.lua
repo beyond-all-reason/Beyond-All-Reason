@@ -263,15 +263,22 @@ end
 
 function widget:Initialize()
 	WG.lockcamera = {}
+	---@return integer? playerID The player the camera is locked to, or `nil` when unlocked.
 	WG.lockcamera.GetPlayerID = function()
 		return lockPlayerID
 	end
+	---Locks the camera to a player, or unlocks it.
+	---@param playerID integer? Pass `nil` to unlock.
 	WG.lockcamera.SetPlayerID = function(playerID)
 		LockCamera(playerID)
 	end
+	---@return boolean hideEnemies Whether the view is restricted to the locked player's vision.
 	WG.lockcamera.GetHideEnemies = function()
 		return lockcameraHideEnemies
 	end
+	---Restricts the view to the locked player's vision, toggling spectator full view
+	---and LOS mode to match.
+	---@param value boolean
 	WG.lockcamera.SetHideEnemies = function(value)
 		lockcameraHideEnemies = value
 		RefreshLocalPlayerStateIfDirty()
@@ -296,15 +303,20 @@ function widget:Initialize()
 			end
 		end
 	end
+	---@return number seconds How long the camera takes to ease to a new position.
 	WG.lockcamera.GetTransitionTime = function()
 		return transitionTime
 	end
+	---@param value number Seconds the camera takes to ease to a new position.
 	WG.lockcamera.SetTransitionTime = function(value)
 		transitionTime = value
 	end
+	---@return boolean los Whether LOS view follows the locked player.
 	WG.lockcamera.GetLos = function()
 		return lockcameraLos
 	end
+	---Makes the LOS view follow the locked player, toggling LOS mode to match.
+	---@param value boolean
 	WG.lockcamera.SetLos = function(value)
 		lockcameraLos = value
 		RefreshLocalPlayerStateIfDirty()
@@ -320,10 +332,16 @@ function widget:Initialize()
 			end
 		end
 	end
+	---Requests a map draw mode, applied on the next update.
+	---@param value "normal"|"los"
 	WG.lockcamera.SetLosMode = function(value)
 		desiredLosmode = value
 		desiredLosmodeChanged = os_clock()
 	end
+	---Returns the most recent camera state broadcast by a player.
+	---@param playerID integer
+	---@return CameraState? cameraState As `Spring.GetCameraState` returns it; `nil` when
+	---that player has not broadcast one.
 	WG.lockcamera.GetPlayerCameraState = function(playerID)
 		if lastBroadcasts[playerID] then
 			return lastBroadcasts[playerID][2]

@@ -61,6 +61,9 @@ local harderTechToRezPowerSpeeds = {
 	[4.5] = 130,
 }
 
+---One of the zombie difficulty presets, matching the keys of `zombieModeConfigs`.
+---@alias ZombieMode "normal"|"hard"|"nightmare"|"extreme"
+
 local zombieModeConfigs = {
 	normal = {
 		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
@@ -96,6 +99,7 @@ local zombieModeConfigs = {
 	},
 }
 
+---@type ZombieMode
 local currentZombieMode = "normal"
 local currentZombieConfig = zombieModeConfigs.normal
 
@@ -426,6 +430,9 @@ local function updateRezSpeed()
 	rebuildZombieCorpseSpawnDelays()
 end
 
+---Applies a preset's tuning to the live zombie config, falling back to `normal`
+---for an unknown mode.
+---@param mode ZombieMode
 local function applyZombieModeSettings(mode)
 	local config = zombieModeConfigs[mode]
 	if not config then
@@ -812,6 +819,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 	end
 end
 
+---Turns a unit into a zombie, swapping it for its `_scav` variant where one exists.
+---@param unitID integer
 local function setZombie(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if not unitDefID then
@@ -856,6 +865,7 @@ local function clearUnitOrders(unitID)
 	end
 end
 
+---Clears the queued orders of every tracked zombie.
 local function clearAllOrders()
 	for zombieID, _ in pairs(zombieWatch) do
 		clearUnitOrders(zombieID)
@@ -1231,6 +1241,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 end
 
+---Immediately raises zombies from a corpse feature. Only acts while in idle mode.
+---@param featureID integer
+---@return boolean spawned `false` when not in idle mode, or the feature is not a zombie corpse.
 local function createZombieFromFeature(featureID)
 	if isIdleMode then
 		local featureDefID = spGetFeatureDefID(featureID)
@@ -1259,6 +1272,7 @@ local function createZombieFromFeature(featureID)
 	return false
 end
 
+---Queues every corpse currently on the map to raise zombies.
 local function queueAllCorpsesForSpawning()
 	local features = Spring.GetAllFeatures()
 	for _, featureID in ipairs(features) do
@@ -1266,6 +1280,8 @@ local function queueAllCorpsesForSpawning()
 	end
 end
 
+---Switches all zombies between return-fire with no auto-orders and normal aggression.
+---@param enabled boolean `true` to pacify, `false` to restore normal behavior.
 local function pacifyZombies(enabled)
 	local fireState
 	if enabled then
@@ -1283,6 +1299,8 @@ local function pacifyZombies(enabled)
 	end
 end
 
+---Stops or resumes the automatic orders given to zombies, without changing fire state.
+---@param enabled boolean `true` to suspend auto-orders, `false` to resume them.
 local function suspendAutoOrders(enabled)
 	if enabled then
 		ordersEnabled = false
@@ -1318,6 +1336,9 @@ local function fightNearTargets(targetUnits)
 	return true
 end
 
+---Sends every zombie to fight the units of one team.
+---@param teamID integer
+---@return boolean ordered `false` when the team is dead or has no units.
 local function aggroTeamID(teamID)
 	clearAllOrders()
 
@@ -1331,6 +1352,9 @@ local function aggroTeamID(teamID)
 	return fightNearTargets(targetUnits)
 end
 
+---Sends every zombie to fight the units of every team in an allyteam.
+---@param allyID integer
+---@return boolean ordered `false` when the allyteam has no teams or no units.
 local function aggroAllyID(allyID)
 	clearAllOrders()
 
@@ -1351,6 +1375,7 @@ local function aggroAllyID(allyID)
 	return fightNearTargets(targetUnits)
 end
 
+---Kills every tracked zombie with environmental damage.
 local function killAllZombies()
 	for zombieID, zombieData in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) and not Spring.GetUnitIsDead(zombieID) then
@@ -1362,6 +1387,9 @@ local function killAllZombies()
 	end
 end
 
+---Enables or disables raising zombies from corpses automatically.
+---Enabling also queues every corpse already on the map.
+---@param enabled boolean
 local function setAutoSpawning(enabled)
 	autoSpawningEnabled = enabled
 	if enabled then
@@ -1369,6 +1397,7 @@ local function setAutoSpawning(enabled)
 	end
 end
 
+---Drops every queued corpse spawn without affecting zombies already raised.
 local function clearAllZombieSpawns()
 	for featureID in pairs(corpsesData) do
 		clearCorpseRezRulesParam(featureID)
@@ -1400,6 +1429,9 @@ local function isAuthorized(playerID)
 	return false
 end
 
+---Turns each of the given units into a zombie.
+---@param unitIDs integer[]?
+---@return integer converted Number of units that were valid and converted.
 local function convertUnitsToZombies(unitIDs)
 	if not unitIDs or #unitIDs == 0 then
 		return 0
@@ -1416,6 +1448,8 @@ local function convertUnitsToZombies(unitIDs)
 	return convertedCount
 end
 
+---Turns every Gaia-owned unit that is not already a zombie into one.
+---@return integer converted
 local function setAllGaiaToZombies()
 	local allUnits = Spring.GetAllUnits()
 	local convertedCount = 0
@@ -1594,6 +1628,9 @@ local function commandClearZombieSpawns(_, line, words, playerID)
 	Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 end
 
+---Switches the zombie difficulty preset.
+---@param mode ZombieMode
+---@return boolean applied `false` when `mode` is not a known preset.
 local function setZombieMode(mode)
 	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
 		return false
@@ -1674,6 +1711,7 @@ function gadget:Initialize()
 	GG.Zombies.KillAllZombies = killAllZombies
 	GG.Zombies.ClearAllOrders = clearAllOrders
 	GG.Zombies.SetZombieMode = setZombieMode
+	---@return ZombieMode mode The active difficulty preset.
 	GG.Zombies.GetZombieMode = function()
 		return currentZombieMode
 	end

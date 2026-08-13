@@ -6,8 +6,8 @@ local OverlapLines = {}
 ---@param centerX1 number
 ---@param centerZ1 number
 ---@param radius number
----@return table|nil intersection1 {x: number, z: number}
----@return table|nil intersection2 {x: number, z: number}
+---@return PositionXZ? intersection1
+---@return PositionXZ? intersection2
 local function getCircleIntersections(centerX0, centerZ0, centerX1, centerZ1, radius)
 	local distanceSquared = math.distance2dSquared(centerX0, centerZ0, centerX1, centerZ1)
 
@@ -106,11 +106,12 @@ function OverlapLines.isPointPastLines(pointX, pointZ, originX, originZ, lines)
 end
 
 ---Calculate intersection of two lines
----@param p1 table First point of first line {x: number, z: number}
----@param p2 table Second point of first line {x: number, z: number}
----@param p3 table First point of second line {x: number, z: number}
----@param p4 table Second point of second line {x: number, z: number}
----@return table|nil intersection Point of intersection {x: number, z: number, t: number} or nil if no intersection
+---@param p1 PositionXZ First point of first line.
+---@param p2 PositionXZ Second point of first line.
+---@param p3 PositionXZ First point of second line.
+---@param p4 PositionXZ Second point of second line.
+---@return {x: number, z: number, t: number}? intersection Point of intersection, with `t`
+---the parametric distance along the first line; `nil` when the lines do not cross.
 local function findLineIntersection(p1, p2, p3, p4)
 	local x1, z1 = p1.x, p1.z
 	local x2, z2 = p2.x, p2.z

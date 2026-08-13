@@ -203,6 +203,8 @@ end
 -- ---------------------------------------------------------------------------
 -- Activate / Deactivate API
 -- ---------------------------------------------------------------------------
+
+---Enables the clone tool and clears any copied region.
 local function activate()
 	active = true
 	state = "idle"
@@ -213,6 +215,7 @@ local function activate()
 	pasteMirrorZ = false
 end
 
+---Disables the clone tool, abandoning any in-progress copy or paste.
 local function deactivate()
 	active = false
 	state = "idle"
@@ -221,6 +224,27 @@ local function deactivate()
 	boxDrag.active = false
 end
 
+---A snapshot of the clone tool, for the UI to render.
+---@class CloneToolState
+---@field active boolean
+---@field state "idle"|"selecting"|"box_drawn"|"copied"|"paste_preview"
+---@field layers table<"terrain"|"metal"|"features"|"splats"|"grass"|"decals"|"weather"|"lights", boolean>
+---Whether each map layer is copied. Every key is always present; `false` means the
+---layer is skipped, not that it is unknown.
+---@field pasteRotation number Degrees, `0`-`359`.
+---@field pasteHeightOffset number
+---@field pasteMirrorX boolean
+---@field pasteMirrorZ boolean
+---@field progress number `0`-`1` while a copy or paste is running.
+---@field progressLabel string?
+---@field hasBuffer boolean Whether a region has been copied.
+---@field selBox {x1: number, z1: number, x2: number, z2: number}? Normalized so `x1 <= x2`
+---and `z1 <= z2`; absent while idle.
+---@field undoCount integer
+---@field redoCount integer
+---@field terrainQuality "full"|"balanced"|"fast"
+
+---@return CloneToolState
 local function getState()
 	return {
 		active = active,
@@ -240,30 +264,40 @@ local function getState()
 	}
 end
 
+---Enables or disables one map layer for copying. Unknown names are ignored.
+---@param name "terrain"|"metal"|"features"|"splats"|"grass"|"decals"|"weather"|"lights"
+---@param enabled boolean
 local function setLayer(name, enabled)
 	if layers[name] ~= nil then
 		layers[name] = enabled
 	end
 end
 
+---Sets the terrain resampling quality. Unknown values are ignored.
+---@param q "full"|"balanced"|"fast"
 local function setTerrainQuality(q)
 	if q == "full" or q == "balanced" or q == "fast" then
 		terrainQuality = q
 	end
 end
 
+---Sets the paste rotation, wrapped to `[0,360)`.
+---@param deg number Degrees.
 local function setRotation(deg)
 	pasteRotation = deg % 360
 end
 
+---@param val number Height added to the pasted terrain.
 local function setHeightOffset(val)
 	pasteHeightOffset = val
 end
 
+---@param val boolean Mirror the pasted region along X.
 local function setMirrorX(val)
 	pasteMirrorX = val
 end
 
+---@param val boolean Mirror the pasted region along Z.
 local function setMirrorZ(val)
 	pasteMirrorZ = val
 end
@@ -271,6 +305,9 @@ end
 -- ---------------------------------------------------------------------------
 -- COPY: capture data from selection box
 -- ---------------------------------------------------------------------------
+
+---Captures the enabled layers from the current selection box into the clone buffer.
+---Does nothing when the selection is smaller than one map square.
 local function doCopy()
 	local box = normalizeBox(selBox)
 	local sizeX = box.x2 - box.x1
@@ -497,12 +534,14 @@ local function doCopy()
 	spEcho("[Clone Tool] Region copied")
 end
 
+---Undoes the last applied paste, if there is one.
 local function doUndo()
 	if historyUndoCount > 0 then
 		sendMsg(MSG_UNDO)
 	end
 end
 
+---Reapplies the last undone paste, if there is one.
 local function doRedo()
 	if historyRedoCount > 0 then
 		sendMsg(MSG_REDO)
@@ -512,6 +551,8 @@ end
 -- ---------------------------------------------------------------------------
 -- PASTE: apply clone buffer at target position
 -- ---------------------------------------------------------------------------
+
+---Enters paste preview mode. Does nothing when nothing has been copied.
 local function startPaste()
 	if not cloneBuffer then
 		spEcho("[Clone Tool] Nothing copied")
@@ -930,6 +971,9 @@ end
 -- ---------------------------------------------------------------------------
 -- Cancel current operation
 -- ---------------------------------------------------------------------------
+
+---Steps back one stage: paste preview returns to copied, and a copied or drawn
+---selection returns to idle and drops the buffer.
 local function cancelOperation()
 	if state == "paste_preview" then
 		state = "copied"

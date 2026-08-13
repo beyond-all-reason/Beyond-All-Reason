@@ -162,11 +162,6 @@ local function removeSnow()
 	end
 end
 
-function widget:Shutdown()
-	removeSnow()
-	WG.snow = nil
-end
-
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
 local function CreateParticleLists()
 	removeParticleLists()
@@ -322,6 +317,8 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG.snow = {}
+	---@return boolean snowing Whether snow is configured for this map, even if the
+	---widget has currently throttled it away.
 	WG.snow.getSnowMap = function()
 		if enabled or widgetDisabledSnow then
 			return true
@@ -329,15 +326,21 @@ function widget:Initialize()
 			return false
 		end
 	end
+	---Sets the particle count multiplier, rebuilding the particle lists when snow is on.
+	---@param value number
 	WG.snow.setMultiplier = function(value)
 		customParticleMultiplier = value
 		if enabled or widgetDisabledSnow then
 			CreateParticleLists()
 		end
 	end
+	---@return number multiplier Particle count multiplier.
 	WG.snow.getMultiplier = function()
 		return customParticleMultiplier
 	end
+	---Lets the widget thin out snow when the framerate drops. Turning it off restores
+	---the full particle count.
+	---@param value boolean
 	WG.snow.setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
@@ -348,9 +351,12 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
+	---@return boolean autoReduce
 	WG.snow.getAutoReduce = function()
 		return autoReduce
 	end
+	---Turns snow on or off for the current map, remembering the choice per map.
+	---@param value boolean
 	WG.snow.setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
@@ -360,35 +366,50 @@ function widget:Initialize()
 			removeSnow()
 		end
 	end
+	---Sets the snow color. Omitted components keep their current value.
+	---@param r number?
+	---@param g number?
+	---@param b number?
 	WG.snow.setColor = function(r, g, b)
 		snowColorR = r or snowColorR
 		snowColorG = g or snowColorG
 		snowColorB = b or snowColorB
 	end
+	---@return number r
+	---@return number g
+	---@return number b
 	WG.snow.getColor = function()
 		return snowColorR, snowColorG, snowColorB
 	end
+	---@param value number Snow particle opacity.
 	WG.snow.setOpacity = function(value)
 		snowOpacity = value
 	end
+	---@return number opacity
 	WG.snow.getOpacity = function()
 		return snowOpacity
 	end
+	---@param value number Multiplier on how fast snow falls.
 	WG.snow.setSpeedMultiplier = function(value)
 		speedMultiplier = value
 	end
+	---@return number multiplier
 	WG.snow.getSpeedMultiplier = function()
 		return speedMultiplier
 	end
+	---@param value number Multiplier on snowflake size.
 	WG.snow.setSizeMultiplier = function(value)
 		sizeMultiplier = value
 	end
+	---@return number multiplier
 	WG.snow.getSizeMultiplier = function()
 		return sizeMultiplier
 	end
+	---@param value number Multiplier on how far wind pushes the snow.
 	WG.snow.setWindMultiplier = function(value)
 		windMultiplier = value
 	end
+	---@return number multiplier
 	WG.snow.getWindMultiplier = function()
 		return windMultiplier
 	end
@@ -420,6 +441,11 @@ function widget:Initialize()
 	init()
 
 	widgetHandler:AddAction("snow", snowCmd, nil, "t")
+end
+
+function widget:Shutdown()
+	removeSnow()
+	WG.snow = nil
 end
 
 --------------------------------------------------------------------------------

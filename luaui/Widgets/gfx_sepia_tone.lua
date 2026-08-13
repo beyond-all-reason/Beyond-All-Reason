@@ -184,38 +184,53 @@ function widget:Initialize()
 	end
 
 	WG.sepia = {}
+	---Sets the sepia filter gamma and recompiles the shader.
+	---@param value number
 	WG.sepia.setGamma = function(value)
 		params.gamma = value
 		UpdateShader()
 	end
+	---@return number gamma
 	WG.sepia.getGamma = function()
 		return params.gamma
 	end
+	---Sets the sepia filter saturation and recompiles the shader.
+	---@param value number
 	WG.sepia.setSaturation = function(value)
 		params.saturation = value
 		UpdateShader()
 	end
+	---@return number saturation
 	WG.sepia.getSaturation = function()
 		return params.saturation
 	end
+	---Sets the sepia filter contrast and recompiles the shader.
+	---@param value number
 	WG.sepia.setContrast = function(value)
 		params.contrast = value
 		UpdateShader()
 	end
+	---@return number contrast
 	WG.sepia.getContrast = function()
 		return params.contrast
 	end
+	---Sets how strongly the sepia tint is applied, and recompiles the shader.
+	---@param value number
 	WG.sepia.setSepia = function(value)
 		params.sepia = value
 		UpdateShader()
 	end
+	---@return number sepia
 	WG.sepia.getSepia = function()
 		return params.sepia
 	end
+	---Applies the sepia filter to the UI as well as the world.
+	---@param value boolean
 	WG.sepia.setShadeUI = function(value)
 		params.shadeUI = value
 		UpdateShader()
 	end
+	---@return boolean shadeUI
 	WG.sepia.getShadeUI = function()
 		return params.shadeUI
 	end

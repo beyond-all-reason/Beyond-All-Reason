@@ -117,6 +117,10 @@ function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 	local priorUserFirestateFunction = WG.firestate.userFirestateChanged
+	---Notified when a unit's firestate is changed by the player. This widget chains
+	---onto any handler already registered, so several widgets can observe the event.
+	---@param unitID integer
+	---@param userState integer A `CustomFirestateDefs` value.
 	WG.firestate.userFirestateChanged = function(unitID, userState)
 		userFirestateChangedWhileCloaked(unitID, userState)
 		if priorUserFirestateFunction then

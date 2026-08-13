@@ -164,6 +164,7 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- draw in refract/reflect too?
 -- GL4 Variables:
 
+---@type InstanceVBOTable
 local jetInstanceVBO = nil
 local jetShader = nil
 
@@ -797,6 +798,15 @@ function widget:Initialize()
 
 	WG.airjets = {}
 
+	---Attaches an engine exhaust jet to a unit piece, replacing any jet already on
+	---that piece.
+	---@param unitID integer
+	---@param piecenum integer Model piece the jet emits from.
+	---@param width number
+	---@param length number
+	---@param color3 ColorRGB RGB for the jet. Currently the widget's shared color is used.
+	---@param emitVector [number, number, number]? Direction the jet points, as `{x, y, z}`. Defaults to `{0, 0, -1}`.
+	---@return string airjetkey Pass to `removeAirJet` to remove this jet.
 	WG.airjets.addAirJet = function(unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
 		local airjetkey = tostring(unitID) .. "_" .. tostring(piecenum)
 		if emitVector == nil then
@@ -828,6 +838,9 @@ function widget:Initialize()
 		return airjetkey
 	end
 
+	---Removes a jet previously added by `addAirJet`.
+	---@param airjetkey string
+	---@return integer? index The removed instance's former index, or `nil` if it was not found.
 	WG.airjets.removeAirJet = function(airjetkey) ---- for WG external calls
 		return popElementInstance(jetInstanceVBO, airjetkey)
 	end

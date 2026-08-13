@@ -43,6 +43,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local radarStencilShader = nil
 local radarCircleShader = nil
+---@type InstanceVBOTable
 local circleInstanceVBO = nil
 
 local radarStencilTexture
@@ -237,9 +238,11 @@ function widget:Initialize()
 	end
 
 	WG.radarrange = {
+		---@return number opacity Opacity of the radar range rings.
 		getOpacity = function()
 			return opacity
 		end,
+		---@param value number Opacity of the radar range rings.
 		setOpacity = function(value)
 			opacity = value
 		end,

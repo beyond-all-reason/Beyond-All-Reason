@@ -685,12 +685,17 @@ function widget:Initialize()
 	widget:PlayerChanged(myPlayerID)
 
 	WG.allyselectedunits = {}
+	---@return boolean enabled Whether clicking an ally's cursor selects their units.
 	WG.allyselectedunits.getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
+	---@param value boolean Let clicking an ally's cursor select their units.
 	WG.allyselectedunits.setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
 	end
+	---Returns the units an allied player currently has selected.
+	---@param playerID integer
+	---@return integer[]? unitIDs `nil` when that player's selection is not known.
 	WG.allyselectedunits.getPlayerSelectedUnits = function(playerID)
 		return playerSelectedUnits[playerID]
 	end

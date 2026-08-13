@@ -309,6 +309,8 @@ end
 function widget:Initialize()
 	if textFile then
 		WG.scavengerinfo = {}
+		---Shows or hides the scavenger info window.
+		---@param state boolean? Omit to toggle.
 		WG.scavengerinfo.toggle = function(state)
 			if state ~= nil then
 				show = state
@@ -316,6 +318,7 @@ function widget:Initialize()
 				show = not show
 			end
 		end
+		---@return boolean visible
 		WG.scavengerinfo.isvisible = function()
 			return show
 		end

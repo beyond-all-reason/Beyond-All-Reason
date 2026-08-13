@@ -239,6 +239,7 @@ local function loadKeybindsFromDisk()
 	end
 end
 
+---Writes the current brush keybinds to the keybinds directory.
 local function saveKeybindsToDisk()
 	Spring.CreateDir(KEYBINDS_DIR)
 	local lines = { "return {" }
@@ -275,6 +276,8 @@ local function getKeybindKey(action)
 	return kb and kb.key or 0
 end
 
+---@param action string
+---@return string label Display label for the bound key, or `"?"` when unbound.
 local function getKeybindLabel(action)
 	local kb = activeKeybinds[action]
 	return kb and kb.label or "?"
@@ -451,6 +454,7 @@ end
 
 local activeDirection = nil
 local activeRadius = DEFAULT_RADIUS
+---@type BrushShape|"ring"|"fill"
 local activeShape = "circle"
 local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
@@ -1021,6 +1025,8 @@ local function constrainToAxis(originX, originZ, rawX, rawZ)
 end
 
 -- Stamp mode: intensity maxed + at least one height cap → instant apply
+---@return boolean stamp Whether the brush stamps to a fixed height in one stroke,
+---which it does at full intensity with a height cap set.
 local function isStampMode()
 	return activeIntensity >= MAX_INTENSITY and (heightCapMin ~= nil or heightCapMax ~= nil)
 end
@@ -1232,6 +1238,7 @@ end
 -- Forward declaration
 local invalidateDrawCache
 
+---Disables the terrain brush and restores the default cursor.
 local function deactivateTerraform()
 	if activeMode then
 		Echo("[Terraform Brush] Deactivated")
@@ -1287,6 +1294,8 @@ extraState.swapModeParams = function(mode)
 	end
 end
 
+---Switches the terraform operation, swapping in that mode's saved brush settings.
+---@param mode "raise"|"lower"|"level"|"smooth"|"ramp"|"noise"|"erode"|"restore"
 local function setMode(mode)
 	extraState.ensureCheat()
 	extraState.swapModeParams(mode)
@@ -1320,6 +1329,10 @@ local function setMode(mode)
 	end
 end
 
+---Sets the brush footprint. Unknown shapes are ignored, as are shapes the active
+---mode does not support: ramp allows only circle and square, and level and smooth
+---do not allow ring.
+---@param shape BrushShape|"ring"|"fill"
 local function setShape(shape)
 	if
 		shape == "circle"
@@ -1340,6 +1353,8 @@ local function setShape(shape)
 	end
 end
 
+---Rotates the brush, honoring angle snap.
+---@param degrees number Degrees to add to the current rotation.
 local function rotateBy(degrees)
 	activeRotation = (activeRotation + degrees) % 360
 	if extraState.angleSnap and extraState.angleSnapStep > 0 then
@@ -1435,6 +1450,8 @@ local function snapDragToSpoke(wx, wz)
 	return dragOriginX + spokeX * projDist, dragOriginZ + spokeZ * projDist
 end
 
+---Sets the brush rotation, honoring angle snap.
+---@param degrees number Degrees, wrapped to `[0,360)`.
 local function setRotation(degrees)
 	activeRotation = degrees % 360
 	if extraState.angleSnap and extraState.angleSnapStep > 0 then
@@ -1443,42 +1460,59 @@ local function setRotation(degrees)
 	end
 end
 
+---@param value number Falloff curve exponent, clamped to the allowed range.
 local function setCurve(value)
 	activeCurve = max(MIN_CURVE, min(MAX_CURVE, value))
 end
 
+---@param value number Terraform strength per stroke, clamped to the allowed range.
 local function setIntensity(value)
 	activeIntensity = max(MIN_INTENSITY, min(MAX_INTENSITY, value))
 end
 
+---@param value number Stretches the brush along its rotation axis, clamped to the allowed range.
 local function setLengthScale(value)
 	activeLengthScale = max(MIN_LENGTH_SCALE, min(MAX_LENGTH_SCALE, value))
 end
 
+---@param value number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(value)
 	activeRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(value)))
 end
 
+---Stops the brush lowering terrain past a height.
+---@param value number? Pass `nil` to remove the cap.
 local function setHeightCapMin(value)
 	heightCapMin = value
 end
 
+---Stops the brush raising terrain past a height.
+---@param value number? Pass `nil` to remove the cap.
 local function setHeightCapMax(value)
 	heightCapMax = value
 end
 
+---Treats the height caps as absolute world heights rather than relative to the
+---terrain under the brush.
+---@param value boolean
 local function setHeightCapAbsolute(value)
 	heightCapAbsolute = value
 end
 
+---Enables clay mode, which preserves volume by pushing displaced terrain outward.
+---@param value boolean?
 local function setClayMode(value)
 	clayMode = value and true or false
 end
 
+---@param value number? Opacity of the brush cursor ring, clamped to `0.01`-`1`.
+---Defaults to `1`.
 local function setBrushOpacity(value)
 	brushOpacity = math.max(0.01, math.min(1.0, tonumber(value) or 1.0))
 end
 
+---Shows or hides the build-grid overlay.
+---@param value boolean?
 local function setGridOverlay(value)
 	gridOverlay = value and true or false
 	if gridOverlay then
@@ -1486,26 +1520,38 @@ local function setGridOverlay(value)
 	end
 end
 
+---Enables the dust particles kicked up while terraforming.
+---@param value boolean?
 local function setDustEffects(value)
 	dustEffects = value and true or false
 end
 
+---Enables the camera shake applied while terraforming.
+---@param value boolean?
 local function setSeismicEffects(value)
 	seismicEffects = value and true or false
 end
 
+---Enables the beat-synced terraform mode.
+---@param value boolean?
 local function setDjMode(value)
 	djMode = value and true or false
 end
 
+---Tints the terrain by height, as an editing aid.
+---@param value boolean?
 local function setHeightColormap(value)
 	extraState.heightColormap = value and true or false
 end
 
+---Draws the falloff curve on the brush ring.
+---@param value boolean?
 local function setCurveOverlay(value)
 	extraState.curveOverlay = value and true or false
 end
 
+---@param value number? Inner radius of the ring shape as a fraction of the outer
+---radius, clamped to `0.05`-`0.95`. Defaults to `0.6`.
 local function setRingInnerRatio(value)
 	ringInnerRatio = math.max(0.05, math.min(0.95, value or 0.6))
 end
@@ -1610,10 +1656,13 @@ local function loadPresetsFromDisk()
 	end
 end
 
+---@param name string
+---@return boolean builtin Built-in presets cannot be deleted.
 local function isBuiltinPreset(name)
 	return builtinPresetNames[name] == true
 end
 
+---@return string[] names Every brush preset, built-in and user-saved.
 local function getPresetNames()
 	loadPresetsFromDisk()
 	local names = {}
@@ -1624,6 +1673,9 @@ local function getPresetNames()
 	return names
 end
 
+---Saves the current brush settings as a named preset. Empty names are ignored,
+---and the name is sanitized before use.
+---@param name string
 local function savePreset(name)
 	if not name or name == "" then
 		return
@@ -1713,6 +1765,8 @@ local function savePreset(name)
 	Echo("[Terraform Brush] Preset saved: " .. name)
 end
 
+---Applies a saved preset's brush settings. Unknown names are ignored.
+---@param name string
 local function loadPreset(name)
 	loadPresetsFromDisk()
 	local data = presets[name]
@@ -1800,6 +1854,8 @@ local function loadPreset(name)
 	Echo("[Terraform Brush] Preset loaded: " .. name)
 end
 
+---Deletes a user-saved preset. Unknown names and built-in presets are ignored.
+---@param name string
 local function deletePreset(name)
 	loadPresetsFromDisk()
 	if not presets[name] then
@@ -1815,6 +1871,31 @@ local function deletePreset(name)
 	Echo("[Terraform Brush] Preset deleted: " .. name)
 end
 
+---Fields shared between both brush presets and brushes
+---@class TerraformBrushBase
+---@field mode "raise"|"lower"|"level"|"smooth"|"ramp"|"noise"|"erode"|"restore"
+---@field shape BrushShape|"ring"|"fill"
+---@field radius number
+---@field rotationDeg number
+---@field curve number
+---@field intensity number
+---@field lengthScale number
+---@field heightCapMin number? `nil` when unset.
+---@field heightCapMax number? `nil` when unset.
+---@field heightCapAbsolute boolean
+---@field clayMode boolean
+---@field noiseType string
+---@field noiseScale number
+---@field noiseOctaves integer
+---@field noisePersistence number
+---@field noiseLacunarity number
+---@field noiseSeed number
+
+---@class TerraformPreset : TerraformBrushBase
+---@field name string
+
+---@param n string
+---@return TerraformPreset? preset `nil` when no preset has that name.
 local function getPreset(n)
 	loadPresetsFromDisk()
 	return presets[n]
@@ -2103,6 +2184,77 @@ extraState._newmapDrive = function()
 	end
 end
 
+---A snapshot of the terrain brush, for the UI to render.
+---@class TerraformBrushState : TerraformBrushBase
+---@field active boolean
+---@field direction integer `1` raises, `-1` lowers.
+---@field dustEffects boolean
+---@field seismicEffects boolean
+---@field djMode boolean
+---@field wiggleEnabled boolean
+---@field wiggleAmpIdx integer
+---@field wiggleSpdIdx integer
+---@field heightColormap boolean
+---@field heightSamplingMode boolean
+---@field gridOverlay boolean
+---@field gridSnap boolean
+---@field gridSnapSize number
+---@field angleSnap boolean
+---@field angleSnapStep number
+---@field angleSnapAuto boolean
+---@field angleSnapManualSpoke number
+---@field measureActive boolean
+---@field measureDrawing boolean
+---@field measureRulerMode boolean
+---@field measureStickyMode boolean
+---@field measureDistortMode boolean
+---@field measureShowLength boolean
+---@field linkedStrokeCount integer
+---@field measureChainCount integer
+---@field rampAutoAttach boolean
+---@field curveOverlay boolean
+---@field velocityIntensity boolean
+---@field dragVelocityFactor number
+---@field restoreStrength number
+---@field undoCount integer
+---@field redoCount integer
+---@field erodeReposeDeg number
+---@field ringInnerRatio number
+---@field importProgress integer? Rows imported so far; `nil` when no import is running.
+---@field importTotal integer? Rows in the running import; `nil` when none is running.
+---@field exportRangeMode "auto"|"initial"|"custom"
+---@field exportInitMin number? Map height extremes at load.
+---@field exportInitMax number?
+---@field exportCurrMin number? Map height extremes right now.
+---@field exportCurrMax number?
+---@field exportCustomMin number
+---@field exportCustomMax number
+---@field symmetryActive boolean
+---@field symmetryOriginX number
+---@field symmetryOriginZ number
+---@field symmetryMirrorX boolean
+---@field symmetryMirrorY boolean
+---@field symmetryRadial boolean
+---@field symmetryRadialCount integer
+---@field symmetryPlacingOrigin boolean
+---@field symmetryMirrorAngle number
+---@field symmetryFlipped boolean
+---@field symmetryHoveringOrigin boolean
+---@field symmetryDraggingOrigin boolean
+---@field penPressureEnabled boolean
+---@field penPressure number
+---@field penPressureMapped number
+---@field penTiltX number
+---@field penTiltY number
+---@field penInContact boolean
+---@field penPressureModulateIntensity boolean
+---@field penPressureModulateSize boolean
+---@field penPressureModulateRadius boolean
+---@field penPressureRadiusScale number
+---@field penPressureSensitivity number
+---@field penPressureCurve number
+
+---@return TerraformBrushState
 local function getState()
 	local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
 	local customMin = extraState.heightmapExportCustomMin
@@ -2818,9 +2970,14 @@ function widget:Initialize()
 
 		setBrushOpacity = setBrushOpacity,
 		setGridOverlay = setGridOverlay,
+		---Snaps brush strokes to the build grid.
+		---@param value boolean?
 		setGridSnap = function(value)
 			extraState.gridSnap = value and true or false
 		end,
+		---Chooses which height range a heightmap export normalizes against.
+		---Anything other than `"initial"` or `"custom"` selects `"auto"`.
+		---@param value "auto"|"initial"|"custom"
 		setHeightmapExportRangeMode = function(value)
 			if value == "initial" or value == "custom" then
 				extraState.heightmapExportRangeMode = value
@@ -2831,6 +2988,7 @@ function widget:Initialize()
 				extraState.heightmapExportRangeMode = "auto"
 			end
 		end,
+		---Advances the heightmap export range through auto, initial and custom.
 		cycleHeightmapExportRangeMode = function()
 			local mode = extraState.heightmapExportRangeMode
 			if mode == "auto" then
@@ -2842,28 +3000,40 @@ function widget:Initialize()
 				extraState.heightmapExportRangeMode = "auto"
 			end
 		end,
+		---@param value number|string Lowest height a custom-range export maps to black.
+		---Non-numeric input is ignored.
 		setHeightmapExportCustomMin = function(value)
 			local num = tonumber(value)
 			if num then
 				extraState.heightmapExportCustomMin = num
 			end
 		end,
+		---@param value number|string Highest height a custom-range export maps to white.
+		---Non-numeric input is ignored.
 		setHeightmapExportCustomMax = function(value)
 			local num = tonumber(value)
 			if num then
 				extraState.heightmapExportCustomMax = num
 			end
 		end,
+		---@param value number|string? Grid cell size in elmos, clamped to `16`-`128`.
+		---Defaults to `48`.
 		setGridSnapSize = function(value)
 			extraState.gridSnapSize = max(16, min(128, tonumber(value) or 48))
 			extraState.gridDirty = true
 		end,
+		---Snaps brush rotation to fixed angles.
+		---@param value boolean?
 		setAngleSnap = function(value)
 			extraState.angleSnap = value and true or false
 		end,
+		---Derives the angle snap step from the map's symmetry instead of the manual spoke count.
+		---@param value boolean?
 		setAngleSnapAuto = function(value)
 			extraState.angleSnapAuto = value and true or false
 		end,
+		---Rotates the brush to a numbered snap spoke, wrapping around.
+		---@param idx integer
 		setAngleSnapManualSpoke = function(idx)
 			local step = extraState.angleSnapStep
 			local numSpokes = (step > 0) and floor(360 / step) or 1
@@ -2871,6 +3041,8 @@ function widget:Initialize()
 			activeRotation = (extraState.angleSnapManualSpoke * step) % 360
 			extraState.angleSnapScrollAccum = 0
 		end,
+		---Sets the angle snap increment and re-snaps the current rotation.
+		---@param value number|string? Degrees, clamped to `0.5`-`90`. Defaults to `15`.
 		setAngleSnapStep = function(value)
 			extraState.angleSnapStep = max(0.5, min(90, tonumber(value) or 15))
 			-- re-snap current rotation immediately
@@ -2879,9 +3051,14 @@ function widget:Initialize()
 				activeRotation = (floor(activeRotation / s + 0.5) * s) % 360
 			end
 		end,
+		---Shows the length of each measure line.
+		---@param value boolean?
 		setMeasureShowLength = function(value)
 			extraState.measureShowLength = value and true or false
 		end,
+		---Enters or leaves the measuring tool. Entering also starts drawing and takes
+		---text ownership so Enter is intercepted before the chat binding.
+		---@param value boolean?
 		setMeasureActive = function(value)
 			extraState.measureActive = value and true or false
 			if extraState.measureActive then
@@ -2897,6 +3074,7 @@ function widget:Initialize()
 				widgetHandler:DisownText()
 			end
 		end,
+		---Removes every measure line.
 		clearMeasureLines = function()
 			extraState.measureLines = {}
 			extraState.measureActivePt = nil
@@ -2914,12 +3092,17 @@ function widget:Initialize()
 			extraState.measureLines = kept
 		end,
 		-- G4: toggle automatic ramp-chain attachment
+		---@param value boolean?
 		setRampAutoAttach = function(value)
 			extraState.rampAutoAttach = value and true or false
 		end,
+		---Measures in a straight line rather than following the terrain.
+		---@param value boolean?
 		setMeasureRulerMode = function(value)
 			extraState.measureRulerMode = value and true or false
 		end,
+		---Keeps measure lines attached to the point they were started from.
+		---@param value boolean?
 		setMeasureStickyMode = function(value)
 			extraState.measureStickyMode = value and true or false
 			if not extraState.measureStickyMode then
@@ -2928,9 +3111,12 @@ function widget:Initialize()
 				extraState.stickyUndoBaseline = nil
 			end
 		end,
+		---Lets measure chains be reshaped after they are drawn.
+		---@param value boolean?
 		setMeasureDistortMode = function(value)
 			extraState.measureDistortMode = value and true or false
 		end,
+		---Forgets the strokes currently linked together for repeated application.
 		clearLinkedStrokes = function()
 			extraState.linkedStrokes = {}
 			extraState.linkedStrokeGroupCount = 0
@@ -2939,6 +3125,10 @@ function widget:Initialize()
 		setDustEffects = setDustEffects,
 		setSeismicEffects = setSeismicEffects,
 		setDjMode = setDjMode,
+		---Configures the brush wiggle that breaks up straight strokes.
+		---@param enabled boolean?
+		---@param ampIdx integer? Amplitude preset index.
+		---@param spdIdx integer? Speed preset index.
 		setWiggle = function(enabled, ampIdx, spdIdx)
 			extraState.wiggleEnabled = enabled and true or false
 			extraState.wiggleAmpIdx = math.max(1, math.min(4, tonumber(ampIdx) or 1))
@@ -2948,6 +3138,9 @@ function widget:Initialize()
 			end
 		end,
 		setHeightColormap = setHeightColormap,
+		---Puts the brush into a height-sampling mode, auto-enabling the height colormap
+		---so contours are visible. Unknown targets clear the mode.
+		---@param target "max"|"min"|"fpAltMax"|"fpAltMin"|"gbAltMax"|"gbAltMin"|"spAltMax"|"spAltMin"|nil
 		setHeightSamplingMode = function(target)
 			local valid = {
 				max = true,
@@ -2964,10 +3157,13 @@ function widget:Initialize()
 				setHeightColormap(true) -- auto-enable the colormap so contours are visible
 			end
 		end,
+		---@return string? mode `nil` when not sampling.
 		getHeightSamplingMode = function()
 			return extraState.heightSamplingMode
 		end,
 		setCurveOverlay = setCurveOverlay,
+		---Scales stroke intensity by how fast the cursor is moving.
+		---@param value boolean?
 		setVelocityIntensity = function(value)
 			extraState.velocityIntensity = value and true or false
 			if not extraState.velocityIntensity then
@@ -2976,14 +3172,19 @@ function widget:Initialize()
 				extraState.lastDragScreenY = nil
 			end
 		end,
+		---@param value number|string? How strongly restore mode pulls terrain back toward
+		---its original height, clamped to `0`-`1`. Defaults to `1`.
 		setRestoreStrength = function(value)
 			extraState.restoreStrength = max(0.0, min(1.0, tonumber(value) or 1.0))
 		end,
+		---@param value number|string? Angle of repose for erode mode, in degrees.
 		setErodeReposeDeg = function(value)
 			extraState.erodeReposeDeg = max(10, min(60, tonumber(value) or 33))
 		end,
 		setRingInnerRatio = setRingInnerRatio,
 		-- Pen pressure API
+		---Enables graphics-tablet pen pressure input.
+		---@param value boolean?
 		setPenPressure = function(value)
 			extraState.penPressureEnabled = value and true or false
 			if not extraState.penPressureEnabled then
@@ -2992,29 +3193,45 @@ function widget:Initialize()
 				extraState.penInContact = false
 			end
 		end,
+		---Lets pen pressure drive stroke intensity.
+		---@param value boolean?
 		setPenPressureModulateIntensity = function(value)
 			extraState.penPressureModulateIntensity = value and true or false
 		end,
+		---Lets pen pressure drive brush size.
+		---@param value boolean?
 		setPenPressureModulateSize = function(value)
 			extraState.penPressureModulateSize = value and true or false
 		end,
+		---Lets pen pressure drive brush radius.
+		---@param value boolean?
 		setPenPressureModulateRadius = function(value)
 			extraState.penPressureModulateRadius = value and true or false
 		end,
+		---@param value number How much pen pressure scales the radius.
 		setPenPressureRadiusScale = function(value)
 			extraState.penPressureRadiusScale = max(0.0, min(1.0, tonumber(value) or 0.5))
 		end,
+		---@param value number Maps raw pen pressure onto the usable range.
 		setPenPressureSensitivity = function(value)
 			extraState.penPressureSensitivity = max(0.1, min(3.0, tonumber(value) or 1.0))
 		end,
+		---@param value number Response curve applied to pen pressure.
 		setPenPressureCurve = function(value)
 			extraState.penPressureCurve = max(1, min(5, math.floor(tonumber(value) or 2)))
 		end,
+		---Tells the brush the pen is currently over the UI rather than the map.
+		---@param value boolean?
 		setPenOverUI = function(value)
 			extraState.penOverUI = value and true or false
 		end,
 		-- Returns world X, Z to park a sub-tool brush when cursor is over the terraform UI panel.
 		-- Returns nil, nil when cursor is not over the panel (caller should use real mouse position).
+		---Where the brush should park while the cursor is over the terraform panel.
+		---@param radius number
+		---@param lengthScale number
+		---@return number? worldX `nil` when the cursor is not over the panel.
+		---@return number? worldZ
 		getUnmouseTarget = function(radius, lengthScale)
 			local tfUI = WG.TerraformBrushUI
 			if not tfUI or not tfUI.getPanelBounds then
@@ -3036,7 +3253,13 @@ function widget:Initialize()
 		-- when the cursor enters the terraform panel, and back toward the real
 		-- cursor position when it leaves. Sub-tools call this every DrawWorld
 		-- frame with a unique toolKey and their real world position (or nil).
-		-- Returns animated (worldX, worldZ) — may be nil if nothing to show.
+		---@param toolKey string Unique per sub-tool.
+		---@param realX number? The real cursor world position.
+		---@param realZ number?
+		---@param radius number
+		---@param lengthScale number
+		---@return number? worldX Animated position; `nil` when there is nothing to show.
+		---@return number? worldZ
 		animateUnmouse = function(toolKey, realX, realZ, radius, lengthScale)
 			return extraState.tickSubToolUnmouse(toolKey, realX, realZ, radius, lengthScale)
 		end,
@@ -3048,6 +3271,8 @@ function widget:Initialize()
 		setNoiseLacunarity = extraState._noiseSetters.setNoiseLacunarity,
 		setNoiseSeed = extraState._noiseSetters.setNoiseSeed,
 		-- Symmetry API
+		---Mirrors every stroke across the symmetry axes.
+		---@param value boolean?
 		setSymmetryActive = function(value)
 			extraState.symmetryActive = value and true or false
 			if not extraState.symmetryActive then
@@ -3055,22 +3280,31 @@ function widget:Initialize()
 				extraState.symmetryDraggingOrigin = false
 			end
 		end,
+		---Moves the symmetry origin.
+		---@param x number|string
+		---@param z number|string
 		setSymmetryOrigin = function(x, z)
 			extraState.symmetryOriginX = tonumber(x)
 			extraState.symmetryOriginZ = tonumber(z)
 		end,
+		---Mirrors along X. Enabling this disables radial symmetry.
+		---@param value boolean?
 		setSymmetryMirrorX = function(value)
 			extraState.symmetryMirrorX = value and true or false
 			if extraState.symmetryMirrorX then
 				extraState.symmetryRadial = false
 			end
 		end,
+		---Mirrors along Y. Enabling this disables radial symmetry.
+		---@param value boolean?
 		setSymmetryMirrorY = function(value)
 			extraState.symmetryMirrorY = value and true or false
 			if extraState.symmetryMirrorY then
 				extraState.symmetryRadial = false
 			end
 		end,
+		---Repeats strokes around the origin. Enabling this disables mirroring.
+		---@param value boolean?
 		setSymmetryRadial = function(value)
 			extraState.symmetryRadial = value and true or false
 			if extraState.symmetryRadial then
@@ -3078,18 +3312,26 @@ function widget:Initialize()
 				extraState.symmetryMirrorY = false
 			end
 		end,
+		---@param value number Copies placed around the origin in radial mode.
 		setSymmetryRadialCount = function(value)
 			extraState.symmetryRadialCount = max(2, min(16, floor(tonumber(value) or 2)))
 		end,
+		---Puts the tool into the mode where the next click places the symmetry origin.
+		---@param value boolean?
 		setSymmetryPlacingOrigin = function(value)
 			extraState.symmetryPlacingOrigin = value and true or false
 		end,
+		---@param value number|string? Mirror axis angle in degrees, wrapped to `[0,360)`.
+		---Defaults to `0`.
 		setSymmetryMirrorAngle = function(value)
 			extraState.symmetryMirrorAngle = (tonumber(value) or 0) % 360
 		end,
+		---Swaps which side of the mirror axis is the source.
+		---@param value boolean?
 		setSymmetryFlipped = function(value)
 			extraState.symmetryFlipped = value and true or false
 		end,
+		---Turns symmetry off and resets its origin, axes and radial count.
 		clearSymmetry = function()
 			extraState.symmetryActive = false
 			extraState.symmetryPlacingOrigin = false
@@ -3105,6 +3347,13 @@ function widget:Initialize()
 		end,
 		getSymmetricPositions = extraState.getSymmetricPositions,
 		getSymmetryOrigin = extraState.getSymmetryOrigin,
+		---Snaps a world position to the build grid, or returns it unchanged when grid
+		---snap is off.
+		---@param x number
+		---@param z number
+		---@param angleDeg number? Defaults to `0`.
+		---@return number x
+		---@return number z
 		snapWorld = function(x, z, angleDeg)
 			if not extraState.gridSnap then
 				return x, z
@@ -3119,6 +3368,14 @@ function widget:Initialize()
 		getPresetNames = getPresetNames,
 		isBuiltinPreset = isBuiltinPreset,
 		getPreset = getPreset,
+		---A heightmap export saved for this map.
+		---@class TerraformHeightmapEntry
+		---@field path string
+		---@field label string Display label; `"(legacy)"` for un-stamped saves.
+		---@field sortKey string
+
+		---Lists heightmap exports belonging to this map, newest first.
+		---@return TerraformHeightmapEntry[]
 		listHeightmaps = function()
 			local HEIGHTMAPS_DIR = "Terraform Brush/Heightmaps/"
 			local files = VFS.DirList(HEIGHTMAPS_DIR, "*.png", VFS.RAW)
@@ -3173,32 +3430,45 @@ function widget:Initialize()
 			return out
 		end,
 		deactivate = deactivateTerraform,
+		---Undoes the last terraform stroke, if there is one.
 		undo = function()
 			if historyUndoCount > 0 then
 				SendLuaRulesMsg(MSG.UNDO)
 			end
 		end,
+		---Reapplies the most recently undone terraform stroke, if there is one.
 		redo = function()
 			if historyRedoCount > 0 then
 				SendLuaRulesMsg(MSG.REDO)
 			end
 		end,
+		---Restores the whole map to its original heightmap.
 		fullRestore = function()
 			SendLuaRulesMsg(MSG.FULL_RESTORE)
 		end,
+
 		-- Keybind configuration API
+
+		---@return table<string, {key: integer, label: string, key2: integer?, label2: string?}> binds A copy.
 		getKeybinds = function()
 			return deepCopyKeybinds(activeKeybinds)
 		end,
+		---@return table<string, {key: integer, label: string, key2: integer?, label2: string?}> binds A copy.
 		getDefaultKeybinds = function()
 			return deepCopyKeybinds(DEFAULT_KEYBINDS)
 		end,
+		---Rebinds one brush action. Unknown actions are ignored.
+		---@param action string
+		---@param keyCode number|string? Left unchanged when not numeric.
+		---@param label string? Left unchanged when omitted.
 		setKeybind = function(action, keyCode, label)
 			if activeKeybinds[action] then
 				activeKeybinds[action].key = tonumber(keyCode) or activeKeybinds[action].key
 				activeKeybinds[action].label = tostring(label or activeKeybinds[action].label)
 			end
 		end,
+		---Applies a whole set of keybinds, ignoring unknown actions and malformed entries.
+		---@param binds table<string, {key: integer, label: string?, key2: integer?, label2: string?}>?
 		applyKeybinds = function(binds)
 			if type(binds) ~= "table" then
 				return
@@ -3217,6 +3487,7 @@ function widget:Initialize()
 			end
 		end,
 		saveKeybinds = saveKeybindsToDisk,
+		---Restores every brush keybind to its default.
 		resetKeybinds = function()
 			activeKeybinds = deepCopyKeybinds(DEFAULT_KEYBINDS)
 		end,

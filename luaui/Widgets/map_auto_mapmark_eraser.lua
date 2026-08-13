@@ -19,12 +19,19 @@ local recentlyErased = {}
 
 function widget:Initialize()
 	WG.autoeraser = {}
+	---@return number seconds How long a map mark lives before it is auto-erased.
 	WG.autoeraser.getEraseTime = function()
 		return eraseTime
 	end
+	---@param value number Seconds a map mark lives before it is auto-erased.
 	WG.autoeraser.setEraseTime = function(value)
 		eraseTime = value
 	end
+	---Lets the map mark effects widget tell auto-erasures apart from player erasures,
+	---so it does not play an effect for them.
+	---@param value any? Unused.
+	---@return [integer, number, number, number][] recentlyErased Marks this widget erased
+	---itself, each `{gameFrame, x, y, z}`.
 	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
 	end

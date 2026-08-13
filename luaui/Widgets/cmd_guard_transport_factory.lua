@@ -174,9 +174,12 @@ function widget:Initialize()
 		return
 	end
 	WG.transportFactoryGuard = {}
+	---@return boolean blacklist Whether transports given explicit orders are excluded
+	---from automatically guarding a factory.
 	WG.transportFactoryGuard.getBlacklistOrderedUnits = function()
 		return blacklistOrderedUnits
 	end
+	---@param value boolean Exclude transports given explicit orders from auto-guarding.
 	WG.transportFactoryGuard.setBlacklistOrderedUnits = function(value)
 		blacklistOrderedUnits = value
 	end

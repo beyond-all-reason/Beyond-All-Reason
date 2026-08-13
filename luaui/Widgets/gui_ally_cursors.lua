@@ -295,56 +295,92 @@ function widget:Initialize()
 	updateSpecList(true)
 
 	WG.allycursors = {}
+	---Draws a light at each allied cursor.
+	---@param value boolean
 	WG.allycursors.setLights = function(value)
 		addLights = value
 		deleteDlists()
 	end
+	---@return boolean lights
 	WG.allycursors.getLights = function()
 		return addLights
 	end
+	---@param value number Brightness multiplier for allied cursor lights.
 	WG.allycursors.setLightStrength = function(value)
 		lightStrengthMult = value
 	end
+	---@return number multiplier
 	WG.allycursors.getLightStrength = function()
 		return lightStrengthMult
 	end
+	---@param value number Radius multiplier for allied cursor lights.
 	WG.allycursors.setLightRadius = function(value)
 		lightRadiusMult = value
 	end
+	---@param value boolean Let allied cursor lights cast screen-space shadows.
 	WG.allycursors.setLightSelfShadowing = function(value)
 		lightSelfShadowing = value
 	end
+	---@return number multiplier
 	WG.allycursors.getLightRadius = function()
 		return lightRadiusMult
 	end
 
+	---@return boolean selfShadowing
 	WG.allycursors.getLightSelfShadowing = function()
 		return lightSelfShadowing
 	end
+	---Draws a dot at each allied cursor position.
+	---@param value boolean
 	WG.allycursors.setCursorDot = function(value)
 		showCursorDot = value
 		deleteDlists()
 	end
+	---@return boolean cursorDot
 	WG.allycursors.getCursorDot = function()
 		return showCursorDot
 	end
+	---Labels allied cursors with the player's name.
+	---@param value boolean
 	WG.allycursors.setPlayerNames = function(value)
 		showPlayerName = value
 		deleteDlists()
 	end
+	---@return boolean playerNames
 	WG.allycursors.getPlayerNames = function()
 		return showPlayerName
 	end
+	---Labels spectator cursors with the spectator's name.
+	---@param value boolean
 	WG.allycursors.setSpectatorNames = function(value)
 		showSpectatorName = value
 		deleteDlists()
 	end
+	---@return boolean spectatorNames
 	WG.allycursors.getSpectatorNames = function()
 		return showSpectatorName
 	end
+	---One tracked ally cursor.
+	---@class AllyCursor
+	---@field [1] number World X of the cursor.
+	---@field [2] number World Y (ground height) under the cursor.
+	---@field [3] number World Z of the cursor.
+	---@field [4] number Camera X the cursor was sent from.
+	---@field [5] number Camera Y.
+	---@field [6] number Camera Z.
+	---@field [7] number Fade opacity; set to `0` to hide without removing.
+	---@field [8] boolean Whether the owner is a spectator.
+
+	---Returns every tracked cursor, without applying visibility rules.
+	---@return table<integer, AllyCursor> cursors Keyed by playerID. Do not mutate.
+	---@return table<integer, true> notIdle Players who have moved their cursor at least once.
 	WG.allycursors.getCursors = function()
 		return cursors, notIdle
 	end
+	---Returns one player's cursor, honoring what the local viewer is allowed to see.
+	---@param playerID integer?
+	---@return AllyCursor? cursor `nil` when the cursor is unknown or hidden from the viewer.
+	---@return true? notIdle Whether that player has moved their cursor at least once.
 	WG.allycursors.getCursor = function(playerID)
 		if not playerID then
 			return nil
@@ -355,6 +391,9 @@ function widget:Initialize()
 		end
 		return cursors[playerID], notIdle[playerID]
 	end
+	---Whether the local viewer is allowed to see a player's cursor.
+	---@param playerID integer?
+	---@return boolean
 	WG.allycursors.isCursorVisible = function(playerID)
 		if not playerID then
 			return false

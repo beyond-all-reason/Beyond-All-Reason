@@ -86,6 +86,9 @@ function widget:ViewResize()
 	end
 end
 
+---Returns a texture holding a copy of the current screen, refreshing it at most
+---once per draw frame.
+---@return string? texName `nil` on the very first call, before a copy exists.
 local function GetScreenCopy()
 	local df = Spring.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
@@ -100,6 +103,9 @@ local function GetScreenCopy()
 	return ScreenCopy
 end
 
+---Returns a texture holding a copy of the current depth buffer, refreshing it at
+---most once per draw frame.
+---@return string? texName `nil` on the very first call, before a copy exists.
 local function GetDepthCopy()
 	local df = Spring.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)

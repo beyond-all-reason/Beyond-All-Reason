@@ -4395,35 +4395,49 @@ function widget:Initialize()
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
 
 	WG.reclaimfieldhighlight = {}
+	---@return integer showOption When metal reclaim fields are highlighted.
 	WG.reclaimfieldhighlight.getShowOption = function()
 		return showOption
 	end
+	---@param value integer When metal reclaim fields are highlighted.
 	WG.reclaimfieldhighlight.setShowOption = function(value)
 		showOption = value
 	end
+	---@return integer segments Segments used to smooth each field's outline.
 	WG.reclaimfieldhighlight.getSmoothingSegments = function()
 		return smoothingSegments
 	end
+	---Sets the outline smoothing detail and forces a recluster.
+	---@param value number Clamped to `4`-`40`.
 	WG.reclaimfieldhighlight.setSmoothingSegments = function(value)
 		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
 		dirty.needCluster = true -- Force recluster with new settings
 	end
+	---@return boolean show Whether energy reclaim fields are highlighted too.
 	WG.reclaimfieldhighlight.getShowEnergyFields = function()
 		return showEnergyFields
 	end
+	---Highlights energy reclaim fields as well, forcing a recluster.
+	---@param value boolean
 	WG.reclaimfieldhighlight.setShowEnergyFields = function(value)
 		showEnergyFields = value
 		dirty.needCluster = true -- Force recluster with new settings
 	end
+	---@return integer showOption When energy reclaim fields are highlighted.
 	WG.reclaimfieldhighlight.getShowEnergyOption = function()
 		return showEnergyOption
 	end
+	---@param value integer When energy reclaim fields are highlighted.
 	WG.reclaimfieldhighlight.setShowEnergyOption = function(value)
 		showEnergyOption = value
 	end
+	---@return number distance Camera distance at which fields start fading out.
 	WG.reclaimfieldhighlight.getFadeStartDistance = function()
 		return fadeStartDistance
 	end
+	---Sets where fields start fading. The end distance is pushed out if needed to
+	---stay above it.
+	---@param value number At least `100`.
 	WG.reclaimfieldhighlight.setFadeStartDistance = function(value)
 		fadeStartDistance = max(100, value)
 		-- Ensure start < end
@@ -4431,58 +4445,74 @@ function widget:Initialize()
 			fadeEndDistance = fadeStartDistance + 1000
 		end
 	end
+	---@return number distance Camera distance at which fields are fully faded.
 	WG.reclaimfieldhighlight.getFadeEndDistance = function()
 		return fadeEndDistance
 	end
+	---@param value number Kept at least `100` above the fade start distance.
 	WG.reclaimfieldhighlight.setFadeEndDistance = function(value)
 		fadeEndDistance = max(fadeStartDistance + 100, value)
 	end
 
+	---@return boolean alwaysShow Whether large fields stay highlighted regardless of distance.
 	WG.reclaimfieldhighlight.getAlwaysShowFields = function()
 		return alwaysShowFields
 	end
+	---@param value boolean Keep large fields highlighted regardless of distance.
 	WG.reclaimfieldhighlight.setAlwaysShowFields = function(value)
 		alwaysShowFields = value
 	end
 
+	---@return number threshold Metal value above which a field is always shown.
 	WG.reclaimfieldhighlight.getAlwaysShowFieldsThreshold = function()
 		return alwaysShowFieldsThreshold
 	end
+	---Deprecated no-op; the threshold is now derived from the map's total metal.
+	---@param value number? Ignored.
 	WG.reclaimfieldhighlight.setAlwaysShowFieldsThreshold = function(value)
-		-- Deprecated - threshold is now auto-calculated
-		-- This function kept for backwards compatibility
 	end
 
+	---@return number threshold Lower bound on the auto-calculated always-show threshold.
 	WG.reclaimfieldhighlight.getAlwaysShowFieldsMinThreshold = function()
 		return alwaysShowFieldsMinThreshold
 	end
+	---Sets the lower bound on the always-show threshold and recalculates it.
+	---@param value number At least `0`.
 	WG.reclaimfieldhighlight.setAlwaysShowFieldsMinThreshold = function(value)
 		alwaysShowFieldsMinThreshold = max(0, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
+	---@return number threshold Upper bound on the auto-calculated always-show threshold.
 	WG.reclaimfieldhighlight.getAlwaysShowFieldsMaxThreshold = function()
 		return alwaysShowFieldsMaxThreshold
 	end
+	---Sets the upper bound on the always-show threshold and recalculates it.
+	---@param value number Kept at least at the minimum threshold.
 	WG.reclaimfieldhighlight.setAlwaysShowFieldsMaxThreshold = function(value)
 		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
+	---@return number metal Total reclaimable metal on the map.
 	WG.reclaimfieldhighlight.getTotalMapMetal = function()
 		return totalMapMetal
 	end
 
 	-- Deferred update settings
+	---@return boolean defer Whether off-screen fields skip their updates.
 	WG.reclaimfieldhighlight.getDeferOutOfViewUpdates = function()
 		return batch.deferOutOfView
 	end
+	---@param value boolean Skip updates for off-screen fields.
 	WG.reclaimfieldhighlight.setDeferOutOfViewUpdates = function(value)
 		batch.deferOutOfView = value
 	end
+	---@return number margin How far outside the view a field still counts as on-screen.
 	WG.reclaimfieldhighlight.getOutOfViewMargin = function()
 		return batch.outOfViewMargin
 	end
+	---@param value number At least `0`.
 	WG.reclaimfieldhighlight.setOutOfViewMargin = function(value)
 		batch.outOfViewMargin = max(0, value)
 	end
@@ -4490,27 +4520,38 @@ function widget:Initialize()
 	-- Diagnostics: toggle a periodic timing echo (per-call ms for the update
 	-- pass vs the draw/rebuild passes, plus display-list rebuilds per frame) so
 	-- it's easy to confirm whether updating or drawing is the per-frame cost.
+	---@return boolean enabled Whether periodic timing diagnostics are echoed.
 	WG.reclaimfieldhighlight.getDebugTiming = function()
 		return debugTiming
 	end
+	---Echoes periodic timing diagnostics, separating the update pass from the draw
+	---and rebuild passes.
+	---@param value boolean?
 	WG.reclaimfieldhighlight.setDebugTiming = function(value)
 		debugTiming = value and true or false
 	end
+	---@return integer frames Frames between timing echoes.
 	WG.reclaimfieldhighlight.getTimingInterval = function()
 		return timingInterval
 	end
+	---@param value number|string? Frames between timing echoes; at least `10`.
 	WG.reclaimfieldhighlight.setTimingInterval = function(value)
 		timingInterval = max(10, floor(tonumber(value) or timingInterval))
 	end
+	---@return number ms Frame time above which a spike is reported.
 	WG.reclaimfieldhighlight.getTimingSpikeMs = function()
 		return timingAccum.spikeMs
 	end
+	---@param value number|string? Milliseconds; at least `0.5`.
 	WG.reclaimfieldhighlight.setTimingSpikeMs = function(value)
 		timingAccum.spikeMs = max(0.5, tonumber(value) or timingAccum.spikeMs)
 	end
+	---@return integer ms Time budget per frame for incremental clustering.
 	WG.reclaimfieldhighlight.getClusterSliceBudgetMs = function()
 		return floor((batch.clusterJobBudget or 0) * 1000 + 0.5)
 	end
+	---Sets the per-frame clustering time budget. Non-numeric input is ignored.
+	---@param value number|string Milliseconds, clamped to the configured range.
 	WG.reclaimfieldhighlight.setClusterSliceBudgetMs = function(value)
 		local ms = tonumber(value)
 		if not ms then
@@ -4518,6 +4559,7 @@ function widget:Initialize()
 		end
 		batch.clusterJobBudget = clamp(ms * 0.001, batch.clusterJobBudgetMin, batch.clusterJobBudgetMax)
 	end
+	---Echoes the accumulated timing diagnostics immediately.
 	WG.reclaimfieldhighlight.printTimingNow = function()
 		local denom = timingCount > 0 and timingCount or 1
 		Spring.Echo(

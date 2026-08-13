@@ -61,6 +61,7 @@ end
 -- and clamp the size of it to always be screensized
 -- GL4 Stuff --
 
+---@type InstanceVBOTable
 local mapMarkInstanceVBO = nil
 local mapMarkShader = nil
 
@@ -71,6 +72,7 @@ local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
 
+---Removes every tracked map point marker.
 local function ClearPoints()
 	mapPoints = {}
 	InstanceVBOTable.clearInstanceTable(mapMarkInstanceVBO)

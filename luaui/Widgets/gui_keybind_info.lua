@@ -707,6 +707,8 @@ function widget:Initialize()
 	refreshText()
 
 	WG.keybinds = {}
+	---Shows or hides the keybind reference window.
+	---@param state boolean? Omit to toggle.
 	WG.keybinds.toggle = function(state)
 		if state ~= nil then
 			show = state
@@ -714,9 +716,11 @@ function widget:Initialize()
 			show = not show
 		end
 	end
+	---@return boolean visible
 	WG.keybinds.isvisible = function()
 		return show
 	end
+	---Re-reads the keybinds and redraws the reference window.
 	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true

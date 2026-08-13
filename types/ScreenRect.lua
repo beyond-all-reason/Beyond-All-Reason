@@ -9,7 +9,7 @@
 --- with `DockedPanelPosition`, which is top-left-bottom-right and carries a fifth
 --- element, or with the drag rects some widgets build as `{x1, y1, x2, y2}`.
 ---@class ScreenRect
----@field [1] number Left edge.
----@field [2] number Bottom edge.
----@field [3] number Right edge.
----@field [4] number Top edge.
+---@field [1] number Left edge
+---@field [2] number Bottom edge
+---@field [3] number Right edge
+---@field [4] number Top edge

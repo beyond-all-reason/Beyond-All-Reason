@@ -286,6 +286,8 @@ function widget:Initialize()
 	end
 
 	WG.teamstats = {}
+	---Shows or hides the team stats panel, refreshing it when it opens.
+	---@param state boolean? Omit to toggle.
 	WG.teamstats.toggle = function(state)
 		if state ~= nil then
 			guiData.mainPanel.visible = state
@@ -296,6 +298,7 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(), true)
 		end
 	end
+	---@return boolean visible
 	WG.teamstats.isvisible = function()
 		return guiData.mainPanel.visible
 	end

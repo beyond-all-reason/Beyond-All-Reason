@@ -29,10 +29,6 @@ local features
 local camX, camY, camZ = spGetCameraPosition()
 local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 
-function widget:Shutdown()
-	WG.darkenmap = nil
-end
-
 local function mapDarkness(_, _, params)
 	if #params == 1 then
 		if type(tonumber(params[1])) == "number" then
@@ -46,13 +42,19 @@ end
 
 function widget:Initialize()
 	WG.darkenmap = {}
+	---@return number darkness `0` leaves the map at full brightness.
 	WG.darkenmap.getMapDarkness = function()
 		return darknessvalue
 	end
+	---@param value number|string How much to dim the map; `0` disables dimming.
 	WG.darkenmap.setMapDarkness = function(value)
 		darknessvalue = tonumber(value)
 	end
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
+end
+
+function widget:Shutdown()
+	WG.darkenmap = nil
 end
 
 local prevCam = {}

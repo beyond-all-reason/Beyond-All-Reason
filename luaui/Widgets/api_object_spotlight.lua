@@ -311,20 +311,22 @@ for k in pairs(spotlightTypes) do
 	objectOwners[k] = {}
 end
 
+---Extra options accepted by `addSpotlight`.
+---@class ObjectSpotlightOptions
+---@field duration number? If given, the spotlight fades out over this many seconds.
+---@field radius number? Override the radius. Defaults to the object's radius, or `100`.
+---@field radiusCoefficient number? Multiplicative factor for the radius. Defaults to `1`.
+---@field height number? Override the height. Defaults to `300`.
+---@field heightCoefficient number? Multiplicative factor for the height. Defaults to `1`.
+
 ---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 ---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 ---removeSpotlight later is necessary to remove the spotlight.
----@param objectType string "unit", "feature", or "ground"
----@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
----@param color table RGBA color used for the spotlight
----@param options table extra optional parameters
----@param options.duration number if specified, the spotlight will fade out over this period of seconds
----@param options.radius number override the radius (default: the radius of the object, or 100 if that's not present)
----@param options.radiusCoefficient number multiplicative factor for the radius (default: 1)
----@param options.height number override the height (default: 300)
----@param options.heightCoefficient number multiplicative factor for the height (default: 1)
----@return nil
+---@param objectType WorldObjectType
+---@param owner string Identifier preventing collisions; one spotlight per objectID per owner.
+---@param objectID integer|Position3D A unitID, featureID, or `{x, y, z}` for a location.
+---@param color ColorRGBA RGBA color used for the spotlight.
+---@param options ObjectSpotlightOptions?
 local function addSpotlight(objectType, owner, objectID, color, options)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -398,10 +400,10 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 end
 
 ---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
----@param objectType string "unit" or "feature", or "ground"
----@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
----@return nil
+---Removes an object's spotlight. Safe to call when no spotlight is present.
+---@param objectType WorldObjectType
+---@param owner string Identifier preventing collisions; one spotlight per objectID per owner.
+---@param objectID integer|Position3D A unitID, featureID, or `{x, y, z}` for a location.
 local function removeSpotlight(objectType, owner, objectID)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -436,9 +438,10 @@ local function removeSpotlight(objectType, owner, objectID)
 end
 
 ---Returns the objectID for all spotlights with the specified type and owner.
----@param objectType string "unit" or "feature", or "ground"
----@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@return (number|number[])[]
+---Returns the objectID of every spotlight with the given type and owner.
+---@param objectType WorldObjectType
+---@param owner string Identifier preventing collisions; one spotlight per objectID per owner.
+---@return (integer|Position3D)[] objectIDs
 local function getSpotlights(objectType, owner)
 	return table.reduce(objectOwners[objectType], function(acc, v, k)
 		if v[owner] then
@@ -449,8 +452,8 @@ local function getSpotlights(objectType, owner)
 end
 
 ---Removes all spotlights with the specified owner.
----@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@return nil
+---Removes every spotlight belonging to an owner, across all object types.
+---@param owner string Identifier preventing collisions; one spotlight per objectID per owner.
 local function removeAllSpotlights(owner)
 	for objectType in pairs(spotlightTypes) do
 		for _, id in ipairs(getSpotlights(objectType, owner)) do

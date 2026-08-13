@@ -258,31 +258,43 @@ function widget:Initialize()
 	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
 	WG.autogroup = {}
+	---@return boolean immediate Whether units join their autogroup as soon as they start
+	---building, rather than when finished.
 	WG.autogroup.getImmediate = function()
 		return immediate
 	end
+	---@param value boolean Add units to their autogroup as soon as they start building.
 	WG.autogroup.setImmediate = function(value)
 		immediate = value
 	end
 
+	---@return boolean persist Whether autogroup assignments survive between games.
 	WG.autogroup.getPersist = function()
 		return persist
 	end
+	---@param value boolean Keep autogroup assignments between games.
 	WG.autogroup.setPersist = function(value)
 		persist = value
 	end
+	---@return table<integer, integer> groups Group number per unitDefID. Do not mutate.
 	WG.autogroup.getGroups = function()
 		return unit2group
 	end
+	---Assigns every unit type in the current selection to an autogroup.
+	---@param groupNumber integer
 	WG.autogroup.addCurrentSelectionToAutogroup = function(groupNumber)
 		changeUnitTypeAutogroup(groupNumber)
 	end
+	---Clears the autogroup of every unit type in the current selection.
 	WG.autogroup.removeCurrentSelectionFromAutogroup = function()
 		changeUnitTypeAutogroup(nil, true)
 	end
+	---Removes a single unit from its autogroup, leaving the rest of its type alone.
 	WG.autogroup.removeOneUnitFromGroup = function()
 		removeOneUnitFromGroupHandler()
 	end
+	---Replaces every autogroup assignment with a saved preset.
+	---@param newPreset integer|string Preset identifier.
 	WG.autogroup.loadAutogroupPreset = function(newPreset)
 		loadAutogroupPreset(newPreset)
 	end

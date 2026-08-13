@@ -431,6 +431,9 @@ function widget:Initialize()
 	Spring.SendCommands("unbindkeyset f11")
 
 	WG.widgetselector = {}
+	---Shows or hides the widget selector, closing the top bar windows when it opens
+	---and taking text input ownership so its search field works.
+	---@param state boolean? Omit to toggle.
 	WG.widgetselector.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
@@ -449,9 +452,11 @@ function widget:Initialize()
 			widgetHandler.textOwner = nil --widgetHandler:DisownText()
 		end
 	end
+	---@return boolean visible
 	WG.widgetselector.isvisible = function()
 		return show
 	end
+	---@return integer count Widgets loaded from the player's own widget folder.
 	WG.widgetselector.getLocalWidgetCount = function()
 		return localWidgetCount
 	end

@@ -117,6 +117,7 @@ local shader
 local highlightVBOLayout = {
 	{ id = 0, name = "position", size = 3 },
 }
+---@type InstanceVBOTable
 local instanceVBO = nil
 local instanceVBOLayout = {
 	{ id = 1, name = "position", size = 3 },
@@ -293,6 +294,9 @@ function widget:Initialize()
 	end
 
 	WG.highlightcomwrecks = {}
+	---Highlights commander wrecks in their owner's team color rather than the default,
+	---re-evaluating every feature on the map.
+	---@param value boolean
 	WG.highlightcomwrecks.setUseTeamColor = function(value)
 		useTeamColor = value
 		checkAllFeatures()

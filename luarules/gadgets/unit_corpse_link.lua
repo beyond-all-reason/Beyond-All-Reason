@@ -40,6 +40,10 @@ local function GetFeatureResurrectDefID(featureID)
 	return unitDef.id
 end
 
+---Returns the unitID the corpse feature was created from, consuming the link so
+---each corpse resolves at most once.
+---@param featureID integer
+---@return integer? unitID `nil` when no unit is linked to this corpse.
 local function GetCorpsePriorUnitID(featureID)
 	-- Technically features can rez into something else than they died as,
 	-- or even be rezzable without ever dying, but let's assume they don't

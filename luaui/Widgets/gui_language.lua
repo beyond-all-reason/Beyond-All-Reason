@@ -37,6 +37,8 @@ function widget:Initialize()
 
 	WG.language = {}
 
+	---Switches the UI language, persists it, and notifies every widget.
+	---@param language string Language code, e.g. `"en"`.
 	WG.language.setLanguage = function(language)
 		Spring.SetConfigString("language", language)
 		BAR.I18N.setLanguage(language)
@@ -46,6 +48,8 @@ function widget:Initialize()
 		end
 	end
 
+	---Keeps unit names in English regardless of UI language, and notifies every widget.
+	---@param value boolean
 	WG.language.setEnglishUnitNames = function(value)
 		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
 

@@ -79,6 +79,7 @@ local dp = {
 	cadence = 50, -- per second
 	distribution = "random",
 	smartEnabled = false,
+	---@type table<string, boolean|number>
 	smartFilters = {
 		avoidWater = false,
 		avoidCliffs = false,
@@ -214,6 +215,17 @@ end
 -- Exposed so UI / exporter can look up the norm partner.
 local normPartnerByMain = {} -- { [mainName] = normName }
 
+---An entry in the decal library.
+---@class DecalLibraryEntry
+---@field name string
+---@field category string
+---@field filename string
+---@field normalName string? Paired normal map, when the library has one.
+---@field normalFilename string?
+
+---Returns the normal-map decal paired with a diffuse decal.
+---@param mainName string
+---@return string? normalName `nil` when the decal has no paired normal map.
 local function getNormalPartner(mainName)
 	return normPartnerByMain[mainName]
 end
@@ -529,6 +541,7 @@ local function placeSymmetric(fn, cx, cz)
 	fn(cx, cz)
 end
 
+---Removes the decals placed by the most recent stroke.
 local function decalUndo()
 	local entry = dp.undoStack[#dp.undoStack]
 	if not entry then
@@ -543,6 +556,7 @@ local function decalUndo()
 	-- redoStack would need re-creation info; skip redo for destructive ops
 end
 
+---Destroys every ground decal on the map, including ones this widget did not place.
 local function decalClearAll()
 	if not GetAllGroundDecals then
 		return
@@ -586,6 +600,8 @@ local function activate(mode)
 	return true
 end
 
+---Disables the decal tool.
+---@return boolean `true` always.
 local function deactivate()
 	if dp.active then
 		Echo("[Decal Placer] Deactivated")
@@ -598,6 +614,9 @@ local function deactivate()
 	return true
 end
 
+---Switches the decal tool's mode, deactivating the other map brushes first.
+---Unknown values are ignored.
+---@param mode BrushPlacementMode
 local function setMode(mode)
 	if mode == "scatter" or mode == "point" or mode == "remove" then
 		if not dp.active and WG.TerraformBrush then
@@ -624,72 +643,102 @@ end
 ----------------------------------------------------------------
 -- Setters
 ----------------------------------------------------------------
+
+---Sets the brush footprint. Unknown values are ignored.
+---@param s BrushShape
 local function setShape(s)
 	if s == "circle" or s == "square" or s == "hexagon" or s == "octagon" or s == "triangle" then
 		dp.shape = s
 	end
 end
+---@param r number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(r)
 	dp.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
 end
+---@param d number Decal rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(d)
 	dp.rotation = d % 360
 end
+---@param step number Degrees to add to the current rotation.
 local function rotate(step)
 	dp.rotation = (dp.rotation + step) % 360
 end
+---@param v number Percent of random rotation jitter, clamped to `0`-`100`.
 local function setRotRandom(v)
 	dp.rotRandom = max(0, min(100, floor(v)))
 end
+---@param n number Decals placed per scatter stroke, clamped to `1`-`500`.
 local function setDecalCount(n)
 	dp.decalCount = max(1, min(500, floor(n)))
 end
+---@param v number Frames between placements while dragging, clamped to `1`-`1000`.
 local function setCadence(v)
 	dp.cadence = max(1, min(1000, floor(v)))
 end
+---Sets how scattered decals are spread. Unknown values are ignored.
+---@param m "random"|"regular"|"clustered"
 local function setDistribution(m)
 	if m == "random" or m == "regular" or m == "clustered" then
 		dp.distribution = m
 	end
 end
+---Enables the slope and altitude filters that restrict where decals are placed.
+---@param v boolean?
 local function setSmartEnabled(v)
 	dp.smartEnabled = v and true or false
 end
+---Sets one smart filter value. Unknown keys are ignored.
+---@param k string
+---@param v boolean|number
 local function setSmartFilter(k, v)
 	if dp.smartFilters[k] ~= nil then
 		dp.smartFilters[k] = v
 	end
 end
+---@param v number Smallest decal size, clamped to `4`-`1024`. Pushes the maximum up if needed.
 local function setSizeMin(v)
 	dp.sizeMin = max(4, min(1024, floor(v)))
 	if dp.sizeMin > dp.sizeMax then
 		dp.sizeMax = dp.sizeMin
 	end
 end
+---@param v number Largest decal size, clamped to `4`-`1024`. Pulls the minimum down if needed.
 local function setSizeMax(v)
 	dp.sizeMax = max(4, min(1024, floor(v)))
 	if dp.sizeMax < dp.sizeMin then
 		dp.sizeMin = dp.sizeMax
 	end
 end
+---@param v number Decal opacity, clamped to `0`-`1`.
 local function setAlpha(v)
 	dp.alpha = max(0, min(1, v))
 end
+---Sets the decal tint. Omitted components keep their current value.
+---@param r number? Clamped to `0`-`1`.
+---@param g number? Clamped to `0`-`1`.
+---@param b number? Clamped to `0`-`1`.
+---@param a number? Clamped to `0`-`1`.
 local function setTint(r, g, b, a)
 	dp.tintR = max(0, min(1, r or dp.tintR))
 	dp.tintG = max(0, min(1, g or dp.tintG))
 	dp.tintB = max(0, min(1, b or dp.tintB))
 	dp.tintA = max(0, min(1, a or dp.tintA))
 end
+---Aligns placed decals to the terrain normal instead of lying flat.
+---@param v boolean?
 local function setAlignToNormal(v)
 	dp.alignToNormal = v and true or false
 end
 
+---Selects a single decal, replacing the current selection.
+---@param name string
 local function selectDecal(name)
 	dp.selectedDecals = { name }
 	dp.selectedSet = { [name] = true }
 end
 
+---Adds or removes one decal from the multi-selection.
+---@param name string
 local function toggleDecal(name)
 	if dp.selectedSet[name] then
 		dp.selectedSet[name] = nil
@@ -705,11 +754,39 @@ local function toggleDecal(name)
 	end
 end
 
+---Clears the decal selection.
 local function clearSelectedDecals()
 	dp.selectedDecals = {}
 	dp.selectedSet = {}
 end
 
+---A snapshot of the decal placer, for the UI to render.
+---@class DecalPlacerState
+---@field active boolean
+---@field mode BrushPlacementMode? `nil` while the tool is inactive.
+---@field shape BrushShape
+---@field radius number
+---@field rotation number
+---@field rotRandom number
+---@field decalCount number
+---@field cadence number
+---@field distribution "random"|"regular"|"clustered"
+---@field smartEnabled boolean
+---@field smartFilters table<string, boolean|number> The live filter table. Do not mutate.
+---@field sizeMin number
+---@field sizeMax number
+---@field alpha number
+---@field tintR number
+---@field tintG number
+---@field tintB number
+---@field tintA number
+---@field alignToNormal boolean
+---@field selectedDecals string[]
+---@field selectedSet table<string, true>
+---@field undoCount integer
+---@field redoCount integer
+
+---@return DecalPlacerState
 local function getState()
 	return {
 		active = dp.active,
@@ -738,17 +815,21 @@ local function getState()
 	}
 end
 
+---@return DecalLibraryEntry[] decals Every decal in the library, built on first use.
 local function getDecalList()
 	buildDecalList()
 	return decalList
 end
+---@return table<string, DecalLibraryEntry[]> byCategory Decals grouped by category.
 local function getDecalCategories()
 	buildDecalList()
 	return decalCategories
 end
+---@return string[] order Category keys in the order the UI should show them.
 local function getCategoryOrder()
 	return CATEGORY_ORDER
 end
+---@return table<string, string> labels Display label per category key.
 local function getCategoryLabels()
 	return CATEGORY_LABELS
 end
@@ -756,6 +837,8 @@ end
 ----------------------------------------------------------------
 -- Save / Load decal map
 ----------------------------------------------------------------
+
+---Writes every ground decal on the map to a timestamped file in the save directory.
 local function decalSave()
 	if not GetAllGroundDecals then
 		return
@@ -801,6 +884,9 @@ end
 -- Project-mode save: only decals placed by this tool (dp.projectIDs), stable order,
 -- no timestamp comment — repeated saves of the same scene must serialize identically
 -- (project files live in git). Returns the decal count written, or nil on error.
+---Writes every ground decal to a project file, byte-identically across platforms.
+---@param explicitPath string
+---@return integer? count Decals written; `nil` when the file could not be opened.
 local function decalSaveProject(explicitPath)
 	if not GetAllGroundDecals then
 		return nil
@@ -844,6 +930,8 @@ local function decalSaveProject(explicitPath)
 	return #lines
 end
 
+---Loads decals from a saved file.
+---@param filename string? Defaults to the most recent save in the save directory.
 local function decalLoad(filename)
 	if not filename or filename == "" then
 		local saves = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW) or {}
@@ -890,6 +978,7 @@ local function decalLoad(filename)
 	Echo("[Decal Placer] Loaded " .. #placed .. " decals from " .. filename)
 end
 
+---@return string[] filenames Saved decal files, newest last.
 local function listSavedDecalMaps()
 	local files = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW)
 	return files or {}

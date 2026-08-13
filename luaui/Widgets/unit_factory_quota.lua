@@ -55,7 +55,11 @@ local CMD_QUOTA_BUILD_TOGGLE = GameCMD.QUOTA_BUILD_TOGGLE
 -----
 
 --------- quota logic -------------
+---@param factoryID integer
+---@param unitDefID integer
+---@return integer count How many of that unit type the factory has built.
 local function getNumberOfUnits(factoryID, unitDefID)
+	---@type integer
 	local numberOfUnits
 	if builtUnits[factoryID] and builtUnits[factoryID][unitDefID] then
 		numberOfUnits = table.count(builtUnits[factoryID][unitDefID])
@@ -199,12 +203,21 @@ function widget:Initialize()
 	widget:PlayerChanged()
 
 	WG.Quotas = {}
+	---@return table<integer, table<integer, integer>> quotas Wanted unit counts, keyed by
+	---factory unitID then unitDefID.
+	---Do not mutate.
 	WG.Quotas.getQuotas = function()
 		return quotas
 	end
+	---Counts how many of a unit type a factory's quota currently accounts for.
+	---@param factoryID integer
+	---@param unitDefID integer
+	---@return integer count
 	WG.Quotas.getUnitAmount = function(factoryID, unitDefID)
 		return getNumberOfUnits(factoryID, unitDefID)
 	end
+	---@param unitID integer A factory.
+	---@return boolean onQuota Whether that factory is building to a quota.
 	WG.Quotas.isOnQuotaMode = function(unitID)
 		return isOnQuotaBuildMode(unitID)
 	end

@@ -1019,6 +1019,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable
 local beamVBO
 local beamShader
 local flareShader

@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+---@type InstanceVBOTable
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Include/"

@@ -293,6 +293,9 @@ function gadget:GameFrame(frame)
 	gameFrame = frame
 end
 
+---Enables or disables collision-damage velocity tracking for a unit.
+---@param unitID integer
+---@param enabled boolean? Pass `false` to stop tracking; any other value starts it.
 local function setVelocityControl(unitID, enabled)
 	if enabled == false then
 		launchedUnits[unitID] = nil

@@ -82,6 +82,18 @@ local function notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	end
 end
 
+---Options accepted by the firestate setters.
+---@class FirestateOpts
+---@field userInitiated boolean? `true` when the player clicked something, `false` (the
+---default) for automatic or scripted changes.
+
+---Changes the firestate of the player's current selection.
+---Issues a selection-wide order, so `unitIDs` must be the current selection.
+---@param userState integer? A `CustomFirestateDefs` value, e.g. `DEFEND`.
+---@param unitIDs integer[]? The currently selected units.
+---@param opts FirestateOpts?
+---@return boolean issued `false` when `userState` is missing, `unitIDs` is empty, or
+---the state has no engine equivalent.
 local function setSelectionFirestate(userState, unitIDs, opts)
 	if userState == nil or not unitIDs or #unitIDs == 0 then
 		return false
@@ -102,6 +114,11 @@ local function setSelectionFirestate(userState, unitIDs, opts)
 	return true
 end
 
+---Changes the firestate of specific units, one order per unit.
+---@param userState integer? A `CustomFirestateDefs` value, e.g. `DEFEND`.
+---@param unitIDs integer[]?
+---@param opts FirestateOpts?
+---@return boolean issued `false` when `userState` or `unitIDs` is missing.
 local function setFirestateForUnits(userState, unitIDs, opts)
 	if userState == nil or not unitIDs then
 		return false
@@ -116,6 +133,14 @@ local function setFirestateForUnits(userState, unitIDs, opts)
 	return true
 end
 
+---Resolves a firestate command back into the user-facing state it represents,
+---consuming any state staged for that unit by this API.
+---@param cmdID integer Either `CMD.FIRE_STATE` or `GameCMD.USER_FIRESTATE`.
+---@param cmdParams number[]?
+---@param unitID integer
+---@return integer? userState A `CustomFirestateDefs` value, or `nil` for unrelated commands.
+---@return boolean userInitiated Whether the change came from a player action.
+---@return boolean fromApi Whether this API issued the command.
 local function decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 	if cmdID == CMD_USER_FIRESTATE then
 		local userState, userInitiated = CustomFirestateDefs.parseUserFirestateParams(cmdParams)

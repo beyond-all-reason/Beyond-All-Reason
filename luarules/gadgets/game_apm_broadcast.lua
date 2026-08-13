@@ -31,6 +31,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	---Excludes the unit's next order from the team's APM count for one game frame.
+	---@param unitID integer
 	local function addSkipOrder(unitID)
 		ignoreUnits[unitID] = gameFrame + 1
 	end

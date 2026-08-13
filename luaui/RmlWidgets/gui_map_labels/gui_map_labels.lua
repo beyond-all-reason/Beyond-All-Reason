@@ -101,6 +101,7 @@ end
 -- Persistence (one file per map in the Spring write dir)
 -- ===========================================================================
 
+
 local function labelsFilePath()
 	local slug = (Game.mapName or "unknown"):gsub("[^%w%-_%. ]", "_")
 	-- "labels_" prefix also sidesteps Windows reserved device names (CON, AUX...)
@@ -211,6 +212,7 @@ end
 -- Helpers
 -- ===========================================================================
 
+
 local function findLabel(id)
 	for _, L in ipairs(state.labels) do
 		if L.id == id then
@@ -267,6 +269,7 @@ end
 -- ===========================================================================
 -- Popup (open comment attached to a dot)
 -- ===========================================================================
+
 
 local function setEditing(on)
 	state.popupEditing = on
@@ -1017,19 +1020,35 @@ function widget:Initialize()
 	rebuildUi()
 
 	WG.MapLabels = {
+		---A map comment as exposed by `getLabels`.
+		---@class MapLabel
+		---@field id integer
+		---@field x number
+		---@field z number
+		---@field color string
+		---@field author string
+		---@field created string Local timestamp, formatted `"%Y-%m-%d %H:%M"`.
+		---@field text string
+
+		---Toggles the labels browser window.
+		---@return boolean open The window's new state.
 		toggle = function()
 			setWindowOpen(not state.windowOpen)
 			return state.windowOpen
 		end,
+		---Opens the labels browser window.
 		open = function()
 			setWindowOpen(true)
 		end,
+		---Closes the labels browser window.
 		close = function()
 			setWindowOpen(false)
 		end,
+		---@return boolean open
 		isOpen = function()
 			return state.windowOpen
 		end,
+		---@return boolean placing Whether the widget is waiting for a click to place a label.
 		isPlacing = function()
 			return state.placing
 		end,
@@ -1037,6 +1056,7 @@ function widget:Initialize()
 		-- widget hides its cursor ring whenever this is true. Covers label
 		-- placement, dot hover/drag, hovering our windows, and an open comment
 		-- (whose dismissing click is consumed instead of painting).
+		---@return boolean suppress Whether the terrain brush should hide its cursor ring.
 		shouldSuppressBrush = function()
 			if state.placing or state.openLabelId then
 				return true
@@ -1045,6 +1065,7 @@ function widget:Initialize()
 		end,
 		-- True when the cursor is over the labels browser window or an open
 		-- comment popup; cmd_terraform_brush hides the brush ring there.
+		---@return boolean over Whether the cursor is over the browser window or an open comment.
 		isCursorOver = function()
 			-- Hovering or dragging a dot is a label interaction, not painting
 			if state.hoverDotId or state.draggingId then
@@ -1067,12 +1088,14 @@ function widget:Initialize()
 			end
 			return false
 		end,
+		---@return integer count
 		getLabelCount = function()
 			return #state.labels
 		end,
 
 		-- Read-only snapshot for exporters (Terraform Brush Capture writes these
 		-- as an SVG pin layer). Copied so a caller cannot mutate live state.
+		---@return MapLabel[] labels A copy, so mutating it does not affect live state.
 		getLabels = function()
 			local out = {}
 			for i, L in ipairs(state.labels) do
@@ -1095,6 +1118,9 @@ function widget:Initialize()
 
 		-- Returns the number of comments written (0 = none, caller deletes the
 		-- file), or nil if the file could not be written.
+		---Writes the live comments into a map project folder.
+		---@param path string?
+		---@return integer? count
 		saveProject = function(path)
 			if not path then
 				return nil
@@ -1122,6 +1148,9 @@ function widget:Initialize()
 		-- Replaces every live comment with the project's. Also refreshes the
 		-- per-map autosave so the two copies do not disagree afterwards.
 		-- Returns ok, count.
+		---@param path string?
+		---@return boolean ok
+		---@return integer? count Number of comments loaded, when `ok` is `true`.
 		loadProject = function(path)
 			if not path then
 				return false

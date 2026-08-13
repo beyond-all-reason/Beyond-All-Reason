@@ -40,6 +40,7 @@ local sound_button2 = "LuaUI/Sounds/buildbar_rem.wav"
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ""
 local lastUpdateClock = 0
@@ -880,47 +881,67 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG.info = {}
+	---@return boolean show Whether a builder's build list is shown in the info panel.
 	WG.info.getShowBuilderBuildlist = function()
 		return showBuilderBuildlist
 	end
+	---@param value boolean Show a builder's build list in the info panel.
 	WG.info.setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
 	end
+	---@return boolean show Whether the cursor's map position is shown.
 	WG.info.getDisplayMapPosition = function()
 		return displayMapPosition
 	end
+	---@param value boolean Show the cursor's map position.
 	WG.info.setDisplayMapPosition = function(value)
 		displayMapPosition = value
 	end
+	---@return boolean alwaysShow Whether the panel stays open with nothing hovered.
 	WG.info.getAlwaysShow = function()
 		return alwaysShow
 	end
+	---@param value boolean Keep the panel open with nothing hovered.
 	WG.info.setAlwaysShow = function(value)
 		alwaysShow = value
 	end
+	---Pins the info panel to a specific unit, overriding what the cursor hovers.
+	---@param unitID integer
 	WG.info.displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
+	---Unpins the info panel from a specific unit.
 	WG.info.clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
 	end
+	---Pins the info panel to a unit definition, overriding what the cursor hovers.
+	---@param unitDefID integer
 	WG.info.displayUnitDefID = function(unitDefID)
 		cfgDisplayUnitDefID = unitDefID
 	end
+	---Unpins the info panel from a unit definition.
 	WG.info.clearDisplayUnitDefID = function()
 		cfgDisplayUnitDefID = nil
 	end
+	---@return number width
+	---@return number height
 	WG.info.getPosition = function()
 		return width, height
 	end
+	---@return boolean showing Whether the info panel is currently drawn.
 	WG.info.getIsShowing = function()
 		return infoShows
 	end
+	---Supplies custom hover info from another widget, e.g. the PIP window.
+	---@param hType "unit"|"feature"|"ground"|nil What kind of thing is hovered.
+	---@param hData integer? The unitID or featureID to render. Both arguments must be
+	---given for the custom hover to take effect.
 	WG.info.setCustomHover = function(hType, hData)
 		-- Allow external widgets to supply custom hover info (e.g., PIP window)
 		customHoverType = hType
 		customHoverData = hData
 	end
+	---Clears custom hover info supplied by another widget.
 	WG.info.clearCustomHover = function()
 		customHoverType = nil
 		customHoverData = nil

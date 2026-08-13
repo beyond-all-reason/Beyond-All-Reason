@@ -99,6 +99,7 @@ end
 --
 
 local spotVBO = nil
+---@type InstanceVBOTable
 local spotInstanceVBO = nil
 local spotShader = nil
 
@@ -414,21 +415,27 @@ function widget:Initialize()
 	initGL4()
 
 	WG.geothermalspots = {}
+	---@param value boolean Label geothermal spots with their energy output.
 	WG.geothermalspots.setShowValue = function(value)
 		showValue = value
 	end
+	---@return boolean showValue
 	WG.geothermalspots.getShowValue = function()
 		return showValue
 	end
+	---@param value number Opacity of the geothermal spot markers.
 	WG.geothermalspots.setOpacity = function(value)
 		opacity = value
 	end
+	---@return number opacity
 	WG.geothermalspots.getOpacity = function()
 		return opacity
 	end
+	---@param value boolean Only show geothermal spots while the metal map view is on.
 	WG.geothermalspots.setMetalViewOnly = function(value)
 		metalViewOnly = value
 	end
+	---@return boolean metalViewOnly
 	WG.geothermalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end

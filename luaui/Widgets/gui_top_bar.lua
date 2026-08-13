@@ -234,7 +234,9 @@ end
 local draggingShareIndicatorValue = {}
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, quitscreenTeamResignArea, hoveringTopbar, hideQuitWindow
-local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover, teamResign
+local font, font2, firstButton, fontSize, comcountChanged, resbarHover, teamResign
+---@type boolean
+local showQuitscreen
 
 -- Audio
 local playSounds = true
@@ -1627,6 +1629,23 @@ function init()
 	updateButtons()
 
 	if WG.topbar then
+		---The top bar's screen rectangle plus the scale it was laid out at. Note the
+		---component order is left-bottom-right-top, unlike the top-left-bottom-right
+		---order the advplayerlist-adjacent panels use.
+		---@class TopBarArea
+		---@field [1] number Left edge, already offset for the skew and margin.
+		---@field [2] number Bottom edge.
+		---@field [3] number Right edge.
+		---@field [4] number Top edge.
+		---@field [5] number UI scale the bar was laid out at.
+
+		---A `TopBarArea` with the buttons' bottom edge appended, so a docked widget can
+		---align to the button row rather than to the bar itself.
+		---@class TopBarPosition : TopBarArea
+		---@field [6] number Bottom edge of the button row.
+
+		---Screen rectangle of the top bar.
+		---@return TopBarPosition position
 		WG.topbar.GetPosition = function()
 			local leftSkewOffset = cfg.useSkew and mathFloor((topbarArea[4] - topbarArea[2]) * skewTan) or 0
 			return {
@@ -1639,6 +1658,8 @@ function init()
 			}
 		end
 
+		---The unused span of the top bar, for widgets that want to dock into it.
+		---@return TopBarArea area
 		WG.topbar.GetFreeArea = function()
 			return {
 				topbarArea[1] + filledWidth,
@@ -1648,6 +1669,8 @@ function init()
 				widgetScale,
 			}
 		end
+		---How the top bar's edges are slanted, so docked widgets can match it.
+		---@return {useSkew: boolean, skewTan: number, smallElementHeightFraction: number}
 		WG.topbar.GetSkewConfig = function()
 			return {
 				useSkew = cfg.useSkew,
@@ -3457,14 +3480,18 @@ function widget:Initialize()
 
 	WG.topbar = {}
 
+	---@return boolean showing Whether the quit confirmation screen is up.
 	WG.topbar.showingQuit = function()
 		return showQuitscreen
 	end
 
+	---Closes every window the top bar owns.
 	WG.topbar.hideWindows = function()
 		hideWindows()
 	end
 
+	---Hides the top bar buttons until hovered, and relays the bar out.
+	---@param value boolean
 	WG.topbar.setAutoHideButtons = function(value)
 		refreshUi = true
 		autoHideButtons = value
@@ -3472,19 +3499,26 @@ function widget:Initialize()
 		updateButtons()
 	end
 
+	---@return boolean autoHide
 	WG.topbar.getAutoHideButtons = function()
 		return autoHideButtons
 	end
 
+	---@return boolean showing Whether the buttons are visible right now.
 	WG.topbar.getShowButtons = function()
 		return showButtons
 	end
 
+	---Previews an energy conversion slider position on the energy bar.
+	---@param value number? Pass `nil` to clear the preview.
 	WG.topbar.updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
 		updateResbar("energy")
 	end
 
+	---Shows or hides the resource bars, as quick-start does pregame. Showing them
+	---again rebuilds the bar and slider geometry from the current top bar size.
+	---@param visible boolean
 	WG.topbar.setResourceBarsVisible = function(visible)
 		if showResourceBars == visible then
 			return
@@ -3507,6 +3541,7 @@ function widget:Initialize()
 		end
 	end
 
+	---@return boolean visible
 	WG.topbar.getResourceBarsVisible = function()
 		return showResourceBars
 	end

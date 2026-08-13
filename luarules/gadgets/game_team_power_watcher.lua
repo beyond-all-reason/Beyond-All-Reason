@@ -15,6 +15,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+---A team paired with a power value, as returned by the highest/lowest lookups.
+---@class PowerLib.TeamPower
+---@field teamID integer? `nil` when no team qualified.
+---@field power number
+
 local teamIsOverPoweredRatio = 1.25
 local alliesAreWinningRatio = 1.25
 local mathHuge = math.huge
@@ -105,11 +110,14 @@ local function isPlayerTeam(teamID)
 end
 
 -- Returns the power of the input teamID as a number.
+---@param teamID integer
+---@return number power
 local function teamPower(teamID)
 	return teamPowers[teamID]
 end
 
 -- Returns the total power of all non scavenger/raptor teams as a number.
+---@return number power
 local function totalPlayerTeamsPower()
 	local totalPower = 0
 
@@ -123,6 +131,7 @@ local function totalPlayerTeamsPower()
 end
 
 -- Returns the highest non scavenger/raptor team power as a table {teamID, power}.
+---@return PowerLib.TeamPower
 local function highestPlayerTeamPower()
 	local highestPower = 0
 	local highestTeamID = nil
@@ -140,6 +149,7 @@ local function highestPlayerTeamPower()
 end
 
 -- Returns the average of all non scavenger/raptor teams as a number.
+---@return number power `0` when no team has any power.
 local function averagePlayerTeamPower()
 	local totalPower = 0
 	local teamCount = 0
@@ -156,6 +166,7 @@ local function averagePlayerTeamPower()
 end
 
 -- Returns the lowest non scavenger/raptor team power as a table {teamID, power}.
+---@return PowerLib.TeamPower
 local function lowestPlayerTeamPower()
 	local lowestPower = mathHuge
 	local lowestTeamID = nil
@@ -173,6 +184,7 @@ local function lowestPlayerTeamPower()
 end
 
 -- Returns the highest non AI/scavenger/raptor team power as a table {teamID, power}.
+---@return PowerLib.TeamPower
 local function highestHumanTeamPower()
 	local highestPower = 0
 	local highestTeamID = nil
@@ -190,6 +202,7 @@ local function highestHumanTeamPower()
 end
 
 -- Returns the average of all non AI/scavenger/raptor teams as a number.
+---@return number power `0` when no team has any power.
 local function averageHumanTeamPower()
 	local totalPower = 0
 	local teamCount = 0
@@ -206,6 +219,7 @@ local function averageHumanTeamPower()
 end
 
 -- Returns the lowest non AI/scavenger/raptor team power as a table {teamID, power}.
+---@return PowerLib.TeamPower
 local function lowestHumanTeamPower()
 	local lowestPower = mathHuge
 	local lowestTeamID = nil
@@ -223,6 +237,9 @@ local function lowestHumanTeamPower()
 end
 
 -- Returns the highest team power of the allies belonging to input team or allyID. Returns as a table {teamID, power}.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return PowerLib.TeamPower
 local function highestAlliedTeamPower(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local highestPower = 0
@@ -241,6 +258,9 @@ local function highestAlliedTeamPower(teamID, allyID)
 end
 
 -- Returns the average of all allies of the input teamID or allyID. Returns a number.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return number power `0` when no allied team has any power.
 local function averageAlliedTeamPower(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local totalPower = 0
@@ -258,6 +278,9 @@ local function averageAlliedTeamPower(teamID, allyID)
 end
 
 -- Returns the lowest of the teamID's allies or allyID's power as a table {teamID, power}.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return PowerLib.TeamPower
 local function lowestAlliedTeamPower(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local lowestPower = mathHuge
@@ -276,6 +299,8 @@ local function lowestAlliedTeamPower(teamID, allyID)
 end
 
 -- Take an input of a power value and return an estimated tech level number.
+---@param power number
+---@return number techLevel Fractional tech level between `0.5` and `4.5`.
 local function techGuesstimate(power)
 	local techLevel = 0
 	for _, threshold in ipairs(powerThresholds) do
@@ -290,6 +315,8 @@ local function techGuesstimate(power)
 end
 
 -- Takes an input teamID return an estimated tech level number.
+---@param teamID integer
+---@return number techLevel Fractional tech level between `0.5` and `4.5`.
 local function teamTechGuesstimate(teamID)
 	local totalPower = teamPowers[teamID]
 	local techLevel = 0
@@ -305,6 +332,7 @@ local function teamTechGuesstimate(teamID)
 end
 
 -- Calculate all average powers of all non scavenger/raptor teams and return an estimated tech level number.
+---@return number techLevel Fractional tech level between `0.5` and `4.5`.
 local function averagePlayerTechGuesstimate()
 	local totalPower = 0
 	local teamCount = 0
@@ -331,6 +359,7 @@ local function averagePlayerTechGuesstimate()
 end
 
 -- Compares average powers of all non AI/scavenger/raptor teams return an estimated tech level number.
+---@return number techLevel Fractional tech level between `0.5` and `4.5`.
 local function averageHumanTechGuesstimate()
 	local totalPower = 0
 	local teamCount = 0
@@ -357,6 +386,9 @@ local function averageHumanTechGuesstimate()
 end
 
 -- Compare average powers of all allied teams of the input teamID or allyID  and return an estimated tech level number.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return number techLevel Fractional tech level between `0.5` and `4.5`.
 local function averageAlliedTechGuesstimate(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local totalPower = 0
@@ -384,6 +416,8 @@ local function averageAlliedTechGuesstimate(teamID, allyID)
 end
 
 -- Returns the highest power achieved by the the input teamID as a number.
+---@param teamID integer
+---@return number power `0` when the team has never held any power.
 local function teamPeakPower(teamID)
 	for id, power in pairs(peakTeamPowers) do
 		if id == teamID then
@@ -394,6 +428,7 @@ local function teamPeakPower(teamID)
 end
 
 -- Returns the total peak power achieved by all non scavenger/raptor teams as a number.
+---@return number power
 local function totalPlayerPeakPower()
 	local totalPeakPower = 0
 
@@ -407,6 +442,7 @@ local function totalPlayerPeakPower()
 end
 
 -- Returns the highest power achieved by any non scavenger/raptor team as a table {teamID, power}.
+---@return PowerLib.TeamPower
 local function highestPlayerPeakPower()
 	local highestPower = 0
 	local highestTeamID = nil
@@ -424,6 +460,9 @@ local function highestPlayerPeakPower()
 end
 
 -- Returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID or allyID  as a table {teamID, power}.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return PowerLib.TeamPower
 local function highestAlliedPeakPower(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local highestPower = 0
@@ -442,6 +481,7 @@ local function highestAlliedPeakPower(teamID, allyID)
 end
 
 -- Returns the average of all the peak powers achieved by non AI/scavenger/raptor teams as a number.
+---@return number power `0` when no team has any peak power.
 local function averageHumanPeakPower()
 	local totalPower = 0
 	local teamCount = 0
@@ -458,6 +498,9 @@ local function averageHumanPeakPower()
 end
 
 -- Returns the average of all the peak powers achieved by allied teams of the input teamID or allyID as a number.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return number power `0` when no allied team has any peak power.
 local function averageAlliedPeakPower(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local totalPower = 0
@@ -475,6 +518,8 @@ local function averageAlliedPeakPower(teamID, allyID)
 end
 
 -- Returns the ratio number of the input teamID compared to the average of all players.
+---@param teamID integer
+---@return number ratio The team's power divided by the player average; `0` if the average is `0`.
 local function teamComparedToAveragedPlayers(teamID)
 	local totalPower = 0
 	local teamCount = 0
@@ -494,6 +539,9 @@ local function teamComparedToAveragedPlayers(teamID)
 end
 
 -- Returns boolean true if the input teamID is considered significantly more powerful by the API. Second argument allows user-defined ratio.
+---@param teamID integer
+---@param marginRatio number? Ratio above the player average that counts as overpowered. Defaults to `1.25`.
+---@return boolean
 local function isTeamOverPowered(teamID, marginRatio)
 	marginRatio = marginRatio or teamIsOverPoweredRatio
 	local totalPower = 0
@@ -518,6 +566,9 @@ local function isTeamOverPowered(teamID, marginRatio)
 end
 
 -- Returns the ratio number of the input teamID's allies or allyID compared to the average of all player allies.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@return number ratio The allyteam's power divided by the allyteam average; `0` if the average is `0`.
 local function alliesComparedToAverage(teamID, allyID)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	local allyPowers = {}
@@ -546,6 +597,10 @@ local function alliesComparedToAverage(teamID, allyID)
 end
 
 -- Returns boolean true if the input teamID's allies or allyID is considered significantly more powerful by the API. Third argument allows user-defined ratio.
+---@param teamID integer? Only used to look up `allyID`; ignored when `allyID` is given.
+---@param allyID integer?
+---@param marginRatio number? Ratio above the allyteam average that counts as winning. Defaults to `1.25`.
+---@return boolean
 local function isAllyTeamWinning(teamID, allyID, marginRatio)
 	allyID = allyID or select(6, Spring.GetTeamInfo(teamID))
 	marginRatio = marginRatio or alliesAreWinningRatio

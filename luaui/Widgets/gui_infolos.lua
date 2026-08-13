@@ -115,6 +115,9 @@ local shaderSourceCache = {
 	shaderConfig = shaderConfig,
 }
 
+---Returns the info/LOS texture for an allyteam.
+---@param allyTeam integer? Defaults to the local player's allyteam.
+---@return string? texName `nil` when no texture has been built for that allyteam.
 local function GetInfoLOSTexture(allyTeam)
 	return infoTextures[allyTeam or currentAllyTeam]
 end

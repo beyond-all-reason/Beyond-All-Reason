@@ -665,16 +665,20 @@ function widget:Initialize()
 	end
 
 	WG.mapedgeextension = {}
+	---@return number brightness Brightness of the terrain drawn beyond the map edge.
 	WG.mapedgeextension.getBrightness = function()
 		return brightness
 	end
+	---@param value number Brightness of the terrain drawn beyond the map edge.
 	WG.mapedgeextension.setBrightness = function(value)
 		brightness = value
 		--UpdateShader()
 	end
+	---@return boolean curvature Whether the extended terrain curves away at all.
 	WG.mapedgeextension.getCurvature = function()
 		return curvature
 	end
+	---@param value boolean Whether the extended terrain curves away at all.
 	WG.mapedgeextension.setCurvature = function(value)
 		curvature = value
 		--UpdateShader()

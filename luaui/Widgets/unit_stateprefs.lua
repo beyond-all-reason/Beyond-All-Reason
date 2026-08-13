@@ -124,6 +124,11 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	return opts
 end
 
+---Notified when a unit's firestate is changed by the player. Chains onto any
+---handler already registered, then records the new state as this unit type's
+---preference while the record or clear hotkey is held.
+---@param unitID integer
+---@param userState integer A `CustomFirestateDefs` value.
 local function recordUserFirestateChanged(unitID, userState)
 	if priorUserFirestateFunction then
 		priorUserFirestateFunction(unitID, userState)

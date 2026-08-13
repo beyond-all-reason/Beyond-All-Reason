@@ -96,6 +96,7 @@ local brushRadius = DEFAULT_RADIUS
 local brushCurve = DEFAULT_CURVE
 local brushRotation = 0
 local brushLengthScale = DEFAULT_LENGTH_SCALE
+---@type BrushShape
 local brushShape = "circle"
 local painting = false
 local paintButton = 0 -- 1 = LMB (add), 3 = RMB (remove)
@@ -157,6 +158,7 @@ local function strokeEnd()
 	end
 end
 
+---Reverts the most recent grass painting stroke.
 local function grassUndo()
 	if #undoStack == 0 then
 		return
@@ -176,6 +178,7 @@ local function grassUndo()
 	end
 end
 
+---Reapplies the most recently undone grass painting stroke.
 local function grassRedo()
 	if #redoStack == 0 then
 		return
@@ -192,6 +195,8 @@ local function grassRedo()
 	undoStack[#undoStack + 1] = patches
 end
 
+---Undoes or redoes strokes until the history sits at the given position.
+---@param targetIdx integer Number of strokes that should remain applied.
 local function grassUndoToIndex(targetIdx)
 	local cur = #undoStack
 	if targetIdx < cur then
@@ -207,6 +212,7 @@ end
 
 -- Smart filter state
 local smartEnabled = false
+---@type table<string, boolean|number>
 local smartFilters = {
 	avoidWater = false,
 	avoidCliffs = false,
@@ -1040,6 +1046,8 @@ end
 -- State Management & WG Interface
 -- ============================================================
 
+---Enables the grass brush.
+---@param mode "paint"|"fill"|"erase"? Defaults to `"paint"`.
 local function activate(mode)
 	active = true
 	subMode = mode or "paint"
@@ -1056,6 +1064,7 @@ local function activate(mode)
 	Echo("[Grass Brush] Activated: " .. subMode:upper())
 end
 
+---Disables the grass brush and leaves the grass edit mode.
 local function deactivate()
 	if active then
 		Echo("[Grass Brush] Deactivated")
@@ -1109,76 +1118,106 @@ local function checkConflictAndDeactivate()
 	return false
 end
 
+---Sets what a stroke does. Unknown values are ignored.
+---@param mode "paint"|"fill"|"erase"
 local function setSubMode(mode)
 	if mode == "paint" or mode == "fill" or mode == "erase" then
 		subMode = mode
 	end
 end
 
+---@param v number Target grass density, clamped to the allowed range.
 local function setDensity(v)
 	targetDensity = max(MIN_DENSITY, min(MAX_DENSITY, v))
 end
 
+---@param v number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(v)
 	brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, v))
 end
 
+---@param v number Falloff curve exponent, clamped to the allowed range.
 local function setCurve(v)
 	brushCurve = max(MIN_CURVE, min(MAX_CURVE, v))
 end
 
+---@param v number Brush rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(v)
 	brushRotation = v % 360
 end
 
+---@param v number Grass blade length multiplier, clamped to the allowed range.
 local function setLengthScale(v)
 	brushLengthScale = max(MIN_LENGTH_SCALE, min(MAX_LENGTH_SCALE, v))
 end
 
+---Sets the brush footprint. Unknown values are ignored.
+---@param shape BrushShape
 local function setShape(shape)
 	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" or shape == "triangle" then
 		brushShape = shape
 	end
 end
 
+---Enables the slope and altitude filters that restrict where grass is painted.
+---@param val boolean?
 local function setSmartEnabled(val)
 	smartEnabled = val and true or false
 end
 
+---Sets one smart filter value. Unknown keys are ignored.
+---@param key "avoidWater"|"avoidCliffs"|"slopeMax"|"preferSlopes"|"slopeMin"|"altMinEnable"|"altMin"|"altMaxEnable"|"altMax"
+---@param val boolean|number
 local function setSmartFilter(key, val)
 	if smartFilters[key] ~= nil then
 		smartFilters[key] = val
 	end
 end
 
+---Enables restricting painting to ground matching a target texture color.
+---@param val boolean?
 local function setTexFilterEnabled(val)
 	texFilterEnabled = val and true or false
 end
 
+---@param val number How close the ground color must be to match, clamped to `0`-`1.5`.
 local function setTexFilterThreshold(val)
 	texFilterThreshold = max(0, min(1.5, val))
 end
 
+---@param val number Elmos of tolerance around matching ground, clamped to `0`-`500`.
 local function setTexFilterPadding(val)
 	texFilterPadding = max(0, min(500, val))
 end
 
+---Sets the ground color to paint on.
+---@param r number Clamped to `0`-`1`.
+---@param g number Clamped to `0`-`1`.
+---@param b number Clamped to `0`-`1`.
 local function setTexFilterColor(r, g, b)
 	texFilterColor[1] = max(0, min(1, r))
 	texFilterColor[2] = max(0, min(1, g))
 	texFilterColor[3] = max(0, min(1, b))
 end
 
+---Enables excluding ground that matches the exclude color.
+---@param val boolean?
 local function setTexExcludeEnabled(val)
 	texFilterColor[4] = val and true or nil
 end
 
+---Sets the ground color to avoid painting on.
+---@param r number Clamped to `0`-`1`.
+---@param g number Clamped to `0`-`1`.
+---@param b number Clamped to `0`-`1`.
 local function setTexExcludeColor(r, g, b)
 	texFilterColor[5] = max(0, min(1, r))
 	texFilterColor[6] = max(0, min(1, g))
 	texFilterColor[7] = max(0, min(1, b))
 end
 
+---Puts the tool into the mode where the next click samples the filter color.
+---@param val boolean?
 local function setPipetteMode(val)
 	pipetteMode = val and true or false
 	if not val then
@@ -1186,6 +1225,8 @@ local function setPipetteMode(val)
 	end
 end
 
+---Puts the tool into the mode where the next click samples the exclude color.
+---@param val boolean?
 local function setPipetteExcludeMode(val)
 	pipetteExcludeMode = val and true or false
 	if not val then
@@ -1193,6 +1234,29 @@ local function setPipetteExcludeMode(val)
 	end
 end
 
+---A snapshot of the grass brush, for the UI to render.
+---@class GrassBrushState
+---@field active boolean
+---@field subMode "paint"|"fill"|"erase"
+---@field density number
+---@field radius number
+---@field curve number
+---@field rotationDeg number
+---@field lengthScale number
+---@field shape BrushShape
+---@field smartEnabled boolean
+---@field smartFilters table<string, boolean|number> The live filter table. Do not mutate.
+---@field texFilterEnabled boolean
+---@field texFilterColor number[] Match color in `1`-`3`, exclude color in `5`-`7`.
+---@field texFilterThreshold number
+---@field texFilterPadding number
+---@field texExcludeEnabled boolean
+---@field pipetteMode boolean
+---@field pipetteExcludeMode boolean
+---@field historyIndex integer Strokes currently applied.
+---@field historyMax integer Strokes applied plus undone.
+
+---@return GrassBrushState
 local function getState()
 	return {
 		active = active,

@@ -212,6 +212,9 @@ local function ensurePlaneVAO()
 	return true
 end
 
+---Turns on the hazardous water overlay, compiling its shaders on first use.
+---Does nothing on maps that already have real lava, or for unknown types.
+---@param typeName "lava"|"acid"
 local function activateOverlay(typeName)
 	if isRealLavaMap then
 		return
@@ -252,6 +255,7 @@ local function activateOverlay(typeName)
 	sendOverlayMsg("wateroverlay:activate:" .. typeName)
 end
 
+---Turns off the overlay and restores the engine's own water rendering.
 local function deactivateOverlay()
 	if engineWaterHidden then
 		Spring.SetDrawWater(true)
@@ -272,12 +276,16 @@ function widget:Initialize()
 	WG.WaterTypeOverlay = {
 		activate = activateOverlay,
 		deactivate = deactivateOverlay,
+		---@return boolean active
 		isActive = function()
 			return active
 		end,
+		---@return "lava"|"acid"|nil typeName `nil` while the overlay is inactive.
 		getActiveType = function()
 			return activeType
 		end,
+		---Sets the height the overlay surface eases toward, relative to the base water plane.
+		---@param level number
 		setLevel = function(level)
 			Spring.Echo(
 				"[WaterOverlay] setLevel: "
@@ -290,18 +298,23 @@ function widget:Initialize()
 			targetLevel = level
 			sendOverlayMsg("wateroverlay:level:" .. string.format("%.1f", level))
 		end,
+		---@return number level Current absolute world height of the overlay surface.
 		getLevel = function()
 			return currentLevel
 		end,
+		---@return number level Offset from the base water plane the overlay eases toward.
 		getTargetLevel = function()
 			return targetLevel
 		end,
+		---@param v number How far the overlay surface rises and falls with the tide.
 		setTideAmplitude = function(v)
 			tideAmplitude = v
 		end,
+		---@param v number Seconds per tide cycle; at least `1`.
 		setTidePeriod = function(v)
 			tidePeriod = math.max(1, v)
 		end,
+		---@param v number How far the fog layer sits above the overlay surface.
 		setFogHeight = function(v)
 			fogheightabovelava = v
 		end,

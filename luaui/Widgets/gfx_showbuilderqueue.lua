@@ -91,6 +91,7 @@ local function removeUnitShape(shapeId)
 end
 
 -- Event handlers for API notifications
+
 --- @param id string
 --- @param buildCommand BuildCommandEntry
 local function onBuildCommandAdded(id, buildCommand)

@@ -30,11 +30,6 @@ local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 local lastMouseOffScreen = false
 local chobbyInterface = false
 
-function widget:Shutdown()
-	Spring.SetConfigInt("VSync", vsyncValueActive)
-	WG.limitidlefps = nil
-end
-
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == "LobbyOverlayActive" then
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
@@ -48,12 +43,20 @@ end
 
 function widget:Initialize()
 	WG.limitidlefps = {}
+	---@return boolean restrict Whether the framerate is currently being throttled
+	---because the game is idle.
 	WG.limitidlefps.restrictFps = function()
 		return restrictFps
 	end
+	---Reports user activity, so the idle framerate limit backs off.
 	WG.limitidlefps.update = function()
 		lastUserInputTime = os.clock()
 	end
+end
+
+function widget:Shutdown()
+	Spring.SetConfigInt("VSync", vsyncValueActive)
+	WG.limitidlefps = nil
 end
 
 local sec = 0

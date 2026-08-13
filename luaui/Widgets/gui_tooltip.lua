@@ -135,9 +135,17 @@ function widget:Initialize()
 
 	if WG.tooltip == nil then
 		WG.tooltip = {}
+		---@return number size Font size tooltips are drawn at.
 		WG.tooltip.getFontsize = function()
 			return usedFontSize
 		end
+		---Registers a hover tooltip over a screen rectangle. Calling again with the same
+		---name updates it; pass only `name` and `area` to move an existing tooltip.
+		---@param name string Caller-chosen key; pass the same one to `RemoveTooltip`.
+		---@param area ScreenRect
+		---@param value string|number|nil Tooltip body.
+		---@param delay number? Seconds of hover before it appears. Defaults to the widget's delay.
+		---@param title string|number|nil Tooltip heading.
 		WG.tooltip.AddTooltip = function(name, area, value, delay, title)
 			if
 				(
@@ -165,6 +173,8 @@ function widget:Initialize()
 				end
 			end
 		end
+		---Removes a registered tooltip and frees its resources. Unknown names are ignored.
+		---@param name string
 		WG.tooltip.RemoveTooltip = function(name)
 			if tooltips[name] ~= nil then
 				if tooltips[name].dlist then
@@ -175,6 +185,12 @@ function widget:Initialize()
 				tooltips[name] = nil
 			end
 		end
+		---Shows a tooltip immediately, without waiting for a hover delay or a registered area.
+		---@param name string Caller-chosen key.
+		---@param value string|number|nil Tooltip body.
+		---@param x number? Screen position. Defaults to the cursor.
+		---@param y number? Screen position. Defaults to the cursor.
+		---@param title string|number|nil Tooltip heading.
 		WG.tooltip.ShowTooltip = function(name, value, x, y, title)
 			if value ~= nil or title ~= nil then
 				if not tooltips[name] then

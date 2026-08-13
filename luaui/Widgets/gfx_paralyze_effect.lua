@@ -384,6 +384,19 @@ local function initGL4()
 	end
 end
 
+---Draws the paralysis effect on a unit. Widgets are responsible for stopping every
+---unit they submit.
+---@param unitID integer
+---@param unitDefID integer? Omit to look it up.
+---@param red_start number Effect color at the start of the animation.
+---@param green_start number
+---@param blue_start number
+---@param power_start number Effect strength at the start.
+---@param red_end number Effect color at the end of the animation.
+---@param green_end number
+---@param blue_end number
+---@param time_end number Game frame the animation ends on.
+---@return integer? unitID Pass to `StopDrawParalyzedUnitGL4`; `nil` if already drawn.
 local function DrawParalyzedUnitGL4(
 	unitID,
 	unitDefID,
@@ -396,12 +409,6 @@ local function DrawParalyzedUnitGL4(
 	blue_end,
 	time_end
 )
-	-- Documentation for DrawParalyzedUnitGL4:
-	--	unitID: the actual unitID that you want to draw
-	--	unitDefID: which unitDef is it (leave nil for autocomplete)
-	-- returns: a unique handler ID number that you should store and call StopDrawParalyzedUnitGL4(uniqueID) with to stop drawing it
-	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
-
 	--spEcho("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		return
@@ -437,6 +444,8 @@ local function DrawParalyzedUnitGL4(
 	return unitID
 end
 
+---Stops drawing the paralysis effect on a unit. Unknown units are ignored.
+---@param unitID integer
 local function StopDrawParalyzedUnitGL4(unitID)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		popElementInstance(paralyzedDrawUnitVBOTable, unitID)

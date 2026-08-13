@@ -251,6 +251,28 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+function widget:ViewResize()
+	vsx, vsy = glGetViewSizes()
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+
+	font2 = WG.fonts.getFont(2)
+	layoutDirty = true
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	refreshTooltipText()
+
+	WG.converter_usage = {}
+	---Screen rectangle of the converter usage panel.
+	---@return ScreenRect area
+	WG.converter_usage.GetPosition = function()
+		return area
+	end
+end
+
 function widget:Shutdown()
 	if dlistGuishader ~= nil then
 		if WG.guishader then
@@ -268,26 +290,6 @@ function widget:Shutdown()
 		WG.tooltip.RemoveTooltip("converter_usage")
 	end
 	WG.converter_usage = nil
-end
-
-function widget:ViewResize()
-	vsx, vsy = glGetViewSizes()
-
-	RectRound = WG.FlowUI.Draw.RectRound
-	UiElement = WG.FlowUI.Draw.Element
-
-	font2 = WG.fonts.getFont(2)
-	layoutDirty = true
-end
-
-function widget:Initialize()
-	widget:ViewResize()
-	refreshTooltipText()
-
-	WG.converter_usage = {}
-	WG.converter_usage.GetPosition = function()
-		return area
-	end
 end
 
 function widget:LanguageChanged()

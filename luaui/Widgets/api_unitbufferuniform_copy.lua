@@ -77,6 +77,7 @@ local structSizeInVec4s
 
 local copyRequested = false
 
+---@type VBO?
 local UniformsBufferCopy
 
 function widget:Initialize()
@@ -125,6 +126,9 @@ function widget:Initialize()
 
 	spEcho("Hello")
 	WG.api_unitbufferuniform_copy = {}
+	---Returns the shader storage buffer holding a copy of the engine's per-unit
+	---uniform data, and requests a refresh of it for the next frame.
+	---@return VBO? buffer `nil` before the first frame has built the copy.
 	WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy = function()
 		copyRequested = true
 		return UniformsBufferCopy

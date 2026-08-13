@@ -83,9 +83,12 @@ function widget:Initialize()
 	end
 
 	WG.autocloak = {}
+	---@return table<integer, boolean> config Which unit types auto-cloak, keyed by unitDefID.
 	WG.autocloak.getUnitdefConfig = function()
 		return unitdefConfig
 	end
+	---Sets whether one unit type auto-cloaks.
+	---@param data {[1]: integer, [2]: boolean} The unitDefID and whether it auto-cloaks.
 	WG.autocloak.setUnitdefConfig = function(data)
 		local type, value = data[1], data[2]
 		unitdefConfig[type] = value

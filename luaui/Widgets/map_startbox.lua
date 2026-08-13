@@ -350,6 +350,12 @@ end
 
 local posCache = {}
 
+---Returns where a team's start position should be drawn, following the cursor
+---while that team's marker is being dragged and honoring coop start points.
+---@param teamID integer
+---@return number? x `nil` when the team has no start position.
+---@return number? y
+---@return number? z
 local function getEffectiveStartPosition(teamID)
 	if draggingTeamID == teamID then
 		local mouseX, mouseY = Spring.GetMouseState()
@@ -574,6 +580,7 @@ local coneShaderSourceCache = {
 	silent = not autoReload,
 }
 
+---@type InstanceVBOTable
 local startConeVBOTable = nil
 local startConeShader = nil
 

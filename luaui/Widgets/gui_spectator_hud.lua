@@ -1857,25 +1857,36 @@ function widget:Initialize()
 
 	WG.spectator_hud = {}
 
+	---@return number scale UI scale of the spectator HUD.
 	WG.spectator_hud.getWidgetSize = function()
 		return settings.widgetScale
 	end
+	---Sets the spectator HUD scale and rebuilds it.
+	---@param value number
 	WG.spectator_hud.setWidgetSize = function(value)
 		settings.widgetScale = value
 		reInit()
 	end
 
+	---@return integer config One of the `constants.configLevel` values, not a table:
+	---which preset tier of metrics the HUD shows.
 	WG.spectator_hud.getConfig = function()
 		return settings.widgetConfig
 	end
+	---Switches the HUD to a different preset tier and rebuilds it.
+	---@param value integer One of the `constants.configLevel` values.
 	WG.spectator_hud.setConfig = function(value)
 		settings.widgetConfig = value
 		reInit()
 	end
 
+	---@param metric string Metric name.
+	---@return boolean? enabled `nil` for unknown metrics.
 	WG.spectator_hud.getMetricEnabled = function(metric)
 		return settings.metricsEnabled[metric]
 	end
+	---Shows or hides one metric, rebuilding the HUD.
+	---@param args {[1]: string, [2]: boolean} The metric name and whether to show it.
 	WG.spectator_hud.setMetricEnabled = function(args)
 		settings.metricsEnabled[args[1]] = args[2]
 		reInit()

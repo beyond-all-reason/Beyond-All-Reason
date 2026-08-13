@@ -165,6 +165,9 @@ local buildsInProgress = {}
 
 GG.quick_start = {}
 
+---Moves tracked state from one commander unit to another,
+---@param oldUnitID integer?
+---@param newUnitID integer?
 function GG.quick_start.transferCommanderData(oldUnitID, newUnitID)
 	if oldUnitID and newUnitID and spValidUnitID(oldUnitID) and spValidUnitID(newUnitID) then
 		buildsInProgress[newUnitID] = buildsInProgress[oldUnitID]

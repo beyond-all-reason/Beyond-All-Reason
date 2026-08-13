@@ -401,6 +401,18 @@ end
 -- Estimation (drives the live readout in the Capture window)
 --------------------------------------------------------------------------------
 
+---What a capture at a given detail level would produce.
+---@class TerraformCaptureEstimate
+---@field outW integer Output width in pixels.
+---@field outH integer Output height in pixels.
+---@field tilesX integer
+---@field tilesZ integer
+---@field tiles integer Total camera moves the walk needs.
+---@field seconds number Rough wall-clock cost of the walk.
+
+---Works out the output size and cost of a capture without starting one.
+---@param detail number? Pixels per elmo. Defaults to the current setting.
+---@return TerraformCaptureEstimate
 local function estimate(detail)
 	detail = tonumber(detail) or settings.detail
 	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
@@ -1652,6 +1664,9 @@ end
 -- Driver
 --------------------------------------------------------------------------------
 
+---Starts the map capture walk, which runs across later frames.
+---@return boolean started
+---@return string? reason Why the capture could not start.
 local function startCapture()
 	if job then
 		return false, "a capture is already running"
@@ -1787,6 +1802,8 @@ end
 function widget:Initialize()
 	widgetHandler:AddAction("tfcapture", captureAction, nil, "t")
 	WG.TerraformCapture = {
+		---@return table<string, string|number|boolean> settings A shallow copy, so mutating it
+		---does not affect the live settings.
 		getSettings = function()
 			local copy = {}
 			for k, v in pairs(settings) do
@@ -1794,6 +1811,11 @@ function widget:Initialize()
 			end
 			return copy
 		end,
+		---Changes one capture setting.
+		---@param key string
+		---@param value string|number|boolean Must match the kind the setting already holds;
+		---no conversion or validation is done beyond checking that `key` exists.
+		---@return boolean set `false` when `key` is not a known setting.
 		setSetting = function(key, value)
 			if settings[key] == nil then
 				return false
@@ -1803,14 +1825,28 @@ function widget:Initialize()
 		end,
 		estimate = estimate,
 		start = startCapture,
+		---Aborts a running capture and restores the scene. Safe to call when idle.
 		cancel = function()
 			if job then
 				finish("cancelled")
 			end
 		end,
+		---@return boolean busy Whether a capture is running.
 		isBusy = function()
 			return job ~= nil
 		end,
+		---Progress of the current or last capture.
+		---@class TerraformCaptureStatus
+		---@field active boolean Whether a capture is running.
+		---@field phase string Which stage the capture is in.
+		---@field step integer Tiles completed.
+		---@field total integer Tiles to do in total.
+		---@field message string Human-readable progress line.
+		---@field lastPath string Where the last capture was written.
+		---@field lastSummary string One-line summary of the last capture.
+		---@field error string Empty unless the last capture failed.
+
+		---@return TerraformCaptureStatus status The live table; do not mutate.
 		getStatus = function()
 			return status
 		end,

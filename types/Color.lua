@@ -6,13 +6,13 @@
 
 --- A color with an explicit alpha.
 ---@class ColorRGBA
----@field [1] number Red.
----@field [2] number Green.
----@field [3] number Blue.
----@field [4] number Alpha.
+---@field [1] number Red
+---@field [2] number Green
+---@field [3] number Blue
+---@field [4] number Alpha
 
 --- A color with alpha implied by the caller.
 ---@class ColorRGB
----@field [1] number Red.
----@field [2] number Green.
----@field [3] number Blue.
+---@field [1] number Red
+---@field [2] number Green
+---@field [3] number Blue

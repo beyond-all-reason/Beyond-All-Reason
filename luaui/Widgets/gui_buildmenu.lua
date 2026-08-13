@@ -138,6 +138,7 @@ local myTeamID = spGetMyTeamID()
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 local disableInput = disableInputWhenSpec and isSpec
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 local colls = 5
 local rows = 5
@@ -2256,91 +2257,128 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG.buildmenu = {}
+	---@return table<string, string> groups Icon path per group name.
+	---@return table<integer, string> unitGroup Group name per unitDefID.
 	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
+	---@return table<integer, integer> order Sort position per unitDefID.
 	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
+	---@return boolean showPrice Whether build options are labeled with their cost.
 	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
+	---Labels build options with their cost, rebuilding the menu.
+	---@param value boolean
 	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		clear()
 	end
+	---@return boolean alwaysShow Whether the menu stays open with no builder selected.
 	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
+	---Keeps the menu open with no builder selected, rebuilding the menu.
+	---@param value boolean
 	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		clear()
 	end
+	---@return boolean show Whether build options show their radar icon.
 	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
+	---Shows the radar icon on build options, rebuilding the menu.
+	---@param value boolean
 	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		clear()
 	end
+	---@return boolean show Whether build options show their group icon.
 	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
+	---Shows the group icon on build options, rebuilding the menu.
+	---@param value boolean
 	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		clear()
 	end
+	---@return boolean dynamic Whether icons resize to fill the available space.
 	WG.buildmenu.getDynamicIconsize = function()
 		return dynamicIconsize
 	end
+	---Resizes icons to fill the available space, rebuilding the menu.
+	---@param value boolean
 	WG.buildmenu.setDynamicIconsize = function(value)
 		dynamicIconsize = value
 		clear()
 	end
+	---@return integer minColumns
 	WG.buildmenu.getMinColls = function()
 		return minColls
 	end
+	---Sets the minimum column count and rebuilds the menu.
+	---@param value integer
 	WG.buildmenu.setMinColls = function(value)
 		minColls = value
 		clear()
 	end
+	---@return integer maxColumns
 	WG.buildmenu.getMaxColls = function()
 		return maxColls
 	end
+	---Sets the maximum column count and rebuilds the menu.
+	---@param value integer
 	WG.buildmenu.setMaxColls = function(value)
 		maxColls = value
 		clear()
 	end
+	---@return integer defaultColumns
 	WG.buildmenu.getDefaultColls = function()
 		return defaultColls
 	end
 
+	---Sets the preferred column count and rebuilds the menu.
+	---@param value integer
 	WG.buildmenu.setDefaultColls = function(value)
 		defaultColls = value
 		clear()
 	end
+	---@return boolean stickToBottom Whether the menu is docked to the bottom of the screen.
 	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
+	---Docks the menu to the bottom of the screen and relays it out.
+	---@param value boolean
 	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:Update(1000)
 		widget:ViewResize()
 		clear()
 	end
+	---@return number posY Screen Y of the menu's bottom edge.
+	---@return number posY2 Screen Y of the menu's top edge.
 	WG.buildmenu.getSize = function()
 		return posY, posY2
 	end
+	---@return number maxPosY Highest screen Y the menu may grow to.
 	WG.buildmenu.getMaxPosY = function()
 		return maxPosY
 	end
+	---Sets the highest screen Y the menu may grow to, and rebuilds it.
+	---@param value number
 	WG.buildmenu.setMaxPosY = function(value)
 		maxPosY = value
 		clear()
 	end
+	---Rebinds the build hotkeys, e.g. after the keybind config changed.
 	WG.buildmenu.reloadBindings = function()
 		bindBuildUnits(self)
 	end
+	---@return boolean showing Whether the build menu is currently drawn.
 	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end

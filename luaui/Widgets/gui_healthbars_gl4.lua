@@ -387,8 +387,11 @@ local featureBars = {} -- we need this additional table of {[featureid] = {barhe
 --local empDecline = 1 / 40 --magic
 local minReloadTime = 4 -- weapons reloading slower than this willget bars
 
+---@type InstanceVBOTable
 local featureHealthVBO
+---@type InstanceVBOTable
 local featureResurrectVBO
+---@type InstanceVBOTable
 local featureReclaimVBO
 
 local barScale = 1 -- Option 'healthbarsscale'
@@ -401,6 +404,7 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 
 --------------------------------------------------------------------------------
 -- GL4 Backend stuff:
+---@type InstanceVBOTable
 local healthBarVBO = nil
 local healthBarShader = nil
 
@@ -1064,17 +1068,23 @@ function widget:Initialize()
 		return
 	end
 	WG.healthbars = {}
+	---@return number scale Width multiplier for health bars.
 	WG.healthbars.getScale = function()
 		return barScale
 	end
+	---Sets the health bar width multiplier and rebuilds the unit and feature bars.
+	---@param value number
 	WG.healthbars.setScale = function(value)
 		barScale = value
 		init()
 		initfeaturebars()
 	end
+	---@return number height Health bar height.
 	WG.healthbars.getHeight = function()
 		return barHeight
 	end
+	---Sets the health bar height, recomputing the corner rounding and rebuilding the bars.
+	---@param value number
 	WG.healthbars.setHeight = function(value)
 		barHeight = value
 		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
@@ -1083,17 +1093,22 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
+	---@return boolean variable Whether bar size scales with unit size.
 	WG.healthbars.getVariableSizes = function()
 		return variableBarSizes
 	end
+	---Scales bar size with unit size, rebuilding the bars.
+	---@param value boolean
 	WG.healthbars.setVariableSizes = function(value)
 		variableBarSizes = value
 		init()
 		initfeaturebars()
 	end
+	---@return boolean draw Whether bars stay visible while the interface is hidden.
 	WG.healthbars.getDrawWhenGuiHidden = function()
 		return drawWhenGuiHidden
 	end
+	---@param value boolean Keep bars visible while the interface is hidden.
 	WG.healthbars.setDrawWhenGuiHidden = function(value)
 		drawWhenGuiHidden = value
 	end

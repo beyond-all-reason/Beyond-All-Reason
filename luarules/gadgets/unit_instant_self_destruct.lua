@@ -43,6 +43,9 @@ end
 local toDestroy = {}
 local toDestroyCount = 0
 
+---Queues a unit to be destroyed on the next game frame.
+---@param unitID integer
+---@param skipChecks boolean? Destroy even while the unit is stunned.
 local function QueueUnitDestruction(unitID, skipChecks)
 	if skipChecks or not spGetUnitIsStunned(unitID) then
 		toDestroyCount = toDestroyCount + 1

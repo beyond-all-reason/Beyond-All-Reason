@@ -181,6 +181,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.displayinfo = {}
+	---Screen rectangle of the game info panel.
+	---@return DockedPanelPosition position
 	WG.displayinfo.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

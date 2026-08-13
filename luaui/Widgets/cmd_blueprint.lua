@@ -31,7 +31,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 ---@class SerializedBlueprintUnit
 ---@field unitName string unit def name
----@field position Point
+---@field position Position3D
 ---@field facing number
 
 ---@class SerializedBlueprint
@@ -102,9 +102,9 @@ local function tablesEqual(tbl1, tbl2)
 	return true
 end
 
----@param a Point
----@param b Point
----@return Point
+---@param a Position3D
+---@param b Position3D
+---@return Position3D
 local function subtractPoints(a, b)
 	local result = {}
 	for i = 1, mathMax(#a, #b) do
@@ -114,7 +114,8 @@ local function subtractPoints(a, b)
 end
 
 local currentBlueprintUnitID = 0
----@return number
+---Hands out globally unique ids for units inside blueprints.
+---@return integer blueprintUnitID
 local function nextBlueprintUnitID()
 	currentBlueprintUnitID = currentBlueprintUnitID + 1
 	return currentBlueprintUnitID
@@ -176,11 +177,11 @@ local blueprintPlacementActive = false
 local lastExplicitlySelectedBlueprintIndex = nil
 
 local state = {
-	---@type Point|nil
+	---@type Position3D?
 	---non-nil implies that we are dragging
 	startPosition = nil,
 
-	---@type Point|nil
+	---@type Position3D?
 	---end of drag motion (basically current mouse position)
 	endPosition = nil,
 
@@ -197,8 +198,7 @@ local state = {
 	---@type number|nil
 	targetID = nil,
 
-	---@type number[]
-	---{ x, y, z, facing }
+	---@type BuildPlacement[]
 	buildPositions = nil,
 }
 
@@ -721,6 +721,7 @@ local drawCursorText = setmetatable({}, {
 	},
 })
 
+---Re-reads the keyboard layout and hotkey config, and invalidates the cursor text cache.
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
@@ -1129,7 +1130,9 @@ local function serializeBlueprint(blueprint)
 end
 
 ---@param serializedBlueprint SerializedBlueprint
----@return Blueprint|nil
+---@param index integer Position in the saved list, used to name the blueprint in
+---the filtered-out message when it has no name of its own.
+---@return Blueprint? blueprint `nil` when the blueprint has no valid or substitutable units.
 local function deserializeBlueprint(serializedBlueprint, index)
 	local blueprint = WG.api_blueprint.createBlueprintFromSerialized(serializedBlueprint)
 

@@ -65,6 +65,10 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
+---Forces a unit to decloak and blocks it from recloaking for a while.
+---Repeated calls extend the block rather than stacking.
+---@param unitID integer
+---@param duration integer? Frames to stay decloaked. Defaults to the gadget's decloak time.
 function PokeDecloakUnit(unitID, duration)
 	if recloakUnit[unitID] then
 		recloakUnit[unitID] = duration or DEFAULT_DECLOAK_TIME
@@ -176,6 +180,10 @@ function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
 	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
 end
 
+---Sets the unit's desired cloak state, updating its command description to match.
+---Does nothing for dead or missing units.
+---@param unitID integer?
+---@param state 0|1 `1` to request cloaking, `0` to request decloaking.
 local function SetWantedCloaked(unitID, state)
 	if not unitID or spGetUnitIsDead(unitID) then
 		return

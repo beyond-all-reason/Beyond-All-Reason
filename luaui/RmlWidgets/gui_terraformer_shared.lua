@@ -36,6 +36,7 @@ WG.TerraformerShared = WG.TerraformerShared or {}
 -- Shared accessor so widgets don't reimplement calculateDpRatio().
 -- Returns the current scale factor (resolution_factor * ui_scale), matching
 -- whatever the shared RmlUi context is currently using.
+---@return number dpRatio Current scale factor `resolution_factor * ui_scale`, matching the shared RmlUi context.
 WG.TerraformerShared.getDpRatio = function()
 	return currentDpRatio
 end
@@ -141,6 +142,10 @@ WG.TerraformerShared.setWheelHeld = function(held)
 	end
 end
 
+---Registers a document so sibling widgets can read its live layout.
+---Call after `LoadDocument()`; pair with `unregisterDocument` on Shutdown.
+---@param name string?
+---@param document RmlUi.Document?
 WG.TerraformerShared.registerDocument = function(name, document)
 	if name and document then
 		registeredDocuments[name] = document
@@ -149,6 +154,8 @@ WG.TerraformerShared.registerDocument = function(name, document)
 	end
 end
 
+---Removes a document from the cross-widget registry.
+---@param name string?
 WG.TerraformerShared.unregisterDocument = function(name)
 	if name then
 		registeredDocuments[name] = nil
@@ -156,10 +163,24 @@ WG.TerraformerShared.unregisterDocument = function(name)
 	end
 end
 
+---@param name string
+---@return RmlUi.Document? document `nil` when no document is registered under `name`.
 WG.TerraformerShared.getDocument = function(name)
 	return registeredDocuments[name]
 end
 
+---A registered element's live layout, in pixel space.
+---@class TerraformerElementRect
+---@field left number
+---@field top number
+---@field width number
+---@field height number
+
+---Reads live pixel-space layout off an element of a registered document.
+---@param docName string
+---@param elementId string?
+---@return TerraformerElementRect? rect `nil` when the document or element is missing,
+---or the element has no width yet.
 WG.TerraformerShared.getElementRect = function(docName, elementId)
 	local doc = registeredDocuments[docName]
 	if not doc then
@@ -182,15 +203,26 @@ WG.TerraformerShared.getElementRect = function(docName, elementId)
 	}
 end
 
+---Options accepted by `attachDraggable`.
+---@class TerraformerDraggableOpts
+---@field snapThreshold number? Pixel snap distance for edges and panel snap. Defaults to `30`.
+---@field onDragStart fun()? Called on mousedown, e.g. to record that the user moved the panel.
+---@field snapDocName string? Registered document to snap against. Defaults to `"terraform_brush"`.
+---@field snapElementId string? Element within that document. Defaults to `"tf-root"`.
+
+---The value returned by `attachDraggable`.
+---@class TerraformerDraggable
+---@field tick fun() Call every frame from `widget:Update()` while the widget is alive.
+
 -- Shared drag-and-drop helper for floating panels.
 -- Sets up mousedown on handleId + mouseup on doc, returns a handle with tick().
 -- Call handle.tick() every frame from widget:Update() while the widget is alive.
---
--- opts fields (all optional):
---   snapThreshold (number, default 30) — pixel snap distance for edges + panel snap
---   onDragStart   (function)           — called on mousedown (e.g. set userDragged)
---   snapDocName   (string, default "terraform_brush") — registered document to snap to
---   snapElementId (string, default "tf-root")         — element within that document
+---Makes a floating panel draggable by a handle element, with edge and panel snapping.
+---@param doc RmlUi.Document?
+---@param handleId string Id of the element used as the drag handle.
+---@param rootEl RmlUi.Element? The panel being moved.
+---@param opts TerraformerDraggableOpts?
+---@return TerraformerDraggable handle A no-op handle when `doc`, `rootEl` or the handle element is missing.
 WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	if not doc or not rootEl then
 		return { tick = function() end }

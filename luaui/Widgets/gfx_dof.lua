@@ -346,29 +346,41 @@ end
 function widget:Initialize()
 	init()
 	WG.dof = {}
+	---@return number depth Distance the lens is focused at.
 	WG.dof.getFocusDepth = function()
 		return focusDepth
 	end
+	---@param value number Distance the lens is focused at. Only used while autofocus is off.
 	WG.dof.setFocusDepth = function(value)
 		focusDepth = value
 	end
+	---@return number fStop Larger values give a deeper depth of field.
 	WG.dof.getFstop = function()
 		return fStop
 	end
+	---Sets the aperture. Larger values give a deeper depth of field.
+	---@param value number
 	WG.dof.setFstop = function(value)
 		fStop = value
 		autofocusInFocusMultiplier = fStop / 2
 	end
+	---@return boolean highQuality
 	WG.dof.getHighQuality = function()
 		return highQuality
 	end
+	---Switches the blur quality, reallocating the effect's textures.
+	---@param value boolean
 	WG.dof.setHighQuality = function(value)
 		highQuality = value
 		InitTextures()
 	end
+	---@return boolean autofocus
 	WG.dof.getAutofocus = function()
 		return autofocus
 	end
+	---Focuses on whatever is under the screen center. Turning it off focuses on the
+	---cursor instead.
+	---@param value boolean
 	WG.dof.setAutofocus = function(value)
 		autofocus = value
 		mousefocus = not autofocus

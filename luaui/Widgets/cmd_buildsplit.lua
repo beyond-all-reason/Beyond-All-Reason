@@ -68,9 +68,11 @@ local function getBuilderInfos(unitIDs)
 	return builders
 end
 
----@param builderIDs number[]
----@param buildings BuildingInfo[]
----@param cmdOpts table
+---Splits a set of buildings across builders so each works its own fork first.
+---@param builderIDs integer[]
+---@param buildings BuildingInfo[] Buildings to place, with positions.
+---@param cmdOpts CommandOptionName[]|table<CommandOptionName, boolean>|nil Held modifiers.
+---Defaults to `{ "shift" }`.
 local function splitBuildings(builderIDs, buildings, cmdOpts)
 	local builders = getBuilderInfos(builderIDs)
 	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" })

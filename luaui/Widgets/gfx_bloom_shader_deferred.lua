@@ -540,16 +540,22 @@ function widget:Initialize()
 	end
 
 	WG.bloomdeferred = {}
+	---@return number brightness Glow amplifier applied to the bloom pass.
 	WG.bloomdeferred.getBrightness = function()
 		return glowAmplifier
 	end
+	---Sets the glow amplifier and recompiles the bloom shaders.
+	---@param value number
 	WG.bloomdeferred.setBrightness = function(value)
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
+	---@return integer preset Base downscale and mip count; more mips give a wider, softer halo.
 	WG.bloomdeferred.getPreset = function()
 		return preset
 	end
+	---Sets the bloom quality preset and recompiles the bloom shaders.
+	---@param value integer Index into the built-in preset list.
 	WG.bloomdeferred.setPreset = function(value)
 		preset = value
 		MakeBloomShaders()

@@ -1424,96 +1424,133 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
+	---@return integer? unitDefID The builder or factory the grid is currently showing.
 	WG.gridmenu.getActiveBuilder = function()
 		return activeBuilder
 	end
+	---@return boolean alwaysReturn Whether the grid returns to the root category after each build.
 	WG.gridmenu.getAlwaysReturn = function()
 		return alwaysReturn
 	end
+	---@param value boolean Return to the root category after each build.
 	WG.gridmenu.setAlwaysReturn = function(value)
 		alwaysReturn = value
 	end
+	---@return boolean autoSelect Whether entering a category preselects its first entry.
 	WG.gridmenu.getAutoSelectFirst = function()
 		return autoSelectFirst
 	end
+	---@param value boolean Preselect the first entry when entering a category.
 	WG.gridmenu.setAutoSelectFirst = function(value)
 		autoSelectFirst = value
 	end
+	---@return boolean labMode Whether factories use the dedicated lab build layout.
 	WG.gridmenu.getUseLabBuildMode = function()
 		return useLabBuildMode
 	end
+	---Uses the dedicated lab build layout for factories, rebuilding the grid.
+	---@param value boolean
 	WG.gridmenu.setUseLabBuildMode = function(value)
 		useLabBuildMode = value
 		updateGrid()
 	end
+	---Opens a build category.
+	---@param category string
 	WG.gridmenu.setCurrentCategory = function(category)
 		setCurrentCategory(category)
 	end
+	---Returns the grid to its root category.
 	WG.gridmenu.clearCategory = function()
 		clearCategory()
 	end
 
+	---@return number multiplier Build count multiplier applied while ctrl is held.
 	WG.gridmenu.getCtrlKeyModifier = function()
 		return modKeyMultiplier.keyPress.ctrl
 	end
+	---@param value number Build count multiplier applied while ctrl is held.
 	WG.gridmenu.setCtrlKeyModifier = function(value)
 		modKeyMultiplier.keyPress.ctrl = value
 	end
+	---@return number multiplier Build count multiplier applied while shift is held.
 	WG.gridmenu.getShiftKeyModifier = function()
 		return modKeyMultiplier.keyPress.shift
 	end
+	---@param value number Build count multiplier applied while shift is held.
 	WG.gridmenu.setShiftKeyModifier = function(value)
 		modKeyMultiplier.keyPress.shift = value
 	end
 
+	---@return table<string, string> groups Icon path per group name.
+	---@return table<integer, string> unitGroup Group name per unitDefID.
 	WG.buildmenu.getGroups = function()
 		return groups, units.unitGroup
 	end
+	---@return table<integer, integer> order Sort position per unitDefID.
 	WG.buildmenu.getOrder = function()
 		return units.unitOrder
 	end
+	---@return boolean showPrice Whether build options are labeled with their cost.
 	WG.buildmenu.getShowPrice = function()
 		return showPrice
 	end
+	---Labels build options with their cost, rebuilding the grid.
+	---@param value boolean
 	WG.buildmenu.setShowPrice = function(value)
 		showPrice = value
 		updateGrid()
 	end
+	---@return boolean alwaysShow Whether the grid stays open with no builder selected.
 	WG.buildmenu.getAlwaysShow = function()
 		return alwaysShow
 	end
+	---Keeps the grid open with no builder selected, rebuilding it.
+	---@param value boolean
 	WG.buildmenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		refreshCommands()
 	end
+	---@return boolean show Whether build options show their radar icon.
 	WG.buildmenu.getShowRadarIcon = function()
 		return showRadarIcon
 	end
+	---Shows the radar icon on build options, rebuilding the grid.
+	---@param value boolean
 	WG.buildmenu.setShowRadarIcon = function(value)
 		showRadarIcon = value
 		updateGrid()
 	end
+	---@return boolean show Whether build options show their group icon.
 	WG.buildmenu.getShowGroupIcon = function()
 		return showGroupIcon
 	end
+	---Shows the group icon on build options, rebuilding the grid.
+	---@param value boolean
 	WG.buildmenu.setShowGroupIcon = function(value)
 		showGroupIcon = value
 		updateGrid()
 	end
+	---@return boolean stickToBottom Whether the grid is docked to the bottom of the screen.
 	WG.buildmenu.getBottomPosition = function()
 		return stickToBottom
 	end
+	---Docks the grid to the bottom of the screen and relays it out.
+	---@param value boolean
 	WG.buildmenu.setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
 	end
+	---@return number y Screen Y of the grid's bottom edge.
+	---@return number yEnd Screen Y of the grid's top edge.
 	WG.buildmenu.getSize = function()
 		return backgroundRect.y, backgroundRect.yEnd
 	end
+	---Rebinds the build hotkeys and refreshes the shown commands.
 	WG.buildmenu.reloadBindings = function()
 		reloadBindings()
 		refreshCommands()
 	end
+	---@return boolean showing Whether the grid menu is currently drawn.
 	WG.buildmenu.getIsShowing = function()
 		return buildmenuShows
 	end
@@ -1571,6 +1608,8 @@ function widget:Initialize()
 		}
 	end
 
+	---Removes a highlight previously set via `setHighlight`.
+	---@param unitDefID integer?
 	local function removeHighlight(unitDefID)
 		local items = highlight.items
 		if unitDefID and items[unitDefID] then
@@ -1579,6 +1618,7 @@ function widget:Initialize()
 		end
 	end
 
+	---Clears all active highlights.
 	local function clearHighlights()
 		local items = highlight.items
 		for k in pairs(items) do
@@ -1587,6 +1627,8 @@ function widget:Initialize()
 		highlight.count = 0
 	end
 
+	---@param unitDefID integer?
+	---@return boolean highlighted
 	local function hasHighlight(unitDefID)
 		return unitDefID ~= nil and highlight.items[unitDefID] ~= nil
 	end

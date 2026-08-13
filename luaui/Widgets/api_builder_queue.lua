@@ -169,8 +169,9 @@ local function notifyEvent(eventName, ...)
 	end
 end
 
----@param eventName string
----@param callback function()
+---@param eventName string One of the `Event` values.
+---@param callback function
+---@return BuilderQueueEventCallback? handle Pass to `UnregisterCallback`; `nil` when `eventName` is unknown.
 local function registerCallback(eventName, callback)
 	local callbacks = eventCallbacks[eventName]
 	if callbacks then
@@ -183,6 +184,9 @@ local function registerCallback(eventName, callback)
 	end
 end
 
+---Removes a previously registered listener.
+---@param eventName string One of the `Event` values.
+---@param callback function The same function that was registered.
 local function unregisterCallback(eventName, callback)
 	local callbacks = eventCallbacks[eventName]
 	if callbacks then
@@ -490,18 +494,33 @@ function BuilderQueueApi.ForEachActiveBuildCommand(callback)
 	end
 end
 
+---Fires when a new build command starts being tracked.
+---@param callback fun(commandId: string, commandEntry: BuildCommandEntry)
+---@return BuilderQueueEventCallback? handle
 BuilderQueueApi.OnBuildCommandAdded = function(callback)
 	return registerCallback(Event.onBuildCommandAdded, callback)
 end
+---Fires when a tracked build command is canceled or completed.
+---@param callback fun(commandId: string, commandEntry: BuildCommandEntry)
+---@return BuilderQueueEventCallback? handle
 BuilderQueueApi.OnBuildCommandRemoved = function(callback)
 	return registerCallback(Event.onBuildCommandRemoved, callback)
 end
+---Fires when a tracked build command produces a unit (the nanoframe appears).
+---@param callback fun(unitId: integer, unitDefId: integer, commandId: string, commandEntry: BuildCommandEntry)
+---@return BuilderQueueEventCallback? handle
 BuilderQueueApi.OnUnitCreated = function(callback)
 	return registerCallback(Event.onUnitCreated, callback)
 end
+---Fires when a unit from a tracked build command finishes building.
+---@param callback fun(unitId: integer, commandId: string, commandEntry: BuildCommandEntry)
+---@return BuilderQueueEventCallback? handle
 BuilderQueueApi.OnUnitFinished = function(callback)
 	return registerCallback(Event.onUnitFinished, callback)
 end
+---Fires when a tracked builder is destroyed.
+---@param callback fun(unitId: integer, unitDefId: integer)
+---@return BuilderQueueEventCallback? handle
 BuilderQueueApi.OnBuilderDestroyed = function(callback)
 	return registerCallback(Event.onBuilderDestroyed, callback)
 end

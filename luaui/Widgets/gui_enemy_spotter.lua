@@ -25,6 +25,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -194,16 +195,22 @@ function widget:Initialize()
 		return
 	end
 	WG.enemyspotter = {}
+	---@return number opacity Opacity of the enemy spotter rings.
 	WG.enemyspotter.getOpacity = function()
 		return opacity
 	end
+	---Sets the spotter ring opacity and rebuilds the draw lists.
+	---@param value number
 	WG.enemyspotter.setOpacity = function(value)
 		opacity = value
 		init()
 	end
+	---@return boolean skip Whether the local team's own units are left unmarked.
 	WG.enemyspotter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
+	---Leaves the local team's own units unmarked, rebuilding the draw lists.
+	---@param value boolean
 	WG.enemyspotter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
 		init()

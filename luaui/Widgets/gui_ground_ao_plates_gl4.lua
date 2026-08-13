@@ -24,6 +24,7 @@ local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 
+---@type InstanceVBOTable
 local groundPlateVBO = nil
 local groundPlateShader = nil
 

@@ -464,6 +464,8 @@ function widget:Initialize()
 	totalTextLines = #textLines
 
 	WG.missioninfo = {}
+	---Shows or hides the mission briefing, pausing the game while it is open.
+	---@param state boolean? Omit to toggle.
 	WG.missioninfo.toggle = function(state)
 		local wasVisible = show
 		if state ~= nil then
@@ -484,6 +486,8 @@ function widget:Initialize()
 			textList = gl.CreateList(DrawWindow)
 		end
 	end
+	---@return boolean visible Also reports `true` for one frame after a click-to-close,
+	---so a toggling caller does not immediately reopen the window.
 	WG.missioninfo.isvisible = function()
 		-- Report true while justClosedFromPress so toggleWindow treats us as
 		-- "was open" and doesn't immediately re-open after our mouseEvent close.

@@ -159,14 +159,17 @@ function widget:Initialize()
 	needsClear = true
 
 	WG.fogdiaglines = {
+		---@return number strength Fog diagonal line opacity, `0`-`1`.
 		getStrength = function()
 			return strength
 		end,
+		---@param value number? Fog diagonal line opacity, clamped to `0`-`1`. Defaults to `0`.
 		setStrength = function(value)
 			strength = math.max(0, math.min(1, value or 0))
 		end,
 		-- Blurriness slider: 0 = sharp edges, 1 = strongly blurred. Maps linearly
 		-- onto lineSharpness (the smoothstep half-width at each line edge).
+		---@return number blurriness `0` is sharp edges, `1` is strongly blurred.
 		getBlurriness = function()
 			local range = sharpnessMax - sharpnessMin
 			if range <= 0 then
@@ -174,6 +177,8 @@ function widget:Initialize()
 			end -- guard against a degenerate (min == max) range
 			return (lineSharpness - sharpnessMin) / range
 		end,
+		---@param value number? `0` is sharp edges, `1` is strongly blurred. Clamped to `0`-`1`,
+		---and defaults to `0`.
 		setBlurriness = function(value)
 			local t = math.max(0, math.min(1, value or 0))
 			lineSharpness = sharpnessMin + t * (sharpnessMax - sharpnessMin)

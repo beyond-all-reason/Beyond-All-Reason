@@ -959,6 +959,8 @@ function widget:Initialize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
 	WG.music = {}
+	---Screen rectangle of the music player panel.
+	---@return DockedPanelPosition|false position `false` once the widget has shut down.
 	WG.music.GetPosition = function()
 		if shutdown then
 			return false
@@ -966,9 +968,13 @@ function widget:Initialize()
 		updatePosition()
 		return { showGUI and top or bottom, left, bottom, right, widgetScale }
 	end
+	---@return number volume Music volume, `0`-`100`.
 	WG.music.GetMusicVolume = function()
 		return maxMusicVolume
 	end
+	---Sets the music volume and persists it. The stored value is capped at `99`,
+	---because the engine does not save its own default of `100`.
+	---@param value number `0`-`100`.
 	WG.music.SetMusicVolume = function(value)
 		maxMusicVolume = value
 		spSetConfigInt("snd_volmusic", mathMin(99, mathCeil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
@@ -977,12 +983,17 @@ function widget:Initialize()
 		end
 		updateDrawing = true
 	end
+	---@return boolean showGui Whether the music player panel is visible.
 	WG.music.GetShowGui = function()
 		return showGUI
 	end
+	---@param value boolean Show the music player panel.
 	WG.music.SetShowGui = function(value)
 		showGUI = value
 	end
+	---Lists every playable track, grouped by playlist and sorted by display name.
+	---@param value any? Unused.
+	---@return [string, string, string][] tracks Each entry is `{playlistLabel, displayName, path}`.
 	WG.music.getTracksConfig = function(value)
 		local tracksConfig = {}
 
@@ -1079,6 +1090,8 @@ function widget:Initialize()
 		end
 		return tracksConfig
 	end
+	---Stops whatever is playing and starts a specific track.
+	---@param track string Path to the audio file.
 	WG.music.playTrack = function(track)
 		currentTrack = track
 		updateCurrentTrackCache(currentTrack)
@@ -1095,10 +1108,12 @@ function widget:Initialize()
 		end
 		updateDrawing = true
 	end
+	---Re-reads the soundtrack interruption and fade settings from the engine config.
 	WG.music.RefreshSettings = function()
 		interruptionEnabled = Spring.GetConfigInt("UseSoundtrackInterruption", 1) == 1
 		useSoundtrackFades = Spring.GetConfigInt("UseSoundtrackFades", 1) == 1
 	end
+	---Reloads the playlists from disk and starts a new track.
 	WG.music.RefreshTrackList = function()
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()

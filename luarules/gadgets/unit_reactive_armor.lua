@@ -360,6 +360,10 @@ end
 -- Lifecycle
 
 ---Damages or repairs a unit's reactive armor without changing unit health.
+---@param unitID integer
+---@param damage number Positive damages the armor, negative repairs it.
+---@return boolean changed `false` when the unit has no reactive armor, its armor is
+---already broken, or a repair was requested while already at full armor.
 GG.AddReactiveArmorDamage = function(unitID, damage)
 	local unitDefData = armoredUnitDefs[spGetUnitDefID(unitID)]
 	if unitDefData and damage ~= 0 then
@@ -370,6 +374,8 @@ GG.AddReactiveArmorDamage = function(unitID, damage)
 end
 
 ---Get the current armor health remaining of a unit with reactive armor.
+---@param unitID integer
+---@return number? health `nil` when the unit has no reactive armor or it is broken.
 GG.GetReactiveArmorHealth = function(unitID)
 	return unitArmorHealth[unitID]
 end

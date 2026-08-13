@@ -692,6 +692,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable
 local plasmaVBO
 local plasmaShader
 local crossShader -- 90-degree rotated copy for volume from all angles

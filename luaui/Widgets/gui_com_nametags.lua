@@ -735,9 +735,12 @@ end
 
 function widget:Initialize()
 	WG.nametags = {}
+	---@return boolean show Whether commander nametags include the player's rank.
 	WG.nametags.GetShowPlayerRank = function()
 		return showPlayerRank
 	end
+	---Shows the player's rank on commander nametags, rebuilding the labels.
+	---@param value boolean
 	WG.nametags.SetShowPlayerRank = function(value)
 		showPlayerRank = value
 		RemoveLists()

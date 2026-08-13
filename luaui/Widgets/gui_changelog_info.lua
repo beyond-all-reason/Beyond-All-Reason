@@ -71,7 +71,9 @@ local maxLines = 20
 
 local math_isInRect = math.isInRect
 
-local font, loadedFontSize, font2, changelogList, titleRect, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
+local font, loadedFontSize, font2, changelogList, titleRect, backgroundGuishader, changelogList, dlistcreated, bgpadding
+---@type boolean
+local show
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
@@ -461,6 +463,9 @@ function widget:Initialize()
 	widget:ViewResize()
 	if changelogFile then
 		WG.changelog = {}
+		---@type boolean
+		---Shows or hides the changelog window. Opening it marks the changelog as read.
+		---@param state boolean? Omit to toggle.
 		WG.changelog.toggle = function(state)
 			if state ~= nil then
 				show = state
@@ -474,9 +479,11 @@ function widget:Initialize()
 				end
 			end
 		end
+		---@return boolean visible
 		WG.changelog.isvisible = function()
 			return show
 		end
+		---@return boolean hasChanges Whether the changelog has entries the player has not read.
 		WG.changelog.haschanges = function()
 			return lastviewedHash ~= changelogFileHash and lastviewedChangelogLength < changelogFileLength
 		end

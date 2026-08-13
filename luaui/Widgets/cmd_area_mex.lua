@@ -31,6 +31,8 @@ local metalSpots
 
 local metalMap = false
 
+---Chooses which extractor the area-mex command places.
+---@param uDefID integer unitDefID of the extractor.
 local function setAreaMexType(uDefID)
 	selectedMex = -uDefID
 end
@@ -42,6 +44,8 @@ function widget:Initialize()
 	mexConstructors = WG.resource_spot_builder.GetMexConstructors()
 
 	WG.areamex = {}
+	---Chooses which extractor the area-mex command places.
+	---@param uDefID integer unitDefID of the extractor.
 	WG.areamex.setAreaMexType = function(uDefID)
 		setAreaMexType(uDefID)
 	end
@@ -123,7 +127,7 @@ end
 
 ---Make build commands for all passed in spots, but do not apply them
 ---@param spots table
----@return table An array of commands, in the same format as PreviewExtractorCommand
+---@return ExtractorCommand[] cmds As returned by `PreviewExtractorCommand`.
 local function getCmdsForValidSpots(spots, shift)
 	local cmds = {}
 	for i = 1, #spots do

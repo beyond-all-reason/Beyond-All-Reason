@@ -131,6 +131,7 @@ local pathPositions = {} -- All positions added to the path, used to prevent ove
 local overriddenCmd = nil -- The command we ignored in favor of move
 local overriddenTarget = nil -- The target (for params) we ignored
 
+---@type integer?
 local usingCmd = nil -- The command to execute across the line
 local usingRMB = false -- All commands use right mouse + drag to do a formation command
 local inMinimap = false -- Is the line being drawn in the minimap
@@ -1379,9 +1380,11 @@ end
 
 function widget:Initialize()
 	WG.customformations = {}
+	---@return boolean repeatForSingle Whether a single selected unit repeats a drawn path.
 	WG.customformations.getRepeatForSingleUnit = function()
 		return repeatForSingleUnit
 	end
+	---@param value boolean Make a single selected unit repeat a drawn path.
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
 	end
@@ -1389,6 +1392,12 @@ function widget:Initialize()
 	-- External formation dragging API (for PIP window, etc.)
 	local isFirstPathCommand = true -- Track whether next path command should clear queue
 
+	---Begins a formation drag, discarding any formation already in progress.
+	---Part of the external dragging API used by the PIP window and similar widgets.
+	---@param worldPos Position3D The first node, as `{x, y, z}`.
+	---@param cmdID integer? Command to issue along the formation. Defaults to `CMD.MOVE`.
+	---@param fromMinimap boolean? The drag originated on the minimap.
+	---@return boolean started `false` when `worldPos` is off the map.
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
 		fNodes = {}
@@ -1417,6 +1426,9 @@ function widget:Initialize()
 		return false
 	end
 
+	---Extends the in-progress formation by one node.
+	---@param worldPos Position3D As `{x, y, z}`.
+	---@return boolean added `false` when no formation is in progress, or the position is off the map.
 	WG.customformations.AddFormationNode = function(worldPos)
 		if #fNodes == 0 then
 			return false
@@ -1476,6 +1488,10 @@ function widget:Initialize()
 		return added
 	end
 
+	---Finishes the formation and issues the resulting orders to the selection.
+	---@param worldPos Position3D? Final node to append before issuing orders.
+	---@param cmdID integer? Overrides the command chosen at `StartFormation`.
+	---@return boolean issued `false` when no formation is in progress, or no orders resulted.
 	WG.customformations.EndFormation = function(worldPos, cmdID)
 		if #fNodes == 0 then
 			return false
@@ -1581,6 +1597,8 @@ function widget:Initialize()
 		return result
 	end
 
+	---Discards the in-progress formation without issuing orders.
+	---@return boolean `true` always.
 	WG.customformations.CancelFormation = function()
 		fNodes = {}
 		fDists = {}
@@ -1590,26 +1608,35 @@ function widget:Initialize()
 		return true
 	end
 
+	---@return boolean active Whether a formation is currently being drawn.
 	WG.customformations.IsFormationActive = function()
 		return #fNodes > 0
 	end
 
+	---@return Position3D[] nodes The live node list, each `{x, y, z}`. Do not mutate.
 	WG.customformations.GetFormationNodes = function()
 		return fNodes
 	end
 
+	---@return integer cmdID The command the formation will issue.
 	WG.customformations.GetFormationCommand = function()
 		return usingCmd
 	end
 
+	---@return number length Total length of the drawn line, in elmos.
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
 
+	---@return integer count Units that would receive the formation orders.
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end
 
+	---Resolves which unit goes where, assigning units to nodes and caching the result
+	---until the formation or shift state changes.
+	---@return table<integer, Position3D>? orders Target position per unitID; `nil` when the
+	---formation has fewer than two nodes or no unit can execute the command.
 	WG.customformations.GetFormationOrders = function()
 		if #fNodes < 2 then
 			return nil

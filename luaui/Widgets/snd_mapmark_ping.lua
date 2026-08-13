@@ -40,9 +40,11 @@ end
 
 function widget:Initialize()
 	WG.mapmarkping = {}
+	---@return number volume Volume of the map mark ping sound.
 	WG.mapmarkping.getMapmarkVolume = function()
 		return volume
 	end
+	---@param value number Volume of the map mark ping sound.
 	WG.mapmarkping.setMapmarkVolume = function(value)
 		volume = value
 	end

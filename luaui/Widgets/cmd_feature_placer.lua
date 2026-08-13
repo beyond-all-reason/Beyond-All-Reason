@@ -114,6 +114,7 @@ local fp = {
 	cadence = 10, -- 1-1000 logarithmic (higher = faster)
 	distribution = "random", -- "random", "regular", or "clustered"
 	smartEnabled = false, -- terrain-aware filtering applied on top of distribution
+	---@type table<string, boolean|number>
 	smartFilters = {
 		avoidWater = false, -- reject underwater positions (height < 0)
 		avoidCliffs = false, -- reject terrain steeper than slopeMax degrees
@@ -410,6 +411,8 @@ local function ensureBuildGridLoaded()
 	Spring.SendCommands("luaui enablewidget Building Grid GL4")
 end
 
+---Shows or hides the build-grid overlay.
+---@param value boolean?
 local function setGridOverlay(value)
 	gridOverlay = value and true or false
 	if gridOverlay then
@@ -418,6 +421,8 @@ local function setGridOverlay(value)
 	end
 end
 
+---Snaps placed features to the build grid.
+---@param value boolean?
 local function setGridSnap(value)
 	gridSnap = value and true or false
 	if gridSnap then
@@ -425,6 +430,7 @@ local function setGridSnap(value)
 	end
 end
 
+---@param value number? Grid cell size in elmos, clamped to `16`-`128`.
 local function setGridSnapSize(value)
 	gridSnapSize = max(16, min(128, floor(tonumber(value) or gridSnapSize)))
 	gridDirty = true
@@ -484,6 +490,7 @@ local preview = {
 local SEED_MAX = 16777216
 local SEED_STRIDE = 8191
 
+---Advances the scatter seed so the next preview lays features out differently.
 local function rerollPreview()
 	-- Advance a counter rather than re-reading the clock: os.clock is coarse
 	-- enough that two stamps in the same tick would land on the same seed and
@@ -914,6 +921,7 @@ local function showHiddenFeatures()
 	gz.hidden = {}
 end
 
+---Clears the picked-feature selection and hides the transform gizmo.
 local function clearSelection()
 	gz.selection = {}
 	gz.selectedSet = {}
@@ -1282,6 +1290,7 @@ local function tickSettle()
 	syncGizmoGhosts(remaining)
 end
 
+---Deletes every picked feature. Does nothing when the selection is empty.
 local function deleteSelection()
 	if #gz.selection == 0 then
 		return
@@ -1320,6 +1329,8 @@ local function activate(mode)
 	return true
 end
 
+---Disables the feature placer, clearing ghosts, selection and grid overlay.
+---@return boolean `true` always.
 local function deactivate()
 	if fp.active then
 		Echo("[Feature Placer] Deactivated")
@@ -1335,6 +1346,9 @@ local function deactivate()
 	return true
 end
 
+---Switches the tool's mode, deactivating the other map brushes first.
+---Unknown values are ignored.
+---@param mode BrushPlacementMode
 local function setMode(mode)
 	if mode == "scatter" or mode == "point" or mode == "remove" then
 		-- Deactivate terraform brush when feature placer activates
@@ -1353,57 +1367,76 @@ local function setMode(mode)
 	end
 end
 
+---Sets the brush footprint. Unknown values are ignored.
+---@param shape BrushShape
 local function setShape(shape)
 	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" or shape == "triangle" then
 		fp.shape = shape
 	end
 end
 
+---@param r number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(r)
 	fp.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
 end
 
+---@param deg number Feature rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(deg)
 	fp.rotation = deg % 360
 end
 
+---@param step number Degrees to add to the current rotation.
 local function rotate(step)
 	fp.rotation = (fp.rotation + step) % 360
 end
 
+---@param v number Percent of random rotation jitter, clamped to `0`-`100`.
 local function setRotRandom(v)
 	fp.rotRandom = max(0, min(100, floor(v)))
 end
 
+---@param n number Features placed per scatter stroke, clamped to `1`-`500`.
 local function setFeatureCount(n)
 	fp.featureCount = max(1, min(500, floor(n)))
 end
 
+---@param v number Frames between placements while dragging, clamped to `1`-`1000`.
 local function setCadence(v)
 	fp.cadence = max(1, min(1000, floor(v)))
 end
 
+---Sets how scattered features are spread. Unknown values are ignored.
+---@param mode "random"|"regular"|"clustered"
 local function setDistribution(mode)
 	if mode == "random" or mode == "regular" or mode == "clustered" then
 		fp.distribution = mode
 	end
 end
 
+---Enables the slope and altitude filters that restrict where features are placed.
+---@param val boolean?
 local function setSmartEnabled(val)
 	fp.smartEnabled = val and true or false
 end
 
+---Sets one smart filter value. Unknown keys are ignored.
+---@param key string
+---@param val boolean|number
 local function setSmartFilter(key, val)
 	if fp.smartFilters[key] ~= nil then
 		fp.smartFilters[key] = val
 	end
 end
 
+---Selects a single feature type, replacing the current selection.
+---@param defName string
 local function selectFeature(defName)
 	fp.selectedDefs = { defName }
 	fp.selectedSet = { [defName] = true }
 end
 
+---Adds or removes one feature type from the multi-selection.
+---@param defName string
 local function toggleFeature(defName)
 	if fp.selectedSet[defName] then
 		fp.selectedSet[defName] = nil
@@ -1419,19 +1452,23 @@ local function toggleFeature(defName)
 	end
 end
 
+---Clears the feature type selection.
 local function clearSelectedFeatures()
 	fp.selectedDefs = {}
 	fp.selectedSet = {}
 end
 
+---Asks the gadget to undo the most recent feature placement.
 local function featureUndo()
 	SendLuaRulesMsg(UNDO_HEADER)
 end
 
+---Asks the gadget to reapply the most recently undone feature placement.
 local function featureRedo()
 	SendLuaRulesMsg(REDO_HEADER)
 end
 
+---Asks the gadget to remove every placed feature from the map.
 local function featureClearAll()
 	SendLuaRulesMsg(CLEARALL_HEADER)
 end
@@ -1479,8 +1516,23 @@ local function parseSavedEntries()
 	return entries
 end
 
----@param callback function receives (entries) or (nil, errorMessage)
----@return boolean started
+---One placed feature reported by the gadget, parsed out of its packed message.
+---`pitch`, `roll` and `y` are present only for features the gizmo tilted or lifted.
+---@class PlacedFeatureExport
+---@field name string FeatureDef name.
+---@field x number
+---@field z number
+---@field rot number Heading; `0` when unparsable.
+---@field pitch number?
+---@field roll number?
+---@field y number?
+
+---Asks the gadget for the current feature list, answering asynchronously.
+---Only one request may be pending at a time, and cheats must be enabled.
+---@param callback fun(entries: PlacedFeatureExport[]?, errorMessage: string?) Receives the entries
+---on success, or `nil` plus an error message on failure.
+---@return boolean started `false` when `callback` is not a function, a request is
+---already pending, or cheats are disabled.
 local function requestFeatureData(callback)
 	if type(callback) ~= "function" then
 		return false
@@ -1588,10 +1640,13 @@ local function handleSaveEnd(count)
 	Echo("[Feature Placer] Saved " .. tostring(count or 0) .. " features to " .. filename)
 end
 
+---Asks the gadget to export the current features, written asynchronously.
 local function featureSave()
 	SendLuaRulesMsg(SAVE_HEADER)
 end
 
+---Loads features from a saved file.
+---@param filename string Path to a saved feature map.
 local function featureLoad(filename)
 	if not filename or filename == "" then
 		Echo("[Feature Placer] No filename specified")
@@ -1664,11 +1719,37 @@ local function featureLoad(filename)
 	Echo("[Feature Placer] Loading " .. count .. " features from " .. filename)
 end
 
+---@return string[] filenames Saved feature map files.
 local function listSavedFeatureMaps()
 	local files = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW)
 	return files or {}
 end
 
+---A snapshot of the feature placer, for the UI to render.
+---@class FeaturePlacerState
+---@field active boolean
+---@field mode BrushPlacementMode? `nil` while the tool is inactive.
+---@field shape BrushShape
+---@field radius number
+---@field rotation number
+---@field rotRandom number
+---@field featureCount number
+---@field cadence number
+---@field distribution "random"|"regular"|"clustered"
+---@field smartEnabled boolean
+---@field smartFilters table<string, boolean|number> The live filter table. Do not mutate.
+---@field selectedDefs string[]
+---@field selectedSet table<string, true>
+---@field undoCount integer
+---@field redoCount integer
+---@field gridOverlay boolean
+---@field gridSnap boolean
+---@field gridSnapSize number
+---@field selectMode boolean Whether clicking the map picks features instead of placing them.
+---@field selectionCount integer Features currently picked.
+---@field gizmoDragging boolean
+
+---@return FeaturePlacerState
 local function getState()
 	return {
 		active = fp.active,
@@ -1697,20 +1778,30 @@ local function getState()
 	}
 end
 
+---One placeable feature, as classified from `FeatureDefs` on first use.
+---@class PlaceableFeatureDef
+---@field name string FeatureDef name.
+---@field id integer featureDefID.
+---@field category string One of `CATEGORY_ORDER`.
+
+---@return PlaceableFeatureDef[] features Every placeable feature, built on first use.
 local function getFeatureDefList()
 	buildFeatureDefList()
 	return featureDefList
 end
 
+---@return table<string, PlaceableFeatureDef[]> byCategory Grouped by category key.
 local function getFeatureCategories()
 	buildFeatureDefList()
 	return featureCategories
 end
 
+---@return string[] order Category keys in the order the UI should show them.
 local function getCategoryOrder()
 	return CATEGORY_ORDER
 end
 
+---@return table<string, string> labels Display label per category key.
 local function getCategoryLabels()
 	return CATEGORY_LABELS
 end

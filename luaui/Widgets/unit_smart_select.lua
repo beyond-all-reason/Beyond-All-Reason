@@ -227,6 +227,12 @@ end
 
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
+---Starts a smart-select drag. Exposed as `WG.SmartSelect_MousePress2` so other
+---widgets can route their own mouse presses through it.
+---@param x number
+---@param y number
+---@param button integer Only button `1` starts a selection.
+---@param hasMouseOwner boolean? Another widget already owns the mouse, so the press is ignored.
 local function mousePress(x, y, button, hasMouseOwner) --function widget:MousePress(x, y, button)
 	if hasMouseOwner or button ~= 1 then
 		skipSel = true
@@ -517,19 +523,12 @@ end
 --	Spring.Echo('Update time:', Spring.DiffTimers(spGetTimer(), sTimer, nil, highres))
 --end
 --
-function widget:Shutdown()
-	WG.smartselect = nil
-
-	WG.SmartSelect_MousePress2 = nil
-	WG.SmartSelect_SelectUnits = nil
-	WG.SmartSelect_SetReference = nil
-	WG.SmartSelect_ClearReference = nil
-end
-
 function widget:Initialize()
 	WG.SmartSelect_MousePress2 = mousePress
 
 	-- Function to set the reference selection for external box selections
+	---Snapshots the current selection as the reference an external box selection
+	---should add to, so shift-dragging from another widget behaves like an in-game drag.
 	WG.SmartSelect_SetReference = function()
 		externalSelectionReference = {}
 		local current = spGetSelectedUnits()
@@ -544,6 +543,9 @@ function widget:Initialize()
 	end
 
 	-- Function to handle external unit selections (e.g., from PIP widget)
+	---Applies smart-select filtering to a set of units and selects the result.
+	---Used by widgets that box-select outside the main view, such as the PIP window.
+	---@param units integer[]
 	WG.SmartSelect_SelectUnits = function(units)
 		-- Apply smart select filtering to the provided units
 		local mouseSelection = units
@@ -719,44 +721,69 @@ function widget:Initialize()
 	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
 	WG.smartselect = {}
+	---@return boolean include Whether dragging over mobiles also picks up buildings.
 	WG.smartselect.getIncludeBuildings = function()
 		return selectBuildingsWithMobile
 	end
+	---@param value boolean Also pick up buildings when dragging over mobiles.
 	WG.smartselect.setIncludeBuildings = function(value)
 		selectBuildingsWithMobile = value
 	end
+	---@return boolean include Whether builders are picked up alongside combat units.
 	WG.smartselect.getIncludeBuilders = function()
 		return includeBuilders
 	end
+	---@param value boolean Pick up builders alongside combat units.
 	WG.smartselect.setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	---@return boolean include Whether resurrectors are picked up alongside combat units.
 	WG.smartselect.getIncludeResurrectors = function()
 		return includeResurrectors
 	end
+	---@param value boolean Pick up resurrectors alongside combat units.
 	WG.smartselect.setIncludeResurrectors = function(value)
 		includeResurrectors = value
 	end
+	---@return boolean include Whether antinukes are picked up alongside other buildings.
 	WG.smartselect.getIncludeAntinuke = function()
 		return includeAntinuke
 	end
+	---@param value boolean Pick up antinukes alongside other buildings.
 	WG.smartselect.setIncludeAntinuke = function(value)
 		includeAntinuke = value
 	end
+	---@return boolean include Whether radars are picked up alongside other buildings.
 	WG.smartselect.getIncludeRadar = function()
 		return includeRadar
 	end
+	---@param value boolean Pick up radars alongside other buildings.
 	WG.smartselect.setIncludeRadar = function(value)
 		includeRadar = value
 	end
+	---@return boolean include Whether jammers are picked up alongside other buildings.
 	WG.smartselect.getIncludeJammer = function()
 		return includeJammer
 	end
+	---@param value boolean Pick up jammers alongside other buildings.
 	WG.smartselect.setIncludeJammer = function(value)
 		includeJammer = value
 	end
 
 	widget:ViewResize()
+end
+
+function widget:Shutdown()
+	WG.smartselect = nil
+
+	---@type fun(x: number, y: number, button: integer, hasMouseOwner: boolean?)
+	WG.SmartSelect_MousePress2 = nil
+	---@type fun(units: integer[])
+	WG.SmartSelect_SelectUnits = nil
+	---@type fun()
+	WG.SmartSelect_SetReference = nil
+	---@type fun()
+	WG.SmartSelect_ClearReference = nil
 end
 
 function widget:GetConfigData()

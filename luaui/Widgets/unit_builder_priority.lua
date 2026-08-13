@@ -127,23 +127,32 @@ function widget:Initialize()
 	end
 
 	WG.builderpriority = {}
+	---@return boolean lowPriority Whether nano turrets build at low priority.
 	WG.builderpriority.getLowPriorityNanos = function()
 		return lowpriorityNanos
 	end
+	---Sets nano turrets to low build priority and applies it to existing ones.
+	---@param value boolean
 	WG.builderpriority.setLowPriorityNanos = function(value)
 		lowpriorityNanos = value
 		toggleNanos()
 	end
+	---@return boolean lowPriority Whether factories build at low priority.
 	WG.builderpriority.getLowPriorityLabs = function()
 		return lowpriorityLabs
 	end
+	---Sets factories to low build priority and applies it to existing ones.
+	---@param value boolean
 	WG.builderpriority.setLowPriorityLabs = function(value)
 		lowpriorityLabs = value
 		toggleLabs()
 	end
+	---@return boolean lowPriority Whether construction units build at low priority.
 	WG.builderpriority.getLowPriorityCons = function()
 		return lowpriorityCons
 	end
+	---Sets construction units to low build priority and applies it to existing ones.
+	---@param value boolean
 	WG.builderpriority.setLowPriorityCons = function(value)
 		lowpriorityCons = value
 		toggleCons()

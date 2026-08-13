@@ -64,6 +64,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local losStencilShader = nil
 local losCircleShader = nil
+---@type InstanceVBOTable
 local circleInstanceVBO = nil
 
 local losStencilTexture
@@ -255,15 +256,19 @@ function widget:Initialize()
 	end
 
 	WG.losrange = {
+		---@return number opacity Opacity of the LOS range rings.
 		getOpacity = function()
 			return opacity
 		end,
+		---@param value number Opacity of the LOS range rings.
 		setOpacity = function(value)
 			opacity = value
 		end,
+		---@return boolean useTeamColors Whether rings are drawn in each unit's team color.
 		getUseTeamColors = function()
 			return useteamcolors
 		end,
+		---@param value boolean Draw rings in each unit's team color.
 		setUseTeamColors = function(value)
 			useteamcolors = value
 		end,

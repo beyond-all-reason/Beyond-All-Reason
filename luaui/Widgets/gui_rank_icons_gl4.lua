@@ -50,6 +50,7 @@ local atlasID = nil
 local atlasSize = 2048
 --local atlassedImages = {}
 
+---@type InstanceVBOTable
 local rankVBO = nil
 local rankShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -285,24 +286,36 @@ function widget:Initialize()
 		return
 	end
 	WG.rankicons = {}
+	---@return number multiplier Scales how far away rank icons stay visible.
 	WG.rankicons.getDrawDistance = function()
 		return distanceMult
 	end
+	---@param value number Scales how far away rank icons stay visible.
 	WG.rankicons.setDrawDistance = function(value)
 		distanceMult = value
 		usedCutoffDistance = cutoffDistance * distanceMult
 	end
+	---@return number multiplier Rank icon size multiplier.
 	WG.rankicons.getScale = function()
 		return iconsizeMult
 	end
+	---Sets the rank icon size multiplier and refreshes the icons.
+	---@param value number
 	WG.rankicons.setScale = function(value)
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
 		doRefresh = true
 	end
+	---Works out which rank a unit has earned.
+	---@param unitDefID integer
+	---@param xp number Unit experience.
+	---@return integer rank
 	WG.rankicons.getRank = function(unitDefID, xp)
 		return getRank(unitDefID, xp)
 	end
+	---@param unitDefID integer? Unused.
+	---@param xp number? Unused.
+	---@return string[] textures Rank icon texture per rank.
 	WG.rankicons.getRankTextures = function(unitDefID, xp)
 		return rankTextures
 	end

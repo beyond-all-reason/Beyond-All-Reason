@@ -221,10 +221,13 @@ function widget:Initialize()
 	end
 
 	WG.cas = {}
+	---Sets the contrast-adaptive sharpening strength and recompiles the shader.
+	---@param value number
 	WG.cas.setSharpness = function(value)
 		SHARPNESS = value
 		UpdateShader()
 	end
+	---@return number sharpness
 	WG.cas.getSharpness = function()
 		return SHARPNESS
 	end

@@ -996,6 +996,9 @@ state.getMapmarkWorldPosition = function(mx, my)
 		mx, my = spGetMouseState()
 	end
 	for pipNumber = 0, 4 do
+		---The PIP API table. `WG['pip'..n]` is a computed key, so it has to be pinned
+		---here or it widens to the union of every typed `WG` member.
+		---@type table
 		local pipApi = WG["pip" .. pipNumber]
 		if pipApi and pipApi.ScreenToWorld then
 			local x, z = pipApi.ScreenToWorld(mx, my)
@@ -4461,36 +4464,56 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 
 	WG.chat = {}
+	---@return boolean active Whether the chat input field is open.
 	WG.chat.isInputActive = function()
 		return showTextInput
 	end
+	---@return boolean active Whether the player is drawing on the map.
 	WG.chat.isMapDrawActive = function()
 		return state.mapDrawActive
 	end
+	---Opens the label input field for a map mark at a world position.
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param triggerKey integer? Key that opened it, so releasing it can close it again.
+	---@param triggerScanCode integer? Scan code of that key.
+	---@return boolean started `false` when chat input is unavailable, e.g. the GUI is
+	---hidden or another widget owns text input.
 	WG.chat.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode)
 		return state.startMapmarkInput(x, y, z, triggerKey, triggerScanCode)
 	end
+	---@return boolean showing Whether the on-screen chat button is drawn.
 	WG.chat.getInputButton = function()
 		return inputButton
 	end
+	---@param value boolean Hide the chat display.
 	WG.chat.setHide = function(value)
 		hide = value
 	end
+	---@return boolean hidden
 	WG.chat.getHide = function()
 		return hide
 	end
+	---@param value boolean Show recent chat history while the input field is open.
 	WG.chat.setChatInputHistory = function(value)
 		showHistoryWhenChatInput = value
 	end
+	---@return boolean show
 	WG.chat.getChatInputHistory = function()
 		return showHistoryWhenChatInput
 	end
+	---@param value boolean Draw the on-screen chat button.
 	WG.chat.setInputButton = function(value)
 		inputButton = value
 	end
+	---@return boolean handle Whether this widget owns chat text input.
 	WG.chat.getHandleInput = function()
 		return handleTextInput
 	end
+	---Takes over or releases chat text input, cancelling any input in progress when
+	---releasing it.
+	---@param value boolean
 	WG.chat.setHandleInput = function(value)
 		handleTextInput = value
 		if not handleTextInput then
@@ -4500,39 +4523,62 @@ function widget:Initialize()
 			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 	end
+	---@return number volume Volume of the chat notification sound.
 	WG.chat.getChatVolume = function()
 		return sndChatFileVolume
 	end
+	---@param value number Volume of the chat notification sound.
 	WG.chat.setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
+	---@return number opacity Opacity of the chat background.
 	WG.chat.getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
+	---@param value number Opacity of the chat background.
 	WG.chat.setBackgroundOpacity = function(value)
 		backgroundOpacity = value
 	end
+	---@return integer lines Chat lines shown at once.
 	WG.chat.getMaxLines = function()
 		return maxLines
 	end
+	---Sets how many chat lines are shown at once and relays out.
+	---@param value integer
 	WG.chat.setMaxLines = function(value)
 		maxLines = value
 		widget:ViewResize()
 	end
+	---@return integer lines NOTE: returns the chat line count, not the console one.
 	WG.chat.getMaxConsoleLines = function()
 		return maxLines
 	end
+	---Sets how many console lines are shown at once and relays out.
+	---@param value integer
 	WG.chat.setMaxConsoleLines = function(value)
 		maxConsoleLines = value
 		widget:ViewResize()
 	end
+	---@return number multiplier Chat font size multiplier.
 	WG.chat.getFontsize = function()
 		return fontsizeMult
 	end
+	---Sets the chat font size multiplier and relays out.
+	---@param value number
 	WG.chat.setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
 	end
+	---Appends a line to the chat display, bypassing the registered chat processors.
+	---@param gameFrame integer
+	---@param lineType integer
+	---@param name string Speaker's plain name.
+	---@param nameText string Speaker's name as it should be drawn, including colors.
+	---@param text string
+	---@param orgLineID integer? Index of the original console line, if any.
+	---@param ignore boolean? The speaker is ignored, so the line is dimmed or hidden.
+	---@param chatLineID integer? Defaults to the next line index.
+	---@param channelScope string? Which chat channel the line belongs to.
 	WG.chat.addChatLine = function(
 		gameFrame,
 		lineType,
@@ -4546,11 +4592,18 @@ function widget:Initialize()
 	)
 		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true, channelScope)
 	end
+	---Registers a filter that rewrites chat lines before they are displayed.
+	---Non-function values are ignored.
+	---@param id string Caller-chosen key; pass the same one to `removeChatProcessor`.
+	---@param func fun(gameFrame: integer, lineType: integer, name: string, nameText: string, text: string, orgLineID: integer?, ignore: boolean?, chatLineID: integer): string?
+	---Returns the rewritten text, or `nil` to drop the line.
 	WG.chat.addChatProcessor = function(id, func)
 		if type(func) == "function" then
 			chatProcessors[id] = func
 		end
 	end
+	---Unregisters a chat processor.
+	---@param id string
 	WG.chat.removeChatProcessor = function(id)
 		chatProcessors[id] = nil
 	end

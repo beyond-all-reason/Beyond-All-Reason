@@ -43,6 +43,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local sonarStencilShader = nil
 local sonarCircleShader = nil
+---@type InstanceVBOTable
 local circleInstanceVBO = nil
 
 local sonarStencilTexture
@@ -247,9 +248,11 @@ function widget:Initialize()
 	end
 
 	WG.sonarrange = {
+		---@return number opacity Opacity of the sonar range rings.
 		getOpacity = function()
 			return opacity
 		end,
+		---@param value number Opacity of the sonar range rings.
 		setOpacity = function(value)
 			opacity = value
 		end,

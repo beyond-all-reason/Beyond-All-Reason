@@ -141,7 +141,8 @@ local numTeamsPerAlly = 1 -- configurable count (players per ally)
 local placementMode = "roundrobin" -- "roundrobin" = A,B,C,A,B,C... | "sequential" = A,A,B,B,C,C...
 
 -- Shape placement state
-local shapeType = "circle" -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
+---@type BrushShape
+local shapeType = "circle"
 local shapeRadius = 2000
 local shapeRotation = 0 -- degrees
 local shapeCount = 4 -- number of positions to place with shape
@@ -438,6 +439,22 @@ local function isPlaceableForCommander(x, z)
 	return getGroundSlopeAt(x, z) <= maxS
 end
 
+---A placed start position.
+---@class StartPosition
+---@field x number
+---@field y number Ground height at `x`, `z`.
+---@field z number
+---@field allyTeam integer
+---@field teamSlot integer
+---@field playerIdx integer
+
+---Places a start position, clamped to the map and rejected on ground the commander
+---cannot spawn on.
+---@param x number
+---@param z number
+---@param allyTeam integer? Defaults to the next allyteam in the placement order.
+---@param teamSlot integer? Defaults to the next slot in the placement order.
+---@return boolean placed `false` when the position cap is reached or the ground is too steep.
 local function addPosition(x, z, allyTeam, teamSlot)
 	if #positions >= MAX_POSITIONS then
 		return false
@@ -533,6 +550,7 @@ local function findNearestPosition(wx, wz)
 	return bestIdx
 end
 
+---Removes every placed start position and resets the placement order.
 local function clearAllPositions()
 	positions = {}
 	nextAllyTeam = 1
@@ -571,6 +589,9 @@ local function placeShapePositionsForTeam(cx, cz, allyTeam)
 	end
 end
 
+---Places a full set of start positions at random around a map point.
+---@param cx number
+---@param cz number
 local function placeRandomPositions(cx, cz)
 	local pts = generateRandomPositions(cx, cz)
 	local numAlly = math_max(1, numAllyTeams)
@@ -606,6 +627,7 @@ local function addStartboxVertex(x, z)
 	currentBoxVerts[#currentBoxVerts + 1] = { x = x, z = z }
 end
 
+---Commits the start box being drawn. Boxes with fewer than three vertices are dropped.
 local function finishStartbox()
 	if #currentBoxVerts >= 3 then
 		startboxes[#startboxes + 1] = {
@@ -760,6 +782,7 @@ local function removeLastStartbox()
 	end
 end
 
+---Removes every start box and resets the box drawing state.
 local function clearAllStartboxes()
 	for i = 1, #startboxes do
 		freeBoxFillList(startboxes[i])
@@ -941,6 +964,10 @@ local function getMapName()
 	return Game.mapName or "unknown"
 end
 
+---Writes the placed start positions to a Lua file.
+---@param name string? Save name. Defaults to the map name.
+---@param explicitPath string? Full path, overriding `name` and the save directory.
+---@return boolean saved `false` when the file could not be written.
 local function saveStartPositions(name, explicitPath)
 	local filename = explicitPath
 	if not filename then
@@ -980,6 +1007,10 @@ local function saveStartPositions(name, explicitPath)
 	end
 end
 
+---Loads start positions from a saved file, replacing the placed set.
+---@param name string? Save name. Defaults to the map name.
+---@param explicitPath string? Full path, overriding `name` and the save directory.
+---@return boolean loaded `false` when the file is missing or unreadable.
 local function loadStartPositions(name, explicitPath)
 	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
@@ -999,6 +1030,7 @@ local function loadStartPositions(name, explicitPath)
 	end
 end
 
+---@return string[] names Saved start position configs, without their extension.
 local function listSavedConfigs()
 	local files = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW_FIRST)
 	local names = {}
@@ -1011,6 +1043,10 @@ local function listSavedConfigs()
 	return names
 end
 
+---Writes the drawn start boxes to a Lua file.
+---@param name string? Save name. Defaults to the map name.
+---@param explicitPath string? Full path, overriding `name` and the save directory.
+---@return boolean saved `false` when the file could not be written.
 local function saveStartboxes(name, explicitPath)
 	local filename = explicitPath
 	if not filename then
@@ -1050,6 +1086,10 @@ local function saveStartboxes(name, explicitPath)
 	end
 end
 
+---Loads start boxes from a saved file, replacing the drawn set.
+---@param name string? Save name. Defaults to the map name.
+---@param explicitPath string? Full path, overriding `name` and the save directory.
+---@return boolean loaded `false` when the file is missing or unreadable.
 local function loadStartboxes(name, explicitPath)
 	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
@@ -1071,6 +1111,7 @@ local function loadStartboxes(name, explicitPath)
 	end
 end
 
+---@return string[] names Saved start box configs, without their extension.
 local function listSavedStartboxConfigs()
 	local files = VFS.DirList(STARTBOX_SAVE_DIR, "*.lua", VFS.RAW_FIRST)
 	local names = {}
@@ -1089,17 +1130,21 @@ end
 
 local STARTSCRIPT_SAVE_DIR = "Terraform Brush/StartScripts/"
 
+---Optional overrides for `generateStartScript`.
+---@class StartScriptOpts
+---@field mapname string? Defaults to the current map.
+---@field playerName string? Defaults to `"Player"`.
+---@field aiShortName string? AI type for non-player teams. Defaults to `"NullAI"`.
+---@field aiVersion string? Defaults to `"0.1"`.
+---@field startpostype number? `0` fixed, `1` random, `2` choose. Defaults to `2`.
+---@field modoptions table<string, string|number|boolean>? Key-value pairs written verbatim
+---into the `[modoptions]` section.
+
 --- Generate a Spring engine start script (script.txt) from the current
 --- polygon startboxes. Each polygon is converted to an axis-aligned
 --- bounding rectangle normalised to 0-1 map coordinates.
----@param opts table|nil  Optional overrides:
----   mapname        (string)   default: current map
----   playerName     (string)   default: "Player"
----   aiShortName    (string)   AI type for non-player teams, default "NullAI"
----   aiVersion      (string)   default "0.1"
----   startpostype   (number)   0=fixed,1=random,2=choose  default 2
----   modoptions     (table)    key-value pairs for [modoptions] section
----@return string  The full script text
+---@param opts StartScriptOpts?
+---@return string script The full script text.
 local function generateStartScript(opts)
 	opts = opts or {}
 	local mapName = opts.mapname or getMapName()
@@ -1253,6 +1298,10 @@ local function generateStartScript(opts)
 	return table.concat(lines, "\n")
 end
 
+---Writes a generated start script to a text file.
+---@param name string? Save name. Defaults to the map name.
+---@param opts StartScriptOpts?
+---@return boolean saved `false` when no start boxes exist or the file could not be written.
 local function saveStartScript(name, opts)
 	local script = generateStartScript(opts)
 	if not script then
@@ -1278,12 +1327,15 @@ end
 -- Activate / Deactivate / State
 -- ============================================================
 
+---Enables the start position tool.
+---@param mode "express"|"shape"|"startbox"? Defaults to `"express"`.
 local function activate(mode)
 	active = true
 	subMode = mode or "express"
 	Echo("[StartPos Tool] Activated: " .. subMode:upper())
 end
 
+---Disables the start position tool.
 local function deactivate()
 	if active then
 		Echo("[StartPos Tool] Deactivated")
@@ -1294,30 +1346,38 @@ local function deactivate()
 	drawingBox = false
 end
 
+---Switches what clicking the map does. Unknown values are ignored.
+---@param mode "express"|"shape"|"startbox"
 local function setSubMode(mode)
 	if mode == "express" or mode == "shape" or mode == "startbox" then
 		subMode = mode
 	end
 end
 
+---Sets the layout used by shape mode. Unknown values are ignored.
+---@param shape BrushShape
 local function setShape(shape)
 	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" or shape == "triangle" then
 		shapeType = shape
 	end
 end
 
+---@param v number Shape radius in elmos, clamped to the allowed range.
 local function setRadius(v)
 	shapeRadius = math_max(MIN_RADIUS, math_min(MAX_RADIUS, v))
 end
 
+---@param deg number Shape rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(deg)
 	shapeRotation = deg % 360
 end
 
+---@param c number Positions placed by shape mode, clamped to `2`-`MAX_POSITIONS`.
 local function setShapeCount(c)
 	shapeCount = math_max(2, math_min(MAX_POSITIONS, c))
 end
 
+---@param n number Allyteams to spread positions across, clamped to `2`-`MAX_ALLYTEAMS`.
 local function setNumAllyTeams(n)
 	numAllyTeams = math_max(2, math_min(MAX_ALLYTEAMS, n))
 	if nextAllyTeam > numAllyTeams then
@@ -1325,6 +1385,7 @@ local function setNumAllyTeams(n)
 	end
 end
 
+---@param n number Teams per allyteam, clamped to `1`-`MAX_TEAMS_PER_ALLY`.
 local function setNumTeamsPerAlly(n)
 	numTeamsPerAlly = math_max(1, math_min(MAX_TEAMS_PER_ALLY, n))
 	if nextTeamSlot > numTeamsPerAlly then
@@ -1332,17 +1393,24 @@ local function setNumTeamsPerAlly(n)
 	end
 end
 
+---Sets how placements cycle through allyteams. Unknown values are ignored.
+---@param m "roundrobin"|"sequential"
 local function setPlacementMode(m)
 	if m == "roundrobin" or m == "sequential" then
 		placementMode = m
 	end
 end
 
+---Switches between round-robin and sequential placement.
+---@return "roundrobin"|"sequential" mode The new mode.
 local function togglePlacementMode()
 	placementMode = (placementMode == "roundrobin") and "sequential" or "roundrobin"
 	return placementMode
 end
 
+---Sets how start boxes are drawn, discarding any in-progress box.
+---Unknown values are ignored.
+---@param m "polygon"|"box"|"freedraw"
 local function setStartboxMode(m)
 	if m == "polygon" or m == "box" or m == "freedraw" then
 		startboxMode = m
@@ -1394,6 +1462,33 @@ local function decimatePoints(pts, minDistSq)
 	return out
 end
 
+---A snapshot of the start position tool, for the UI to render.
+---@class StartPosToolState
+---@field active boolean
+---@field subMode "express"|"shape"|"startbox"
+---@field positions StartPosition[] The live list. Do not mutate.
+---@field numAllyTeams integer
+---@field numTeamsPerAlly integer
+---@field nextAllyTeam integer
+---@field nextTeamSlot integer
+---@field placementMode "roundrobin"|"sequential"
+---@field totalPlayers integer
+---@field maxAllyTeams integer
+---@field maxTeamsPerAlly integer
+---@field maxPositions integer
+---@field shapeType BrushShape
+---@field shapeRadius number
+---@field shapeRotation number
+---@field shapeCount integer
+---@field startboxes {vertices: PositionXZ[], allyTeam: integer}[] The live list.
+---Do not mutate.
+---@field startboxMode "polygon"|"box"|"freedraw"
+---@field drawingBox boolean
+---@field currentBoxVerts PositionXZ[]
+---@field boxRectActive boolean
+---@field freeDrawActive boolean
+
+---@return StartPosToolState
 local function getState()
 	return {
 		active = active,

@@ -302,6 +302,11 @@ function widget:Initialize()
 	end
 
 	WG.easyfacing = {}
+	---Forces the facing indicator on for a named reason, so several widgets can
+	---request it without fighting each other.
+	---@param reason string Caller-chosen key; pass the same one to turn it off again.
+	---@param enabled boolean
+	---@param unitDefID integer? Building the indicator should suit.
 	WG.easyfacing.setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
 			forceShow[reason] = unitDefID

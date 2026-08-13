@@ -57,6 +57,7 @@ function widget:Initialize()
 		widgetHandler.RemoveWidget()
 	end -- changing the taskbar icon causes a few secs of freezing there
 	WG.logo = {}
+	---Flashes the taskbar icon, but only while the game window is not focused.
 	WG.logo.mention = function()
 		if mouseOffscreen then
 			notif = true

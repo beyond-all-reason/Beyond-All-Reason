@@ -111,6 +111,7 @@ end
 local teamIncomeMultipliers = {} -- {key teamID value Multiplier number}
 
 local spotVBO = nil
+---@type InstanceVBOTable
 local spotInstanceVBO = nil
 local spotShader = nil
 
@@ -572,21 +573,27 @@ function widget:Initialize()
 	end
 
 	WG.metalspots = {}
+	---@param value boolean Label metal spots with their extraction rate.
 	WG.metalspots.setShowValue = function(value)
 		showValue = value
 	end
+	---@return boolean showValue
 	WG.metalspots.getShowValue = function()
 		return showValue
 	end
+	---@param value number Opacity of the metal spot markers.
 	WG.metalspots.setOpacity = function(value)
 		opacity = value
 	end
+	---@return number opacity
 	WG.metalspots.getOpacity = function()
 		return opacity
 	end
+	---@param value boolean Only show metal spots while the metal map view is on.
 	WG.metalspots.setMetalViewOnly = function(value)
 		metalViewOnly = value
 	end
+	---@return boolean metalViewOnly
 	WG.metalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end

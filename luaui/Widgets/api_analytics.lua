@@ -59,6 +59,16 @@ local function analyticsCoroutine(eventType, eventData)
 	spSendLuaUIMsg(complexMatchEvent)
 end
 
+---Queues an analytics event for the telemetry system.
+---
+---WARNING: Do NOT include any personal information in `eventType` or `eventData`.
+---Data sent via this function may be intercepted by other players, including
+---opponents. Only send anonymized, non-personal game-related data. This is
+---intended for gameplay analytics and debugging, not for user tracking.
+---@param eventType string Event type; must not contain personal info.
+---@param eventData table<string, any> Additional event data, merged into the JSON
+---payload key by key; keys colliding with `eventtype`/`username`/`frame` are dropped.
+---Must not contain personal info.
 local function sendAnalyticsEvent(eventType, eventData)
 	local co = coroutine.create(function()
 		analyticsCoroutine(eventType, eventData)

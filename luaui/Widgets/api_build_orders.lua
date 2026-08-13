@@ -28,7 +28,7 @@ end
 ---@field facing? number
 
 ---@param builderID number
----@return BuilderInfo
+---@return BuilderInfo? builderInfo `nil` when the unit no longer exists.
 local function getBuilderInfo(builderID)
 	local unitDefID = Spring.GetUnitDefID(builderID)
 	if not unitDefID then
@@ -96,8 +96,8 @@ end
 
 ---Groups builders so that each builder forms its own group, keyed by unitID.
 ---Used by split mode, where every builder works its own fork.
----@param builders table A list of builder info objects.
----@return table<number, table> One group per builder.
+---@param builders BuilderInfo[] A list of builder info objects.
+---@return table<number, BuilderInfo[]> One group per builder, keyed by unitID.
 local function forkBuilders(builders)
 	local forkGroups = {}
 	for _, builderInfo in ipairs(builders) do

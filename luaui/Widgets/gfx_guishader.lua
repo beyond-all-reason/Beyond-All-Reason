@@ -363,13 +363,6 @@ local function DeleteShaders()
 	blurShader = nil
 end
 
-function widget:Shutdown()
-	DeleteShaders()
-	WG.guishader = nil
-	widgetHandler:DeregisterGlobal("GuishaderInsertRect")
-	widgetHandler:DeregisterGlobal("GuishaderRemoveRect")
-end
-
 function widget:DrawScreenEffects() -- This blurs the world underneath UI elements
 	if spIsGUIHidden() or uiOpacity > 0.99 then
 		return
@@ -431,6 +424,10 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 	end
 end
 
+---Blurs the UI elements obscured by other UI elements.
+---(only unit stats so far!) Exposed as `WG.guishader.DrawScreen`
+---because the widget handler skips `DrawScreen` while the Chobby
+---interface is shown, and this pass still needs to run.
 local function DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
 	if spIsGUIHidden() then
 		return
@@ -510,12 +507,19 @@ function widget:Initialize()
 	self:UpdateCallIns()
 
 	WG.guishader = {}
+	---Registers a display list whose area is blurred behind the world.
+	---@param dlist integer GL display list id.
+	---@param name string Key the list is registered under; re-registering replaces it.
+	---@param force boolean? Re-register even when the same list is already stored.
 	WG.guishader.InsertDlist = function(dlist, name, force)
 		if force or guishaderDlists[name] ~= dlist then
 			guishaderDlists[name] = dlist
 			updateStencilTexture = true
 		end
 	end
+	---Unregisters a world-space blur display list without deleting it.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.RemoveDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
@@ -524,6 +528,9 @@ function widget:Initialize()
 		end
 		return found
 	end
+	---Unregisters a world-space blur display list and queues the list for deletion.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.DeleteDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
@@ -533,10 +540,19 @@ function widget:Initialize()
 		end
 		return found
 	end
+	---Registers a rectangle whose area is blurred behind the world.
+	---@param left number
+	---@param top number
+	---@param right number
+	---@param bottom number
+	---@param name string Key the rectangle is registered under; re-registering replaces it.
 	WG.guishader.InsertRect = function(left, top, right, bottom, name)
 		guishaderRects[name] = { left, top, right, bottom }
 		updateStencilTexture = true
 	end
+	---Unregisters a world-space blur rectangle.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.RemoveRect = function(name)
 		local found = guishaderRects[name] ~= nil
 		if found then
@@ -545,10 +561,16 @@ function widget:Initialize()
 		end
 		return found
 	end
+	---Registers a display list whose area is blurred in screen space.
+	---@param dlist integer GL display list id.
+	---@param name string Key the list is registered under; re-registering replaces it.
 	WG.guishader.InsertScreenDlist = function(dlist, name)
 		guishaderScreenDlists[name] = dlist
 		updateStencilTextureScreen = true
 	end
+	---Unregisters a screen-space blur display list without deleting it.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.RemoveScreenDlist = function(name)
 		local found = guishaderScreenDlists[name] ~= nil
 		if found then
@@ -557,6 +579,9 @@ function widget:Initialize()
 		end
 		return found
 	end
+	---Unregisters a screen-space blur display list and queues the list for deletion.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.DeleteScreenDlist = function(name)
 		local found = guishaderScreenDlists[name] ~= nil
 		if found then
@@ -565,10 +590,19 @@ function widget:Initialize()
 		end
 		return found
 	end
+	---Registers a rectangle whose area is blurred in screen space.
+	---@param left number
+	---@param top number
+	---@param right number
+	---@param bottom number
+	---@param name string Key the rectangle is registered under; re-registering replaces it.
 	WG.guishader.InsertScreenRect = function(left, top, right, bottom, name)
 		guishaderScreenRects[name] = { left, top, right, bottom }
 		updateStencilTextureScreen = true
 	end
+	---Unregisters a screen-space blur rectangle.
+	---@param name string
+	---@return boolean found `false` when nothing was registered under `name`.
 	WG.guishader.RemoveScreenRect = function(name)
 		local found = guishaderScreenRects[name] ~= nil
 		if found then
@@ -578,18 +612,24 @@ function widget:Initialize()
 		return found
 	end
 
+	---Blurs the whole screen, e.g. behind a fullscreen menu.
+	---@param value boolean
 	WG.guishader.setScreenBlur = function(value)
 		updateStencilTextureScreen = true
 		screenBlur = value
 	end
+	---@return boolean screenBlur
 	WG.guishader.getScreenBlur = function(value)
 		return screenBlur
 	end
 
-	-- will let it draw a given dlist to be rendered on top of screenblur
+	---Registers a display list to be drawn on top of the screen blur.
+	---@param value integer GL display list id.
 	WG.guishader.insertRenderDlist = function(value)
 		renderDlists[value] = true
 	end
+	---Stops drawing a display list on top of the screen blur.
+	---@param value integer GL display list id.
 	WG.guishader.removeRenderDlist = function(value)
 		if renderDlists[value] then
 			renderDlists[value] = nil
@@ -600,6 +640,13 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal("GuishaderInsertRect", WG.guishader.InsertRect)
 	widgetHandler:RegisterGlobal("GuishaderRemoveRect", WG.guishader.RemoveRect)
+end
+
+function widget:Shutdown()
+	DeleteShaders()
+	WG.guishader = nil
+	widgetHandler:DeregisterGlobal("GuishaderInsertRect")
+	widgetHandler:DeregisterGlobal("GuishaderRemoveRect")
 end
 
 function widget:RecvLuaMsg(msg, playerID)

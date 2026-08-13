@@ -155,13 +155,21 @@ end
 
 function widget:Initialize()
 	WG.buildinggrid = {}
+	---@return number opacity Opacity of the building grid overlay.
 	WG.buildinggrid.getOpacity = function()
 		return opacity
 	end
+	---Sets the building grid opacity. The widget must be reloaded for it to take effect.
+	---@param value number
 	WG.buildinggrid.setOpacity = function(value)
 		opacity = value
 		-- widget needs reloading wholly
 	end
+	---Forces the building grid on for a named reason, so several widgets can request
+	---it without fighting each other.
+	---@param reason string Caller-chosen key; pass the same one to turn it off again.
+	---@param enabled boolean
+	---@param unitDefID integer? Building whose footprint the grid should suit.
 	WG.buildinggrid.setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
 			forceShow[reason] = unitDefID

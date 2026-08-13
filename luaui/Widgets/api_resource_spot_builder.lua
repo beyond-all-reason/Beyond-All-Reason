@@ -104,7 +104,8 @@ end
 ------------------------------------------------------------
 
 ---Checks if there is an existing extractor (mex or geo) in the given spot
----@param spot table
+---@param spot ResourceSpot
+---@return integer|false unitID `false` when the spot is empty.
 local function spotHasExtractor(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 	local type = spot.isMex and mexBuildings or geoBuildings
@@ -116,9 +117,19 @@ local function spotHasExtractor(spot)
 	return false
 end
 
+---A metal or geothermal spot on the map.
+---@class ResourceSpot
+---@field x number
+---@field z number
+---@field isMex boolean? `true` for metal spots. Consumers branch on this alone.
+---@field isGeo boolean? `true` for geothermal spots. Set by the spot finder but never
+---read. The absence of `isMex` selects the geothermal code paths.
+
 ---Checks if there is an existing command among the current builders to make an extractor on the given spot
----@param spot table
----@param builders table which units will have their queues checked - doing a global check is too expensive
+---@param spot ResourceSpot
+---@param builders integer[]? which units will have their queues checked - doing a global
+---check is too expensive. Defaults to the current selection.
+---@return boolean
 local function spotHasExtractorQueued(spot, builders)
 	builders = builders or selectedUnits
 
@@ -157,10 +168,12 @@ local function spotHasExtractorQueued(spot, builders)
 	return false
 end
 
----Gets the naive best extractor, ignores special mexes (exploiter etc), just finds highest extraction amount
----@param units table selected units
----@param constructorIds table builder types to check
----@param extractors table valid extractors, useful to specify specific types or check only geos etc
+---Gets the naive best extractor, ignores special mexes (exploiter etc), just finds highest extraction amount.
+---Only the first extractor option of each builder is considered.
+---@param units integer[] Selected builder unitIDs.
+---@param constructorIds table<integer, {buildings: integer, building: integer[]}> Builder types to check, keyed by unitID.
+---@param extractors table<integer, number> Yield per extractor unitDefID. Useful to specify specific types, or check only geos.
+---@return integer? unitDefID `nil` when none of the units can build an extractor.
 local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 	local bestExtraction = 0
 	local bestExtractor
@@ -222,8 +235,10 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 end
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
----@param spot table
----@param extractorId table
+---Returns true if the specified extractor can be built on this spot - considers upgrades and sidegrades.
+---Upgradable allied extractors count as buildable; in-progress ones block.
+---@param spot ResourceSpot
+---@param extractorId integer unitDefID of the extractor to place.
 ---@return boolean
 local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
@@ -247,11 +262,10 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 end
 
 ---Finds the nearest unoccupied resource spot from the provided list
----@param x number
----@param z number
----@param spotsIn table
----@param extractor table unitDefID
----@param shouldIgnoreAlreadyQueuedUpSpots boolean
+---@param spotsIn ResourceSpot[]
+---@param extractor integer unitDefID of the extractor to place.
+---@param shouldIgnoreAlreadyQueuedUpSpots boolean Skip spots that already have an extractor queued.
+---@return ResourceSpot? spot `nil` when no spot in the list can take the extractor.
 local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor, shouldIgnoreAlreadyQueuedUpSpots)
 	-- sort spots by distance
 	local spots = table.copy(spotsIn)
@@ -373,11 +387,27 @@ end
 
 ---Puts together build orders for ghost previews (e.g. mex snap). These orders can be fed directly to
 ---ApplyPreviewCmds to actually give the orders to units
----@param params table
----@param extractor table
----@param spot table must be a full spot, not just position. isMex or isGeo field required for things to work.
----@param metalMap boolean if this is for a metal map. If so it's used for upgrade visualizing only and takes a different code path.
----@return table format is { buildingId, x, y, z, facing, owner }
+---A previewed extractor build order, in the argument order `Spring.GiveOrderToUnit`
+---wants for a build command, with the crediting team appended.
+---@class ExtractorCommand
+---@field [1] number Building id as a positive number; the callers negate it themselves.
+---@field [2] number World X, snapped to the spot.
+---@field [3] number World Y.
+---@field [4] number World Z.
+---@field [5] number Build facing, `0`-`3`.
+---@field [6] number Team credited with the build. This is the OCCUPYING team when
+---upgrading an ally's extractor, not necessarily the local one.
+
+---Puts together build orders for ghost previews (e.g. mex snap). These orders can be fed directly to
+---ApplyPreviewCmds to actually give the orders to units
+---Snaps the order to a valid position and credits an allied owner when upgrading.
+---@param params Position3D The cursor position as `{x, y, z}`.
+---@param extractor integer Negative unitDefID, as it appears in a build command.
+---@param spot ResourceSpot? Must be a full spot, not just a position. Omit together
+---with `metalMap` for spread metal maps.
+---@param metalMap boolean? If this is for a metal map. Used for upgrade visualizing only,
+---and takes a different code path.
+---@return ExtractorCommand? command `nil` when the spot cannot take the extractor.
 local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	if metalMap and not spot then
 		return previewMetalMapExtractorCommand(params, extractor)
@@ -412,6 +442,10 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	return finalCommand
 end
 
+---Issues previewed extractor build orders to the best-suited selected builders.
+---@param cmds ExtractorCommand[] All must share a building id.
+---@param constructorIds table<integer, {buildings: integer, building: integer[]}> Keyed by unitID.
+---@param shift boolean? Queue the orders instead of replacing the build queue.
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	if not cmds or #cmds <= 0 then
 		return
@@ -519,18 +553,22 @@ function widget:Initialize()
 	-- builders and buildings - MEX
 	----------------------------------------------
 
+	---@return table<integer, {buildings: integer, building: integer[]}> constructors Metal extractor builders, keyed by unitID.
 	WG.resource_spot_builder.GetMexConstructors = function()
 		return mexConstructors
 	end
 
+	---@return table<integer, number> buildings Metal extraction per extractor unitDefID.
 	WG.resource_spot_builder.GetMexBuildings = function()
 		return mexBuildings
 	end
 
+	---@return table<integer, {buildings: integer, building: integer[]}> constructors Geothermal builders, keyed by unitID.
 	WG.resource_spot_builder.GetGeoConstructors = function()
 		return geoConstructors
 	end
 
+	---@return table<integer, number> buildings Energy production per geothermal unitDefID.
 	WG.resource_spot_builder.GetGeoBuildings = function()
 		return geoBuildings
 	end

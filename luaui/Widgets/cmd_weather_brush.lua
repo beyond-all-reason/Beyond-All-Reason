@@ -865,6 +865,9 @@ end
 -- ===========================================================================
 -- Mode Management
 -- ===========================================================================
+
+---Enables the weather brush, deactivating the terrain brush and feature placer.
+---@param mode BrushPlacementMode? Defaults to `"scatter"`.
 local function activate(mode)
 	wb.active = true
 	wb.mode = mode or "scatter"
@@ -877,12 +880,15 @@ local function activate(mode)
 	end
 end
 
+---Disables the weather brush.
 local function deactivate()
 	wb.active = false
 	wb.dragging = false
 	wb.dragAction = nil
 end
 
+---Switches the tool's mode. Unknown values are ignored.
+---@param mode BrushPlacementMode
 local function setMode(mode)
 	if mode == "scatter" or mode == "point" or mode == "remove" then
 		wb.mode = mode
@@ -892,55 +898,75 @@ end
 -- ===========================================================================
 -- Parameter Setters
 -- ===========================================================================
+
+---The subset of `BrushShape` this brush offers. `"triangle"` is deliberately
+---absent: `setShape` rejects it and the outline renderer has no case for it.
+---@alias WeatherBrushShape "circle"|"square"|"hexagon"|"octagon"
+
+---Sets the brush footprint. Unknown values are ignored.
+---@param shape WeatherBrushShape
 local function setShape(shape)
 	if shape == "circle" or shape == "square" or shape == "hexagon" or shape == "octagon" then
 		wb.shape = shape
 	end
 end
 
+---@param val number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(val)
 	wb.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(val)))
 end
 
+---@param val number Stretches the brush along its rotation axis, rounded to one decimal.
 local function setLengthScale(val)
 	wb.lengthScale = max(MIN_LENGTH_SCALE, min(MAX_LENGTH_SCALE, math.floor(val * 10 + 0.5) / 10))
 end
 
+---@param val number Brush rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(val)
 	wb.rotation = val % 360
 end
 
+---@param delta number Degrees to add to the current rotation.
 local function rotate(delta)
 	setRotation(wb.rotation + delta)
 end
 
+---@param val number Percent of random rotation applied per placement, clamped to `0`-`100`.
 local function setRotRandom(val)
 	-- rotRandom is a 0-100% random-rotation amount applied per placement
 	wb.rotRandom = math.clamp(floor(val), 0, 100)
 end
 
+---@param val number Effects spawned per stroke, clamped to `1`-`500`.
 local function setSpawnCount(val)
 	wb.spawnCount = max(1, min(500, floor(val)))
 end
 
+---@param val number Frames between placements while dragging, clamped to `1`-`1000`.
 local function setCadence(val)
 	wb.cadence = max(1, min(1000, floor(val)))
 end
 
+---@param val number Height above the ground to spawn at, clamped to `0`-`2000`.
 local function setAltitude(val)
 	wb.altitude = max(0, min(2000, floor(val)))
 end
 
+---@param val number Spawns per second for persistent effects, clamped to `0.1`-`60`.
 local function setFrequency(val)
 	wb.frequency = max(0.1, min(60.0, val))
 end
 
+---Sets how scattered effects are spread. Unknown values are ignored.
+---@param dist "random"|"regular"
 local function setDistribution(dist)
 	if dist == "random" or dist == "regular" then
 		wb.distribution = dist
 	end
 end
 
+---Sets how long a placed persistent effect lasts.
+---@param val number Seconds, clamped to the allowed range. Negative means forever.
 local function setPersistenceSeconds(val)
 	val = floor(val)
 	if val < 0 then
@@ -978,6 +1004,8 @@ local function applyCegFlashbangOverride(name)
 	setPersistenceSeconds(ov.persistence)
 end
 
+---Selects a single effect, replacing the current selection. Unknown names are ignored.
+---@param name string A CEG name from `getCegNames`.
 local function selectCeg(name)
 	loadCEGNames()
 	if not cegNameSet[name] then
@@ -988,6 +1016,8 @@ local function selectCeg(name)
 	applyCegFlashbangOverride(name)
 end
 
+---Adds or removes one effect from the multi-selection. Unknown names are ignored.
+---@param name string A CEG name from `getCegNames`.
 local function toggleCeg(name)
 	loadCEGNames()
 	if not cegNameSet[name] then
@@ -1009,11 +1039,15 @@ local function toggleCeg(name)
 	end
 end
 
+---Clears the effect selection.
 local function clearSelectedCegs()
 	wb.selectedCegs = {}
 	wb.selectedCegSet = {}
 end
 
+---Replaces the selection and brush settings with a library preset.
+---Unknown indices are ignored.
+---@param index integer Index into `getWeatherLibrary`.
 local function applyWeatherPreset(index)
 	local preset = weatherLibrary[index]
 	if not preset then
@@ -1037,6 +1071,7 @@ local function applyWeatherPreset(index)
 	setPersistenceSeconds(preset.persistence or 0)
 end
 
+---Removes every persistent weather spawner from the map.
 local function clearAllPersistent()
 	local count = table.count(wb.persistentSpawners)
 	wb.persistentSpawners = {}
@@ -1046,9 +1081,29 @@ local function clearAllPersistent()
 	end
 end
 
+---A persistent weather spawner placed on the map.
+---@class WeatherSpawner
+---@field cegs string[]
+---@field x number
+---@field z number
+---@field radius number
+---@field count integer Effects spawned per cycle.
+---@field shape WeatherBrushShape
+---@field angleDeg number
+---@field lengthScale number
+---@field altitude number
+---@field interval integer Frames between spawn cycles.
+---@field refreshInterval integer Frames between full refreshes.
+---@field startFrame integer
+---@field expireFrame integer? `nil` means permanent.
+---@field nextFrame integer
+---@field spawnCycles integer
+---@field saturationCycles integer
+
 -- Raw copies of all persistent spawners, for project serialization.
 -- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames and
 -- NOT portable across sessions; callers must convert to relative durations.
+---@return WeatherSpawner[] spawners A copy, so mutating it does not affect live state.
 local function getPersistentSpawners()
 	local out = {}
 	for _, s in pairs(wb.persistentSpawners) do
@@ -1078,11 +1133,35 @@ local function getPersistentSpawners()
 	return out
 end
 
+---A serialized spawner, as a map project's `weather.lua` stores it. The same
+---fields as `WeatherSpawner` minus the session-local frame fields, with
+---`persistence` standing in for them. Only `cegs` is required; every other
+---field falls back to a default, and the numeric ones are coerced with
+---`tonumber`, so a value read from a hand-edited file need not be a number yet.
+---@class WeatherSpawnerEntry
+---@field cegs string[] Must be non-empty, or the entry is skipped.
+---@field x number? Defaults to `0`.
+---@field z number? Defaults to `0`.
+---@field radius number? Defaults to `100`.
+---@field count number? Effects spawned per cycle, floored, at least `1`. Defaults to `1`.
+---@field shape WeatherBrushShape? Defaults to `"circle"`.
+---@field angleDeg number? Defaults to `0`.
+---@field lengthScale number? Defaults to `1`.
+---@field altitude number? Defaults to `0`.
+---@field interval number? Frames between spawn cycles, floored, at least `1`.
+---Defaults to one second at the current game speed.
+---@field refreshInterval number? Frames between full refreshes, floored, never below
+---`interval`. Defaults to `interval`.
+---@field persistence number? Remaining lifetime in seconds; `-1` is permanent, which
+---is also the default.
+
 -- Reconstruct a persistent spawner from a serialized project entry, honoring
 -- the saved interval/refreshInterval instead of deriving them from the live UI
 -- cadence (which addPersistentSpawner does). Synthesizes every runtime field
 -- the Update loop dereferences — a missing one crashes the widget on the next
 -- tick. entry.persistence: -1 = permanent, else remaining seconds.
+---@param entry WeatherSpawnerEntry
+---@return integer? id `nil` when `entry` has no cegs.
 local function addSpawnerRaw(entry)
 	if type(entry) ~= "table" or type(entry.cegs) ~= "table" or #entry.cegs == 0 then
 		Echo("[Weather Brush] addSpawnerRaw: entry has no cegs, skipped")
@@ -1127,6 +1206,27 @@ end
 -- ===========================================================================
 -- State Export (for UI)
 -- ===========================================================================
+
+---A snapshot of the weather brush, for the UI to render.
+---@class WeatherBrushState
+---@field active boolean
+---@field mode BrushPlacementMode
+---@field shape WeatherBrushShape
+---@field radius number
+---@field lengthScale number
+---@field rotation number
+---@field rotRandom number
+---@field spawnCount number
+---@field cadence number
+---@field frequency number
+---@field distribution "random"|"regular"
+---@field altitude number
+---@field selectedCegs string[]
+---@field persistenceSeconds number
+---@field persistentMode boolean
+---@field persistentCount integer Only filled in by `getStateWithCount`.
+
+---@return WeatherBrushState
 local function getState()
 	return {
 		active = wb.active,
@@ -1148,17 +1248,34 @@ local function getState()
 	}
 end
 
+---@return WeatherBrushState
 local function getStateWithCount()
 	local state = getState()
 	state.persistentCount = table.count(wb.persistentSpawners)
 	return state
 end
 
+---@return string[] names Every CEG the brush can place, loaded on first use.
 local function getCegNames()
 	loadCEGNames()
 	return cegNames
 end
 
+---One entry in the built-in weather library, as `applyWeatherPreset` consumes it.
+---@class WeatherPreset
+---@field name string
+---@field description string
+---@field icon string
+---@field cegs string[] CEG names spawned together.
+---@field spawnCount integer Effects per cycle.
+---@field radius number
+---@field cadence integer Frames between cycles.
+---@field altitude number Spawn height above the ground.
+---@field persistence number Seconds the spawner lives; `-1` is permanent.
+---@field cegLifetimeS number How long one CEG lasts, for the refresh interval.
+
+---@return WeatherPreset[] presets Built-in weather presets, indexed as
+---`applyWeatherPreset` expects.
 local function getWeatherLibrary()
 	return weatherLibrary
 end

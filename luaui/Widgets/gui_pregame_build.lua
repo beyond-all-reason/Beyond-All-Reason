@@ -35,7 +35,10 @@ local spTestBuildOrder = Spring.TestBuildOrder
 
 local spawnWarpInFrame = Game.spawnWarpInFrame
 
+---@type BuildOrder[]
 local buildQueue = {}
+---The unitDefID of the building currently held by the cursor, if any.
+---@type integer?
 local selBuildQueueDefID
 local facingMap = { south = 0, east = 1, north = 2, west = 3 }
 
@@ -299,9 +302,13 @@ function widget:Initialize()
 	isMetalMap = WG.resource_spot_finder.isMetalMap
 
 	WG["pregame-build"] = {}
+	---@return integer? unitDefID The building currently held for pregame placement.
 	WG["pregame-build"].getPreGameDefID = function()
 		return selBuildQueueDefID
 	end
+	---Holds a building for pregame placement. Anything the starting unit cannot build
+	---clears the held building instead.
+	---@param value integer? unitDefID.
 	WG["pregame-build"].setPreGamestartDefID = function(value)
 		local inBuildOptions = {}
 		-- Ensure startDefID is valid before trying to access UnitDefs[startDefID]
@@ -324,15 +331,31 @@ function widget:Initialize()
 		end
 	end
 
+	---A single pregame build order.
+	---@class BuildOrder
+	---@field [1] integer unitDefID, or a negated command ID when negative -- the move
+	---order queued alongside a building uses `-CMD.MOVE`. Consumers test `> 0`.
+	---@field [2] number World X.
+	---@field [3] number World Y.
+	---@field [4] number World Z.
+	---@field [5] integer? Build facing, `0`-`3`. Absent for the move orders.
+
+	---Replaces the pregame build queue.
+	---@param value BuildOrder[]
 	WG["pregame-build"].setBuildQueue = function(value)
 		buildQueue = value
 	end
+	---@return BuildOrder[] queue Do not mutate.
 	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
 	end
+	---@return {x: number, y: number, z: number, facing: integer}[]? positions Snapped
+	---positions for the buildings currently being dragged out. Note the named fields:
+	---unlike `BuildOrder`, these are not arrays.
 	WG["pregame-build"].getBuildPositions = function()
 		return buildModeState.buildPositions
 	end
+	---Invalidates the cached pregame build preview, so it is rebuilt next frame.
 	WG["pregame-build"].forceRefresh = function()
 		forceRefreshCache = true
 	end

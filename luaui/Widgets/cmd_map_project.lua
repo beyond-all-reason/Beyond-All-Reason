@@ -33,6 +33,58 @@ end
 -- matches the recorded map (blank-map name, exact size, map damage enabled,
 -- local singleplayer); on mismatch it deletes the pointer and explains itself.
 
+---A saved project's `project.lua` manifest. Written last during a save, so its
+---presence is the commit marker for the folder, and checked by `validateManifest`
+---before any load.
+---@class MapProjectManifest
+---@field kind "bar-map-project"
+---@field format_version integer Opening is refused when this is newer than `FORMAT_VERSION`.
+---@field name string
+---@field created string ISO-8601; carried forward across re-saves.
+---@field modified string ISO-8601.
+---@field game_version string
+---@field map MapProjectMap
+---@field sections table<string, MapProjectSection> Keyed by section name; only sections actually written are present.
+---@field assets { decals: { name: string, file: string, installed: boolean }[] }
+---@field mission { zones: unknown[], markers: unknown[], placeholders: unknown[], notes: string }
+---Reserved for mission tooling; the three lists are always written empty, so their
+---element shape is not defined yet.
+
+---@class MapProjectMap
+---@field size_x integer Map units, not elmos: even, 2-64.
+---@field size_z integer
+---@field source_map string The map the project was captured from.
+---@field base_height number?
+---@field base_color ColorRGB?
+---@field height_range { min: integer, max: integer }? Canonical range, auto-widened across re-saves.
+---@field skybox string? Basename only, resolved against the skybox library when opening.
+---@field dnts MapProjectDnts?
+
+---Detail-normal-texture-set keys, recorded as the project's own `assets/dnts/`
+---copies so that opening stays self-contained if the library has since changed.
+---@class MapProjectDnts
+---@field textures table<integer, string> Sparse over channels 1-4, relative to the project folder.
+---@field scales [number, number, number, number]
+---@field mults [number, number, number, number]
+---@field diffuse_alpha number
+---@field set string?
+---@field detail string? Legacy SSMF splat detail texture.
+
+---One saved section. `file` and `dir` are alternatives: `diffuse` is a directory
+---of per-square PNGs, every other section is a single file.
+---@class MapProjectSection
+---@field version integer
+---@field bytes integer
+---@field file string?
+---@field dir string?
+---@field count integer? `units`: how many units were saved.
+---@field square_size integer? `diffuse`: pixel size of one square.
+---@field squares integer? `diffuse`: how many squares were written.
+---@field full boolean? `diffuse`: whether the whole map was captured.
+---@field channels string[]? `diffuse`: which texture keys were captured.
+---@field patch_resolution integer? `grass`.
+---@field config string? `grass`: config filename.
+
 local Echo = Spring.Echo
 
 local PROJECTS_DIR = "MapProjects/"
@@ -156,6 +208,9 @@ end
 -- Read a previously saved manifest (created timestamp + canonical height range
 -- must survive re-saves). Raw io.open, never VFS: fresh files can be invisible
 -- or stale in the VFS view within a session. Also the load-side manifest reader.
+---@param dir string Project folder, with a trailing slash.
+---@return MapProjectManifest? manifest Unvalidated: the file is hand-editable, so
+---pass it through `validateManifest` before trusting anything but `map.size_x`.
 local function readPrevManifest(dir)
 	local f = io.open(dir .. "project.lua", "r")
 	if not f then
@@ -754,6 +809,21 @@ end
 local unitsWaiter = nil
 local unitsWaiterTicks = 0
 
+---One unit reported by the loadout gadget, parsed out of its packed message.
+---@class MapProjectUnitExport
+---@field name string UnitDef name.
+---@field x number
+---@field z number
+---@field rot number Heading; `0` when unparsable.
+---@field team integer Team ID; `0` when unparsable.
+---@field neutral boolean
+
+---Asks the gadget side for the current unit loadout, answering asynchronously.
+---Only one request may be pending at a time.
+---@param callback fun(entries: MapProjectUnitExport[]?, reason: string?) Receives the entries on
+---success, or `nil` plus a reason on failure.
+---@return boolean started `false` when `callback` is not a function, another request
+---is pending, or a save or load is running.
 local function requestUnits(callback)
 	if type(callback) ~= "function" then
 		return false
@@ -1472,8 +1542,11 @@ local function finishSave()
 	job = nil
 end
 
--- opts.saveUnits: record the unit loadout (position/team of every unit) into
--- units.lua so a loaded project restores the drafted mission state.
+---Begins saving the current map as a project. The save runs incrementally across
+---later frames.
+---@param slug string Project folder name; must not contain a path separator.
+---@param opts {saveUnits: boolean?}? Set `saveUnits` to include the unit loadout (position/team of every unit) in units.lua.
+---@return boolean started `false` when a save or load is already running, or `slug` is invalid.
 local function startSave(slug, opts)
 	if job then
 		echoP("a save is already running")
@@ -1505,8 +1578,10 @@ local function startSave(slug, opts)
 	return true
 end
 
--- Does a saved project include a units section? (UI confirm guard: warns
--- before a toggle-off re-save silently drops a previously saved loadout.)
+---Whether a saved project includes a units section. Used to warn before a re-save
+---silently drops a previously saved loadout.
+---@param slug string
+---@return boolean
 local function projectHasUnits(slug)
 	local ok = validateSlug(slug)
 	if not ok then
@@ -1516,11 +1591,21 @@ local function projectHasUnits(slug)
 	return (manifest and manifest.sections and manifest.sections.units) and true or false
 end
 
--- Enumerate projects with manifest details for the Open Project dialog.
+---A saved map project, as listed for the Open Project dialog.
+---@class MapProjectEntry
+---@field slug string Folder name under the projects directory.
+---@field name string Display name; falls back to `slug`.
+---@field size_x number?
+---@field size_z number?
+---@field modified string?
+---@field format_version number?
+
+---Enumerates saved projects with their manifest details, newest first.
 -- VFS.SubDirs sees the folders; manifests are read via raw io (same-session
 -- folders may be invisible/stale in the VFS view — SubDirs RAW semantics for
 -- folders created THIS session are unpinned, so a just-saved project may need
 -- an engine restart to appear; the dialog says so when the list is empty).
+---@return MapProjectEntry[]
 local function listProjectsDetailed()
 	local out = {}
 	local dirs = VFS.SubDirs(PROJECTS_DIR, "*", VFS.RAW) or {}
@@ -1550,6 +1635,8 @@ local function listProjectsDetailed()
 	return out
 end
 
+---Prints the saved projects to the infolog.
+---@return integer count Projects found.
 local function listProjects()
 	local found = listProjectsDetailed()
 	for _, p in ipairs(found) do
@@ -1575,6 +1662,9 @@ end
 -- not write. The manifest goes first on purpose: if a file is locked and the
 -- sweep leaves junk behind, the project has already stopped listing (both list
 -- paths need project.lua) instead of showing up half-deleted.
+---@param slug string Project folder name; must not contain a path separator.
+---@return boolean deleted `false` when a save or load is running, `slug` is invalid,
+---or the folder has no readable manifest.
 local function deleteProject(slug)
 	if job then
 		echoP("cannot delete a project while a save is running")
@@ -1682,6 +1772,11 @@ end
 -- Load: manifest validation
 ----------------------------------------------------------------
 
+---Checks a manifest against the rules this tool can actually load, normalizing
+---each section's `bytes` to a number on the way through.
+---@param manifest MapProjectManifest?
+---@return true? ok `nil` when the manifest is unusable.
+---@return string? errorMessage Set when `ok` is `nil`.
 local function validateManifest(manifest)
 	if type(manifest) ~= "table" then
 		return nil, "manifest is not a table"
@@ -2566,6 +2661,10 @@ end
 -- Load: open (validate + restart), callable from UI and console
 ----------------------------------------------------------------
 
+---Opens a saved project, restarting into a blank map at the recorded size and
+---restoring the project's assets.
+---@param slug string Project folder name; must not contain a path separator.
+---@return boolean started `false` when a save or load is running, or `slug` is invalid.
 local function openProject(slug)
 	if job then
 		echoP("cannot open a project while a save is running")
@@ -2718,9 +2817,11 @@ function widget:Initialize()
 		hasUnitsSection = projectHasUnits,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
+		---@return boolean busy Whether a project save or load is running.
 		isBusy = function()
 			return job ~= nil or loadJob ~= nil
 		end,
+		---@return boolean loading Whether a project load is running.
 		isLoading = function()
 			return loadJob ~= nil
 		end,

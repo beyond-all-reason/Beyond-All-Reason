@@ -1049,9 +1049,12 @@ function widget:Initialize()
 	end
 
 	WG.advplayerlist_api = {}
+	---@return boolean hide Whether the spectator list is always collapsed.
 	WG.advplayerlist_api.GetAlwaysHideSpecs = function()
 		return alwaysHideSpecs
 	end
+	---Always collapses the spectator list, rebuilding the player list when it was open.
+	---@param value boolean
 	WG.advplayerlist_api.SetAlwaysHideSpecs = function(value)
 		alwaysHideSpecs = value
 		if alwaysHideSpecs and specListShow then
@@ -1061,25 +1064,38 @@ function widget:Initialize()
 			CreateLists()
 		end
 	end
+	---@return number scale UI scale of the player list.
 	WG.advplayerlist_api.GetScale = function()
 		return customScale
 	end
+	---Sets the player list UI scale and relays it out.
+	---@param value number
 	WG.advplayerlist_api.SetScale = function(value)
 		customScale = value
 		updateWidgetScale()
 	end
+	---Screen rectangle of the player list.
+	---@return [number, number, number, number, number, nil, boolean] position As
+	---`{top, left, bottom, right, widgetScale, ?, flipped}`. Slot 6 is always `nil`: the
+	---assignment reads an undefined global `right` (see the `apiAbsPosition` update).
 	WG.advplayerlist_api.GetPosition = function()
 		return apiAbsPosition
 	end
+	---@return boolean absolute Whether resource bars show absolute values rather than shares.
 	WG.advplayerlist_api.GetAbsoluteResbars = function()
 		return absoluteResbarValues
 	end
+	---@param value boolean Show absolute resource values rather than shares.
 	WG.advplayerlist_api.SetAbsoluteResbars = function(value)
 		absoluteResbarValues = value
 	end
+	---@param module integer Index into the player list's module table.
+	---@return boolean active
 	WG.advplayerlist_api.GetModuleActive = function(module)
 		return modules[module].active
 	end
+	---Shows or hides one player list column, relaying out the list.
+	---@param value {[1]: string, [2]: boolean} The module name and whether it is shown.
 	WG.advplayerlist_api.SetModuleActive = function(value)
 		for n, module in pairs(modules) do
 			if module.name == value[1] then

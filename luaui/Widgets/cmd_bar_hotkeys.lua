@@ -37,6 +37,8 @@ local function fallbackToDefault(currentKeys)
 	return default
 end
 
+---Reloads the keybinding file for the configured keyboard layout, falling back to
+---the default file when the configured one is missing.
 local function reloadBindings()
 	-- Second parameter here is just a fallback if this config is undefined
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")

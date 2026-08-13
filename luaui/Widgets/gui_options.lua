@@ -12734,6 +12734,8 @@ function widget:Initialize()
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring wont remember what you set with '/minimap iconssize #'
 
 	WG.options = {}
+	---Shows or hides the options window, closing the top bar windows when it opens.
+	---@param state boolean? Omit to toggle.
 	WG.options.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
@@ -12752,6 +12754,7 @@ function widget:Initialize()
 			end
 		end
 	end
+	---@return string[] ids Every registered option id.
 	WG.options.getOptionsList = function()
 		local optionList = {}
 		for i, option in pairs(options) do
@@ -12759,17 +12762,24 @@ function widget:Initialize()
 		end
 		return optionList
 	end
+	---@return boolean visible
 	WG.options.isvisible = function()
 		return show
 	end
+	---@param option string Option id.
+	---@return boolean|number|string|nil value A boolean for `bool` options, a number for
+	---`slider`, and the selected entry for `select`; `nil` when no option has that id.
 	WG.options.getOptionValue = function(option)
 		if getOptionByID(option) then
 			return options[getOptionByID(option)].value
 		end
 	end
+	---@return number seconds Camera transition time.
 	WG.options.getCameraSmoothness = function()
 		return cameraTransitionTime
 	end
+	---@return boolean disallow Whether Escape is being consumed by an open sub-menu
+	---and should not close the options window.
 	WG.options.disallowEsc = function()
 		if showSelectOptions then
 			--or draggingSlider then
@@ -12778,6 +12788,15 @@ function widget:Initialize()
 			return false
 		end
 	end
+	---An option row. The options widget only requires `id`; the rest of the fields
+	---are consumed by the renderer for whichever `type` the option declares.
+	---@class OptionDefinition
+	---@field id string Unique key; `removeOptions` matches on it.
+	---@field group string? Overwritten with `"custom"` when registered this way.
+	---@field [string] any Renderer-specific fields, e.g. `name`, `type`, `value`.
+
+	---Registers extra options under the custom group and rebuilds the options list.
+	---@param newOptions OptionDefinition[] `group` is overwritten with `"custom"`.
 	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
@@ -12786,6 +12805,8 @@ function widget:Initialize()
 
 		init()
 	end
+	---Removes custom options by id and rebuilds the options list.
+	---@param names string[]
 	WG.options.removeOptions = function(names)
 		for _, name in ipairs(names) do
 			for i, option in pairs(customOptions) do
@@ -12798,12 +12819,20 @@ function widget:Initialize()
 
 		init()
 	end
+	---Registers one extra option under the custom group.
+	---@param option OptionDefinition
 	WG.options.addOption = function(option)
 		return WG.options.addOptions({ option })
 	end
+	---Removes one custom option by id.
+	---@param name string
 	WG.options.removeOption = function(name)
 		return WG.options.removeOptions({ name })
 	end
+	---Sets an option's value and applies its side effects. Unknown ids are reported
+	---to the infolog and ignored.
+	---@param option string Option id.
+	---@param value number|string Coerced to a number.
 	WG.options.applyOptionValue = function(option, value)
 		local optionID = getOptionByID(option)
 		if not optionID then

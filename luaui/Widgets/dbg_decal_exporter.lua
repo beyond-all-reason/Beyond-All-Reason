@@ -51,6 +51,7 @@ local heatGrid = {}
 local heatMax = 0
 local totalExplosions = 0
 
+---Clears the explosion heatmap and its running totals.
 local function initHeatGrid()
 	for i = 1, heatGridW * heatGridH do
 		heatGrid[i] = 0
@@ -95,7 +96,24 @@ function widget:Explosion(weaponDefID, px, py, pz, ownerID, projectileID)
 end
 
 -- ========== SNAPSHOT: GL4 WIDGET DECALS ==========
+
+---One GL4 decal as the exporter records it, with the atlas UV bounds grouped
+---and the ground height sampled at the decal's position. `source` discriminates
+---these from the engine decals the exporter also collects.
+---@class Gl4DecalSnapshot
+---@field source "gl4"
+---@field posx number
+---@field posz number
+---@field posy number Ground height at `posx, posz`; `0` where that is unknown.
+---@field width number
+---@field length number
+---@field rotation number
+---@field alpha number The decay-adjusted alpha at capture time, capped at `1`.
+---@field isFootprint boolean
+---@field uv {p: number, q: number, s: number, t: number} Atlas UV bounds.
+
 -- Captures all active decals from the Decals GL4 widget
+---@return Gl4DecalSnapshot[]? snapshot `nil` when that widget is not loaded.
 local function snapshotGL4Decals()
 	local decalsApi = WG.decalsgl4
 	if not decalsApi then
@@ -144,7 +162,33 @@ local function snapshotGL4Decals()
 end
 
 -- ========== SNAPSHOT: ENGINE GROUND DECALS ==========
+
+---One engine ground decal as the exporter records it. Field names are
+---deliberately capitalized (`posX`) where the GL4 snapshot uses lowercase
+---(`posx`); the two shapes are otherwise unrelated and share only `source`,
+---`rotation` and `alpha`.
+---@class EngineDecalSnapshot
+---@field source "engine"
+---@field decalType "explosion"|"plate"|"lua"|"track"|"unknown" `"unknown"` when the
+---engine does not report one.
+---@field decalID integer
+---@field posX number
+---@field posZ number
+---@field posY number Ground height at `posX, posZ`; `0` where that is unknown.
+---@field sizeX number? Absent together with `sizeZ` and `projHeight`.
+---@field sizeZ number
+---@field projHeight number Height of the projection cube.
+---@field rotation number Radians; `0` where the engine does not report one.
+---@field texture string?
+---@field normalTexture string?
+---@field alpha number Defaults to `1`.
+---@field alphaFalloff number Per second; defaults to `0`.
+---@field tint ColorRGBA? `nil` when the engine build has no tint API.
+---@field glow number? `nil` when the engine build has no glow API.
+---@field glowFalloff number? Per second.
+
 -- Captures all engine-side ground decals (building plates, explosion scars, tracks, lua decals)
+---@return EngineDecalSnapshot[]? snapshot `nil` when the engine decal API is unavailable.
 local function snapshotEngineDecals()
 	if not Spring.GetAllGroundDecals then
 		spEcho("[Decal Exporter] Engine decal API not available (need engine 105+)")
@@ -206,8 +250,15 @@ local function snapshotEngineDecals()
 end
 
 -- ========== EXPORT: LUA TABLE (for map widgets / mapinfo) ==========
+
+---A decal from either source. `source` discriminates the two shapes, which
+---share almost no field names.
+---@alias DecalSnapshot Gl4DecalSnapshot|EngineDecalSnapshot
+
 -- Writes a self-contained Lua file that a map can dofile() to get decal placements.
 -- Mapper drops this into their map folder and loads it from a widget/gadget.
+---@param snapshot DecalSnapshot[]?
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportLuaTable(snapshot, filename)
 	if not snapshot or #snapshot == 0 then
 		spEcho("[Decal Exporter] Nothing to export")
@@ -272,6 +323,10 @@ local function exportLuaTable(snapshot, filename)
 end
 
 -- ========== EXPORT: CSV (for GIS tools, spreadsheets, Python scripts) ==========
+
+---Writes a decal snapshot as CSV. Does nothing when empty.
+---@param snapshot DecalSnapshot[]?
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportCSV(snapshot, filename)
 	if not snapshot or #snapshot == 0 then
 		spEcho("[Decal Exporter] Nothing to export")
@@ -323,7 +378,10 @@ local function exportCSV(snapshot, filename)
 end
 
 -- ========== EXPORT: STAMP FILE (re-importable via engine API) ==========
+
 -- Produces a Lua script that can be run as a widget to recreate all decals on any map.
+---@param snapshot DecalSnapshot[]?
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportStampFile(snapshot, filename)
 	if not snapshot or #snapshot == 0 then
 		spEcho("[Decal Exporter] Nothing to export")
@@ -413,8 +471,11 @@ local function exportStampFile(snapshot, filename)
 end
 
 -- ========== EXPORT: HEATMAP AS CSV GRID ==========
+
 -- Exports the accumulated combat heatmap as a CSV grid that can be
 -- opened in any image editor or imported into Python/numpy for visualization.
+---Does nothing until explosions are recorded.
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportHeatmapCSV(filename)
 	if totalExplosions == 0 then
 		spEcho("[Decal Exporter] No explosions recorded yet — play some game first")
@@ -465,7 +526,11 @@ local function exportHeatmapCSV(filename)
 end
 
 -- ========== EXPORT: HEATMAP AS PGM IMAGE (Portable Gray Map) ==========
+
 -- Mappers can open this directly in GIMP/Photoshop as an overlay reference.
+---Writes the explosion heatmap as a grayscale PGM image.
+---Does nothing until explosions are recorded.
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportHeatmapPGM(filename)
 	if totalExplosions == 0 then
 		spEcho("[Decal Exporter] No explosions recorded yet")
@@ -509,8 +574,13 @@ local function exportHeatmapPGM(filename)
 end
 
 -- ========== EXPORT: FEATURES.LUA (convert decal scars to map features) ==========
+
 -- Translates explosion decal positions into feature definitions that can be
 -- pasted into a map's features.lua to permanently scatter debris/craters.
+---Writes a decal snapshot as feature placements, mapping decal sizes to feature
+---types. Does nothing when empty.
+---@param snapshot DecalSnapshot[]?
+---@param filename string? Defaults to a timestamped path under the decals directory.
 local function exportFeaturesLua(snapshot, filename)
 	if not snapshot or #snapshot == 0 then
 		spEcho("[Decal Exporter] Nothing to export")
@@ -566,6 +636,8 @@ local function exportFeaturesLua(snapshot, filename)
 end
 
 -- ========== SUMMARY STATS ==========
+
+---Prints decal and heatmap counts to the infolog.
 local function printStats()
 	local gl4Count = 0
 	local decalsApi = WG.decalsgl4
@@ -686,9 +758,14 @@ function widget:Initialize()
 		exportFeatures = exportFeaturesLua,
 		exportHeatmapCSV = exportHeatmapCSV,
 		exportHeatmapPGM = exportHeatmapPGM,
+		---@return number[] heatGrid Row-major explosion counts.
+		---@return integer width
+		---@return integer height
+		---@return number max Highest count in the grid, for normalizing.
 		getHeatGrid = function()
 			return heatGrid, heatGridW, heatGridH, heatMax
 		end,
+		---@return integer count Explosions recorded since the last reset.
 		getTotalExplosions = function()
 			return totalExplosions
 		end,

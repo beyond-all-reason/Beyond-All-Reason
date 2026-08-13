@@ -13055,30 +13055,59 @@ function widget:Initialize()
 	WG.TerraformBrushUI = {
 		-- Environment snapshot/apply, for the map-project orchestrator
 		-- (cmd_map_project.lua). Indirect so it tracks widgetState assignments.
+		---Pixel bounds of a brush panel, in Spring screen coordinates (Y=0 at the bottom).
+		---@class TerraformBrushPanelBounds
+		---@field left number
+		---@field right number
+		---@field topY number
+		---@field bottomY number
+
+		---Serializes the current sun, fog and water settings as a loadable Lua config.
+		---@param opts {nodate: boolean?}? Set `nodate` to omit the generated-on timestamp.
+		---@return string content
 		buildEnvConfigContent = function(opts)
 			return widgetState.buildEnvConfigContent(opts)
 		end,
+		---Applies a previously captured environment snapshot. Ignores non-table input.
+		---@param d table<string, any>? An environment snapshot as produced by
+		---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
 		end,
 		-- Start script for opening a map project (blank map at the manifest's
 		-- size with project-local DNTS assets); called by WG.MapProject.open.
+		---@param manifest MapProjectManifest
+		---@param slug string Project folder name under `MapProjects/`.
+		---@return string? scriptText `nil` on failure.
+		---@return string? errorMessage Set when `scriptText` is `nil`.
 		buildProjectStartScript = function(manifest, slug)
 			return widgetState.buildProjectStartScript(manifest, slug)
 		end,
+		---@return boolean capturing Whether the settings panel is waiting for a keypress to bind.
 		isCapturingKey = function()
 			return widgetState.settingsCapturing ~= nil
 		end,
+		---Feeds a keypress to the settings panel's key-capture flow.
+		---@param keyCode integer
+		---@return boolean consumed `false` when no capture is in progress.
 		captureKey = function(keyCode)
 			return handleSettingsKeyCapture(keyCode)
 		end,
+		---Redraws every keybind badge in the settings panel.
 		refreshBadges = function()
 			updateAllKeybindBadges()
 		end,
+		---Activates the brush tool bound to a key, if any.
+		---@param keyCode integer
+		---@return boolean consumed `false` when no tool is bound to that key.
 		handleToolKey = function(keyCode)
 			return handleToolKey(keyCode)
 		end,
 		-- Called by cmd_terraform_brush when the user clicks a height in sampling mode
+		---Records a height picked by the user in sampling mode, so the state sync loop
+		---reflects it.
+		---@param target "max"|"min" Which height cap was sampled.
+		---@param value number? Defaults to `0`.
 		onHeightSampled = function(target, value)
 			-- Update the local cap variables so the state sync loop reflects them
 			if target == "max" then
@@ -13096,6 +13125,7 @@ function widget:Initialize()
 		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
+		---@return TerraformBrushPanelBounds? bounds
 		getPanelBounds = function()
 			local vsx, vsy = Spring.GetViewGeometry()
 			if vsx <= 0 then
@@ -13124,6 +13154,7 @@ function widget:Initialize()
 			}
 		end,
 		-- Returns bounds of the light library floating window, or nil if not visible.
+		---@return TerraformBrushPanelBounds? bounds
 		getLightLibraryBounds = function()
 			if not widgetState.lightLibraryOpen then
 				return nil

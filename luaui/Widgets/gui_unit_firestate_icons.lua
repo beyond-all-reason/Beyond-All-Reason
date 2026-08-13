@@ -19,6 +19,7 @@ local shouldShowToSpectators = false
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
+
 local spGetGameFrame = Spring.GetGameFrame
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -41,7 +42,10 @@ local returnFireTexture = "LuaUI/Images/returnfire.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable
 local holdFireVBO = nil
+---@type InstanceVBOTable
 local returnFireVBO = nil
 local fireIconShader = nil
 
@@ -201,15 +205,20 @@ local function initGL4()
 end
 
 WG.unitfirestate = {}
+---@param value boolean Draw fire state icons over units.
 WG.unitfirestate.setEnabled = function(value)
 	showFireStateIcons = value
 end
+---Shows the hold-fire icon on every unit set to it, not just selected ones,
+---and refreshes the visible icons.
+---@param value boolean?
 WG.unitfirestate.setShowAllHoldFireIcons = function(value)
 	showAllHoldFireIcons = (value and true) or false
 	if widget and widget.VisibleUnitsChanged and visibleUnits then
 		widget:VisibleUnitsChanged(visibleUnits, nil)
 	end
 end
+---@return boolean showAll
 WG.unitfirestate.getShowAllHoldFireIcons = function()
 	return showAllHoldFireIcons
 end

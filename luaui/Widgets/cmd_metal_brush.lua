@@ -331,6 +331,8 @@ end
 -- Metal Map Save
 -- ============================================================
 
+---Writes the current metal map to a Lua file named after the map, under the
+---metal brush save directory.
 local function saveMetalMap()
 	Spring.CreateDir(SAVE_DIR)
 	local mmX, mmZ = GetMetalMapSize()
@@ -384,6 +386,8 @@ local function saveMetalMap()
 	end
 end
 
+---Loads the metal map previously saved for this map. Does nothing when no
+---save file exists.
 local function loadMetalMap()
 	local mapName = Game.mapName or "unknown"
 	local filename = SAVE_DIR .. mapName .. "_metalmap.lua"
@@ -432,6 +436,7 @@ local function loadMetalMap()
 	Echo("[Metal Brush] Loaded " .. #spots .. " metal spots from: " .. filename)
 end
 
+---Removes all metal from the map.
 local function clearMetalMap()
 	SendLuaRulesMsg(MSG_CLEAR, "")
 	Echo("[Metal Brush] Cleared all metal from map")
@@ -930,6 +935,8 @@ local function drawLassoInfo()
 	end
 end
 
+---Shows or hides the whole-map metal overlay, dimming the map while it is on.
+---@param v boolean?
 local function setMapOverlay(v)
 	mapOverlay = v and true or false
 	if mapOverlay then
@@ -948,6 +955,8 @@ local function setMapOverlay(v)
 	end
 end
 
+---Shows or hides the per-cluster metal totals.
+---@param v boolean?
 local function setClusterCounter(v)
 	clusterCounter = v and true or false
 	if clusterCounter then
@@ -955,6 +964,8 @@ local function setClusterCounter(v)
 	end
 end
 
+---Sets the radius used to group metal patches into clusters.
+---@param r number? Clamped to `32`-`4096`. Defaults to the configured radius.
 local function setClusterRadius(r)
 	r = tonumber(r) or DEFAULT_CLUSTER_RADIUS
 	if r < 32 then
@@ -967,6 +978,7 @@ local function setClusterRadius(r)
 	clusterCacheDirty = true
 end
 
+---Enters lasso mode, discarding any existing loops.
 local function startLasso()
 	lassoActive = true
 	lassoPoints = {}
@@ -975,11 +987,13 @@ local function startLasso()
 	lassoDragDetected = false
 end
 
+---Commits the in-progress lasso polygon without leaving lasso mode.
 local function finishLasso()
 	-- Commit current in-progress polygon (if any) without leaving lasso mode.
 	commitCurrentLasso()
 end
 
+---Leaves lasso mode and discards every committed loop.
 local function clearLasso()
 	lassoActive = false
 	lassoPoints = {}
@@ -998,6 +1012,7 @@ local function popLastLasso()
 	return true
 end
 
+---Enters lasso mode, or leaves it and discards the loops if already active.
 local function toggleLasso()
 	if lassoActive then
 		clearLasso()
@@ -1070,6 +1085,8 @@ invalidateMetalCaches = function()
 	balanceAxisSumsDirty = true
 end
 
+---Shows or hides the symmetry axis used to compare metal on either side of the map.
+---@param v boolean?
 local function setBalanceAxisActive(v)
 	balanceAxisActive = v and true or false
 	if balanceAxisActive then
@@ -1080,10 +1097,12 @@ local function setBalanceAxisActive(v)
 	end
 end
 
+---Toggles the metal balance axis.
 local function toggleBalanceAxis()
 	setBalanceAxisActive(not balanceAxisActive)
 end
 
+---@param deg number? Axis angle, wrapped to `[0,360)`. Defaults to `0`.
 local function setBalanceAxisAngle(deg)
 	deg = tonumber(deg) or 0
 	deg = ((deg % 360) + 360) % 360
@@ -1091,12 +1110,17 @@ local function setBalanceAxisAngle(deg)
 	balanceAxisSumsDirty = true
 end
 
+---Moves the balance axis to pass through a map position.
+---@param x number
+---@param z number
 local function setBalanceAxisOrigin(x, z)
 	balanceAxisOriginX = x
 	balanceAxisOriginZ = z
 	balanceAxisSumsDirty = true
 end
 
+---Puts the tool into the mode where the next click places the balance axis origin.
+---@param v boolean?
 local function setBalanceAxisPlacingOrigin(v)
 	balanceAxisPlacingOrigin = v and true or false
 end
@@ -1235,6 +1259,9 @@ end
 -- State Management & WG Interface
 -- ============================================================
 
+---Enables the metal brush, snapshotting the shared terrain brush settings so they
+---can be restored on `deactivate`.
+---@param mode "stamp"|"paint"? Defaults to `"stamp"`.
 local function activate(mode)
 	-- Snapshot the shared brush settings on ENTRY (not on paint/stamp submode
 	-- re-activations) so leaving the metal tool can restore them — the forced
@@ -1268,6 +1295,7 @@ local function activate(mode)
 	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
 end
 
+---Disables the metal brush and restores the shared brush settings and map brightness.
 local function deactivate()
 	if active then
 		Echo("[Metal Brush] Deactivated")
@@ -1298,14 +1326,38 @@ local function deactivate()
 	end
 end
 
+---@param mode "stamp"|"paint"? Defaults to `"paint"`.
 local function setSubMode(mode)
 	subMode = mode or "paint"
 end
 
+---@param v number Metal amount painted per spot, clamped to the allowed range.
 local function setMetalValue(v)
 	metalValue = max(MIN_METAL_VALUE, min(MAX_METAL_VALUE, v))
 end
 
+---A snapshot of the metal brush, for the UI to render.
+---@class MetalBrushState
+---@field active boolean
+---@field subMode "stamp"|"paint"
+---@field metalValue number
+---@field mapOverlay boolean
+---@field clusterCounter boolean
+---@field clusterRadius number
+---@field lassoActive boolean
+---@field lassoClosed boolean `true` when at least one loop has been committed.
+---@field lassoPointCount integer Points in the in-progress loop.
+---@field lassoTotal number Metal summed across every committed loop.
+---@field lassoCount integer Committed loops.
+---@field balanceAxisActive boolean
+---@field balanceAxisAngleDeg number
+---@field balanceAxisOriginX number
+---@field balanceAxisOriginZ number
+---@field balanceAxisPlacingOrigin boolean
+---@field balanceAxisSumA number Metal on one side of the balance axis.
+---@field balanceAxisSumB number Metal on the other side.
+
+---@return MetalBrushState
 local function getState()
 	return {
 		active = active,

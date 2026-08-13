@@ -368,6 +368,10 @@ function widget:Initialize()
 	checkStartPointChosen()
 
 	WG.pregameui = {}
+	---Blocks the ready button until the condition is removed, showing `description`
+	---in its tooltip. Several widgets can block independently.
+	---@param conditionKey string Caller-chosen key; pass the same one to clear it.
+	---@param description string Shown to the player as the reason they cannot ready up.
 	WG.pregameui.addReadyCondition = function(conditionKey, description)
 		if conditionKey and description then
 			readyBlockedConditions[conditionKey] = description
@@ -376,6 +380,8 @@ function widget:Initialize()
 			createButton()
 		end
 	end
+	---Clears one ready-blocking condition.
+	---@param conditionKey string
 	WG.pregameui.removeReadyCondition = function(conditionKey)
 		if conditionKey and readyBlockedConditions[conditionKey] then
 			readyBlockedConditions[conditionKey] = nil
@@ -383,6 +389,7 @@ function widget:Initialize()
 			createButton()
 		end
 	end
+	---Clears every ready-blocking condition, unblocking the ready button.
 	WG.pregameui.clearAllReadyConditions = function()
 		readyBlockedConditions = {}
 		isReadyBlocked = false

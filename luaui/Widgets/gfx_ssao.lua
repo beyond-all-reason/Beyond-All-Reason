@@ -779,9 +779,12 @@ end
 
 function widget:Initialize()
 	WG.ssao = {}
+	---@return integer preset Quality preset index.
 	WG.ssao.getPreset = function()
 		return preset
 	end
+	---Switches the SSAO quality preset and rebuilds its shaders and textures.
+	---@param value integer
 	WG.ssao.setPreset = function(value)
 		preset = value
 		InitShaderDefines()
@@ -789,17 +792,23 @@ function widget:Initialize()
 		CleanGL()
 		InitGL()
 	end
+	---@return number strength Exponent applied to the occlusion term.
 	WG.ssao.getStrength = function()
 		return shaderConfig.SSAO_ALPHA_POW
 	end
+	---Sets the SSAO strength and rebuilds its GL resources.
+	---@param value number
 	WG.ssao.setStrength = function(value)
 		shaderConfig.SSAO_ALPHA_POW = value
 		CleanGL()
 		InitGL()
 	end
+	---@return number radius World-space sampling radius.
 	WG.ssao.getRadius = function()
 		return shaderConfig.SSAO_RADIUS
 	end
+	---Sets the SSAO sampling radius and rebuilds its GL resources.
+	---@param value number
 	WG.ssao.setRadius = function(value)
 		shaderConfig.SSAO_RADIUS = value
 		CleanGL()

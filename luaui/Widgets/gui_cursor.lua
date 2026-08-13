@@ -58,9 +58,11 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG.cursors = {}
+	---@return string cursorSet Name of the active cursor set.
 	WG.cursors.getcursor = function()
 		return Settings.cursorSet
 	end
+	---@return string[] sets Names of every available cursor set.
 	WG.cursors.getcursorsets = function()
 		local sets = {}
 		for i, y in pairs(cursorSets) do
@@ -68,13 +70,18 @@ function widget:Initialize()
 		end
 		return sets
 	end
+	---Switches to a cursor set, reloading the cursor images.
+	---@param value string A name from `getcursorsets`.
 	WG.cursors.setcursor = function(value)
 		force = true
 		SetCursor(value)
 	end
+	---@return number multiplier Cursor size multiplier.
 	WG.cursors.getsizemult = function()
 		return Spring.GetConfigFloat("cursorsize", 1)
 	end
+	---Sets the cursor size multiplier, persists it, and reloads the cursor images.
+	---@param value number
 	WG.cursors.setsizemult = function(value)
 		Spring.SetConfigFloat("cursorsize", value)
 		widget:ViewResize()

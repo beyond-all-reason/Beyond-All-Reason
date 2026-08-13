@@ -194,6 +194,28 @@ local unitDefIgnore = {} -- We explicitly disallow the highlighting of any unitD
 --	end --ignore debug units
 --end
 
+---Highlights a unit or feature. Widgets are responsible for stopping every
+---highlight they submit.
+---@param objectID integer The unitID, unitDefID, featureID or featureDefID to highlight.
+---@param objecttype "unitID"|"unitDefID"|"featureID"|"featureDefID"
+---@param r number Highlight color.
+---@param g number
+---@param b number
+---@param alpha number? Global transparency of the highlight.
+---@param edgealpha number? How strongly edges are highlighted.
+---@param edgeexponent number? Exponent applied to the edge falloff.
+---@param animamount number? How much top-down animation to add.
+---@param px number? Position offset, usually `0`.
+---@param py number? Position offset, usually `0`.
+---@param pz number? Position offset, usually `0`.
+---@param rotationY number? Rotation offset around Y in radians, usually `0`.
+---@param consumerID string? Tag for which widget added this, so leaks can be traced.
+---Supplying one also changes the key: it becomes `tostring(objectID) .. consumerID`
+---instead of an auto-incremented number, so re-highlighting the same object from the
+---same widget reuses the slot rather than adding a second highlight.
+---@return string|number|nil uniqueID Store this and pass it to `StopHighlightUnitGL4`.
+---A string when `consumerID` was given, otherwise a number; `nil` when the unitDef is
+---on the ignore list.
 local function HighlightUnitGL4(
 	objectID,
 	objecttype,
@@ -210,22 +232,6 @@ local function HighlightUnitGL4(
 	rotationY,
 	consumerID
 )
-	-- Documentation for HighlightUnitGL4:
-	-- objectID: the unitID, unitDefID, featureID or featureDefID you want
-	-- objecttype: "unitID" or "unitDefID" or "featureID" or "featureDefID"
-	-- r,g,b : the color to use for highlighting
-	-- a, the global amount of alpha
-	-- rotationY: Angle in radians on how much to rotate the unit around Y, usually 0
-	-- alpha: the transparency level of the unit
-	-- edgealpha: the amount of edge highlighting
-	-- edgeexponent, the exponent of the edges
-	-- animamount, the amount of top-down anim to add
-	-- px, py, py: Apply an offset to the position of the unit, usually all 0
-	-- rotationY: apply a rot offset, usually all 0
-	-- consumerID: just a an optional tag for which widget added this garbage to this table so we can later find out who forgot to pop shit from here.
-	-- returns: a unique handler ID number that you should store and call StopHighlightUnitGL4(uniqueID) with to stop drawing it
-	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
-
 	if objecttype == "unitID" then
 		local unitDefID = spGetUnitDefID(objectID)
 		if unitDefID == nil or unitDefIgnore[unitDefID] then
@@ -283,6 +289,10 @@ local function HighlightUnitGL4(
 	return key
 end
 
+---Stops a highlight added by `HighlightUnitGL4`.
+---@param uniqueID string|number The key `HighlightUnitGL4` returned.
+---@param noUpload boolean? True if the change shouldn't be uploaded to the GPU yet.
+---@return string|number|nil uniqueID The same key on success, `nil` when it was not found.
 local function StopHighlightUnitGL4(uniqueID, noUpload)
 	if debugmode > 0 then
 		local unitdefname = "bad unitdefid"
@@ -315,6 +325,7 @@ local function StopHighlightUnitGL4(uniqueID, noUpload)
 	--Spring.("Popped element", uniqueID)
 end
 
+---Re-uploads every highlight to the GPU, e.g. after a bulk change made with `noUpload`.
 local function RefreshHighlightUnitGL4()
 	InstanceVBOTable.uploadAllElements(highlightUnitVBOTable)
 end

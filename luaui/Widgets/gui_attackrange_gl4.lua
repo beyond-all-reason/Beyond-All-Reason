@@ -1058,23 +1058,33 @@ function widget:Initialize()
 	InitializeBuilders()
 
 	WG.attackrange = {}
+	---@return boolean shiftOnly Whether attack ranges only show while shift is held.
 	WG.attackrange.getShiftOnly = function()
 		return shift_only
 	end
+	---Only shows attack ranges while shift is held, reinitializing the widget.
+	---@param value boolean
 	WG.attackrange.setShiftOnly = function(value)
 		shift_only = value
 		widget:Initialize()
 	end
+	---@return boolean enabled Whether the range of the unit under the cursor is shown.
 	WG.attackrange.getCursorUnitRange = function()
 		return cursor_unit_range
 	end
+	---Shows the range of the unit under the cursor, reinitializing the widget.
+	---@param value boolean
 	WG.attackrange.setCursorUnitRange = function(value)
 		cursor_unit_range = value
 		widget:Initialize()
 	end
+	---@return number multiplier Scales how many selected units may show ranges before
+	---the display switches off.
 	WG.attackrange.getNumRangesMult = function()
 		return selectionDisableThresholdMult
 	end
+	---@param value number Scales how many selected units may show ranges before the
+	---display switches off.
 	WG.attackrange.setNumRangesMult = function(value)
 		selectionDisableThresholdMult = value
 	end

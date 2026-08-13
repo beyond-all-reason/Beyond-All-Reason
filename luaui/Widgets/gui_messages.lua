@@ -163,6 +163,8 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	WG.messages = {}
+	---Queues a message for the on-screen message feed.
+	---@param text string
 	WG.messages.addMessage = function(text)
 		addMessage(text)
 	end

@@ -175,6 +175,11 @@ local function unpackHistory(packed)
 	return historyTable
 end
 
+---Resolves a player's display name, applying their alias or first-encountered name.
+---@param playerID integer?
+---@param accountID integer? Used iff `playerID` is `nil`
+---@param skipAlias boolean? Return the real name even when an alias is set.
+---@return string? name `nil` when the player is not known yet.
 local function getPlayername(playerID, accountID, skipAlias)
 	if playerID then
 		accountID = nil
@@ -237,6 +242,18 @@ local function getPlayername(playerID, accountID, skipAlias)
 	end
 end
 
+---Every name an account has been seen using.
+---@class PlayerNameHistory
+---@field i integer Number of games the account has been seen in.
+---@field d integer Date last seen, as `yymmdd`.
+---@field alias string? Player-set alias, which overrides the recorded names.
+---@field [integer] string Names in the order they were first encountered.
+
+---Returns the recorded name history for an account.
+---@param accountID integer
+---@param full boolean? Return the live table rather than a shallow copy. The live
+---table must not be mutated by the caller.
+---@return PlayerNameHistory? history `nil` when the account has no recorded history.
 local function getAccountHistory(accountID, full)
 	if history[accountID] then
 		if full then
@@ -368,15 +385,28 @@ function widget:Initialize()
 	end
 
 	WG.playernames = {}
+	---Resolves a player's display name, applying their alias or first-encountered name.
+	---@param playerID integer?
+	---@param accountID integer? Used iff `playerID` is `nil`
+	---@param skipAlias boolean? Return the real name even when an alias is set.
+	---@return string? name `nil` when the player is not known yet.
 	WG.playernames.getPlayername = function(playerID, accountID, skipAlias)
 		return getPlayername(playerID, accountID, skipAlias)
 	end
+	---Returns the recorded name history for an account.
+	---@param accountID integer
+	---@param full boolean? Return the live table rather than a shallow copy.
+	---@return PlayerNameHistory? history `nil` when the account has no recorded history.
 	WG.playernames.getAccountHistory = function(accountID, full)
 		return getAccountHistory(accountID, full)
 	end
+	---Shows each account under the first name it was seen using, rather than its
+	---current one.
+	---@param value boolean
 	WG.playernames.setUseFirstEncounter = function(value)
 		applyFirstEncounteredName = value
 	end
+	---@return boolean useFirstEncounter
 	WG.playernames.getUseFirstEncounter = function()
 		return applyFirstEncounteredName
 	end

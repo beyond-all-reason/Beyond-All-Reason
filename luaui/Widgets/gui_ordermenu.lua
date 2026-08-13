@@ -656,6 +656,7 @@ function widget:ViewResize()
 	tracy.ZoneEnd()
 end
 
+---Re-reads the keyboard layout and hotkey config used to label order buttons.
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
@@ -674,28 +675,42 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG.ordermenu = {}
+	---Screen rectangle of the order menu.
+	---@return number posX
+	---@return number posY
+	---@return number width
+	---@return number height
 	WG.ordermenu.getPosition = function()
 		return posX, posY, width, height
 	end
 	WG.ordermenu.reloadBindings = reloadBindings
+	---Docks the order menu to the bottom of the screen and relays it out.
+	---@param value boolean
 	WG.ordermenu.setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
 		widget:ViewResize()
 	end
+	---@return boolean alwaysShow Whether the menu stays open with nothing selected.
 	WG.ordermenu.getAlwaysShow = function()
 		return alwaysShow
 	end
+	---@param value boolean Keep the menu open with nothing selected.
 	WG.ordermenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		doUpdate = true
 	end
+	---@return boolean stickToBottom Whether the menu is docked to the bottom of the screen.
 	WG.ordermenu.getBottomPosition = function()
 		return stickToBottom
 	end
+	---@param cmd integer Command id.
+	---@return true? disabled `nil` when the command is not disabled.
 	WG.ordermenu.getDisabledCmd = function(cmd)
 		return disabledCommand[cmd]
 	end
+	---Hides or restores one command button.
+	---@param params {[1]: integer, [2]: boolean} The command id and whether to disable it.
 	WG.ordermenu.setDisabledCmd = function(params)
 		if params[2] then
 			disabledCommand[params[1]] = true
@@ -704,9 +719,11 @@ function widget:Initialize()
 		end
 		doUpdate = true
 	end
+	---@return number colorize How strongly command buttons are tinted, `0`-`1`.
 	WG.ordermenu.getColorize = function()
 		return colorize
 	end
+	---@param value number How strongly command buttons are tinted; clamped to at most `1`.
 	WG.ordermenu.setColorize = function(value)
 		doUpdate = true
 		colorize = value
@@ -714,6 +731,7 @@ function widget:Initialize()
 			colorize = 1
 		end
 	end
+	---@return boolean showing Whether the order menu is currently drawn.
 	WG.ordermenu.getIsShowing = function()
 		return ordermenuShows
 	end
@@ -737,6 +755,8 @@ function widget:Initialize()
 		}
 	end
 
+	---Removes a highlight previously set via `setHighlight`.
+	---@param cmdID integer?
 	WG.ordermenu.removeHighlight = function(cmdID)
 		local items = highlight.items
 		if cmdID and items[cmdID] then
@@ -745,6 +765,7 @@ function widget:Initialize()
 		end
 	end
 
+	---Clears all active command highlights.
 	WG.ordermenu.clearHighlights = function()
 		local items = highlight.items
 		for k in pairs(items) do
@@ -753,6 +774,8 @@ function widget:Initialize()
 		highlight.count = 0
 	end
 
+	---@param cmdID integer?
+	---@return boolean highlighted
 	WG.ordermenu.hasHighlight = function(cmdID)
 		return cmdID ~= nil and highlight.items[cmdID] ~= nil
 	end

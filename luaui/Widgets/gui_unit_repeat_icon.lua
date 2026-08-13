@@ -15,6 +15,7 @@ end
 --------------------------------------------------------------------------------
 -- Localized Spring API
 --------------------------------------------------------------------------------
+
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
 local spValidUnitID = Spring.ValidUnitID
@@ -25,6 +26,8 @@ local repeatTexture = "LuaUI/Images/repeat.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable
 local repeatVBO = nil
 local repeatShader = nil
 
@@ -121,6 +124,7 @@ end
 --------------------------------------------------------------------------------
 -- Widget callbacks
 --------------------------------------------------------------------------------
+
 function widget:Initialize()
 	if not gl.CreateShader then
 		widgetHandler:RemoveWidget()

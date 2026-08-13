@@ -717,33 +717,45 @@ function widget:Initialize()
 		return
 	end
 	WG.selectedunits = {}
+	---@return number opacity Opacity of the selection outlines.
 	WG.selectedunits.getOpacity = function()
 		return opacity
 	end
+	---Sets the selection outline opacity and rebuilds the effect.
+	---@param value number
 	WG.selectedunits.setOpacity = function(value)
 		opacity = value
 		init()
 	end
+	---@return number opacity How strongly the team color tints the selection outline.
 	WG.selectedunits.getTeamcolorOpacity = function()
 		return teamcolorOpacity
 	end
+	---Sets how strongly the team color tints the outline, and rebuilds the effect.
+	---@param value number
 	WG.selectedunits.setTeamcolorOpacity = function(value)
 		teamcolorOpacity = value
 		init()
 	end
 
+	---Highlights the models of selected units, rebuilding the effect.
+	---@param value boolean
 	WG.selectedunits.setSelectionHighlight = function(value)
 		selectionHighlight = value
 		init()
 	end
+	---@return boolean highlight
 	WG.selectedunits.getSelectionHighlight = function()
 		return selectionHighlight
 	end
 
+	---Highlights the model of the unit under the cursor, rebuilding the effect.
+	---@param value boolean
 	WG.selectedunits.setMouseoverHighlight = function(value)
 		mouseoverHighlight = value
 		init()
 	end
+	---@return boolean highlight
 	WG.selectedunits.getMouseoverHighlight = function()
 		return mouseoverHighlight
 	end

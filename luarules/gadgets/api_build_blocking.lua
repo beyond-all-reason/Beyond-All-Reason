@@ -296,6 +296,11 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction("buildunblock")
 	end
 
+	---Marks a unit definition as unbuildable by a team for the given reason.
+	---Reasons stack: the unit stays blocked until every reason is removed.
+	---@param unitDefID integer
+	---@param teamID integer
+	---@param reasonKey string Identifier for why the unit is blocked, e.g. "terrain_water".
 	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
@@ -308,6 +313,11 @@ if gadgetHandler:IsSyncedCode() then
 		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 	end
 
+	---Removes one block reason from a unit definition for a team.
+	---@param unitDefID integer
+	---@param teamID integer
+	---@param reasonKey string Identifier previously passed to `AddBlockedUnit`.
+	---@return boolean removed `true` if that reason was set and has been cleared.
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then

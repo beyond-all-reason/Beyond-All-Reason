@@ -574,9 +574,12 @@ end
 
 function widget:Initialize()
 	WG.clouds = {}
+	---@return number opacity Multiplier applied to the volumetric cloud opacity.
 	WG.clouds.getOpacity = function()
 		return opacityMult
 	end
+	---Sets the cloud opacity multiplier and reinitializes the effect.
+	---@param value number
 	WG.clouds.setOpacity = function(value)
 		opacityMult = value
 		init()

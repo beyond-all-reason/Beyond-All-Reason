@@ -311,14 +311,39 @@ function widget:Initialize()
 
 	WG.screenMode = {}
 
+	---One selectable window mode. `SetScreenMode` indexes the list this order produces.
+	---@class ScreenMode
+	---@field display integer Display number, or a synthetic index for multi-monitor spans.
+	---@field actualDisplay integer? The real display a multi-monitor span starts on.
+	---@field name string Translated label.
+	---@field displayName string Monitor name, empty for spans.
+	---@field type integer One of the `windowType` constants.
+	---@field width integer
+	---@field height integer
+	---@field x integer? Span origin; absent for single-display modes.
+	---@field y integer?
+
+	---A monitor the game can be shown on.
+	---@class ScreenDisplay
+	---@field name string
+	---@field width integer
+	---@field height integer
+	---@field hz integer
+	---@field x integer
+	---@field y integer
+
+	---@return ScreenDisplay[] displays
 	WG.screenMode.GetDisplays = function()
 		return displays
 	end
 
+	---@return ScreenMode[] screenModes Selectable window modes.
 	WG.screenMode.GetScreenModes = function()
 		return screenModes
 	end
 
+	---Switches to a screen mode, doing nothing if it is already active.
+	---@param index integer Index into `GetScreenModes`.
 	WG.screenMode.SetScreenMode = function(index)
 		local prevScreenmode = screenModeIndex
 		screenModeIndex = index

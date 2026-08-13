@@ -342,28 +342,45 @@ local skipdraw = false
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type lights, ones that dont get updated every frame
-local pointLightVBO = {} -- an instanceVBOTable
-local coneLightVBO = {} -- an instanceVBOTable
-local beamLightVBO = {} -- an instanceVBOTable
-local lightVBOMap -- a table of the above 3, keyed by light type, {point = pointLightVBO, ...}
+---@type InstanceVBOTable
+local pointLightVBO = {}
+---@type InstanceVBOTable
+local coneLightVBO = {}
+---@type InstanceVBOTable
+local beamLightVBO = {}
+---Table of the above 3, keyed by light type, {point = pointLightVBO, ...}
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
+local lightVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based lights
-local unitPointLightVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeLightVBO = {} -- an instanceVBOTable
-local unitBeamLightVBO = {} -- an instanceVBOTable
-local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = unitPointLightVBO, ...}
+---@type InstanceVBOTable
+local unitPointLightVBO = {}
+---@type InstanceVBOTable
+local unitConeLightVBO = {}
+---@type InstanceVBOTable
+local unitBeamLightVBO = {}
+---Table of the above 3, keyed by light type, {point = unitPointLightVBO, ...}
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
+local unitLightVBOMap
 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
+---@type InstanceVBOTable
 local projectilePointLightVBO = {} -- for plasma balls
+---@type InstanceVBOTable
 local projectileBeamLightVBO = {} -- for lasers
+---@type InstanceVBOTable
 local projectileConeLightVBO = {} -- for rockets
-local projectileLightVBOMap -- a table of the above 3, keyed by light type
+---Table of the above three, keyed by light shape.
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
+local projectileLightVBOMap
 
+---@type InstanceVBOTable
 local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+---@type InstanceVBOTable
 local predictivePointLightVBO = {} -- dedicated VBO for gadget-fed predictive nano lights
 local engineNano = {
 	vbo = nil,
@@ -682,13 +699,22 @@ end
 ---AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
----@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
----@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
----@param targetVBO table specify which one you want it to
----@param lightparams table a valid table of light parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
----@return instanceID for future reuse
+---@param instanceID string|number|nil Key for this light. Pass `nil` for an
+---auto-generated number, or an existing key to update that light in place.
+---Both forms are in use: numbers such as a projectileID, and strings such as
+---`"<unitID><lightName>"`.
+---@param unitID integer? Attaches the light to a unit, making its position an offset
+---from that unit instead of an absolute world position. `nil` leaves it fixed in
+---the world.
+---@param pieceIndex integer? Piece to attach to when `unitID` is given; `0`, and the
+---default, attach to the model origin. Ignored when `unitID` is `nil`.
+---@param targetVBO InstanceVBOTable Which light buffer to add to; this also picks the shape
+---(point/beam/cone) and whether it is drawn in the world or unit-attached pass.
+---@param lightparams number[] A flat array of exactly `instanceStep` values, laid out
+---by `lightParamKeyOrder`.
+---@param noUpload boolean? `true` to skip uploading to the GPU for now.
+---@return string|number|nil instanceID The key this light is filed under, for future
+---reuse; `nil` when the push failed.
 local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
@@ -891,31 +917,40 @@ end
 ---AddPointLight
 ---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
----@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
----@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
----@param targetVBO nil if you want to automatically add it to pointlightvbo/unitPointLightVBO, specify other if you do not
----@param px_or_table float position X or a valid table of parameters
----@param py float Y position of the light
----@param pz float Z position of the light
----@param radius float radius position of the light
----@param r float red color of the light (0-1), but can go higher
----@param g float green color of the light (0-1), but can go higher
----@param b float blue color of the light (0-1), but can go higher
----@param a float global brightness modifier of the light (0-1), but can go higher
----@param r2 float red secondary color of the light (0-1), but can go higher
----@param g2 float green secondary color of the light (0-1), but can go higher
----@param b2 float blue secondary color of the light (0-1), but can go higher
----@param colortime float time in seconds for the light to transition to secondary color. For unitlights, specify in frames the period you want
----@param modelfactor float how much more light gets applied to models vs terrain (default 1)
----@param specular float how strong specular highlights of this light are (default 1)
----@param scattering float how strong the atmospheric scattering effect is (default 1)
----@param lensflare float intensity of the lens flare effect( default 1)
----@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the light will live, with decreasing brightness
----@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param selfshadowing int what further type of animation will be used (0 is default 1 is for screen space shadow)
----@return instanceID for future reuse
+---@param instanceID string|number|nil Key for this light. Pass `nil` for an
+---auto-generated number, or an existing key to update that light in place.
+---Both forms are in use: numbers such as a projectileID, and strings such as
+---`"<unitID><lightName>"`.
+---@param unitID integer? Attaches the light to a unit, making its position an offset
+---from that unit instead of an absolute world position. `nil` leaves it fixed in
+---the world.
+---@param pieceIndex integer? Piece to attach to when `unitID` is given; `0`, and the
+---default, attach to the model origin. Ignored when `unitID` is `nil`.
+---@param targetVBO InstanceVBOTable? Which light buffer to add to. Defaults to the buffer matching
+---this light's shape; pass another to override that.
+---@param px_or_table number|number[] Either the X position, or a complete flat
+---parameter array, in which case the remaining arguments are ignored.
+---@param py number Y position of the light
+---@param pz number Z position of the light
+---@param radius number radius position of the light
+---@param r number red color of the light (0-1), but can go higher
+---@param g number green color of the light (0-1), but can go higher
+---@param b number blue color of the light (0-1), but can go higher
+---@param a number global brightness modifier of the light (0-1), but can go higher
+---@param r2 number red secondary color of the light (0-1), but can go higher
+---@param g2 number green secondary color of the light (0-1), but can go higher
+---@param b2 number blue secondary color of the light (0-1), but can go higher
+---@param colortime number time in seconds for the light to transition to secondary color. For unitlights, specify in frames the period you want
+---@param modelfactor number? how much more light gets applied to models vs terrain (default 1)
+---@param specular number? how strong specular highlights of this light are (default 1)
+---@param scattering number? how strong the atmospheric scattering effect is (default 1)
+---@param lensflare number? intensity of the lens flare effect( default 1)
+---@param spawnframe number? the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime number how many frames the light will live, with decreasing brightness
+---@param sustain number how much sustain time the light will have at its original brightness (in game frames)
+---@param selfshadowing integer? what further type of animation will be used (0 is default 1 is for screen space shadow)
+---@return string|number|nil instanceID The key this light is filed under, for future
+---reuse; `nil` when the push failed.
 local function AddPointLight(
 	instanceID,
 	unitID,
@@ -1084,31 +1119,40 @@ end
 ---AddBeamLight
 ---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
----@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
----@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
----@param targetVBO nil if you want to automatically add it to pointlightvbo/unitPointLightVBO, specify other if you do not
----@param px_or_table float position X or a valid table of parameters
----@param py float Y position of the light
----@param pz float Z position of the light
----@param radius float radius position of the light
----@param r float red color of the light (0-1), but can go higher
----@param g float green color of the light (0-1), but can go higher
----@param b float blue color of the light (0-1), but can go higher
----@param a float global brightness modifier of the light (0-1), but can go higher
----@param sx float pos of the endpoint of the beam
----@param sy float pos of the endpoint of the beam
----@param sz float pos of the endpoint of the beam
----@param r2 float radius2 is unused at the moment
----@param modelfactor float how much more light gets applied to models vs terrain (default 1)
----@param specular float how strong specular highlights of this light are (default 1)
----@param scattering float how strong the atmospheric scattering effect is (default 1)
----@param lensflare float intensity of the lens flare effect( default 1)
----@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the light will live, with decreasing brightness
----@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param selfshadowing int what further type of animation will be used
----@return instanceID for future reuse
+---@param instanceID string|number|nil Key for this light. Pass `nil` for an
+---auto-generated number, or an existing key to update that light in place.
+---Both forms are in use: numbers such as a projectileID, and strings such as
+---`"<unitID><lightName>"`.
+---@param unitID integer? Attaches the light to a unit, making its position an offset
+---from that unit instead of an absolute world position. `nil` leaves it fixed in
+---the world.
+---@param pieceIndex integer? Piece to attach to when `unitID` is given; `0`, and the
+---default, attach to the model origin. Ignored when `unitID` is `nil`.
+---@param targetVBO InstanceVBOTable? Which light buffer to add to. Defaults to the buffer matching
+---this light's shape; pass another to override that.
+---@param px_or_table number|number[] Either the X position, or a complete flat
+---parameter array, in which case the remaining arguments are ignored.
+---@param py number Y position of the light
+---@param pz number Z position of the light
+---@param radius number radius position of the light
+---@param r number red color of the light (0-1), but can go higher
+---@param g number green color of the light (0-1), but can go higher
+---@param b number blue color of the light (0-1), but can go higher
+---@param a number global brightness modifier of the light (0-1), but can go higher
+---@param sx number pos of the endpoint of the beam
+---@param sy number pos of the endpoint of the beam
+---@param sz number pos of the endpoint of the beam
+---@param r2 number radius2 is unused at the moment
+---@param modelfactor number? how much more light gets applied to models vs terrain (default 1)
+---@param specular number? how strong specular highlights of this light are (default 1)
+---@param scattering number? how strong the atmospheric scattering effect is (default 1)
+---@param lensflare number? intensity of the lens flare effect( default 1)
+---@param spawnframe number? the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime number how many frames the light will live, with decreasing brightness
+---@param sustain number how much sustain time the light will have at its original brightness (in game frames)
+---@param selfshadowing integer what further type of animation will be used
+---@return string|number|nil instanceID The key this light is filed under, for future
+---reuse; `nil` when the push failed.
 local function AddBeamLight(
 	instanceID,
 	unitID,
@@ -1193,31 +1237,40 @@ end
 ---AddConeLight
 ---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
----@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
----@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
----@param targetVBO nil if you want to automatically add it to pointlightvbo/unitPointLightVBO, specify other if you do not
----@param px_or_table float position X or a valid table of parameters
----@param py float Y position of the light
----@param pz float Z position of the light
----@param radius float height of the cone
----@param r float red color of the light (0-1), but can go higher
----@param g float green color of the light (0-1), but can go higher
----@param b float blue color of the light (0-1), but can go higher
----@param a float global brightness modifier of the light (0-1), but can go higher
----@param dx float dirx of the cone
----@param dy float diry of the cone
----@param dz float dirz of the cone
----@param theta float half-angle of the cone in radians
----@param modelfactor float how much more light gets applied to models vs terrain (default 1)
----@param specular float how strong specular highlights of this light are (default 1)
----@param scattering float how strong the atmospheric scattering effect is (default 1)
----@param lensflare float intensity of the lens flare effect( default 1)
----@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the light will live, with decreasing brightness
----@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param selfshadowing int what further type of animation will be used
----@return instanceID for future reuse
+---@param instanceID string|number|nil Key for this light. Pass `nil` for an
+---auto-generated number, or an existing key to update that light in place.
+---Both forms are in use: numbers such as a projectileID, and strings such as
+---`"<unitID><lightName>"`.
+---@param unitID integer? Attaches the light to a unit, making its position an offset
+---from that unit instead of an absolute world position. `nil` leaves it fixed in
+---the world.
+---@param pieceIndex integer? Piece to attach to when `unitID` is given; `0`, and the
+---default, attach to the model origin. Ignored when `unitID` is `nil`.
+---@param targetVBO InstanceVBOTable? Which light buffer to add to. Defaults to the buffer matching
+---this light's shape; pass another to override that.
+---@param px_or_table number|number[] Either the X position, or a complete flat
+---parameter array, in which case the remaining arguments are ignored.
+---@param py number Y position of the light
+---@param pz number Z position of the light
+---@param radius number height of the cone
+---@param r number red color of the light (0-1), but can go higher
+---@param g number green color of the light (0-1), but can go higher
+---@param b number blue color of the light (0-1), but can go higher
+---@param a number global brightness modifier of the light (0-1), but can go higher
+---@param dx number dirx of the cone
+---@param dy number diry of the cone
+---@param dz number dirz of the cone
+---@param theta number half-angle of the cone in radians
+---@param modelfactor number? how much more light gets applied to models vs terrain (default 1)
+---@param specular number? how strong specular highlights of this light are (default 1)
+---@param scattering number? how strong the atmospheric scattering effect is (default 1)
+---@param lensflare number? intensity of the lens flare effect( default 1)
+---@param spawnframe number? the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime number how many frames the light will live, with decreasing brightness
+---@param sustain number how much sustain time the light will have at its original brightness (in game frames)
+---@param selfshadowing integer what further type of animation will be used
+---@return string|number|nil instanceID The key this light is filed under, for future
+---reuse; `nil` when the push failed.
 local function AddConeLight(
 	instanceID,
 	unitID,
@@ -1367,9 +1420,10 @@ end
 
 ---RemoveUnitAttachedLights(unitID, instanceID)
 ---Removes all or 1 light attached to a unit
----@param unitID the unit to remove lights from
----@param instanceID which light to remove, if nil, then all lights will be removed
----@returns the number of lights that got removed
+---@param unitID integer The unit to remove lights from.
+---@param instanceID string|number|nil Which light to remove. Removes all of the unit's
+---lights when `nil`.
+---@return integer count The number of lights that got removed.
 local function RemoveUnitAttachedLights(unitID, instanceID)
 	local numremoved = 0
 	if unitAttachedLights[unitID] then
@@ -1397,10 +1451,11 @@ end
 
 ---RemoveLight(lightshape, instanceID, unitID)
 ---Remove a light
----@param lightshape string 'point'|'beam'|'cone'
----@param instanceID any the ID of the light to remove
----@param unitID number make this non-nil to remove it from a unit
----@returns the same instanceID on success, nil if the light was not found
+---@param lightshape "point"|"beam"|"cone"? Ignored when `unitID` is given.
+---@param instanceID string|number The key the light was filed under.
+---@param unitID integer? Make this non-nil to remove it from a unit.
+---@param noUpload boolean? True if the change shouldn't be uploaded to the GPU yet.
+---@return integer? index Buffer index the light occupied; `nil` when it was not found.
 local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 	if unitID then
 		if unitAttachedLights[unitID] and unitAttachedLights[unitID][instanceID] then
@@ -1604,6 +1659,10 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	end
 end
 
+---Exposes one of the light VBOs by name, for widgets that upload light instances
+---themselves.
+---@param vboName string Currently only `'cursorPointLightVBO'` is exposed.
+---@return InstanceVBOTable? vbo `nil` for any other name.
 local function GetLightVBO(vboName)
 	if vboName == "cursorPointLightVBO" then
 		return cursorPointLightVBO
@@ -1651,61 +1710,6 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveUnitAttachedLights(unitID)
 	visibleUnits[unitID] = nil
-end
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction("dlgl4stats", "t")
-	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
-	WG.lightsgl4 = nil
-	widgetHandler:DeregisterGlobal("AddPointLight")
-	widgetHandler:DeregisterGlobal("AddBeamLight")
-	widgetHandler:DeregisterGlobal("AddConeLight")
-	widgetHandler:DeregisterGlobal("AddLight")
-	widgetHandler:DeregisterGlobal("RemoveLight")
-	widgetHandler:DeregisterGlobal("GetLightVBO")
-
-	widgetHandler:DeregisterGlobal("EnvLightningPointLight")
-	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightSpawn")
-	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightCorrect")
-	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightFade")
-	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightRemove")
-
-	deferredLightShader:Delete()
-	local ram = 0
-	for lighttype, vbo in pairs(unitLightVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-	for lighttype, vbo in pairs(projectileLightVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-	for lighttype, vbo in pairs(lightVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-	ram = ram + cursorPointLightVBO:Delete()
-	ram = ram + predictivePointLightVBO:Delete()
-	if engineNano.vbo then
-		ram = ram + engineNano.vbo:Delete()
-	end
-
-	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
-	--spEcho("featureDefLights", table.countMem(featureDefLights))
-	--spEcho("unitEventLights", table.countMem(unitEventLights))
-	--spEcho("unitDefLights", table.countMem(unitDefLights))
-	--spEcho("projectileDefLights", table.countMem(projectileDefLights))
-	--spEcho("explosionLights", table.countMem(explosionLights))
-
-	-- Note, these must be nil'ed manually, because
-	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
-	unitDefLights = nil
-	featureDefLights = nil
-	unitEventLights = nil
-	muzzleFlashLights = nil
-	projectileDefLights = nil
-	explosionLights = nil
-	gibLight = nil
-
-	--collectgarbage("collect")
-	--collectgarbage("collect")
 end
 
 local windX = 0
@@ -2510,16 +2514,24 @@ function widget:Initialize()
 	WG.lightsgl4.RemoveLight = RemoveLight
 	WG.lightsgl4.GetLightVBO = GetLightVBO
 
+	---Globally scales the brightness of every deferred light.
+	---@param value number
 	WG.lightsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
+	---Globally scales the radius of every deferred light.
+	---@param value number
 	WG.lightsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
+	---Enables screen-space shadows cast by deferred lights.
+	---@param value boolean
 	WG.lightsgl4.ScreenSpaceShadows = function(value)
 		screenSpaceShadows = value
 	end
 
+	---Shows a light that follows the player's cursor, removing it when disabled.
+	---@param value boolean
 	WG.lightsgl4.ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
 		-- Remove the player's cursor light on disabling this feature
@@ -2527,9 +2539,11 @@ function widget:Initialize()
 			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 		end
 	end
+	---@param value number Radius of the cursor light.
 	WG.lightsgl4.PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
 	end
+	---@param value number Brightness of the cursor light.
 	WG.lightsgl4.PlayerCursorLightBrightness = function(value)
 		playerCursorLightBrightness = value
 	end
@@ -2546,8 +2560,21 @@ function widget:Initialize()
 	-- The gadget owns all tuning (see its lightning configs); this just forwards the
 	-- already-resolved values to AddPointLight. r2/g2/b2 = same color so the light
 	-- does not animate toward black; sustain holds full brightness before the fade.
-	-- Args: x,y,z, radius, r,g,b,a, lifetime, sustain, modelfactor, specular,
-	--       scattering, lensflare, spawnframe.
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param radius number
+	---@param r number
+	---@param g number
+	---@param b number
+	---@param a number Global brightness modifier.
+	---@param lifetime number Frames the light lives for, fading out.
+	---@param sustain number Frames at full brightness before the fade.
+	---@param modelfactor number? How much more light is applied to models than terrain.
+	---@param specular number?
+	---@param scattering number?
+	---@param lensflare number?
+	---@param spawnframe number? Game frame the light was spawned in.
 	WG.lightsgl4.EnvLightningPointLight = function(
 		x,
 		y,
@@ -2596,6 +2623,30 @@ function widget:Initialize()
 	-- Gadget bridge: predictive nano point lights. Gadget sends one spawn event
 	-- per selected particle, plus sparse correction events when trajectory
 	-- changes (homing / terrain correction). Widget integrates in-between.
+	---Spawns a predictive nano point light that integrates its own trajectory between
+	---sparse correction events. Called by the nano gadget through `Script.LuaUI`.
+	---@param instanceID string Caller-chosen id, also used by the correct/fade/remove
+	---calls. The nano gadget passes `"NANOP_" .. projectileID`.
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param vx number Velocity per frame.
+	---@param vy number
+	---@param vz number
+	---@param radius number
+	---@param r number
+	---@param g number
+	---@param b number
+	---@param a number Global brightness modifier.
+	---@param lifetime number Frames the light lives for; must be at least `1`.
+	---@param sustain number Frames at full brightness before the fade.
+	---@param modelfactor number?
+	---@param specular number?
+	---@param scattering number?
+	---@param lensflare number?
+	---@param spawnframe number?
+	---@param updateEvery number? Frames between predicted position updates.
+	---@param correctionMinFrames number? Minimum frames between accepted corrections.
 	WG.lightsgl4.EnvNanoBallisticLightSpawn = function(
 		instanceID,
 		x,
@@ -2657,6 +2708,17 @@ function widget:Initialize()
 		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
 		return true
 	end
+	---Corrects a predictive nano light's position and velocity, e.g. after homing or
+	---terrain correction changed its trajectory.
+	---@param instanceID string As passed to `EnvNanoBallisticLightSpawn`.
+	---@param x number
+	---@param y number
+	---@param z number
+	---@param vx number
+	---@param vy number
+	---@param vz number
+	---@param frame integer? Defaults to the current game frame.
+	---@return boolean corrected `false` when no such light exists.
 	WG.lightsgl4.EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
 		local f = frame or gameFrame
 		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
@@ -2678,6 +2740,11 @@ function widget:Initialize()
 		end
 		return true
 	end
+	---Starts fading a predictive nano light out, queueing its removal.
+	---@param instanceID string As passed to `EnvNanoBallisticLightSpawn`.
+	---@param frame integer? Defaults to the current game frame.
+	---@param fadeFrames number? Frames to fade over; at least `1`. Defaults to `1`.
+	---@return boolean fading `false` when no such light exists.
 	WG.lightsgl4.EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
 		local f = frame or gameFrame
 		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
@@ -2701,6 +2768,9 @@ function widget:Initialize()
 		predictivePointLightVBO.dirty = true
 		return true
 	end
+	---Removes a predictive nano light immediately. Unknown ids are ignored.
+	---@param instanceID string As passed to `EnvNanoBallisticLightSpawn`.
+	---@return boolean `true` always.
 	WG.lightsgl4.EnvNanoBallisticLightRemove = function(instanceID)
 		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
 			popElementInstance(predictivePointLightVBO, instanceID)
@@ -2711,6 +2781,61 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrect", WG.lightsgl4.EnvNanoBallisticLightCorrect)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightFade", WG.lightsgl4.EnvNanoBallisticLightFade)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemove", WG.lightsgl4.EnvNanoBallisticLightRemove)
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("dlgl4stats", "t")
+	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
+	WG.lightsgl4 = nil
+	widgetHandler:DeregisterGlobal("AddPointLight")
+	widgetHandler:DeregisterGlobal("AddBeamLight")
+	widgetHandler:DeregisterGlobal("AddConeLight")
+	widgetHandler:DeregisterGlobal("AddLight")
+	widgetHandler:DeregisterGlobal("RemoveLight")
+	widgetHandler:DeregisterGlobal("GetLightVBO")
+
+	widgetHandler:DeregisterGlobal("EnvLightningPointLight")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightSpawn")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightCorrect")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightFade")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightRemove")
+
+	deferredLightShader:Delete()
+	local ram = 0
+	for lighttype, vbo in pairs(unitLightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for lighttype, vbo in pairs(projectileLightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for lighttype, vbo in pairs(lightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	ram = ram + cursorPointLightVBO:Delete()
+	ram = ram + predictivePointLightVBO:Delete()
+	if engineNano.vbo then
+		ram = ram + engineNano.vbo:Delete()
+	end
+
+	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
+	--spEcho("featureDefLights", table.countMem(featureDefLights))
+	--spEcho("unitEventLights", table.countMem(unitEventLights))
+	--spEcho("unitDefLights", table.countMem(unitDefLights))
+	--spEcho("projectileDefLights", table.countMem(projectileDefLights))
+	--spEcho("explosionLights", table.countMem(explosionLights))
+
+	-- Note, these must be nil'ed manually, because
+	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
+	unitDefLights = nil
+	featureDefLights = nil
+	unitEventLights = nil
+	muzzleFlashLights = nil
+	projectileDefLights = nil
+	explosionLights = nil
+	gibLight = nil
+
+	--collectgarbage("collect")
+	--collectgarbage("collect")
 end
 
 if autoupdate then

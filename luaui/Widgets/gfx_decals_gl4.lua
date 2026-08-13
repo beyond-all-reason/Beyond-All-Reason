@@ -127,8 +127,11 @@ end
 
 atlas.flip(atlas)
 
+---@type InstanceVBOTable?
 local decalVBO = nil
+---@type InstanceVBOTable?
 local decalLargeVBO = nil
+---@type InstanceVBOTable?
 local decalExtraLargeVBO = nil
 
 local decalShader = nil
@@ -497,6 +500,30 @@ end
 
 local dCT = {} -- decalCacheTable
 
+---Spawns a ground decal.
+---@param decaltexturename string Full path to the decal texture, which must already be
+---in the atlases, e.g. `'bitmaps/scars/scar1.bmp'`.
+---@param posx number World position of the decal center.
+---@param posz number World position of the decal center.
+---@param rotation number Rotation around Y in radians.
+---@param width number Elmos.
+---@param length number Elmos.
+---@param heatstart number? TODO: initial temperature in kelvins of the emissive parts
+---(alpha channel of the normal texture). Defaults to `0`.
+---@param heatdecay number? TODO: exponential rate at which the hot parts cool each frame. Defaults to `1`.
+---@param alphastart number? Initial transparency; may exceed `1`. Defaults to `1`.
+---@param alphadecay number? Alpha removed each frame. The decal is removed automatically
+---once `alphastart`/`alphadecay` drops below `0`. Defaults to `0`.
+---@param maxalpha number? Highest transparency this decal may reach.
+---@param bwfactor number? Mix toward black and white; `0` is original color, `1` is grayscale.
+---Defaults to `1`.
+---@param glowsustain number? Frames before the glow starts to recede. Defaults to `1`.
+---@param glowadd number? Additional glow not controlled by transparency. Defaults to `0`.
+---@param fadeintime number? Frames to reach max alpha after spawning.
+---@param spawnframe integer? Leave `nil` unless modifying an existing decal, in which case
+---pass the frame that decal was spawned on.
+---@return integer? decalIndex `nil` when the map area is oversaturated with decals.
+---@return integer? lifetime Frames the decal will live for.
 local function AddDecal(
 	decaltexturename,
 	posx,
@@ -515,21 +542,6 @@ local function AddDecal(
 	fadeintime,
 	spawnframe
 )
-	-- Documentation
-	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
-	-- posx, posz, world pos to place center of decal
-	-- rotation: rotation around y in radians
-	-- width, length in elmos
-	-- TODO: heatstart: the initial temperature, in kelvins of the emissive parts (alpha channel of normal texture)
-	-- TODO: heatdecay: the exponential rate at which the hot parts are cooled down each frame
-	-- alphastart: The initial transparency amount, can be > 1 too
-	-- alphadecay: How much alpha is reduced each frame, when alphastart/alphadecay goes below 0, the decal will get automatically removed.
-	-- maxalpha: The highest amount of transparency this decal can have
-	-- bwfactor: the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	-- glowsustain: how many frames to elapse before glow starts to recede
-	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
-	-- fadeintime: how many frames it takes for a decal to reach its max alpha after spawning
-	-- spawnframe: really shouldnt be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
@@ -720,6 +732,8 @@ else
 	end
 end
 
+---Removes a decal spawned by `AddDecal`. Unknown ids are ignored.
+---@param instanceID integer As returned by `AddDecal`.
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
@@ -2137,20 +2151,47 @@ function widget:Initialize()
 	WG.decalsgl4 = {}
 	WG.decalsgl4.AddDecalGL4 = AddDecal
 	WG.decalsgl4.RemoveDecalGL4 = RemoveDecal
+	---Scales how long newly spawned decals live.
+	---@param value number
 	WG.decalsgl4.SetLifeTimeMult = function(value)
 		lifeTimeMult = value
 	end
+	---Lightweight decal record kept for external consumers such as minimap overlays.
+	---Positional, not a record: every consumer indexes it numerically.
+	---@class ActiveDecal
+	---@field [1] number World X.
+	---@field [2] number World Z.
+	---@field [3] number Size: the larger of `[8]` and `[9]`.
+	---@field [4] number Alpha at spawn.
+	---@field [5] number Alpha lost per frame.
+	---@field [6] integer Game frame the decal spawned in.
+	---@field [7] boolean Whether this is a building footprint decal.
+	---@field [8] number Width.
+	---@field [9] number Length.
+	---@field [10] number Rotation in radians.
+	---@field [11] number Atlas UV bound `p`.
+	---@field [12] number Atlas UV bound `q`.
+	---@field [13] number Atlas UV bound `s`.
+	---@field [14] number Atlas UV bound `t`.
+
+	---@return table<integer, ActiveDecal> decals Keyed by decalIndex. Do not mutate.
 	WG.decalsgl4.GetActiveDecals = function()
 		return activeDecalData
 	end
+	---@return number multiplier Scales how long newly spawned decals live.
 	WG.decalsgl4.GetLifeTimeMult = function()
 		return lifeTimeMult
 	end
 	WG.decalsgl4.RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
+	---Exposes the raw decal VBOs, for widgets that draw decals themselves.
+	---@return [InstanceVBOTable, InstanceVBOTable, InstanceVBOTable] vboTables The small,
+	---large and extra-large decal buffers.
+	---@return table<integer, boolean> footprintDecalSet Which decalIndex values are footprints.
 	WG.decalsgl4.GetVBOData = function()
 		return vboTableCache, footprintDecalSet
 	end
+	---@return integer version Increments whenever cached decal data needs refreshing.
 	WG.decalsgl4.GetVersion = function()
 		return decalVersion
 	end

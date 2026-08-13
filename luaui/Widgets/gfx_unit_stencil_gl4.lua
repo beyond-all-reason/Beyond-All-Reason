@@ -21,7 +21,9 @@ local spEcho = Spring.Echo
 -- Make this shared the same way screencopy texture is shared, via an api
 -- bind and sample this texture if needed for any other method :)
 
+---@type InstanceVBOTable
 local unitStencilVBO = nil
+---@type InstanceVBOTable
 local featureStencilVBO = nil -- TODO
 local unitStencilShader = nil
 
@@ -593,6 +595,9 @@ end
 ]]
 --
 
+---Returns the stencil texture covering units and features, and marks it as wanted
+---so the widget keeps rendering it.
+---@return string? texName
 local function GetUnitStencilTexture()
 	stencilRequested = true
 	return unitFeatureStencilTex

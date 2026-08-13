@@ -23,6 +23,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable
 local teamplatterVBO = nil
 local teamplatterShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -219,16 +220,22 @@ function widget:Initialize()
 		return
 	end
 	WG.teamplatter = {}
+	---@return number opacity Opacity of the team platter rings.
 	WG.teamplatter.getOpacity = function()
 		return opacity
 	end
+	---Sets the platter opacity and rebuilds the draw lists.
+	---@param value number
 	WG.teamplatter.setOpacity = function(value)
 		opacity = value
 		init()
 	end
+	---@return boolean skip Whether the local team's own units are left unmarked.
 	WG.teamplatter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
+	---Leaves the local team's own units unmarked, rebuilding the draw lists.
+	---@param value boolean
 	WG.teamplatter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
 		init()

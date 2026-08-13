@@ -683,6 +683,9 @@ local function unbindChannel(ch)
 	ch.bound = false
 end
 
+---Enables or disables painting into one PBR channel. Unknown keys are ignored.
+---@param key "normals"|"specular"|"emission"
+---@param on boolean?
 local function setChannelEnabled(key, on)
 	if channelsEnabled[key] == nil then
 		return
@@ -2012,6 +2015,46 @@ end
 -- ============================================================================
 -- Layer management
 -- ============================================================================
+
+---One paint layer of the diffuse painter.
+---@class DiffuseLayer
+---@field id integer
+---@field name string
+---@field enabled boolean
+---@field opacity number
+---@field color ColorRGB RGB, each `0`-`1`.
+---@field blend string Blend mode, e.g. `"normal"`.
+---@field altEnabled boolean Restrict the layer by altitude.
+---@field altMin number
+---@field altMax number
+---@field altFalloffLo number
+---@field altFalloffHi number
+---@field slopeEnabled boolean Restrict the layer by slope.
+---@field slopeMin number
+---@field slopeMax number
+---@field slopeFalloffLo number
+---@field slopeFalloffHi number
+---@field handPaintEnabled boolean Allow brush strokes on this layer.
+---@field texturePath string?
+---@field tileScale number
+---@field normalPath string? PBR sibling resolved from the material library.
+---@field hydroEnabled boolean Paint preferentially in concave valleys and flow channels.
+---@field hydroStrength number
+---@field hydroFalloffLo number
+---@field hydroFalloffHi number
+---@field thermoEnabled boolean Paint at slope transitions near the repose angle.
+---@field thermoAngle number
+---@field thermoFalloff number
+---@field glowStrength number Emission written as `color * glowStrength`.
+---@field grassDensity number Grass planted by strokes; `0` is off.
+---@field grassDensityCustom boolean User override that material defaults must not clobber.
+
+---Builds a layer with default settings.
+---@param name string? Defaults to `"Layer"`.
+---@param r number? Defaults to `1`.
+---@param g number? Defaults to `1`.
+---@param b number? Defaults to `1`.
+---@return DiffuseLayer
 local function defaultLayer(name, r, g, b)
 	return {
 		id = 0,
@@ -2053,6 +2096,10 @@ local function defaultLayer(name, r, g, b)
 	}
 end
 
+---Adds a paint layer, becoming the active layer when it is the first one.
+---@param layerDef table<string, any>? Fields to override on the default layer; a partial
+---`DiffuseLayer`, copied over the defaults key by key.
+---@return integer? id `nil` when the layer cap has been reached.
 local function addLayer(layerDef)
 	if #layers >= MAX_LAYERS then
 		Echo("[Diffuse Painter] layer cap reached (" .. MAX_LAYERS .. ")")
@@ -2074,6 +2121,8 @@ local function addLayer(layerDef)
 	return layer.id
 end
 
+---Removes a paint layer and frees its masks. Unknown ids are ignored.
+---@param id integer
 local function removeLayer(id)
 	local _, idx = findLayer(id)
 	if not idx then
@@ -2094,6 +2143,11 @@ local function removeLayer(id)
 	pendingFullBake = true
 end
 
+---Sets one field on a layer and schedules a rebake. Unknown ids are ignored.
+---@param id integer
+---@param key string A `DiffuseLayer` field name.
+---@param val string|number|boolean|ColorRGB Whatever that field holds; written straight
+---through without checking that it matches.
 local function setLayerParam(id, key, val)
 	local layer = findLayer(id)
 	if not layer then
@@ -2125,6 +2179,8 @@ local function findSibling(diffPath, channel)
 	return nil
 end
 
+---Rebuilds the material library by walking the write-dir texture tree, preferring
+---the highest-resolution diffuse per material.
 local function scanMaterialLibrary()
 	materialLibrary = {}
 	-- Write-dir asset library (not committed to the game repo). VFS.RAW_FIRST
@@ -2193,6 +2249,12 @@ local function findMaterialByPath(p)
 	return nil
 end
 
+---Points a layer at a texture, resolving its PBR siblings from the material
+---library. Unknown ids are ignored.
+---@param id integer
+---@param path string? Empty string clears the texture.
+---@param tileScale number? Left unchanged when omitted.
+---@param name string? Display name for the layer.
 local function setLayerTexture(id, path, tileScale, name)
 	local layer = findLayer(id)
 	if not layer then
@@ -2231,6 +2293,10 @@ local function setLayerTexture(id, path, tileScale, name)
 	end
 end
 
+---Adds a hand-paintable layer already pointed at a material.
+---@param path string Diffuse texture path.
+---@param name string? Defaults to `"Layer"`.
+---@return integer? id `nil` when the layer cap has been reached.
 local function addLayerFromMaterial(path, name)
 	local id = addLayer({
 		name = name or "Layer",
@@ -2252,6 +2318,9 @@ end
 -- ============================================================================
 -- Activation
 -- ============================================================================
+
+---Enables the diffuse painter, compiling its shaders and scanning the material
+---library on first use.
 local function activate()
 	if active then
 		return
@@ -2273,6 +2342,7 @@ local function activate()
 	Echo("[Diffuse Painter] active. LMB paint, RMB erase. /diffusepaint to toggle.")
 end
 
+---Disables the diffuse painter, sealing any in-flight stroke into the undo stack.
 local function deactivate()
 	if not active then
 		return
@@ -2351,10 +2421,31 @@ function widget:Initialize()
 	end, nil, "t")
 
 	WG.DiffusePainter = {
+		---@return boolean active
 		isActive = function()
 			return active
 		end,
 		-- Snapshot of everything the UI needs, mirroring WG.TerraformBrush.getState.
+		---A snapshot of the diffuse painter, for the UI to render.
+		---@class DiffusePainterState
+		---@field active boolean
+		---@field radius number
+		---@field strength number
+		---@field curve number
+		---@field erase boolean
+		---@field fractalAmount number
+		---@field fractalFreq number
+		---@field layers DiffuseLayer[] The live layer list. Do not mutate.
+		---@field activeLayerId integer?
+		---@field historyIndex integer Strokes currently applied.
+		---@field historyMax integer Strokes applied plus undone.
+		---@field channelNormals boolean
+		---@field channelSpecular boolean
+		---@field channelEmission boolean
+		---@field specIntensity number
+		---@field grassAttach boolean
+
+		---@return DiffusePainterState
 		getState = function()
 			return {
 				active = active,
@@ -2375,28 +2466,42 @@ function widget:Initialize()
 				grassAttach = grassAttachEnabled,
 			}
 		end,
+		---Queues an undo, applied on the next draw pass.
 		undo = function()
 			pendingHistoryOps[#pendingHistoryOps + 1] = "undo"
 		end,
+		---Queues a redo, applied on the next draw pass.
 		redo = function()
 			pendingHistoryOps[#pendingHistoryOps + 1] = "redo"
 		end,
+		---Queues undos or redos until the history sits at the given position.
+		---@param idx number? Strokes that should remain applied. Defaults to `0`.
 		undoToIndex = function(idx)
 			pendingHistoryOps[#pendingHistoryOps + 1] = tonumber(idx) or 0
 		end,
 		setChannelEnabled = setChannelEnabled,
+		---@param v number? Specular intensity, clamped to `0`-`1`. Defaults to `0.25`.
 		setSpecIntensity = function(v)
 			specIntensity = max(0.0, min(1.0, v or 0.25))
 		end,
+		---Sets a layer's emission strength. Unknown ids are ignored.
+		---@param id integer
+		---@param v number? Clamped to `0`-`1`. Defaults to `0`.
 		setLayerGlow = function(id, v)
 			local layer = findLayer(id)
 			if layer then
 				layer.glowStrength = max(0.0, min(1.0, v or 0))
 			end
 		end,
+		---Makes brush strokes also plant grass.
+		---@param on boolean?
 		setGrassAttach = function(on)
 			grassAttachEnabled = on and true or false
 		end,
+		---Sets how much grass a layer's strokes plant, marking it as a user override.
+		---Unknown ids are ignored.
+		---@param id integer
+		---@param v number? Clamped to `0`-`1`. Defaults to `0`.
 		setLayerGrassDensity = function(id, v)
 			local layer = findLayer(id)
 			if not layer then
@@ -2407,12 +2512,16 @@ function widget:Initialize()
 		end,
 		activate = activate,
 		deactivate = deactivate,
+		---@return DiffuseLayer[] layers The live layer list. Do not mutate.
 		getLayers = function()
 			return layers
 		end,
+		---@return integer? id `nil` when no layer exists.
 		getActiveLayerId = function()
 			return activeLayerId
 		end,
+		---Selects the layer that strokes paint into. Unknown ids are ignored.
+		---@param id integer
 		setActiveLayer = function(id)
 			if findLayer(id) then
 				activeLayerId = id
@@ -2423,18 +2532,38 @@ function widget:Initialize()
 		setLayerParam = setLayerParam,
 		setLayerTexture = setLayerTexture,
 		addLayerFromMaterial = addLayerFromMaterial,
+		---One scanned PBR material. Only the highest-resolution diffuse per material
+		---key is kept; the sibling maps are whatever was found next to it.
+		---@class DiffuseMaterial
+		---@field key string Material key, parsed from `<key>_diff_<N>k.jpg`.
+		---@field name string Display name: `key` with underscores replaced by spaces.
+		---@field path string Diffuse texture path.
+		---@field resK integer Diffuse resolution in K, as parsed from the filename.
+		---@field normalPath string?
+		---@field roughPath string?
+		---@field dispPath string?
+
+		---@return DiffuseMaterial[] materials The scanned material library, sorted by `key`.
+		---Do not mutate.
 		getMaterialLibrary = function()
 			return materialLibrary
 		end,
 		rescanMaterialLibrary = scanMaterialLibrary,
+		---Queues a full rebake of every map square.
 		bakeAll = function()
 			pendingFullCover = true
 		end,
+		---Queues an export of the baked square textures to disk.
 		exportSquares = function()
 			pendingExport = true
 		end,
 		-- Map project (cmd_map_project.lua): chunked DrawWorld jobs saving/loading
 		-- baked square diffuse + channel textures; poll the pending flags.
+		---Starts a chunked save of the baked diffuse and channel textures into a project.
+		---Poll `isProjectSavePending` and then `getProjectSaveResult`.
+		---@param dir string Project directory to write into.
+		---@param allSquares boolean? Save every square rather than only painted ones.
+		---@return boolean started `false` when a project save or load is already running.
 		saveProject = function(dir, allSquares)
 			if pendingProjectSave or pendingProjectLoad then
 				return false
@@ -2443,12 +2572,29 @@ function widget:Initialize()
 			projectSaveResult = nil
 			return true
 		end,
+		---@return boolean pending
 		isProjectSavePending = function()
 			return pendingProjectSave ~= nil
 		end,
+		---@class DiffuseProjectSaveResult
+		---@field squares string[] Filenames written, as `sq_<sx>_<sy>.png`.
+		---@field channels string[] Channel keys written, sorted.
+		---@field full boolean Whether every square on the map was written.
+		---@field failed integer Squares or channels that could not be written.
+		---@field squareSize integer Pixel size of one square.
+		---@field error string? Set instead of the other fields when the save could not start.
+
+		---@return DiffuseProjectSaveResult? result `nil` until a save finishes.
 		getProjectSaveResult = function()
 			return projectSaveResult
 		end,
+		---Starts a chunked load of baked textures from a project.
+		---Poll `isProjectLoadPending` and then `getProjectLoadResult`.
+		---@param squareList {sx: integer, sy: integer, path: string}[]? Squares to restore.
+		---Defaults to none.
+		---@param channelMap table<string, string>? Channel texture paths by channel key.
+		---Defaults to none.
+		---@return boolean started `false` when a project save or load is already running.
 		loadProject = function(squareList, channelMap)
 			if pendingProjectSave or pendingProjectLoad then
 				return false
@@ -2457,12 +2603,22 @@ function widget:Initialize()
 			projectLoadResult = nil
 			return true
 		end,
+		---@return boolean pending
 		isProjectLoadPending = function()
 			return pendingProjectLoad ~= nil
 		end,
+		---@class DiffuseProjectLoadResult
+		---@field loaded integer Squares restored.
+		---@field failed integer Squares or channels that could not be restored.
+		---@field channels integer Channel textures restored.
+		---@field error string? Set instead of the other fields when the load could not start.
+
+		---@return DiffuseProjectLoadResult? result `nil` until a load finishes.
 		getProjectLoadResult = function()
 			return projectLoadResult
 		end,
+		---@return boolean hasState Whether anything has been painted that a project save
+		---would capture.
 		hasProjectState = function()
 			for _, s in pairs(squares) do
 				if s.compositeTex then
@@ -2476,21 +2632,32 @@ function widget:Initialize()
 			end
 			return false
 		end,
+		---@return number radius
+		---@return number strength
+		---@return number curve
+		---@return boolean erase
 		getBrush = function()
 			return brushRadius, brushStrength, brushCurve, eraseMode
 		end,
+		---@param r number Brush radius in elmos, clamped to the allowed range.
 		setRadius = function(r)
 			brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
 		end,
+		---@param v number Paint strength per stroke, clamped to the allowed range.
 		setStrength = function(v)
 			brushStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, v))
 		end,
+		---@param v number Falloff curve exponent, clamped to the allowed range.
 		setCurve = function(v)
 			brushCurve = max(MIN_CURVE, min(MAX_CURVE, v))
 		end,
+		---@param b boolean? Erase paint instead of adding it.
 		setErase = function(b)
 			eraseMode = b and true or false
 		end,
+		---Sets the fractal break-up applied to strokes. Omitted values are left unchanged.
+		---@param amount number? Clamped to the allowed range.
+		---@param freq number? Clamped to the allowed range.
 		setFractal = function(amount, freq)
 			if amount ~= nil then
 				brushFractalAmount = max(MIN_FRACTAL, min(MAX_FRACTAL, amount))
@@ -2499,9 +2666,14 @@ function widget:Initialize()
 				brushFractalFreq = max(MIN_FRACTAL_FREQ, min(MAX_FRACTAL_FREQ, freq))
 			end
 		end,
+		---@return number amount
+		---@return number freq
 		getFractal = function()
 			return brushFractalAmount, brushFractalFreq
 		end,
+		---Sets a layer's blend mode and schedules a rebake. Unknown ids are ignored.
+		---@param id integer
+		---@param mode string? Defaults to `"normal"`.
 		setLayerBlend = function(id, mode)
 			local layer = findLayer(id)
 			if layer then
@@ -2509,6 +2681,13 @@ function widget:Initialize()
 				pendingFullBake = true
 			end
 		end,
+		---Configures a layer's hydro erosion masking. Omitted values are left unchanged,
+		---and unknown ids are ignored.
+		---@param id integer
+		---@param enabled boolean?
+		---@param strength number? Minimum `0.001`.
+		---@param fallLo number? Minimum `0`.
+		---@param fallHi number? Minimum `0`.
 		setLayerHydro = function(id, enabled, strength, fallLo, fallHi)
 			local layer = findLayer(id)
 			if not layer then
@@ -2528,6 +2707,12 @@ function widget:Initialize()
 			end
 			pendingFullBake = true
 		end,
+		---Configures a layer's thermo erosion masking. Omitted values are left unchanged,
+		---and unknown ids are ignored.
+		---@param id integer
+		---@param enabled boolean?
+		---@param angle number? Degrees, clamped to `0`-`85`.
+		---@param falloff number? Clamped to `0.5`-`45`.
 		setLayerThermo = function(id, enabled, angle, falloff)
 			local layer = findLayer(id)
 			if not layer then
@@ -2544,6 +2729,10 @@ function widget:Initialize()
 			end
 			pendingFullBake = true
 		end,
+		---Clears every layer's paint from the map square containing a world position,
+		---and drops the undo history since its snapshots are now stale.
+		---@param wx number
+		---@param wz number
 		resetSquare = function(wx, wz)
 			local sx, sy = floor(wx / SQUARE_SIZE_ELMOS), floor(wz / SQUARE_SIZE_ELMOS)
 			local k = squareKey(sx, sy)
@@ -2558,6 +2747,7 @@ function widget:Initialize()
 			clearHistory()
 			dirtySquares[k] = true
 		end,
+		---Clears every layer's paint across the whole map and drops the undo history.
 		resetAll = function()
 			for layerId, layerMasks in pairs(masks) do
 				for k, maskTex in pairs(layerMasks) do

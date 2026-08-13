@@ -143,6 +143,7 @@ local lp = {
 
 	-- Smart filter
 	smartEnabled = false,
+	---@type table<string, boolean|number>
 	smartFilters = {
 		avoidWater = true,
 		avoidCliffs = true,
@@ -670,6 +671,7 @@ local function pushUndo(action, lights)
 	redoStack = {}
 end
 
+---Reverts the most recent light placement or removal.
 local function doUndo()
 	if #undoStack == 0 then
 		return
@@ -698,6 +700,7 @@ local function doUndo()
 	end
 end
 
+---Reapplies the most recently undone light placement or removal.
 local function doRedo()
 	if #redoStack == 0 then
 		return
@@ -815,6 +818,9 @@ local function getMapName()
 	return mapName:gsub("[^%w_%-]", "_")
 end
 
+---Writes every placed light to a Lua file.
+---@param explicitPath string? Defaults to a timestamped file in the save directory.
+---@return string filename The path written to, even if the write failed.
 local function save(explicitPath)
 	local lightList = {}
 	for _, rec in pairs(placedLights) do
@@ -904,6 +910,7 @@ local function save(explicitPath)
 	return filename
 end
 
+---Removes every placed light, as a single undoable step.
 local function clearAllLights()
 	local removed = {}
 	for instanceID, rec in pairs(placedLights) do
@@ -917,6 +924,7 @@ local function clearAllLights()
 	end
 end
 
+---@return string[] filenames Saved light files.
 local function listSaves()
 	local files = {}
 	local found = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW) or {}
@@ -926,6 +934,9 @@ local function listSaves()
 	return files
 end
 
+---Loads lights from a saved file, replacing the placed set.
+---@param filename string? Defaults to the most recent save.
+---@return boolean loaded `false` when no save exists or the file could not be read.
 local function load(filename)
 	-- If no filename given, load most recent save
 	if not filename then
@@ -974,6 +985,10 @@ end
 ----------------------------------------------------------------
 local PRESET_DIR = "lightmaps/presets/"
 
+---Saves the placed lights as a reusable preset, positions stored relative to their
+---center. The name is sanitized to word characters, `_` and `-`.
+---@param presetName string
+---@return string? filename `nil` when the name is empty or the file could not be written.
 local function saveUserPreset(presetName)
 	if not presetName or presetName == "" then
 		return nil
@@ -1076,6 +1091,7 @@ local function saveUserPreset(presetName)
 	end
 end
 
+---@return {name: string, path: string}[] presets User-saved light presets.
 local function listUserPresets()
 	local presets = {}
 	local found = VFS.DirList(PRESET_DIR, "*.lua", VFS.RAW) or {}
@@ -1088,6 +1104,10 @@ local function listUserPresets()
 	return presets
 end
 
+---Stamps a preset's lights around a map position, honoring the smart filters.
+---@param presetData LightPreset? Ignored when it has no `lights`.
+---@param worldX number
+---@param worldZ number
 local function placePreset(presetData, worldX, worldZ)
 	if not presetData or not presetData.lights then
 		return
@@ -1108,6 +1128,10 @@ local function placePreset(presetData, worldX, worldZ)
 	end
 end
 
+---Reads a preset file from disk.
+---@param filename string
+---@return LightPreset? presetData `nil` when the file could not be loaded or did not
+---return a table.
 local function loadPresetFile(filename)
 	local chunk, err = loadfile(filename)
 	if not chunk then
@@ -1120,6 +1144,10 @@ end
 ----------------------------------------------------------------
 -- Apply defaults when switching light type
 ----------------------------------------------------------------
+
+---Switches the light type and resets its tunables to that type's defaults.
+---Unknown types are ignored.
+---@param lightType "point"|"cone"|"beam"
 local function applyLightTypeDefaults(lightType)
 	local defaults = LIGHT_DEFAULTS[lightType]
 	if not defaults then
@@ -1450,12 +1478,34 @@ local function updatePresetPreviewLights(worldX, worldZ)
 	presetPreviewLast.count = #pendingPreset.lights
 end
 
+---One light inside a preset, positioned relative to the click point.
+---@class LightPresetLight
+---@field type "point"|"cone"|"beam"
+---@field offsetX number? Defaults to `0`.
+---@field offsetZ number? Defaults to `0`.
+---@field radius number?
+---@field color ColorRGB?
+---@field brightness number?
+---@field modelfactor number?
+---@field specular number?
+---@field scattering number?
+---@field lensflare number?
+
+---A named group of lights stamped together by one click.
+---@class LightPreset
+---@field name string
+---@field desc string?
+---@field lights LightPresetLight[]
+
+---Arms a preset so the next map click stamps it, clearing any live preview.
+---@param preset LightPreset?
 local function setPendingPreset(preset)
 	pendingPreset = preset
 	removePresetPreviewLights()
 	removePreviewLight()
 end
 
+---Disarms the pending preset and removes its preview lights.
 local function clearPendingPreset()
 	pendingPreset = nil
 	removePresetPreviewLights()
@@ -1648,6 +1698,39 @@ function widget:Initialize()
 	-- Save dirs are created at save time, not at load for every player.
 
 	WG.LightPlacer = {
+		---A snapshot of the light placer, for the UI to render.
+		---@class LightPlacerState
+		---@field active boolean
+		---@field mode BrushPlacementMode? `nil` while the tool is inactive.
+		---@field lightType "point"|"cone"|"beam"
+		---@field shape BrushShape
+		---@field radius number Brush radius.
+		---@field rotation number
+		---@field lightCount number Lights placed per scatter stroke.
+		---@field cadence number
+		---@field distribution string
+		---@field lightRadius number Radius of each placed light.
+		---@field color ColorRGB RGB, each `0`-`1`.
+		---@field brightness number
+		---@field modelfactor number
+		---@field specular number
+		---@field scattering number
+		---@field lensflare number
+		---@field pitch number
+		---@field yaw number
+		---@field roll number
+		---@field theta number Cone half-angle.
+		---@field beamLength number
+		---@field elevation number
+		---@field smartEnabled boolean
+		---@field smartFilters table<string, boolean|number> The live filter table. Do not mutate.
+		---@field undoCount integer
+		---@field redoCount integer
+		---@field lightCount_placed integer
+		---@field selectedLight nil Always `nil`: the backing field is initialized and
+		---reported but never assigned anywhere.
+
+		---@return LightPlacerState
 		getState = function()
 			return {
 				active = lp.active,
@@ -1681,9 +1764,11 @@ function widget:Initialize()
 			}
 		end,
 
+		---Enables the light placer.
 		activate = function()
 			lp.active = true
 		end,
+		---Disables the light placer and clears any preview or pending preset.
 		deactivate = function()
 			lp.active = false
 			lp.mode = nil
@@ -1692,79 +1777,109 @@ function widget:Initialize()
 			clearPendingPreset()
 		end,
 
+		---Sets the placement mode, activating the tool unless `m` is `nil`.
+		---@param m BrushPlacementMode? `nil` deactivates the tool.
 		setMode = function(m)
 			lp.mode = m
 			lp.active = (m ~= nil)
 		end,
+		---Switches the light type and resets its tunables to that type's defaults.
+		---@param t "point"|"cone"|"beam"
 		setLightType = function(t)
 			applyLightTypeDefaults(t)
 		end,
+		---@param s BrushShape Brush footprint.
 		setShape = function(s)
 			lp.shape = s
 		end,
+		---@param r number Brush radius in elmos, clamped to the allowed range.
 		setRadius = function(r)
 			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, r))
 		end,
+		---@param d number Degrees, wrapped to `[0,360)`.
 		setRotation = function(d)
 			lp.rotation = d % 360
 		end,
+		---@param step number Degrees to add to the current rotation.
 		rotate = function(step)
 			lp.rotation = (lp.rotation + step) % 360
 		end,
+		---@param n number Lights placed per scatter stroke, clamped to `1`-`500`.
 		setLightCount = function(n)
 			lp.lightCount = max(1, min(500, n))
 		end,
+		---@param v number Frames between placements while dragging, clamped to `1`-`1000`.
 		setCadence = function(v)
 			lp.cadence = max(1, min(1000, v))
 		end,
+		---@param d string How scattered lights are spread.
 		setDistribution = function(d)
 			lp.distribution = d
 		end,
 
+		---@param r number Radius of each placed light, clamped to `10`-`5000`.
 		setLightRadius = function(r)
 			lp.lightRadius = max(10, min(5000, r))
 		end,
+		---@param r number
+		---@param g number
+		---@param b number
 		setColor = function(r, g, b)
 			lp.color = { r, g, b }
 		end,
+		---@param v number Clamped to `0.01`-`50`.
 		setBrightness = function(v)
 			lp.brightness = max(0.01, min(50, v))
 		end,
+		---@param v number How strongly the light affects unit models, clamped to `0`-`5`.
 		setModelfactor = function(v)
 			lp.modelfactor = max(0, min(5, v))
 		end,
+		---@param v number Clamped to `0`-`5`.
 		setSpecular = function(v)
 			lp.specular = max(0, min(5, v))
 		end,
+		---@param v number Clamped to `0`-`5`.
 		setScattering = function(v)
 			lp.scattering = max(0, min(5, v))
 		end,
+		---@param v number Clamped to `0`-`5`.
 		setLensflare = function(v)
 			lp.lensflare = max(0, min(5, v))
 		end,
 
+		---@param v number Degrees, clamped to `-90`-`90`.
 		setPitch = function(v)
 			lp.pitch = max(-90, min(90, v))
 		end,
+		---@param v number Degrees, wrapped to `[0,360)`.
 		setYaw = function(v)
 			lp.yaw = v % 360
 		end,
+		---@param v number Degrees, wrapped to `[0,360)`.
 		setRoll = function(v)
 			lp.roll = v % 360
 		end,
+		---@param v number Cone half-angle in radians, clamped to `0.05`-`1.5`.
 		setTheta = function(v)
 			lp.theta = max(0.05, min(1.5, v))
 		end,
+		---@param v number Clamped to `10`-`5000`.
 		setBeamLength = function(v)
 			lp.beamLength = max(10, min(5000, v))
 		end,
+		---@param v number Height above the ground, clamped to `0`-`2000`.
 		setElevation = function(v)
 			lp.elevation = max(0, min(2000, v))
 		end,
 
+		---Enables the slope and altitude filters that restrict where lights are placed.
+		---@param b boolean
 		setSmartEnabled = function(b)
 			lp.smartEnabled = b
 		end,
+		---@param k string
+		---@param v boolean|number
 		setSmartFilter = function(k, v)
 			lp.smartFilters[k] = v
 		end,
@@ -1780,16 +1895,19 @@ function widget:Initialize()
 		listUserPresets = listUserPresets,
 		loadPresetFile = loadPresetFile,
 		placePreset = placePreset,
+		---@return LightPreset[] presets The built-in light presets. Do not mutate.
 		getBuiltinPresets = function()
 			return BUILTIN_PRESETS
 		end,
 
 		setPendingPreset = setPendingPreset,
 		clearPendingPreset = clearPendingPreset,
+		---@return LightPreset? preset The preset armed for the next click, if any.
 		getPendingPreset = function()
 			return pendingPreset
 		end,
 
+		---@return integer count Lights currently placed on the map.
 		getPlacedCount = function()
 			local n = 0
 			for _ in pairs(placedLights) do

@@ -548,34 +548,45 @@ function widget:Initialize()
 	resetEnabledTeams()
 
 	WG.commandsfx = {}
+	---@return number opacity Opacity of the command effect lines.
 	WG.commandsfx.getOpacity = function()
 		return opacity
 	end
+	---@param value number Opacity of the command effect lines.
 	WG.commandsfx.setOpacity = function(value)
 		opacity = value
 	end
+	---@return number seconds How long a command effect stays on screen.
 	WG.commandsfx.getDuration = function()
 		return duration
 	end
+	---@param value number Seconds a command effect stays on screen.
 	WG.commandsfx.setDuration = function(value)
 		duration = value
 	end
+	---@return boolean filter Whether AI team commands are hidden.
 	WG.commandsfx.getFilterAI = function()
 		return filterAIteams
 	end
+	---Hides AI team commands, recomputing which teams are drawn.
+	---@param value boolean
 	WG.commandsfx.setFilterAI = function(value)
 		filterAIteams = value
 		resetEnabledTeams()
 	end
+	---@return boolean useTeamColors Whether effects are drawn in the issuing team's color.
 	WG.commandsfx.getUseTeamColors = function()
 		return useTeamColors
 	end
+	---@param value boolean Draw effects in the issuing team's color.
 	WG.commandsfx.setUseTeamColors = function(value)
 		useTeamColors = value
 	end
 	WG.commandsfx.getUseTeamColorsWhenSpec = function()
 		return useTeamColorsWhenSpec
 	end
+	---@return boolean useTeamColorsWhenSpec
+	---@param value boolean Draw effects in team colors while spectating.
 	WG.commandsfx.setUseTeamColorsWhenSpec = function(value)
 		useTeamColorsWhenSpec = value
 	end

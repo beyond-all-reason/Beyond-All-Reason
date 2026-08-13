@@ -178,6 +178,7 @@ local buckets = {} -- array of the above, for iteration
 local featureDefIDToBucket = {} -- featureDefID -> instance table
 local unsupportedDefIDs = {} -- featureDefIDs with no usable model, warned about once
 local uniqueIDToBucket = {}
+---@type table<integer, string>
 local owners = {} -- uniqueID -> ownerID
 
 local uniqueID = 0
@@ -255,21 +256,24 @@ end
 ---Callers own the lifetime of everything they submit: pair every call that
 ---creates a ghost with StopDrawFeatureShapeGL4, or batch-remove with
 ---StopDrawFeatureShapesGL4(ownerID).
----@param featureDefID number which featureDef to draw
----@param px number world position
----@param py number world position
----@param pz number world position
----@param yaw number optional rotation around Y in radians, matching Spring.SetFeatureRotation's yaw
----@param pitch number optional rotation around X in radians
----@param roll number optional rotation around Z in radians
----@param alpha number optional opacity, default 0.55
----@param tintR number optional tint target colour
----@param tintG number optional tint target colour
----@param tintB number optional tint target colour
----@param tintAmount number optional how much to blend the tint in [0-1], default 0
----@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
----@param ownerID any optional tag so a widget can batch-remove everything it submitted
----@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
+---@param featureDefID integer Which featureDef to draw.
+---@param px number World position.
+---@param py number World position.
+---@param pz number World position.
+---@param yaw number? Rotation around Y in radians, matching `Spring.SetFeatureRotation`'s yaw.
+---@param pitch number? Rotation around X in radians.
+---@param roll number? Rotation around Z in radians.
+---@param alpha number? Opacity. Defaults to `0.55`.
+---@param tintR number? Tint target color.
+---@param tintG number? Tint target color.
+---@param tintB number? Tint target color.
+---@param tintAmount number? How much to blend the tint in, `0`-`1`. Defaults to `0`.
+---@param updateID integer? A uniqueID returned earlier, to move that ghost instead of adding one.
+---@param ownerID string? Tag so a widget can batch-remove everything it submitted.
+---Matched by equality, so any stable name works; the in-tree callers use their own
+---widget name.
+---@return integer? uniqueID Pass to `StopDrawFeatureShapeGL4` to stop drawing it;
+---`nil` when the featureDef has no drawable bucket.
 local function DrawFeatureShapeGL4(
 	featureDefID,
 	px,
@@ -333,8 +337,8 @@ local function DrawFeatureShapeGL4(
 	return updateID
 end
 
----@param handleID number a uniqueID returned by DrawFeatureShapeGL4
----@return any ownerID the owner the handle was registered under, if any
+---@param handleID integer? A uniqueID returned by `DrawFeatureShapeGL4`.
+---@return string? ownerID The owner the handle was registered under, if any.
 local function StopDrawFeatureShapeGL4(handleID)
 	if handleID == nil then
 		return nil
@@ -355,8 +359,8 @@ local function StopDrawFeatureShapeGL4(handleID)
 end
 
 ---Remove every ghost registered under an ownerID. Pass nil to remove all of them.
----@param ownerID any
----@return number count how many ghosts were removed
+---@param ownerID string?
+---@return integer count How many ghosts were removed.
 local function StopDrawFeatureShapesGL4(ownerID)
 	local removed = 0
 	for handleID, owner in pairs(owners) do

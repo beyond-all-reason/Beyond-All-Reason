@@ -267,8 +267,8 @@ if not math.getClosestPosition then
 	---Gets the closest position out of a list to given coordinates. 2d.
 	---@param x number
 	---@param z number
-	---@param positions {x:number, z:number}[] must have fields .x and .z
-	---@return {x:number, z:number}? position
+	---@param positions PositionXZ[]
+	---@return PositionXZ? position
 	function math.getClosestPosition(x, z, positions)
 		if not (x and z and positions and positions[1]) then
 			return

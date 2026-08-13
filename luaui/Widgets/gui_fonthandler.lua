@@ -85,6 +85,15 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy, true)
 
 	WG.fonts = {}
+	---Returns a cached font, creating it on first use. Sizes are relative to the
+	---UI's base font size, so the same call scales with the player's UI settings.
+	---@param file string|1|2|3|nil A font path, or `1`-`3` for the built-in fonts.
+	---Defaults to the primary font.
+	---@param size number? Multiplier on the base font size. Defaults to `1`.
+	---@param outlineSize number? Multiplier on the base outline size.
+	---@param outlineStrength number? Defaults to the configured outline strength.
+	---@return LuaFont font
+	---@return number size The resolved pixel size, already scaled.
 	WG.fonts.getFont = function(file, size, outlineSize, outlineStrength)
 		if not file or file == 1 then
 			file = defaultFont

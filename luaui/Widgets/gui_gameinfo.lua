@@ -26,7 +26,9 @@ local valuecolor = "\255\255\255\255"
 local valuegreycolor = "\255\180\180\180"
 local separator = "::"
 
-local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, show
+local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader
+---@type boolean
+local show
 local maxLines = 22
 local math_isInRect = math.isInRect
 
@@ -636,6 +638,9 @@ function widget:Initialize()
 	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, "p")
 
 	WG.gameinfo = {}
+	---@type boolean
+	---Shows or hides the game info window, closing the top bar windows when it opens.
+	---@param state boolean? Omit to toggle.
 	WG.gameinfo.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
@@ -646,6 +651,7 @@ function widget:Initialize()
 		end
 		show = newShow
 	end
+	---@return boolean visible
 	WG.gameinfo.isvisible = function()
 		return show
 	end

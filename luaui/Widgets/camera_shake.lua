@@ -52,9 +52,12 @@ function widget:Initialize()
 	spSetShockFrontFactors(minArea, minPower, distAdj)
 
 	WG.camerashake = {}
+	---@return integer strength Camera shake power scale; `0` disables shake.
 	WG.camerashake.getStrength = function()
 		return powerScale
 	end
+	---Sets the camera shake power scale, updating the engine's shock front thresholds.
+	---@param value number Rounded down; `0` or less disables shake.
 	WG.camerashake.setStrength = function(value)
 		powerScale = mathFloor(value)
 		if powerScale <= 0 then

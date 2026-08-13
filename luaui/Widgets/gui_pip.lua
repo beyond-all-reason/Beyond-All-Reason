@@ -8533,6 +8533,7 @@ local function RegisterMinimapWGAPI()
 		return
 	end
 	WG.minimap = {}
+	---@return number height Current minimap height in pixels, or `0` while minimized.
 	WG.minimap.getHeight = function()
 		if miscState.minimapMinimized then
 			return 0
@@ -8540,34 +8541,58 @@ local function RegisterMinimapWGAPI()
 		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
 		return (render.dim.t - render.dim.b) + padding
 	end
+	---@return integer pixels Highest the minimap may grow to.
+	---@return number fraction The same limit as a fraction of screen height.
 	WG.minimap.getMaxHeight = function()
 		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
 	end
+	---Sets how tall the minimap may grow, persists it, and relays out.
+	---@param value number Fraction of screen height.
 	WG.minimap.setMaxHeight = function(value)
 		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		config.minimapModeMaxHeight = value
 		widget:ViewResize()
 	end
+	---@return boolean move Whether left-clicking the minimap pans the camera.
 	WG.minimap.getLeftClickMove = function()
 		return config.leftButtonPansCamera
 	end
+	---Makes left-clicking the minimap pan the camera, and persists the choice.
+	---@param value boolean
 	WG.minimap.setLeftClickMove = function(value)
 		config.leftButtonPansCamera = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
+	---@return boolean active Always `true`; the standalone minimap widget returns nothing.
 	WG.minimap.isPipMinimapActive = function()
 		return true
 	end
 	WG.minimap.isDrawingInPip = false
+	---Screen rectangle the minimap occupies.
+	---@return number left
+	---@return number bottom
+	---@return number right
+	---@return number top
 	WG.minimap.getScreenBounds = function()
 		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
 	end
+	---World area the minimap currently shows, in elmos.
+	---@return number left
+	---@return number right
+	---@return number bottom
+	---@return number top
 	WG.minimap.getVisibleWorldArea = function()
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
+	---@return number radians Minimap rotation; `0` when unrotated.
 	WG.minimap.getRotation = function()
 		return render.minimapRotation or 0
 	end
+	---World area the minimap shows, as fractions of the map size.
+	---@return number left
+	---@return number right
+	---@return number bottom
+	---@return number top
 	WG.minimap.getNormalizedVisibleArea = function()
 		local normVisLeft = render.world.l / mapInfo.mapSizeX
 		local normVisRight = render.world.r / mapInfo.mapSizeX
@@ -8575,18 +8600,25 @@ local function RegisterMinimapWGAPI()
 		local normVisTop = render.world.t / mapInfo.mapSizeZ
 		return normVisLeft, normVisRight, normVisBottom, normVisTop
 	end
+	---@return number zoom Map width divided by the visible width; `1` shows the whole map.
 	WG.minimap.getZoomLevel = function()
 		return mapInfo.mapSizeX / (render.world.r - render.world.l)
 	end
+	---@return boolean show Whether spectator map pings are drawn.
 	WG.minimap.getShowSpectatorPings = function()
 		return config.showSpectatorPings
 	end
+	---@param value boolean Draw spectator map pings.
 	WG.minimap.setShowSpectatorPings = function(value)
 		config.showSpectatorPings = value
 	end
+	---@return boolean fallback Whether the engine minimap is used when PIP cannot render.
 	WG.minimap.getEngineMinimapFallback = function()
 		return config.engineMinimapFallback
 	end
+	---Allows falling back to the engine minimap. Turning it off while the engine
+	---minimap is showing restores the icon scale and re-minimizes it.
+	---@param value boolean
 	WG.minimap.setEngineMinimapFallback = function(value)
 		config.engineMinimapFallback = value
 		if not value and miscState.engineMinimapActive then
@@ -8602,18 +8634,25 @@ local function RegisterMinimapWGAPI()
 			pipR2T.unitsNeedsUpdate = true
 		end
 	end
+	---@return number threshold Frame cost above which the engine minimap takes over.
 	WG.minimap.getEngineMinimapFallbackThreshold = function()
 		return config.engineMinimapFallbackThreshold
 	end
+	---@param value number Frame cost above which the engine minimap takes over.
 	WG.minimap.setEngineMinimapFallbackThreshold = function(value)
 		config.engineMinimapFallbackThreshold = value
 	end
+	---@return boolean show Whether explosions are overlaid on the engine minimap.
 	WG.minimap.getEngineMinimapExplosionOverlay = function()
 		return config.engineMinimapExplosionOverlay
 	end
+	---@param value boolean Overlay explosions on the engine minimap.
 	WG.minimap.setEngineMinimapExplosionOverlay = function(value)
 		config.engineMinimapExplosionOverlay = value
 	end
+	---Remembers the icon scale to restore when the engine minimap fallback ends.
+	---Ignored unless the engine minimap is active.
+	---@param value number
 	WG.minimap.setBaseIconScale = function(value)
 		if miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = value
@@ -9495,62 +9534,124 @@ function widget:Initialize()
 
 	-- Create API for other widgets
 	WG["pip" .. pipNumber] = {}
+	---The PIP API table. `WG['pip'..n]` is a computed key, so it has to be pinned
+	---here or it widens to the union of every typed `WG` member.
+	---@type table
 	local pipApi = WG["pip" .. pipNumber]
+	---@param mx number
+	---@param my number
+	---@return boolean above Whether the position is over this PIP window.
 	pipApi.IsAbove = function(mx, my)
 		return widget:IsAbove(mx, my)
 	end
+	---Marks the PIP's rendered contents stale, so they redraw next frame.
 	pipApi.ForceUpdate = function()
 		pipR2T.contentNeedsUpdate = true
 	end
+	---@param fps number Redraws per second; `0` or less redraws every frame.
 	pipApi.SetUpdateRate = function(fps)
 		pipUpdateRate = fps
 		pipUpdateInterval = pipUpdateRate > 0 and (1 / pipUpdateRate) or 0
 	end
+	---@return number fps
 	pipApi.GetUpdateRate = function()
 		return pipUpdateRate
 	end
+	---@param enabled boolean Draw the distance ruler over the PIP.
 	pipApi.SetMapRuler = function(enabled)
 		config.showMapRuler = enabled
 	end
+	---@return boolean enabled
 	pipApi.GetMapRuler = function()
 		return config.showMapRuler
 	end
+	---@return number seconds Default easing time used when a call omits one.
 	pipApi.GetDefaultTransitionTime = function()
 		return config.switchTransitionTime
 	end
+	---Moves and zooms the PIP camera in one call, clearing any tracking.
+	---@param wcx number?
+	---@param wcz number?
+	---@param zoom number?
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean applied `false` when neither a position nor a zoom was given.
 	pipApi.SetCamera = function(wcx, wcz, zoom, transitionTime)
 		return ApplyApiCameraTarget(wcx, wcz, zoom, transitionTime, true)
 	end
+	---A snapshot of a PIP window's camera, as returned by `GetState`.
+	---@class PipState
+	---@field wcx number Current world center X.
+	---@field wcz number Current world center Z.
+	---@field targetWcx number World center X the camera is easing toward.
+	---@field targetWcz number World center Z the camera is easing toward.
+	---@field zoom number Current zoom.
+	---@field targetZoom number Zoom the camera is easing toward.
+	---@field trackingPlayerID integer? Player being followed, if any.
+	---@field trackedUnits integer[]? Units being followed, if any.
+
+	---Restores a camera snapshot, resuming any tracking it recorded.
+	---@param stateData PipState
+	---@param transitionTime number? Seconds to ease over. Defaults to the configured time.
+	---@return boolean applied `false` when `stateData` is not a table, or has nothing to apply.
 	pipApi.SetState = function(stateData, transitionTime)
 		return SetStateApi(stateData, transitionTime)
 	end
+	---Zooms out to show the whole map, clearing any tracking.
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean applied
 	pipApi.ZoomOutFull = function(transitionTime)
 		return ZoomOutFullApi(transitionTime)
 	end
+	---Stops the player from panning or zooming this PIP, leaving API control working.
+	---@param locked boolean
+	---@return boolean
 	pipApi.SetInteractionLocked = function(locked)
 		return SetInteractionLockedApi(locked)
 	end
+	---@return boolean locked
 	pipApi.GetInteractionLocked = function()
 		return miscState.apiInteractionLocked
 	end
+	---Runs a scripted camera sequence, for debugging the PIP camera.
 	pipApi.DebugCameraSequence = function()
 		return StartDebugCameraSequenceApi()
 	end
+	---Moves the PIP camera to a world position, clearing any tracking.
+	---@param wcx number
+	---@param wcz number
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean applied
 	pipApi.SetPosition = function(wcx, wcz, transitionTime)
 		return ApplyApiCameraTarget(wcx, wcz, nil, transitionTime, true)
 	end
+	---Sets the PIP zoom without moving the camera or clearing tracking.
+	---@param zoom number
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean applied
 	pipApi.SetZoom = function(zoom, transitionTime)
 		return ApplyApiCameraTarget(nil, nil, zoom, transitionTime, false)
 	end
+	---Follows one or more units, replacing any player tracking.
+	---@param unitsOrUnitID integer|integer[]
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean tracking `false` when no valid unit was given.
 	pipApi.TrackUnits = function(unitsOrUnitID, transitionTime)
 		return TrackUnitsApi(unitsOrUnitID, transitionTime)
 	end
+	---Follows a player's camera, replacing any unit tracking.
+	---@param playerID integer
+	---@param transitionTime number? Seconds to ease over.
+	---@return boolean tracking
 	pipApi.TrackPlayer = function(playerID, transitionTime)
 		return TrackPlayerApi(playerID, transitionTime)
 	end
+	---Stops following any player or units.
+	---@return boolean
 	pipApi.ClearTracking = function()
 		return ClearTrackingApi()
 	end
+	---Stops following a player, leaving unit tracking alone.
+	---@return boolean stopped `false` when no player was being followed.
 	pipApi.UntrackPlayer = function()
 		if interactionState.trackingPlayerID then
 			interactionState.trackingPlayerID = nil
@@ -9560,12 +9661,15 @@ function widget:Initialize()
 		end
 		return false
 	end
+	---@return integer? playerID `nil` when no player is being followed.
 	pipApi.GetTrackedPlayer = function()
 		return interactionState.trackingPlayerID
 	end
+	---@return integer[]? unitIDs `nil` when no units are being followed.
 	pipApi.GetTrackedUnits = function()
 		return interactionState.areTracking
 	end
+	---@return PipState
 	pipApi.GetState = function()
 		return {
 			wcx = cameraState.wcx,
@@ -9579,17 +9683,34 @@ function widget:Initialize()
 		}
 	end
 	-- API for minimap mode: get visible world area
+	---@return boolean minimapMode Whether this PIP is standing in for the minimap.
 	pipApi.IsMinimapMode = function()
 		return isMinimapMode
 	end
+	---World area the PIP currently shows, in elmos.
+	---@return number left
+	---@return number right
+	---@return number bottom
+	---@return number top
 	pipApi.GetVisibleWorldArea = function()
 		-- Returns the visible world coordinates: left, right, bottom, top
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
+	---Screen rectangle the PIP occupies.
+	---@return number left
+	---@return number right
+	---@return number bottom
+	---@return number top
 	pipApi.GetScreenBounds = function()
 		-- Returns the screen coordinates of the PIP
 		return render.dim.l, render.dim.r, render.dim.b, render.dim.t
 	end
+	---Converts a screen position inside the PIP into world coordinates.
+	---@param mx number
+	---@param my number
+	---@return number? worldX `nil` when interaction is locked, the PIP is minimized,
+	---or the position is outside the PIP's map area.
+	---@return number? worldZ
 	pipApi.ScreenToWorld = function(mx, my)
 		if
 			miscState.apiInteractionLocked
@@ -9600,45 +9721,63 @@ function widget:Initialize()
 		end
 		return PipToWorldCoords(mx, my)
 	end
+	---@return boolean minimized
 	pipApi.IsMinimized = function()
 		return uiState.inMinMode or (isMinimapMode and miscState.minimapMinimized)
 	end
+	---@return number zoom
 	pipApi.GetZoom = function()
 		return cameraState.zoom
 	end
+	---@return number wcx
+	---@return number wcz
 	pipApi.GetCameraCenter = function()
 		return cameraState.wcx, cameraState.wcz
 	end
 	-- Expose ghost building cache so sibling PIPs can share data on reload
+	---Exposes the ghost building cache so sibling PIPs can share it across a reload.
+	---@return table<integer, {defID: integer, x: number, z: number, teamID: integer}> ghostBuildings
+	---Keyed by unitID. Do not mutate.
 	pipApi.GetGhostBuildings = function()
 		return ghostBuildings
 	end
+	---@return boolean draw Whether command lines are drawn inside the PIP.
 	pipApi.getDrawCommandFX = function()
 		return config.drawCommandFX
 	end
+	---@param value boolean Draw command lines inside the PIP.
 	pipApi.setDrawCommandFX = function(value)
 		config.drawCommandFX = value
 		pipR2T.unitsNeedsUpdate = true
 	end
+	---@return boolean draw Whether nano streams are drawn inside the PIP.
 	pipApi.getDrawNanoStreams = function()
 		return config.drawNanoStreams
 	end
+	---Draws nano streams inside the PIP, forcing a rescan.
+	---@param value boolean
 	pipApi.setDrawNanoStreams = function(value)
 		config.drawNanoStreams = value
 		gl4Prim.nanoStreams.lastScanFrame = -1000
 		pipR2T.unitsNeedsUpdate = true
 	end
+	---@return boolean reflect Whether nano stream colors follow the resource being used.
 	pipApi.getNanoStreamReflectUsage = function()
 		return config.nanoStreamReflectUsage
 	end
+	---Colors nano streams by the resource being used, forcing a rescan.
+	---@param value boolean
 	pipApi.setNanoStreamReflectUsage = function(value)
 		config.nanoStreamReflectUsage = value
 		gl4Prim.nanoStreams.lastScanFrame = -1000
 		pipR2T.unitsNeedsUpdate = true
 	end
+	---@return boolean show Whether player map drawings appear in the PIP.
 	pipApi.getShowMapDrawings = function()
 		return config.showMapDrawings
 	end
+	---Shows player map drawings in the PIP. Turning it off releases the cached lines.
+	---@param value boolean
 	pipApi.setShowMapDrawings = function(value)
 		config.showMapDrawings = value
 		if not value then
@@ -9653,17 +9792,21 @@ function widget:Initialize()
 		miscState.mapLinesDirty = true
 		miscState.mapLinesNextUpdateTime = 0
 	end
+	---@return number seconds How long map drawings stay visible.
 	pipApi.getMapDrawingDuration = function()
 		return config.mapDrawingDuration
 	end
+	---@param value number|string? Seconds, at least `0.1`. Defaults to `12`.
 	pipApi.setMapDrawingDuration = function(value)
 		config.mapDrawingDuration = math.max(0.1, tonumber(value) or 12)
 		miscState.mapLinesDirty = true
 		miscState.mapLinesNextUpdateTime = 0
 	end
+	---@return boolean required Whether alt must be held to zoom the PIP with the wheel.
 	pipApi.getAltKeyRequiredForZoom = function()
 		return config.altKeyRequiredForZoom
 	end
+	---@param value boolean Require alt to zoom the PIP with the wheel.
 	pipApi.setAltKeyRequiredForZoom = function(value)
 		config.altKeyRequiredForZoom = value
 	end
@@ -9674,6 +9817,7 @@ function widget:Initialize()
 	if isMinimapMode then
 		WG.pip_minimap = pipApi
 		-- Also expose getHeight like the original minimap widget for topbar compatibility
+		---@return number height Current minimap height in pixels, or `0` while minimized.
 		WG.pip_minimap.getHeight = function()
 			if miscState.minimapMinimized then
 				return 0

@@ -55,6 +55,9 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 	end
 
 	---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+	---@param shieldUnitID integer
+	---@param damage number? Omit to derive the damage from `weaponDefID`.
+	---@param weaponDefID integer? Used to look up the shield damage when `damage` is omitted.
 	---@return boolean exhausted The damage was mitigated, in full, by the shield.
 	---@return number damageDone The amount of damage done to the targeted shield.
 	local function addEngineShieldDamage(shieldUnitID, damage, weaponDefID)
@@ -132,6 +135,12 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		registerScriptedShieldEntry(projectileTbl, callback)
 	end
 
+	---Add a scripted weapon type to be handled by the shield behavior gadget.
+	---@param projectileTbl table [projectileID] := true
+	---@param callback ShieldPreDamagedCallback? accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	---Stand-in for the sphere queries, which engine shields do not support.
+	---@return integer[] shieldUnits Always empty.
+	---@return integer count Always `0`.
 	local function getEmptyResultSet()
 		return {}, 0
 	end
@@ -143,10 +152,14 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
 		GG.Shields.GetUnitShieldState = spGetUnitShieldState
 		-- FIXME: The shields api does not have full coverage for engine/bounce shields.
+		---Not supported for engine shields; always returns nothing.
+		---@type fun(shieldUnitID: integer): number?, number?, number?, number?
 		GG.Shields.GetUnitShieldPosition = function() end
 		GG.Shields.GetShieldUnitsInSphere = getEmptyResultSet
 		GG.Shields.GetBlockingShieldUnits = getEmptyResultSet
 		GG.Shields.GetCoveringShieldUnits = getEmptyResultSet
+		---Not supported for engine shields; always returns `false`.
+		---@type fun(x: number, y: number, z: number, shieldUnitID: integer): boolean
 		GG.Shields.IsInShield = function()
 			return false
 		end -- unfortunate
@@ -770,6 +783,7 @@ end
 
 -- Gadget interface methods ----------------------------------------------------
 
+---@param shieldUnitID integer
 ---@return integer state 0 := DISABLED, 1 := ENABLED
 ---@return number shieldHealthRemaining including the (hidden) damage done this frame so far
 local function getUnitShieldState(shieldUnitID)
@@ -790,6 +804,9 @@ local function getUnitShieldState(shieldUnitID)
 end
 
 ---Pass a `weaponDefID` instead of a `damage` for shield damage to be determined for you.
+---@param shieldUnitID integer
+---@param damage number? Omit to derive the damage from `weaponDefID`.
+---@param weaponDefID integer? Used to look up the shield damage when `damage` is omitted.
 ---@return boolean exhausted The damage was mitigated, in full, by the shield.
 ---@return number damageDone The amount of damage done to the targeted shield.
 local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
@@ -816,6 +833,7 @@ local function addCustomShieldDamage(shieldUnitID, damage, weaponDefID)
 	return false, 0
 end
 
+---@param shieldUnitID integer
 ---@return number? x xyz, emitter point of the shield weapon
 ---@return number? y
 ---@return number? z
@@ -890,8 +908,8 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param allyTeam integer The ally team for the incoming damage source.
 ---@param radius number? Additive with the radius of the target shield (default := `0.01`)
+---@param allyTeam integer? The ally team for the incoming damage source.
 ---@param onlyAlive boolean? Navigate the rework's one-frame delay on shield effects by excluding recently-dead units (default := `false`)
 ---@return integer[] shieldUnits
 ---@return integer count

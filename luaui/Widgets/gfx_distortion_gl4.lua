@@ -140,25 +140,40 @@ local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
-local pointDistortionVBO = {} -- an instanceVBOTable
-local coneDistortionVBO = {} -- an instanceVBOTable
-local beamDistortionVBO = {} -- an instanceVBOTable
-local distortionVBOMap -- a table of the above 3, keyed by distortion type, {point = pointDistortionVBO, ...}
+---@type InstanceVBOTable
+local pointDistortionVBO = {}
+---@type InstanceVBOTable
+local coneDistortionVBO = {}
+---@type InstanceVBOTable
+local beamDistortionVBO = {}
+---Table of the above 3, keyed by distortion type., {point = pointDistortionVBO, ...}
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
+local distortionVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based distortions
-local unitPointDistortionVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeDistortionVBO = {} -- an instanceVBOTable
-local unitBeamDistortionVBO = {} -- an instanceVBOTable
-local unitDistortionVBOMap -- a table of the above 3, keyed by distortion type,  {point = unitPointDistortionVBO, ...}
+---@type InstanceVBOTable
+local unitPointDistortionVBO = {}
+---@type InstanceVBOTable
+local unitConeDistortionVBO = {}
+---@type InstanceVBOTable
+local unitBeamDistortionVBO = {}
+---Table of the above 3, keyed by distortion shape,  {point = unitPointDistortionVBO, ...}
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
+local unitDistortionVBOMap
 
 local unitAttachedDistortions = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptdistortions to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
+---@type InstanceVBOTable
 local projectilePointDistortionVBO = {} -- for plasma balls
+---@type InstanceVBOTable
 local projectileBeamDistortionVBO = {} -- for lasers
+---@type InstanceVBOTable
 local projectileConeDistortionVBO = {} -- for rockets
+---Keyed by distortion shape: `point`, `beam`, `cone`.
+---@type table<"point"|"beam"|"cone", InstanceVBOTable>
 local projectileDistortionVBOMap -- a table of the above 3, keyed by distortion type
 
 local distortionRemoveQueue = {} -- stores distortions that have expired life {gameframe = {distortionIDs ... }}
@@ -550,13 +565,21 @@ end
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
----@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
----@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
----@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
----@param targetVBO table specify which one you want it to
----@param distortionparams table a valid table of distortion parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
----@return instanceID for future reuse
+---@param instanceID string|number|nil Key for this distortion. Pass `nil` for an
+---auto-generated number, or an existing key to update that distortion in place.
+---Callers here use both forms: `nil`, and strings like `"<unitID><distortionName>"`.
+---@param unitID integer? Attaches the distortion to a unit, making the position in
+---`distortionparams` an offset from it instead of an absolute world position.
+---`nil` leaves it fixed in the world.
+---@param pieceIndex integer? Piece to attach to when `unitID` is given; `0`, and the
+---default, attach to the model origin. Ignored when `unitID` is `nil`.
+---@param targetVBO InstanceVBOTable Which distortion buffer to add to; this also picks the shape
+---(point/beam/cone) and whether it is drawn in the world or unit-attached pass.
+---@param distortionparams number[] A flat array of exactly `instanceStep` values, laid
+---out by `distortionParamKeyOrder`.
+---@param noUpload boolean? `true` to skip uploading to the GPU for now.
+---@return string|number|nil instanceID The key this distortion is filed under, for
+---future reuse; `nil` when the push failed.
 local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 	if instanceID == nil then
 		autoDistortionInstanceID = autoDistortionInstanceID + 1
@@ -668,9 +691,10 @@ end
 
 ---RemoveUnitAttachedDistortions(unitID, instanceID)
 ---Removes all or 1 distortion attached to a unit
----@param unitID the unit to remove distortions from
----@param instanceID which distortion to remove, if nil, then all distortions will be removed
----@returns the number of distortions that got removed
+---@param unitID integer The unit to remove distortions from.
+---@param instanceID string|number|nil Which distortion to remove. Removes all of the
+---unit's distortions when `nil`.
+---@return integer count The number of distortions that got removed.
 local function RemoveUnitAttachedDistortions(unitID, instanceID)
 	local numremoved = 0
 	if unitAttachedDistortions[unitID] then
@@ -698,10 +722,11 @@ end
 
 ---RemoveDistortion(distortionshape, instanceID, unitID)
 ---Remove a distortion
----@param distortionshape string 'point'|'beam'|'cone'
----@param instanceID any the ID of the distortion to remove
----@param unitID number make this non-nil to remove it from a unit
----@returns the same instanceID on success, nil if the distortion was not found
+---@param distortionshape "point"|"beam"|"cone" Ignored when `unitID` is given.
+---@param instanceID string|number The key the distortion was filed under.
+---@param unitID integer? Make this non-nil to remove it from a unit.
+---@param noUpload boolean? True if the change shouldn't be uploaded to the GPU yet.
+---@return integer? index Buffer index the distortion occupied; `nil` when it was not found.
 local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	if unitID then
 		if unitAttachedDistortions[unitID] and unitAttachedDistortions[unitID][instanceID] then
@@ -881,6 +906,9 @@ local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	end
 end
 
+---Not implemented; always returns `nil`.
+---@param vboName string
+---@return nil
 local function GetDistortionVBO(vboName)
 	return nil
 end
@@ -909,51 +937,6 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the distortions for thi
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveUnitAttachedDistortions(unitID)
 	visibleUnits[unitID] = nil
-end
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction("distortionGL4stats", "t")
-	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
-	-- TODO: delete the VBOs and shaders like a good boy
-	WG.distortionsgl4 = nil
-	widgetHandler:DeregisterGlobal("AddDistortion")
-	widgetHandler:DeregisterGlobal("RemoveDistortion")
-
-	deferredDistortionShader:Delete()
-	local ram = 0
-	for distortiontype, vbo in pairs(unitDistortionVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-	for distortiontype, vbo in pairs(projectileDistortionVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-	for distortiontype, vbo in pairs(distortionVBOMap) do
-		ram = ram + vbo:Delete()
-	end
-
-	--spEcho("distortionGL4 ram usage MB = ", ram / 1000000)
-	--spEcho("featureDefDistortions", table.countMem(featureDefDistortions))
-	--spEcho("unitEventDistortions", table.countMem(unitEventDistortions))
-	--spEcho("unitDefDistortions", table.countMem(unitDefDistortions))
-	--spEcho("projectileDefDistortions", table.countMem(projectileDefDistortions))
-	--spEcho("explosionDistortions", table.countMem(explosionDistortions))
-
-	-- Note, these must be nil'ed manually, because
-	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
-	unitDefDistortions = nil
-	featureDefDistortions = nil
-	unitEventDistortions = nil
-	muzzleFlashDistortions = nil
-	projectileDefDistortions = nil
-	explosionDistortions = nil
-	gibDistortion = nil
-
-	glDeleteTexture(ScreenCopy)
-	glDeleteTexture(DistortionTexture)
-	ScreenCopy, DistortionTexture = nil, nil
-
-	--collectgarbage("collect")
-	--collectgarbage("collect")
 end
 
 local windX = 0
@@ -1707,9 +1690,13 @@ function widget:Initialize()
 	WG.distortionsgl4.RemoveDistortion = RemoveDistortion
 	WG.distortionsgl4.GetDistortionVBO = GetDistortionVBO
 
+	---Globally scales the strength of every distortion.
+	---@param value number
 	WG.distortionsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
+	---Globally scales the radius of every distortion.
+	---@param value number
 	WG.distortionsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
@@ -1717,6 +1704,51 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("AddDistortion", WG.distortionsgl4.AddDistortion)
 	widgetHandler:RegisterGlobal("RemoveDistortion", WG.distortionsgl4.RemoveDistortion)
 	widgetHandler:RegisterGlobal("GetDistortionVBO", WG.distortionsgl4.GetDistortionVBO)
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("distortionGL4stats", "t")
+	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
+	-- TODO: delete the VBOs and shaders like a good boy
+	WG.distortionsgl4 = nil
+	widgetHandler:DeregisterGlobal("AddDistortion")
+	widgetHandler:DeregisterGlobal("RemoveDistortion")
+
+	deferredDistortionShader:Delete()
+	local ram = 0
+	for distortiontype, vbo in pairs(unitDistortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for distortiontype, vbo in pairs(projectileDistortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for distortiontype, vbo in pairs(distortionVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+
+	--spEcho("distortionGL4 ram usage MB = ", ram / 1000000)
+	--spEcho("featureDefDistortions", table.countMem(featureDefDistortions))
+	--spEcho("unitEventDistortions", table.countMem(unitEventDistortions))
+	--spEcho("unitDefDistortions", table.countMem(unitDefDistortions))
+	--spEcho("projectileDefDistortions", table.countMem(projectileDefDistortions))
+	--spEcho("explosionDistortions", table.countMem(explosionDistortions))
+
+	-- Note, these must be nil'ed manually, because
+	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
+	unitDefDistortions = nil
+	featureDefDistortions = nil
+	unitEventDistortions = nil
+	muzzleFlashDistortions = nil
+	projectileDefDistortions = nil
+	explosionDistortions = nil
+	gibDistortion = nil
+
+	glDeleteTexture(ScreenCopy)
+	glDeleteTexture(DistortionTexture)
+	ScreenCopy, DistortionTexture = nil, nil
+
+	--collectgarbage("collect")
+	--collectgarbage("collect")
 end
 
 function widget:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)

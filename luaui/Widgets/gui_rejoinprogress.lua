@@ -399,6 +399,7 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	WG.rejoin = {}
+	---@return boolean showing Whether the rejoin progress UI is on screen.
 	WG.rejoin.showingRejoining = function()
 		return showRejoinUI
 	end

@@ -155,6 +155,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.unittotals = {}
+	---Screen rectangle of the unit totals panel.
+	---@return DockedPanelPosition position
 	WG.unittotals.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

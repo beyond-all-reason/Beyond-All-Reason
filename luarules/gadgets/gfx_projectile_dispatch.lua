@@ -213,6 +213,13 @@ end
 --------------------------------------------------------------------------------
 -- Public API
 --------------------------------------------------------------------------------
+
+---Registers a consumer of one of the shared projectile scans. The dispatcher runs
+---each scan at most once per tick and hands every subscriber its filtered matches.
+---@param name string Label used in debug output.
+---@param defIDSet table<integer, true>? Set of weaponDefIDs to keep; `nil` matches every projectile.
+---@param scanID 1|2|3 One of `SCAN_VISIBLE`, `SCAN_MAP_WEAPONS` or `SCAN_MAP_PIECES`.
+---@return integer? handle `nil` when `scanID` is invalid.
 local function Subscribe(name, defIDSet, scanID)
 	local subs = subscribersByScan[scanID]
 	if not subs then
@@ -234,6 +241,10 @@ local function Subscribe(name, defIDSet, scanID)
 	return nextHandle
 end
 
+---Returns this subscriber's matching projectiles, refreshing the scan if stale.
+---@param handle integer As returned by `Subscribe`.
+---@return integer[]? projectileIDs `nil` when the handle is unknown.
+---@return integer count Number of valid entries in `projectileIDs`.
 local function GetMatches(handle)
 	local sub = subscribers[handle]
 	if not sub then
@@ -245,6 +256,11 @@ local function GetMatches(handle)
 	return sub.matches, sub.matchCount
 end
 
+---As `GetMatches`, but also returns the weaponDefID of each matched projectile.
+---@param handle integer As returned by `Subscribe`.
+---@return integer[]? projectileIDs `nil` when the handle is unknown.
+---@return integer[]? weaponDefIDs Parallel to `projectileIDs`.
+---@return integer count Number of valid entries in both arrays.
 local function GetMatchesWithDefIDs(handle)
 	local sub = subscribers[handle]
 	if not sub then
@@ -256,6 +272,10 @@ local function GetMatchesWithDefIDs(handle)
 	return sub.matches, sub.matchDefIDs, sub.matchCount
 end
 
+---Returns the unfiltered result of a scan, refreshing it if stale.
+---@param scanID 1|2|3 One of `SCAN_VISIBLE`, `SCAN_MAP_WEAPONS` or `SCAN_MAP_PIECES`.
+---@return integer[]? projectileIDs `nil` when `scanID` is invalid.
+---@return integer count Number of valid entries in `projectileIDs`.
 local function GetScan(scanID)
 	local state = scanState[scanID]
 	if not state then

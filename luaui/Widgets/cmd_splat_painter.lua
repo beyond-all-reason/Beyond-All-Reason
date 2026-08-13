@@ -97,6 +97,7 @@ local activeChannel = 1 -- 1=R, 2=G, 3=B, 4=A
 local activeStrength = DEFAULT_STRENGTH
 local activeIntensity = DEFAULT_INTENSITY
 local activeRadius = DEFAULT_RADIUS
+---@type BrushShape
 local activeShape = "circle"
 local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
@@ -817,6 +818,9 @@ local function executeSaveSplats(explicitPath)
 end
 
 -- Public API: always defers to DrawWorld
+---Queues an export of the splat texture, written on the next draw pass.
+---Poll `isSavePending`.
+---@param explicitPath string? Defaults to a path derived from the map name.
 local function requestSaveSplats(explicitPath)
 	if not fboTex and not active then
 		Echo("[Splat Painter] No splat texture to save")
@@ -896,6 +900,10 @@ local function executeLoadSplats(path)
 end
 
 -- Public API: defers to DrawWorld (GL work). Poll isLoadPending / getLoadResult.
+---Queues loading a splat texture from disk, applied on the next draw pass.
+---Poll `isLoadPending` and then `getLoadResult`.
+---@param path string
+---@return boolean started `false` when `path` is empty.
 local function requestLoadSplats(path)
 	if not path or path == "" then
 		Echo("[Splat Painter] loadSplats: no path given")
@@ -908,6 +916,9 @@ end
 
 -- ============ GEO DECAL PLACEMENT ============
 
+---Stamps a geo decal at a map position, at the current rotation and size.
+---@param worldX number
+---@param worldZ number
 local function placeGeoDecal(worldX, worldZ)
 	local halfSize = GEO_DECAL_SIZE * 0.5
 	placedGeoDecals[#placedGeoDecals + 1] = {
@@ -927,6 +938,7 @@ local function placeGeoDecal(worldX, worldZ)
 	)
 end
 
+---Removes the most recently placed geo decal.
 local function undoGeoDecal()
 	if #placedGeoDecals == 0 then
 		Echo("[Splat Painter] No geo decals to undo")
@@ -976,14 +988,17 @@ local function takeSnapshot()
 	redoStack = {}
 end
 
+---Queues an undo, applied on the next draw pass.
 local function splatUndo()
 	pendingUndoCount = pendingUndoCount + 1
 end
 
+---Queues a redo, applied on the next draw pass.
 local function splatRedo()
 	pendingRedoCount = pendingRedoCount + 1
 end
 
+---Removes every placed geo decal.
 local function clearGeoDecals()
 	for i = #placedGeoDecals, 1, -1 do
 		placedGeoDecals[i] = nil
@@ -991,11 +1006,14 @@ local function clearGeoDecals()
 	Echo("[Splat Painter] Cleared all geo decals")
 end
 
+---Switches between painting splats and placing geo decals.
+---@param enabled boolean
 local function setGeoDecalMode(enabled)
 	geoDecalMode = enabled
 	invalidateDrawCache()
 end
 
+---@param size number Geo decal size in elmos, clamped to `16`-`512`.
 local function setGeoDecalSize(size)
 	GEO_DECAL_SIZE = max(16, min(512, size))
 	invalidateDrawCache()
@@ -1003,6 +1021,32 @@ end
 
 -- ============ STATE / API ============
 
+---A snapshot of the splat painter, for the UI to render.
+---@class SplatPainterState
+---@field active boolean
+---@field channel integer Splat channel being painted, `1`-`4`.
+---@field strength number
+---@field intensity number
+---@field radius number
+---@field shape BrushShape
+---@field rotationDeg number
+---@field curve number
+---@field fractalAmount number
+---@field fractalFreq number
+---@field eraseMode boolean
+---@field exportFormat "png"|"tga"|"bmp"
+---@field smartEnabled boolean
+---@field smartFilters table<string, boolean|number> The live filter table. Do not mutate.
+---@field splatTexWidth integer
+---@field splatTexHeight integer
+---@field geoDecalMode boolean
+---@field geoDecalSize number
+---@field geoDecalCount integer
+---@field undoCount integer
+---@field redoCount integer
+---@field showSplatOverlay boolean
+
+---@return SplatPainterState
 local function getState()
 	return {
 		active = active,
@@ -1030,10 +1074,13 @@ local function getState()
 	}
 end
 
+---Shows the splat channels as a map overlay.
+---@param enabled boolean?
 local function setSplatOverlay(enabled)
 	showSplatOverlay = enabled and true or false
 end
 
+---Enables the splat painter, compiling its shaders on first use.
 local function activateSplat()
 	if active then
 		return
@@ -1059,6 +1106,7 @@ local function activateSplat()
 	)
 end
 
+---Disables the splat painter.
 local function deactivateSplat()
 	if not active then
 		return
@@ -1070,25 +1118,31 @@ local function deactivateSplat()
 	invalidateDrawCache()
 end
 
+---@param ch integer Splat channel to paint, clamped to `1`-`4`.
 local function setChannel(ch)
 	ch = max(1, min(4, ch))
 	activeChannel = ch
 	invalidateDrawCache()
 end
 
+---@param s number Paint strength per stroke, clamped to the allowed range.
 local function setStrength(s)
 	activeStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, s))
 end
 
+---@param i number Target channel value, clamped to the allowed range.
 local function setIntensity(i)
 	activeIntensity = max(MIN_INTENSITY, min(MAX_INTENSITY, i))
 end
 
+---@param r number Brush radius in elmos, clamped to the allowed range.
 local function setRadius(r)
 	activeRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
 	invalidateDrawCache()
 end
 
+---Sets the brush footprint. Unknown values are ignored.
+---@param s BrushShape
 local function setShape(s)
 	for _, v in ipairs(SHAPES) do
 		if v == s then
@@ -1099,20 +1153,26 @@ local function setShape(s)
 	end
 end
 
+---@param deg number Brush rotation in degrees, wrapped to `[0,360)`.
 local function setRotation(deg)
 	activeRotation = deg % 360
 	invalidateDrawCache()
 end
 
+---@param delta number Degrees to add to the current rotation.
 local function rotateBy(delta)
 	setRotation(activeRotation + delta)
 end
 
+---@param c number Falloff curve exponent, clamped to the allowed range.
 local function setCurve(c)
 	activeCurve = max(MIN_CURVE, min(MAX_CURVE, c))
 	invalidateDrawCache()
 end
 
+---Sets the fractal break-up applied to strokes. Omitted values are left unchanged.
+---@param amount number? Clamped to the allowed range.
+---@param freq number? Clamped to the allowed range.
 local function setFractal(amount, freq)
 	if amount ~= nil then
 		activeFractalAmount = max(MIN_FRACTAL, min(MAX_FRACTAL, amount))
@@ -1123,14 +1183,18 @@ local function setFractal(amount, freq)
 	invalidateDrawCache()
 end
 
+---@param enabled boolean Remove splat coverage instead of adding it.
 local function setEraseMode(enabled)
 	eraseMode = enabled
 end
 
+---Advances the export format to the next of `png`, `tga`, `bmp`.
 local function cycleExportFormat()
 	exportFormatIndex = (exportFormatIndex % #EXPORT_FORMATS) + 1
 end
 
+---Sets the export image format. Unknown values are ignored.
+---@param fmt "png"|"tga"|"bmp"
 local function setExportFormat(fmt)
 	for i, v in ipairs(EXPORT_FORMATS) do
 		if v == fmt then
@@ -1140,10 +1204,15 @@ local function setExportFormat(fmt)
 	end
 end
 
+---Enables the slope and altitude filters that restrict where splats are painted.
+---@param enabled boolean
 local function setSmartEnabled(enabled)
 	smartFilterEnabled = enabled
 end
 
+---Sets one smart filter value. Unknown keys are ignored.
+---@param key string
+---@param val boolean|number
 local function setSmartFilter(key, val)
 	if smartFilter[key] ~= nil then
 		smartFilter[key] = val
@@ -1176,6 +1245,8 @@ function widget:Initialize()
 		rotate = rotateBy,
 		setCurve = setCurve,
 		setFractal = setFractal,
+		---@return number amount
+		---@return number freq
 		getFractal = function()
 			return activeFractalAmount, activeFractalFreq
 		end,
@@ -1183,16 +1254,20 @@ function widget:Initialize()
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		saveSplats = requestSaveSplats,
+		---@return boolean pending
 		isSavePending = function()
 			return pendingSave
 		end,
+		---@return boolean hasState Whether anything has been painted that a save would capture.
 		hasSplatState = function()
 			return fboTex ~= nil
 		end,
 		loadSplats = requestLoadSplats,
+		---@return boolean pending
 		isLoadPending = function()
 			return pendingLoadPath ~= nil
 		end,
+		---@return string? result `"ok"` or `"failed: <reason>"`; `nil` until a load finishes.
 		getLoadResult = function()
 			return lastLoadResult
 		end,

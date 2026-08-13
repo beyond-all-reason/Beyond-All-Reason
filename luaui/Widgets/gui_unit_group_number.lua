@@ -48,6 +48,7 @@ for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
+---@type InstanceVBOTable
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"

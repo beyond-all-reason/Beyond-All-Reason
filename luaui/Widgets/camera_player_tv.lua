@@ -1145,22 +1145,30 @@ function widget:Initialize()
 
 	updatePosition()
 	WG.playertv = {}
+	---Screen rectangle of the PlayerTV panel.
+	---@return DockedPanelPosition position
 	WG.playertv.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
+	---@return boolean active `true` only while PlayerTV is toggled on and spectating.
 	WG.playertv.isActive = function()
 		return (toggled and isSpec)
 	end
+	---@return number seconds How long PlayerTV stays on each player.
 	WG.playertv.GetPlayerChangeDelay = function()
 		return playerChangeDelay
 	end
+	---Sets how long PlayerTV stays on each player, rebuilding the countdown display.
+	---@param value number Seconds.
 	WG.playertv.SetPlayerChangeDelay = function(value)
 		playerChangeDelay = value
 		createCountdownLists()
 	end
+	---@return boolean alwaysDisplay Whether the player name stays on screen between switches.
 	WG.playertv.GetAlwaysDisplayName = function()
 		return alwaysDisplayName
 	end
+	---@param value boolean Keep the player name on screen between switches.
 	WG.playertv.SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
