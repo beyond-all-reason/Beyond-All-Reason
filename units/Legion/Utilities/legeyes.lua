@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "20 24 20",
 		collisionvolumetype = "CylY",
 		cloakcost = 10,
-		corpse = "CDRAGONSEYES_DEAD",
+		corpse = "HEAP",
 		energyupkeep = 5,
 		footprintx = 1,
 		footprintz = 1,
@@ -40,7 +40,7 @@ return {
 			subfolder = "Legion/utilities",
 		},
 		featuredefs = {
-			cdragonseyes_dead = {
+			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",

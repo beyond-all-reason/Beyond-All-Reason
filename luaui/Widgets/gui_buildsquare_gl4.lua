@@ -36,6 +36,7 @@ local glDeleteShader = gl.DeleteShader
 local glUseShader = gl.UseShader
 local glGetShaderLog = gl.GetShaderLog
 local glGetUniformLocation = gl.GetUniformLocation
+local glUniform = gl.Uniform
 local glUniformInt = gl.UniformInt
 local glGetVBO = gl.GetVBO
 local glGetVAO = gl.GetVAO
@@ -49,6 +50,7 @@ local VFS_RAW_FIRST = VFS.RAW_FIRST
 local spSetEngineBuildSquareRendering = Spring.SetEngineBuildSquareRendering or function() end
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
 local spGetGroundNormal = Spring.GetGroundNormal
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
@@ -58,6 +60,7 @@ local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetBuildFacing = Spring.GetBuildFacing
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetTimer = Spring.GetTimer
@@ -85,12 +88,13 @@ local OPEN_YARDMAP_ONLY_WHEN_BLOCKED = true
 local CELL_DISTANCE = 2
 local CORNER_RADIUS = 0.22
 local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
-local EXTENDED_CELLS = 6
+local EXTENDED_CELLS = 0
 local COMBINE_FOUR_CELLS = true
-local EXTENDED_ALPHA_NEAR = 0.11
+local EXTENDED_ALPHA_NEAR = 0.1
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = true
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
+local SHOW_INVALID_FOOTPRINT_BOUNDARY = true
 local EXTENDED_STATUS_UPDATE_INTERVAL = 0.20
 local TARGET_STATUS_CHECKS_PER_GAME_FRAME = 64
 local TARGET_STATUS_CELLS_PER_GAME_FRAME = 512
@@ -100,6 +104,8 @@ local SIMPLIFIED_OUTLINE_SCALE = 0.5
 local SIMPLIFIED_CORNER_RADIUS_SCALE = 0.5
 local SIMPLIFIED_BUILDING_THRESHOLD = 384
 local SIMPLIFIED_CELL_THRESHOLD = 8192
+local MINIMUM_SCREEN_DIAMETER = 3.0
+local MINIMUM_DETAILED_CELL_DIAMETER = 2.0
 local SIMPLIFIED_MINIMAP_ENABLED = true
 local MAX_MINIMAP_BUILDINGS = 16384
 local MAX_BATCH_CELLS = 262144
@@ -113,9 +119,9 @@ local STATUS_COLORS = {
 	[STATUS_BLOCKED]     = { 1.0, 0.1, 0.3, 0.33 },
 	[STATUS_OCCUPIED]    = { 0.75, 1.0, 0.15, 0.33 },
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN]        = { 0.45, 1.0, 0.15, 0.33 },
+	[STATUS_OPEN]        = { 0.70, 0.90, 0.10, 0.33 },
 }
-local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.38 }
+local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.45 }
 -- local STATUS_OUTLINE_COLORS = {
 -- 	[STATUS_BLOCKED]     = { 0.85, 0.05, 0.15, 0.5 },
 -- 	[STATUS_OCCUPIED]    = { 0.18, 0.25, 0.02, 0.7 },
@@ -132,6 +138,7 @@ local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
 
 local HEIGHT_OFFSET = 0.5
+local PREGAME_STARTBOX_HEIGHT_OFFSET = 2.0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -140,6 +147,8 @@ local HEIGHT_OFFSET = 0.5
 local shaderProgram = nil
 local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
+local heightOffsetLoc = nil
+local waterLevelLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -294,12 +303,41 @@ local function getFootprintData(unitDefID, facing)
 	return footprint
 end
 
+local function addQueuedBuildFootprint(unitDefID, x, z, facing)
+	local queuedFootprint = getFootprintData(unitDefID, facing or 0)
+	if not queuedFootprint then
+		return
+	end
+	queuedBuildFootprintCount = queuedBuildFootprintCount + 1
+	local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
+	queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
+	queuedBuildFootprint.minX = x - queuedFootprint.halfXsize * SQUARE_SIZE
+	queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
+	queuedBuildFootprint.minZ = z - queuedFootprint.halfZsize * SQUARE_SIZE
+	queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
+end
+
 local function updateQueuedBuildFootprints(gameFrame)
-	if queuedBuildFootprintsGameFrame == gameFrame then
+	if gameFrame > 0 and queuedBuildFootprintsGameFrame == gameFrame then
 		return
 	end
 	queuedBuildFootprintsGameFrame = gameFrame
 	queuedBuildFootprintCount = 0
+
+	if gameFrame <= 0 then
+		local pregameBuild = WG["pregame-build"]
+		local getBuildQueue = pregameBuild and pregameBuild.getBuildQueue
+		local buildQueue = getBuildQueue and getBuildQueue()
+		if buildQueue then
+			for queueIndex = 1, #buildQueue do
+				local buildData = buildQueue[queueIndex]
+				if buildData[1] and buildData[2] and buildData[4] then
+					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5])
+				end
+			end
+		end
+		return
+	end
 
 	local selectedUnits = spGetSelectedUnits()
 	for selectedIndex = 1, #selectedUnits do
@@ -310,16 +348,7 @@ local function updateQueuedBuildFootprints(gameFrame)
 				local commandID = command.id
 				local params = command.params
 				if commandID < 0 and params and params[1] and params[3] then
-					local queuedFootprint = getFootprintData(-commandID, params[4] or 0)
-					if queuedFootprint then
-						queuedBuildFootprintCount = queuedBuildFootprintCount + 1
-						local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
-						queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
-						queuedBuildFootprint.minX = params[1] - queuedFootprint.halfXsize * SQUARE_SIZE
-						queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
-						queuedBuildFootprint.minZ = params[3] - queuedFootprint.halfZsize * SQUARE_SIZE
-						queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
-					end
+					addQueuedBuildFootprint(-commandID, params[1], params[3], params[4])
 				end
 			end
 		end
@@ -474,6 +503,22 @@ local function getEffectiveExtendedCells()
 	return effectiveExtendedCells, buildSquareGameFrame, statusCheckPeriod, drawSquareCount, simplifiedFootprintMode
 end
 
+local function needsDistanceSimplification(footprint, x, z)
+	local minX = x - footprint.halfXsize * SQUARE_SIZE
+	local maxX = minX + footprint.xsize * SQUARE_SIZE
+	local minZ = z - footprint.halfZsize * SQUARE_SIZE
+	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
+	local screenLeftX = spWorldToScreenCoords(minX, spGetGroundHeight(minX, z), z)
+	local screenRightX = spWorldToScreenCoords(maxX, spGetGroundHeight(maxX, z), z)
+	local _, screenTopY = spWorldToScreenCoords(x, spGetGroundHeight(x, minZ), minZ)
+	local _, screenBottomY = spWorldToScreenCoords(x, spGetGroundHeight(x, maxZ), maxZ)
+	if not screenLeftX or not screenRightX or not screenTopY or not screenBottomY then
+		return false
+	end
+	return mathAbs(screenRightX - screenLeftX) / footprint.xsize < MINIMUM_DETAILED_CELL_DIAMETER
+		or mathAbs(screenBottomY - screenTopY) / footprint.zsize < MINIMUM_DETAILED_CELL_DIAMETER
+end
+
 local function getPredictedCellStatus(unitDef, worldX, worldZ, buildHeight)
 	if worldX < 0 or worldZ < 0 or worldX >= MAP_SIZE_X or worldZ >= MAP_SIZE_Z then
 		return STATUS_BLOCKED, STATUS_OPEN
@@ -611,6 +656,7 @@ local function getPreviewRenderCache(unitDefID, x, z, facing, sequenceIndex)
 	end
 
 	cache.unitDefID = unitDefID
+	cache.floatOnWater = UnitDefs[unitDefID].floatOnWater and 1 or 0
 	cache.x = x
 	cache.z = z
 	cache.facing = facing
@@ -643,6 +689,7 @@ layout (location = 0) in vec2 a_cornerPos;
 layout (location = 1) in vec4 a_cellData;
 layout (location = 2) in vec4 a_color;
 layout (location = 3) in vec4 a_outlineColor;
+layout (location = 4) in float a_floatOnWater;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -656,8 +703,10 @@ out vec2 v_cellUV;
 
 uniform sampler2D heightmapTex;
 uniform float heightOffset;
+uniform float waterLevel;
 uniform float cellInset;
 uniform float cellSize;
+uniform float minimumScreenDiameter;
 uniform int isMiniMap;
 uniform int rotationMiniMap;
 
@@ -688,8 +737,20 @@ void main() {
 	v_cellUV = cellUV;
 	if (isMiniMap == 0) {
 		vec2 uvhm = heightmapUVatWorldPos(vec2(wx, wz));
-		float wy = textureLod(heightmapTex, uvhm, 0.0).x + heightOffset;
-		gl_Position = cameraViewProj * vec4(wx, wy, wz, 1.0);
+		float wy = textureLod(heightmapTex, uvhm, 0.0).x;
+		wy = mix(wy, max(wy, waterLevel), a_floatOnWater) + heightOffset;
+		vec4 clipPosition = cameraViewProj * vec4(wx, wy, wz, 1.0);
+		if (simplified > 0.5) {
+			vec2 centerWorldPos = a_cellData.xy + quadSize * 0.5;
+			vec4 centerClipPosition = cameraViewProj * vec4(centerWorldPos.x, wy, centerWorldPos.y, 1.0);
+			vec2 centerNdcPosition = centerClipPosition.xy / centerClipPosition.w;
+			vec2 cornerNdcOffset = clipPosition.xy / clipPosition.w - centerNdcPosition;
+			float halfDiagonalPixels = length(cornerNdcOffset * viewGeometry.xy * 0.5);
+			float minimumHalfDiagonal = minimumScreenDiameter * 0.5;
+			float expansion = max(1.0, minimumHalfDiagonal / max(halfDiagonalPixels, 0.001));
+			clipPosition.xy = (centerNdcPosition + cornerNdcOffset * expansion) * clipPosition.w;
+		}
+		gl_Position = clipPosition;
 	} else {
 		vec2 ndcxy = vec2(wx, wz) / mapSize.xy * 2.0 - 1.0;
 		if (rotationMiniMap == 0) {
@@ -727,6 +788,7 @@ uniform float simplifiedCornerRadiusScale;
 uniform float cornerRadius;
 uniform float footprintBoundaryEnabled;
 uniform float footprintBoundaryWidth;
+uniform float showInvalidFootprintBoundary;
 uniform vec4 invalidFootprintBoundaryColor;
 
 void main() {
@@ -740,7 +802,9 @@ void main() {
 	vec4 cellColor = mix(v_color, v_outlineColor, outline);
 	vec3 color = cellColor.rgb;
 	float alpha = cellColor.a;
-	if (footprintBoundaryEnabled > 0.5 && v_queuedFootprintConflict > 0.5) {
+	bool showQueuedFootprintBoundary = footprintBoundaryEnabled > 0.5 && v_queuedFootprintConflict > 0.5;
+	bool showInvalidPlacementBoundary = showInvalidFootprintBoundary > 0.5 && v_footprintValid < 0.5;
+	if (showQueuedFootprintBoundary || showInvalidPlacementBoundary) {
 		float leftEdge = mod(floor(v_footprintEdges), 2.0);
 		float rightEdge = mod(floor(v_footprintEdges / 2.0), 2.0);
 		float topEdge = mod(floor(v_footprintEdges / 4.0), 2.0);
@@ -767,6 +831,13 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+local function getCurrentHeightOffset()
+	if spGetGameFrame() <= 0 and WG["map_startbox"] ~= nil then
+		return PREGAME_STARTBOX_HEIGHT_OFFSET
+	end
+	return HEIGHT_OFFSET
+end
+
 local function initGL4Resources()
 	local uboMatDefs = glGetEngineUniformBufferDef(0)
 	local uboParamDefs = glGetEngineUniformBufferDef(1)
@@ -785,13 +856,16 @@ local function initGL4Resources()
 		},
 		uniformFloat = {
 			heightOffset = HEIGHT_OFFSET,
+			waterLevel = 0,
 			cellInset = CELL_DISTANCE * 0.5,
 			cellSize = SQUARE_SIZE,
+			minimumScreenDiameter = MINIMUM_SCREEN_DIAMETER,
 			cornerRadius = CORNER_RADIUS,
 			simplifiedOutlineScale = SIMPLIFIED_OUTLINE_SCALE,
 			simplifiedCornerRadiusScale = SIMPLIFIED_CORNER_RADIUS_SCALE,
 			footprintBoundaryEnabled = FOOTPRINT_BOUNDARY_ENABLED and 1.0 or 0.0,
 			footprintBoundaryWidth = FOOTPRINT_BOUNDARY_WIDTH,
+			showInvalidFootprintBoundary = SHOW_INVALID_FOOTPRINT_BOUNDARY and 1.0 or 0.0,
 			invalidFootprintBoundaryColor = INVALID_FOOTPRINT_BOUNDARY_COLOR,
 		},
 	})
@@ -804,6 +878,8 @@ local function initGL4Resources()
 	shaderProgram = shaderID
 	isMiniMapLoc = glGetUniformLocation(shaderID, "isMiniMap")
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
+	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
+	waterLevelLoc = glGetUniformLocation(shaderID, "waterLevel")
 
 	local quadVerts = {
 		0.0, 0.0,
@@ -823,6 +899,7 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color",    size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	batchVAO = glGetVAO()
@@ -834,6 +911,7 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color",    size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	minimapVAO = glGetVAO()
@@ -1029,6 +1107,17 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
+	local xsize = footprint.xsize
+	local zsize = footprint.zsize
+	local totalXSize = xsize + extendedCells * 2
+	local totalZSize = zsize + extendedCells * 2
+	local sourceCellCount = totalXSize * totalZSize
+	if sourceCellCount <= 0 or sourceCellCount > MAX_CELLS then
+		return
+	end
+	-- Avoid a one-frame VBO overflow before the next frame enables global simplification.
+	simplified = simplified or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
+		or needsDistanceSimplification(footprint, placementX, placementZ)
 	local renderCache = orderedPreviewCaches[sequenceIndex]
 	if extendedCells == 0 and renderCache
 		and renderCache.unitDefID == unitDefID and renderCache.facing == facing
@@ -1049,15 +1138,6 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		end
 	end
 
-	local xsize = footprint.xsize
-	local zsize = footprint.zsize
-
-	local totalXSize = xsize + extendedCells * 2
-	local totalZSize = zsize + extendedCells * 2
-	local sourceCellCount = totalXSize * totalZSize
-	if sourceCellCount <= 0 or sourceCellCount > MAX_CELLS then
-		return
-	end
 	local cellScale = COMBINE_FOUR_CELLS
 		and xsize % 2 == 0 and zsize % 2 == 0 and extendedCells % 2 == 0 and 2 or 1
 	local renderXSize = totalXSize / cellScale
@@ -1410,6 +1490,8 @@ local function rebuildBatchBuffer()
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[3]
 			minimapDataIndex = minimapDataIndex + 1
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[4]
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = renderCache.floatOnWater
 			minimapCount = minimapCount + 1
 		end
 
@@ -1440,6 +1522,8 @@ local function rebuildBatchBuffer()
 				batchInstanceData[dataIndex] = colorData[7]
 				dataIndex = dataIndex + 1
 				batchInstanceData[dataIndex] = colorData[8]
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = renderCache.floatOnWater
 			else
 				local cellScale = renderCache.batchCellScale or 1
 				local geometryData = getCellGeometry(
@@ -1478,6 +1562,8 @@ local function rebuildBatchBuffer()
 					batchInstanceData[dataIndex] = colorData[colorIndex + 7]
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 8]
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = renderCache.floatOnWater
 				end
 			end
 			instanceCount = instanceCount + renderCache.batchNumCells
@@ -1536,6 +1622,8 @@ function widget:DrawWorldPreUnit()
 	glDepthTest(false)
 	glBlending(true)
 	glUseShader(shaderProgram)
+	glUniform(heightOffsetLoc, getCurrentHeightOffset())
+	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
 	glUniformInt(isMiniMapLoc, 0)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)

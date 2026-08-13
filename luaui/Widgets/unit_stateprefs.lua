@@ -167,7 +167,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_record", onRecordRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clear", onClearPress, nil, "p")
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
-	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "pt")
+	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
 
 	priorUserFirestateFunction = WG['firestate'].userFirestateChanged
 	WG['firestate'].userFirestateChanged = recordUserFirestateChanged

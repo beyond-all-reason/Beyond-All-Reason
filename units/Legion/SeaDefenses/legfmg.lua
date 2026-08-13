@@ -51,6 +51,20 @@ return {
 				object = "Units/legfmg_dead.s3o",
 				reclaimable = true,
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
+				damage = 3900,
+				footprintx = 2,
+				footprintz = 2,
+				height = 4,
+				metal = 112,
+				object = "Units/cor2X2A.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+			},
 		},
 		sfxtypes = {
 			explosiongenerators = {

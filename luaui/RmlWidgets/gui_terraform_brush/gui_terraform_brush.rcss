@@ -122,6 +122,13 @@ body {
 	pointer-events: none;
 }
 
+/* Scroll bodies and scrollbar styling live in terraform_shared/styles.rcss.
+   The brush panel starts at 25vh, so its pre-layout fallback cap is shorter
+   than the shared default. */
+.tf-root .tf-panel-body {
+	max-height: 62vh;
+}
+
 /* === Root Positioning === */
 /*
  * Width uses `vw` so the panel scales with viewport width (same visual
@@ -179,9 +186,6 @@ body {
 	z-index: 900;
 	width: 13vw;
 	min-width: 220px;
-	max-height: 80vh;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -1253,6 +1257,11 @@ body {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 5dp;
+	/* RmlUi scopes z-index to siblings within the nearest stacking context, so
+	   the FILE menu's z-index:1000 only orders it inside its wrap — the header
+	   subtree as a whole still painted under later flow siblings (the status
+	   summary strip drew over the open dropdown). Lift the whole header. */
+	z-index: 10;
 }
 
 /* Top tier: wordmark (left, shrinks) + window controls (right, fixed) */
@@ -1424,8 +1433,6 @@ body {
 	z-index: 920;
 	width: 300dp;
 	min-width: 260dp;
-	max-height: 84vh;
-	overflow-y: auto;
 }
 
 /* New Map: compact section divider label */
@@ -1816,24 +1823,7 @@ body {
 	margin-bottom: 4dp;
 }
 
-.tf-preset-dropdown scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-
-.tf-preset-dropdown scrollbarvertical slidertrack {
-	background-color: #2a2a2a;
-	border-radius: 4dp;
-}
+/* Scrollbar styling is shared — see the `scrollbarvertical` rules up top. */
 
 .tf-preset-row {
 	display: flex;
@@ -1927,22 +1917,6 @@ body {
 	padding: 4dp;
 }
 
-.tf-hm-browser scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-.tf-hm-browser scrollbarvertical slidertrack {
-	background-color: #1f2027;
-	border-radius: 4dp;
-}
-
 .tf-hm-header {
 	display: flex;
 	flex-direction: row;
@@ -1959,15 +1933,19 @@ body {
 .tf-hm-header:hover {
 	color: #cbd5e1;
 }
-.tf-hm-header-chevron {
-	display: inline-block;
-	width: 14dp;
-	margin-right: 4dp;
-	color: #64748b;
-	transition: transform 0.12s;
-}
 .tf-hm-header-text {
 	flex: 1;
+}
+.tf-hm-refresh {
+	width: 14dp;
+	height: 14dp;
+	padding: 2dp;
+	margin-left: 6dp;
+	image-color: #94a3b8;
+	cursor: pointer;
+}
+.tf-hm-refresh:hover {
+	image-color: #ffffff;
 }
 .tf-hm-browser.collapsed .tf-hm-header {
 	border-bottom: 1dp transparent;
@@ -3115,8 +3093,6 @@ body {
 	z-index: 920;
 	width: 320dp;
 	min-height: 200dp;
-	max-height: 80vh;
-	overflow-y: auto;
 }
 
 .tf-settings-glyph {
@@ -3559,9 +3535,6 @@ margin-top: 3dp;
 	z-index: 920;
 	width: 13vw;
 	min-width: 220px;
-	max-height: 84vh;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 /* The size/tiles/time line. This is the control that stops a capture being a

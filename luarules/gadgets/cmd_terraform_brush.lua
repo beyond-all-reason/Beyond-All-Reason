@@ -31,9 +31,39 @@ local CHEAT_SIG_LEN = #CHEAT_SIG
 
 local mapDamageEnabled = Game.mapDamage ~= false
 
-local function isTerraformAllowed(certified)
+-- Gate-refusal echo rate limiter: a brush drag delivers dozens of packets per
+-- second and every refused one used to echo, flooding the console and infolog.
+-- One reminder per ~2s is enough. GetGameFrame keeps the throttle deterministic
+-- across clients (RecvLuaMsg runs synced on everyone).
+local lastGateEchoFrame = -1000
+local function echoGate(text)
+	local frame = Spring.GetGameFrame()
+	if frame - lastGateEchoFrame >= 60 then
+		lastGateEchoFrame = frame
+		Spring.Echo(text)
+	end
+end
+
+-- The engine mirrors synced height changes into the rendered (unsynced)
+-- heightmap only for squares the viewer's allyteam has LOS over — edits made
+-- outside unit vision land in the sim (features sink, pathing changes) while
+-- the visible terrain stays frozen until the area is scouted. The same gating
+-- is why pregame ground rays clip at stale heights after a project import.
+-- Editing is WYSIWYG or it is nothing, so grant the editing allyteam global
+-- LOS the moment its first terraform message is accepted.
+local function ensureEditorLos(playerID)
+	if not playerID then return end
+	local _, _, spec, _, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+	if spec or not allyTeamID then return end
+	if not Spring.GetGlobalLos(allyTeamID) then
+		Spring.SetGlobalLos(allyTeamID, true)
+		Spring.Echo("[Terraform Brush] Global LOS enabled for allyteam " .. allyTeamID .. " so terrain edits render outside unit vision")
+	end
+end
+
+local function isTerraformAllowed(certified, playerID)
 	if not mapDamageEnabled then
-		Spring.Echo("[Terraform Brush] Map deformation is disabled (disablemapdamage modoption or notDeformable map). Terraform cannot work.")
+		echoGate("[Terraform Brush] Map deformation is disabled (disablemapdamage modoption or notDeformable map). Terraform cannot work.")
 		return false
 	end
 	-- The $c$ certification is self-asserted by the sender, so honor it only
@@ -42,7 +72,11 @@ local function isTerraformAllowed(certified)
 	-- modified client could prefix $c$ and deform terrain in a no-cheat match.
 	-- The New Map flow re-enables cheat locally before importing, so it passes
 	-- the live-cheat branch and does not depend on this certification.
-	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	local allowed = Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	if allowed then
+		ensureEditorLos(playerID)
+	end
+	return allowed
 end
 
 local PACKET_HEADER = "$terraform_brush$"
@@ -1832,8 +1866,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 		msg = msg:sub(CHEAT_SIG_LEN + 1)
 	end
 	if msg == UNDO_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -1875,8 +1909,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg == UNDO_STROKE_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 		if #undoStack == 0 then return true end
@@ -1921,8 +1955,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
     if msg == REDO_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -1974,7 +2008,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		-- falloff stamp is built before the first apply of a stroke. Builds
 		-- the same deterministic cache entry the apply would; never touches
 		-- the heightmap or ringInnerRatio. Quiet gate: no echo spam.
-		if mapDamageEnabled and isTerraformAllowed(certified) then
+		if mapDamageEnabled and isTerraformAllowed(certified, playerID) then
 			local parts = parseParts(msg:sub(WARM_HEADER_LENGTH + 1))
 			local radius = tonumber(parts[1])
 			if radius then
@@ -1994,8 +2028,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, IMPORT_HEADER_LENGTH) == IMPORT_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2031,8 +2065,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg == IMPORT_END_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 		-- Adding 0 across the whole map is a no-op for heights but forces the
@@ -2045,8 +2079,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, RESTORE_HEADER_LENGTH) == RESTORE_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2078,8 +2112,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg == FULL_RESTORE_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 		finalizeMerge()
@@ -2130,8 +2164,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, SPLINE_RAMP_HEADER_LENGTH) == SPLINE_RAMP_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2167,8 +2201,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, RAMP_HEADER_LENGTH) == RAMP_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2200,8 +2234,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, NOISE_HEADER_LENGTH) == NOISE_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2246,8 +2280,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, ERODE_HEADER_LENGTH) == ERODE_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 
@@ -2281,8 +2315,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 
 	if msg:sub(1, FILL_HEADER_LENGTH) == FILL_HEADER then
-		if not isTerraformAllowed(certified) then
-			Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 			return true
 		end
 		local parts = parseParts(msg:sub(FILL_HEADER_LENGTH + 1))
@@ -2298,8 +2332,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 		return
 	end
 
-	if not isTerraformAllowed(certified) then
-		Spring.Echo("[Terraform Brush] Requires /cheat to be enabled")
+	if not isTerraformAllowed(certified, playerID) then
+		echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
 		return true
 	end
 
