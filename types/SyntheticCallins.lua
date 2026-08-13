@@ -1,6 +1,9 @@
 ---@meta
 
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
+---
+---The build step summaries pass no defIDs. Cache your own where needed, e.g.
+---watched[unitID] = unitDefID, to avoid the overhead of the engine callout.
 ---@class SyntheticCallins
 ---
 ---Runs for every unit gained by a team, regardless of how it was gained.
@@ -20,14 +23,36 @@
 ---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
 ---@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
 ---
----Runs once per unit that was allowed progress on a build step that frame,
----which includes all build steps from build, repair, reclaim, and capture.
+---Runs once per unit that had a build step attempted that frame, whether or
+---not the step was allowed. Steps include: build, repair, reclaim, capture.
+---
+---The unit can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Dispatch: g:GameFramePost; mark: g:AllowUnitBuildStep.
 ---@field UnitBuildStepPost? fun(self, unitID: integer)
 ---
----Runs once per feature that was allowed progress on a build step that frame,
----which includes all build steps from repair, reclaim, and resurrect.
+---Runs once per feature that had a build step attempted that frame, whether
+---or not the step was allowed. Steps include: repair, reclaim, resurrect.
+---
+---The feature can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Dispatch: g:GameFramePost; mark: g:AllowFeatureBuildStep.
 ---@field FeatureBuildStepPost? fun(self, featureID: integer)
+---
+---Runs once per unit that had build steps attempted that frame, passing the
+---net _total_ of the attempted parts. Steps denied by Allow* handlers still
+---count, and contested progress can net to (about) zero.
+---
+---The unit can be dead by the time this runs, e.g. reclaimed to death.
+---
+---Dispatch: g:GameFramePost; mark: g:AllowUnitBuildStep.
+---@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
+---
+---Runs once per feature that had build steps attempted that frame, passing
+---the net total of the attempted parts: positive toward repair and
+---resurrection, negative toward reclaim.
+---
+---The feature can be dead by the time this runs, e.g. reclaimed to death.
+---
+---Dispatch: g:GameFramePost; mark: g:AllowFeatureBuildStep.
+---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
