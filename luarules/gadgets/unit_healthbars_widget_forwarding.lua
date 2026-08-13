@@ -17,26 +17,28 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitWeaponState = Spring.GetUnitWeaponState
 
-	local forwardedFeatureIDs = {} -- so we only forward the start event once
+	-- Build-stepped features can be dead by dispatch, e.g. reclaimed to death.
+	local deadFeatureIDs = {}
+
 	local forwardedCaptureUnitIDs = {}
 	local weapondefsreload = {}
 	local unitreloadframe = {} -- maps unitID to next frame it can shoot its primary weapon, cause lasers retrigger projetileCreated every frame
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
-	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
-		-- VERY IMPORTANT: This also gets called on resurrect!, but its very hard to tell if its a reclaim, but we can make the mother of all assumptions:
-		-- features die at 100% metal value
-		-- step is negative if 'reclaiming'
-		-- step is large positive if refilling
-		-- step is small positive if rezzing
-
-		local gf = spGetGameFrame()
-		--Spring.Echo("AllowFeatureBuildStep",gf,builderID, builderTeam, featureID, featureDefID, step)
-		if forwardedFeatureIDs[featureID] == nil or forwardedFeatureIDs[featureID] < gf then
-			forwardedFeatureIDs[featureID] = gf
-			SendToUnsynced("featureReclaimFrame", featureID, step)
+	function gadget:FeatureBuildStepTotal(featureID, part)
+		-- `part` is the net of reclaim (negative) against resurrect and refill
+		-- (positive), so contested features report their prevailing direction.
+		if not deadFeatureIDs[featureID] then
+			SendToUnsynced("featureReclaimFrame", featureID, part)
 		end
-		return true
+	end
+
+	function gadget:FeatureCreated(featureID, allyTeamID)
+		deadFeatureIDs[featureID] = nil
+	end
+
+	function gadget:FeatureDestroyed(featureID, allyTeamID)
+		deadFeatureIDs[featureID] = true
 	end
 
 	function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
@@ -45,10 +47,6 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("unitCaptureFrame", unitID, part)
 		end
 		return true
-	end
-
-	function gadget:FeatureDestroyed(featureID, allyTeamID)
-		forwardedFeatureIDs[featureID] = nil
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
