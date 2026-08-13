@@ -32,7 +32,7 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",

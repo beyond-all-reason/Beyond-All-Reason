@@ -1,7 +1,6 @@
 {
 	"ui": {
-		"forceResignWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
-		"forceResignMessage": "You have been force-resigned due to self-destructing all your units.",
+		"selfdPolicyWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 		"factoryqmanager": {
 			"saved": "Saved",
 			"loaded": "Loaded"
@@ -526,8 +525,11 @@
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
 			"channelScopeAll": "ALL",
+			"channelScopeTeam": "TEAM",
+			"channelScopeSpec": "SPEC",
 			"everyone": "everyone",
 			"allies": "allies",
+			"label": "label",
 			"spectators": "spectators",
 			"spectator": "spectator",
 			"cmd": "COMMAND",
@@ -1250,11 +1252,10 @@
 				"featuredrawdist_descr": "Features (trees, stones, wreckage) stop being displayed at this distance",
 				"particles": "Particle limit",
 				"particles_descr": "Particle limit used for explosions, smoke, fire, missile trails and build particles\n\nBeware: too low value can result in missing effects.",
-				"nanoparticletype": "Particle type",
+				"nanoparticletype": "Nano particle type",
 				"nanoparticletype_descr": "Select the type of particles used for building and repairing units.",
-				"nanoparticletype_simple": "simple",
-				"nanoparticletype_smart": "smart",
-				"nanoparticletype_shapes": "shapes",
+				"nanoparticletype_basic": "basic",
+				"nanoparticletype_advanced": "advanced",
 				"nanoparticlelights": "nano particle lights",
 				"nanoparticlelights_descr": "Adds light sources to nano particles used for building and repairing.",
 				"lighteffects": "Lights",
@@ -1486,6 +1487,14 @@
 				"pip_altkeyzoom_descr": "When enabled, scrolling over the minimap only zooms if ALT or middle mouse button is held. Otherwise scroll passes through to the game camera.",
 				"pip_commandfx": "command FX lines",
 				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
+				"pip_nanostreams": "nano streams",
+				"pip_nanostreams_descr": "Show lightweight animated nano streams for active builder tasks in PIP windows",
+				"pip_nanostream_usage": "reflect buildpower usage",
+				"pip_nanostream_usage_descr": "Scale nano stream width and opacity by the builder's current buildpower usage",
+				"pip_mapdrawings": "map drawing lines",
+				"pip_mapdrawings_descr": "Show temporary map drawing lines from non-spectator players in PIP windows",
+				"pip_mapdrawing_duration": "map drawing line duration",
+				"pip_mapdrawing_duration_descr": "Seconds before map drawing lines disappear from PIP windows",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
 				"pip_engine_fallback_threshold": "engine fallback unit threshold",
@@ -1815,6 +1824,8 @@
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
 				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
+				"factorypreset": "Factory Presets",
+				"factorypreset_descr": "Save and load factory build queues\nSelect a single factory and press space to open the preset menu",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
@@ -1855,6 +1866,8 @@
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",
 				"storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
+				"cegbrowser": "CEG Effects Browser",
+				"cegbrowser_descr": "Custom Explosion Generators (CEGs) are used to create particle effects in engine. This widget allows you to browse, filter and preview CEGs in-game.",
 				"startboxeditor": "Startbox editor",
 				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
 				"tonemap": "Unit tonemapping",
@@ -2721,7 +2734,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|extreme] Set zombie mode"
+			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
 		}
 	}
 }

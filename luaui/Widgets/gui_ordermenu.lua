@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "April 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -77,29 +76,29 @@ local height = 0
 local cellMarginOriginal = 0.055
 local cellMargin = cellMarginOriginal
 local commandInfo = {
-	move			= { red = 0.64,	green = 1,		blue = 0.64 },
-	stop			= { red = 1,	green = 0.3,	blue = 0.3 },
-	attack			= { red = 1,	green = 0.5,	blue = 0.35 },
-	areaattack		= { red = 1,	green = 0.35,	blue = 0.15 },
-	manualfire		= { red = 1,	green = 0.7,	blue = 0.7 },
-	patrol			= { red = 0.73,	green = 0.73,	blue = 1 },
-	fight			= { red = 0.9,	green = 0.5,	blue = 1 },
-	resurrect		= { red = 1,	green = 0.75,	blue = 1, },
-	guard			= { red = 0.33,	green = 0.92,	blue = 1 },
-	wait			= { red = 0.7,	green = 0.66,	blue = 0.6 },
-	repair			= { red = 1,	green = 0.95,	blue = 0.7 },
-	reclaim			= { red = 0.86,	green = 1,		blue = 0.86 },
-	restore			= { red = 0.77,	green = 1,		blue = 0.77 },
-	capture			= { red = 1,	green = 0.85,	blue = 0.22 },
-	settarget		= { red = 1,	green = 0.66,	blue = 0.35 },
-	canceltarget	= { red = 0.8,	green = 0.55,	blue = 0.2 },
-	areamex			= { red = 0.93,	green = 0.93,	blue = 0.93 },
-	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
-	loadunits		= { red = 0.1,	green = 0.7,	blue = 1 },
-	unloadunits		= { red = 0,	green = 0.5,	blue = 1 },
-	wantcloak		= { red = nil,	green = nil,	blue = nil },
-	onoff			= { red = nil,	green = nil,	blue = nil },
-	sellunit		= { red = nil,	green = nil,	blue = nil },
+	move = { red = 0.64, green = 1, blue = 0.64 },
+	stop = { red = 1, green = 0.3, blue = 0.3 },
+	attack = { red = 1, green = 0.5, blue = 0.35 },
+	areaattack = { red = 1, green = 0.35, blue = 0.15 },
+	manualfire = { red = 1, green = 0.7, blue = 0.7 },
+	patrol = { red = 0.73, green = 0.73, blue = 1 },
+	fight = { red = 0.9, green = 0.5, blue = 1 },
+	resurrect = { red = 1, green = 0.75, blue = 1 },
+	guard = { red = 0.33, green = 0.92, blue = 1 },
+	wait = { red = 0.7, green = 0.66, blue = 0.6 },
+	repair = { red = 1, green = 0.95, blue = 0.7 },
+	reclaim = { red = 0.86, green = 1, blue = 0.86 },
+	restore = { red = 0.77, green = 1, blue = 0.77 },
+	capture = { red = 1, green = 0.85, blue = 0.22 },
+	settarget = { red = 1, green = 0.66, blue = 0.35 },
+	canceltarget = { red = 0.8, green = 0.55, blue = 0.2 },
+	areamex = { red = 0.93, green = 0.93, blue = 0.93 },
+	upgrademex = { red = 0.93, green = 0.93, blue = 0.93 },
+	loadunits = { red = 0.1, green = 0.7, blue = 1 },
+	unloadunits = { red = 0, green = 0.5, blue = 1 },
+	wantcloak = { red = nil, green = nil, blue = nil },
+	onoff = { red = nil, green = nil, blue = nil },
+	sellunit = { red = nil, green = nil, blue = nil },
 }
 local isStateCommand = {}
 
@@ -110,7 +109,7 @@ local vsx, vsy = spGetViewGeometry()
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
-local soundButton = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local uiScale = Spring.GetConfigFloat("ui_scale", 1)
@@ -142,17 +141,17 @@ local translationCache = {}
 local function getCachedTranslation(key, params)
 	if params then
 		-- Don't cache when params are provided since they can vary
-		return Spring.I18N(key, params)
+		return BAR.I18N(key, params)
 	end
 	if not translationCache[key] then
-		translationCache[key] = Spring.I18N(key)
+		translationCache[key] = BAR.I18N(key)
 	end
 	return translationCache[key]
 end
 
 -- Throttling for command refresh
 local lastCommandRefreshTime = 0
-local commandRefreshDelay = 0.05  -- 50ms delay
+local commandRefreshDelay = 0.05 -- 50ms delay
 
 -- Cache for hotkey strings
 local hotkeyCache = {}
@@ -167,7 +166,7 @@ local commandTextCache = {}
 -- Cached WAIT command state (computed once per refresh, not per drawCell call)
 local cachedWaitState = nil
 local hasWaitCommand = false
-local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
+local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
 
 -- Cancel target button visibility tracking
 local cancelTargetPollSec = 0
@@ -177,12 +176,13 @@ local cancelTargetLastState = false
 local prevCmdCount = 0
 local prevCmdIDs = {}
 local prevCmdStates = {}
+local prevCmdModes = {}
 local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
 -- Font metrics cache (cleared on ViewResize when font changes)
-local fontWidthCache = {}   -- text -> GetTextWidth result (with padding)
-local fontHeightCache = {}  -- text -> GetTextHeight result
+local fontWidthCache = {} -- text -> GetTextWidth result (with padding)
+local fontHeightCache = {} -- text -> GetTextHeight result
 
 -- Colorized text color cache (cleared when colorize changes)
 local colorStrCache = {}
@@ -256,13 +256,23 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function checkGuiShader(force)
-	if WG['guishader'] then
+	if WG.guishader then
 		if force and displayListGuiShader then
 			displayListGuiShader = gl.DeleteList(displayListGuiShader)
 		end
 		if not displayListGuiShader then
 			displayListGuiShader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+				RectRound(
+					backgroundRect[1],
+					backgroundRect[2],
+					backgroundRect[3],
+					backgroundRect[4],
+					elementCorner * uiScale,
+					((posX <= 0) and 0 or 1),
+					1,
+					((posY - height > 0 or posX <= 0) and 1 or 0),
+					((posY - height > 0 and posX > 0) and 1 or 0)
+				)
 			end)
 		end
 	elseif displayListGuiShader then
@@ -317,8 +327,8 @@ local function setupCellGrid(force)
 		local i = 0
 		cellWidth = math_floor((activeRect[3] - activeRect[1]) / cols)
 		cellHeight = math_floor((activeRect[4] - activeRect[2]) / rows)
-		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols))-1
-		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows)) -(posY-height <= 0 and 1 or 0)
+		local leftOverWidth = ((activeRect[3] - activeRect[1]) - (cellWidth * cols)) - 1
+		local leftOverHeight = ((activeRect[4] - activeRect[2]) - (cellHeight * rows)) - (posY - height <= 0 and 1 or 0)
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
@@ -408,15 +418,24 @@ local function refreshCommands()
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
 			end
-			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled
-					and not (command.id == CANCEL_TARGET_CMD_ID and not cancelTargetRelevant) then
-				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
+			if
+				not hiddenCommands[command.id]
+				and not hiddenCommandTypes[command.type]
+				and command.action ~= nil
+				and not command.disabled
+				and not (command.id == CANCEL_TARGET_CMD_ID and not cancelTargetRelevant)
+			then
+				if
+					command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, "buildunit_", 1, true) == 1)
+				then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
 					if command.id == CMD.FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
 						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(cachedFirstUnit)
-						stateCommandsTemp[stateCommandsCount] = virtualIndex and OrderMenuFirestate.buildCmdDesc(command, virtualIndex) or command
+						stateCommandsTemp[stateCommandsCount] = virtualIndex
+								and OrderMenuFirestate.buildCmdDesc(command, virtualIndex)
+							or command
 					else
 						stateCommandsTemp[stateCommandsCount] = command
 					end
@@ -453,23 +472,24 @@ local function refreshCommands()
 	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
 		if isStateCommand[cmd.id] then
-			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
+			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd)
+				or CustomFirestateDefs.stateLabel(cmd)
 			if commandState then
 				if not commandTextCache[commandState] then
-					commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
+					commandTextCache[commandState] = getCachedTranslation("ui.orderMenu." .. commandState)
 				end
 				cmd.cachedText = commandTextCache[commandState]
 			else
-				cmd.cachedText = '?'
+				cmd.cachedText = "?"
 			end
 		else
-			if cmd.action == 'stockpile' then
+			if cmd.action == "stockpile" then
 				-- Stockpile command name gets mutated to reflect the current status, so can't cache persistently
-				cmd.cachedText = getCachedTranslation('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+				cmd.cachedText = getCachedTranslation("ui.orderMenu." .. cmd.action, { stockpileStatus = cmd.name })
 			else
 				local actionKey = cmd.action
 				if not commandTextCache[actionKey] then
-					commandTextCache[actionKey] = getCachedTranslation('ui.orderMenu.' .. actionKey)
+					commandTextCache[actionKey] = getCachedTranslation("ui.orderMenu." .. actionKey)
 				end
 				cmd.cachedText = commandTextCache[actionKey]
 			end
@@ -497,8 +517,8 @@ local function refreshCommands()
 				break
 			end
 			if isStateCommand[cmd.id] then
-				local s = cmd.cachedText
-				if s ~= prevCmdStates[i] then
+				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1) or (tonumber(cmd.params[1]) + 1)
+				if cmd.cachedText ~= prevCmdStates[i] or mode ~= prevCmdModes[i] then
 					commandsVisuallyChanged = true
 					break
 				end
@@ -517,16 +537,21 @@ local function refreshCommands()
 			prevCmdIDs[i] = commands[i].id
 			if isStateCommand[commands[i].id] then
 				prevCmdStates[i] = commands[i].cachedText
+				prevCmdModes[i] = (commands[i].id == CMD.FIRE_STATE) and (commands[i].virtualIndex or 1)
+					or (tonumber(commands[i].params[1]) + 1)
 			elseif commands[i].id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
+				prevCmdModes[i] = nil
 			else
 				prevCmdStates[i] = nil
+				prevCmdModes[i] = nil
 			end
 		end
 		-- Clear excess fingerprint entries
 		for i = cmdCount + 1, #prevCmdIDs do
 			prevCmdIDs[i] = nil
 			prevCmdStates[i] = nil
+			prevCmdModes[i] = nil
 		end
 		-- Invalidate print text cache since display changed
 		for k in pairs(printTextCache) do
@@ -548,18 +573,18 @@ function widget:ViewResize()
 	width = 0.2125
 	height = 0.14 * uiScale
 
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
+	width = width / (vsx / vsy) * 1.78 -- make smaller for ultrawide screens
 	width = width * uiScale
 
 	-- make pixel aligned
 	width = mathFloor(width * vsx) / vsx
 	height = mathFloor(height * vsy) / vsy
 
-	if WG['buildmenu'] then
-		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -571,22 +596,22 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 
-	if WG['minimap'] then
-		minimapHeight = WG['minimap'].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 	if stickToBottom then
 		posY = height
-		posX = width + (widgetSpaceMargin/vsx)
+		posX = width + (widgetSpaceMargin / vsx)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/vsy)
-		elseif WG['buildmenu'] then
-			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + (widgetSpaceMargin/vsy)
+			posY = height + height + (widgetSpaceMargin / vsy)
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
+			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG['minimap'] then
-				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin/vsy)
+			if WG.minimap then
+				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
 		end
@@ -596,9 +621,10 @@ function widget:ViewResize()
 	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
 		(posX * vsx) + (posX > 0 and activeBgpadding or mathCeil(backgroundPadding * 0.6)),
-		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
+		((posY - height) * vsy)
+			+ (posY - height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
 		((posX + width) * vsx) - activeBgpadding,
-		(posY * vsy) - activeBgpadding
+		(posY * vsy) - activeBgpadding,
 	}
 	if displayListOrders then
 		displayListOrders = gl.DeleteList(displayListOrders)
@@ -609,9 +635,15 @@ function widget:ViewResize()
 	doUpdate = true
 
 	-- Clear font metric caches since font changed
-	for k in pairs(fontWidthCache) do fontWidthCache[k] = nil end
-	for k in pairs(fontHeightCache) do fontHeightCache[k] = nil end
-	for k in pairs(printTextCache) do printTextCache[k] = nil end
+	for k in pairs(fontWidthCache) do
+		fontWidthCache[k] = nil
+	end
+	for k in pairs(fontHeightCache) do
+		fontHeightCache[k] = nil
+	end
+	for k in pairs(printTextCache) do
+		printTextCache[k] = nil
+	end
 
 	if ordermenuTex then
 		gl.DeleteTexture(ordermenuBgTex)
@@ -637,33 +669,34 @@ function widget:Initialize()
 	})
 	installFirestateNotifyHooks()
 	reloadBindings()
+	activeCommand = select(4, spGetActiveCommand())
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
-	WG['ordermenu'] = {}
-	WG['ordermenu'].getPosition = function()
+	WG.ordermenu = {}
+	WG.ordermenu.getPosition = function()
 		return posX, posY, width, height
 	end
-	WG['ordermenu'].reloadBindings = reloadBindings
-	WG['ordermenu'].setBottomPosition = function(value)
+	WG.ordermenu.reloadBindings = reloadBindings
+	WG.ordermenu.setBottomPosition = function(value)
 		stickToBottom = value
 		doUpdate = true
 		widget:ViewResize()
 	end
-	WG['ordermenu'].getAlwaysShow = function()
+	WG.ordermenu.getAlwaysShow = function()
 		return alwaysShow
 	end
-	WG['ordermenu'].setAlwaysShow = function(value)
+	WG.ordermenu.setAlwaysShow = function(value)
 		alwaysShow = value
 		doUpdate = true
 	end
-	WG['ordermenu'].getBottomPosition = function()
+	WG.ordermenu.getBottomPosition = function()
 		return stickToBottom
 	end
-	WG['ordermenu'].getDisabledCmd = function(cmd)
+	WG.ordermenu.getDisabledCmd = function(cmd)
 		return disabledCommand[cmd]
 	end
-	WG['ordermenu'].setDisabledCmd = function(params)
+	WG.ordermenu.setDisabledCmd = function(params)
 		if params[2] then
 			disabledCommand[params[1]] = true
 		else
@@ -671,17 +704,17 @@ function widget:Initialize()
 		end
 		doUpdate = true
 	end
-	WG['ordermenu'].getColorize = function()
+	WG.ordermenu.getColorize = function()
 		return colorize
 	end
-	WG['ordermenu'].setColorize = function(value)
+	WG.ordermenu.setColorize = function(value)
 		doUpdate = true
 		colorize = value
 		if colorize > 1 then
 			colorize = 1
 		end
 	end
-	WG['ordermenu'].getIsShowing = function()
+	WG.ordermenu.getIsShowing = function()
 		return ordermenuShows
 	end
 
@@ -690,8 +723,10 @@ function widget:Initialize()
 	---restarting the pulse phase).
 	---@param cmdID number The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
-	WG['ordermenu'].setHighlight = function(cmdID, color)
-		if not cmdID then return end
+	WG.ordermenu.setHighlight = function(cmdID, color)
+		if not cmdID then
+			return
+		end
 		local items = highlight.items
 		if not items[cmdID] then
 			highlight.count = highlight.count + 1
@@ -702,7 +737,7 @@ function widget:Initialize()
 		}
 	end
 
-	WG['ordermenu'].removeHighlight = function(cmdID)
+	WG.ordermenu.removeHighlight = function(cmdID)
 		local items = highlight.items
 		if cmdID and items[cmdID] then
 			items[cmdID] = nil
@@ -710,7 +745,7 @@ function widget:Initialize()
 		end
 	end
 
-	WG['ordermenu'].clearHighlights = function()
+	WG.ordermenu.clearHighlights = function()
 		local items = highlight.items
 		for k in pairs(items) do
 			items[k] = nil
@@ -718,7 +753,7 @@ function widget:Initialize()
 		highlight.count = 0
 	end
 
-	WG['ordermenu'].hasHighlight = function(cmdID)
+	WG.ordermenu.hasHighlight = function(cmdID)
 		return cmdID ~= nil and highlight.items[cmdID] ~= nil
 	end
 
@@ -727,8 +762,8 @@ end
 
 function widget:Shutdown()
 	clearStateLightDisplayLists()
-	if WG['guishader'] and displayListGuiShader then
-		WG['guishader'].DeleteDlist('ordermenu')
+	if WG.guishader and displayListGuiShader then
+		WG.guishader.DeleteDlist("ordermenu")
 		displayListGuiShader = nil
 	end
 	if displayListOrders then
@@ -742,7 +777,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(ordermenuTex)
 		ordermenuTex = nil
 	end
-	WG['ordermenu'] = nil
+	WG.ordermenu = nil
 end
 
 local buildmenuBottomPos = false
@@ -757,15 +792,15 @@ function widget:Update(dt)
 		sec = 0
 		checkGuiShader()
 
-		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+		if WG.buildmenu and WG.buildmenu.getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
-			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
 			end
 		end
 
-		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
@@ -780,11 +815,6 @@ function widget:Update(dt)
 
 	clickCountDown = clickCountDown - 1
 	if clickCountDown == 0 then
-		doUpdate = true
-	end
-	previousActiveCommand = activeCommand
-	activeCommand = select(4, spGetActiveCommand())
-	if activeCommand ~= previousActiveCommand then
 		doUpdate = true
 	end
 
@@ -815,12 +845,22 @@ function widget:Update(dt)
 		end
 	end
 
-	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
+	if
+		(WG.guishader and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0))
+	then
 		ordermenuShows = false
 	else
 		ordermenuShows = true
 	end
 	tracy.ZoneEnd()
+end
+
+function widget:ActiveCommandChanged(cmdID)
+	previousActiveCommand = activeCommand
+	activeCommand = cmdID and select(4, spGetActiveCommand()) or nil
+	if activeCommand ~= previousActiveCommand then
+		doUpdate = true
+	end
 end
 
 local function RectQuad(px, py, sx, sy, offset)
@@ -837,10 +877,13 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-
 local function drawHighlights()
-	if highlight.count == 0 or not next(highlight.items) then return end
-	if #commands == 0 then return end
+	if highlight.count == 0 or not next(highlight.items) then
+		return
+	end
+	if #commands == 0 then
+		return
+	end
 	local now = os_clock()
 	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
 	local outlineAlpha = 0.45 + 0.5 * pulse
@@ -861,8 +904,12 @@ local function drawHighlights()
 			local rightMargin = cellMarginPx2
 			local topMargin = cellMarginPx
 			local bottomMargin = cellMarginPx2
-			if cell % cols == 1 then leftMargin = cellMarginPx2 end
-			if cell % cols == 0 then rightMargin = cellMarginPx2 end
+			if cell % cols == 1 then
+				leftMargin = cellMarginPx2
+			end
+			if cell % cols == 0 then
+				rightMargin = cellMarginPx2
+			end
 			if cols / cell >= 1 then
 				topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 			end
@@ -879,16 +926,35 @@ local function drawHighlights()
 
 			-- Feathered inner outline ring
 			WG.FlowUI.Draw.RectRoundOutline(
-				x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1,
-				{ r, g, b, locOutlineAlpha }, { r, g, b, locOutlineAlpha * 0.85 }
+				x1,
+				y1,
+				x2,
+				y2,
+				cs,
+				thickness,
+				1,
+				1,
+				1,
+				1,
+				{ r, g, b, locOutlineAlpha },
+				{ r, g, b, locOutlineAlpha * 0.85 }
 			)
 
 			-- Soft inner glow fading inward
 			local glowWidth = thickness * 3
 			WG.FlowUI.Draw.RectRoundOutline(
-				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
-				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
-				{ r, g, b, locGlowAlpha }, { r, g, b, 0 }
+				x1 + thickness,
+				y1 + thickness,
+				x2 - thickness,
+				y2 - thickness,
+				math_max(0, cs - thickness),
+				glowWidth,
+				1,
+				1,
+				1,
+				1,
+				{ r, g, b, locGlowAlpha },
+				{ r, g, b, 0 }
 			)
 
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -896,7 +962,19 @@ local function drawHighlights()
 	end
 end
 
-local function drawStateLights(cell, leftMargin, rightMargin, bottomMargin, padding, cellInnerWidth, cellInnerHeight, statecount, fillMin, fillMax, desiredState)
+local function drawStateLights(
+	cell,
+	leftMargin,
+	rightMargin,
+	bottomMargin,
+	padding,
+	cellInnerWidth,
+	cellInnerHeight,
+	statecount,
+	fillMin,
+	fillMax,
+	desiredState
+)
 	local padding2 = padding
 	local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
 	local stateHeight = math_floor(cellInnerHeight * 0.14)
@@ -920,13 +998,36 @@ local function drawStateLights(cell, leftMargin, rightMargin, bottomMargin, padd
 			r, g, b, a = 0, 0, 0, 0.36
 		end
 		glColor(r, g, b, a)
-		local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
+		local x1 = math_floor(
+			cellRects[cell][1]
+				+ leftMargin
+				+ padding
+				+ padding2
+				+ (stateWidth * (i - 1))
+				+ (i == 1 and 0 or stateMargin)
+		)
 		local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding + padding2)
-		local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - padding2 - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
+		local x2 = math_ceil(
+			cellRects[cell][3]
+				- rightMargin
+				- padding
+				- padding2
+				- (stateWidth * (statecount - i))
+				- (i == statecount and 0 or stateMargin)
+		)
 		local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
 		if rows < 6 then
-			RectRound(x1, y1, x2, y2, stateHeight * 0.33,
-				(i == 1 and 0 or 2), (i == statecount and 0 or 2), (i == statecount and 2 or 0), (i == 1 and 2 or 0))
+			RectRound(
+				x1,
+				y1,
+				x2,
+				y2,
+				stateHeight * 0.33,
+				(i == 1 and 0 or 2),
+				(i == statecount and 0 or 2),
+				(i == statecount and 2 or 0),
+				(i == 1 and 2 or 0)
+			)
 		else
 			glRect(x1, y1, x2, y2)
 		end
@@ -963,12 +1064,14 @@ local function drawCell(cell, zoom)
 		if cell % cols == 0 then
 			rightMargin = cellMarginPx2
 		end
-		if cols/cell >= 1  then
+		if cols / cell >= 1 then
 			topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 		end
 
-		local cellInnerWidth = math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
-		local cellInnerHeight = math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
+		local cellInnerWidth =
+			math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
+		local cellInnerHeight =
+			math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
 
 		local padding = math_max(1, math_floor(backgroundPadding * 0.52))
 
@@ -977,50 +1080,102 @@ local function drawCell(cell, zoom)
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) }	-- bottom
-			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) }			-- top
+			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) } -- bottom
+			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) } -- top
 		else
-			if WG['guishader'] then
-				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_clamp(uiOpacity/1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity/1.5, 0.35, 0.55) }
-				color1[4] = math_clamp(uiOpacity-0.3, 0, 0.35)
-				color2 = { 1,1,1, math_clamp(uiOpacity-0.3, 0, 0.35) }
+			if WG.guishader then
+				color1 = isStateCommand[cmd.id] and { 0.5, 0.5, 0.5, math_clamp(uiOpacity / 1.5, 0.35, 0.55) }
+					or { 0.6, 0.6, 0.6, math_clamp(uiOpacity / 1.5, 0.35, 0.55) }
+				color1[4] = math_clamp(uiOpacity - 0.3, 0, 0.35)
+				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.3, 0, 0.35) }
 			else
-				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
-				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
+				color1 = isStateCommand[cmd.id] and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
+				color1[4] = math_clamp(uiOpacity - 0.4, 0, 0.35)
+				color2 = { 1, 1, 1, math_clamp(uiOpacity - 0.4, 0, 0.35) }
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
-				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
+				RectRound(
+					cellRects[cell][1] + leftMargin,
+					cellRects[cell][2] + bottomMargin,
+					cellRects[cell][3] - rightMargin,
+					cellRects[cell][4] - topMargin,
+					cellWidth * 0.021,
+					2,
+					2,
+					2,
+					2,
+					color1,
+					color2
+				)
 				-- darken inside
-				color1 = {0,0,0, color1[4]*2}
-				color2 = {0,0,0, color2[4]*2}
-				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.019, 2, 2, 2, 2, color1, color2)
+				color1 = { 0, 0, 0, color1[4] * 2 }
+				color2 = { 0, 0, 0, color2[4] * 2 }
+				RectRound(
+					cellRects[cell][1] + leftMargin + padding,
+					cellRects[cell][2] + bottomMargin + padding,
+					cellRects[cell][3] - rightMargin - padding,
+					cellRects[cell][4] - topMargin - padding,
+					cellWidth * 0.019,
+					2,
+					2,
+					2,
+					2,
+					color1,
+					color2
+				)
 			end
-			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
-			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
+			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) } -- bottom
+			color2 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) } -- top
 		end
 
 		tracy.ZoneBeginN("W:OrderMenu:DrawCell:Button")
-		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
+		UiButton(
+			cellRects[cell][1] + leftMargin + padding,
+			cellRects[cell][2] + bottomMargin + padding,
+			cellRects[cell][3] - rightMargin - padding,
+			cellRects[cell][4] - topMargin - padding,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			nil,
+			color1,
+			color2,
+			padding,
+			1
+		)
 		tracy.ZoneEnd()
 
 		-- icon
 		if showIcons then
 			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Icon")
 			if cursorTextures[cmd.cursor] == nil then
-				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
+				local cursorTexture = "anims/icexuick_200/cursor" .. string.lower(cmd.cursor) .. "_0.png"
 				cursorTextures[cmd.cursor] = VFS.FileExists(cursorTexture) and cursorTexture or false
 			end
 			if cursorTextures[cmd.cursor] then
-				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
+				local cursorTexture = "anims/icexuick_200/cursor" .. string.lower(cmd.cursor) .. "_0.png"
 				if VFS.FileExists(cursorTexture) then
 					local s = 0.45
-					local halfsize = s * ((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding))
-					local midPosX = (cellRects[cell][3] - rightMargin - padding) - (((cellRects[cell][3] - rightMargin - padding) - (cellRects[cell][1] + leftMargin + padding)) / 2)
-					local midPosY = (cellRects[cell][4] - topMargin - padding) - (((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding)) / 2)
+					local halfsize = s
+						* ((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding))
+					local midPosX = (cellRects[cell][3] - rightMargin - padding)
+						- (
+							((cellRects[cell][3] - rightMargin - padding) - (cellRects[cell][1] + leftMargin + padding))
+							/ 2
+						)
+					local midPosY = (cellRects[cell][4] - topMargin - padding)
+						- (
+							((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding))
+							/ 2
+						)
 					glColor(1, 1, 1, 0.66)
-					glTexture('' .. cursorTexture)
+					glTexture("" .. cursorTexture)
 					glTexRect(midPosX - halfsize, midPosY - halfsize, midPosX + halfsize, midPosY + halfsize)
 					glTexture(false)
 				end
@@ -1032,12 +1187,12 @@ local function drawCell(cell, zoom)
 		if not showIcons or not cursorTextures[cmd.cursor] then
 			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Text")
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
-			local text = cmd.cachedText or '?'
+			local text = cmd.cachedText or "?"
 
 			-- Cache font metrics per text string to avoid string concat + measurement each draw
 			local textWidth = fontWidthCache[text]
 			if not textWidth then
-				textWidth = font:GetTextWidth('  ' .. text .. ' ')
+				textWidth = font:GetTextWidth("  " .. text .. " ")
 				fontWidthCache[text] = textWidth
 			end
 			local textHeight = fontHeightCache[text]
@@ -1059,15 +1214,23 @@ local function drawCell(cell, zoom)
 				textColor = "\255\020\020\020"
 			elseif colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
 				if lastColorize ~= colorize then
-					for k in pairs(colorStrCache) do colorStrCache[k] = nil end
-					for k in pairs(printTextCache) do printTextCache[k] = nil end
+					for k in pairs(colorStrCache) do
+						colorStrCache[k] = nil
+					end
+					for k in pairs(printTextCache) do
+						printTextCache[k] = nil
+					end
 					lastColorize = colorize
 				end
 				if not colorStrCache[cmd.action] then
 					local info = commandInfo[cmd.action]
 					local part = (1 / colorize)
 					local grey = (0.93 * (part - 1))
-					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+					colorStrCache[cmd.action] = BAR.Utilities.ConvertColor(
+						(grey + info.red) / part,
+						(grey + info.green) / part,
+						(grey + info.blue) / part
+					)
 				end
 				textColor = colorStrCache[cmd.action]
 			else
@@ -1075,13 +1238,19 @@ local function drawCell(cell, zoom)
 			end
 
 			-- Cache the full printable string (textColor .. text) to avoid concat per draw
-			local printKey = isActiveCmd and ('A_' .. text) or (cmd.action .. '_' .. text)
+			local printKey = isActiveCmd and ("A_" .. text) or (cmd.action .. "_" .. text)
 			local printStr = printTextCache[printKey]
 			if not printStr then
 				printStr = textColor .. text
 				printTextCache[printKey] = printStr
 			end
-			font:Print(printStr, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+			font:Print(
+				printStr,
+				cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2),
+				(cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset),
+				fontSize,
+				"con"
+			)
 			tracy.ZoneEnd()
 		end
 
@@ -1123,11 +1292,13 @@ local function drawCell(cell, zoom)
 				desiredState = nil
 			end
 			local cache = stateLightDisplayLists[cell]
-			if cache
-					and cache.statecount == statecount
-					and cache.fillMin == fillMin
-					and cache.fillMax == fillMax
-					and cache.desiredState == desiredState then
+			if
+				cache
+				and cache.statecount == statecount
+				and cache.fillMin == fillMin
+				and cache.fillMax == fillMax
+				and cache.desiredState == desiredState
+			then
 				glCallList(cache.list)
 			else
 				if cache then
@@ -1140,7 +1311,20 @@ local function drawCell(cell, zoom)
 				cache.fillMin = fillMin
 				cache.fillMax = fillMax
 				cache.desiredState = desiredState
-				cache.list = glCreateList(drawStateLights, cell, leftMargin, rightMargin, bottomMargin, padding, cellInnerWidth, cellInnerHeight, statecount, fillMin, fillMax, desiredState)
+				cache.list = glCreateList(
+					drawStateLights,
+					cell,
+					leftMargin,
+					rightMargin,
+					bottomMargin,
+					padding,
+					cellInnerWidth,
+					cellInnerHeight,
+					statecount,
+					fillMin,
+					fillMax,
+					desiredState
+				)
 				glCallList(cache.list)
 			end
 			tracy.ZoneEnd()
@@ -1150,7 +1334,24 @@ local function drawCell(cell, zoom)
 end
 
 local function drawOrdersBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil)
+	UiElement(
+		backgroundRect[1],
+		backgroundRect[2],
+		backgroundRect[3],
+		backgroundRect[4],
+		((posX <= 0) and 0 or 1),
+		1,
+		((posY - height > 0 or posX <= 0) and 1 or 0),
+		((posY - height > 0 and posX > 0) and 1 or 0),
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil
+	)
 end
 
 local function drawOrders()
@@ -1172,19 +1373,29 @@ function widget:DrawScreen()
 	local x, y = Spring.GetMouseState()
 	local cellHovered
 	tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverScan")
-	if not WG['topbar'] or not WG['topbar'].showingQuit() then
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
+			Spring.SetMouseCursor("cursornormal")
 			for cell = 1, #cellRects do
 				if commands[cell] then
-					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+					if
+						math_isInRect(
+							x,
+							y,
+							cellRects[cell][1],
+							cellRects[cell][2],
+							cellRects[cell][3],
+							cellRects[cell][4]
+						)
+					then
 						local cmd = commands[cell]
-						if WG['tooltip'] then
-							local tooltipKey = cmd.action .. '_tooltip'
-							local tooltip = getCachedTranslation('ui.orderMenu.' .. tooltipKey)
+						if WG.tooltip then
+							local tooltipKey = cmd.action .. "_tooltip"
+							local tooltip = getCachedTranslation("ui.orderMenu." .. tooltipKey)
 
 							if not hotkeyCache[cmd.action] then
-								hotkeyCache[cmd.action] = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
+								hotkeyCache[cmd.action] =
+									keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
 							local hotkey = hotkeyCache[cmd.action]
 							local hotkeyApplied = false
@@ -1193,36 +1404,48 @@ function widget:DrawScreen()
 								local commandState = OrderMenuFirestate.stateLabel(cmd)
 								local modeDescrKey = commandState and OrderMenuFirestate.descrByState[commandState]
 								if modeDescrKey then
-									local modeDescr = getCachedTranslation('ui.orderMenu.' .. modeDescrKey)
+									local modeDescr = getCachedTranslation("ui.orderMenu." .. modeDescrKey)
 									local generalDescr = tooltip
-									if generalDescr ~= '' and hotkey ~= '' then
-										generalDescr = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = generalDescr, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+									if generalDescr ~= "" and hotkey ~= "" then
+										generalDescr = getCachedTranslation("ui.orderMenu.hotkeyTooltip", {
+											hotkey = hotkey:upper(),
+											tooltip = generalDescr,
+											highlightColor = "\255\255\215\100",
+											textColor = "\255\240\240\240",
+										})
 										hotkeyApplied = true
 									end
-									if modeDescr ~= '' and generalDescr ~= '' then
+									if modeDescr ~= "" and generalDescr ~= "" then
 										tooltip = modeDescr .. "\n" .. generalDescr
-									elseif modeDescr ~= '' then
+									elseif modeDescr ~= "" then
 										tooltip = modeDescr
-									elseif generalDescr ~= '' then
+									elseif generalDescr ~= "" then
 										tooltip = generalDescr
 									end
 								end
 							end
 
-							if tooltip ~= '' and hotkey ~= '' and not hotkeyApplied then
-								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+							if tooltip ~= "" and hotkey ~= "" and not hotkeyApplied then
+								tooltip = getCachedTranslation("ui.orderMenu.hotkeyTooltip", {
+									hotkey = hotkey:upper(),
+									tooltip = tooltip,
+									highlightColor = "\255\255\215\100",
+									textColor = "\255\240\240\240",
+								})
 							end
-							if tooltip ~= '' then
+							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
-									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
+									local commandState = (cmd.id == CMD.FIRE_STATE)
+											and OrderMenuFirestate.stateLabel(cmd)
+										or CustomFirestateDefs.stateLabel(cmd)
 									if commandState then
-										title = getCachedTranslation('ui.orderMenu.' .. commandState)
+										title = getCachedTranslation("ui.orderMenu." .. commandState)
 									end
 								else
-									title = getCachedTranslation('ui.orderMenu.' .. cmd.action)
+									title = getCachedTranslation("ui.orderMenu." .. cmd.action)
 								end
-								WG['tooltip'].ShowTooltip('ordermenu', tooltip, nil, nil, title)
+								WG.tooltip.ShowTooltip("ordermenu", tooltip, nil, nil, title)
 							end
 						end
 						cellHovered = cell
@@ -1237,7 +1460,7 @@ function widget:DrawScreen()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
-	if clickedCellDesiredState and not doUpdateClock then	-- make sure state changes get updated
+	if clickedCellDesiredState and not doUpdateClock then -- make sure state changes get updated
 		doUpdateClock = now + 0.1
 	end
 
@@ -1265,17 +1488,17 @@ function widget:DrawScreen()
 		tracy.ZoneEnd()
 	end
 
-	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
+	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then -- dont show pregame because factions interface is shown
 		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Hide")
-		if displayListGuiShader and WG['guishader'] then
-			WG['guishader'].RemoveDlist('ordermenu')
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.RemoveDlist("ordermenu")
 		end
 		doUpdate = nil
 		tracy.ZoneEnd()
 	else
 		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Visible")
-		if displayListGuiShader and WG['guishader'] then
-			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
+		if displayListGuiShader and WG.guishader then
+			WG.guishader.InsertDlist(displayListGuiShader, "ordermenu")
 		end
 		if doUpdate and displayListOrders then
 			displayListOrders = gl.DeleteList(displayListOrders)
@@ -1283,28 +1506,48 @@ function widget:DrawScreen()
 
 		if not ordermenuBgTex then
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateBackgroundTexture")
-			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			ordermenuBgTex = gl.CreateTexture(math_floor(width * vsx), math_floor(height * vsy), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
 			})
 			if ordermenuBgTex then
-				gl.R2tHelper.RenderInRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrdersBackground, true)
+				gl.R2tHelper.RenderInRect(
+					ordermenuBgTex,
+					backgroundRect[1],
+					backgroundRect[2],
+					backgroundRect[3],
+					backgroundRect[4],
+					drawOrdersBackground,
+					true
+				)
 			end
 			tracy.ZoneEnd()
 		end
 		if not ordermenuTex then
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateOrdersTexture")
-			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
+			ordermenuTex = gl.CreateTexture(
+				math_floor(width * vsx) * (vsy < 1400 and 2 or 1),
+				math_floor(height * vsy) * (vsy < 1400 and 2 or 1),
+				{ --*(vsy<1400 and 2 or 1)
+					target = GL.TEXTURE_2D,
+					format = GL.ALPHA,
+					fbo = true,
+				}
+			)
 			tracy.ZoneEnd()
 		end
 		if ordermenuTex and doUpdate then
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:RenderOrdersTexture")
-			gl.R2tHelper.RenderInRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrders, true)
+			gl.R2tHelper.RenderInRect(
+				ordermenuTex,
+				backgroundRect[1],
+				backgroundRect[2],
+				backgroundRect[3],
+				backgroundRect[4],
+				drawOrders,
+				true
+			)
 			doUpdate = nil
 			tracy.ZoneEnd()
 		end
@@ -1312,22 +1555,36 @@ function widget:DrawScreen()
 		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:BlendTextures")
 		if ordermenuBgTex then
 			-- background element
-			gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+			gl.R2tHelper.BlendTexRect(
+				ordermenuBgTex,
+				backgroundRect[1],
+				backgroundRect[2],
+				backgroundRect[3],
+				backgroundRect[4],
+				true
+			)
 		end
 		if ordermenuTex then
 			-- content
-			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+			gl.R2tHelper.BlendTexRect(
+				ordermenuTex,
+				backgroundRect[1],
+				backgroundRect[2],
+				backgroundRect[3],
+				backgroundRect[4],
+				true
+			)
 		end
 		tracy.ZoneEnd()
 
-		if #commands >0 then
+		if #commands > 0 then
 			-- draw attention highlights (animated, on top of cached content)
 			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Highlights")
 			drawHighlights()
 			tracy.ZoneEnd()
 
 			-- draw highlight on top of button
-			if not WG['topbar'] or not WG['topbar'].showingQuit() then
+			if not WG.topbar or not WG.topbar.showingQuit() then
 				if commands and cellHovered then
 					tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverCell")
 					local cell = cellHovered
@@ -1350,7 +1607,7 @@ function widget:DrawScreen()
 						if cell % cols == 0 then
 							rightMargin = cellMarginPx2
 						end
-						if cols/cell >= 1  then
+						if cols / cell >= 1 then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
 
@@ -1358,8 +1615,38 @@ function widget:DrawScreen()
 						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
 						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - backgroundPadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.14 * colorMult or 0.28 * colorMult) })
-						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.045 * colorMult or 0.095 * colorMult) }, { 1, 1, 1, 0 })
+						RectRound(
+							cellRects[cell][1] + leftMargin + pad + pad2,
+							cellRects[cell][4]
+								- topMargin
+								- backgroundPadding
+								- pad
+								- pad2
+								- ((cellRects[cell][4] - cellRects[cell][2]) * 0.42),
+							cellRects[cell][3] - rightMargin - pad - pad2,
+							(cellRects[cell][4] - topMargin - pad - pad2),
+							cellMargin * 0.025,
+							2,
+							2,
+							0,
+							0,
+							{ 1, 1, 1, 0.035 * colorMult },
+							{ 1, 1, 1, (disableInput and 0.14 * colorMult or 0.28 * colorMult) }
+						)
+						RectRound(
+							cellRects[cell][1] + leftMargin + pad + pad2,
+							cellRects[cell][2] + bottomMargin + pad + pad2,
+							cellRects[cell][3] - rightMargin - pad - pad2,
+							(cellRects[cell][2] - bottomMargin - pad - pad2)
+								+ ((cellRects[cell][4] - cellRects[cell][2]) * 0.5),
+							cellMargin * 0.025,
+							0,
+							0,
+							2,
+							2,
+							{ 1, 1, 1, (disableInput and 0.045 * colorMult or 0.095 * colorMult) },
+							{ 1, 1, 1, 0 }
+						)
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 					tracy.ZoneEnd()
@@ -1398,12 +1685,22 @@ function widget:DrawScreen()
 						if cell % cols == 0 then
 							rightMargin = cellMarginPx2
 						end
-						if cols/cell >= 1  then
+						if cols / cell >= 1 then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
 						-- gloss highlight
 						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, cellWidth * 0.019, 2, 2, 2, 2)
+						RectRound(
+							cellRects[cell][1] + leftMargin + pad,
+							cellRects[cell][2] + bottomMargin + pad,
+							cellRects[cell][3] - rightMargin - pad,
+							cellRects[cell][4] - topMargin - pad,
+							cellWidth * 0.019,
+							2,
+							2,
+							2,
+							2
+						)
 					else
 						clickedCellTime = nil
 					end
@@ -1421,20 +1718,33 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if ordermenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if
+		ordermenuShows
+		and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])
+	then
 		if #commands > 0 then
 			if not disableInput then
 				for cell = 1, #cellRects do
 					local cmd = commands[cell]
 					if cmd then
-						if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+						if
+							math_isInRect(
+								x,
+								y,
+								cellRects[cell][1],
+								cellRects[cell][2],
+								cellRects[cell][3],
+								cellRects[cell][4]
+							)
+						then
 							clickCountDown = 2
 							clickedCell = cell
 							clickedCellTime = os_clock()
 
 							if cmd.id == CMD.FIRE_STATE then
 								local virtualIndex = cmd.virtualIndex or 1
-								clickedCellDesiredState = OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, button ~= 1)
+								clickedCellDesiredState =
+									OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, button ~= 1)
 								doUpdate = true
 							elseif isStateCommand[cmd.id] then
 								local currentStateIndex = tonumber(cmd.params[1]) or 0
@@ -1453,12 +1763,18 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
+								Spring.PlaySoundFile(soundButton, 0.6, "ui")
 							end
 							if cmd.id == CMD.FIRE_STATE and clickedCellDesiredState ~= nil then
 								OrderMenuFirestate.giveVirtualIndex(clickedCellDesiredState, 0)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
-								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
+								Spring.SetActiveCommand(
+									Spring.GetCmdDescIndex(cmd.id),
+									button,
+									true,
+									false,
+									Spring.GetModKeyState()
+								)
 							end
 							break
 						end
@@ -1545,7 +1861,13 @@ function widget:LanguageChanged()
 end
 
 function widget:GetConfigData()
-	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
+	return {
+		version = 1,
+		colorize = colorize,
+		stickToBottom = stickToBottom,
+		alwaysShow = alwaysShow,
+		disabledCmd = disabledCommand,
+	}
 end
 
 function widget:SetConfigData(data)

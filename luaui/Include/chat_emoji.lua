@@ -4,25 +4,32 @@ local IMAGE_DIR = ":n:LuaUI/Images/emojis/twemoji/"
 local CUSTOM_IMAGE_DIR = ":n:LuaUI/Images/emojis/custom/"
 
 local aliases = {
+	["100"] = "100.png",
 	angry = "angry.png",
+	broken_heart = "broken_heart.png",
+	checkmark = "checkmark.png",
 	clap = "clap.png",
 	confused = "confused.png",
 	cookie = { image = "cookie.png", custom = true },
 	cool = "cool.png",
 	cry = "cry.png",
+	facepalm = "facepalm.png",
 	fire = "fire.png",
 	gg = "gg.png",
+	goat = "goat.png",
 	grin = "grin.png",
 	heart = "heart.png",
 	joy = "joy.png",
+	joy_cat = "joy_cat.png",
 	laughing = "laughing.png",
-	lol = "lol.png",
+	mouse = "mouse.png",
 	ok_hand = "ok_hand.png",
 	party = "party.png",
+	pensive = "pensive.png",
 	pleading = "pleading.png",
 	pray = "praying.png",
+	raised_eyebrow = "raised_eyebrow.png",
 	rofl = "rofl.png",
-	sad = "sad.png",
 	salute = "salute.png",
 	shrug = "shrug.png",
 	slight_smile = "slight_smile.png",
@@ -36,28 +43,36 @@ local aliases = {
 	thumbsup = "thumbsup.png",
 	wave = "wave.png",
 	wink = "wink.png",
+	x = "x.png",
 }
 
 local unicode = {
+	["100"] = "\240\159\146\175",
 	angry = "\240\159\152\160",
+	broken_heart = "\240\159\146\148",
+	checkmark = "\226\156\133",
 	clap = "\240\159\145\143",
 	confused = "\240\159\152\149",
 	cookie = "\240\159\141\170",
 	cool = "\240\159\152\142",
 	cry = "\240\159\152\162",
+	facepalm = "\240\159\164\166",
 	fire = "\240\159\148\165",
 	gg = "\240\159\164\157",
+	goat = "\240\159\144\144",
 	grin = "\240\159\152\129",
 	heart = "\226\157\164\239\184\143",
 	joy = "\240\159\152\130",
+	joy_cat = "\240\159\152\185",
 	laughing = "\240\159\152\134",
-	lol = "\240\159\152\130",
+	mouse = "\240\159\144\173",
 	ok_hand = "\240\159\145\140",
 	party = "\240\159\165\179",
+	pensive = "\240\159\152\148",
 	pleading = "\240\159\165\186",
 	pray = "\240\159\153\143",
+	raised_eyebrow = "\240\159\164\168",
 	rofl = "\240\159\164\163",
-	sad = "\240\159\152\162",
 	salute = "\240\159\171\161",
 	shrug = "\240\159\164\183",
 	slight_smile = "\240\159\153\130",
@@ -71,6 +86,7 @@ local unicode = {
 	thumbsup = "\240\159\145\141",
 	wave = "\240\159\145\139",
 	wink = "\240\159\152\137",
+	x = "\226\157\140",
 }
 
 local autocompleteAliases = {}
@@ -167,8 +183,8 @@ function ChatEmoji.HasEmojiCandidate(text)
 	if not text then
 		return false
 	end
-	local firstColon = sfind(text, ':', 1, true)
-	if firstColon and sfind(text, ':', firstColon + 1, true) then
+	local firstColon = sfind(text, ":", 1, true)
+	if firstColon and sfind(text, ":", firstColon + 1, true) then
 		return true
 	end
 	for i = 1, #unicodeStartChars do
@@ -203,27 +219,27 @@ function ChatEmoji.HasEmojiAliasCandidate(text)
 	if not text then
 		return false
 	end
-	local firstColon = sfind(text, ':', 1, true)
+	local firstColon = sfind(text, ":", 1, true)
 	if not firstColon then
 		return false
 	end
-	return sfind(text, ':', firstColon + 1, true) ~= nil
+	return sfind(text, ":", firstColon + 1, true) ~= nil
 end
 
 function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
 	local lines = {}
 	local lineCount = 0
 	for _, line in ipairs(textLines) do
-		local linebuffer = ''
+		local linebuffer = ""
 		for word in line:gmatch("%S+") do
-			if linebuffer ~= '' and (usedFont:GetTextWidth(linebuffer .. ' ' .. word) * fontSize) > maxWidth then
+			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
-				linebuffer = ''
+				linebuffer = ""
 			end
-			linebuffer = (linebuffer ~= '' and (linebuffer .. ' ' .. word) or word)
+			linebuffer = (linebuffer ~= "" and (linebuffer .. " " .. word) or word)
 		end
-		if linebuffer ~= '' then
+		if linebuffer ~= "" then
 			lineCount = lineCount + 1
 			lines[lineCount] = linebuffer
 		end
@@ -278,7 +294,10 @@ local function parseRichText(text)
 			local unicodeCandidates = unicodeStartByteLookup[c] or EMPTY_TABLE
 			for i = 1, #unicodeCandidates do
 				local candidate = unicodeCandidates[i]
-				if pos + candidate.len - 1 <= textLen and ssub(text, pos, pos + candidate.len - 1) == candidate.token then
+				if
+					pos + candidate.len - 1 <= textLen
+					and ssub(text, pos, pos + candidate.len - 1) == candidate.token
+				then
 					matchedAlias = candidate.alias
 					matchedLen = candidate.len
 					break
@@ -330,7 +349,7 @@ local function parseRichText(text)
 end
 
 local function emojiTextWidth(text, fontSize, usedFont)
-	if not text or text == '' then
+	if not text or text == "" then
 		return 0
 	end
 	if not likelyContainsEmoji(text) then
@@ -379,7 +398,7 @@ function ChatEmoji.GetImagePath(aliasTokenOrAlias)
 		return nil
 	end
 	local alias = aliasTokenOrAlias
-	if ssub(aliasTokenOrAlias, 1, 1) == ':' and ssub(aliasTokenOrAlias, -1) == ':' then
+	if ssub(aliasTokenOrAlias, 1, 1) == ":" and ssub(aliasTokenOrAlias, -1) == ":" then
 		alias = ssub(aliasTokenOrAlias, 2, -2)
 	end
 	return aliasImagePaths[alias]
@@ -394,50 +413,50 @@ function ChatEmoji.GetTexcoordInset()
 end
 
 function ChatEmoji.GetLeadingColorPrefix(text)
-	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ''
+	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ""
 end
 
 function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 	local lines = {}
 	local lineCount = 0
-	local spaceWidth = usedFont:GetTextWidth(' ') * fontSize
+	local spaceWidth = usedFont:GetTextWidth(" ") * fontSize
 	for _, line in ipairs(text) do
-		local linebuffer = ''
+		local linebuffer = ""
 		local linebufferWidth = 0.0
 		local lineHasEmoji = likelyContainsEmoji(line)
 
 		if not lineHasEmoji then
 			for word in line:gmatch("%S+") do
-				if linebuffer ~= '' and (usedFont:GetTextWidth(linebuffer .. ' ' .. word) * fontSize) > maxWidth then
+				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
-					linebuffer = ''
+					linebuffer = ""
 				end
-				linebuffer = (linebuffer ~= '' and (linebuffer .. ' ' .. word) or word)
+				linebuffer = (linebuffer ~= "" and (linebuffer .. " " .. word) or word)
 			end
-			if linebuffer ~= '' then
+			if linebuffer ~= "" then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
 			end
 		else
 			for word in line:gmatch("%S+") do
 				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
-				if linebuffer ~= '' and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
+				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = word
 					linebufferWidth = wordWidth
 				else
-					if linebuffer == '' then
+					if linebuffer == "" then
 						linebuffer = word
 						linebufferWidth = wordWidth
 					else
-						linebuffer = linebuffer .. ' ' .. word
+						linebuffer = linebuffer .. " " .. word
 						linebufferWidth = linebufferWidth + spaceWidth + wordWidth
 					end
 				end
 			end
-			if linebuffer ~= '' then
+			if linebuffer ~= "" then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
 			end
@@ -447,7 +466,7 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 end
 
 function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outlineColor)
-	if not text or text == '' then
+	if not text or text == "" then
 		return
 	end
 	if not likelyContainsEmoji(text) then
@@ -467,7 +486,7 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 	end
 
 	local drawX = x
-	local activeColor = ''
+	local activeColor = ""
 	local textActive = false
 	local textureBound = false
 	local lastTexturePath = nil
@@ -491,7 +510,7 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 	end
 
 	local function drawTextChunk(chunk)
-		if chunk and chunk ~= '' then
+		if chunk and chunk ~= "" then
 			beginText()
 			usedFont:Print(activeColor .. chunk, drawX, y, fontSize, options)
 			drawX = drawX + (usedFont:GetTextWidth(chunk) * fontSize)
@@ -518,7 +537,16 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 				lastTexturePath = texturePath
 				textureBound = true
 			end
-			glTexRect(drawX + emojiPadding, y + emojiYOffset, drawX + emojiPadding + size, y + emojiYOffset + size, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
+			glTexRect(
+				drawX + emojiPadding,
+				y + emojiYOffset,
+				drawX + emojiPadding + size,
+				y + emojiYOffset + size,
+				uvInset,
+				1 - uvInset,
+				1 - uvInset,
+				uvInset
+			)
 			drawX = drawX + size + (emojiPadding * 2)
 		end
 	end

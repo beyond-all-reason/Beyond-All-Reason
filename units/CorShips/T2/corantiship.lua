@@ -17,7 +17,6 @@ return {
 		corpse = "DEAD",
 		energycost = 12000,
 		energymake = 300,
-		energypershot = 7500,
 		energystorage = 1500,
 		explodeas = "minifusionExplosion",
 		floater = true,

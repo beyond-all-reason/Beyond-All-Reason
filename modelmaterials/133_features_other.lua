@@ -2,7 +2,7 @@ local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplat
 
 local materials = {
 	featuresOther = table.merge(matTemplate, {
-		texUnits  = {
+		texUnits = {
 			[0] = "%%FEATUREDEFID:0",
 			[1] = "%%FEATUREDEFID:1",
 		},
@@ -35,12 +35,12 @@ local materials = {
 		},
 		shaderOptions = {
 			autonormal = true,
-			autoNormalParams = {1.5, 0.005},
+			autoNormalParams = { 1.5, 0.005 },
 		},
 		deferredOptions = {
 			materialIndex = 133,
 		},
-	})
+	}),
 }
 
 --------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ local featureMaterials = {}
 for id = 1, #FeatureDefs do
 	local fdef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and fdef.modeltype ~= "3do" then
-		featureMaterials[id] = {"featuresOther"}
+		featureMaterials[id] = { "featuresOther" }
 	end
 end
 

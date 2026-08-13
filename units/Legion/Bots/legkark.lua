@@ -17,7 +17,7 @@ return {
 		footprintz = 2,
 		health = 1725,
 		maxslope = 17,
-		mass = 210, -- Testing: this unit has resistance to impulse 
+		mass = 210, -- Testing: this unit has resistance to impulse
 		speed = 42.0,
 		maxwaterdepth = 12,
 		movementclass = "BOT2",
@@ -33,7 +33,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 900,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots",

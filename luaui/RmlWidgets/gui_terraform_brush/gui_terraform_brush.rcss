@@ -122,6 +122,13 @@ body {
 	pointer-events: none;
 }
 
+/* Scroll bodies and scrollbar styling live in terraform_shared/styles.rcss.
+   The brush panel starts at 25vh, so its pre-layout fallback cap is shorter
+   than the shared default. */
+.tf-root .tf-panel-body {
+	max-height: 62vh;
+}
+
 /* === Root Positioning === */
 /*
  * Width uses `vw` so the panel scales with viewport width (same visual
@@ -179,9 +186,6 @@ body {
 	z-index: 900;
 	width: 13vw;
 	min-width: 220px;
-	max-height: 80vh;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -691,6 +695,12 @@ body {
 }
 
 .tf-btn-splat.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Tileset tool */
+.tf-btn-tileset.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -1247,6 +1257,11 @@ body {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 5dp;
+	/* RmlUi scopes z-index to siblings within the nearest stacking context, so
+	   the FILE menu's z-index:1000 only orders it inside its wrap — the header
+	   subtree as a whole still painted under later flow siblings (the status
+	   summary strip drew over the open dropdown). Lift the whole header. */
+	z-index: 10;
 }
 
 /* Top tier: wordmark (left, shrinks) + window controls (right, fixed) */
@@ -1301,6 +1316,15 @@ body {
 	font-weight: bold;
 	letter-spacing: 2dp;
 	color: #fdc04c;
+}
+
+/* Version badge: reads as metadata next to the title, not part of the name. */
+.tf-title-version {
+	font-size: 11dp;
+	font-weight: bold;
+	letter-spacing: 0.5dp;
+	margin-left: 4dp;
+	color: #8a8f9a;
 }
 
 /* === Control rail (bottom tier) — full-width inset capsule === */
@@ -1409,8 +1433,6 @@ body {
 	z-index: 920;
 	width: 300dp;
 	min-width: 260dp;
-	max-height: 84vh;
-	overflow-y: auto;
 }
 
 /* New Map: compact section divider label */
@@ -1715,6 +1737,14 @@ body {
 	border-color: #6a6a80cc;
 }
 
+/* New Map dialog: map name gets a larger, more prominent input */
+#newmap-name-input {
+	height: 36dp;
+	padding: 2dp 10dp;
+	line-height: 30dp;
+	font-size: 1.4rem;
+}
+
 .tf-dim-input {
 	flex: 1;
 	height: 28dp;
@@ -1793,24 +1823,7 @@ body {
 	margin-bottom: 4dp;
 }
 
-.tf-preset-dropdown scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-
-.tf-preset-dropdown scrollbarvertical slidertrack {
-	background-color: #2a2a2a;
-	border-radius: 4dp;
-}
+/* Scrollbar styling is shared — see the `scrollbarvertical` rules up top. */
 
 .tf-preset-row {
 	display: flex;
@@ -1888,7 +1901,9 @@ body {
 	font-style: italic;
 }
 
-/* === Heightmap browser (Load Heightmap dropdown) === */
+/* === Heightmap browser (Load Heightmap dropdown) ===
+   The Open Project list reuses the browser frame and the row/date/name/badge
+   classes so both file pickers read the same. */
 .tf-hm-browser {
 	display: flex;
 	flex-direction: column;
@@ -1900,22 +1915,6 @@ body {
 	margin-top: 4dp;
 	margin-bottom: 4dp;
 	padding: 4dp;
-}
-
-.tf-hm-browser scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-.tf-hm-browser scrollbarvertical slidertrack {
-	background-color: #1f2027;
-	border-radius: 4dp;
 }
 
 .tf-hm-header {
@@ -1934,15 +1933,19 @@ body {
 .tf-hm-header:hover {
 	color: #cbd5e1;
 }
-.tf-hm-header-chevron {
-	display: inline-block;
-	width: 14dp;
-	margin-right: 4dp;
-	color: #64748b;
-	transition: transform 0.12s;
-}
 .tf-hm-header-text {
 	flex: 1;
+}
+.tf-hm-refresh {
+	width: 14dp;
+	height: 14dp;
+	padding: 2dp;
+	margin-left: 6dp;
+	image-color: #94a3b8;
+	cursor: pointer;
+}
+.tf-hm-refresh:hover {
+	image-color: #ffffff;
 }
 .tf-hm-browser.collapsed .tf-hm-header {
 	border-bottom: 1dp transparent;
@@ -1987,11 +1990,15 @@ body {
 	gap: 12dp;
 }
 
+/* Fixed column: the font is proportional, so equal-length timestamps still
+   render at different widths ("11:11" is far narrower than "20:27") and the
+   names after them would start at a different x on every row. */
 .tf-hm-date {
 	color: #94a3b8;
 	font-size: 0.95rem;
 	white-space: nowrap;
-	min-width: 0;
+	flex-shrink: 0;
+	min-width: 84dp;
 }
 
 .tf-hm-badge {
@@ -2022,6 +2029,18 @@ body {
 
 .tf-hm-row:hover .tf-hm-mapname {
 	color: #f9fafb;
+}
+
+/* Open Project rows: clicking one selects it; LOAD and DELETE sit at the
+   bottom of the dialog and act on the selection. The window keeps the shared
+   .tf-newmap-window width — no override — so it matches New Map / Save Project. */
+.tf-proj-row.selected {
+	background-color: #1f3a4d;
+	border: 1dp #2ba5ea;
+}
+
+.tf-proj-row.selected .tf-hm-mapname {
+	color: #ffffff;
 }
 
 /* === Absolute Height Cap Toggle === */
@@ -2611,6 +2630,11 @@ body {
 	border-color: #ffd47a;
 }
 
+.tf-btn-tileset.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
 .tf-btn-diffuse.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
@@ -3069,8 +3093,6 @@ body {
 	z-index: 920;
 	width: 320dp;
 	min-height: 200dp;
-	max-height: 80vh;
-	overflow-y: auto;
 }
 
 .tf-settings-glyph {
@@ -3085,6 +3107,16 @@ body {
 }
 
 .tf-settings-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
+.tf-maplabels-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-maplabels-btn.active:hover {
 	background-color: #3b2d17;
 	border-color: #fdc04c;
 }
@@ -3247,6 +3279,23 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #c8d0d8;
+}
+
+/* Compact chip for section title rows.
+ *
+ * .tf-section-title-row is absolutely positioned at top: -10dp and masks the
+ * frame border with its own background, so it only has room for a short chip.
+ * A full-size .tf-overlay-chip (3dp 8dp padding, 1.0rem label) grows the row
+ * past that band and collides with the border and the first content row.
+ *
+ * Geometry only — colour and state still come from .tf-overlay-chip and its
+ * .active rule, so this stays in step with the palette. */
+.tf-overlay-chip-sm {
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+}
+.tf-overlay-chip-sm .tf-overlay-chip-label {
+	font-size: 0.78rem;
 }
 
 /* Warning chip — shown in the toggle header when section is collapsed but items within are active */
@@ -3429,4 +3478,127 @@ margin-top: 3dp;
 }
 .disabled:hover {
 	opacity: 0.35;
+}
+
+/* === BIOME LIBRARY picker (TILESET tool) ================================== */
+/* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
+/* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
+.tf-biome-tile {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 3dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+.tf-biome-tile:hover {
+	border-color: #fdc04caa;
+}
+.tf-biome-tile.active {
+	border-color: #fdc04c;
+	background-color: #fdc04c1a;
+}
+.tf-biome-thumb {
+	width: 60dp;
+	height: 60dp;
+	border-radius: 3dp;
+}
+.tf-biome-name {
+	margin-top: 2dp;
+	font-size: 12dp;
+	color: #d0d0d8;
+	text-align: center;
+}
+.tf-biome-tile.active .tf-biome-name {
+	color: #fdc04c;
+}
+
+/* === Capture (top-down map photo + unit SVG layer) === */
+
+.tf-capture-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-capture-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
+/* Geometry copied from .tf-env-float-window so the Capture panel is the same
+   width as the brush panel and every other floating tool window. */
+.tf-capture-window {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 920;
+	width: 13vw;
+	min-width: 220px;
+}
+
+/* The size/tiles/time line. This is the control that stops a capture being a
+   surprise, so it reads as data rather than as body copy. */
+.tf-capture-readout {
+	padding: 3dp 6dp;
+	background-color: #ffffff0c;
+	border-radius: 4dp;
+	font-size: 0.85rem;
+	color: #fdc04c;
+	text-align: center;
+}
+
+.tf-capture-slider-val {
+	width: 34dp;
+	font-size: 0.85rem;
+	color: #d0d0d8;
+	text-align: right;
+	flex-shrink: 0;
+}
+
+.tf-capture-progress {
+	padding: 5dp 6dp;
+	background-color: #ffffff0c;
+	border-radius: 4dp;
+	font-size: 0.85rem;
+	color: #d0d0d8;
+	text-align: center;
+}
+
+/* Result bar. Inset panel like .tf-status-summary (the clone tool's readout),
+   but the output path must wrap rather than clip, so no nowrap/overflow here. */
+.tf-capture-result {
+	padding: 5dp 7dp;
+	background-color: #12121a;
+	border-radius: 4dp;
+	border: 1dp #40e0c033;
+}
+
+.tf-capture-result-head {
+	font-size: 0.8rem;
+	font-weight: bold;
+	letter-spacing: 0.4dp;
+	color: #40e0c0;
+}
+
+/* Size / file count riding on the header line — present, not shouting. */
+.tf-capture-result-meta {
+	font-weight: normal;
+	letter-spacing: 0;
+	color: #6f8f88;
+}
+
+.tf-capture-result-path {
+	margin-top: 2dp;
+	font-size: 0.78rem;
+	color: #9ca3af;
+	word-break: break-word;
+}
+
+.tf-capture-result-bad {
+	border-color: #fdc04c55;
+}
+
+.tf-capture-result-bad .tf-capture-result-head {
+	color: #fdc04c;
 }

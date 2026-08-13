@@ -43,7 +43,7 @@ return {
 			removewait = true,
 			selectionscalemult = 1,
 			subfolder = "Legion/Defenses",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -118,6 +118,9 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
+				flighttime = 0.610,
+				heightboostfactor = 0,
+				heightmod = 1,
 				impulsefactor = 2.0,
 				name = "Area Control Riot Cannon",
 				noselfdamage = true,

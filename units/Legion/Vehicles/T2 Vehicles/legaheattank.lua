@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.6104,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",

@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Terraform Suite Launcher",
-		desc    = "Loads the map editor suite on demand (/terraformbrush, /terraformpanel, /terraformsuite)",
-		author  = "PtaQ",
-		date    = "July 2026",
+		name = "Terraform Suite Launcher",
+		desc = "Loads the map editor suite on demand (/terraformbrush, /terraformpanel, /terraformsuite)",
+		author = "PtaQ",
+		date = "July 2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 		handler = true,
 	}
@@ -26,12 +26,14 @@ local SUITE_WIDGETS = {
 	"Decal Capture",
 	"Decal Placer",
 	"Diffuse Painter",
+	"DrawFeatureShape GL4",
 	"Feature Placer",
 	"Grass Brush",
 	"Light Placer",
 	"Metal Brush",
 	"Splat Painter",
 	"Start Positions Tool",
+	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
 	"Terraformer Shared RmlUi Helpers",
@@ -40,20 +42,31 @@ local SUITE_WIDGETS = {
 	"Diffuse Library UI",
 	"Feature Placer UI",
 	"Weather Brush UI",
+	"Map Labels UI",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
 -- (/diffusepaint, /grassbrush, ...) become available once the suite is up.
 local ENTRY_ACTIONS = {
-	"terraformbrush", "terraformup", "terraformdown", "terraformlevel",
-	"terraformsmooth", "terraformerode", "terraformramp", "terraformrestore",
-	"terraformexport", "terraformimport", "terraformpanel",
+	"terraformbrush",
+	"terraformup",
+	"terraformdown",
+	"terraformlevel",
+	"terraformsmooth",
+	"terraformerode",
+	"terraformramp",
+	"terraformrestore",
+	"terraformexport",
+	"terraformimport",
+	"terraformpanel",
 }
 
 local suiteEnabled = false
 
 local function enableSuite()
-	if suiteEnabled then return false end
+	if suiteEnabled then
+		return false
+	end
 	suiteEnabled = true
 	Spring.Echo("[Terraform Suite] Loading map editor widgets...")
 	for i = 1, #SUITE_WIDGETS do
@@ -69,6 +82,15 @@ function widget:Initialize()
 	local order = widgetHandler.orderList and widgetHandler.orderList["Terraform Brush"]
 	if order and order > 0 then
 		suiteEnabled = true
+		-- The suite came back enabled from a persisted order list, so enableSuite()
+		-- will never run this session. Widgets added to SUITE_WIDGETS since that
+		-- list was saved are not in it yet — enable the stragglers so newly shipped
+		-- suite widgets appear without a fresh game start.
+		for i = 1, #SUITE_WIDGETS do
+			if (widgetHandler.orderList[SUITE_WIDGETS[i]] or 0) <= 0 then
+				widgetHandler:EnableWidget(SUITE_WIDGETS[i])
+			end
+		end
 	end
 
 	-- handler = true hands us the RAW widgetHandler, which has no AddAction

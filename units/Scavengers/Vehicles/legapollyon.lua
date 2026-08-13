@@ -40,7 +40,7 @@ return {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
-			model_author = "Gab, Damgam",
+			model_author = "Gabs (Modeling), Mako2772 (Concept), Damgam (Finishing touches and implementation)",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -185,7 +185,7 @@ return {
 			legapollyon_gatling_aa = {
 				accuracy = 1000,
 				areaofeffect = 44,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,

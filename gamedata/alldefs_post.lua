@@ -43,7 +43,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
+local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
@@ -57,7 +57,8 @@ local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua"
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
-local proposed_unit_reworksTweaks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
+local proposed_unit_reworksTweaks =
+	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
 local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
 local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
 local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
@@ -107,7 +108,7 @@ local hoverList = {
 	HOVER2 = true,
 	HOVER3 = true,
 	HHOVER4 = true,
-	AHOVER2 = true
+	AHOVER2 = true,
 }
 
 local shipList = {
@@ -115,12 +116,12 @@ local shipList = {
 	BOAT4 = true,
 	BOAT5 = true,
 	BOAT9 = true,
-	EPICSHIP = true
+	EPICSHIP = true,
 }
 
 local subList = {
 	UBOAT4 = true,
-	EPICSUBMARINE = true
+	EPICSUBMARINE = true,
 }
 
 local amphibList = {
@@ -132,12 +133,12 @@ local amphibList = {
 	HABOT5 = true,
 	ABOTBOMB2 = true,
 	EPICBOT = true,
-	EPICALLTERRAIN = true
+	EPICALLTERRAIN = true,
 }
 
 local commanderList = {
 	COMMANDERBOT = true,
-	SCAVCOMMANDERBOT = true
+	SCAVCOMMANDERBOT = true,
 }
 
 local categories = {}
@@ -145,24 +146,62 @@ local categories = {}
 -- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
 -- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 
-categories["ALL"] = function() return true end
-categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
-categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
-categories["WEAPON"] = function(uDef) return next(uDef.weapondefs) ~= nil end
-categories["NOWEAPON"] = function(uDef) return next(uDef.weapondefs) == nil end
-categories["VTOL"] = function(uDef) return uDef.canfly == true end
-categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
-categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
-categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
-categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
-categories["NOTSHIP"] = function(uDef) return not categories.SHIP(uDef) end
-categories["NOTSUB"] = function(uDef) return not subList[uDef.movementclass] end
-categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
-categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
-categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
-categories["MINE"] = function(uDef) return uDef.weapondefs.minerange end
-categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0 end
+categories.ALL = function()
+	return true
+end
+categories.MOBILE = function(uDef)
+	return uDef.speed and uDef.speed > 0
+end
+categories.NOTMOBILE = function(uDef)
+	return not categories.MOBILE(uDef)
+end
+categories.WEAPON = function(uDef)
+	return next(uDef.weapondefs) ~= nil
+end
+categories.NOWEAPON = function(uDef)
+	return next(uDef.weapondefs) == nil
+end
+categories.VTOL = function(uDef)
+	return uDef.canfly == true
+end
+categories.NOTAIR = function(uDef)
+	return not categories.VTOL(uDef)
+end
+categories.HOVER = function(uDef)
+	return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1)
+end -- convertible tank/boats have maxwaterdepth
+categories.NOTHOVER = function(uDef)
+	return not categories.HOVER(uDef)
+end
+categories.SHIP = function(uDef)
+	return shipList[uDef.movementclass]
+		or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >= 1)
+end
+categories.NOTSHIP = function(uDef)
+	return not categories.SHIP(uDef)
+end
+categories.NOTSUB = function(uDef)
+	return not subList[uDef.movementclass]
+end
+categories.CANBEUW = function(uDef)
+	return amphibList[uDef.movementclass] or uDef.cansubmerge == true
+end
+categories.UNDERWATER = function(uDef)
+	return (uDef.minwaterdepth and uDef.waterline == nil)
+		or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0)
+end
+categories.SURFACE = function(uDef)
+	return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef)
+end
+categories.MINE = function(uDef)
+	return uDef.weapondefs.minerange
+end
+categories.COMMANDER = function(uDef)
+	return commanderList[uDef.movementclass]
+end
+categories.EMPABLE = function(uDef)
+	return categories.SURFACE(uDef) and uDef.customparams.paralyzemultiplier ~= 0
+end
 
 -------------------------
 -- MODULE FUNCTIONS
@@ -196,8 +235,6 @@ local function unitDef_Post(name, uDef)
 	end
 
 	----------------------------------------------------------------------------------------------------------
-
-
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
@@ -249,33 +286,46 @@ local function unitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.unit_restrictions_noair and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noair_"))) then
+	if
+		modOptions.unit_restrictions_noair
+		and not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noair_"))
+	then
 		if string.find(customparams.subfolder, "Aircraft", 1, true) then
 			customparams.modoption_blocked = true
 		elseif customparams.unitgroup and customparams.unitgroup == "aa" then
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_")) then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
 			customparams.modoption_blocked = true
 		end
 	end
 
-	if modOptions.unit_restrictions_nosea and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_nosea_"))) then
-		if (uDef.minwaterdepth and uDef.minwaterdepth > 0) or (uDef.category and string.find(uDef.category, "SHIP")) or (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nosea_")) then
+	if
+		modOptions.unit_restrictions_nosea
+		and not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_nosea_"))
+	then
+		if
+			(uDef.minwaterdepth and uDef.minwaterdepth > 0)
+			or (uDef.category and string.find(uDef.category, "SHIP"))
+			or (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nosea_"))
+		then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noextractors then
-		if (uDef.extractsmetal and uDef.extractsmetal > 0) and (customparams.metal_extractor and customparams.metal_extractor > 0) then
+		if
+			(uDef.extractsmetal and uDef.extractsmetal > 0)
+			and (customparams.metal_extractor and customparams.metal_extractor > 0)
+		then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.legionsimplifiedmexes then
 		local legiont15mex = {
-			legmext15	= true,
+			legmext15 = true,
 		}
 		if legiont15mex[basename] then
 			uDef.customparams.modoption_blocked = true
@@ -290,7 +340,7 @@ local function unitDef_Post(name, uDef)
 
 	if modOptions.unit_restrictions_nonukes then
 		for _, weapon in pairs(weapondefs) do
-			if (weapon.targetable and weapon.targetable == 1) then
+			if weapon.targetable and weapon.targetable == 1 then
 				customparams.modoption_blocked = true
 				break
 			end
@@ -298,27 +348,41 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nonukes or modOptions.unit_restrictions_noantinuke then
-		if next(weapondefs) then
-			local numWeapons = 0
-			local newWdefs = {}
-			local hasAnti = false
-			for i, weapon in pairs(weapondefs) do
-				if weapon.interceptor and weapon.interceptor == 1 then
-					weapondefs[i] = nil
-					hasAnti = true
-				else
-					numWeapons = numWeapons + 1
-					newWdefs[numWeapons] = weapon
+		if table.any(weapondefs, function(def)
+			return def.interceptor == 1
+		end) then
+			for weaponName, weaponDef in pairs(weapondefs) do
+				if weaponDef.interceptor == 1 then
+					weapondefs[weaponName] = nil
 				end
 			end
-			if hasAnti then
-				uDef.weapondefs = newWdefs
-				if numWeapons == 0 and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noantinuke_"))) then
-					customparams.modoption_blocked = true
-				else
-					if uDef.metalcost then
-						uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
-						uDef.energycost = math.floor(uDef.energycost * 0.6)
+			if not next(weapondefs) and not (customparams.restrictions_exclusion or ""):find("_noantinuke_") then
+				customparams.modoption_blocked = true
+			else
+				uDef.metalcost = math.floor((uDef.metalcost or 0) * 0.8)
+				uDef.energycost = math.floor((uDef.energycost or 0) * 0.8)
+				-- Drones should use stockpiling when there are no remaining stockpiling weapon conflicts.
+				-- Maybe an exception: babyscavbossunits. So I'm leaving this in the antinuke restriction.
+				for weaponName, weaponDef in pairs(weapondefs) do
+					if
+						weaponDef.customparams
+						and tonumber(weaponDef.customparams.spawnrate)
+						and not weaponDef.stockpiletime
+					then
+						if
+							not table.any(weapondefs, function(wd, wn)
+								return wn ~= weaponName and wd.stockpile
+							end)
+						then
+							weaponDef.stockpile = true
+							weaponDef.stockpiletime = tonumber(weaponDef.customparams.spawnrate) or 10
+							weaponDef.customparams.stockpilelimit = tonumber(weaponDef.customparams.maxunits)
+								or tonumber(weaponDef.customparams.startingdronecount)
+							weaponDef.customparams.dronesusestockpile = true
+							weaponDef.customparams.stockpilemetal = weaponDef.metalpershot
+							weaponDef.customparams.stockpileenergy = weaponDef.energypershot
+							break
+						end
 					end
 				end
 			end
@@ -326,31 +390,33 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nofusion then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nofusion_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nofusion_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_notacnukes then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_notacnukes_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_notacnukes_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_nolrpc then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nolrpc_")) then
+		if customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_nolrpc_") then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	if modOptions.unit_restrictions_noendgamelrpc then
-		if (customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noendgamelrpc_")) then
+		if
+			customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noendgamelrpc_")
+		then
 			customparams.modoption_blocked = true
 		end
 	end
 
 	--normal commander respawning
-	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
+	if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom) then
 		if name == "armcom" or name == "corcom" or name == "legcom" then
 			customparams.effigy = "comeffigylvl1"
 			customparams.effigy_offset = 1
@@ -367,15 +433,15 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if customparams.evolution_target then
-		customparams.combatradius                     = customparams.combatradius or 1000
-		customparams.evolution_announcement_size      = tonumber(customparams.evolution_announcement_size)
-		customparams.evolution_condition              = customparams.evolution_condition or "timer"
-		customparams.evolution_health_threshold       = tonumber(customparams.evolution_health_threshold) or 0
-		customparams.evolution_health_transfer        = customparams.evolution_health_transfer or "flat"
+		customparams.combatradius = customparams.combatradius or 1000
+		customparams.evolution_announcement_size = tonumber(customparams.evolution_announcement_size)
+		customparams.evolution_condition = customparams.evolution_condition or "timer"
+		customparams.evolution_health_threshold = tonumber(customparams.evolution_health_threshold) or 0
+		customparams.evolution_health_transfer = customparams.evolution_health_transfer or "flat"
 		customparams.evolution_power_enemy_multiplier = tonumber(customparams.evolution_power_enemy_multiplier) or 1
-		customparams.evolution_power_multiplier       = tonumber(customparams.evolution_power_multiplier) or 1
-		customparams.evolution_power_threshold        = tonumber(customparams.evolution_power_threshold) or 600
-		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
+		customparams.evolution_power_multiplier = tonumber(customparams.evolution_power_multiplier) or 1
+		customparams.evolution_power_threshold = tonumber(customparams.evolution_power_threshold) or 600
+		customparams.evolution_timer = tonumber(customparams.evolution_timer) or 20
 	end
 
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
@@ -390,7 +456,6 @@ local function unitDef_Post(name, uDef)
 
 	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.releasecandidates or modOptions.experimentalextraunits then
-
 	end
 
 	if string.find(name, "raptor", 1, true) and uDef.health then
@@ -475,15 +540,22 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if uDef.canfly then
-		uDef.crashdrag = 0.01    -- default 0.005
-		if not (string.find(name, "fepoch", 1, true) or string.find(name, "fblackhy", 1, true) or string.find(name, "corcrw", 1, true) or string.find(name, "legfort", 1, true)) then
+		uDef.crashdrag = 0.01 -- default 0.005
+		if
+			not (
+				string.find(name, "fepoch", 1, true)
+				or string.find(name, "fblackhy", 1, true)
+				or string.find(name, "corcrw", 1, true)
+				or string.find(name, "legfort", 1, true)
+			)
+		then
 			--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 			uDef.collide = false
 		end
 	end
 
 	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
-		local healthmass = math.ceil(uDef.health/6)
+		local healthmass = math.ceil(uDef.health / 6)
 		uDef.mass = math.max(uDef.metalcost, healthmass)
 		if uDef.metalcost < 751 and uDef.mass > 750 then
 			uDef.mass = 750
@@ -544,7 +616,6 @@ local function unitDef_Post(name, uDef)
 	-- Factory costs test
 
 	if modOptions.factory_costs == true then
-
 	end
 
 	----------------
@@ -605,7 +676,10 @@ local function unitDef_Post(name, uDef)
 	--energystorage
 	--metalstorage
 	-- Metal Extraction Multiplier
-	if (uDef.extractsmetal and uDef.extractsmetal > 0) and (customparams.metal_extractor and customparams.metal_extractor > 0) then
+	if
+		(uDef.extractsmetal and uDef.extractsmetal > 0)
+		and (customparams.metal_extractor and customparams.metal_extractor > 0)
+	then
 		local x = modOptions.multiplier_metalextraction * modOptions.multiplier_resourceincome
 		uDef.extractsmetal = uDef.extractsmetal * x
 		customparams.metal_extractor = customparams.metal_extractor * x
@@ -709,16 +783,16 @@ local function unitDef_Post(name, uDef)
 	customparams.healthlookmod = 0
 
 	-- Animation Cleanup
-	if modOptions.animationcleanup  then
+	if modOptions.animationcleanup then
 		if uDef.script then
 			local oldscript = uDef.script:lower()
 			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
-				if VFS.FileExists('scripts/'..newscript) then
-					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+				if VFS.FileExists("scripts/" .. newscript) then
+					Spring.Echo("Using new script for", name, oldscript, "->", newscript)
 					uDef.script = newscript
 				else
-					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
+					Spring.Echo("Unable to find new script for", name, oldscript, "->", newscript, "using old one")
 				end
 			end
 		end
@@ -742,7 +816,11 @@ local function unitDef_Post(name, uDef)
 		-- [<0] := never active, [0] := always active, [1] := primary set, [>1] := alternate sets
 		for weaponName, weaponDef in pairs(weapondefs) do
 			local groupNumber = 0
-			if table.any(weapons, function(weapon) return weaponName:lower() == (weapon.def or ""):lower() end) then
+			if
+				table.any(weapons, function(weapon)
+					return weaponName:lower() == (weapon.def or ""):lower()
+				end)
+			then
 				groupNumber = tonumber(weaponDef.customparams.weapons_group or 0) or 0
 			else
 				groupNumber = -1
@@ -760,7 +838,8 @@ local function unitDef_Post(name, uDef)
 		if not customparams.defend_never_hesitate and next(weapondefs) then
 			for _, weaponDef in pairs(weapondefs) do
 				if not weaponDef.customparams.bogus then
-					if uDef.canfly
+					if
+						uDef.canfly
 						or weaponDef.weapontype == "StarburstLauncher"
 						or (weaponDef.range and weaponDef.range > DEFEND_NEVER_HESITATE_RANGE)
 						or (weaponDef.customparams.carried_unit and weaponDef.customparams.carried_unit ~= "")
@@ -787,15 +866,15 @@ local function unitDef_Post(name, uDef)
 end
 
 local weaponTypeSoundMultiplier = {
-	["LaserCannon"] = {
+	LaserCannon = {
 		soundstartvolume = 0.8,
 		soundhitvolume = 0.8,
 		soundhitwetvolume = 0.5,
 	},
-	["BeamLaser"] = {
+	BeamLaser = {
 		soundhitwetvolume = 0.3,
 	},
-	["TorpedoLauncher"] = {
+	TorpedoLauncher = {
 		soundstartvolume = 0.4,
 		soundhitvolume = 0.5,
 		soundhitwetvolume = 0.5,
@@ -803,7 +882,6 @@ local weaponTypeSoundMultiplier = {
 }
 
 local function ProcessSoundDefaults(wd)
-
 	local defaultDamage = 10
 	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
 		for _, damage in pairs(wd.damage) do
@@ -852,16 +930,35 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume then
-		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume
+		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5)
+			* weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume
 	else
 		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5)
 	end
 
-	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier*startVolumeMultiplier
-	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))*4*volumeMultiplier*hitVolumeMultiplier
-	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))*4*volumeMultiplier*hitwetVolumeMultiplier
+	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))
+		* 4
+		* volumeMultiplier
+		* startVolumeMultiplier
+	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))
+		* 4
+		* volumeMultiplier
+		* hitVolumeMultiplier
+	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))
+		* 4
+		* volumeMultiplier
+		* hitwetVolumeMultiplier
 	if volumeMultiplier ~= 1 then
-		Spring.Echo("WeaponVolumes", wd.weapontype, defaultDamage, volumeMultiplier, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
+		Spring.Echo(
+			"WeaponVolumes",
+			wd.weapontype,
+			defaultDamage,
+			volumeMultiplier,
+			wd.name,
+			wd.soundstartvolume,
+			wd.soundhitvolume,
+			wd.soundhitwetvolume
+		)
 	end
 end
 
@@ -875,9 +972,11 @@ local function weaponDef_Post(name, wDef)
 		-------------- EXPERIMENTAL MODOPTIONS
 
 		-- Standard Gravity
-		local gravityOverwriteExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
-			'cormship_', 'armmship_'
-		}
+		local gravityOverwriteExemptions =
+			{ --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
+				"cormship_",
+				"armmship_",
+			}
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
 			local isExempt = false
 
@@ -944,7 +1043,6 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
-
 		local bounceShields = shieldModOption == "bounceeverything" or shieldModOption == "bounceplasma"
 		if bounceShields then
 			if shield then
@@ -958,7 +1056,7 @@ local function weaponDef_Post(name, wDef)
 		end
 
 		-- allows unblocked weapons' aoe to reach inside shields
-		if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+		if (not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon" then
 			customparams.shield_aoe_penetration = true
 		end
 
@@ -1019,7 +1117,10 @@ local function weaponDef_Post(name, wDef)
 		if wDef.targetborder == nil then
 			wDef.targetborder = 1 --Aim for just inside the hitsphere
 
-			if Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser" or wDef.weapontype == "LightningCannon" then
+			if
+				Engine.FeatureSupport.targetBorderBug and wDef.weapontype == "BeamLaser"
+				or wDef.weapontype == "LightningCannon"
+			then
 				wDef.targetborder = 0.33 --approximates in current engine with bugged calculation, to targetborder = 1.
 			end
 		end
@@ -1027,7 +1128,11 @@ local function weaponDef_Post(name, wDef)
 		-- Prevent weapons from aiming only at auto-generated targets beyond their own range.
 		if wDef.proximitypriority then
 			local range = math.max(wDef.range or 10, 1) -- prevent div0 -- todo: account for multiplier_weaponrange
-			local rangeBoost = math.max(range + ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))), range) -- see unit_preaim
+			local rangeBoost = math.max(
+				range
+					+ ((customparams.exclude_preaim and 0) or (customparams.preaim_range or math.max(range * 0.1, 20))),
+				range
+			) -- see unit_preaim
 			local proximity = math.max(wDef.proximitypriority, (-0.4 * rangeBoost - 100) / range) -- see CGameHelper::GenerateWeaponTargets
 			wDef.proximitypriority = math.clamp(proximity, -1, 10) -- upper range allowed for targeting weapons for drone bombers which can overrange massively
 		end
@@ -1051,7 +1156,9 @@ local function weaponDef_Post(name, wDef)
 				end
 
 				-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
-				if not wDef.customparams then wDef.customparams = {} end
+				if not wDef.customparams then
+					wDef.customparams = {}
+				end
 				wDef.customparams.plasma_size_orig = wDef.size or 2
 
 				-- Hide engine cannon projectile rendering (GL4 gadget replaces it)
@@ -1075,21 +1182,23 @@ local function weaponDef_Post(name, wDef)
 
 		if wDef.weapontype == "Flame" then
 			-- Store original visual properties so the GL4 flamethrower gadget can read them at runtime.
-			if not wDef.customparams then wDef.customparams = {} end
+			if not wDef.customparams then
+				wDef.customparams = {}
+			end
 			local cp = wDef.customparams
-			cp.flame_orig_intensity    = tostring(wDef.intensity or 0.5)
-			cp.flame_orig_sizegrowth   = tostring(wDef.sizegrowth or 0.5)
-			cp.flame_orig_rgbcolor     = tostring(wDef.rgbcolor or "1 0.9 0.8")
-			cp.flame_orig_rgbcolor2    = tostring(wDef.rgbcolor2 or wDef.rgbcolor or "1 0.9 0.8")
-			cp.flame_orig_velocity     = tostring(wDef.weaponvelocity or 250)
-			cp.flame_orig_range        = tostring(wDef.range or 200)
-			cp.flame_orig_sprayangle   = tostring(wDef.sprayangle or 0)
+			cp.flame_orig_intensity = tostring(wDef.intensity or 0.5)
+			cp.flame_orig_sizegrowth = tostring(wDef.sizegrowth or 0.5)
+			cp.flame_orig_rgbcolor = tostring(wDef.rgbcolor or "1 0.9 0.8")
+			cp.flame_orig_rgbcolor2 = tostring(wDef.rgbcolor2 or wDef.rgbcolor or "1 0.9 0.8")
+			cp.flame_orig_velocity = tostring(wDef.weaponvelocity or 250)
+			cp.flame_orig_range = tostring(wDef.range or 200)
+			cp.flame_orig_sprayangle = tostring(wDef.sprayangle or 0)
 			cp.flame_orig_areaofeffect = tostring(wDef.areaofeffect or 48)
 			cp.flame_orig_flamegfxtime = tostring(wDef.flamegfxtime or 1)
-			cp.flame_orig_cegtag       = tostring(wDef.cegtag or "")
-			cp.flame_orig_expgen       = tostring(wDef.explosiongenerator or "")
+			cp.flame_orig_cegtag = tostring(wDef.cegtag or "")
+			cp.flame_orig_expgen = tostring(wDef.explosiongenerator or "")
 			local dmg = wDef.damage and (wDef.damage.default or 0) or 0
-			cp.flame_orig_damage       = tostring(dmg)
+			cp.flame_orig_damage = tostring(dmg)
 			-- Hide engine flame projectile rendering (GL4 gadget replaces it).
 			-- IMPORTANT: do NOT touch flamegfxtime/duration -- that is a range
 			-- multiplier, not just a visual lifetime, so lowering it kills the
@@ -1106,17 +1215,22 @@ local function weaponDef_Post(name, wDef)
 			-- fire dots that compete with the GL4 gadget. Replace with custom:blank
 			-- (a no-op CEG that already exists in effects/blank.lua).
 			if cp.flame_keep_engine_gfx ~= "1" then
-				wDef.intensity          = 0.0
-				wDef.sizegrowth         = 0.0
-				wDef.rgbcolor           = "0 0 0"
-				wDef.rgbcolor2          = "0 0 0"
-				wDef.cegtag             = ""
+				wDef.intensity = 0.0
+				wDef.sizegrowth = 0.0
+				wDef.rgbcolor = "0 0 0"
+				wDef.rgbcolor2 = "0 0 0"
+				wDef.cegtag = ""
 				--wDef.explosiongenerator = "custom:blank"
 			end
 		end
 
-		if isXmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
-			wDef.model = 'candycane_' .. wDef.model
+		if
+			isXmas
+			and wDef.weapontype == "StarburstLauncher"
+			and wDef.model
+			and VFS.FileExists("objects3d\\candycane_" .. wDef.model)
+		then
+			wDef.model = "candycane_" .. wDef.model
 		end
 
 		-- prepared to strip these customparams for when we remove old deferred lighting widgets
@@ -1158,7 +1272,9 @@ local function weaponDef_Post(name, wDef)
 				wDef.beamdecay = 0.7
 			end
 			-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
-			if not wDef.customparams then wDef.customparams = {} end
+			if not wDef.customparams then
+				wDef.customparams = {}
+			end
 			wDef.customparams.beam_thickness_orig = wDef.thickness or 2
 			wDef.customparams.beam_corethickness_orig = wDef.corethickness or 0.3
 			wDef.customparams.beam_laserflaresize_orig = wDef.laserflaresize or 7
@@ -1175,15 +1291,17 @@ local function weaponDef_Post(name, wDef)
 			wDef.thickness = 0.001
 			wDef.corethickness = 0
 			wDef.laserflaresize = 0
-			wDef.texture1 = "beam_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
+			wDef.texture1 = "beam_gl4_invis" -- nonexistent texture -> engine Draw() early-outs
 			wDef.texture3 = "beam_gl4_invis"
 			wDef.texture4 = "beam_gl4_invis"
 		end
 
 		if wDef.weapontype == "LightningCannon" then
 			-- Store original visual properties before zeroing (GL4 gadget reads WeaponDefs at runtime)
-			if not wDef.customparams then wDef.customparams = {} end
-			wDef.customparams.lightning_thickness_orig     = wDef.thickness or 1.5
+			if not wDef.customparams then
+				wDef.customparams = {}
+			end
+			wDef.customparams.lightning_thickness_orig = wDef.thickness or 1.5
 			wDef.customparams.lightning_corethickness_orig = wDef.corethickness or 0.5
 			wDef.customparams.lightning_laserflaresize_orig = wDef.laserflaresize or 0
 			-- Hide engine lightning rendering (GL4 gadget replaces it).
@@ -1191,13 +1309,13 @@ local function weaponDef_Post(name, wDef)
 			wDef.thickness = 0.001
 			wDef.corethickness = 0
 			wDef.laserflaresize = 0
-			wDef.texture1 = "lightning_gl4_invis"   -- nonexistent texture -> engine Draw() early-outs
+			wDef.texture1 = "lightning_gl4_invis" -- nonexistent texture -> engine Draw() early-outs
 			wDef.texture3 = "lightning_gl4_invis"
 			wDef.texture4 = "lightning_gl4_invis"
 		end
 
 		-- scavengers
-		if string.find(name, '_scav', 1, true) then
+		if string.find(name, "_scav", 1, true) then
 			wDef = scavWeaponDefPost(name, wDef)
 		end
 
@@ -1242,9 +1360,9 @@ local function weaponDef_Post(name, wDef)
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
 	if damage and damage.default then
-		if string.find(name, '_', 1, true) then
+		if string.find(name, "_", 1, true) then
 			local prefix = string.sub(name, 1, 3)
-			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'rap' then
+			if prefix == "arm" or prefix == "cor" or prefix == "leg" or prefix == "rap" then
 				local globaldamage = math.max(30, damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5)) / (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
@@ -1254,17 +1372,14 @@ local function weaponDef_Post(name, wDef)
 end
 
 -- process effects
-local function explosionDef_Post(name, eDef)
-
-end
+local function explosionDef_Post(name, eDef) end
 
 --------------------------
 -- MODOPTIONS
 -------------------------
 
 -- process modoptions (last, because they should not get baked)
-local function modOptions_Post (UnitDefs, WeaponDefs)
-
+local function modOptions_Post(UnitDefs, WeaponDefs)
 	-- transporting enemy coms
 	if Spring.GetModOptions().transportenemy == "notcoms" then
 		for name, ud in pairs(UnitDefs) do
@@ -1289,9 +1404,9 @@ end
 --------------------------
 
 return {
-	UnitDef_Post           = unitDef_Post,
-	WeaponDef_Post         = weaponDef_Post,
-	ExplosionDef_Post      = explosionDef_Post,
-	ModOptions_Post        = modOptions_Post,
-	PrebakeUnitDefs        = prebakeUnitDefs,
+	UnitDef_Post = unitDef_Post,
+	WeaponDef_Post = weaponDef_Post,
+	ExplosionDef_Post = explosionDef_Post,
+	ModOptions_Post = modOptions_Post,
+	PrebakeUnitDefs = prebakeUnitDefs,
 }
