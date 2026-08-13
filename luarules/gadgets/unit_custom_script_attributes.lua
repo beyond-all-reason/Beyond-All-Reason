@@ -46,7 +46,6 @@ end
 ---@field params string|string[]
 ---@field requires "any"|"all"|nil default := "all"
 ---@field method string
----@field numbered boolean|nil Whether to append the weapon number to the method name.
 ---@field process fun(self:UnitScriptAttributeDefinition, def:table):any
 
 ---@type UnitScriptAttributeDefinition[]
@@ -58,20 +57,17 @@ local unitAttributeDefinitions = {
 local weaponAttributeDefinitions = {
 	{
 		method   = "SetSweepfireTimeWeapon",
-		numbered = true,
 		params   = { "sweepfire_firetime", "sweepfire_reloadtime" },
 		requires = "any",
 		process  = function(self, def) Spring.Echo("SetSweepfireTimeWeapon for " .. def.name) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
 	},
 	{
 		method   = "SetTurretSpeedWeapon",
-		numbered = true,
 		params   = { "turretspeedx", "turretspeedy" },
 		process  = function(self, def) return { customAngle(def, self.params[1]) or 0, customAngle(def, self.params[2]) or 0 } end,
 	},
 	{
 		method   = "SetTurretSpeedWeapon",
-		numbered = true,
 		params   = "turretspeed",
 		process  = function(self, def) return { customAngle(def, self.params) or 0, customAngle(def, self.params) or 0 } end,
 	},
@@ -105,7 +101,7 @@ local function getWeaponAttribute(weaponNum, weaponDef, attribute, out)
 	if not hasAttribute(weaponDef, attribute) then
 		return
 	end
-	local method = attribute.method .. (attribute.numbered and weaponNum or "")
+	local method = attribute.method .. tostring(weaponNum)
 	if not out[method] then
 		out[method] = attribute:process(weaponDef)
 	end
