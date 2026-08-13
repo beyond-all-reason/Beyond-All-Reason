@@ -1,19 +1,14 @@
 [
 	{
 		"hidden": [
-			"cloak",
-			"dynamicsky",
 			"attack_range_dec",
-			"quitmenu",
-			"quitforce",
-			"reloadforce",
-			"quitmessage",
 			"buildmenu_pregame_deselect",
-			"customgameinfo_close",
-			"teamstatus_close",
-			"pastetext",
+			"chat",
 			"chatswitchally",
 			"chatswitchspec",
+			"cloak",
+			"customgameinfo_close",
+			"dynamicsky",
 			"edit_backspace",
 			"edit_complete",
 			"edit_delete",
@@ -26,16 +21,30 @@
 			"edit_prev_char",
 			"edit_prev_line",
 			"edit_prev_word",
-			"edit_return"
+			"edit_return",
+			"luaui selector",
+			"movereset",
+			"moverotate",
+			"moveslow",
+			"movetilt",
+			"pastetext",
+			"quitforce",
+			"quitmenu",
+			"quitmessage",
+			"reloadforce",
+			"selectbox_any",
+			"selectbox_append",
+			"selectbox_deselect",
+			"selectbox_mobile",
+			"selectloop_add",
+			"selectloop_invert",
+			"teamstatus_close",
+			"toggle_allied_upgrade"
 		]
 	},
 	{
 		"category": "ui.keybinds.selection.title",
 		"items": [
-			{
-				"label": "ui.keybinds.selection.units",
-				"keyLabel": "ui.keybinds.selection.unitsKey"
-			},
 			{
 				"action": "selectcomm append",
 				"label": "ui.keybinds.selection.commAppend"
@@ -81,30 +90,6 @@
 				"label": "ui.keybinds.massSelect.deselectAll"
 			},
 			{
-				"action": "selectbox_any",
-				"label": "ui.keybinds.selection.boxAny",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "selectbox_append",
-				"label": "ui.keybinds.selection.boxAppend",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "selectbox_deselect",
-				"label": "ui.keybinds.selection.boxDeselect",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "selectbox_mobile",
-				"label": "ui.keybinds.selection.boxMobile",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
 				"action": "selectbox_idle",
 				"label": "ui.keybinds.selection.boxIdle",
 				"alwaysModifier": "any"
@@ -113,23 +98,6 @@
 				"action": "selectbox_same",
 				"label": "ui.keybinds.selection.boxSame",
 				"alwaysModifier": "any"
-			},
-			{
-				"action": "selectloop",
-				"label": "ui.keybinds.selection.loopActivate",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "selectloop_add",
-				"label": "ui.keybinds.selection.loopAdd",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "selectloop_invert",
-				"label": "ui.keybinds.selection.loopInvert",
-				"alwaysModifier": "any",
-				"modifierOnly": true
 			}
 		]
 	},
@@ -137,52 +105,43 @@
 		"category": "ui.keybinds.orders.title",
 		"items": [
 			{
-				"label": "ui.keybinds.issueContextOrders.order",
-				"keyLabel": "ui.keybinds.issueContextOrders.orderKey"
-			},
-			{
-				"label": "ui.keybinds.issueOrders.order",
-				"keyLabel": "ui.keybinds.issueOrders.orderKey"
-			},
-			{
-				"label": "ui.keybinds.issueOrders.revert",
-				"keyLabel": "ui.keybinds.issueOrders.revertKey"
-			},
-			{
-				"label": "ui.keybinds.issueContextOrders.formationOrder",
-				"keyLabel": "ui.keybinds.issueContextOrders.formationOrderKey"
-			},
-			{
 				"action": "move",
 				"label": "ui.keybinds.orders.move"
 			},
 			{
 				"action": "attack",
-				"label": "ui.keybinds.orders.attack"
+				"label": "ui.keybinds.orders.attack",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "settarget",
-				"label": "ui.keybinds.orders.setTarget"
+				"label": "ui.keybinds.orders.setTarget",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "repair",
-				"label": "ui.keybinds.orders.repair"
+				"label": "ui.keybinds.orders.repair",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "reclaim",
-				"label": "ui.keybinds.orders.reclaim"
+				"label": "ui.keybinds.orders.reclaim",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "resurrect",
-				"label": "ui.keybinds.orders.resurrect"
+				"label": "ui.keybinds.orders.resurrect",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "fight",
-				"label": "ui.keybinds.orders.fight"
+				"label": "ui.keybinds.orders.fight",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "patrol",
-				"label": "ui.keybinds.orders.patrol"
+				"label": "ui.keybinds.orders.patrol",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "wantcloak",
@@ -191,7 +150,8 @@
 			},
 			{
 				"action": "stop",
-				"label": "ui.keybinds.orders.stop"
+				"label": "ui.keybinds.orders.stop",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "wait",
@@ -207,7 +167,8 @@
 			},
 			{
 				"action": "manualfire",
-				"label": "ui.keybinds.orders.dGun"
+				"label": "ui.keybinds.orders.dGun",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "selfd",
@@ -219,53 +180,58 @@
 			},
 			{
 				"action": "areaattack",
-				"label": "ui.keybinds.moreOrders.areaAttack"
+				"label": "ui.keybinds.orders.areaAttack"
 			},
 			{
 				"action": "guard",
-				"label": "ui.keybinds.moreOrders.guard"
+				"label": "ui.keybinds.orders.guard",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "capture",
-				"label": "ui.keybinds.moreOrders.capture"
+				"label": "ui.keybinds.orders.capture",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "restore",
-				"label": "ui.keybinds.moreOrders.restore"
+				"label": "ui.keybinds.orders.restore",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "settargetnoground",
-				"label": "ui.keybinds.moreOrders.setTargetNoGround"
+				"label": "ui.keybinds.orders.setTargetNoGround",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "loadunits",
-				"label": "ui.keybinds.moreOrders.loadUnits"
+				"label": "ui.keybinds.orders.loadUnits",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "unloadunits",
-				"label": "ui.keybinds.moreOrders.unloadUnits"
+				"label": "ui.keybinds.orders.unloadUnits",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "gatherwait",
-				"label": "ui.keybinds.moreOrders.gatherWait"
+				"label": "ui.keybinds.orders.gatherWait",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "manuallaunch",
-				"label": "ui.keybinds.moreOrders.manualLaunch"
+				"label": "ui.keybinds.orders.manualLaunch",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "stopproduction",
-				"label": "ui.keybinds.moreOrders.stopProduction"
+				"label": "ui.keybinds.orders.stopProduction",
+				"alwaysModifier": "shift"
 			}
 		]
 	},
 	{
 		"category": "ui.keybinds.queues.title",
 		"items": [
-			{
-				"label": "ui.keybinds.queues.append",
-				"keyLabel": "ui.keybinds.queues.appendKey"
-			},
 			{
 				"action": "commandinsert prepend_between",
 				"label": "ui.keybinds.queues.prepend",
@@ -492,12 +458,6 @@
 				"label": "ui.keybinds.buildHotkeys.areaMex"
 			},
 			{
-				"action": "toggle_allied_upgrade",
-				"label": "ui.keybinds.buildHotkeys.skipAlliedUpgrade",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
 				"prefix": "buildunit_",
 				"label": "ui.keybinds.buildHotkeys.unit",
 				"unit": true
@@ -528,61 +488,12 @@
 				"label": "ui.keybinds.factory.queueMode"
 			},
 			{
-				"prefix": "factory_preset load ",
-				"label": "ui.keybinds.factory.loadPreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"prefix": "factory_preset save ",
-				"label": "ui.keybinds.factory.savePreset",
-				"members": [
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-					"5",
-					"6",
-					"7",
-					"8",
-					"9"
-				]
-			},
-			{
-				"action": "factory_preset_show",
-				"label": "ui.keybinds.factory.showPresets",
-				"alwaysModifier": "any"
-			},
-			{
 				"prefix": "factoryguard ",
 				"label": "ui.keybinds.factory.guard",
 				"members": [
 					"0",
 					"1"
 				]
-			},
-			{
-				"label": "ui.keybinds.issueBuildOrders.order",
-				"keyLabel": "ui.keybinds.issueBuildOrders.orderKey"
-			},
-			{
-				"label": "ui.keybinds.issueBuildOrders.line",
-				"keyLabel": "ui.keybinds.issueBuildOrders.lineKey"
-			},
-			{
-				"label": "ui.keybinds.issueBuildOrders.grid",
-				"keyLabel": "ui.keybinds.issueBuildOrders.gridKey"
 			}
 		]
 	},
@@ -678,22 +589,6 @@
 		"category": "ui.keybinds.camera.title",
 		"items": [
 			{
-				"label": "ui.keybinds.camera.zoom",
-				"keyLabel": "ui.keybinds.camera.zoomKey"
-			},
-			{
-				"label": "ui.keybinds.camera.pan",
-				"keyLabel": "ui.keybinds.camera.panKey"
-			},
-			{
-				"label": "ui.keybinds.camera.tilt",
-				"keyLabel": "ui.keybinds.camera.tiltKey"
-			},
-			{
-				"label": "ui.keybinds.camera.drag",
-				"keyLabel": "ui.keybinds.camera.dragKey"
-			},
-			{
 				"action": "cameraflip",
 				"label": "ui.keybinds.camera.flip"
 			},
@@ -733,30 +628,6 @@
 				"alwaysModifier": "any"
 			},
 			{
-				"action": "moveslow",
-				"label": "ui.keybinds.camera.moveSlow",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "movereset",
-				"label": "ui.keybinds.camera.moveReset",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "moverotate",
-				"label": "ui.keybinds.camera.moveRotate",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
-				"action": "movetilt",
-				"label": "ui.keybinds.camera.moveTilt",
-				"alwaysModifier": "any",
-				"modifierOnly": true
-			},
-			{
 				"prefix": "set_camera_anchor ",
 				"label": "ui.keybinds.camera.setAnchor",
 				"members": [
@@ -787,14 +658,6 @@
 			{
 				"action": "pip1_track",
 				"label": "ui.keybinds.camera.pipTrack"
-			},
-			{
-				"action": "fov_inc 5",
-				"label": "ui.keybinds.camera.fovIncrease"
-			},
-			{
-				"action": "fov_dec 5",
-				"label": "ui.keybinds.camera.fovDecrease"
 			}
 		]
 	},
@@ -903,10 +766,6 @@
 				"alwaysModifier": "any"
 			},
 			{
-				"action": "luaui selector",
-				"label": "ui.keybinds.interfaceDisplay.widgetSelector"
-			},
-			{
 				"action": "attack_range_inc",
 				"label": "ui.keybinds.interfaceDisplay.firingRange"
 			},
@@ -924,18 +783,6 @@
 	{
 		"category": "ui.keybinds.drawing.title",
 		"items": [
-			{
-				"label": "ui.keybinds.drawing.mapmark",
-				"keyLabel": "ui.keybinds.drawing.mapmarkKey"
-			},
-			{
-				"label": "ui.keybinds.drawing.draw",
-				"keyLabel": "ui.keybinds.drawing.drawKey"
-			},
-			{
-				"label": "ui.keybinds.drawing.erase",
-				"keyLabel": "ui.keybinds.drawing.eraseKey"
-			},
 			{
 				"action": "drawinmap",
 				"label": "ui.keybinds.drawing.drawInMap",
@@ -974,28 +821,6 @@
 		]
 	},
 	{
-		"category": "ui.keybinds.chat.title",
-		"items": [
-			{
-				"action": "chat",
-				"label": "ui.keybinds.chat.send",
-				"alwaysModifier": "any"
-			},
-			{
-				"label": "ui.keybinds.chat.allies",
-				"keyLabel": "ui.keybinds.chat.alliesKey"
-			},
-			{
-				"label": "ui.keybinds.chat.spectators",
-				"keyLabel": "ui.keybinds.chat.spectatorsKey"
-			},
-			{
-				"label": "ui.keybinds.chat.ignore",
-				"keyLabel": "ui.keybinds.chat.ignoreKey"
-			}
-		]
-	},
-	{
 		"category": "ui.keybinds.gameControl.title",
 		"items": [
 			{
@@ -1020,6 +845,61 @@
 					"7",
 					"8"
 				]
+			}
+		]
+	},
+	{
+		"category": "ui.keybinds.editor.other",
+		"items": [
+			{
+				"action": "selectloop",
+				"label": "ui.keybinds.selection.loopActivate",
+				"alwaysModifier": "any"
+			},
+			{
+				"prefix": "factory_preset load ",
+				"label": "ui.keybinds.factory.loadPreset",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "factory_preset save ",
+				"label": "ui.keybinds.factory.savePreset",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"action": "factory_preset_show",
+				"label": "ui.keybinds.factory.showPresets",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "fov_inc 5",
+				"label": "ui.keybinds.camera.fovIncrease"
+			},
+			{
+				"action": "fov_dec 5",
+				"label": "ui.keybinds.camera.fovDecrease"
 			}
 		]
 	}

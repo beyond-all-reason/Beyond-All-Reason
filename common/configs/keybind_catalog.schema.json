@@ -49,18 +49,7 @@
 					"properties": {
 						"action": { "type": "string", "description": "Bind command (command + space-separated args), exactly as passed to /bind and reported by GetKeyBindings." },
 						"label": { "type": "string", "description": "i18n key for the display label." },
-						"alwaysModifier": { "type": "string", "enum": ["any", "shift"], "description": "Modifier this action always tolerates, so a surface neither shows it nor lets the player pick it. \"any\" binds with the engine's Any+ qualifier and fires whatever is held. \"shift\" has no engine equivalent, so the binding is written twice, bare and Shift+, and both halves move together. Fixed per action rather than chosen." },
-						"modifierOnly": { "type": "boolean", "description": "Bound to a bare modifier. Shown read-only: the editor cannot capture a modifier as a key, so a removed binding could not be put back." }
-					}
-				},
-				{
-					"type": "object",
-					"description": "Informational row: shown read-only with a fixed key hint.",
-					"required": ["label", "keyLabel"],
-					"additionalProperties": false,
-					"properties": {
-						"label": { "type": "string", "description": "i18n key for the display label." },
-						"keyLabel": { "type": "string", "description": "i18n key for the non-editable key hint." }
+						"alwaysModifier": { "type": "string", "enum": ["any", "shift"], "description": "Modifier this action always tolerates, so a surface neither shows it nor lets the player pick it. \"any\" binds with the engine's Any+ qualifier and fires whatever is held. \"shift\" has no engine equivalent, so the binding is written twice, bare and Shift+, and both halves move together. Fixed per action rather than chosen." }
 					}
 				},
 				{
