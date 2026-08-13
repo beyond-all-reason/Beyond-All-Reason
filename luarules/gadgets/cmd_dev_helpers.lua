@@ -33,7 +33,7 @@ function isAuthorized(playerID, subPermission)
 		return true
 	end
 	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = BAR.Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
 	if
@@ -1684,7 +1684,7 @@ else -- UNSYNCED
 			return
 		end
 
-		local headingToFacing = Spring.Utilities.HeadingToFacing
+		local headingToFacing = BAR.Utilities.HeadingToFacing
 
 		Spring.Echo("local unitLoadout = {")
 		for _, unitID in pairs(Spring.GetAllUnits()) do

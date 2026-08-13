@@ -1,4 +1,4 @@
-if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+if not BAR.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
 	return
 end
 

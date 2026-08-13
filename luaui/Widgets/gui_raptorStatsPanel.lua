@@ -1,4 +1,4 @@
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if not (BAR.Utilities.Gametype.IsRaptors() and not BAR.Utilities.Gametype.IsScavengers()) then
 	return false
 end
 
@@ -34,7 +34,7 @@ local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
 
-if not Spring.Utilities.Gametype.IsRaptors() then
+if not BAR.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -189,7 +189,7 @@ local function CreatePanelDisplayList()
 			if Spring.GetGameRulesParam("RaptorQueenAngerGain_Base") then
 				font:Print(
 					textColor
-						.. Spring.I18N(
+						.. BAR.I18N(
 							"ui.raptors.queenAngerBase",
 							{ value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }
 						),
@@ -200,7 +200,7 @@ local function CreatePanelDisplayList()
 				)
 				font:Print(
 					textColor
-						.. Spring.I18N(
+						.. BAR.I18N(
 							"ui.raptors.queenAngerAggression",
 							{ value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }
 						),
@@ -217,7 +217,7 @@ local function CreatePanelDisplayList()
 			--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
 			font:Print(
 				textColor
-					.. Spring.I18N(
+					.. BAR.I18N(
 						"ui.raptors.queenAngerWithTech",
 						{ anger = mathFloor(0.5 + gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger }
 					),
@@ -234,7 +234,7 @@ local function CreatePanelDisplayList()
 					revealedQueenEta = true
 				end
 				font:Print(
-					textColor .. Spring.I18N("ui.raptors.queenETA", { count = nBosses, time = time }),
+					textColor .. BAR.I18N("ui.raptors.queenETA", { count = nBosses, time = time }),
 					panelMarginX + 5,
 					PanelRow(2),
 					panelFontSize,
@@ -248,7 +248,7 @@ local function CreatePanelDisplayList()
 		else
 			font:Print(
 				textColor
-					.. Spring.I18N("ui.raptors.queenHealth", { count = nBosses, health = gameInfo.raptorQueenHealth }),
+					.. BAR.I18N("ui.raptors.queenHealth", { count = nBosses, health = gameInfo.raptorQueenHealth }),
 				panelMarginX,
 				PanelRow(1),
 				panelFontSize,
@@ -257,7 +257,7 @@ local function CreatePanelDisplayList()
 			if Spring.GetGameRulesParam("raptorQueenStaggerActive") == false then
 				font:Print(
 					textColor
-						.. Spring.I18N(
+						.. BAR.I18N(
 							"ui.raptors.queenStaggerPercentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }
 						),
@@ -268,7 +268,7 @@ local function CreatePanelDisplayList()
 				)
 			else
 				font:Print(
-					"\255\255\255\0" .. Spring.I18N("ui.raptors.queenStaggerActive", { count = nBosses }),
+					"\255\255\255\0" .. BAR.I18N("ui.raptors.queenStaggerActive", { count = nBosses }),
 					panelMarginX,
 					PanelRow(2),
 					panelFontSize,
@@ -276,7 +276,7 @@ local function CreatePanelDisplayList()
 				)
 				font:Print(
 					"\255\255\255\0"
-						.. Spring.I18N(
+						.. BAR.I18N(
 							"ui.raptors.queenStaggerPercentage",
 							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }
 						),
@@ -290,7 +290,7 @@ local function CreatePanelDisplayList()
 			if nBosses > 1 then
 				font:Print(
 					textColor
-						.. Spring.I18N(
+						.. BAR.I18N(
 							"ui.raptors.queensKilled",
 							{ nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }
 						),
@@ -303,7 +303,7 @@ local function CreatePanelDisplayList()
 			for i = 1, #currentlyResistantToNames do
 				if i == 1 then
 					font:Print(
-						textColor .. Spring.I18N("ui.raptors.queenResistantToList", { count = nBosses }),
+						textColor .. BAR.I18N("ui.raptors.queenResistantToList", { count = nBosses }),
 						panelMarginX,
 						PanelRow(11),
 						panelFontSize,
@@ -322,7 +322,7 @@ local function CreatePanelDisplayList()
 	else
 		font:Print(
 			textColor
-				.. Spring.I18N(
+				.. BAR.I18N(
 					"ui.raptors.gracePeriod",
 					{ time = string.formatTime(mathCeil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }
 				),
@@ -334,7 +334,7 @@ local function CreatePanelDisplayList()
 	end
 
 	font:Print(
-		textColor .. Spring.I18N("ui.raptors.raptorKillCount", { count = gameInfo.raptorKills }),
+		textColor .. BAR.I18N("ui.raptors.raptorKillCount", { count = gameInfo.raptorKills }),
 		panelMarginX,
 		PanelRow(6),
 		panelFontSize,
@@ -342,11 +342,11 @@ local function CreatePanelDisplayList()
 	)
 	local endless = ""
 	if Spring.GetModOptions().raptor_endless then
-		endless = " (" .. Spring.I18N("ui.raptors.difficulty.endless") .. ")"
+		endless = " (" .. BAR.I18N("ui.raptors.difficulty.endless") .. ")"
 	end
-	local difficultyCaption = Spring.I18N("ui.raptors.difficulty." .. difficultyOption)
+	local difficultyCaption = BAR.I18N("ui.raptors.difficulty." .. difficultyOption)
 	font:Print(
-		textColor .. Spring.I18N("ui.raptors.mode", { mode = difficultyCaption }) .. endless,
+		textColor .. BAR.I18N("ui.raptors.mode", { mode = difficultyCaption }) .. endless,
 		80,
 		h - 170,
 		panelFontSize,
@@ -361,18 +361,18 @@ end
 local function getMarqueeMessage(raptorEventArgs)
 	local messages = {}
 	if raptorEventArgs.type == "firstWave" then
-		messages[1] = textColor .. Spring.I18N("ui.raptors.firstWave1")
-		messages[2] = textColor .. Spring.I18N("ui.raptors.firstWave2")
+		messages[1] = textColor .. BAR.I18N("ui.raptors.firstWave1")
+		messages[2] = textColor .. BAR.I18N("ui.raptors.firstWave2")
 	elseif raptorEventArgs.type == "queen" then
-		messages[1] = textColor .. Spring.I18N("ui.raptors.queenIsAngry1", { count = nBosses })
-		messages[2] = textColor .. Spring.I18N("ui.raptors.queenIsAngry2")
+		messages[1] = textColor .. BAR.I18N("ui.raptors.queenIsAngry1", { count = nBosses })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.queenIsAngry2")
 	elseif raptorEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
-		messages[2] = textColor .. Spring.I18N("ui.raptors.airWave1")
-		messages[3] = textColor .. Spring.I18N("ui.raptors.airWave2", { unitCount = raptorEventArgs.number })
+		messages[1] = textColor .. BAR.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.airWave1")
+		messages[3] = textColor .. BAR.I18N("ui.raptors.airWave2", { unitCount = raptorEventArgs.number })
 	elseif raptorEventArgs.type == "wave" then
-		messages[1] = textColor .. Spring.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
-		messages[2] = textColor .. Spring.I18N("ui.raptors.wave2", { unitCount = raptorEventArgs.number })
+		messages[1] = textColor .. BAR.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.wave2", { unitCount = raptorEventArgs.number })
 	end
 
 	refreshMarqueeMessage = false
@@ -382,14 +382,14 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N("ui.raptors.resistanceUnits", { count = nBosses })
+	messages[1] = textColor .. BAR.I18N("ui.raptors.resistanceUnits", { count = nBosses })
 	for i = 1, #resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
 			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 		end
-		messages[i + 1] = textColor .. Spring.I18N("units.names." .. attackerName)
-		currentlyResistantToNames[#currentlyResistantToNames + 1] = Spring.I18N("units.names." .. attackerName)
+		messages[i + 1] = textColor .. BAR.I18N("units.names." .. attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames + 1] = BAR.I18N("units.names." .. attackerName)
 	end
 	resistancesTable = {}
 
@@ -515,7 +515,7 @@ function widget:Initialize()
 	local y = mathAbs(mathFloor(viewSizeY - 300))
 
 	-- reposition if scavengers panel is shown as well
-	if Spring.Utilities.Gametype.IsScavengers() then
+	if BAR.Utilities.Gametype.IsScavengers() then
 		x = x - 315
 	end
 

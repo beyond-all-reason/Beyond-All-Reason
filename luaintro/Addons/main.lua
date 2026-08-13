@@ -173,7 +173,7 @@ local tipKeys = {
 local randomTip = ""
 if showTips then
 	local index = math.random(#tipKeys)
-	randomTip = Spring.I18N("tips.loadscreen." .. tipKeys[index])
+	randomTip = BAR.I18N("tips.loadscreen." .. tipKeys[index])
 end
 
 --if showDonationTip then
@@ -836,7 +836,7 @@ function addon.DrawLoadScreen()
 		font2:SetTextColor(0.8, 0.8, 0.8, 1)
 		font2:SetOutlineColor(0, 0, 0, 0.8)
 		font2:Print(
-			Spring.I18N(
+			BAR.I18N(
 				"ui.loadScreen.lowRamWarning",
 				{ textColor = "\255\200\200\200", warnColor = "\255\255\255\255" }
 			),

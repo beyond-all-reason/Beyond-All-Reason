@@ -30,7 +30,7 @@ local font, font2, loadedFontSize, mainDList, titleRect, backgroundGuishader, sh
 local maxLines = 22
 local math_isInRect = math.isInRect
 
-local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
+local raptorsEnabled = BAR.Utilities.Gametype.IsRaptors()
 
 local content = ""
 
@@ -59,7 +59,7 @@ for key, value in pairs(defaultModoptions) do
 	modoptionsDefault[value.key] = { name = value.name, desc = value.desc, def = value.def }
 end
 
-local modoptions = Spring.GetModOptionsCopy()
+local modoptions = BAR.GetModOptionsCopy()
 local changedModoptions = {}
 local unchangedModoptions = {}
 local changedRaptorModoptions = {}
@@ -116,12 +116,12 @@ for key, value in pairs(modoptions) do
 				changedModoptions[key] = "\n"
 					.. (
 						decodeSuccess and postsFuncStr
-						or "\255\255\100\100 - " .. Spring.I18N("ui.gameInfo.decodefailed") .. " - "
+						or "\255\255\100\100 - " .. BAR.I18N("ui.gameInfo.decodefailed") .. " - "
 					)
 			else
 				local dataRaw = string.gsub(value, "_", "=")
 				local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
-				local success, tweaks = pcall(Spring.Utilities.SafeLuaTableParser, postsFuncStr)
+				local success, tweaks = pcall(BAR.Utilities.SafeLuaTableParser, postsFuncStr)
 
 				if success and type(tweaks) == "table" then
 					local text = ""
@@ -316,7 +316,7 @@ function DrawWindow()
 		screenX,
 		screenY,
 		mathFloor(
-			screenX + (font2:GetTextWidth(Spring.I18N("ui.gameInfo.title")) * titleFontSize) + (titleFontSize * 1.5)
+			screenX + (font2:GetTextWidth(BAR.I18N("ui.gameInfo.title")) * titleFontSize) + (titleFontSize * 1.5)
 		),
 		mathFloor(screenY + (titleFontSize * 1.7)),
 	}
@@ -343,7 +343,7 @@ function DrawWindow()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
 	font2:Print(
-		Spring.I18N("ui.gameInfo.title"),
+		BAR.I18N("ui.gameInfo.title"),
 		screenX + (titleFontSize * 0.75),
 		screenY + (8 * widgetScale),
 		titleFontSize,
@@ -468,10 +468,10 @@ local function refreshContent()
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.engine")
+		.. BAR.I18N("ui.gameInfo.engine")
 		.. separator
 		.. valuegreycolor
-		.. ((Game and Game.version) or (Engine and Engine.version) or Spring.I18N("ui.gameInfo.engineVersionError"))
+		.. ((Game and Game.version) or (Engine and Engine.version) or BAR.I18N("ui.gameInfo.engineVersionError"))
 		.. "\n"
 	content = content .. "\n"
 
@@ -480,7 +480,7 @@ local function refreshContent()
 	content = content .. valuegreycolor .. Game.mapDescription .. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.size")
+		.. BAR.I18N("ui.gameInfo.size")
 		.. separator
 		.. valuegreycolor
 		.. Game.mapX
@@ -491,14 +491,14 @@ local function refreshContent()
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.gravity")
+		.. BAR.I18N("ui.gameInfo.gravity")
 		.. separator
 		.. valuegreycolor
 		.. Game.gravity
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.hardness")
+		.. BAR.I18N("ui.gameInfo.hardness")
 		.. separator
 		.. valuegreycolor
 		.. Game.mapHardness
@@ -506,7 +506,7 @@ local function refreshContent()
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.tidalStrength")
+		.. BAR.I18N("ui.gameInfo.tidalStrength")
 		.. separator
 		.. valuegreycolor
 		.. tidal
@@ -514,7 +514,7 @@ local function refreshContent()
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.reclaimableMetal")
+		.. BAR.I18N("ui.gameInfo.reclaimableMetal")
 		.. separator
 		.. valuegreycolor
 		.. reclaimable_metal
@@ -522,7 +522,7 @@ local function refreshContent()
 		.. "\n"
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.reclaimableEnergy")
+		.. BAR.I18N("ui.gameInfo.reclaimableEnergy")
 		.. separator
 		.. valuegreycolor
 		.. reclaimable_energy
@@ -532,7 +532,7 @@ local function refreshContent()
 	if Game.windMin == Game.windMax then
 		content = content
 			.. keycolor
-			.. Spring.I18N("ui.gameInfo.windStrength")
+			.. BAR.I18N("ui.gameInfo.windStrength")
 			.. separator
 			.. valuegreycolor
 			.. Game.windMin
@@ -541,7 +541,7 @@ local function refreshContent()
 	else
 		content = content
 			.. keycolor
-			.. Spring.I18N("ui.gameInfo.windStrength")
+			.. BAR.I18N("ui.gameInfo.windStrength")
 			.. separator
 			.. valuegreycolor
 			.. Game.windMin
@@ -559,7 +559,7 @@ local function refreshContent()
 	end
 	content = content
 		.. keycolor
-		.. Spring.I18N("ui.gameInfo.waterDamage")
+		.. BAR.I18N("ui.gameInfo.waterDamage")
 		.. separator
 		.. vcolor
 		.. Game.waterDamage
@@ -568,7 +568,7 @@ local function refreshContent()
 	content = content .. "\n"
 	if raptorsEnabled then
 		-- filter raptor modoptions
-		content = content .. titlecolor .. Spring.I18N("ui.gameInfo.raptorOptions") .. "\n"
+		content = content .. titlecolor .. BAR.I18N("ui.gameInfo.raptorOptions") .. "\n"
 		for key, params in pairs(changedRaptorModoptions) do
 			content = content
 				.. keycolor
@@ -589,7 +589,7 @@ local function refreshContent()
 		end
 		content = content .. "\n"
 	end
-	content = content .. titlecolor .. Spring.I18N("ui.gameInfo.modOptions") .. "\n"
+	content = content .. titlecolor .. BAR.I18N("ui.gameInfo.modOptions") .. "\n"
 	for key, params in pairs(changedModoptions) do
 		local name = params.key --modoptionsDefault[params.key].name
 		content = content .. keycolor .. name .. separator .. valuecolor .. params.value .. "\n"

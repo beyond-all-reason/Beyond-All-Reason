@@ -323,7 +323,7 @@ local function setaliasCmd(_, _, params)
 				local alias = params[2]
 				if alias then
 					spEcho(
-						Spring.I18N("ui.playernames.setalias", { name = name, accountID = accountID, alias = alias })
+						BAR.I18N("ui.playernames.setalias", { name = name, accountID = accountID, alias = alias })
 					)
 					-- ensure history entry exists
 					if not history[accountID] then
@@ -336,7 +336,7 @@ local function setaliasCmd(_, _, params)
 					-- ensure history entry exists before accessing alias
 					if history[accountID] and history[accountID].alias then
 						spEcho(
-							Spring.I18N(
+							BAR.I18N(
 								"ui.playernames.removealias",
 								{ name = name, accountID = accountID, alias = history[accountID].alias }
 							)
@@ -351,7 +351,7 @@ local function setaliasCmd(_, _, params)
 				Spring.SendCommands("luaui reload")
 			end
 		else
-			spEcho(Spring.I18N("ui.playernames.notfound", { param = params[1] }))
+			spEcho(BAR.I18N("ui.playernames.notfound", { param = params[1] }))
 		end
 	end
 end

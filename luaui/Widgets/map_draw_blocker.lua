@@ -60,7 +60,7 @@ local function CheckTresholds()
 			local wasBlocked = data.blocked
 			data.blocked = timerCmd
 			if not wasBlocked then
-				Echo(Spring.I18N("ui.mapDrawBlocker.block", {
+				Echo(BAR.I18N("ui.mapDrawBlocker.block", {
 					player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player)
 						or GetPlayerInfo(player, false),
 				}))
@@ -68,7 +68,7 @@ local function CheckTresholds()
 		end
 		if sum < unblocklimit and data.blocked and (currentCounter - data.blocked > unblocklimit) then
 			data.blocked = false
-			Echo(Spring.I18N("ui.mapDrawBlocker.unblock", {
+			Echo(BAR.I18N("ui.mapDrawBlocker.unblock", {
 				player = (WG.playernames and WG.playernames.getPlayername)
 						and WG.playernames.getPlayername(player)
 					or GetPlayerInfo(player, false),
