@@ -581,6 +581,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local startUnitList = {}
 	local startUnitBlocking = {}
+	-- Shared with gadget:GameFrame below, which gates the commander spawn-in
+	-- effects on it. Must live at gadget scope: a `local` inside spawnStartUnit
+	-- left the GameFrame read resolving to a nil global, so the guard was dead.
+	local scenarioSpawnsUnits = false
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -592,7 +596,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- spawn starting unit
 		local y = spGetGroundHeight(x, z)
-		local scenarioSpawnsUnits = false
+		scenarioSpawnsUnits = false
 
 		if Spring.GetModOptions().scenariooptions then
 			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
@@ -736,7 +740,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lastGameFrame = 0
 	function gadget:GameFrame(n)
-		---@diagnostic disable-next-line: undefined-global
 		if not scenarioSpawnsUnits then
 			if n == spawnInitialFrame then
 				for i = 1, #startUnitList do
