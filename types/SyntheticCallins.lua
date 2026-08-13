@@ -23,11 +23,11 @@
 ---Runs once per unit that was allowed progress on a build step that frame,
 ---which includes all build steps from build, repair, reclaim, and capture.
 ---
----Dispatched from g:GameFramePost; marked in g:AllowUnitBuildStep.
----@field UnitBuildStepsPost? fun(self, unitID: integer)
+---Dispatch: g:GameFramePost; mark: g:AllowUnitBuildStep.
+---@field UnitBuildStepPost? fun(self, unitID: integer)
 ---
 ---Runs once per feature that was allowed progress on a build step that frame,
----which includes all build steps from build, repair, reclaim, and capture.
+---which includes all build steps from repair, reclaim, and resurrect.
 ---
----Dispatched from g:GameFramePost; marked in g:AllowFeatureBuildStep.
----@field FeatureBuildStepsPost? fun(self, featureID: integer)
+---Dispatch: g:GameFramePost; mark: g:AllowFeatureBuildStep.
+---@field FeatureBuildStepPost? fun(self, featureID: integer)

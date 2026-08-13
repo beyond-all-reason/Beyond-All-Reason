@@ -348,8 +348,8 @@ local callInLists = {
 	"UnitAutoTargetRange",
 
 	-- Synthetic callins
-	"UnitBuildStepsPost",
-	"FeatureBuildStepsPost",
+	"UnitBuildStepPost",
+	"FeatureBuildStepPost",
 
 	-- unsynced
 	"DrawProjectile",
@@ -1428,8 +1428,8 @@ end
 
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
-	self:UnitBuildStepsPost()
-	self:FeatureBuildStepsPost()
+	self:UnitBuildStepPost()
+	self:FeatureBuildStepPost()
 	tracy.ZoneBeginN("G:GameFramePost")
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do
@@ -1909,7 +1909,7 @@ end
 
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
-	tracy.ZoneBeginN("G:AllowUnitBuildStepOuter")
+	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	local marks = unitStepCount[1]
 	if marks and not unitStepMarked[unitID] then
 		unitStepMarked[unitID] = true
@@ -1918,16 +1918,13 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDe
 		unitStepList[marks] = unitID
 	end
 
-	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
-			tracy.ZoneEnd("G:AllowUnitBuildStep")
-			tracy.ZoneEnd("G:AllowUnitBuildStepOuter")
+			tracy.ZoneEnd()
 			return false
 		end
 	end
-	tracy.ZoneEnd("G:AllowUnitBuildStep")
-	tracy.ZoneEnd("G:AllowUnitBuildStepOuter")
+	tracy.ZoneEnd()
 	return true
 end
 
@@ -1960,7 +1957,7 @@ end
 
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	tracy.ZoneBeginN("G:AllowFeatureBuildStepOuter")
+	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
 	local marks = featureStepCount[1]
 	if marks and not featureStepMarked[featureID] then
 		featureStepMarked[featureID] = true
@@ -1969,16 +1966,13 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, 
 		featureStepList[marks] = featureID
 	end
 
-	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
-			tracy.ZoneEnd("G:AllowFeatureBuildStep")
-			tracy.ZoneEnd("G:AllowFeatureBuildStepOuter")
+			tracy.ZoneEnd()
 			return false
 		end
 	end
-	tracy.ZoneEnd("G:AllowFeatureBuildStep")
-	tracy.ZoneEnd("G:AllowFeatureBuildStepOuter")
+	tracy.ZoneEnd()
 	return true
 end
 
@@ -2116,7 +2110,7 @@ end
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	tracy.ZoneBeginN("G:UnitCreated")
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitCreatedList) do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -2161,7 +2155,7 @@ end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	tracy.ZoneBeginN("G:UnitDestroyed")
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -2281,7 +2275,7 @@ function gadgetHandler:UnitDamaged(
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
@@ -2290,7 +2284,7 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitGivenList) do
 		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)

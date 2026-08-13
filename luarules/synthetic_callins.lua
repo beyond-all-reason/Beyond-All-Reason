@@ -12,7 +12,7 @@
 --  Adding a new callin:
 --  1. Add the callin's envs and subscriptions to syntheticCallins.
 --  2. If using mark-and-sweep, add the callin to syntheticCallinMarks.
---  3. If the callin tracks any state, add it to syntheticCallinUpdate.
+--  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
 
 --------------------------------------------------------------------------------
@@ -29,8 +29,8 @@ local syntheticCallins = {
 
 	synced = {
 		UnitAutoTargetRange   = { 'AllowWeaponTarget' },
-		UnitBuildStepsPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
-		FeatureBuildStepsPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
+		UnitBuildStepPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
+		FeatureBuildStepPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
 	},
 
 	unsynced = {},
@@ -56,20 +56,25 @@ for name, callinHolds in pairs(syntheticCallinHold) do
 	end
 end
 
+-- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
+-- We have to handle dropping tracked state, etc., during updates on our own.
+local syntheticCallinUpdate = {}
+
 --------------------------------------------------------------------------------
 --  Callin mark-and-sweep  -----------------------------------------------------
 --  
---  Entries below gain the `prefixMarked`, `prefixList` and `prefixCount` tables
---  and a pair of functions for dropping swept-up marks and updating the callin.
---  These are exported with the module / included wherever the file is required.
+--  Entries below gain the `prefixMarked`, `prefixList` and `prefixCount` tables,
+--  plus a function to stop marking, which their update handler calls on removal.
 
--- [SyntheticCallinName] := markPrefix
 local syntheticCallinMarks = {
-	UnitBuildStepsPost    = 'unitStep',
-	FeatureBuildStepsPost = 'featureStep',
+	UnitBuildStepPost    = 'unitStep',
+	FeatureBuildStepPost = 'featureStep',
 }
 
-local function makeDropMarks(marked, list, count)
+-- [markPrefix] := { marked, list, count, stop }
+local marks = {}
+
+local function makeStopMarking(marked, list, count)
 	return function()
 		for i = 1, count[1] or 0 do
 			marked[list[i]] = nil
@@ -78,32 +83,37 @@ local function makeDropMarks(marked, list, count)
 	end
 end
 
--- [markPrefix] := { marked, list, count, drop }
-local marks = {}
+local function createMarks(callinName)
+	local prefix = syntheticCallinMarks[callinName]
+	if not prefix then
+		return
+	end
 
--- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
--- We have to handle dropping tracked state, etc., during updates on our own.
-local syntheticCallinUpdate = {}
-
-for name, prefix in pairs(syntheticCallinMarks) do
 	local marked, list, count = {}, {}, { nil } -- luahax: a constant-size array
-	local drop = makeDropMarks(marked, list, count)
+	local stop = makeStopMarking(marked, list, count)
 
-	marks[prefix] = { marked = marked, list = list, count = count, drop = drop }
+	marks[prefix] = { marked = marked, list = list, count = count, stop = stop }
 
-	syntheticCallinUpdate[name] = function(active)
+	syntheticCallinUpdate[callinName] = function(active)
 		if active then
 			count[1] = count[1] or 0
 		else
-			drop()
+			stop()
 		end
 	end
 end
 
--- markPrefix -> marked, list, count
+-- prefix -> marked, list, count
 local function getMarks(prefix)
 	local mark = marks[prefix]
-	assert(mark, "synthetic_callins: no marks configured for '" .. tostring(prefix) .. "'")
+	if not mark then
+		return
+	end
+	return mark.marked, mark.list, mark.count
+end
+
+local function getMarksUnsafe(prefix)
+	local mark = marks[prefix]
 	return mark.marked, mark.list, mark.count
 end
 
@@ -113,6 +123,8 @@ end
 --  The gadgetHandler is available at load time, so we implement callins here.
 --  
 --  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
+
+-- Shared environment
 
 function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.MetaUnitAddedList) do
@@ -126,50 +138,62 @@ function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
 
-local unitStepMarked, unitStepList, unitStepCount = getMarks('unitStep')
+-- Synced environment
 
-function gadgetHandler:UnitBuildStepsPost()
-	local count = unitStepCount[1]
-	if not count or count == 0 then
-		return
+if Script.GetSynced() then
+	createMarks('UnitBuildStepPost')
+	local unitStepMarked, unitStepList, unitStepCount = getMarksUnsafe('unitStep')
+
+	function gadgetHandler:UnitBuildStepPost()
+		local count = unitStepCount[1]
+		if not count or count == 0 then
+			return
+		end
+		unitStepCount[1] = 0
+
+		-- Clear marks first so a subscriber that throws does not leave any marks.
+		for i = 1, count do
+			unitStepMarked[unitStepList[i]] = nil
+		end
+
+		local list = self.UnitBuildStepPostList
+		for i = 1, count do
+			local unitID = unitStepList[i]
+			for _, g in ipairs(list) do
+				g:UnitBuildStepPost(unitID)
+			end
+		end
 	end
-	unitStepCount[1] = 0
 
-	-- Clear marks first so a subscriber that throws does not leave any marks.
-	for i = 1, count do
-		unitStepMarked[unitStepList[i]] = nil
-	end
+	createMarks('FeatureBuildStepPost')
+	local featureStepMarked, featureStepList, featureStepCount = getMarksUnsafe('featureStep')
 
-	local list = self.UnitBuildStepsPostList
-	for i = 1, count do
-		local unitID = unitStepList[i]
-		for _, g in ipairs(list) do
-			g:UnitBuildStepsPost(unitID)
+	function gadgetHandler:FeatureBuildStepPost()
+		local count = featureStepCount[1]
+		if not count or count == 0 then
+			return
+		end
+		featureStepCount[1] = 0
+
+		-- Clear marks first so a subscriber that throws does not leave any marks.
+		for i = 1, count do
+			featureStepMarked[featureStepList[i]] = nil
+		end
+
+		local list = self.FeatureBuildStepPostList
+		for i = 1, count do
+			local featureID = featureStepList[i]
+			for _, g in ipairs(list) do
+				g:FeatureBuildStepPost(featureID)
+			end
 		end
 	end
 end
 
-local featureStepMarked, featureStepList, featureStepCount = getMarks('featureStep')
+-- Unsynced environment
 
-function gadgetHandler:FeatureBuildStepsPost()
-	local count = featureStepCount[1]
-	if not count or count == 0 then
-		return
-	end
-	featureStepCount[1] = 0
+if not Script.GetSynced() then
 
-	-- Clear marks first so a subscriber that throws does not leave any marks.
-	for i = 1, count do
-		featureStepMarked[featureStepList[i]] = nil
-	end
-
-	local list = self.FeatureBuildStepsPostList
-	for i = 1, count do
-		local featureID = featureStepList[i]
-		for _, g in ipairs(list) do
-			g:FeatureBuildStepsPost(featureID)
-		end
-	end
 end
 
 --------------------------------------------------------------------------------
