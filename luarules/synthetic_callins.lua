@@ -88,11 +88,11 @@ local syntheticCallinUpdate = {}
 --  Callin summary views  ------------------------------------------------------
 
 local syntheticCallinSummaries = {
-	UnitBuildStep    = 'unitStep',
-	FeatureBuildStep = 'featureStep',
+	UnitBuildStep    = true,
+	FeatureBuildStep = true,
 }
 
--- [prefix] := { marked, list, count, totals, active, stop }
+-- [baseName] := { marked, list, count, totals, active, stop }
 local marks = {}
 
 local function makeStopMarking(marked, list, count)
@@ -110,8 +110,7 @@ end
 local accumulate = {}
 
 local function createSummary(callinName)
-	local prefix = syntheticCallinSummaries[callinName]
-	if not prefix then
+	if not syntheticCallinSummaries[callinName] then
 		return
 	end
 
@@ -119,7 +118,7 @@ local function createSummary(callinName)
 	local totals, active = {}, table.new(1, 0)
 	local stop = makeStopMarking(marked, list, count)
 
-	marks[prefix] = { marked = marked, list = list, count = count, totals = totals, active = active, stop = stop }
+	marks[callinName] = { marked = marked, list = list, count = count, totals = totals, active = active, stop = stop }
 
 	accumulate['Accumulate' .. callinName] = function(id, part, result)
 		-- Call sites must not accumulate when not subscribed.
@@ -161,17 +160,17 @@ local function createSummary(callinName)
 	syntheticCallinUpdate[callinName .. 'Total'] = update
 end
 
--- prefix -> marked, list, count, totals, active
-local function getMarks(prefix)
-	local mark = marks[prefix]
+-- baseName -> marked, list, count, totals, active
+local function getMarks(baseName)
+	local mark = marks[baseName]
 	if not mark then
 		return
 	end
 	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
 
-local function getMarksUnsafe(prefix)
-	local mark = marks[prefix]
+local function getMarksUnsafe(baseName)
+	local mark = marks[baseName]
 	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
 
@@ -205,7 +204,7 @@ end
 
 if Script.GetSynced() then
 	createSummary('UnitBuildStep')
-	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('unitStep')
+	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
 	local unitStepValues = {}
 
 	function sweepUnitBuildStep(gh)
@@ -246,7 +245,7 @@ if Script.GetSynced() then
 	end
 
 	createSummary('FeatureBuildStep')
-	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('featureStep')
+	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
 	local featureStepValues = {}
 
 	function sweepFeatureBuildStep(gh)

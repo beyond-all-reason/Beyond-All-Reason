@@ -480,8 +480,8 @@ end
 --  The game injects some of its own callins into the engine-driven event system:
 local synthetic = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
 
-local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('unitStep')
-local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('featureStep')
+local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
+local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('FeatureBuildStep')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
