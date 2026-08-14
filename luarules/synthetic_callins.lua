@@ -140,7 +140,8 @@ local function createSummary(callinName)
 	end
 
 	-- Both summary views share updates so must handle updating together.
-	local postList, totalList = callinName .. 'PostList', callinName .. 'TotalList'
+	local postList = callinName .. 'PostList'
+	local totalList = callinName .. 'TotalList'
 	local function update(gh)
 		if #gh[totalList] > 0 then
 			active[1] = true
