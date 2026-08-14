@@ -1,20 +1,20 @@
 ---@meta
 
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
----
----The build step summaries pass no defIDs. Cache your own where needed, e.g.
----watched[unitID] = unitDefID, to avoid the overhead of the engine callout.
 ---@class SyntheticCallins
+---
 ---
 ---Runs for every unit gained by a team, regardless of how it was gained.
 ---
 ---Dispatch: g:UnitCreated, g:UnitGiven.
 ---@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
 ---
+---
 ---Runs for every unit lost to a team, regardless of how it was lost.
 ---
 ---Dispatch: g:UnitDestroyed, g:UnitTaken.
 ---@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---
 ---
 ---Optionally replaces the autotarget search radius for a unit's command AI.
 ---
@@ -23,46 +23,57 @@
 ---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
 ---@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
 ---
----Runs once per unit that had a build step attempted that frame, whether or
----not the step was allowed. Steps include: build, repair, reclaim, capture.
 ---
----The unit can be dead by the time this runs, e.g. reclaimed to death.
+---Runs once per frame in batches after any unit received any build step.
+---Excludes all denied steps and includes: build, repair, reclaim, capture.
+---
+---Units can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost (executes in batches)
----@field UnitBuildStepPost? fun(self, unitID: integer)
+---@field UnitBuildStepPost? fun(self, unitIDs: integer[], count: integer, frame: integer)
 ---
----Runs once per feature that had a build step attempted that frame, whether
----or not the step was allowed. Steps include: repair, reclaim, resurrect.
 ---
----The feature can be dead by the time this runs, e.g. reclaimed to death.
+---Runs once per frame in batches after any feature received any build step.
+---Excludes all denied steps and includes: repair, reclaim, and resurrect.
+---
+---Features can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
 ---Dispatch: g:GameFramePost (executes in batches)
----@field FeatureBuildStepPost? fun(self, featureID: integer)
+---@field FeatureBuildStepPost? fun(self, featureIDs: integer[], count: integer, frame: integer)
 ---
----Runs once per unit that had build steps attempted that frame, passing the
----net _total_ of the attempted parts. Steps denied by Allow* handlers still
----count, and contested progress can net to (about) zero.
 ---
----Modify running totals with GG.AccumulateUnitBuildStep(id, part, result).
----Passing part = 0 allows updating another total the step did not target.
+---Runs once per frame in batches after any unit received step _progress_.
+---Excludes all denied steps and includes: build, repair, reclaim, capture.
 ---
----The unit can be dead by the time this runs, e.g. reclaimed to death.
+---Units can be dead by the time this runs, e.g. reclaimed to death.
+---Opposing step progresses can net to (about) zero.
+---
+---When a gadget disallows a step request to substitute its own local result,
+---offset the running total with GG.AccumulateUnitBuildStep(id, difference).
+---
+---Units can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep
 ---Dispatch: g:GameFramePost (executes in batches)
----@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
+---@field UnitBuildStepTotal? fun(self, unitIDs: integer[], parts: number[], count: integer, frame: integer)
 ---
----Runs once per feature that had build steps attempted that frame, passing
----the net total of the attempted parts: positive toward repair and
----resurrection, negative toward reclaim.
 ---
----Modify running totals with GG.AccumulateFeatureBuildStep(id, part, result).
----Passing part = 0 allows updating another total the step did not target.
+---Runs once per frame in batches after any feature received step _progress_.
+---Excludes all denied steps and includes: repair, reclaim, and resurrect.
 ---
----The feature can be dead by the time this runs, e.g. reclaimed to death.
+---Features can be dead by the time this runs, e.g. reclaimed to death.
+---Opposing step progresses can net to (about) zero.
+---
+---When a gadget disallows a step request to substitute its own local result,
+---offset the running total with GG.AccumulateFeatureBuildStep(id, difference).
+---
+---Features can be dead by the time this runs, e.g. reclaimed to death.
 ---
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
 ---Dispatch: g:GameFramePost (executes in batches)
----@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
+---
+---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
+---Dispatch: g:GameFramePost (executes in batches)
+---@field FeatureBuildStepTotal? fun(self, featureIDs: integer[], parts: number[], count: integer, frame: integer)
