@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Juno Damage',
-		desc = 'Handles Juno damage',
-		author = 'Niobium, Bluestone',
-		version = 'v2.0',
-		date = '05/2013',
-		license = 'GNU GPL, v2 or later',
+		name = "Juno Damage",
+		desc = "Handles Juno damage",
+		author = "Niobium, Bluestone",
+		version = "v2.0",
+		date = "05/2013",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework
+		enabled = not Spring.GetModOptions().junorework,
 	}
 end
 
@@ -17,72 +17,71 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
 	local tokillUnitsNames = {
-		['armarad'] = true,
-		['armaser'] = true,
-		['armason'] = true,
-		['armeyes'] = true,
-		['armfrad'] = true,
-		['armjam'] = true,
-		['armjamt'] = true,
-		['armmark'] = true,
-		['armrad'] = true,
-		['armseer'] = true,
-		['armsjam'] = true,
-		['armsonar'] = true,
-		['armveil'] = true,
-		['corarad'] = true,
-		['corason'] = true,
-		['coreter'] = true,
-		['coreyes'] = true,
-		['corfrad'] = true,
-		['corjamt'] = true,
-		['corrad'] = true,
-		['legjam'] = true,
-		['legrad'] = true,
-		['corshroud'] = true,
-		['corsjam'] = true,
-		['corsonar'] = true,
-		['corspec'] = true,
-		['corvoyr'] = true,
-		['corvrad'] = true,
-		['legarad'] = true,
-		['legajam'] = true,
-		['legavrad'] = true,
-		['legavjam'] = true,
-		['legaradk'] = true,
-		['legajamk'] = true,
-		['legfrad'] = true,
+		armarad = true,
+		armaser = true,
+		armason = true,
+		armeyes = true,
+		armfrad = true,
+		armjam = true,
+		armjamt = true,
+		armmark = true,
+		armrad = true,
+		armseer = true,
+		armsjam = true,
+		armsonar = true,
+		armveil = true,
+		corarad = true,
+		corason = true,
+		coreter = true,
+		coreyes = true,
+		corfrad = true,
+		corjamt = true,
+		corrad = true,
+		legjam = true,
+		legrad = true,
+		corshroud = true,
+		corsjam = true,
+		corsonar = true,
+		corspec = true,
+		corvoyr = true,
+		corvrad = true,
+		legarad = true,
+		legajam = true,
+		legavrad = true,
+		legavjam = true,
+		legaradk = true,
+		legajamk = true,
+		legfrad = true,
 
-		['armmine1'] = true,
-		['armmine2'] = true,
-		['armmine3'] = true,
-		['armfmine3'] = true,
-		['cormine1'] = true,
-		['cormine2'] = true,
-		['cormine3'] = true,
-		['cormine4'] = true,
-		['corfmine3'] = true,
-		['legmine1'] = true,
-		['legmine2'] = true,
-		['legmine3'] = true,
+		armmine1 = true,
+		armmine2 = true,
+		armmine3 = true,
+		armfmine3 = true,
+		cormine1 = true,
+		cormine2 = true,
+		cormine3 = true,
+		cormine4 = true,
+		corfmine3 = true,
+		legmine1 = true,
+		legmine2 = true,
+		legmine3 = true,
 
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		corfav = true,
+		armfav = true,
+		armflea = true,
+		legscout = true,
+		raptor_land_swarmer_brood_t2_v1 = true,
+		raptor_land_kamikaze_basic_t2_v1 = true,
+		raptor_land_kamikaze_emp_t2_v1 = true,
+		raptor_land_kamikaze_basic_t4_v1 = true,
+		raptor_land_kamikaze_emp_t4_v1 = true,
+		scavmist = true,
+		scavmistxl = true,
+		scavmistxxl = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -94,18 +93,18 @@ if gadgetHandler:IsSyncedCode() then
 	tokillUnitsNames = nil
 
 	local todenyUnitsNames = {
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
+		corfav = true,
+		armfav = true,
+		armflea = true,
+		legscout = true,
+		raptor_land_swarmer_brood_t2_v1 = true,
+		raptor_land_kamikaze_basic_t2_v1 = true,
+		raptor_land_kamikaze_emp_t2_v1 = true,
+		raptor_land_kamikaze_basic_t4_v1 = true,
+		raptor_land_kamikaze_emp_t4_v1 = true,
+		scavmist = true,
+		scavmistxl = true,
+		scavmistxxl = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
@@ -116,22 +115,20 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	todenyUnitsNames = nil
 
-
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				tokillUnits[udid] = v
 			end
 		end
 		for id, v in pairs(todenyUnits) do
 			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
+				--if string.find(ud.name, UnitDefs[id].name) then
 				todenyUnits[udid] = v
 			end
 		end
 	end
-
 
 	--config -- see also in unsynced
 	local radius = 450 --outer radius of area denial ring. This value is used in gui_attack_aoe.lua, make sure to keep them in sync
@@ -162,7 +159,7 @@ if gadgetHandler:IsSyncedCode() then
 	local DEBUG_JUNO_IMPACT = false
 	local debugImpactX = 1300
 	local debugImpactZ = 2900
-	local debugIntervalFrames = (effectlength + 5) * 30  -- effectlength seconds + 5 idle seconds, at 30fps
+	local debugIntervalFrames = (effectlength + 5) * 30 -- effectlength seconds + 5 idle seconds, at 30fps
 
 	local stormPulseIntervalFrames = 33
 	local stormPulseJitterFrames = 15
@@ -188,12 +185,12 @@ if gadgetHandler:IsSyncedCode() then
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeaponsNames = {
-		["armjuno_juno_pulse"] = true,
-		["legjuno_juno_pulse"] = true,
-		["corjuno_juno_pulse"] = true,
-		["armjuno_scav_juno_pulse"] = true,
-		["legjuno_scav_juno_pulse"] = true,
-		["corjuno_scav_juno_pulse"] = true,
+		armjuno_juno_pulse = true,
+		legjuno_juno_pulse = true,
+		corjuno_juno_pulse = true,
+		armjuno_scav_juno_pulse = true,
+		legjuno_scav_juno_pulse = true,
+		corjuno_scav_juno_pulse = true,
 	}
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}
@@ -248,7 +245,8 @@ if gadgetHandler:IsSyncedCode() then
 		if junoWeapons[weaponID] then
 			local curtime = SpGetGameSeconds()
 			local ownerTeam = ownerID and SpGetUnitTeam(ownerID)
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID, ownerTeam = ownerTeam }
+			local junoExpl =
+				{ x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID, ownerTeam = ownerTeam }
 			centers[counter] = junoExpl
 			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
 			counter = counter + 1
@@ -273,7 +271,16 @@ if gadgetHandler:IsSyncedCode() then
 			local debugExpl = { x = debugImpactX, y = debugY, z = debugImpactZ, t = curtime, f = frame }
 			centers[counter] = debugExpl
 			counter = counter + 1
-			Spring.Echo("[juno_damage DEBUG] spawned juno impact at (" .. debugImpactX .. ", " .. debugY .. ", " .. debugImpactZ .. ") frame=" .. frame)
+			Spring.Echo(
+				"[juno_damage DEBUG] spawned juno impact at ("
+					.. debugImpactX
+					.. ", "
+					.. debugY
+					.. ", "
+					.. debugImpactZ
+					.. ") frame="
+					.. frame
+			)
 		end
 
 		local curtime = SpGetGameSeconds()
@@ -298,14 +305,25 @@ if gadgetHandler:IsSyncedCode() then
 						local lz = expl.z + Msin(angle) * dist
 						local ly = SpGetGroundHeight(lx, lz) + stormHeightOffset
 						local sizeScale = stormSizeMin + hash01(seed + 7.7) * (stormSizeMax - stormSizeMin)
-						local intensityScale = stormIntensityMin + hash01(seed + 11.3) * (stormIntensityMax - stormIntensityMin)
-						GG.SpawnEnvironmentalLightning("junoareastorm", lx, ly, lz, sizeScale, intensityScale, expl.ownerTeam)
+						local intensityScale = stormIntensityMin
+							+ hash01(seed + 11.3) * (stormIntensityMax - stormIntensityMin)
+						GG.SpawnEnvironmentalLightning(
+							"junoareastorm",
+							lx,
+							ly,
+							lz,
+							sizeScale,
+							intensityScale,
+							expl.ownerTeam
+						)
 
 						expl.pulseCount = expl.pulseCount + 1
 						local jitterSeed = (expl.f or frame) * 0.021 + counter * 4.913 + expl.pulseCount * 1.771
 						local signedJitter = (hash01(jitterSeed) * 2 - 1) * stormPulseJitterFrames
 						local nextInterval = Mfloor(stormPulseIntervalFrames + signedJitter)
-						if nextInterval < 8 then nextInterval = 8 end
+						if nextInterval < 8 then
+							nextInterval = 8
+						end
 						expl.nextStormFrame = frame + nextInterval
 					end
 				end
@@ -332,7 +350,10 @@ if gadgetHandler:IsSyncedCode() then
 				table.remove(centers, counter)
 			end
 
-			if expl.t + fadetime >= curtime or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
+			if
+				expl.t + fadetime >= curtime
+				or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength
+			then
 				update = true -- fast update during fade in/out
 			end
 		end
@@ -605,7 +626,6 @@ else
 		end
 
 
-	]]--
-
+	]]
+	--
 end
-

@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "DrawFeatureShape GL4",
-		desc    = "Instanced feature ghosts at arbitrary transforms. Use WG.DrawFeatureShapeGL4",
-		author  = "PtaQ",
-		date    = "July 2026",
+		name = "DrawFeatureShape GL4",
+		desc = "Instanced feature ghosts at arbitrary transforms. Use WG.DrawFeatureShapeGL4",
+		author = "PtaQ",
+		date = "July 2026",
 		license = "GNU GPL, v2 or later",
-		layer   = -9998,
+		layer = -9998,
 		enabled = false,
 		depends = { "gl4" },
 	}
@@ -224,7 +224,13 @@ local function getBucket(featureDefID)
 	local key = tex1:lower() .. "|" .. tostring(tex2 and tex2:lower())
 	bucket = texKeyToBucket[key]
 	if not bucket then
-		bucket = InstanceVBOIdTable.makeInstanceVBOTable(VBO_LAYOUT, 32, "DrawFeatureShapeVBO:" .. key, INSTDATA_ATTRIB_ID, "featureDefID")
+		bucket = InstanceVBOIdTable.makeInstanceVBOTable(
+			VBO_LAYOUT,
+			32,
+			"DrawFeatureShapeVBO:" .. key,
+			INSTDATA_ATTRIB_ID,
+			"featureDefID"
+		)
 		if not bucket then
 			unsupportedDefIDs[featureDefID] = true
 			Echo("[DrawFeatureShape GL4] Failed to create an instance table for " .. key)
@@ -264,7 +270,22 @@ end
 ---@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
 ---@param ownerID any optional tag so a widget can batch-remove everything it submitted
 ---@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
-local function DrawFeatureShapeGL4(featureDefID, px, py, pz, yaw, pitch, roll, alpha, tintR, tintG, tintB, tintAmount, updateID, ownerID)
+local function DrawFeatureShapeGL4(
+	featureDefID,
+	px,
+	py,
+	pz,
+	yaw,
+	pitch,
+	roll,
+	alpha,
+	tintR,
+	tintG,
+	tintB,
+	tintAmount,
+	updateID,
+	ownerID
+)
 	local bucket = getBucket(featureDefID)
 	if not bucket then
 		return nil
@@ -411,8 +432,22 @@ local function drawFeatureShapeTest(_cmd, _line, args)
 				offsetted = offsetted + 1
 			end
 
-			testHandles[#testHandles + 1] =
-				DrawFeatureShapeGL4(featureDefID, x + nudge, y, z, yaw, pitch, roll, 0.75, 0.2, 1.0, 0.4, 0.5, nil, "test")
+			testHandles[#testHandles + 1] = DrawFeatureShapeGL4(
+				featureDefID,
+				x + nudge,
+				y,
+				z,
+				yaw,
+				pitch,
+				roll,
+				0.75,
+				0.2,
+				1.0,
+				0.4,
+				0.5,
+				nil,
+				"test"
+			)
 		end
 	end
 

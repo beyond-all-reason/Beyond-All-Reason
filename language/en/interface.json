@@ -525,6 +525,8 @@
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
 			"channelScopeAll": "ALL",
+			"channelScopeTeam": "TEAM",
+			"channelScopeSpec": "SPEC",
 			"everyone": "everyone",
 			"allies": "allies",
 			"label": "label",
@@ -1822,6 +1824,8 @@
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
 				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
+				"factorypreset": "Factory Presets",
+				"factorypreset_descr": "Save and load factory build queues\nSelect a single factory and press space to open the preset menu",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
@@ -2730,7 +2734,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|extreme] Set zombie mode"
+			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
 		}
 	}
 }

@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -89,7 +89,7 @@ local jammerFilter = {}
 local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
-	if udef.modCategories["object"] or udef.customParams.objectify then
+	if udef.modCategories.object or udef.customParams.objectify then
 		ignoreUnits[udid] = true
 	end
 
@@ -326,9 +326,10 @@ function widget:Update(dt)
 
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
+		-- filter unselectable units
 		-- filter gaia units + ignored units (objects)
 		if
-			not spGetUnitNoSelect(uid) -- filter unselectable units
+			not spGetUnitNoSelect(uid)
 			and (isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)]))
 		then
 			n = n + 1
@@ -426,7 +427,6 @@ function widget:Update(dt)
 			end
 		end
 		mouseSelection = included
-
 	elseif
 		selectBuildingsWithMobile == false
 		and (mods.any == false and mods.all == false)
@@ -484,20 +484,16 @@ function widget:Update(dt)
 		newSelection = included
 		selectedUnits = newSelection
 		spSelectUnitArray(selectedUnits)
-
 	elseif mods.append or mods.all then -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
 		selectedUnits = spGetSelectedUnits()
-
 	elseif #mouseSelection > 0 then -- select units inside selection rectangle
 		selectedUnits = mouseSelection
 		spSelectUnitArray(selectedUnits)
-
 	elseif #mouseSelection == 0 then
 		selectedUnits = {}
 		spSelectUnitArray(selectedUnits)
-
 	else -- keep current selection while dragging until more things are selected
 		selectedUnits = referenceSelection
 		spSelectUnitArray(selectedUnits)
@@ -522,8 +518,7 @@ end
 --end
 --
 function widget:Shutdown()
-	WG["smartselect"] = nil
-
+	WG.smartselect = nil
 	WG.SmartSelect_MousePress2 = nil
 	WG.SmartSelect_SelectUnits = nil
 	WG.SmartSelect_SetReference = nil
@@ -722,41 +717,41 @@ function widget:Initialize()
 	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
 	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
-	WG["smartselect"] = {}
-	WG["smartselect"].getIncludeBuildings = function()
+	WG.smartselect = {}
+	WG.smartselect.getIncludeBuildings = function()
 		return selectBuildingsWithMobile
 	end
-	WG["smartselect"].setIncludeBuildings = function(value)
+	WG.smartselect.setIncludeBuildings = function(value)
 		selectBuildingsWithMobile = value
 	end
-	WG["smartselect"].getIncludeBuilders = function()
+	WG.smartselect.getIncludeBuilders = function()
 		return includeBuilders
 	end
-	WG["smartselect"].setIncludeBuilders = function(value)
+	WG.smartselect.setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
-	WG["smartselect"].getIncludeResurrectors = function()
+	WG.smartselect.getIncludeResurrectors = function()
 		return includeResurrectors
 	end
-	WG["smartselect"].setIncludeResurrectors = function(value)
+	WG.smartselect.setIncludeResurrectors = function(value)
 		includeResurrectors = value
 	end
-	WG["smartselect"].getIncludeAntinuke = function()
+	WG.smartselect.getIncludeAntinuke = function()
 		return includeAntinuke
 	end
-	WG["smartselect"].setIncludeAntinuke = function(value)
+	WG.smartselect.setIncludeAntinuke = function(value)
 		includeAntinuke = value
 	end
-	WG["smartselect"].getIncludeRadar = function()
+	WG.smartselect.getIncludeRadar = function()
 		return includeRadar
 	end
-	WG["smartselect"].setIncludeRadar = function(value)
+	WG.smartselect.setIncludeRadar = function(value)
 		includeRadar = value
 	end
-	WG["smartselect"].getIncludeJammer = function()
+	WG.smartselect.getIncludeJammer = function()
 		return includeJammer
 	end
-	WG["smartselect"].setIncludeJammer = function(value)
+	WG.smartselect.setIncludeJammer = function(value)
 		includeJammer = value
 	end
 

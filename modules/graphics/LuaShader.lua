@@ -1,6 +1,6 @@
-local UNIFORM_TYPE_MIXED        = 0 -- includes arrays; float or int
-local UNIFORM_TYPE_INT          = 1 -- includes arrays
-local UNIFORM_TYPE_FLOAT        = 2 -- includes arrays
+local UNIFORM_TYPE_MIXED = 0 -- includes arrays; float or int
+local UNIFORM_TYPE_INT = 1 -- includes arrays
+local UNIFORM_TYPE_FLOAT = 2 -- includes arrays
 local UNIFORM_TYPE_FLOAT_MATRIX = 3
 
 local glGetUniformLocation = gl.GetUniformLocation
@@ -21,8 +21,7 @@ local function new(class, shaderParams, shaderName, logEntries)
 		logEntriesSanitized = 1
 	end
 
-	return setmetatable(
-	{
+	return setmetatable({
 		shaderName = shaderName or "Unnamed Shader",
 		shaderParams = shaderParams or {},
 		logEntries = logEntriesSanitized,
@@ -36,10 +35,9 @@ local function new(class, shaderParams, shaderName, logEntries)
 end
 
 local function IsGeometryShaderSupported()
-	local hasGeometryShaderExtension =
-		gl.HasExtension("GL_ARB_geometry_shader4") or
-		gl.HasExtension("GL_EXT_geometry_shader4") or
-		gl.HasExtension("GL_OES_geometry_shader")
+	local hasGeometryShaderExtension = gl.HasExtension("GL_ARB_geometry_shader4")
+		or gl.HasExtension("GL_EXT_geometry_shader4")
+		or gl.HasExtension("GL_OES_geometry_shader")
 	return hasGeometryShaderExtension and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
 end
 
@@ -48,7 +46,9 @@ local function IsTesselationShaderSupported()
 end
 
 local function IsDeferredShadingEnabled()
-	return (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) and (Spring.GetConfigInt("AllowDeferredModelRendering") == 1) and (Spring.GetConfigInt("AdvMapShading") == 1)
+	return (Spring.GetConfigInt("AllowDeferredMapRendering") == 1)
+		and (Spring.GetConfigInt("AllowDeferredModelRendering") == 1)
+		and (Spring.GetConfigInt("AdvMapShading") == 1)
 end
 
 local function GetAdvShadingActive()
@@ -60,7 +60,7 @@ local function GetAdvShadingActive()
 end
 
 local function GetEngineUniformBufferDefs()
-    local eubs = [[
+	local eubs = [[
 layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 screenView;
 	mat4 screenProj;
@@ -275,13 +275,11 @@ vec3 rgb2hsv(vec3 c){
 
 ]]
 
-
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
 
-	local waterUniforms =
-[[
+	local waterUniforms = [[
 #define WATERABSORBCOLOR vec3(%f,%f,%f)
 #define WATERMINCOLOR vec3(%f,%f,%f)
 #define WATERBASECOLOR vec3(%f,%f,%f)
@@ -299,17 +297,24 @@ vec4 waterBlend(float fragmentheight){
 	return waterBlendResult;
 }
 ]]
-	waterUniforms = string.format(waterUniforms,
-		waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB,
-		waterMinColorR, waterMinColorG, waterMinColorB,
-		waterBaseColorR, waterBaseColorG, waterBaseColorB
+	waterUniforms = string.format(
+		waterUniforms,
+		waterAbsorbColorR,
+		waterAbsorbColorG,
+		waterAbsorbColorB,
+		waterMinColorR,
+		waterMinColorG,
+		waterMinColorB,
+		waterBaseColorR,
+		waterBaseColorG,
+		waterBaseColorB
 	)
 
-    return eubs .. waterUniforms
+	return eubs .. waterUniforms
 end
 local function GetQuaternionDefs()
 	-- For replacing //__QUATERNIONDEFS__ with the quaternion definitions
-	return	[[
+	return [[
 // Quaternion math functions
 struct Transform {
 	vec4 quat;
@@ -500,17 +505,18 @@ Transform GetStaticPieceModelTransform(uint baseIndex, uint pieceID)
 end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
-  local defines = {}
-  for k, v in pairs (args) do
-      defines[#defines + 1] = string.format("#define %s %s\n", tostring(k), tostring(v))
-  end
-  return table.concat(defines)
+	local defines = {}
+	for k, v in pairs(args) do
+		defines[#defines + 1] = string.format("#define %s %s\n", tostring(k), tostring(v))
+	end
+	return table.concat(defines)
 end
 
-
 local LuaShader = setmetatable({}, {
-	__call = function(self, ...) return new(self, ...) end,
-	})
+	__call = function(self, ...)
+		return new(self, ...)
+	end,
+})
 LuaShader.__index = LuaShader
 LuaShader.isGeometryShaderSupported = IsGeometryShaderSupported()
 LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
@@ -520,19 +526,26 @@ LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
-
 local function CheckShaderUpdates(shadersourcecache, delaytime)
 	-- todo: extract shaderconfig
-	if shadersourcecache.forceupdate or shadersourcecache.lastshaderupdate == nil or
-		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then
+	if
+		shadersourcecache.forceupdate
+		or shadersourcecache.lastshaderupdate == nil
+		or Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5)
+	then
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
-		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
-		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
-		if vsSrcNew == shadersourcecache.vsSrc and
-			fsSrcNew == shadersourcecache.fsSrc and
-			gsSrcNew == shadersourcecache.gsSrc and
-			not shadersourcecache.forceupdate then
+		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath))
+			or shadersourcecache.vsSrc
+		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath))
+			or shadersourcecache.fsSrc
+		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath))
+			or shadersourcecache.gsSrc
+		if
+			vsSrcNew == shadersourcecache.vsSrc
+			and fsSrcNew == shadersourcecache.fsSrc
+			and gsSrcNew == shadersourcecache.gsSrc
+			and not shadersourcecache.forceupdate
+		then
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
@@ -546,7 +559,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
 			local quaternionDefines = LuaShader.GetQuaternionDefs()
 
-			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
+			local printfpattern = "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
 			if not fsSrcNew then
 				Spring.Echo("Warning: No fragment shader source found for", shadersourcecache.shaderName)
@@ -564,20 +577,32 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					-- Figure out wether the glsl variable is a float, vec2-4
 					local glslvarcount = 1 -- default is 1
 					local dotposition = string.find(glslvariable, "%.")
-					local swizzle = 'x'
+					local swizzle = "x"
 					if dotposition then
-						swizzle = string.sub(glslvariable, dotposition+1)
+						swizzle = string.sub(glslvariable, dotposition + 1)
 						glslvarcount = string.len(swizzle)
 					end
-					if glslvarcount>4 then
+					if glslvarcount > 4 then
 						glslvarcount = 4
 					end
-					if not printf then printf = {} end
-					printf["vars"] = printf["vars"] or {}
-					local vardata =  {name = glslvariable, count = glslvarcount, line = i, index = #printf["vars"], swizzle = swizzle, shaderstage = 'f'}
-					table.insert(printf["vars"], vardata)
-					local replacementstring = string.format('if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;',
-							vardata.index, string.sub('xyzw', 1, vardata.count), vardata.name
+					if not printf then
+						printf = {}
+					end
+					printf.vars = printf.vars or {}
+					local vardata = {
+						name = glslvariable,
+						count = glslvarcount,
+						line = i,
+						index = #printf.vars,
+						swizzle = swizzle,
+						shaderstage = "f",
+					}
+					table.insert(printf.vars, vardata)
+					local replacementstring = string.format(
+						"if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;",
+						vardata.index,
+						string.sub("xyzw", 1, vardata.count),
+						vardata.name
 					)
 					Spring.Echo(string.format("Replacing f:%d %s", i, line))
 					fsSrcNewLines[i] = replacementstring
@@ -587,13 +612,15 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			-- If any substitutions were made, reassemble the shader source
 			if printf then
 				-- Define the shader storage buffer object, with at most SSBOSize entries
-				printf.SSBOSize = math.max(#printf['vars'], 16)
+				printf.SSBOSize = math.max(#printf.vars, 16)
 				--Spring.Echo("SSBOSize", printf.SSBOSize)
 				printf.SSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
-				printf.SSBO:Define(printf.SSBOSize, {{id = 0, name = "printfData", size = 4}})
+				printf.SSBO:Define(printf.SSBOSize, { { id = 0, name = "printfData", size = 4 } })
 				local initZeros = {}
-				for i=1, 4 * printf.SSBOSize  do initZeros[i] = 0 end
-				printf.SSBO:Upload(initZeros)--, nil, 0)
+				for i = 1, 4 * printf.SSBOSize do
+					initZeros[i] = 0
+				end
+				printf.SSBO:Upload(initZeros) --, nil, 0)
 
 				printf.SSBODefinition = [[
 					layout (std430, binding = 7) buffer printfBuffer {
@@ -608,7 +635,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 						if line ~= "#version 430 core" then
 							Spring.Echo("Replacing shader version", line, "with #version 430 core")
 							fsSrcNewLines[i] = ""
-							table.insert(fsSrcNewLines,1, "#version 430 core\n")
+							table.insert(fsSrcNewLines, 1, "#version 430 core\n")
 							break
 						end
 					end
@@ -616,9 +643,11 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 				-- Add required extensions
 
-				local ssboextensions = {'#extension GL_ARB_shading_language_420pack: require',
-										'#extension GL_ARB_uniform_buffer_object : require',
-										'#extension GL_ARB_shader_storage_buffer_object : require'}
+				local ssboextensions = {
+					"#extension GL_ARB_shading_language_420pack: require",
+					"#extension GL_ARB_uniform_buffer_object : require",
+					"#extension GL_ARB_shader_storage_buffer_object : require",
+				}
 				for j, ext in ipairs(ssboextensions) do
 					local found = false
 					for i, line in ipairs(fsSrcNewLines) do
@@ -633,7 +662,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				end
 
 				-- Reassemble the shader source by joining on newlines:
-				fsSrcNew = table.concat(fsSrcNewLines, '\n')
+				fsSrcNew = table.concat(fsSrcNewLines, "\n")
 				--Spring.Echo(fsSrcNew)
 			end
 			if vsSrcNew then
@@ -651,24 +680,32 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			end
 
 			if fsSrcNew then
-				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
+				fsSrcNew = fsSrcNew:gsub(
+					"//__ENGINEUNIFORMBUFFERDEFS__",
+					(printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs)
+				)
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors
 			end
-			local reinitshader =  LuaShader(
-				{
+			local reinitshader = LuaShader({
 				vertex = vsSrcNew,
 				fragment = fsSrcNew,
 				geometry = gsSrcNew,
 				uniformInt = shadersourcecache.uniformInt,
 				uniformFloat = shadersourcecache.uniformFloat,
-				},
-				shadersourcecache.shaderName
-			)
+			}, shadersourcecache.shaderName)
 			local shaderCompiled = reinitshader:Initialize()
 			if not shadersourcecache.silent then
-				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+				Spring.Echo(
+					shadersourcecache.shaderName,
+					" recompiled in ",
+					Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true),
+					"ms at",
+					Spring.GetGameFrame(),
+					"success",
+					shaderCompiled or false
+				)
 			end
 			if shaderCompiled then
 				reinitshader.printf = printf
@@ -684,14 +721,15 @@ end
 
 LuaShader.CheckShaderUpdates = CheckShaderUpdates
 
-
 local function lines(str)
 	local t = {}
-	local function helper(line) table.insert(t, line) return "" end
+	local function helper(line)
+		table.insert(t, line)
+		return ""
+	end
 	helper((str:gsub("(.-)\r?\n", helper)))
 	return t
 end
-
 
 function LuaShader:CreateLineTable()
 	--[[
@@ -710,7 +748,8 @@ function LuaShader:CreateLineTable()
 		   [ geoOutputVerts = number maxVerts,]
 		   [ definitions = "string of shader #defines", ]
 		 })
-	]]--
+	]]
+	--
 
 	local numtoline = {}
 
@@ -721,7 +760,7 @@ function LuaShader:CreateLineTable()
 	--	Spring.Echo(k)
 	--end
 
-	for _, shadertype in pairs({'vertex', 'tcs', 'tes', 'geometry', 'fragment', 'compute'}) do
+	for _, shadertype in pairs({ "vertex", "tcs", "tes", "geometry", "fragment", "compute" }) do
 		if self.shaderParams[shadertype] ~= nil then
 			local shaderLines = (self.shaderParams.definitions or "") .. self.shaderParams[shadertype]
 			local currentlinecount = 0
@@ -734,7 +773,6 @@ function LuaShader:CreateLineTable()
 						currentlinecount = defline
 					end
 				else
-
 					currentlinecount = currentlinecount + 1
 				end
 			end
@@ -745,15 +783,15 @@ end
 
 local function translateLines(alllines, errorcode)
 	if string.len(errorcode) < 3 then
-		return ("The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match")
+		return "The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match"
 	end
 	local result = ""
-	for _,line in pairs(lines(errorcode)) do
+	for _, line in pairs(lines(errorcode)) do
 		local pstart = line:find("(", nil, true)
 		local pend = line:find(")", nil, true)
 		local found = false
 		if pstart and pend then
-			local lineno = line:sub(pstart +1,pend-1)
+			local lineno = line:sub(pstart + 1, pend - 1)
 			--Spring.Echo(lineno)
 			lineno = tonumber(lineno)
 			--Spring.Echo(lineno, alllines[lineno])
@@ -763,13 +801,11 @@ local function translateLines(alllines, errorcode)
 			end
 		end
 		if found == false then
-			result = result .. line ..'\n'
+			result = result .. line .. "\n"
 		end
 	end
 	return result
 end
-
-
 
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)
@@ -785,15 +821,14 @@ function LuaShader:OutputLogEntry(text, isError)
 		Spring.Echo(translateLines(linetable, text))
 	end
 
-
 	if self.logHash[message] == nil then
-	--	self.logHash[message] = 0
+		--	self.logHash[message] = 0
 	end
 
 	if false and self.logHash[message] <= self.logEntries then
 		local newCnt = self.logHash[message] + 1
 		self.logHash[message] = newCnt
-		if (newCnt == self.logEntries) then
+		if newCnt == self.logEntries then
 			message = message .. string.format("\nSupressing further %s of the same kind", warnErr)
 		end
 		Spring.Echo(message)
@@ -810,10 +845,10 @@ end
 
 -----------------============ Handle Ghetto Include<> ==============-----------------
 local includeRegexps = {
-	'.-#include <(.-)>.-',
-	'.-#include \"(.-)\".-',
-	'.-#pragma(%s+)include <(.-)>.-',
-	'.-#pragma(%s+)include \"(.-)\".-',
+	".-#include <(.-)>.-",
+	'.-#include "(.-)".-',
+	".-#pragma(%s+)include <(.-)>.-",
+	'.-#pragma(%s+)include "(.-)".-',
 }
 
 function LuaShader:HandleIncludes(shaderCode, shaderName)
@@ -833,10 +868,10 @@ function LuaShader:HandleIncludes(shaderCode, shaderName)
 		Spring.Echo(shaderName, incFile)
 
 		if incFile then
-			shaderCode = string.gsub(shaderCode, regEx, '', 1)
+			shaderCode = string.gsub(shaderCode, regEx, "", 1)
 			table.insert(incFiles, incFile)
 		end
-	until (incFile == nil)
+	until incFile == nil
 	local t2 = Spring.GetTimer()
 	Spring.Echo(Spring.DiffTimers(t2, t1, true))
 
@@ -866,8 +901,8 @@ function LuaShader:Compile(suppresswarnings)
 		return false
 	end
 
--- LuaShader:HandleIncludes is too slow. Figure out faster way.
---[[
+	-- LuaShader:HandleIncludes is too slow. Figure out faster way.
+	--[[
 	for _, shaderType in ipairs({"vertex", "tcs", "tes", "geometry", "fragment"}) do
 		if self.shaderParams[shaderType] then
 			local newShaderCode = LuaShader:HandleIncludes(self.shaderParams[shaderType], self.shaderName)
@@ -876,7 +911,8 @@ function LuaShader:Compile(suppresswarnings)
 			end
 		end
 	end
-]]--
+]]
+	--
 
 	local shaderObj, gl_program_id = gl.CreateShader(self.shaderParams)
 	self.shaderObj = shaderObj
@@ -912,15 +948,20 @@ function LuaShader:Compile(suppresswarnings)
 	-- Note that the function call overhead to the LuaShader:SetUniformFloat is about 500ns
 	-- With this, a direct gl.Uniform call, this goes down to 100ns
 	self.uniformLocations = {}
-	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do
+	for _, uniformGeneric in ipairs({ self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do
 		for uniName, defaultvalue in pairs(uniformGeneric) do
 			local location = glGetUniformLocation(shaderObj, uniName)
 			if location then
 				self.uniformLocations[uniName] = location
 			else
-				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
+				Spring.Echo(
+					string.format(
+						"Notice from shader %s: Could not find location of uniform name: %s",
+						"dunno",
+						uniName
+					)
+				)
 			end
-
 		end
 	end
 
@@ -934,7 +975,12 @@ function LuaShader:GetHandle()
 		return self.shaderObj
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
-		self:ShowError(string.format("Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()?", funcName))
+		self:ShowError(
+			string.format(
+				"Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()?",
+				funcName
+			)
+		)
 	end
 end
 
@@ -943,7 +989,12 @@ function LuaShader:Delete()
 		gl.DeleteShader(self.shaderObj)
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
-		self:ShowError(string.format("Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()", funcName))
+		self:ShowError(
+			string.format(
+				"Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()",
+				funcName
+			)
+		)
 	end
 end
 
@@ -954,7 +1005,9 @@ function LuaShader:Activate()
 		-- bind the printf SSBO if present
 		if self.printf then
 			local bindingIndex = self.printf.SSBO:BindBufferRange(7)
-			if bindingIndex <= 0 then Spring.Echo("Failed to bind printfData SSBO for shader", self.shaderName) end
+			if bindingIndex <= 0 then
+				Spring.Echo("Failed to bind printfData SSBO for shader", self.shaderName)
+			end
 		end
 
 		self.active = true
@@ -964,7 +1017,12 @@ function LuaShader:Activate()
 		return glUseShader(self.shaderObj)
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
-		self:ShowError(string.format("Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()", funcName))
+		self:ShowError(
+			string.format(
+				"Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()",
+				funcName
+			)
+		)
 		return false
 	end
 end
@@ -977,7 +1035,6 @@ function LuaShader:SetUnknownUniformIgnore(flag)
 	self.ignoreUnkUniform = flag
 end
 
-
 function LuaShader:ActivateWith(func, ...)
 	if self.shaderObj ~= nil then
 		self.active = true
@@ -985,14 +1042,21 @@ function LuaShader:ActivateWith(func, ...)
 		self.active = false
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
-		self:ShowError(string.format("Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()", funcName))
+		self:ShowError(
+			string.format(
+				"Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()",
+				funcName
+			)
+		)
 	end
 end
 
 function LuaShader:Deactivate()
 	self.active = false
 	glUseShader(0)
-	if gldebugannotations then gl.PopDebugGroup() end
+	if gldebugannotations then
+		gl.PopDebugGroup()
+	end
 	--Spring.Echo("LuaShader:Deactivate()")
 
 	if self.printf then
@@ -1002,7 +1066,10 @@ function LuaShader:Deactivate()
 		--Spring.Echo(self.printf.bufferData[1],self.printf.bufferData[2],self.printf.bufferData[3],self.printf.bufferData[4])
 		-- Do NAN checks on bufferData array and replace with -666 if NAN:
 		for i = 1, #self.printf.bufferData do
-			if type(self.printf.bufferData[i]) == 'number' and (self.printf.bufferData[i] ~= self.printf.bufferData[i]) then -- check for NAN
+			if
+				type(self.printf.bufferData[i]) == "number"
+				and (self.printf.bufferData[i] ~= self.printf.bufferData[i])
+			then -- check for NAN
 				self.printf.bufferData[i] = -666
 			end
 		end
@@ -1018,15 +1085,15 @@ function LuaShader:Deactivate()
 
 				xoffset = xoffset or 0
 				yoffset = yoffset or 0
-				if type(sometimesself) == 'table' then
+				if type(sometimesself) == "table" then
 					xoffset = xoffset or 0
 					yoffset = yoffset or 0
-				elseif type(sometimesself) == 'number' then
+				elseif type(sometimesself) == "number" then
 					yoffset = xoffset
 					xoffset = sometimesself
 				end
 
-				local mx,my = Spring.GetMouseState()
+				local mx, my = Spring.GetMouseState()
 				mx = mx + xoffset
 				my = my - 32 + yoffset
 
@@ -1038,21 +1105,53 @@ function LuaShader:Deactivate()
 				for i, vardata in ipairs(self.printf.vars) do
 					local message
 					if vardata.count == 1 then
-						message = string.format("%s:%d %s = %.3f", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4])
+						message = string.format(
+							"%s:%d %s = %.3f",
+							vardata.shaderstage,
+							vardata.line,
+							vardata.name,
+							self.printf.bufferData[1 + vardata.index * 4]
+						)
 					elseif vardata.count == 2 then
-						message = string.format("%s:%d %s = [%.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4])
+						message = string.format(
+							"%s:%d %s = [%.3f, %.3f]",
+							vardata.shaderstage,
+							vardata.line,
+							vardata.name,
+							self.printf.bufferData[1 + vardata.index * 4],
+							self.printf.bufferData[2 + vardata.index * 4]
+						)
 					elseif vardata.count == 3 then
-						message = string.format("%s:%d %s = [%10.3f, %10.3f, %10.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4])
+						message = string.format(
+							"%s:%d %s = [%10.3f, %10.3f, %10.3f]",
+							vardata.shaderstage,
+							vardata.line,
+							vardata.name,
+							self.printf.bufferData[1 + vardata.index * 4],
+							self.printf.bufferData[2 + vardata.index * 4],
+							self.printf.bufferData[3 + vardata.index * 4]
+						)
 					elseif vardata.count == 4 then
-						message = string.format("%s:%d %s = [%.3f, %.3f, %.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4], self.printf.bufferData[4 + vardata.index * 4])
+						message = string.format(
+							"%s:%d %s = [%.3f, %.3f, %.3f, %.3f]",
+							vardata.shaderstage,
+							vardata.line,
+							vardata.name,
+							self.printf.bufferData[1 + vardata.index * 4],
+							self.printf.bufferData[2 + vardata.index * 4],
+							self.printf.bufferData[3 + vardata.index * 4],
+							self.printf.bufferData[4 + vardata.index * 4]
+						)
 					end
 
 					my = my - fontSize
 					local vsx, vsy = Spring.GetViewGeometry()
-					local alignment = ''
-					if mx > (vsx - 400) then alignment = 'r' end
+					local alignment = ""
+					if mx > (vsx - 400) then
+						alignment = "r"
+					end
 					--Spring.Echo(my,vsy)
-					font3:Print(message, math.floor(mx), math.floor(my), fontSize,alignment .."o"  )
+					font3:Print(message, math.floor(mx), math.floor(my), fontSize, alignment .. "o")
 				end
 
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -1065,9 +1164,7 @@ function LuaShader:Deactivate()
 	end
 end
 
-
 -----------------============ End of general LuaShader methods ============-----------------
-
 
 -----------------============ Friend LuaShader functions ============-----------------
 local function getUniformImpl(self, name)
@@ -1094,12 +1191,19 @@ end
 
 local function getUniform(self, name)
 	if not (self.active or self.ignoreActive) then
-		self:ShowError(string.format("Trying to set uniform [%s] on inactive shader object. Did you use :Activate() or :ActivateWith()?", name))
+		self:ShowError(
+			string.format(
+				"Trying to set uniform [%s] on inactive shader object. Did you use :Activate() or :ActivateWith()?",
+				name
+			)
+		)
 		return nil
 	end
 	local uniform = getUniformImpl(self, name)
 	if not (uniform ~= nil or self.ignoreUnkUniform) then
-		self:ShowWarning(string.format("Attempt to set uniform [%s], which does not exist in the compiled shader", name))
+		self:ShowWarning(
+			string.format("Attempt to set uniform [%s], which does not exist in the compiled shader", name)
+		)
 		return nil
 	end
 	return uniform
@@ -1132,7 +1236,7 @@ local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
 
 	if u1 and cachedValues[1] ~= u1 then
 		update = true
-		cachedValues[1] = val
+		cachedValues[1] = u1
 	end
 	if u2 and cachedValues[2] ~= u2 then
 		update = true
@@ -1150,8 +1254,6 @@ local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
 	return update
 end
 -----------------============ End of friend LuaShader functions ============-----------------
-
-
 
 -----------------============ LuaShader uniform manipulation functions ============-----------------
 -- TODO: do it safely with types, len, size check
@@ -1200,9 +1302,8 @@ end
 LuaShader.SetUniformFloat = LuaShader.SetUniform
 LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
-
 --INTEGER UNIFORMS
-local function setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
+local function setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 	if u4 ~= nil then
 		glUniformInt(uniform.location, u1, u2, u3, u4)
 	elseif u3 ~= nil then
@@ -1215,12 +1316,12 @@ local function setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformIntAlways(name,  u1, u2, u3, u4)
+function LuaShader:SetUniformIntAlways(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntAlwaysImpl(uniform,  u1, u2, u3, u4)
+	return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
 local function setUniformIntImpl(uniform, u1, u2, u3, u4)
@@ -1230,14 +1331,13 @@ local function setUniformIntImpl(uniform, u1, u2, u3, u4)
 	return true
 end
 
-function LuaShader:SetUniformInt(name,  u1, u2, u3, u4)
+function LuaShader:SetUniformInt(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformIntImpl(uniform,  u1, u2, u3, u4)
+	return setUniformIntImpl(uniform, u1, u2, u3, u4)
 end
-
 
 --FLOAT ARRAY UNIFORMS
 local function setUniformFloatArrayAlwaysImpl(uniform, tbl)
@@ -1268,7 +1368,6 @@ function LuaShader:SetUniformFloatArray(name, tbl)
 	return setUniformFloatArrayImpl(uniform, tbl)
 end
 
-
 --INT ARRAY UNIFORMS
 local function setUniformIntArrayAlwaysImpl(uniform, tbl)
 	glUniformArray(uniform.location, UNIFORM_TYPE_INT, tbl)
@@ -1298,7 +1397,6 @@ function LuaShader:SetUniformIntArray(name, tbl)
 	return setUniformIntArrayImpl(uniform, tbl)
 end
 
-
 --MATRIX UNIFORMS
 local function setUniformMatrixAlwaysImpl(uniform, tbl)
 	glUniformMatrix(uniform.location, unpack(tbl))
@@ -1310,7 +1408,7 @@ function LuaShader:SetUniformMatrixAlways(name, ...)
 	if not uniform then
 		return false
 	end
-	return setUniformMatrixAlwaysImpl(uniform, {...})
+	return setUniformMatrixAlwaysImpl(uniform, { ... })
 end
 
 local function setUniformMatrixImpl(uniform, tbl)
@@ -1325,7 +1423,7 @@ function LuaShader:SetUniformMatrix(name, ...)
 	if not uniform then
 		return false
 	end
-	return setUniformMatrixImpl(uniform, {...})
+	return setUniformMatrixImpl(uniform, { ... })
 end
 -----------------============ End of LuaShader uniform manipulation functions ============-----------------
 

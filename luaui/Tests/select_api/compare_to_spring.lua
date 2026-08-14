@@ -4,15 +4,15 @@ local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0 or not Platform.gl
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Spring.SendCommands("setspeed " .. 1)
 end
 
@@ -68,12 +68,10 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 			-- these have weird behaviour for the "Not_Builder" filter
 			-- they behave as expected for the "Builder" filter
-			-- api command selects these, but spring select doesn't
-			-- I think they spawn? don't seem to exist during build script
 			local isWeirdOutlier = (filter == "Not_Builder" and (name == "cormlv" or name == "armmlv"))
 				or name == "armdrone"
-				or name == "corvacct"
-				or name == "armtl"
+				or name == "corvacct" -- api command selects these, but spring select doesn't
+				or name == "armtl" -- I think they spawn? don't seem to exist during build script
 
 			if not isWeirdOutlier then
 				table.insert(missingInSpring, uid)
@@ -229,7 +227,7 @@ end
 -- for each filter, the sum of {{filter}} and Not_{{filter}} always equals 537.
 -- this means 6 units are being created but then not included in the tests
 -- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
-function test()
+local function test()
 	passed = true
 	local uids = createUnits()
 	local halfSize = math.floor(#uids / 2)
@@ -344,3 +342,5 @@ function test()
 	end
 	assert(passed, "read errors above")
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
