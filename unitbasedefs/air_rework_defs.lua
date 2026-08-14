@@ -321,11 +321,6 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.health = uDef.health * 1.4
 		uDef.turnrate = uDef.turnrate * 1.5
 	end
-	if name == "armkam" then
-		uDef.weapondefs.med_emg.burstrate = 0.08
-		uDef.weapondefs.med_emg.reloadtime = 1.15
-		uDef.weapondefs.med_emg.areaofeffect = 24
-	end
 	if name == "armbrawl" then
 		uDef.weapondefs.vtol_emg.damage = {
 			default = 20,
@@ -502,9 +497,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armrl_missile.weaponacceleration = 200
 	end
 	if name == "corfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
+		uDef.weapondefs.corrl_missile.startvelocity = 111
+		uDef.weapondefs.corrl_missile.flighttime = 2.6
+		uDef.weapondefs.corrl_missile.weaponacceleration = 200
 	end
 	if name == "corrl" then
 		uDef.weapondefs.corrl_missile.startvelocity = 111
@@ -566,39 +561,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.corbot_missile.weaponacceleration = 230
 		uDef.weapondefs.corbot_missile.flighttime = 2.4
 	end
-	if name == "armaak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.armaabot_missile1.range = 1300
-		uDef.weapondefs.armaabot_missile1.reloadtime = 1.5
-		uDef.weapondefs.armaabot_missile1.startvelocity = 130
-		uDef.weapondefs.armaabot_missile1.weaponacceleration = 320
-		uDef.weapondefs.armaabot_missile1.flighttime = 2.55
-		uDef.weapondefs.armaabot_missile2.startvelocity = 110
-		uDef.weapondefs.armaabot_missile2.weaponacceleration = 300
-		uDef.weapondefs.armaabot_missile2.flighttime = 2.4
-		uDef.weapondefs.armaabot_missile2.reloadtime = 1.4
-		uDef.weapondefs.armaabot_missile2.range = 880
-		uDef.weapons[5].def = ""
-	end
-	if name == "coraak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.coraabot_missile4.range = 1400
-		uDef.weapondefs.coraabot_missile4.reloadtime = 1.6
-		uDef.weapondefs.coraabot_missile4.startvelocity = 130
-		uDef.weapondefs.coraabot_missile4.weaponacceleration = 320
-		uDef.weapondefs.coraabot_missile4.flighttime = 2.55
-		uDef.weapondefs.coraabot_missile3.range = 970
-		uDef.weapondefs.coraabot_missile3.reloadtime = 1.2
-		uDef.weapondefs.coraabot_missile3.startvelocity = 110
-		uDef.weapondefs.coraabot_missile3.weaponacceleration = 300
-		uDef.weapondefs.coraabot_missile3.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.range = 870
-		uDef.weapondefs.coraabot_missile2.startvelocity = 100
-		uDef.weapondefs.coraabot_missile2.weaponacceleration = 290
-		uDef.weapondefs.coraabot_missile2.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.reloadtime = 1
-		uDef.weapons[6].def = ""
-	end
+
 	if name == "armyork" then
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end
