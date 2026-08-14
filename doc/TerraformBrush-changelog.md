@@ -4,18 +4,20 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
-## 1.11 - 2026-08-11
+## 1.11 - 2026-08-14
 
 ### New
 
-- Added the SURFACE and LAYERS tools for tileset maps. SURFACE paints soft-top variants of the active biome over the automatic base: two variant slots with per-slot pickers, a NOW PAINTING readout, coverage meter, dot/wash/fill presets, brush spacing, noise fill seeded from the tileset noise field, sculpted-feature layers, and group grading for tops and rock. LAYERS forces talus, cliff, or plateau material anywhere through the tileset shader's override mask, with smart filters, undo/redo, and splat export.
+- Added the SURFACE and LAYERS tools for tileset maps. SURFACE paints soft-top variants of the active biome over the automatic base: two variant slots with per-slot pickers, a NOW PAINTING readout, coverage meter, dot/wash/fill presets, brush spacing, noise fill seeded from the tileset noise field, sculpted-feature layers, and group grading for tops and rock. LAYERS forces intermediate, cliff, or plateau material anywhere through the tileset shader's override mask, with smart filters, undo/redo, and splat export.
 - The tileset shader now decides which surface-painting pair leads the TOOLS grid: SURFACE and LAYERS while it renders the ground, the legacy DIFFUSE and SPLAT otherwise. The two sets replace each other in the same leading slots.
 - The Tileset panel is now a floating window opened from the SCENE menu instead of a tool tab, so shader knobs, the biome library and metal-spot styles can be tweaked while any tool is active.
 - Every SCENE window (sun and shadows, fog, ground and unit lighting, map rendering, water, dimensions, skybox library, tileset) is now independent of the SCENE tab. Switching tools no longer closes them, so the scene can be tuned while painting.
 - Added FILE > Save, which writes straight to the project the session was loaded from or last saved to and names that target on the menu item. Save As now prefills the name, lists existing projects as pick-to-overwrite rows, asks for a second click before overwriting a project that is not the current one, and closes on commit. A save in progress shows a green segment bar in the status strip, then holds SAVED for a few seconds before the tool readout fades back in.
 - Map projects now round-trip the SURFACE variant mask, including biome and slot assignments.
 - Added a FIT button that snaps the custom heightmap export range to the terrain's exact current extremes.
-- Added Talus evidence and Cavity floor tuning knobs to the Tileset height layers.
+- Added Intermediate evidence and Cavity floor tuning knobs to the Tileset height layers.
+- Added Exposure, Bias on tops and Surface claim to the Tileset window. Exposure is a final gain on the lit ground, for a dark set on a dimly lit map. Bias on tops decides whether the brightness bias also applies to the soft tops, so how much ground a top takes is authored rather than decided by whichever top is paler. Surface claim sets how strongly a SURFACE stroke decides which top belongs somewhere: at 1 a painted top outvotes the automatic plateau band, which is what made high flats unpaintable, and the plateau band now ships parked off to match.
+- Every section of the Tileset window has its own RESET button, matching the SCENE environment windows. It restores just that section's knobs, to the global defaults overlaid with the active biome's recipe, instead of throwing away every knob in every section.
 - Added placeable geothermal vents: game-side vent features make working geo spots (engine smoke, geo build placement, geo circles) available on blank canvases and map projects through the Feature Placer, with project round-tripping. Two variants under the new Geo catalog category: geovent+crack (Moose's flat black-crack vent, as shipped on his maps) and geovent+mesh (a selectable body for geo outputs with real geometry, no crack). The rock model is a placeholder pending a dedicated asset.
 - Added a grayed-out UNITS entry to the TOOLS grid, reserving the slot for the unit placer.
 
@@ -23,7 +25,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 - The height cap and all altitude-filter sliders now scale to the map's real height range instead of a hardcoded -500..500, so caps above 500 elevation are reachable by slider and by typing.
 - Custom heightmap export ranges now seed from the map's actual terrain via an exact heightmap scan, re-seed after imports and project loads, and no longer leak from one map into another through saved preferences.
-- The tileset shader re-anchors its gravel and plateau height reference after heightmap imports and project loads.
+- The tileset shader re-anchors its intermediate and plateau height reference after heightmap imports and project loads.
 - Cliff protection moved from the SURFACE brush into the Tileset window as a PROTECT CLIFFS button: it is a shader setting rather than a brush one, and it is now a labelled toggle instead of a 0/1 slider. The tileset shader switch reads as an ACTIVATE SHADER button for the same reason, with PAINT SURFACES greyed while it is off.
 - Cliff protection is now one-way. Soft strokes still sweep around cliff bodies instead of eating them, but painting CLIFF forces cliff rock anywhere, including flat ground, which is what that channel is for.
 - The metal brush cursor readout sits just below the brush outline and right-aligned to its edge, instead of over the area being painted.
@@ -31,12 +33,16 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - Decals and weather now fill the status strip like the other tools, so their readouts align instead of floating off the left edge.
 - The TOOLS grid is reordered: SCENE sits last, after CLONE.
 - Teizer-5 and Enborelde default to no old-map cliff blending, keeping their authored cliff palettes free of the host map's colours.
+- The terrain layers are called BASE and INTERMEDIATE throughout the panel, instead of soil, gravel, rocky and talus. Those were the assets an early set happened to use, so a biome whose middle band is sand or ash had sliders labelled Gravel and a LAYERS channel reading TALUS. Knob keys, slider labels, the LAYERS channel and every hint now follow the shader's own naming.
+- New maps start on the Clear Daylight environment preset instead of the engine's own lighting. The engine defaults are placeholder values, a flat 0.5 ground ambient and diffuse against roughly 0.99 diffuse on a real daylight map, so a fresh canvas received about 60% of the light it should. A baked map texture carries the mapper's own brightness and hides that; the tileset shader draws raw albedo and cannot, so new maps read as though the shader were broken. Default is still selectable in the wizard.
+- The whole SURFACE slot chip opens that slot's variant library, and arms the slot's variant if it already has one. The small caret it replaces rendered as a missing-glyph box, and a filled chip offered no way back to the library at all.
+- SURFACE erase readouts describe what erasing does now: it withdraws the painted claim so the shader chooses again, rather than returning the ground to the base surface. BASE is a paint target of its own since the paintability change.
+- Refreshed the Enborelde and Teizer biome thumbnails, which still showed those sets as they looked several tuning passes ago.
 
 ### Fixes
 
 - Fixed every slider in the SURFACE and LAYERS panels being inert. An echo guard meant to drop the change events raised by programmatic stamps was armed on every frame rather than on actual stamps, so it discarded the user's own input as well. Fill scale and seed never reached the painter, which is why the seed always read 0.
 - FILL WITH NOISE now greys out and explains itself when no variant slot is assigned or enabled, instead of silently doing nothing.
-
 - An enabled but idle Terraformer no longer swallows its tool hotkeys (F, M, G, K, P, W, V, J) from engine keybinds. Tool keys now require the editor to actually be in use; opening a tool from the header rail re-enables them.
 - Fixed custom heightmap export ranges initializing to the blank canvas constants (-75..696) on map projects, which clipped all terrain above 696 in exports.
 - Fixed height cap changes made with the Alt+Shift scroll combo not updating the panel's slider and readout.
