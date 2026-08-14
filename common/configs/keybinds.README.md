@@ -35,33 +35,39 @@ the player chooses.
 
 ## Catalog item kinds
 
-Each category's `items` entry is exactly one of:
+Everything the catalog lists is rebindable. An action a player cannot change - one bound to
+a bare modifier, or handled by a widget that ships disabled - belongs in `hidden` or nowhere,
+not in a category as a row that does nothing.
 
-- `{ "action": "<bind command>", "label": "<i18n key>" }` - editable; user can rebind it.
-- `{ "label": "<i18n key>", "keyLabel": "<i18n key>" }` - informational, read-only key hint.
+Each category's `items` entry is one of:
+
+- `{ "action": "<bind command>", "label": "<i18n key>" }` - one rebindable action.
 - `{ "prefix": "<action id prefix>" }` - claims every bound action whose id starts with the
-  prefix, listed by raw id (for numbered families like `group 1`, `group 2`, ...). An optional
+  prefix (for numbered families like `group select 0`, `group select 1`, ...). An optional
   `"label"` is interpolated per matched action with the arg after the prefix as `%{n}` (or its
   two whitespace-split tokens as `%{row}`/`%{col}`); an optional `"unit": true` resolves that
   arg from a unit codename to its translated name.
 
 `action` is the bind command exactly as `/bind` expects and `GetKeyBindings` reports it
-(command plus space-separated args, e.g. `select AllMap++_ClearSelection_SelectAll+`).
+(command plus space-separated args, e.g. `select AllMap++_ClearSelection_SelectAll+`). The
+command is lower case: the engine lower-cases it when parsing a bind line, so a capitalised
+id matches nothing.
 
-An editable or prefix entry may carry `"anyMod": true`, meaning bind it with the `Any+`
-qualifier so it fires whatever modifiers are held. It is a property of the action rather
-than a choice offered to the player, so a surface applies it on every rebind and never
-shows it as a control. The engine already forces the same for its own stateful commands
-(`drawinmap`, `move*`), and an action the catalog does not list keeps whatever qualifier
-it is already bound with.
+A prefix entry may list `"members"`: the args the family covers, appended to the prefix to
+form each action. Listing them makes those rows exist whether or not anything is bound, so
+unbinding one leaves it there to bind again. Families that cannot be enumerated - `buildunit_`
+is per unit - list none and are discovered from what is bound instead.
 
-An editable entry may carry `"shiftPair": true` for an action the engine can only express
-as two binds - one bare, one `Shift+` - because its handler ignores Shift. A surface writes
-both from one capture and clears both together, so the halves cannot end up on different
-keys. Such an action holds exactly one key, not a list.
+An entry may carry `"alwaysModifier"`, naming a modifier the action always tolerates so no
+surface shows it or lets the player pick it:
 
-`"modifierOnly": true` marks an action bound to a bare modifier. It is shown read-only: an
-editor cannot capture a modifier as a key, so a removed binding could not be put back.
+- `"any"` binds with the engine's `Any+` qualifier and fires whatever is held. The engine
+  forces this for its own stateful commands (`drawinmap`, `move*`) regardless.
+- `"shift"` has no engine equivalent, so the binding is written twice, bare and `Shift+`,
+  and both halves move together. Such an action holds exactly one key, not a list.
+
+A category may carry `"layout": "grid"`, drawn as the grid menu's own 3x4 arrangement rather
+than a flat list so the keys read the way they sit on screen.
 
 A single leading `{ "hidden": ["<action id>", ...] }` entry (not a category) lists actions
 that are bound but never shown - matched by exact id, not prefix, so a future action can't be
