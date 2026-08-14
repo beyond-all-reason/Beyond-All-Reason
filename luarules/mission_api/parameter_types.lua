@@ -11,6 +11,7 @@ local types = {
 	AllyTeamIDs = 'AllyTeamIDs',
 	Orders = 'Orders',
 	Area = 'Area',
+	Direction = 'Direction',
 	UnitLoadout = 'UnitLoadout',
 	FeatureLoadout = 'FeatureLoadout',
 	ResourceIncomeSources = 'ResourceIncomeSources',

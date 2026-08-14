@@ -320,6 +320,32 @@ validators[Types.Area] = function(area)
 		end
 	end
 
+validators[Types.Direction] = function(direction)
+	local luaTypeResult = validators[Types.Table](direction)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local isAngle = direction.angle and true
+	local isDirection = direction.x and direction.z
+	if not isAngle and not isDirection then
+		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }" } }
+	end
+	if isAngle and isDirection then
+		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both." } }
+	end
+	if isDirection then
+		local positionResult = validators[Types.Position](direction)
+		for _, positionError in ipairs(positionResult or {}) do
+			if positionError.missing then
+				logError("Direction: missing required field '" .. positionError.fieldName .. "'")
+			else
+				logError("Direction: field '" .. positionError.fieldName .. "': " .. positionError.message)
+			end
+		end
+	end
+end
+
 validators[Types.ResourceIncomeSources] = function(sources)
 	local luaTypeResult = validators[Types.Table](sources)
 	if luaTypeResult then return luaTypeResult end
