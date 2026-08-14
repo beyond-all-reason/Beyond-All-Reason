@@ -37,9 +37,73 @@ local triggers = {
     teleportTanksWithoutSetDirection2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			seconds = 25,
+			seconds = 20,
 		},
 		actions = { 'teleportTanksWithoutSetDirection1' },
+	},
+
+	teleportTanksWithSetAngle1 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 25,
+		},
+		actions = { 'teleportTanksWithSetAngle1' },
+	},
+
+	teleportTanksWithSetAngle2 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 27,
+		},
+		actions = { 'teleportTanksWithSetAngle2' },
+	},
+
+	teleportTanksWithSetAngle3 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 29,
+		},
+		actions = { 'teleportTanksWithSetAngle3' },
+	},
+
+	teleportTanksWithSetAngle4 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 31,
+		},
+		actions = { 'teleportTanksWithSetAngle4' },
+	},
+
+	teleportTanksWithSetAngle5 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 33,
+		},
+		actions = { 'teleportTanksWithSetAngle5' },
+	},
+
+	teleportTanksWithSetAngle6 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 35,
+		},
+		actions = { 'teleportTanksWithSetAngle6' },
+	},
+
+	teleportTanksWithSetAngle7 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 37,
+		},
+		actions = { 'teleportTanksWithSetAngle7' },
+	},
+
+	rotateTanksWithBoth = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 40,
+		},
+		actions = { 'rotateTanksWithBoth' },
 	},
 }
 
@@ -55,7 +119,7 @@ local actions = {
 					z = 1900,
 					team = 0,
 					unitName = 'tanks',
-					quantity = 10
+					quantity = 1
 				},
 			},
 		},
@@ -95,6 +159,106 @@ local actions = {
 				x = 2500,
 				z = 2000,
 			},
+			direction = {
+				x = 1000,
+				z = 1000,
+			},
+		},
+    },
+
+	teleportTanksWithSetAngle1 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 0,
+		},
+    },
+
+	teleportTanksWithSetAngle2 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 90,
+		},
+    },
+
+	teleportTanksWithSetAngle3 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 180,
+		},
+    },
+
+	teleportTanksWithSetAngle4 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 270,
+		},
+    },
+
+	teleportTanksWithSetAngle5 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 360,
+		},
+    },
+
+	teleportTanksWithSetAngle6 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = 450,
+		},
+    },
+
+	teleportTanksWithSetAngle7 = {
+        type = actionTypes.MoveUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = -90,
+		},
+    },
+
+	rotateTanksWithBoth = { -- This shouldn't work, but if it does, direction has priority.
+        type = actionTypes.RotateUnits,
+		parameters = {
+            unitName = "tanks",
+			position = {
+				x = 3000,
+				z = 3000,
+			},
+			headingAngle = -90,
 			direction = {
 				x = 1000,
 				z = 1000,
