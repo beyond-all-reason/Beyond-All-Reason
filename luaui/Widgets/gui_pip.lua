@@ -13712,7 +13712,7 @@ end
 -- (fields on gl4Icons, not file locals: the main chunk is at Lua's 200-local limit)
 gl4Icons.engineIconsAvailable = (gl.DrawMiniMapIcons ~= nil)
 
-function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
+function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, trackedSelectedSet)
 	tracy.ZoneBeginN("W:PIP:EngineIcons")
 
 	-- unitpics only run through the GL4 path; make sure the mode is off
@@ -13757,16 +13757,45 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
 	glFunc.Translate(worldL * wtp.scaleX + wtp.offsetX, worldT * wtp.scaleZ + wtp.offsetZ, 0)
 	glFunc.Scale((worldR - worldL) * wtp.scaleX, (worldB - worldT) * wtp.scaleZ, 1)
 
+	-- the engine only knows the LOCAL player's selection; when showing another player's
+	-- perspective suppress its selection whitening and overlay theirs below instead
+	local tracking = interactionState.trackingPlayerID ~= nil
+	local highlightSelected = not tracking
+
 	-- other perspectives (tracked player / LOS view) are only permitted with a full-read
 	-- handle (fullview spectating); otherwise render our own view
 	if checkAllyTeamID and (isFullview or checkAllyTeamID == myAllyTeam) then
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false, highlightSelected)
 	else
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected)
 	end
 
 	glFunc.PopMatrix()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- overlay: tracked player's selected units as white icons on top
+	if tracking and trackedSelectedSet then
+		local uvs = gl4Icons.atlasUVs
+		local defaultUV = gl4Icons.defaultUV
+		if uvs and defaultUV then
+			local unitDefCacheTbl = gl4Icons.unitDefCache
+			local cacheUnitIcon = cache.unitIcon
+			glFunc.Texture('$icons')
+			glFunc.Color(1, 1, 1, 1)
+			for uID in pairs(trackedSelectedSet) do
+				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
+				if ux and ux >= worldL and ux <= worldR and uz >= worldT and uz <= worldB then
+					local px, py = WorldToPipCoords(ux, uz)
+					local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
+					local uv = (uDefID and uvs[uDefID]) or defaultUV
+					local icon = uDefID and cacheUnitIcon[uDefID]
+					local half = iconRadiusZoomDistMult * (icon and icon.size or 1)
+					glFunc.TexRect(px - half, py - half, px + half, py + half, uv[1], uv[2], uv[3], uv[4])
+				end
+			end
+			glFunc.Texture(false)
+		end
+	end
 
 	tracy.ZoneEnd()
 	return iconRadiusZoomDistMult
@@ -14274,7 +14303,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- (engineIconsActive is computed at the top of this function, before the unit query)
 	if engineIconsActive then
 		-- The engine path consumes no selection/tracking sets — skip building them
-		iconRadiusZoomDistMult = gl4Icons.DrawEngineIcons(checkAllyTeamID, fullview, myAllyTeam)
+		iconRadiusZoomDistMult = gl4Icons.DrawEngineIcons(checkAllyTeamID, fullview, myAllyTeam, selectedSet)
 	else
 		-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 		local selectedSet
