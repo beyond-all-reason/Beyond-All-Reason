@@ -482,8 +482,11 @@ function M.sync(doc, ctx, surfState, setSummary)
 		local nowName, nowDetail
 		if surfState.eraseMode or selSlot == 0 then
 			nowName = "BASE"
-			nowDetail = surfState.eraseMode and "strokes erase back to the base surface"
-				or "painting restores the base"
+			-- BASE is a paint target since the paintability flip: it forces
+			-- top_001 over whatever the automatic sort chose (plateau included).
+			-- Erasing is RMB and means "withdraw the claim, go back to automatic".
+			nowDetail = surfState.eraseMode and "strokes withdraw the claim (back to automatic)"
+				or "paints plain base over the automatic choice"
 		else
 			nowName = shortAsset(sel)
 			nowDetail = "painting into slot " .. selSlot
@@ -561,7 +564,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 	if setSummary then
 		local what
 		if surfState.eraseMode then
-			what = "ERASE \226\134\146 base"
+			what = "ERASE \226\134\146 auto"
 		elseif surfState.variant and surfState.variant ~= "" then
 			local selSlot = (surfState.slot1 == surfState.variant and 1)
 				or (surfState.slot2 == surfState.variant and 2)
