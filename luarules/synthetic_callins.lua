@@ -212,9 +212,9 @@ if Script.GetSynced() then
 		if not count or count == 0 then
 			return
 		end
-		unitStepCount[1] = 0
 
 		-- Clear marks first so subscribers that throw do not leave any marks.
+		-- The count holds through dispatch so re-marks append past the batch.
 		if unitStepActive[1] then
 			for i = 1, count do
 				local unitID = unitStepList[i]
@@ -242,6 +242,17 @@ if Script.GetSynced() then
 				callin(g, unitStepList[i], unitStepValues[i])
 			end
 		end
+
+		-- Shift any re-marks made during dispatch into the next batch.
+		local marked = unitStepCount[1]
+		if marked and marked > count then
+			for i = 1, marked - count do
+				unitStepList[i] = unitStepList[count + i]
+			end
+			unitStepCount[1] = marked - count
+		elseif marked then
+			unitStepCount[1] = 0
+		end
 	end
 
 	createSummary('FeatureBuildStep')
@@ -253,9 +264,9 @@ if Script.GetSynced() then
 		if not count or count == 0 then
 			return
 		end
-		featureStepCount[1] = 0
 
 		-- Clear marks first so subscribers that throw do not leave any marks.
+		-- The count holds through dispatch so re-marks append past the batch.
 		if featureStepActive[1] then
 			for i = 1, count do
 				local featureID = featureStepList[i]
@@ -280,6 +291,17 @@ if Script.GetSynced() then
 			for i = 1, count do
 				callin(g, featureStepList[i], featureStepValues[i])
 			end
+		end
+
+		-- Shift any re-marks made during dispatch into the next batch.
+		local marked = featureStepCount[1]
+		if marked and marked > count then
+			for i = 1, marked - count do
+				featureStepList[i] = featureStepList[count + i]
+			end
+			featureStepCount[1] = marked - count
+		elseif marked then
+			featureStepCount[1] = 0
 		end
 	end
 end
