@@ -27,15 +27,15 @@ local KNOBS = {
 	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
 	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
 	-- 0/1 slider.
-	{ "splatInfluence", "%.2f" },
+	{ "splatInfluence", "%.2f" }, { "surfClaim", "%.2f" },
 	{ "splatPunchIntermediate", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" }, { "parallaxAmp", "%.2f" },
 	{ "macroVar", "%.2f" }, { "macroLod", "%.1f" }, { "albedoSortMode", "%d" },
 	{ "staggerAmount", "%.2f" }, { "maskScale1", "%.0f" }, { "maskScale2", "%.0f" },
-	{ "lumaBlend", "%.2f" }, { "heightBlend", "%.2f" }, { "heightDepth", "%.2f" },
+	{ "lumaBlend", "%.2f" }, { "lumaTops", "%.2f" }, { "heightBlend", "%.2f" }, { "heightDepth", "%.2f" },
 	{ "curvHighlight", "%.2f" }, { "curvShadow", "%.2f" }, { "curvRadius", "%.0f" },
 	{ "specStrength", "%.2f" }, { "specAA", "%.2f" },
-	{ "hemiAmbient", "%.2f" }, { "aoStrength", "%.2f" },
+	{ "hemiAmbient", "%.2f" }, { "exposure", "%.2f" }, { "aoStrength", "%.2f" },
 	{ "wetBand", "%.0f" }, { "wetGloss", "%.2f" },
 	{ "shadowMode", "%d" }, { "shadowBias", "%.4f" },
 	{ "smtBlend", "%.2f" }, { "oldCliffBlend", "%.2f" },

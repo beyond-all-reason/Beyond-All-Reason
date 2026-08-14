@@ -5809,8 +5809,8 @@
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="tf-slider-label text-light">Plateau height</div>
-								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.60" data-event-change="onTilesetKnob('platHeight')" />
-								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="0.60" />
+								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('platHeight')" />
+								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="1.00" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="tf-slider-label text-light">Plateau blend</div>
@@ -5835,6 +5835,11 @@
 							<div class="tf-slider-label text-light">Splat paint</div>
 							<input type="range" id="ts-slider-splatInfluence" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('splatInfluence')" />
 							<input type="text" id="ts-slider-splatInfluence-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Surface claim</div>
+							<input type="range" id="ts-slider-surfClaim" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('surfClaim')" />
+							<input type="text" id="ts-slider-surfClaim-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 mb-1">
 							<div id="btn-ts-cliff-protect" class="tf-mode-btn tf-ts-row-btn" data-class-active="tsCliffProtectOn" data-event-mousedown="onTsToggleCliffProtect()">
@@ -5898,9 +5903,14 @@
 							<input type="text" id="ts-slider-maskScale2-numbox" class="tf-slider-numbox" readonly value="3000" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Feature blend</div>
+							<div class="tf-slider-label text-light">Brightness bias</div>
 							<input type="range" id="ts-slider-lumaBlend" class="tf-slider" min="0" max="1" step="0.005" value="0.65" data-event-change="onTilesetKnob('lumaBlend')" />
 							<input type="text" id="ts-slider-lumaBlend-numbox" class="tf-slider-numbox" readonly value="0.65" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Bias on tops</div>
+							<input type="range" id="ts-slider-lumaTops" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onTilesetKnob('lumaTops')" />
+							<input type="text" id="ts-slider-lumaTops-numbox" class="tf-slider-numbox" readonly value="0.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Height blend</div>
@@ -5959,6 +5969,11 @@
 							<div class="tf-slider-label text-light">Sky ambient</div>
 							<input type="range" id="ts-slider-hemiAmbient" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.5" data-event-change="onTilesetKnob('hemiAmbient')" />
 							<input type="text" id="ts-slider-hemiAmbient-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Exposure</div>
+							<input type="range" id="ts-slider-exposure" class="tf-slider" min="0.25" max="4" step="0.01" value="1" data-event-change="onTilesetKnob('exposure')" />
+							<input type="text" id="ts-slider-exposure-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">AO depth</div>

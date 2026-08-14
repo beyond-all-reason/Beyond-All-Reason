@@ -8388,6 +8388,9 @@ local guideHints = {
 	["btn-surf-erase"]  = "Erase mode: strokes return the surface to the BASE variant. Right-click always erases.",
 	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
 	["btn-ts-cliff-protect"] = "Keep soft strokes (intermediate, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
+	["ts-slider-exposure"] = "Final gain on the lit ground. The shader takes all its light from the map ENVIRONMENT (sun and ground ambient), never from the skybox, and it draws raw albedo where the engine draws a pre-brightened baked texture — so a dark set on a dimly lit map can go nearly black. This lifts it. Run /tileset probe to see whether the map is actually dark before reaching for it; relighting the environment is the honest fix.",
+	["ts-slider-lumaTops"] ="Whether the brightness bias above also applies to the soft tops. 0 keeps it off them, so how much ground a top takes is authored rather than decided by which top is paler; 1 is the old behaviour. Expect a slightly wider intermediary at 0, since a pale sand no longer gets a free boost against it.",
+	["ts-slider-surfClaim"] = "How strongly a SURFACE stroke decides WHICH TOP belongs somewhere. At 1 a painted top (base or variant) out-votes the automatic plateau band; at 0 the SURFACE brush only re-skins ground the sorter already gave to soil, which is what made high flats unpaintable. Cliffs and the intermediary are never affected.",
 	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
 	-- HARD SURFACES section (LAYERS tool)
 	["btn-surf-hard-ch1"]  = "AUTO: painting removes any override so the shader's slope-driven surface returns.",
