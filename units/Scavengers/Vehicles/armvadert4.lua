@@ -34,7 +34,7 @@ return {
 		turnrate = 100,
 		upright = false,
 		customparams = {
-			unitgroup = 'explo',
+			unitgroup = "explo",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",

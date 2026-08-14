@@ -17,45 +17,45 @@
 local SPEED_CLASS = Game.speedModClasses
 
 local CRUSH = {
-	NONE    = 0,
-	TINY    = 5,
-	LIGHT   = 10, -- default
-	SMALL   = 18,
-	MEDIUM  = 25,
-	LARGE   = 50,
-	HEAVY   = 250,
-	HUGE    = 1400,
+	NONE = 0,
+	TINY = 5,
+	LIGHT = 10, -- default
+	SMALL = 18,
+	MEDIUM = 25,
+	LARGE = 50,
+	HEAVY = 250,
+	HUGE = 1400,
 	MASSIVE = 9999,
 	MAXIMUM = 99999, -- arbitrary limit
 }
 
 local DEPTH = {
-	NONE		= 0,
-	TICK		= 5,
-	MIN_SHALLOW = 8,  -- default minimum for ships
+	NONE = 0,
+	TICK = 5,
+	MIN_SHALLOW = 8, -- default minimum for ships
 	MAX_SHALLOW = 20, -- default maximum for land units
-	SUBMERGED	= 15, -- minimum depth for subs and huge ships
-	AMPHIBIOUS	= 5000,
-	MAXIMUM		= 9999, -- aribitrary limit
-	DEFAULT		= 1000000,
+	SUBMERGED = 15, -- minimum depth for subs and huge ships
+	AMPHIBIOUS = 5000,
+	MAXIMUM = 9999, -- aribitrary limit
+	DEFAULT = 1000000,
 }
 
 local SLOPE = {
-	NONE      = 0,
-	MINIMUM   = 27,
-	MODERATE  = 33, -- just below angle of repose
+	NONE = 0,
+	MINIMUM = 27,
+	MODERATE = 33, -- just below angle of repose
 	DIFFICULT = 54,
-	EXTREME   = 75,
-	MAXIMUM   = 90,
+	EXTREME = 75,
+	MAXIMUM = 90,
 }
 
 local SLOPE_MOD = {
-	MINIMUM   = 4,
-	MODERATE  = 18,
-	SLOW      = 25,
+	MINIMUM = 4,
+	MODERATE = 18,
+	SLOW = 25,
 	VERY_SLOW = 36,
-	GLACIAL   = 42,
-	MAXIMUM   = 4000,
+	GLACIAL = 42,
+	MAXIMUM = 4000,
 }
 
 ----------------------------------------------------------------------------------
@@ -71,16 +71,16 @@ local SLOPE_MOD = {
 
 ---@type DepthModParams
 local depthModGeneric = {
-	minHeight   = 4,
+	minHeight = 4,
 	linearCoeff = 0.03,
-	maxValue    = 0.7, -- TODO: Should be "maxScale" and should be > 1.
+	maxValue = 0.7, -- TODO: Should be "maxScale" and should be > 1.
 }
 
 ---@type DepthModParams
 local depthModCommanders = {
-	maxScale       = 1.5,
+	maxScale = 1.5,
 	quadraticCoeff = (9.9 / 22090) / 2,
-	linearCoeff    = (0.1 / 470) / 2,
+	linearCoeff = (0.1 / 470) / 2,
 }
 
 ---@type DepthModParams
@@ -92,14 +92,14 @@ local depthModCrawlingBombs = {
 -- TODO: Random capitalization. Pick one and use it.
 ---@class MoveDefData
 ---@field footprint integer equal to both `footprintx` and `footprintz`
----@field crushstrength integer [0, 1e6) mass equivalent for crushing and collisions
----@field maxslope number? [0, 90] degrees
----@field slopeMod number? [4, 4000] unitless
----@field minwaterdepth integer? [-1e6, 1e6]
----@field maxwaterdepth integer? [0, 1e6]
+---@field crushstrength integer mass equivalent for crushing and collisions, in `[0, 1e6)`
+---@field maxslope number? slope in degrees, in `[0, 90]`
+---@field slopeMod number? slope modifier, unitless, in `[4, 4000]`
+---@field minwaterdepth integer? in `[-1e6, 1e6]`
+---@field maxwaterdepth integer? in `[0, 1e6]`
 ---@field subMarine boolean?
----@field maxwaterslope integer? [0, 90] degrees; does nothing
----@field badwaterslope integer? [0, 90] degrees; does nothing
+---@field maxwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
+---@field badwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
 ---@field depthMod number? shorthand for DepthModParams.linearCoeff
 ---@field depthModParams DepthModParams? used by Tank and KBot only
 ---@field speedModClass integer?
@@ -532,12 +532,12 @@ local moveDatas = {
 ---@field allowTerrainCollisions boolean
 ---@field footprintx integer
 ---@field footprintz integer
----@field crushstrength integer [0, 1e6) mass equivalence for crushing and collisions
----@field maxslope number? [0, 90] degrees
----@field slopeMod number? [4, 4000] unitless, derived
----@field minwaterdepth integer? [-1e6, 1e6]
----@field maxwaterdepth integer? [0, 1e6]
----@field maxwaterslope integer? [0, 90] degrees; does nothing
+---@field crushstrength integer mass equivalence for crushing and collisions, in `[0, 1e6)`
+---@field maxslope number? slope in degrees, in `[0, 90]`
+---@field slopeMod number? unitless, derived, in `[4, 4000]`
+---@field minwaterdepth integer? in `[-1e6, 1e6]`
+---@field maxwaterdepth integer? in `[0, 1e6]`
+---@field maxwaterslope integer? slope in degrees, in `[0, 90]`; does nothing
 ---@field depthMod number?
 ---@field depthModParams table?
 ---@field speedModClass integer?
@@ -562,7 +562,9 @@ local function validate(moveDef)
 	local name = moveDef.name
 	if type(name) ~= "string" then
 		return false
-	elseif table.any(validName, function(v) return name:match(v) end) then
+	elseif table.any(validName, function(v)
+		return name:match(v)
+	end) then
 		return true
 	elseif name:match("%d+$") == tostring(moveDef.footprintx) then
 		return true
@@ -576,34 +578,31 @@ local defs = {}
 for moveName, moveData in pairs(moveDatas) do
 	---@type MoveDefCreate
 	local moveDef = {
-		name                   = moveName,
-		crushstrength          = moveData.crushstrength,
-		footprintx             = moveData.footprint,
-		footprintz             = moveData.footprint,
-		allowRawMovement       = true,
+		name = moveName,
+		crushstrength = moveData.crushstrength,
+		footprintx = moveData.footprint,
+		footprintz = moveData.footprint,
+		allowRawMovement = true,
 		allowTerrainCollisions = false,
-		heatmapping            = true,
+		heatmapping = true,
 		--
-		depthMod               = moveData.depthMod,
-		depthModParams         = moveData.depthModParams,
-		maxslope               = moveData.maxslope,
-		maxwaterdepth          = moveData.maxwaterdepth,
-		maxwaterslope          = moveData.maxwaterslope,
-		minwaterdepth          = moveData.minwaterdepth,
-		slopeMod               = moveData.slopeMod,
-		speedModClass          = moveData.speedModClass,
-		subMarine 			   = moveData.subMarine,
-		overrideUnitWaterline  = moveData.overrideUnitWaterline,
+		depthMod = moveData.depthMod,
+		depthModParams = moveData.depthModParams,
+		maxslope = moveData.maxslope,
+		maxwaterdepth = moveData.maxwaterdepth,
+		maxwaterslope = moveData.maxwaterslope,
+		minwaterdepth = moveData.minwaterdepth,
+		slopeMod = moveData.slopeMod,
+		speedModClass = moveData.speedModClass,
+		subMarine = moveData.subMarine,
+		overrideUnitWaterline = moveData.overrideUnitWaterline,
 	}
-
-	
 
 	setMaxSlope(moveDef)
 
 	if validate(moveDef) then
 		defs[#defs + 1] = moveDef
 	end
-
 end
 
 return defs

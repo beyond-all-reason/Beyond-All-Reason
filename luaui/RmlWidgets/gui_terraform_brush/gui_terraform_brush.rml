@@ -7,6 +7,8 @@
 </head>
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
+		<div class="flex flex-col-reverse">
+		<div id="status-summary" class="tf-status-summary mb-1"></div>
 		<div class="tf-header mb-2">
 			<div class="tf-header-top">
 				<div id="tf-handle" class="tf-drag-handle tf-title text-outline-darker">
@@ -15,7 +17,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.8</span>
+					<span class="tf-title-version">1.10</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -42,7 +44,8 @@
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			</div>
 		</div>
-		<div id="status-summary" class="tf-status-summary mb-1"></div>
+		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="frame-terrain">
 			<div id="btn-toggle-terrain" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-terrain" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -5147,6 +5150,12 @@
 
 			<div id="tf-tileset-controls" data-if="activeTool == 'ts'">
 
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-ts-shader" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleShader()" />
+					<div class="text-sm text-light">Tileset shader</div>
+				</div>
+				<div class="text-base text-light mb-1" style="opacity: 0.7;">Off hands the ground back to the engine, so old maps keep their own textures.</div>
+
 				<div class="tf-section-frame" id="frame-ts-library">
 						<div id="btn-toggle-ts-library" class="tf-section-title-row" style="cursor: pointer;">
 							<img id="img-toggle-ts-library" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -5168,6 +5177,14 @@
 								</div>
 							</div>
 							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
+								<div class="tf-biome-tile" data-class-active="tsBiome == 'protodesert'" data-event-mousedown="onPickBiome('protodesert')">
+									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
+									<div class="tf-biome-name">Protodesert</div>
+								</div>
+								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
+									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
+									<div class="tf-biome-name">Prototemperate</div>
+								</div>
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'bismuth'" data-event-mousedown="onPickBiome('bismuth')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_bismuth.png" />
 									<div class="tf-biome-name">Bismuth</div>
@@ -5238,6 +5255,16 @@
 							<input type="text" id="ts-slider-metalEdge-numbox" class="tf-slider-numbox" readonly value="0.45" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Band layer</div>
+							<input type="range" id="ts-slider-metalApronLayer" class="tf-slider" min="0" max="3" step="1" value="1" data-event-change="onTilesetKnob('metalApronLayer')" />
+							<input type="text" id="ts-slider-metalApronLayer-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Band tone</div>
+							<input type="range" id="ts-slider-metalApronTone" class="tf-slider" min="0.3" max="1.3" step="0.005" value="0.78" data-event-change="onTilesetKnob('metalApronTone')" />
+							<input type="text" id="ts-slider-metalApronTone-numbox" class="tf-slider-numbox" readonly value="0.78" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint R</div>
 							<input type="range" id="ts-slider-metalTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('metalTintR')" />
 							<input type="text" id="ts-slider-metalTintR-numbox" class="tf-slider-numbox" readonly value="1.0" />
@@ -5263,28 +5290,48 @@
 					<div id="section-ts-scale">
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Soil scale</div>
-							<input type="range" id="ts-slider-scaleSoil" class="tf-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onTilesetKnob('scaleSoil')" />
+							<input type="range" id="ts-slider-scaleSoil" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleSoil')" />
 							<input type="text" id="ts-slider-scaleSoil-numbox" class="tf-slider-numbox" readonly value="512" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Gravel scale</div>
-							<input type="range" id="ts-slider-scaleRocky" class="tf-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onTilesetKnob('scaleRocky')" />
+							<input type="range" id="ts-slider-scaleRocky" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleRocky')" />
 							<input type="text" id="ts-slider-scaleRocky-numbox" class="tf-slider-numbox" readonly value="512" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Cliff scale</div>
-							<input type="range" id="ts-slider-scaleCliff" class="tf-slider" min="128" max="3072" step="14.72" value="768" data-event-change="onTilesetKnob('scaleCliff')" />
+							<input type="range" id="ts-slider-scaleCliff" class="tf-slider" min="128" max="10000" step="16" value="768" data-event-change="onTilesetKnob('scaleCliff')" />
 							<input type="text" id="ts-slider-scaleCliff-numbox" class="tf-slider-numbox" readonly value="768" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau scale</div>
-							<input type="range" id="ts-slider-scalePlat" class="tf-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onTilesetKnob('scalePlat')" />
+							<input type="range" id="ts-slider-scalePlat" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scalePlat')" />
 							<input type="text" id="ts-slider-scalePlat-numbox" class="tf-slider-numbox" readonly value="512" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Foothill scale</div>
-							<input type="range" id="ts-slider-scaleFoot" class="tf-slider" min="128" max="3072" step="14.72" value="768" data-event-change="onTilesetKnob('scaleFoot')" />
+							<input type="range" id="ts-slider-scaleFoot" class="tf-slider" min="128" max="10000" step="16" value="768" data-event-change="onTilesetKnob('scaleFoot')" />
 							<input type="text" id="ts-slider-scaleFoot-numbox" class="tf-slider-numbox" readonly value="768" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" style="margin-top: 4dp;">
+							<img id="btn-ts-alb-decouple" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleAlbDecouple()" />
+							<div class="text-sm text-light">Albedo tiles apart from normal</div>
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Scales above size the shape (normal + AO). These tile the albedo inside it: 0.3 = three times finer.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Soil albedo x</div>
+							<input type="range" id="ts-slider-albTileSoil" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileSoil')" />
+							<input type="text" id="ts-slider-albTileSoil-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Gravel albedo x</div>
+							<input type="range" id="ts-slider-albTileRocky" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileRocky')" />
+							<input type="text" id="ts-slider-albTileRocky-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau albedo x</div>
+							<input type="range" id="ts-slider-albTilePlat" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTilePlat')" />
+							<input type="text" id="ts-slider-albTilePlat-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 					</div>
 				</div><!-- /frame-ts-scale -->
@@ -5299,6 +5346,21 @@
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Normal str</div>
 							<input type="range" id="ts-slider-normalStrength" class="tf-slider" min="0" max="2" step="0.01" value="0.65" data-event-change="onTilesetKnob('normalStrength')" />
 							<input type="text" id="ts-slider-normalStrength-numbox" class="tf-slider-numbox" readonly value="0.65" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Soil norm str</div>
+							<input type="range" id="ts-slider-soilNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('soilNormStrength')" />
+							<input type="text" id="ts-slider-soilNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Rocky norm str</div>
+							<input type="range" id="ts-slider-rockyNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('rockyNormStrength')" />
+							<input type="text" id="ts-slider-rockyNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau norm str</div>
+							<input type="range" id="ts-slider-platNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('platNormStrength')" />
+							<input type="text" id="ts-slider-platNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Cliff normal</div>
@@ -5359,6 +5421,21 @@
 								<input type="text" id="ts-slider-gravelBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus scatter</div>
+								<input type="range" id="ts-slider-talusPatch" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.9" data-event-change="onTilesetKnob('talusPatch')" />
+								<input type="text" id="ts-slider-talusPatch-numbox" class="tf-slider-numbox" readonly value="0.9" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus start</div>
+								<input type="range" id="ts-slider-talusStartDeg" class="tf-slider" min="5" max="45" step="0.1" value="23.1" data-event-change="onTilesetKnob('talusStartDeg')" />
+								<input type="text" id="ts-slider-talusStartDeg-numbox" class="tf-slider-numbox" readonly value="23.1" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus full</div>
+								<input type="range" id="ts-slider-talusFullDeg" class="tf-slider" min="10" max="60" step="0.1" value="45.6" data-event-change="onTilesetKnob('talusFullDeg')" />
+								<input type="text" id="ts-slider-talusFullDeg-numbox" class="tf-slider-numbox" readonly value="45.6" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau height</div>
 								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.60" data-event-change="onTilesetKnob('platHeight')" />
 								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="0.60" />
@@ -5388,14 +5465,44 @@
 							<input type="text" id="ts-slider-splatInfluence-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Protect cliffs</div>
+							<input type="range" id="ts-slider-cliffProtect" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('cliffProtect')" />
+							<input type="text" id="ts-slider-cliffProtect-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Punch talus</div>
+							<input type="range" id="ts-slider-splatPunchTalus" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.55" data-event-change="onTilesetKnob('splatPunchTalus')" />
+							<input type="text" id="ts-slider-splatPunchTalus-numbox" class="tf-slider-numbox" readonly value="0.55" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Punch cliff</div>
+							<input type="range" id="ts-slider-splatPunchCliff" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.85" data-event-change="onTilesetKnob('splatPunchCliff')" />
+							<input type="text" id="ts-slider-splatPunchCliff-numbox" class="tf-slider-numbox" readonly value="0.85" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Punch plateau</div>
+							<input type="range" id="ts-slider-splatPunchPlat" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.40" data-event-change="onTilesetKnob('splatPunchPlat')" />
+							<input type="text" id="ts-slider-splatPunchPlat-numbox" class="tf-slider-numbox" readonly value="0.40" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Anti-tile warp</div>
 							<input type="range" id="ts-slider-antiTileWarp" class="tf-slider" min="0" max="300" step="1.5" value="80" data-event-change="onTilesetKnob('antiTileWarp')" />
 							<input type="text" id="ts-slider-antiTileWarp-numbox" class="tf-slider-numbox" readonly value="80" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Parallax depth</div>
+							<input type="range" id="ts-slider-parallaxAmp" class="tf-slider" min="0" max="12" step="0.06" value="3" data-event-change="onTilesetKnob('parallaxAmp')" />
+							<input type="text" id="ts-slider-parallaxAmp-numbox" class="tf-slider-numbox" readonly value="3" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Macro variation</div>
 							<input type="range" id="ts-slider-macroVar" class="tf-slider" min="0" max="1" step="0.005" value="0.4" data-event-change="onTilesetKnob('macroVar')" />
 							<input type="text" id="ts-slider-macroVar-numbox" class="tf-slider-numbox" readonly value="0.4" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Macro softness</div>
+							<input type="range" id="ts-slider-macroLod" class="tf-slider" min="0" max="7" step="0.1" value="4" data-event-change="onTilesetKnob('macroLod')" />
+							<input type="text" id="ts-slider-macroLod-numbox" class="tf-slider-numbox" readonly value="4" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Albedo sort V/P</div>
@@ -5421,6 +5528,16 @@
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Feature blend</div>
 							<input type="range" id="ts-slider-lumaBlend" class="tf-slider" min="0" max="1" step="0.005" value="0.65" data-event-change="onTilesetKnob('lumaBlend')" />
 							<input type="text" id="ts-slider-lumaBlend-numbox" class="tf-slider-numbox" readonly value="0.65" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Height blend</div>
+							<input type="range" id="ts-slider-heightBlend" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.5" data-event-change="onTilesetKnob('heightBlend')" />
+							<input type="text" id="ts-slider-heightBlend-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Height depth</div>
+							<input type="range" id="ts-slider-heightDepth" class="tf-slider" min="0.02" max="0.6" step="0.0029" value="0.25" data-event-change="onTilesetKnob('heightDepth')" />
+							<input type="text" id="ts-slider-heightDepth-numbox" class="tf-slider-numbox" readonly value="0.25" />
 						</div>
 					</div>
 				</div><!-- /frame-ts-blend -->
@@ -5461,6 +5578,11 @@
 							<input type="text" id="ts-slider-specStrength-numbox" class="tf-slider-numbox" readonly value="0.3" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Spec AA</div>
+							<input type="range" id="ts-slider-specAA" class="tf-slider" min="0" max="2" step="0.01" value="0.5" data-event-change="onTilesetKnob('specAA')" />
+							<input type="text" id="ts-slider-specAA-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Sky ambient</div>
 							<input type="range" id="ts-slider-hemiAmbient" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.5" data-event-change="onTilesetKnob('hemiAmbient')" />
 							<input type="text" id="ts-slider-hemiAmbient-numbox" class="tf-slider-numbox" readonly value="0.5" />
@@ -5474,6 +5596,11 @@
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Wet shore</div>
 							<input type="range" id="ts-slider-wetBand" class="tf-slider" min="0" max="40" step="0.2" value="12" data-event-change="onTilesetKnob('wetBand')" />
 							<input type="text" id="ts-slider-wetBand-numbox" class="tf-slider-numbox" readonly value="12" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Wet gloss</div>
+							<input type="range" id="ts-slider-wetGloss" class="tf-slider" min="0" max="1" step="0.005" value="0.75" data-event-change="onTilesetKnob('wetGloss')" />
+							<input type="text" id="ts-slider-wetGloss-numbox" class="tf-slider-numbox" readonly value="0.75" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Shadow mode</div>
@@ -5650,6 +5777,7 @@
 
 			</div><!-- /tf-tileset-controls -->
 
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SKYBOX LIBRARY (separate floating window) ============ -->
@@ -5661,6 +5789,7 @@
 			</div>
 			<div id="btn-skybox-library-close" class="tf-quit-btn" data-event-mousedown="onEnvSkyboxLibClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-sm text-keybind mb-1">Click a thumbnail to change the skybox at runtime.</div>
 		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
@@ -5756,6 +5885,7 @@
 		</div>
 		</div><!-- /env-section-skydyn -->
 		</div><!-- /frame-skydyn -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SUN & SHADOWS (floating window) ============ -->
@@ -5764,6 +5894,7 @@
 			<div id="tf-env-sun-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Sun &amp; Shadows</div>
 			<div id="btn-env-sun-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-sundir">
 			<div id="btn-env-toggle-sundir" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-sundir" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -5882,6 +6013,7 @@
 		<div id="env-suncol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-suncol -->
 		</div><!-- /frame-suncol -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ FOG & ATMOSPHERE (floating window) ============ -->
@@ -5890,6 +6022,7 @@
 			<div id="tf-env-fog-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Fog &amp; Atmosphere</div>
 			<div id="btn-env-fog-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-fogdist">
 			<div id="btn-env-toggle-fogdist" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fogdist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6167,6 +6300,7 @@
 		<div id="env-snowcol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-snow -->
 		</div><!-- /frame-snow -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ GROUND LIGHTING (floating window) ============ -->
@@ -6178,6 +6312,7 @@
 			</div>
 			<div id="btn-env-ground-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-gambient">
 			<div id="btn-env-toggle-gambient" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-gambient" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6265,6 +6400,7 @@
 		</div>
 		</div><!-- /env-section-gspecular -->
 		</div><!-- /frame-gspecular -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ UNIT LIGHTING (floating window) ============ -->
@@ -6276,6 +6412,7 @@
 			</div>
 			<div id="btn-env-unit-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-uambient">
 			<div id="btn-env-toggle-uambient" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-uambient" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6363,6 +6500,7 @@
 		</div>
 		</div><!-- /env-section-uspecular -->
 		</div><!-- /frame-uspecular -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ MAP RENDERING (floating window) ============ -->
@@ -6371,6 +6509,7 @@
 			<div id="tf-env-map-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Map Rendering</div>
 			<div id="btn-env-map-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-rendertoggle">
 			<div id="btn-env-toggle-rendertoggle" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-rendertoggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6427,6 +6566,7 @@
 		</div>
 		</div><!-- /env-section-mapparams -->
 		</div><!-- /frame-mapparams -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ WATER (floating window) ============ -->
@@ -6435,6 +6575,7 @@
 			<div id="tf-env-water-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Water</div>
 			<div id="btn-env-water-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">WATER TYPE</div>
@@ -6940,6 +7081,7 @@
 			<input type="text" id="slider-env-lava-fogheight-numbox" class="tf-slider-numbox" value="20" />
 		</div>
 		</div><!-- /env-lava-sections -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ DIMENSIONS (floating window) ============ -->
@@ -6948,6 +7090,7 @@
 			<div id="tf-env-dimensions-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Dimensions</div>
 			<div id="btn-env-dimensions-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- MAP SIZE (read-only) -->
 		<div class="tf-section-frame">
@@ -7029,6 +7172,7 @@
 				</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SPLAT TEX PARAMS (separate floating window) ============ -->
@@ -7037,6 +7181,7 @@
 			<div id="tf-splattex-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Splat Tex Params</div>
 			<div id="btn-splattex-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">SPLAT TEX MULTIPLIERS</div>
@@ -7103,6 +7248,7 @@
 				<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ GRASS CONFIG (separate floating window) ============ -->
@@ -7111,6 +7257,7 @@
 			<div id="tf-grasscfg-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Grass Config</div>
 			<div id="btn-grasscfg-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">COLORIZATION</div>
@@ -7150,6 +7297,7 @@
 			<div id="btn-gb-grasscfg-refresh" class="tf-action-btn" style="flex: 1;"><div class="tf-action-btn-text">REFRESH</div></div>
 			<div id="btn-gb-grasscfg-save" class="tf-action-btn tf-save-btn" style="flex: 1;"><div class="tf-action-btn-text">EXPORT CONFIG</div></div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ LIGHT LIBRARY (separate floating window) ============ -->
@@ -7158,6 +7306,7 @@
 			<div id="tf-light-library-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Light Library</div>
 			<div id="btn-light-library-close" class="tf-quit-btn" data-event-mousedown="onLlClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-1">
@@ -7204,6 +7353,7 @@
 				<div class="tf-action-btn-text">REFRESH</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ NOISE PARAMETERS (separate floating window) ============ -->
@@ -7212,6 +7362,7 @@
 			<div id="tf-noise-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Noise Parameters</div>
 			<div id="btn-noise-close" class="tf-quit-btn" data-event-mousedown="onNoClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="tf-section-frame" id="frame-noise-type">
 			<div id="btn-toggle-noise-type" class="tf-section-title-row" style="cursor: pointer;">
@@ -7314,6 +7465,7 @@
 			<div id="btn-noise-seed-up" class="tf-sm-btn" data-event-mousedown="onNoSeedUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 			<input type="text" id="slider-noise-seed-numbox" class="tf-slider-numbox" value="0" />
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SETTINGS WINDOW (floating, toggled by gear button) ============ -->
@@ -7322,6 +7474,7 @@
 			<div id="tf-settings-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Settings</div>
 			<div id="btn-settings-close" class="tf-quit-btn" data-event-mousedown="onGuideCloseSettings()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-2">
@@ -7468,6 +7621,7 @@
 				<div id="pill-ui-clear-units" class="tf-dj-toggle-pill">RUN</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
@@ -7476,6 +7630,7 @@
 			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project</div>
 			<div id="btn-project-close" class="tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Re-saving the same name updates it.</div>
 
@@ -7504,6 +7659,7 @@
 				<div class="tf-action-btn-text">SAVE PROJECT</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ OPEN PROJECT WINDOW (floating, opened from FILE menu) ============ -->
@@ -7512,6 +7668,7 @@
 			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Open Project</div>
 			<div id="btn-project-open-close" class="tf-quit-btn" data-event-mousedown="onProjectOpenClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. This restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
 
@@ -7531,6 +7688,7 @@
 				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ CAPTURE WINDOW (floating, opened from the header rail) ============ -->
@@ -7539,6 +7697,7 @@
 			<div id="tf-capture-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Capture</div>
 			<div id="btn-capture-close" class="tf-quit-btn" data-event-mousedown="onCaptureClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="text-sm text-keybind">Map photo + one SVG layer per unit, for Figma.</div>
 
 		<div class="tf-section-frame" id="capture-frame-output">
@@ -7649,6 +7808,7 @@
 			<div class="tf-capture-result-head">{{captureResultHead}}</div>
 			<div class="tf-capture-result-path">{{captureResult}}</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ NEW MAP WINDOW (floating, opened from FILE menu) ============ -->
@@ -7657,6 +7817,7 @@
 			<div id="tf-newmap-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">New Map</div>
 			<div id="btn-newmap-close" class="tf-quit-btn" data-event-mousedown="onNewMapClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Create a fresh flat map and reload the current session onto it. Unsaved terrain edits will be lost.</div>
 
@@ -7796,6 +7957,7 @@
 				<div class="tf-action-btn-text">CANCEL</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<div id="tf-guide-floating-tip" class="tf-guide-floating-tip hidden"></div>

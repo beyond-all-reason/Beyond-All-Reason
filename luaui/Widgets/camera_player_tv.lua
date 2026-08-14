@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathRandom = math.random
@@ -20,7 +19,7 @@ local tableSort = table.sort
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -31,7 +30,8 @@ local spGetTeamInfo = Spring.GetTeamInfo
 	/playerview #playerID		(playerID is optional)
 	/playertv #playerID			(playerID is optional)
 	/playercamera
-]]--
+]]
+--
 
 local displayPlayername = true
 local alwaysDisplayName = true
@@ -41,7 +41,7 @@ local widgetHeight = 22
 local parentPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
-local fontSize = 12    -- countdown font
+local fontSize = 12 -- countdown font
 local top, left, bottom, right = 0, 0, 0, 0
 local rejoining = false
 local initGameframe = spGetGameFrame()
@@ -74,13 +74,13 @@ local playersList = spGetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 
 local aiTeams = {}
 local teamColorKeys = {}
 for i = 1, #teamList do
 	local r, g, b, a = spGetTeamColor(teamList[i])
-	teamColorKeys[teamList[i]] = r..'_'..g..'_'..b
+	teamColorKeys[teamList[i]] = r .. "_" .. g .. "_" .. b
 	local _, _, _, isAiTeam = Spring.GetTeamInfo(teamList[i], false)
 	if isAiTeam then
 		aiTeams[teamList[i]] = true
@@ -92,7 +92,11 @@ local RectRound, elementCorner, bgpadding
 local guishaderWasActive = false
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+local anonymousTeamColor = {
+	Spring.GetConfigInt("anonymousColorR", 255) / 255,
+	Spring.GetConfigInt("anonymousColorG", 0) / 255,
+	Spring.GetConfigInt("anonymousColorB", 0) / 255,
+}
 
 local function comparePlayerTs(a, b)
 	return a[1] > b[1]
@@ -113,7 +117,7 @@ local function tsOrderPlayers()
 					orderedPlayer[1] = playerTs
 					orderedPlayer[2] = playerID
 				else
-					tsOrderedPlayers[count] = {playerTs, playerID}
+					tsOrderedPlayers[count] = { playerTs, playerID }
 				end
 			end
 		end
@@ -149,7 +153,12 @@ local function refreshPlayerState()
 	myTeamID = spGetMyTeamID()
 	myTeamPlayerID = select(2, spGetTeamInfo(myTeamID))
 	isSpec, fullview = spGetSpectatingState()
-	if prevTeamID ~= myTeamID or prevTeamPlayerID ~= myTeamPlayerID or prevIsSpec ~= isSpec or prevFullview ~= fullview then
+	if
+		prevTeamID ~= myTeamID
+		or prevTeamPlayerID ~= myTeamPlayerID
+		or prevIsSpec ~= isSpec
+		or prevFullview ~= fullview
+	then
 		updateDrawing = true
 		playerNameDrawlistsDirty = true
 	end
@@ -190,14 +199,14 @@ local function SelectTrackingPlayer(playerID)
 		_, active, spec = spGetPlayerInfo(playerID, false)
 	end
 
-	if playerID and (not spec) and active then
+	if playerID and not spec and active then
 		newTrackedPlayer = playerID
 	else
 		local highestTs = 0
 		for _, playerID in ipairs(playersList) do
 			local _, active, spec = spGetPlayerInfo(playerID, false)
 			if not spec and active then
-				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs+mathRandom(-10,10) then
+				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs + mathRandom(-10, 10) then
 					highestTs = playersTS[playerID]
 					newTrackedPlayer = playerID
 				end
@@ -212,7 +221,6 @@ local function SelectTrackingPlayer(playerID)
 			WG.lockcamera.SetPlayerID(currentTrackedPlayer)
 		end
 	end
-
 end
 
 local function createCountdownLists()
@@ -227,10 +235,28 @@ local function createCountdownLists()
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
 			font:SetTextColor(0, 0, 0, 0.6)
-			font:Print(i, right - rightPadding - (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
-			font:Print(i, right - rightPadding + (0.7 * widgetScale), bottom + (widgetHeight* 1.2 * widgetScale), fontSize * widgetScale, 'rn')
+			font:Print(
+				i,
+				right - rightPadding - (0.7 * widgetScale),
+				bottom + (widgetHeight * 1.2 * widgetScale),
+				fontSize * widgetScale,
+				"rn"
+			)
+			font:Print(
+				i,
+				right - rightPadding + (0.7 * widgetScale),
+				bottom + (widgetHeight * 1.2 * widgetScale),
+				fontSize * widgetScale,
+				"rn"
+			)
 			font:SetTextColor(0.88, 0.88, 0.88, 1)
-			font:Print(i, right - rightPadding, bottom + (widgetHeight* 1.22 * widgetScale), fontSize * widgetScale, 'rn')
+			font:Print(
+				i,
+				right - rightPadding,
+				bottom + (widgetHeight * 1.22 * widgetScale),
+				fontSize * widgetScale,
+				"rn"
+			)
 			font:End()
 		end)
 		i = i + 1
@@ -247,10 +273,14 @@ local function refreshUiDrawing()
 
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 		local canShowTrackingButtons = showTrackingButtons
 		local showTvButton = canShowTrackingButtons and not aiTeams[myTeamID] and (isSpec or lockPlayerID)
-		local showCameraButton = canShowTrackingButtons and isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID]
+		local showCameraButton = canShowTrackingButtons
+			and isSpec
+			and not toggled
+			and not lockPlayerID
+			and not aiTeams[myTeamID]
 		local buttonAnchorLeft = right
 
 		local text, color1, color2
@@ -260,19 +290,53 @@ local function refreshUiDrawing()
 		-- Player TV Button
 		if showTvButton then
 			if not toggled and not lockPlayerID then
-				text = '\255\222\255\222   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
-				color1 = { 0, 0.8*mult, 0, buttonOpacity }
-				color2 = { 0, 0.55*mult, 0, buttonOpacity }
+				text = "\255\222\255\222   " .. BAR.I18N("ui.playerTV.playerTV") .. "    "
+				color1 = { 0, 0.8 * mult, 0, buttonOpacity }
+				color2 = { 0, 0.55 * mult, 0, buttonOpacity }
 			else
-				text = '\255\255\222\222   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
-				color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
-				color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
+				text = "\255\255\222\222   "
+					.. (nextTrackingPlayerChange - os.clock() > -1 and BAR.I18N("ui.playerTV.cancelPlayerTV") or BAR.I18N(
+						"ui.playerTV.cancelCamera"
+					))
+					.. "    "
+				color1 = { 0.88 * mult, 0.1 * mult, 0.1 * mult, buttonOpacity }
+				color2 = { 0.6 * mult, 0.05 * mult, 0.05 * mult, buttonOpacity }
 			end
 			local textWidth = font:GetTextWidth(text) * fontSize
 			toggleButton = { buttonAnchorLeft - textWidth, bottom, buttonAnchorLeft, top }
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 1, 0, color1, color2)
-			RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
-			font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
+			RectRound(
+				toggleButton[1],
+				toggleButton[2],
+				toggleButton[3],
+				toggleButton[4],
+				elementCorner,
+				1,
+				0,
+				1,
+				0,
+				color1,
+				color2
+			)
+			RectRound(
+				toggleButton[1] + bgpadding,
+				toggleButton[2],
+				toggleButton[3],
+				toggleButton[4] - bgpadding,
+				elementCorner * 0.66,
+				1,
+				0,
+				1,
+				0,
+				{ 0.3, 0.3, 0.3, 0.25 * mult },
+				{ 0.05, 0.05, 0.05, 0.25 * mult }
+			)
+			font:Print(
+				text,
+				toggleButton[3] - ((toggleButton[3] - toggleButton[1]) / 2),
+				toggleButton[2] + (7 * widgetScale),
+				fontSize,
+				"oc"
+			)
 			buttonAnchorLeft = toggleButton[1] - bgpadding
 		else
 			toggleButton = { buttonAnchorLeft, bottom, buttonAnchorLeft, top }
@@ -280,14 +344,44 @@ local function refreshUiDrawing()
 
 		-- Player Camera Button
 		if showCameraButton then
-			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
-			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerCamera") .. "   "
+			color1 = { 0.6 * mult, 0.6 * mult, 0.6 * mult, buttonOpacity }
+			color2 = { 0.4 * mult, 0.4 * mult, 0.4 * mult, buttonOpacity }
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			toggleButton3 = { buttonAnchorLeft - textWidth, bottom, buttonAnchorLeft, top }
-			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0, color1, color2)
-			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
-			font:Print(text, toggleButton3[3]-((toggleButton3[3]-toggleButton3[1])/2), toggleButton3[2] + (7 * widgetScale), fontSize, 'oc')
+			RectRound(
+				toggleButton3[1],
+				toggleButton3[2],
+				toggleButton3[3],
+				toggleButton3[4],
+				elementCorner,
+				1,
+				1,
+				0,
+				toggleButton3[1] < left and 1 or 0,
+				color1,
+				color2
+			)
+			RectRound(
+				toggleButton3[1] + bgpadding,
+				toggleButton3[2],
+				toggleButton3[3] - bgpadding,
+				toggleButton3[4] - bgpadding,
+				elementCorner * 0.66,
+				1,
+				1,
+				0,
+				toggleButton3[1] < left and 1 or 0,
+				{ 0.3, 0.3, 0.3, 0.25 * mult },
+				{ 0.05, 0.05, 0.05, 0.25 * mult }
+			)
+			font:Print(
+				text,
+				toggleButton3[3] - ((toggleButton3[3] - toggleButton3[1]) / 2),
+				toggleButton3[2] + (7 * widgetScale),
+				fontSize,
+				"oc"
+			)
 			buttonAnchorLeft = toggleButton3[1] - bgpadding
 		else
 			toggleButton3 = { buttonAnchorLeft, bottom, buttonAnchorLeft, top }
@@ -295,20 +389,50 @@ local function refreshUiDrawing()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
-			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
-			color1 = { 0.6*mult, 0.6*mult, 0.6*mult, buttonOpacity }
-			color2 = { 0.4*mult, 0.4*mult, 0.4*mult, buttonOpacity }
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerView") .. "   "
+			color1 = { 0.6 * mult, 0.6 * mult, 0.6 * mult, buttonOpacity }
+			color2 = { 0.4 * mult, 0.4 * mult, 0.4 * mult, buttonOpacity }
 		else
-			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
-			color1 = { 0.88*mult, 0.1*mult, 0.1*mult, buttonOpacity }
-			color2 = { 0.6*mult, 0.05*mult, 0.05*mult, buttonOpacity }
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.globalView") .. "   "
+			color1 = { 0.88 * mult, 0.1 * mult, 0.1 * mult, buttonOpacity }
+			color2 = { 0.6 * mult, 0.05 * mult, 0.05 * mult, buttonOpacity }
 		end
 		local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 		toggleButton2 = { buttonAnchorLeft - textWidth, bottom, buttonAnchorLeft, top }
 		if isSpec then
-			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
-			RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25*mult }, { 0.05, 0.05, 0.05, 0.25*mult })
-			font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
+			RectRound(
+				toggleButton2[1],
+				toggleButton2[2],
+				toggleButton2[3],
+				toggleButton2[4],
+				elementCorner,
+				1,
+				1,
+				0,
+				toggleButton2[1] < left and 1 or 0,
+				color1,
+				color2
+			)
+			RectRound(
+				toggleButton2[1] + bgpadding,
+				toggleButton2[2],
+				toggleButton2[3] - bgpadding,
+				toggleButton2[4] - bgpadding,
+				elementCorner * 0.66,
+				1,
+				1,
+				0,
+				toggleButton2[1] < left and 1 or 0,
+				{ 0.3, 0.3, 0.3, 0.25 * mult },
+				{ 0.05, 0.05, 0.05, 0.25 * mult }
+			)
+			font:Print(
+				text,
+				toggleButton2[3] - ((toggleButton2[3] - toggleButton2[1]) / 2),
+				toggleButton2[2] + (7 * widgetScale),
+				fontSize,
+				"oc"
+			)
 		end
 		font:End()
 	end)
@@ -316,71 +440,143 @@ local function refreshUiDrawing()
 		drawlist[2] = gl.CreateList(function()
 			-- Player TV Button highlight
 			if toggled or lockPlayerID then
-				gl.Color(1*mult, 0.2*mult, 0.2*mult, buttonOpacity)
+				gl.Color(1 * mult, 0.2 * mult, 0.2 * mult, buttonOpacity)
 			else
-				gl.Color(0.2*mult, 1*mult, 0.2*mult, buttonOpacity)
+				gl.Color(0.2 * mult, 1 * mult, 0.2 * mult, buttonOpacity)
 			end
 			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
-			gl.Color(0, 0, 0, 0.14*mult)
-			RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
+			gl.Color(0, 0, 0, 0.14 * mult)
+			RectRound(
+				toggleButton[1] + bgpadding,
+				toggleButton[2],
+				toggleButton[3],
+				toggleButton[4] - bgpadding,
+				elementCorner * 0.66,
+				1,
+				1,
+				1,
+				0
+			)
 
-			local text = '\255\255\225\225   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
+			local text = "\255\255\225\225   "
+				.. (nextTrackingPlayerChange - os.clock() > -1 and BAR.I18N("ui.playerTV.cancelPlayerTV") or BAR.I18N(
+					"ui.playerTV.cancelCamera"
+				))
+				.. "    "
 			if not toggled and not lockPlayerID then
-				text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
+				text = "\255\225\255\225   " .. BAR.I18N("ui.playerTV.playerTV") .. "    "
 			end
-			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-			font:Print(text, toggleButton[3] - (textWidth / 2), toggleButton[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
+			font:Print(
+				text,
+				toggleButton[3] - (textWidth / 2),
+				toggleButton[2] + (0.32 * widgetHeight * widgetScale),
+				fontSize,
+				"oc"
+			)
 			font:End()
 		end)
 	end
 	drawlist[3] = gl.CreateList(function()
 		-- Player Viewpoint Button highlight
 		if toggled2 then
-			gl.Color(0.85*mult, 0.2*mult, 0.2*mult, 0.4*mult)
+			gl.Color(0.85 * mult, 0.2 * mult, 0.2 * mult, 0.4 * mult)
 		else
-			gl.Color(0.85*mult, 0.85*mult, 0.85*mult, 0.4*mult)
+			gl.Color(0.85 * mult, 0.85 * mult, 0.85 * mult, 0.4 * mult)
 		end
-		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
-		gl.Color(0, 0, 0, 0.14*mult)
-		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
+		RectRound(
+			toggleButton2[1],
+			toggleButton2[2],
+			toggleButton2[3],
+			toggleButton2[4],
+			elementCorner,
+			1,
+			1,
+			0,
+			toggleButton2[1] < left and 1 or 0
+		)
+		gl.Color(0, 0, 0, 0.14 * mult)
+		RectRound(
+			toggleButton2[1] + bgpadding,
+			toggleButton2[2],
+			toggleButton2[3] - bgpadding,
+			toggleButton2[4] - bgpadding,
+			elementCorner * 0.66,
+			1,
+			1,
+			0,
+			toggleButton2[1] < left and 1 or 0
+		)
 
-		local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
+		local text = "\255\255\255\244   " .. BAR.I18N("ui.playerTV.globalView") .. "   "
 		if not toggled2 then
-			text = '\255\255\255\255   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerView") .. "   "
 		end
-		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 		local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 		font:Begin()
 		font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
+		font:Print(
+			text,
+			toggleButton2[3] - (textWidth / 2),
+			toggleButton2[2] + (0.32 * widgetHeight * widgetScale),
+			fontSize,
+			"oc"
+		)
 		font:End()
 	end)
 	if showTrackingButtons and not toggled and not aiTeams[myTeamID] then
 		drawlist[4] = gl.CreateList(function()
 			-- Player Camera Button highlight
 			if toggled2 then
-				gl.Color(0.85*mult, 0.2*mult, 0.2*mult, 0.4*mult)
+				gl.Color(0.85 * mult, 0.2 * mult, 0.2 * mult, 0.4 * mult)
 			else
-				gl.Color(0.85*mult, 0.85*mult, 0.85*mult, 0.4*mult)
+				gl.Color(0.85 * mult, 0.85 * mult, 0.85 * mult, 0.4 * mult)
 			end
-			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
-			gl.Color(0, 0, 0, 0.14*mult)
-			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
+			RectRound(
+				toggleButton3[1],
+				toggleButton3[2],
+				toggleButton3[3],
+				toggleButton3[4],
+				elementCorner,
+				1,
+				1,
+				0,
+				toggleButton3[1] < left and 1 or 0
+			)
+			gl.Color(0, 0, 0, 0.14 * mult)
+			RectRound(
+				toggleButton3[1] + bgpadding,
+				toggleButton3[2],
+				toggleButton3[3] - bgpadding,
+				toggleButton3[4] - bgpadding,
+				elementCorner * 0.66,
+				1,
+				1,
+				0,
+				toggleButton3[1] < left and 1 or 0
+			)
 
-			local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
-			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1+((1-(vsy/1200))*0.33), 1, 1.15)
+			local text = "\255\255\255\244   " .. BAR.I18N("ui.playerTV.playerCamera") .. "   "
+			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
 			font:SetOutlineColor(0.15, 0.15, 0.15, 1)
-			font:Print(text, toggleButton3[3] - (textWidth / 2), toggleButton3[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
+			font:Print(
+				text,
+				toggleButton3[3] - (textWidth / 2),
+				toggleButton3[2] + (0.32 * widgetHeight * widgetScale),
+				fontSize,
+				"oc"
+			)
 			font:End()
 		end)
 	end
 
-	if WG['guishader'] and (isSpec or lockPlayerID) then
+	if WG.guishader and (isSpec or lockPlayerID) then
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
@@ -389,30 +585,50 @@ local function refreshUiDrawing()
 				RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 0, 0)
 			end
 			if toggleButton2 then
-				RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
+				RectRound(
+					toggleButton2[1],
+					toggleButton2[2],
+					toggleButton2[3],
+					toggleButton2[4],
+					elementCorner,
+					1,
+					1,
+					0,
+					toggleButton2[1] < left and 1 or 0
+				)
 			end
 			if showTrackingButtons and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
-				RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
+				RectRound(
+					toggleButton3[1],
+					toggleButton3[2],
+					toggleButton3[3],
+					toggleButton3[4],
+					elementCorner,
+					1,
+					1,
+					0,
+					toggleButton3[1] < left and 1 or 0
+				)
 			end
 		end)
-		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
+		WG.guishader.InsertDlist(backgroundGuishader, "playertv", true)
 		showBackgroundGuishader = true
 	end
 end
 
 local function updatePosition()
 	local prevPos = parentPos
-	if WG['displayinfo'] ~= nil then
-		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
-	elseif WG['unittotals'] ~= nil then
-		parentPos = WG['unittotals'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
-	elseif WG['music'] ~= nil then
-		parentPos = WG['music'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
-	elseif WG['advplayerlist_api'] ~= nil then
-		parentPos = WG['advplayerlist_api'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
+	if WG.displayinfo ~= nil then
+		parentPos = WG.displayinfo.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.unittotals ~= nil then
+		parentPos = WG.unittotals.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.music ~= nil then
+		parentPos = WG.music.GetPosition() -- returns {top,left,bottom,right,widgetScale}
+	elseif WG.advplayerlist_api ~= nil then
+		parentPos = WG.advplayerlist_api.GetPosition() -- returns {top,left,bottom,right,widgetScale}
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-		parentPos = {0,vsx-(220*scale),0,vsx,scale}
+		parentPos = { 0, vsx - (220 * scale), 0, vsx, scale }
 	end
 	if parentPos[5] ~= nil then
 		left = parentPos[2]
@@ -420,7 +636,12 @@ local function updatePosition()
 		right = parentPos[4]
 		top = parentPos[1] + mathFloor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
-		if prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5] then
+		if
+			prevPos[1] == nil
+			or prevPos[1] ~= parentPos[1]
+			or prevPos[2] ~= parentPos[2]
+			or prevPos[5] ~= parentPos[5]
+		then
 			widget:ViewResize()
 		end
 	end
@@ -428,7 +649,7 @@ end
 
 function widget:GameStart()
 	isSpec, fullview = spGetSpectatingState()
-	nextTrackingPlayerChange = os.clock()-0.3
+	nextTrackingPlayerChange = os.clock() - 0.3
 	tsOrderPlayers()
 	if isSpec and not rejoining and toggled then
 		SelectTrackingPlayer()
@@ -450,7 +671,6 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 end
-
 
 local function switchPlayerCam()
 	nextTrackingPlayerChange = os.clock() + playerChangeDelay
@@ -502,8 +722,8 @@ function widget:Update(dt)
 		local detectedChanges = false
 		for i = 1, #teamList do
 			local r, g, b, a = spGetTeamColor(teamList[i])
-			if teamColorKeys[teamList[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teamList[i]] = r..'_'..g..'_'..b
+			if teamColorKeys[teamList[i]] ~= r .. "_" .. g .. "_" .. b then
+				teamColorKeys[teamList[i]] = r .. "_" .. g .. "_" .. b
 				detectedChanges = true
 			end
 		end
@@ -525,7 +745,7 @@ function widget:Update(dt)
 		updatePosition()
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG['guishader'] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			showBackgroundGuishader = nil
 			updateDrawing = true
@@ -554,8 +774,8 @@ function widget:Update(dt)
 	end
 
 	local prevRejoining = rejoining
-	if WG['rejoin'] then
-		rejoining = WG['rejoin'].showingRejoining()
+	if WG.rejoin then
+		rejoining = WG.rejoin.showingRejoining()
 	end
 	if isSpec and toggled and spGetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
@@ -584,33 +804,54 @@ function widget:Update(dt)
 	local prevButtonHovered = buttonHovered
 	buttonHovered = nil
 	if math_isInRect(mx, my, left, bottom, right, top) then
-		if showTrackingButtons and not aiTeams[myTeamID] and (isSpec or lockPlayerID) and toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+		if
+			showTrackingButtons
+			and not aiTeams[myTeamID]
+			and (isSpec or lockPlayerID)
+			and toggleButton ~= nil
+			and drawlist[2]
+			and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4])
+		then
 			buttonHovered = 1
 		end
-		if isSpec and toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+		if
+			isSpec
+			and toggleButton2 ~= nil
+			and drawlist[3]
+			and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4])
+		then
 			buttonHovered = 2
 		end
-		if (isSpec and not lockPlayerID) and not toggled and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+		if
+			(isSpec and not lockPlayerID)
+			and not toggled
+			and toggleButton3 ~= nil
+			and drawlist[4]
+			and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4])
+		then
 			buttonHovered = 3
 		end
 	end
-	if (buttonHovered and buttonHovered ~= prevButtonHovered) or (prevButtonHovered and prevButtonHovered ~= buttonHovered) then
+	if
+		(buttonHovered and buttonHovered ~= prevButtonHovered)
+		or (prevButtonHovered and prevButtonHovered ~= buttonHovered)
+	then
 		updateDrawing = true
 	end
 
 	if (isSpec or lockPlayerID) and not rejoining then
-		if WG['tooltip'] and not toggled and not lockPlayerID then
+		if WG.tooltip and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 and not aiTeams[myTeamID] then
-				Spring.SetMouseCursor('cursornormal')
-				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.tooltip'))
+				Spring.SetMouseCursor("cursornormal")
+				WG.tooltip.ShowTooltip("playertv", BAR.I18N("ui.playerTV.tooltip"))
 			end
 			if buttonHovered and buttonHovered == 2 then
-				Spring.SetMouseCursor('cursornormal')
-				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerViewTooltip'))
+				Spring.SetMouseCursor("cursornormal")
+				WG.tooltip.ShowTooltip("playertv", BAR.I18N("ui.playerTV.playerViewTooltip"))
 			end
 			if buttonHovered and buttonHovered == 3 then
-				Spring.SetMouseCursor('cursornormal')
-				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerCameraTooltip'))
+				Spring.SetMouseCursor("cursornormal")
+				WG.tooltip.ShowTooltip("playertv", BAR.I18N("ui.playerTV.playerCameraTooltip"))
 			end
 		end
 
@@ -624,12 +865,12 @@ end
 local function drawContent()
 	local gameFrame = spGetGameFrame()
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('playertv')
+		if WG.guishader then
+			WG.guishader.RemoveDlist("playertv")
 		end
 	elseif backgroundGuishader and not showBackgroundGuishader then
-		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
-		showBackgroundGuishader =  true
+		WG.guishader.InsertDlist(backgroundGuishader, "playertv", true)
+		showBackgroundGuishader = true
 	end
 
 	-- hover highlight
@@ -638,13 +879,31 @@ local function drawContent()
 		gl.CallList(drawlist[1])
 		gl.PopMatrix()
 		local mx, my, mb = spGetMouseState()
-		if showTrackingButtons and not aiTeams[myTeamID] and (isSpec or lockPlayerID) and toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+		if
+			showTrackingButtons
+			and not aiTeams[myTeamID]
+			and (isSpec or lockPlayerID)
+			and toggleButton ~= nil
+			and drawlist[2]
+			and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4])
+		then
 			gl.CallList(drawlist[2])
 		end
-		if isSpec and toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+		if
+			isSpec
+			and toggleButton2 ~= nil
+			and drawlist[3]
+			and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4])
+		then
 			gl.CallList(drawlist[3])
 		end
-		if (isSpec and not lockPlayerID) and not toggled and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+		if
+			(isSpec and not lockPlayerID)
+			and not toggled
+			and toggleButton3 ~= nil
+			and drawlist[4]
+			and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4])
+		then
 			gl.CallList(drawlist[4])
 		end
 	end
@@ -658,8 +917,11 @@ local function drawContent()
 		end
 	end
 	if displayPlayername then
-		if WG['advplayerlist_api'] and WG.lockcamera then
-			if not lockPlayerID or lockPlayerID ~= WG.lockcamera.GetPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
+		if WG.advplayerlist_api and WG.lockcamera then
+			if
+				not lockPlayerID
+				or lockPlayerID ~= WG.lockcamera.GetPlayerID() and nextTrackingPlayerChange - os.clock() < 0
+			then
 				--nextTrackingPlayerChange = os.clock() - 2
 				lockPlayerID = WG.lockcamera.GetPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
@@ -673,14 +935,18 @@ local function drawContent()
 					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
-				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)) or name
-				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+				name = (
+					(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)
+				) or name
+				if select(4, Spring.GetTeamInfo(myTeamID, false)) then -- is AI?
 					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-					local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+					local niceName = Spring.GetGameRulesParam("ainame_" .. myTeamID)
 					name = niceName or aiName
-					name = Spring.I18N('ui.playersList.aiName', { name = name })
+					name = BAR.I18N("ui.playersList.aiName", { name = name })
 				end
-				if not name then name = '---' end
+				if not name then
+					name = "---"
+				end
 				-- create player name
 				if not drawlistsPlayername[name] then
 					drawlistsPlayername[name] = gl.CreateList(function()
@@ -717,30 +983,31 @@ function widget:DrawScreen()
 	if updateDrawing then
 		updateDrawing = false
 		refreshUiDrawing()
-	if right-left >= 1 and top-bottom >= 1 then
-		uiTexTopExtra = mathFloor(vsy*0.06)
-		uiTexLeftExtra = mathFloor(vsy*0.08)
-		if not uiTex then
-			uiTex = gl.CreateTexture((mathFloor(right-left)+uiTexLeftExtra), (mathFloor(top-bottom)+uiTexTopExtra), {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-		end
-		gl.R2tHelper.RenderToTexture(uiTex,
-			function()
+		if right - left >= 1 and top - bottom >= 1 then
+			uiTexTopExtra = mathFloor(vsy * 0.06)
+			uiTexLeftExtra = mathFloor(vsy * 0.08)
+			if not uiTex then
+				uiTex = gl.CreateTexture(
+					(mathFloor(right - left) + uiTexLeftExtra),
+					(mathFloor(top - bottom) + uiTexTopExtra),
+					{
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					}
+				)
+			end
+			gl.R2tHelper.RenderToTexture(uiTex, function()
 				gl.Translate(-1, -1, 0)
-				gl.Scale(2 / ((right-left)+uiTexLeftExtra), 2 / ((top-bottom)+uiTexTopExtra), 0)
-				gl.Translate(-left+uiTexLeftExtra, -bottom, 0)
+				gl.Scale(2 / ((right - left) + uiTexLeftExtra), 2 / ((top - bottom) + uiTexTopExtra), 0)
+				gl.Translate(-left + uiTexLeftExtra, -bottom, 0)
 				drawContent()
-			end,
-			true
-		)
-	end
+			end, true)
+		end
 	end
 
 	if uiTex then
-		gl.R2tHelper.BlendTexRect(uiTex, left-uiTexLeftExtra, bottom, right, top+uiTexTopExtra, true)
+		gl.R2tHelper.BlendTexRect(uiTex, left - uiTexLeftExtra, bottom, right, top + uiTexTopExtra, true)
 	end
 end
 
@@ -752,7 +1019,7 @@ local function togglePlayerTV(state)
 	end
 	prevOrderID = nil
 	currentTrackedPlayer = nil
-	if (state~= nil and not state) or toggled or lockPlayerID then
+	if (state ~= nil and not state) or toggled or lockPlayerID then
 		toggled = false
 		toggled2 = false
 		if WG.lockcamera then
@@ -766,7 +1033,7 @@ local function togglePlayerTV(state)
 		toggled = true
 		toggled2 = true
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
-			WG.lockcamera.SetLosMode('los')
+			WG.lockcamera.SetLosMode("los")
 		end
 		switchPlayerCam()
 		updateDrawing = true
@@ -795,7 +1062,7 @@ local function togglePlayerView(state)
 			Spring.SendCommands("specfullview")
 		end
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
-			WG.lockcamera.SetLosMode('normal')
+			WG.lockcamera.SetLosMode("normal")
 		elseif Spring.GetMapDrawMode() == "los" then
 			Spring.SendCommands("togglelos")
 		end
@@ -806,9 +1073,9 @@ local function togglePlayerView(state)
 			Spring.SendCommands("specfullview")
 		end
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
-			WG.lockcamera.SetLosMode('los')
+			WG.lockcamera.SetLosMode("los")
 		elseif Spring.GetMapDrawMode() ~= "los" then
-			desiredLosmode = 'los'
+			desiredLosmode = "los"
 			desiredLosmodeChanged = os.clock()
 		end
 	end
@@ -852,7 +1119,7 @@ function widget:Initialize()
 	if isSpec and not fullview then
 		toggled2 = true
 	end
-	if WG['advplayerlist_api'] == nil then
+	if WG.advplayerlist_api == nil then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -877,43 +1144,53 @@ function widget:Initialize()
 	tsOrderPlayers()
 
 	updatePosition()
-	WG['playertv'] = {}
-	WG['playertv'].GetPosition = function()
+	WG.playertv = {}
+	WG.playertv.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end
-	WG['playertv'].isActive = function()
+	WG.playertv.isActive = function()
 		return (toggled and isSpec)
 	end
-	WG['playertv'].GetPlayerChangeDelay = function()
+	WG.playertv.GetPlayerChangeDelay = function()
 		return playerChangeDelay
 	end
-	WG['playertv'].SetPlayerChangeDelay = function(value)
+	WG.playertv.SetPlayerChangeDelay = function(value)
 		playerChangeDelay = value
 		createCountdownLists()
 	end
-	WG['playertv'].GetAlwaysDisplayName = function()
+	WG.playertv.GetAlwaysDisplayName = function()
 		return alwaysDisplayName
 	end
-	WG['playertv'].SetAlwaysDisplayName = function(value)
+	WG.playertv.SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
 
-	widgetHandler:AddAction("playerview", playerviewCmd, nil, 't')
-	widgetHandler:AddAction("playercamera", playercameraCmd, nil, 't')
-	widgetHandler:AddAction("playertv", playertvCmd, nil, 't')
+	widgetHandler:AddAction("playerview", playerviewCmd, nil, "t")
+	widgetHandler:AddAction("playercamera", playercameraCmd, nil, "t")
+	widgetHandler:AddAction("playertv", playertvCmd, nil, "t")
 end
 
 function widget:MousePress(mx, my, mb)
 	if isSpec or lockPlayerID then
 		-- player tv
-		if showTrackingButtons and not aiTeams[myTeamID] and isSpec and toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+		if
+			showTrackingButtons
+			and not aiTeams[myTeamID]
+			and isSpec
+			and toggleButton ~= nil
+			and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4])
+		then
 			if mb == 1 then
 				togglePlayerTV()
 			end
 			return true
 		end
 		-- player viewpoint
-		if isSpec and toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+		if
+			isSpec
+			and toggleButton2 ~= nil
+			and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4])
+		then
 			isSpec, fullview = spGetSpectatingState()
 			if mb == 1 then
 				togglePlayerView()
@@ -921,7 +1198,12 @@ function widget:MousePress(mx, my, mb)
 			return true
 		end
 		-- player camera
-		if showTrackingButtons and (isSpec or lockPlayerID) and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+		if
+			showTrackingButtons
+			and (isSpec or lockPlayerID)
+			and toggleButton3 ~= nil
+			and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4])
+		then
 			isSpec, fullview = spGetSpectatingState()
 			if mb == 1 then
 				togglePlayerCamera()
@@ -938,8 +1220,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 2, 0.2, 3)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 2, 0.2, 3)
 
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
@@ -949,7 +1231,7 @@ function widget:ViewResize()
 	end
 	drawlistsCountdown = {}
 	drawlistsPlayername = {}
-	if WG['guishader'] and backgroundGuishader then
+	if WG.guishader and backgroundGuishader then
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
@@ -969,7 +1251,6 @@ function widget:ViewResize()
 	createCountdownLists()
 end
 
-
 function widget:Shutdown()
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
@@ -979,8 +1260,8 @@ function widget:Shutdown()
 	end
 	drawlistsCountdown = {}
 	drawlistsPlayername = {}
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('playertv')
+	if WG.guishader then
+		WG.guishader.DeleteDlist("playertv")
 	end
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
@@ -1003,7 +1284,7 @@ function widget:GetConfigData(data)
 	return {
 		toggled = toggled,
 		alwaysDisplayName = alwaysDisplayName,
-		playerChangeDelay = playerChangeDelay
+		playerChangeDelay = playerChangeDelay,
 	}
 end
 
