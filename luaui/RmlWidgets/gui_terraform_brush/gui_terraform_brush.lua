@@ -1567,7 +1567,27 @@ do
 	end
 	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
 end
-widgetState.newMapEnvIdx = 0  -- 0 = Default (keep engine defaults); 1..N = preset
+-- Environment a fresh map starts with. 0 = Default (keep engine defaults), 1..N
+-- = preset. This USED to default to 0, but "engine defaults" is placeholder
+-- lighting: ground ambient and diffuse both a flat 0.5, against ~0.99 diffuse on
+-- a real BAR daylight map, so a new map receives roughly 60% of the light one
+-- should. A baked map texture carries the mapper's own brightness and hides that;
+-- the tileset shader draws raw PBR albedo and cannot, so new maps read as though
+-- the SHADER were broken (diagnosed 2026-08-12 — /tileset probe reported
+-- flat-lit 0.596 against ~0.91 for the preset below). Start from a real harvested
+-- mood instead; Default stays selectable in the wizard.
+-- Resolved by NAME, not index: a regenerated env_presets.lua replaces this list
+-- wholesale and can reorder it, and silently defaulting to whatever landed in
+-- slot 1 would be worse than the engine defaults we are replacing.
+widgetState.newMapEnvIdx = 0
+do
+	for i, p in ipairs(widgetState.newMapEnvPresets) do
+		if p.name == "Clear Daylight" then
+			widgetState.newMapEnvIdx = i
+			break
+		end
+	end
+end
 
 -- Push the selected environment name into the data-model label.
 widgetState._nmRefreshEnvLabel = function()
