@@ -3673,16 +3673,6 @@ margin-top: 3dp;
 	padding: 0 4dp;
 }
 /* Caret that opens the per-slot variant picker */
-.surf-slot-pick {
-	position: absolute;
-	bottom: 0;
-	right: 2dp;
-	font-size: 1.2rem;
-	color: #9ca3af;
-	cursor: pointer;
-	padding: 0 2dp;
-}
-.surf-slot-pick:hover { color: #e5e7eb; }
 
 /* Per-slot variant picker: the texture library only takes space while an
    artist is actually choosing, instead of a permanently open grid. */

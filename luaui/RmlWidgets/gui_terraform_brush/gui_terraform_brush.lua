@@ -7064,6 +7064,11 @@ local initialModel = {
 		WG.SurfacePainter.setVariant("")
 		playSound("click")
 	end,
+	-- The whole chip is the button: it opens that slot's palette, and if the slot
+	-- already holds a variant it also arms the brush with it, so one click both
+	-- switches which slot you are painting and offers the library to change it.
+	-- Clicking the open chip again closes the palette. There used to be a small
+	-- caret for this, which rendered as a missing-glyph box in the panel font.
 	onSurfSlotSelect = function(_event, n)
 		if not WG.SurfacePainter then return end
 		local slot = tonumber(n)
@@ -7071,14 +7076,11 @@ local initialModel = {
 		local asset = (slot == 1) and st.slot1 or st.slot2
 		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
 			WG.SurfacePainter.setVariant(asset)
-			playSound("click")
-		else
-			-- Empty slot: the whole chip opens its picker, so filling a slot
-			-- never depends on hitting the small caret.
-			widgetState.surfPickerSlot = slot
-			widgetState.surfPaletteSig = nil
-			playSound("dropdown")
 		end
+		local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
+		widgetState.surfPickerSlot = open
+		widgetState.surfPaletteSig = nil   -- rebuild for the new target
+		playSound(open and "dropdown" or "click")
 	end,
 	onSurfNoiseFill = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then return end

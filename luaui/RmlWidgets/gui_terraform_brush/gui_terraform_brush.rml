@@ -5301,7 +5301,6 @@
 									<div class="text-base font-bold surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
 									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot1Share}}</div>
 								</div>
-								<div id="surf-slot-1-pick" class="surf-slot-pick">&#9662;</div>
 								<div id="surf-slot-1-free" class="surf-slot-free" data-if="surfSlot1Assigned">&#215;</div>
 							</div>
 							<div id="surf-slot-2" class="surf-slot-chip surf-slot-c2" data-class-active="surfSelSlot == 2" data-class-surf-slot-empty="!surfSlot2Assigned" data-event-mousedown="onSurfSlotSelect(2)">
@@ -5310,7 +5309,6 @@
 									<div class="text-base font-bold surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
 									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot2Share}}</div>
 								</div>
-								<div id="surf-slot-2-pick" class="surf-slot-pick">&#9662;</div>
 								<div id="surf-slot-2-free" class="surf-slot-free" data-if="surfSlot2Assigned">&#215;</div>
 							</div>
 						</div>

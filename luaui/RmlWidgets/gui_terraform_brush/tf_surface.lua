@@ -89,16 +89,6 @@ function M.attach(doc, ctx)
 				event:StopPropagation()
 			end, false)
 		end
-		local pick = doc:GetElementById("surf-slot-" .. slot .. "-pick")
-		if pick then
-			pick:AddEventListener("mousedown", function(event)
-				-- Toggle: same caret closes, other caret retargets.
-				widgetState.surfPickerSlot = (widgetState.surfPickerSlot == slot) and nil or slot
-				widgetState.surfPaletteSig = nil   -- rebuild for the new target
-				ctx.playSound("dropdown")
-				event:StopPropagation()
-			end, false)
-		end
 	end
 	local closeBtn = doc:GetElementById("surf-picker-close")
 	if closeBtn then
