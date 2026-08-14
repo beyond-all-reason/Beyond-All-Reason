@@ -475,29 +475,43 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		VBOData = compactVBO
 	end
 
-	grassPatchVBO:Define(
-		grassPatchVBOsize, -- 3 verts, just a triangle for now
-		VBOLayout -- 17 floats per vertex
-	)
-	--spEcho("VBODATA #", grassPatchSize, #VBOData)
-
-	-- Try making an indexVBO too
-	-- NOTE THAT THIS DOES NOT WORK YET!
-	grassPatchIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- order is 1 2 3 3 4 1
-	grassPatchIndexVBO:Define(grassPatchVBOsize * 6) -- 6 indices per patch
-	local indexVBO = {}
-	for i = 1, grassPatchVBOsize do
-		local baseidx = 6 * (i - 1)
-		indexVBO[baseidx + 1] = baseidx
-		indexVBO[baseidx + 2] = baseidx + 1
-		indexVBO[baseidx + 3] = baseidx + 2
-		indexVBO[baseidx + 4] = baseidx + 2
-		indexVBO[baseidx + 5] = baseidx + 3
-		indexVBO[baseidx + 6] = baseidx
+	-- The source mesh is a triangle soup (each of grassPatchVBOsize verts belongs to one
+	-- triangle, so shared quad corners are duplicated). Merge bit-identical vertices into a
+	-- unique set + index list so indexed drawing can reuse them via the post-transform cache,
+	-- cutting VS invocations per patch. UV/normal seams stay split because only fully identical
+	-- vertices merge. grassPatchVBOsize keeps meaning the index count (one index per soup vert).
+	local stride = #VBOData / grassPatchVBOsize
+	local uniqueVBOData = {}
+	local uniqueCount = 0
+	local indexList = {}
+	local vertKeyToIndex = {}
+	local keyParts = {}
+	for v = 0, grassPatchVBOsize - 1 do
+		local base = v * stride
+		for f = 1, stride do
+			keyParts[f] = VBOData[base + f]
+		end
+		local key = table.concat(keyParts, "_", 1, stride)
+		local idx = vertKeyToIndex[key]
+		if not idx then
+			idx = uniqueCount
+			vertKeyToIndex[key] = idx
+			local ubase = uniqueCount * stride
+			for f = 1, stride do
+				uniqueVBOData[ubase + f] = VBOData[base + f]
+			end
+			uniqueCount = uniqueCount + 1
+		end
+		indexList[v + 1] = idx
 	end
-	grassPatchIndexVBO:Upload(indexVBO)
 
-	grassPatchVBO:Upload(VBOData)
+	grassPatchVBO:Define(uniqueCount, VBOLayout)
+
+	grassPatchIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	grassPatchIndexVBO:Define(grassPatchVBOsize) -- one index per triangle-soup vertex
+	grassPatchIndexVBO:Upload(indexList)
+
+	grassPatchVBO:Upload(uniqueVBOData)
 end
 
 local function fsrand(a, b) -- fast, repeatable random vec2
@@ -1784,14 +1798,14 @@ function widget:DrawWorldPreUnit()
 							runCount = runCount + count
 						end
 					elseif runStart >= 0 then
-						grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, runStart)
+						grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
 						drawnInstances = drawnInstances + runCount
 						runStart, runCount = -1, 0
 					end
 				end
 			end
 			if runStart >= 0 then
-				grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, runStart)
+				grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
 				drawnInstances = drawnInstances + runCount
 			end
 		end
@@ -1804,7 +1818,7 @@ function widget:DrawWorldPreUnit()
 		if unitBendSSBO then
 			unitBendSSBO:UnbindBufferRange(6)
 		end
-		tracy.LuaTracyPlot("GrassDrawnInstances", drawnInstances)
+		--tracy.LuaTracyPlot("GrassDrawnInstances", drawnInstances)
 
 		glTexture(0, false)
 		glTexture(1, false)
