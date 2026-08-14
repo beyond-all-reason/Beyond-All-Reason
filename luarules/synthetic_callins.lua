@@ -9,10 +9,15 @@
 --  event system, in many cases, so code built on top of these foundations needs
 --  to keep up with the times and adapt as the gaps fill in from the other side.
 --
+--  This also produces two types of summary view of a base callin:
+--  1. *Post.* This is a mark-and-sweep pattern to update dirtied IDs.
+--  2. *Total.* This is an accumulator with a hook for custom results.
+--
 --  Adding a new callin:
 --  1. Add the callin's envs and subscriptions to syntheticCallins.
---  2. If using mark-and-sweep, add the callin to syntheticCallinMarks;
---     if adding up a running total, instead: to syntheticCallinTotals.
+--  2. If producing a summary view, add to syntheticCallinSummaries.
+--     This produces both the <Base>Post and <Base>Total callins and
+--     adds the custom GG.Accumulate<Base> hook later during install.
 --  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
 
@@ -76,25 +81,18 @@ end
 
 -- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
 -- We have to handle dropping tracked state, etc., during updates on our own.
+-- Update handlers receive the gadgetHandler to read their subscriber lists.
 local syntheticCallinUpdate = {}
 
 --------------------------------------------------------------------------------
---  Callin mark-and-sweep  -----------------------------------------------------
---  
---  Entries below gain the `prefixMarked`, `prefixList` and `prefixCount` tables,
---  plus a function to stop marking, which their update handler calls on removal.
+--  Callin summary views  ------------------------------------------------------
 
-local syntheticCallinMarks = {
-	UnitBuildStepPost    = 'unitStep',
-	FeatureBuildStepPost = 'featureStep',
+local syntheticCallinSummaries = {
+	UnitBuildStep    = 'unitStep',
+	FeatureBuildStep = 'featureStep',
 }
 
-local syntheticCallinTotals = {
-	UnitBuildStepTotal    = 'unitStepTotal',
-	FeatureBuildStepTotal = 'featureStepTotal',
-}
-
--- [markPrefix] := { marked, list, count, stop }
+-- [prefix] := { marked, list, count, totals, active, stop }
 local marks = {}
 
 local function makeStopMarking(marked, list, count)
@@ -106,45 +104,75 @@ local function makeStopMarking(marked, list, count)
 	end
 end
 
-local function createSweep(callinName, prefix)
+-- Subscribers within an Allow* event tend to consume the event, replacing their
+-- attempted request with a new result. Each summary view has accounting methods
+-- to report the difference: `GG.Accumulate<Base>(id, baseResult, customResult)`
+local accumulate = {}
+
+local function createSummary(callinName)
+	local prefix = syntheticCallinSummaries[callinName]
 	if not prefix then
 		return
 	end
 
-	local marked, list, count = {}, {}, { nil } -- luahax: a constant-size array
+	local marked, list, count = {}, {}, table.new(1, 0)
+	local totals, active = {}, table.new(1, 0)
 	local stop = makeStopMarking(marked, list, count)
 
-	marks[prefix] = { marked = marked, list = list, count = count, stop = stop }
+	marks[prefix] = { marked = marked, list = list, count = count, totals = totals, active = active, stop = stop }
 
-	syntheticCallinUpdate[callinName] = function(active)
-		if active then
+	accumulate['Accumulate' .. callinName] = function(id, part, result)
+		-- Call sites must not accumulate when not subscribed.
+		local n = count[1]
+		if not n then
+			return
+		end
+		if not marked[id] then
+			marked[id] = true
+			n = n + 1
+			count[1] = n
+			list[n] = id
+			if active[1] then
+				totals[id] = result
+			end
+		elseif active[1] then
+			totals[id] = (totals[id] or 0) - part + result
+		end
+	end
+
+	-- Both summary views share updates so must handle updating together.
+	local postList, totalList = callinName .. 'PostList', callinName .. 'TotalList'
+	local function update(gh)
+		if #gh[totalList] > 0 then
+			active[1] = true
+		elseif active[1] then
+			for i = 1, count[1] or 0 do
+				totals[list[i]] = nil
+			end
+			active[1] = nil
+		end
+		if #gh[postList] > 0 or active[1] then
 			count[1] = count[1] or 0
 		else
 			stop()
 		end
 	end
+	syntheticCallinUpdate[callinName .. 'Post'] = update
+	syntheticCallinUpdate[callinName .. 'Total'] = update
 end
 
-local function createMarks(callinName)
-	return createSweep(callinName, syntheticCallinMarks[callinName])
-end
-
-local function createTotals(callinName)
-	return createSweep(callinName, syntheticCallinTotals[callinName])
-end
-
--- prefix -> marked, list, count
+-- prefix -> marked, list, count, totals, active
 local function getMarks(prefix)
 	local mark = marks[prefix]
 	if not mark then
 		return
 	end
-	return mark.marked, mark.list, mark.count
+	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
 
 local function getMarksUnsafe(prefix)
 	local mark = marks[prefix]
-	return mark.marked, mark.list, mark.count
+	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
 
 --------------------------------------------------------------------------------
@@ -153,6 +181,11 @@ end
 --  The gadgetHandler is available at load time, so we implement callins here.
 --  
 --  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
+
+-- Installer contexts
+
+local sweepUnitBuildStep
+local sweepFeatureBuildStep
 
 -- Shared environment
 
@@ -171,102 +204,82 @@ end
 -- Synced environment
 
 if Script.GetSynced() then
-	createMarks('UnitBuildStepPost')
-	local unitStepMarked, unitStepList, unitStepCount = getMarksUnsafe('unitStep')
+	createSummary('UnitBuildStep')
+	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('unitStep')
+	local unitStepValues = {}
 
-	function gadgetHandler:UnitBuildStepPost()
+	function sweepUnitBuildStep(gh)
 		local count = unitStepCount[1]
 		if not count or count == 0 then
 			return
 		end
 		unitStepCount[1] = 0
 
-		-- Clear marks first so a subscriber that throws does not leave any marks.
-		for i = 1, count do
-			unitStepMarked[unitStepList[i]] = nil
+		-- Clear marks first so subscribers that throw do not leave any marks.
+		if unitStepActive[1] then
+			for i = 1, count do
+				local unitID = unitStepList[i]
+				unitStepValues[i] = unitStepTotals[unitID] or 0
+				unitStepTotals[unitID] = nil
+				unitStepMarked[unitID] = nil
+			end
+		else
+			for i = 1, count do
+				unitStepMarked[unitStepList[i]] = nil
+			end
 		end
 
 		-- Each subscriber receives the full batch at once, in layer order.
 		-- This is an optimization that scales into much higher event counts.
-		for _, g in ipairs(self.UnitBuildStepPostList) do
+		for _, g in ipairs(gh.UnitBuildStepPostList) do
 			local callin = g.UnitBuildStepPost
 			for i = 1, count do
 				callin(g, unitStepList[i])
 			end
 		end
+		for _, g in ipairs(gh.UnitBuildStepTotalList) do
+			local callin = g.UnitBuildStepTotal
+			for i = 1, count do
+				callin(g, unitStepList[i], unitStepValues[i])
+			end
+		end
 	end
 
-	createMarks('FeatureBuildStepPost')
-	local featureStepMarked, featureStepList, featureStepCount = getMarksUnsafe('featureStep')
+	createSummary('FeatureBuildStep')
+	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('featureStep')
+	local featureStepValues = {}
 
-	function gadgetHandler:FeatureBuildStepPost()
+	function sweepFeatureBuildStep(gh)
 		local count = featureStepCount[1]
 		if not count or count == 0 then
 			return
 		end
 		featureStepCount[1] = 0
 
-		-- Clear marks first so a subscriber that throws does not leave any marks.
-		for i = 1, count do
-			featureStepMarked[featureStepList[i]] = nil
+		-- Clear marks first so subscribers that throw do not leave any marks.
+		if featureStepActive[1] then
+			for i = 1, count do
+				local featureID = featureStepList[i]
+				featureStepValues[i] = featureStepTotals[featureID] or 0
+				featureStepTotals[featureID] = nil
+				featureStepMarked[featureID] = nil
+			end
+		else
+			for i = 1, count do
+				featureStepMarked[featureStepList[i]] = nil
+			end
 		end
 
-		for _, g in ipairs(self.FeatureBuildStepPostList) do
+		for _, g in ipairs(gh.FeatureBuildStepPostList) do
 			local callin = g.FeatureBuildStepPost
 			for i = 1, count do
 				callin(g, featureStepList[i])
 			end
 		end
-	end
-
-	createTotals('UnitBuildStepTotal')
-	local unitStepTotalMarked, unitStepTotalList, unitStepTotalCount = getMarksUnsafe('unitStepTotal')
-	local unitStepTotals = {}
-
-	function gadgetHandler:UnitBuildStepTotal()
-		local count = unitStepTotalCount[1]
-		if not count or count == 0 then
-			return
-		end
-		unitStepTotalCount[1] = 0
-
-		-- Clear marks first so a subscriber that throws does not leave any marks.
-		for i = 1, count do
-			local unitID = unitStepTotalList[i]
-			unitStepTotals[i] = unitStepTotalMarked[unitID]
-			unitStepTotalMarked[unitID] = nil
-		end
-
-		for _, g in ipairs(self.UnitBuildStepTotalList) do
-			local callin = g.UnitBuildStepTotal
-			for i = 1, count do
-				callin(g, unitStepTotalList[i], unitStepTotals[i])
-			end
-		end
-	end
-
-	createTotals('FeatureBuildStepTotal')
-	local featureStepTotalMarked, featureStepTotalList, featureStepTotalCount = getMarksUnsafe('featureStepTotal')
-	local featureStepTotals = {}
-
-	function gadgetHandler:FeatureBuildStepTotal()
-		local count = featureStepTotalCount[1]
-		if not count or count == 0 then
-			return
-		end
-		featureStepTotalCount[1] = 0
-
-		-- Clear marks first so a subscriber that throws does not leave any marks.
-		for i = 1, count do
-			local featureID = featureStepTotalList[i]
-			featureStepTotals[i] = featureStepTotalMarked[featureID]
-			featureStepTotalMarked[featureID] = nil
-		end
-
-		for _, g in ipairs(self.FeatureBuildStepTotalList) do
+		for _, g in ipairs(gh.FeatureBuildStepTotalList) do
 			local callin = g.FeatureBuildStepTotal
 			for i = 1, count do
-				callin(g, featureStepTotalList[i], featureStepTotals[i])
+				callin(g, featureStepList[i], featureStepValues[i])
 			end
 		end
 	end
@@ -293,7 +306,7 @@ local function install(gh)
 
 		local handleUpdate = syntheticCallinUpdate[name]
 		if handleUpdate then
-			handleUpdate(#self[name .. 'List'] > 0)
+			handleUpdate(self)
 		end
 		for _, callin in ipairs(callinHolds) do
 			self:UpdateCallIn(callin)
@@ -309,12 +322,14 @@ local function install(gh)
 		local gameFramePost = gh.GameFramePost
 		function gh:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
-			self:UnitBuildStepPost()
-			self:FeatureBuildStepPost()
-			self:UnitBuildStepTotal()
-			self:FeatureBuildStepTotal()
+			sweepUnitBuildStep(self)
+			sweepFeatureBuildStep(self)
 			tracy.ZoneEnd()
 			return gameFramePost(self, frameNum)
+		end
+
+		for name, hook in pairs(accumulate) do
+			gh.GG[name] = hook
 		end
 	end
 

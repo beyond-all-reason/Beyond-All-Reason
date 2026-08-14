@@ -480,11 +480,8 @@ end
 --  The game injects some of its own callins into the engine-driven event system:
 local synthetic = VFS.Include(SCRIPT_DIR .. 'synthetic_callins.lua', nil, VFSMODE)
 
-local unitStepMarked,    unitStepList,    unitStepCount    = synthetic.getMarks('unitStep')
-local featureStepMarked, featureStepList, featureStepCount = synthetic.getMarks('featureStep')
-
-local unitStepTotalMarked,    unitStepTotalList,    unitStepTotalCount    = synthetic.getMarks('unitStepTotal')
-local featureStepTotalMarked, featureStepTotalList, featureStepTotalCount = synthetic.getMarks('featureStepTotal')
+local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('unitStep')
+local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('featureStep')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1885,24 +1882,19 @@ end
 
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
-	local marks = unitStepCount[1]
-	if marks and not unitStepMarked[unitID] then
-		unitStepMarked[unitID] = true
-		marks = marks + 1
-		unitStepCount[1] = marks
-		unitStepList[marks] = unitID
-	end
 
-	local total = unitStepTotalMarked[unitID]
-	if total then
-		unitStepTotalMarked[unitID] = total + part
-	else
-		local totals = unitStepTotalCount[1]
-		if totals then
-			totals = totals + 1
-			unitStepTotalCount[1] = totals
-			unitStepTotalList[totals] = unitID
-			unitStepTotalMarked[unitID] = part
+	local marks = unitStepCount[1]
+	if marks then
+		if not unitStepMarked[unitID] then
+			unitStepMarked[unitID] = true
+			marks = marks + 1
+			unitStepCount[1] = marks
+			unitStepList[marks] = unitID
+			if unitStepActive[1] then
+				unitStepTotals[unitID] = part
+			end
+		elseif unitStepActive[1] then
+			unitStepTotals[unitID] = (unitStepTotals[unitID] or 0) + part
 		end
 	end
 
@@ -1912,6 +1904,7 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDe
 			return false
 		end
 	end
+
 	tracy.ZoneEnd()
 	return true
 end
@@ -1946,24 +1939,19 @@ end
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
-	local marks = featureStepCount[1]
-	if marks and not featureStepMarked[featureID] then
-		featureStepMarked[featureID] = true
-		marks = marks + 1
-		featureStepCount[1] = marks
-		featureStepList[marks] = featureID
-	end
 
-	local total = featureStepTotalMarked[featureID]
-	if total then
-		featureStepTotalMarked[featureID] = total + part
-	else
-		local totals = featureStepTotalCount[1]
-		if totals then
-			totals = totals + 1
-			featureStepTotalCount[1] = totals
-			featureStepTotalList[totals] = featureID
-			featureStepTotalMarked[featureID] = part
+	local marks = featureStepCount[1]
+	if marks then
+		if not featureStepMarked[featureID] then
+			featureStepMarked[featureID] = true
+			marks = marks + 1
+			featureStepCount[1] = marks
+			featureStepList[marks] = featureID
+			if featureStepActive[1] then
+				featureStepTotals[featureID] = part
+			end
+		elseif featureStepActive[1] then
+			featureStepTotals[featureID] = (featureStepTotals[featureID] or 0) + part
 		end
 	end
 
@@ -1973,6 +1961,7 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, 
 			return false
 		end
 	end
+
 	tracy.ZoneEnd()
 	return true
 end

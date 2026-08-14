@@ -28,7 +28,8 @@
 ---
 ---The unit can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost, batched; mark: g:AllowUnitBuildStep.
+---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
+---Dispatch: g:GameFramePost (executes in batches)
 ---@field UnitBuildStepPost? fun(self, unitID: integer)
 ---
 ---Runs once per feature that had a build step attempted that frame, whether
@@ -36,23 +37,32 @@
 ---
 ---The feature can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost, batched; mark: g:AllowFeatureBuildStep.
+---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
+---Dispatch: g:GameFramePost (executes in batches)
 ---@field FeatureBuildStepPost? fun(self, featureID: integer)
 ---
 ---Runs once per unit that had build steps attempted that frame, passing the
 ---net _total_ of the attempted parts. Steps denied by Allow* handlers still
 ---count, and contested progress can net to (about) zero.
 ---
+---Modify running totals with GG.AccumulateUnitBuildStep(id, part, result).
+---Passing part = 0 allows updating another total the step did not target.
+---
 ---The unit can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost, batched; mark: g:AllowUnitBuildStep.
+---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep
+---Dispatch: g:GameFramePost (executes in batches)
 ---@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
 ---
 ---Runs once per feature that had build steps attempted that frame, passing
 ---the net total of the attempted parts: positive toward repair and
 ---resurrection, negative toward reclaim.
 ---
+---Modify running totals with GG.AccumulateFeatureBuildStep(id, part, result).
+---Passing part = 0 allows updating another total the step did not target.
+---
 ---The feature can be dead by the time this runs, e.g. reclaimed to death.
 ---
----Dispatch: g:GameFramePost, batched; mark: g:AllowFeatureBuildStep.
+---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
+---Dispatch: g:GameFramePost (executes in batches)
 ---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
