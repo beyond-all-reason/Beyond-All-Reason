@@ -229,10 +229,7 @@ if Script.GetSynced() then
 		-- Each subscriber receives the full batch at once, in layer order.
 		-- This is an optimization that scales into much higher event counts.
 		for _, g in ipairs(handler.UnitBuildStepPostList) do
-			local callin = g.UnitBuildStepPost
-			for i = 1, count do
-				callin(g, unitStepList[i])
-			end
+			g:UnitBuildStepPost(unitStepList, count, frameNum)
 		end
 		for _, g in ipairs(handler.UnitBuildStepTotalList) do
 			g:UnitBuildStepTotal(unitStepList, unitStepValues, count, frameNum)
@@ -276,10 +273,7 @@ if Script.GetSynced() then
 		end
 
 		for _, g in ipairs(handler.FeatureBuildStepPostList) do
-			local callin = g.FeatureBuildStepPost
-			for i = 1, count do
-				callin(g, featureStepList[i])
-			end
+			g:FeatureBuildStepPost(featureStepList, count, frameNum)
 		end
 		for _, g in ipairs(handler.FeatureBuildStepTotalList) do
 			g:FeatureBuildStepTotal(featureStepList, featureStepValues, count, frameNum)
