@@ -209,6 +209,19 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 	return false
 end
 
+local function TryActionList(actionMap, actionsToTry, isRepeat, release, triggeringActions, key, scanCode)
+	for _, bAction in ipairs(actionsToTry) do
+		local cmd = bAction.command
+		local extra = bAction.extra
+		local words = string.split(extra)
+
+		if TryAction(actionMap, cmd, extra, words, isRepeat, release, triggeringActions, key, scanCode) then
+			return true
+		end
+	end
+	return false
+end
+
 function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
 	if press then
 		if not (actions and next(actions)) then
@@ -221,14 +234,8 @@ function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
 		end
 
 		local actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-		for _, bAction in ipairs(actions) do
-			local cmd = bAction.command
-			local extra = bAction.extra
-			local words = string.split(extra)
-
-			if TryAction(actionSet, cmd, extra, words, isRepeat, false, actions, key, scanCode) then
-				return true
-			end
+		if TryActionList(actionSet, actions, isRepeat, false, actions, key, scanCode) then
+			return true
 		end
 
 		return false
@@ -244,14 +251,8 @@ function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
 		return false
 	end
 
-	for _, bAction in ipairs(releaseActions) do
-		local cmd = bAction.command
-		local extra = bAction.extra
-		local words = string.split(extra)
-
-		if TryAction(self.keyReleaseActions, cmd, extra, words, false, true, releaseActions, key, scanCode) then
-			return true
-		end
+	if TryActionList(self.keyReleaseActions, releaseActions, false, true, releaseActions, key, scanCode) then
+		return true
 	end
 
 	return false
