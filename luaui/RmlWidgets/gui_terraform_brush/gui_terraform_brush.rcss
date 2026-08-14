@@ -3753,10 +3753,10 @@ margin-top: 3dp;
 	padding-bottom: 0dp;
 }
 /* Hard override channel identity colors (chip text, NOW strip name + swatch):
-   auto = neutral green, talus amber, cliff red, plateau blue. These repeat in
+   auto = neutral green, intermediate amber, cliff red, plateau blue. These repeat in
    the HARD section so the user tracks "which override am I forcing". */
 .surf-hard-text-auto    { color: #4ade80; }
-.surf-hard-text-talus   { color: #d97706; }
+.surf-hard-text-intermediate   { color: #d97706; }
 .surf-hard-text-cliff   { color: #f87171; }
 .surf-hard-text-plateau { color: #60a5fa; }
 #btn-surf-hard-ch1.active { border-color: #4ade80; background-color: #14291b; }
@@ -3764,7 +3764,7 @@ margin-top: 3dp;
 #btn-surf-hard-ch3.active { border-color: #f87171; background-color: #2b1414; }
 #btn-surf-hard-ch4.active { border-color: #60a5fa; background-color: #111f33; }
 .surf-hard-swatch-auto    { background-color: #4ade8055; border: 1dp #4ade80; }
-.surf-hard-swatch-talus   { background-color: #d9770655; border: 1dp #d97706; }
+.surf-hard-swatch-intermediate   { background-color: #d9770655; border: 1dp #d97706; }
 .surf-hard-swatch-cliff   { background-color: #f8717155; border: 1dp #f87171; }
 .surf-hard-swatch-plateau { background-color: #60a5fa55; border: 1dp #60a5fa; }
 

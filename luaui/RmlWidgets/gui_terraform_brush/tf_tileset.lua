@@ -12,23 +12,23 @@ local WG = WG
 
 -- { knob key, numbox display format }. Order is irrelevant here (lookup by key).
 local KNOBS = {
-	{ "scaleSoil", "%.0f" }, { "scaleRocky", "%.0f" }, { "scaleCliff", "%.0f" },
+	{ "scaleBase", "%.0f" }, { "scaleIntermediate", "%.0f" }, { "scaleCliff", "%.0f" },
 	{ "scalePlat", "%.0f" }, { "scaleFoot", "%.0f" },
 	-- albedo tiling per flat layer, as a multiple of that layer's shape scale
 	-- (albDecouple is the checkbox below, not a slider — same as debugView)
-	{ "albTileSoil", "%.2f" }, { "albTileRocky", "%.2f" }, { "albTilePlat", "%.2f" },
+	{ "albTileBase", "%.2f" }, { "albTileIntermediate", "%.2f" }, { "albTilePlat", "%.2f" },
 	{ "normalStrength", "%.2f" },
-	{ "soilNormStrength", "%.2f" }, { "rockyNormStrength", "%.2f" }, { "platNormStrength", "%.2f" },
+	{ "baseNormStrength", "%.2f" }, { "intermediateNormStrength", "%.2f" }, { "platNormStrength", "%.2f" },
 	{ "cliffNormStrength", "%.2f" }, { "footNormStrength", "%.2f" },
 	{ "cliffStartDeg", "%.1f" }, { "chunkyCliff", "%d" }, { "foothillsSpanDeg", "%.1f" }, { "footFloor", "%.2f" },
 	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
-	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusEvidence", "%.2f" }, { "cavityFloor", "%.2f" }, { "talusPatch", "%.2f" },
-	{ "talusStartDeg", "%.1f" }, { "talusFullDeg", "%.1f" },
+	{ "intermediateHeight", "%.2f" }, { "intermediateBlend", "%.2f" }, { "intermediateEvidence", "%.2f" }, { "cavityFloor", "%.2f" }, { "intermediateScatter", "%.2f" },
+	{ "intermediateStartDeg", "%.1f" }, { "intermediateFullDeg", "%.1f" },
 	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
 	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
 	-- 0/1 slider.
 	{ "splatInfluence", "%.2f" },
-	{ "splatPunchTalus", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
+	{ "splatPunchIntermediate", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" }, { "parallaxAmp", "%.2f" },
 	{ "macroVar", "%.2f" }, { "macroLod", "%.1f" }, { "albedoSortMode", "%d" },
 	{ "staggerAmount", "%.2f" }, { "maskScale1", "%.0f" }, { "maskScale2", "%.0f" },
@@ -40,14 +40,14 @@ local KNOBS = {
 	{ "shadowMode", "%d" }, { "shadowBias", "%.4f" },
 	{ "smtBlend", "%.2f" }, { "oldCliffBlend", "%.2f" },
 	{ "tintR", "%.2f" }, { "tintG", "%.2f" }, { "tintB", "%.2f" },
-	{ "soilTintR", "%.2f" }, { "soilTintG", "%.2f" }, { "soilTintB", "%.2f" },
-	{ "rockyTintR", "%.2f" }, { "rockyTintG", "%.2f" }, { "rockyTintB", "%.2f" },
+	{ "baseTintR", "%.2f" }, { "baseTintG", "%.2f" }, { "baseTintB", "%.2f" },
+	{ "intermediateTintR", "%.2f" }, { "intermediateTintG", "%.2f" }, { "intermediateTintB", "%.2f" },
 	{ "cliffTintR", "%.2f" }, { "cliffTintG", "%.2f" }, { "cliffTintB", "%.2f" },
 	{ "platTintR", "%.2f" }, { "platTintG", "%.2f" }, { "platTintB", "%.2f" },
 	{ "metalInfluence", "%.2f" }, { "metalness", "%.2f" }, { "metalReflect", "%.2f" },
 	{ "metalRoughMul", "%.2f" }, { "metalScale", "%.0f" }, { "metalRelief", "%.2f" },
 	{ "metalEdge", "%.2f" },
-	-- silhouette band: which terrain layer skirts a spot (0 soil, 1 talus,
+	-- silhouette band: which terrain layer skirts a spot (0 base, 1 intermediate,
 	-- 2 cliff, 3 plateau) and how much it darkens
 	{ "metalApronLayer", "%d" }, { "metalApronTone", "%.2f" },
 	{ "metalTintR", "%.2f" }, { "metalTintG", "%.2f" }, { "metalTintB", "%.2f" },
@@ -157,7 +157,7 @@ function M.sync(doc, ctx, setSummary)
 	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
 	-- this timestamp to drop that deferred echo — otherwise every programmatic
 	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
-	-- values into the knob table, compounding per swap (the "red talus area
+	-- values into the knob table, compounding per swap (the "red intermediate area
 	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
 	if stamped then uiState.tsStampFrame = Spring.GetDrawFrame() end
 

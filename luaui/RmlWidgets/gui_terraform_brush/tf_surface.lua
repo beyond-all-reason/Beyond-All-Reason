@@ -311,11 +311,11 @@ local function syncTints(doc, ctx)
 end
 
 -- HARD submode: splat channels R/G/B/A are repurposed by the tileset shader
--- as auto/talus/cliff/plateau overrides (dev_tileset_terrain splatDistrTex).
+-- as auto/intermediate/cliff/plateau overrides (dev_tileset_terrain splatDistrTex).
 -- Colors repeat on the chips + NOW strip (rcss surf-hard-*).
 local HARD_CHANNELS = {
 	{ "AUTO",    "painting removes the override \226\128\148 slope placement returns" },
-	{ "TALUS",   "forcing talus material where painted" },
+	{ "INTERMEDIATE",   "forcing intermediate material where painted" },
 	{ "CLIFF",   "forcing cliff rock where painted" },
 	{ "PLATEAU", "forcing the plateau cap where painted" },
 }

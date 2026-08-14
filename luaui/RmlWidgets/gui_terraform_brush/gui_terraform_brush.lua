@@ -1238,7 +1238,7 @@ end
 
 local function _splatToolUnavailable()
 	-- While the tileset shader owns the ground, $ssmf_splat_distr is repurposed
-	-- as its override mask (R=auto, G=talus, B=cliff, A=plateau) — the legacy
+	-- as its override mask (R=auto, G=intermediate, B=cliff, A=plateau) — the legacy
 	-- DNTS panel would paint nonsense. Hard-surface painting lives in the
 	-- SURFACE tool (HARD submode) instead, which reuses the same engine.
 	if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
@@ -2471,7 +2471,7 @@ local initialModel = {
 	surfSoftOn = false,
 	surfHardOn = false,
 	surfBiomeName = "\226\128\148",  -- active tileset biome, shown under the submode row
-	surfHardCh = 1,           -- active splat channel: 1 AUTO / 2 TALUS / 3 CLIFF / 4 PLATEAU
+	surfHardCh = 1,           -- active splat channel: 1 AUTO / 2 INTERMEDIATE / 3 CLIFF / 4 PLATEAU
 	surfHardNowName = "AUTO",
 	surfHardNowDetail = "",
 	surfHardAvoidWater = false,
@@ -6970,7 +6970,7 @@ local initialModel = {
 		end
 	end,
 	-- LAYERS tool: paints the tileset shader's splat-override channels
-	-- (R=auto, G=talus, B=cliff, A=plateau) through the Splat Painter engine,
+	-- (R=auto, G=intermediate, B=cliff, A=plateau) through the Splat Painter engine,
 	-- reused headless. The splat engine keeps full ownership of mouse/keys/draw
 	-- while active; widgetState.surfHardActive pins the shared panel to 'surf'
 	-- (surfMode == 'hard' sections) so the legacy SPLAT panel never opens.
@@ -7208,7 +7208,7 @@ local initialModel = {
 	-- look without having to reset the three sliders.
 	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The
 	-- guard is one-way — soft strokes sweep around cliff bodies, painted CLIFF
-	-- always lands — so this only ever governs talus/plateau paint.
+	-- always lands — so this only ever governs intermediate/plateau paint.
 	onTsToggleCliffProtect = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then return end
 		local knobs = WG.TilesetTerrain.getKnobs()
@@ -8361,7 +8361,7 @@ local guideHints = {
 	["btn-ramp"]        = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
 	["btn-restore"]     = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
 	["btn-noise"]       = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
-	["btn-erode"]       = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural talus aprons.",
+	["btn-erode"]       = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
 	["btn-passthrough"]  = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"]    = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
@@ -8381,17 +8381,17 @@ local guideHints = {
 	["btn-units"]       = "Coming soon: place and arrange units on the map (ubdev-style unit placer panel).",
 	-- SURFACE tool (tileset variant paint)
 	["btn-surface"]     = "Paint soft-surface VARIANTS of the active tileset biome over the automatic base. Hard surfaces (cliffs and the intermediary) belong to LAYERS — this brush never touches them.",
-	["btn-layers"]      = "Paint the tileset shader's hard-surface override channels — force talus, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
+	["btn-layers"]      = "Paint the tileset shader's hard-surface override channels — force intermediate, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
 	["btn-surf-preset-dot"]  = "DOT: small brush, low strength, soft falloff — the ZBrush-2% workflow. Dot variants in lightly so the base stays dominant.",
 	["btn-surf-preset-wash"] = "WASH: large brush at very low strength for broad, subtle variant drift.",
 	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
 	["btn-surf-erase"]  = "Erase mode: strokes return the surface to the BASE variant. Right-click always erases.",
 	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
-	["btn-ts-cliff-protect"] = "Keep soft strokes (talus, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
+	["btn-ts-cliff-protect"] = "Keep soft strokes (intermediate, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
 	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
 	-- HARD SURFACES section (LAYERS tool)
 	["btn-surf-hard-ch1"]  = "AUTO: painting removes any override so the shader's slope-driven surface returns.",
-	["btn-surf-hard-ch2"]  = "TALUS: force the talus/scree material where painted, regardless of slope.",
+	["btn-surf-hard-ch2"]  = "INTERMEDIATE: force the intermediate (scree) material where painted, regardless of slope.",
 	["btn-surf-hard-ch3"]  = "CLIFF: force cliff rock where painted, regardless of slope.",
 	["btn-surf-hard-ch4"]  = "PLATEAU: force the plateau cap material where painted, regardless of height.",
 	["btn-surf-hard-water"]  = "Skip pixels below water level while painting hard overrides.",
@@ -8402,7 +8402,7 @@ local guideHints = {
 	["btn-surf-hard-redo"] = "Redo a hard-override stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
 	["btn-surf-hard-save"] = "Export the splat distribution texture (override mask) to Terraform Brush/Splats/.",
 	["btn-ts-shader"] = "Master switch: render the ground with the tileset shader. Off hands the ground back to the engine, so old maps keep their own textures.",
-	["btn-ts-paint-surfaces"] = "Switch to the SURFACE tool: paint soft-top variants on the tileset ground. Needs the shader on. Hard talus/cliff/plateau overrides live in the LAYERS tool.",
+	["btn-ts-paint-surfaces"] = "Switch to the SURFACE tool: paint soft-top variants on the tileset ground. Needs the shader on. Hard intermediate/cliff/plateau overrides live in the LAYERS tool.",
 	-- SHAPE buttons
 	["btn-circle"]      = "Round brush with smooth radial falloff. The most natural-looking shape for hills and depressions.",
 	["btn-square"]      = "Square brush with hard corners. Great for angular structures, walls and grid-aligned terrain edits.",

@@ -1952,7 +1952,7 @@
 			<div id="section-erode">
 			<div class="flex flex-row justify-between items-center mb-1">
 				<div class="text-lg text-light">REPOSE ANGLE: <span class="text-xl font-bold">{{tfErodeReposeStr}}</span></div>
-				<div class="text-sm text-keybind">talus slope</div>
+				<div class="text-sm text-keybind">intermediate slope</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-erode-repose-down" class="tf-sm-btn" data-event-mousedown="onTfErodeReposeDown()">
@@ -5169,7 +5169,7 @@
 			     intermediary) are the LAYERS tool's business, not this one's.
 			     Both tools share this panel: SURFACE shows the surfMode == 'soft'
 			     sections, LAYERS (splat-override channels of the tileset shader,
-			     R=auto G=talus B=cliff A=plateau via the Splat Painter engine)
+			     R=auto G=intermediate B=cliff A=plateau via the Splat Painter engine)
 			     shows the 'hard' ones. The old SOFT|HARD switcher is gone — the
 			     two tool buttons in the TOOLS grid pick the mode directly. -->
 			<div id="tf-surface-controls" data-if="activeTool == 'surf'">
@@ -5193,9 +5193,9 @@
 						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — hard strokes drive the legacy DNTS splats instead of tileset overrides. Flip the SHADER switch in the TILESET window (SCENE menu).</div>
 						<!-- NOW PAINTING (hard): what the next stroke forces -->
 						<div id="surf-hard-now-strip" class="surf-now-strip mb-1">
-							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-talus="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4"></div>
+							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-intermediate="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4"></div>
 							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-talus="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4">{{surfHardNowName}}</div>
+								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-intermediate="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4">{{surfHardNowName}}</div>
 								<div class="text-base text-light" style="opacity: 0.7;">{{surfHardNowDetail}}</div>
 							</div>
 						</div>
@@ -5205,7 +5205,7 @@
 								<div class="tf-btn-text surf-hard-text-auto">AUTO</div>
 							</div>
 							<div id="btn-surf-hard-ch2" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 2" data-event-mousedown="onSurfHardChannel(2)">
-								<div class="tf-btn-text surf-hard-text-talus">TALUS</div>
+								<div class="tf-btn-text surf-hard-text-intermediate">INTERMEDIATE</div>
 							</div>
 							<div id="btn-surf-hard-ch3" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 3" data-event-mousedown="onSurfHardChannel(3)">
 								<div class="tf-btn-text surf-hard-text-cliff">CLIFF</div>
@@ -5214,7 +5214,7 @@
 								<div class="tf-btn-text surf-hard-text-plateau">PLATEAU</div>
 							</div>
 						</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. TALUS / CLIFF / PLATEAU force that material where painted.</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. INTERMEDIATE / CLIFF / PLATEAU force that material where painted.</div>
 						<!-- Smart filters (Splat Painter engine set) -->
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">SMART FILTERS</div>
 						<div class="flex flex-row items-center gap-1 mb-1">
@@ -5651,14 +5651,14 @@
 					</div>
 					<div id="section-ts-scale">
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil scale</div>
-							<input type="range" id="ts-slider-scaleSoil" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleSoil')" />
-							<input type="text" id="ts-slider-scaleSoil-numbox" class="tf-slider-numbox" readonly value="512" />
+							<div class="tf-slider-label text-light">Base scale</div>
+							<input type="range" id="ts-slider-scaleBase" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleBase')" />
+							<input type="text" id="ts-slider-scaleBase-numbox" class="tf-slider-numbox" readonly value="512" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Gravel scale</div>
-							<input type="range" id="ts-slider-scaleRocky" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleRocky')" />
-							<input type="text" id="ts-slider-scaleRocky-numbox" class="tf-slider-numbox" readonly value="512" />
+							<div class="tf-slider-label text-light">Intermediate scale</div>
+							<input type="range" id="ts-slider-scaleIntermediate" class="tf-slider" min="128" max="10000" step="16" value="512" data-event-change="onTilesetKnob('scaleIntermediate')" />
+							<input type="text" id="ts-slider-scaleIntermediate-numbox" class="tf-slider-numbox" readonly value="512" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Cliff scale</div>
@@ -5681,14 +5681,14 @@
 						</div>
 						<div class="text-base text-light" style="opacity: 0.7;">Scales above size the shape (normal + AO). These tile the albedo inside it: 0.3 = three times finer.</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil albedo x</div>
-							<input type="range" id="ts-slider-albTileSoil" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileSoil')" />
-							<input type="text" id="ts-slider-albTileSoil-numbox" class="tf-slider-numbox" readonly value="1.00" />
+							<div class="tf-slider-label text-light">Base albedo x</div>
+							<input type="range" id="ts-slider-albTileBase" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileBase')" />
+							<input type="text" id="ts-slider-albTileBase-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Gravel albedo x</div>
-							<input type="range" id="ts-slider-albTileRocky" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileRocky')" />
-							<input type="text" id="ts-slider-albTileRocky-numbox" class="tf-slider-numbox" readonly value="1.00" />
+							<div class="tf-slider-label text-light">Intermediate albedo x</div>
+							<input type="range" id="ts-slider-albTileIntermediate" class="tf-slider" min="0.1" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('albTileIntermediate')" />
+							<input type="text" id="ts-slider-albTileIntermediate-numbox" class="tf-slider-numbox" readonly value="1.00" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Plateau albedo x</div>
@@ -5710,14 +5710,14 @@
 							<input type="text" id="ts-slider-normalStrength-numbox" class="tf-slider-numbox" readonly value="0.65" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil norm str</div>
-							<input type="range" id="ts-slider-soilNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('soilNormStrength')" />
-							<input type="text" id="ts-slider-soilNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
+							<div class="tf-slider-label text-light">Base norm str</div>
+							<input type="range" id="ts-slider-baseNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('baseNormStrength')" />
+							<input type="text" id="ts-slider-baseNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Rocky norm str</div>
-							<input type="range" id="ts-slider-rockyNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('rockyNormStrength')" />
-							<input type="text" id="ts-slider-rockyNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
+							<div class="tf-slider-label text-light">Intermediate norm str</div>
+							<input type="range" id="ts-slider-intermediateNormStrength" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('intermediateNormStrength')" />
+							<input type="text" id="ts-slider-intermediateNormStrength-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Plateau norm str</div>
@@ -5773,19 +5773,19 @@
 					</div>
 					<div id="section-ts-place" class="hidden">
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Gravel height</div>
-								<input type="range" id="ts-slider-gravelHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.30" data-event-change="onTilesetKnob('gravelHeight')" />
-								<input type="text" id="ts-slider-gravelHeight-numbox" class="tf-slider-numbox" readonly value="0.30" />
+								<div class="tf-slider-label text-light">Intermediate height</div>
+								<input type="range" id="ts-slider-intermediateHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.30" data-event-change="onTilesetKnob('intermediateHeight')" />
+								<input type="text" id="ts-slider-intermediateHeight-numbox" class="tf-slider-numbox" readonly value="0.30" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Gravel blend</div>
-								<input type="range" id="ts-slider-gravelBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('gravelBlend')" />
-								<input type="text" id="ts-slider-gravelBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
+								<div class="tf-slider-label text-light">Intermediate blend</div>
+								<input type="range" id="ts-slider-intermediateBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('intermediateBlend')" />
+								<input type="text" id="ts-slider-intermediateBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Talus evidence</div>
-								<input type="range" id="ts-slider-talusEvidence" class="tf-slider" min="0" max="1" step="0.01" value="1.00" data-event-change="onTilesetKnob('talusEvidence')" />
-								<input type="text" id="ts-slider-talusEvidence-numbox" class="tf-slider-numbox" readonly value="1.00" />
+								<div class="tf-slider-label text-light">Intermediate evidence</div>
+								<input type="range" id="ts-slider-intermediateEvidence" class="tf-slider" min="0" max="1" step="0.01" value="1.00" data-event-change="onTilesetKnob('intermediateEvidence')" />
+								<input type="text" id="ts-slider-intermediateEvidence-numbox" class="tf-slider-numbox" readonly value="1.00" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="tf-slider-label text-light">Cavity floor</div>
@@ -5793,19 +5793,19 @@
 								<input type="text" id="ts-slider-cavityFloor-numbox" class="tf-slider-numbox" readonly value="0.30" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Talus scatter</div>
-								<input type="range" id="ts-slider-talusPatch" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.9" data-event-change="onTilesetKnob('talusPatch')" />
-								<input type="text" id="ts-slider-talusPatch-numbox" class="tf-slider-numbox" readonly value="0.9" />
+								<div class="tf-slider-label text-light">Intermediate scatter</div>
+								<input type="range" id="ts-slider-intermediateScatter" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.9" data-event-change="onTilesetKnob('intermediateScatter')" />
+								<input type="text" id="ts-slider-intermediateScatter-numbox" class="tf-slider-numbox" readonly value="0.9" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Talus start</div>
-								<input type="range" id="ts-slider-talusStartDeg" class="tf-slider" min="5" max="45" step="0.1" value="23.1" data-event-change="onTilesetKnob('talusStartDeg')" />
-								<input type="text" id="ts-slider-talusStartDeg-numbox" class="tf-slider-numbox" readonly value="23.1" />
+								<div class="tf-slider-label text-light">Intermediate start</div>
+								<input type="range" id="ts-slider-intermediateStartDeg" class="tf-slider" min="5" max="45" step="0.1" value="23.1" data-event-change="onTilesetKnob('intermediateStartDeg')" />
+								<input type="text" id="ts-slider-intermediateStartDeg-numbox" class="tf-slider-numbox" readonly value="23.1" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Talus full</div>
-								<input type="range" id="ts-slider-talusFullDeg" class="tf-slider" min="10" max="60" step="0.1" value="45.6" data-event-change="onTilesetKnob('talusFullDeg')" />
-								<input type="text" id="ts-slider-talusFullDeg-numbox" class="tf-slider-numbox" readonly value="45.6" />
+								<div class="tf-slider-label text-light">Intermediate full</div>
+								<input type="range" id="ts-slider-intermediateFullDeg" class="tf-slider" min="10" max="60" step="0.1" value="45.6" data-event-change="onTilesetKnob('intermediateFullDeg')" />
+								<input type="text" id="ts-slider-intermediateFullDeg-numbox" class="tf-slider-numbox" readonly value="45.6" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="tf-slider-label text-light">Plateau height</div>
@@ -5841,11 +5841,11 @@
 								<div class="tf-btn-text">PROTECT CLIFFS</div>
 							</div>
 						</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;">Soft strokes (talus, plateau) sweep around cliff bodies instead of eating them. Painting CLIFF is a force and always lands, protected or not.</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">Soft strokes (intermediate, plateau) sweep around cliff bodies instead of eating them. Painting CLIFF is a force and always lands, protected or not.</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Punch talus</div>
-							<input type="range" id="ts-slider-splatPunchTalus" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.55" data-event-change="onTilesetKnob('splatPunchTalus')" />
-							<input type="text" id="ts-slider-splatPunchTalus-numbox" class="tf-slider-numbox" readonly value="0.55" />
+							<div class="tf-slider-label text-light">Punch intermediate</div>
+							<input type="range" id="ts-slider-splatPunchIntermediate" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.55" data-event-change="onTilesetKnob('splatPunchIntermediate')" />
+							<input type="text" id="ts-slider-splatPunchIntermediate-numbox" class="tf-slider-numbox" readonly value="0.55" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Punch cliff</div>
@@ -6038,34 +6038,34 @@
 					</div>
 					<div id="section-ts-tints" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil R</div>
-							<input type="range" id="ts-slider-soilTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('soilTintR')" />
-							<input type="text" id="ts-slider-soilTintR-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Base R</div>
+							<input type="range" id="ts-slider-baseTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('baseTintR')" />
+							<input type="text" id="ts-slider-baseTintR-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil G</div>
-							<input type="range" id="ts-slider-soilTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('soilTintG')" />
-							<input type="text" id="ts-slider-soilTintG-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Base G</div>
+							<input type="range" id="ts-slider-baseTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('baseTintG')" />
+							<input type="text" id="ts-slider-baseTintG-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Soil B</div>
-							<input type="range" id="ts-slider-soilTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('soilTintB')" />
-							<input type="text" id="ts-slider-soilTintB-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Base B</div>
+							<input type="range" id="ts-slider-baseTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('baseTintB')" />
+							<input type="text" id="ts-slider-baseTintB-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Gravel R</div>
-							<input type="range" id="ts-slider-rockyTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('rockyTintR')" />
-							<input type="text" id="ts-slider-rockyTintR-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Intermediate R</div>
+							<input type="range" id="ts-slider-intermediateTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('intermediateTintR')" />
+							<input type="text" id="ts-slider-intermediateTintR-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Gravel G</div>
-							<input type="range" id="ts-slider-rockyTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('rockyTintG')" />
-							<input type="text" id="ts-slider-rockyTintG-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Intermediate G</div>
+							<input type="range" id="ts-slider-intermediateTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('intermediateTintG')" />
+							<input type="text" id="ts-slider-intermediateTintG-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Gravel B</div>
-							<input type="range" id="ts-slider-rockyTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('rockyTintB')" />
-							<input type="text" id="ts-slider-rockyTintB-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							<div class="tf-slider-label text-light">Intermediate B</div>
+							<input type="range" id="ts-slider-intermediateTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('intermediateTintB')" />
+							<input type="text" id="ts-slider-intermediateTintB-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Cliff R</div>
