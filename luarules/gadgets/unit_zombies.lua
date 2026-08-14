@@ -862,21 +862,22 @@ local function clearAllOrders()
 	end
 end
 
-function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	local featureData = corpsesData[featureID]
-	if featureData then
-		if not featureData.tamperedFrame then
-			local remainingFrames = featureData.spawnFrame - gameFrame
-			if remainingFrames < featureData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
-				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-				if featureX then
-					spSpawnCEG("scaspawn-trail", featureX, featureY + 15, featureZ, 0, 0, 0)
+function gadget:FeatureBuildStepPost(featureIDs, count, frame)
+	for i = 1, count do
+		local featureData = corpsesData[featureIDs[i]]
+		if featureData then
+			if not featureData.tamperedFrame then
+				local remainingFrames = featureData.spawnFrame - frame
+				if remainingFrames < featureData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
+					local featureX, featureY, featureZ = spGetFeaturePosition(featureIDs[i])
+					if featureX then
+						spSpawnCEG("scaspawn-trail", featureX, featureY + 15, featureZ, 0, 0, 0)
+					end
 				end
 			end
+			featureData.tamperedFrame = frame
 		end
-		featureData.tamperedFrame = gameFrame
 	end
-	return true
 end
 
 function UnitEnteredAir(unitID)
