@@ -104,9 +104,6 @@ local function makeStopMarking(marked, list, count)
 	end
 end
 
--- Subscribers within an Allow* event tend to consume the event, replacing their
--- attempted request with a new result. Each summary view has accounting methods
--- to report the difference: `GG.Accumulate<Base>(id, baseResult, customResult)`
 local accumulate = {}
 
 local function createSummary(callinName)
@@ -120,7 +117,7 @@ local function createSummary(callinName)
 
 	marks[callinName] = { marked = marked, list = list, count = count, totals = totals, active = active, stop = stop }
 
-	accumulate['Accumulate' .. callinName] = function(id, part, result)
+	accumulate['Accumulate' .. callinName] = function(id, amount)
 		-- Call sites must not accumulate when not subscribed.
 		local n = count[1]
 		if not n then
@@ -132,10 +129,10 @@ local function createSummary(callinName)
 			count[1] = n
 			list[n] = id
 			if active[1] then
-				totals[id] = result
+				totals[id] = amount
 			end
 		elseif active[1] then
-			totals[id] = (totals[id] or 0) - part + result
+			totals[id] = (totals[id] or 0) + amount
 		end
 	end
 
@@ -208,7 +205,7 @@ if Script.GetSynced() then
 	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
 	local unitStepValues = {}
 
-	function sweepUnitBuildStep(gh)
+	function sweepUnitBuildStep(handler, frameNum)
 		local count = unitStepCount[1]
 		if not count or count == 0 then
 			return
@@ -231,17 +228,14 @@ if Script.GetSynced() then
 
 		-- Each subscriber receives the full batch at once, in layer order.
 		-- This is an optimization that scales into much higher event counts.
-		for _, g in ipairs(gh.UnitBuildStepPostList) do
+		for _, g in ipairs(handler.UnitBuildStepPostList) do
 			local callin = g.UnitBuildStepPost
 			for i = 1, count do
 				callin(g, unitStepList[i])
 			end
 		end
-		for _, g in ipairs(gh.UnitBuildStepTotalList) do
-			local callin = g.UnitBuildStepTotal
-			for i = 1, count do
-				callin(g, unitStepList[i], unitStepValues[i])
-			end
+		for _, g in ipairs(handler.UnitBuildStepTotalList) do
+			g:UnitBuildStepTotal(unitStepList, unitStepValues, count, frameNum)
 		end
 
 		-- Shift any re-marks made during dispatch into the next batch.
@@ -260,7 +254,7 @@ if Script.GetSynced() then
 	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
 	local featureStepValues = {}
 
-	function sweepFeatureBuildStep(gh)
+	function sweepFeatureBuildStep(handler, frameNum)
 		local count = featureStepCount[1]
 		if not count or count == 0 then
 			return
@@ -281,17 +275,14 @@ if Script.GetSynced() then
 			end
 		end
 
-		for _, g in ipairs(gh.FeatureBuildStepPostList) do
+		for _, g in ipairs(handler.FeatureBuildStepPostList) do
 			local callin = g.FeatureBuildStepPost
 			for i = 1, count do
 				callin(g, featureStepList[i])
 			end
 		end
-		for _, g in ipairs(gh.FeatureBuildStepTotalList) do
-			local callin = g.FeatureBuildStepTotal
-			for i = 1, count do
-				callin(g, featureStepList[i], featureStepValues[i])
-			end
+		for _, g in ipairs(handler.FeatureBuildStepTotalList) do
+			g:FeatureBuildStepTotal(featureStepList, featureStepValues, count, frameNum)
 		end
 
 		-- Shift any re-marks made during dispatch into the next batch.
@@ -344,8 +335,8 @@ local function install(gh)
 		local gameFramePost = gh.GameFramePost
 		function gh:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
-			sweepUnitBuildStep(self)
-			sweepFeatureBuildStep(self)
+			sweepUnitBuildStep(self, frameNum)
+			sweepFeatureBuildStep(self, frameNum)
 			tracy.ZoneEnd()
 			return gameFramePost(self, frameNum)
 		end
