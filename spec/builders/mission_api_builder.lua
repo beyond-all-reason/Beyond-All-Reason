@@ -23,17 +23,21 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field ActionDefinitions table
 ---@field TriggerDefinitions table
 ---@field Modules table
----@field _spawnUnitCalls table
----@field _spawnFeatureCalls table
----@field _convertOrdersCalls table
----@field _playSoundCalls table
----@field _enqueueSoundCalls table
----@field _processSoundQueueCalls table
----@field _changeStageCalls table
----@field _tryAdvanceCalls table
----@field _updateProgressCalls table
----@field _echoCalls table
+---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
+
+--- Recorded calls, keyed by the module stub that produced them.
+---@class MissionApiMockCalls
+---@field spawnUnitLoadout table
+---@field spawnFeatureLoadout table
+---@field convertOrdersTargetingNames table
+---@field playSound table
+---@field enqueueSound table
+---@field processSoundQueue table
+---@field changeStage table
+---@field tryAdvanceStage table
+---@field updateObjectiveProgress table
+---@field echoObjectiveUpdate table
 
 ---@class MissionApiBuilder
 local MB = {}
@@ -413,16 +417,20 @@ function MB:Build()
         TriggerDefinitions  = instance.triggerDefinitions,
         Modules             = modules,
 
-        _spawnUnitCalls         = spawnUnitCalls,
-        _spawnFeatureCalls      = spawnFeatureCalls,
-        _convertOrdersCalls     = convertOrdersCalls,
-        _playSoundCalls         = playSoundCalls,
-        _enqueueSoundCalls      = enqueueSoundCalls,
-        _processSoundQueueCalls = processSoundQueueCalls,
-        _changeStageCalls       = changeStageCalls,
-        _tryAdvanceCalls        = tryAdvanceCalls,
-        _updateProgressCalls    = updateProgressCalls,
-        _echoCalls              = echoCalls,
+        --- Recorded module calls, keyed by the stub they came from:
+        --- `calls.playSound` records `Modules.Sounds.PlaySound`.
+        calls = {
+            spawnUnitLoadout            = spawnUnitCalls,
+            spawnFeatureLoadout         = spawnFeatureCalls,
+            convertOrdersTargetingNames = convertOrdersCalls,
+            playSound                   = playSoundCalls,
+            enqueueSound                = enqueueSoundCalls,
+            processSoundQueue           = processSoundQueueCalls,
+            changeStage                 = changeStageCalls,
+            tryAdvanceStage             = tryAdvanceCalls,
+            updateObjectiveProgress     = updateProgressCalls,
+            echoObjectiveUpdate         = echoCalls,
+        },
     }
 
     mock.clearCalls = function()

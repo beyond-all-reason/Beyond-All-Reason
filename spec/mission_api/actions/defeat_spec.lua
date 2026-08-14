@@ -27,8 +27,8 @@ describe("mission_api.actions.defeat", function()
         it("calls GameOver with teams not in the losing list", function()
             Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
             action.actionFunction({ 1 })  -- ally team 1 loses; 0 and 2 win
-            assert.are.equal(1, #Spring._gameOverCalls)
-            local winners = Spring._gameOverCalls[1]
+            assert.are.equal(1, #Spring.calls.gameOver)
+            local winners = Spring.calls.gameOver[1]
             -- order may vary, so check membership
             local found0, found2 = false, false
             for _, v in ipairs(winners) do
@@ -43,14 +43,14 @@ describe("mission_api.actions.defeat", function()
         it("passes no winners when all teams are in the losing list", function()
             Spring.GetAllyTeamList = function() return { 0, 1 } end
             action.actionFunction({ 0, 1 })
-            assert.are.equal(1, #Spring._gameOverCalls)
-            assert.are.equal(0, #Spring._gameOverCalls[1])
+            assert.are.equal(1, #Spring.calls.gameOver)
+            assert.are.equal(0, #Spring.calls.gameOver[1])
         end)
 
         it("passes all teams as winners when no teams are in the losing list", function()
             Spring.GetAllyTeamList = function() return { 0, 1 } end
             action.actionFunction({})
-            local winners = Spring._gameOverCalls[1]
+            local winners = Spring.calls.gameOver[1]
             assert.are.equal(2, #winners)
         end)
     end)

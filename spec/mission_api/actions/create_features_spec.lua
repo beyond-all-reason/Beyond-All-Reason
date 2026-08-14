@@ -27,8 +27,8 @@ describe("mission_api.actions.create_features", function()
         it("calls Loadout.SpawnFeatureLoadout with the given loadout", function()
             local loadout = { { featureDefName = 'rock', x = 0, z = 0 } }
             action.actionFunction(loadout)
-            assert.are.equal(1, #missionApi._spawnFeatureCalls)
-            assert.are.same(loadout, missionApi._spawnFeatureCalls[1].loadout)
+            assert.are.equal(1, #missionApi.calls.spawnFeatureLoadout)
+            assert.are.same(loadout, missionApi.calls.spawnFeatureLoadout[1].loadout)
         end)
     end)
 

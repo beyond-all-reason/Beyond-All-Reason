@@ -14,7 +14,7 @@ describe("mission_api.actions.change_stage", function()
 
     before_each(function()
         local missionApi = Builders.MissionApi.new():Install()
-        changeStageCalls = missionApi._changeStageCalls
+        changeStageCalls = missionApi.calls.changeStage
     end)
 
     it("declares its type and parameters", function()

@@ -30,8 +30,8 @@ describe("mission_api.actions.draw_lines", function()
                 { x = 5, y = 10, z = 5 },
             }
             action.actionFunction(positions)
-            assert.are.equal(1, #Spring._lineCalls)
-            local l = Spring._lineCalls[1]
+            assert.are.equal(1, #Spring.calls.markerAddLine)
+            local l = Spring.calls.markerAddLine[1]
             assert.are.equal(0, l.x1)
             assert.are.equal(5, l.x2)
             assert.are.equal(5, l.z2)
@@ -45,7 +45,7 @@ describe("mission_api.actions.draw_lines", function()
                 { x = 3, y = 0, z = 0 },
             }
             action.actionFunction(positions)
-            assert.are.equal(3, #Spring._lineCalls)
+            assert.are.equal(3, #Spring.calls.markerAddLine)
         end)
 
         it("connects consecutive positions in order", function()
@@ -55,15 +55,15 @@ describe("mission_api.actions.draw_lines", function()
                 { x = 30, y = 0, z = 30 },
             }
             action.actionFunction(positions)
-            assert.are.equal(10, Spring._lineCalls[1].x1)
-            assert.are.equal(20, Spring._lineCalls[1].x2)
-            assert.are.equal(20, Spring._lineCalls[2].x1)
-            assert.are.equal(30, Spring._lineCalls[2].x2)
+            assert.are.equal(10, Spring.calls.markerAddLine[1].x1)
+            assert.are.equal(20, Spring.calls.markerAddLine[1].x2)
+            assert.are.equal(20, Spring.calls.markerAddLine[2].x1)
+            assert.are.equal(30, Spring.calls.markerAddLine[2].x2)
         end)
 
         it("draws no lines for a single position", function()
             action.actionFunction({ { x = 0, y = 0, z = 0 } })
-            assert.are.equal(0, #Spring._lineCalls)
+            assert.are.equal(0, #Spring.calls.markerAddLine)
         end)
     end)
 

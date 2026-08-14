@@ -14,19 +14,27 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field GetUnitDefNames fun(): table<string, { id: number }>
 ---@field GetPlayerListUnpacked fun(): TeamData[]?
 ---@field GetPlayerIdsList fun(): number[]?
----@field _builtTeams table
----@field _addCalls table
----@field _useCalls table
----@field _markerCalls table
----@field _lineCalls table
----@field _gameOverCalls table
----@field _explosionCalls table
----@field _giveOrderCalls table
----@field _transferCalls table
----@field _noSelectCalls table
+---@field builtTeams table
+---@field calls SpringSyncedMockCalls
 ---@field clearResourceCalls fun()
 ---@field clearCalls fun()
 ---@field GetLoggedMessages fun(): table
+
+--- Recorded calls, keyed by the mocked engine function that produced them.
+---@class SpringSyncedMockCalls
+---@field addTeamResource table
+---@field useTeamResource table
+---@field markerAddPoint table
+---@field markerAddLine table
+---@field gameOver table
+---@field spawnExplosion table
+---@field giveOrderArrayToUnitMap table
+---@field transferUnit table
+---@field setUnitNoSelect table
+---@field markerErasePosition table
+---@field sendCommands table
+---@field destroyFeature table
+---@field destroyUnit table
 
 ---@class SpringSyncedBuilder : SpringSyncedMock
 ---@field modOptions table
@@ -235,7 +243,7 @@ function SB:BuildSpring()
         builtTeams[teamId] = teamBuilder:Build()
     end
     -- Store built teams for access by other functions
-    instance._builtTeams = builtTeams
+    instance.builtTeams = builtTeams
 
     -- Integrate real unit definitions into built teams if available
     if instance._globalUnitDefs then
@@ -427,20 +435,24 @@ function SB:BuildSpring()
             return instance._globalUnitDefNames
         end,
 
-        _builtTeams = builtTeams,
-        _addCalls = addCalls,
-        _useCalls = useCalls,
+        builtTeams = builtTeams,
+        --- Recorded engine calls, keyed by the mocked function they came from:
+        --- `spring.calls.setUnitNoSelect` records `Spring.SetUnitNoSelect`.
+        calls = {
+            addTeamResource         = addCalls,
+            useTeamResource         = useCalls,
+            markerAddPoint          = markerCalls,
+            markerAddLine           = lineCalls,
+            gameOver                = gameOverCalls,
+            spawnExplosion          = explosionCalls,
+            giveOrderArrayToUnitMap = giveOrderCalls,
+            transferUnit            = transferCalls,
+            setUnitNoSelect         = noSelectCalls,
+        },
         clearResourceCalls = function()
             for i = #addCalls, 1, -1 do addCalls[i] = nil end
             for i = #useCalls, 1, -1 do useCalls[i] = nil end
         end,
-        _markerCalls = markerCalls,
-        _lineCalls = lineCalls,
-        _gameOverCalls = gameOverCalls,
-        _explosionCalls = explosionCalls,
-        _giveOrderCalls = giveOrderCalls,
-        _transferCalls = transferCalls,
-        _noSelectCalls = noSelectCalls,
         clearCalls = function()
             local tracked = {
                 addCalls, useCalls, markerCalls, lineCalls,
@@ -547,6 +559,31 @@ function SB:BuildSpring()
 
         SetUnitNoSelect = function(unitID, noSelect)
             table.insert(noSelectCalls, { unitID = unitID, noSelect = noSelect })
+        end,
+
+        MarkerErasePosition = function(x, y, z)
+            table.insert(eraseCalls, { x = x, y = y, z = z })
+        end,
+
+        SendCommands = function(command)
+            table.insert(sendCommandsCalls, command)
+        end,
+
+        DestroyFeature = function(featureID)
+            table.insert(destroyFeatureCalls, featureID)
+        end,
+
+        ValidFeatureID = function(featureID)
+            return instance.validFeatures[featureID] == true
+        end,
+
+        DestroyUnit = function(unitID, selfDestruct, despawn)
+            table.insert(destroyUnitCalls, { unitID = unitID, selfDestruct = selfDestruct, despawn = despawn })
+        end,
+
+        -- Units are alive unless a spec overrides this; nothing here models death.
+        GetUnitIsDead = function(unitID)
+            return false
         end,
 
         MarkerAddPoint = function(x, y, z, label, localOnly)
