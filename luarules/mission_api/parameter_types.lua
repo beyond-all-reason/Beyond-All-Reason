@@ -40,15 +40,28 @@ local types = {
 
 	-- Function Validators:
 	Function = 'Function',
+
 }
 
 local enums = {
 	[types.Facing] = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true },
-	[types.ResourceIncomeSources] = { extractor = true, production = true, reclaim = true, transfer = true },
-	[types.SensorTypes] = { vision = true, radar = true, seismic = true },
 }
+
+local enumSets = {
+	[types.ResourceIncomeSources] = { 'extractor', 'production', 'reclaim', 'transfer' },
+	[types.SensorTypes] = { 'vision', 'radar', 'seismic' },
+}
+
+for enumSetName, enumSetValues in pairs(enumSets) do
+	local valueSet = {}
+	for _, value in ipairs(enumSetValues) do
+		valueSet[value] = true
+	end
+	enums[enumSetName] = valueSet
+end
 
 return {
 	Types = types,
 	Enums = enums,
+	EnumSets = enumSets,
 }
