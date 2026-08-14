@@ -295,19 +295,19 @@ end
 --------------------------------------------------------------------------------
 --  Install  -------------------------------------------------------------------
 
-local function install(gh)
-	local updateCallIn = gh.UpdateCallIn
+local function install(handler)
+	local updateCallIn = handler.UpdateCallIn
 
 	---Synthetic callins have no engine hook, so they update their holds instead.
-	function gh:UpdateCallIn(name)
+	function handler:UpdateCallIn(name)
 		local callinHolds = syntheticCallinHold[name]
 		if not callinHolds then
 			return updateCallIn(self, name)
 		end
 
-		local handleUpdate = syntheticCallinUpdate[name]
-		if handleUpdate then
-			handleUpdate(self)
+		local updateCallin = syntheticCallinUpdate[name]
+		if updateCallin then
+			updateCallin(self)
 		end
 		for _, callin in ipairs(callinHolds) do
 			self:UpdateCallIn(callin)
@@ -318,10 +318,10 @@ local function install(gh)
 	-- to prevent errors caused by discrepancies between here and gadgets.lua
 
 	if Script.GetSynced() then
-		local gameFramePost = gh.GameFramePost
+		local gameFramePost = handler.GameFramePost
 		local sweepUnitBuildStep = summary.SweepUnitBuildStep
 		local sweepFeatureBuildStep = summary.SweepFeatureBuildStep
-		function gh:GameFramePost(frameNum)
+		function handler:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
 			sweepUnitBuildStep(self, frameNum)
 			sweepFeatureBuildStep(self, frameNum)
@@ -330,7 +330,7 @@ local function install(gh)
 		end
 
 		for name, hook in pairs(accumulate) do
-			gh.GG[name] = hook
+			handler.GG[name] = hook
 		end
 	end
 
