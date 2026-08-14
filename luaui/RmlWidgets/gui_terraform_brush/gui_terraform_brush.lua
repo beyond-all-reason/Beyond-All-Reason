@@ -7256,6 +7256,21 @@ local initialModel = {
 		if dm then dm.tsDebugView = n end
 		playSound("click")
 	end,
+	-- Per-section RESET on the TILESET headers, matching the env windows'
+	-- convention. Restores only that section's knobs, to the same values the
+	-- panel-wide Restore Defaults would give them (global defaults overlaid with
+	-- the active biome's own recipe). The section->knobs map lives in
+	-- dev_tileset_terrain.lua next to the knob table it references.
+	onTilesetSectionReset = function(_event, section)
+		-- Belt and braces with the target check in envSectionToggle: this button
+		-- lives inside the header row that toggles the section, so the click must
+		-- not travel any further than here.
+		if _event and _event.StopPropagation then _event:StopPropagation() end
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.resetSection) then return end
+		if WG.TilesetTerrain.resetSection(section) then
+			playSound("reset")
+		end
+	end,
 	-- TILESET CONFIG & PRESETS
 	onTilesetReset = function(_event)
 		if WG.TilesetTerrain and WG.TilesetTerrain.reset then WG.TilesetTerrain.reset() end

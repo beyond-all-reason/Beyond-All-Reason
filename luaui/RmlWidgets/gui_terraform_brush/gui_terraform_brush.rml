@@ -5568,6 +5568,7 @@
 					<div id="btn-toggle-ts-metal" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-metal" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">METAL SPOTS</div>
+						<div id="btn-ts-reset-metal" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('metal')">RESET</div>
 					</div>
 					<div id="section-ts-metal" class="hidden">
 						<div class="tf-biome-grid flex flex-row gap-1 mb-1">
@@ -5648,6 +5649,7 @@
 					<div id="btn-toggle-ts-scale" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-scale" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
 						<div class="tf-collapsible-title">SCALE</div>
+						<div id="btn-ts-reset-scale" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('scale')">RESET</div>
 					</div>
 					<div id="section-ts-scale">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5702,6 +5704,7 @@
 					<div id="btn-toggle-ts-normals" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-normals" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">NORMALS</div>
+						<div id="btn-ts-reset-normals" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('normals')">RESET</div>
 					</div>
 					<div id="section-ts-normals" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5741,6 +5744,7 @@
 					<div id="btn-toggle-ts-cliffs" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-cliffs" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">CLIFFS &amp; FOOTHILLS</div>
+						<div id="btn-ts-reset-cliffs" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('cliffs')">RESET</div>
 					</div>
 					<div id="section-ts-cliffs" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5770,6 +5774,7 @@
 					<div id="btn-toggle-ts-place" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-place" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">LAYER PLACEMENT</div>
+						<div id="btn-ts-reset-place" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('place')">RESET</div>
 					</div>
 					<div id="section-ts-place" class="hidden">
 							<div class="flex flex-row gap-1 items-center mb-1">
@@ -5829,6 +5834,7 @@
 					<div id="btn-toggle-ts-blend" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-blend" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">BLEND &amp; DETAIL</div>
+						<div id="btn-ts-reset-blend" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('blend')">RESET</div>
 					</div>
 					<div id="section-ts-blend" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5929,6 +5935,7 @@
 					<div id="btn-toggle-ts-curv" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-curv" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">CURVATURE</div>
+						<div id="btn-ts-reset-curv" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('curv')">RESET</div>
 					</div>
 					<div id="section-ts-curv" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5953,6 +5960,7 @@
 					<div id="btn-toggle-ts-light" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-light" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">LIGHTING</div>
+						<div id="btn-ts-reset-light" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('light')">RESET</div>
 					</div>
 					<div id="section-ts-light" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6007,6 +6015,7 @@
 					<div id="btn-toggle-ts-oldmap" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-oldmap" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">OLD-MAP BLEND</div>
+						<div id="btn-ts-reset-oldmap" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('oldmap')">RESET</div>
 					</div>
 					<div id="section-ts-oldmap" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6026,6 +6035,7 @@
 					<div id="btn-toggle-ts-biome" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-biome" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">BIOME TINT</div>
+						<div id="btn-ts-reset-biome" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('biome')">RESET</div>
 					</div>
 					<div id="section-ts-biome" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6050,6 +6060,7 @@
 					<div id="btn-toggle-ts-tints" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-tints" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">LAYER TINTS</div>
+						<div id="btn-ts-reset-tints" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('tints')">RESET</div>
 					</div>
 					<div id="section-ts-tints" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -6119,6 +6130,7 @@
 					<div id="btn-toggle-ts-debug" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-debug" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
 						<div class="tf-collapsible-title">DEBUG</div>
+						<div id="btn-ts-reset-debug" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('debug')">RESET</div>
 					</div>
 					<div id="section-ts-debug" class="hidden">
 						<div class="text-base text-light mb-0-5">Debug view</div>

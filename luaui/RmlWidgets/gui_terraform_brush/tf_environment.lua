@@ -376,6 +376,17 @@ function M.attach(doc, ctx)
 				and "/luaui/images/terraform_brush/minus.png"
 				or  "/luaui/images/terraform_brush/plus.png")
 			toggleBtn:AddEventListener("click", function(event)
+				-- Controls embedded in the header row sit INSIDE this toggle, so
+				-- their clicks bubble up to here and would collapse the section as
+				-- a side effect of pressing them. The per-section RESET buttons are
+				-- the case that surfaced it: resetting a section also folded it
+				-- away. Ignore anything that originated on one — matched by class,
+				-- not by id, so any future header control gets the same treatment
+				-- just by wearing the same class.
+				local t = event.target_element
+				if t and t.IsClassSet and t:IsClassSet("tf-env-reset-btn") then
+					return
+				end
 				expanded = not expanded
 				playSound(expanded and "panelOpen" or "click")
 				section:SetClass("hidden", not expanded)
