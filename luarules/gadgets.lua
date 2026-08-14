@@ -1883,6 +1883,14 @@ end
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 
+	for _, g in ipairs(self.AllowUnitBuildStepList) do
+		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
+			tracy.ZoneEnd()
+			return false
+		end
+	end
+
+	-- Disallowed requests record no marks and no totals.
 	local marks = unitStepCount[1]
 	if marks then
 		if not unitStepMarked[unitID] then
@@ -1895,13 +1903,6 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDe
 			end
 		elseif unitStepActive[1] then
 			unitStepTotals[unitID] = (unitStepTotals[unitID] or 0) + part
-		end
-	end
-
-	for _, g in ipairs(self.AllowUnitBuildStepList) do
-		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
-			tracy.ZoneEnd()
-			return false
 		end
 	end
 
@@ -1940,6 +1941,14 @@ end
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
 
+	for _, g in ipairs(self.AllowFeatureBuildStepList) do
+		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
+			tracy.ZoneEnd()
+			return false
+		end
+	end
+
+	-- Disallowed requests record no marks and no totals.
 	local marks = featureStepCount[1]
 	if marks then
 		if not featureStepMarked[featureID] then
@@ -1952,13 +1961,6 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, 
 			end
 		elseif featureStepActive[1] then
 			featureStepTotals[featureID] = (featureStepTotals[featureID] or 0) + part
-		end
-	end
-
-	for _, g in ipairs(self.AllowFeatureBuildStepList) do
-		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
-			tracy.ZoneEnd()
-			return false
 		end
 	end
 

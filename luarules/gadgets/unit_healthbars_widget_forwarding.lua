@@ -25,11 +25,12 @@ if gadgetHandler:IsSyncedCode() then
 	local unitreloadframe = {} -- maps unitID to next frame it can shoot its primary weapon, cause lasers retrigger projetileCreated every frame
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
-	-- StepTotal vs per-step is a 10–20% performance gain with better accuracy,
-	-- assuming high loads and more cons than features, but loses a bit at 1:1.
-	function gadget:FeatureBuildStepTotal(featureID, part)
-		if not deadFeatureIDs[featureID] then
-			SendToUnsynced("featureReclaimFrame", featureID, part)
+	function gadget:FeatureBuildStepTotal(featureIDs, parts, count)
+		for i = 1, count do
+			local featureID = featureIDs[i]
+			if not deadFeatureIDs[featureID] then
+				SendToUnsynced("featureReclaimFrame", featureID, parts[i])
+			end
 		end
 	end
 
