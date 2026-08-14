@@ -9,7 +9,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 32 20",
 		collisionvolumetype = "CylY",
-		corpse = "DRAGONSEYES_DEAD",
+		corpse = "HEAP",
 		energycost = 850,
 		energyupkeep = 3,
 		footprintx = 1,
@@ -40,7 +40,7 @@ return {
 			unitgroup = "util",
 		},
 		featuredefs = {
-			dragonseyes_dead = {
+			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",

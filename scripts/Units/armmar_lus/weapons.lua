@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-global
+
 function DrawWeapon(id)
 	Turn(torso, 2, ang(0), ang(300.00))
 	Turn(luparm, 1, ang(0), ang(300.000000))
@@ -16,8 +18,7 @@ function SetWantedAim(weaponID, heading, pitch)
 	weapons[weaponID].wtdPitch = -pitch
 end
 
-function WeaponFire(weaponID)
-end
+function WeaponFire(weaponID) end
 
 function WeaponShot(weaponID)
 	local ct = weapons[weaponID].counter

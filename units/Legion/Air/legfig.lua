@@ -39,7 +39,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
@@ -98,7 +98,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun3",
-				soundstartvolume = 3,
 				soundTrigger = true,
 				sprayangle = 500,
 				texture1 = "shot",

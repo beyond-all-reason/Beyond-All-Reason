@@ -33,7 +33,7 @@ return {
 		turnrate = 800,
 		usepiececollisionvolumes = 1,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/gantry",
@@ -126,7 +126,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "heavyrailgun",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,

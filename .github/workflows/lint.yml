@@ -1,9 +1,10 @@
 name: Lint
 
-# Deactivated for now -- enable pull_request trigger when ready
 on:
-  workflow_dispatch:
-    pull_request:
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   luacheck:
@@ -17,7 +18,58 @@ jobs:
 
       - uses: leafo/gh-actions-luarocks@v4
 
-      - run: luarocks install luacheck
+      - run: luarocks install luacheck 1.2.0
 
-      - name: Run luacheck
-        run: luacheck .
+      - uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: v0.20.3
+
+      - name: Run luacheck on changed lines
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # The PR checkout only holds the merge commit, so the base revision
+          # has to be fetched before anything can be diffed against it.
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+
+          git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' > changed.txt
+          if [ ! -s changed.txt ]; then
+            echo "No Lua files changed."
+            exit 0
+          fi
+
+          # 93 tracked Lua paths contain spaces, so the list has to stay
+          # NUL-separated all the way into luacheck.
+          set +e
+          xargs -0r luacheck --codes --formatter plain < changed.txt > luacheck.out
+          luacheck_status=$?
+          set -e
+          cat luacheck.out
+
+          # Findings always reach stdout, and xargs collapses every per-file
+          # status between 1 and 125 into 123, so the output is the only
+          # reliable signal that luacheck ran at all rather than dying on its
+          # own configuration.
+          if [ "$luacheck_status" -ne 0 ] && [ ! -s luacheck.out ]; then
+            echo "luacheck failed to run (exit $luacheck_status)"
+            exit "$luacheck_status"
+          fi
+
+          # reviewdog's errorformat parser drops any finding whose path holds a
+          # space, so the report is handed over as structured rdjsonl instead.
+          jq -R -c 'capture("^(?<path>.+?):(?<line>[0-9]+):(?<col>[0-9]+): \\((?<code>[EW][0-9]+)\\) (?<msg>.*)$")
+                    | { message: .msg,
+                        code: { value: .code },
+                        location: { path: .path, range: { start: { line: (.line | tonumber), column: (.col | tonumber) } } },
+                        severity: (if .code | startswith("E") then "ERROR" else "WARNING" end) }' \
+            < luacheck.out > luacheck.rdjsonl
+
+          # The local reporter needs no token, so this behaves the same for
+          # pull requests from forks, which is how most contributions arrive.
+          reviewdog \
+            -f=rdjsonl \
+            -diff="git diff $BASE_SHA" \
+            -reporter=local \
+            -filter-mode=added \
+            -fail-level=any \
+            < luacheck.rdjsonl

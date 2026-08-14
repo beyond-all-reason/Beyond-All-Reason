@@ -37,7 +37,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -80,8 +81,6 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
-				soundhitvolume = 12.0,
-				soundstartvolume = 14.0,
 				separation = 2.0,
 				nogap = false,
 				size = 3,

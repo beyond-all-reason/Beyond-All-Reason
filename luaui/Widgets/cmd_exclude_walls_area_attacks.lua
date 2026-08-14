@@ -41,7 +41,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if (unitDef.weapons and unitDef.weapons[1] and WeaponDefs[unitDef.weapons[1].weaponDef].type == "AircraftBomb")
 		or string.find(unitDef.name, "armlance")
 		or string.find(unitDef.name, "cortitan")
-		or string.find(unitDef.name, "legatorpbomber") then
+		or string.find(unitDef.name, "legatorpbomber")
+	then
 		isBomberUnitDef[unitDefID] = true
 	end
 end

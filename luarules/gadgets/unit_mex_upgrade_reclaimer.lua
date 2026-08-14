@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Mex Upgrade Reclaimer",
-		desc      = "Insta reclaims/refunds a mex when another mex on top has finished, also shares mexes build upon ally mex owner",
-		author    = "Floris",
-		date      = "October 2021",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "Mex Upgrade Reclaimer",
+		desc = "Insta reclaims/refunds a mex when another mex on top has finished, also shares mexes build upon ally mex owner",
+		author = "Floris",
+		date = "October 2021",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -16,9 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-
-local transferInstantly = true	-- false = transfer mex on completion
-
+local transferInstantly = true -- false = transfer mex on completion
+local SendToUnsynced = SendToUnsynced
 
 _G.transferredUnits = {}
 -- table of all mex unitDefIDs
@@ -66,6 +65,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			Spring.SetUnitNoSelect(mex, true)
+			SendToUnsynced("setUnitNoGroup", mex, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(mex)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
@@ -83,21 +83,26 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			Spring.SetUnitNoSelect(mex, false)
+			SendToUnsynced("setUnitNoGroup", mex, false)
 		end
-    end
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- on completion open up yardmap to allow for another mex to built ontop
 	if isMex[unitDefID] then
-        Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
+		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		-- if theres a mex below this one reclaim it, and donate this one to the owner of the previous mex
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			local mexTeamID = Spring.GetUnitTeam(mex)
 			Spring.DestroyUnit(mex, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isMex[Spring.GetUnitDefID(mex)])
-			if not transferInstantly and mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
+			if
+				not transferInstantly
+				and mexTeamID ~= unitTeam
+				and not select(3, Spring.GetTeamInfo(mexTeamID, false))
+			then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, mexTeamID)
 			end
@@ -105,12 +110,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-
 function gadget:GameFrame(gf)
 	if gf % 99 then
 		local newTransferredUnits = {}
 		for unitID, frame in pairs(_G.transferredUnits) do
-			if frame+30 > gf then
+			if frame + 30 > gf then
 				newTransferredUnits[unitID] = frame
 			end
 		end
