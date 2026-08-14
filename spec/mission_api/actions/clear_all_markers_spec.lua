@@ -1,11 +1,10 @@
 require("spec_helper")
 
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-GG['MissionAPI'].markerNames = {}
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+local Builders = VFS.Include("spec/builders/index.lua")
 
-Spring.SendCommands = Spring.SendCommands or function() end
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+Builders.MissionApi.new():Install()
 
 local actions  = VFS.Include('luarules/mission_api/actions/clear_all_markers.lua')
 local action   = actions[1]
@@ -13,15 +12,15 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.clear_all_markers", function()
 
-    before_each(function()
-        -- seed some markers
-        GG['MissionAPI'].markerNames['a'] = { x = 1, y = 0, z = 1 }
-        GG['MissionAPI'].markerNames['b'] = { x = 2, y = 0, z = 2 }
+    local missionApi, sendCommandsCalls
 
-        Spring._sendCommandsCalls = {}
-        Spring.SendCommands = function(cmd)
-            Spring._sendCommandsCalls[#Spring._sendCommandsCalls + 1] = cmd
-        end
+    before_each(function()
+        missionApi = Builders.MissionApi.new()
+            :WithMarker('a', { x = 1, y = 0, z = 1 })
+            :WithMarker('b', { x = 2, y = 0, z = 2 })
+            :Install()
+        _G.Spring = SpringSyncedBuilder.new():Build()
+        sendCommandsCalls = Spring.calls.sendCommands
     end)
 
     it("declares its type and parameters", function()
@@ -31,13 +30,13 @@ describe("mission_api.actions.clear_all_markers", function()
     describe("actionFunction", function()
         it("resets markerNames to an empty table", function()
             action.actionFunction()
-            assert.are.same({}, GG['MissionAPI'].markerNames)
+            assert.are.same({}, missionApi.markerNames)
         end)
 
         it("calls Spring.SendCommands('clearmapmarks')", function()
             action.actionFunction()
-            assert.are.equal(1, #Spring._sendCommandsCalls)
-            assert.are.equal('clearmapmarks', Spring._sendCommandsCalls[1])
+            assert.are.equal(1, #sendCommandsCalls)
+            assert.are.equal('clearmapmarks', sendCommandsCalls[1])
         end)
     end)
 

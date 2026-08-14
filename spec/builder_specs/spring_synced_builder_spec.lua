@@ -218,6 +218,60 @@ describe("SpringSyncedBuilder", function()
             assert.is_false(spring.calls.setUnitNoSelect[2].noSelect)
         end)
 
+        it("records MarkerErasePosition calls", function()
+            local spring = Builders.Spring.new():Build()
+
+            spring.MarkerErasePosition(5, 10, 15)
+
+            assert.are.equal(1, #spring.calls.markerErasePosition)
+            assert.are.equal(5,  spring.calls.markerErasePosition[1].x)
+            assert.are.equal(10, spring.calls.markerErasePosition[1].y)
+            assert.are.equal(15, spring.calls.markerErasePosition[1].z)
+        end)
+
+        it("records SendCommands calls as raw command strings", function()
+            local spring = Builders.Spring.new():Build()
+
+            spring.SendCommands('clearmapmarks')
+
+            assert.are.same({ 'clearmapmarks' }, spring.calls.sendCommands)
+        end)
+
+        it("records DestroyFeature calls as raw feature ids", function()
+            local spring = Builders.Spring.new():Build()
+
+            spring.DestroyFeature(10)
+            spring.DestroyFeature(11)
+
+            assert.are.same({ 10, 11 }, spring.calls.destroyFeature)
+        end)
+
+        it("records DestroyUnit calls with their flags", function()
+            local spring = Builders.Spring.new():Build()
+
+            spring.DestroyUnit(7, true, false)
+
+            assert.are.equal(1, #spring.calls.destroyUnit)
+            assert.are.equal(7, spring.calls.destroyUnit[1].unitID)
+            assert.is_true(spring.calls.destroyUnit[1].selfDestruct)
+            assert.is_false(spring.calls.destroyUnit[1].despawn)
+        end)
+    end)
+
+    describe("feature and unit state", function()
+        it("reports only features registered via WithValidFeature", function()
+            local spring = Builders.Spring.new():WithValidFeature(10):Build()
+
+            assert.is_true(spring.ValidFeatureID(10))
+            assert.is_false(spring.ValidFeatureID(11))
+        end)
+
+        it("treats units as alive by default", function()
+            local spring = Builders.Spring.new():Build()
+
+            assert.is_false(spring.GetUnitIsDead(123))
+        end)
+
         it("derives GetAllyTeamList from registered teams", function()
             local team1 = Builders.Team.new():WithAllyTeam(0)
             local team2 = Builders.Team.new():WithAllyTeam(1)
@@ -254,6 +308,10 @@ describe("SpringSyncedBuilder", function()
             spring.GiveOrderArrayToUnitMap({}, {})
             spring.TransferUnit(1, 2, false)
             spring.SetUnitNoSelect(1, true)
+            spring.MarkerErasePosition(0, 0, 0)
+            spring.SendCommands('clearmapmarks')
+            spring.DestroyFeature(1)
+            spring.DestroyUnit(1, false, false)
 
             spring.clearCalls()
 

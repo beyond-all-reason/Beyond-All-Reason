@@ -166,8 +166,18 @@ function SB.new()
         gameFrame = 1,
         cheatingEnabled = false,
         unitDefs = UnitDefsBuilder.new(),
+        validFeatures = {}, -- featureID -> true, consulted by ValidFeatureID
         _globalUnitDefs = nil, -- mirror of unitDefs:GetUnitDefsByName() once loaded
     }, SB)
+end
+
+---Mark a feature ID as valid, so ValidFeatureID reports it as existing.
+---@param self SpringSyncedBuilder
+---@param featureID number
+---@return SpringSyncedBuilder
+function SB:WithValidFeature(featureID)
+    self.validFeatures[featureID] = true
+    return self
 end
 
 ---@param self SpringSyncedBuilder
@@ -319,6 +329,10 @@ function SB:BuildSpring()
     local giveOrderCalls = {}
     local transferCalls = {}
     local noSelectCalls = {}
+    local eraseCalls = {}
+    local sendCommandsCalls = {}
+    local destroyFeatureCalls = {}
+    local destroyUnitCalls = {}
 
 
     ---@type SpringSyncedMock
@@ -448,6 +462,10 @@ function SB:BuildSpring()
             giveOrderArrayToUnitMap = giveOrderCalls,
             transferUnit            = transferCalls,
             setUnitNoSelect         = noSelectCalls,
+            markerErasePosition     = eraseCalls,
+            sendCommands            = sendCommandsCalls,
+            destroyFeature          = destroyFeatureCalls,
+            destroyUnit             = destroyUnitCalls,
         },
         clearResourceCalls = function()
             for i = #addCalls, 1, -1 do addCalls[i] = nil end
@@ -457,7 +475,8 @@ function SB:BuildSpring()
             local tracked = {
                 addCalls, useCalls, markerCalls, lineCalls,
                 gameOverCalls, explosionCalls, giveOrderCalls, transferCalls,
-                noSelectCalls,
+                noSelectCalls, eraseCalls, sendCommandsCalls,
+                destroyFeatureCalls, destroyUnitCalls,
             }
             for i = 1, #tracked do
                 local list = tracked[i]
