@@ -179,10 +179,7 @@ end
 --  
 --  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
 
--- Installer contexts
-
-local sweepUnitBuildStep
-local sweepFeatureBuildStep
+local summary = {}
 
 -- Shared environment
 
@@ -205,7 +202,7 @@ if Script.GetSynced() then
 	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
 	local unitStepValues = {}
 
-	function sweepUnitBuildStep(handler, frameNum)
+	function summary.SweepUnitBuildStep(handler, frameNum)
 		local count = unitStepCount[1]
 		if not count or count == 0 then
 			return
@@ -251,14 +248,12 @@ if Script.GetSynced() then
 	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
 	local featureStepValues = {}
 
-	function sweepFeatureBuildStep(handler, frameNum)
+	function summary.SweepFeatureBuildStep(handler, frameNum)
 		local count = featureStepCount[1]
 		if not count or count == 0 then
 			return
 		end
 
-		-- Clear marks first so subscribers that throw do not leave any marks.
-		-- The count holds through dispatch so re-marks append past the batch.
 		if featureStepActive[1] then
 			for i = 1, count do
 				local featureID = featureStepList[i]
@@ -279,7 +274,6 @@ if Script.GetSynced() then
 			g:FeatureBuildStepTotal(featureStepList, featureStepValues, count, frameNum)
 		end
 
-		-- Shift any re-marks made during dispatch into the next batch.
 		local marked = featureStepCount[1]
 		if marked and marked > count then
 			for i = 1, marked - count do
@@ -323,10 +317,10 @@ local function install(gh)
 	-- Wrap multi-env dispatchers for single-env synthetic callins at install
 	-- to prevent errors caused by discrepancies between here and gadgets.lua
 
-	-- This is the part of lua that no cleverness can help with: composition.
-
 	if Script.GetSynced() then
 		local gameFramePost = gh.GameFramePost
+		local sweepUnitBuildStep = summary.SweepUnitBuildStep
+		local sweepFeatureBuildStep = summary.SweepFeatureBuildStep
 		function gh:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
 			sweepUnitBuildStep(self, frameNum)
