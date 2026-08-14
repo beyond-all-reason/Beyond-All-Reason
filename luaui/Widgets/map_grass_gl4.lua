@@ -332,8 +332,9 @@ local function scanUnitPositions(gf)
 	local cx, cy, cz = spGetCameraPosition()
 	local gh = Spring.GetGroundHeight(cx, cz) or 0
 	local camHeight = cy - gh
+	local fadeEndDist = grassConfig.grassShaderParams.FADEEND * distanceMult
 	-- Skip bending when camera is too high to see grass detail
-	if camHeight > grassConfig.grassShaderParams.FADEEND * distanceMult then
+	if camHeight > fadeEndDist then
 		skipBendUntilGF = gf + 30
 		if cachedUnitCount > 0 then
 			cachedUnitCount = 0
@@ -364,12 +365,21 @@ local function scanUnitPositions(gf)
 				if radius then
 					local ux, _, uz = spGetUnitPosition(unitID)
 					if ux then
-						count = count + 1
-						local entry = cachedUnitList[count]
-						if entry then
-							entry[1], entry[2], entry[3] = ux, uz, radius + 15
-						else
-							cachedUnitList[count] = { ux, uz, radius + 15 }
+						local bendRadius = radius + 15
+						-- Grass beyond the distance fade is discarded, so a unit only affects visible
+						-- grass when it can reach the fade circle. No cull in placement mode, which
+						-- draws every tile regardless of distance.
+						local maxBendDist = bendRadius + fadeEndDist
+						local ddX = ux - cx
+						local ddZ = uz - cz
+						if ddX * ddX + ddZ * ddZ <= maxBendDist * maxBendDist or placementMode then
+							count = count + 1
+							local entry = cachedUnitList[count]
+							if entry then
+								entry[1], entry[2], entry[3] = ux, uz, bendRadius
+							else
+								cachedUnitList[count] = { ux, uz, bendRadius }
+							end
 						end
 					end
 				end
@@ -1758,50 +1768,58 @@ function widget:DrawWorldPreUnit()
 		local halfX = tileWorldX * 0.5
 		local halfZ = tileWorldZ * 0.5
 		local tileRadius = math.sqrt(halfX * halfX + halfZ * halfZ) + tileHeightSlack
-		local fadeCullSq = (fadeEnd + tileRadius) * (fadeEnd + tileRadius)
+		local fadeBound = fadeEnd + tileRadius
+		local fadeCullSq = fadeBound * fadeBound
 		local spIsSphereInView = Spring.IsSphereInView
-		local spIsAABBInView = Spring.IsAABBInView
-		local rowMaxX = gridCols * tileWorldX
-		local rowMinY = minHeight - 100
-		local rowMaxY = maxHeight + 100
 		local drawnInstances = 0
-		for tz = 0, gridRows - 1 do
+		local visibleCount = 0
+		-- Only tile centers inside the fade circle can pass the distance test, so bound the
+		-- sweep to the circle's bounding box instead of scanning the whole grid (full grid
+		-- in placement mode; the loops simply don't run when the box misses the map).
+		local tx0, tx1, tz0, tz1
+		if placementMode then
+			tx0, tx1, tz0, tz1 = 0, gridCols - 1, 0, gridRows - 1
+		else
+			local minTx = mathFloor((cx - fadeBound) / tileWorldX)
+			local maxTx = mathFloor((cx + fadeBound) / tileWorldX)
+			local minTz = mathFloor((cz - fadeBound) / tileWorldZ)
+			local maxTz = mathFloor((cz + fadeBound) / tileWorldZ)
+			tx0, tx1 = mathMax(0, minTx), mathMin(gridCols - 1, maxTx)
+			tz0, tz1 = mathMax(0, minTz), mathMin(gridRows - 1, maxTz)
+		end
+		for tz = tz0, tz1 do
 			local czw = tz * tileWorldZ + halfZ
 			local ddz = czw - cz
 			local runStart, runCount = -1, 0
-						-- Skip the whole row if its full-width span is outside the frustum.
-			local rowVisible = placementMode
-				or spIsAABBInView(0, rowMinY, tz * tileWorldZ, rowMaxX, rowMaxY, tz * tileWorldZ + tileWorldZ)
-			if rowVisible then
-				for tx = 0, gridCols - 1 do
-					local tile = tz * gridCols + tx
-					local count = tileCount[tile]
-					local visible = false
-					if count and count > 0 then
-						if placementMode then
+			for tx = tx0, tx1 do
+				local tile = tz * gridCols + tx
+				local count = tileCount[tile]
+				local visible = false
+				if count and count > 0 then
+					if placementMode then
+						visible = true
+					else
+						local cxw = tx * tileWorldX + halfX
+						local ddx = cxw - cx
+						if ddx * ddx + ddz * ddz < fadeCullSq
+							and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
+						then
 							visible = true
-						else
-							local cxw = tx * tileWorldX + halfX
-							local ddx = cxw - cx
-							if ddx * ddx + ddz * ddz < fadeCullSq
-								and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
-							then
-								visible = true
-							end
 						end
 					end
-					if visible then
-						if runStart < 0 then
-							runStart = tileOffset[tile]
-							runCount = count
-						else
-							runCount = runCount + count
-						end
-					elseif runStart >= 0 then
-						grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
-						drawnInstances = drawnInstances + runCount
-						runStart, runCount = -1, 0
+				end
+				if visible then
+					visibleCount = visibleCount + 1
+					if runStart < 0 then
+						runStart = tileOffset[tile]
+						runCount = count
+					else
+						runCount = runCount + count
 					end
+				elseif runStart >= 0 then
+					grassVAO:DrawElements(GL.TRIANGLES, grassPatchVBOsize, 0, runCount, 0, runStart)
+					drawnInstances = drawnInstances + runCount
+					runStart, runCount = -1, 0
 				end
 			end
 			if runStart >= 0 then
@@ -1818,7 +1836,8 @@ function widget:DrawWorldPreUnit()
 		if unitBendSSBO then
 			unitBendSSBO:UnbindBufferRange(6)
 		end
-		--tracy.LuaTracyPlot("GrassDrawnInstances", drawnInstances)
+		tracy.LuaTracyPlot("GrassDrawnInstances", drawnInstances)
+		tracy.LuaTracyPlot("GrassVisibleTiles", visibleCount)
 
 		glTexture(0, false)
 		glTexture(1, false)
