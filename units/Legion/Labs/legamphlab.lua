@@ -8,6 +8,7 @@ return {
 		buildpic = "legamphlab.DDS",
 		buildtime = 11400,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "98 60 91",
 		collisionvolumetype = "Box",
@@ -27,20 +28,20 @@ return {
 		terraformspeed = 750,
 		workertime = 150,
 		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
-	-- 	yardmap = [[h
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oo oo oo oo oo oo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- oe ee ee ee ee eo
-    -- ]],
+		-- 	yardmap = [[h
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oo oo oo oo oo oo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- oe ee ee ee ee eo
+		-- ]],
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",
@@ -56,7 +57,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",

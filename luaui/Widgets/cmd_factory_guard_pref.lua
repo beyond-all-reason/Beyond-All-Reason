@@ -1,15 +1,14 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Factory Guard Default On",
-		desc      = "Sets factory guard state to on by default",
-		author    = "Hobo Joe",
-		date      = "Feb 2024",
-		license   = "GNU GPL, v2 or later",
-		layer     = 1,
-		enabled   = true
+		name = "Factory Guard Default On",
+		desc = "Sets factory guard state to on by default",
+		author = "Hobo Joe",
+		date = "Feb 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -24,8 +23,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			local buildOptDefID = buildOptions[i]
 			local buildOpt = UnitDefs[buildOptDefID]
 
-			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
-				isFactory[unitDefID] = true  -- only factories that can build builders are included
+			if buildOpt and buildOpt.isBuilder and buildOpt.canAssist then
+				isFactory[unitDefID] = true -- only factories that can build builders are included
 				break
 			end
 		end

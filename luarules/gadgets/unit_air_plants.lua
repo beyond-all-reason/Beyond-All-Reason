@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -41,8 +41,8 @@ local isAirplantNames = {
 	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
-for name,v in pairs(isAirplantNamesCopy) do
-	isAirplantNames[name..'_scav'] = true
+for name, v in pairs(isAirplantNamesCopy) do
+	isAirplantNames[name .. "_scav"] = true
 end
 -- convert unitname -> unitDefID
 local isAirplant = {}
@@ -54,7 +54,6 @@ end
 
 local plantList = {}
 local buildingUnits = {}
-local unitsToDeneutralize = {}
 
 local landCmd = {
 	id = CMD_LAND_AT,
@@ -62,7 +61,7 @@ local landCmd = {
 	action = "aplandat",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
-	params = { '1', ' Fly ', 'Land' }
+	params = { "1", " Fly ", "Land" },
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -80,23 +79,11 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	plantList[unitID] = nil
 	buildingUnits[unitID] = nil
-	unitsToDeneutralize[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if buildingUnits[unitID] then
-		-- Delaying SetUnitNeutral to GameFrame to avoid /nocost race conditions
-		unitsToDeneutralize[unitID] = true
-		buildingUnits[unitID] = nil
-	end
-end
-
-function gadget:GameFrame(frame)
-	if next(unitsToDeneutralize) then
-		for unitID in pairs(unitsToDeneutralize) do
-			SetUnitNeutral(unitID, false)
-		end
-		unitsToDeneutralize = {}
+		SetUnitNeutral(unitID, false)
 	end
 end
 
@@ -104,7 +91,18 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if isAirplant[unitDefID] and plantList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
 		landCmd.params[1] = cmdParams[1]
