@@ -38,6 +38,10 @@ local vent = {
 	hitdensity = 0,
 	customparams = {
 		category = "geo",
+		-- Reuse the map-feature strings already in language/en/features.json:
+		-- these defs are editor plumbing and have no business adding new
+		-- entries for translators to carry.
+		i18nfrom = "geovent",
 	},
 }
 
@@ -73,6 +77,7 @@ local crack = {
 	customparams = {
 		author = "Moose",
 		category = "geo",
+		i18nfrom = "geocrack",
 		randomrotate = "true",
 	},
 }
