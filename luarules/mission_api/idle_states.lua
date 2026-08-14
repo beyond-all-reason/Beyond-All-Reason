@@ -5,15 +5,10 @@
 --- work, when it picks it back up, and when the boundary of "busy" is reached.
 --------------------------------------------------------------------------------
 
--- The engine reports idleness through CCommandAI::FinishCommand and ::GiveWaitCommand,
--- but never reports on business. At minimum, we have to detect the other end ourselves.
-
--- The engine also misses a large amount of its one side of the trigger responsibility.
--- A factory's build queue empties through CFactoryCAI::ExecuteStop, which is just a pop.
--- Units that are built or spawned are not marked as idle, though they have no commands.
--- Multi-command removals only "finish" the first command removed, so tend not to report.
-
--- We cover all of the above deficiencies, then, in addition to adding our own tracking.
+-- The engine misses a very large portion of its one side of the trigger responsibility:
+-- A factory's build queue empties through CFactoryCAI::ExecuteStop, which is just a pop;
+-- units that are built or spawned are not marked as idle, though they have no commands;
+-- multi-command removals only "finish" the first command removed, so tend not to report.
 
 -- In addition, units may have "idle tasks". These are orders followed to avoid player
 -- frustration with useless units but are not player orders "to make yourself useful".
@@ -25,18 +20,13 @@ local CMD_REPAIR   = CMD.REPAIR
 local CMD_MOVE     = CMD.MOVE
 local OPT_INTERNAL = CMD.OPT_INTERNAL -- Imperfect but acceptable marker for idle tasks.
 
--- Idle tasks are recognized by their command + params + internal triple. The shape is the
--- count of parameters the command carries when it is issued and is there to keep out the
--- engine's own internal repairs: Fight, Patrol and Area Repair. These all share a call to
--- CBuilderCAI::FindRepairTargetAndRepair, which adds the area shape to targeted repairs.
-
 -- Idle tasks are a pure accident of the many ways units receive commands via the engine.
 -- We identify them by a command + params + internal triple. They have no simple summary.
 local IDLE_TASK_PARAMS = {
 	[CMD_REPAIR] = 1, -- a targetID
 	[CMD_MOVE]   = 3, -- a position
 }
-
+--
 -- Counterexamples shape the rest of idle tasks, then. Autotargeting is not currently idle.
 -- Post-resurrection repair is not currently idle, by the same engine property that makes
 -- most command-tracking impossible, which actually helps us here. It counts, that's a W.
