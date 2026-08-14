@@ -262,6 +262,7 @@ local function initUnitList()
 		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
 		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
+		['armfrock'] = { weapons = { 'air' } },  --floating AA rockets
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
 		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher
@@ -272,6 +273,7 @@ local function initUnitList()
 		['armflak'] = { weapons = { 'air' } },
 		['armmercury'] = { weapons = { 'air' } },
 		['armemp'] = { weapons = { 'ground' } },
+		['armshockwave'] = { weapons = { 'ground' } },
 		['armamd'] = { weapons = { 'nuke' } }, --antinuke
 
 		['armbrtha'] = { weapons = { 'lrpc' } },
@@ -297,10 +299,12 @@ local function initUnitList()
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
+		['corfrock'] = { weapons = { 'air' } }, --floating AA rockets
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
 		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
 		['cortoast'] = { weapons = { 'cannon' } },
+		['corbhmth'] = { weapons = { 'cannon' } }, --cerberus
 		['corvipe'] = { weapons = { 'ground' } },
 		['cordoom'] = { weapons = { 'ground', 'ground', 'ground'} },
 		['corflak'] = { weapons = { 'air' } },
@@ -334,6 +338,8 @@ local function initUnitList()
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
 		['leganavaltorpturret'] = { weapons = { 'ground' } }, --torpedo launcher
+		['leganavalaaturret'] = { weapons = { 'air' } }, --Fulmen
+		['legfrl'] = { weapons = { 'air' } }, --Polybolos
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
@@ -353,6 +359,12 @@ local function initUnitList()
 		['scavbeacon_t2_scav'] = { weapons = { 'ground' } },
 		['scavbeacon_t3_scav'] = { weapons = { 'ground' } },
 		['scavbeacon_t4_scav'] = { weapons = { 'ground' } },
+
+		['armbotrail'] = { weapons = { 'lrpc' } }, --pawn launcher
+		['armlwall'] = { weapons = { 'ground' } }, --armed wall
+		['cormwall'] = { weapons = { 'ground' } }, --armed wall
+		['legrwall'] = { weapons = { 'ground' } }, --armed wall
+		['legministarfall'] = { weapons = { 'cannon' } },
 
 		['armannit3'] = { weapons = { 'ground' } },
 		['armminivulc'] = { weapons = { 'ground' } },
@@ -439,7 +451,7 @@ local glStencilMask			= gl.StencilMask
 local glStencilFunc			= gl.StencilFunc
 local glStencilOp			= gl.StencilOp
 
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
 local spGetPositionLosState = Spring.GetPositionLosState
@@ -448,36 +460,30 @@ local spGetUnitPosition     = Spring.GetUnitPosition
 
 local chobbyInterface
 
-function widget:TextCommand(command)
-	local mycommand=false --buttonConfig["enemy"][tag]
-
-	if string.find(command, "defrange", nil, true) then
-		mycommand = true
-		local ally = 'ally'
-		local rangetype = 'ground'
-		local enabled = false
-		if string.find(command, "enemy", nil, true) then
-			ally = 'enemy'
-		end
-		if string.find(command, "air", nil, true) then
-			rangetype = 'air'
-		elseif string.find(command, "nuke", nil, true) then
-			rangetype = 'nuke'
-		end
-		if string.find(command, "+", nil, true) then
-			enabled = true
-		end
-		if rangetype == 'ground' then
-			buttonConfig[ally]['ground']=enabled
-			buttonConfig[ally]['cannon']=enabled
-		else
-			buttonConfig[ally][rangetype]=enabled
-		end
-		spEcho("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
-		return true
+local function defrangeCmd(_, line)
+	local command = line or ""
+	local ally = 'ally'
+	local rangetype = 'ground'
+	local enabled = false
+	if string.find(command, "enemy", nil, true) then
+		ally = 'enemy'
 	end
-
-	return false
+	if string.find(command, "air", nil, true) then
+		rangetype = 'air'
+	elseif string.find(command, "nuke", nil, true) then
+		rangetype = 'nuke'
+	end
+	if string.find(command, "+", nil, true) then
+		enabled = true
+	end
+	if rangetype == 'ground' then
+		buttonConfig[ally]['ground'] = enabled
+		buttonConfig[ally]['cannon'] = enabled
+	else
+		buttonConfig[ally][rangetype] = enabled
+	end
+	spEcho("Range visibility of " .. ally .. " " .. rangetype .. " defenses set to", enabled)
+	return true
 end
 
 ------ GL4 THINGS  -----
@@ -580,6 +586,8 @@ local function initGL4()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("defrange", defrangeCmd, nil, "t")
+
 	initUnitList()
 
 	if initGL4() == false then
@@ -616,6 +624,10 @@ function widget:Initialize()
 	end
 end
 
+function widget:Shutdown()
+	widgetHandler:RemoveAction("defrange", "t")
+end
+
 local floor = math.floor
 local function hashPos(x,z)
 	return floor(x/8)*4096 + floor(z/8)
@@ -646,33 +658,35 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
-			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
-			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			if ringParams then
+				local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+				local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+				--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
-			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
-			-- so it only goes up with popups
-			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
-			ringParams[18] = turretHeight
+				-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
+				-- so it only goes up with popups
+				local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
+				ringParams[18] = turretHeight
 
 
-			cacheTable[1] = mpx
-			cacheTable[2] = turretHeight
-			cacheTable[3] = mpz
-			local vaokey = allystring .. weaponType
+				cacheTable[1] = mpx
+				cacheTable[2] = turretHeight
+				cacheTable[3] = mpz
+				local vaokey = allystring .. weaponType
 
-			for j = 1,13 do
-				cacheTable[j+3] = ringParams[j]
+				for j = 1,13 do
+					cacheTable[j+3] = ringParams[j]
+				end
+
+				local instanceID = 1000000 * i + unitID
+				pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
+				addedrings = addedrings + 1
+				if defenses[unitID] == nil then
+					--lazy creation
+					defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
+				end
+				defenses[unitID].vaokeys[instanceID] = vaokey
 			end
-
-			local instanceID = 1000000 * i + unitID
-			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
-			addedrings = addedrings + 1
-			if defenses[unitID] == nil then
-				--lazy creation
-				defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
-			end
-			defenses[unitID].vaokeys[instanceID] = vaokey
 		end
 	end
 	if addedrings == 0 then

@@ -141,33 +141,32 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1, 9) == "buildicon" then
-			if not Spring.IsCheatingEnabled() then
-				Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
-				return true
-			end
-
-			local msg = msg:sub(11, msg:len())
-			local d = msg:find(";", nil, true)
-			local defname = msg:sub(1, d - 1)
-			local a = msg:find(";", d + 1, true)
-			local attack = (msg:sub(d + 1, a - 1) == "1")
-			local m = msg:find(";", a + 1, true)
-			local move = (msg:sub(a + 1, m - 1) == "1")
-			local t = msg:find(";", m + 1, true)
-			local teamID = tonumber(msg:sub(m + 1, t - 1))
-			local w = msg:find(";", t + 1, true)
-			local wait = tonumber(msg:sub(t + 1, w - 1))
-			local sa = msg:find(";", w + 1, true)
-			local shotAngle = tonumber(msg:sub(w + 1, sa - 1))
-
-			createunits[#createunits + 1] = { defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
-
-			gadget.GameFrame = GameFrame
-			gadgetHandler:UpdateCallIn("GameFrame")
-			gadgetHandler:UpdateCallIn("GameFrame")
+		if #msg < 9 or string.byte(msg, 1) ~= 98 or msg:sub(1, 9) ~= "buildicon" then return end -- 98 = 'b'
+		if not Spring.IsCheatingEnabled() then
+			Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
 			return true
 		end
+
+		local msg = msg:sub(11, msg:len())
+		local d = msg:find(";", nil, true)
+		local defname = msg:sub(1, d - 1)
+		local a = msg:find(";", d + 1, true)
+		local attack = (msg:sub(d + 1, a - 1) == "1")
+		local m = msg:find(";", a + 1, true)
+		local move = (msg:sub(a + 1, m - 1) == "1")
+		local t = msg:find(";", m + 1, true)
+		local teamID = tonumber(msg:sub(m + 1, t - 1))
+		local w = msg:find(";", t + 1, true)
+		local wait = tonumber(msg:sub(t + 1, w - 1))
+		local sa = msg:find(";", w + 1, true)
+		local shotAngle = tonumber(msg:sub(w + 1, sa - 1))
+
+		createunits[#createunits + 1] = { defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
+
+		gadget.GameFrame = GameFrame
+		gadgetHandler:UpdateCallIn("GameFrame")
+		gadgetHandler:UpdateCallIn("GameFrame")
+		return true
 	end
 
 
@@ -182,7 +181,7 @@ else
 	local renderX, renderY
 
 	local fbo
-	local pre_shader, clear_shader, post_shader
+	local pre_shader, post_shader
 	local albedo_tex, normal_tex, depth_tex
 	local final_tex, final_fbo
 	local halo_shader
@@ -206,6 +205,7 @@ else
 	local GL_RGBA = 0x1908
 	local GL_RGBA16F_ARB = 0x881A
 	local GL_DEPTH_COMPONENT32 = 0x81A7
+	local GL_FRAMEBUFFER = 0x8D40
 	local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 	local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
 	local GL_READ_FRAMEBUFFER_EXT = 0x8CA8
@@ -530,19 +530,6 @@ else
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 
-		clear_shader = gl.CreateShader({
-			fragment = [[
-	  #version 150 compatibility
-      void main(void) {
-        gl_FragData[0] = vec4(0.0);
-        gl_FragData[1] = vec4(0.0);
-      }
-    ]]
-		})
-
-		if not clear_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
-		end
 	end
 
 	--------------------------------------------------------------------------------
@@ -555,8 +542,6 @@ else
 		gl.DeleteFBO(fbo)
 		gl.DeleteShader(pre_shader)
 
-		gl.DeleteShader(clear_shader)
-
 		gl.DeleteTexture(post_tex)
 		gl.DeleteFBO(post_fbo)
 		gl.DeleteShader(post_shader)
@@ -567,7 +552,7 @@ else
 		gl.DeleteShader(halo_shader)
 
 		fbo = nil
-		pre_shader, clear_shader, post_shader = nil, nil, nil, nil
+		pre_shader, post_shader = nil, nil
 		albedo_tex, normal_tex, depth_tex = nil, nil, nil
 		final_tex, final_fbo = nil, nil
 		post_tex, post_fbo = nil, nil
@@ -730,12 +715,13 @@ else
 		gl.LoadIdentity()
 
 		gl.DepthMask(true)
-		gl.ActiveFBO(fbo, gl.Clear, GL.DEPTH_BUFFER_BIT)
+		gl.ActiveFBO(fbo, function()
+			gl.Clear(GL.DEPTH_BUFFER_BIT)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color0", 0, 0, 0, 0)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color1", 0, 0, 0, 0)
+		end)
 		gl.DepthMask(false)
 
-		gl.UseShader(clear_shader)
-		gl.ActiveFBO(fbo, gl.TexRect, -1, -1, 1, 1)
-		gl.UseShader(0)
 		gl.ActiveFBO(post_fbo, gl.Clear, GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 
 		gl.PopMatrix()

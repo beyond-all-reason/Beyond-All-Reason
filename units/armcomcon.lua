@@ -67,6 +67,7 @@ return {
 			[7] = "armcv",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			i18nfromunit = "armcom",
 			iscommander = true,
 			model_author = "FireStorm",
@@ -244,10 +245,8 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2",
-				soundhitvolume = 36,
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,

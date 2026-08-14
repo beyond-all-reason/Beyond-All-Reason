@@ -6,7 +6,7 @@ end
 local baseValues = { --format: {value, multiplier}
 
 	--health related
-	autoHeal = { 10 * playerCountScale, 1.15 },
+	--autoHeal = { 10 * playerCountScale, 1.15 },
 	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
 
 	--DPS related
@@ -53,7 +53,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["scavengerbossv4_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
-		autoheal = stats.autoHeal,--10,
+		autoheal = 0,
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
@@ -115,6 +115,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			i18nfromunit = 'scavengerbossv4',
+			ispvefinalboss = true,
 		},
 		featuredefs = {
 			dead = {
@@ -216,9 +217,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				rgbcolor2 = "0.8 0.6 1.0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 20,
 				soundstart = "lasfirerc",
-				soundstartvolume = 20,
 				soundtrigger = 1,
 				sprayangle = 500,
 				thickness = 5.5,
@@ -260,8 +259,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
-				soundhitvolume = 3,
-				soundhitwetvolume = 12,
 				startvelocity = 190,
 				tracks = true,
 				trajectoryHeight = 0.60,
@@ -625,9 +622,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				rgbcolor2 = "0.8 0.6 1.0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 20,
 				soundstart = "lasfirerc",
-				soundstartvolume = 20,
 				soundtrigger = true,
 				sprayangle = 1000,
 				thickness = 5.5,
@@ -714,7 +709,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				waterbounce = true,
 				bounceSlip = 0.74,

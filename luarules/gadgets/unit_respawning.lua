@@ -6,8 +6,8 @@ function gadget:GetInfo()
 	return {
 		name = "Unit Respawning",
 		desc = "Prevents death and instead respawns elsewhere",
-		author = "Xehrath",
-		date = "2023-05-12",
+		author = "Xehrath, Chemdude8",
+		date = "2023-05-12, 2026",
 		license = "None",
 		layer = 49,
 		enabled = true
@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitTeam 		= Spring.GetUnitTeam
 	local spSetUnitHealth = Spring.SetUnitHealth
 	local spGetGameSeconds = Spring.GetGameSeconds
+	local spGetGameFrame = Spring.GetGameFrame
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 	local spGetUnitDefID = Spring.GetUnitDefID
 
@@ -39,6 +40,17 @@ if gadgetHandler:IsSyncedCode() then
 	local respawnMetaList = {}
 	local defCustomParams = {}
 	local effigyToCommander = {} -- Maps effigy unit ID to commander unit ID for fast lookup
+	local enemyNearbyCacheFrame = {}
+	local enemyNearbyCacheValue = {}
+	local ENEMY_NEARBY_RADIUS = 1000
+
+	local function HasNearbyEnemyCached(unitID, gameFrame)
+		if enemyNearbyCacheFrame[unitID] ~= gameFrame then
+			enemyNearbyCacheFrame[unitID] = gameFrame
+			enemyNearbyCacheValue[unitID] = spGetUnitNearestEnemy(unitID, ENEMY_NEARBY_RADIUS) ~= nil
+		end
+		return enemyNearbyCacheValue[unitID]
+	end
 
 	local function destroyEffigy(effigyID, selfd, reclaimed)
 		if effigyID then
@@ -66,7 +78,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		--	-- Has a default value, as indicated, if not chosen:
 		-- respawn_health_threshold = 0,				--The health value when the unit will initiate the respawn sequence.
-		-- destructive_respawn = true,					--If this is set to true, the effigy unit will be destroyed when the unit respawns.
+		-- destructive_respawn = true, 1,				-- If this is set to true, the effigy unit will be destroyed when the unit respawns, can also be set to a number to provide that n-1 respawns or n instances of that unit with 0 for infinite
+		-- respawn_health = 1,                          -- If this is set to a number set the respawned units health to that number when respawning.
+        -- respawn_stun_duration = calculated by distance/maxHealth, -- Override the stun duration to a static value
 
 
 		-- },
@@ -87,15 +101,23 @@ if gadgetHandler:IsSyncedCode() then
 			local ex,ey,ez = spGetUnitPosition(effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
+			if GG.SpawnEnvironmentalLightning then
+				GG.SpawnEnvironmentalLightning("commanderspawn", ex, ey, ez)
+			end
 			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			-- Mark effigy as used for respawning to prevent "lost" notifications
-			meta.effigyID = nil
+			if meta.destructive_respawn == 1 then
+				meta.effigyID = nil
+			end
 
 			if meta.respawn_pad == "false" then
 				Spring.SetUnitPosition(effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+				if GG.SpawnEnvironmentalLightning then
+					GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+				end
 				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 				GG.ComSpawnDefoliate(x, y, z)
 			end
@@ -104,7 +126,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- could kill the commander and nil out respawnMetaList[unitID]
 			local stunDuration = maxHealth + ((maxHealth/30)*meta.minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*meta.distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
 
-			if meta.destructive_respawn then
+			if meta.destructive_respawn == 1 then
 			    if friendlyFire then
 			        destroyEffigy(effigyID, false, true)
 			    else
@@ -113,9 +135,21 @@ if gadgetHandler:IsSyncedCode() then
 				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 			end
 
+			if meta.destructive_respawn > 0 then
+				meta.destructive_respawn = meta.destructive_respawn - 1
+			end
+
+			local respawnHealth = 1
+			if meta.respawn_health then
+				respawnHealth = meta.respawn_health
+			end
+
+			if meta.respawn_stun_duration then
+				stunDuration = meta.respawn_stun_duration
+			end
 			-- Only apply stun if the unit survived the effigy destruction
 			if respawnMetaList[unitID] then
-				spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
+				spSetUnitHealth(unitID, {health = respawnHealth, capture = 0, paralyze = stunDuration})
 				spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 			end
 		end
@@ -162,11 +196,13 @@ if gadgetHandler:IsSyncedCode() then
 				effigy_offset = tonumber(udcp.effigy_offset) or 0,
 				minimum_respawn_stun = tonumber(udcp.minimum_respawn_stun) or 0,
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
-				destructive_respawn = udcp.destructive_respawn or true,
+				destructive_respawn = tonumber(udcp.destructive_respawn) or 1,
 				respawn_pad = udcp.respawn_pad or "false",
 				unitTeam = unitTeam,
 				respawnTimer = spGetGameSeconds(),
 				effigyID = nil,
+				respawn_health = tonumber(udcp.respawn_health),
+                respawn_stun_duration = tonumber(udcp.respawn_stun_duration),
 			}
 
 			if respawnMetaList[unitID].effigy ~= "none" then
@@ -240,6 +276,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		enemyNearbyCacheFrame[unitID] = nil
+		enemyNearbyCacheValue[unitID] = nil
+
 		local effigyOwnerID = effigyToCommander[unitID]
 
 		if effigyOwnerID then
@@ -296,26 +335,26 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if respawnMetaList[unitID] then
-			if respawnMetaList[unitID].respawn_condition == "health" then
+		local meta = respawnMetaList[unitID]
+		if meta then
+			if meta.respawn_condition == "health" then
 				local h, mh = spGetUnitHealth(unitID)
 				local currentTime =  spGetGameSeconds()
-				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
-					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
+				if meta.effigyID and (h-damage) <= meta.respawn_health_threshold and (currentTime-meta.respawnTimer) >= 5 then
+					local effigyBuildProgress = select(5, spGetUnitHealth(meta.effigyID))
 					if effigyBuildProgress == 1 then
 						if not attackerTeam then
 							attackerTeam = unitTeam -- lava damage team = nil, so set to self team if nil
 						end
-					    local friendlyFire = Spring.AreTeamsAllied(unitTeam, attackerTeam)
-					    local enemyNearby = spGetUnitNearestEnemy(unitID, 1000)
-					    if friendlyFire and enemyNearby then
-					        friendlyFire = false
-					    end
+						local friendlyFire = Spring.AreTeamsAllied(unitTeam, attackerTeam)
+						if friendlyFire and HasNearbyEnemyCached(unitID, spGetGameFrame()) then
+							friendlyFire = false
+						end
 						ReturnToBase(unitID, friendlyFire)
-						respawnMetaList[unitID].respawnTimer = spGetGameSeconds()
+						meta.respawnTimer = spGetGameSeconds()
 						return 0, 0
 					end
-				elseif (currentTime-respawnMetaList[unitID].respawnTimer) <= 5 then
+				elseif (currentTime-meta.respawnTimer) <= 5 then
 					return 0, 0
 				end
 			end

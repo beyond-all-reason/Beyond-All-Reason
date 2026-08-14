@@ -54,12 +54,11 @@ end
 
 local plantList = {}
 local buildingUnits = {}
-local unitsToDeneutralize = {}
 
 local landCmd = {
 	id = CMD_LAND_AT,
 	name = "apLandAt",
-	action = "apLandAt",
+	action = "aplandat",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
 	params = { '1', ' Fly ', 'Land' }
@@ -80,23 +79,11 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	plantList[unitID] = nil
 	buildingUnits[unitID] = nil
-	unitsToDeneutralize[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if buildingUnits[unitID] then
-		-- Delaying SetUnitNeutral to GameFrame to avoid /nocost race conditions
-		unitsToDeneutralize[unitID] = true
-		buildingUnits[unitID] = nil
-	end
-end
-
-function gadget:GameFrame(frame)
-	if next(unitsToDeneutralize) then
-		for unitID in pairs(unitsToDeneutralize) do
-			SetUnitNeutral(unitID, false)
-		end
-		unitsToDeneutralize = {}
+		SetUnitNeutral(unitID, false)
 	end
 end
 

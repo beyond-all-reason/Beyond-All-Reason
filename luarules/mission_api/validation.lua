@@ -320,20 +320,31 @@ validators[Types.Area] = function(area)
 		end
 	end
 
-validators[Types.ResourceIncomeSources] = function(sources)
-	local luaTypeResult = validators[Types.Table](sources)
-	if luaTypeResult then return luaTypeResult end
-	if #sources == 0 then
-		return { { message = "Resource income sources table must not be empty" } }
-	end
 
-	local result = {}
-	for i, source in ipairs(sources) do
-		if not parameterTypeEnums[Types.ResourceIncomeSources][source] then
-			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'transfer'" }
+local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
+	local valueSet = parameterTypes.Enums[enumSetName]
+	local emptyMessage = enumSetName .. " table must not be empty"
+	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
+
+	return function(values)
+		local luaTypeResult = validators[Types.Table](values)
+		if luaTypeResult then return luaTypeResult end
+		if #values == 0 then
+			return { { message = emptyMessage } }
 		end
+
+		local result = {}
+		for i, value in ipairs(values) do
+			if not valueSet[value] then
+				result[#result + 1] = { message = "Invalid " .. enumSetName .. " [" .. i .. "]: '" .. tostring(value) .. "'. Must be one of: " .. allowedList }
+			end
+		end
+		if #result > 0 then return result end
 	end
-	if #result > 0 then return result end
+end
+
+for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
+	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
 end
 
 --- String Validators:
@@ -475,9 +486,9 @@ end
 --- Trigger/Action Validation Functions:
 ----------------------------------------------------------------
 
-local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local triggersSchemaSettings = triggersSchema.Settings
-local triggersSchemaParameters = triggersSchema.Parameters
+local triggerDefinitions = GG['MissionAPI'].TriggerDefinitions
+local triggersSchemaSettings = triggerDefinitions.Settings
+local triggersSchemaParameters = triggerDefinitions.Parameters
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings

@@ -24,7 +24,7 @@ return {
 		script = "Units/CORMORT.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 380,
 		speed = 50.4,
 		turninplace = true,
 		turninplaceanglelimit = 90,

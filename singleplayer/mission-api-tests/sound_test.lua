@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -6,7 +6,7 @@ local triggers = {
 	spawnEye = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1,
+			seconds = 0,
 		},
 		actions = { 'spawnEye' },
 	},
@@ -17,8 +17,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 30,
-			interval = 210,
+			seconds = 1,
+			interval = 7,
 		},
 		actions = { 'playSoundPosition', 'messageSoundPosition' },
 	},
@@ -29,8 +29,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
@@ -41,10 +41,18 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
+	},
+
+	playMusic = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 150,
+		},
+		actions = { 'playMusic', 'messageMusicNotification' },
 	},
 }
 
@@ -91,6 +99,14 @@ local actions = {
 		},
 	},
 
+	playMusic = {
+		type = actionTypes.PlayMusic,
+		parameters = {
+			soundfile = 'music/original/events/aprilfools/menu/Ryan Krause - Friend or Foe ( Bassfahrer Metal Cover).ogg',
+		},
+	},
+
+
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -111,6 +127,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Nuke spotted, after the other two voices.",
+		},
+	},
+
+	messageMusicNotification = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Playing Trigger Music Track.",
 		},
 	},
 }

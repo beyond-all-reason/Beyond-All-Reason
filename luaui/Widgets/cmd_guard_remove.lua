@@ -29,15 +29,14 @@ include("keysym.h.lua")
 
 local math_distsq = math.distance3dSquared
 
-local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local CMD_REMOVE = CMD.REMOVE
-local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local CANCEL_DIST_SQUARED = (Game.squareSize * Game.footprintScale + 1) ^ 2 -- from CommandAI.cpp
+
+local isQueueing = Game.Commands.IsQueueingCommand
 
 -- Performance safeguard: When certain commands are spammed, like reclaim, `UnitCommand` can cause
 -- extreme performance issues by parsing all of those commands. So we skip units recently touched.
@@ -60,18 +59,6 @@ local function clearRecentUnits()
 		end
 	end
 	updateTime = safeguardDuration * 0.5
-end
-
-local function isQueueing(cmdID)
-	local cmdIndex = spGetCmdDescIndex(cmdID)
-	if cmdIndex then
-		local cmdDescription = spGetActiveCmdDesc(cmdIndex)
-		if cmdDescription then
-			return cmdDescription.queueing -- sufficient to check this?
-				or cmdDescription.type ~= CMDTYPE_ICON_MODE
-		end
-	end
-	return false
 end
 
 -- Non-exhaustively determines whether the engine will cancel a command.

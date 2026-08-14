@@ -88,10 +88,10 @@ if not loadscreens[1] then
 end
 local backgroundTexture = loadscreens[math.random(#loadscreens)]
 
-if math.random(1,15) == 1 then
-	showDonationTip = true
-	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
-end
+--if math.random(1,15) == 1 then
+--	showDonationTip = true
+--	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
+--end
 
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 if string.find(backgroundTexture, "guide") then
@@ -173,9 +173,9 @@ if showTips then
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
 end
 
-if showDonationTip then
-	randomTip = Spring.I18N('tips.loadscreen.donations')
-end
+--if showDonationTip then
+--	randomTip = Spring.I18N('tips.loadscreen.donations')
+--end
 
 
 -- for guishader

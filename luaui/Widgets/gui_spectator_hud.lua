@@ -752,7 +752,7 @@ local function calculateWidgetDimensions()
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
 	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
-		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
+		widgetDimensions.top = (topBarPosition[6] or topBarPosition[2]) -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
 	end

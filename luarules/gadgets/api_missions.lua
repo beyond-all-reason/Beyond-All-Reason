@@ -56,14 +56,14 @@ function gadget:Initialize()
 	--local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
 	--local scriptPath = 'mission-api-tests/markers_test.lua'
-	--local scriptPath = 'mission-api-tests/sound_test.lua'
+	local scriptPath = 'mission-api-tests/sound_test.lua'
 	--local scriptPath = 'mission-api-tests/issue_orders_test.lua'
 	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/resource_test.lua'
+	local scriptPath = 'mission-api-tests/resource_test.lua'
 	--local scriptPath = 'mission-api-tests/loadout_test.lua'
-	local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
+	--local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -89,12 +89,12 @@ function gadget:Initialize()
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
+
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 	GG['MissionAPI'].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
-	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
+	GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	loadMission(scriptPath)
 end

@@ -87,6 +87,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -266,10 +267,8 @@ return {
 				range = 262,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitvolume = 36,
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -283,7 +282,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},

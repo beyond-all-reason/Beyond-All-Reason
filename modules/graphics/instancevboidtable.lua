@@ -148,9 +148,21 @@ local function resizeInstanceVBOTable(iT)
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	newInstanceVBO:Define(iT.maxElements, iT.layout)
-	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
+	local oldInstanceVBO = iT.instanceVBO
+	local copied = false
+	if oldInstanceVBO then
+		local _, bufferSizeInBytes = oldInstanceVBO:GetBufferSize()
+		if oldInstanceVBO.CopyTo then
+			---@type integer
+			local copySizeInBytes = math.floor(bufferSizeInBytes)
+			copied = oldInstanceVBO:CopyTo(newInstanceVBO, copySizeInBytes)
+		end
+		oldInstanceVBO:Delete()
+	end
 	iT.instanceVBO = newInstanceVBO
-	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
+	if not copied then
+		iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
+	end
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
@@ -179,7 +191,10 @@ local function resizeInstanceVBOTable(iT)
 			end
 			iT.VAO:AddFeaturesToSubmission(unitID)
 		elseif objecttype == "featureDefID" then
-			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
+			-- InstanceDataFromFeatureDefIDs(ids, attrID, teamIdOpt, elemOffset): the element
+			-- offset is the 4th argument, not the 3rd. Passing it 3rd made it the palette
+			-- index and left the offset defaulted to 0, so every instance clobbered element 0.
+			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
 			iT.VAO:AddFeatureDefsToSubmission(unitID)
 		end
 	end
@@ -270,7 +285,8 @@ local function pushElementInstance(iT,thisInstance, instanceID, updateExisting, 
 				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
 				if isnewid then iT.VAO:AddFeaturesToSubmission(unitID) end
 			elseif objecttype == "featureDefID" then
-				iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
+				-- Element offset is the 4th argument (3rd is the palette index).
+				iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, nil, thisInstanceIndex-1)
 				if isnewid then iT.VAO:AddFeatureDefsToSubmission(unitID) end
 			end
 
@@ -438,7 +454,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 				elseif objecttype == "unitDefID" then
 					iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID,nil,	oldElementIndex-1)
 				elseif objecttype == "featureDefID" then
-					iT.instanceVBO:InstanceDataFromFeatureDefIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+					-- Element offset is the 4th argument (3rd is the palette index).
+					iT.instanceVBO:InstanceDataFromFeatureDefIDs(myunitID, iT.objectTypeAttribID, nil, oldElementIndex-1)
 				end
 			end
 		else
@@ -521,7 +538,8 @@ local function uploadAllElements(iT)
 			end
 			iT.VAO:AddFeaturesToSubmission(unitID)
 		elseif objecttype == "featureDefID" then
-			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
+			-- Element offset is the 4th argument (3rd is the palette index).
+			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
 			iT.VAO:AddFeatureDefsToSubmission(unitID)
 		end
 	end

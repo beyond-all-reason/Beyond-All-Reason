@@ -2,7 +2,7 @@
 --- Resource triggers and actions test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -12,7 +12,7 @@ local triggers = {
 	start = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1,
+			seconds = 0,
 		},
 		actions = { 'spawnMetalStorage', 'spawnEnergyStorage' },
 	},
@@ -20,31 +20,55 @@ local triggers = {
 	waveMetalAndEnergy = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 120,
+			seconds = 4,
 		},
 		actions = { 'addMetalAndEnergy', 'messageWaveMetalAndEnergy' },
+	},
+
+	waveMetalAndEnergyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 180,
+		},
+		actions = { 'removeMetalAndEnergy', 'messageWaveMetalAndEnergyRemove' },
 	},
 
 	waveMetalOnly = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 240,
+			seconds = 8,
 		},
 		actions = { 'addMetalOnly', 'messageWaveMetalOnly' },
+	},
+
+	waveMetalOnlyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 300,
+		},
+		actions = { 'removeMetalOnly', 'messageWaveMetalOnlyRemove' },
 	},
 
 	waveEnergyOnly = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 360,
+			seconds = 12,
 		},
 		actions = { 'addEnergyOnly', 'messageWaveEnergyOnly' },
+	},
+
+	waveEnergyOnlyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 420,
+		},
+		actions = { 'removeEnergyOnly', 'messageWaveEnergyOnlyRemove' },
 	},
 
 	waveMex = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 480,
+			seconds = 16,
 		},
 		actions = { 'spawnMex', 'messageWaveMex' },
 	},
@@ -52,7 +76,7 @@ local triggers = {
 	waveFusion = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 600,
+			seconds = 20,
 		},
 		actions = { 'spawnFusion', 'messageWaveFusion' },
 	},
@@ -60,7 +84,7 @@ local triggers = {
 	waveMetalMaker = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 720,
+			seconds = 24,
 		},
 		actions = { 'spawnMetalMaker', 'messageWaveMetalMaker' },
 	},
@@ -68,7 +92,7 @@ local triggers = {
 	waveNuke = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 900,
+			seconds = 30,
 		},
 		actions = { 'spawnNuke', 'messageWaveNuke' },
 	},
@@ -76,7 +100,7 @@ local triggers = {
 	waveReclaim = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 960,
+			seconds = 32,
 		},
 		actions = { 'createWreckToReclaimIncome', 'spawnIncomeReclaimer', 'messageWaveReclaim' },
 	},
@@ -84,7 +108,7 @@ local triggers = {
 	orderIncomeReclaimer = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 990,
+			seconds = 33,
 		},
 		actions = { 'orderIncomeReclaimerReclaim' },
 	},
@@ -92,7 +116,7 @@ local triggers = {
 	waveUnitReclaim = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1080,
+			seconds = 36,
 		},
 		actions = { 'spawnUnitReclaimTarget', 'messageWaveUnitReclaim' },
 	},
@@ -100,9 +124,33 @@ local triggers = {
 	orderUnitIncomeReclaimer = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1110,
+			seconds = 37,
 		},
 		actions = { 'orderUnitIncomeReclaimerReclaim' },
+	},
+
+	waveMetalAndEnergyPerSecond = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1200,
+		},
+		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
+	},
+
+	waveMetalAndEnergyPerSecondRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1400,
+		},
+		actions = { 'removeMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecondRemove'},
+	},
+
+	waveMetalAndEnergyPerSecond2 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1600,
+		},
+		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
 	},
 
 	-- ── ResourceStored ────────────────────────────────────────────────────────
@@ -168,7 +216,7 @@ local triggers = {
 	},
 
 	productionEnergyIncomeReached = {
-		-- Triggered once armfus (frame 600) is generating production energy income.
+		-- Triggered once armfus (second 20) is generating production energy income.
 		type = triggerTypes.ResourceIncome,
 		parameters = {
 			teamID = 0,
@@ -179,7 +227,7 @@ local triggers = {
 	},
 
 	productionMetalIncomeReached = {
-		-- Triggered once armmmkr (frame 720) is producing metal from energy.
+		-- Triggered once armmmkr (second 24) is producing metal from energy.
 		type = triggerTypes.ResourceIncome,
 		parameters = {
 			teamID = 0,
@@ -377,6 +425,59 @@ local actions = {
 		},
 	},
 
+	-- ── AddResources (Remove) (metal + energy together) ────────────────────────────────
+
+	removeMetalAndEnergy = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			metal = -500,
+			energy = -1000,
+		},
+	},
+
+	-- ── AddResources (Remove) (metal only) ─────────────────────────────────────────────
+
+	removeMetalOnly = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			metal = -250,
+		},
+	},
+
+	-- ── AddResources (Remove) (energy only) ────────────────────────────────────────────
+
+	removeEnergyOnly = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			energy = -500,
+		},
+	},
+
+	-- ── AddResources (Per Second) (metal + energy together) ────────────────────────────────
+
+	addMetalAndEnergyPerSecond = {
+		type = actionTypes.AddResourcesPerSecond,
+		parameters = {
+			teamID = 0,
+			metal = 50,
+			energy = 2000,
+		},
+	},
+
+	-- ── AddResources (Remove) (Per Second) (metal + energy together) ────────────────────────────────
+
+	removeMetalAndEnergyPerSecond = {
+		type = actionTypes.AddResourcesPerSecond,
+		parameters = {
+			teamID = 0,
+			metal = -75,
+			energy = -2500,
+		},
+	},
+
 	-- ── Wave messages ─────────────────────────────────────────────────────────
 
 	messageWaveMex = {
@@ -439,6 +540,41 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Resource Test] Adding 500 energy.",
+		},
+	},
+
+	messageWaveMetalAndEnergyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 500 metal and 1000 energy.",
+		},
+	},
+
+	messageWaveMetalOnlyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 250 metal.",
+		},
+	},
+
+	messageWaveEnergyOnlyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 500 energy.",
+		},
+	},
+
+	messageWaveMetalAndEnergyPerSecond = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Adding 50 metal and 2000 energy per second.",
+		},
+	},
+
+	messageWaveMetalAndEnergyPerSecondRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 75 metal and 2500 energy per second.",
 		},
 	},
 

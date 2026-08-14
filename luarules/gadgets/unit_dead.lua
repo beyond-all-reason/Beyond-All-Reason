@@ -14,11 +14,22 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local SetUnitNoSelect = Spring.SetUnitNoSelect
+local SetUnitNoGroup = Spring.SetUnitNoGroup
+
+local function setUnitNoGroup(_, unitID, noGroup)
+	SetUnitNoGroup(unitID, noGroup)
+end
+
+function gadget:Initialize()
+	gadgetHandler:AddSyncAction("setUnitNoGroup", setUnitNoGroup)
+end
+
+function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("setUnitNoGroup")
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	Spring.SetUnitNoSelect(unitID, true)
-	if Spring.SetUnitNoGroup then
-		Spring.SetUnitNoGroup(unitID, true)
-	else
-		Spring.SetUnitGroup(unitID, -1)
-	end
+	SetUnitNoSelect(unitID, true)
+	SetUnitNoGroup(unitID, true)
 end

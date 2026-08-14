@@ -61,6 +61,7 @@ local texOffset = 0
 local prevOsClock = os_clock()
 
 local unprocessedCommands = {}
+local unprocessedCommandsStart = 1
 local unprocessedCommandsNum = 0
 local newUnitCommands = {}
 
@@ -199,6 +200,8 @@ local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
 
 -- Queue sharing: units with identical command queues share one parsed table
 local queueShareCache = {}  -- fingerprint -> { queue, queueSize, refCount }
+local queueShareGeneration = 0
+local EMPTY_TABLE = {}
 
 local function InitGL4()
 	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
@@ -358,6 +361,10 @@ local tablePool = {}
 local tablePoolCount = 0
 local maxTablePoolSize = 100
 
+local queueShareEntryPool = {}
+local queueShareEntryPoolCount = 0
+local maxQueueShareEntryPoolSize = 200
+
 local function getTable()
 	if tablePoolCount > 0 then
 		local t = tablePool[tablePoolCount]
@@ -381,17 +388,38 @@ local function releaseTable(t)
 	end
 end
 
+local function getQueueShareEntry()
+	if queueShareEntryPoolCount > 0 then
+		local t = queueShareEntryPool[queueShareEntryPoolCount]
+		queueShareEntryPool[queueShareEntryPoolCount] = nil
+		queueShareEntryPoolCount = queueShareEntryPoolCount - 1
+		return t
+	else
+		return {}
+	end
+end
+
+local function releaseQueueShareEntry(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+	if queueShareEntryPoolCount < maxQueueShareEntryPoolSize then
+		queueShareEntryPoolCount = queueShareEntryPoolCount + 1
+		queueShareEntryPool[queueShareEntryPoolCount] = t
+	end
+end
+
 local function getQueueFingerprint(unitID)
 	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then return nil end
+	if not cmdCount or cmdCount <= 0 then return nil, 0 end
 	-- GetUnitCurrentCommand returns values directly — zero table allocation
 	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
-	if not cmdID then return nil end
+	if not cmdID then return nil, cmdCount end
 	-- Numeric fingerprint: cmdCount + cmdID + quantized position
 	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
 	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
 	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
-	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount
 end
 
 local function releaseQueue(command)
@@ -400,8 +428,11 @@ local function releaseQueue(command)
 	if shared then
 		shared.refCount = shared.refCount - 1
 		if shared.refCount <= 0 then
+			if shared.fingerprint and queueShareCache[shared.fingerprint] == shared then
+				queueShareCache[shared.fingerprint] = nil
+			end
 			releaseTable(shared.queue)
-			shared.queue = nil
+			releaseQueueShareEntry(shared)
 		end
 	else
 		releaseTable(command.queue)
@@ -411,32 +442,35 @@ local function releaseQueue(command)
 end
 
 -- Cache for unit positions to avoid repeated API calls per frame
--- Uses 3 flat tables instead of {x,y,z} sub-tables to avoid per-unit allocation
+-- Uses 3 flat tables and a frame-stamp table to avoid per-frame clears/reallocations.
 local unitPosCacheX = {}
 local unitPosCacheY = {}
 local unitPosCacheZ = {}
+local unitPosCacheFrame = {}
 local currentGameFrame = -1
 
-local function clearPositionCache()
-	-- Swap to fresh tables: O(1) instead of O(n) iteration with next()
-	unitPosCacheX = {}
-	unitPosCacheY = {}
-	unitPosCacheZ = {}
-end
-
 local function getCachedUnitPosition(unitID)
-	local cx = unitPosCacheX[unitID]
-	if cx then
-		return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
+	if unitPosCacheFrame[unitID] == currentGameFrame then
+		local cx = unitPosCacheX[unitID]
+		if cx then
+			return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
+		end
+		return nil
 	end
 
 	local x, y, z = spGetUnitPosition(unitID)
+	unitPosCacheFrame[unitID] = currentGameFrame
 	if x then
 		unitPosCacheX[unitID] = x
 		unitPosCacheY[unitID] = y
 		unitPosCacheZ[unitID] = z
+		return x, y, z
+	else
+		unitPosCacheX[unitID] = nil
+		unitPosCacheY[unitID] = nil
+		unitPosCacheZ[unitID] = nil
+		return nil
 	end
-	return x, y, z
 end
 
 --------------------------------------------------------------------------------
@@ -548,11 +582,13 @@ function widget:Shutdown()
 end
 
 local function RemovePreviousCommand(unitID)
-	if unitCommand[unitID] and commands[unitCommand[unitID]] then
-		local prev = commands[unitCommand[unitID]]
-		prev.draw = false
+	local previousCommandIndex = unitCommand[unitID]
+	local prev = previousCommandIndex and commands[previousCommandIndex]
+	if prev then
 		releaseQueue(prev)
-		prev.queueSize = 0
+		commands[previousCommandIndex] = nil
+		totalCommands = totalCommands - 1
+		releaseTable(prev)
 	end
 end
 
@@ -562,7 +598,7 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 		local cmd = getTable()
 		cmd.unitID = unitID
 		cmd.draw = false
-		unprocessedCommands[unprocessedCommandsNum] = cmd
+		unprocessedCommands[unprocessedCommandsStart + unprocessedCommandsNum - 1] = cmd
 		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
 			cmd.teamID = spGetUnitTeam(unitID)
 		end
@@ -597,20 +633,21 @@ local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
 local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
-local function getCommandsQueue(unitID)
-	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then
-		local empty = getTable()
-		return empty, 0
+local function getCommandsQueue(unitID, cmdCount)
+	if cmdCount <= 0 then
+		return nil, 0
 	end
 	local fetchCount = cmdCount < cmdLimitPerUnit and cmdCount or cmdLimitPerUnit
-	local q = spGetUnitCommands(unitID, fetchCount) or {}
-	local our_q = getTable()
+	local q = spGetUnitCommands(unitID, fetchCount) or EMPTY_TABLE
+	local our_q = nil
 	local our_qCount = 0
 	for i = 1, #q do
 		local entry = q[i]
 		local id = entry.id
 		if CONFIG[id] or id < 0 then
+			if not our_q then
+				our_q = getTable()
+			end
 			local params = entry.params
 			local a, b, c, d = params[1], params[2], params[3], params[4]
 
@@ -717,11 +754,13 @@ function widget:Update(dt)
 			cmdLimitPerUnit = mathMax(cmdLimitPerUnitMin, mathFloor(cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)))
 		end
 
-		-- Clear queue share cache for this batch
-		for fp in pairs(queueShareCache) do queueShareCache[fp] = nil end
+		queueShareGeneration = queueShareGeneration + 1
+		local qGen = queueShareGeneration
 
-		for k = 1, processLimit do
-			local cmd = unprocessedCommands[k]
+		for k = 0, processLimit - 1 do
+			local queueIndex = unprocessedCommandsStart + k
+			local cmd = unprocessedCommands[queueIndex]
+			unprocessedCommands[queueIndex] = nil
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
 				local i = maxCommand
@@ -732,10 +771,10 @@ function widget:Update(dt)
 				unitCommand[cmd.unitID] = i
 
 				-- Try to share queue with another unit that has identical commands
-				local fingerprint = getQueueFingerprint(cmd.unitID)
+				local fingerprint, cmdCount = getQueueFingerprint(cmd.unitID)
 				local cached = fingerprint and queueShareCache[fingerprint]
 				local our_q, qsize
-				if cached and cached.queue then
+				if cached and cached.generation == qGen and cached.queue then
 					-- Reuse existing parsed queue (zero allocation)
 					cached.refCount = cached.refCount + 1
 					our_q = cached.queue
@@ -745,11 +784,21 @@ function widget:Update(dt)
 					commands[i].sharedQueue = cached
 				else
 					-- Full parse needed
-					our_q, qsize = getCommandsQueue(cmd.unitID)
-					commands[i].queue = our_q
-					commands[i].queueSize = qsize
-					if fingerprint then
-						local entry = { queue = our_q, queueSize = qsize, refCount = 1 }
+					our_q, qsize = getCommandsQueue(cmd.unitID, cmdCount)
+					if qsize > 0 then
+						commands[i].queue = our_q
+						commands[i].queueSize = qsize
+					else
+						commands[i].queue = nil
+						commands[i].queueSize = 0
+					end
+					if fingerprint and qsize > 0 then
+						local entry = getQueueShareEntry()
+						entry.queue = our_q
+						entry.queueSize = qsize
+						entry.refCount = 1
+						entry.generation = qGen
+						entry.fingerprint = fingerprint
 						queueShareCache[fingerprint] = entry
 						commands[i].sharedQueue = entry
 					else
@@ -777,22 +826,10 @@ function widget:Update(dt)
 			end
 			processedCount = processedCount + 1
 		end
-		-- Shift remaining unprocessed commands to front (if any left)
-		if processedCount < unprocessedCommandsNum then
-			local remaining = unprocessedCommandsNum - processedCount
-			for k = 1, remaining do
-				unprocessedCommands[k] = unprocessedCommands[processedCount + k]
-			end
-			for k = remaining + 1, unprocessedCommandsNum do
-				unprocessedCommands[k] = nil
-			end
-			unprocessedCommandsNum = remaining
-		else
-			-- Clear unprocessedCommands array (tables already moved to commands or released)
-			for k = 1, unprocessedCommandsNum do
-				unprocessedCommands[k] = nil
-			end
-			unprocessedCommandsNum = 0
+		unprocessedCommandsStart = unprocessedCommandsStart + processedCount
+		unprocessedCommandsNum = unprocessedCommandsNum - processedCount
+		if unprocessedCommandsNum == 0 then
+			unprocessedCommandsStart = 1
 		end
 	end
 end
@@ -825,7 +862,6 @@ function widget:DrawWorldPreUnit()
 	local gf = spGetGameFrame()
 	if currentGameFrame ~= gf then
 		currentGameFrame = gf
-		clearPositionCache()
 	end
 
 	glDepthTest(false)
@@ -873,6 +909,7 @@ function widget:DrawWorldPreUnit()
 				if unitCommand[unitID] == i then
 					unitCommand[unitID] = nil
 				end
+				releaseTable(command)
 
 			elseif command.draw and (spIsUnitInView(unitID) or
 				(command.x and spIsSphereInView(command.x, command.y, command.z, 1))) then
@@ -886,8 +923,18 @@ function widget:DrawWorldPreUnit()
 					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
 					local queue = command.queue
 					local cmdTeamColour = useTeamColorsForDraw and command.teamID and teamColor[command.teamID]
+					local queueEnd = queueSize
+					local sharedQueue = command.sharedQueue
+					if sharedQueue then
+						if sharedQueue.drawGeneration == dGen then
+							queueEnd = 1
+						else
+							sharedQueue.drawGeneration = dGen
+						end
+					end
+					commandCount = commandCount + queueSize - queueEnd
 
-					for j = 1, queueSize do
+					for j = 1, queueEnd do
 						local qe = queue[j]
 						if not qe then break end  -- safety: queue may have been partially cleared
 						-- Resolve position from pre-extracted data
