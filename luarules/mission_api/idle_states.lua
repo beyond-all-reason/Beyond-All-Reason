@@ -84,7 +84,7 @@ end
 ---Each runs the same update except for one boolean comparison and shares the same state.
 ---@param fireOnIdle boolean true := falling into idle, false := leaving it
 ---@param matchesUnit fun(parameters, context, unitID, unitDefID): boolean
-local function newIdleUpdate(fireOnIdle, matchesUnit)
+local function createIdleUpdate(fireOnIdle, matchesUnit)
 	return function(trigger, triggerID, context, dirtyUnits)
 		local parameters = trigger.parameters
 		local latched = table.ensureTable(latches, triggerID)
@@ -110,7 +110,7 @@ local function newIdleUpdate(fireOnIdle, matchesUnit)
 end
 
 -- Report nothing on death; only forget.
-local function forget(triggerID, unitID)
+local function clear(triggerID, unitID)
 	local latch = latches[triggerID]
 	if latch then
 		latch[unitID] = nil
@@ -118,8 +118,6 @@ local function forget(triggerID, unitID)
 end
 
 return {
-	IsIdle        = isIdle,
-	IsIdleTask    = inIdleTask,
-	NewIdleUpdate = newIdleUpdate,
-	Forget        = forget,
+	CreateIdleUpdate = createIdleUpdate,
+	Clear            = clear,
 }

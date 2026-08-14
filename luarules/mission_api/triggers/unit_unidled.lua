@@ -8,7 +8,7 @@ local IdleStates = GG['MissionAPI'].Modules.IdleStates
 
 -- A unit already idle cannot fall into it again. See idle_states.lua.
 
-local FIRES_ON_IDLE = false
+local FIRES_ON_BUSY = false
 
 local function matchesUnit(parameters, context, unitID, unitDefID)
 	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
@@ -33,7 +33,7 @@ return {
 	},
 	callins = {
 		-- Artificial callin raised once a frame, for units whose orders were touched.
-		IdleUpdate = IdleStates.NewIdleUpdate(FIRES_ON_IDLE, matchesUnit),
+		IdleUpdate = IdleStates.CreateIdleUpdate(FIRES_ON_BUSY, matchesUnit),
 
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
 			IdleStates.Forget(triggerID, unitID)

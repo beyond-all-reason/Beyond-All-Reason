@@ -203,8 +203,6 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
 
-	-- Maintain subscriptions to UnitCommand and UnitIdle,
-	-- but use them only when we need to mark for sweeping.
 	watchIdleStates = table.any(triggers, function(trigger)
 		return trigger.type == triggerTypes.UnitIdled
 			or trigger.type == triggerTypes.UnitUnidled
@@ -285,7 +283,7 @@ end
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	dispatchTriggerCallin('UnitTaken', unitID, unitDefID, oldTeam, newTeam)
 
-	-- Mark when shared to allies. Enemy capture clears commands already.
+	-- This double-marks on enemy capture but is required for ally transfer.
 	markIdleDirty(unitID)
 
 	local unitDefName = UnitDefs[unitDefID].name

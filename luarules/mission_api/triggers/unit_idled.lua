@@ -33,7 +33,7 @@ return {
 	},
 	callins = {
 		-- Artificial callin raised once a frame, for units whose orders were touched.
-		IdleUpdate = IdleStates.NewIdleUpdate(FIRES_ON_IDLE, matchesUnit),
+		IdleUpdate = IdleStates.CreateIdleUpdate(FIRES_ON_IDLE, matchesUnit),
 
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
 			IdleStates.Forget(triggerID, unitID)
