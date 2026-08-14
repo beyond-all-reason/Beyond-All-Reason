@@ -464,11 +464,13 @@
 			},
 			{
 				"action": "buildfacing inc",
-				"label": "ui.keybinds.buildOrders.rotate"
+				"label": "ui.keybinds.buildOrders.rotate",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "buildfacing dec",
-				"label": "ui.keybinds.buildOrders.rotateBack"
+				"label": "ui.keybinds.buildOrders.rotateBack",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "buildspacing inc",
@@ -574,14 +576,7 @@
 				"label": "ui.keybinds.blueprints.prev"
 			},
 			{
-				"prefix": "blueprint_",
-				"members": [
-					"create",
-					"delete",
-					"next",
-					"place",
-					"prev"
-				]
+				"prefix": "blueprint_"
 			}
 		]
 	},
@@ -713,18 +708,15 @@
 			},
 			{
 				"action": "showelevation",
-				"label": "ui.keybinds.cameraModes.heightmap",
-				"alwaysModifier": "any"
+				"label": "ui.keybinds.cameraModes.heightmap"
 			},
 			{
 				"action": "showpathtraversability",
-				"label": "ui.keybinds.cameraModes.traversability",
-				"alwaysModifier": "any"
+				"label": "ui.keybinds.cameraModes.traversability"
 			},
 			{
 				"action": "showmetalmap",
-				"label": "ui.keybinds.cameraModes.resourceSpots",
-				"alwaysModifier": "any"
+				"label": "ui.keybinds.cameraModes.resourceSpots"
 			},
 			{
 				"action": "losradar",
@@ -762,8 +754,7 @@
 			},
 			{
 				"action": "screenshot png",
-				"label": "ui.keybinds.interfaceDisplay.screenshot",
-				"alwaysModifier": "any"
+				"label": "ui.keybinds.interfaceDisplay.screenshot"
 			},
 			{
 				"action": "attack_range_inc",
@@ -798,8 +789,7 @@
 			},
 			{
 				"action": "lastmsgpos",
-				"label": "ui.keybinds.cameraModes.mapmarks",
-				"alwaysModifier": "any"
+				"label": "ui.keybinds.cameraModes.mapmarks"
 			}
 		]
 	},
