@@ -1,6 +1,7 @@
 local ACTIONS_DIR = 'luarules/mission_api/actions/'
 local ACTION_FILES_PATTERN = '*.lua'
 
+-- action definition files are required to be in a subfolder
 local function loadActionDefinitions()
 
 	local types = {}
