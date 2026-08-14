@@ -375,8 +375,12 @@ local function rebuildRows()
 				local matched = {}
 				for _, member in ipairs(item.members or {}) do
 					local action = item.prefix .. member
-					catalogActions[action] = true
-					matched[#matched + 1] = action
+					-- Skipped when an explicit entry already covers it, or a family whose
+					-- members are also listed individually renders each of them twice.
+					if not catalogActions[action] then
+						catalogActions[action] = true
+						matched[#matched + 1] = action
+					end
 				end
 
 				local found = {}
@@ -687,12 +691,25 @@ end
 -- a save that failed.
 local function applyStaged(name, fromName)
 	local profile = profiles.get(name)
-	if profile then
-		profile.binds = stagedBinds()
-		profiles.save()
+	if not profile then
+		return selectProfile(name, fromName)
 	end
 
-	return selectProfile(name, fromName)
+	-- The store has to hold the new binds before materialize can write them out, so a failed
+	-- apply is undone rather than avoided. Left as-is, disk would keep edits the editor still
+	-- reports as unsaved, and Reset would appear to discard something already persisted.
+	local previous = profile.binds
+	profile.binds = stagedBinds()
+	profiles.save()
+
+	if selectProfile(name, fromName) then
+		return true
+	end
+
+	profile.binds = previous
+	profiles.save()
+
+	return false
 end
 
 -- Saving over a shipped profile is a fork: it asks for a name and writes a new one.
@@ -1028,16 +1045,6 @@ function view.setMenuToggle(fn)
 	menuToggle = fn
 end
 
--- Switching profiles applies the build menu the new one implies, but a profile can become
--- live without passing through here: the hotkey loader writes one out on the launch where
--- the shipped preset files stop being installed. Applied at startup as well, so the menu
--- matches whatever ended up loaded rather than whichever was running before.
-function view.applyMenuForActive()
-	if menuToggle then
-		menuToggle(wantsGridMenu(profiles.activeName()))
-	end
-end
-
 ----------------------------------------------------------------
 -- Editing keysets
 ----------------------------------------------------------------
@@ -1217,14 +1224,10 @@ end
 
 -- Edit entry point: drop a binding, and mark the profile staged.
 local function removeKeyset(action, raw)
-	if catalogShiftPair[action] then
-		if not stageSetKeysets(action, {}) then
-			return
-		end
-	else
-		stageRemove(action, raw)
-	end
-
+	-- Exactly the keyset asked for. A chip hands over every raw it stands for, so a paired
+	-- action loses its pair and nothing else; clearing the action outright would take any
+	-- other key it happens to carry with it.
+	stageRemove(action, raw)
 	markStaged()
 end
 
@@ -1886,6 +1889,13 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 		queueText((overRemove and colorDanger or colorDim) .. "x", m.removeX1 + rightGap * 0.5, cyc, fs, "cov")
 	end
 
+	-- A paired action holds one key expressed as two binds, so there is no second key to add
+	-- to it: capturing again rewrites the pair. Offering "+" would read as "add another" and
+	-- silently replace what was there.
+	if catalogShiftPair[row.action] then
+		return
+	end
+
 	local overAdd = isInRect(mx, my, cx, c1, cx + addW, c2)
 	RectRound(cx, c1, cx + addW, c2, floor(3 * scale), 1, 1, 1, 1, { 0.2, 0.45, 0.25, overAdd and 0.55 or 0.4 })
 	queueText(colorText .. "+", (cx + cx + addW) * 0.5, cyc, fs, "cov")
@@ -2192,7 +2202,8 @@ local function hitTestRow(rowAction, x)
 		end
 	end
 
-	if x >= cx and x <= cx + addW then
+	-- Mirrors drawRow: a paired action draws no "+", so there is nothing to hit.
+	if not catalogShiftPair[rowAction] and x >= cx and x <= cx + addW then
 		return "add"
 	end
 end

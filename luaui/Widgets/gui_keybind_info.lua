@@ -52,7 +52,6 @@ local keybinds, backgroundGuishader, show, wasShown
 local ownsInput = false
 local panelHasInput = false
 local textInputStarted = false
-local menuApplied = false
 -- Keys already down when the panel opened. Their release has to be let through, or
 -- whatever they started stays stuck on once the panel starts swallowing releases.
 local heldAtOpen = {}
@@ -254,13 +253,6 @@ end
 
 -- Holds input ownership for as long as the panel is open.
 function widget:Update()
-	-- Not from Initialize: the toggle enables and disables widgets, and the handler is still
-	-- walking its list at that point.
-	if not menuApplied then
-		menuApplied = true
-		keybindEditor.applyMenuForActive()
-	end
-
 	-- Re-snapshot the live keymap each time the panel opens so bindings made since
 	-- (e.g. a runtime /bind) show without waiting for a preset switch or keyreload.
 	if show and not wasShown then

@@ -174,8 +174,9 @@ local function readBindFile(text, depth)
 	local breaks = "[^" .. string.char(13, 10) .. "]+"
 	local binds = {}
 
-	-- The engine matches an unbind on the command name alone, so "unbindaction factory_preset"
-	-- takes every "factory_preset load N" with it.
+	-- Applied to what has been collected so far rather than issued as commands, so an unbind
+	-- means "drop what this file has bound up to here". Matched on the command word, never
+	-- its args: "unbindaction factory_preset" takes every "factory_preset load N" with it.
 	local function drop(match)
 		for i = #binds, 1, -1 do
 			if match(binds[i]) then
@@ -427,12 +428,13 @@ function M.setActive(name)
 	return M.save()
 end
 
--- Adds a profile of the player's own and selects it.
+-- Adds a profile of the player's own, without selecting it: whether it becomes the live one
+-- depends on the keymap reaching disk, which only the caller finds out. Selecting it up front
+-- would leave the picker naming a profile the engine never loaded when that write fails.
 function M.create(name, binds, fakeMeta)
 	M.load()
 	name = M.uniqueName(name)
 	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMeta }
-	store.active = name
 	if not M.save() then
 		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
 			.. "; profile " .. name .. " will be gone next launch")
