@@ -1496,7 +1496,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		nameText = getColoredPlayerName(name, gameFrame, false)
 		if channelScope == "ALL" or channelScope == "TEAM" then
 			local scopeColor = channelScope == "TEAM" and colorAllyStr or (ColorString(0.78, 0.78, 0.78) or "")
-			nameText = scopeColor .. getChannelScopeLabel(channelScope) .. " " .. nameText
+			nameText = scopeColor .. " " .. nameText
 		end
 		line = c .. text
 
