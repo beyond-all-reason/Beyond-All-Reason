@@ -392,33 +392,19 @@
 				"fovDecrease": "Decrease field of view"
 			},
 			"cameraModes": {
-				"title": "Camera modes",
-				"change": "Change camera type",
-				"fullscreen": "Toggle fullscreen",
-				"overview": "Toggle overview camera",
-				"los": "Toggle LOS view",
 				"heightmap": "Show height map",
 				"traversability": "Show passability (for selected unit)",
 				"mapmarks": "Cycle through map marks",
 				"resourceSpots": "Show metal map",
-				"interface": "Hide GUI",
-				"cycle": "Cycle camera mode",
-				"fps": "FPS camera",
-				"overhead": "Overhead camera",
-				"rotatable": "Rotatable overhead camera",
-				"free": "Free camera",
-				"track": "Track selected unit",
-				"trackMode": "Toggle unit tracking"
+				"interface": "Hide GUI"
 			},
 			"mapViews": {
-				"title": "Map views",
-				"fogOfWar": "Toggle Fog of War"
+				"title": "Map views"
 			},
 			"interfaceDisplay": {
 				"title": "Interface",
 				"settings": "Settings",
 				"unitStats": "Unit stats",
-				"gameInfo": "Game info",
 				"saveGame": "Save game",
 				"screenshot": "Take screenshot",
 				"firingRange": "Display firing range"
@@ -494,7 +480,6 @@
 			},
 			"drawing": {
 				"title": "Drawing",
-				"draw": "Draw on map",
 				"drawInMap": "Draw",
 				"drawLabel": "Place label"
 			},
@@ -561,7 +546,7 @@
 				"prev": "Previous blueprint"
 			},
 			"gameControl": {
-				"title": "Spectating",
+				"title": "Game",
 				"increaseSpeed": "Increase game speed",
 				"decreaseSpeed": "Decrease game speed",
 				"voteForcestart": "Vote forcestart"
