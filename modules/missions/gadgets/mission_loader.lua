@@ -236,6 +236,7 @@ local function loadMission(missionName)
 	syncWatchedCallins()
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
+	Spring.SetGameRulesParam("mission_name", missionName)
 	Spring.Echo("[" .. LOG_TAG .. "] mission armed: " .. missionName .. " (" .. #engine.Triggers() .. " trigger(s))")
 	return true
 end
