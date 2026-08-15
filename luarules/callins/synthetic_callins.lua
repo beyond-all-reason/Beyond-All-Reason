@@ -21,6 +21,8 @@
 --  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
 
+local env = Script.GetSynced() and "synced" or "unsynced"
+
 --------------------------------------------------------------------------------
 --  Declarations  --------------------------------------------------------------
 
@@ -44,13 +46,7 @@ local syntheticCallins = {
 	unsynced = {},
 }
 
-local syntheticCallinHold = {}
-for name, callinHolds in pairs(syntheticCallins.shared) do
-	syntheticCallinHold[name] = callinHolds
-end
-for name, callinHolds in pairs(Script.GetSynced() and syntheticCallins.synced or syntheticCallins.unsynced) do
-	syntheticCallinHold[name] = callinHolds
-end
+local syntheticCallinHold = table.merge(syntheticCallins.shared, syntheticCallins[env])
 
 local callinHoldSummary = {}
 for name, callinHolds in pairs(syntheticCallinHold) do
