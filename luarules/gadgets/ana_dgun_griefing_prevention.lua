@@ -216,7 +216,7 @@ local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, ha
 	local centerY = (startY + endY) * 0.5
 	local centerZ = (startZ + endZ) * 0.5
 
-	return {
+	local planes = {
 		MakePlane(-axisX, -axisY, -axisZ, startX, startY, startZ), -- excludes units behind dgun
 		MakePlane(axisX, axisY, axisZ, endX, endY, endZ), -- excludes units ahead of dgun
 		MakePlane(sideX, sideY, sideZ, centerX + sideX * halfWidth, centerY + sideY * halfWidth, centerZ + sideZ * halfWidth), -- excludes units to the "right side" of dgun
@@ -224,6 +224,14 @@ local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, ha
 		MakePlane(upX, upY, upZ, centerX + upX * halfWidth, centerY + upY * halfWidth, centerZ + upZ * halfWidth), -- excludes units "above" the dgun
 		MakePlane(-upX, -upY, -upZ, centerX - upX * halfWidth, centerY - upY * halfWidth, centerZ - upZ * halfWidth), -- excludes units "below" the dgun
 	}
+
+	Spring.Echo("BuildBeamPrismPlanes", "start", startX, startY, startZ, "end", endX, endY, endZ, "halfWidth", halfWidth)
+	for i = 1, #planes do
+		local plane = planes[i]
+		Spring.Echo("plane", i, "n", plane.normalVecX, plane.normalVecY, plane.normalVecZ, "d", plane.d)
+	end
+
+	return planes
 end
 
 -- Removes old frontline contacts that are stale.
@@ -358,6 +366,7 @@ end
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 	-- Build a prism around the beam, then let the engine return allied units inside it.
+	-- FIXME null exception due to allegiance as last arg...why
 	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_SAFETY_WIDTH + DGUN_WIDTH / 2), ALLY_UNITS)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
@@ -493,7 +502,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 end
 
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeam)
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam) -- FIXME test whether extra checks needed for units leaving LOS because they were destroyed
 	-- If it's an enemy ghost, add to cache. Otherwise don't worry about it
 	if allyTeam ~= myAllyTeamID then
 		return -- not an event for us
