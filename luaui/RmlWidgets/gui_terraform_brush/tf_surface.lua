@@ -17,31 +17,35 @@ local Spring = Spring
 
 -- Slider ids tracked for drag (change events are declarative in the RML).
 local SLIDER_IDS = {
-	{ "surf-slider-size",       "surf-size" },
-	{ "surf-slider-strength",   "surf-strength" },
-	{ "surf-slider-falloff",    "surf-falloff" },
-	{ "surf-slider-spacing",    "surf-spacing" },
+	{ "surf-slider-size", "surf-size" },
+	{ "surf-slider-strength", "surf-strength" },
+	{ "surf-slider-falloff", "surf-falloff" },
+	{ "surf-slider-spacing", "surf-spacing" },
 	{ "surf-slider-fill-scale", "surf-fill-scale" },
-	{ "surf-slider-fill-seed",  "surf-fill-seed" },
-	{ "surf-slider-topsTintR",  "surf-topsTintR" },
-	{ "surf-slider-topsTintG",  "surf-topsTintG" },
-	{ "surf-slider-topsTintB",  "surf-topsTintB" },
-	{ "surf-slider-topsDesat",  "surf-topsDesat" },
-	{ "surf-slider-rockTintR",  "surf-rockTintR" },
-	{ "surf-slider-rockTintG",  "surf-rockTintG" },
-	{ "surf-slider-rockTintB",  "surf-rockTintB" },
-	{ "surf-slider-rockDesat",  "surf-rockDesat" },
+	{ "surf-slider-fill-seed", "surf-fill-seed" },
+	{ "surf-slider-topsTintR", "surf-topsTintR" },
+	{ "surf-slider-topsTintG", "surf-topsTintG" },
+	{ "surf-slider-topsTintB", "surf-topsTintB" },
+	{ "surf-slider-topsDesat", "surf-topsDesat" },
+	{ "surf-slider-rockTintR", "surf-rockTintR" },
+	{ "surf-slider-rockTintG", "surf-rockTintG" },
+	{ "surf-slider-rockTintB", "surf-rockTintB" },
+	{ "surf-slider-rockDesat", "surf-rockDesat" },
 	-- HARD submode smart-filter sliders (engine = WG.SplatPainter)
 	{ "surf-hard-slider-slope-max", "surf-hard-slope-max" },
-	{ "surf-hard-slider-alt-min",   "surf-hard-alt-min" },
-	{ "surf-hard-slider-alt-max",   "surf-hard-alt-max" },
+	{ "surf-hard-slider-alt-min", "surf-hard-alt-min" },
+	{ "surf-hard-slider-alt-max", "surf-hard-alt-max" },
 }
 
 -- Group tint knobs mirrored from WG.TilesetTerrain (GRADING section).
 local TINT_KNOBS = {
-	{ "topsTintR", "%.2f" }, { "topsTintG", "%.2f" }, { "topsTintB", "%.2f" },
+	{ "topsTintR", "%.2f" },
+	{ "topsTintG", "%.2f" },
+	{ "topsTintB", "%.2f" },
 	{ "topsDesat", "%.2f" },
-	{ "rockTintR", "%.2f" }, { "rockTintG", "%.2f" }, { "rockTintB", "%.2f" },
+	{ "rockTintR", "%.2f" },
+	{ "rockTintG", "%.2f" },
+	{ "rockTintB", "%.2f" },
 	{ "rockDesat", "%.2f" },
 }
 
@@ -49,9 +53,9 @@ function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	widgetState.surfControlsEl   = doc:GetElementById("tf-surface-controls")
+	widgetState.surfControlsEl = doc:GetElementById("tf-surface-controls")
 	widgetState.surfPaletteGridEl = doc:GetElementById("surf-palette-grid")
-	widgetState.surfSculptGridEl  = doc:GetElementById("surf-sculpt-grid")
+	widgetState.surfSculptGridEl = doc:GetElementById("surf-sculpt-grid")
 	widgetState.surfCoverageBarEl = doc:GetElementById("surf-coverage-bar")
 	widgetState.surfCovV1El = doc:GetElementById("surf-cov-v1")
 	widgetState.surfCovV2El = doc:GetElementById("surf-cov-v2")
@@ -64,17 +68,19 @@ function M.attach(doc, ctx)
 	widgetState.surfPaletteSectionEl = doc:GetElementById("section-surf-palette")
 	-- fresh document: rebuild the palette + re-stamp checkboxes on next sync
 	widgetState.surfPaletteSig = nil
-	widgetState.surfPaletteEls = {}   -- { {el, tex} } for the GL thumbnail pass
+	widgetState.surfPaletteEls = {} -- { {el, tex} } for the GL thumbnail pass
 	widgetState.surfTintLast = widgetState.surfTintLast or {}
 
 	for _, entry in ipairs(SLIDER_IDS) do
 		local sl = doc:GetElementById(entry[1])
-		if sl and trackSliderDrag then trackSliderDrag(sl, entry[2]) end
+		if sl and trackSliderDrag then
+			trackSliderDrag(sl, entry[2])
+		end
 	end
 
 	widgetState.surfPickerEl = doc:GetElementById("surf-picker")
 	widgetState.surfSculptSectionEl = doc:GetElementById("section-surf-sculpt")
-	widgetState.surfPickerSlot = nil   -- nil = closed, else the target slot
+	widgetState.surfPickerSlot = nil -- nil = closed, else the target slot
 
 	-- Slot free (×) and picker (▾) buttons: imperative so the click doesn't
 	-- bubble into the slot chip's select handler.
@@ -105,9 +111,13 @@ end
 -- Palette signature: biome + variant list + selection + slot assignment.
 -- ≤ 11 tiles, so a rebuild on any of those changing is cheap.
 local function paletteSig(list, bkey, surfState, pickSlot)
-	local parts = { tostring(bkey), tostring(surfState.variant or "") ,
-		tostring(surfState.slot1 or ""), tostring(surfState.slot2 or ""),
-		tostring(pickSlot or "-") }
+	local parts = {
+		tostring(bkey),
+		tostring(surfState.variant or ""),
+		tostring(surfState.slot1 or ""),
+		tostring(surfState.slot2 or ""),
+		tostring(pickSlot or "-"),
+	}
 	for i = 1, #list do
 		parts[#parts + 1] = list[i].asset .. (list[i].sculpted and "*" or "")
 	end
@@ -124,13 +134,15 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 	-- surf-tile scopes position:relative for the corner tag without touching
 	-- the shared biome-tile class.
 	tile:SetClass("surf-tile", true)
-	local sel = (v.base and (surfState.variant or "") == "")
-		or (not v.base and surfState.variant == v.asset)
+	local sel = (v.base and (surfState.variant or "") == "") or (not v.base and surfState.variant == v.asset)
 	if sel then
 		tile:SetClass("active", true)
 		-- Ring in the CHANNEL color, so tile / rail / brush ring all agree.
-		if surfState.slot1 == v.asset then tile:SetClass("surf-sel-c1", true)
-		elseif surfState.slot2 == v.asset then tile:SetClass("surf-sel-c2", true) end
+		if surfState.slot1 == v.asset then
+			tile:SetClass("surf-sel-c1", true)
+		elseif surfState.slot2 == v.asset then
+			tile:SetClass("surf-sel-c2", true)
+		end
 	end
 
 	-- thumb placeholder: the actual albedo is GL-rendered over this rect in
@@ -144,8 +156,7 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 	-- Slot tag: colored corner badge in the slot's channel color (the same
 	-- color marks the slot rail, coverage bar and brush ring).
 	if not v.base then
-		local slotN = (surfState.slot1 == v.asset and 1)
-			or (surfState.slot2 == v.asset and 2) or nil
+		local slotN = (surfState.slot1 == v.asset and 1) or (surfState.slot2 == v.asset and 2) or nil
 		if slotN then
 			local tag = doc:CreateElement("div")
 			tag:SetClass("surf-tile-tag", true)
@@ -162,13 +173,17 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 
 	tile:AddEventListener("mousedown", function(_event)
 		local sp = WG.SurfacePainter
-		if not sp then return end
+		if not sp then
+			return
+		end
 		local ok, err
 		if targetSlot and sp.setVariantSlot then
 			ok, err = sp.setVariantSlot(targetSlot, v.base and "" or v.asset)
 			-- Choosing is a one-shot action: close the picker on success so the
 			-- panel returns to its compact state.
-			if ok then widgetState.surfPickerSlot = nil end
+			if ok then
+				widgetState.surfPickerSlot = nil
+			end
 		elseif sp.setVariant then
 			ok, err = sp.setVariant(v.base and "" or v.asset)
 		end
@@ -185,7 +200,9 @@ end
 local function rebuildPalette(doc, ctx, list, surfState)
 	local widgetState = ctx.widgetState
 	local grid = widgetState.surfPaletteGridEl
-	if not grid then return end
+	if not grid then
+		return
+	end
 	grid.inner_rml = ""
 	widgetState.surfPaletteEls = {}
 	local pickSlot = widgetState.surfPickerSlot
@@ -215,7 +232,9 @@ local function rebuildPalette(doc, ctx, list, surfState)
 	if sg then
 		local tagged = {}
 		for i = 1, #list do
-			if list[i].sculpted then tagged[#tagged + 1] = list[i] end
+			if list[i].sculpted then
+				tagged[#tagged + 1] = list[i]
+			end
 		end
 		sg.inner_rml = ""
 		local srcList = (#tagged > 0) and tagged or {}
@@ -244,7 +263,9 @@ local function rebuildPalette(doc, ctx, list, surfState)
 	-- pass as the tiles. An empty slot registers nothing — the placeholder
 	-- background reads as "empty".
 	local byAsset = {}
-	for i = 1, #list do byAsset[list[i].asset] = list[i].diff end
+	for i = 1, #list do
+		byAsset[list[i].asset] = list[i].diff
+	end
 	local baseDiff = list[1] and list[1].diff
 	local els = widgetState.surfPaletteEls
 	local sel = surfState.variant
@@ -265,7 +286,9 @@ local function rebuildPalette(doc, ctx, list, surfState)
 end
 
 local function shortAsset(asset)
-	if not asset then return "\226\128\148" end
+	if not asset then
+		return "\226\128\148"
+	end
 	return asset:match("(%d+)$") or asset
 end
 
@@ -273,15 +296,22 @@ end
 -- shared between the soft path and syncHard below.
 local function syncTints(doc, ctx)
 	local T = WG.TilesetTerrain
-	if not (T and T.getKnobs) then return end
+	if not (T and T.getKnobs) then
+		return
+	end
 	local knobs = T.getKnobs()
-	if not knobs then return end
+	if not knobs then
+		return
+	end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	uiState.updatingFromCode = true
 	local ds = uiState.draggingSlider
 	local cache = widgetState.surfTintLast
-	if not cache then cache = {} widgetState.surfTintLast = cache end
+	if not cache then
+		cache = {}
+		widgetState.surfTintLast = cache
+	end
 	for _, k in ipairs(TINT_KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
@@ -291,9 +321,13 @@ local function syncTints(doc, ctx)
 			if cache[id] ~= vStr then
 				cache[id] = vStr
 				local sl = doc:GetElementById(id)
-				if sl then sl:SetAttribute("value", vStr) end
+				if sl then
+					sl:SetAttribute("value", vStr)
+				end
 				local nb = doc:GetElementById(id .. "-numbox")
-				if nb then nb:SetAttribute("value", string.format(k[2], v)) end
+				if nb then
+					nb:SetAttribute("value", string.format(k[2], v))
+				end
 			end
 		end
 	end
@@ -304,22 +338,28 @@ end
 -- as auto/intermediate/cliff/plateau overrides (dev_tileset_terrain splatDistrTex).
 -- Colors repeat on the chips + NOW strip (rcss surf-hard-*).
 local HARD_CHANNELS = {
-	{ "AUTO",    "painting removes the override \226\128\148 slope placement returns" },
-	{ "INTERMEDIATE",   "forcing intermediate material where painted" },
-	{ "CLIFF",   "forcing cliff rock where painted" },
+	{ "AUTO", "painting removes the override \226\128\148 slope placement returns" },
+	{ "INTERMEDIATE", "forcing intermediate material where painted" },
+	{ "CLIFF", "forcing cliff rock where painted" },
 	{ "PLATEAU", "forcing the plateau cap where painted" },
 }
 
 local function syncHard(doc, ctx, setSummary)
 	local sp = WG.SplatPainter
 	local spState = sp and sp.getState and sp.getState()
-	if not spState then return end
+	if not spState then
+		return
+	end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local dm = widgetState.dmHandle
 	local syncAndFlash = ctx.syncAndFlash
 	local getCachedEl = ctx.getCachedEl
-	local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+	local function setDm(f, v)
+		if dm[f] ~= v then
+			dm[f] = v
+		end
+	end
 
 	-- Honesty line: with the shader off, hard strokes drive the legacy DNTS
 	-- distribution instead of tileset overrides.
@@ -345,7 +385,9 @@ local function syncHard(doc, ctx, setSummary)
 	uiState.updatingFromCode = true
 	local stamped = false
 	local function ss(id, key, val)
-		if syncAndFlash(getCachedEl(doc, id), key, val) then stamped = true end
+		if syncAndFlash(getCachedEl(doc, id), key, val) then
+			stamped = true
+		end
 	end
 	ss("surf-slider-size", "surf-size", tostring(spState.radius or 100))
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((spState.strength or 0.15) * 100 + 0.5)))
@@ -373,30 +415,43 @@ local function syncHard(doc, ctx, setSummary)
 	-- as change events a few frames later, so the handlers ignore anything that
 	-- close to a stamp (see onSurfSlider). ONLY arm that window on a real
 	-- stamp — this sync runs every frame.
-	if stamped then uiState.surfStampFrame = Spring.GetDrawFrame() end
+	if stamped then
+		uiState.surfStampFrame = Spring.GetDrawFrame()
+	end
 
 	-- GRADING serves both submodes.
 	syncTints(doc, ctx)
 
 	if setSummary then
-		setSummary("LAYERS", "#fdc04c",
-			"", info[1],
-			"R ", tostring(spState.radius or 0),
-			"Str ", string.format("%.2f", spState.strength or 0),
-			"Undo ", tostring(spState.undoCount or 0))
+		setSummary(
+			"LAYERS",
+			"#fdc04c",
+			"",
+			info[1],
+			"R ",
+			tostring(spState.radius or 0),
+			"Str ",
+			string.format("%.2f", spState.strength or 0),
+			"Undo ",
+			tostring(spState.undoCount or 0)
+		)
 	end
 end
 
 function M.sync(doc, ctx, surfState, setSummary)
 	-- HARD only needs the splat engine, so the soft painter is required for the
 	-- soft branch (below), not for the whole module.
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
 	local dm = widgetState.dmHandle
 	local syncAndFlash = ctx.syncAndFlash
 	local getCachedEl = ctx.getCachedEl
-	if not dm or dm.activeTool ~= "surf" then return end
+	if not dm or dm.activeTool ~= "surf" then
+		return
+	end
 
 	-- Active biome line under the submode row (serves both submodes).
 	do
@@ -407,7 +462,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 			name = n
 		end
 		name = name or "\226\128\148"
-		if dm.surfBiomeName ~= name then dm.surfBiomeName = name end
+		if dm.surfBiomeName ~= name then
+			dm.surfBiomeName = name
+		end
 	end
 
 	-- HARD submode: the panel mirrors the splat engine, not the variant mask.
@@ -415,7 +472,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		syncHard(doc, ctx, setSummary)
 		return
 	end
-	if not (surfState and WG.SurfacePainter) then return end
+	if not (surfState and WG.SurfacePainter) then
+		return
+	end
 
 	-- Palette rebuild on biome / list / selection / slot / picker-target change.
 	-- Per-slot picking replaced the old "first free slot" assignment, so there
@@ -437,17 +496,26 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- widgetState, and the grid inside is imperative anyway).
 	do
 		local pk = widgetState.surfPickerEl
-		if pk then pk:SetClass("hidden", pickSlot == nil) end
+		if pk then
+			pk:SetClass("hidden", pickSlot == nil)
+		end
 	end
 
 	-- dm flags for data-if / data-class-active
-	local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+	local function setDm(f, v)
+		if dm[f] ~= v then
+			dm[f] = v
+		end
+	end
 	setDm("surfHasVariants", (list and #list > 1) and true or false)
 	do
 		local anySculpted = false
 		if list then
 			for i = 1, #list do
-				if list[i].sculpted then anySculpted = true break end
+				if list[i].sculpted then
+					anySculpted = true
+					break
+				end
 			end
 		end
 		setDm("surfHasSculpted", anySculpted)
@@ -458,15 +526,18 @@ function M.sync(doc, ctx, surfState, setSummary)
 	setDm("surfFillV1", surfState.fillV1 and true or false)
 	setDm("surfFillV2", surfState.fillV2 and true or false)
 	-- FILL WITH NOISE only writes a channel that is both assigned and enabled.
-	setDm("surfCanFill", ((surfState.slot1 and surfState.fillV1)
-		or (surfState.slot2 and surfState.fillV2)) and true or false)
+	setDm(
+		"surfCanFill",
+		((surfState.slot1 and surfState.fillV1) or (surfState.slot2 and surfState.fillV2)) and true or false
+	)
 	setDm("surfSlot1Name", shortAsset(surfState.slot1))
 	setDm("surfSlot2Name", shortAsset(surfState.slot2))
 	setDm("surfSlot1Assigned", surfState.slot1 ~= nil)
 	setDm("surfSlot2Assigned", surfState.slot2 ~= nil)
 	do
 		local cov = (pickSlot == 1) and (surfState.v1Coverage or 0)
-			or (pickSlot == 2) and (surfState.v2Coverage or 0) or 0
+			or (pickSlot == 2) and (surfState.v2Coverage or 0)
+			or 0
 		setDm("surfPickerTitle", pickSlot and ("Assign to slot " .. pickSlot) or "")
 		setDm("surfPickerHasPaint", cov >= 0.005)
 	end
@@ -518,9 +589,13 @@ function M.sync(doc, ctx, surfState, setSummary)
 				bar:SetClass("surf-cov-amber", (cov and cov < 0.8) and true or false)
 			end
 			local b1 = widgetState.surfCovV1El
-			if b1 then b1:SetAttribute("style", "width: " .. math.floor(v1 * 100 + 0.5) .. "%;") end
+			if b1 then
+				b1:SetAttribute("style", "width: " .. math.floor(v1 * 100 + 0.5) .. "%;")
+			end
 			local b2 = widgetState.surfCovV2El
-			if b2 then b2:SetAttribute("style", "width: " .. math.floor(v2 * 100 + 0.5) .. "%;") end
+			if b2 then
+				b2:SetAttribute("style", "width: " .. math.floor(v2 * 100 + 0.5) .. "%;")
+			end
 		end
 	end
 
@@ -534,7 +609,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 	uiState.updatingFromCode = true
 	local stamped = false
 	local function ss(id, key, val)
-		if syncAndFlash(getCachedEl(doc, id), key, val) then stamped = true end
+		if syncAndFlash(getCachedEl(doc, id), key, val) then
+			stamped = true
+		end
 	end
 	ss("surf-slider-size", "surf-size", tostring(surfState.radius or 72))
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((surfState.strength or 0.15) * 100 + 0.5)))
@@ -559,24 +636,32 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- sync runs every frame, so arming the window unconditionally would swallow
 	-- every change event the user's own dragging raises — which is exactly what
 	-- left FILL AND SEED dead (scale/seed never reached the painter).
-	if stamped then uiState.surfStampFrame = Spring.GetDrawFrame() end
+	if stamped then
+		uiState.surfStampFrame = Spring.GetDrawFrame()
+	end
 
 	if setSummary then
 		local what
 		if surfState.eraseMode then
 			what = "ERASE \226\134\146 auto"
 		elseif surfState.variant and surfState.variant ~= "" then
-			local selSlot = (surfState.slot1 == surfState.variant and 1)
-				or (surfState.slot2 == surfState.variant and 2)
+			local selSlot = (surfState.slot1 == surfState.variant and 1) or (surfState.slot2 == surfState.variant and 2)
 			what = shortAsset(surfState.variant) .. (selSlot and (" \194\183" .. selSlot) or "")
 		else
 			what = "base"
 		end
-		setSummary("SURFACE", "#fdc04c",
-			"", what,
-			"R ", tostring(surfState.radius or 0),
-			"Str ", string.format("%.2f", surfState.strength or 0),
-			"Base ", dm.surfCoverageStr or "\226\128\148")
+		setSummary(
+			"SURFACE",
+			"#fdc04c",
+			"",
+			what,
+			"R ",
+			tostring(surfState.radius or 0),
+			"Str ",
+			string.format("%.2f", surfState.strength or 0),
+			"Base ",
+			dm.surfCoverageStr or "\226\128\148"
+		)
 	end
 end
 

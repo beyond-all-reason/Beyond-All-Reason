@@ -1,40 +1,38 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "LOS View",
-		desc      = "Turns LOS view on when playing and off when becomming spectator.",
-		author    = "Bluestone",
-		date      = "",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "LOS View",
+		desc = "Turns LOS view on when playing and off when becomming spectator.",
+		author = "Bluestone",
+		date = "",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local lastMapDrawMode = Spring.GetMapDrawMode()
 
 local function TurnOnLOS()
-    if Spring.GetMapDrawMode()~="los" then
-        Spring.SendCommands("togglelos")
-    end
+	if Spring.GetMapDrawMode() ~= "los" then
+		Spring.SendCommands("togglelos")
+	end
 end
 
 local function TurnOffLOS()
-    if Spring.GetMapDrawMode()=="los" then
-        Spring.SendCommands("togglelos")
-    end
+	if Spring.GetMapDrawMode() == "los" then
+		Spring.SendCommands("togglelos")
+	end
 end
 
 function widget:Initialize()
-	if (spGetGameFrame() > 0 and lastMapDrawMode == "los") then
+	if spGetGameFrame() > 0 and lastMapDrawMode == "los" then
 		TurnOnLOS()
 	else
 		TurnOffLOS()
@@ -42,10 +40,10 @@ function widget:Initialize()
 end
 
 local gamestarted = false
-function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
+function widget:GameFrame(frame) -- somehow widget:GameStart() didnt work
 	if frame == 1 and not gamestarted then
 		gamestarted = true
-		myPlayerID = Spring.GetMyPlayerID()
+		myPlayerID = Spring.GetLocalPlayerID()
 		if spGetSpectatingState() then
 			TurnOffLOS()
 		else
@@ -55,8 +53,8 @@ function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
 end
 
 function widget:Shutdown()
-    lastMapDrawMode = Spring.GetMapDrawMode()
-    TurnOffLOS()
+	lastMapDrawMode = Spring.GetMapDrawMode()
+	TurnOffLOS()
 end
 
 function widget:PlayerChanged(playerID)
@@ -72,7 +70,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData() --save config
-	return {lastMapDrawMode=lastMapDrawMode}
+	return { lastMapDrawMode = lastMapDrawMode }
 end
 
 function widget:SetConfigData(data) --load config
@@ -80,4 +78,3 @@ function widget:SetConfigData(data) --load config
 		lastMapDrawMode = data.lastMapDrawMode
 	end
 end
-
