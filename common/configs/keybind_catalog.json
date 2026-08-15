@@ -22,6 +22,7 @@
 			"edit_prev_line",
 			"edit_prev_word",
 			"edit_return",
+			"losradar",
 			"luaui selector",
 			"movereset",
 			"moverotate",
@@ -39,7 +40,17 @@
 			"selectloop_add",
 			"selectloop_invert",
 			"teamstatus_close",
-			"toggle_allied_upgrade"
+			"toggle_allied_upgrade",
+			"togglecammode",
+			"togglelos",
+			"toggleoverview",
+			"track",
+			"trackmode",
+			"viewfps",
+			"viewfree",
+			"viewrot",
+			"viewspring",
+			"viewta"
 		]
 	},
 	{
@@ -106,7 +117,8 @@
 		"items": [
 			{
 				"action": "move",
-				"label": "ui.keybinds.orders.move"
+				"label": "ui.keybinds.orders.move",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "attack",
@@ -180,7 +192,8 @@
 			},
 			{
 				"action": "areaattack",
-				"label": "ui.keybinds.orders.areaAttack"
+				"label": "ui.keybinds.orders.areaAttack",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "guard",
@@ -474,11 +487,13 @@
 			},
 			{
 				"action": "buildspacing inc",
-				"label": "ui.keybinds.issueBuildOrders.spacingUp"
+				"label": "ui.keybinds.issueBuildOrders.spacingUp",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "buildspacing dec",
-				"label": "ui.keybinds.issueBuildOrders.spacingDown"
+				"label": "ui.keybinds.issueBuildOrders.spacingDown",
+				"alwaysModifier": "shift"
 			},
 			{
 				"action": "buildsplit",
@@ -643,6 +658,10 @@
 				]
 			},
 			{
+				"action": "lastmsgpos",
+				"label": "ui.keybinds.cameraModes.mapmarks"
+			},
+			{
 				"action": "pip1_switch",
 				"label": "ui.keybinds.camera.pipSwitch"
 			},
@@ -657,55 +676,8 @@
 		]
 	},
 	{
-		"category": "ui.keybinds.cameraModes.title",
-		"items": [
-			{
-				"action": "viewspring",
-				"label": "ui.keybinds.cameraModes.change"
-			},
-			{
-				"action": "toggleoverview",
-				"label": "ui.keybinds.cameraModes.overview"
-			},
-			{
-				"action": "togglecammode",
-				"label": "ui.keybinds.cameraModes.cycle"
-			},
-			{
-				"action": "viewfps",
-				"label": "ui.keybinds.cameraModes.fps"
-			},
-			{
-				"action": "viewta",
-				"label": "ui.keybinds.cameraModes.overhead"
-			},
-			{
-				"action": "viewrot",
-				"label": "ui.keybinds.cameraModes.rotatable"
-			},
-			{
-				"action": "viewfree",
-				"label": "ui.keybinds.cameraModes.free"
-			},
-			{
-				"action": "track",
-				"label": "ui.keybinds.cameraModes.track",
-				"alwaysModifier": "any"
-			},
-			{
-				"action": "trackmode",
-				"label": "ui.keybinds.cameraModes.trackMode"
-			}
-		]
-	},
-	{
 		"category": "ui.keybinds.mapViews.title",
 		"items": [
-			{
-				"action": "togglelos",
-				"label": "ui.keybinds.cameraModes.los",
-				"alwaysModifier": "any"
-			},
 			{
 				"action": "showelevation",
 				"label": "ui.keybinds.cameraModes.heightmap"
@@ -717,11 +689,6 @@
 			{
 				"action": "showmetalmap",
 				"label": "ui.keybinds.cameraModes.resourceSpots"
-			},
-			{
-				"action": "losradar",
-				"label": "ui.keybinds.mapViews.fogOfWar",
-				"alwaysModifier": "any"
 			}
 		]
 	},
@@ -737,16 +704,8 @@
 				"label": "ui.keybinds.cameraModes.interface"
 			},
 			{
-				"action": "fullscreen",
-				"label": "ui.keybinds.cameraModes.fullscreen"
-			},
-			{
 				"action": "unit_stats",
 				"label": "ui.keybinds.interfaceDisplay.unitStats"
-			},
-			{
-				"action": "customgameinfo",
-				"label": "ui.keybinds.interfaceDisplay.gameInfo"
 			},
 			{
 				"action": "savegame",
@@ -759,11 +718,6 @@
 			{
 				"action": "attack_range_inc",
 				"label": "ui.keybinds.interfaceDisplay.firingRange"
-			},
-			{
-				"action": "pause",
-				"label": "ui.keybinds.console.pause",
-				"alwaysModifier": "any"
 			},
 			{
 				"action": "chain force forcestart | say !cv forcestart",
@@ -786,10 +740,6 @@
 			{
 				"action": "clearmapmarks",
 				"label": "ui.keybinds.console.erase"
-			},
-			{
-				"action": "lastmsgpos",
-				"label": "ui.keybinds.cameraModes.mapmarks"
 			}
 		]
 	},
@@ -813,6 +763,11 @@
 	{
 		"category": "ui.keybinds.gameControl.title",
 		"items": [
+			{
+				"action": "pause",
+				"label": "ui.keybinds.console.pause",
+				"alwaysModifier": "any"
+			},
 			{
 				"action": "increasespeed",
 				"label": "ui.keybinds.gameControl.increaseSpeed"
