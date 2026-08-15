@@ -147,6 +147,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "GROUNDSCOUT",
 				def = "RAILGUNT2",
 				onlytargetcategory = "SURFACE",
 			},
