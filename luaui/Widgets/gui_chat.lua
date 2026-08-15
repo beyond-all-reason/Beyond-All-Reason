@@ -3552,19 +3552,11 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 end
 
 function widget:cycleInputMode(reverse)
-	local inputModeOrder = {'', 's:', 'a:'}
-	local zeroModeIndex = 0 -- use zero-based index for modulo, and add 1 before accessing inputModeOrder
-	for i, mode in ipairs(inputModeOrder) do
-		if mode == inputMode then
-			zeroModeIndex = i - 1
-			break
-		end
-	end
-
-	local modeCount = mySpec and #inputModeOrder - 1 or #inputModeOrder
+	local inputModeOrder = mySpec and {'', 's:'} or {'', 's:', 'a:'}
+	local modeIndex = table.getKeyOf(inputModeOrder, inputMode) or 1
 	local direction = reverse and -1 or 1
-	local newZeroIndex = (zeroModeIndex + direction) % modeCount
-	inputMode = inputModeOrder[newZeroIndex + 1] -- convert back to 1-based index
+
+	inputMode = inputModeOrder[(modeIndex - 1 + direction) % #inputModeOrder + 1]
 
 	updateTextInputDlist = true
 end
@@ -3931,19 +3923,17 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= "label" then -- TAB
-			if inputText == '' then
+			inputSelectionStart = nil
+			if inputText == '' and not isRepeat then
 				self:cycleInputMode(shift)
-			else
-				inputSelectionStart = nil
-				if autocompleteText and autocompleteWords[1] then
-					inputText = utf8.sub(inputText, 1, inputTextPosition)
+			elseif autocompleteText and autocompleteWords[1] then
+				inputText = utf8.sub(inputText, 1, inputTextPosition)
 					.. autocompleteText
 					.. utf8.sub(inputText, inputTextPosition + 1)
-					inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
-					inputHistory[#inputHistory] = inputText
-					autocompleteText = nil
-					autocompleteWords = {}
-				end
+				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
+				inputHistory[#inputHistory] = inputText
+				autocompleteText = nil
+				autocompleteWords = {}
 			end
 		else
 			-- regular chars/keys handled in widget:TextInput
