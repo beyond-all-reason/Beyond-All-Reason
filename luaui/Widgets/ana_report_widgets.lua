@@ -62,7 +62,7 @@ local function processWidget(widget)
 	end
 
 	if widget.filename then
-		local file = io.open(widget.filename, "r")
+		local content = VFS.LoadFile(widget.filename)
 		if file then
 			local content = file:read("*a")
 			file:close()
