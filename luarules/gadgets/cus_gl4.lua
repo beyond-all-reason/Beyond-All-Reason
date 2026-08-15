@@ -1309,6 +1309,34 @@ local function PrepareResourcePreload()
 	end
 	tracy.ZoneEnd()
 
+	-- Also warm every file-based texture any CUS bin can ever bind (tree/feature normal maps,
+	-- raptor/scavenger wreck atlases, pbr textures, ...). A named texture that is not resident
+	-- yet gets synchronously loaded from the archive by the first gl.Texture call on it, which
+	-- otherwise lands inside ExecuteDrawPass:BindTextures mid-game as a multi-100ms hitch the
+	-- first time such a bin enters view.
+	-- '%' model textures are deliberately skipped: binding one forces a synchronous
+	-- objectDef->LoadModel() engine-side (see ParseUnitTexture), which would front-load every
+	-- wreck model of every unitDef; those models and their textures load with their object
+	-- instead. '$' engine textures are always resident.
+	tracy.ZoneBeginN("G:CUS:PrepareResourcePreload:CollectFileTextures")
+	for _, textureSet in pairs(textureKeytoSet) do
+		for bindPosition = 0, 10 do
+			local texture = textureSet[bindPosition]
+			if
+				texture
+				and type(texture) == "string"
+				and not seenTextures[texture]
+				and texture:sub(1, 1) ~= "%"
+				and texture:sub(1, 1) ~= "$"
+			then
+				textureCount = textureCount + 1
+				preloadTextures[textureCount] = texture
+				seenTextures[texture] = true
+			end
+		end
+	end
+	tracy.ZoneEnd()
+
 	for i = shaderCount + 1, #preloadShaders do
 		preloadShaders[i] = nil
 	end
@@ -1380,11 +1408,18 @@ local function PreloadNextResource()
 	else
 		local texture = preloadTextures[preloadTextureIndex]
 		if texture then
+			-- Load textures under a small time budget per call instead of one per frame:
+			-- already-resident ones cost microseconds, so this mostly packs those together
+			-- while a heavyweight first-time archive load still ends the batch on its own.
 			tracy.ZoneBeginN("G:CUS:PreloadNextResource:BindTexture")
-			gl.Texture(0, texture)
-			gl.Texture(0, false)
+			local t0 = Spring.GetTimerMicros()
+			repeat
+				gl.Texture(0, texture)
+				gl.Texture(0, false)
+				preloadTextureIndex = preloadTextureIndex + 1
+				texture = preloadTextures[preloadTextureIndex]
+			until texture == nil or Spring.DiffTimers(Spring.GetTimerMicros(), t0, nil) > 4 -- ms
 			tracy.ZoneEnd()
-			preloadTextureIndex = preloadTextureIndex + 1
 		else
 			local draw = preloadDraws[preloadDrawIndex]
 			local drawPass = draw[1]
