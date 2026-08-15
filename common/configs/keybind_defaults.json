@@ -46,10 +46,6 @@
 					"action": "buildmenu_pregame_deselect"
 				},
 				{
-					"keyset": "Alt+backspace",
-					"action": "fullscreen"
-				},
-				{
 					"keyset": "Any+sc_z",
 					"action": "selectbox_same"
 				},
@@ -906,10 +902,6 @@
 					"action": "unit_stats"
 				},
 				{
-					"keyset": "Ctrl+sc_i",
-					"action": "customgameinfo"
-				},
-				{
 					"keyset": "sc_j",
 					"action": "loadunits"
 				},
@@ -1138,24 +1130,8 @@
 					"action": "factoryguard 1"
 				},
 				{
-					"keyset": "Any+sc_'",
-					"action": "togglelos"
-				},
-				{
-					"keyset": "Ctrl+sc_t",
-					"action": "toggleoverview"
-				},
-				{
 					"keyset": "Alt+sc_o",
 					"action": "cameraflip"
-				},
-				{
-					"keyset": "Ctrl+f5",
-					"action": "viewta"
-				},
-				{
-					"keyset": "Ctrl+f6",
-					"action": "viewspring"
 				},
 				{
 					"keyset": "Ctrl+f7",
@@ -1391,10 +1367,6 @@
 					"action": "buildmenu_pregame_deselect"
 				},
 				{
-					"keyset": "Alt+backspace",
-					"action": "fullscreen"
-				},
-				{
 					"keyset": "Any+sc_z",
 					"action": "selectbox_same"
 				},
@@ -2167,10 +2139,6 @@
 					"action": "unit_stats"
 				},
 				{
-					"keyset": "Ctrl+sc_i",
-					"action": "customgameinfo"
-				},
-				{
 					"keyset": "sc_j",
 					"action": "loadunits"
 				},
@@ -2399,24 +2367,8 @@
 					"action": "factoryguard 1"
 				},
 				{
-					"keyset": "Any+sc_'",
-					"action": "togglelos"
-				},
-				{
-					"keyset": "Ctrl+sc_t",
-					"action": "toggleoverview"
-				},
-				{
 					"keyset": "Alt+sc_o",
 					"action": "cameraflip"
-				},
-				{
-					"keyset": "Ctrl+meta+5",
-					"action": "viewta"
-				},
-				{
-					"keyset": "Ctrl+meta+6",
-					"action": "viewspring"
 				},
 				{
 					"keyset": "Ctrl+meta+7",
@@ -2646,10 +2598,6 @@
 				{
 					"keyset": "esc",
 					"action": "buildmenu_pregame_deselect"
-				},
-				{
-					"keyset": "Alt+backspace",
-					"action": "fullscreen"
 				},
 				{
 					"keyset": "Any+sc_z",
@@ -3284,14 +3232,6 @@
 					"action": "factory_preset_show"
 				},
 				{
-					"keyset": "Any+sc_h",
-					"action": "sharedialog"
-				},
-				{
-					"keyset": "sc_i",
-					"action": "customgameinfo"
-				},
-				{
 					"keyset": "Shift+backspace",
 					"action": "togglecammode"
 				},
@@ -3302,22 +3242,6 @@
 				{
 					"keyset": "Any+tab",
 					"action": "toggleoverview"
-				},
-				{
-					"keyset": "Any+home",
-					"action": "increaseviewradius"
-				},
-				{
-					"keyset": "Any+end",
-					"action": "decreaseviewradius"
-				},
-				{
-					"keyset": "Alt+insert",
-					"action": "increasespeed"
-				},
-				{
-					"keyset": "Alt+delete",
-					"action": "decreasespeed"
 				},
 				{
 					"keyset": "Alt+sc_=",
@@ -3624,10 +3548,6 @@
 					"action": "savegame"
 				},
 				{
-					"keyset": "Alt+enter",
-					"action": "fullscreen"
-				},
-				{
 					"keyset": "sc_`,sc_`",
 					"action": "drawlabel"
 				},
@@ -4352,10 +4272,6 @@
 					"action": "snd_volume_decrease"
 				},
 				{
-					"keyset": "Any+sc_;",
-					"action": "losradar"
-				},
-				{
 					"keyset": "Any+space",
 					"action": "unit_stats"
 				},
@@ -4455,10 +4371,6 @@
 				{
 					"keyset": "esc",
 					"action": "buildmenu_pregame_deselect"
-				},
-				{
-					"keyset": "Alt+backspace",
-					"action": "fullscreen"
 				},
 				{
 					"keyset": "Any+sc_z",
@@ -5009,14 +4921,6 @@
 					"action": "group selecttoggle 9"
 				},
 				{
-					"keyset": "Any+sc_h",
-					"action": "sharedialog"
-				},
-				{
-					"keyset": "sc_i",
-					"action": "customgameinfo"
-				},
-				{
 					"keyset": "Shift+backspace",
 					"action": "togglecammode"
 				},
@@ -5027,22 +4931,6 @@
 				{
 					"keyset": "Any+tab",
 					"action": "toggleoverview"
-				},
-				{
-					"keyset": "Any+home",
-					"action": "increaseviewradius"
-				},
-				{
-					"keyset": "Any+end",
-					"action": "decreaseviewradius"
-				},
-				{
-					"keyset": "Alt+insert",
-					"action": "increasespeed"
-				},
-				{
-					"keyset": "Alt+delete",
-					"action": "decreasespeed"
 				},
 				{
 					"keyset": "Alt+sc_=",
@@ -5107,18 +4995,6 @@
 				{
 					"keyset": "Alt+Shift+sc_a",
 					"action": "areaattack"
-				},
-				{
-					"keyset": "Alt+b",
-					"action": "debug"
-				},
-				{
-					"keyset": "Alt+v",
-					"action": "debugcolvol"
-				},
-				{
-					"keyset": "Alt+p",
-					"action": "debugpath"
 				},
 				{
 					"keyset": "sc_d",
@@ -5355,10 +5231,6 @@
 				{
 					"keyset": "Ctrl+Shift+f8",
 					"action": "savegame"
-				},
-				{
-					"keyset": "Alt+enter",
-					"action": "fullscreen"
 				},
 				{
 					"keyset": "Ctrl+sc_a",
@@ -6075,10 +5947,6 @@
 				{
 					"keyset": "numpad-",
 					"action": "snd_volume_decrease"
-				},
-				{
-					"keyset": "Any+sc_;",
-					"action": "losradar"
 				},
 				{
 					"keyset": "Any+space",
