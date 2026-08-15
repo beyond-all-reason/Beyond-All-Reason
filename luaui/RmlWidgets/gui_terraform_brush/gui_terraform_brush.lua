@@ -229,6 +229,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	spMinimapSampleTex = nil,
 	spTerrainColor = nil,
 	spTerrainColorTime = nil,
+	spTerrainSampleTick = 0,
 	-- Lobby visibility tracking (document:Hide() does not set hidden class)
 	lobbyHidden = false,
 	-- Decal section elements
@@ -10975,7 +10976,23 @@ function widget:DrawScreen()
 	end
 
 	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex for splat preview tinting.
-	do
+	-- gl.ReadPixels below blocks until the GPU drains, so an ungated sample costs several
+	-- ms every frame — including with the panel hidden, where nothing reads the result.
+	-- Gate on the same condition the swatch draw uses (see DrawScreenPost) and only pay
+	-- the stall every Nth frame; the blend is dt-based, so a stride just coarsens its steps.
+	-- panelEngaged, not dm.activeTool alone: Update returns before writing activeTool
+	-- when the panel is down, so that field holds the last tool used and would keep
+	-- the sample alive after the splat tool closed.
+	local sampleDm = widgetState.dmHandle
+	local sampleSec = widgetState.spChannelSectionEl
+	local wantTerrainSample = widgetState.panelEngaged
+		and sampleDm ~= nil and sampleDm.activeTool == "sp"
+		and not widgetState.lobbyHidden
+		and not (sampleSec and sampleSec:IsClassSet("hidden"))
+	local sampleTick = wantTerrainSample and ((widgetState.spTerrainSampleTick or 0) + 1) or 0
+	if sampleTick >= 3 then sampleTick = 0 end
+	widgetState.spTerrainSampleTick = sampleTick
+	if wantTerrainSample and sampleTick == 0 then
 		local mx, my = GetMouseState()
 		if mx and my then
 			local _, coords = TraceScreenRay(mx, my, true)
@@ -11186,6 +11203,9 @@ function widget:DrawScreenPost()
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
 	local dm = widgetState.dmHandle
+	-- panelEngaged first: activeTool goes stale when the panel closes (Update returns
+	-- before writing it), so the tool check alone keeps this drawing into a dead panel.
+	if not widgetState.panelEngaged then return end
 	if not dm or dm.activeTool ~= "sp" then return end
 	if widgetState.lobbyHidden then return end
 
@@ -13613,6 +13633,7 @@ function widget:Shutdown()
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false
 	widgetState.spTerrainColor = nil
+	widgetState.spTerrainSampleTick = 0
 	if widgetState.spMinimapSampleTex then
 		gl.DeleteTexture(widgetState.spMinimapSampleTex)
 		widgetState.spMinimapSampleTex = nil
