@@ -37,7 +37,7 @@ local function resolveHotkeyTargetVirtualIndex(optWords)
 	if param ~= nil then
 		return param + 1
 	end
-	local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(selectedUnits[1])
+	local virtualIndex = OrderMenuFirestate.lowestSelectionVirtualIndex(selectedUnits)
 	if virtualIndex == nil then
 		return nil
 	end
@@ -177,6 +177,7 @@ local prevCmdCount = 0
 local prevCmdIDs = {}
 local prevCmdStates = {}
 local prevCmdModes = {}
+local prevCmdMasks = {}
 local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
@@ -392,6 +393,21 @@ local function computeWaitState()
 	end
 end
 
+-- these draw mode N as pip N+1, so a mode's bit is 2^mode; firestate is the
+-- exception and builds its own mask off virtual indices
+local function statePipMask(modes)
+	if not modes or #modes < 2 then
+		return nil
+	end
+
+	local mask = 0
+	for index = 1, #modes do
+		mask = mask + 2 ^ modes[index]
+	end
+
+	return mask
+end
+
 local function refreshCommands()
 	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands")
 	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:Collect")
@@ -412,8 +428,9 @@ local function refreshCommands()
 	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
 	local cancelTargetRelevant = cancelTargetLastState
 
-	local activeCmdDescs = spGetActiveCmdDescs()
-	for _, command in ipairs(activeCmdDescs) do
+	-- second return is keyed as the first; absent on engines predating RecoilEngine#3218
+	local activeCmdDescs, activePresentModes = spGetActiveCmdDescs()
+	for cmdDescIndex, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
@@ -432,11 +449,15 @@ local function refreshCommands()
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
 					if command.id == CMD.FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
-						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(cachedFirstUnit)
+						local modes = activePresentModes and activePresentModes[cmdDescIndex]
+						local virtualIndex =
+							OrderMenuFirestate.resolveSelectionVirtualIndex(modes, cachedFirstUnit)
 						stateCommandsTemp[stateCommandsCount] = virtualIndex
-								and OrderMenuFirestate.buildCmdDesc(command, virtualIndex)
+								and OrderMenuFirestate.buildCmdDesc(command, virtualIndex, modes)
 							or command
 					else
+						command.pipPartialMask =
+							statePipMask(activePresentModes and activePresentModes[cmdDescIndex])
 						stateCommandsTemp[stateCommandsCount] = command
 					end
 				elseif command.id == CMD.WAIT then
@@ -518,7 +539,13 @@ local function refreshCommands()
 			end
 			if isStateCommand[cmd.id] then
 				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1) or (tonumber(cmd.params[1]) + 1)
-				if cmd.cachedText ~= prevCmdStates[i] or mode ~= prevCmdModes[i] then
+				-- the mask can change while the label and mode do not: adding units
+				-- to a selection that already showed its lowest state leaves both
+				if
+					cmd.cachedText ~= prevCmdStates[i]
+					or mode ~= prevCmdModes[i]
+					or cmd.pipPartialMask ~= prevCmdMasks[i]
+				then
 					commandsVisuallyChanged = true
 					break
 				end
@@ -539,12 +566,15 @@ local function refreshCommands()
 				prevCmdStates[i] = commands[i].cachedText
 				prevCmdModes[i] = (commands[i].id == CMD.FIRE_STATE) and (commands[i].virtualIndex or 1)
 					or (tonumber(commands[i].params[1]) + 1)
+				prevCmdMasks[i] = commands[i].pipPartialMask
 			elseif commands[i].id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
 				prevCmdModes[i] = nil
+				prevCmdMasks[i] = nil
 			else
 				prevCmdStates[i] = nil
 				prevCmdModes[i] = nil
+				prevCmdMasks[i] = nil
 			end
 		end
 		-- Clear excess fingerprint entries
@@ -552,6 +582,7 @@ local function refreshCommands()
 			prevCmdIDs[i] = nil
 			prevCmdStates[i] = nil
 			prevCmdModes[i] = nil
+			prevCmdMasks[i] = nil
 		end
 		-- Invalidate print text cache since display changed
 		for k in pairs(printTextCache) do
@@ -973,7 +1004,8 @@ local function drawStateLights(
 	statecount,
 	fillMin,
 	fillMax,
-	desiredState
+	desiredState,
+	partialMask
 )
 	local padding2 = padding
 	local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
@@ -982,17 +1014,19 @@ local function drawStateLights(
 	local glowSize = math_floor(stateHeight * 8)
 	local r, g, b, a = 0, 0, 0, 0
 	for i = 1, statecount do
-		if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
+		local dimmed = i == desiredState
+			or (partialMask ~= nil and math_floor(partialMask / (2 ^ (i - 1))) % 2 == 1)
+		if (fillMin and fillMax and i >= fillMin and i <= fillMax) or dimmed then
 			if i == 1 then
-				r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
+				r, g, b, a = 1, 0.1, 0.1, (dimmed and 0.33 or 0.8)
 			elseif i == 2 then
 				if statecount == 2 then
-					r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
+					r, g, b, a = 0.1, 1, 0.1, (dimmed and 0.22 or 0.8)
 				else
-					r, g, b, a = 1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
+					r, g, b, a = 1, 1, 0.1, (dimmed and 0.22 or 0.8)
 				end
 			else
-				r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.26 or 0.8)
+				r, g, b, a = 0.1, 1, 0.1, (dimmed and 0.26 or 0.8)
 			end
 		else
 			r, g, b, a = 0, 0, 0, 0.36
@@ -1259,6 +1293,7 @@ local function drawCell(cell, zoom)
 			tracy.ZoneBeginN("W:OrderMenu:DrawCell:StateLights")
 			local statecount, curstate
 			local fillMin, fillMax
+			local partialMask = cmd.pipPartialMask
 			if cmd.id == CMD.FIRE_STATE then
 				statecount = OrderMenuFirestate.PIP_COUNT
 				curstate = cmd.virtualIndex or 1
@@ -1273,6 +1308,11 @@ local function drawCell(cell, zoom)
 				curstate = cachedWaitState
 				fillMin = curstate
 				fillMax = curstate
+			end
+			-- a mixed selection has no one active state, so light the states it
+			-- does hold at reduced alpha rather than filling any of them
+			if partialMask then
+				fillMin, fillMax = nil, nil
 			end
 			local desiredState = nil
 			if clickedCellDesiredState and cell == clickedCell then
@@ -1298,6 +1338,7 @@ local function drawCell(cell, zoom)
 				and cache.fillMin == fillMin
 				and cache.fillMax == fillMax
 				and cache.desiredState == desiredState
+				and cache.partialMask == partialMask
 			then
 				glCallList(cache.list)
 			else
@@ -1311,6 +1352,7 @@ local function drawCell(cell, zoom)
 				cache.fillMin = fillMin
 				cache.fillMax = fillMax
 				cache.desiredState = desiredState
+				cache.partialMask = partialMask
 				cache.list = glCreateList(
 					drawStateLights,
 					cell,
@@ -1323,7 +1365,8 @@ local function drawCell(cell, zoom)
 					statecount,
 					fillMin,
 					fillMax,
-					desiredState
+					desiredState,
+					partialMask
 				)
 				glCallList(cache.list)
 			end
