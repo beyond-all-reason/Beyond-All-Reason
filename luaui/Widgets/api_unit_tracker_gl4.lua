@@ -840,7 +840,7 @@ function widget:PlayerChanged(playerID)
 	if
 		(currentspec ~= spec) -- we change from spec to non spec (I dont think its possible to go from player to non-fullview spec in one go)
 		or (currentfullview ~= fullview)
-		or ((currentAllyTeamID ~= myAllyTeamID) and not currentspec and not currentfullview)
+		or ((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)
 	then -- our ALLYteam changes while playing, and we are not in fullview
 		reinit = true
 	end

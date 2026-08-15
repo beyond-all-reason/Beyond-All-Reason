@@ -389,6 +389,22 @@ local pipR2T = {
 	contentDrawTimeHistoryIndex = 0, -- Current index in ring buffer
 	contentDrawTimeAverage = 0, -- Average of last 6 frame times
 	contentPerformanceFactor = 1.0, -- Multiplier applied to update rate based on performance (1.0 = no adjustment)
+	contentStaggerDeferred = false, -- Timer-driven cheap-layers render pushed to next frame (units rendered this frame)
+	texInfoNextValidateTime = 0, -- Next os.clock() time to run the throttled TextureInfo validation
+	-- Features layer texture state (static content: only re-renders when the feature
+	-- set changes or the view outgrows what the composite blit can compensate)
+	featuresTex = nil,
+	featuresTexWidth = 0,
+	featuresTexHeight = 0,
+	featuresLastWidth = 0,
+	featuresLastHeight = 0,
+	featuresWcx = 0, -- Camera X when featuresTex was rendered
+	featuresWcz = 0, -- Camera Z when featuresTex was rendered
+	featuresZoom = 0, -- Zoom when featuresTex was rendered
+	featuresRotation = nil, -- Rotation baked into featuresTex
+	featuresFingerprint = nil, -- Feature-set fingerprint at last render
+	featuresLastUpdateTime = 0,
+	featuresStaggerDeferred = false, -- Non-urgent features render pushed to next frame (units rendered this frame)
 	frameBackgroundTex = nil,
 	frameButtonsTex = nil,
 	frameNeedsUpdate = true,
@@ -404,7 +420,8 @@ local pipR2T = {
 	losTex = nil,
 	losNeedsUpdate = true,
 	losLastUpdateTime = 0,
-	losUpdateRate = 0.4, -- Update every 0.4 seconds
+	losUpdateRate = 0.4, -- Update every 0.4 seconds (manual LOS generation)
+	losEngineUpdateRate = 0.1, -- Update every 0.1 seconds when using the engine LOS texture
 	losTexScale = 96, -- 96:1 ratio of map size to LOS texture size
 	losLastMode = nil, -- Track whether last update used engine or manual LOS
 	losEngineDelayFrames = 0, -- Delay frames before switching to engine LOS to let it update
@@ -1799,6 +1816,17 @@ function gl4Icons.QueueUnitpicWarm(defID)
 	end
 end
 
+-- Cached MinimapIconScale config read (TTL 1s): several per-render paths need it and
+-- Spring.GetConfigFloat is an engine call. Sites that WRITE the config reset the expiry.
+function gl4Icons.GetMinimapIconScale()
+	local nowClock = os.clock()
+	if nowClock >= (gl4Icons.minimapIconScaleExpiry or 0) then
+		gl4Icons.minimapIconScaleCached = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		gl4Icons.minimapIconScaleExpiry = nowClock + 1.0
+	end
+	return gl4Icons.minimapIconScaleCached
+end
+
 function gl4Icons.DeactivateUnitpics()
 	if not gl4Icons.unitpicsActive then
 		return
@@ -2018,6 +2046,7 @@ gl4Prim.nanoStreams.shaderCode = {
 local cache = {
 	noModelFeatures = {},
 	unreclaimableFeatures = {},
+	featureTexName = {}, -- Memoized "%-<defID>:0" texture names (avoids per-feature string concat)
 	xsizes = {},
 	zsizes = {},
 	unitIcon = {},
@@ -4299,6 +4328,19 @@ local function DestroyGL4Icons()
 		gl.DeleteShader(gl4Icons.shader)
 		gl4Icons.shader = nil
 	end
+	-- Delete per-def unitpic display lists (borders + textured pic)
+	for uDefID, geometry in pairs(gl4Icons.unitpicGeometry) do
+		if geometry[8] then
+			gl.DeleteList(geometry[8])
+		end
+		if geometry[9] then
+			gl.DeleteList(geometry[9])
+		end
+		if geometry[10] then
+			gl.DeleteList(geometry[10])
+		end
+		gl4Icons.unitpicGeometry[uDefID] = nil
+	end
 	if gl4Icons.bldgVao then
 		gl4Icons.bldgVao:Delete()
 		gl4Icons.bldgVao = nil
@@ -5859,7 +5901,12 @@ local function DrawFeature(fID, noTextures)
 	glFunc.Rotate(90, 1, 0, 0)
 	glFunc.Rotate(uHeading, 0, 1, 0)
 	if not noTextures then
-		glFunc.Texture(0, "%-" .. fDefID .. ":0")
+		local texName = cache.featureTexName[fDefID]
+		if not texName then
+			texName = "%-" .. fDefID .. ":0"
+			cache.featureTexName[fDefID] = texName
+		end
+		glFunc.Texture(0, texName)
 	end
 	gl.FeatureShape(fDefID, spFunc.GetFeatureTeam(fID))
 	glFunc.PopMatrix()
@@ -8594,6 +8641,7 @@ local function RegisterMinimapWGAPI()
 			if miscState.baseMinimapIconScale then
 				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
 				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				gl4Icons.minimapIconScaleExpiry = 0 -- invalidate cached read
 				miscState.baseMinimapIconScale = nil
 			end
 			Spring.SendCommands("minimap minimize 1")
@@ -9150,6 +9198,8 @@ function widget:Initialize()
 			gl.DeleteTexture(pipR2T.losTex)
 			pipR2T.losTex = nil
 		end
+	else
+		shaders.losShowRadarLoc = gl.GetUniformLocation(shaders.los, "showRadar")
 	end
 
 	-- Initialize decal overlay shader + GL4 VBO/VAO
@@ -9191,10 +9241,78 @@ function widget:Initialize()
 
 	-- Initialize water shader if map has water
 	if mapInfo.hasWater then
+		-- Bake all map-static uniforms into the program at link time; per-render code
+		-- (shaders.SetWaterDynamicUniforms) then only updates the few dynamic uniforms
+		-- through cached locations instead of ~30 GetUniformLocation lookups per render
+		local wr, wg, wb, wa
+		if mapInfo.voidWater then
+			wr, wg, wb, wa = 0, 0, 0, 1
+		elseif mapInfo.isLava then
+			wr, wg, wb, wa = 0.22, 0, 0, 1
+		else
+			wr, wg, wb, wa = 0.08, 0.11, 0.22, 0.5
+		end
+		local staticFloats = {
+			waterColor = { wr, wg, wb, wa },
+			isLava = mapInfo.isLava and 1.0 or 0.0,
+			hasLavaTex = mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0,
+			hasDistortTex = mapInfo.lavaDistortionTex and 1.0 or 0.0,
+			lavaCoastColor = { mapInfo.lavaCoastColor[1], mapInfo.lavaCoastColor[2], mapInfo.lavaCoastColor[3] },
+			colorCorrection = {
+				mapInfo.lavaColorCorrection[1],
+				mapInfo.lavaColorCorrection[2],
+				mapInfo.lavaColorCorrection[3],
+			},
+			lavaCoastWidth = mapInfo.lavaCoastWidth,
+			lavaUvScale = mapInfo.lavaUvScale,
+			lavaSwirlFreq = mapInfo.lavaSwirlFreq,
+			lavaSwirlAmp = mapInfo.lavaSwirlAmp,
+			mapRatio = mapInfo.mapRatio,
+		}
+		-- BumpWater properties for animated water overlay (non-lava maps)
+		if mapInfo.waterSurfaceColor then
+			staticFloats.wSurfColor = {
+				mapInfo.waterSurfaceColor[1],
+				mapInfo.waterSurfaceColor[2],
+				mapInfo.waterSurfaceColor[3],
+			}
+			staticFloats.wSurfAlpha = mapInfo.waterSurfaceAlpha
+			staticFloats.wAbsorbColor = {
+				mapInfo.waterAbsorbColor[1],
+				mapInfo.waterAbsorbColor[2],
+				mapInfo.waterAbsorbColor[3],
+			}
+			staticFloats.wBaseColor = {
+				mapInfo.waterBaseColorRGB[1],
+				mapInfo.waterBaseColorRGB[2],
+				mapInfo.waterBaseColorRGB[3],
+			}
+			staticFloats.wMinColor = {
+				mapInfo.waterMinColor[1],
+				mapInfo.waterMinColor[2],
+				mapInfo.waterMinColor[3],
+			}
+			staticFloats.wCausticsStr = mapInfo.waterCausticsStrength
+			staticFloats.wPerlinStart = mapInfo.waterPerlinStartFreq
+			staticFloats.wPerlinLacun = mapInfo.waterPerlinLacunarity
+			staticFloats.wPerlinAmp = mapInfo.waterPerlinAmplitude
+			staticFloats.wFresnelMin = mapInfo.waterFresnelMin
+			staticFloats.wDiffuseFactor = mapInfo.waterDiffuseFactor
+		end
+		shaders.waterCode.uniformFloat = staticFloats
+		shaders.waterCode.uniformInt = { heightTex = 0, lavaDiffuseTex = 1, lavaDistortTex = 2 }
 		shaders.water = gl.CreateShader(shaders.waterCode)
 		if not shaders.water then
 			Spring.Echo("PIP: Failed to compile water shader")
 			Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
+		else
+			shaders.waterLocs = {
+				waterLevel = gl.GetUniformLocation(shaders.water, "waterLevel"),
+				gameFrames = gl.GetUniformLocation(shaders.water, "gameFrames"),
+				sunDirY = gl.GetUniformLocation(shaders.water, "sunDirY"),
+				heatDistortX = gl.GetUniformLocation(shaders.water, "heatDistortX"),
+				heatDistortZ = gl.GetUniformLocation(shaders.water, "heatDistortZ"),
+			}
 		end
 	end
 
@@ -10271,9 +10389,14 @@ function widget:Shutdown()
 		if drawData.buttonTexturePreloadList then
 			gl.DeleteList(drawData.buttonTexturePreloadList)
 		end
+		if pipR2T.featuresTex then
+			gl.DeleteTexture(pipR2T.featuresTex)
+			pipR2T.featuresTex = nil
+		end
 		if shaders.los then
 			gl.DeleteShader(shaders.los)
 			shaders.los = nil
+			shaders.losShowRadarLoc = nil
 		end
 
 		if shaders.minimapShading then
@@ -10284,6 +10407,7 @@ function widget:Shutdown()
 		if shaders.water then
 			gl.DeleteShader(shaders.water)
 			shaders.water = nil
+			shaders.waterLocs = nil
 		end
 
 		if shaders.decal then
@@ -10379,6 +10503,7 @@ function widget:Shutdown()
 		if miscState.baseMinimapIconScale then
 			Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
 			Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+			gl4Icons.minimapIconScaleExpiry = 0 -- invalidate cached read
 			miscState.baseMinimapIconScale = nil
 		end
 		-- Restore original minimize state
@@ -11776,7 +11901,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Simplifies to: unitBaseSize * (mapX*mapZ/40000)^0.25 * sqrt(zoom).
 	-- Independent of PIP pixel dimensions (aspect ratio doesn't affect icon size).
 	local resScale = render.contentScale or 1
-	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local unitBaseSize = gl4Icons.GetMinimapIconScale()
 	local iconRadiusZoomDistMult = unitBaseSize
 		* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 		* math.sqrt(cameraState.zoom)
@@ -13330,8 +13455,16 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		local geometryCache = gl4Icons.unitpicGeometry
 		local geometryGeneration = gl4Icons.unitpicGeometryGeneration + 1
 		gl4Icons.unitpicGeometryGeneration = geometryGeneration
+		-- Cap list re-bakes per render: all defs bake at the same time, so a zoom
+		-- sweep would otherwise re-bake every def in the same frame (a >1ms wave).
+		-- Out-of-window defs keep drawing scaled until their turn.
+		local rebakeBudget = 6
 
-		-- Draw each unitpic (already in correct layer order from 4-pass processing)
+		-- Draw each unitpic (already in correct layer order from 4-pass processing).
+		-- Per-def octagon geometry is baked into small display lists (black border,
+		-- team border, textured pic with its bind); per unit only matrix + colors +
+		-- three CallLists are issued instead of ~35 immediate-mode calls. Lists
+		-- rebuild only when the zoom-derived integer sizes actually change.
 		for j = 1, unitpicCount do
 			local up = unitpicEntries[j]
 			local uDefID, uTeam = up[3], up[4]
@@ -13344,129 +13477,172 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				geometry = {}
 				geometryCache[uDefID] = geometry
 			end
-			local iconSize, teamBdrSize, bdrSize, crnrCutOuter, crnrCutInner, crnrCutTeam
+			local iconSize
 			if geometry[1] == geometryGeneration then
-				iconSize, teamBdrSize, bdrSize = geometry[2], geometry[3], geometry[4]
-				crnrCutOuter, crnrCutInner, crnrCutTeam = geometry[5], geometry[6], geometry[7]
+				iconSize = geometry[2]
 			else
-				local iconData = cacheUnitIcon[uDefID]
-				iconSize = mathFloor(unitpicBaseSize * (iconData and iconData.size or 0.5) + 0.5)
-				teamBdrSize = iconSize + teamBorderPixels
-				bdrSize = teamBdrSize + blackBorderPixels
-				local crnrCut = mathFloor(bdrSize * cornerCutRatio + 0.5)
-				crnrCutOuter = mathFloor(bdrSize * cornerCutRatio * 1.2 + 0.5)
-				-- Reduce inner corner cuts so diagonal borders match straight border thickness.
-				crnrCutInner = math.max(0, mathFloor(crnrCut - teamCornerAdjustment + 0.5))
-				crnrCutTeam = math.max(0, mathFloor(crnrCutOuter - blackCornerAdjustment + 0.5))
-				geometry[1], geometry[2], geometry[3], geometry[4] = geometryGeneration, iconSize, teamBdrSize, bdrSize
-				geometry[5], geometry[6], geometry[7] = crnrCutOuter, crnrCutInner, crnrCutTeam
+				-- Zoom is absorbed by a per-pic matrix scale against the baked geometry;
+				-- lists only re-bake when the accumulated drift leaves the window. The
+				-- window is jittered per def so defs re-bake at different zoom points
+				-- instead of all in the same frame, and the per-render budget bounds
+				-- the worst frame even when many fall due together.
+				geometry[1] = geometryGeneration
+				local baked = geometry[12]
+				local sf = baked and (unitpicBaseSize / baked) or 0
+				local driftLimit = 0.10 + (uDefID % 8) * 0.015
+				if
+					geometry[8]
+					and ((sf > 1 - driftLimit and sf < 1 + driftLimit) or rebakeBudget <= 0)
+				then
+					geometry[13] = sf
+					iconSize = geometry[2]
+				else
+					rebakeBudget = rebakeBudget - 1
+					local iconData = cacheUnitIcon[uDefID]
+					iconSize = mathFloor(unitpicBaseSize * (iconData and iconData.size or 0.5) + 0.5)
+					local teamBdrSize = iconSize + teamBorderPixels
+					local bdrSize = teamBdrSize + blackBorderPixels
+					local crnrCut = mathFloor(bdrSize * cornerCutRatio + 0.5)
+					local crnrCutOuter = mathFloor(bdrSize * cornerCutRatio * 1.2 + 0.5)
+					-- Reduce inner corner cuts so diagonal borders match straight border thickness.
+					local crnrCutInner = math.max(0, mathFloor(crnrCut - teamCornerAdjustment + 0.5))
+					local crnrCutTeam = math.max(0, mathFloor(crnrCutOuter - blackCornerAdjustment + 0.5))
+					tracy.ZoneBeginN("W:PIP:Unitpics:BuildLists")
+					geometry[2], geometry[3], geometry[4] = iconSize, teamBdrSize, bdrSize
+					geometry[5], geometry[6], geometry[7] = crnrCutOuter, crnrCutInner, crnrCutTeam
+					geometry[12] = unitpicBaseSize
+					geometry[13] = 1
+					if geometry[8] then
+						gl.DeleteList(geometry[8])
+					end
+					if geometry[9] then
+						gl.DeleteList(geometry[9])
+					end
+					if geometry[10] then
+						gl.DeleteList(geometry[10])
+						geometry[10] = nil
+					end
+					-- Black border octagon (clears texture state left bound by the previous
+					-- pic's textured list; the constant black color is baked in too)
+					geometry[8] = gl.CreateList(function()
+						glFunc.Texture(false)
+						glFunc.Color(0, 0, 0, 0.9)
+						glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, bdrSize, crnrCutOuter)
+					end)
+					-- Team color border octagon
+					geometry[9] = gl.CreateList(function()
+						glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
+					end)
+					-- Textured pic octagon with its bind baked in. If the texture isn't
+					-- loaded yet (warm-up pending), leave nil — the lazy path below
+					-- bakes it on the first successful bind.
+					local unitpic = cacheUnitPic[uDefID]
+					if unitpic then
+						local bindOk = false
+						local list = gl.CreateList(function()
+							bindOk = glFunc.Texture(unitpic)
+							if bindOk then
+								glFunc.BeginEnd(
+									glConst.TRIANGLE_FAN,
+									drawTexturedOctagonVertices,
+									0,
+									0,
+									iconSize,
+									crnrCutInner,
+									picTexInset
+								)
+							end
+						end)
+						if bindOk then
+							geometry[10] = list
+							warmedUnitpics[uDefID] = true
+						else
+							gl.DeleteList(list)
+						end
+					end
+					tracy.ZoneEnd()
+				end
 			end
+
 			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 			local isHovered = hoveredID and uID == hoveredID
-			local colorR = teamColorR[uTeam] or 1
-			local colorG = teamColorG[uTeam] or 1
-			local colorB = teamColorB[uTeam] or 1
-			local unitpic = cacheUnitPic[uDefID]
 
+			glFunc.PushMatrix()
+			glFunc.Translate(px, py, 0)
 			if isRotated then
-				glFunc.PushMatrix()
-				glFunc.Translate(px, py, 0)
 				glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
+			end
+			-- Zoom drift since the lists were baked is absorbed by a uniform scale
+			local picScale = geometry[13] or 1
+			if picScale ~= 1 then
+				glFunc.Scale(picScale, picScale, 1)
+			end
 
-				-- Black border
-				glFunc.Texture(false)
-				glFunc.Color(0, 0, 0, 0.9)
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, bdrSize, crnrCutOuter)
+			-- Black border (color baked into the list)
+			gl.CallList(geometry[8])
 
-				-- Team color border
-				if isSelected then
-					glFunc.Color(1, 1, 1, 1)
-				else
-					glFunc.Color(colorR, colorG, colorB, 1)
-				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
-
-				-- Unitpic texture
-				if unitpic and glFunc.Texture(unitpic) then
-					warmedUnitpics[uDefID] = true
-					if isSelected then
-						glFunc.Color(1, 1, 1, isHovered and math.min(1.0, opacity * 1.3) or opacity)
-					else
-						local brightness = teamColorBrightness[uTeam] or 1.0333333333333
-						if isHovered then
-							brightness = brightness * 1.2
-						end
-						glFunc.Color(brightness, brightness, brightness, opacity)
-					end
-					glFunc.BeginEnd(
-						glConst.TRIANGLE_FAN,
-						drawTexturedOctagonVertices,
-						0,
-						0,
-						iconSize,
-						crnrCutInner,
-						picTexInset
-					)
-				end
-
-				-- Health bar (only for damaged units, inside the icon area)
-				local healthFrac = up[8] or 1
-				if healthFrac < 0.99 then
-					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.1508)
-					local barY = iconSize - barH * 1.5
-					local outl = math.max(1, barH * 0.2)
-					DrawUnitpicHealthBar(0, barY, barW, barH, outl, healthFrac)
-				end
-
-				glFunc.PopMatrix()
+			-- Team color border
+			if isSelected then
+				glFunc.Color(1, 1, 1, 1)
 			else
-				-- Black border
-				glFunc.Texture(false)
-				glFunc.Color(0, 0, 0, 0.9)
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, bdrSize, crnrCutOuter)
+				glFunc.Color(teamColorR[uTeam] or 1, teamColorG[uTeam] or 1, teamColorB[uTeam] or 1, 1)
+			end
+			gl.CallList(geometry[9])
 
-				-- Team color border
-				if isSelected then
-					glFunc.Color(1, 1, 1, 1)
-				else
-					glFunc.Color(colorR, colorG, colorB, 1)
-				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, teamBdrSize, crnrCutTeam)
-
-				-- Unitpic texture
+			-- Unitpic texture
+			local picList = geometry[10]
+			if not picList then
+				-- Texture wasn't loaded when the lists were built; retry and bake the
+				-- list on the first successful bind (warm-up loads pics over time)
+				local unitpic = cacheUnitPic[uDefID]
 				if unitpic and glFunc.Texture(unitpic) then
 					warmedUnitpics[uDefID] = true
-					if isSelected then
-						glFunc.Color(1, 1, 1, isHovered and math.min(1.0, opacity * 1.3) or opacity)
-					else
-						local brightness = teamColorBrightness[uTeam] or 1.0333333333333
-						if isHovered then
-							brightness = brightness * 1.2
-						end
-						glFunc.Color(brightness, brightness, brightness, opacity)
-					end
-					glFunc.BeginEnd(
-						glConst.TRIANGLE_FAN,
-						drawTexturedOctagonVertices,
-						px,
-						py,
-						iconSize,
-						crnrCutInner,
-						picTexInset
-					)
-				end
-
-				-- Health bar (only for damaged units, inside the icon area)
-				local healthFrac = up[8] or 1
-				if healthFrac < 0.99 then
-					local barW = iconSize * 0.82
-					local barH = math.max(1, iconSize * 0.185)
-					local barY = py + iconSize - barH * 1.5
-					local outl = math.max(1, barH * 0.4)
-					DrawUnitpicHealthBar(px, barY, barW, barH, outl, healthFrac)
+					local iSize, cInner = geometry[2], geometry[6]
+					picList = gl.CreateList(function()
+						glFunc.Texture(unitpic)
+						glFunc.BeginEnd(
+							glConst.TRIANGLE_FAN,
+							drawTexturedOctagonVertices,
+							0,
+							0,
+							iSize,
+							cInner,
+							picTexInset
+						)
+					end)
+					geometry[10] = picList
 				end
 			end
+			if picList then
+				if isSelected then
+					glFunc.Color(1, 1, 1, isHovered and math.min(1.0, opacity * 1.3) or opacity)
+				else
+					local brightness = teamColorBrightness[uTeam] or 1.0333333333333
+					if isHovered then
+						brightness = brightness * 1.2
+					end
+					glFunc.Color(brightness, brightness, brightness, opacity)
+				end
+				gl.CallList(picList)
+			end
+
+			-- Health bar (only for damaged units, inside the icon area)
+			local healthFrac = up[8] or 1
+			if healthFrac < 0.99 then
+				local barW = iconSize * 0.82
+				local barH, outl
+				if isRotated then
+					barH = math.max(1, iconSize * 0.1508)
+					outl = math.max(1, barH * 0.2)
+				else
+					barH = math.max(1, iconSize * 0.185)
+					outl = math.max(1, barH * 0.4)
+				end
+				local barY = iconSize - barH * 1.5
+				DrawUnitpicHealthBar(0, barY, barW, barH, outl, healthFrac)
+			end
+
+			glFunc.PopMatrix()
 		end
 
 		glFunc.Texture(false)
@@ -13536,7 +13712,7 @@ end
 -- (fields on gl4Icons, not file locals: the main chunk is at Lua's 200-local limit)
 gl4Icons.engineIconsAvailable = (gl.DrawMiniMapIcons ~= nil)
 
-function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
+function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam, trackedSelectedSet)
 	tracy.ZoneBeginN("W:PIP:EngineIcons")
 
 	-- unitpics only run through the GL4 path; make sure the mode is off
@@ -13544,7 +13720,7 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
 
 	-- identical sizing to GL4DrawIcons (in pip pixels), converted to elmos at the end
 	local resScale = render.contentScale or 1
-	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local unitBaseSize = gl4Icons.GetMinimapIconScale()
 	local iconRadiusZoomDistMult = unitBaseSize
 		* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 		* math.sqrt(cameraState.zoom)
@@ -13581,16 +13757,45 @@ function gl4Icons.DrawEngineIcons(checkAllyTeamID, isFullview, myAllyTeam)
 	glFunc.Translate(worldL * wtp.scaleX + wtp.offsetX, worldT * wtp.scaleZ + wtp.offsetZ, 0)
 	glFunc.Scale((worldR - worldL) * wtp.scaleX, (worldB - worldT) * wtp.scaleZ, 1)
 
+	-- the engine only knows the LOCAL player's selection; when showing another player's
+	-- perspective suppress its selection whitening and overlay theirs below instead
+	local tracking = interactionState.trackingPlayerID ~= nil
+	local highlightSelected = not tracking
+
 	-- other perspectives (tracked player / LOS view) are only permitted with a full-read
 	-- handle (fullview spectating); otherwise render our own view
 	if checkAllyTeamID and (isFullview or checkAllyTeamID == myAllyTeam) then
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, checkAllyTeamID, false, highlightSelected)
 	else
-		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos)
+		gl.DrawMiniMapIcons(worldL, worldT, worldR, worldB, iconSizeElmos, nil, nil, highlightSelected)
 	end
 
 	glFunc.PopMatrix()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- overlay: tracked player's selected units as white icons on top
+	if tracking and trackedSelectedSet then
+		local uvs = gl4Icons.atlasUVs
+		local defaultUV = gl4Icons.defaultUV
+		if uvs and defaultUV then
+			local unitDefCacheTbl = gl4Icons.unitDefCache
+			local cacheUnitIcon = cache.unitIcon
+			glFunc.Texture('$icons')
+			glFunc.Color(1, 1, 1, 1)
+			for uID in pairs(trackedSelectedSet) do
+				local ux, _, uz = spFunc.GetUnitBasePosition(uID)
+				if ux and ux >= worldL and ux <= worldR and uz >= worldT and uz <= worldB then
+					local px, py = WorldToPipCoords(ux, uz)
+					local uDefID = unitDefCacheTbl[uID] or spFunc.GetUnitDefID(uID)
+					local uv = (uDefID and uvs[uDefID]) or defaultUV
+					local icon = uDefID and cacheUnitIcon[uDefID]
+					local half = iconRadiusZoomDistMult * (icon and icon.size or 1)
+					glFunc.TexRect(px - half, py - half, px + half, py + half, uv[1], uv[2], uv[3], uv[4])
+				end
+			end
+			glFunc.Texture(false)
+		end
+	end
 
 	tracy.ZoneEnd()
 	return iconRadiusZoomDistMult
@@ -13659,6 +13864,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		miscState.unitRectLastL, miscState.unitRectLastT = queryL, queryT
 		miscState.unitRectLastR, miscState.unitRectLastB = queryR, queryB
 		miscState.unitRectLastUpdate = os.clock()
+		-- Commander and builder membership derive from pipUnits; rebuild them
+		-- (lazily, at their consumers) after each requery
+		miscState.pipCommandersDirty = true
+		miscState.pipBuildersDirty = true
 		tracy.ZoneEnd()
 	end
 
@@ -13756,79 +13965,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	glFunc.Translate(centerX, centerY, 0)
 	glFunc.Scale(drawScale, drawScale, drawScale)
 
-	-- Draw features (3D models)
-	local featureFade = 0
-	if cameraState.zoom >= config.zoomFeatures then
-		featureFade = math.min(1, (cameraState.zoom - config.zoomFeatures) / config.zoomFeaturesFadeRange)
-	end
-	-- Skip features entirely under extreme workload
-	if perfTimers.itemCount > 1200 then
-		featureFade = 0
-	end
+	-- Features are rendered into their own cached texture (UpdateR2TFeatures) and
+	-- composited between the ground and units textures in DrawScreen. They no longer
+	-- cost per-units-render work here.
 	local t0 = os.clock()
 	tracy.ZoneBeginN("W:PIP:DrawFeatures")
-	if featureFade > 0 then -- Only draw features if zoom is above threshold
-		local featureL = render.world.l - margin
-		local featureT = render.world.t - margin
-		local featureR = render.world.r + margin
-		local featureB = render.world.b + margin
-
-		-- Cache feature query results between updates; features are mostly static and
-		-- this avoids per-update engine table allocations when camera rect is stable.
-		local featureQueryNeedsUpdate = miscState.featureRectNeedsUpdate
-		if not featureQueryNeedsUpdate then
-			local movedEnough = not miscState.featureRectLastL
-				or math.abs(featureL - miscState.featureRectLastL) > 64
-				or math.abs(featureT - miscState.featureRectLastT) > 64
-				or math.abs(featureR - miscState.featureRectLastR) > 64
-				or math.abs(featureB - miscState.featureRectLastB) > 64
-			local stale = (t0 - miscState.featureRectLastUpdate) >= 0.20
-			featureQueryNeedsUpdate = movedEnough or stale
-		end
-
-		if featureQueryNeedsUpdate then
-			miscState.pipFeatures = spFunc.GetFeaturesInRectangle(featureL, featureT, featureR, featureB)
-			miscState.featureRectLastL = featureL
-			miscState.featureRectLastT = featureT
-			miscState.featureRectLastR = featureR
-			miscState.featureRectLastB = featureB
-			miscState.featureRectLastUpdate = t0
-			miscState.featureRectNeedsUpdate = false
-		end
-
-		local featureCount = #miscState.pipFeatures
-		if featureCount > 0 then
-			-- Premultiplied alpha: RGB = color * fade, A = fade
-			-- Pass 1: RGB only. Modulate by featureFade for premultiplied alpha.
-			-- Mask alpha writes because feature tex0.alpha is used
-			-- as a team-color/transparency mask and would cause semi-transparency
-			-- when the FBO is composited with premultiplied alpha.
-			gl.ColorMask(true, true, true, false)
-			glFunc.Color(featureFade, featureFade, featureFade, 1)
-			glFunc.Texture(0, "$units")
-			for i = 1, featureCount do
-				DrawFeature(miscState.pipFeatures[i])
-			end
-			-- Pass 2: alpha only. Write featureFade to alpha channel.
-			-- Re-render feature geometry without texture so the
-			-- fixed-function pipeline outputs glColor alpha.
-			-- Key: DepthTest must be LEQUAL (not default LESS) so fragments at the
-			-- same depth as pass 1 are accepted (D <= D = true).
-			gl.ColorMask(false, false, false, true)
-			gl.DepthTest(GL.LEQUAL)
-			gl.DepthMask(false)
-			glFunc.Texture(0, false)
-			glFunc.Color(1, 1, 1, featureFade)
-			for i = 1, featureCount do
-				DrawFeature(miscState.pipFeatures[i], true) -- noTextures: skip texture bind
-			end
-			-- Restore
-			gl.ColorMask(true, true, true, true)
-			gl.DepthTest(true)
-			gl.DepthMask(true)
-			glFunc.Color(1, 1, 1, 1)
-		end
-	end
 
 	-- Reset GL4 primitive counters for this frame
 	if gl4Prim.enabled then
@@ -14157,39 +14298,78 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Draw icons (GL4 instanced path)
 	tracy.ZoneBeginN("W:PIP:DrawIcons")
 	local iconRadiusZoomDistMult
-	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
-	local selectedSet
-	if interactionState.trackingPlayerID then
-		selectedSet = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
-	else
-		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
-		local set = pools.selectedSet
-		if not set then
-			set = {}
-			pools.selectedSet = set
-		end
-		for k in pairs(set) do
-			set[k] = nil
-		end
-		local selCount = #selUnits2
-		if selCount > 0 then
-			for si = 1, selCount do
-				set[selUnits2[si]] = true
-			end
-			selectedSet = set
-		end
-	end
 	-- Engine icon path: below unitpic zoom levels the engine draws the entire icon layer
 	-- in one call; the GL4 pipeline remains for unitpic mode and older engines.
 	-- (engineIconsActive is computed at the top of this function, before the unit query)
 	if engineIconsActive then
-		iconRadiusZoomDistMult = gl4Icons.DrawEngineIcons(checkAllyTeamID, fullview, myAllyTeam)
+		-- The engine path consumes no selection/tracking sets — skip building them
+		iconRadiusZoomDistMult = gl4Icons.DrawEngineIcons(checkAllyTeamID, fullview, myAllyTeam, selectedSet)
 	else
+		-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
+		local selectedSet
+		if interactionState.trackingPlayerID then
+			selectedSet = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
+		else
+			local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
+			local set = pools.selectedSet
+			if not set then
+				set = {}
+				pools.selectedSet = set
+			end
+			for k in pairs(set) do
+				set[k] = nil
+			end
+			local selCount = #selUnits2
+			if selCount > 0 then
+				for si = 1, selCount do
+					set[selUnits2[si]] = true
+				end
+				selectedSet = set
+			end
+		end
 		iconRadiusZoomDistMult = GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	end
 
-	-- Draw commander nametags above icons
-	if config.drawComNametags and cameraState.zoom >= config.comNametagZoomThreshold then
+	-- Draw commander nametags above icons.
+	-- Refresh commander membership first: when no commanders are in view, all the
+	-- nametag machinery below (name cache refresh, matrix pops, font passes) skips.
+	if config.drawComNametags and cameraState.zoom >= config.comNametagZoomThreshold and miscState.pipCommandersDirty then
+		miscState.pipCommandersDirty = false
+		local pipCommanders = pools.pipCommanders
+		if not pipCommanders then
+			pipCommanders = {}
+			pools.pipCommanders = pipCommanders
+		end
+		local pipUnits = miscState.pipUnits
+		local comDefCache = gl4Icons.unitDefCache
+		local comTeamCache = gl4Icons.unitTeamCache
+		local localIsCommander = cache.isCommander
+		for i = #pipCommanders, 1, -1 do
+			pipCommanders[i] = nil
+		end
+		for i = 1, unitCount do
+			local uID = pipUnits[i]
+			local dID = comDefCache[uID]
+			if dID == nil then
+				dID = spFunc.GetUnitDefID(uID)
+				if dID then
+					comDefCache[uID] = dID
+				end
+			end
+			if dID and localIsCommander[dID] then
+				if not comTeamCache[uID] then
+					comTeamCache[uID] = spFunc.GetUnitTeam(uID)
+				end
+				pipCommanders[#pipCommanders + 1] = uID
+			end
+		end
+	end
+	if
+		config.drawComNametags
+		and cameraState.zoom >= config.comNametagZoomThreshold
+		and pools.pipCommanders
+		and #pools.pipCommanders > 0
+	then
 		-- Periodic refresh every 5 seconds (catches team color changes, player swaps)
 		local nowClock = os.clock()
 		if nowClock - comNametagCache.lastRefresh >= 5.0 then
@@ -14285,7 +14465,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(
 			iconRadiusZoomDistMult,
-			Spring.GetConfigFloat("MinimapIconScale", 3.5)
+			gl4Icons.GetMinimapIconScale()
 				* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 				* math.sqrt(0.95)
 				* resScale
@@ -14312,7 +14492,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local nametagAlpha = math.min(1.0, (cameraState.zoom - fadeStart) / 0.04)
 
 		font:Begin()
-		local pipUnits = miscState.pipUnits
+		-- Commander membership (pools.pipCommanders) is refreshed above; the engine
+		-- icon path never fills the GL4 position caches, so positions fall back to
+		-- live queries inside the loop.
+		local pipCommanders = pools.pipCommanders
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
 		local comHealthBars = nil
@@ -14320,8 +14503,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			comHealthBars = pools.comHealthBars
 		end
 		local comHealthCount = 0
-		for i = 1, unitCount do
-			local uID = pipUnits[i]
+		for i = 1, #pipCommanders do
+			local uID = pipCommanders[i]
 			local dID = defCache[uID]
 			if dID and localIsCommander[dID] then
 				local tID = teamCache[uID]
@@ -14342,9 +14525,15 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					end
 				end
 				if inLos or inRadar then
-					local wx = posX[uID]
+					-- GL4 path caches drawn-icon positions; the engine icon path doesn't,
+					-- so fall back to a live position query (commanders are few)
+					local wx, wz = posX[uID], posZ[uID]
+					if not wx then
+						local bx, _, bz = spFunc.GetUnitBasePosition(uID)
+						wx, wz = bx, bz
+					end
 					if wx then
-						local cx, cy = WorldToPipCoords(wx, posZ[uID])
+						local cx, cy = WorldToPipCoords(wx, wz)
 						local iconInfo = localCacheUnitIcon[dID]
 						-- When unitpics are active, use the actual rendered outer edge (icon*sizeMult + borders)
 						-- instead of the base icon radius, so nametags clear the unitpic frame
@@ -15000,6 +15189,28 @@ local function UpdateLavaRenderState()
 	end
 end
 
+-- Set the per-render water shader uniforms and bind its textures. Map-static uniforms
+-- (colors, lava/bumpwater parameters, sampler indices) are baked into the program once
+-- at creation — this used to be ~30 GetUniformLocation string lookups per render.
+-- Caller must have the shader active (gl.UseShader(shaders.water)).
+-- (field on shaders, not a file local: the main chunk is at Lua's 200-local limit)
+shaders.SetWaterDynamicUniforms = function()
+	local locs = shaders.waterLocs
+	gl.UniformFloat(locs.waterLevel, GetWaterLevel())
+	gl.UniformFloat(locs.gameFrames, Spring.GetGameFrame())
+	gl.UniformFloat(locs.sunDirY, select(2, gl.GetSun("pos")))
+	local lavaHdx, lavaHdz = GetLavaHeatDistort()
+	gl.UniformFloat(locs.heatDistortX, lavaHdx)
+	gl.UniformFloat(locs.heatDistortZ, lavaHdz)
+	glFunc.Texture(0, "$heightmap")
+	if mapInfo.lavaDiffuseEmitTex then
+		glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
+	end
+	if mapInfo.lavaDistortionTex then
+		glFunc.Texture(2, mapInfo.lavaDistortionTex)
+	end
+end
+
 -- Helper function to draw water and LOS overlays
 local function DrawWaterAndLOSOverlays()
 	-- Update lava animation state (tide level + heat distortion) locally each draw frame
@@ -15010,92 +15221,7 @@ local function DrawWaterAndLOSOverlays()
 	-- Draw water overlay using shader
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
-
-		-- Set water color based on lava/water/void
-		local r, g, b, a
-		if mapInfo.voidWater then
-			r, g, b, a = 0, 0, 0, 1
-		elseif mapInfo.isLava then
-			r, g, b, a = 0.22, 0, 0, 1
-		else
-			r, g, b, a = 0.08, 0.11, 0.22, 0.5
-		end
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
-		gl.UniformFloat(
-			gl.GetUniformLocation(shaders.water, "lavaCoastColor"),
-			mapInfo.lavaCoastColor[1],
-			mapInfo.lavaCoastColor[2],
-			mapInfo.lavaCoastColor[3]
-		)
-		gl.UniformFloat(
-			gl.GetUniformLocation(shaders.water, "colorCorrection"),
-			mapInfo.lavaColorCorrection[1],
-			mapInfo.lavaColorCorrection[2],
-			mapInfo.lavaColorCorrection[3]
-		)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
-		local lavaHdx, lavaHdz = GetLavaHeatDistort()
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
-
-		-- BumpWater properties for animated water overlay (non-lava maps)
-		if mapInfo.waterSurfaceColor then
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wSurfColor"),
-				mapInfo.waterSurfaceColor[1],
-				mapInfo.waterSurfaceColor[2],
-				mapInfo.waterSurfaceColor[3]
-			)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wAbsorbColor"),
-				mapInfo.waterAbsorbColor[1],
-				mapInfo.waterAbsorbColor[2],
-				mapInfo.waterAbsorbColor[3]
-			)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wBaseColor"),
-				mapInfo.waterBaseColorRGB[1],
-				mapInfo.waterBaseColorRGB[2],
-				mapInfo.waterBaseColorRGB[3]
-			)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wMinColor"),
-				mapInfo.waterMinColor[1],
-				mapInfo.waterMinColor[2],
-				mapInfo.waterMinColor[3]
-			)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
-		end
-
-		-- Bind heightmap texture
-		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
-		glFunc.Texture(0, "$heightmap")
-		-- Bind lava diffuse+emit texture if available
-		if mapInfo.lavaDiffuseEmitTex then
-			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
-			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
-		end
-		-- Bind lava distortion texture if available
-		if mapInfo.lavaDistortionTex then
-			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
-			glFunc.Texture(2, mapInfo.lavaDistortionTex)
-		end
+		shaders.SetWaterDynamicUniforms()
 
 		-- Draw water overlay
 		glFunc.Color(1, 1, 1, 1)
@@ -15572,7 +15698,7 @@ local function DrawBuildCursorWithRotation()
 					local buildIcon = cache.unitIcon[selectedMex]
 					if buildIcon then
 						local resScale = render.contentScale or 1
-						local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+						local unitBaseSize = gl4Icons.GetMinimapIconScale()
 						local iconRadiusZoomDistMult = unitBaseSize
 							* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 							* math.sqrt(cameraState.zoom)
@@ -15684,7 +15810,7 @@ local function DrawBuildCursorWithRotation()
 		local texture = iconData.bitmap
 		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 		local resScale = render.contentScale or 1
-		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local unitBaseSize = gl4Icons.GetMinimapIconScale()
 		local iconSize = unitBaseSize
 			* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 			* math.sqrt(cameraState.zoom)
@@ -16444,28 +16570,59 @@ function gl4Prim.UpdateNanoStreams()
 	local nano = gl4Prim.nanoStreams
 	local frame = Spring.GetGameFrame()
 	local viewAllyTeamID = miscState.pipViewAllyTeamID
-	if frame < nano.lastScanFrame + nano.SCAN_FRAMES and viewAllyTeamID == nano.lastViewAllyTeamID then
+	-- Adaptive cadence: when the previous scan found no active streams, back off to
+	-- 3x the interval — idle scans still pay one engine call per builder in view,
+	-- and a stream starting shows up at most ~0.2s late
+	local scanInterval = nano.count == 0 and nano.SCAN_FRAMES * 3 or nano.SCAN_FRAMES
+	if frame < nano.lastScanFrame + scanInterval and viewAllyTeamID == nano.lastViewAllyTeamID then
 		return
 	end
 
 	nano.lastScanFrame = frame
 	nano.lastViewAllyTeamID = viewAllyTeamID
+
+	-- Builder membership: rebuilt only when the unit-rect query refreshes (≤5x/s),
+	-- so the per-scan loop touches builders instead of every unit in view
+	local builders = pools.pipBuilders
+	if not builders then
+		builders = {}
+		pools.pipBuilders = builders
+	end
+	if miscState.pipBuildersDirty then
+		miscState.pipBuildersDirty = false
+		tracy.ZoneBeginN("W:PIP:NanoStreams:BuilderList")
+		local units = miscState.pipUnits
+		local defCache = gl4Icons.unitDefCache
+		local isBuilder = cache.isBuilder
+		for i = #builders, 1, -1 do
+			builders[i] = nil
+		end
+		for i = 1, #units do
+			local uID = units[i]
+			local unitDefID = defCache[uID]
+			if not unitDefID then
+				unitDefID = spFunc.GetUnitDefID(uID)
+				defCache[uID] = unitDefID
+			end
+			if unitDefID and isBuilder[unitDefID] then
+				builders[#builders + 1] = uID
+			end
+		end
+		tracy.ZoneEnd()
+	end
+
 	local count = 0
 	local data = nano.data
-	local units = miscState.pipUnits
 	local maxUnits = Game.maxUnits or 32000
 	tracy.ZoneBeginN("W:PIP:NanoStreams:Scan")
-	for i = 1, #units do
+	for i = 1, #builders do
 		if count >= config.nanoStreamDrawLimit then
 			break
 		end
-		local builderID = units[i]
-		local unitDefID = gl4Icons.unitDefCache[builderID]
-		if not unitDefID then
-			unitDefID = spFunc.GetUnitDefID(builderID)
-			gl4Icons.unitDefCache[builderID] = unitDefID
-		end
-		if unitDefID and cache.isBuilder[unitDefID] and gl4Prim.IsNanoStreamUnitVisible(builderID, viewAllyTeamID) then
+		local builderID = builders[i]
+		-- Stale entries (unit died since the last requery) fall through harmlessly:
+		-- visibility and worker-task queries return nil/false for invalid ids
+		if gl4Prim.IsNanoStreamUnitVisible(builderID, viewAllyTeamID) then
 			local cmdID, targetID = spFunc.GetUnitWorkerTask(builderID)
 			if targetID then
 				local targetIsFeature = false
@@ -16928,7 +17085,7 @@ local function DrawBuildCursor()
 
 		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 		local resScale = render.contentScale or 1
-		local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+		local unitBaseSize = gl4Icons.GetMinimapIconScale()
 		local iconSize = unitBaseSize
 			* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 			* math.sqrt(cameraState.zoom)
@@ -17600,85 +17757,7 @@ local function DrawTrackedPlayerMinimap()
 	end
 	if mapInfo.hasWater and shaders.water then
 		gl.UseShader(shaders.water)
-		local r, g, b, a
-		if mapInfo.voidWater then
-			r, g, b, a = 0, 0, 0, 1
-		elseif mapInfo.isLava then
-			r, g, b, a = 0.22, 0, 0, 1
-		else
-			r, g, b, a = 0.08, 0.11, 0.22, 0.5
-		end
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterColor"), r, g, b, a)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "waterLevel"), GetWaterLevel())
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "isLava"), mapInfo.isLava and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasLavaTex"), mapInfo.lavaDiffuseEmitTex and 1.0 or 0.0)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "gameFrames"), Spring.GetGameFrame())
-		gl.UniformFloat(
-			gl.GetUniformLocation(shaders.water, "lavaCoastColor"),
-			mapInfo.lavaCoastColor[1],
-			mapInfo.lavaCoastColor[2],
-			mapInfo.lavaCoastColor[3]
-		)
-		gl.UniformFloat(
-			gl.GetUniformLocation(shaders.water, "colorCorrection"),
-			mapInfo.lavaColorCorrection[1],
-			mapInfo.lavaColorCorrection[2],
-			mapInfo.lavaColorCorrection[3]
-		)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaCoastWidth"), mapInfo.lavaCoastWidth)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaUvScale"), mapInfo.lavaUvScale)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlFreq"), mapInfo.lavaSwirlFreq)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "lavaSwirlAmp"), mapInfo.lavaSwirlAmp)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "mapRatio"), mapInfo.mapRatio)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "hasDistortTex"), mapInfo.lavaDistortionTex and 1.0 or 0.0)
-		local lavaHdx, lavaHdz = GetLavaHeatDistort()
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "sunDirY"), select(2, gl.GetSun("pos")))
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortX"), lavaHdx)
-		gl.UniformFloat(gl.GetUniformLocation(shaders.water, "heatDistortZ"), lavaHdz)
-		-- BumpWater properties for animated water overlay (non-lava maps)
-		if mapInfo.waterSurfaceColor then
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wSurfColor"),
-				mapInfo.waterSurfaceColor[1],
-				mapInfo.waterSurfaceColor[2],
-				mapInfo.waterSurfaceColor[3]
-			)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wSurfAlpha"), mapInfo.waterSurfaceAlpha)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wAbsorbColor"),
-				mapInfo.waterAbsorbColor[1],
-				mapInfo.waterAbsorbColor[2],
-				mapInfo.waterAbsorbColor[3]
-			)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wBaseColor"),
-				mapInfo.waterBaseColorRGB[1],
-				mapInfo.waterBaseColorRGB[2],
-				mapInfo.waterBaseColorRGB[3]
-			)
-			gl.UniformFloat(
-				gl.GetUniformLocation(shaders.water, "wMinColor"),
-				mapInfo.waterMinColor[1],
-				mapInfo.waterMinColor[2],
-				mapInfo.waterMinColor[3]
-			)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wCausticsStr"), mapInfo.waterCausticsStrength)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinStart"), mapInfo.waterPerlinStartFreq)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinLacun"), mapInfo.waterPerlinLacunarity)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wPerlinAmp"), mapInfo.waterPerlinAmplitude)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wFresnelMin"), mapInfo.waterFresnelMin)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.water, "wDiffuseFactor"), mapInfo.waterDiffuseFactor)
-		end
-		gl.UniformInt(gl.GetUniformLocation(shaders.water, "heightTex"), 0)
-		glFunc.Texture(0, "$heightmap")
-		if mapInfo.lavaDiffuseEmitTex then
-			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDiffuseTex"), 1)
-			glFunc.Texture(1, mapInfo.lavaDiffuseEmitTex)
-		end
-		if mapInfo.lavaDistortionTex then
-			gl.UniformInt(gl.GetUniformLocation(shaders.water, "lavaDistortTex"), 2)
-			glFunc.Texture(2, mapInfo.lavaDistortionTex)
-		end
+		shaders.SetWaterDynamicUniforms()
 		glFunc.Color(1, 1, 1, 1)
 		pools.scratchTexQuad.l = cLeft
 		pools.scratchTexQuad.b = cBottom
@@ -18066,9 +18145,338 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 	tracy.ZoneEnd()
 end
 
+-- Zoom fade for the features layer (shared by the texture update and the composite
+-- blit; field on pools — the main chunk is at Lua's 200-local limit)
+pools.ComputeFeatureFade = function()
+	local fade = 0
+	if cameraState.zoom >= config.zoomFeatures then
+		fade = math.min(1, (cameraState.zoom - config.zoomFeatures) / config.zoomFeaturesFadeRange)
+	end
+	-- Skip features entirely under extreme workload
+	if perfTimers.itemCount > 1200 then
+		fade = 0
+	end
+	return fade
+end
+
+-- Draw the feature models (two-pass premultiplied trick) into the bound features FBO.
+-- Runs inside featuresR2TDraw's oversized coordinate space. Rendered at FULL opacity:
+-- the zoom fade multiplies at composite time, so fading needs no re-render.
+pools.DrawFeaturesIntoTexture = function()
+	-- Bake rotation into the texture, like the units layer
+	if render.minimapRotation ~= 0 then
+		local rcx = render.dim.l + (render.dim.r - render.dim.l) / 2
+		local rcy = render.dim.b + (render.dim.t - render.dim.b) / 2
+		glFunc.PushMatrix()
+		glFunc.Translate(rcx, rcy, 0)
+		glFunc.Rotate(render.minimapRotation * 180 / math.pi, 0, 0, 1)
+		glFunc.Translate(-rcx, -rcy, 0)
+	end
+
+	gl.DepthTest(true)
+	gl.DepthMask(true)
+	gl.Blending(false)
+	gl.AlphaTest(false)
+
+	local centerX = 0.5 * (render.dim.l + render.dim.r)
+	local centerY = 0.5 * (render.dim.b + render.dim.t)
+	local drawScale = cameraState.zoom * (render.contentScale or 1)
+	glFunc.PushMatrix()
+	glFunc.Translate(centerX, centerY, 0)
+	glFunc.Scale(drawScale, drawScale, drawScale)
+
+	local pipFeatures = miscState.pipFeatures
+	local featureCount = #pipFeatures
+	-- Pass 1: RGB only. Mask alpha writes because feature tex0.alpha is used as a
+	-- team-color/transparency mask and would cause semi-transparency when the FBO
+	-- is composited with premultiplied alpha.
+	gl.ColorMask(true, true, true, false)
+	glFunc.Color(1, 1, 1, 1)
+	glFunc.Texture(0, "$units")
+	for i = 1, featureCount do
+		DrawFeature(pipFeatures[i])
+	end
+	-- Pass 2: alpha only. Re-render geometry untextured so the fixed-function
+	-- pipeline outputs glColor alpha. DepthTest must be LEQUAL (not default LESS)
+	-- so fragments at the same depth as pass 1 are accepted.
+	gl.ColorMask(false, false, false, true)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	glFunc.Texture(0, false)
+	for i = 1, featureCount do
+		DrawFeature(pipFeatures[i], true) -- noTextures: skip texture bind
+	end
+	-- Restore
+	gl.ColorMask(true, true, true, true)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+	glFunc.Color(1, 1, 1, 1)
+	glFunc.PopMatrix()
+
+	if render.minimapRotation ~= 0 then
+		glFunc.PopMatrix()
+	end
+end
+
+-- R2T draw callback for the oversized features texture; mirrors unitsR2TDraw's
+-- coordinate setup (dims swap, contentScale, world recalculation)
+pools.featuresR2TDraw = function()
+	local fctx = pools.featuresR2T
+	local uW, uH = fctx.uW, fctx.uH
+
+	render.minimapRotation = fctx.currentRotation
+
+	glFunc.Translate(-1, -1, 0)
+	glFunc.Scale(2 / uW, 2 / uH, 0)
+
+	-- Transparent background: premultiplied compositing expects (0,0,0,0)
+	gl.Blending(false)
+	glFunc.Color(0, 0, 0, 0)
+	glFunc.Texture(false)
+	glFunc.BeginEnd(glConst.QUADS, DrawTexturedQuad, 0, 0, uW, uH)
+	glFunc.Color(1, 1, 1, 1)
+
+	-- Save current dimensions and swap in the oversized ones
+	pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t =
+		render.dim.l, render.dim.r, render.dim.b, render.dim.t
+	render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, uW, uH
+	render.contentScale = fctx.resScale
+	RecalculateWorldCoordinates()
+
+	-- Store camera state for the composite blit
+	pipR2T.featuresWcx = cameraState.wcx
+	pipR2T.featuresWcz = cameraState.wcz
+	pipR2T.featuresZoom = cameraState.zoom
+	pipR2T.featuresRotation = render.minimapRotation
+
+	-- pcall so restore always runs even if rendering errors
+	local ok, err = pcall(pools.DrawFeaturesIntoTexture)
+	if not ok then
+		Spring.Echo("[PIP] Features render error: " .. tostring(err))
+		gl.UseShader(0)
+		glFunc.Texture(0, false)
+		glFunc.Texture(false)
+		gl.Scissor(false)
+		gl.ColorMask(true, true, true, true)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
+	end
+
+	-- Restore
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	render.contentScale = 1
+	render.dim.l, render.dim.r, render.dim.b, render.dim.t =
+		pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
+	RecalculateWorldCoordinates()
+	RecalculateGroundTextureCoordinates()
+end
+
+-- Update the cached features texture. Features are static world content, so this
+-- re-renders only when the visible feature set changes, the camera drifts/zooms
+-- beyond what the composite blit compensates, rotation changes, or the pip
+-- resizes — NOT on every units render. (widget-env function, not a file local:
+-- the main chunk is at Lua's 200-local limit)
+function UpdateR2TFeatures(currentTime, pipWidth, pipHeight, unitsJustRendered)
+	if not gl.R2tHelper then
+		return
+	end
+	if isMinimapMode and not minimapModeMinZoom then
+		return
+	end
+	-- Not visible at this zoom: keep any stale texture (the blit is fade-gated too)
+	if pools.ComputeFeatureFade() <= 0 then
+		return
+	end
+
+	tracy.ZoneBeginN("W:PIP:R2T:Features")
+
+	local resScale = config.contentResolutionScale
+	local margin = config.smoothCameraMargin
+	local uW = math.floor(pipWidth * (1 + 2 * margin) * resScale)
+	local uH = math.floor(pipHeight * (1 + 2 * margin) * resScale)
+
+	local sizeChanged = math.floor(pipWidth) ~= pipR2T.featuresLastWidth
+		or math.floor(pipHeight) ~= pipR2T.featuresLastHeight
+	local currentRotation = Spring.GetMiniMapRotation and Spring.GetMiniMapRotation() or 0
+	local rotChanged = pipR2T.featuresRotation ~= currentRotation
+
+	-- Drift: force a re-render when the camera approaches the edge of the rendered
+	-- texture's actual world coverage (the zoom anchor below gives it surplus
+	-- coverage well beyond the nominal margin)
+	local driftForced = false
+	if pipR2T.featuresZoom ~= 0 and pipR2T.featuresTexWidth > 0 then
+		local coverX = pipR2T.featuresTexWidth / (pipR2T.featuresZoom * resScale)
+		local coverZ = pipR2T.featuresTexHeight / (pipR2T.featuresZoom * resScale)
+		local slackX = (coverX - pipWidth / cameraState.zoom) * 0.5
+		local slackZ = (coverZ - pipHeight / cameraState.zoom) * 0.5
+		if slackX <= 0 or slackZ <= 0 then
+			driftForced = true
+		elseif
+			math.abs(cameraState.wcx - pipR2T.featuresWcx) > slackX * 0.7
+			or math.abs(cameraState.wcz - pipR2T.featuresWcz) > slackZ * 0.7
+		then
+			driftForced = true
+		end
+	end
+
+	-- Zoom re-render policy: the texture renders at an ANCHOR zoom below the current
+	-- one, giving surplus world coverage. Continuous zooming then only re-renders on
+	-- leaving the valid window: coverage runs out below the anchor (zooming out),
+	-- sharpness runs out above ~0.9 display px per texture px (zooming in — the
+	-- resScale supersampling provides that headroom). This replaces re-rendering
+	-- every few percent of zoom change.
+	local zoomChanged = false
+	if pipR2T.featuresZoom ~= 0 then
+		local zoomRatio = cameraState.zoom / pipR2T.featuresZoom
+		zoomChanged = zoomRatio < 1.0 or zoomRatio > math.max(1.3, 0.9 * resScale)
+	end
+
+	-- Between renders, requery on the RENDERED texture's rect (not the current view):
+	-- the fingerprint stays comparable — mid-zoom camera changes cause no spurious
+	-- set-change re-renders — and hit-testing state matches what is displayed.
+	-- Before the first render, fall back to the prospective anchor rect.
+	local qWcx, qWcz, qZoom = pipR2T.featuresWcx, pipR2T.featuresWcz, pipR2T.featuresZoom
+	if qZoom == 0 or not pipR2T.featuresTex then
+		qWcx, qWcz, qZoom = cameraState.wcx, cameraState.wcz, cameraState.zoom / 1.35
+	end
+	local halfMax = math.max(uW, uH) / (2 * qZoom * resScale) + 220
+	local featureL = qWcx - halfMax
+	local featureR = qWcx + halfMax
+	local featureT = qWcz - halfMax
+	local featureB = qWcz + halfMax
+	local featureQueryNeedsUpdate = miscState.featureRectNeedsUpdate
+	if not featureQueryNeedsUpdate then
+		local movedEnough = not miscState.featureRectLastL
+			or math.abs(featureL - miscState.featureRectLastL) > 64
+			or math.abs(featureT - miscState.featureRectLastT) > 64
+			or math.abs(featureR - miscState.featureRectLastR) > 64
+			or math.abs(featureB - miscState.featureRectLastB) > 64
+		featureQueryNeedsUpdate = movedEnough or (currentTime - miscState.featureRectLastUpdate) >= 0.20
+	end
+	if featureQueryNeedsUpdate then
+		miscState.pipFeatures = spFunc.GetFeaturesInRectangle(featureL, featureT, featureR, featureB)
+		miscState.featureRectLastL = featureL
+		miscState.featureRectLastT = featureT
+		miscState.featureRectLastR = featureR
+		miscState.featureRectLastB = featureB
+		miscState.featureRectLastUpdate = currentTime
+		miscState.featureRectNeedsUpdate = false
+	end
+
+	-- Fingerprint the set (count + id sum + filter config): re-render only on change
+	local pipFeatures = miscState.pipFeatures
+	local featureCount = #pipFeatures
+	local fingerprint = featureCount * 4
+		+ (config.hideUnreclaimableFeatures and 1 or 0)
+		+ (hideEnergyOnlyFeatures and 2 or 0)
+	for i = 1, featureCount do
+		fingerprint = fingerprint + pipFeatures[i]
+	end
+
+	local shouldUpdate = fingerprint ~= pipR2T.featuresFingerprint
+		or rotChanged
+		or driftForced
+		or zoomChanged
+		or (sizeChanged and not uiState.areResizing)
+		or not pipR2T.featuresTex
+		or pipR2T.forceRefreshFrames > 0
+
+	if not shouldUpdate then
+		tracy.ZoneEnd()
+		return
+	end
+
+	-- Stagger: defer a non-urgent re-render (set change / zoom-in sharpness) by one
+	-- frame when the units texture also rendered this frame, so the two passes don't
+	-- stack. Coverage-critical triggers (zoom-out below anchor, drift, rotation,
+	-- resize, missing texture, refresh grace) never defer.
+	local urgent = driftForced
+		or rotChanged
+		or sizeChanged
+		or not pipR2T.featuresTex
+		or pipR2T.forceRefreshFrames > 0
+		or (pipR2T.featuresZoom ~= 0 and cameraState.zoom < pipR2T.featuresZoom)
+	if unitsJustRendered and not urgent and not pipR2T.featuresStaggerDeferred then
+		pipR2T.featuresStaggerDeferred = true
+		tracy.ZoneEnd()
+		return
+	end
+	pipR2T.featuresStaggerDeferred = false
+
+	-- (Re)create the texture when stale or resized
+	if (pipR2T.forceRefreshFrames > 0 or sizeChanged) and pipR2T.featuresTex then
+		gl.DeleteTexture(pipR2T.featuresTex)
+		pipR2T.featuresTex = nil
+	end
+	if not pipR2T.featuresTex and uW >= 1 and uH >= 1 then
+		pipR2T.featuresTex = gl.CreateTexture(uW, uH, {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		pipR2T.featuresTexWidth = uW
+		pipR2T.featuresTexHeight = uH
+		pipR2T.featuresLastWidth = math.floor(pipWidth)
+		pipR2T.featuresLastHeight = math.floor(pipHeight)
+	end
+
+	if pipR2T.featuresTex then
+		tracy.ZoneBeginN("W:PIP:R2T:Features:Render")
+		-- Re-anchor: render below the current zoom for zoom headroom, centered on
+		-- the current camera, and requery so the texture gets its full new coverage
+		local renderZoom = cameraState.zoom / 1.35
+		local renderHalf = math.max(uW, uH) / (2 * renderZoom * resScale) + 220
+		miscState.pipFeatures = spFunc.GetFeaturesInRectangle(
+			cameraState.wcx - renderHalf,
+			cameraState.wcz - renderHalf,
+			cameraState.wcx + renderHalf,
+			cameraState.wcz + renderHalf
+		)
+		miscState.featureRectLastL = cameraState.wcx - renderHalf
+		miscState.featureRectLastT = cameraState.wcz - renderHalf
+		miscState.featureRectLastR = cameraState.wcx + renderHalf
+		miscState.featureRectLastB = cameraState.wcz + renderHalf
+		miscState.featureRectLastUpdate = currentTime
+		miscState.featureRectNeedsUpdate = false
+		-- Recompute the fingerprint from the final rendered set so the next
+		-- stored-rect requery compares against exactly what was rendered
+		local pf = miscState.pipFeatures
+		local pfCount = #pf
+		fingerprint = pfCount * 4
+			+ (config.hideUnreclaimableFeatures and 1 or 0)
+			+ (hideEnergyOnlyFeatures and 2 or 0)
+		for i = 1, pfCount do
+			fingerprint = fingerprint + pf[i]
+		end
+
+		local fctx = pools.featuresR2T
+		if not fctx then
+			fctx = {}
+			pools.featuresR2T = fctx
+		end
+		fctx.uW = uW
+		fctx.uH = uH
+		fctx.resScale = resScale
+		fctx.currentRotation = currentRotation
+
+		-- Render at the anchor zoom; restore and recompute world state afterwards
+		local savedZoom = cameraState.zoom
+		cameraState.zoom = renderZoom
+		gl.R2tHelper.RenderToTexture(pipR2T.featuresTex, pools.featuresR2TDraw, true)
+		cameraState.zoom = savedZoom
+		RecalculateWorldCoordinates()
+		RecalculateGroundTextureCoordinates()
+
+		pipR2T.featuresFingerprint = fingerprint
+		pipR2T.featuresLastUpdateTime = currentTime
+		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+end
+
 -- Update oversized content texture (cheap layers: ground, water, LOS) at throttled rate
 -- The oversized texture provides margin for smooth camera panning via UV-shift in DrawScreen
-local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight, unitsJustRendered)
 	if not gl.R2tHelper then
 		return
 	end
@@ -18148,6 +18556,34 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	if not shouldUpdate then
 		return
 	end
+
+	-- Stagger: when the units texture also re-rendered this frame, defer a purely
+	-- timer-driven cheap-layers render to the next draw frame so the two R2T passes
+	-- don't stack their cost in a single frame. Forced updates (content dirty,
+	-- rotation, drift, resize, refresh grace) never defer, and a deferred render
+	-- always runs on the following frame (starvation guard for low FPS, where the
+	-- units texture renders every frame).
+	if
+		unitsJustRendered
+		and not pipR2T.contentStaggerDeferred
+		and not (
+			pipR2T.contentNeedsUpdate
+			or rotChanged
+			or driftForced
+			or sizeChanged
+			or pipR2T.forceRefreshFrames > 0
+		)
+	then
+		pipR2T.contentStaggerDeferred = true
+		-- Re-phase: land the next content tick halfway between units ticks instead of
+		-- leaving it due immediately — the two timers run at the same rate, so without
+		-- this they stay in phase and collide again on every following cycle.
+		if pipUpdateInterval > 0 then
+			pipR2T.contentNextUpdateTime = currentTime + pipUpdateInterval * 0.5
+		end
+		return
+	end
+	pipR2T.contentStaggerDeferred = false
 	tracy.ZoneBeginN("W:PIP:R2T:CheapLayers")
 
 	-- During force-refresh, always delete and recreate textures (old FBOs may be stale)
@@ -18186,6 +18622,12 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	end
 
 	if pipR2T.contentTex then
+		-- Refresh the LOS texture now that its consumer (the cheap-layers render below)
+		-- actually runs. Refreshing it every DrawScreen was wasted work: between content
+		-- renders the updated texture was never sampled. (Must run before RenderToTexture —
+		-- it renders into its own FBO and cannot nest inside the content render.)
+		UpdateLOSTexture(currentTime)
+
 		tracy.ZoneBeginN("W:PIP:R2T:CheapLayers:Render")
 		render.minimapRotation = currentRotation
 
@@ -18547,7 +18989,9 @@ local function UpdateDecalTexture()
 end
 
 -- Update LOS texture with current Line-of-Sight information
-local function UpdateLOSTexture(currentTime)
+-- (widget-env function, not a file local: the main chunk is at Lua's 200-local limit.
+-- Called from UpdateR2TCheapLayers, which is defined above it.)
+function UpdateLOSTexture(currentTime)
 	-- In minimap mode, skip until ViewResize has initialized
 	if isMinimapMode and not minimapModeMinZoom then
 		return
@@ -18593,8 +19037,11 @@ local function UpdateLOSTexture(currentTime)
 	-- Check if update is needed based on update rate
 	local shouldUpdate
 	if actualUseEngineLOS then
-		-- Always update when using engine LOS (it's cheap and real-time)
-		shouldUpdate = true
+		-- Engine LOS is a cheap shader blit but still a full FBO pass (~15 µs CPU);
+		-- the overlay is slow-moving fog, so ~10 Hz is visually indistinguishable
+		-- from refreshing on every content render
+		shouldUpdate = pipR2T.losNeedsUpdate
+			or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losEngineUpdateRate
 	else
 		-- Only apply rate limiting when manually generating LOS (expensive)
 		shouldUpdate = pipR2T.losNeedsUpdate or (currentTime - pipR2T.losLastUpdateTime) >= pipR2T.losUpdateRate
@@ -18640,8 +19087,8 @@ local function UpdateLOSTexture(currentTime)
 			-- Activate shader to convert red channel to greyscale
 			gl.UseShader(shaders.los)
 
-			-- Update shader uniforms (in case config changed)
-			gl.UniformFloat(gl.GetUniformLocation(shaders.los, "showRadar"), config.showLosRadar and 1.0 or 0.0)
+			-- Update shader uniforms (in case config changed); location cached at creation
+			gl.UniformFloat(shaders.losShowRadarLoc, config.showLosRadar and 1.0 or 0.0)
 
 			-- Draw full-screen quad in normalized coordinates (-1 to 1)
 			glFunc.BeginEnd(glConst.QUADS, function()
@@ -18954,64 +19401,81 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	tracy.ZoneBeginN("W:PIP:UI:BuildButtonList")
 	local hasSelection = frameSelCount > 0
 	local visibleButtons = pools.visibleButtons
-	for k in pairs(visibleButtons) do
-		visibleButtons[k] = nil
-	end
-	for i = 1, #buttons do
-		local btn = buttons[i]
-		-- In minimap mode, hide move button if configured
-		local skipButton = false
-		if isMinimapMode and config.minimapModeHideMoveResize then
-			if btn.tooltipKey == "ui.pip.move" then
-				skipButton = true
-			end
+	-- Rebuild the visible-button list at most 4x/second: it queries player/teammate
+	-- state through engine calls (GetPlayerInfo, GetAliveTeammates over the full player
+	-- list) which is wasted per-frame work. Cheap-to-check inputs force an immediate
+	-- rebuild so buttons appear without delay when selection/tracking state changes.
+	local buttonStateKey = (hasSelection and 1 or 0)
+		+ (interactionState.areTracking and 2 or 0)
+		+ (interactionState.trackingPlayerID and 4 or 0)
+		+ (miscState.tvEnabled and 8 or 0)
+		+ (state.losViewEnabled and 16 or 0)
+		+ (miscState.activityFocusEnabled and 32 or 0)
+	local nowClock = os.clock()
+	local rebuildButtons = nowClock >= (miscState.visibleButtonsNextUpdate or 0)
+		or miscState.visibleButtonsStateKey ~= buttonStateKey
+	if rebuildButtons then
+		miscState.visibleButtonsNextUpdate = nowClock + 0.25
+		miscState.visibleButtonsStateKey = buttonStateKey
+		for k in pairs(visibleButtons) do
+			visibleButtons[k] = nil
 		end
-		-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
-		-- Allow pip_view for spectators with fullview
-		if isMinimapMode then
-			if btn.command == "pip_switch" or btn.command == "pip_copy" then
-				skipButton = true
-			elseif btn.command == "pip_view" then
-				local _, fullview = Spring.GetSpectatingState()
-				if not fullview then
+		for i = 1, #buttons do
+			local btn = buttons[i]
+			-- In minimap mode, hide move button if configured
+			local skipButton = false
+			if isMinimapMode and config.minimapModeHideMoveResize then
+				if btn.tooltipKey == "ui.pip.move" then
 					skipButton = true
 				end
 			end
-		end
+			-- In minimap mode, skip switch and copy buttons (keep pip_track and pip_trackplayer)
+			-- Allow pip_view for spectators with fullview
+			if isMinimapMode then
+				if btn.command == "pip_switch" or btn.command == "pip_copy" then
+					skipButton = true
+				elseif btn.command == "pip_view" then
+					local _, fullview = Spring.GetSpectatingState()
+					if not fullview then
+						skipButton = true
+					end
+				end
+			end
 
-		if not skipButton then
-			if btn.command == "pip_track" then
-				if not isMinimapMode and (hasSelection or interactionState.areTracking) then
+			if not skipButton then
+				if btn.command == "pip_track" then
+					if not isMinimapMode and (hasSelection or interactionState.areTracking) then
+						visibleButtons[#visibleButtons + 1] = btn
+					end
+				elseif btn.command == "pip_trackplayer" then
+					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+					local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
+					if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
+						visibleButtons[#visibleButtons + 1] = btn
+					end
+				elseif btn.command == "pip_view" then
+					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
+					if spec then
+						visibleButtons[#visibleButtons + 1] = btn
+					end
+				elseif btn.command == "pip_activity" then
+					if
+						not isSinglePlayer
+						and not interactionState.trackingPlayerID
+						and not miscState.tvEnabled
+						and not (config.activityFocusHideForSpectators and cameraState.mySpecState)
+					then
+						visibleButtons[#visibleButtons + 1] = btn
+					end
+				elseif btn.command == "pip_tv" then
+					if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
+						visibleButtons[#visibleButtons + 1] = btn
+					end
+				elseif btn.command == "pip_help" then
+					visibleButtons[#visibleButtons + 1] = btn
+				else
 					visibleButtons[#visibleButtons + 1] = btn
 				end
-			elseif btn.command == "pip_trackplayer" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-				local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
-				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_view" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
-				if spec then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_activity" then
-				if
-					not isSinglePlayer
-					and not interactionState.trackingPlayerID
-					and not miscState.tvEnabled
-					and not (config.activityFocusHideForSpectators and cameraState.mySpecState)
-				then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_tv" then
-				if not config.tvModeSpectatorsOnly or cameraState.mySpecState then
-					visibleButtons[#visibleButtons + 1] = btn
-				end
-			elseif btn.command == "pip_help" then
-				visibleButtons[#visibleButtons + 1] = btn
-			else
-				visibleButtons[#visibleButtons + 1] = btn
 			end
 		end
 	end
@@ -19705,6 +20169,7 @@ function widget:DrawScreen()
 			if miscState.baseMinimapIconScale then
 				Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
 				Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+				gl4Icons.minimapIconScaleExpiry = 0 -- invalidate cached read
 				miscState.baseMinimapIconScale = nil
 			end
 			Spring.SendCommands("minimap minimize 1")
@@ -19803,8 +20268,9 @@ function widget:DrawScreen()
 
 		if runR2TUpdates then
 			tracy.ZoneBeginN("W:PIP:DrawScreen:R2TUpdates")
-			-- Update LOS texture
-			UpdateLOSTexture(currentTime)
+			-- (LOS texture updates happen inside UpdateR2TCheapLayers: the texture is only
+			-- sampled when the cheap-layers content re-renders, so refreshing it every
+			-- frame here was wasted work)
 
 			-- Update decal overlay texture (~once per second, game-frame based). If other
 			-- R2T layers are already due, let decals slip one interval to avoid stacked hitches.
@@ -19832,10 +20298,18 @@ function widget:DrawScreen()
 			local drawStartTime = os.clock()
 			local prevUnitsTime = pipR2T.unitsLastUpdateTime
 			UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+			local unitsJustRendered = pipR2T.unitsLastUpdateTime ~= prevUnitsTime
 
-			-- Update oversized cheap layers texture at throttled rate
+			-- Update the cached features layer (re-renders only when the feature set
+			-- changes or the view outgrows what the composite blit compensates; the
+			-- stagger hint keeps non-urgent renders off units-render frames)
+			UpdateR2TFeatures(currentTime, pipWidth, pipHeight, unitsJustRendered)
+
+			-- Update oversized cheap layers texture at throttled rate. Pass whether the
+			-- units texture just rendered so a timer-driven cheap-layers render can be
+			-- staggered onto the next frame instead of stacking both passes in one frame.
 			local prevContentTime = pipR2T.contentLastUpdateTime
-			UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+			UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight, unitsJustRendered)
 
 			-- Only record draw time when actual rendering occurred (not throttled no-ops)
 			local didRender = pipR2T.unitsLastUpdateTime ~= prevUnitsTime
@@ -19915,38 +20389,51 @@ function widget:DrawScreen()
 			pipR2T.contentMaskLastB = math.floor(render.dim.b)
 		end
 
-		-- Blit the pre-rendered texture with rounded corner stencil mask
-		if pipR2T.contentTex then
-			-- Validate texture is still usable (may have been invalidated by engine GL changes)
-			local texInfo = gl.TextureInfo(pipR2T.contentTex)
-			if not texInfo or texInfo.xsize <= 0 then
-				pipR2T.contentInvalidInfoStreak = (pipR2T.contentInvalidInfoStreak or 0) + 1
-				if pipR2T.contentInvalidInfoStreak >= 2 then
-					gl.DeleteTexture(pipR2T.contentTex)
-					pipR2T.contentTex = nil
-					pipR2T.contentNeedsUpdate = true
+		-- Validate the R2T textures are still usable (may have been invalidated by engine
+		-- GL changes). Throttled: TextureInfo is a driver query and the known invalidation
+		-- events (preset change, ViewResize) all set forceRefreshFrames anyway.
+		if currentTime >= (pipR2T.texInfoNextValidateTime or 0) or pipR2T.forceRefreshFrames > 0 then
+			pipR2T.texInfoNextValidateTime = currentTime + 0.25
+			if pipR2T.contentTex then
+				local texInfo = gl.TextureInfo(pipR2T.contentTex)
+				if not texInfo or texInfo.xsize <= 0 then
+					pipR2T.contentInvalidInfoStreak = (pipR2T.contentInvalidInfoStreak or 0) + 1
+					if pipR2T.contentInvalidInfoStreak >= 2 then
+						gl.DeleteTexture(pipR2T.contentTex)
+						pipR2T.contentTex = nil
+						pipR2T.contentNeedsUpdate = true
+						pipR2T.contentInvalidInfoStreak = 0
+					end
+				else
 					pipR2T.contentInvalidInfoStreak = 0
 				end
-			else
-				pipR2T.contentInvalidInfoStreak = 0
 			end
-		end
-		if pipR2T.unitsTex then
-			local texInfo = gl.TextureInfo(pipR2T.unitsTex)
-			if not texInfo or texInfo.xsize <= 0 then
-				pipR2T.unitsInvalidInfoStreak = (pipR2T.unitsInvalidInfoStreak or 0) + 1
-				if pipR2T.unitsInvalidInfoStreak >= 2 then
-					gl.DeleteTexture(pipR2T.unitsTex)
-					pipR2T.unitsTex = nil
-					pipR2T.unitsNeedsUpdate = true
+			if pipR2T.unitsTex then
+				local texInfo = gl.TextureInfo(pipR2T.unitsTex)
+				if not texInfo or texInfo.xsize <= 0 then
+					pipR2T.unitsInvalidInfoStreak = (pipR2T.unitsInvalidInfoStreak or 0) + 1
+					if pipR2T.unitsInvalidInfoStreak >= 2 then
+						gl.DeleteTexture(pipR2T.unitsTex)
+						pipR2T.unitsTex = nil
+						pipR2T.unitsNeedsUpdate = true
+						pipR2T.unitsInvalidInfoStreak = 0
+					end
+				else
 					pipR2T.unitsInvalidInfoStreak = 0
 				end
-			else
-				pipR2T.unitsInvalidInfoStreak = 0
 			end
 		end
 		if pipR2T.contentTex then
 			tracy.ZoneBeginN("W:PIP:DrawScreen:Composite")
+			-- Scissor the whole composite to the PIP rect (slightly padded): bounds the
+			-- otherwise fullscreen stencil clear to the region actually used, and clips the
+			-- oversized blit quads the same way the stencil already does at the window edge
+			gl.Scissor(
+				math.floor(render.dim.l) - 2,
+				math.floor(render.dim.b) - 2,
+				math.ceil(render.dim.r - render.dim.l) + 4,
+				math.ceil(render.dim.t - render.dim.b) + 4
+			)
 			-- Set up stencil buffer to clip to rounded corners
 			gl.Clear(GL.STENCIL_BUFFER_BIT)
 			gl.StencilTest(true)
@@ -19978,6 +20465,25 @@ function widget:DrawScreen()
 				pipR2T.contentZoom,
 				pipR2T.contentRotation
 			)
+
+			-- Blit cached features layer between ground and units (premultiplied; the
+			-- zoom fade multiplies here so it animates every frame without re-renders)
+			if pipR2T.featuresTex then
+				local featureFade = pools.ComputeFeatureFade()
+				if featureFade > 0 then
+					glFunc.Color(featureFade, featureFade, featureFade, featureFade)
+					BlitShiftedTexture(
+						pipR2T.featuresTex,
+						pipR2T.featuresTexWidth,
+						pipR2T.featuresTexHeight,
+						pipR2T.featuresWcx,
+						pipR2T.featuresWcz,
+						pipR2T.featuresZoom,
+						pipR2T.featuresRotation
+					)
+					glFunc.Color(1, 1, 1, 1)
+				end
+			end
 
 			-- Blit oversized units texture (expensive layers: units, features, projectiles)
 			-- Uses premultiplied alpha: FBO was rendered with BlendFuncSeparate for correct alpha
@@ -20015,8 +20521,9 @@ function widget:DrawScreen()
 				end
 			end
 
-			-- Disable stencil test
+			-- Disable stencil test and composite scissor
 			gl.StencilTest(false)
+			gl.Scissor(false)
 
 			-- Draw minimap overlays from other widgets (only in minimap mode)
 			-- This is done here in DrawScreen (not in R2T) because matrix manipulation works correctly here
@@ -20883,6 +21390,7 @@ function widget:Update(dt)
 				if miscState.baseMinimapIconScale then
 					Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
 					Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+					gl4Icons.minimapIconScaleExpiry = 0 -- invalidate cached read
 					miscState.baseMinimapIconScale = nil
 				end
 				miscState.engineMinimapActive = false
@@ -21189,6 +21697,7 @@ function widget:Update(dt)
 						if miscState.baseMinimapIconScale then
 							Spring.SendCommands("minimap unitsize " .. miscState.baseMinimapIconScale)
 							Spring.SetConfigFloat("MinimapIconScale", miscState.baseMinimapIconScale)
+							gl4Icons.minimapIconScaleExpiry = 0 -- invalidate cached read
 							miscState.baseMinimapIconScale = nil
 						end
 						Spring.SendCommands("minimap minimize 1")
@@ -21977,7 +22486,7 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	end -- Ensure icon has size data
 	-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
 	local resScale = render.contentScale or 1
-	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
+	local unitBaseSize = gl4Icons.GetMinimapIconScale()
 	local iconSize = unitBaseSize
 		* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
 		* math.sqrt(cameraState.zoom)
