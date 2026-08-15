@@ -46,8 +46,8 @@ local CallAsTeam = CallAsTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitsInBox = Spring.GetUnitsInBox
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitsInPlanes = Spring.GetUnitsInPlanes
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPositionLosState = Spring.GetPositionLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -170,68 +170,6 @@ end
 -- Used to determine whether DGun intersects a given unit
 local function GetApproxUnitRadius(unitDefID)
 	return unitDefID and unitApproxRadius[unitDefID] or 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
-end
-
-local function MakePlane(normalX, normalY, normalZ, pointX, pointY, pointZ)
-	return {
-		normalVecX = normalX,
-		normalVecY = normalY,
-		normalVecZ = normalZ,
-		d = -(normalX * pointX + normalY * pointY + normalZ * pointZ),
-	}
-end
-
-local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, halfWidth)
-	-- compute Dgun vector
-	local deltaX, deltaY, deltaZ = endX - startX, endY - startY, endZ - startZ
-	local length = math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
-	if length == 0 then
-		length = 1
-	end
-
-	-- normalizes vector of Dgun
-	local axisX, axisY, axisZ = deltaX / length, deltaY / length, deltaZ / length
-
-	-- arbitrary vector so we can do cross product to find an orthogonal vector to the original one
-	local refX, refY, refZ = 0, 1, 0
-	if math.abs(axisY) > 0.9 then
-		refX, refY, refZ = 1, 0, 0
-	end
-
-	local sideX = axisY * refZ - axisZ * refY
-	local sideY = axisZ * refX - axisX * refZ
-	local sideZ = axisX * refY - axisY * refX
-	local sideLength = math.sqrt(sideX * sideX + sideY * sideY + sideZ * sideZ)
-	if sideLength == 0 then
-		sideLength = 1
-	end
-	sideX, sideY, sideZ = sideX / sideLength, sideY / sideLength, sideZ / sideLength
-
-	-- third orthogonal vector
-	local upX = axisY * sideZ - axisZ * sideY
-	local upY = axisZ * sideX - axisX * sideZ
-	local upZ = axisX * sideY - axisY * sideX
-
-	local centerX = (startX + endX) * 0.5
-	local centerY = (startY + endY) * 0.5
-	local centerZ = (startZ + endZ) * 0.5
-
-	local planes = {
-		MakePlane(-axisX, -axisY, -axisZ, startX, startY, startZ), -- excludes units behind dgun
-		MakePlane(axisX, axisY, axisZ, endX, endY, endZ), -- excludes units ahead of dgun
-		MakePlane(sideX, sideY, sideZ, centerX + sideX * halfWidth, centerY + sideY * halfWidth, centerZ + sideZ * halfWidth), -- excludes units to the "right side" of dgun
-		MakePlane(-sideX, -sideY, -sideZ, centerX - sideX * halfWidth, centerY - sideY * halfWidth, centerZ - sideZ * halfWidth), -- excludes units to the "left side" of dgun
-		MakePlane(upX, upY, upZ, centerX + upX * halfWidth, centerY + upY * halfWidth, centerZ + upZ * halfWidth), -- excludes units "above" the dgun
-		MakePlane(-upX, -upY, -upZ, centerX - upX * halfWidth, centerY - upY * halfWidth, centerZ - upZ * halfWidth), -- excludes units "below" the dgun
-	}
-
-	Spring.Echo("BuildBeamPrismPlanes", "start", startX, startY, startZ, "end", endX, endY, endZ, "halfWidth", halfWidth)
-	for i = 1, #planes do
-		local plane = planes[i]
-		Spring.Echo("plane", i, "n", plane.normalVecX, plane.normalVecY, plane.normalVecZ, "d", plane.d)
-	end
-
-	return planes
 end
 
 -- Removes old frontline contacts that are stale.
@@ -361,19 +299,50 @@ local function BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 	return targetX - dirX * DGUN_RANGE, targetY - dirY * DGUN_RANGE, targetZ - dirZ * DGUN_RANGE, targetX, targetY, targetZ
 end
 
+-- Measure the shortest distance from a unit position to the DGun beam segment
+local function DistPointToSegment(pointX, pointY, pointZ, segmentStartX, segmentStartY, segmentStartZ, segmentEndX, segmentEndY, segmentEndZ)
+	local segmentX, segmentY, segmentZ = segmentEndX - segmentStartX, segmentEndY - segmentStartY, segmentEndZ - segmentStartZ
+	local offsetX, offsetY, offsetZ = pointX - segmentStartX, pointY - segmentStartY, pointZ - segmentStartZ
+
+	local projectionNumerator = segmentX * offsetX + segmentY * offsetY + segmentZ * offsetZ
+	if projectionNumerator <= 0 then
+		local deltaX, deltaY, deltaZ = pointX - segmentStartX, pointY - segmentStartY, pointZ - segmentStartZ
+		return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+	end
+
+	local segmentLengthSquared = segmentX * segmentX + segmentY * segmentY + segmentZ * segmentZ
+	if segmentLengthSquared <= projectionNumerator then
+		local deltaX, deltaY, deltaZ = pointX - segmentEndX, pointY - segmentEndY, pointZ - segmentEndZ
+		return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+	end
+
+	local t = projectionNumerator / segmentLengthSquared
+	local closestX, closestY, closestZ = segmentStartX + t * segmentX, segmentStartY + t * segmentY, segmentStartZ + t * segmentZ
+	local deltaX, deltaY, deltaZ = pointX - closestX, pointY - closestY, pointZ - closestZ
+	return math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+end
+
 -- Returns True and explanation of most powerful threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_POWER)
 -- Returns False and nil if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
-	-- Build a prism around the beam, then let the engine return allied units inside it.
-	-- FIXME null exception due to allegiance as last arg...why
-	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_SAFETY_WIDTH + DGUN_WIDTH / 2), ALLY_UNITS)
+	-- Build a cheap box around the beam first, then do the precise segment test
+	local minx = math.min(startX, endX) - DGUN_SAFETY_WIDTH
+	local maxx = math.max(startX, endX) + DGUN_SAFETY_WIDTH
+	local miny = math.min(startY, endY) - DGUN_SAFETY_WIDTH
+	local maxy = math.max(startY, endY) + DGUN_SAFETY_WIDTH
+	local minz = math.min(startZ, endZ) - DGUN_SAFETY_WIDTH
+	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
+
+	-- Filter for only allied units (not including self-owned units)
+	local candidates = CallAsTeam(myTeamID, spGetUnitsInBox, minx, miny, minz, maxx, maxy, maxz, ALLY_UNITS)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local unitDefID = spGetUnitDefID(unitID)
+		local unitRadius = GetApproxUnitRadius(unitDefID)
 		local unitTeam = spGetUnitTeam(unitID)
 
 		-- Exclude self-owned units (should always be allowed to shoot those)
@@ -381,23 +350,26 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		if unitTeam ~= myTeamID and not isCommander[unitDefID] then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if unitX then
-				local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
-				if (captureProgress or 0) > 0 then
-					-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
-					-- It is ok to dgun to prevent unit capture.
-					return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
-				end
+				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
+				if d < unitRadius + DGUN_WIDTH / 2 then
+					local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
+					if (captureProgress or 0) > 0 then
+						-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
+						-- It is ok to dgun to prevent unit capture.
+						return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
+					end
 
-				local threatenedPower = 0
-				-- Partially built units only contribute proportional power to threat.
-				-- This is to prevent a malicious player from triggering false negatives
-				-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
-				buildProgress = buildProgress or 1
-				threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
-				threatenedAllyPower = threatenedAllyPower + threatenedPower
-				if threatenedPower > mostPowerfulThreatenedPower then
-					mostPowerfulThreatenedPower = threatenedPower
-					mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
+					local threatenedPower = 0
+					-- Partially built units only contribute proportional power to threat.
+					-- This is to prevent a malicious player from triggering false negatives
+					-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
+					buildProgress = buildProgress or 1
+					threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
+					threatenedAllyPower = threatenedAllyPower + threatenedPower
+					if threatenedPower > mostPowerfulThreatenedPower then
+						mostPowerfulThreatenedPower = threatenedPower
+						mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
+					end
 				end
 			end
 		end
@@ -502,7 +474,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 end
 
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeam) -- FIXME test whether extra checks needed for units leaving LOS because they were destroyed
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam)
 	-- If it's an enemy ghost, add to cache. Otherwise don't worry about it
 	if allyTeam ~= myAllyTeamID then
 		return -- not an event for us
