@@ -82,6 +82,7 @@ for _, filename in ipairs(luaFiles) do
 		local unitDefsEnv = {}
 		unitDefsEnv._G = unitDefsEnv
 		unitDefsEnv.Shared = shared
+		unitDefsEnv.BAR = BAR
 		unitDefsEnv.GetFilename = function()
 			return filename
 		end
