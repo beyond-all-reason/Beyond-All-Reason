@@ -22,7 +22,18 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local reissueOrder = Game.Commands.ReissueOrder
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	-- accepts: CMD.CAPTURE
 	local nParams = #cmdParams
 

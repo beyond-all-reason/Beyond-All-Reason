@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name    = "Weather Brush CEG Spawner",
-		desc    = "Synced gadget that spawns CEGs on behalf of the Weather Brush widget",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Weather Brush CEG Spawner",
+		desc = "Synced gadget that spawns CEGs on behalf of the Weather Brush widget",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -18,16 +18,16 @@ end
 -- Constants
 ----------------------------------------------------------------
 local SPAWN_HEADER = "$weather_ceg$"
-local HEADER_LEN   = #SPAWN_HEADER
+local HEADER_LEN = #SPAWN_HEADER
 
 ----------------------------------------------------------------
 -- Localize
 ----------------------------------------------------------------
-local SpawnCEG        = Spring.SpawnCEG
+local SpawnCEG = Spring.SpawnCEG
 local GetGroundHeight = Spring.GetGroundHeight
-local max             = math.max
-local min             = math.min
-local tonumber        = tonumber
+local max = math.max
+local min = math.min
+local tonumber = tonumber
 
 ----------------------------------------------------------------
 -- Message handler

@@ -8,9 +8,9 @@
 
 ---@type SidesEnum
 local SIDES = {
-    ARMADA = "arm",
-    CORTEX = "cor",
-    LEGION = "leg",
+	ARMADA = "arm",
+	CORTEX = "cor",
+	LEGION = "leg",
 }
 
 return SIDES
