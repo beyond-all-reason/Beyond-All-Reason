@@ -10627,6 +10627,79 @@ local function attachEventListeners()
 end
 
 
+-- Tools whose engine widget can raise the panel from cold. The remaining panel
+-- modes (environment, lights, startpos, clone, decals) are driven by widgetState
+-- flags the panel itself sets, so they cannot be live before the document exists.
+local PANEL_TOOL_APIS = {
+	"TerraformBrush", "FeaturePlacer", "WeatherBrush", "SplatPainter",
+	"MetalBrush", "GrassBrush", "SurfacePainter",
+}
+
+-- Cheap probe for "is the editor being used", safe to call with no document.
+local function editorWantsPanel()
+	if widgetState.passthroughMode then return true end
+	for i = 1, #PANEL_TOOL_APIS do
+		local api = WG[PANEL_TOOL_APIS[i]]
+		if api and api.getState then
+			local st = api.getState()
+			if st and st.active then return true end
+		end
+	end
+	if WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() then
+		return true
+	end
+	return false
+end
+
+-- Build the panel document on first use.
+--
+-- The RML is ~6200 elements and ~1800 data bindings, and RmlUi carries that in
+-- its context update for as long as the document is loaded — Hide() only stops
+-- it drawing. The Terraformer is an opt-in editor tool (enabled = false), so a
+-- player who leaves the widget on must not pay for a panel they never open.
+--
+-- Built once and kept for the session rather than torn down on close: the tf_*
+-- modules cache ~50 element handles into widgetState, and a closed document
+-- would leave every one of them dangling.
+local function ensureDocument()
+	if widgetState.document then return true end
+	local rmlCtx = widgetState.rmlContext
+	if not rmlCtx or widgetState.documentLoadFailed then return false end
+
+	local document = rmlCtx:LoadDocument(RML_PATH, widget)
+	if not document then
+		-- Latch: Update calls this every frame while a tool is active, and a
+		-- failing load would otherwise echo once per frame forever.
+		widgetState.documentLoadFailed = true
+		Spring.Echo("[Terraform Brush] Failed to load the panel document.")
+		return false
+	end
+	widgetState.document = document
+	-- RecvLuaMsg only toggles an existing document, so a document born while the
+	-- lobby overlay is up has to start hidden or it paints over the lobby.
+	if widgetState.lobbyHidden then document:Hide() else document:Show() end
+
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("terraform_brush", document)
+	end
+
+	widgetState.rootElement = getCachedEl(document, "tf-root")
+	if widgetState.rootElement then
+		widgetState.rootElement:SetClass("hidden", true)
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+		-- Pen pressure: suppress brush modulation when cursor is over the UI panel
+		widgetState.rootElement:AddEventListener("mouseover", function()
+			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(true) end
+		end, false)
+		widgetState.rootElement:AddEventListener("mouseout", function()
+			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(false) end
+		end, false)
+	end
+
+	attachEventListeners()
+	return true
+end
+
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
@@ -10656,17 +10729,10 @@ function widget:Initialize()
 	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
 	widgetState._pendingFogOff = 15
 
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
-	if not document then
-		widget:Shutdown()
-		return false
-	end
-	widgetState.document = document
-	document:Show()
-
-	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
-		WG.TerraformerShared.registerDocument("terraform_brush", document)
-	end
+	-- The document itself is deferred to ensureDocument(), called from Update the
+	-- first time a tool engages. Everything below is document-independent and has
+	-- to run at boot: prefs, the panel action, and the pending New Map preset all
+	-- apply to sessions where the panel is never opened.
 
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then loadUiPrefs() end
@@ -10686,13 +10752,9 @@ function widget:Initialize()
 		end
 	end
 
-	widgetState.rootElement = getCachedEl(document, "tf-root")
-	widgetState.rootElement:SetClass("hidden", true)
-
 	lastVsx, lastVsy = GetViewGeometry()
 	currentLeftVw = INITIAL_LEFT_VW
 	currentTopVh = INITIAL_TOP_VH
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	widgetState.panelHidden = false
 	widgetHandler:AddAction("terraformpanel", function()
@@ -10702,8 +10764,6 @@ function widget:Initialize()
 		end
 		return true
 	end, nil, "t")
-
-	attachEventListeners()
 
 	-- New Map environment preset: if the last Create wrote a pending preset, resolve
 	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
@@ -10737,16 +10797,6 @@ function widget:Initialize()
 				end
 			end
 		end
-	end
-
-	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
-	if widgetState.rootElement then
-		widgetState.rootElement:AddEventListener("mouseover", function()
-			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(true) end
-		end, false)
-		widgetState.rootElement:AddEventListener("mouseout", function()
-			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(false) end
-		end, false)
 	end
 
 	-- Expose UI-side API for key capture and badge refresh
@@ -11797,6 +11847,19 @@ end
 
 function widget:Update()
 	local ok, err = pcall(function()
+
+	-- Lazy panel. While no tool is engaged there is no document, and nothing below
+	-- this point has anything to drive — the pumps and mirrors all feed panel state.
+	-- First engage builds the document (see ensureDocument) and the rest of the
+	-- session proceeds normally.
+	--
+	-- The skybox fade is the one exception: a New Map boots straight into one (the
+	-- default-skybox apply in Initialize, with envFadeEnabled on) and its driver is
+	-- below, so bailing out here would strand the screen mid-fade on black.
+	if not widgetState.document and not skyFade.active then
+		if not editorWantsPanel() then return end
+		if not ensureDocument() then return end
+	end
 
 	-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
 	-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
