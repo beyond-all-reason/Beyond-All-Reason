@@ -1,8 +1,7 @@
 local playerCountScale = 1
-if Spring.Utilities.Gametype.IsRaptors() then
-	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+if BAR.Utilities.Gametype.IsRaptors() then
+	playerCountScale = (#Spring.GetTeamList() - 2) / 8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
-
 
 return {
 	raptor_queen_normal = {
@@ -14,7 +13,7 @@ return {
 		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/n_raptorq.DDS",
-		buildtime = 1500000,
+		buildtime = 5000000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -35,7 +34,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		health = 875000,
+		health = 1312500,
 		maxslope = 40,
 		speed = 75.0,
 		maxwaterdepth = 0,
@@ -116,7 +115,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 1000*playerCountScale,
+					default = 1000 * playerCountScale,
 				},
 			},
 			melee = {
@@ -145,7 +144,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 5000*playerCountScale,
+					default = 5000 * playerCountScale,
 				},
 			},
 			yellow_missile = {
@@ -177,7 +176,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
@@ -196,7 +194,7 @@ return {
 				},
 				damage = {
 					default = 1,
-					vtol = 1000*playerCountScale,
+					vtol = 1000 * playerCountScale,
 				},
 			},
 		},

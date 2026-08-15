@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 600,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -43,8 +43,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
+			weapon1turretx = 200,
+			weapon1turrety = 400,
 		},
 		featuredefs = {
 			dead = {
@@ -128,7 +128,7 @@ return {
 				soundstart = "cannon3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 550,
 				damage = {
 					default = 120,
 					vtol = 30,
@@ -141,7 +141,6 @@ return {
 				def = "QUICKSHOT_CANNON",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
-
 			},
 		},
 	},

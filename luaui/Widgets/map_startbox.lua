@@ -7,9 +7,9 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1000000,
 		enabled = true,
-		depends = {'gl4'}
+		depends = { "gl4" },
 	}
 end
 
@@ -19,9 +19,10 @@ local math = math
 local mathFloor = math.floor
 local mathRandom = math.random
 local mathAbs = math.abs
+local mathHuge = math.huge
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
@@ -30,6 +31,8 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
+local spRequestStartPosition = Spring.RequestStartPosition
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -38,6 +41,8 @@ local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local GL_TRIANGLES = GL.TRIANGLES
 
 local UPDATE_RATE = 30
+
+local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
@@ -58,14 +63,16 @@ local fontfileSize = 50
 local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.65
 local fontfileOutlineStrength2 = 10
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local font =
+	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.5)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
+local font2 =
+	gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
 local useThickLeterring = false
 local fontSize = 18
-local fontShadow = true        -- only shows if font has a white outline
+local fontShadow = true -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
 local infotextFontsize = 13
@@ -77,9 +84,9 @@ local widgetScale = (1 + (vsx * vsy / 5500000))
 local startPosRatio = 0.0001
 local startPosScale
 if getCurrentMiniMapRotationOption() == ROTATION.DEG_90 or getCurrentMiniMapRotationOption() == ROTATION.DEG_270 then
-	startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+	startPosScale = (vsx * startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 else
-	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+	startPosScale = (vsx * startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 end
 
 local isSpec = spGetSpectatingState() or Spring.IsReplay()
@@ -99,7 +106,7 @@ local infotextList
 
 local GetTeamColor = Spring.GetTeamColor
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 
 local glTranslate = gl.Translate
 local glCallList = gl.CallList
@@ -129,7 +136,7 @@ local draggingTeamID = nil
 local dragOffsetX = 0
 local dragOffsetZ = 0
 
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gameFrame = 0
 
 local CONE_CLICK_RADIUS = 75
@@ -141,8 +148,8 @@ VFS.Include("common/lib_startpoint_guesser.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local aiNameI18NTable = {name = ""}
-local aiLocationI18NTable = {playerName = "", aiName = ""}
+local aiNameI18NTable = { name = "" }
+local aiLocationI18NTable = { playerName = "", aiName = "" }
 local aiNameCache = {}
 local aiNameLockedCache = {}
 
@@ -151,7 +158,8 @@ local function getAIName(teamID, includeLock)
 		local hasPlacement = aiPlacementStatus[teamID]
 		if hasPlacement == nil then
 			local startX, _, startZ = spGetTeamStartPosition(teamID)
-			hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or spGetTeamRulesParam(teamID, "aiManualPlacement")
+			hasPlacement = (startX and startZ and startX > 0 and startZ > 0)
+				or spGetTeamRulesParam(teamID, "aiManualPlacement")
 		end
 	end
 
@@ -160,12 +168,12 @@ local function getAIName(teamID, includeLock)
 		local _, playerID, _, isAI = spGetTeamInfo(teamID, false)
 		if isAI then
 			local _, _, _, aiName = Spring.GetAIInfo(teamID)
-			local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+			local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
 			if niceName then
 				aiName = niceName
 			end
 			aiNameI18NTable.name = aiName
-			baseName = Spring.I18N('ui.playersList.aiName', aiNameI18NTable)
+			baseName = BAR.I18N("ui.playersList.aiName", aiNameI18NTable)
 		else
 			local name = spGetPlayerInfo(playerID, false)
 			baseName = WG.playernames and WG.playernames.getPlayername(playerID) or name
@@ -177,7 +185,8 @@ local function getAIName(teamID, includeLock)
 		local hasPlacement = aiPlacementStatus[teamID]
 		if hasPlacement == nil then
 			local startX, _, startZ = spGetTeamStartPosition(teamID)
-			hasPlacement = (startX and startZ and startX > 0 and startZ > 0) or spGetTeamRulesParam(teamID, "aiManualPlacement")
+			hasPlacement = (startX and startZ and startX > 0 and startZ > 0)
+				or spGetTeamRulesParam(teamID, "aiManualPlacement")
 		end
 		if hasPlacement then
 			return baseName .. "\n🔒"
@@ -189,9 +198,60 @@ end
 
 local teamColorComponents = {}
 local cachedTeamList = {}
+local teamInfoCache = {}
+local totalTeams = 0
+local aiManualPlacementCache = {}
+
+local function getCachedManualPlacement(teamID)
+	local raw = spGetTeamRulesParam(teamID, "aiManualPlacement")
+	local cached = aiManualPlacementCache[teamID]
+	if cached and cached.raw == raw then
+		return cached.x, cached.z, raw
+	end
+
+	local x, z
+	if raw then
+		local sx, sz = string.match(raw, "([%d%.]+),([%d%.]+)")
+		if sx and sz then
+			x = tonumber(sx)
+			z = tonumber(sz)
+		end
+	end
+
+	aiManualPlacementCache[teamID] = { raw = raw, x = x, z = z }
+	return x, z, raw
+end
 
 local function updateTeamList()
 	cachedTeamList = spGetTeamList()
+	totalTeams = 0
+
+	for teamID in pairs(teamInfoCache) do
+		teamInfoCache[teamID] = nil
+	end
+
+	for _, teamID in ipairs(cachedTeamList) do
+		if teamID ~= gaiaTeamID then
+			totalTeams = totalTeams + 1
+		end
+
+		local _, playerID, _, isAI, _, allyTeamID = spGetTeamInfo(teamID, false)
+		local playerName, isPlayerSpec
+		if playerID then
+			playerName, _, isPlayerSpec = spGetPlayerInfo(playerID, false)
+			if WG.playernames and WG.playernames.getPlayername then
+				playerName = WG.playernames.getPlayername(playerID) or playerName
+			end
+		end
+
+		teamInfoCache[teamID] = {
+			playerID = playerID,
+			isAI = isAI,
+			allyTeamID = allyTeamID,
+			isPlayerSpec = isPlayerSpec,
+			playerName = playerName,
+		}
+	end
 end
 
 local function assignTeamColors()
@@ -202,7 +262,7 @@ local function assignTeamColors()
 		local cached = teamColorComponents[teamID]
 		if not cached or cached[1] ~= r or cached[2] ~= g or cached[3] ~= b then
 			if not cached then
-				teamColorComponents[teamID] = {r, g, b}
+				teamColorComponents[teamID] = { r, g, b }
 			else
 				cached[1], cached[2], cached[3] = r, g, b
 			end
@@ -220,8 +280,8 @@ end
 
 local function createCommanderNameList(name, teamID)
 	commanderNameList[teamID] = {}
-	commanderNameList[teamID]['name'] = name
-	commanderNameList[teamID]['list'] = gl.CreateList(function()
+	commanderNameList[teamID].name = name
+	commanderNameList[teamID].list = gl.CreateList(function()
 		local x, y = 0, 0
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
@@ -247,7 +307,7 @@ local function createCommanderNameList(name, teamID)
 			font2:End()
 		end
 		font2:Begin()
-		font2:SetTextColor({r, g, b})
+		font2:SetTextColor({ r, g, b })
 		font2:SetOutlineColor(outlineColor)
 		font2:Print(name, x, y, usedFontSize, "con")
 		font2:End()
@@ -255,21 +315,25 @@ local function createCommanderNameList(name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]['name'] ~= name then
+	if not (x > -mathHuge and x < mathHuge and y > -mathHuge and y < mathHuge) then
+		return
+	end
+
+	if commanderNameList[teamID] == nil or commanderNameList[teamID].name ~= name then
 		if commanderNameList[teamID] ~= nil then
-			gl.DeleteList(commanderNameList[teamID]['list'])
+			gl.DeleteList(commanderNameList[teamID].list)
 		end
 		createCommanderNameList(name, teamID)
 	end
 	glPushMatrix()
 	glTranslate(mathFloor(x), mathFloor(y), 0)
-	glCallList(commanderNameList[teamID]['list'])
+	glCallList(commanderNameList[teamID].list)
 	glPopMatrix()
 end
 
 local function createInfotextList()
-	local infotext = Spring.I18N('ui.startSpot.anywhere')
-	local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
+	local infotext = BAR.I18N("ui.startSpot.anywhere")
+	local infotextBoxes = BAR.I18N("ui.startSpot.startbox")
 
 	if infotextList then
 		gl.DeleteList(infotextList)
@@ -283,7 +347,6 @@ local function createInfotextList()
 		font:End()
 	end)
 end
-
 
 local posCache = {}
 
@@ -325,7 +388,7 @@ local function getEffectiveStartPosition(teamID)
 	if posCacheTeam then
 		posCacheTeam[1], posCacheTeam[2], posCacheTeam[3], posCacheTeam[4] = x, y, z, true
 	else
-		posCache[teamID] = {x, y, z, true}
+		posCache[teamID] = { x, y, z, true }
 	end
 	return x, y, z
 end
@@ -350,13 +413,20 @@ local function shouldRenderTeam(teamID, excludeMyTeam)
 		return false
 	end
 
-	local _, playerID, _, isAI, _, teamAllyTeamID = spGetTeamInfo(teamID, false)
-	local _, _, spec = spGetPlayerInfo(playerID, false)
+	local teamInfo = teamInfoCache[teamID]
+	if not teamInfo then
+		return false
+	end
+
+	local isAI = teamInfo.isAI
+	local teamAllyTeamID = teamInfo.allyTeamID
+	local spec = teamInfo.isPlayerSpec
 
 	local x, y, z = getEffectiveStartPosition(teamID)
 
-	local isVisible = (not spec or isAI) and teamID ~= gaiaTeamID and
-		(not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement)
+	local isVisible = (not spec or isAI)
+		and teamID ~= gaiaTeamID
+		and (not isAI or teamAllyTeamID == myAllyTeamID or isSpec or allowEnemyAIPlacement)
 
 	local isValidPosition = x ~= nil and x > 0 and z > 0 and y > -500
 
@@ -365,23 +435,25 @@ end
 
 local allSpawnPositions = {}
 local function notifySpawnPositionsChanged()
-	if not WG["quick_start_updateSpawnPositions"] then
+	if not WG.quick_start_updateSpawnPositions then
 		return
 	end
 
-	for k in pairs(allSpawnPositions) do allSpawnPositions[k] = nil end
+	for k in pairs(allSpawnPositions) do
+		allSpawnPositions[k] = nil
+	end
 	for _, teamID in ipairs(cachedTeamList) do
 		local shouldRender, x, y, z = shouldRenderTeam(teamID, false)
 		if shouldRender then
 			local entry = allSpawnPositions[teamID]
 			if not entry then
-				allSpawnPositions[teamID] = {x = x, z = z}
+				allSpawnPositions[teamID] = { x = x, z = z }
 			else
 				entry.x, entry.z = x, z
 			end
 		end
 	end
-	WG["quick_start_updateSpawnPositions"](allSpawnPositions)
+	WG.quick_start_updateSpawnPositions(allSpawnPositions)
 end
 
 function widget:LanguageChanged()
@@ -408,7 +480,7 @@ local function invalidateMinimapIcons()
 end
 
 local function CoopStartPoint(playerID, x, y, z)
-	coopStartPoints[playerID] = {x, y, z}
+	coopStartPoints[playerID] = { x, y, z }
 	invalidateMinimapIcons()
 	notifySpawnPositionsChanged()
 end
@@ -433,8 +505,8 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+local scavengerAIAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -449,34 +521,36 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 -- spEcho('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
-		fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
-		uniformInt = {
-			mapDepths = 0,
-			myAllyTeamID = -1,
-			isMiniMap = 0,
-			roationMiniMap = 0,
-			mapNormals = 1,
-			heightMapTex = 2,
-			scavTexture = 3,
-			raptorTexture = 4,
-		},
-		uniformFloat = {
-			pingData = {0,0,0,-10000}, -- x,y,z, time
-			isMiniMap = 0,
-			pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
-		},
-		shaderName = "Start Polygons GL4",
-		shaderConfig = {
-			ALPHA = 0.5,
-			NUM_POLYGONS = 0,
-			NUM_POINTS = 0,
-			MAX_STEEPNESS = math.cos(math.rad(54)),
-			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
-			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
-		},
-		silent = (not autoReload),
-	}
+	vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
+	uniformInt = {
+		mapDepths = 0,
+		myAllyTeamID = -1,
+		isMiniMap = 0,
+		roationMiniMap = 0,
+		waterSurfaceMode = 0,
+		mapNormals = 1,
+		heightMapTex = 2,
+		scavTexture = 3,
+		raptorTexture = 4,
+	},
+	uniformFloat = {
+		pingData = { 0, 0, 0, -10000 }, -- x,y,z, time
+		waterLevel = 0,
+		isMiniMap = 0,
+		pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
+	},
+	shaderName = "Start Polygons GL4",
+	shaderConfig = {
+		ALPHA = 0.5,
+		NUM_POLYGONS = 0,
+		NUM_POINTS = 0,
+		MAX_STEEPNESS = math.cos(math.rad(54)),
+		SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
+		RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
+	},
+	silent = not autoReload,
+}
 
 local fullScreenRectVAO
 local startPolygonShader
@@ -491,27 +565,26 @@ local coneShaderSourceCache = {
 	},
 	uniformFloat = {
 		isMiniMap = 0,
-		pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
+		pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 	},
 	shaderName = "Start Cones GL4",
 	shaderConfig = {
 		ALPHA = 0.5,
 	},
-	silent = (not autoReload),
+	silent = not autoReload,
 }
 
 local startConeVBOTable = nil
 local startConeShader = nil
 
 local function DrawStartPolygons(inminimap)
-
 	local _, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
-			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
@@ -519,7 +592,7 @@ local function DrawStartPolygons(inminimap)
 	end
 
 	gl.Texture(1, "$normals")
-	gl.Texture(2, "$heightmap")-- Texture file
+	gl.Texture(2, "$heightmap") -- Texture file
 	gl.Texture(3, scavengerStartBoxTexture)
 	gl.Texture(4, raptorStartBoxTexture)
 
@@ -536,14 +609,15 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
-
-	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-		startPolygonShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-	else
-		startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	local selectedUnitDefID = WG["pregame-unit-selected"]
+	local selectedUnitDef = selectedUnitDefID and UnitDefs[selectedUnitDefID]
+	local waterSurfaceMode = not inminimap and selectedUnitDef and selectedUnitDef.floatOnWater
+	startPolygonShader:SetUniformInt("waterSurfaceMode", waterSurfaceMode and 1 or 0)
+	if waterSurfaceMode then
+		startPolygonShader:SetUniform("waterLevel", spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
 	end
+
+	startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -560,13 +634,7 @@ local function DrawStartCones(inminimap)
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
-	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-		startConeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-	else
-		startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
-	end
+	startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
@@ -574,13 +642,55 @@ local function DrawStartCones(inminimap)
 	startConeShader:Deactivate()
 end
 
-local cacheTable = {}
-local circlesToDraw = {}
-local function getCircleEntry(index)
-	if not circlesToDraw[index] then
-		circlesToDraw[index] = {0, 0, 0}
-	end
-	return circlesToDraw[index]
+local iconEntries = {}
+local iconEntriesCount = 0
+local function compareIconEntryByTexture(a, b)
+	return a.texPath < b.texPath
+end
+
+local borderX1, borderY1, borderX2, borderY2, borderChamferShared
+local function drawBorderPolygon()
+	glVertex(borderX1 + borderChamferShared, borderY1)
+	glVertex(borderX2 - borderChamferShared, borderY1)
+	glVertex(borderX2, borderY1 + borderChamferShared)
+	glVertex(borderX2, borderY2 - borderChamferShared)
+	glVertex(borderX2 - borderChamferShared, borderY2)
+	glVertex(borderX1 + borderChamferShared, borderY2)
+	glVertex(borderX1, borderY2 - borderChamferShared)
+	glVertex(borderX1, borderY1 + borderChamferShared)
+end
+
+local fillX1, fillY1, fillX2, fillY2, fillChamferShared
+local function drawFillPolygon()
+	glVertex(fillX1 + fillChamferShared, fillY1)
+	glVertex(fillX2 - fillChamferShared, fillY1)
+	glVertex(fillX2, fillY1 + fillChamferShared)
+	glVertex(fillX2, fillY2 - fillChamferShared)
+	glVertex(fillX2 - fillChamferShared, fillY2)
+	glVertex(fillX1 + fillChamferShared, fillY2)
+	glVertex(fillX1, fillY2 - fillChamferShared)
+	glVertex(fillX1, fillY1 + fillChamferShared)
+end
+
+local iconX1, iconY1, iconX2, iconY2
+local iconChamferShared, texZoomShared, texChamferShared
+local function drawIconPolygon()
+	glTexCoord(texZoomShared + texChamferShared, 1 - texZoomShared)
+	glVertex(iconX1 + iconChamferShared, iconY1)
+	glTexCoord(1 - texZoomShared - texChamferShared, 1 - texZoomShared)
+	glVertex(iconX2 - iconChamferShared, iconY1)
+	glTexCoord(1 - texZoomShared, 1 - texZoomShared - texChamferShared)
+	glVertex(iconX2, iconY1 + iconChamferShared)
+	glTexCoord(1 - texZoomShared, texZoomShared + texChamferShared)
+	glVertex(iconX2, iconY2 - iconChamferShared)
+	glTexCoord(1 - texZoomShared - texChamferShared, texZoomShared)
+	glVertex(iconX2 - iconChamferShared, iconY2)
+	glTexCoord(texZoomShared + texChamferShared, texZoomShared)
+	glVertex(iconX1 + iconChamferShared, iconY2)
+	glTexCoord(texZoomShared, texZoomShared + texChamferShared)
+	glVertex(iconX1, iconY2 - iconChamferShared)
+	glTexCoord(texZoomShared, 1 - texZoomShared - texChamferShared)
+	glVertex(iconX1, iconY1 + iconChamferShared)
 end
 
 local teamsToRender = {}
@@ -591,6 +701,7 @@ local function updateTeamsToRender()
 	for _, teamID in ipairs(cachedTeamList) do
 		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
 		if shouldRender then
+			local teamInfo = teamInfoCache[teamID]
 			teamsToRenderCount = teamsToRenderCount + 1
 			local entry = teamsToRender[teamsToRenderCount]
 			if not entry then
@@ -602,28 +713,28 @@ local function updateTeamsToRender()
 			entry.y = y
 			entry.z = z
 			entry.isAI = isAI
+			entry.displayName = isAI and getAIName(teamID, true) or (teamInfo and teamInfo.playerName)
 		end
 	end
 end
 
 local function getStartUnitTexture(teamID)
 	-- Don't cache - need to update when player changes faction
-	local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
+	local startUnitDefID = spGetTeamRulesParam(teamID, "startUnit")
 	if startUnitDefID then
 		local uDef = UnitDefs[startUnitDefID]
 		if uDef then
 			-- Check if it's a "random" faction (dummy unit)
 			if uDef.name == "yourmomdummy" or string.sub(uDef.name, 1, 3) == "dum" then
-				return 'unitpics/other/dice.dds'
+				return "unitpics/other/dice.dds"
 			end
-			return 'unitpics/' .. uDef.name .. '.dds'
+			return "unitpics/" .. uDef.name .. ".dds"
 		end
 	end
 	-- Fallback: dice for unknown/random
-	return 'unitpics/other/dice.dds'
+	return "unitpics/other/dice.dds"
 end
 
-local totalTeams = #Spring.GetTeamList()-1
 local function buildIconList(sx, sz)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
 	if not teamsToRenderCount or teamsToRenderCount == 0 then
@@ -655,9 +766,9 @@ local function buildIconList(sx, sz)
 	local texChamfer = (iconChamfer / iconSize2) * (1 - 2 * texZoom)
 
 	-- Pre-compute all icon data and sort by texture to minimize state changes
-	local entries = {}
+	local entries = iconEntries
 	local entryCount = 0
-	for i = 1, (teamsToRenderCount or 0) do
+	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
 		local teamID = entry.teamID
 		local worldX, worldZ = entry.x, entry.z
@@ -684,12 +795,29 @@ local function buildIconList(sx, sz)
 			drawY = math.floor(drawY + 0.5)
 			local r, g, b = GetTeamColor(teamID)
 			entryCount = entryCount + 1
-			entries[entryCount] = { drawX = drawX, drawY = drawY, r = r, g = g, b = b, texPath = texPath }
+			local iconEntry = entries[entryCount]
+			if not iconEntry then
+				iconEntry = {}
+				entries[entryCount] = iconEntry
+			end
+			iconEntry.drawX = drawX
+			iconEntry.drawY = drawY
+			iconEntry.r = r
+			iconEntry.g = g
+			iconEntry.b = b
+			iconEntry.texPath = texPath
 		end
 	end
 
+	if iconEntriesCount > entryCount then
+		for i = entryCount + 1, iconEntriesCount do
+			entries[i] = nil
+		end
+	end
+	iconEntriesCount = entryCount
+
 	-- Sort by texture path to batch texture state changes
-	table.sort(entries, function(a, b) return a.texPath < b.texPath end)
+	table.sort(entries, compareIconEntryByTexture)
 
 	return gl.CreateList(function()
 		-- Draw all borders + team-color backgrounds first (no texture needed)
@@ -702,32 +830,21 @@ local function buildIconList(sx, sz)
 			local bx2, by2 = x2 + borderSize, y2 + borderSize
 
 			glColor(0, 0, 0, 0.25)
-			glBeginEnd(GL_POLYGON, function()
-				glVertex(bx1 + borderChamfer, by1)
-				glVertex(bx2 - borderChamfer, by1)
-				glVertex(bx2, by1 + borderChamfer)
-				glVertex(bx2, by2 - borderChamfer)
-				glVertex(bx2 - borderChamfer, by2)
-				glVertex(bx1 + borderChamfer, by2)
-				glVertex(bx1, by2 - borderChamfer)
-				glVertex(bx1, by1 + borderChamfer)
-			end)
+			borderX1, borderY1, borderX2, borderY2 = bx1, by1, bx2, by2
+			borderChamferShared = borderChamfer
+			glBeginEnd(GL_POLYGON, drawBorderPolygon)
 
 			glColor(e.r, e.g, e.b, 0.7)
-			glBeginEnd(GL_POLYGON, function()
-				glVertex(x1 + chamfer, y1)
-				glVertex(x2 - chamfer, y1)
-				glVertex(x2, y1 + chamfer)
-				glVertex(x2, y2 - chamfer)
-				glVertex(x2 - chamfer, y2)
-				glVertex(x1 + chamfer, y2)
-				glVertex(x1, y2 - chamfer)
-				glVertex(x1, y1 + chamfer)
-			end)
+			fillX1, fillY1, fillX2, fillY2 = x1, y1, x2, y2
+			fillChamferShared = chamfer
+			glBeginEnd(GL_POLYGON, drawFillPolygon)
 		end
 
 		-- Draw all textured icons (sorted by texture to minimize state changes)
 		glColor(1, 1, 1, 1)
+		iconChamferShared = iconChamfer
+		texZoomShared = texZoom
+		texChamferShared = texChamfer
 		local prevTex = nil
 		for i = 1, entryCount do
 			local e = entries[i]
@@ -735,26 +852,9 @@ local function buildIconList(sx, sz)
 				glTexture(e.texPath)
 				prevTex = e.texPath
 			end
-			local ix1, iy1 = e.drawX - iconHalf, e.drawY - iconHalf
-			local ix2, iy2 = e.drawX + iconHalf, e.drawY + iconHalf
-			glBeginEnd(GL_POLYGON, function()
-				glTexCoord(texZoom + texChamfer, 1 - texZoom)
-				glVertex(ix1 + iconChamfer, iy1)
-				glTexCoord(1 - texZoom - texChamfer, 1 - texZoom)
-				glVertex(ix2 - iconChamfer, iy1)
-				glTexCoord(1 - texZoom, 1 - texZoom - texChamfer)
-				glVertex(ix2, iy1 + iconChamfer)
-				glTexCoord(1 - texZoom, texZoom + texChamfer)
-				glVertex(ix2, iy2 - iconChamfer)
-				glTexCoord(1 - texZoom - texChamfer, texZoom)
-				glVertex(ix2 - iconChamfer, iy2)
-				glTexCoord(texZoom + texChamfer, texZoom)
-				glVertex(ix1 + iconChamfer, iy2)
-				glTexCoord(texZoom, texZoom + texChamfer)
-				glVertex(ix1, iy2 - iconChamfer)
-				glTexCoord(texZoom, 1 - texZoom - texChamfer)
-				glVertex(ix1, iy1 + iconChamfer)
-			end)
+			iconX1, iconY1 = e.drawX - iconHalf, e.drawY - iconHalf
+			iconX2, iconY2 = e.drawX + iconHalf, e.drawY + iconHalf
+			glBeginEnd(GL_POLYGON, drawIconPolygon)
 		end
 		glTexture(false)
 	end)
@@ -778,7 +878,9 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 			glCallList(pipIconList)
 			return
 		end
-		if pipIconList then gl.DeleteList(pipIconList) end
+		if pipIconList then
+			gl.DeleteList(pipIconList)
+		end
 		pipIconList = buildIconList(sx, sz)
 		pipIconListSx = sx
 		pipIconListSz = sz
@@ -788,7 +890,9 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 			glCallList(minimapIconList)
 			return
 		end
-		if minimapIconList then gl.DeleteList(minimapIconList) end
+		if minimapIconList then
+			gl.DeleteList(minimapIconList)
+		end
 		minimapIconList = buildIconList(sx, sz)
 		minimapIconListSx = sx
 		minimapIconListSz = sz
@@ -796,18 +900,43 @@ local function DrawStartUnitIcons(sx, sz, inPip)
 	end
 end
 
-
 local function InitStartPolygons()
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then
-		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID() , false))
+		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then
-			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
-			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
+
+	-- Polygon overlays render only for explicit modoption sources. When the
+	-- hardcoded fallback fires we defer to the engine startrect path below so
+	-- the lobby/host's rectangles remain authoritative.
+	local configLoaded = false
+	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
+	if ok and ParseBoxes then
+		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
+		if pok and startBoxConfig and isExplicit then
+			local activeAllyTeams = {}
+			for _, atID in ipairs(Spring.GetAllyTeamList()) do
+				activeAllyTeams[atID] = true
+			end
+			for allyTeamID, entry in pairs(startBoxConfig) do
+				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
+					for _, polygon in ipairs(entry.boxes) do
+						StartPolygons[#StartPolygons + 1] = { team = allyTeamID, poly = polygon }
+					end
+					configLoaded = true
+				end
+			end
+		end
+	end
+
+	-- fall back to engine AABB if no polygon configs were loaded
+	if not configLoaded then
+		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+			if teamID ~= gaiaAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+				StartPolygons[#StartPolygons + 1] =
+					{ team = teamID, poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
+			end
 		end
 	end
 
@@ -815,27 +944,45 @@ local function InitStartPolygons()
 		-- MANUAL OVERRIDE FOR DEBUGGING
 		-- lets add a bunch of silly StartPolygons:
 		StartPolygons = {}
-		for i = 2,8 do
+		for i = 2, 8 do
 			local x0 = mathRandom(0, Game.mapSizeX)
 			local y0 = mathRandom(0, Game.mapSizeZ)
-			local polygon = {{x0, y0}}
+			local polygon = { { x0, y0 } }
 
 			for j = 2, math.ceil(mathRandom() * 10) do
 				local x1 = mathRandom(0, Game.mapSizeX / 5)
 				local y1 = mathRandom(0, Game.mapSizeZ / 5)
-				polygon[#polygon+1] = {x0+x1, y0+y1}
+				polygon[#polygon + 1] = { x0 + x1, y0 + y1 }
 			end
-			StartPolygons[#StartPolygons+1] = polygon
+			StartPolygons[#StartPolygons + 1] = { team = i, poly = polygon }
 		end
 	end
 
-	--Case we start with only one team(no enemies)
-	--The shader doesn't like that so we have to let it think there are more then one
-	if(#StartPolygons == 0) then
-		StartPolygons[#StartPolygons+1] = StartPolygons[#StartPolygons]
+	local numStartPolygons = #StartPolygons
+
+	-- The shader requires at least 2 entries to avoid edge cases
+	if numStartPolygons < 2 and numStartPolygons > 0 then
+		StartPolygons[#StartPolygons + 1] = StartPolygons[1]
+		numStartPolygons = numStartPolygons + 1
 	end
 
-	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
+	-- Sort so same-team polygons are not adjacent in the buffer.
+	-- The shader merges consecutive same-teamID vertex blocks into one polygon,
+	-- so we interleave by sorting on (index within team, teamID).
+	local teamIndex = {}
+	for i = 1, numStartPolygons do
+		local t = StartPolygons[i].team
+		teamIndex[t] = (teamIndex[t] or 0) + 1
+		StartPolygons[i].sortKey = teamIndex[t]
+	end
+	table.sort(StartPolygons, function(a, b)
+		if a.sortKey ~= b.sortKey then
+			return a.sortKey < b.sortKey
+		end
+		return a.team < b.team
+	end)
+
+	shaderSourceCache.shaderConfig.NUM_BOXES = numStartPolygons
 
 	local minY, maxY = Spring.GetGroundExtremes()
 	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
@@ -849,30 +996,32 @@ local function InitStartPolygons()
 	local numvertices = 0
 	local bufferdata = {}
 	local numPolygons = 0
-	for teamID, polygon in pairs(StartPolygons) do
+	for _, entry in ipairs(StartPolygons) do
 		numPolygons = numPolygons + 1
+		local polygon = entry.poly
+		local teamID = entry.team
 		local numPoints = #polygon
-		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		--spEcho("teamID", teamID, "at " ,xn, zn, xp, zp)
-		for vertexID, vertex in ipairs(polygon) do
+		for _, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
-			bufferdata[#bufferdata+1] = teamID
-			bufferdata[#bufferdata+1] = numPoints
-			bufferdata[#bufferdata+1] = x
-			bufferdata[#bufferdata+1] = z
+			bufferdata[#bufferdata + 1] = teamID
+			bufferdata[#bufferdata + 1] = numPoints
+			bufferdata[#bufferdata + 1] = x
+			bufferdata[#bufferdata + 1] = z
 			numvertices = numvertices + 1
 		end
 	end
 
 	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data
 	if numvertices % 4 ~= 0 then
-		for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
+		for i = 1, ((4 - (numvertices % 4)) * 4) do
+			bufferdata[#bufferdata + 1] = -1
+		end
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
 
 	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false) -- not updated a lot
-	startPolygonBuffer:Define(numvertices, {{id = 0, name = 'starttriangles', size = 4}})
-	startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
+	startPolygonBuffer:Define(numvertices, { { id = 0, name = "starttriangles", size = 4 } })
+	startPolygonBuffer:Upload(bufferdata) --, -1, 0, 0, numvertices-1)
 
 	shaderSourceCache.shaderConfig.NUM_POLYGONS = numPolygons
 	shaderSourceCache.shaderConfig.NUM_POINTS = numvertices
@@ -889,22 +1038,23 @@ local function InitStartPolygons()
 	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		{
 			-- Cause 0-1-2 contain primitive per-vertex data
-			{id = 3, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
-			{id = 4, name = 'teamColor', size = 4}, -- rgba
+			{ id = 3, name = "worldposradius", size = 4 }, -- xpos, ypos, zpos, radius
+			{ id = 4, name = "teamColor", size = 4 }, -- rgba
 		},
 		64, -- maxelements
 		"StartConeVBO" -- name
 	)
 	startConeVBOTable.numVertices = numConeVertices
 	if startConeVBOTable == nil then
-		goodbye("Failed to create StartConeVBO")
+		Spring.Echo("Failed to create StartConeVBO")
 		widgetHandler:RemoveWidget()
 		return
 	end
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO,startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO =
+		InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO, startConeVBOTable.instanceVBO)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 
@@ -913,7 +1063,6 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-
 end
 
 --------------------------------------------------------------------------------
@@ -926,10 +1075,8 @@ function widget:Initialize()
 
 	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
 
-	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
-
-	WG['map_startbox'] = {}
-	WG['map_startbox'].GetEffectiveStartPosition = getEffectiveStartPosition
+	WG.map_startbox = {}
+	WG.map_startbox.GetEffectiveStartPosition = getEffectiveStartPosition
 
 	updateTeamList()
 	assignTeamColors()
@@ -941,18 +1088,17 @@ function widget:Initialize()
 			local _, _, _, isAI, _, _ = spGetTeamInfo(teamID, false)
 			if isAI then
 				local startX, _, startZ = spGetTeamStartPosition(teamID)
-				local aiManualPlacement = spGetTeamRulesParam(teamID, "aiManualPlacement")
+				local mxNum, mzNum, aiManualPlacement = getCachedManualPlacement(teamID)
 
 				if (startX and startZ and startX > 0 and startZ > 0) or aiManualPlacement then
 					if aiManualPlacement then
-						local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-						if mx and mz then
-							startX, startZ = tonumber(mx), tonumber(mz)
+						if mxNum and mzNum then
+							startX, startZ = mxNum, mzNum
 						end
 					end
 
 					if startX and startZ then
-						aiPlacedPositions[teamID] = {x = startX, z = startZ}
+						aiPlacedPositions[teamID] = { x = startX, z = startZ }
 						aiPlacementStatus[teamID] = true
 					end
 				else
@@ -965,6 +1111,10 @@ function widget:Initialize()
 	createInfotextList()
 
 	InitStartPolygons()
+end
+
+function widget:GadgetCoopStartPoint(playerID, x, y, z)
+	CoopStartPoint(playerID, x, y, z)
 end
 
 local function removeTeamLists()
@@ -987,8 +1137,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
-	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
-	WG['map_startbox'] = nil
+	WG.map_startbox = nil
 end
 
 --------------------------------------------------------------------------------
@@ -1002,27 +1151,28 @@ function widget:DrawWorldPreUnit()
 	DrawStartPolygons(false)
 end
 
-local cacheTable = {}
-local circlesToDraw = {}
-local function getCircleEntry(index)
-	if not circlesToDraw[index] then
-		circlesToDraw[index] = {0, 0, 0}
-	end
-	return circlesToDraw[index]
-end
+local drawStartCones = false
+local coneInstanceData = {}
 
 function widget:DrawWorld()
 	clearPosCache()
 	updateTeamsToRender() -- Calculate visibility once per frame
+	if teamsToRenderCount == 0 then
+		return
+	end
 
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Color(1.0, 0.0, 0.0, 0.3)
 
-	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
-	local alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
+	if drawStartCones then
+		InstanceVBOTable.clearInstanceTable(startConeVBOTable)
+	end
 
-	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
-
-	local cCount = 0
+	local time, alpha
+	if drawStartCones then
+		time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
+		alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
+	end
 
 	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
@@ -1030,53 +1180,46 @@ function widget:DrawWorld()
 		local x, y, z = entry.x, entry.y, entry.z
 		local isAI = entry.isAI
 
-		local r, g, b = GetTeamColor(teamID)
+		if drawStartCones then
+			local color = teamColorComponents[teamID]
+			if color then
+				coneInstanceData[1], coneInstanceData[2], coneInstanceData[3], coneInstanceData[4] = x, y, z, 1
+				coneInstanceData[5], coneInstanceData[6], coneInstanceData[7], coneInstanceData[8] =
+					color[1], color[2], color[3], alpha
+				pushElementInstance(startConeVBOTable, coneInstanceData, nil, nil, true)
+			end
+		end
 
-		cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-		cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-		pushElementInstance(startConeVBOTable,
-			cacheTable,
-			nil, nil, true)
 		if teamID == myTeamID then
 			amPlaced = true
 		end
 
 		if teamID ~= myTeamID and (not isAI or aiPlacedPositions[teamID]) then
-			cCount = cCount + 1
-			local circleEntry = getCircleEntry(cCount)
-			circleEntry[1], circleEntry[2], circleEntry[3] = x, y, z
+			glDrawGroundCircle(x, y, z, tooCloseToSpawn, 32)
 		end
 	end
 
-	InstanceVBOTable.uploadAllElements(startConeVBOTable)
-
-	--DrawStartCones(false)
-
-	if cCount > 0 then
-		gl.Color(1.0, 0.0, 0.0, 0.3)
-		for i = 1, cCount do
-			local p = circlesToDraw[i]
-			glDrawGroundCircle(p[1], p[2], p[3], tooCloseToSpawn, 32)
-		end
+	if drawStartCones then
+		InstanceVBOTable.uploadAllElements(startConeVBOTable)
+		DrawStartCones(false)
 	end
 end
 
 function widget:DrawScreenEffects()
+	if teamsToRenderCount == 0 then
+		clearPosCache()
+		updateTeamsToRender()
+		if teamsToRenderCount == 0 then
+			return
+		end
+	end
+
 	-- show the names over the team start positions
 	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
 		local teamID = entry.teamID
 		local x, y, z = entry.x, entry.y, entry.z
-		local isAI = entry.isAI
-
-		local _, playerID = spGetTeamInfo(teamID, false)
-		local name = spGetPlayerInfo(playerID, false)
-
-		if isAI then
-			name = getAIName(teamID, true)
-		else
-			name = WG.playernames and WG.playernames.getPlayername(playerID) or name
-		end
+		local name = entry.displayName
 
 		if name then
 			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
@@ -1104,11 +1247,10 @@ function widget:DrawInMiniMap(sx, sz)
 	end
 
 	-- Check if we're being called from PIP minimap
-	local inPip = WG['minimap'] and WG['minimap'].isDrawingInPip
+	local inPip = WG.minimap and WG.minimap.isDrawingInPip
 
 	DrawStartPolygons(true)
 	DrawStartUnitIcons(sx, sz, inPip)
-
 end
 
 function widget:ViewResize(x, y)
@@ -1117,9 +1259,9 @@ function widget:ViewResize(x, y)
 
 	local currRot = getCurrentMiniMapRotationOption()
 	if currRot == ROTATION.DEG_90 or currRot == ROTATION.DEG_270 then
-		startPosScale = (vsx*startPosRatio) / select(4, Spring.GetMiniMapGeometry())
+		startPosScale = (vsx * startPosRatio) / select(4, Spring.GetMiniMapGeometry())
 	else
-		startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
+		startPosScale = (vsx * startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 	end
 	removeTeamLists()
 	invalidateMinimapIcons()
@@ -1129,8 +1271,18 @@ function widget:ViewResize(x, y)
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		gl.DeleteFont(shadowFont)
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-		font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
+		font = gl.LoadFont(
+			fontfile,
+			fontfileSize * fontfileScale,
+			fontfileOutlineSize * fontfileScale,
+			fontfileOutlineStrength
+		)
+		font2 = gl.LoadFont(
+			fontfile2,
+			fontfileSize * fontfileScale,
+			fontfileOutlineSize * fontfileScale,
+			fontfileOutlineStrength2
+		)
 		shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
 		createInfotextList()
 	end
@@ -1144,7 +1296,7 @@ local lastKnownPlacements = {}
 local currentPlacements = {}
 local startPointTable = {}
 function widget:Update(delta)
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	gameFrame = spGetGameFrame()
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
@@ -1160,9 +1312,15 @@ function widget:Update(delta)
 	end
 
 	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
-		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+		if
+			not isSpec
+			and not amPlaced
+			and not playedChooseStartLoc
+			and placeVoiceNotifTimer < os.clock()
+			and WG.notifications
+		then
 			playedChooseStartLoc = true
-			WG['notifications'].addEvent('ChooseStartLoc', true)
+			WG.notifications.addEvent("ChooseStartLoc", true)
 		end
 	end
 
@@ -1178,7 +1336,9 @@ function widget:Update(delta)
 	if gameFrame <= 0 and Game.startPosType == 2 then
 		updateCounter = updateCounter + 1
 		if updateCounter % 30 == 0 then
-			for k in pairs(currentPlacements) do currentPlacements[k] = nil end
+			for k in pairs(currentPlacements) do
+				currentPlacements[k] = nil
+			end
 			updateTeamList()
 
 			local hasResync = false
@@ -1196,16 +1356,14 @@ function widget:Update(delta)
 									hasResync = true
 								end
 							else
-								aiPlacedPositions[teamID] = {x = startX, z = startZ}
+								aiPlacedPositions[teamID] = { x = startX, z = startZ }
 								hasResync = true
 							end
 							aiPlacementStatus[teamID] = true
 						else
-							local aiManualPlacement = spGetTeamRulesParam(teamID, "aiManualPlacement")
+							local mxNum, mzNum, aiManualPlacement = getCachedManualPlacement(teamID)
 							if aiManualPlacement then
-								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-								if mx and mz then
-									local mxNum, mzNum = tonumber(mx), tonumber(mz)
+								if mxNum and mzNum then
 									local existing = aiPlacedPositions[teamID]
 									if existing then
 										if existing.x ~= mxNum or existing.z ~= mzNum then
@@ -1214,7 +1372,7 @@ function widget:Update(delta)
 											hasResync = true
 										end
 									else
-										aiPlacedPositions[teamID] = {x = mxNum, z = mzNum}
+										aiPlacedPositions[teamID] = { x = mxNum, z = mzNum }
 										hasResync = true
 									end
 									aiPlacementStatus[teamID] = true
@@ -1250,7 +1408,7 @@ function widget:Update(delta)
 						if existing then
 							existing.x, existing.z = x, z
 						else
-							currentPlacements[teamID] = {x = x, z = z}
+							currentPlacements[teamID] = { x = x, z = z }
 						end
 					end
 				end
@@ -1259,9 +1417,11 @@ function widget:Update(delta)
 			local hasChanges = hasResync
 			if not hasChanges then
 				for teamID, placement in pairs(currentPlacements) do
-					if not lastKnownPlacements[teamID] or
-					   lastKnownPlacements[teamID].x ~= placement.x or
-					   lastKnownPlacements[teamID].z ~= placement.z then
+					if
+						not lastKnownPlacements[teamID]
+						or lastKnownPlacements[teamID].x ~= placement.x
+						or lastKnownPlacements[teamID].z ~= placement.z
+					then
 						hasChanges = true
 						break
 					end
@@ -1278,31 +1438,46 @@ function widget:Update(delta)
 			end
 
 			if hasChanges then
-				for k in pairs(lastKnownPlacements) do lastKnownPlacements[k] = nil end
+				for k in pairs(lastKnownPlacements) do
+					lastKnownPlacements[k] = nil
+				end
 				for teamID, placement in pairs(currentPlacements) do
 					local existing = lastKnownPlacements[teamID]
 					if existing then
 						existing.x, existing.z = placement.x, placement.z
 					else
-						lastKnownPlacements[teamID] = {x = placement.x, z = placement.z}
+						lastKnownPlacements[teamID] = { x = placement.x, z = placement.z }
 					end
 				end
 
-				for k in pairs(aiPredictedPositions) do aiPredictedPositions[k] = nil end
-				for k in pairs(startPointTable) do startPointTable[k] = nil end
+				for k in pairs(aiPredictedPositions) do
+					aiPredictedPositions[k] = nil
+				end
+				for k in pairs(startPointTable) do
+					startPointTable[k] = nil
+				end
 				for teamID, placement in pairs(currentPlacements) do
 					local existing = startPointTable[teamID]
 					if existing then
 						existing[1], existing[2] = placement.x, placement.z
 					else
-						startPointTable[teamID] = {placement.x, placement.z}
+						startPointTable[teamID] = { placement.x, placement.z }
 					end
 				end
 
 				for _, teamID in ipairs(cachedTeamList) do
 					if teamID ~= gaiaTeamID then
 						local _, _, _, isAI, _, allyTeamID = spGetTeamInfo(teamID, false)
-						if isAI and not aiPlacedPositions[teamID] and (allyTeamID == myAllyTeamID or isSpec or Spring.IsCheatingEnabled() or allowEnemyAIPlacement) then
+						if
+							isAI
+							and not aiPlacedPositions[teamID]
+							and (
+								allyTeamID == myAllyTeamID
+								or isSpec
+								or Spring.IsCheatingEnabled()
+								or allowEnemyAIPlacement
+							)
+						then
 							local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
 							local x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 							if x and x > 0 and z and z > 0 then
@@ -1312,7 +1487,7 @@ function widget:Update(delta)
 									if existing then
 										existing.x, existing.z = x, z
 									else
-										aiPredictedPositions[teamID] = {x = x, z = z}
+										aiPredictedPositions[teamID] = { x = x, z = z }
 									end
 									invalidatePosCacheEntry(teamID)
 									hasChanges = true
@@ -1350,16 +1525,16 @@ function widget:RecvLuaMsg(msg)
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationRemoved', aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
 			else
-				aiPlacedPositions[teamID] = {x = x, z = z}
+				aiPlacedPositions[teamID] = { x = x, z = z }
 				aiPlacementStatus[teamID] = true
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N('ui.startbox.aiStartLocationChanged', aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
 			end
 
 			invalidateMinimapIcons()
@@ -1456,6 +1631,12 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
+	local pregameUnitSelected = WG["pregame-unit-selected"]
+	if not isSpec and not (pregameUnitSelected and pregameUnitSelected > 0) then
+		spRequestStartPosition(worldX, worldY, worldZ, false)
+		return true
+	end
+
 	return false
 end
 
@@ -1476,7 +1657,7 @@ function widget:MouseRelease(x, y, button)
 
 			if xmin < xmax and zmin < zmax then
 				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
-					aiPlacedPositions[draggingTeamID] = {x = finalX, z = finalZ}
+					aiPlacedPositions[draggingTeamID] = { x = finalX, z = finalZ }
 					posCache[draggingTeamID] = nil
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
 					notifySpawnPositionsChanged()

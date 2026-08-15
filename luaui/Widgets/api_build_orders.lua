@@ -22,6 +22,11 @@ end
 ---@field side string
 ---@field buildSpeed number
 
+---@class BuildingInfo
+---@field unitDefID number
+---@field position number[] { x, y, z }
+---@field facing? number
+
 ---@param builderID number
 ---@return BuilderInfo
 local function getBuilderInfo(builderID)
@@ -45,8 +50,8 @@ local function getBuilderInfo(builderID)
 	}
 end
 
----@param builderGroup table
----@param building table
+---@param builderGroup BuilderInfo[]
+---@param building BuildingInfo
 ---@param side string
 ---@param allowSubstitution boolean
 ---@return boolean
@@ -112,9 +117,9 @@ end
 --- builders outnumber buildings, the extras have empty own-chunks and simply
 --- start helping (double-up). The engine skips orders whose positions are already
 --- built, so the redundant followups self-clean.
----@param builderGroups table<number, table> Builders grouped -- by unit type for
+---@param builderGroups table<number, BuilderInfo[]> Builders grouped -- by unit type for
 --- the linear path, or one-per-builder for split.
----@param allBuildings table The buildings to place, with positions.
+---@param allBuildings BuildingInfo[] The buildings to place, with positions.
 ---@param cmdOpts table Command options.
 ---@param peerFollowups boolean|nil If true, append peers' buildings as followups.
 local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerFollowups)
@@ -179,7 +184,11 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				local costAfterAdding = accumulatedCost + currentBuilding.cost
 
 				-- Stop if adding the next building makes the chunk's cost further from the target
-				if accumulatedCost > 0 and math.abs(costAfterAdding - targetCostForGroup) > math.abs(accumulatedCost - targetCostForGroup) then
+				if
+					accumulatedCost > 0
+					and math.abs(costAfterAdding - targetCostForGroup)
+						> math.abs(accumulatedCost - targetCostForGroup)
+				then
 					break
 				end
 
@@ -268,7 +277,11 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 			for _, building in ipairs(buildings) do
 				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupData.side)
 				if substitutedUnitDefID then
-					table.insert(orders, { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, queuedOpts })
+					table.insert(orders, {
+						-substitutedUnitDefID,
+						{ building.position[1], building.position[2], building.position[3], building.facing },
+						queuedOpts,
+					})
 				end
 			end
 			if #orders > 0 then
@@ -320,8 +333,8 @@ end
 --- Splits a blueprint across builders so each works its own fork first, then
 --- helps peers. Building-aware: each builder only receives buildings it can
 --- construct (with faction substitution), and extra builders double up.
----@param builders table A list of builder info objects.
----@param buildings table A list of building objects.
+---@param builders BuilderInfo[] A list of builder info objects.
+---@param buildings BuildingInfo[] A list of building objects.
 ---@param cmdOpts table Command options.
 local function splitBuildOrders(builders, buildings, cmdOpts)
 	if #builders == 0 or #buildings == 0 then
@@ -332,7 +345,7 @@ local function splitBuildOrders(builders, buildings, cmdOpts)
 end
 
 function widget:Initialize()
-	WG["api_build_orders"] = {
+	WG.api_build_orders = {
 		getBuilderInfo = getBuilderInfo,
 		groupBuilders = groupBuilders,
 		forkBuilders = forkBuilders,
@@ -343,5 +356,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["api_build_orders"] = nil
+	WG.api_build_orders = nil
 end

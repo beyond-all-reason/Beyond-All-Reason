@@ -31,6 +31,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 35,
 		metalcost = 750,
+		mass = 2700, -- same as corcom's default mass (= metalcost)
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "VTOL",
