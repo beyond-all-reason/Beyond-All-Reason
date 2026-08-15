@@ -23,12 +23,20 @@ local ChatGuard = VFS.Include("modules/missions/lib/chat_guard.lua")
 local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
+local Roster = VFS.Include("modules/missions/lib/roster.lua")
 
 local MISSIONS_DIR = "modules/missions/"
 local EVALUATE_PERIOD = 15 -- frames
 
 local engine = TriggerEngine.New()
 local activeMission = nil ---@type string|nil
+
+-- The roster registry: units spawned from units.lua. Destroyed/spotted state
+-- is LATCHED into rulesparams by the forwarders below — engine-serialized, readable unsynced.
+local namedUnits = {} ---@type table<string, integer> name -> unitID
+local unitNames = {} ---@type table<integer, string> unitID -> name
+local groupUnits = {} ---@type table<string, integer[]>
+local spawnedUnits = {} ---@type integer[] everything the roster spawned, for reload cleanup
 
 --- The engine's view of the world. Built once; frame is updated per tick.
 ---@type MissionContext
@@ -52,10 +60,72 @@ local ctx = {
 	IsObjectiveComplete = function(name)
 		return Spring.GetGameRulesParam("objective_" .. name) == 1
 	end,
+	IsUnitDestroyed = function(name)
+		return Spring.GetGameRulesParam("mission_unit_dead_" .. name) == 1
+	end,
+	IsUnitSpotted = function(name, allyTeamID)
+		if Spring.GetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeamID) == 1 then
+			return true
+		end
+		-- The latch only catches the LOS edge. Vision granted with no edge to
+		-- catch (/globallos mid-game) still answers yes, and latches so the
+		-- answer survives the unit dying.
+		local unitID = namedUnits[name]
+		if unitID ~= nil and Spring.IsUnitInLos(unitID, allyTeamID) then
+			Spring.SetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeamID, 1)
+			return true
+		end
+		return false
+	end,
+	---@param fiat boolean|nil skip the mode's say (Transfer.Give)
+	TransferGroup = function(groupName, teamID, fiat)
+		local units = groupUnits[groupName]
+		if units == nil then
+			Spring.Log(LOG_TAG, LOG.WARNING, "Transfer.Units: no roster group named " .. groupName)
+			return
+		end
+		-- Policy is decided per giving team, so a group whose units were
+		-- spawned for different teams asks once per owner.
+		local byOwner = {}
+		for _, unitID in ipairs(units) do
+			if Spring.ValidUnitID(unitID) then
+				local owner = Spring.GetUnitTeam(unitID)
+				if owner ~= nil and owner ~= teamID then
+					byOwner[owner] = byOwner[owner] or {}
+					local batch = byOwner[owner]
+					batch[#batch + 1] = unitID
+				end
+			end
+		end
+		-- Through the module that owns transfer, never Spring.TransferUnit
+		-- here: one pipeline validates, prices and announces every handover,
+		-- and the active mode's .Allow(Transfer.Units) is what opens it.
+		local Transfer = ModuleHandler.Get("transfer")
+		for owner, batch in pairs(byOwner) do
+			if fiat then
+				Transfer.Give(batch, teamID)
+			else
+				Transfer.Units(batch, teamID, owner)
+			end
+		end
+	end,
+	Protect = function(name)
+		local unitID = namedUnits[name]
+		if unitID == nil or not Spring.ValidUnitID(unitID) then
+			Spring.Log(LOG_TAG, LOG.WARNING, "Combat.Protect: no living roster unit named " .. name)
+			return
+		end
+		ModuleHandler.Get("combat").Protect(unitID)
+	end,
+	Unprotect = function(name)
+		local unitID = namedUnits[name]
+		if unitID ~= nil and Spring.ValidUnitID(unitID) then
+			ModuleHandler.Get("combat").Unprotect(unitID)
+		end
+	end,
 }
 
----Demo rule (documented in hello_pawns_plan.md): Team.Player is the first
----human team — lowest non-Gaia teamID with no Lua AI and not the AI-hosted kind.
+---Demo rule: Team.Player is the first human team (lowest non-Gaia teamID with no Lua AI, not AI-hosted).
 ---@return MissionTeam|nil
 local function resolvePlayerTeam()
 	local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -70,19 +140,8 @@ local function resolvePlayerTeam()
 	return nil
 end
 
----Objective verb, demo-minimal. Closure-free surface: Complete() is LAZY —
----it builds an effect the engine executes when the trigger fires, so mission
----files chain it with Do instead of wrapping it in a function. IsComplete()
----is the condition side, so victory can be its own trigger driven by
----objective state (the "all objectives complete -> win" shape in miniature).
----Completion state lives in rulesparams (objective_<name>) —
----engine-serialized, so it survives a savegame like the rest of the trigger
----progress pile.
----
----Rulesparam changes have no callin, but this module is the thing that
----completes objectives — so Complete() emits "mission.objective_changed" on
----the mission bus, and IsComplete() declares it as its input (see
----mission_authoring_dsl.md, "Conditions declare their inputs").
+---Complete() is LAZY: builds an effect for Do, not run immediately. State
+---lives in rulesparams (savegame-safe); writes have no callin, so Complete() emits "mission.objective_changed" for IsComplete()'s declared input.
 ---@param name string
 ---@return MissionObjective
 local function Objective(name)
@@ -108,10 +167,28 @@ local function Objective(name)
 	}
 end
 
--- Engine callins the bus can forward. The gadget hooks ONLY the callins some
--- registered trigger actually watches (the don't-hook-what-you-don't-use
--- rule, applied automatically per mission); everything else stays unhooked.
-local FORWARDABLE_CALLINS = { "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken" }
+-- Engine callins the bus can forward; only callins some registered trigger
+-- watches get hooked (don't-hook-what-you-don't-use), automatically per mission.
+local FORWARDABLE_CALLINS = { "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken", "UnitEnteredLos" }
+
+-- Most callins forward as bare bus events; these also latch roster-unit
+-- state first — conditions read "has been", not "is right now".
+local forwarders = {
+	UnitDestroyed = function(_, unitID)
+		local name = unitNames[unitID]
+		if name ~= nil then
+			Spring.SetGameRulesParam("mission_unit_dead_" .. name, 1)
+		end
+		engine.OnEvent("UnitDestroyed")
+	end,
+	UnitEnteredLos = function(_, unitID, _, allyTeam)
+		local name = unitNames[unitID]
+		if name ~= nil then
+			Spring.SetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeam, 1)
+		end
+		engine.OnEvent("UnitEnteredLos")
+	end,
+}
 
 ---(Re)hook engine callins to match the engine's watched-input set. Called
 ---after every mission (re)load, when the watch set may have changed.
@@ -119,7 +196,7 @@ local function syncWatchedCallins()
 	local watched = engine.WatchedInputs()
 	for _, name in ipairs(FORWARDABLE_CALLINS) do
 		if watched[name] and gadget[name] == nil then
-			gadget[name] = function()
+			gadget[name] = forwarders[name] or function()
 				engine.OnEvent(name)
 			end
 			gadgetHandler:UpdateCallIn(name)
@@ -130,50 +207,60 @@ local function syncWatchedCallins()
 	end
 end
 
----The MatchFlow verbs injected into mission files: same names as the module
----api, but LAZY — Victory(team) builds an effect for a Do chain; the module's
----imperative api fires only when the trigger does. Takes the Team handle, not
----a raw allyTeam id, so the mission line reads as English.
----@param matchflowApi table the matchflow module api (ModuleHandler.Get)
----@return MissionMatchFlow
-local function makeMatchFlowVerbs(matchflowApi)
-	return {
-		---@param team MissionTeam
-		---@return MissionEffect
-		Victory = function(team)
-			assert(
-				type(team) == "table" and type(team.allyTeam) == "number",
-				"MatchFlow.Victory expects a Team handle (e.g. Team.Player)"
+---Load the sandbox contributions of every module the missions manifest
+---requires: modules/<name>/mission_dsl.lua returns a per-file factory. The
+---requires list IS the whitelist of what mission files may say.
+---@return MissionDslContribution[]
+local function loadContributions()
+	local contributions = {}
+	local manifest = ModuleHandler.Discover().missions
+	for _, name in ipairs(manifest.requires) do
+		local path = "modules/" .. name .. "/mission_dsl.lua"
+		if VFS.FileExists(path) then
+			contributions[#contributions + 1] = VFS.Include(path)
+		elseif VFS.FileExists("modules/" .. name .. "/types/dsl.lua") then
+			-- The module publishes vocabulary but the runtime half is not visible.
+			-- Usually a new file the engine has not rescanned: say so here, or the
+			-- author sees a nil global in their trigger file and nothing else.
+			Spring.Log(
+				LOG_TAG,
+				LOG.ERROR,
+				name
+					.. " declares mission vocabulary but "
+					.. path
+					.. " was not found; a mission using it will fail on a nil global (restart if it is a new file)"
 			)
-			return {
-				execute = function()
-					matchflowApi.Victory(team.allyTeam)
-				end,
-			}
-		end,
-		---@param team MissionTeam
-		---@return MissionEffect
-		Defeat = function(team)
-			assert(
-				type(team) == "table" and type(team.allyTeam) == "number",
-				"MatchFlow.Defeat expects a Team handle (e.g. Team.Player)"
-			)
-			return {
-				execute = function()
-					matchflowApi.Defeat({ team.allyTeam })
-				end,
-			}
-		end,
-	}
+		end
+	end
+	return contributions
 end
 
----Load (or reload) a mission: run each triggers/*.lua through the injected
----environment. The sandbox IS the API surface — trigger files see the five
----verbs and nothing else. Unregister-by-identity first makes loading
----idempotent and is the hot-reload path.
+---The "enemy" roster role: the first non-Gaia team that is not the player's.
+---@param playerTeamID integer
+---@return integer|nil
+local function resolveEnemyTeam(playerTeamID)
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if teamID ~= gaiaTeamID and teamID ~= playerTeamID then
+			return teamID
+		end
+	end
+	return nil
+end
+
+---Destroy everything a previous arm spawned and reset the registry.
+local function despawnRoster()
+	for _, unitID in ipairs(spawnedUnits) do
+		if Spring.ValidUnitID(unitID) then
+			Spring.DestroyUnit(unitID, false, true)
+		end
+	end
+	namedUnits, unitNames, groupUnits, spawnedUnits = {}, {}, {}, {}
+end
+
 ---Erase the objective progress pile. The loader owns the objective_ prefix;
 ---progress clears with the triggers, so a reload is a fresh run and a
----completed objective cannot re-fire its trigger on the next cadence.
+---completed objective cannot re-fire victory on the next cadence.
 local function resetObjectives()
 	for name in pairs(Spring.GetGameRulesParams()) do
 		if name:find("^objective_") then
@@ -182,6 +269,93 @@ local function resetObjectives()
 	end
 end
 
+---Load units.lua through its sandbox (Spawn chains; the sandbox IS the API
+---surface). Parses before trigger files load, so Unit/Units references validate against declared names at load.
+---@param missionName string
+---@return MissionRosterEntry[]|nil entries nil on a load error; {} when the mission has no roster
+local function parseRoster(missionName)
+	local rosterPath = MISSIONS_DIR .. missionName .. "/units.lua"
+	if not VFS.FileExists(rosterPath) then
+		return {}
+	end
+	local ok, entries = pcall(function()
+		local file = Roster.ForFile(missionName .. "/units.lua")
+		VFS.Include(rosterPath, {
+			Spawn = file.Spawn,
+			UnitDef = Verbs.UnitDef,
+		})
+		return file.Finalize()
+	end)
+	if not ok then
+		Spring.Log(LOG_TAG, LOG.ERROR, tostring(entries))
+		return nil
+	end
+	return entries
+end
+
+---Spawn parsed roster entries. Runs AFTER syncWatchedCallins so spawn-time
+---callins (a unit born inside LOS) reach the latches; any failed spawn fails the load.
+---@param entries MissionRosterEntry[]
+---@param playerTeam MissionTeam
+---@return boolean ok
+local function spawnRoster(entries, playerTeam)
+	despawnRoster()
+	local teamFor = {
+		player = playerTeam.teamID,
+		gaia = Spring.GetGaiaTeamID(),
+		enemy = resolveEnemyTeam(playerTeam.teamID),
+	}
+	local allyTeams = Spring.GetAllyTeamList()
+	for _, entry in ipairs(entries) do
+		local teamID = teamFor[entry.team]
+		if teamID == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, 'roster needs an "' .. entry.team .. '" team but none exists')
+			despawnRoster()
+			return false
+		end
+		-- CreateUnit RAISES on an unknown def name; nil is the unit limit.
+		if UnitDefNames[entry.def] == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, "roster unit " .. entry.def .. ": no such unit def")
+			despawnRoster()
+			return false
+		end
+		local x, z = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
+		local unitID = Spring.CreateUnit(entry.def, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		if unitID == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, "could not spawn roster unit " .. entry.def .. " (unit limit)")
+			despawnRoster()
+			return false
+		end
+		spawnedUnits[#spawnedUnits + 1] = unitID
+		if entry.name ~= nil then
+			namedUnits[entry.name] = unitID
+			unitNames[unitID] = entry.name
+			-- Publish the binding and reset latches a previous arm (or its
+			-- despawn above) may have set.
+			Spring.SetGameRulesParam("mission_unit_" .. entry.name, unitID)
+			Spring.SetGameRulesParam("mission_unit_dead_" .. entry.name, 0)
+			-- Seed spotted from what each allyteam can see RIGHT NOW, not 0:
+			-- UnitEnteredLos is an edge, and a unit that spawns already visible
+			-- never crosses it. /globallos and a spawn inside friendly vision
+			-- both land here, and the latch would otherwise never be set.
+			for _, allyTeamID in ipairs(allyTeams) do
+				local visible = Spring.IsUnitInLos(unitID, allyTeamID)
+				Spring.SetGameRulesParam("mission_unit_spotted_" .. entry.name .. "_" .. allyTeamID, visible and 1 or 0)
+			end
+		end
+		if entry.group ~= nil then
+			groupUnits[entry.group] = groupUnits[entry.group] or {}
+			local group = groupUnits[entry.group]
+			group[#group + 1] = unitID
+		end
+	end
+	return true
+end
+
+---Load (or reload) a mission: the sandbox IS the API surface. One
+---transaction — the incoming mission arms into a staging engine that is
+---swapped in whole, so a file that fails to parse leaves the running mission
+---untouched and nothing of the outgoing one survives a reload or a switch.
 ---@param missionName string
 ---@return boolean loaded
 local function loadMission(missionName)
@@ -199,12 +373,28 @@ local function loadMission(missionName)
 		return false
 	end
 
-	local matchFlow = makeMatchFlowVerbs(ModuleHandler.Get("matchflow"))
+	-- Roster parses before trigger files load, so Unit/Units references
+	-- validate against declared names — a typo is a load error, not a silent never-true condition.
+	local rosterEntries = parseRoster(missionName)
+	if rosterEntries == nil then
+		return false
+	end
+	local rosterNames = {} ---@type table<string, boolean>
+	local rosterGroups = {} ---@type table<string, boolean>
+	for _, entry in ipairs(rosterEntries) do
+		if entry.name ~= nil then
+			rosterNames[entry.name] = true
+		end
+		if entry.group ~= nil then
+			rosterGroups[entry.group] = true
+		end
+	end
 
-	-- One transaction: the incoming mission arms into a staging engine that
-	-- is swapped in whole. Unregistering per incoming file would leave a
-	-- renamed or deleted trigger armed, and a file that fails to parse would
-	-- take the running mission with it.
+	local contributions = loadContributions()
+	local Unit = Verbs.MakeUnit(rosterNames)
+
+	-- Staging: nothing armed changes until every file has parsed. The
+	-- includes are as unprotected as the roster's, and fail the same way.
 	local staging = TriggerEngine.New()
 	local parsed, err = pcall(function()
 		for _, filePath in ipairs(files) do
@@ -215,13 +405,36 @@ local function loadMission(missionName)
 				When = file.When,
 				Team = { Player = playerTeam },
 				UnitDef = Verbs.UnitDef,
+				Unit = Unit,
 				Objective = Objective,
-				MatchFlow = matchFlow,
 			}
+			-- Each required module adds its vocabulary; a name collision between
+			-- modules is a load error, not a silent shadow.
+			local fileContributions = {}
+			for _, contribution in ipairs(contributions) do
+				local forFile = contribution.ForFile({
+					filename = filename,
+					Register = staging.Register,
+					names = rosterNames,
+					groups = rosterGroups,
+				})
+				for key, value in pairs(forFile.env) do
+					if env[key] ~= nil then
+						error(filename .. ": two modules contribute the global " .. key)
+					end
+					env[key] = value
+				end
+				fileContributions[#fileContributions + 1] = forFile
+			end
 			VFS.Include(filePath, env)
 			-- Statements register here, and a half-finished chain (no Do) is a
 			-- load error naming the file and statement.
 			file.Finalize()
+			for _, forFile in ipairs(fileContributions) do
+				if forFile.Finalize then
+					forFile.Finalize()
+				end
+			end
 		end
 	end)
 	if not parsed then
@@ -234,6 +447,18 @@ local function loadMission(missionName)
 	engine = staging
 	resetObjectives()
 	syncWatchedCallins()
+	-- CreateUnit raises; a bad roster is a load error, not a stack trace out
+	-- of the chat action.
+	local ran, spawned = pcall(spawnRoster, rosterEntries, playerTeam)
+	if not ran then
+		Spring.Log(LOG_TAG, LOG.ERROR, tostring(spawned))
+		despawnRoster()
+	end
+	if not ran or not spawned then
+		activeMission = nil
+		Spring.SetGameRulesParam("mission_active", 0)
+		return false
+	end
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
 	Spring.SetGameRulesParam("mission_name", missionName)
@@ -274,8 +499,7 @@ end
 ---@param line string
 ---@param words string[]
 local function missionChatAction(cmd, line, words, playerID)
-	-- Synced chat actions arrive from ANY player in multiplayer; arming or
-	-- reloading a mission is not an open verb (review point on PR #8375).
+	-- Synced chat actions arrive from ANY player in multiplayer; arming or reloading a mission is not an open verb.
 	if not ChatGuard.IsAllowed(BAR.Utilities.Gametype.IsSinglePlayer(), Spring.IsCheatingEnabled()) then
 		Spring.Log(
 			LOG_TAG,
