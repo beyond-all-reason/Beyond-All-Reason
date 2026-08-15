@@ -47,6 +47,7 @@ for _, filename in ipairs(luaFiles) do
 	local weaponDefsEnv = {}
 	weaponDefsEnv._G = weaponDefsEnv
 	weaponDefsEnv.Shared = shared
+	weaponDefsEnv.BAR = BAR
 	weaponDefsEnv.GetFilename = function()
 		return filename
 	end
