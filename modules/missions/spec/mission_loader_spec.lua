@@ -51,7 +51,7 @@ local function newLoader(sources, requires)
 		-- a dispatcher with nothing on the other end.
 		LoadActions = function()
 			local registry = { byName = {}, list = {} }
-			for _, name in ipairs({ "load", "reload" }) do
+			for _, name in ipairs({ "load", "reload", "restart" }) do
 				local entry = { name = name }
 				local registrar = {
 					RegisterValidate = function(fn)
@@ -118,6 +118,9 @@ local function newLoader(sources, requires)
 		end,
 		Log = function(_, level, message)
 			h.log[#h.log + 1] = tostring(level) .. " " .. tostring(message)
+		end,
+		GetGameFrame = function()
+			return 0 -- fresh load: the re-arm path only wakes mid-match
 		end,
 		GetGameRulesParam = function(name)
 			return h.params[name]
@@ -323,6 +326,42 @@ When(Team.Player.Has(UnitDef("armpw"), 3))
 		end)
 	end)
 
+	describe("a preserving reload", function()
+		it("keeps progress: the editor nudging a number is not a restart", function()
+			local h = newLoader(mission("t", {
+				["triggers/a_build.lua"] = BUILD,
+				["triggers/z_win.lua"] = VICTORY,
+			}))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_build_pawns)
+
+			-- Conditions no longer hold; a fresh run could never re-complete.
+			h.counts[0] = { armpw = 0 }
+			h.actions.mission("mission", "reload", { "reload" }, 0)
+			assert.are.equal(1, h.params.objective_build_pawns)
+			assert.are.equal(1, h.params.objective_win)
+		end)
+
+		it("restart is the fresh run reload used to be", function()
+			local h = newLoader(mission("t", {
+				["triggers/a_build.lua"] = BUILD,
+				["triggers/z_win.lua"] = VICTORY,
+			}))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_build_pawns)
+
+			h.counts[0] = { armpw = 0 }
+			h.actions.mission("mission", "restart", { "restart" }, 0)
+			assert.is_nil(h.params.objective_build_pawns)
+			h.frame(30)
+			assert.is_nil(h.params.objective_win)
+		end)
+	end)
+
 	describe("objective progress", function()
 		it("clears completed objectives so a reload is a fresh run", function()
 			local h = newLoader(mission("t", {
@@ -353,6 +392,178 @@ When(Team.Player.Has(UnitDef("armpw"), 3))
 			h.mission("t")
 			assert.are.equal(7, h.params.some_other_gadget)
 			assert.are.equal(1, h.params.mission_unit_dead_ghost)
+		end)
+
+		it("reveal marks the line drawn without completing it", function()
+			local h = newLoader(mission("t", {
+				["triggers/a_scout.lua"] = [[
+When(Team.Player.Has(UnitDef("armpw"), 3))
+	.Do(Objective("scout").Reveal())
+]],
+			}))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_revealed_scout)
+			assert.is_nil(h.params.objective_scout)
+		end)
+
+		it("complete implies reveal, and a fresh load sweeps both piles", function()
+			-- The tracker must never owe the player a checkmark on a line it
+			-- refused to draw: completing writes the revealed param too.
+			local h = newLoader(mission("t", { ["triggers/a_build.lua"] = BUILD }))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_build_pawns)
+			assert.are.equal(1, h.params.objective_revealed_build_pawns)
+
+			-- Both piles share the objective_ prefix; the reload sweep that
+			-- clears progress clears presentation with it.
+			h.counts[0] = { armpw = 0 }
+			h.mission("t")
+			assert.is_nil(h.params.objective_build_pawns)
+			assert.is_nil(h.params.objective_revealed_build_pawns)
+		end)
+	end)
+
+	describe("objective declarations", function()
+		local DECLS = [[
+Objective("first")
+	.Title("The First Step")
+	.CompletedWhen(Team.Player.Has(UnitDef("armpw"), 3))
+
+Objective("second")
+	.Foreshadow()
+	.CompletedWhen(Team.Player.Has(UnitDef("armcom"), 1))
+	.When(Objective("first").IsComplete())
+]]
+		-- References only declared ids, and never fires (no five commanders).
+		local QUIET = [[
+When(Team.Player.Has(UnitDef("armcom"), 5))
+	.Do(Objective("first").Complete())
+]]
+
+		it("publishes the board and reveals the opening line at arm", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = DECLS,
+				["triggers/quiet.lua"] = QUIET,
+			}))
+			h.mission("t")
+			assert.are.equal("first,second", h.params.objective_display_order)
+			assert.are.equal("The First Step", h.params.objective_title_first)
+			assert.are.equal("second", h.params.objective_title_second)
+			assert.are.equal(1, h.params.objective_foreshadow_second)
+			assert.is_nil(h.params.objective_foreshadow_first)
+			assert.are.equal(1, h.params.objective_revealed_first)
+			assert.is_nil(h.params.objective_revealed_second)
+		end)
+
+		it("declarations compile to triggers: completion, gate and cadence", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = DECLS,
+				["triggers/quiet.lua"] = QUIET,
+			}))
+			-- The gate holds: second's own condition is met from the start,
+			-- but first has not completed.
+			h.counts[0] = { armcom = 1 }
+			h.mission("t")
+			h.frame(15)
+			assert.is_nil(h.params.objective_second)
+			assert.is_nil(h.params.objective_revealed_second)
+
+			-- Has is event-driven: the pawns arriving is a UnitFinished, not
+			-- something the engine polls for.
+			h.counts[0] = { armpw = 3, armcom = 1 }
+			h.gadget:UnitFinished(-2, 11, 0)
+			h.frame(30)
+			assert.are.equal(1, h.params.objective_first)
+			assert.are.equal(1, h.params.objective_revealed_second)
+			assert.are.equal(1, h.params.objective_second)
+		end)
+
+		it("RevealedWhen replaces the cadence, for the opening line too", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = [[
+Objective("first")
+	.RevealedWhen(Team.Player.Has(UnitDef("armpw"), 1))
+	.CompletedWhen(Team.Player.Has(UnitDef("armpw"), 3))
+]],
+				["triggers/quiet.lua"] = [[
+When(Team.Player.Has(UnitDef("armcom"), 5))
+	.Do(Objective("first").Complete())
+]],
+			}))
+			h.mission("t")
+			assert.is_nil(h.params.objective_revealed_first)
+			h.counts[0] = { armpw = 1 }
+			h.gadget:UnitFinished(-2, 11, 0)
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_revealed_first)
+			assert.is_nil(h.params.objective_first)
+		end)
+
+		it("a standing objective does not dam the reveal cadence", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = [[
+Objective("standing")
+	.RevealedWhen(Team.Player.Has(UnitDef("armcom"), 5))
+
+Objective("first")
+	.Title("The First Step")
+	.CompletedWhen(Team.Player.Has(UnitDef("armpw"), 3))
+]],
+				["triggers/quiet.lua"] = QUIET,
+			}))
+			h.mission("t")
+			-- The story line reveals at arm despite sitting second: its
+			-- cadence predecessor must be COMPLETABLE, and the standing line
+			-- is transparent.
+			assert.are.equal(1, h.params.objective_revealed_first)
+			assert.is_nil(h.params.objective_revealed_standing)
+		end)
+
+		it("a second CompletedWhen is another way to complete", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = [[
+Objective("found")
+	.CompletedWhen(Team.Player.Has(UnitDef("armpw"), 3))
+	.CompletedWhen(Team.Player.Has(UnitDef("armcom"), 1))
+]],
+				["triggers/quiet.lua"] = [[
+When(Team.Player.Has(UnitDef("armcom"), 5))
+	.Do(Objective("found").Complete())
+]],
+			}))
+			-- Only the SECOND way holds; the objective still completes.
+			h.counts[0] = { armcom = 1 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_found)
+		end)
+
+		it("a trigger speaking an undeclared id is a load error", function()
+			local h = newLoader(mission("t", {
+				["objectives.lua"] = DECLS,
+				["triggers/typo.lua"] = [[
+When(Team.Player.Has(UnitDef("armpw"), 1))
+	.Do(Objective("ghost").Complete())
+]],
+			}))
+			local ok = pcall(h.mission, "t")
+			assert.is_true(ok)
+			assert.is_nil(h.armed())
+			assert.is_true(h.logged("ghost"))
+			assert.is_true(h.logged("no such objective"))
+		end)
+
+		it("a mission without a definition site stays unvalidated", function()
+			-- hello_pawns-shaped missions keep working: no objectives.lua, no
+			-- board, no gate on what a trigger may name.
+			local h = newLoader(mission("t", { ["triggers/win.lua"] = BUILD }))
+			h.mission("t")
+			assert.is_nil(h.params.objective_display_order)
+			assert.are.equal(1, h.armed())
 		end)
 	end)
 
