@@ -1889,10 +1889,10 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 		queueText((overRemove and colorDanger or colorDim) .. "x", m.removeX1 + rightGap * 0.5, cyc, fs, "cov")
 	end
 
-	-- A paired action holds one key expressed as two binds, so there is no second key to add
-	-- to it: capturing again rewrites the pair. Offering "+" would read as "add another" and
-	-- silently replace what was there.
-	if catalogShiftPair[row.action] then
+	-- A paired action holds one key expressed as two binds, so once it has one there is no
+	-- second to add: capturing again rewrites the pair, and "+" would read as "add another"
+	-- while silently replacing it. With nothing bound it is the only way in.
+	if catalogShiftPair[row.action] and #mets > 0 then
 		return
 	end
 
@@ -2202,8 +2202,8 @@ local function hitTestRow(rowAction, x)
 		end
 	end
 
-	-- Mirrors drawRow: a paired action draws no "+", so there is nothing to hit.
-	if not catalogShiftPair[rowAction] and x >= cx and x <= cx + addW then
+	-- Mirrors drawRow: a paired action that already has its pair draws no "+".
+	if not (catalogShiftPair[rowAction] and #mets > 0) and x >= cx and x <= cx + addW then
 		return "add"
 	end
 end
