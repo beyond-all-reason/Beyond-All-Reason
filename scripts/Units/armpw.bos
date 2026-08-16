@@ -4,7 +4,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1,head;
 static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, burst1, weaponReady ;
 
-static-var curHead1, curPitch1;
+static-var curHead1, curPitch1, lastStepFrame1;
 
 // Note, removed old deprecated unitDefsTurretSpeeds.h 
 #define Weapon1TurretX <300>
@@ -363,17 +363,39 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	
-	//get PRINT(get GAME_FRAME, 90000, curHead1);
-	turn aimy1 to y-axis <0> speed <300.0>;
-	turn aimx1 to x-axis <0> speed <300.0>;
 	turn ruparm to x-axis <0> speed <300.0>;
-	turn ruparm to x-axis <0> speed <300.0>;
+	turn luparm to x-axis <0> speed <300.0>;
+	turn ruparm to z-axis <12.799999> speed <300.0>;
+	turn luparm to z-axis <-12.099999> speed <300.0>;
 	turn lloarm to x-axis <90> speed <300.0>;
 	turn rloarm to x-axis <90> speed <300.0>;
 
-	curPitch1 = 0;
-	curHead1 = 0;
-
+	// walk believed angles back in sync with the pieces (instant reset desyncs mid-restore aim)
+	set-signal-mask SIGNAL_AIM1;
+	var done;
+	var delta;
+	while (!done){
+		done = TRUE;
+		delta = WRAPDELTA(0 - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			done = FALSE;
+		}else{
+			curHead1 = 0;
+		}
+		delta = WRAPDELTA(0 - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			done = FALSE;
+		}else{
+			curPitch1 = 0;
+		}
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
+		if (!done) {
+			sleep 32;
+		}
+	}
 	weaponReady = FALSE;
 	isAiming = FALSE;
 	
@@ -1148,24 +1170,32 @@ AimWeapon1(heading, pitch)
 
 	var canShoot;
 	var delta;
-	
+	var f;
+
 	while (!canShoot){
 		canShoot = TRUE;
+		// step believed angles at most once per frame so fast re-aim calls cannot outrun the pieces
+		f = get GAME_FRAME;
 		delta = WRAPDELTA(heading - curHead1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
-			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			if (f != lastStepFrame1) {
+				curHead1 = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
+			}
 			canShoot = FALSE;
 		}else{
 			curHead1 = heading;
 		}
 		delta = WRAPDELTA(pitch - curPitch1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
-			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			if (f != lastStepFrame1) {
+				curPitch1 = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
+			}
 			canShoot = FALSE;
 		}else{
 			curPitch1 = pitch;
 		}
-		 
+		lastStepFrame1 = f;
+
 		// Fun note, NOW does not override preexisting turn with other speed
 		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
 		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
