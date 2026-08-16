@@ -596,8 +596,10 @@ function SB:BuildSpring()
             return instance.validFeatures[featureID] == true
         end,
 
-        DestroyUnit = function(unitID, selfDestruct, despawn)
-            table.insert(destroyUnitCalls, { unitID = unitID, selfDestruct = selfDestruct, despawn = despawn })
+        -- Engine parameter names: selfd triggers the self-destruct explosion,
+        -- reclaimed removes the unit without a wreck.
+        DestroyUnit = function(unitID, selfd, reclaimed)
+            table.insert(destroyUnitCalls, { unitID = unitID, selfd = selfd, reclaimed = reclaimed })
         end,
 
         -- Units are alive unless a spec overrides this; nothing here models death.

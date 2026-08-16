@@ -8,7 +8,8 @@ local function despawnUnits(unitName)
     local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
 	for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
-            Spring.DestroyUnit(unitID, true, true)
+            -- reclaimed = true removes the unit silently; no self-destruct explosion.
+            Spring.DestroyUnit(unitID, false, true)
         end
 	end
 end

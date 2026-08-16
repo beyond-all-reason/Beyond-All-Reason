@@ -253,8 +253,8 @@ describe("SpringSyncedBuilder", function()
 
             assert.are.equal(1, #spring.calls.destroyUnit)
             assert.are.equal(7, spring.calls.destroyUnit[1].unitID)
-            assert.is_true(spring.calls.destroyUnit[1].selfDestruct)
-            assert.is_false(spring.calls.destroyUnit[1].despawn)
+            assert.is_true(spring.calls.destroyUnit[1].selfd)
+            assert.is_false(spring.calls.destroyUnit[1].reclaimed)
         end)
     end)
 
