@@ -1,12 +1,11 @@
 require("spec_helper")
 
-local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions  = VFS.Include('luarules/mission_api/actions/clear_all_markers.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/map/clear_all_markers.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -19,7 +18,7 @@ describe("mission_api.actions.clear_all_markers", function()
             :WithMarker('a', { x = 1, y = 0, z = 1 })
             :WithMarker('b', { x = 2, y = 0, z = 2 })
             :Install()
-        _G.Spring = SpringSyncedBuilder.new():Build()
+        _G.Spring = Builders.Spring.new():Build()
         sendCommandsCalls = Spring.calls.sendCommands
     end)
 

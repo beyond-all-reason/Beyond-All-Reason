@@ -27,7 +27,7 @@ Spring.GetTeamList         = function(allyTeamID)    return {} end
 Spring.GetUnitsInRectangle = function(...)           return {} end
 Spring.GetUnitsInCylinder  = function(...)           return {} end
 
-local actions  = VFS.Include('luarules/mission_api/actions/name_units.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/units/name_units.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 

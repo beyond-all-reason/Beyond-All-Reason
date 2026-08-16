@@ -1,19 +1,18 @@
 require("spec_helper")
 
-local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions  = VFS.Include('luarules/mission_api/actions/destroy_features.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/features/destroy_features.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 ---Track the given `name -> featureID` pairs, and mark those IDs valid.
 local function seedFeatures(name, ...)
     local missionApi = Builders.MissionApi.new()
-    local spring = SpringSyncedBuilder.new()
+    local spring = Builders.Spring.new()
     for _, featureID in ipairs({ ... }) do
         missionApi:WithTrackedFeature(name, featureID)
         spring:WithValidFeature(featureID)
@@ -29,7 +28,7 @@ describe("mission_api.actions.destroy_features", function()
 
     before_each(function()
         Builders.MissionApi.new():Install()
-        _G.Spring = SpringSyncedBuilder.new():Build()
+        _G.Spring = Builders.Spring.new():Build()
         destroyFeatureCalls = Spring.calls.destroyFeature
     end)
 
@@ -55,7 +54,7 @@ describe("mission_api.actions.destroy_features", function()
         it("skips invalid feature IDs", function()
             -- tracked, but never marked valid
             Builders.MissionApi.new():WithTrackedFeature('rock', 10):Install()
-            _G.Spring = SpringSyncedBuilder.new():Build()
+            _G.Spring = Builders.Spring.new():Build()
 
             action.actionFunction('rock')
 
@@ -67,7 +66,7 @@ describe("mission_api.actions.destroy_features", function()
                 :WithTrackedFeature('rock', 10)
                 :WithTrackedFeature('tree', 20)
                 :Install()
-            _G.Spring = SpringSyncedBuilder.new()
+            _G.Spring = Builders.Spring.new()
                 :WithValidFeature(10)
                 :WithValidFeature(20)
                 :Build()

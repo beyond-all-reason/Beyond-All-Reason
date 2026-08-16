@@ -24,7 +24,7 @@ GG['MissionAPI'].Modules.Tracking = {
     end,
 }
 
-local actions  = VFS.Include('luarules/mission_api/actions/unname_units.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/units/unname_units.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 

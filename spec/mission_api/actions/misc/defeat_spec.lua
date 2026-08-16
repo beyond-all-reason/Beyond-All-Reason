@@ -1,19 +1,19 @@
 require("spec_helper")
 
-local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+local Builders = VFS.Include("spec/builders/index.lua")
 
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 
-local actions  = VFS.Include('luarules/mission_api/actions/defeat.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/misc/defeat.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.defeat", function()
 
     before_each(function()
-        _G.Spring = SpringSyncedBuilder.new():Build()
+        _G.Spring = Builders.Spring.new():Build()
     end)
 
     it("declares its type and parameters", function()

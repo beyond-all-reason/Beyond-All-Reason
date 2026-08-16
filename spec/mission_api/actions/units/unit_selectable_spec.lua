@@ -1,12 +1,11 @@
 require("spec_helper")
 
-local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions  = VFS.Include('luarules/mission_api/actions/unit_selectable.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/units/unit_selectable.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -31,7 +30,7 @@ describe("mission_api.actions.unit_selectable", function()
 
     before_each(function()
         Builders.MissionApi.new():Install()
-        _G.Spring = SpringSyncedBuilder.new():Build()
+        _G.Spring = Builders.Spring.new():Build()
     end)
 
     it("declares its type and parameters", function()
