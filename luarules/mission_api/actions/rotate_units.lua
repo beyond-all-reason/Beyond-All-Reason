@@ -17,7 +17,7 @@ local function rotateUnits(unitName, direction)
                 end
             elseif direction.angle then
                 -- Thanks AI. This makes sure no matter what angle someone gives, it's results gets normalised to between 0 and 360.
-                local heading = math.floor(((360 - (((direction.angle % 360) + 360) % 360)) % 360) * 65535 / 360 - 32768)
+                local heading = math.floor( (direction.angle % 360 - 180) / 360  * -65535 )
                 Spring.SetUnitHeadingAndUpDir(unitID, heading, 0, 1, 0)
             end
         end
