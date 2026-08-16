@@ -46,6 +46,7 @@ for _, filename in ipairs(luaFiles) do
 	local featureDefsEnv = {}
 	featureDefsEnv._G = featureDefsEnv
 	featureDefsEnv.Shared = shared
+	featureDefsEnv.BAR = BAR
 	featureDefsEnv.GetFilename = function()
 		return filename
 	end
