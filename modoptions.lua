@@ -35,6 +35,7 @@ local options = {
 	-- Main + Restrictions
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "options_main",
 		name = "Main",
@@ -58,6 +59,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ranked_game",
 		name = "Ranked Game",
@@ -67,6 +69,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "allowuserwidgets",
 		name = "Allow Custom Widgets",
@@ -77,6 +80,7 @@ local options = {
 		section = "options_main",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "allowunitcontrolwidgets",
 		name = "Allow Custom 'Unit Control' Widgets",
@@ -86,6 +90,7 @@ local options = {
 		section = "options_main",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "allowpausegameplay",
 		name = "Allow Commands While Paused",
@@ -110,6 +115,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "maxunits",
 		name = "Max Units Per Player",
@@ -121,6 +127,7 @@ local options = {
 		step = 1, -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
 		section = "options_main",
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "deathmode",
 		name = "Game End Mode",
@@ -168,6 +175,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "territorial_domination_config",
 		name = "Territorial Domination Length",
@@ -199,6 +207,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "territorial_domination_elimination_threshold_multiplier",
 		name = "Elimination Threshold Multiplier",
@@ -211,6 +220,7 @@ local options = {
 		section = "options_main",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "draft_mode",
 		name = "Draft Spawn Order Mode",
@@ -247,6 +257,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "teamcolors_anonymous_mode",
 		name = "Anonymous Mode",
@@ -279,6 +290,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "transportenemy",
 		name = "Enemy Transporting",
@@ -293,6 +305,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "teamffa_start_boxes_shuffle",
 		name = "Shuffle TeamFFA Start Boxes",
@@ -302,6 +315,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "fixedallies",
 		name = "Disabled Dynamic Alliances",
@@ -312,6 +326,7 @@ local options = {
 		section = "options_main",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "disablemapdamage",
 		name = "Disable Map Deformation",
@@ -321,6 +336,7 @@ local options = {
 		section = "options_main",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "disable_fogofwar",
 		name = "Disable Fog of War",
@@ -330,6 +346,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "norushtimer",
 		name = "No Rush Time" .. "\255\128\128\128" .. " [minutes]",
@@ -347,6 +364,7 @@ local options = {
 		max = 120,
 		step = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "norushmiddlefree",
 		name = "No Rush Non Base FFA",
@@ -357,6 +375,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "comm_trans_slow",
 		name = "Slow Commander Transport",
@@ -378,6 +397,7 @@ local options = {
 		type = "subheader",
 		def = true,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "tax_resource_sharing_amount",
 		name = "Resource Sharing Tax",
@@ -393,6 +413,7 @@ local options = {
 		section = "options_main",
 		column = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "disable_unit_sharing",
 		name = "Disable Unit Sharing",
@@ -401,6 +422,7 @@ local options = {
 		section = "options_main",
 		def = false,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "disable_assist_ally_construction",
 		name = "Disable Assist Ally Construction",
@@ -425,6 +447,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_notech15",
 		name = "Disable Tech 1.5",
@@ -435,6 +458,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_notech2",
 		name = "Disable Tech 2",
@@ -445,6 +469,7 @@ local options = {
 		column = 1.66,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_notech3",
 		name = "Disable Tech 3",
@@ -455,6 +480,7 @@ local options = {
 		column = 2.33,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_noair",
 		name = "Disable Air Units",
@@ -465,6 +491,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_nosea",
 		name = "Disable Sea Units",
@@ -475,6 +502,7 @@ local options = {
 		column = 1.66,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_noextractors",
 		name = "Disable Metal Extractors",
@@ -485,6 +513,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_noconverters",
 		name = "Disable Energy Converters",
@@ -495,6 +524,7 @@ local options = {
 		column = 1.66,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_nofusion",
 		name = "Disable Fusion Generators",
@@ -505,6 +535,7 @@ local options = {
 		column = 2.33,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_notacnukes",
 		name = "Disable Tactical Missiles/EMPs",
@@ -515,6 +546,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_nonukes",
 		name = "Disable Nuclear Missiles",
@@ -525,6 +557,7 @@ local options = {
 		column = 1.66,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_noantinuke",
 		name = "Disable Anti-Nuke Defence",
@@ -535,6 +568,7 @@ local options = {
 		column = 2.33,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_nolrpc",
 		name = "Disable Long Range Artilery (LRPC)",
@@ -545,6 +579,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "unit_restrictions_noendgamelrpc",
 		name = "Disable Endgame Artilery (LRPC)",
@@ -561,6 +596,7 @@ local options = {
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "options",
 		name = "Other",
@@ -568,6 +604,7 @@ local options = {
 		type = "section",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_tidal",
 		name = "Tidal Strength",
@@ -584,6 +621,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "critters",
 		name = "Animal amount",
@@ -597,6 +635,7 @@ local options = {
 		step = 0.2,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_atmosphere",
 		name = "Map Atmosphere and Ambient Sounds",
@@ -607,6 +646,7 @@ local options = {
 		section = "options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ffa_wreckage",
 		name = "FFA Mode Wreckage",
@@ -617,6 +657,7 @@ local options = {
 		section = "options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "wreck_metal_ratio",
 		name = "Wreck Metal Percent",
@@ -630,6 +671,7 @@ local options = {
 		step = 0.05,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "heap_metal_ratio",
 		name = "Heap Metal Percent",
@@ -643,6 +685,7 @@ local options = {
 		step = 0.05,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "coop",
 		name = "Cooperative mode",
@@ -664,6 +707,7 @@ local options = {
 	-- Raptors
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_defense_options",
 		name = "Raptors",
@@ -681,6 +725,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptors_dev_channel_link",
 		name = "Development Discussion",
@@ -708,6 +753,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_difficulty",
 		name = "Base Difficulty",
@@ -731,6 +777,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_raptorstart",
 		name = "Hives Placement",
@@ -749,6 +796,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_endless",
 		name = "Endless Mode",
@@ -773,6 +821,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_queentimemult",
 		name = "Queen Hatching Time Multiplier",
@@ -785,6 +834,7 @@ local options = {
 		section = "raptor_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_queen_count",
 		name = "Raptor Queen Count",
@@ -797,6 +847,7 @@ local options = {
 		section = "raptor_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_spawncountmult",
 		name = "Unit Spawn Per Wave Multiplier",
@@ -809,6 +860,7 @@ local options = {
 		section = "raptor_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_firstwavesboost",
 		name = "First Waves Size Boost",
@@ -821,6 +873,7 @@ local options = {
 		section = "raptor_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_spawntimemult",
 		name = "Waves Amount Multiplier",
@@ -833,6 +886,7 @@ local options = {
 		section = "raptor_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "raptor_graceperiodmult",
 		name = "Grace Period Time Multiplier",
@@ -850,6 +904,7 @@ local options = {
 	-- Scavengers
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_defense_options",
 		name = "Scavengers",
@@ -867,6 +922,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scavengers_dev_channel_link",
 		name = "Development Discussion",
@@ -894,6 +950,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_difficulty",
 		name = "Base Difficulty",
@@ -917,6 +974,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_scavstart",
 		name = "Spawn Beacons Placement",
@@ -935,6 +993,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_endless",
 		name = "Endless Mode",
@@ -959,6 +1018,7 @@ local options = {
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_bosstimemult",
 		name = "Boss Preparation Time Multiplier",
@@ -971,6 +1031,7 @@ local options = {
 		section = "scav_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_boss_count",
 		name = "Scavengers Boss Count",
@@ -983,6 +1044,7 @@ local options = {
 		section = "scav_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_spawncountmult",
 		name = "Unit Spawn Per Wave Multiplier",
@@ -995,6 +1057,7 @@ local options = {
 		section = "scav_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_spawntimemult",
 		name = "Waves Amount Multiplier",
@@ -1007,6 +1070,7 @@ local options = {
 		section = "scav_defense_options",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scav_graceperiodmult",
 		name = "Grace Period Time Multiplier",
@@ -1025,6 +1089,7 @@ local options = {
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "options_extra",
 		name = "Extras",
@@ -1048,6 +1113,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimentalextraunits",
 		name = "Extra Units Pack",
@@ -1057,6 +1123,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "scavunitsforplayers",
 		name = "Scavengers Units Pack",
@@ -1072,6 +1139,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_waterlevel",
 		name = "Water Level",
@@ -1084,6 +1152,7 @@ local options = {
 		section = "options_extra",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_waterislava",
 		name = "Water Is Lava",
@@ -1104,6 +1173,7 @@ local options = {
 		bitmask = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavatiderhythm",
 		name = "Lava Tides",
@@ -1162,6 +1232,7 @@ local options = {
 		bitmask = 2,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavatidemode",
 		name = "Lava Tide Mode",
@@ -1176,6 +1247,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavahighlevel",
 		name = "Lava High Tide Level",
@@ -1189,6 +1261,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavahighdwell",
 		name = "Lava High Tide Time",
@@ -1202,6 +1275,7 @@ local options = {
 		column = 2.0,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavalowlevel",
 		name = "Lava Low Tide Level",
@@ -1215,6 +1289,7 @@ local options = {
 		column = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_lavalowdwell",
 		name = "Lava Low Tide Time",
@@ -1228,6 +1303,7 @@ local options = {
 		column = 2.0,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "map_tweaklava",
 		name = "Advanced Tide Rhythm",
@@ -1250,6 +1326,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ruins",
 		name = "Ruins",
@@ -1264,6 +1341,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ruins_density",
 		name = "Ruins: Density",
@@ -1279,6 +1357,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ruins_only_t1",
 		name = "Ruins: Only Tech 1",
@@ -1287,6 +1366,7 @@ local options = {
 		section = "options_extra",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ruins_civilian_disable",
 		name = "Ruins: Disable Civilian (Not Implemented Yet)",
@@ -1302,6 +1382,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "lootboxes",
 		name = "Lootboxes",
@@ -1316,6 +1397,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "lootboxes_density",
 		name = "Lootboxes: Density",
@@ -1335,6 +1417,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocom",
 		name = "Evolving Commanders",
@@ -1353,6 +1436,7 @@ local options = {
 		--lock    = {"buffer_fix"},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocom_feedback_thread_link",
 		name = "Feedback thread",
@@ -1366,6 +1450,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocomlevelupmethod",
 		name = "EvoCom: Leveling Method",
@@ -1385,6 +1470,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocomlevelupmultiplier",
 		name = "EvoCom: Evolution Mult.",
@@ -1397,6 +1483,7 @@ local options = {
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocomleveluptime",
 		name = "EvoCom: Evolution Time ",
@@ -1409,6 +1496,7 @@ local options = {
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocomlevelcap",
 		name = "EvoCom: Max Level",
@@ -1421,6 +1509,7 @@ local options = {
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "evocomxpmultiplier",
 		name = "EvoCom: Commander XP Multiplier",
@@ -1439,6 +1528,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "comrespawn",
 		name = "Commander Respawning",
@@ -1459,6 +1549,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "quick_start",
 		name = "Quick Start",
@@ -1501,6 +1592,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "quick_start_link",
 		name = "Feedback thread",
@@ -1514,6 +1606,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "quick_start_amount",
 		name = "Quick Start Base Budget",
@@ -1529,6 +1622,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "enable_quickstart_overrides",
 		name = "Enable Quick Start Overrides",
@@ -1539,6 +1633,7 @@ local options = {
 		hidden = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "override_quick_start_range",
 		name = "Override Quick Start Range",
@@ -1552,6 +1647,7 @@ local options = {
 		hidden = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "override_quick_start_budget",
 		name = "Override Quick Start Budget",
@@ -1571,6 +1667,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "assistdronesenabled", -- TODO, turn this into booleam modoption
 		name = "Commander Drones",
@@ -1591,6 +1688,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "assistdronesbuildpowermultiplier",
 		name = "ComDrones: Buildpower Multiplier",
@@ -1603,6 +1701,7 @@ local options = {
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "assistdronescount",
 		name = "ComDrones: Count",
@@ -1615,6 +1714,7 @@ local options = {
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "assistdronesair",
 		name = "ComDrones: Use Air Drones",
@@ -1630,6 +1730,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "commanderbuildersenabled", -- TODO, turn this into boolean modoption
 		name = "Base Builder Turret",
@@ -1642,6 +1743,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "commanderbuildersrange",
 		name = "Base Builder Turret: Range",
@@ -1654,6 +1756,7 @@ local options = {
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "commanderbuildersbuildpower",
 		name = "Base Builder Turret: Buildpower",
@@ -1672,6 +1775,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "zombies",
 		name = "Scavenger Zombies",
@@ -1702,6 +1806,7 @@ local options = {
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "options_experimental",
 		name = "Experimental",
@@ -1734,6 +1839,7 @@ local options = {
 		type = "separator",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "proposed_unit_reworks",
 		name = "Placeholder for BLT testing",
@@ -1744,6 +1850,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_patch",
 		name = "Community Balance Patch 5-6/26",
@@ -1796,6 +1903,7 @@ local options = {
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_patch_changelog_link",
 		name = "Changelog/Feedback",
@@ -1809,6 +1917,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_corspy",
 		name = "(CBP) Spectre",
@@ -1818,6 +1927,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_armmav",
 		name = "(CBP) Gunslinger",
@@ -1827,6 +1937,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_corcan",
 		name = "(CBP) Sumo",
@@ -1836,6 +1947,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_corkarg",
 		name = "(CBP) Karganeth",
@@ -1845,6 +1957,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_armkam",
 		name = "(CBP) Banshee",
@@ -1854,6 +1967,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "community_balance_armblade",
 		name = "(CBP) Hornet",
@@ -1863,6 +1977,7 @@ local options = {
 		section = "options_experimental",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimentallegionfaction",
 		name = "Legion Faction",
@@ -1872,6 +1987,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "legionsimplifiedmexes",
 		name = "Legion Simplified Mexes",
@@ -1881,6 +1997,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimentallegionfaction_link",
 		name = "Development Discussion",
@@ -1894,6 +2011,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "easytax",
 		name = "Easy Tax v2",
@@ -1903,6 +2021,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "easytax_link",
 		name = "Changelog",
@@ -1918,6 +2037,7 @@ local options = {
 
 	-- Hidden Tests
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "techsplit",
 		name = "Tech Split",
@@ -1928,6 +2048,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "techsplit_balance",
 		name = "Tech Split Balance Test",
@@ -1938,6 +2059,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimental_defend_firestate",
 		name = "Defend Combat Stance",
@@ -1947,6 +2069,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimental_defend_firestate_link",
 		name = "Feedback thread",
@@ -1960,6 +2083,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "air_rework",
 		name = "Air Rework",
@@ -1970,6 +2094,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "skyshift",
 		name = "Skyshift: Air Rework",
@@ -1980,6 +2105,7 @@ local options = {
 		hidden = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "emprework",
 		name = "EMP Rework",
@@ -1991,6 +2117,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "junorework",
 		name = "Juno Rework",
@@ -2001,6 +2128,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "releasecandidates",
 		name = "Release Candidate Units",
@@ -2011,6 +2139,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "naval_balance_tweaks",
 		name = "Proposed Naval Balance Tweaks",
@@ -2021,6 +2150,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "naval_balance_tweaks_link",
 		name = "Feedback thread",
@@ -2034,6 +2164,7 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "forge_volcano",
 		name = "Forge Volcano Event",
@@ -2044,6 +2175,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "factory_costs",
 		name = "Factory Costs Test Patch",
@@ -2060,6 +2192,7 @@ local options = {
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "modes",
 		name = "GameModes",
@@ -2068,6 +2201,7 @@ local options = {
 		type = "section",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "shareddynamicalliancevictory",
 		name = "Dynamic Ally Victory",
@@ -2078,6 +2212,7 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "ai_incomemultiplier",
 		name = "AI Income Multiplier",
@@ -2091,6 +2226,7 @@ local options = {
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "defaultdecals",
 		name = "Default Decals",
@@ -2107,6 +2243,7 @@ local options = {
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "dev",
 		name = "_DEV",
@@ -2114,6 +2251,7 @@ local options = {
 		hidden = true,
 		type = "section",
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "teamcolors_icon_dev_mode",
 		name = "Icon Dev Mode ",
@@ -2131,6 +2269,7 @@ local options = {
 			{ key = "leggren", name = "Legion Green", desc = "description" },
 		},
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "debugcommands",
 		name = "Debug Commands",
@@ -2139,6 +2278,7 @@ local options = {
 		type = "string",
 		def = "",
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "animationcleanup",
 		name = "Animation Cleanup",
@@ -2147,6 +2287,7 @@ local options = {
 		type = "bool",
 		def = false,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "pushresistant",
 		name = "Pushresistance",
@@ -2155,6 +2296,7 @@ local options = {
 		type = "bool",
 		def = false,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "dummyboolfeelfreetotouch",
 		name = "dummy to hide some modoptions",
@@ -2164,6 +2306,7 @@ local options = {
 		-- This doesn't have a default on purpse, do not add one
 		unlock = { "dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour" },
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "date_year",
 		name = "Year",
@@ -2175,6 +2318,7 @@ local options = {
 		max = 3000,
 		step = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "date_month",
 		name = "Month",
@@ -2186,6 +2330,7 @@ local options = {
 		max = 12,
 		step = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "date_day",
 		name = "Day",
@@ -2197,6 +2342,7 @@ local options = {
 		max = 31,
 		step = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "date_hour",
 		name = "Hour",
@@ -2208,6 +2354,7 @@ local options = {
 		max = 24,
 		step = 1,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "factionlimiter",
 		name = "Faction Limiter:" .. "\255\255\191\76" .. " ON\n" .. "\255\125\125\125" .. "BITMASK",
@@ -2235,6 +2382,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 	-- map name. They are used for a dynamic map configuration where the configruation values are not
 	-- tied to either game version or reside inside of the map file, allowing for independent distribution
 	-- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "mapmetadata",
 		name = "MapMetadata",
@@ -2251,6 +2399,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		hidden = true,
 		def = true,
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "mapmetadata_startpos",
 		name = "Map Metadata: StartPos",
@@ -2260,6 +2409,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		type = "string",
 		def = "",
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "mapmetadata_startboxes_set",
 		name = "Map Metadata: Startboxes Set",
@@ -2269,6 +2419,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		type = "string",
 		def = "",
 	},
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "mapmetadata_startbox_override",
 		name = "Map Metadata: Startbox Override",
@@ -2284,6 +2435,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "options_cheats",
 		name = "Cheats",
@@ -2325,6 +2477,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "dynamiccheats",
 		name = "Dynamic Cheats",
@@ -2334,6 +2487,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		section = "options_cheats",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "nowasting",
 		name = "No Resource Wasting",
@@ -2349,6 +2503,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "allow_enemy_ai_spawn_placement",
 		name = "Allow Hostile AI Spawn Placement",
@@ -2373,6 +2528,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "startmetal",
 		name = "Starting Metal",
@@ -2385,6 +2541,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "startmetalstorage",
 		name = "Starting Metal Storage",
@@ -2397,6 +2554,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "startenergy",
 		name = "Starting Energy",
@@ -2409,6 +2567,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "startenergystorage",
 		name = "Starting Energy Storage",
@@ -2421,6 +2580,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "bonusstartresourcemultiplier",
 		name = "Apply Bonus to Starting Resources",
@@ -2445,6 +2605,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_resourceincome",
 		name = "Overall Resource Income",
@@ -2457,6 +2618,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_metalextraction",
 		name = "Metal Extraction ",
@@ -2469,6 +2631,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_energyconversion",
 		name = "Energy Conversion Efficiency",
@@ -2481,6 +2644,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_energyproduction",
 		name = "Energy Production",
@@ -2508,6 +2672,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_maxvelocity",
 		name = "Unit Max Velocity",
@@ -2520,6 +2685,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_turnrate",
 		name = "Unit Turn Rate",
@@ -2532,6 +2698,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_builddistance",
 		name = "Build Range",
@@ -2544,6 +2711,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_buildpower",
 		name = "Build Power",
@@ -2556,6 +2724,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_losrange",
 		name = "Vision Range",
@@ -2568,6 +2737,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_radarrange",
 		name = "Radar And Sonar Range",
@@ -2580,6 +2750,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_weaponrange",
 		name = "Weapon Range",
@@ -2592,6 +2763,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_weapondamage",
 		name = "Weapon Damage",
@@ -2604,6 +2776,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		step = 0.1,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "multiplier_shieldpower",
 		name = "Shield Power",
@@ -2631,6 +2804,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = true,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimentalshields",
 		name = "Shield Type Override",
@@ -2647,6 +2821,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		},
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "tweakunits",
 		name = "Tweak Units",
@@ -2657,6 +2832,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = "",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "tweakdefs",
 		name = "Tweak Defs",
@@ -2667,6 +2843,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = "",
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "forceallunits",
 		name = "Force Load All Units (Dev/Modding)",
@@ -2676,6 +2853,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "holiday_events",
 		name = "Enable Holiday Events",
@@ -2693,6 +2871,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 for i = 1, 9 do
+	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakunits" .. i,
 		name = "Tweak Units " .. i,
@@ -2705,6 +2884,7 @@ for i = 1, 9 do
 end
 
 for i = 1, 9 do
+	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakdefs" .. i,
 		name = "Tweak Defs " .. i,
