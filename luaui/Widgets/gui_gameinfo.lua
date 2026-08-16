@@ -74,7 +74,8 @@ end
 local defaultModoptions = VFS.Include("modoptions.lua")
 local modoptionsDefault = {}
 for key, value in pairs(defaultModoptions) do
-	modoptionsDefault[value.key] = { name = value.name, desc = value.desc, def = value.def }
+	modoptionsDefault[value.key] =
+		{ name = value.name, desc = value.desc, def = value.def, min = value.min, max = value.max }
 end
 
 local modoptions = BAR.GetModOptionsCopy()
@@ -132,11 +133,28 @@ local function stringifyDefTable(t, path, pathAddition)
 	return text
 end
 
+-- tweakdefs are lua snippets, so the units they touch are found by matching known unitdef names
+local function countTweakedUnitDefs(text)
+	local count = 0
+	local counted = {}
+	for word in string.gmatch(text, "[%a_][%w_]*") do
+		if not counted[word] and UnitDefNames[word] then
+			counted[word] = true
+			count = count + 1
+		end
+	end
+	return count
+end
+
+-- every unitdef that got tweaked counts as a change on top of the tweakdefs/tweakunits option itself
+local changedModoptionsCount = 0
+
 for key, value in pairs(modoptions) do
 	if not isIgnoredModoption(key) then
 		if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 			unchangedModoptions[key] = tostring(value)
 		else
+			changedModoptionsCount = changedModoptionsCount + 1
 			if not string.find(key, "tweakunits") and not string.find(key, "tweakdefs") then
 				changedModoptions[key] = tostring(value)
 			else
@@ -147,6 +165,9 @@ for key, value in pairs(modoptions) do
 							decodeSuccess and postsFuncStr
 							or "\255\255\100\100 - " .. BAR.I18N("ui.gameInfo.decodefailed") .. " - "
 						)
+					if decodeSuccess then
+						changedModoptionsCount = changedModoptionsCount + countTweakedUnitDefs(postsFuncStr)
+					end
 				else
 					local dataRaw = string.gsub(value, "_", "=")
 					local decodeSuccess, postsFuncStr = pcall(string.base64Decode, dataRaw)
@@ -156,6 +177,7 @@ for key, value in pairs(modoptions) do
 						local text = ""
 						for name, ud in pairs(tweaks) do
 							if UnitDefNames[name] then
+								changedModoptionsCount = changedModoptionsCount + 1
 								text = text .. "\n" .. valuecolor .. name .. valuegreycolor .. " = {"
 								text = text .. stringifyDefTable(ud, {}, name)
 								text = text .. "\n" .. "}"
@@ -164,16 +186,14 @@ for key, value in pairs(modoptions) do
 						changedModoptions[key] = text
 					else
 						changedModoptions[key] = tostring(value)
+						if decodeSuccess then
+							changedModoptionsCount = changedModoptionsCount + countTweakedUnitDefs(postsFuncStr)
+						end
 					end
 				end
 			end
 		end
 	end
-end
-
-local changedModoptionsCount = 0
-for _ in pairs(changedModoptions) do
-	changedModoptionsCount = changedModoptionsCount + 1
 end
 
 local function stripColorCodes(text)
@@ -196,19 +216,49 @@ local function getModoptionDesc(key)
 	return BAR.I18N("modoptions." .. key .. ".desc", { default = stripColorCodes(default) })
 end
 
+local function appendTooltipLine(text, line)
+	return (text ~= "" and text .. "\n" or "") .. line
+end
+
+-- description, allowed range, and (when the option isnt at its default) the value it normally has
+local function getModoptionTooltipText(key, showDefault)
+	local text = getModoptionDesc(key)
+	local option = modoptionsDefault[key]
+	if option then
+		if option.min and option.max then
+			text = appendTooltipLine(
+				text,
+				valuegreycolor
+					.. BAR.I18N("ui.gameInfo.range")
+					.. ": "
+					.. valuecolor
+					.. option.min
+					.. "  -  "
+					.. option.max
+			)
+		end
+		if showDefault and option.def ~= nil then
+			text = appendTooltipLine(
+				text,
+				valuegreycolor .. BAR.I18N("ui.gameInfo.default") .. ": " .. valuecolor .. tostring(option.def)
+			)
+		end
+	end
+	return (text ~= "" and text .. "\n\n" or "") .. valuegreycolor .. key
+end
+
 -- turns a key -> value table into a list of displayable rows, sorted by the name they are displayed with
-local function getModoptionRows(modoptionValues)
+local function getModoptionRows(modoptionValues, showDefault)
 	local rows = {}
 	for key, value in pairs(modoptionValues) do
 		local name = getModoptionName(key)
-		local desc = getModoptionDesc(key)
 		tableInsert(rows, {
 			key = key,
 			value = value,
 			name = name,
 			tooltip = {
 				title = name,
-				text = (desc ~= "" and desc .. "\n\n" or "") .. valuegreycolor .. key,
+				text = getModoptionTooltipText(key, showDefault),
 			},
 		})
 	end
@@ -660,7 +710,7 @@ local function refreshContent()
 	if raptorsEnabled then
 		-- filter raptor modoptions
 		addContent(titlecolor .. BAR.I18N("ui.gameInfo.raptorOptions") .. "\n")
-		for _, params in ipairs(getModoptionRows(changedRaptorModoptions)) do
+		for _, params in ipairs(getModoptionRows(changedRaptorModoptions, true)) do
 			addContent(keycolor .. params.name .. separator .. valuecolor .. params.value .. "\n", params.tooltip)
 		end
 		for _, params in ipairs(getModoptionRows(unchangedRaptorModoptions)) do
@@ -668,7 +718,7 @@ local function refreshContent()
 		end
 		addContent("\n")
 	end
-	local changedRows = getModoptionRows(changedModoptions)
+	local changedRows = getModoptionRows(changedModoptions, true)
 	if #changedRows > 0 then
 		addContent(titlecolor .. BAR.I18N("ui.gameInfo.adjustedSettings") .. "\n")
 		for _, params in ipairs(changedRows) do
