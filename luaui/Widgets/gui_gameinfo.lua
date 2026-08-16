@@ -171,6 +171,11 @@ for key, value in pairs(modoptions) do
 	end
 end
 
+local changedModoptionsCount = 0
+for _ in pairs(changedModoptions) do
+	changedModoptionsCount = changedModoptionsCount + 1
+end
+
 local function stripColorCodes(text)
 	local stripped = string.gsub(text, "\255...", "")
 	return stripped
@@ -729,6 +734,10 @@ function widget:Initialize()
 	end
 	WG.gameinfo.isvisible = function()
 		return show
+	end
+	-- amount of modoptions that arent set to their default value
+	WG.gameinfo.getChangedModoptionsCount = function()
+		return changedModoptionsCount
 	end
 
 	widget:ViewResize()
