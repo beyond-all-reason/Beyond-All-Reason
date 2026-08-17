@@ -16,10 +16,11 @@ local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
+local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 if gadgetHandler:IsSyncedCode() then
 	local deleteMaxDistance = 30
-	local targetListLengthMax = 128
+	local targetListLengthMax = 512
 	local unseenGraceTime = 1.5
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -57,6 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
+	local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
@@ -70,6 +72,9 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD.AREA_ATTACK] = true,
 		[GameCMD.AREA_ATTACK_GROUND] = true,
 	}
+	if CMD_ATTACK_TARGETS then
+		isAttackCommand[CMD_ATTACK_TARGETS] = true
+	end
 
 	local validUnits = {}
 	local unitWeapons = {}
@@ -188,6 +193,17 @@ if gadgetHandler:IsSyncedCode() then
 		cursor = "settarget",
 		tooltip = tooltipText,
 		hidden = false,
+		queueing = false,
+	}
+
+	local unitSetTargetsCmdDesc = {
+		id = CMD_UNIT_SET_TARGETS,
+		type = CMDTYPE.ICON_UNIT_OR_AREA,
+		name = 'Set Targets',
+		action = 'settargets',
+		cursor = 'settarget',
+		tooltip = tooltipText,
+		hidden = true,
 		queueing = false,
 	}
 
@@ -578,13 +594,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterGlobal("GetUnitSetTargetList", GG.GetUnitTargetList)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_NO_GROUND)
+		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGETS)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
+		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGETS)
 		gadgetHandler:RegisterAllowCommand(CMD_UNIT_CANCEL_TARGET)
 
 		local allUnits = spGetAllUnits()
@@ -594,10 +613,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Shutdown()
+		gadgetHandler:DeregisterGlobal("GetUnitSetTargetList")
+	end
+
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if validUnits[unitDefID] then
 			spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
+			spInsertUnitCmdDesc(unitID, unitSetTargetsCmdDesc)
 			spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
 			if setTargetData[builderID] and validUnits[unitDefID] then
 				addUnitTargets(unitID, unitDefID, setTargetData[builderID].targets, false)
@@ -671,6 +695,7 @@ if gadgetHandler:IsSyncedCode() then
 			cmdID == CMD_UNIT_SET_TARGET_NO_GROUND
 			or cmdID == CMD_UNIT_SET_TARGET
 			or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE
+			or cmdID == CMD_UNIT_SET_TARGETS
 		then
 			local addTargetList
 
@@ -679,7 +704,25 @@ if gadgetHandler:IsSyncedCode() then
 			local userTarget = not cmdOptions.internal
 			local ignoreStop = cmdOptions.ctrl
 
-			if nParams > 3 then
+			if cmdID == CMD_UNIT_SET_TARGETS then
+				local targetList, count = {}, 0
+				for i = 1, nParams do
+					local target = cmdParams[i]
+					if spValidUnitID(target) and not spAreTeamsAllied(unitTeam, spGetUnitTeam(target)) and allowTargetUnit(unitID, weaponList, target) then
+						count = count + 1
+						targetList[count] = {
+							alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
+							ignoreStop = ignoreStop,
+							userTarget = userTarget,
+							target = target,
+							sent = false,
+						}
+					end
+				end
+				if count > 0 then
+					addTargetList = targetList
+				end
+			elseif nParams > 3 then
 				if not cmdOptions.internal then
 					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
 				end
@@ -844,7 +887,7 @@ if gadgetHandler:IsSyncedCode() then
 		fromLua,
 		fromInsert
 	)
-		-- Accepts: CMD_UNIT_SET_TARGET_NO_GROUND, CMD_UNIT_SET_TARGET, CMD_UNIT_SET_TARGET_RECTANGLE, CMD_UNIT_CANCEL_TARGET.
+		-- Accepts: CMD_UNIT_SET_TARGET_NO_GROUND, CMD_UNIT_SET_TARGET, CMD_UNIT_SET_TARGET_RECTANGLE, CMD_UNIT_SET_TARGETS, CMD_UNIT_CANCEL_TARGET.
 		--tracy.ZoneBeginN(string.format("AllowCommand %s %s", tostring(fromSynced), tostring(fromLua)))
 		--tracy.Message(string.format("Allowcommand params %s %s", table.toString(cmdOptions), table.toString(cmdParams)))
 		if validUnits[unitDefID] then

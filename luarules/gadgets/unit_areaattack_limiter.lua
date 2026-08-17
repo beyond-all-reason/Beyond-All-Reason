@@ -55,6 +55,10 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if isReissuing then
 		return
 	end
+	-- Native target lists do not need the legacy source-count limiter.
+	if CMD.ATTACK_TARGETS then
+		return
+	end
 
 	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
 	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.

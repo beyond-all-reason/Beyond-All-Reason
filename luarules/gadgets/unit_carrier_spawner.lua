@@ -84,6 +84,7 @@ local GAME_SPEED = Game.gameSpeed
 local PRIVATE = { private = true }
 local CMD_CARRIER_SPAWN_ONOFF = GameCMD.CARRIER_SPAWN_ONOFF
 local CMD_ATTACK = CMD.ATTACK
+local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
 local CMD_MOVE = CMD.MOVE
 local CMD_STOP = CMD.STOP
 local CMD_REPAIR = CMD.REPAIR
@@ -366,6 +367,10 @@ local function findCombatCommand(unitID, attackCounts, repairCounts)
 		if not cmdID then
 			return nil
 		end
+		if attackCounts and cmdID == CMD_ATTACK_TARGETS then
+			-- List parameters are unit IDs, not a ground position.
+			return cmdID, p1
+		end
 		if (attackCounts and cmdID == CMD_ATTACK) or (repairCounts and cmdID == CMD_REPAIR) then
 			return cmdID, p1, p2, p3, p4
 		end
@@ -386,6 +391,9 @@ end
 -- params table), so re-issuing it would only restart the same command.
 local function hasAttackOrder(unitID, target)
 	local cmdID, _, _, p1, p2, p3, p4 = spGetUnitCurrentCommand(unitID)
+	if cmdID == CMD_ATTACK_TARGETS and cmdID ~= nil then
+		return p1 == (type(target) == "table" and #target == 1 and target[1] or target)
+	end
 	if cmdID ~= CMD_ATTACK then
 		return false
 	end
@@ -1019,7 +1027,7 @@ if hasBomberDrones then
 			return
 		end
 		local bomberStage = droneMetaData.bomberStage
-		if (cmdID == CMD_MOVE or cmdID == CMD_ATTACK) and bomberStage > 0 then
+		if (cmdID == CMD_MOVE or cmdID == CMD_ATTACK or cmdID == CMD_ATTACK_TARGETS) and bomberStage > 0 then
 			if not carrierMetaData.docking and bomberStage >= 4 + carrierMetaData.dronebombingruns then
 				bomberStage = 0
 			elseif bomberStage < 3 then
@@ -1330,9 +1338,15 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 	local weapontargettype, _, weapontarget = spGetUnitWeaponTarget(carrierID, carrierMetaData.weaponNr)
 
 	--Handles an attack order given to the carrier.
-	if not recallDrones and cmdID == CMD.ATTACK or weapontarget then
-		if cmdID == CMD.ATTACK then
-			if cmdParam_1 and not cmdParam_2 then
+	if
+		not recallDrones and (cmdID == CMD_ATTACK or (CMD_ATTACK_TARGETS and cmdID == CMD_ATTACK_TARGETS))
+		or weapontarget
+	then
+		if cmdID == CMD_ATTACK or (CMD_ATTACK_TARGETS and cmdID == CMD_ATTACK_TARGETS) then
+			if CMD_ATTACK_TARGETS and cmdID == CMD_ATTACK_TARGETS then
+				target = cmdParam_1
+				targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
+			elseif cmdParam_1 and not cmdParam_2 then
 				target = cmdParam_1
 				targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
 			else
@@ -1696,7 +1710,11 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 						-- return to carrier unless in combat (fighting only counts when not on hold fire)
 						local combatCmd, p1, p2, p3, p4 = findCombatCommand(subUnitID, cachedFireState > 0, true)
 						local engaged = combatCmd ~= nil
-						if combatCmd == CMD_ATTACK and aggressiveDrones then
+						if
+							combatCmd
+							and (combatCmd == CMD_ATTACK or combatCmd == CMD_ATTACK_TARGETS)
+							and aggressiveDrones
+						then
 							idleTarget = packParams(p1, p2, p3, p4)
 						end
 						droneData.engaged = engaged

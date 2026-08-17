@@ -86,6 +86,9 @@ local function GetUnitOrFeaturePosition(id)
 end
 
 local function GetCommandPos(command) --- get the command position
+	if command.id == CMD.ATTACK_TARGETS and #command.params >= 1 then
+		return GetUnitOrFeaturePosition(command.params[1])
+	end
 	if
 		command.id < 0
 		or command.id == CMD.MOVE
