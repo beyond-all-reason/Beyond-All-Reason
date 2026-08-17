@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGAVP.DDS",
 		buildtime = 27750,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -65,7 +66,7 @@ return {
 			"legavantinuke",
 			"legavjam",
 			"legavrad",
-			"legafcv"
+			"legafcv",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
@@ -73,7 +74,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 0.01,
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
@@ -111,10 +112,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

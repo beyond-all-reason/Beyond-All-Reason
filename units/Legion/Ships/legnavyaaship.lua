@@ -36,7 +36,7 @@ return {
 		turnrate = 450,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
@@ -77,11 +77,6 @@ return {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
 				[3] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

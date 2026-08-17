@@ -80,11 +80,6 @@ return {
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -131,6 +126,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					norangering = 1,
 				},
 				damage = {
@@ -161,14 +157,13 @@ return {
 				predictboost = 0,
 				proximitypriority = 1,
 				range = 700,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray4burn",
 				scrollspeed = 5,
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				texture3 = "largebeam",
 				thickness = 6.5,
@@ -215,7 +210,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 30,
 				thickness = 4,
 				firetolerance = 7000,
 				tolerance = 7000,

@@ -4,6 +4,7 @@ return {
 		buildpic = "CORGANTUW.DDS",
 		buildtime = 92000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "260 146 260",
 		collisionvolumetype = "Box",
@@ -63,14 +64,22 @@ return {
 				object = "Units/corhasy_dead.s3o",
 				reclaimable = true,
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 17800,
+				footprintx = 9,
+				footprintz = 9,
+				height = 4,
+				metal = 1250,
+				object = "Units/cor7X7A.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+			},
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

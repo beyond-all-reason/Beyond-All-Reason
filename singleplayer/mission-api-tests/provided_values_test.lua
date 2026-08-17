@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local location = { x1 = 1700, z1 = 1900, x2 = 1900, z2 = 2200 }
 

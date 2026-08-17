@@ -1,8 +1,10 @@
 -- see alldefs.lua for documentation
-VFS.Include("gamedata/unitdefrenames.lua")
-VFS.Include("gamedata/alldefs_post.lua")
-VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
+local alldefs = VFS.Include("gamedata/alldefs_post.lua")
+local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+
+local unitDef_Post = alldefs.UnitDef_Post
+local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
 if Spring.GetTeamList then
@@ -16,15 +18,29 @@ if Spring.GetTeamList then
 end
 
 local modOptions = Spring.GetModOptions()
-if modOptions.ruins == "enabled" or modOptions.forceallunits == true or modOptions.zombies ~= "disabled" or (GG and GG.Zombies and GG.Zombies.IdleMode == true) then
+if
+	modOptions.ruins == "enabled"
+	or modOptions.forceallunits == true
+	or modOptions.zombies ~= "disabled"
+	or (GG and GG.Zombies and GG.Zombies.IdleMode == true)
+then
 	scavengersEnabled = true
 end
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
 
+local function normalizeUnitDef(unitDef)
+	system.lowerkeys(unitDef)
+	table.ensureTable(unitDef, "customparams")
+	table.ensureTable(unitDef, "buildoptions")
+	table.ensureTable(unitDef, "weapondefs")
+	table.ensureTable(unitDef, "weapons")
+end
+
 for name, unitDef in pairs(UnitDefs) do
 	regularUnitDefs[name] = unitDef
+	normalizeUnitDef(unitDef)
 end
 
 local function getFilePath(filename, path)
@@ -49,11 +65,14 @@ local function bakeUnitDefs()
 		-- usable when baking ... keeping subfolder structure
 		local filepath = getFilePath(name .. ".lua", "units/")
 		if filepath then
-			if not unitDef.customparams.subfolder or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder) then
-				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)		-- not that this always gets to be lowercase despite whatever it is in the repo
+			if
+				not unitDef.customparams.subfolder
+				or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder)
+			then
+				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1) -- not that this always gets to be lowercase despite whatever it is in the repo
 			end
 		end
-		SaveDefToCustomParams("UnitDefs", name, unitDef)
+		saveDefToCustomParams("UnitDefs", name, unitDef)
 	end
 end
 
@@ -85,7 +104,6 @@ local function tableMergeSpecial(t1, t2)
 
 	return newTable
 end
-
 
 local function getDimensions(scale)
 	if not scale then
@@ -212,8 +230,8 @@ end
 
 local function preProcessTweakOptions()
 	local modOptions = {}
-	if Spring.GetModOptionsCopy then
-		modOptions = Spring.GetModOptionsCopy()
+	if BAR.GetModOptionsCopy then
+		modOptions = BAR.GetModOptionsCopy()
 	end
 
 	--------------------------------------------------------------------------------
@@ -225,35 +243,39 @@ local function preProcessTweakOptions()
 	for name, value in pairs(modOptions) do
 		local tweakType = name:match("^tweak([a-z]+)%d*$")
 		local index = tonumber(name:match("^tweak[a-z]+(%d*)$")) or 0
-		if (tweakType == 'defs' or tweakType == 'units') and index then
-			table.insert(tweaks, {name = name, type = tweakType, index = index, value = value})
+		if (tweakType == "defs" or tweakType == "units") and index then
+			table.insert(tweaks, { name = name, type = tweakType, index = index, value = value })
 		end
 	end
 
 	table.sort(tweaks, function(a, b)
-		if a.type == 'defs' and b.type == 'units' then
+		if a.type == "defs" and b.type == "units" then
 			return true
-		elseif a.type == 'units' and b.type == 'defs' then
+		elseif a.type == "units" and b.type == "defs" then
 			return false
 		end
 		return a.index < b.index
 	end)
 
+	local shouldNormalizeUnitDefs = false
+
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
-		if tweak.type == 'defs' then
+		if tweak.type == "defs" then
 			local decodeSuccess, postsFuncStr = pcall(string.base64Decode, modOptions[name])
 			if decodeSuccess then
 				local postfunc, err = loadstring(postsFuncStr)
 				if err then
 					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
 				else
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
-						if not success then
+						if success then
+							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
+						else
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 						end
 					end
@@ -262,14 +284,15 @@ local function preProcessTweakOptions()
 				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
 			end
 		else
-			local success, tweakunits = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[name])
+			local success, tweakunits = pcall(BAR.Utilities.CustomKeyToUsefulTable, modOptions[name])
 			if success then
 				if type(tweakunits) == "table" then
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					for unitName, ud in pairs(UnitDefs) do
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
 							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
 						end
 					end
 				end
@@ -278,11 +301,17 @@ local function preProcessTweakOptions()
 			end
 		end
 	end
+
+	if shouldNormalizeUnitDefs then
+		for _, unitDef in pairs(UnitDefs) do
+			normalizeUnitDef(unitDef)
+		end
+	end
 end
 
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
-		UnitDef_Post(name, unitDef)
+		unitDef_Post(name, unitDef)
 	end
 end
 
@@ -297,15 +326,22 @@ local function postProcessScavengerUnitDefs()
 	end
 end
 
+local function exportYardmaps()
+	for _, unitDef in pairs(UnitDefs) do
+		if unitDef.yardmap then
+			unitDef.customparams.buildsquare_yardmap = unitDef.yardmap
+		end
+	end
+end
+
 --------------------------------------------------------------
 -- UnitDef processing
 --------------------------------------------------------------
 
-PrebakeUnitDefs()
+alldefs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
-
 
 preProcessTweakOptions()
 preProcessUnitDefs()
@@ -315,3 +351,4 @@ end
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
+exportYardmaps()

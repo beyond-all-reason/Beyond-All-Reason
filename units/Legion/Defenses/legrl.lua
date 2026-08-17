@@ -33,7 +33,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -68,12 +68,6 @@ return {
 				object = "Units/cor3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

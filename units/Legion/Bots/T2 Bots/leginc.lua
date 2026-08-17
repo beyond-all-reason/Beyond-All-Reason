@@ -32,7 +32,7 @@ return {
 		turnrate = 120,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Protar, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots/T2",
@@ -69,13 +69,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -109,7 +102,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 17,
+				energypershot = 10,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 100,
@@ -121,25 +114,23 @@ return {
 				predictboost = 0,
 				--proximitypriority = -1,
 				range = 725,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.55 0",
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3burn",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 16,
 					default = 33,
 					vtol = 11,
-				},
-				customparams = {
-					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 		},

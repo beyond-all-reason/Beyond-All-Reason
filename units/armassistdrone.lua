@@ -31,7 +31,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 740,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"armsolar",
 			"armadvsol",
@@ -65,23 +65,10 @@ return {
 			"armfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3-builder",
-				[2] = "airdeathceg2-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

@@ -32,18 +32,11 @@ return {
 		upright = true,
 		workertime = 400,
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
 			subfolder = "CorBuildings/LandUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -46,17 +46,10 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/SeaUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

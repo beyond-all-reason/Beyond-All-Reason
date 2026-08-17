@@ -38,7 +38,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'util',
+			unitgroup = "util",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -79,10 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

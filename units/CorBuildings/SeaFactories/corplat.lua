@@ -5,6 +5,7 @@ return {
 		buildpic = "CORPLAT.DDS",
 		buildtime = 11800,
 		canmove = true,
+		canReclaim = false,
 		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5500,
@@ -41,6 +42,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -56,13 +58,6 @@ return {
 				metal = 930,
 				object = "Units/corplat_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

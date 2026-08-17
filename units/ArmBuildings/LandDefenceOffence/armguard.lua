@@ -72,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -128,6 +123,7 @@ return {
 					exclude_preaim = true,
 					norangering = 1,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 300,
@@ -161,6 +157,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 300,

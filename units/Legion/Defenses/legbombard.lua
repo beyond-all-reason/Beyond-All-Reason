@@ -31,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -83,11 +83,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -138,21 +133,20 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				model = "legnade.s3o",
-				
-				
+
 				weaponacceleration = -0.3,
 				weapontimer = 0.01,
 				weapontype = "Cannon",
-				weaponvelocity = 700,				
+				weaponvelocity = 700,
 				startvelocity = 700,
-				
+
 				smoketrail = true,
 				smokePeriod = 100,
 				smoketime = 110,
 				smokesize = 27,
 				smokecolor = 0.70,
-				smokeTrailCastShadow = true,				
-				
+				smokeTrailCastShadow = true,
+
 				cegtag = "missiletrail-grenadesmoke",
 				areaofeffect = 124,
 				avoidfeature = false,
@@ -168,10 +162,10 @@ return {
 				bouncerebound = 0.40,
 				numbounce = 5,
 				groundbounce = true,
- 				collideenemy = true,
+				collideenemy = true,
 				collidefeature = false,
 				collideground = true,
- 				collidefriendly = false,
+				collidefriendly = false,
 				collidefirebase = false,
 				collideneutral = false,
 				flighttime = 2.05,
@@ -179,14 +173,14 @@ return {
 				gravityaffected = true,
 				waterbounce = true,
 				predictboost = 0.8,
+				customparams = {
+					noattackrangearc = 1,
+					exclude_preaim = true,
+				},
 				damage = {
 					default = 375,
 					subs = 300,
 				},
-				customparams = {
-					noattackrangearc= 1,
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

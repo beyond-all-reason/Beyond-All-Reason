@@ -30,7 +30,7 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 455,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorHovercraft",
@@ -79,11 +79,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

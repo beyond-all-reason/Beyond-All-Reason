@@ -29,20 +29,13 @@ return {
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {
-			unitgroup = 'antinuke',
+			unitgroup = "antinuke",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/chicken_l_normals.png",
 			removestop = true,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

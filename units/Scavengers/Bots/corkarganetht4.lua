@@ -22,7 +22,7 @@ return {
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corkarganetht4.s3o",
-		script = "Units/scavboss/corkarganetht4.COB",
+		script = "Units/scavboss/corkarganetht4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 550,
@@ -32,7 +32,7 @@ return {
 		turnrate = 457.20001,
 		upright = false,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorGantry",
@@ -52,13 +52,6 @@ return {
 				metal = 6000,
 				object = "Units/scavboss/corkarganetht4_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

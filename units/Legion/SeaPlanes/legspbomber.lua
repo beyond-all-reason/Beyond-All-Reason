@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 255,
 		metalcost = 240,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legspbomber.s3o",
 		script = "Units/legspbomber.cob",
@@ -40,20 +39,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/SeaPlanes",
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

@@ -1,6 +1,6 @@
 return {
 	legionnaire = {
-		maxacc= 0.35,
+		maxacc = 0.35,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0875,
@@ -15,7 +15,7 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		maxacc= 0.4,
+		maxacc = 0.4,
 		maxaileron = 0.016,
 		maxbank = 0.72,
 		health = 480,
@@ -39,24 +39,13 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -111,7 +100,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 2,
 				sprayangle = 125,
 				thickness = 0.6,
 				tolerance = 2400,
@@ -124,10 +112,9 @@ return {
 					vtol = 80,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
-
 		},
 		weapons = {
 			[1] = {

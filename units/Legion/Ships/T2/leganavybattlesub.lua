@@ -75,11 +75,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -108,8 +103,8 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				burst = 3;
-				burstrate = 0.33;
+				burst = 3,
+				burstrate = 0.33,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -124,7 +119,6 @@ return {
 				range = 600,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
-				soundhitvolume = 18,
 				soundstart = "torpedo1",
 				startvelocity = 200,
 				tolerance = 9000,

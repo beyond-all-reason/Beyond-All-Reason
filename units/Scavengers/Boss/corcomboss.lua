@@ -60,7 +60,7 @@ return {
 			[2] = "corkorg",
 		},
 		customparams = {
-			unitgroup = 'buildert4',
+			unitgroup = "buildert4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.01,
@@ -102,10 +102,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

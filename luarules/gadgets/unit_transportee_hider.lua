@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "09/02/10",
 		license = "PD",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -45,7 +45,18 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	-- accepts: CMD.LOAD_ONTO
 	local transportID = cmdParams[1]
 	toBeLoaded[unitID] = transportID

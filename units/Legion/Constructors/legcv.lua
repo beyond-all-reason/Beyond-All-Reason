@@ -73,7 +73,7 @@ return {
 			"leghive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
@@ -108,13 +108,6 @@ return {
 				object = "Units/cor3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

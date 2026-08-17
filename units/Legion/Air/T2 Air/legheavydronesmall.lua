@@ -16,7 +16,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		health = 2250,
+		health = 1650,
 		maxslope = 10,
 		speed = 180.5,
 		maxwaterdepth = 0,
@@ -36,11 +36,6 @@ return {
 			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -104,7 +99,7 @@ return {
 					vtol = 2,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 		},

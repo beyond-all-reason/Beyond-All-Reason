@@ -32,7 +32,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 265.64999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
@@ -72,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

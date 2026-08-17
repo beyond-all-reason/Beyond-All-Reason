@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			energymultiplier = 10, --Doesn't work for some reason. Acts like "energymultiplier = 1". Build cost is reduced 10x, until It's fixed.
 			model_author = "Yzch",
 			normaltex = "unittextures/leg_normal.dds",
@@ -55,13 +55,6 @@ return {
 				metal = 270,
 				object = "Units/scavbuildings/LEGWINT2_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

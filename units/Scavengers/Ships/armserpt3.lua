@@ -34,7 +34,7 @@ return {
 		upright = true,
 		waterline = 80, --45,
 		customparams = {
-			unitgroup = 'sub',
+			unitgroup = "sub",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",
@@ -69,13 +69,6 @@ return {
 				object = "Units/arm3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

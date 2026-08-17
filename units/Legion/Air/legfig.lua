@@ -39,22 +39,12 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
 			attacksafetydistance = 300,
 			fighter = 1,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -108,7 +98,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun3",
-				soundstartvolume = 3,
 				soundTrigger = true,
 				sprayangle = 500,
 				texture1 = "shot",

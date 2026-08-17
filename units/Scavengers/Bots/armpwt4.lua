@@ -32,7 +32,7 @@ return {
 		turnrate = 1200.44,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
@@ -59,10 +59,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

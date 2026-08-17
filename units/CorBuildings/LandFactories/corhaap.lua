@@ -5,6 +5,7 @@ return {
 		buildpic = "CORAAP.DDS",
 		buildtime = 92000,
 		canmove = true,
+		canReclaim = false,
 		corpse = "DEAD",
 		energycost = 65000,
 		energystorage = 1400,
@@ -78,13 +79,6 @@ return {
 				object = "Units/cor7X7B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -51,7 +51,7 @@ return {
 		reclaimable = false,
 		customparams = {
 			fall_damage_multiplier = 0,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
 			paratrooper = true,
@@ -60,10 +60,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:LootboxLightGold",
 				[2] = "custom:LootboxBeaconBronze",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

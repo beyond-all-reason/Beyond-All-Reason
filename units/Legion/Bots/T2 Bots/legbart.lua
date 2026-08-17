@@ -31,7 +31,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
@@ -72,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -115,19 +110,19 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				leadlimit = 0,
-				name = "HeavyCannon",
+				name = "Heavy Napalm Launcher",
 				noselfdamage = true,
 				projectiles = 2,
 				range = 625,
-				tolerance = 5000;
-				firetolerance = 5000;
+				tolerance = 5000,
+				firetolerance = 5000,
 				reloadtime = 4,
 				rgbcolor = "1 0.25 0.1",
 				size = 6,
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "cannhvy2",
-				sprayangle = 2500,
+				sprayangle = 1500,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
@@ -138,6 +133,7 @@ return {
 					area_onhit_damage = 60,
 					area_onhit_range = 75,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,

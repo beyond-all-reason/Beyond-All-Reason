@@ -38,10 +38,10 @@ return {
 		turnrate = 1214.40002,
 		workertime = 100,
 		buildoptions = {
-			[1] = "leginfestor"
+			[1] = "leginfestor",
 		},
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
@@ -78,13 +78,6 @@ return {
 				object = "Units/cor3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

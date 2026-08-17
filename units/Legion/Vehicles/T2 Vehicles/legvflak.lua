@@ -78,11 +78,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -109,7 +104,7 @@ return {
 			leg_t2_microflak_mobile = {
 				accuracy = 1000,
 				areaofeffect = 35,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,

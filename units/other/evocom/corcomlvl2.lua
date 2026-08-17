@@ -29,7 +29,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -42,7 +42,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOM" .. (Spring.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
@@ -89,7 +89,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -111,9 +111,10 @@ return {
 			shield_power = 1900,
 			shield_radius = 100,
 			effigy = "comeffigylvl1",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -161,10 +162,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -233,6 +230,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 215,
 					subs = 85,
@@ -272,6 +272,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 200,
 					subs = 100,
@@ -301,8 +304,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -310,11 +311,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor = {
@@ -368,7 +372,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

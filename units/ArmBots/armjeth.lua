@@ -24,7 +24,7 @@ return {
 		script = "Units/ARMJETH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 56.25,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -71,10 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

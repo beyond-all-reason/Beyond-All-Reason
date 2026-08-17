@@ -50,6 +50,8 @@ end
 
 ### Lua code practices
 
+#### Iterators and loops
+
 Use the correct iterator to loop over tables. Use `ipairs` for arrays and `pairs` for hash tables (and mixed types). Some performance-sensitive contexts might prefer `for` and/or `next`, instead.
 
 Some of our tables contain sequential integer IDs but also include ID 0 (and/or negatives), so you cannot use `ipairs`, which starts at index 1\. The WeaponDefs table is one example that requires a for loop, e.g. `for weaponDefID = 0, #WeaponDefs do <inner loop> end`.
@@ -67,6 +69,20 @@ You should prefer common functions, then, over potential shortcuts. For example,
 * Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.  
 * Do not keep throwaway debug code. Logging invalid or unexpected state is ok, as is debug code gated behind a debug flag.
 
+#### Lua 5.1 hard limits
+
+Lua 5.1 enforces two hard limits per function (including a file's top-level chunk):
+
+* **200 local variables** — all `local` declarations, loop variables, and parameters count. Exceeding this silently prevents the file from loading or produces `"function at line NNN has more than 200 local variables"`.
+* **60 upvalues** — variables captured from enclosing scopes by a closure. Exceeding this is a compile error.
+
+Plan for these limits **before** writing code. To stay under them:
+
+* Group related state into tables instead of separate locals.
+* Use `do ... end` blocks to scope temporary locals (they stop counting once the block ends).
+* Pass values as arguments instead of capturing upvalues.
+* Split large functions into smaller helpers.
+* Run `tools/count_locals.py` to audit counts before and after changes.
 
 #### Variable naming
 
@@ -76,8 +92,11 @@ You should prefer common functions, then, over potential shortcuts. For example,
 * Do not use abbreviations, with notable exceptions like `ID` for “identifier”.  
 * Do not use mathematical shorthands, with notable exceptions like “x” coordinates.  
 * Try, as much as possible, not to be unique. Use familiar names from similar code to your own.  
-* Do not pollute method signatures with “\_” as an excluded argument to call-ins.
+* Do not pollute method signatures with "\_" as an excluded argument to call-ins.
 
+### File encoding
+
+All Lua, RML, and RCSS files must be **UTF-8 without BOM**. A BOM (`EF BB BF`) causes Lua to fail to parse and RmlUI to silently ignore the file. Watch out for PowerShell's `Set-Content`/`Out-File`, which default to BOM-prefixed UTF-8.
 ## Licensing and versioning
 
 The license we use is “GNU GPL, v2 or later”.

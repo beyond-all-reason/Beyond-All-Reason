@@ -41,6 +41,7 @@ return {
 		turnrate = 701.79999,
 		customparams = {
 			basename = "base",
+			firestateoncloak = 0,
 			firingceg = "barrelshot-small",
 			kickback = "-0.65",
 			model_author = "FireStorm",
@@ -86,11 +87,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

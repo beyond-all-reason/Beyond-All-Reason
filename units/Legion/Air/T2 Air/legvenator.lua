@@ -1,6 +1,6 @@
 return {
 	legvenator = {
-		maxacc= 0.6,
+		maxacc = 0.6,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0675,
@@ -38,24 +38,13 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -101,19 +90,18 @@ return {
 				soundhit = "flakhit",
 				soundhitwet = "splshsml",
 				soundstart = "flakfire",
-				soundstartvolume = 6,
 				sprayangle = 200,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 8,
 					default = 24,
 					vtol = 480,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 		},

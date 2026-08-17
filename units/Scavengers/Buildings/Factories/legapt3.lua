@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGAP.DDS",
 		buildtime = 72400,
 		canmove = true,
+		canReclaim = false,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -14 -23",
 		collisionvolumescales = "220 66 100",
@@ -43,7 +44,8 @@ return {
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 19,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'buildert3',
+			unitgroup = "buildert3",
+			restrictions_inclusion = "_noair_",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/LandFactories",
@@ -76,13 +78,6 @@ return {
 				object = "Units/cor6X6B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

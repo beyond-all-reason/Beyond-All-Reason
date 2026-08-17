@@ -58,7 +58,7 @@ return {
 		wingangle = 0.06593,
 		wingdrag = 0.835,
 		workertime = 0,
-        hoverAttack = true,
+		hoverAttack = true,
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
@@ -67,13 +67,6 @@ return {
 			paralyzemultiplier = 0,
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",

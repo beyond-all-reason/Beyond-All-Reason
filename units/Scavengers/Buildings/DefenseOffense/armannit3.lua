@@ -39,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
@@ -80,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

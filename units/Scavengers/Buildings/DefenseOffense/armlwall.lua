@@ -39,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "armfort",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -85,10 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-lightning",
-				[2] = "deathceg4-lightning",
 			},
 		},
 		sounds = {

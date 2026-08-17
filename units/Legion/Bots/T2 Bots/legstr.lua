@@ -31,7 +31,7 @@ return {
 		turnrate = 800,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmGantry",
@@ -73,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -129,12 +124,11 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6heavy",
-				soundstartvolume = 2.5,
 				soundtrigger = true,
 				sprayangle = 1024,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 2.0;
+				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",

@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -19,7 +18,7 @@ local mathFloor = math.floor
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -29,13 +28,12 @@ local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
 local vsx, vsy = spGetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local useRenderToTexture = false  -- Disabled for now due to issues
 
 -- saved values
-local bar_side = 1     --left:0,top:2,right:1,bottom:3
+local bar_side = 1 --left:0,top:2,right:1,bottom:3
 local bar_horizontal = false --(not saved) if sides==top v bottom -> horizontal:=true  else-> horizontal:=false
-local bar_offset = 0     --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
-local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
+local bar_offset = 0 --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
+local bar_align = 1 --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
 
 -- list and interface vars
 local facs = {}
@@ -47,21 +45,22 @@ local pressedFac = -1
 local pressedBOpt = -1
 
 local dlists = {}
-local buildOptionsDlist = nil  -- Display list for build options menu
-local lastBuildOptionsMenu = -1  -- Track which factory's menu we cached
-local lastBuildQueue = {}  -- Track build queue state to detect changes
-local lastGuishaderMenu = -1  -- Track which menu guishader was created for
+local buildOptionsDlist = nil -- Display list for build options menu
+local lastBuildOptionsMenu = -1 -- Track which factory's menu we cached
+local lastBuildQueue = {} -- Track build queue state to detect changes
+local lastGuishaderMenu = -1 -- Track which menu guishader was created for
 
 -- render-to-texture state
 local factoryTex, buildOptionsTex
+local factoryTexW, factoryTexH = 0, 0 -- track texture dimensions for resize detection
 local updateFactoryTex = true
 local updateBuildOptionsTex = true
 local lastHoveredFac = -1
 local lastOpenedMenu = -1
 
 -- Track what each factory is building to detect changes
-local factoryBuildingUnit = {}  -- factoryUnitID -> unitDefID being built
-local factoryListChanged = true  -- Flag to trigger display list rebuild
+local factoryBuildingUnit = {} -- factoryUnitID -> unitDefID being built
+local factoryListChanged = true -- Flag to trigger display list rebuild
 
 -- factory icon rectangle
 local facRect = { -1, -1, -1, -1 }
@@ -84,22 +83,22 @@ for udid, unitDef in pairs(UnitDefs) do
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
 	if unitDef.iconType and orgIconTypes[unitDef.iconType] and orgIconTypes[unitDef.iconType].bitmap then
-		unitIcon[udid] = ':l:'..orgIconTypes[unitDef.iconType].bitmap
+		unitIcon[udid] = ":l:" .. orgIconTypes[unitDef.iconType].bitmap
 	end
 end
 orgIconTypes = nil
 
 local repeatPic = ":l:LuaUI/Images/repeat.png"
 
-local iconSizeY = 65		-- reset in ViewResize
+local iconSizeY = 65 -- reset in ViewResize
 local iconSizeX = iconSizeY
-local repIcoSize = mathFloor(iconSizeY * 0.6)   --repeat iconsize
+local repIcoSize = mathFloor(iconSizeY * 0.6) --repeat iconsize
 
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
 
-local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
-local unitOrder = {}	-- retrieves from buildmenu in initialize
+local groups, unitGroup = {}, {} -- retrieves from buildmenu in initialize
+local unitOrder = {} -- retrieves from buildmenu in initialize
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
 local factoriesArea, cornerSize, setInfoDisplayUnitID, setInfoDisplayUnitDefID, factoriesAreaHovered
@@ -128,23 +127,27 @@ local glTexRect = gl.TexRect
 local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+local anonymousTeamColor = {
+	Spring.GetConfigInt("anonymousColorR", 255) / 255,
+	Spring.GetConfigInt("anonymousColorG", 0) / 255,
+	Spring.GetConfigInt("anonymousColorB", 0) / 255,
+}
 
 -------------------------------------------------------------------------------
 -- SOUNDS
 -------------------------------------------------------------------------------
 
-local sound_click = 'LuaUI/Sounds/buildbar_click.wav'
-local sound_hover = 'LuaUI/Sounds/buildbar_hover.wav'
-local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
-local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
+local sound_click = "LuaUI/Sounds/buildbar_click.wav"
+local sound_hover = "LuaUI/Sounds/buildbar_hover.wav"
+local sound_queue_add = "LuaUI/Sounds/buildbar_add.wav"
+local sound_queue_rem = "LuaUI/Sounds/buildbar_rem.wav"
 
 -------------------------------------------------------------------------------
 -- SOME THINGS NEEDED IN DRAWINMINIMAP
 -------------------------------------------------------------------------------
 
 local function checkGuishader(force)
-	if WG['guishader'] and backgroundRect then
+	if WG.guishader and backgroundRect then
 		if force then
 			if dlistGuishader then
 				dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -154,13 +157,29 @@ local function checkGuishader(force)
 			end
 		end
 		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList( function()
-				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], elementCorner * ui_scale, 1,0,0,1)
+			dlistGuishader = gl.CreateList(function()
+				RectRound(
+					backgroundRect[1],
+					backgroundRect[2],
+					backgroundRect[3],
+					backgroundRect[4],
+					elementCorner * ui_scale,
+					1,
+					0,
+					0,
+					1
+				)
 			end)
 		end
 		if not dlistGuishader2 and backgroundOptionsRect then
-			dlistGuishader2 = gl.CreateList( function()
-				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
+			dlistGuishader2 = gl.CreateList(function()
+				RectRound(
+					backgroundOptionsRect[1],
+					backgroundOptionsRect[2],
+					backgroundOptionsRect[3],
+					backgroundOptionsRect[4],
+					elementCorner * ui_scale
+				)
 			end)
 		end
 	else
@@ -188,7 +207,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	font = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	iconSizeY = mathFloor((vsy / 19) * (1 + (ui_scale - 1) / 1.5))
 	iconSizeX = iconSizeY
@@ -203,6 +222,7 @@ function widget:ViewResize()
 		gl.DeleteTexture(buildOptionsTex)
 		buildOptionsTex = nil
 	end
+	factoryTexW, factoryTexH = 0, 0
 	updateFactoryTex = true
 	updateBuildOptionsTex = true
 
@@ -389,12 +409,12 @@ end
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG['buildmenu'] then
-		if WG['buildmenu'].getGroups then
-			groups, unitGroup = WG['buildmenu'].getGroups()
+	if WG.buildmenu then
+		if WG.buildmenu.getGroups then
+			groups, unitGroup = WG.buildmenu.getGroups()
 		end
-		if WG['buildmenu'].getOrder then
-			unitOrder = WG['buildmenu'].getOrder()
+		if WG.buildmenu.getOrder then
+			unitOrder = WG.buildmenu.getOrder()
 
 			-- order buildoptions
 			for uDefID, def in pairs(unitBuildOptions) do
@@ -413,6 +433,12 @@ function widget:Initialize()
 				unitBuildOptions[uDefID] = newBuildOptions
 			end
 		end
+	end
+
+	if not gl.R2tHelper then
+		Spring.Echo("BuildBar: gl.R2tHelper not available")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	widget:ViewResize()
@@ -437,7 +463,7 @@ function widget:Shutdown()
 		gl.DeleteList(dlists[i])
 	end
 	dlists = {}
-	
+
 	-- Clean up render-to-texture resources
 	if factoryTex then
 		gl.DeleteTexture(factoryTex)
@@ -447,10 +473,10 @@ function widget:Shutdown()
 		gl.DeleteTexture(buildOptionsTex)
 		buildOptionsTex = nil
 	end
-	
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('buildbar')
-		WG['guishader'].RemoveDlist('buildbar2')
+
+	if WG.guishader then
+		WG.guishader.RemoveDlist("buildbar")
+		WG.guishader.RemoveDlist("buildbar2")
 		if dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
@@ -519,13 +545,20 @@ local function drawTexRect(rect, texture, color)
 end
 
 local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
-	glColor(1,1,1,1)
+	glColor(1, 1, 1, 1)
 	UiUnit(
-		rect[1], rect[2], rect[3], rect[4],
+		rect[1],
+		rect[2],
+		rect[3],
+		rect[4],
 		cornerSize,
-		1,1,1,1,
+		1,
+		1,
+		1,
+		1,
 		zoom,
-		nil, nil,
+		nil,
+		nil,
 		tex,
 		(not isfactory and unitIcon[udid] or nil),
 		groups[unitGroup[udid]],
@@ -535,23 +568,34 @@ local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
 end
 
 local function drawOptionsBackground()
-	local addDist = math_floor(bgpadding*0.5)
-	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - mathFloor(bgpadding/2), boptRect[2]+addDist}
-	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
+	local addDist = math_floor(bgpadding * 0.5)
+	backgroundOptionsRect =
+		{ boptRect[1] - addDist, boptRect[4] - addDist, boptRect[3] - mathFloor(bgpadding / 2), boptRect[2] + addDist }
+	UiElement(
+		backgroundOptionsRect[1],
+		backgroundOptionsRect[2],
+		backgroundOptionsRect[3],
+		backgroundOptionsRect[4],
+		1,
+		1,
+		1,
+		1
+	)
 end
 
 local function drawBackground()
-	local addDist = math_floor(bgpadding*0.5)
-	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
-	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
+	local addDist = math_floor(bgpadding * 0.5)
+	backgroundRect =
+		{ factoriesArea[1] - addDist, factoriesArea[4] - addDist, factoriesArea[3], factoriesArea[2] + addDist }
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 0, 0, 1)
 end
 
-local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
+local function drawButton(rect, unitDefID, options, isFac) -- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
 	cornerSize = (rect[3] - rect[1]) * 0.03
 
 	-- hover or pressed?
 	local zoom = 0.04
-	local hoverPadding = bgpadding*0.5
+	local hoverPadding = bgpadding * 0.5
 	local iconAlpha = (options.alpha or 1)
 	if options.pressed then
 		iconAlpha = 1
@@ -560,30 +604,57 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		iconAlpha = 1
 		zoom = 0.12
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', UnitDefs[unitDefID].translatedTooltip, nil, nil, UnitDefs[unitDefID].translatedHumanName)
+			WG.tooltip.ShowTooltip(
+				"buildbar",
+				UnitDefs[unitDefID].translatedTooltip,
+				nil,
+				nil,
+				UnitDefs[unitDefID].translatedHumanName
+			)
 		end
 	end
 
 	-- draw icon
-	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
-	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, '#' ..unitDefID , {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount)
+	local imgRect =
+		{ rect[1] + (hoverPadding * 1), rect[2] - hoverPadding, rect[3] - (hoverPadding * 1), rect[4] + hoverPadding }
+	drawIcon(
+		unitDefID,
+		{ imgRect[1], imgRect[4], imgRect[3], imgRect[2] },
+		"#" .. unitDefID,
+		{ 1, 1, 1, iconAlpha },
+		zoom,
+		(unitBuildOptions[unitDefID] ~= nil),
+		options.amount
+	)
 
 	-- Progress
-	if (options.progress and options.progress < 1) then
+	if options.progress and options.progress < 1 then
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, options.progress, { 1, 1, 1, 0.22 })
+		RectRoundProgress(
+			imgRect[1],
+			imgRect[4],
+			imgRect[3],
+			imgRect[2],
+			cornerSize,
+			options.progress,
+			{ 1, 1, 1, 0.22 }
+		)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
 	-- loop status?
-	if options['repeat'] then
+	if options["repeat"] then
 		local color = { 1, 1, 1, 0.8 }
 		if options.hovered_repeat then
 			color = { 1, 1, 1, 0.65 }
 		end
 		glTexture(repeatPic)
 		glColor(1, 1, 1, 0.65)
-		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+		drawTexRect(
+			{ imgRect[3] - repIcoSize - 4, imgRect[2] - 4, imgRect[3] - 4, imgRect[2] - repIcoSize - 4 },
+			repeatPic,
+			color
+		)
 	elseif isFac then
 		local color = { 1, 1, 1, 0.35 }
 		if options.hovered_repeat then
@@ -591,15 +662,17 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		end
 		glTexture(repeatPic)
 		glColor(1, 1, 1, 0.5)
-		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+		drawTexRect(
+			{ imgRect[3] - repIcoSize - 4, imgRect[2] - 4, imgRect[3] - 4, imgRect[2] - repIcoSize - 4 },
+			repeatPic,
+			color
+		)
 	end
 
 	-- amount is now handled by UiUnit internally with proper background
 	glTexture(false)
-	glColor(1,1,1,1)
+	glColor(1, 1, 1, 1)
 end
-
-
 
 local function mouseOverIcon(x, y)
 	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
@@ -647,7 +720,6 @@ end
 
 local sec = 0
 function widget:Update(dt)
-
 	if spGetGameFrame() > 0 and spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
@@ -655,40 +727,42 @@ function widget:Update(dt)
 		myTeamID = spGetMyTeamID()
 		updateFactoryList()
 	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		openedMenu = -1
 		return false
 	end
 
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
-	if ((lb or mb or rb) and openedMenu == -1) then
+	if (lb or mb or rb) and openedMenu == -1 then
 		return false
 	end
 
 	hoveredFac = mouseOverIcon(mx, my)
 	hoveredBOpt = mouseOverSubIcon(mx, my)
 	-- set hover unitdef id for buildmenu so info widget can show it
-	if WG['info'] then
+	if WG.info then
 		if hoveredFac >= 0 then
-			if(not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID))then
-				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+			if
+				not setInfoDisplayUnitID or (hoveredBOpt < 0 and setInfoDisplayUnitID ~= facs[hoveredFac + 1].unitID)
+			then
+				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitID = facs[hoveredFac + 1].unitID
-				WG['info'].displayUnitID(setInfoDisplayUnitID)
+				WG.info.displayUnitID(setInfoDisplayUnitID)
 			end
 		elseif hoveredBOpt >= 0 then
-			if(setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1])then
-				Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
+			if setInfoDisplayUnitID and setInfoDisplayUnitDefID ~= facs[openedMenu + 1].buildList[hoveredBOpt + 1] then
+				Spring.PlaySoundFile(sound_hover, 0.8, "ui")
 				setInfoDisplayUnitDefID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-				WG['info'].displayUnitDefID(setInfoDisplayUnitDefID)
+				WG.info.displayUnitDefID(setInfoDisplayUnitDefID)
 			end
 		else
 			if setInfoDisplayUnitID then
 				setInfoDisplayUnitID = nil
-				WG['info'].clearDisplayUnitID()
+				WG.info.clearDisplayUnitID()
 			end
 			if setInfoDisplayUnitDefID then
 				setInfoDisplayUnitDefID = nil
-				WG['info'].clearDisplayUnitDefID()
+				WG.info.clearDisplayUnitDefID()
 			end
 		end
 	end
@@ -698,20 +772,25 @@ function widget:Update(dt)
 		if not moffscreen then
 			openedMenu = hoveredFac
 		end
-	elseif not (openedMenu >= 0 and (isInRect(mx, my, boptRect) or (buildoptionsArea and isInRect(mx, my, buildoptionsArea)))) then
+	elseif
+		not (
+			openedMenu >= 0
+			and (isInRect(mx, my, boptRect) or (buildoptionsArea and isInRect(mx, my, buildoptionsArea)))
+		)
+	then
 		openedMenu = -1
 	end
 
 	sec = sec + dt
 	local doupdate = false
-	
+
 	-- Check if factory list changed (factories created/destroyed)
 	if factoryListChanged then
 		factoryListChanged = false
 		doupdate = true
 		updateFactoryTex = true
 	end
-	
+
 	-- Check if hover state changed
 	if hoveredFac ~= lastHoveredFac or openedMenu ~= lastOpenedMenu then
 		doupdate = true
@@ -722,11 +801,11 @@ function widget:Update(dt)
 			updateBuildOptionsTex = true
 		end
 	end
-	
+
 	-- Only check for building unit changes less frequently to save performance
 	if sec > 0.5 then
 		sec = 0
-		
+
 		-- Check if any factory changed what it's building
 		local buildingChanged = false
 		for i, facInfo in ipairs(facs) do
@@ -735,20 +814,20 @@ function widget:Update(dt)
 			if unitBuildID then
 				currentBuildDefID = GetUnitDefID(unitBuildID)
 			end
-			
+
 			-- Compare with previously tracked value
 			if factoryBuildingUnit[facInfo.unitID] ~= currentBuildDefID then
 				factoryBuildingUnit[facInfo.unitID] = currentBuildDefID
 				buildingChanged = true
 			end
 		end
-		
+
 		if buildingChanged then
 			doupdate = true
 			updateFactoryTex = true
 		end
 	end
-	
+
 	if factoriesArea ~= nil then
 		if not moffscreen then
 			if isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
@@ -767,27 +846,26 @@ function widget:Update(dt)
 
 	if doupdate then
 		sec = 0
-		
+
 		setupDimensions(#facs)
 		setupSubDimensions()
 		for i = 1, #dlists do
 			gl.DeleteList(dlists[i])
 		end
 		dlists = {}
-		
+
 		-- If no factories, just clear and return
 		if #facs == 0 then
 			factoriesArea = nil
 			return
 		end
-		
+
 		local dlistsCount = 1
 		factoriesArea = nil
 
 		-- draw factory list
 		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		for i, facInfo in ipairs(facs) do
-
 			local unitDefID = facInfo.unitDefID
 			local options = {}
 
@@ -802,7 +880,7 @@ function widget:Update(dt)
 				-- Show the unit being built instead of factory icon
 				unitDefID = unitBuildDefID
 				-- Progress will be drawn separately every frame
-			elseif (unfinished_facs[facInfo.unitID]) then
+			elseif unfinished_facs[facInfo.unitID] then
 				local isBeingBuilt, progress = GetUnitIsBeingBuilt(facInfo.unitID)
 				-- Keep showing factory icon when it's being built
 				-- Progress for unfinished factory will be drawn separately
@@ -812,14 +890,15 @@ function widget:Update(dt)
 			end
 			-- repeat mode?
 			if select(4, GetUnitStates(facInfo.unitID, false, true)) then
-				options['repeat'] = true
+				options["repeat"] = true
 			else
-				options['repeat'] = false
+				options["repeat"] = false
 			end
 			-- hover or pressed?
 			if not moffscreen and i == hoveredFac + 1 then
-				options.hovered_repeat = isInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
-				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
+				options.hovered_repeat =
+					isInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
+				options.pressed = (lb or mb or rb) or options.hovered_repeat
 				options.hovered = true
 			end
 			-- border
@@ -839,24 +918,30 @@ function widget:Update(dt)
 
 		if factoriesArea then
 			dlists[1] = gl.CreateList(drawBackground)
-			if WG['guishader'] then
+			if WG.guishader then
 				if hoveredFac >= 0 then
-					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
+					dlists[dlistsCount + 1] = gl.CreateList(drawOptionsBackground)
 
 					if dlistGuishader2 then
 						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 					end
-					dlistGuishader2 = gl.CreateList( function()
-						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
+					dlistGuishader2 = gl.CreateList(function()
+						RectRound(
+							backgroundOptionsRect[1],
+							backgroundOptionsRect[2],
+							backgroundOptionsRect[3],
+							backgroundOptionsRect[4],
+							elementCorner * ui_scale
+						)
 					end)
 
 					if dlistGuishader2 then
-						WG['guishader'].RemoveDlist('buildbar2')
-						WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+						WG.guishader.RemoveDlist("buildbar2")
+						WG.guishader.InsertDlist(dlistGuishader2, "buildbar2")
 					end
 				else
 					backgroundOptionsRect = nil
-					WG['guishader'].RemoveDlist('buildbar2')
+					WG.guishader.RemoveDlist("buildbar2")
 				end
 			end
 		end
@@ -903,13 +988,13 @@ local function renderFactoryProgressOverlays()
 	-- Draw progress overlays on top (needs to update every frame)
 	if factoriesArea and #facs > 0 then
 		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
-		local hoverPadding = bgpadding*0.5
+		local hoverPadding = bgpadding * 0.5
 		local cornerSize = (fac_rec[3] - fac_rec[1]) * 0.03
-		
+
 		for i, facInfo in ipairs(facs) do
 			local progress = nil
 			local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
-			
+
 			if unitBuildID then
 				-- Factory is building a unit
 				local _, prog = GetUnitIsBeingBuilt(unitBuildID)
@@ -923,14 +1008,27 @@ local function renderFactoryProgressOverlays()
 					progress = prog
 				end
 			end
-			
+
 			-- Draw progress overlay if building (always draw if we have progress, even if it's 1.0 briefly)
 			if progress then
-				local imgRect = { fac_rec[1] + (hoverPadding*1), fac_rec[2] - hoverPadding, fac_rec[3] - (hoverPadding*1), fac_rec[4] + hoverPadding }
+				local imgRect = {
+					fac_rec[1] + (hoverPadding * 1),
+					fac_rec[2] - hoverPadding,
+					fac_rec[3] - (hoverPadding * 1),
+					fac_rec[4] + hoverPadding,
+				}
 				-- Use normal alpha blending to avoid brightening the icon
-				RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, progress, { 1, 1, 1, 0.6 })
+				RectRoundProgress(
+					imgRect[1],
+					imgRect[4],
+					imgRect[3],
+					imgRect[2],
+					cornerSize,
+					progress,
+					{ 1, 1, 1, 0.6 }
+				)
 			end
-			
+
 			-- setup next icon pos
 			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
@@ -942,18 +1040,19 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 	if not factoriesArea then
 		return
 	end
-	
+
 	-- Check if we should draw build options at all
 	-- Draw if: hovering factory area, hovering build options area, OR a menu is opened
 	local shouldDraw = isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })
 	if not shouldDraw and buildoptionsArea then
-		shouldDraw = isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })
+		shouldDraw =
+			isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })
 	end
 	if not shouldDraw and openedMenu >= 0 then
 		-- Keep menu visible even if mouse temporarily outside (until Update closes it)
 		shouldDraw = true
 	end
-	
+
 	if not shouldDraw then
 		buildoptionsArea = nil
 		if buildOptionsDlist then
@@ -963,13 +1062,13 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 		end
 		return
 	end
-	
+
 	-- Recalculate which build option is hovered (needs to be every frame)
 	local hoveredBOptNow = mouseOverSubIcon(mx, my)
-	
+
 	-- Check if we need to rebuild the build options display list
 	local needsRebuild = (openedMenu ~= lastBuildOptionsMenu)
-	
+
 	-- Check if build queue changed (need to rebuild for queue numbers and progress)
 	if not needsRebuild and openedMenu >= 0 then
 		local facInfo = facs[openedMenu + 1]
@@ -980,7 +1079,7 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			if unitBuildID then
 				unitBuildDefID = GetUnitDefID(unitBuildID)
 			end
-			
+
 			-- Check if the build queue changed
 			local queueChanged = false
 			if lastBuildQueue[facInfo.unitID] then
@@ -1003,27 +1102,27 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			else
 				queueChanged = true
 			end
-			
+
 			-- Check if what's being built changed (for progress bar)
 			if factoryBuildingUnit[facInfo.unitID] ~= unitBuildDefID then
 				queueChanged = true
 			end
-			
+
 			if queueChanged then
 				needsRebuild = true
 			end
 		end
 	end
-	
+
 	if needsRebuild then
 		-- Rebuild display list for new menu
 		if buildOptionsDlist then
 			gl.DeleteList(buildOptionsDlist)
 		end
 		lastBuildOptionsMenu = openedMenu
-		
+
 		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
-		
+
 		-- Calculate buildoptionsArea outside display list so it's accessible
 		buildoptionsArea = nil
 		for i, facInfo in ipairs(facs) do
@@ -1034,7 +1133,7 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 					if buildoptionsArea == nil then
 						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
 					else
-						buildoptionsArea[1] = bopt_rec[1]  -- Update left edge to extend menu area
+						buildoptionsArea[1] = bopt_rec[1] -- Update left edge to extend menu area
 					end
 					offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 				end
@@ -1042,22 +1141,37 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			end
 			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
-		
+
 		-- Reset position for display list
 		fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
-		
+
 		buildOptionsDlist = gl.CreateList(function()
 			for i, facInfo in ipairs(facs) do
 				-- draw build list
 				if i == openedMenu + 1 then
 					-- draw buildoptions
-					local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+					local bopt_rec =
+						rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 					-- Draw background for build options first
 					if boptRect then
-						local addDist = math_floor(bgpadding*0.5)
-						backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - mathFloor(bgpadding/2), boptRect[2]+addDist}
-						UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
+						local addDist = math_floor(bgpadding * 0.5)
+						backgroundOptionsRect = {
+							boptRect[1] - addDist,
+							boptRect[4] - addDist,
+							boptRect[3] - mathFloor(bgpadding / 2),
+							boptRect[2] + addDist,
+						}
+						UiElement(
+							backgroundOptionsRect[1],
+							backgroundOptionsRect[2],
+							backgroundOptionsRect[3],
+							backgroundOptionsRect[4],
+							1,
+							1,
+							1,
+							1
+						)
 					end
 
 					local buildList = facInfo.buildList
@@ -1067,7 +1181,7 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 					if unitBuildID then
 						unitBuildDefID = GetUnitDefID(unitBuildID)
 					end
-					
+
 					for j, unitDefID in ipairs(buildList) do
 						local unitDefID = unitDefID
 						local options = {}
@@ -1081,12 +1195,12 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 						offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 					end
 				end
-				
+
 				-- setup next icon pos
 				offsetRect(fac_rec, fac_inext[1], fac_inext[2])
 			end
 		end)
-		
+
 		-- Save current build queue state and building unit for this factory
 		if openedMenu >= 0 then
 			local facInfo = facs[openedMenu + 1]
@@ -1097,7 +1211,7 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 				for unitDefID, count in pairs(buildQueue) do
 					lastBuildQueue[facInfo.unitID][unitDefID] = count
 				end
-				
+
 				-- Save what unit is being built
 				local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
 				if unitBuildID then
@@ -1108,12 +1222,12 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			end
 		end
 	end
-	
+
 	-- Draw cached display list
 	if buildOptionsDlist then
 		gl.CallList(buildOptionsDlist)
 	end
-	
+
 	-- Draw progress overlays and queue amounts on top (updates every frame)
 	if openedMenu >= 0 then
 		local facInfo = facs[openedMenu + 1]
@@ -1121,63 +1235,107 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 			-- Offset to correct factory
 			offsetRect(fac_rec, fac_inext[1] * openedMenu, fac_inext[2] * openedMenu)
-			
+
 			local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
-			
+
 			local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
 			local unitBuildDefID
 			if unitBuildID then
 				unitBuildDefID = GetUnitDefID(unitBuildID)
 			end
-			
+
 			local buildQueue = getBuildQueue(facInfo.unitID)
 			local buildList = facInfo.buildList
-			
+
 			-- First pass: Draw queue numbers
 			for j, unitDefID in ipairs(buildList) do
 				local queueAmount = buildQueue[unitDefID]
 				if queueAmount and queueAmount > 0 then
-					local hoverPadding = bgpadding*0.5
-					local imgRect = { bopt_rec[1] + (hoverPadding*1), bopt_rec[2] - hoverPadding, bopt_rec[3] - (hoverPadding*1), bopt_rec[4] + hoverPadding }
+					local hoverPadding = bgpadding * 0.5
+					local imgRect = {
+						bopt_rec[1] + (hoverPadding * 1),
+						bopt_rec[2] - hoverPadding,
+						bopt_rec[3] - (hoverPadding * 1),
+						bopt_rec[4] + hoverPadding,
+					}
 					local cellInnerSize = imgRect[3] - imgRect[1]
-					
+
 					-- Draw queue number (matching buildmenu style, scaled 1.26x - which is 1.5 * 0.84)
 					-- imgRect: [1]=left, [2]=top-padding (higher Y), [3]=right, [4]=bottom+padding (lower Y)
 					-- So imgRect[2] is actually the top edge in screen coords
 					local scaleMult = 1.26
 					local pad = math_floor(cellInnerSize * 0.03 * scaleMult)
-					local textWidth = math_floor(font:GetTextWidth(queueAmount .. '  ') * cellInnerSize * 0.285 * scaleMult)
+					local textWidth =
+						math_floor(font:GetTextWidth(queueAmount .. "  ") * cellInnerSize * 0.285 * scaleMult)
 					local pad2 = 0
-					
+
 					-- Pre-calculate pixel-aligned coordinates: floor left/bottom, ceil top/right for sharp edges
 					local rectLeft = math_floor(imgRect[3] - textWidth - pad2)
 					local rectTop = math_ceil(imgRect[2])
 					local rectRight = math_ceil(imgRect[3])
 					local rectHeight1 = math_floor(cellInnerSize * 0.365 * scaleMult)
 					local rectHeight2 = math_floor(cellInnerSize * 0.15 * scaleMult)
-					
+
 					-- Main background (dark)
-					RectRound(rectLeft, rectTop - rectHeight1, rectRight, rectTop, cornerSize * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+					RectRound(
+						rectLeft,
+						rectTop - rectHeight1,
+						rectRight,
+						rectTop,
+						cornerSize * 3.3,
+						0,
+						0,
+						0,
+						1,
+						{ 0.15, 0.15, 0.15, 0.95 },
+						{ 0.25, 0.25, 0.25, 0.95 }
+					)
 					-- Top highlight
-					RectRound(rectLeft, rectTop - rectHeight2, rectRight, rectTop, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
+					RectRound(
+						rectLeft,
+						rectTop - rectHeight2,
+						rectRight,
+						rectTop,
+						0,
+						0,
+						0,
+						0,
+						0,
+						{ 1, 1, 1, 0 },
+						{ 1, 1, 1, 0.05 }
+					)
 					-- Inner border
-					RectRound(rectLeft + pad, rectTop - rectHeight1 + pad, rectRight, rectTop, cornerSize * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
-					
+					RectRound(
+						rectLeft + pad,
+						rectTop - rectHeight1 + pad,
+						rectRight,
+						rectTop,
+						cornerSize * 2.6,
+						0,
+						0,
+						0,
+						1,
+						{ 0.7, 0.7, 0.7, 0.1 },
+						{ 1, 1, 1, 0.1 }
+					)
+
 					-- Text
 					font:Begin()
-					font:Print("\255\190\255\190" .. queueAmount,
+					font:Print(
+						"\255\190\255\190" .. queueAmount,
 						imgRect[1] + math_floor(cellInnerSize * 0.96) - pad2,
 						imgRect[2] - math_floor(cellInnerSize * 0.265 * scaleMult) - pad2,
-						cellInnerSize * 0.29 * scaleMult, "ro"
+						cellInnerSize * 0.29 * scaleMult,
+						"ro"
 					)
 					font:End()
 					glColor(1, 1, 1, 1)
 				end
-				
+
 				-- Move to next icon position
 				offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 			end
-			
+
 			-- Second pass: Draw progress overlays on top of queue numbers
 			bopt_rec = rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 			for j, unitDefID in ipairs(buildList) do
@@ -1185,21 +1343,34 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 				if unitDefID == unitBuildDefID and unitBuildID then
 					local _, progress = GetUnitIsBeingBuilt(unitBuildID)
 					if progress then
-						local hoverPadding = bgpadding*0.5
-						local imgRect = { bopt_rec[1] + (hoverPadding*1), bopt_rec[2] - hoverPadding, bopt_rec[3] - (hoverPadding*1), bopt_rec[4] + hoverPadding }
+						local hoverPadding = bgpadding * 0.5
+						local imgRect = {
+							bopt_rec[1] + (hoverPadding * 1),
+							bopt_rec[2] - hoverPadding,
+							bopt_rec[3] - (hoverPadding * 1),
+							bopt_rec[4] + hoverPadding,
+						}
 						local cornerSize = (bopt_rec[3] - bopt_rec[1]) * 0.03
-						
+
 						-- Draw progress overlay
-						RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, progress, { 1, 1, 1, 0.6 })
+						RectRoundProgress(
+							imgRect[1],
+							imgRect[4],
+							imgRect[3],
+							imgRect[2],
+							cornerSize,
+							progress,
+							{ 1, 1, 1, 0.6 }
+						)
 					end
 				end
-				
+
 				-- Move to next icon position
 				offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 			end
 		end
 	end
-	
+
 	-- Draw hover highlights on top (cheap overlay)
 	if hoveredBOptNow >= 0 and openedMenu >= 0 then
 		local facInfo = facs[openedMenu + 1]
@@ -1207,29 +1378,40 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 			local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 			-- Offset to correct factory
 			offsetRect(fac_rec, fac_inext[1] * openedMenu, fac_inext[2] * openedMenu)
-			
+
 			local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 			-- Offset to hovered option
 			offsetRect(bopt_rec, bopt_inext[1] * hoveredBOptNow, bopt_inext[2] * hoveredBOptNow)
-			
+
 			-- Draw hover highlight (just a subtle overlay)
-			local hoverPadding = bgpadding*0.5
-			local imgRect = { bopt_rec[1] + (hoverPadding*1), bopt_rec[2] - hoverPadding, bopt_rec[3] - (hoverPadding*1), bopt_rec[4] + hoverPadding }
+			local hoverPadding = bgpadding * 0.5
+			local imgRect = {
+				bopt_rec[1] + (hoverPadding * 1),
+				bopt_rec[2] - hoverPadding,
+				bopt_rec[3] - (hoverPadding * 1),
+				bopt_rec[4] + hoverPadding,
+			}
 			local cornerSize = (bopt_rec[3] - bopt_rec[1]) * 0.03
-			
+
 			-- Draw subtle highlight border
 			glColor(1, 1, 1, 0.3)
 			RectRound(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize)
 			glColor(1, 1, 1, 1)
-			
+
 			-- Set tooltip
 			local unitDefID = facInfo.buildList[hoveredBOptNow + 1]
 			if unitDefID and WG.tooltip then
-				WG.tooltip.ShowTooltip('buildbar', UnitDefs[unitDefID].translatedTooltip, nil, nil, UnitDefs[unitDefID].translatedHumanName)
+				WG.tooltip.ShowTooltip(
+					"buildbar",
+					UnitDefs[unitDefID].translatedTooltip,
+					nil,
+					nil,
+					UnitDefs[unitDefID].translatedHumanName
+				)
 			end
 		end
 	end
-	
+
 	-- Set factory tooltip if hovering factory (not build option)
 	if hoveredBOptNow < 0 and hoveredFac >= 0 then
 		local facInfo = facs[hoveredFac + 1]
@@ -1240,24 +1422,29 @@ local function renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
 				unitDefID = GetUnitDefID(unitBuildID)
 			end
 			if unitDefID and WG.tooltip then
-				WG.tooltip.ShowTooltip('buildbar', UnitDefs[unitDefID].translatedTooltip, nil, nil, UnitDefs[unitDefID].translatedHumanName)
+				WG.tooltip.ShowTooltip(
+					"buildbar",
+					UnitDefs[unitDefID].translatedTooltip,
+					nil,
+					nil,
+					UnitDefs[unitDefID].translatedHumanName
+				)
 			end
 		end
 	end
 end
 
 function widget:DrawScreen()
-
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
-	if WG['guishader'] then
+	if WG.guishader then
 		if #dlists == 0 then
 			if dlistGuishader then
-				WG['guishader'].RemoveDlist('buildbar')
+				WG.guishader.RemoveDlist("buildbar")
 			end
 		else
 			if dlistGuishader then
-				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
+				WG.guishader.InsertDlist(dlistGuishader, "buildbar")
 			end
 		end
 	end
@@ -1267,88 +1454,111 @@ function widget:DrawScreen()
 		return
 	end
 
-	-- Use render-to-texture for better performance
-	if useRenderToTexture and factoriesArea and #dlists > 0 then
+	-- Render factory icons via render-to-texture
+	if factoriesArea and #dlists > 0 then
 		-- Create/update factory texture if needed
 		if updateFactoryTex then
-			local width = mathAbs(factoriesArea[3] - factoriesArea[1])
-			local height = mathAbs(factoriesArea[4] - factoriesArea[2])
-			
+			local width = math_floor(mathAbs(factoriesArea[3] - factoriesArea[1]))
+			local height = math_floor(mathAbs(factoriesArea[4] - factoriesArea[2]))
+
+			-- Recreate texture if dimensions changed
+			if factoryTex and (width ~= factoryTexW or height ~= factoryTexH) then
+				gl.DeleteTexture(factoryTex)
+				factoryTex = nil
+			end
+
 			if not factoryTex and width > 0 and height > 0 then
-				factoryTex = gl.CreateTexture(math_floor(width), math_floor(height), {
+				factoryTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
+				factoryTexW = width
+				factoryTexH = height
 			end
-			
+
 			if factoryTex then
-				gl.R2tHelper.RenderToTexture(factoryTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / mathAbs(factoriesArea[3] - factoriesArea[1]), 2 / mathAbs(factoriesArea[4] - factoriesArea[2]), 0)
-						gl.Translate(-factoriesArea[1], -factoriesArea[2], 0)
-						renderFactoryList()
-					end,
-					useRenderToTexture
+				-- factoriesArea is {left, top, right, bottom} where [2] > [4]
+				-- NDC transform needs min Y as origin so bottom maps to -1 and top to +1
+				local areaX = factoriesArea[1]
+				local areaY = factoriesArea[4] -- min Y (bottom)
+				local areaW = factoriesArea[3] - factoriesArea[1]
+				local areaH = factoriesArea[2] - factoriesArea[4]
+				gl.R2tHelper.RenderInRect(
+					factoryTex,
+					areaX,
+					areaY,
+					areaX + areaW,
+					areaY + areaH,
+					renderFactoryList,
+					true
 				)
 				updateFactoryTex = false
 			end
 		end
-		
+
 		-- Draw factory texture
 		if factoryTex then
-			gl.R2tHelper.BlendTexRect(factoryTex, factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4], useRenderToTexture)
+			gl.R2tHelper.BlendTexRect(
+				factoryTex,
+				factoriesArea[1],
+				factoriesArea[4],
+				factoriesArea[3],
+				factoriesArea[2],
+				true
+			)
 		end
-		
-		-- Draw build options (not cached since it changes often with mouse hover)
-		if (isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-			(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
-			renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
-		else
-			buildoptionsArea = nil
+
+		-- Progress overlays update every frame on top of the cached texture
+		renderFactoryProgressOverlays()
+	end
+
+	-- Build options menu (shared by both R2T and fallback paths)
+	if
+		(
+			factoriesArea ~= nil
+			and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })
+		)
+		or (buildoptionsArea ~= nil and isInRect(
+			mx,
+			my,
+			{ buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] }
+		))
+		or (openedMenu >= 0)
+	then
+		renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
+
+		-- Update guishader for build options background only when menu changes
+		if WG.guishader and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
+			if dlistGuishader2 then
+				dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+			end
+			dlistGuishader2 = gl.CreateList(function()
+				RectRound(
+					backgroundOptionsRect[1],
+					backgroundOptionsRect[2],
+					backgroundOptionsRect[3],
+					backgroundOptionsRect[4],
+					elementCorner * ui_scale
+				)
+			end)
+			if dlistGuishader2 then
+				WG.guishader.RemoveDlist("buildbar2")
+				WG.guishader.InsertDlist(dlistGuishader2, "buildbar2")
+			end
+			lastGuishaderMenu = openedMenu
 		end
 	else
-		-- Fallback to display lists (when R2T disabled or not ready yet)
-		-- Draw display lists (factory icons and background)
-		renderFactoryList()
-		
-		-- Draw progress overlays on top (updates every frame)
-		renderFactoryProgressOverlays()
-
-		-- draw build options menu
-		if (factoriesArea ~= nil and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-			(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) or
-			(openedMenu >= 0) then
-			renderBuildOptions(mx, my, lb, mb, rb, moffscreen)
-			
-			-- Update guishader for build options background only when menu changes
-			if WG['guishader'] and backgroundOptionsRect and openedMenu >= 0 and lastGuishaderMenu ~= openedMenu then
-				if dlistGuishader2 then
-					dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-				end
-				dlistGuishader2 = gl.CreateList( function()
-					RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
-				end)
-				if dlistGuishader2 then
-					WG['guishader'].RemoveDlist('buildbar2')
-					WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
-				end
-				lastGuishaderMenu = openedMenu
-			end
-		else
-			buildoptionsArea = nil
-			backgroundOptionsRect = nil
-			if WG['guishader'] then
-				WG['guishader'].RemoveDlist('buildbar2')
-			end
-			lastGuishaderMenu = -1
+		buildoptionsArea = nil
+		backgroundOptionsRect = nil
+		if WG.guishader then
+			WG.guishader.RemoveDlist("buildbar2")
 		end
+		lastGuishaderMenu = -1
 	end
 end
 
 function widget:DrawWorld()
-
 	-- Draw factories command lines
 	if openedMenu >= 0 then
 		local fac = facs[openedMenu + 1]
@@ -1427,13 +1637,13 @@ local function menuHandler(x, y, button)
 				onoff = { 0 }
 			end
 			spGiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
-			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
+			Spring.PlaySoundFile(sound_click, 0.8, "ui")
 		else
 			Spring.SelectUnitArray({ factoryUnitID })
 		end
 	elseif button == 3 then
 		Spring.SelectUnitArray({ factoryUnitID })
-		Spring.SetCameraTarget( Spring.GetUnitPosition(factoryUnitID) )
+		Spring.SetCameraTarget(Spring.GetUnitPosition(factoryUnitID))
 	end
 
 	return
@@ -1456,12 +1666,12 @@ local function buildHandler(button)
 	end
 
 	if button == 1 then
-		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
-		Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
+		Spring.PlaySoundFile(sound_queue_add, 0.75, "ui")
 	elseif button == 3 then
 		opt[#opt + 1] = "right"
-		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
-		Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+		spGiveOrderToUnit(facs[openedMenu + 1].unitID, -facs[openedMenu + 1].buildList[pressedBOpt + 1], {}, opt)
+		Spring.PlaySoundFile(sound_queue_rem, 0.75, "ui")
 	end
 end
 

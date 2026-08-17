@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 13000,
-		buildcostmetal = 540,
+		energycost = 13000,
+		metalcost = 540,
 		buildpic = "leguwgeo.DDS",
 		buildtime = 12900,
 		canrepeat = false,
@@ -18,7 +18,7 @@ return {
 		explodeas = "geo",
 		footprintx = 5,
 		footprintz = 5,
-		maxdamage = 2050,
+		health = 2050,
 		maxslope = 15,
 		maxwaterdepth = 99999,
 		minwaterdepth = 6,
@@ -35,6 +35,7 @@ return {
 			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Tharsis, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -77,11 +78,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

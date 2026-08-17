@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			energymultiplier = 10,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -55,13 +55,6 @@ return {
 				metal = 270,
 				object = "Units/scavbuildings/CORWINT2_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

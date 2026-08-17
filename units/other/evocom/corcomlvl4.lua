@@ -30,7 +30,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -72,27 +72,27 @@ return {
 			[9] = "cortide",
 			[10] = "corexp",
 			[11] = "cormstor",
-			[12] = "coruwes", 
-			[13] = "corfmkr", 
-			[14] = "coreyes", 
-			[15] = "corrad", 
-			[16] = "cordrag", 
-			[17] = "cormaw", 
-			[18] = "corllt", 
-			[19] = "corhllt", 
-			[20] = "corhlt", 
-			[21] = "corpun", 
-			[22] = "corfrock", 
-			[23] = "cormadsam", 
-			[24] = "corerad", 
-			[25] = "cordl", 
-			[26] = "corjamt", 
+			[12] = "coruwes",
+			[13] = "corfmkr",
+			[14] = "coreyes",
+			[15] = "corrad",
+			[16] = "cordrag",
+			[17] = "cormaw",
+			[18] = "corllt",
+			[19] = "corhllt",
+			[20] = "corhlt",
+			[21] = "corpun",
+			[22] = "corfrock",
+			[23] = "cormadsam",
+			[24] = "corerad",
+			[25] = "cordl",
+			[26] = "corjamt",
 			[27] = "corjuno",
 			[28] = "corlab",
 			[29] = "corvp",
 			[30] = "corap",
-			[31] = "cortl", 
-			[32] = "corfrt", 
+			[31] = "cortl",
+			[32] = "corfrt",
 			[33] = "corfrad",
 			[34] = "corsy",
 			[35] = "cornanotc",
@@ -102,7 +102,7 @@ return {
 			[39] = "corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -124,9 +124,10 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			effigy = "comeffigylvl2",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -174,10 +175,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -245,6 +242,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 550,
 					subs = 275,
@@ -285,6 +285,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 400,
 					subs = 200,
@@ -314,8 +317,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -323,11 +324,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			corcomeyelaser = {
@@ -360,6 +364,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 85,
 					subs = 22,
@@ -426,6 +433,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 450,
 					subs = 225,
@@ -442,17 +452,17 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				def = "REPULSOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [5] = {
+			[5] = {
 				def = "CORCOMEYELASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,

@@ -38,7 +38,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "armfort",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
@@ -82,13 +82,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -139,17 +133,16 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 950,
-				reloadtime = 4,
+				reloadtime = 4.5,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3000,
+				weaponvelocity = 3160,
 				customparams = {
 					overpenetrate = true,
 				},

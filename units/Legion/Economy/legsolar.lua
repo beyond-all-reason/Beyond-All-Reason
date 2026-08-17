@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "Hornet",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -71,13 +71,6 @@ return {
 				object = "Units/arm5X5B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

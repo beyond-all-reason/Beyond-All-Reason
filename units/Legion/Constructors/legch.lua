@@ -84,7 +84,7 @@ return {
 			[46] = "legfhive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorHovercraft",
@@ -125,10 +125,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
 			},
 		},
 		sounds = {

@@ -74,11 +74,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -107,10 +102,10 @@ return {
 				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
-                avoidfriendly = false,
+				avoidfriendly = false,
 				burst = 3,
 				burstrate = 0.005,
-                collidefriendly = false,
+				collidefriendly = false,
 				dance = 150,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -144,7 +139,7 @@ return {
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
-                fixedlauncher = true;
+				fixedlauncher = true,
 				weaponacceleration = 300,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",

@@ -33,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armageo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -41,13 +42,6 @@ return {
 			techlevel = 2,
 			unitgroup = "energy",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

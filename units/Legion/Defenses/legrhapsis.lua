@@ -10,7 +10,7 @@ return {
 		buildtime = 4700,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "28 40 28",
+		collisionvolumescales = "33 40 33",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energyupkeep = 5,
@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -66,13 +66,6 @@ return {
 				object = "Units/cor2X2C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

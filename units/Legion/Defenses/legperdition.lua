@@ -4,7 +4,7 @@ return {
 		buildpic = "legperdition.DDS",
 		buildtime = 62000,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "80 70 80",
+		collisionvolumescales = "80 45 80",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 15000,
@@ -34,7 +34,8 @@ return {
 			selectionscalemult = 1,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
+			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -82,11 +83,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:dust_cloud_dirt",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -164,6 +160,7 @@ return {
 					area_onhit_resistance = "fire",
 					area_onhit_time = 15,
 					stockpilelimit = 10,
+					water_splash = 0,
 				},
 				damage = {
 					commanders = 700,

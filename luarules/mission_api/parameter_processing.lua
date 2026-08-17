@@ -4,9 +4,11 @@
 
 VFS.Include('common/wav.lua')
 
-local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
-local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
-local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local enumSets = GG['MissionAPI'].Modules.ParameterTypes.EnumSets
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionsSchemaParameters = actionDefinitions.Parameters
+local triggersSchemaParameters = GG['MissionAPI'].TriggerDefinitions.Parameters
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -14,6 +16,12 @@ local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_sche
 
 local function processPosition(position)
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
+end
+
+local function processPositions(positions)
+	for _, position in ipairs(positions) do
+		processPosition(position)
+	end
 end
 
 local function processOrders(orders)
@@ -35,11 +43,23 @@ local function processSoundFile(soundfile)
 	end
 end
 
+local function processEnumSet(values)
+	local valueSet = {}
+	for _, value in ipairs(values) do
+		valueSet[value] = true
+	end
+	return valueSet
+end
+
 local processors = {
-	[Types.Position]  = processPosition,
-	[Types.Orders]    = processOrders,
-	[Types.SoundFile] = processSoundFile,
+	[ParameterTypes.Position]  = processPosition,
+	[ParameterTypes.Positions] = processPositions,
+	[ParameterTypes.Orders]    = processOrders,
+	[ParameterTypes.SoundFile] = processSoundFile,
 }
+for enumSetType in pairs(enumSets) do
+	processors[enumSetType]    = processEnumSet
+end
 
 ----------------------------------------------------------------
 --- Public processing functions:
@@ -51,22 +71,26 @@ local function processParameters(actionsOrTriggers, schemaParameters)
 		local schema = schemaParameters[actionOrTrigger.type] or {}
 		for _, parameter in ipairs(schema) do
 			local value = parameters[parameter.name]
-			if value ~= nil and processors[parameter.type] then
-				processors[parameter.type](value)
+			local processor = processors[parameter.type]
+			if value ~= nil and processor then
+				local result = processor(value)
+				if result ~= nil then
+					parameters[parameter.name] = result
+				end
 			end
 		end
 	end
 end
 
-local function processActionsParameters(actions)
+local function processActionParameters(actions)
 	processParameters(actions, actionsSchemaParameters)
 end
 
-local function processTriggersParameters(triggers)
+local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
 return {
-	ProcessActionsParameters  = processActionsParameters,
-	ProcessTriggersParameters = processTriggersParameters,
+	ProcessActionParameters  = processActionParameters,
+	ProcessTriggerParameters = processTriggerParameters,
 }

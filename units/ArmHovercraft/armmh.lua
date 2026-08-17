@@ -73,11 +73,6 @@ return {
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -115,7 +110,7 @@ return {
 				flighttime = 10,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl-1.s3o",
 				name = "Light long-range g2g starburst rocket launcher",
 				noselfdamage = true,
 				range = 710,

@@ -24,14 +24,14 @@ return {
 		script = "Units/LEGBAL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
@@ -70,10 +70,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -134,12 +130,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
-				damage = {
-					default = 250,
-				},
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 529,
+				},
+				damage = {
+					default = 250,
 				},
 			},
 		},

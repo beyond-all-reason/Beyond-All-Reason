@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGFHP.DDS",
 		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 35 96",
 		collisionvolumetype = "Box",
@@ -37,17 +38,18 @@ return {
 			[6] = "legcar",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
 				blocking = false,
 				category = "corpses",
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "96 35 96",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "96 35 96",
 				collisionvolumetype = "Box",
 				damage = 2014,
 				footprintx = 8,
@@ -56,13 +58,6 @@ return {
 				metal = 715,
 				object = "Units/legfhp_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

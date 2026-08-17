@@ -15,7 +15,7 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		maxacc= 0.4,
+		maxacc = 0.4,
 		maxaileron = 0.016,
 		maxbank = 0.72,
 		health = 480,
@@ -39,7 +39,7 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
@@ -50,15 +50,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
 			},
 		},
 		sounds = {
@@ -114,7 +105,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 2,
 				soundTrigger = true,
 				sprayangle = 125,
 				texture1 = "shot",
@@ -124,16 +114,15 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 2500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 1,
 					default = 2,
 					vtol = 80,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 			},
-
 		},
 		weapons = {
 			[1] = {

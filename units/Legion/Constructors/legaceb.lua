@@ -57,7 +57,7 @@ return {
 			"legamph",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/constructors",
@@ -92,13 +92,6 @@ return {
 				object = "Units/cor2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

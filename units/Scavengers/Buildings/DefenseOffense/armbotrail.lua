@@ -32,7 +32,8 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -77,10 +78,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -138,7 +135,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				waterbounce = true,
 				bounceSlip = 0.74,

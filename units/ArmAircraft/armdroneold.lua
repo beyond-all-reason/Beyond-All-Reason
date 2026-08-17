@@ -34,20 +34,6 @@ return {
 			subfolder = "ArmAircraft",
 			unitgroup = "weapon",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -131,7 +117,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgun3",
-				soundstartvolume = 13,
 				thickness = 1.5,
 				tolerance = 6000,
 				turret = false,

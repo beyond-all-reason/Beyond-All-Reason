@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 1000,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "corwin",
@@ -67,17 +67,10 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

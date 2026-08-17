@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMAMPH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 90,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -66,13 +66,6 @@ return {
 				object = "Units/arm3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -138,7 +131,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {},
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},

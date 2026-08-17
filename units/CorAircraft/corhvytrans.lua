@@ -5,7 +5,7 @@ return {
 		buildtime = 8500,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
+		category = "ALL MOBILE NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 100,
 		energycost = 4000,
@@ -38,20 +38,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

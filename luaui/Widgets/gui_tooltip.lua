@@ -7,11 +7,10 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -1000000,
+		layer = -1200000,
 		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -27,8 +26,6 @@ local glPopMatrix = gl.PopMatrix
 local glCallList = gl.CallList
 local glTranslate = gl.Translate
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1
-
 --[[
 
 -- Availible API functions:
@@ -42,7 +39,8 @@ You can use 'AddTooltip' to add a screen area that will display a tooltip when y
 Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique, and not one you desined in 'AddTooltip'
 (the name will be deleted after use)
 
-]]--
+]]
+--
 
 local defaultDelay = 0.37
 local cfgFontSize = 14
@@ -65,28 +63,27 @@ local tooltips = {}
 local cleanupGuishaderAreas = {}
 local font, font2
 local RectRound, UiElement, bgpadding
-local uiSec = 0
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
-local currentTooltipName = nil  -- Track which tooltip is currently displayed
+local currentTooltipName = nil -- Track which tooltip is currently displayed
 
 -- Get or create a texture from the pool
 local function getPooledTexture(width, height, key)
 	local w = math_floor(width)
 	local h = math_floor(height)
-	
+
 	if w < 1 or h < 1 then
 		return nil
 	end
-	
+
 	local sizeKey = w .. "x" .. h
-	
+
 	-- Try to find an existing texture of the right size
 	if texturePool[sizeKey] and #texturePool[sizeKey] > 0 then
 		return table.remove(texturePool[sizeKey])
 	end
-	
+
 	-- Create a new texture
 	return gl.CreateTexture(w, h, {
 		target = GL.TEXTURE_2D,
@@ -97,16 +94,18 @@ end
 
 -- Return a texture to the pool for reuse
 local function returnTextureToPool(texture, width, height)
-	if not texture then return end
-	
+	if not texture then
+		return
+	end
+
 	local w = math_floor(width)
 	local h = math_floor(height)
 	local sizeKey = w .. "x" .. h
-	
+
 	if not texturePool[sizeKey] then
 		texturePool[sizeKey] = {}
 	end
-	
+
 	-- Limit pool size per dimension to avoid memory bloat
 	if #texturePool[sizeKey] < 4 then
 		table.insert(texturePool[sizeKey], texture)
@@ -118,32 +117,37 @@ end
 -- Clear all textures for a tooltip (called when content changes)
 local function clearTooltipTextures(name)
 	if tooltips[name].bgTex then
-		returnTextureToPool(tooltips[name].bgTex, 
-			tooltips[name].bgTexWidth, tooltips[name].bgTexHeight)
+		returnTextureToPool(tooltips[name].bgTex, tooltips[name].bgTexWidth, tooltips[name].bgTexHeight)
 		tooltips[name].bgTex = nil
 		tooltips[name].bgTexWidth = nil
 		tooltips[name].bgTexHeight = nil
 	end
 	if tooltips[name].contentTex then
-		returnTextureToPool(tooltips[name].contentTex,
-			tooltips[name].contentTexWidth, tooltips[name].contentTexHeight)
+		returnTextureToPool(tooltips[name].contentTex, tooltips[name].contentTexWidth, tooltips[name].contentTexHeight)
 		tooltips[name].contentTex = nil
 		tooltips[name].contentTexWidth = nil
 		tooltips[name].contentTexHeight = nil
 	end
 end
 
-
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
-	if WG['tooltip'] == nil then
-		WG['tooltip'] = {}
-		WG['tooltip'].getFontsize = function()
+	if WG.tooltip == nil then
+		WG.tooltip = {}
+		WG.tooltip.getFontsize = function()
 			return usedFontSize
 		end
-		WG['tooltip'].AddTooltip = function(name, area, value, delay, title)
-			if ((value ~= nil or title ~= nil) and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and (tooltips[name].value ~= nil or tooltips[name].title ~= nil)) then
+		WG.tooltip.AddTooltip = function(name, area, value, delay, title)
+			if
+				(
+					(value ~= nil or title ~= nil)
+					and area[1] ~= nil
+					and area[2] ~= nil
+					and area[3] ~= nil
+					and area[4] ~= nil
+				) or (tooltips[name] ~= nil and (tooltips[name].value ~= nil or tooltips[name].title ~= nil))
+			then
 				if delay == nil then
 					delay = defaultDelay
 				end
@@ -161,7 +165,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		WG['tooltip'].RemoveTooltip = function(name)
+		WG.tooltip.RemoveTooltip = function(name)
 			if tooltips[name] ~= nil then
 				if tooltips[name].dlist then
 					gl.DeleteList(tooltips[name].dlist)
@@ -171,7 +175,7 @@ function widget:Initialize()
 				tooltips[name] = nil
 			end
 		end
-		WG['tooltip'].ShowTooltip = function(name, value, x, y, title)
+		WG.tooltip.ShowTooltip = function(name, value, x, y, title)
 			if value ~= nil or title ~= nil then
 				if not tooltips[name] then
 					tooltips[name] = {}
@@ -205,21 +209,21 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG['guishader'] then
+	if WG.guishader then
 		for name, tooltip in pairs(tooltips) do
-			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 			if tooltip.dlist then
 				gl.DeleteList(tooltip.dlist)
 			end
 		end
 	end
-	
+
 	-- Clean up all tooltips (return textures to pool)
 	for name, _ in pairs(tooltips) do
 		clearTooltipTextures(name)
 	end
-	
+
 	-- Clean up the entire texture pool
 	for sizeKey, textures in pairs(texturePool) do
 		for _, tex in ipairs(textures) do
@@ -227,39 +231,28 @@ function widget:Shutdown()
 		end
 	end
 	texturePool = {}
-	
-	WG['tooltip'] = nil
-end
 
-function widget:Update(dt)
-	uiSec = uiSec + dt
-	if uiSec > 0.5 then
-		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(vsx, vsy)
-		end
-	end
+	WG.tooltip = nil
 end
 
 function widget:ViewResize(x, y)
 	vsx, vsy = spGetViewGeometry()
 
-	font, loadedFontSize = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 1.6)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 1.6)
 
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -mathFloor(xOffset*0.5) - usedFontSize
+	yOffset = -mathFloor(xOffset * 0.5) - usedFontSize
 
 	bgpadding = mathCeil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
 	for name, tooltip in pairs(tooltips) do
-		if WG['guishader'] then
-			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+		if WG.guishader then
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 		end
 		if tooltip.dlist then
 			gl.DeleteList(tooltip.dlist)
@@ -274,13 +267,36 @@ function widget:ViewResize(x, y)
 end
 
 local function drawTooltipBackground(addX, addY, paddingW, paddingH, maxWidth, maxHeight, borderSize)
-	RectRound(addX-paddingW-borderSize, addY-maxHeight - paddingH-borderSize,
-		addX+maxWidth + paddingW+borderSize, addY+paddingH+borderSize,
-		bgpadding*1.4, 1,1,1,1, {0,0,0,0.08})
-	UiElement(addX-paddingW, addY-maxHeight-paddingH, addX+maxWidth + paddingW, addY+paddingH,
-		1,1,1,1, 1,1,1,1, nil,
-		{0.85, 0.85, 0.85, (WG['guishader'] and 0.7 or 0.93)},
-		{0, 0, 0, (WG['guishader'] and 0.5 or 0.56)}, bgpadding)
+	RectRound(
+		addX - paddingW - borderSize,
+		addY - maxHeight - paddingH - borderSize,
+		addX + maxWidth + paddingW + borderSize,
+		addY + paddingH + borderSize,
+		bgpadding * 1.4,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.08 }
+	)
+	UiElement(
+		addX - paddingW,
+		addY - maxHeight - paddingH,
+		addX + maxWidth + paddingW,
+		addY + paddingH,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		nil,
+		{ 0.85, 0.85, 0.85, (WG.guishader and 0.7 or 0.93) },
+		{ 0, 0, 0, (WG.guishader and 0.5 or 0.56) },
+		bgpadding
+	)
 end
 
 local function drawTooltipContent(name, addX, addY, paddingH, lines)
@@ -289,21 +305,20 @@ local function drawTooltipContent(name, addX, addY, paddingH, lines)
 	local lineHeight = fontSize + (fontSize / 4.5)
 	local maxHeight = math_floor(-fontSize * 0.9)
 
-	if tooltips[name].title and tooltips[name].title ~= '' then
+	if tooltips[name].title and tooltips[name].title ~= "" then
 		maxHeight = math_ceil(maxHeight - (titleFontSize * 0.1))
-		font2:Begin(useRenderToTexture)
-		font2:SetOutlineColor(0,0,0,0.6)
-		font2:Print('\255\205\255\205'..tooltips[name].title, addX,
-			maxHeight+addY, titleFontSize, "o")
+		font2:Begin(true)
+		font2:SetOutlineColor(0, 0, 0, 0.6)
+		font2:Print("\255\205\255\205" .. tooltips[name].title, addX, maxHeight + addY, titleFontSize, "o")
 		font2:End()
 		maxHeight = math_ceil(maxHeight - (titleFontSize * 1.12))
 	end
 
-	if tooltips[name].value and tooltips[name].value ~= '' then
-		font:Begin(useRenderToTexture)
-		font:SetOutlineColor(0,0,0,0.4)
+	if tooltips[name].value and tooltips[name].value ~= "" then
+		font:Begin(true)
+		font:SetOutlineColor(0, 0, 0, 0.4)
 		for i, line in ipairs(lines) do
-			font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
+			font:Print("\255\244\244\244" .. line, addX, maxHeight + addY, fontSize, "o")
 			maxHeight = maxHeight - lineHeight
 		end
 		font:End()
@@ -314,8 +329,8 @@ local function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 
-	local addX = mathFloor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
-	local addY = mathFloor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
+	local addX = mathFloor(vsx * 0.33) -- temp add something so flowui doesnt think its near screen edge
+	local addY = mathFloor(vsy * 0.5) -- temp add something so flowui doesnt think its near screen edge
 
 	-- Calculate dimensions if not already done
 	if not tooltips[name].maxWidth or not tooltips[name].maxHeight then
@@ -325,12 +340,11 @@ local function drawTooltip(name, x, y)
 		local lines
 		local maxWidth = 0
 		local maxHeight = 0
-		if tooltips[name].title and tooltips[name].title ~= '' then
-			maxWidth = math_ceil(mathMax(maxWidth,
-				(font:GetTextWidth(tooltips[name].title) * titleFontSize)))
+		if tooltips[name].title and tooltips[name].title ~= "" then
+			maxWidth = math_ceil(mathMax(maxWidth, (font:GetTextWidth(tooltips[name].title) * titleFontSize)))
 			maxHeight = math_ceil(maxHeight + (titleFontSize * 1.22))
 		end
-		if tooltips[name].value and tooltips[name].value ~= '' then
+		if tooltips[name].value and tooltips[name].value ~= "" then
 			-- get text dimentions
 			lines = string_lines(tooltips[name].value)
 			for i, line in ipairs(lines) do
@@ -353,55 +367,38 @@ local function drawTooltip(name, x, y)
 	local borderSize = 1
 
 	-- Create display list or texture if not exists
-	if useRenderToTexture then
-		if not tooltips[name].bgTex then
-			local w = math_floor(maxWidth + paddingW + paddingW + borderSize + borderSize)
-			local h = math_floor(maxHeight + paddingH + paddingH + borderSize + borderSize)
-			if w >= 1 and h >= 1 then
-				tooltips[name].bgTex = getPooledTexture(w, h)
-				tooltips[name].bgTexWidth = w
-				tooltips[name].bgTexHeight = h
-				if tooltips[name].bgTex then
-					gl.R2tHelper.RenderToTexture(tooltips[name].bgTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / w, 2 / h, 0)
-							gl.Translate(-addX + paddingW + borderSize,
-								-addY + maxHeight + paddingH + borderSize, 0)
-							drawTooltipBackground(addX, addY, paddingW, paddingH,
-								maxWidth, maxHeight, borderSize)
-						end,
-						useRenderToTexture
-					)
-				end
+	if not tooltips[name].bgTex then
+		local w = math_floor(maxWidth + paddingW + paddingW + borderSize + borderSize)
+		local h = math_floor(maxHeight + paddingH + paddingH + borderSize + borderSize)
+		if w >= 1 and h >= 1 then
+			tooltips[name].bgTex = getPooledTexture(w, h)
+			tooltips[name].bgTexWidth = w
+			tooltips[name].bgTexHeight = h
+			if tooltips[name].bgTex then
+				gl.R2tHelper.RenderToTexture(tooltips[name].bgTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / w, 2 / h, 0)
+					gl.Translate(-addX + paddingW + borderSize, -addY + maxHeight + paddingH + borderSize, 0)
+					drawTooltipBackground(addX, addY, paddingW, paddingH, maxWidth, maxHeight, borderSize)
+				end, true)
 			end
 		end
-		if not tooltips[name].contentTex then
-			local w = math_floor(maxWidth + paddingW + paddingW)
-			local h = math_floor(maxHeight + paddingH + paddingH)
-			if w >= 1 and h >= 1 then
-				tooltips[name].contentTex = getPooledTexture(w, h)
-				tooltips[name].contentTexWidth = w
-				tooltips[name].contentTexHeight = h
-				if tooltips[name].contentTex then
-					gl.R2tHelper.RenderToTexture(tooltips[name].contentTex,
-						function()
-							gl.Translate(-1, -1, 0)
-							gl.Scale(2 / w, 2 / h, 0)
-							gl.Translate(-addX + paddingW, -addY + maxHeight + paddingH, 0)
-							drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
-						end,
-						useRenderToTexture
-					)
-				end
+	end
+	if not tooltips[name].contentTex then
+		local w = math_floor(maxWidth + paddingW + paddingW)
+		local h = math_floor(maxHeight + paddingH + paddingH)
+		if w >= 1 and h >= 1 then
+			tooltips[name].contentTex = getPooledTexture(w, h)
+			tooltips[name].contentTexWidth = w
+			tooltips[name].contentTexHeight = h
+			if tooltips[name].contentTex then
+				gl.R2tHelper.RenderToTexture(tooltips[name].contentTex, function()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / w, 2 / h, 0)
+					gl.Translate(-addX + paddingW, -addY + maxHeight + paddingH, 0)
+					drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
+				end, true)
 			end
-		end
-	else
-		if not tooltips[name].dlist then
-			tooltips[name].dlist = gl.CreateList(function()
-				drawTooltipBackground(addX, addY, paddingW, paddingH, maxWidth, maxHeight, borderSize)
-				drawTooltipContent(name, addX, addY, paddingH, tooltips[name].lines)
-			end)
 		end
 	end
 
@@ -421,53 +418,71 @@ local function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].InsertScreenRect(posX - paddingW + bgpadding,
-			posY - maxHeight - paddingH, posX + maxWidth + paddingW -bgpadding,
-			posY + paddingH, 'tooltip_' .. name)
-		WG['guishader'].InsertScreenRect(posX - paddingW,
-			posY - maxHeight - paddingH + bgpadding, posX + maxWidth + paddingW,
-			posY + paddingH - bgpadding, '2tooltip_' .. name)
+	if WG.guishader then
+		WG.guishader.InsertScreenRect(
+			posX - paddingW + bgpadding,
+			posY - maxHeight - paddingH,
+			posX + maxWidth + paddingW - bgpadding,
+			posY + paddingH,
+			"tooltip_" .. name
+		)
+		WG.guishader.InsertScreenRect(
+			posX - paddingW,
+			posY - maxHeight - paddingH + bgpadding,
+			posX + maxWidth + paddingW,
+			posY + paddingH - bgpadding,
+			"2tooltip_" .. name
+		)
 	end
 
-	if useRenderToTexture then
-		if tooltips[name].bgTex then
-			gl.R2tHelper.BlendTexRect(tooltips[name].bgTex,
-				posX - paddingW - borderSize, posY - maxHeight - paddingH - borderSize,
-				posX + maxWidth + paddingW + borderSize, posY + paddingH + borderSize,
-				useRenderToTexture)
-		end
-		if tooltips[name].contentTex then
-			gl.R2tHelper.BlendTexRect(tooltips[name].contentTex,
-				posX - paddingW, posY - maxHeight - paddingH,
-				posX + maxWidth + paddingW, posY + paddingH,
-				useRenderToTexture)
-		end
-	else
-		glPushMatrix()
-		glTranslate(posX-addX, posY-addY, 0)
-		glCallList(tooltips[name].dlist)
-		glTranslate(-posX+addX, -posY+addY, 0)
-		glPopMatrix()
+	if tooltips[name].bgTex then
+		gl.R2tHelper.BlendTexRect(
+			tooltips[name].bgTex,
+			posX - paddingW - borderSize,
+			posY - maxHeight - paddingH - borderSize,
+			posX + maxWidth + paddingW + borderSize,
+			posY + paddingH + borderSize,
+			true
+		)
+	end
+	if tooltips[name].contentTex then
+		gl.R2tHelper.BlendTexRect(
+			tooltips[name].contentTex,
+			posX - paddingW,
+			posY - maxHeight - paddingH,
+			posX + maxWidth + paddingW,
+			posY + paddingH,
+			true
+		)
 	end
 end
 
 function widget:DrawScreen()
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
+		return
+	end
+	if WG.unitstats and WG.unitstats.isShowing() then
 		return
 	end
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
-	if WG['guishader'] then
+	if WG.guishader then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+			WG.guishader.RemoveScreenRect("tooltip_" .. name)
+			WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
 	for name, tooltip in pairs(tooltips) do
-		if (tooltip.area == nil and not tooltip.disabled) or (tooltip.area and tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
+		if
+			(tooltip.area == nil and not tooltip.disabled)
+			or (
+				tooltip.area
+				and tooltip.area[4] ~= nil
+				and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])
+			)
+		then
 			if tooltip.area == nil then
 				if tooltip.pos ~= nil then
 					drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
@@ -493,9 +508,9 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if WG['guishader'] then
-					WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-					WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+				if WG.guishader then
+					WG.guishader.RemoveScreenRect("tooltip_" .. name)
+					WG.guishader.RemoveScreenRect("2tooltip_" .. name)
 				end
 			end
 		end

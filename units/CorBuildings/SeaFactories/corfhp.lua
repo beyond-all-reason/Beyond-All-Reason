@@ -4,6 +4,7 @@ return {
 		buildpic = "CORFHP.DDS",
 		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "96 32 96",
 		collisionvolumetype = "Box",
@@ -41,6 +42,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -56,13 +58,6 @@ return {
 				metal = 715,
 				object = "Units/corfhp_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

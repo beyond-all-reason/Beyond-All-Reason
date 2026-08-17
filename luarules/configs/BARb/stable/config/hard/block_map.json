@@ -16,7 +16,7 @@
 			"size": [8, 8],  // default: size of a unit
 
 			// Spacer, block_size = size + yard
-			"yard": [0, 30]  // default: [0, 0]
+			"yard": [8, 30]  // default: [0, 0]
 
 			
 			// "ignore" / "not_ignore" specified structures: "ignore": [<structure_type>, <structure_type>, ...] 
@@ -25,7 +25,7 @@
 		"fac_land_t2":{
 			"type": ["rectangle", "factory"],
 			//"size": [8 ,8],
-			"yard": [12, 20],
+			"yard": [16, 20],
 			"offset": [4, 6],
 			"ignore": ["none"]
 		},		

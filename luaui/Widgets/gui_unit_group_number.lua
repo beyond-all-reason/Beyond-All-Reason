@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -33,7 +32,7 @@ local minGroupID = 0
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Configurables:
@@ -237,7 +236,9 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so group numbers render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end

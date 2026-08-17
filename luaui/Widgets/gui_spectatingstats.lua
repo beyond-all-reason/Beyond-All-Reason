@@ -2,26 +2,39 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Spectating Stats",
-		desc      = "",
-		author    = "Floris",
-		date      = "April 2023",
-		license   = "",
-		layer     = 0,
-		enabled   = false,
+		name = "Spectating Stats",
+		desc = "",
+		author = "Floris",
+		date = "April 2023",
+		license = "",
+		layer = 0,
+		enabled = false,
 	}
 end
 
 local lastupdate = os.clock() - 10
 local allyTeamList = Spring.GetAllyTeamList()
-local numAllyTeams = #allyTeamList-1
+local numAllyTeams = #allyTeamList - 1
 local allyTeamName = {}
 local textcolor = "\255\200\200\200"
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
+
+local weaponShowGroups = { ["0"] = true, ["1"] = true }
+local weaponHideRoles = { secondary = true }
+
+local function displayWeaponDPS(weaponDef)
+	if not weaponDef.damages then
+		return false
+	end
+	local custom = weaponDef.customParams
+	return custom.bogus ~= "1"
+		and weaponShowGroups[custom.weapons_group]
+		and not weaponHideRoles[custom.weapons_role or ""]
+end
 
 local unitdefMobileDps = {}
 local unitdefStaticDps = {}
@@ -29,27 +42,25 @@ local unitdefBuildespeed = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local totalDps = 0
 	local weapons = unitDef.weapons
-	if not unitDef.customParams.iscommander then
-		if #weapons > 0 then
-			for i = 1, #weapons do
-				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.damages then
-					local maxDmg = 0
-					for _, v in pairs(weaponDef.damages) do
-						if v > maxDmg then
-							maxDmg = v
-						end
+	if #weapons > 0 then
+		for i = 1, #weapons do
+			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if displayWeaponDPS(weaponDef) then
+				local maxDmg = 0
+				for _, v in pairs(weaponDef.damages) do
+					if v > maxDmg then
+						maxDmg = v
 					end
-					local dps = math.floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
-					totalDps = totalDps + dps
 				end
+				local dps = math.floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
+				totalDps = totalDps + dps
 			end
-			if totalDps > 0 then
-				if unitDef.isBuilding then
-					unitdefStaticDps[unitDefID] = totalDps
-				else
-					unitdefMobileDps[unitDefID] = totalDps
-				end
+		end
+		if totalDps > 0 then
+			if unitDef.isBuilding then
+				unitdefStaticDps[unitDefID] = totalDps
+			else
+				unitdefMobileDps[unitDefID] = totalDps
 			end
 		end
 	end
@@ -75,8 +86,9 @@ local function GetAllyTeamStats(allyTeamID)
 	local buildspeed = 0
 	if not allyTeamName[allyTeamID] then
 		local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamlist[1], false)
-        local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or Spring.GetPlayerInfo(playerID, false)
-		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1]))..name
+		local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
+			or Spring.GetPlayerInfo(playerID, false)
+		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1])) .. name
 	end
 	for i, teamID in ipairs(teamlist) do
 		local units = Spring.GetTeamUnits(teamID)
@@ -104,8 +116,20 @@ function widget:DrawScreen()
 		lastupdate = os.clock()
 		for i, allyTeamID in ipairs(allyTeamList) do
 			if i <= numAllyTeams then
-				local unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed = GetAllyTeamStats(allyTeamID)
-				local text = string.format(allyTeamName[allyTeamID]..textcolor..": %d units, %d army (%d DPS), defenses %d (%d DPS), builders %d (%d bp)", unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed)
+				local unitCount, armyCount, armyDps, defenseCount, defenseDps, builders, buildspeed =
+					GetAllyTeamStats(allyTeamID)
+				local text = string.format(
+					allyTeamName[allyTeamID]
+						.. textcolor
+						.. ": %d units, %d army (%d DPS), defenses %d (%d DPS), builders %d (%d bp)",
+					unitCount,
+					armyCount,
+					armyDps,
+					defenseCount,
+					defenseDps,
+					builders,
+					buildspeed
+				)
 				Spring.Echo(text)
 			end
 		end
@@ -113,9 +137,7 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData()
-	return {
-	}
+	return {}
 end
 
-function widget:SetConfigData(data)
-end
+function widget:SetConfigData(data) end

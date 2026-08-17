@@ -35,7 +35,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'util',
+			unitgroup = "util",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -56,12 +56,6 @@ return {
 				metal = 71,
 				object = "Units/legjam_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

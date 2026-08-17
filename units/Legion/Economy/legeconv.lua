@@ -30,21 +30,14 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			energyconv_capacity = 70,
-			energyconv_efficiency = 1/70,
+			energyconv_efficiency = 1 / 70,
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "ArmBuildings/LandEconomy",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "arm-bld-mm-activate",

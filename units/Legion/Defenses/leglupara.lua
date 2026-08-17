@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -72,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -132,8 +127,6 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				soundhitvolume = 7.5,
-				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				weapontimer = 1,
@@ -158,4 +151,3 @@ return {
 		},
 	},
 }
-

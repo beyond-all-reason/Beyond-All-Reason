@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-4",
@@ -82,11 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

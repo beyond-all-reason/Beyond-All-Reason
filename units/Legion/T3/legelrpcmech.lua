@@ -8,6 +8,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 70 110",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		energycost = 150000,
 		explodeas = "explosiont3",
@@ -39,6 +40,7 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 		},
 		featuredefs = {
 			dead = {
@@ -74,11 +76,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -157,13 +154,11 @@ return {
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 6,
 				},
 				damage = {

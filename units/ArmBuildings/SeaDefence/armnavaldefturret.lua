@@ -49,14 +49,22 @@ return {
 				object = "Units/armnavaldefturret_dead.s3o",
 				reclaimable = true,
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 5190,
+				footprintx = 5,
+				footprintz = 5,
+				height = 4,
+				metal = 187,
+				object = "Units/arm5X5B.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+			},
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

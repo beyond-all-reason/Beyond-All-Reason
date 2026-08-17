@@ -33,7 +33,7 @@ return {
 		turnrate = 885.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "Scavengers/Bots",
@@ -69,12 +69,6 @@ return {
 				object = "Units/arm2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -152,10 +146,8 @@ return {
 				separation = 2,
 				sizedecay = 0.08,
 				soundhit = "corlevlrhit",
-				soundhitvolume = 11.5,
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
-				soundstartvolume = 13,
 				stages = 12,
 				turret = true,
 				weapontype = "Cannon",

@@ -33,7 +33,7 @@ return {
 		turnrate = 150,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Johnathan Crimson (Concept Art/Model), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
@@ -42,8 +42,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "35 30 102",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "35 30 102",
 				collisionvolumetype = "Box",
 				damage = 3360,
 				featuredead = "HEAP",
@@ -72,11 +72,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:waterwake-small",
 				[3] = "custom:bowsplash-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,17 +110,17 @@ return {
 				impulsefactor = 0.5,
 				name = "Long-Range Naval Cluster Artillery Cannon",
 				noselfdamage = true,
-				range = 930,
-				reloadtime = 11.1,
+				range = 960,
+				reloadtime = 10.1,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 345,
+				weaponvelocity = 380,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {
@@ -147,17 +142,17 @@ return {
 				impulsefactor = 0.5,
 				name = "Long-Range Naval Cluster Artillery Cannon",
 				noselfdamage = true,
-				range = 930,
-				reloadtime = 11,
+				range = 960,
+				reloadtime = 10,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 345,
+				weaponvelocity = 380,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {
@@ -165,7 +160,7 @@ return {
 					subs = 50,
 					vtol = 50,
 				},
-			}, 
+			},
 			cluster_munition = {
 				areaofeffect = 115,
 				avoidfeature = false,
@@ -207,7 +202,6 @@ return {
 				-- maxangledif = 310,
 				onlytargetcategory = "SURFACE",
 			},
-	
 		},
 	},
 }

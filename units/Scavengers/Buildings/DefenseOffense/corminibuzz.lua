@@ -30,7 +30,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -69,10 +69,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

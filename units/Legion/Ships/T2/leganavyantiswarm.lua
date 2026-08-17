@@ -78,11 +78,6 @@ return {
 				[3] = "custom:waterwake-small",
 				[4] = "custom:bowsplash-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -126,8 +121,6 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
-				soundhitvolume = 12.0,
-				soundstartvolume = 14.0,
 				separation = 2.0,
 				nogap = false,
 				size = 4,
@@ -144,7 +137,7 @@ return {
 				},
 				customparams = {
 					--exclude_preaim = true
-				}
+				},
 			},
 			light_antiair_missile = {
 				areaofeffect = 16,

@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 0,
 		turnrate = 800,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "",
 			kickback = "0",
@@ -76,11 +76,6 @@ return {
 				object = "Units/arm2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
 			},
 		},
 		sounds = {

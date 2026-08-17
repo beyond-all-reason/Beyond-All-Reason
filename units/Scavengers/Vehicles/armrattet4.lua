@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-large",
 			kickback = "-0.4",
@@ -68,10 +68,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 				[2] = "custom:DUST_CLOUD_HUGE",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -1,12 +1,12 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
 	spawnEye = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1,
+			seconds = 0,
 		},
 		actions = { 'spawnEye' },
 	},
@@ -17,8 +17,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 30,
-			interval = 210,
+			seconds = 1,
+			interval = 7,
 		},
 		actions = { 'playSoundPosition', 'messageSoundPosition' },
 	},
@@ -29,8 +29,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
@@ -41,10 +41,18 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
+	},
+
+	playMusic = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 150,
+		},
+		actions = { 'playMusic', 'messageMusicNotification' },
 	},
 }
 
@@ -53,9 +61,9 @@ local actions = {
 	spawnEye = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armeyes',
-			teamID = 0,
-			position = { x = 1800, z = 1600 },
+			unitLoadout = {
+				{ unitDefName = 'armeyes', x = 1800, z = 1600, team = 0 },
+			},
 		},
 	},
 
@@ -91,6 +99,14 @@ local actions = {
 		},
 	},
 
+	playMusic = {
+		type = actionTypes.PlayMusic,
+		parameters = {
+			soundfile = 'music/original/events/aprilfools/menu/Ryan Krause - Friend or Foe ( Bassfahrer Metal Cover).ogg',
+		},
+	},
+
+
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -101,9 +117,9 @@ local actions = {
 	playSoundNotification = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitDefName = 'armsilo',
-			teamID = 1,
-			position = { x = 1900, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armsilo', x = 1900, z = 1800, team = 1 },
+			},
 		},
 	},
 
@@ -111,6 +127,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Nuke spotted, after the other two voices.",
+		},
+	},
+
+	messageMusicNotification = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Playing Trigger Music Track.",
 		},
 	},
 }

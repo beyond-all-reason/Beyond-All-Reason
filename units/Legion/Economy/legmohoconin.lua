@@ -1,4 +1,4 @@
-return {						--costs should be same as legmohocon and legmohoconct
+return { --costs should be same as legmohocon and legmohoconct
 	legmohoconin = {
 		maxacc = 0,
 		activatewhenbuilt = true,
@@ -12,7 +12,7 @@ return {						--costs should be same as legmohocon and legmohoconct
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "7 4 7",
 		collisionvolumetype = "CylY",
-		corpse = "DEAD",
+		corpse = "",
 		energyupkeep = 20,
 		explodeas = "",
 		extractsmetal = 0.004,
@@ -31,7 +31,7 @@ return {						--costs should be same as legmohocon and legmohoconct
 		icontype = "legmohocon",
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",
@@ -42,13 +42,6 @@ return {						--costs should be same as legmohocon and legmohoconct
 			scav_swap_override_captured = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "mohorun2",

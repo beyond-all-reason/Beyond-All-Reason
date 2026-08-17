@@ -1,5 +1,5 @@
 return {
-	corcomlvl5	= {
+	corcomlvl5 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -30,7 +30,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -102,7 +102,7 @@ return {
 			"coruwageo",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -124,9 +124,10 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			effigy = "comeffigylvl3",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -174,10 +175,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -239,8 +236,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,
@@ -250,6 +245,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 90,
 					subs = 25,
@@ -288,6 +286,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1200,
 					subs = 600,
@@ -317,8 +318,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -326,11 +325,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			corcomeyelaser = {
@@ -363,6 +365,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 120,
 					subs = 30,
@@ -429,6 +434,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 450,
 					subs = 150,
@@ -445,17 +453,17 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				def = "REPULSOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [5] = {
+			[5] = {
 				badtargetcategory = "commander",
 				def = "CORCOMEYELASER",
 				onlytargetcategory = "NOTSUB",

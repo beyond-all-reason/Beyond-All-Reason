@@ -3,6 +3,12 @@
 
 local bit_and = math.bit_and
 
+local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local CMD_INSERT = CMD.INSERT
@@ -13,6 +19,8 @@ local OPT_CTRL = CMD.OPT_CTRL
 local OPT_META = CMD.OPT_META
 local OPT_RIGHT = CMD.OPT_RIGHT
 local OPT_SHIFT = CMD.OPT_SHIFT
+
+local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 
 local function packInsertParams(cmdID, cmdParams, cmdOptions, cmdIndex)
 	for i = #cmdParams, 1, -1 do
@@ -26,35 +34,35 @@ end
 
 ---Unpack the inner command from the params of a `CMD_INSERT`.
 ---@param cmdParams number[]
----@return integer index If `options.alt`, the command tag, else queue position.
+---@return integer tagOrPos The command tag value or, when `CMD.OPT_ALT` is true, the queue position. See CCommandAI::ExecuteInsert.
 ---@return CMD innerCommand
 ---@return CommandOptions innerOptions
 local function unpackInsertParams(cmdParams)
-	local index, innerCommand, innerOptionBits = cmdParams[1], cmdParams[2], cmdParams[3]
+	local tagOrPos, innerCommand, innerOptionBits = cmdParams[1], cmdParams[2], cmdParams[3]
 
 	-- Update in-place, and assume n >= 3:
 	local n = #cmdParams
 	for i = 1, n - 3 do
 		cmdParams[i] = cmdParams[i + 3]
 	end
-	cmdParams[n    ] = nil
+	cmdParams[n] = nil
 	cmdParams[n - 1] = nil
 	cmdParams[n - 2] = nil
 
 	local band = bit_and
 
 	local innerOptions = {
-		coded    = innerOptionBits,
+		coded = innerOptionBits,
 		internal = 0 ~= band(innerOptionBits, OPT_INTERNAL),
-		alt      = 0 ~= band(innerOptionBits, OPT_ALT),
-		ctrl     = 0 ~= band(innerOptionBits, OPT_CTRL),
-		meta     = 0 ~= band(innerOptionBits, OPT_META),
-		right    = 0 ~= band(innerOptionBits, OPT_RIGHT),
-		shift    = 0 ~= band(innerOptionBits, OPT_SHIFT),
+		alt = 0 ~= band(innerOptionBits, OPT_ALT),
+		ctrl = 0 ~= band(innerOptionBits, OPT_CTRL),
+		meta = 0 ~= band(innerOptionBits, OPT_META),
+		right = 0 ~= band(innerOptionBits, OPT_RIGHT),
+		shift = 0 ~= band(innerOptionBits, OPT_SHIFT),
 	}
 
 	---@diagnostic disable-next-line:return-type-mismatch -- OK: CMD/number
-	return index, innerCommand, innerOptions
+	return tagOrPos, innerCommand, innerOptions
 end
 
 ---Efficiently repack a command's `cmdParams` table in-place to use with `CMD_INSERT`.
@@ -84,10 +92,70 @@ local function reissueOrder(unitID, cmdID, cmdParams, cmdOptions, cmdTag, fromIn
 	end
 end
 
+---Whether a command is processed immediately or placed in the command queue.
+---
+---NB: queueing is default `true`: /Sim/Units/CommandAI/CommandDescription.h.
+local function isQueueingCommand(cmdID)
+	local cmdIndex = spGetCmdDescIndex(cmdID)
+	if cmdIndex then
+		local cmdDescription = spGetActiveCmdDesc(cmdIndex)
+		if cmdDescription then
+			return cmdDescription.queueing -- TODO: It should be sufficient to check this.
+				or cmdDescription.type ~= CMDTYPE_ICON_MODE -- But it is not so do this.
+		end
+	end
+	return false
+end
+
+---Whether a command is processed immediately or placed in the command queue.
+---
+---NB: queueing is default `true`: /Sim/Units/CommandAI/CommandDescription.h.
+local function isQueuingUnitCommand(unitID, cmdID)
+	local cmdIndex = spFindUnitCmdDesc(unitID, cmdID)
+	if not cmdIndex then
+		return false
+	end
+	local cmdDesc = spGetUnitCmdDescs(unitID, cmdIndex, cmdIndex)[1]
+	return cmdDesc.queueing and cmdDesc.type == CMDTYPE_ICON_MODE
+end
+
+---Test a command for its anticipated position in the unit's command queue.
+---@param unitID integer
+---@param tagOrIndex integer
+---@param options CommandOptions
+---@param insertOptions CommandOptions?
+local function isEnqueuedFirst(unitID, command, tagOrIndex, options, insertOptions)
+	if not isQueuingUnitCommand(unitID, command) then
+		return true -- cannot enqueue ~= processes immediately, but we can pretend
+	end
+
+	if insertOptions then
+		if insertOptions.alt then
+			if tagOrIndex == 0 then
+				return true
+			end
+		else
+			local command, options, tag = spGetUnitCurrentCommand(unitID)
+			if not tag or tag == tagOrIndex then
+				return true
+			end
+		end
+	end
+
+	if not options.shift or spGetUnitCommandCount(unitID) == 0 then
+		return true
+	end
+
+	return false
+end
+
 -- Export module ---------------------------------------------------------------
 
 return {
-	UnpackInsertParams    = unpackInsertParams,
+	UnpackInsertParams = unpackInsertParams,
 	GiveInsertOrderToUnit = giveInsertOrderToUnit,
-	ReissueOrder          = reissueOrder,
+	ReissueOrder = reissueOrder,
+	IsQueueingCommand = isQueueingCommand,
+	IsQueuingUnitCommand = isQueuingUnitCommand,
+	IsEnqueuedFirst = isEnqueuedFirst,
 }

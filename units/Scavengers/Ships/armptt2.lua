@@ -35,7 +35,7 @@ return {
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = "weaponaa",
 			maxrange = "260",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -72,12 +72,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

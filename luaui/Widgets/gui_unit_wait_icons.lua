@@ -1,44 +1,47 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-	  name      = "Unit Wait Icons",
-	  desc      = "Shows the wait/pause icon above units",
-	  author    = "Floris, Beherith, Robert82",
-	  date      = "May 2025",
-	  license   = "GNU GPL, v2 or later",
-	  layer     = -40,
-	  enabled   = true
-   }
+	return {
+		name = "Unit Wait Icons",
+		desc = "Shows the wait/pause icon above units",
+		author = "Floris, Beherith, Robert82",
+		date = "May 2025",
+		license = "GNU GPL, v2 or later",
+		layer = -40,
+		enabled = true,
+	}
 end
 
-local iconSequenceImages = 'anims/icexuick_200/cursorwait_' 	-- must be png's
-local iconSequenceNum = 44	-- always starts at 1
-local iconSequenceFrametime = 0.02	-- duration per frame
+local iconSequenceImages = "anims/icexuick_200/cursorwait_" -- must be png's
+local iconSequenceNum = 44 -- always starts at 1
+local iconSequenceFrametime = 0.02 -- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
 local waitingUnits = {}
-local needsCheck = {} -- unitID → {frame = n+5, defID = …, team = …}
+local needsCheckFrame = {} -- unitID → frame
+local needsCheckDefID = {} -- unitID → defID
+local needsCheckTeam = {} -- unitID → team
 local checkDelay = 5
 local unitsPerFrame = 300
 local gf = Spring.GetGameFrame()
 
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local spValidUnitID = Spring.ValidUnitID
 
-local spIsGUIHidden   = Spring.IsGUIHidden
-local spGetConfigInt  = Spring.GetConfigInt
+local spIsGUIHidden = Spring.IsGUIHidden
+local spGetConfigInt = Spring.GetConfigInt
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if not unitDef.customParams.removewait then
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 4 * ( (xsize+2)^2 + (zsize+2)^2 )^0.5
-		unitConf[udid] = {7.5 +(scale/2.2), unitDef.height-0.1, unitDef.isFactory}
+		local scale = 4 * ((xsize + 2) ^ 2 + (zsize + 2) ^ 2) ^ 0.5
+		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height - 0.1, unitDef.isFactory }
 	end
 end
 
@@ -49,16 +52,16 @@ end
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local uploadAllElements   = InstanceVBOTable.uploadAllElements
+local uploadAllElements = InstanceVBOTable.uploadAllElements
 
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -68,10 +71,11 @@ local function initGL4()
 	shaderConfig.FULL_ROTATION = 0
 	shaderConfig.CLIPTOLERANCE = 1.2
 	shaderConfig.INITIALSIZE = 0.22
-	shaderConfig.BREATHESIZE = 0--0.1
-  -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
+	shaderConfig.BREATHESIZE = 0 --0.1
+	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = " gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.POST_GEOMETRY =
+		" gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
@@ -86,7 +90,6 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 function widget:Initialize()
 	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
@@ -103,7 +106,7 @@ end
 
 local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 	if waitingUnits[unitID] then
-		waitingUnits[unitID] = nil           -- erase flag
+		waitingUnits[unitID] = nil -- erase flag
 	end
 	if iconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(iconVBO, unitID)
@@ -111,8 +114,15 @@ local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
 local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
-	if not unitConf[unitDefID] then return end
-	local queue = unitConf[unitDefID] and unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
+	if not unitConf[unitDefID] then
+		return
+	end
+	local cmdCount = spGetUnitCommandCount(unitID)
+	if not cmdCount or cmdCount <= 0 then
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+		return
+	end
+	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
 	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
 		MarkAsWaiting(unitID, unitDefID, unitTeam)
 	else
@@ -120,20 +130,37 @@ local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
 	end
 end
 
-
 function forgetUnit(unitID, unitDefID, unitTeam)
-	needsCheck[unitID]   = nil
+	needsCheckFrame[unitID] = nil
+	needsCheckDefID[unitID] = nil
+	needsCheckTeam[unitID] = nil
 	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 end
 
 local function updateIcons()
 	for unitID, unitDefID in pairs(waitingUnits) do
-		if not iconVBO.instanceIDtoIndex[unitID] then--if visibleUnits[unitID] then
+		if not iconVBO.instanceIDtoIndex[unitID] then --if visibleUnits[unitID] then
 			if spValidUnitID(unitID) then
-			pushElementInstance(iconVBO,
-				{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],
-				0, 4, gf, 0, 0.75, 0,  0,1,0,1,  0,0,0,0},
-				unitID, false, true, unitID)
+				pushElementInstance(iconVBO, {
+					unitConf[unitDefID][1],
+					unitConf[unitDefID][1],
+					0,
+					unitConf[unitDefID][2],
+					0,
+					4,
+					gf,
+					0,
+					0.75,
+					0,
+					0,
+					1,
+					0,
+					1,
+					0,
+					0,
+					0,
+					0,
+				}, unitID, false, true, unitID)
 			end
 		end
 	end
@@ -156,45 +183,53 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if unitTeam ~= myTeamID then return end -- onlyOwnTeam and
-		needsCheck[unitID] = {
-		frame = gf + checkDelay,
-		defID = unitDefID,
-		team  = unitTeam
-		}
+	if unitTeam ~= myTeamID then
+		return
+	end
+	needsCheckFrame[unitID] = gf + checkDelay
+	needsCheckDefID[unitID] = unitDefID
+	needsCheckTeam[unitID] = unitTeam
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
-	CheckWaitingStatus(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitIdle(unitID, unitDefID, unitTeam)
-	CheckWaitingStatus(unitID, unitDefID, unitTeam)
-end
-
-function initUnits()
-	waitingUnits  = {}      -- forget any previous “waiting” flags
-	local unitDefID
-	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
-		unitDefID = Spring.GetUnitDefID(unitID)
-		needsCheck[unitID] = {
-			frame = gf + checkDelay,
-			defID = unitDefID,
-			team  = myTeamID
-		}
+	if cmdID == CMD_WAIT then
+		-- wait command just completed (toggled off), directly unmark
+		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	else
+		-- another command finished, defer check to GameFrame batch
+		needsCheckFrame[unitID] = gf + 1
+		needsCheckDefID[unitID] = unitDefID
+		needsCheckTeam[unitID] = unitTeam
 	end
 end
 
+function widget:UnitIdle(unitID, unitDefID, unitTeam)
+	-- idle = no commands, can't be waiting
+	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+end
+
+function initUnits()
+	waitingUnits = {} -- forget any previous “waiting” flags
+	local unitDefID
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+		unitDefID = Spring.GetUnitDefID(unitID)
+		needsCheckFrame[unitID] = gf + checkDelay
+		needsCheckDefID[unitID] = unitDefID
+		needsCheckTeam[unitID] = myTeamID
+	end
+end
 
 function widget:GameFrame(n)
 	local currentUnitPerFrame = 0
 	gf = n
-	for unitID, data in pairs(needsCheck) do
-		currentUnitPerFrame = currentUnitPerFrame +1
-		if currentUnitPerFrame < unitsPerFrame then
-			if n >= data.frame then
-				CheckWaitingStatus(unitID, data.defID, data.team)
-				needsCheck[unitID] = nil -- done, remove from queue
+	for unitID, frame in pairs(needsCheckFrame) do
+		if n >= frame then
+			currentUnitPerFrame = currentUnitPerFrame + 1
+			if currentUnitPerFrame < unitsPerFrame then
+				CheckWaitingStatus(unitID, needsCheckDefID[unitID], needsCheckTeam[unitID])
+				needsCheckFrame[unitID] = nil
+				needsCheckDefID[unitID] = nil
+				needsCheckTeam[unitID] = nil
 			end
 		end
 	end
@@ -203,19 +238,23 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
-	if spIsGUIHidden() then return end
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
+	if spIsGUIHidden() then
+		return
+	end
 	if iconVBO.usedElements > 0 then
 		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.DepthMask(false)
-		local clock = os.clock() * (1*(iconSequenceFrametime*iconSequenceNum))	-- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
+		local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
 		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl.Texture(iconSequenceImages..animFrame..'.png')
+		gl.Texture(iconSequenceImages .. animFrame .. ".png")
 		energyIconShader:Activate()
-		energyIconShader:SetUniform("iconDistance",disticon)
-		energyIconShader:SetUniform("addRadius",0)
-		iconVBO.VAO:DrawArrays(GL.POINTS,iconVBO.usedElements)
+		energyIconShader:SetUniform("iconDistance", disticon)
+		energyIconShader:SetUniform("addRadius", 0)
+		iconVBO.VAO:DrawArrays(GL.POINTS, iconVBO.usedElements)
 		energyIconShader:Deactivate()
 		gl.Texture(false)
 		gl.DepthTest(false)

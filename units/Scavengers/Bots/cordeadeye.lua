@@ -21,7 +21,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/cordeadeye.s3o",
-		script = "scavs/cordeadeye.COB",
+		script = "scavs/cordeadeye.cob",
 		seismicsignature = 0,
 		selfdestructas = "deadeyeSelfd",
 		selfdestructcountdown = 3,
@@ -32,7 +32,7 @@ return {
 		turnrate = 400,
 		upright = false,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Kaludjo",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/t2",
@@ -82,11 +82,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-greenblaster",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

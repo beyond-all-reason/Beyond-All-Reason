@@ -31,7 +31,7 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
@@ -67,12 +67,6 @@ return {
 				object = "Units/cor2X2C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -112,6 +106,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
@@ -124,7 +119,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun2",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1000,
 				texture1 = "shot",

@@ -82,11 +82,6 @@ return {
 				[3] = "custom:barrelshot-flak",
 				[4] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -133,6 +128,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					norangering = 1,
 				},
 				damage = {
@@ -164,28 +160,26 @@ return {
 				predictboost = 0,
 				--proximitypriority = -1,
 				range = 800,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray4burn",
 				scrollspeed = 5,
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				texture3 = "largebeam",
 				thickness = 6.5,
 				tilelength = 500,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 17,
 					default = 33,
 					vtol = 14,
-				},
-				customparams = {
-					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			ultraheavyriotcannon = {
@@ -209,8 +203,6 @@ return {
 				soundhit = "xplonuk2",
 				soundhitwet = "splslrg",
 				soundstart = "krogun1",
-				soundhitvolume = 14,
-				soundstartvolume = 13.0,
 				separation = 2,
 				nogap = false,
 				size = 9,
@@ -220,16 +212,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 750,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					bombers = 52,
 					default = 420,
 					fighters = 52,
 					subs = 160,
 					vtol = 52,
-				},
-				customparams = {
-					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			bigfootstep = {
@@ -249,10 +240,10 @@ return {
 				range = 0,
 				reloadtime = 1.5,
 				soundhit = "banthstep",
-				soundhitvolume = 35,
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},
@@ -290,14 +281,15 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				soundhitvolume = 7.5,
-				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				tolerance = 10000,
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 190,
 				},

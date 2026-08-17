@@ -40,27 +40,13 @@ return {
 		wingangle = 0.062,
 		wingdrag = 0.135,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			lumamult = "1.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft/T2",
 			techlevel = 3,
 			attacksafetydistance = 20000,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -114,8 +100,6 @@ return {
 				soundhit = "nukearm",
 				soundhitwet = "nukewater",
 				soundstart = "nukelaunch",
-				soundhitwetvolume = 53,
-				soundstartvolume = 20,
 				texture1 = "null",
 				texture2 = "railguntrail",
 				texture3 = "null",

@@ -4,6 +4,7 @@ return {
 		buildpic = "CORSY.DDS",
 		buildtime = 5100,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 59 96",
 		collisionvolumetype = "Box",
@@ -62,10 +63,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

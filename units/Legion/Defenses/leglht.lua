@@ -17,7 +17,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		mass = 5100,
-		health = 550,--650
+		health = 550, --650
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -33,7 +33,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0.6",
@@ -74,12 +74,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -143,8 +137,8 @@ return {
 					vtol = 25,
 				},
 				customparams = {
-					exclude_preaim = true
-				}
+					exclude_preaim = true,
+				},
 			},
 		},
 		weapons = {
