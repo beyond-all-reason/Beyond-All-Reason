@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
-local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
+local ENABLE_REPORTS = BAR.Utilities.IsDevMode()
 
 local reportFunctions = nil
 
@@ -61,7 +61,7 @@ local SpringGetUnitPosition = Spring.GetUnitPosition
 local SpringGetGroundHeight = Spring.GetGroundHeight
 local SpringPos2BuildPos = Spring.Pos2BuildPos
 local SpringTestBuildOrder = Spring.TestBuildOrder
-local SpringGetMyTeamID = Spring.GetMyTeamID
+local SpringGetMyTeamID = Spring.GetLocalTeamID
 local isHeadless = Platform.isHeadless
 
 -- util
@@ -478,7 +478,10 @@ local function getBuildPositionsBox(blueprint, startPos, endPos, spacing)
 		-- go right bottom side
 		table.append(result, fillRow(startPos[1] + xStep, startPos[3] + (zNum - 1) * zStep, xStep, 0, xNum - 1))
 		-- go up right side
-		table.append(result, fillRow(startPos[1] + (xNum - 1) * xStep, startPos[3] + (zNum - 2) * zStep, 0, -zStep, zNum - 1))
+		table.append(
+			result,
+			fillRow(startPos[1] + (xNum - 1) * xStep, startPos[3] + (zNum - 2) * zStep, 0, -zStep, zNum - 1)
+		)
 		-- go left top side
 		table.append(result, fillRow(startPos[1] + (xNum - 2) * xStep, startPos[3], -xStep, 0, xNum - 1))
 	elseif xNum == 1 then
@@ -563,7 +566,7 @@ end
 ---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
 ---@param cmdOpts table Command options.
 local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit, cmdOpts)
-	local BuildOrders = WG["api_build_orders"]
+	local BuildOrders = WG.api_build_orders
 	local allBuildings = createBuildings(blueprint, buildPositions)
 
 	if isBuildSplit then
@@ -650,7 +653,22 @@ local function createInstancesForPosition(blueprint, teamID, copyPosition, posit
 			tableInsert(instanceIDs[positionKey].outline, outlineInstanceID)
 
 			-- building
-			tableInsert(instanceIDs[positionKey].unit, WG.DrawUnitShapeGL4(unit.unitDefID, sx, sy, sz, unit.facing * (mathPi / 2), UNIT_ALPHA, teamID, nil, nil, nil, widget:GetInfo().name))
+			tableInsert(
+				instanceIDs[positionKey].unit,
+				WG.DrawUnitShapeGL4(
+					unit.unitDefID,
+					sx,
+					sy,
+					sz,
+					unit.facing * (mathPi / 2),
+					UNIT_ALPHA,
+					teamID,
+					nil,
+					nil,
+					nil,
+					widget:GetInfo().name
+				)
+			)
 		end
 	end
 end
@@ -708,7 +726,13 @@ local function drawOutlines()
 	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
 	gl.Texture(0, "$heightmap")
 	outlineShader:Activate()
-	outlineInstanceVBO.VAO:DrawArrays(GL.LINE_STRIP, outlineInstanceVBO.numVertices, 0, outlineInstanceVBO.usedElements, 0)
+	outlineInstanceVBO.VAO:DrawArrays(
+		GL.LINE_STRIP,
+		outlineInstanceVBO.numVertices,
+		0,
+		outlineInstanceVBO.usedElements,
+		0
+	)
 	outlineShader:Deactivate()
 	gl.Texture(0, false)
 	gl.DepthTest(false)
@@ -807,9 +831,21 @@ local function setActiveBuilders(unitIDs)
 			if firstBuilderDef and firstBuilderDef.name then
 				if SubLogic and SubLogic.getSideFromUnitName then
 					currentAPITargetSide = SubLogic.getSideFromUnitName(firstBuilderDef.name)
-					Spring.Log("BlueprintAPI", LOG.DEBUG, string.format("setActiveBuilders determined currentAPITargetSide: %s from %s", tostring(currentAPITargetSide), firstBuilderDef.name))
+					Spring.Log(
+						"BlueprintAPI",
+						LOG.DEBUG,
+						string.format(
+							"setActiveBuilders determined currentAPITargetSide: %s from %s",
+							tostring(currentAPITargetSide),
+							firstBuilderDef.name
+						)
+					)
 				else
-					Spring.Log("BlueprintAPI", LOG.WARNING, "setActiveBuilders: SubLogic or getSideFromUnitName not available for side detection.")
+					Spring.Log(
+						"BlueprintAPI",
+						LOG.WARNING,
+						"setActiveBuilders: SubLogic or getSideFromUnitName not available for side detection."
+					)
 				end
 			end
 		end
@@ -830,7 +866,7 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
 		tableInsert(result.units, {
-			blueprintUnitID = WG["cmd_blueprint"].nextBlueprintUnitID(),
+			blueprintUnitID = WG.cmd_blueprint.nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,
 			unitDefID = unitDefID,
@@ -846,7 +882,11 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 end
 
 function widget:Initialize()
-	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API Initializing. Local SubLogic is assumed loaded and valid.")
+	Spring.Log(
+		widget:GetInfo().name,
+		LOG.INFO,
+		"Blueprint API Initializing. Local SubLogic is assumed loaded and valid."
+	)
 
 	if not isHeadless then
 		if not initGL4() then
@@ -863,9 +903,17 @@ function widget:Initialize()
 			if includedReports and type(includedReports.SetDependencies) == "function" then
 				includedReports.SetDependencies(SubLogic)
 				reportFunctions = includedReports
-				Spring.Log("BlueprintAPI", LOG.INFO, "Report functions loaded and dependencies set using local SubLogic.")
+				Spring.Log(
+					"BlueprintAPI",
+					LOG.INFO,
+					"Report functions loaded and dependencies set using local SubLogic."
+				)
 			else
-				Spring.Log("BlueprintAPI", LOG.ERROR, "Failed to load reports or SetDependencies is missing: " .. reportPath)
+				Spring.Log(
+					"BlueprintAPI",
+					LOG.ERROR,
+					"Failed to load reports or SetDependencies is missing: " .. reportPath
+				)
 			end
 		else
 			Spring.Log("BlueprintAPI", LOG.WARNING, "Report file not found: " .. reportPath)
@@ -874,7 +922,7 @@ function widget:Initialize()
 		Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
 	end
 
-	WG["api_blueprint"] = {
+	WG.api_blueprint = {
 		getActiveBlueprint = function()
 			return activeBlueprint
 		end,
@@ -904,7 +952,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["api_blueprint"] = nil
+	WG.api_blueprint = nil
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then

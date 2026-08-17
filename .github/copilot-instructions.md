@@ -99,6 +99,7 @@ Avoid:
 - Use the I18N system for all user-facing text. Avoid hardcoding strings in the codebase.
 - Use the `Spring.I18N('ui.example.textname', { insertionvar = 'text' })` function to retrieve localized strings from the appropriate language files. (only available in LuaUI)
 - Only add to the english language file, other languages will be handled by the community. If you need to add a new string, please add it to the `en.lua` file in the `languages` folder.
+- Only use the `Spring.I18N` function for user-facing text, and avoid using it for internal code or debug messages.
 
 ## RmlUi interface framework
 
