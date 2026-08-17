@@ -403,9 +403,10 @@ local function cruise(projectileID, projectile, frame)
 		return frame + 1
 	end
 
+	-- We leave the engine `phase` tracking and begin using lua's scripted MoveControl.
 	scripted[projectileID] = projectile
-	-- The verticalization phase uses MoveControl, so we can track position and velocity
-	-- without crossing any boundaries with callouts, saving a little bit on performance.
+
+	-- We can track position and velocity entirely in lua without any engine callouts.
 	local velocity = getVelocity(projectileID)
 	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
 	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
@@ -415,7 +416,6 @@ local function cruise(projectileID, projectile, frame)
 end
 
 local function verticalize(projectileID, projectile)
-	-- We avoid callouts by tracking projectiles entirely via lua.
 	local px, py, pz = projectile.px, projectile.py, projectile.pz
 	local vx, vy, vz = projectile.vx, projectile.vy, projectile.vz
 	local speed = projectile.speed
