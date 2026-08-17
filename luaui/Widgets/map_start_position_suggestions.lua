@@ -5,17 +5,14 @@ function widget:GetInfo()
 		name = "Start Position Suggestions",
 		desc = "Show expert recommended starting locations on the map",
 		license = "GNU GPL, v2 or later",
-		layer = -100,
-		enabled = true
+		layer = 10000,
+		enabled = true,
 	}
 end
 
-
 -- Localized functions for performance
 local mathCeil = math.ceil
-local mathFloor = math.floor
 local mathMax = math.max
-local mathMin = math.min
 local mathSin = math.sin
 local mathCos = math.cos
 local mathPi = math.pi
@@ -44,15 +41,11 @@ local config = {
 
 	-- local
 	circleRadius = 300,
-	circleThickness = 8,
-	circleSegments = 32,
-	circleSegmentFill = 0.6,
-	circleGroundOffset = 3,
-	circleGlowSegments = 96,
+	circleThickness = 6,
 
-	playerTextSize = 100,
-	roleTextSize = 70,
-	tutorialTextSize = 18,
+	playerTextSize = 90,
+	roleTextSize = 65,
+	tutorialTextSize = 20,
 
 	spawnPointCircleColor = { 1, 1, 1, 0.6 },
 	baseCenterCircleColor = { 1, 1, 1, 0.4 },
@@ -61,8 +54,7 @@ local config = {
 	playerTextColor = { 1, 1, 1, 0.6 },
 	roleTextColor = { 1, 1, 1, 0.6 },
 
-	glowInnerRadiusCoefficient = 0.16,
-	glowOuterRadiusCoefficient = 0.17,
+	glowRadiusCoefficient = -0.3,
 
 	tooltipDelay = 0.37,
 	tooltipMaxWidthChars = 60,
@@ -75,7 +67,7 @@ local config = {
 local CIRCLE_RADIUS_SQUARED = config.circleRadius * config.circleRadius
 
 local vsx, vsy = spGetViewGeometry()
-local resMult = vsy/1440
+local resMult = vsy / 1440
 
 -- engine call optimizations
 -- =========================
@@ -85,13 +77,18 @@ local SpringIsGUIHidden = Spring.IsGUIHidden
 local SpringGetCameraRotation = Spring.GetCameraRotation
 local SpringGetGameFrame = Spring.GetGameFrame
 
+local glBlending = gl.Blending
 local glColor = gl.Color
-local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
+local glPopAttrib = gl.PopAttrib
+local glPushAttrib = gl.PushAttrib
 local glPushMatrix = gl.PushMatrix
+local glResetState = gl.ResetState
 local glTranslate = gl.Translate
 local glRotate = gl.Rotate
 local glPopMatrix = gl.PopMatrix
+local glTexture = gl.Texture
+local glUseShader = gl.UseShader
 
 -- types
 -- =====
@@ -135,7 +132,6 @@ local glPopMatrix = gl.PopMatrix
 ---@field role string
 
 ---@alias WidgetStartPositions table<AllyTeamID, WidgetTeamStartPositionEntry[]>
-
 
 -- loading and processing code
 -- ===========================
@@ -181,14 +177,10 @@ local function processModoptionTeamConfig(positions, teamPositions)
 end
 
 local function selectModoptionConfigForPlayers(modoptionData, allyTeamCount, playersPerTeam)
-	Spring.Log(
-		widget:GetInfo().name,
-		LOG.INFO,
-		"Searching for start positions for " .. table.toString({
-			allyTeamCount = allyTeamCount,
-			playersPerTeam = playersPerTeam,
-		})
-	)
+	Spring.Log(widget:GetInfo().name, LOG.INFO, "Searching for start positions for " .. table.toString({
+		allyTeamCount = allyTeamCount,
+		playersPerTeam = playersPerTeam,
+	}))
 
 	for _, teamConfig in ipairs(modoptionData.team) do
 		if teamConfig.playersPerTeam == playersPerTeam and teamConfig.teamCount == allyTeamCount then
@@ -220,30 +212,8 @@ local function loadStartPositions()
 		return
 	end
 
-	local positions = processModoptionTeamConfig(
-		parsed.positions,
-		selectedConfig
-	)
+	local positions = processModoptionTeamConfig(parsed.positions, selectedConfig)
 
-	return positions
-end
-
-local function loadCurrentTeamStartPositions()
-	local positions = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		if teamID ~= gaiaTeamID then
-			local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
-			local x, _, z = Spring.GetTeamStartPosition(teamID)
-			if allyTeamID and x and z and x > 0 and z > 0 then
-				if not positions[allyTeamID] then
-					positions[allyTeamID] = {}
-				end
-				tableInsert(positions[allyTeamID], {
-					spawnPoint = { x = x, z = z },
-				})
-			end
-		end
-	end
 	return positions
 end
 
@@ -255,7 +225,6 @@ local fontTutorial = nil
 
 ---@type WidgetStartPositions
 local startPositions = {}
-local usingCurrentTeamStartPositions = false
 
 ---@type string
 local tooltipKey = nil
@@ -272,8 +241,6 @@ local textDisplayListID = nil
 local textDisplayListCameraFlipped = nil
 local textDisplayListCameraMode = nil
 local textDisplayListCameraRy = nil
-local activeCameraName = nil
-local activeCameraFlipped = nil
 
 local function invalidateTextDisplayList()
 	if textDisplayListID then
@@ -288,15 +255,6 @@ local function invalidateCircleDisplayList()
 	if circleDisplayListID then
 		gl.DeleteList(circleDisplayListID)
 		circleDisplayListID = nil
-	end
-end
-
-local tutorialDisplayListID = nil
-
-local function invalidateTutorialDisplayList()
-	if tutorialDisplayListID then
-		gl.DeleteList(tutorialDisplayListID)
-		tutorialDisplayListID = nil
 	end
 end
 
@@ -365,98 +323,6 @@ local function drawArc()
 	end
 end
 
-local tileCx, tileCz = 0, 0
-local tileRadius, tileWidth = 0, 0
-local tileSegments, tileColorCount = 0, 0
----@type number[][]
-local tileColors = {}
-
-local tileVertexCenterX, tileVertexCenterZ = 0, 0
-local tileVertexRadialX, tileVertexRadialZ = 0, 0
-local tileVertexTangentX, tileVertexTangentZ = 0, 0
-local tileVertexR, tileVertexG, tileVertexB = 0, 0, 0
-local tileVertexGroundOffset = 0
-local tileRadialOffsets = {}
-local tileTangentOffsets = {}
-local tileVertexX = {}
-local tileVertexY = {}
-local tileVertexZ = {}
-local tileVertexShade = {}
-
----@param halfWidth number
----@param halfLength number
----@param chamfer number
----@param innerShade number
----@param outerShade number
----@param alpha number
-local function drawChamferedTile(halfWidth, halfLength, chamfer, innerShade, outerShade, alpha)
-	chamfer = mathMin(chamfer, halfWidth - 0.5, halfLength - 0.5)
-	tileRadialOffsets[1], tileTangentOffsets[1] = -halfWidth, -halfLength + chamfer
-	tileRadialOffsets[2], tileTangentOffsets[2] = -halfWidth, halfLength - chamfer
-	tileRadialOffsets[3], tileTangentOffsets[3] = -halfWidth + chamfer, halfLength
-	tileRadialOffsets[4], tileTangentOffsets[4] = halfWidth - chamfer, halfLength
-	tileRadialOffsets[5], tileTangentOffsets[5] = halfWidth, halfLength - chamfer
-	tileRadialOffsets[6], tileTangentOffsets[6] = halfWidth, -halfLength + chamfer
-	tileRadialOffsets[7], tileTangentOffsets[7] = halfWidth - chamfer, -halfLength
-	tileRadialOffsets[8], tileTangentOffsets[8] = -halfWidth + chamfer, -halfLength
-
-	local shadeRange = outerShade - innerShade
-	local inverseWidth = 1 / (2 * halfWidth)
-	for vertexIndex = 1, 8 do
-		local radialOffset = tileRadialOffsets[vertexIndex]
-		local tangentOffset = tileTangentOffsets[vertexIndex]
-		local x = tileVertexCenterX + radialOffset * tileVertexRadialX + tangentOffset * tileVertexTangentX
-		local z = tileVertexCenterZ + radialOffset * tileVertexRadialZ + tangentOffset * tileVertexTangentZ
-		tileVertexX[vertexIndex] = x
-		tileVertexY[vertexIndex] = spGetGroundHeight(x, z) + tileVertexGroundOffset
-		tileVertexZ[vertexIndex] = z
-		tileVertexShade[vertexIndex] = innerShade + shadeRange * ((radialOffset + halfWidth) * inverseWidth)
-	end
-
-	for vertexIndex = 2, 7 do
-		glColor(tileVertexR * tileVertexShade[1], tileVertexG * tileVertexShade[1], tileVertexB * tileVertexShade[1], alpha)
-		glVertex(tileVertexX[1], tileVertexY[1], tileVertexZ[1])
-		glColor(tileVertexR * tileVertexShade[vertexIndex], tileVertexG * tileVertexShade[vertexIndex], tileVertexB * tileVertexShade[vertexIndex], alpha)
-		glVertex(tileVertexX[vertexIndex], tileVertexY[vertexIndex], tileVertexZ[vertexIndex])
-		local nextIndex = vertexIndex + 1
-		glColor(tileVertexR * tileVertexShade[nextIndex], tileVertexG * tileVertexShade[nextIndex], tileVertexB * tileVertexShade[nextIndex], alpha)
-		glVertex(tileVertexX[nextIndex], tileVertexY[nextIndex], tileVertexZ[nextIndex])
-	end
-end
-
-local function drawRingTiles()
-	local angleStep = 2 * mathPi / tileSegments
-	local halfLength = tileRadius * angleStep * config.circleSegmentFill * 0.5
-	local halfWidth = tileWidth * 0.5
-	local chamfer = mathMin(5, halfWidth * 0.4, halfLength * 0.2)
-
-	for i = 0, tileSegments - 1 do
-		local angle = -mathPi / 2 + (i + 0.5) * angleStep
-		local radialX, radialZ = mathCos(angle), mathSin(angle)
-		local tangentX, tangentZ = -radialZ, radialX
-		local centerX = tileCx + tileRadius * radialX
-		local centerZ = tileCz + tileRadius * radialZ
-		local color = tileColors[mathFloor(i * tileColorCount / tileSegments) + 1] or config.spawnPointCircleColor
-		local r, g, b, a = color[1] or 1, color[2] or 1, color[3] or 1, color[4] or 1
-		local materialIntensity = mathMin(1, 0.65 + a * 0.45)
-
-		tileVertexCenterX, tileVertexCenterZ = centerX, centerZ
-		tileVertexRadialX, tileVertexRadialZ = radialX, radialZ
-		tileVertexTangentX, tileVertexTangentZ = tangentX, tangentZ
-
-		tileVertexR, tileVertexG, tileVertexB = 0.02, 0.025, 0.035
-		tileVertexGroundOffset = 1
-		drawChamferedTile(halfWidth + 3, halfLength + 3, chamfer + 1.5, 1, 1, 0.68)
-
-		tileVertexR, tileVertexG, tileVertexB = r, g, b
-		tileVertexGroundOffset = 2
-		drawChamferedTile(halfWidth + 1.5, halfLength + 1.5, chamfer + 0.75, materialIntensity * 0.38, materialIntensity * 0.56, 1)
-
-		tileVertexGroundOffset = config.circleGroundOffset
-		drawChamferedTile(halfWidth, halfLength, chamfer, materialIntensity * 0.72, mathMin(1, materialIntensity * 1.08), 1)
-	end
-end
-
 local function drawArrow(ax, ay, az, bx, by, bz, size, cStart, cEnd)
 	local dx, dy, dz = bx - ax, by - ay, bz - az
 	local length = mathSqrt(dx * dx + dy * dy + dz * dz)
@@ -489,6 +355,27 @@ local function drawCircle(cx, cz, radius, segments, thickness, colors, colorsGlo
 	arcStartAngle = -mathPi / 2
 	arcCx, arcCz = cx, cz
 
+	if colors and #colors > 0 then
+		if type(colors[1]) == "number" then
+			reuseColorsArray[1] = colors
+			colors = reuseColorsArray
+		end
+
+		local colorCount = #colors
+		arcSegments = mathCeil(segments / colorCount)
+		arcRadius = radius
+		arcThickness = thickness
+
+		for i = 1, colorCount do
+			local co = colors[i]
+			arcA1 = i * 2 * mathPi / colorCount
+			arcA2 = (i + 1) * 2 * mathPi / colorCount
+			arcColorInner = co
+			arcColorOuter = co
+			glBeginEnd(GL.TRIANGLE_STRIP, drawArc)
+		end
+	end
+
 	if colorsGlow and #colorsGlow > 0 then
 		if type(colorsGlow[1]) == "number" then
 			reuseGlowColorsArray[1] = colorsGlow
@@ -496,53 +383,30 @@ local function drawCircle(cx, cz, radius, segments, thickness, colors, colorsGlo
 		end
 
 		local glowCount = #colorsGlow
-		arcSegments = mathCeil(config.circleGlowSegments / glowCount)
+		arcSegments = mathCeil(segments / glowCount)
+		arcRadius = config.glowRadiusCoefficient < 0 and radius or radius - thickness
+		arcThickness = radius * config.glowRadiusCoefficient
 
 		for i = 1, glowCount do
 			local co = colorsGlow[i]
 			reuseColorTable[1], reuseColorTable[2], reuseColorTable[3], reuseColorTable[4] = co[1], co[2], co[3], 0
-			arcA1 = (i - 1) * 2 * mathPi / glowCount
-			arcA2 = i * 2 * mathPi / glowCount
-
-			arcRadius = radius
-			arcThickness = radius * config.glowInnerRadiusCoefficient
+			arcA1 = i * 2 * mathPi / glowCount
+			arcA2 = (i + 1) * 2 * mathPi / glowCount
 			arcColorInner = reuseColorTable
 			arcColorOuter = co
 			glBeginEnd(GL.TRIANGLE_STRIP, drawArc)
-
-			arcThickness = radius * config.glowOuterRadiusCoefficient
-			arcRadius = radius + arcThickness
-			arcColorInner = co
-			arcColorOuter = reuseColorTable
-			glBeginEnd(GL.TRIANGLE_STRIP, drawArc)
 		end
-	end
-
-	if colors and #colors > 0 then
-		if type(colors[1]) == "number" then
-			reuseColorsArray[1] = colors
-			colors = reuseColorsArray
-		end
-
-		tileCx, tileCz = cx, cz
-		tileRadius, tileWidth = radius, thickness
-		tileSegments, tileColorCount = segments, #colors
-		tileColors = colors
-		glCulling(false)
-		glBeginEnd(GL.TRIANGLES, drawRingTiles)
-		glCulling(false)
 	end
 end
 
-local spawnPointAlphaZeroColor = { config.spawnPointCircleColor[1], config.spawnPointCircleColor[2], config.spawnPointCircleColor[3], 0 }
+local spawnPointAlphaZeroColor =
+	{ config.spawnPointCircleColor[1], config.spawnPointCircleColor[2], config.spawnPointCircleColor[3], 0 }
 local mathDistance2dSquared = math.distance2dSquared
 
 local function buildCircleDisplayList()
 	if startPositions == nil then
 		return
 	end
-
-	glDepthTest(false)
 
 	local circleColors = {}
 	local baseCircleColors = {}
@@ -561,7 +425,8 @@ local function buildCircleDisplayList()
 					if not circleColors[colorCount] then
 						circleColors[colorCount] = { r, g, b, a }
 					else
-						circleColors[colorCount][1], circleColors[colorCount][2], circleColors[colorCount][3], circleColors[colorCount][4] = r, g, b, a
+						circleColors[colorCount][1], circleColors[colorCount][2], circleColors[colorCount][3], circleColors[colorCount][4] =
+							r, g, b, a
 					end
 				end
 			end
@@ -574,7 +439,12 @@ local function buildCircleDisplayList()
 				for j = 1, colorCount do
 					baseCount = baseCount + 1
 					if not baseCircleColors[baseCount] then
-						baseCircleColors[baseCount] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], config.spawnPointCircleColor[4] }
+						baseCircleColors[baseCount] = {
+							circleColors[j][1],
+							circleColors[j][2],
+							circleColors[j][3],
+							config.spawnPointCircleColor[4],
+						}
 					else
 						baseCircleColors[baseCount][1] = circleColors[j][1]
 						baseCircleColors[baseCount][2] = circleColors[j][2]
@@ -584,37 +454,47 @@ local function buildCircleDisplayList()
 				end
 			else
 				baseCount = 1
-				if not baseCircleColors[1] then
-					baseCircleColors[1] = {}
-				end
-				baseCircleColors[1][1] = config.spawnPointCircleColor[1]
-				baseCircleColors[1][2] = config.spawnPointCircleColor[2]
-				baseCircleColors[1][3] = config.spawnPointCircleColor[3]
-				baseCircleColors[1][4] = config.spawnPointCircleColor[4]
+				baseCircleColors[1] = config.spawnPointCircleColor
 			end
 			for j = baseCount + 1, #baseCircleColors do
 				baseCircleColors[j] = nil
 			end
 
-			local glowAlpha = config.spawnPointCircleColor[4] * 0.2
-			for j = 1, baseCount do
+			local glowAlpha = config.spawnPointCircleColor[4] * 0.5
+			for j = 1, colorCount do
 				if not glowColors[j] then
-					glowColors[j] = { baseCircleColors[j][1], baseCircleColors[j][2], baseCircleColors[j][3], glowAlpha }
+					glowColors[j] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha }
 				else
-					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] = baseCircleColors[j][1], baseCircleColors[j][2], baseCircleColors[j][3], glowAlpha
+					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] =
+						circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha
 				end
 			end
-			for j = baseCount + 1, #glowColors do
+			for j = colorCount + 1, #glowColors do
 				glowColors[j] = nil
 			end
 
-			drawCircle(sx, sz, config.circleRadius, config.circleSegments, config.circleThickness, baseCircleColors, glowColors)
+			drawCircle(sx, sz, config.circleRadius, 128, config.circleThickness, baseCircleColors, glowColors)
 
 			if position.baseCenter then
 				local bx, bz = position.baseCenter.x, position.baseCenter.z
-				glColor(config.baseCenterCircleColor[1], config.baseCenterCircleColor[2], config.baseCenterCircleColor[3], config.baseCenterCircleColor[4])
-				drawCircle(bx, bz, config.circleRadius, config.circleSegments, config.circleThickness, config.baseCenterCircleColor, nil)
-				drawArrow(sx, spGetGroundHeight(sx, sz), sz, bx, spGetGroundHeight(bx, bz), bz, 70, spawnPointAlphaZeroColor, config.spawnPointCircleColor)
+				glColor(
+					config.baseCenterCircleColor[1],
+					config.baseCenterCircleColor[2],
+					config.baseCenterCircleColor[3],
+					config.baseCenterCircleColor[4]
+				)
+				drawCircle(bx, bz, config.circleRadius, 128, config.circleThickness, config.baseCenterCircleColor, nil)
+				drawArrow(
+					sx,
+					spGetGroundHeight(sx, sz),
+					sz,
+					bx,
+					spGetGroundHeight(bx, bz),
+					bz,
+					70,
+					spawnPointAlphaZeroColor,
+					config.spawnPointCircleColor
+				)
 			end
 		end
 	end
@@ -636,28 +516,29 @@ local function getCaptions(role)
 	local roles = role:split("/")
 
 	if #roles == 1 then
-		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		title = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 	elseif #roles > 1 then
-		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+		local title1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = BAR.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
 
-		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
-		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+		local description1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = BAR.I18N(
+			"ui.startPositionSuggestions.multiRole.description",
+			{ role1 = description1, role2 = description2 }
+		)
 	end
 
 	captionsCache[role] = { title = title, description = description }
 	return captionsCache[role]
 end
 
-local function buildTextDisplayList(cameraFlipped, cameraName, cameraRy)
+local function buildTextDisplayList(cameraFlipped, cameraMode, cameraRy)
 	if startPositions == nil then
 		return
 	end
-
-	glDepthTest(false)
 
 	for _, teamStartPosition in pairs(startPositions) do
 		for i, position in ipairs(teamStartPosition) do
@@ -669,7 +550,7 @@ local function buildTextDisplayList(cameraFlipped, cameraName, cameraRy)
 			glRotate(-90, 1, 0, 0)
 			if cameraFlipped == 1 then
 				glRotate(180, 0, 0, 1)
-			elseif cameraName == "spring" then
+			elseif cameraMode == 2 then
 				glRotate(-180 * cameraRy / mathPi, 0, 0, 1)
 			end
 
@@ -687,49 +568,46 @@ local function buildTextDisplayList(cameraFlipped, cameraName, cameraRy)
 	end
 end
 
-local function updateCameraController()
-	local cameraName, _, _, cameraStateValue3 = SpringGetCameraState(false)
-	local cameraFlipped = cameraName == "ta" and cameraStateValue3 or nil
-	if activeCameraName ~= cameraName or activeCameraFlipped ~= cameraFlipped then
-		activeCameraName = cameraName
-		activeCameraFlipped = cameraFlipped
-		invalidateTextDisplayList()
-	end
-end
-
 local function drawAllStartLocationsText()
 	if startPositions == nil then
 		return
 	end
 
-	local cameraName = activeCameraName
-	local cameraFlipped = activeCameraFlipped
-	local ry = 0
-	local roundedRy = 0
-	if cameraName == "spring" then
-		_, ry, _ = SpringGetCameraRotation()
-		roundedRy = mathCeil(ry * 100) / 100
-	end
+	local cameraState = SpringGetCameraState()
+	local _, ry, _ = SpringGetCameraRotation()
+
+	local cameraFlipped = cameraState.flipped
+	local cameraMode = cameraState.mode
+	local roundedRy = mathCeil(ry * 100) / 100
 
 	local needsRebuild = not textDisplayListID
 		or textDisplayListCameraFlipped ~= cameraFlipped
-		or textDisplayListCameraMode ~= cameraName
-		or (cameraName == "spring" and textDisplayListCameraRy ~= roundedRy)
+		or textDisplayListCameraMode ~= cameraMode
+		or (cameraMode == 2 and textDisplayListCameraRy ~= roundedRy)
 
 	if needsRebuild then
 		invalidateTextDisplayList()
 		textDisplayListCameraFlipped = cameraFlipped
-		textDisplayListCameraMode = cameraName
+		textDisplayListCameraMode = cameraMode
 		textDisplayListCameraRy = roundedRy
-		textDisplayListID = gl.CreateList(buildTextDisplayList, cameraFlipped, cameraName, ry)
+		textDisplayListID = gl.CreateList(buildTextDisplayList, cameraFlipped, cameraMode, ry)
 	end
 
 	gl.CallList(textDisplayListID)
 end
 
 local function drawAllStartLocations()
+	glPushAttrib(GL.ALL_ATTRIB_BITS)
+	glResetState()
+	glUseShader(0)
+	glTexture(false)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glDepthTest(false)
+
 	drawAllStartLocationsCircles()
 	drawAllStartLocationsText()
+
+	glPopAttrib()
 end
 
 local function wrapLine(str, maxLength)
@@ -757,12 +635,9 @@ local function wrapLine(str, maxLength)
 end
 
 local function wrapText(str, maxLength)
-	local result = string.gsub(str,
-		"[^\n]*",
-		function(s)
-			return wrapLine(s, maxLength)
-		end
-	)
+	local result = string.gsub(str, "[^\n]*", function(s)
+		return wrapLine(s, maxLength)
+	end)
 	return result
 end
 
@@ -783,14 +658,11 @@ local function drawTooltip()
 	end
 
 	if not wrappedDescriptionCache[tooltipKey] then
-		wrappedDescriptionCache[tooltipKey] = wrapText(
-			getCaptions(tooltipKey).description,
-			config.tooltipMaxWidthChars
-		)
+		wrappedDescriptionCache[tooltipKey] = wrapText(getCaptions(tooltipKey).description, config.tooltipMaxWidthChars)
 	end
 
 	local xOffset, yOffset = 20, -12
-	WG["tooltip"].ShowTooltip(
+	WG.tooltip.ShowTooltip(
 		"startPositionTooltip",
 		wrappedDescriptionCache[tooltipKey],
 		x + xOffset,
@@ -800,62 +672,39 @@ local function drawTooltip()
 end
 
 local function drawTutorial()
-	if config.hasRunBefore and (not WG["notifications"] or not WG["notifications"].getTutorial()) then
+	if config.hasRunBefore and (not WG.notifications or not WG.notifications.getTutorial()) then
 		return
 	end
 
 	if not cachedTutorialText then
-		cachedTutorialText = wrapText(
-			Spring.I18N("ui.startPositionSuggestions.tutorial"),
-			config.tutorialMaxWidthChars
-		)
+		cachedTutorialText = wrapText(BAR.I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
 	end
 
-	if not tutorialDisplayListID then
-		tutorialDisplayListID = gl.CreateList(function()
-			fontTutorial:SetOutlineColor(0,0,0,1)
-			fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
-			fontTutorial:Print(
-				cachedTutorialText,
-				vsx * 0.5,
-				vsy * 0.75,
-				config.tutorialTextSize*resMult,
-				"cao"
-			)
-		end)
-	end
-	gl.CallList(tutorialDisplayListID)
+	fontTutorial:SetOutlineColor(0, 0, 0, 1)
+	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
+	fontTutorial:Print(cachedTutorialText, vsx * 0.5, vsy * 0.61, config.tutorialTextSize * resMult, "cao")
 end
 
 function widget:ViewResize()
-	invalidateTextDisplayList()
-	invalidateTutorialDisplayList()
-	if font then
-		gl.DeleteFont(font)
-	end
-	if fontTutorial then
-		gl.DeleteFont(fontTutorial)
-	end
 	vsx, vsy = spGetViewGeometry()
-	resMult = vsy/1440
-	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
+	resMult = vsy / 1440
+	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.8
 	font = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		baseFontSize*resMult,
-		(baseFontSize*resMult) / 14,
+		baseFontSize * resMult,
+		(baseFontSize * resMult) / 14,
 		1
 	)
 	fontTutorial = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14,
-		1
+		config.tutorialTextSize * resMult,
+		(config.tutorialTextSize * resMult) / 14
 	)
 end
 
 function widget:GetConfigData()
 	return {
-		hasRunBefore = true
+		hasRunBefore = true,
 	}
 end
 
@@ -868,12 +717,8 @@ end
 function widget:Initialize()
 	Spring.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
 	widget:ViewResize()
-	updateCameraController()
 	startPositions = loadStartPositions()
 	if not startPositions then
-		--usingCurrentTeamStartPositions = true
-		--startPositions = loadCurrentTeamStartPositions()
-		--Spring.Log(widget:GetInfo().name, LOG.WARNING, "Using current team start positions for testing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -882,7 +727,6 @@ end
 function widget:Shutdown()
 	invalidateCircleDisplayList()
 	invalidateTextDisplayList()
-	invalidateTutorialDisplayList()
 	gl.DeleteFont(font)
 	gl.DeleteFont(fontTutorial)
 end
@@ -902,12 +746,18 @@ local function checkTooltips()
 		return
 	end
 
-	for _, teamStartPosition in pairs(startPositions) do
-		for _, position in ipairs(teamStartPosition) do
+	for allyTeamID, teamStartPosition in pairs(startPositions) do
+		for i, position in ipairs(teamStartPosition) do
 			local newKey
-			if mathDistance2dSquared(mwx, mwz, position.spawnPoint.x, position.spawnPoint.z) < CIRCLE_RADIUS_SQUARED then
+			if
+				math.distance2dSquared(mwx, mwz, position.spawnPoint.x, position.spawnPoint.z) < CIRCLE_RADIUS_SQUARED
+			then
 				newKey = position.role
-			elseif position.baseCenter and mathDistance2dSquared(mwx, mwz, position.baseCenter.x, position.baseCenter.z) < CIRCLE_RADIUS_SQUARED then
+			elseif
+				position.baseCenter
+				and math.distance2dSquared(mwx, mwz, position.baseCenter.x, position.baseCenter.z)
+					< CIRCLE_RADIUS_SQUARED
+			then
 				newKey = "baseCenter"
 			end
 
@@ -921,65 +771,56 @@ local function checkTooltips()
 	end
 end
 
-local function updatePlacedCommanders()
-	local commanderCount = 0
-	local modified = false
+local function getPlacedCommanders()
+	local newPlacedCommanders = {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if x and y and z then
-				local r, g, b, a = spGetTeamColor(teamID)
-				commanderCount = commanderCount + 1
-				local commander = placedCommanders[commanderCount]
-				if not commander then
-					commander = { position = {} }
-					placedCommanders[commanderCount] = commander
-					modified = true
-				elseif commander.teamID ~= teamID or
-				       commander.position[1] ~= x or
-				       commander.position[2] ~= y or
-				       commander.position[3] ~= z or
-				       commander.colorR ~= r or
-				       commander.colorG ~= g or
-				       commander.colorB ~= b or
-				       commander.colorA ~= a then
-					modified = true
-				end
-
-				commander.position[1], commander.position[2], commander.position[3] = x, y, z
-				commander.teamID = teamID
-				commander.colorR, commander.colorG, commander.colorB, commander.colorA = r, g, b, a
-				commander.playerID = playerID
-				commander.playerName = name
+				tableInsert(newPlacedCommanders, {
+					position = { x, y, z },
+					teamID = teamID,
+					playerID = playerID,
+					playerName = name,
+				})
 			end
 		end
 	end
 
-	if #placedCommanders ~= commanderCount then
+	local modified = false
+	if #placedCommanders ~= #newPlacedCommanders then
 		modified = true
-		for i = #placedCommanders, commanderCount + 1, -1 do
-			placedCommanders[i] = nil
+	else
+		for i = 1, #newPlacedCommanders do
+			local old = placedCommanders[i]
+			local new = newPlacedCommanders[i]
+			if
+				old.teamID ~= new.teamID
+				or old.position[1] ~= new.position[1]
+				or old.position[2] ~= new.position[2]
+				or old.position[3] ~= new.position[3]
+			then
+				modified = true
+				break
+			end
 		end
 	end
 
-	return modified
+	return newPlacedCommanders, modified
 end
 
 local function checkPlacedCommanders()
-	if updatePlacedCommanders() then
-		if usingCurrentTeamStartPositions then
-			startPositions = loadCurrentTeamStartPositions()
-			invalidateTextDisplayList()
-		end
+	local newPlacedCommanders, modified = getPlacedCommanders()
+	if modified then
+		placedCommanders = newPlacedCommanders
 		invalidateCircleDisplayList()
 	end
 end
 
 local tooltipTimer = 0
 local commanderTimer = 0
-local cameraControllerTimer = 0
 function widget:Update(dt)
 	tooltipTimer = tooltipTimer + dt
 	if tooltipTimer > 0.2 then
@@ -990,11 +831,6 @@ function widget:Update(dt)
 	if commanderTimer > 0.5 then
 		checkPlacedCommanders()
 		commanderTimer = 0
-	end
-	cameraControllerTimer = cameraControllerTimer + dt
-	if cameraControllerTimer > 0.1 then
-		updateCameraController()
-		cameraControllerTimer = 0
 	end
 end
 

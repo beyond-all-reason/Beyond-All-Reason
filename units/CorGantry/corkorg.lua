@@ -169,7 +169,7 @@ return {
 				},
 				customparams = {
 					sound_volume_multiplier = 2.5,
-				}
+				},
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,

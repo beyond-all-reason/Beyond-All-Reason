@@ -1,3 +1,6 @@
+# August
+• [Floating AA turrets] Stats made to match their land counterparts
+
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
 • [Rover] 1000 -> 1100 buildtime
