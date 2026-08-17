@@ -112,24 +112,25 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- pipeline. GiveOrderArrayToUnitArray doesn't reliably deliver area attack
 	-- commands (4-param CMD_ATTACK) to the engine.
 	isReissuing = true
+	CallAsTeam(Spring.GetLocalTeamID(), function()
+		Spring.SelectUnitArray(attackUnits)
+		if cmdOpts.shift then
+			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		else
+			Spring.GiveOrder(CMD_STOP, {}, 0)
+			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		end
 
-	Spring.SelectUnitArray(attackUnits)
-	if cmdOpts.shift then
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
-	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
-	end
+		Spring.SelectUnitArray(fightUnits)
+		if cmdOpts.shift then
+			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		else
+			Spring.GiveOrder(CMD_STOP, {}, 0)
+			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		end
 
-	Spring.SelectUnitArray(fightUnits)
-	if cmdOpts.shift then
-		Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
-	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
-	end
-
-	Spring.SelectUnitArray(selUnits)
+		Spring.SelectUnitArray(selUnits)
+	end)
 	isReissuing = false
 
 	return true
