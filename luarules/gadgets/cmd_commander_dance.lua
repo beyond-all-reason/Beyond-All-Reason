@@ -42,6 +42,7 @@ local RH_B1 = string.byte(REQUEST_HEADER, 1)
 local COOLDOWN_FRAMES = 60 -- ~2 seconds at 30fps
 
 local CMD_ATTACK = CMD.ATTACK
+local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
 local CMD_FIGHT = CMD.FIGHT
 local CMD_MANUALFIRE = CMD.MANUALFIRE
 local CMD_GUARD = CMD.GUARD
@@ -71,7 +72,7 @@ local function IsUnitBusy(unitID)
     -- Check current command for combat/assist
     local cmdID = spGetUnitCurrentCommand(unitID)
     if cmdID then
-        if cmdID == CMD_ATTACK or cmdID == CMD_FIGHT or cmdID == CMD_MANUALFIRE then
+        if cmdID == CMD_ATTACK or cmdID == CMD_ATTACK_TARGETS or cmdID == CMD_FIGHT or cmdID == CMD_MANUALFIRE then
             return true, "attacking"
         end
         if cmdID == CMD_GUARD or cmdID == CMD_REPAIR or cmdID == CMD_RECLAIM or cmdID == CMD_RESURRECT then

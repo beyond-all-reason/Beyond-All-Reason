@@ -48,6 +48,8 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
+local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 local commandLimit = 2000
 
@@ -331,6 +333,37 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	end
 end
 
+local function giveTargetList(listCommandID, selectedUnits, targetIDs, options)
+	if not listCommandID or #targetIDs == 0 then
+		return false
+	end
+
+	local params = {}
+	for i = 1, #targetIDs do
+		params[i] = targetIDs[i]
+	end
+
+	local commandOptions = 0
+	if options.shift then
+		commandOptions = commandOptions + CMD.OPT_SHIFT
+	end
+	if options.ctrl then
+		commandOptions = commandOptions + CMD.OPT_CTRL
+	end
+
+	if options.meta and not options.shift then
+		local insertParams = { 0, listCommandID, commandOptions }
+		for i = 1, #params do
+			insertParams[i + 3] = params[i]
+		end
+		spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, insertParams, CMD.OPT_ALT)
+	else
+		spGiveOrderToUnitArray(selectedUnits, listCommandID, params, commandOptions)
+	end
+
+	return true
+end
+
 local function splitTargets(selectedUnits, filteredTargets)
 	local unitTargetsMap = {}
 	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
@@ -354,6 +387,43 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 		local selectedUnitTable = { selectedUnitId }
 		sortTargetsByDistance(selectedUnitTable, targets, true)
 		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
+	end
+end
+
+local function attackTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
+	if not CMD_ATTACK_TARGETS then
+		if options.shift and options.meta then
+			splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		else
+			local closestFirst = not options.meta
+			sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
+			giveOrders(cmdId, selectedUnits, filteredTargets, options)
+		end
+		return
+	end
+
+	if options.shift and options.meta then
+		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
+			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
+			giveTargetList(CMD_ATTACK_TARGETS, { selectedUnitID }, targetIDs, options)
+		end
+	else
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		giveTargetList(CMD_ATTACK_TARGETS, selectedUnits, filteredTargets, options)
+	end
+end
+
+local function setTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
+	if options.shift and options.meta then
+		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
+			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
+			giveTargetList(CMD_UNIT_SET_TARGETS, { selectedUnitID }, targetIDs, options)
+		end
+	else
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		giveTargetList(CMD_UNIT_SET_TARGETS, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -408,10 +478,10 @@ end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackTargetListHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),

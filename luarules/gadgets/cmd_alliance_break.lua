@@ -32,7 +32,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 	local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
+	local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 	local CMD_ATTACK = CMD.ATTACK
+	local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
 	local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
 
@@ -105,6 +107,14 @@ if gadgetHandler:IsSyncedCode() then
 			local targetID = cmdParams[1]
 			if ValidUnitID(targetID) then
 				checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), GetUnitAllyTeam(unitID), GetUnitAllyTeam(targetID))
+			end
+		elseif cmdID == CMD_ATTACK_TARGETS or cmdID == CMD_UNIT_SET_TARGETS then
+			local attackerAllyTeam = GetUnitAllyTeam(unitID)
+			for i = 1, #cmdParams do
+				local targetID = cmdParams[i]
+				if ValidUnitID(targetID) then
+					checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), attackerAllyTeam, GetUnitAllyTeam(targetID))
+				end
 			end
 		elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE) then
 			local attackAOE = attackAOEs[unitDefID]

@@ -114,6 +114,12 @@ local modrules = {
 		targetableTransportedUnits = false,	-- Can transported units be targeted by weapons? true allows both manual and automatic targeting.
 	},
 
+	targeting = {
+		-- While executing CMD.ATTACK_TARGETS, opportunity-fire targets are restricted to units in that list.
+		-- The ordered current target remains the movement goal and retains normal priority when it becomes attackable.
+		attackTargetListPreferListedTargets = true,
+	},
+
 	paralyze = {
 		paralyzeOnMaxHealth = true,	-- Are units paralyzed when the level of emp is greater than their current health or their maximum health?
 		paralyzeDeclineRate = Spring.GetModOptions().emprework==true and 20 or 40,	-- default: 40.
