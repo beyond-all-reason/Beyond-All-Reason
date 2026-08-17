@@ -508,9 +508,12 @@ if gadgetHandler:IsSyncedCode() then
 		for i = moveToIndex + 1, n do
 			targetList[i] = nil
 		end
-		if currentIndex ~= oldIndex then
-			unitData.currentIndex = currentIndex == 0 and 1 or currentIndex
+		if currentIndex == 0 then
+			unitData.currentIndex = 1
 			unitData.activeTarget = false
+		else
+			unitData.currentIndex = currentIndex
+			-- The active target remains the same.
 		end
 		refreshSendData(unitID, unitData, minIndex)
 	end
