@@ -112,7 +112,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- pipeline. GiveOrderArrayToUnitArray doesn't reliably deliver area attack
 	-- commands (4-param CMD_ATTACK) to the engine.
 	isReissuing = true
-	CallAsTeam(Spring.GetMyTeamID(), function()
+	CallAsTeam(Spring.GetLocalTeamID(), function()
 		Spring.SelectUnitArray(attackUnits)
 		if cmdOpts.shift then
 			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
