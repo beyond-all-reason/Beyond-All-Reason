@@ -1,11 +1,23 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
--- This tracks units removed from a factory's build queue while they are in production.
--- We do not track the queue itself, so the unit must exist to be canceled: the trigger
--- fires for the item under production, and not for the items still waiting behind it.
+local DAMAGETYPE_FACTORY_CANCEL = Game.envDamageTypes.FactoryCancel
 
--- Cancels of everything else, including a factory built by a construction unit, belong
--- to ConstructionCanceled. See its comments for the difficulties of general build cancels.
+local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
+	local parameters = trigger.parameters
+	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+		return false
+	end
+	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+		return false
+	end
+	if parameters.teamID and not Spring.AreTeamsAllied(parameters.teamID, unitTeam) then
+		return false
+	end
+	if not context.isBuildFrameOwner(unitID, parameters.factoryDefName, parameters.factoryName) then
+		return false
+	end
+	return true
+end
 
 return {
 	type = 'ProductionCanceled',
@@ -18,28 +30,30 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			if not Spring.GetUnitIsBeingBuilt(unitID) then
-				return
-			end
-			if not context.InFactory(unitID) then
+		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,
+		                         attackerID, attackerDefID, attackerTeam, weaponDefID)
+			if weaponDefID ~= DAMAGETYPE_FACTORY_CANCEL then
 				return
 			end
 
-			local parameters = trigger.parameters
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+			if matchesUnit(trigger, context, unitID, unitDefID, unitTeam) then
+				context.ActivateTrigger(trigger)
+			end
+		end,
+
+		-- Units captured while inside a factory are not canceled. Keep this so mission authors do not have to know
+		-- about the engine's split decision-making for canceling units when a factory vs its buildee is captured.
+		UnitTaken = function(trigger, triggerID, context, unitID, unitDefID, oldTeam, newTeam)
+			if Spring.AreTeamsAllied(oldTeam, newTeam) then
 				return
 			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+			if not Spring.GetUnitIsBeingBuilt(unitID) or not context.InFactory(unitID) then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= unitTeam then
-				return
+
+			if matchesUnit(trigger, context, unitID, unitDefID, oldTeam) then
+				context.ActivateTrigger(trigger)
 			end
-			if not context.IsNanoframeOwner(unitID, parameters.factoryDefName, parameters.factoryName) then
-				return
-			end
-			context.ActivateTrigger(trigger)
 		end,
 	},
 }
