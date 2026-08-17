@@ -20,6 +20,7 @@ local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 if gadgetHandler:IsSyncedCode() then
 	local deleteMaxDistance = 30
 	local targetListLengthMax = 128
+	local unseenGraceTime = 10.0
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -159,6 +160,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
+	local unseenGracePasses = math.floor(unseenGraceTime / 0.5)
 
 	--------------------------------------------------------------------------------
 	-- Commands
@@ -832,6 +835,10 @@ if gadgetHandler:IsSyncedCode() then
 			for index = #targets, 1, -1 do
 				local targetData = targets[index]
 				if wasTargetLost(targetData.target, targetData.alwaysSeen, unitData.allyTeam) then
+					targetData.unseen = unseenGracePasses
+				elseif targetData.unseen > 0 then
+					targetData.unseen = targetData.unseen - 1
+				else
 					removeTarget(unitID, unitData, index)
 				end
 			end
