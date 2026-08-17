@@ -536,7 +536,7 @@ function gadget:Initialize()
 		return
 	end
 
-	if Spring.Utilities.IsDevMode() then
+	if BAR.Utilities.IsDevMode() then
 		local deleteAll = { -1e9, -1e9, 1e9, 1e9, false, false }
 		for _, projectileID in ipairs(Spring.GetProjectilesInRectangle(unpack(deleteAll))) do
 			Spring.DeleteProjectile(projectileID)
