@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Area Attack Limiter",
-		desc = "Converts excess area attack commands to fight commands to reduce lag from large (air) engagements",
+		desc = "Converts excess area-form attack commands to fight commands to reduce lag from large (air) engagements",
 		author = "Floris",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -17,7 +17,6 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local CMD_ATTACK = CMD.ATTACK
-local CMD_AREA_ATTACK = CMD.AREA_ATTACK
 local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
@@ -44,10 +43,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
--- Max units allowed to use the expensive engine-side area attack.
+-- Max non-bomber units allowed to use an area-form CMD_ATTACK.
 -- Excess units receive a FIGHT command to the area center instead,
--- which makes them converge and auto-engage without the costly
--- per-unit target resolution the engine performs for area attacks.
+-- which makes them converge and auto-engage without expanding the
+-- command into too many target-specific attack orders.
 local BATCH_LIMIT = 30
 
 local isReissuing = false
@@ -58,8 +57,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	-- Only intercept area-format commands (4 params: x, y, z, radius)
-	if (cmdID ~= CMD_ATTACK and cmdID ~= CMD_AREA_ATTACK) or #cmdParams ~= 4 or cmdParams[4] <= 0 then
+	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
+	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.
+	if cmdID ~= CMD_ATTACK or #cmdParams ~= 4 or cmdParams[4] <= 0 then
 		return
 	end
 
