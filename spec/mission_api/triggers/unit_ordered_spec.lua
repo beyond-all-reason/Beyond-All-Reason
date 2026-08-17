@@ -14,9 +14,9 @@ _G.CMD.BUILD   = 'b'
 
 _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
 
--- Another spec caches this trigger (via LoadTriggerDefinitions) while `CMD` is _empty_.
--- Drop it from the cache to force a fresh load that can capture `CMD.INSERT` set above.
-_G.VFS._cache['luarules/mission_api/triggers/unit_ordered.lua'] = nil
+-- VFS.Include caches source text, not results, so this re-runs the trigger file
+-- and captures the `CMD` values set above -- even though another spec already
+-- loaded it (via LoadTriggerDefinitions) while `CMD` was still empty.
 local unitOrdered = VFS.Include('luarules/mission_api/triggers/unit_ordered.lua')
 local onUnitCommand = unitOrdered.callins.UnitCommand
 

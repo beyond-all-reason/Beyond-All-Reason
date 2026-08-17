@@ -7,8 +7,6 @@
 -- To get then Nth closest other square from the current position, simply call:
 -- HashPosTable:GetNthCenter(x,z,N)
 
-
-
 local function MakeHashedPosTable(resolution)
 	-- hashes into 1000*z + x
 	resolution = resolution or 512
@@ -21,22 +19,22 @@ local function MakeHashedPosTable(resolution)
 		resolution = resolution,
 		mx = mx,
 		mz = mz,
-		numPos = mx*mz/(resolution*resolution)
+		numPos = mx * mz / (resolution * resolution),
 	}
-	function HashPos:hashPos(px,pz)
-		return mfloor(pz/self.resolution) * 1000 + mfloor(px/self.resolution)
+	function HashPos:hashPos(px, pz)
+		return mfloor(pz / self.resolution) * 1000 + mfloor(px / self.resolution)
 	end
 
 	-- return x,y
 	function HashPos:unhash(h)
-		local z = mfloor(h/1000)
-		return h - 1000*z, z
+		local z = mfloor(h / 1000)
+		return h - 1000 * z, z
 	end
 	function HashPos:hashtopos(h)
-		local z = mfloor(h/1000)
-		local cx = (h - 1000*z) * self.resolution + self.resolution/2
-		local cz = z*self.resolution + self.resolution/2
-		return cx,cz
+		local z = mfloor(h / 1000)
+		local cx = (h - 1000 * z) * self.resolution + self.resolution / 2
+		local cz = z * self.resolution + self.resolution / 2
+		return cx, cz
 	end
 
 	function HashPos:distancesqr(hp1, hp2)
@@ -44,13 +42,13 @@ local function MakeHashedPosTable(resolution)
 		local x2, z2 = self:unhash(hp2)
 		x1 = x1 - x2
 		z1 = z1 - z2
-		return x1*x1 + z1*z1
+		return x1 * x1 + z1 * z1
 	end
 	local hashIDs = {}
 	local count = 0
-	for x=1, mx, resolution do
+	for x = 1, mx, resolution do
 		for z = 1, mz, resolution do
-			local hp = HashPos:hashPos(x,z)
+			local hp = HashPos:hashPos(x, z)
 			count = count + 1
 			hashIDs[count] = hp
 		end
@@ -63,18 +61,18 @@ local function MakeHashedPosTable(resolution)
 
 	function HashPos:SortNewRegion(hp)
 		local thispos = {}
-		for j,hp2 in ipairs(hashIDs) do
+		for j, hp2 in ipairs(hashIDs) do
 			thispos[j] = hp2
 		end
-		local function comparetome(a,b)
-			return HashPos:distancesqr(hp,a) < HashPos:distancesqr(hp,b)
+		local function comparetome(a, b)
+			return HashPos:distancesqr(hp, a) < HashPos:distancesqr(hp, b)
 		end
 		table.sort(thispos, comparetome)
 		self.sortedPositions[hp] = thispos
 	end
 
-	function HashPos:GetNthCenter(px,pz, n)
-		local hp = self:hashPos(px,pz)
+	function HashPos:GetNthCenter(px, pz, n)
+		local hp = self:hashPos(px, pz)
 		local sorted = self.sortedPositions[hp]
 		if sorted == nil then
 			self:SortNewRegion(hp)
@@ -95,6 +93,7 @@ local hpt = MakeHashedPosTable(512)
 for i = 1, 50 do
 	print (hpt:GetNthCenter(256,4000, i))
 end
-]]--
+]]
+--
 
 return MakeHashedPosTable
