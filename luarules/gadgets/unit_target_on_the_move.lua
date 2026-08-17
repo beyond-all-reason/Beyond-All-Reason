@@ -858,6 +858,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
+		local currentTargets = unitData.currentTargets
 		local targetCount = #targets
 		local activeIndex = 0
 		local updateIndex = 0 -- table.remove is slow, as is iterating forward then backward, so we do an erase-remove
@@ -879,7 +880,8 @@ if gadgetHandler:IsSyncedCode() then
 					targets[updateIndex] = targetData
 				end
 			else
-				SendToUnsynced("targetDrop", unitID, index)
+				currentTargets[targetData.target] = nil
+				SendToUnsynced("targetDrop", unitID, updateIndex + 1)
 			end
 		end
 		if updateIndex == 0 then
