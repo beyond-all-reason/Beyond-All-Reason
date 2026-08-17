@@ -21,7 +21,7 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local norushtimer = Spring.GetModOptions().norushtimer * 60 * Game.gameSpeed -- modoption is in minutes
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 local teamToAllyTeamTable = {}
-local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 
 
 local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING

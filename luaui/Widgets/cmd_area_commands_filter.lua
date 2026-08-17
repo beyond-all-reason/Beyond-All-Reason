@@ -48,7 +48,7 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
-local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 
 local commandLimit = 2000
 

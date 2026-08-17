@@ -122,7 +122,7 @@ local function GetUnitOrFeaturePosition(id)
 end
 
 local function GetCommandPos(command)	--- get the command position
-  if command.id == CMD.ATTACK_TARGETS and table.getn(command.params) >= 1 then
+  if command.id == GameCMD.ATTACK_TARGETS and table.getn(command.params) >= 1 then
     return GetUnitOrFeaturePosition(command.params[1])
   end
   if command.id < 0 or command.id == CMD.MOVE or command.id == CMD.REPAIR or command.id == CMD.RECLAIM or

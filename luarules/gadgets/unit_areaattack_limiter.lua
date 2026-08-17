@@ -52,9 +52,9 @@ local isReissuing = false
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- Guard against re-entrancy: GiveOrderArrayToUnitArray can trigger CommandNotify again
 	if isReissuing then return end
-	-- New engines keep all target IDs in one serialized queue command, so the
-	-- legacy source-count limiter is unnecessary and the UI list handler wins.
-	if CMD.ATTACK_TARGETS then return end
+	-- The target-list handler replaces this legacy source-count limiter. The
+	-- custom command is expanded into ordinary attacks by cmd_attack_targets.lua.
+	if GameCMD.ATTACK_TARGETS then return end
 
 	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
 	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.

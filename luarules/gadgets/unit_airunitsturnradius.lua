@@ -71,7 +71,7 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	if curMoveCtrl then
 		spMoveCtrlDisable(unitID)
 	end
-	local radius = (not cmdID or cmdID == CMD_ATTACK or cmdID == CMD.ATTACK_TARGETS) and attackTurnRadius or bomberTurnRadius[unitDefID]
+	local radius = (not cmdID or cmdID == CMD_ATTACK or cmdID == GameCMD.ATTACK_TARGETS) and attackTurnRadius or bomberTurnRadius[unitDefID]
 	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
 		Bombers[unitID] = nil

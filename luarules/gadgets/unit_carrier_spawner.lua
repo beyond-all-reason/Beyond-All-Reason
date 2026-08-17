@@ -907,7 +907,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			local bomberStage = droneMetaData.bomberStage
 			local fighterStage = droneMetaData.fighterStage
 			local droneType = droneMetaData.dronetype
-			if droneType == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK or cmdID == CMD.ATTACK_TARGETS) and bomberStage > 0 then
+			if droneType == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK or cmdID == GameCMD.ATTACK_TARGETS) and bomberStage > 0 then
 				if droneMetaData.bomberStage == 1 then
 				end
 				if (not carrierMetaList[carrierUnitID].docking) and bomberStage >= 4 + carrierMetaList[carrierUnitID].dronebombingruns then
@@ -1140,7 +1140,7 @@ local function updateStandaloneDrones(frame)
 				local cQueue = GetUnitCommands(unitID, 4)
 				local engaged = false
 				for j = 1, (cQueue and #cQueue or 0) do
-					if cQueue[j].id == CMD.ATTACK or cQueue[j].id == CMD.ATTACK_TARGETS then
+					if cQueue[j].id == CMD.ATTACK or cQueue[j].id == GameCMD.ATTACK_TARGETS then
 						-- if currently fighting
 						engaged = true
 						break
@@ -1208,9 +1208,9 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 	local weapontargettype,_,weapontarget = Spring.GetUnitWeaponTarget(carrierID,carrierMetaData.weaponNr)
 
 	--Handles an attack order given to the carrier.
-	if not recallDrones and (cmdID == CMD.ATTACK or cmdID == CMD.ATTACK_TARGETS) or weapontarget then
-		if cmdID == CMD.ATTACK or cmdID == CMD.ATTACK_TARGETS then
-			if cmdID == CMD.ATTACK_TARGETS then
+	if not recallDrones and (cmdID == CMD.ATTACK or cmdID == GameCMD.ATTACK_TARGETS) or weapontarget then
+		if cmdID == CMD.ATTACK or cmdID == GameCMD.ATTACK_TARGETS then
+			if cmdID == GameCMD.ATTACK_TARGETS then
 				target = cmdParam_1
 				targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
 			elseif cmdParam_1 and not cmdParam_2 then
@@ -1423,8 +1423,8 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 									if fightOrder then
 										local cQueue = GetUnitCommands(subUnitID, 4)
 										for j = 1, (cQueue and #cQueue or 0) do
-											if (cQueue[j].id == CMD.ATTACK or cQueue[j].id == CMD.ATTACK_TARGETS) and cachedFireState > 0 then
-												idleTarget = cQueue[j].id == CMD.ATTACK_TARGETS and { cQueue[j].params[1] } or cQueue[j].params
+										if (cQueue[j].id == CMD.ATTACK or cQueue[j].id == GameCMD.ATTACK_TARGETS) and cachedFireState > 0 then
+											idleTarget = cQueue[j].id == GameCMD.ATTACK_TARGETS and { cQueue[j].params[1] } or cQueue[j].params
 												break
 											end
 										end
@@ -1479,11 +1479,11 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 						local cQueue = GetUnitCommands(subUnitID, 4)
 						local engaged = false
 						for j = 1, (cQueue and #cQueue or 0) do
-							if (cQueue[j].id == CMD.ATTACK or cQueue[j].id == CMD.ATTACK_TARGETS) and cachedFireState > 0 then
+							if (cQueue[j].id == CMD.ATTACK or cQueue[j].id == GameCMD.ATTACK_TARGETS) and cachedFireState > 0 then
 								-- if currently fighting AND not on hold fire
 								engaged = true
 								if agressiveDrones then
-									idleTarget = cQueue[j].id == CMD.ATTACK_TARGETS and { cQueue[j].params[1] } or cQueue[j].params
+									idleTarget = cQueue[j].id == GameCMD.ATTACK_TARGETS and { cQueue[j].params[1] } or cQueue[j].params
 								end
 								break
 							elseif cQueue[j].id == CMD.REPAIR then
