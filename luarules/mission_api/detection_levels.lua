@@ -18,8 +18,8 @@ local LEVEL = {
 -- The sensor callins are trigger-edges, and LosStatus is backing state.
 -- That leaves level-1 seismic "state", derived in seismic_contacts.lua.
 
--- One bit per level, so a trigger's sensors compile to a mask and the test is a single and.
--- Derived rather than recorded so new levels don't produce disagreement (maybe NEVERSEEN?).
+-- Detection levels have implied order (e.g. vision suppresses seismic)
+-- but the bitmasks used are an unordered set used to test containment.
 local LEVEL_BIT = {}
 for _, level in pairs(LEVEL) do
 	LEVEL_BIT[level] = 2 ^ level
