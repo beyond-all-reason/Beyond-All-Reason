@@ -2,7 +2,7 @@ require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and UnitDefs inside its handler. The was-built proof and builder are resolved by the gadget
--- via _both_ context.WasUnderConstruction and context.IsNanoframeOwner. Expensive little piece.
+-- via both context.WasUnderConstruction and context.isBuildFrameOwner. Expensive little piece.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -27,7 +27,7 @@ describe("mission_api.triggers.construction_finished", function()
 		local context = {
 			ActivateTrigger = function() fired = fired + 1 end,
 			DoesUnitHaveName = function() return true end,
-			IsNanoframeOwner = function() return true end,
+			isBuildFrameOwner = function() return true end,
 			WasUnderConstruction = function() return true end,
 		}
 		return context, function() return fired end
@@ -94,9 +94,9 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("defers builder filtering to context.IsNanoframeOwner", function()
+	it("defers builder filtering to context.isBuildFrameOwner", function()
 		local context, fired = newContext()
-		context.IsNanoframeOwner = function() return false end
+		context.isBuildFrameOwner = function() return false end
 		finished(trigger({ unitDefName = 'armsolar', builderDefName = 'armck' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
