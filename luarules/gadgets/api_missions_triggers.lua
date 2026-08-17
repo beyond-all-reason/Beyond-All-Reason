@@ -34,8 +34,8 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
-local dirtyUnits                = {}
-local dirtyUnitCount            = 0
+local detections                = {}
+local detectionCount            = 0
 
 ----------------------------------------------------------------
 --- Utility Functions:
@@ -135,9 +135,9 @@ end
 -- Detection events are hot paths with complicated routing at M^2 routing cost.
 -- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
 local function markDetectionDirty(unitID)
-	if not dirtyUnits[unitID] then
-		dirtyUnits[unitID] = true
-		dirtyUnitCount = dirtyUnitCount + 1
+	if not detections[unitID] then
+		detections[unitID] = true
+		detectionCount = detectionCount + 1
 	end
 end
 local inactiveSeismicContacts = {}
@@ -222,12 +222,12 @@ function gadget:GameFrame(frameNumber)
 		end
 	end
 
-	if dirtyUnitCount > 0 then
-		dispatchTriggerCallin('DetectionUpdate', dirtyUnits)
-		for unitID in pairs(dirtyUnits) do
-			dirtyUnits[unitID] = nil
+	if detectionCount > 0 then
+		dispatchTriggerCallin('DetectionUpdate', detections)
+		for unitID in pairs(detections) do
+			detections[unitID] = nil
 		end
-		dirtyUnitCount = 0
+		detectionCount = 0
 	end
 end
 
