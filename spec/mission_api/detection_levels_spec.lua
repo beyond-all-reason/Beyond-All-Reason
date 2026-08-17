@@ -214,7 +214,7 @@ describe("mission_api.detection_levels", function()
 			local onUndetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesAnything)
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onUndetected, { [100] = true })
-			DetectionLevels.Forget(triggerID, 100) -- called in UnitDestroyed
+			DetectionLevels.Clear(triggerID, 100) -- called in UnitDestroyed
 			losStatusByAllyTeam[0] = nil
 			sweep(onUndetected, { [100] = true })
 			assert.are.equal(0, fired)

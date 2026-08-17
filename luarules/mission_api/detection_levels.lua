@@ -166,11 +166,12 @@ local function newDetectionUpdate(fireOnDetection, matchesUnit)
 	end
 end
 
----Death is not a loss of detection, so this reports nothing and only drops the latch.
-local function forget(triggerID, unitID)
-	local latched = latches[triggerID]
-	if latched then
-		latched[unitID] = nil
+---Remove any detection latches against a unit without reporting anything.
+---Use this to match the engine behavior, i.e. death is not non-detection.
+local function clear(triggerID, unitID)
+	local latch = latches[triggerID]
+	if latch then
+		latch[unitID] = nil
 	end
 end
 
@@ -178,6 +179,6 @@ return {
 	LevelBitOf             = levelBitOf,
 	CompileLevelMask       = compileLevelMask,
 	NewDetectionUpdate     = newDetectionUpdate,
-	Forget                 = forget,
+	Clear                  = clear,
 	ResolveSensorAllyTeams = resolveSensorAllyTeams,
 }
