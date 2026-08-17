@@ -51,24 +51,14 @@ local function processEnumSet(values)
 	return valueSet
 end
 
-local function processSensorTypes(sensorTypes)
-	local sensorTypesAsSet = {}
-	for _, sensorType in ipairs(sensorTypes) do
-		sensorTypesAsSet[sensorType] = true
-	end
-	return sensorTypesAsSet
-end
-
 local processors = {
-	[ParameterTypes.Position]              = processPosition,
-	[ParameterTypes.Positions]             = processPositions,
-	[ParameterTypes.Orders]                = processOrders,
-	[ParameterTypes.SoundFile]             = processSoundFile,
-	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
-	[ParameterTypes.SensorTypes]           = processSensorTypes,
+	[ParameterTypes.Position]      = processPosition,
+	[ParameterTypes.Positions]     = processPositions,
+	[ParameterTypes.Orders]        = processOrders,
+	[ParameterTypes.SoundFile]     = processSoundFile,
 }
 for enumSetType in pairs(enumSets) do
-	processors[enumSetType]    = processEnumSet
+	processors[enumSetType]        = processEnumSet
 end
 
 ----------------------------------------------------------------
