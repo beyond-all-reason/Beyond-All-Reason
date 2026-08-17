@@ -354,15 +354,15 @@ if gadgetHandler:IsSyncedCode() then
 		if activeTargets[unitID] and not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
+		activeTargets[unitID] = nil
+		removeFromQueue(unitID)
 		if keeptrack then
 			setTargetPassive(unitID, setTargetData[unitID])
 		else
+			setTargetData[unitID] = nil
+			pausedTargets[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
-		removeFromQueue(unitID)
-		setTargetData[unitID] = nil
-		activeTargets[unitID] = nil
-		pausedTargets[unitID] = nil
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 	end
 
