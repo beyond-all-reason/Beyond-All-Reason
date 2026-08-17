@@ -40,7 +40,7 @@ return {
 		DetectionUpdate = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesUnit),
 
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
-			DetectionLevels.Forget(triggerID, unitID)
+			DetectionLevels.Clear(triggerID, unitID)
 		end,
 	},
 }
