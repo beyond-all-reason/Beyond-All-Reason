@@ -49,7 +49,6 @@ local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
 local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
-local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 local commandLimit = 2000
 
@@ -414,19 +413,6 @@ local function attackTargetListHandler(cmdId, selectedUnits, filteredTargets, op
 	end
 end
 
-local function setTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
-	if options.shift and options.meta then
-		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
-		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
-			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
-			giveTargetList(CMD_UNIT_SET_TARGETS, { selectedUnitID }, targetIDs, options)
-		end
-	else
-		sortTargetsByDistance(selectedUnits, filteredTargets, true)
-		giveTargetList(CMD_UNIT_SET_TARGETS, selectedUnits, filteredTargets, options)
-	end
-end
-
 --- All units share the same order queue. Queue can be distributed with shift+meta
 local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
@@ -480,8 +466,8 @@ end
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackTargetListHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),

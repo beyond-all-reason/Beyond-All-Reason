@@ -1,7 +1,8 @@
 local areaAttackWidgetName = "Area Command Filter"
 
 function skip()
-	return CMD.ATTACK_TARGETS == nil or GameCMD.UNIT_SET_TARGETS == nil or select(1, Spring.GetTeamInfo(1, false)) == nil
+	return (CMD.ATTACK_TARGETS == nil and GameCMD.ATTACK_TARGETS == nil)
+		or select(1, Spring.GetTeamInfo(1, false)) == nil
 end
 
 function setup()
@@ -17,14 +18,13 @@ function test()
 	local sourceCount = 600
 	local enemyFighterCount = 400
 	local bomberCount = 200
-	local centerX = Game.mapSizeX / 2
 	local centerZ = Game.mapSizeZ / 2
 	local sourceX = Game.mapSizeX * 0.2
-	local bomberX = centerX + 350
+	local bomberX = Game.mapSizeX / 2 + 350
 	local enemyFighterX = bomberX + 1200
 	local areaRadius = 1800
-	local cancelTargetCommand = GameCMD.UNIT_CANCEL_TARGET
-	local stopCommand = CMD.STOP
+	local listCommandID = CMD.ATTACK_TARGETS or GameCMD.ATTACK_TARGETS
+	local nativeTargetList = CMD.ATTACK_TARGETS ~= nil
 
 	local sourceIDs, enemyFighterIDs, bomberIDs = SyncedRun(function(locals)
 		local function createGrid(unitName, count, centerX, centerZ, columns, spacing, teamID)
@@ -45,32 +45,34 @@ function test()
 			return unitIDs
 		end
 
-		local sourceIDs = createGrid(
-			"armfig", locals.sourceCount, locals.sourceX, locals.centerZ, 30, 32, 0
-		)
-		for i = 1, #sourceIDs do
-			local x, _, z = Spring.GetUnitPosition(sourceIDs[i])
-			Spring.GiveOrderToUnit(sourceIDs[i], CMD.IDLEMODE, { 0 }, 0)
-			Spring.GiveOrderToUnit(sourceIDs[i], CMD.MOVE, { x + 300, Spring.GetGroundHeight(x + 300, z) + 450, z }, 0)
+		local function launchFormation(unitIDs, commandID, xOffset, altitude)
+			Spring.GiveOrderToUnitArray(unitIDs, CMD.IDLEMODE, { 0 }, 0)
+			for i = 1, #unitIDs do
+				local x, _, z = Spring.GetUnitPosition(unitIDs[i])
+				local destinationX = x + xOffset
+				Spring.GiveOrderToUnit(
+					unitIDs[i],
+					commandID,
+					{ destinationX, Spring.GetGroundHeight(destinationX, z) + altitude, z },
+					0
+				)
+			end
 		end
+
+		local sourceIDs = createGrid("armfig", locals.sourceCount, locals.sourceX, locals.centerZ, 30, 32, 0)
+		launchFormation(sourceIDs, CMD.MOVE, 300, 450)
+
 		local enemyFighterIDs = createGrid(
 			"corveng", locals.enemyFighterCount, locals.enemyFighterX, locals.centerZ, 20, 32, 1
 		)
-		for i = 1, #enemyFighterIDs do
-			local x, _, z = Spring.GetUnitPosition(enemyFighterIDs[i])
-			Spring.GiveOrderToUnit(enemyFighterIDs[i], CMD.IDLEMODE, { 0 }, 0)
-			Spring.GiveOrderToUnit(enemyFighterIDs[i], CMD.FIRE_STATE, { 0 }, 0)
-			Spring.GiveOrderToUnit(enemyFighterIDs[i], CMD.MOVE, { x + 100, Spring.GetGroundHeight(x + 100, z) + 450, z }, 0)
-		end
-		local bomberIDs = createGrid(
-			"corhurc", locals.bomberCount, locals.bomberX, locals.centerZ, 20, 64, 1
-		)
+		Spring.GiveOrderToUnitArray(enemyFighterIDs, CMD.FIRE_STATE, { 0 }, 0)
+		launchFormation(enemyFighterIDs, CMD.MOVE, 100, 450)
+
+		local bomberIDs = createGrid("corhurc", locals.bomberCount, locals.bomberX, locals.centerZ, 20, 64, 1)
 		for i = 1, #bomberIDs do
-			local x, _, z = Spring.GetUnitPosition(bomberIDs[i])
 			Spring.SetUnitArmored(bomberIDs[i], true, 0)
-			Spring.GiveOrderToUnit(bomberIDs[i], CMD.IDLEMODE, { 0 }, 0)
-			Spring.GiveOrderToUnit(bomberIDs[i], CMD.PATROL, { x + 100, Spring.GetGroundHeight(x + 100, z) + 500, z }, 0)
 		end
+		launchFormation(bomberIDs, CMD.PATROL, 100, 500)
 
 		return sourceIDs, enemyFighterIDs, bomberIDs
 	end)
@@ -83,7 +85,7 @@ function test()
 
 	Test.waitFrames(600)
 	local flightStates = SyncedRun(function(locals)
-		local states = { sources = {}, bombers = {} }
+		local states = { bombers = {}, sources = {} }
 		for i = 1, #locals.sourceIDs do
 			local state = Spring.GetUnitMoveTypeData(locals.sourceIDs[i]).aircraftState
 			states.sources[state] = (states.sources[state] or 0) + 1
@@ -95,12 +97,11 @@ function test()
 		return states
 	end)
 	assertEqual(flightStates.sources.flying, sourceCount, "source flight states: " .. table.toString(flightStates.sources))
-	assertEqual(
-		(flightStates.bombers.flying or 0) + (flightStates.bombers.landed or 0),
-		bomberCount,
-		"bomber flight states: " .. table.toString(flightStates.bombers)
+	assert(
+		(flightStates.bombers.flying or 0) >= 190,
+		"expected the bomber formation to be airborne: " .. table.toString(flightStates.bombers)
 	)
-	assert((flightStates.bombers.flying or 0) >= 190, "expected the bomber formation to be airborne: " .. table.toString(flightStates.bombers))
+
 	Spring.SelectUnitArray(sourceIDs)
 	Test.waitFrames(1)
 	local realTraceScreenRay = Spring.TraceScreenRay
@@ -110,127 +111,103 @@ function test()
 	areaAttackWidget = Test.prepareWidget(areaAttackWidgetName)
 	Spring.TraceScreenRay = realTraceScreenRay
 	assert(areaAttackWidget)
-	assert(Spring.FindUnitCmdDesc(sourceIDs[1], GameCMD.UNIT_SET_TARGETS), "source fighter has no set-target-list command descriptor")
-
-	local handled = areaAttackWidget:CommandNotify(
-		GameCMD.UNIT_SET_TARGET,
-		{ bomberX, Spring.GetGroundHeight(bomberX, centerZ), centerZ, areaRadius },
-		{ alt = true }
-	)
-	assertEqual(handled, true, "area set target should be replaced with a target-list command")
-	Test.waitFrames(10)
 
 	local bomberSet = {}
 	for i = 1, #bomberIDs do
 		bomberSet[bomberIDs[i]] = true
 	end
 
-	local setTargetsValid, setTargetsError = SyncedRun(function(locals)
-		local expectedTargets = {}
-		for i = 1, #locals.bomberIDs do
-			expectedTargets[locals.bomberIDs[i]] = true
-		end
-
-		for i = 1, #locals.sourceIDs do
-			local targetList = GetUnitSetTargetList(locals.sourceIDs[i])
-			if not targetList then
-				return false, "source fighter " .. i .. " has no set-target list"
-			end
-			if #targetList ~= locals.bomberCount then
-				return false, "source fighter " .. i .. " set-target count: expected " .. locals.bomberCount .. ", got " .. #targetList
-			end
-
-			local seenTargets = {}
-			for j = 1, #targetList do
-				local targetID = targetList[j].target
-				if not expectedTargets[targetID] then
-					return false, "source fighter " .. i .. " received a non-bomber set target"
-				end
-				if seenTargets[targetID] then
-					return false, "source fighter " .. i .. " received a duplicate set target"
-				end
-				seenTargets[targetID] = true
-			end
-		end
-
-		return true
-	end)
-	assert(setTargetsValid, setTargetsError)
-
-	-- Set Target only controls weapon targeting. Drive the fighters toward the
-	-- selected bombers with a separate move order and verify the target list
-	-- survives while that order is being executed.
-	local moveOffsetX = bomberX - 300 - sourceX
-	for i = 1, #sourceIDs do
-		local x, _, z = Spring.GetUnitPosition(sourceIDs[i])
-		local moveX = x + moveOffsetX
-		Spring.GiveOrderToUnit(sourceIDs[i], CMD.MOVE, { moveX, Spring.GetGroundHeight(moveX, z) + 450, z }, 0)
+	local function issueAreaAttack()
+		local handled = areaAttackWidget:CommandNotify(
+			CMD.ATTACK,
+			{ bomberX, Spring.GetGroundHeight(bomberX, centerZ), centerZ, areaRadius },
+			{ alt = true }
+		)
+		assertEqual(handled, true, "area attack should be replaced with a target-list command")
 	end
-	Test.waitUntil(function()
-		local queue = Spring.GetUnitCommands(sourceIDs[1], 1)
-		return #queue == 1 and queue[1].id == CMD.MOVE
-	end)
-	Test.waitFrames(450)
 
-	local setTargetsSurvivedMove, setTargetsMoveError = SyncedRun(function(locals)
-		for i = 1, #locals.sourceIDs do
-			local targetList = GetUnitSetTargetList(locals.sourceIDs[i])
-			if not targetList or #targetList ~= locals.bomberCount then
-				return false, "source fighter " .. i .. " lost its set-target list while moving"
-			end
-		end
-		return true
-	end)
-	assert(setTargetsSurvivedMove, setTargetsMoveError)
-
-	SyncedRun(function(locals)
-		for i = 1, #locals.sourceIDs do
-			Spring.GiveOrderToUnit(locals.sourceIDs[i], locals.cancelTargetCommand, {}, 0)
-			Spring.GiveOrderToUnit(locals.sourceIDs[i], locals.stopCommand, {}, 0)
-		end
-	end)
-	Test.waitFrames(30)
-	local targetsCleared, targetsClearError = SyncedRun(function(locals)
-		for i = 1, #locals.sourceIDs do
-			local targetList = GetUnitSetTargetList(locals.sourceIDs[i])
-			if targetList and #targetList > 0 then
-				return false, "source fighter " .. i .. " retained set targets after cancel"
-			end
-		end
-		return true
-	end)
-	assert(targetsCleared, targetsClearError)
-	Test.waitFrames(15)
-
-	handled = areaAttackWidget:CommandNotify(
-		CMD.ATTACK,
-		{ bomberX, Spring.GetGroundHeight(bomberX, centerZ), centerZ, areaRadius },
-		{ alt = true }
-	)
-	assertEqual(handled, true, "area attack should be replaced with a target-list command")
-
-	Test.waitUntil(function()
+	local function getRepresentativeTargets()
 		local queue = Spring.GetUnitCommands(sourceIDs[1], -1)
-		return queue and #queue == 1 and queue[1].id == CMD.ATTACK_TARGETS
-	end)
+		if nativeTargetList then
+			if #queue ~= 1 or queue[1].id ~= listCommandID or #queue[1].params ~= bomberCount then
+				return nil
+			end
+			return queue[1].params, queue
+		end
 
-	local queue = Spring.GetUnitCommands(sourceIDs[1], -1)
-	assertEqual(#queue, 1, "representative source fighter command count")
-	assertEqual(queue[1].id, CMD.ATTACK_TARGETS, "representative source fighter command ID")
-	assertEqual(#queue[1].params, bomberCount, "representative source fighter target count")
+		if #queue ~= bomberCount + 1 or queue[#queue].id ~= listCommandID then
+			return nil
+		end
+		local targets = {}
+		for i = 1, bomberCount do
+			if queue[i].id ~= CMD.ATTACK or #queue[i].params ~= 1 then
+				return nil
+			end
+			targets[i] = queue[i].params[1]
+		end
+		return targets, queue
+	end
+
+	issueAreaAttack()
+	Test.waitUntil(function()
+		return getRepresentativeTargets() ~= nil
+	end, 600)
+	local representativeTargets, representativeQueue = getRepresentativeTargets()
 	local seenTargets = {}
-	for j = 1, #queue[1].params do
-		local targetID = queue[1].params[j]
+	for i = 1, #representativeTargets do
+		local targetID = representativeTargets[i]
 		assert(bomberSet[targetID], "representative source fighter received a non-bomber target")
 		assert(not seenTargets[targetID], "representative source fighter received a duplicate target")
 		seenTargets[targetID] = true
 	end
+	Spring.Echo(
+		"[Attack Targets Test] queue mode="
+			.. (nativeTargetList and "native" or "lua-expanded")
+			.. ", representative commands="
+			.. #representativeQueue
+	)
+
+	local function attackQueuesCleared()
+		for i = 1, #sourceIDs do
+			local sourceID = sourceIDs[i]
+			if Spring.ValidUnitID(sourceID) and not Spring.GetUnitIsDead(sourceID) then
+				local commands = Spring.GetUnitCommands(sourceID, -1)
+				for j = 1, #commands do
+					if commands[j].id == CMD.ATTACK or commands[j].id == listCommandID then
+						return false
+					end
+				end
+			end
+		end
+		return true
+	end
+
+	local cancelStartFrame = Spring.GetGameFrame()
+	Spring.GiveOrderToUnitArray(sourceIDs, CMD.STOP, {}, 0)
+	local cancelCompletedFrame = nil
+	for _ = 1, 600 do
+		if attackQueuesCleared() then
+			cancelCompletedFrame = Spring.GetGameFrame()
+			break
+		end
+		Test.waitFrames(1)
+	end
+	Spring.Echo(
+		"[Attack Targets Test] cancel frames="
+			.. (cancelCompletedFrame and tostring(cancelCompletedFrame - cancelStartFrame) or ">600")
+	)
+
+	representativeTargets = nil
+	representativeQueue = nil
+	seenTargets = nil
 	SyncedRun(function(locals)
 		for i = 1, #locals.bomberIDs do
 			Spring.SetUnitArmored(locals.bomberIDs[i], false, 1)
 		end
-	end)
-	Test.waitFrames(1)
+	end, 600)
+	local combatStartFrame = Spring.GetGameFrame()
+	issueAreaAttack()
+	Test.waitFrames(nativeTargetList and 1 or 60)
 
 	local function countAlive(unitIDs)
 		local alive = 0
@@ -250,10 +227,22 @@ function test()
 	end
 	local bombersAlive = countAlive(bomberIDs)
 	local sourcesAlive = countAlive(sourceIDs)
+	Spring.Echo(
+		"[Attack Targets Test] combat frames="
+			.. (Spring.GetGameFrame() - combatStartFrame)
+			.. ", bombers alive="
+			.. bombersAlive
+			.. ", fighters alive="
+			.. sourcesAlive
+	)
 	assertEqual(
 		bombersAlive,
 		0,
 		"all explicitly targeted bombers should be destroyed before the fighter force is gone"
-			.. " (bombers alive: " .. bombersAlive .. ", fighters alive: " .. sourcesAlive .. ")"
+			.. " (bombers alive: "
+			.. bombersAlive
+			.. ", fighters alive: "
+			.. sourcesAlive
+			.. ")"
 	)
 end

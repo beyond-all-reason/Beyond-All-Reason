@@ -22,7 +22,6 @@ local norushtimer = Spring.GetModOptions().norushtimer * 60 * Game.gameSpeed -- 
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 local teamToAllyTeamTable = {}
 local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
-local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 
 local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
@@ -58,7 +57,6 @@ local CommandsToCatchUnit = { -- CMDTYPES: ICON_UNIT, ICON_UNIT_OR_MAP, ICON_UNI
 if CMD_ATTACK_TARGETS then
 	CommandsToCatchUnit[CMD_ATTACK_TARGETS] = true
 end
-CommandsToCatchUnit[CMD_UNIT_SET_TARGETS] = true
 
 local CommandsToCatchFeature = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
 	[CMD.RECLAIM] = true,
@@ -141,7 +139,7 @@ if gadgetHandler:IsSyncedCode() then
 						allowed = false
 					end
 				end
-			elseif cmdID == CMD_ATTACK_TARGETS or cmdID == CMD_UNIT_SET_TARGETS then
+			elseif cmdID == CMD_ATTACK_TARGETS then
 				for i = 1, #cmdParams do
 					local x, y, z = Spring.GetUnitPosition(cmdParams[i])
 					if x and not RushStartboxCheck(x, y, z, allyTeamID) then
