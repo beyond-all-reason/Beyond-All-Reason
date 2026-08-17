@@ -479,12 +479,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
-		local currentIndex = unitData.currentIndex
+		local oldIndex = unitData.currentIndex
+		local currentIndex = oldIndex
 		local minIndex
 		local moveToIndex = 0
 		for i = 1, n do
 			if targetList[i].ignoreStop then
 				moveToIndex = moveToIndex + 1
+				if oldIndex == i then
+					currentIndex = moveToIndex
+				end
 				if moveToIndex ~= i then
 					targetList[moveToIndex] = targetList[i]
 				end
@@ -493,10 +497,8 @@ if gadgetHandler:IsSyncedCode() then
 				if not minIndex then
 					minIndex = i
 				end
-				if i == currentIndex then
+				if oldIndex == i then
 					currentIndex = 0 -- invalid, see below
-				elseif currentIndex > i then
-					currentIndex = currentIndex - 1
 				end
 			end
 		end
@@ -506,7 +508,7 @@ if gadgetHandler:IsSyncedCode() then
 		for i = moveToIndex + 1, n do
 			targetList[i] = nil
 		end
-		if currentIndex ~= unitData.currentIndex then
+		if currentIndex ~= oldIndex then
 			unitData.currentIndex = currentIndex == 0 and 1 or currentIndex
 			unitData.activeTarget = false
 		end
