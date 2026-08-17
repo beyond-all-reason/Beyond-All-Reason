@@ -16,7 +16,8 @@ local lpath = table.concat({
 return {
 
   default = {
-    lpath = lpath
+    lpath = lpath,
+    helper = "spec/spec_helper.lua",
   },
   -- Default configuration
   verbose = true,

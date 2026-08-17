@@ -22,8 +22,14 @@ local RML_PATH = "luaui/RmlWidgets/gui_map_labels/gui_map_labels.rml"
 local LABELS_DIR = "Terraform Brush/map_labels/"
 
 local COLORS = {
-	"#eab308", "#f97316", "#ef4444", "#ec4899",
-	"#a855f7", "#3b82f6", "#06b6d4", "#22c55e",
+	"#eab308",
+	"#f97316",
+	"#ef4444",
+	"#ec4899",
+	"#a855f7",
+	"#3b82f6",
+	"#06b6d4",
+	"#22c55e",
 }
 local DEFAULT_COLOR = COLORS[1]
 local SNIPPET_LEN = 48
@@ -59,29 +65,29 @@ local state = {
 
 	windowOpen = false,
 	placing = false,
-	labels = {},          -- { {id, x, z, color, author, created, ts, text}, ... }
+	labels = {}, -- { {id, x, z, color, author, created, ts, text}, ... }
 	nextId = 1,
 	authorName = "",
-	openLabelId = nil,    -- label whose popup is open, or nil
+	openLabelId = nil, -- label whose popup is open, or nil
 	popupEditing = false,
-	popupFresh = false,   -- popup opened for a just-placed label (discard if left empty)
-	uiDirty = false,      -- dots layer + browser list need a rebuild
-	dotEls = {},          -- [id] = {el, lastLeft, lastTop, lastHidden}
+	popupFresh = false, -- popup opened for a just-placed label (discard if left empty)
+	uiDirty = false, -- dots layer + browser list need a rebuild
+	dotEls = {}, -- [id] = {el, lastLeft, lastTop, lastHidden}
 	ghostLast = nil,
 	popupLast = nil,
-	draggingId = nil,     -- label being dragged by its dot, or nil
-	dragMoved = false,    -- drag passed the click threshold (suppresses the click)
+	draggingId = nil, -- label being dragged by its dot, or nil
+	dragMoved = false, -- drag passed the click threshold (suppresses the click)
 	dragStartX = 0,
 	dragStartY = 0,
-	hoverDotId = nil,     -- dot under the cursor (suppresses the brush ring)
+	hoverDotId = nil, -- dot under the cursor (suppresses the brush ring)
 }
 
 local uiSounds = {
-	click     = { "LuaUI/Sounds/tock.wav", 0.35 },
+	click = { "LuaUI/Sounds/tock.wav", 0.35 },
 	panelOpen = { "LuaUI/Sounds/buildbar_click.wav", 0.3 },
-	save      = { "LuaUI/Sounds/buildbar_waypoint.wav", 0.5 },
-	delete    = { "LuaUI/Sounds/buildbar_rem.wav", 0.4 },
-	place     = { "LuaUI/Sounds/buildbar_add.wav", 0.5 },
+	save = { "LuaUI/Sounds/buildbar_waypoint.wav", 0.5 },
+	delete = { "LuaUI/Sounds/buildbar_rem.wav", 0.4 },
+	place = { "LuaUI/Sounds/buildbar_add.wav", 0.5 },
 }
 
 local function playSound(name)
@@ -113,7 +119,15 @@ local function serializeLabels(nodate)
 	for _, L in ipairs(state.labels) do
 		out[#out + 1] = string.format(
 			"\t\t{ id = %d, x = %.1f, z = %.1f, color = %q, author = %q, created = %q, ts = %d, text = %q },\n",
-			L.id, L.x, L.z, L.color, L.author, L.created or "", L.ts or 0, L.text or "")
+			L.id,
+			L.x,
+			L.z,
+			L.color,
+			L.author,
+			L.created or "",
+			L.ts or 0,
+			L.text or ""
+		)
 	end
 	out[#out + 1] = "\t},\n}\n"
 	return table.concat(out)
@@ -121,7 +135,9 @@ end
 
 local function writeLabelsFile(path, nodate)
 	local f = io.open(path, "w")
-	if not f then return false end
+	if not f then
+		return false
+	end
 	f:write(serializeLabels(nodate))
 	f:close()
 	return true
@@ -139,11 +155,17 @@ end
 -- or unreadable (nil, reason).
 local function parseLabelsFile(path)
 	local f = io.open(path, "r")
-	if not f then return nil, "not found" end
+	if not f then
+		return nil, "not found"
+	end
 	local raw = f:read("*a")
 	f:close()
-	if not raw or raw == "" then return nil, "empty" end
-	local ok, data = pcall(function() return loadstring(raw)() end)
+	if not raw or raw == "" then
+		return nil, "empty"
+	end
+	local ok, data = pcall(function()
+		return loadstring(raw)()
+	end)
 	if not ok or type(data) ~= "table" or type(data.labels) ~= "table" then
 		return nil, "parse failed"
 	end
@@ -164,7 +186,9 @@ local function parseLabelsFile(path)
 	end
 	local nextId = math.max(tonumber(data.nextId) or 1, #labels + 1)
 	for _, L in ipairs(labels) do
-		if L.id >= nextId then nextId = L.id + 1 end
+		if L.id >= nextId then
+			nextId = L.id + 1
+		end
 	end
 	return labels, nextId
 end
@@ -189,7 +213,9 @@ end
 
 local function findLabel(id)
 	for _, L in ipairs(state.labels) do
-		if L.id == id then return L end
+		if L.id == id then
+			return L
+		end
 	end
 	return nil
 end
@@ -205,7 +231,9 @@ end
 
 local function snippet(s)
 	s = tostring(s or ""):gsub("%s+", " ")
-	if s == "" then return "(empty label)" end
+	if s == "" then
+		return "(empty label)"
+	end
 	if #s > SNIPPET_LEN then
 		return escapeRml(s:sub(1, SNIPPET_LEN - 1)) .. "&#8230;"
 	end
@@ -223,12 +251,16 @@ end
 -- Cursor-inside test for one of our floating windows.
 -- mx is Spring screen X, myTop is Y measured from the top (RmlUi convention).
 local function cursorOverRect(el, mx, myTop)
-	if not el then return false end
+	if not el then
+		return false
+	end
 	local left = el.absolute_left
 	local top = el.absolute_top
 	local w = el.offset_width
 	local h = el.offset_height
-	if not left or not w or w <= 0 or not h or h <= 0 then return false end
+	if not left or not w or w <= 0 or not h or h <= 0 then
+		return false
+	end
 	return mx >= left and mx <= left + w and myTop >= top and myTop <= top + h
 end
 
@@ -238,21 +270,35 @@ end
 
 local function setEditing(on)
 	state.popupEditing = on
-	if state.popupViewEl then state.popupViewEl:SetClass("hidden", on) end
-	if state.popupEditEl then state.popupEditEl:SetClass("hidden", not on) end
+	if state.popupViewEl then
+		state.popupViewEl:SetClass("hidden", on)
+	end
+	if state.popupEditEl then
+		state.popupEditEl:SetClass("hidden", not on)
+	end
 	if on and state.editTextEl then
 		local L = findLabel(state.openLabelId)
 		state.editTextEl:SetAttribute("value", (L and L.text) or "")
-		pcall(function() state.editTextEl:Focus() end)
+		pcall(function()
+			state.editTextEl:Focus()
+		end)
 	end
 end
 
 local function refreshPopupContent()
 	local L = findLabel(state.openLabelId)
-	if not L then return end
-	if state.popupAuthorEl then state.popupAuthorEl.inner_rml = escapeRml(displayAuthor(L)) end
-	if state.popupDateEl then state.popupDateEl.inner_rml = escapeRml(L.created or "") end
-	if state.popupDotEl then state.popupDotEl:SetAttribute("style", "background-color: " .. L.color .. ";") end
+	if not L then
+		return
+	end
+	if state.popupAuthorEl then
+		state.popupAuthorEl.inner_rml = escapeRml(displayAuthor(L))
+	end
+	if state.popupDateEl then
+		state.popupDateEl.inner_rml = escapeRml(L.created or "")
+	end
+	if state.popupDotEl then
+		state.popupDotEl:SetAttribute("style", "background-color: " .. L.color .. ";")
+	end
 	if state.popupTextEl then
 		state.popupTextEl.inner_rml = (L.text ~= "" and renderMultiline(L.text))
 			or '<span style="color: #6b7280;">(empty label)</span>'
@@ -275,7 +321,9 @@ end
 
 local function closeColorPicker()
 	state.colorPickerOpen = false
-	if state.colorPopEl then state.colorPopEl:SetClass("hidden", true) end
+	if state.colorPopEl then
+		state.colorPopEl:SetClass("hidden", true)
+	end
 end
 
 local function openPopup(id, editing, fresh)
@@ -287,14 +335,18 @@ local function openPopup(id, editing, fresh)
 		end
 	end
 	local L = findLabel(id)
-	if not L then return end
+	if not L then
+		return
+	end
 	closeColorPicker()
 	state.openLabelId = id
 	state.popupFresh = fresh or false
 	state.popupLast = nil
 	refreshPopupContent()
 	setEditing(editing or false)
-	if state.popupEl then state.popupEl:SetClass("hidden", false) end
+	if state.popupEl then
+		state.popupEl:SetClass("hidden", false)
+	end
 end
 
 local function closePopup()
@@ -309,7 +361,9 @@ local function closePopup()
 	state.popupFresh = false
 	setEditing(false)
 	closeColorPicker()
-	if state.popupEl then state.popupEl:SetClass("hidden", true) end
+	if state.popupEl then
+		state.popupEl:SetClass("hidden", true)
+	end
 	Spring.SDLStopTextInput()
 end
 
@@ -323,7 +377,9 @@ local function setPlacing(on)
 		state.newBtnEl:SetClass("placing", on)
 		state.newBtnEl.inner_rml = on and "CLICK MAP TO PLACE" or "+ NEW LABEL"
 	end
-	if state.ghostEl then state.ghostEl:SetClass("hidden", not on) end
+	if state.ghostEl then
+		state.ghostEl:SetClass("hidden", not on)
+	end
 	state.ghostLast = nil
 end
 
@@ -335,8 +391,12 @@ end
 -- off takes the browser window, the world dots and any open comment with it.
 local function setWindowOpen(open)
 	state.windowOpen = open
-	if state.rootEl then state.rootEl:SetClass("hidden", not open) end
-	if state.dotsLayerEl then state.dotsLayerEl:SetClass("hidden", not open) end
+	if state.rootEl then
+		state.rootEl:SetClass("hidden", not open)
+	end
+	if state.dotsLayerEl then
+		state.dotsLayerEl:SetClass("hidden", not open)
+	end
 	if not open then
 		setPlacing(false)
 		closePopup()
@@ -352,7 +412,9 @@ end
 
 local function rebuildUi()
 	local doc = state.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	-- World dots
 	local layer = state.dotsLayerEl
@@ -369,16 +431,24 @@ local function rebuildUi()
 
 			local prev = doc:CreateElement("div")
 			prev:SetClass("ml-dot-preview", true)
-			prev.inner_rml = '<div class="ml-preview-author">' .. escapeRml(displayAuthor(L))
-				.. '</div><div class="ml-preview-text">' .. snippet(L.text) .. '</div>'
+			prev.inner_rml = '<div class="ml-preview-author">'
+				.. escapeRml(displayAuthor(L))
+				.. '</div><div class="ml-preview-text">'
+				.. snippet(L.text)
+				.. "</div>"
 			el:AppendChild(prev)
 
 			layer:AppendChild(el)
 			state.dotEls[L.id] = {
 				el = el,
-				lastLeft = nil, lastTop = nil, lastHidden = nil,
+				lastLeft = nil,
+				lastTop = nil,
+				lastHidden = nil,
 				-- screen-space center + radius, refreshed by the Update sync
-				cx = nil, cy = nil, r = 8, visible = false,
+				cx = nil,
+				cy = nil,
+				r = 8,
+				visible = false,
 				lastHovered = nil,
 			}
 		end
@@ -389,8 +459,12 @@ local function rebuildUi()
 	if listEl then
 		listEl.inner_rml = ""
 		local sorted = {}
-		for i, L in ipairs(state.labels) do sorted[i] = L end
-		table.sort(sorted, function(a, b) return (a.ts or 0) > (b.ts or 0) end)
+		for i, L in ipairs(state.labels) do
+			sorted[i] = L
+		end
+		table.sort(sorted, function(a, b)
+			return (a.ts or 0) > (b.ts or 0)
+		end)
 
 		if #sorted == 0 then
 			local empty = doc:CreateElement("div")
@@ -409,8 +483,11 @@ local function rebuildUi()
 
 			local body = doc:CreateElement("div")
 			body:SetClass("ml-item-body", true)
-			body.inner_rml = '<div class="ml-item-author">' .. escapeRml(displayAuthor(L))
-				.. '</div><div class="ml-item-snippet">' .. snippet(L.text) .. '</div>'
+			body.inner_rml = '<div class="ml-item-author">'
+				.. escapeRml(displayAuthor(L))
+				.. '</div><div class="ml-item-snippet">'
+				.. snippet(L.text)
+				.. "</div>"
 
 			item:AppendChild(dot)
 			item:AppendChild(body)
@@ -480,7 +557,9 @@ function widget:OnPopupDelete()
 	local id = state.openLabelId
 	state.popupFresh = false
 	closePopup()
-	if id then removeLabel(id) end
+	if id then
+		removeLabel(id)
+	end
 end
 
 function widget:OnPopupClose()
@@ -492,7 +571,9 @@ end
 -- nothing to fall back to, so it goes away with the popup.
 local function cancelEditing()
 	if state.editTextEl then
-		pcall(function() state.editTextEl:Blur() end)
+		pcall(function()
+			state.editTextEl:Blur()
+		end)
 	end
 	if state.popupFresh then
 		closePopup()
@@ -550,7 +631,9 @@ end
 
 function widget:OnPickColor(color)
 	local L = findLabel(state.openLabelId)
-	if not L or not color then return end
+	if not L or not color then
+		return
+	end
 	playSound("click")
 	L.color = color
 	closeColorPicker()
@@ -598,10 +681,14 @@ function widget:MousePress(mx, my, button)
 		playSound("click")
 		return true
 	end
-	if button ~= 1 then return false end
+	if button ~= 1 then
+		return false
+	end
 
 	local _, pos = TraceScreenRay(mx, my, true)
-	if not pos then return false end
+	if not pos then
+		return false
+	end
 
 	local x = math.max(0, math.min(Game.mapSizeX, pos[1]))
 	local z = math.max(0, math.min(Game.mapSizeZ, pos[3]))
@@ -634,16 +721,20 @@ end
 local function projectLabel(L, vsy)
 	local gy = GetGroundHeight(L.x, L.z) or 0
 	local sx, sy, sz = WorldToScreenCoords(L.x, gy, L.z)
-	if not sx then return nil end
+	if not sx then
+		return nil
+	end
 	return sx, vsy - sy, sz
 end
 
-local DRAG_THRESHOLD = 4  -- pixels of travel before a press counts as a drag
+local DRAG_THRESHOLD = 4 -- pixels of travel before a press counts as a drag
 
 -- Ends a dot drag: a real drag saves the new position, a click opens the popup.
 local function endDotDrag()
 	local id = state.draggingId
-	if not id then return end
+	if not id then
+		return
+	end
 	state.draggingId = nil
 	local L = findLabel(id)
 	if not L then
@@ -663,7 +754,9 @@ end
 -- Moves the dragged label to the cursor. Runs before the position sync below so
 -- the dot lands under the cursor on the same frame.
 local function tickDotDrag()
-	if not state.draggingId then return end
+	if not state.draggingId then
+		return
+	end
 	local mx, my, lmb = GetMouseState()
 	local L = findLabel(state.draggingId)
 	if not L then
@@ -681,7 +774,9 @@ local function tickDotDrag()
 	if not state.dragMoved then
 		local dx = mx - state.dragStartX
 		local dy = my - state.dragStartY
-		if (dx * dx + dy * dy) < (DRAG_THRESHOLD * DRAG_THRESHOLD) then return end
+		if (dx * dx + dy * dy) < (DRAG_THRESHOLD * DRAG_THRESHOLD) then
+			return
+		end
 		state.dragMoved = true
 	end
 
@@ -701,8 +796,12 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:Update()
-	if state.dragHandle then state.dragHandle.tick() end
-	if not state.document then return end
+	if state.dragHandle then
+		state.dragHandle.tick()
+	end
+	if not state.document then
+		return
+	end
 
 	tickDotDrag()
 
@@ -719,15 +818,16 @@ function widget:Update()
 	end
 
 	local vsx, vsy = GetViewGeometry()
-	if vsx <= 0 then return end
+	if vsx <= 0 then
+		return
+	end
 
 	-- Dots follow their world position (constant screen size)
 	for _, L in ipairs(state.labels) do
 		local rec = state.dotEls[L.id]
 		if rec then
 			local sx, ry, sz = projectLabel(L, vsy)
-			local visible = sx ~= nil and sz and sz < 1
-				and sx > -80 and sx < vsx + 80 and ry > -80 and ry < vsy + 80
+			local visible = sx ~= nil and sz and sz < 1 and sx > -80 and sx < vsx + 80 and ry > -80 and ry < vsy + 80
 			rec.visible = visible and true or false
 			if not visible then
 				rec.cx, rec.cy = nil, nil
@@ -803,10 +903,18 @@ function widget:Update()
 				local ph = state.popupEl.offset_height or 120
 				local left = math.floor(sx + 14)
 				local top = math.floor(ry + 10)
-				if left + pw > vsx then left = math.floor(sx - pw - 14) end
-				if left < 0 then left = 0 end
-				if top + ph > vsy then top = vsy - ph end
-				if top < 0 then top = 0 end
+				if left + pw > vsx then
+					left = math.floor(sx - pw - 14)
+				end
+				if left < 0 then
+					left = 0
+				end
+				if top + ph > vsy then
+					top = vsy - ph
+				end
+				if top < 0 then
+					top = 0
+				end
 				local key = left * 100000 + top
 				if state.popupLast ~= key then
 					state.popupLast = key
@@ -913,41 +1021,70 @@ function widget:Initialize()
 			setWindowOpen(not state.windowOpen)
 			return state.windowOpen
 		end,
-		open = function() setWindowOpen(true) end,
-		close = function() setWindowOpen(false) end,
-		isOpen = function() return state.windowOpen end,
-		isPlacing = function() return state.placing end,
+		open = function()
+			setWindowOpen(true)
+		end,
+		close = function()
+			setWindowOpen(false)
+		end,
+		isOpen = function()
+			return state.windowOpen
+		end,
+		isPlacing = function()
+			return state.placing
+		end,
 		-- Single answer for "is the terrain brush off right now" — the brush
 		-- widget hides its cursor ring whenever this is true. Covers label
 		-- placement, dot hover/drag, hovering our windows, and an open comment
 		-- (whose dismissing click is consumed instead of painting).
 		shouldSuppressBrush = function()
-			if state.placing or state.openLabelId then return true end
+			if state.placing or state.openLabelId then
+				return true
+			end
 			return WG.MapLabels.isCursorOver()
 		end,
 		-- True when the cursor is over the labels browser window or an open
 		-- comment popup; cmd_terraform_brush hides the brush ring there.
 		isCursorOver = function()
 			-- Hovering or dragging a dot is a label interaction, not painting
-			if state.hoverDotId or state.draggingId then return true end
-			if not state.windowOpen and not state.openLabelId then return false end
+			if state.hoverDotId or state.draggingId then
+				return true
+			end
+			if not state.windowOpen and not state.openLabelId then
+				return false
+			end
 			local mx, my = GetMouseState()
 			local _, vsy = GetViewGeometry()
-			if vsy <= 0 then return false end
+			if vsy <= 0 then
+				return false
+			end
 			local myTop = vsy - my
-			if state.windowOpen and cursorOverRect(state.rootEl, mx, myTop) then return true end
-			if state.openLabelId and cursorOverRect(state.popupEl, mx, myTop) then return true end
+			if state.windowOpen and cursorOverRect(state.rootEl, mx, myTop) then
+				return true
+			end
+			if state.openLabelId and cursorOverRect(state.popupEl, mx, myTop) then
+				return true
+			end
 			return false
 		end,
-		getLabelCount = function() return #state.labels end,
+		getLabelCount = function()
+			return #state.labels
+		end,
 
 		-- Read-only snapshot for exporters (Terraform Brush Capture writes these
 		-- as an SVG pin layer). Copied so a caller cannot mutate live state.
 		getLabels = function()
 			local out = {}
 			for i, L in ipairs(state.labels) do
-				out[i] = { id = L.id, x = L.x, z = L.z, color = L.color,
-					author = L.author, created = L.created, text = L.text }
+				out[i] = {
+					id = L.id,
+					x = L.x,
+					z = L.z,
+					color = L.color,
+					author = L.author,
+					created = L.created,
+					text = L.text,
+				}
 			end
 			return out
 		end,
@@ -959,8 +1096,12 @@ function widget:Initialize()
 		-- Returns the number of comments written (0 = none, caller deletes the
 		-- file), or nil if the file could not be written.
 		saveProject = function(path)
-			if not path then return nil end
-			if not writeLabelsFile(path, true) then return nil end
+			if not path then
+				return nil
+			end
+			if not writeLabelsFile(path, true) then
+				return nil
+			end
 			return #state.labels
 		end,
 
@@ -982,9 +1123,13 @@ function widget:Initialize()
 		-- per-map autosave so the two copies do not disagree afterwards.
 		-- Returns ok, count.
 		loadProject = function(path)
-			if not path then return false end
+			if not path then
+				return false
+			end
 			local labels, nextId = parseLabelsFile(path)
-			if not labels then return false end
+			if not labels then
+				return false
+			end
 			closePopup()
 			setPlacing(false)
 			state.labels = labels

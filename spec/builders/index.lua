@@ -14,13 +14,13 @@ local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
 ---@field UnitDefs UnitDefsBuilder
 ---@field MissionApi MissionApiBuilder
 local Builders = {
-    Team = TeamBuilder,
-    Spring = SpringSyncedBuilder,
-    SpringUnsynced = SpringUnsyncedBuilder,
-    ResourceData = ResourceDataBuilder,
-    UnitDef = UnitDefBuilder,
-    UnitDefs = UnitDefsBuilder,
-    MissionApi = MissionApiBuilder,
+	Team = TeamBuilder,
+	Spring = SpringSyncedBuilder,
+	SpringUnsynced = SpringUnsyncedBuilder,
+	ResourceData = ResourceDataBuilder,
+	UnitDef = UnitDefBuilder,
+	UnitDefs = UnitDefsBuilder,
+	MissionApi = MissionApiBuilder,
 }
 
 return Builders

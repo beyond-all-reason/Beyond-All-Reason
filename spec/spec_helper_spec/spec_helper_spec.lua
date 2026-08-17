@@ -23,13 +23,16 @@ describe("spec_helper", function()
             assert.are.same({}, result)
         end)
 
-        it("still loads and caches a valid file", function()
+        it("still loads a valid file, re-running it on every call", function()
             local first  = VFS.Include('luarules/mission_api/parameter_types.lua')
             local second = VFS.Include('luarules/mission_api/parameter_types.lua')
 
             assert.is_table(first)
             assert.is_table(first.Types)
-            assert.are.equal(first, second)
+            -- Only the source text is cached, matching the engine: each call gets
+            -- its own result, so two includers cannot share (and mutate) one table.
+            assert.are.same(first, second)
+            assert.are_not.equal(first, second)
         end)
     end)
 

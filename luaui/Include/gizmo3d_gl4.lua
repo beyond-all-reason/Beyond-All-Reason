@@ -394,7 +394,8 @@ end
 local function ringProbe(mx, my, u, v, r, a)
 	local ca, sa = cos(a) * r, sin(a) * r
 	return pixelDistSq(
-		mx, my,
+		mx,
+		my,
 		pivot.x + u[1] * ca + v[1] * sa,
 		pivot.y + u[2] * ca + v[2] * sa,
 		pivot.z + u[3] * ca + v[3] * sa
@@ -471,11 +472,20 @@ function Gizmo.hitTest(mx, my)
 			-- Skip the innermost stub so the centre handle keeps its own zone.
 			local from = CENTRE_RADIUS * 1.5 * size
 			local to = ARROW_LENGTH * size
-			keep(name, pixelDistToSegment(
-				mx, my,
-				pivot.x + h.axis[1] * from, pivot.y + h.axis[2] * from, pivot.z + h.axis[3] * from,
-				pivot.x + h.axis[1] * to, pivot.y + h.axis[2] * to, pivot.z + h.axis[3] * to
-			), ARROW_GRAB_PX)
+			keep(
+				name,
+				pixelDistToSegment(
+					mx,
+					my,
+					pivot.x + h.axis[1] * from,
+					pivot.y + h.axis[2] * from,
+					pivot.z + h.axis[3] * from,
+					pivot.x + h.axis[1] * to,
+					pivot.y + h.axis[2] * to,
+					pivot.z + h.axis[3] * to
+				),
+				ARROW_GRAB_PX
+			)
 		else
 			local u, v = planeBasis(h.axis)
 			keep(name, ringNearestPx(mx, my, u, v, RING_RADIUS * size), RING_GRAB_PX)
@@ -712,8 +722,12 @@ function Gizmo.init()
 	-- which would collide with this module's instance attributes, and it needs an
 	-- index buffer. The box is one id-0 attribute and draws as plain triangles.
 	local centreVBO, centreVerts = InstanceVBOTable.makeBoxVBO(
-		-CENTRE_RADIUS, -CENTRE_RADIUS, -CENTRE_RADIUS,
-		CENTRE_RADIUS, CENTRE_RADIUS, CENTRE_RADIUS,
+		-CENTRE_RADIUS,
+		-CENTRE_RADIUS,
+		-CENTRE_RADIUS,
+		CENTRE_RADIUS,
+		CENTRE_RADIUS,
+		CENTRE_RADIUS,
 		"gizmoCentre"
 	)
 
@@ -722,10 +736,12 @@ function Gizmo.init()
 		return false
 	end
 
-	prims.shaft = { table = makeInstanceTable("gizmoShaftInst", shaftVBO, shaftVerts, GL.TRIANGLES), shader = solidShader }
+	prims.shaft =
+		{ table = makeInstanceTable("gizmoShaftInst", shaftVBO, shaftVerts, GL.TRIANGLES), shader = solidShader }
 	prims.head = { table = makeInstanceTable("gizmoHeadInst", headVBO, headVerts, GL.TRIANGLES), shader = solidShader }
 	prims.ring = { table = makeInstanceTable("gizmoRingInst", ringVBO, ringVerts, GL.LINE_STRIP), shader = ringShader }
-	prims.centre = { table = makeInstanceTable("gizmoCentreInst", centreVBO, centreVerts, GL.TRIANGLES), shader = solidShader }
+	prims.centre =
+		{ table = makeInstanceTable("gizmoCentreInst", centreVBO, centreVerts, GL.TRIANGLES), shader = solidShader }
 
 	for _, prim in pairs(prims) do
 		if not prim.table then
@@ -819,10 +835,34 @@ function Gizmo.draw(hovered)
 			-- instance to the shaft's midpoint; the cone's base is at its origin,
 			-- so that one sits at the shaft's far end.
 			local mid = SHAFT_LENGTH * 0.5 * size
-			push(prims.shaft, pivot.x + h.axis[1] * mid, pivot.y + h.axis[2] * mid, pivot.z + h.axis[3] * mid, size, h.euler, r, g, b, a, name)
+			push(
+				prims.shaft,
+				pivot.x + h.axis[1] * mid,
+				pivot.y + h.axis[2] * mid,
+				pivot.z + h.axis[3] * mid,
+				size,
+				h.euler,
+				r,
+				g,
+				b,
+				a,
+				name
+			)
 
 			local headBase = SHAFT_LENGTH * size
-			push(prims.head, pivot.x + h.axis[1] * headBase, pivot.y + h.axis[2] * headBase, pivot.z + h.axis[3] * headBase, size, h.euler, r, g, b, a, name)
+			push(
+				prims.head,
+				pivot.x + h.axis[1] * headBase,
+				pivot.y + h.axis[2] * headBase,
+				pivot.z + h.axis[3] * headBase,
+				size,
+				h.euler,
+				r,
+				g,
+				b,
+				a,
+				name
+			)
 		elseif h.kind == "ring" then
 			push(prims.ring, pivot.x, pivot.y, pivot.z, size, h.euler, r, g, b, a, name)
 		else

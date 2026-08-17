@@ -1,5 +1,4 @@
 local function communityBalanceTweaks(name, uDef, modOptions)
-
 	local communityBalancePatchDisabled = modOptions.community_balance_patch == "disabled"
 	if not communityBalancePatchDisabled then
 		local all = modOptions.community_balance_patch == "enabled"

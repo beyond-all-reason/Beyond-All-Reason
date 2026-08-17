@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return
+	return
 end
 
 function gadget:UnitCreated(unitID, unitDefID)

@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+if not BAR.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
 	return
 end
 
@@ -16,7 +16,6 @@ function widget:GetInfo()
 		handler = true, -- so it can remove and add widgets
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
@@ -56,7 +55,7 @@ local function CheckForChanges(widgetName, fileName)
 		widgetContents[widgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if not mouseOffscreen and chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			return nil
 		end
 		ReloadWidget(widgetName)
