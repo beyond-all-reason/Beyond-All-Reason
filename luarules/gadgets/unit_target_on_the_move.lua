@@ -486,7 +486,7 @@ if gadgetHandler:IsSyncedCode() then
 			if targetList[i].ignoreStop then
 				moveToIndex = moveToIndex + 1
 				if moveToIndex ~= i then
-					targetList[moveToIndex] = i
+					targetList[moveToIndex] = targetList[i]
 				end
 			else
 				currentTargets[targetList[i].target] = nil
