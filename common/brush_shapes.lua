@@ -21,15 +21,17 @@
 -- Supported shapes: "circle", "square", "hexagon", "octagon", "triangle".
 -- Unknown shapes return (false, 1).
 
-local cos  = math.cos
-local sin  = math.sin
-local abs  = math.abs
-local max  = math.max
+local cos = math.cos
+local sin = math.sin
+local abs = math.abs
+local max = math.max
 local sqrt = math.sqrt
-local pi   = math.pi
+local pi = math.pi
 
 local function rotateInv(dx, dz, angleDeg)
-	if angleDeg == 0 then return dx, dz end
+	if angleDeg == 0 then
+		return dx, dz
+	end
 	local rad = -angleDeg * pi / 180
 	local c, s = cos(rad), sin(rad)
 	return dx * c - dz * s, dx * s + dz * c
@@ -75,10 +77,16 @@ end
 -- at the centre, 0 at/outside the edge. `curve` shapes the ramp: 1.0 is linear,
 -- higher values keep the brush stronger toward the centre.
 local function computeFalloff(normDist, curve)
-	if normDist >= 1 then return 0 end
-	if normDist <= 0 then return 1 end
+	if normDist >= 1 then
+		return 0
+	end
+	if normDist <= 0 then
+		return 1
+	end
 	local t = 1 - normDist
-	if curve == 1.0 then return t end
+	if curve == 1.0 then
+		return t
+	end
 	return t ^ curve
 end
 
