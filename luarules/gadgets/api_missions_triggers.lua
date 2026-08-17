@@ -104,7 +104,7 @@ local function isFeatureInArea(featureID, area)
 end
 
 -- Attempt at single-assigning a construction task owner to each buildee.
-local function isNanoframeOwner(nanoframeID, builderDefName, builderName)
+local function isBuildFrameOwner(nanoframeID, builderDefName, builderName)
 	if not builderDefName and not builderName then
 		return true
 	end
@@ -119,6 +119,11 @@ local function isNanoframeOwner(nanoframeID, builderDefName, builderName)
 		return false
 	end
 	return true
+end
+
+local function inFactory(buildeeID)
+	local builder = nanoframeOwners[buildeeID]
+	return builder ~= nil and UnitDefs[builder.defID].isFactory == true
 end
 
 ----------------------------------------------------------------
@@ -180,7 +185,8 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
-		IsNanoframeOwner         = isNanoframeOwner,
+		IsNanoframeOwner         = isBuildFrameOwner,
+		InFactory                = inFactory,
 		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
@@ -213,12 +219,10 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
 
-	-- Only upkeep the nanoframe-owner map when ConstructionFinished or ConstructionCanceled
-	-- filter by builders. ConstructionStarted gets its builderID from UnitCreated directly,
-	-- and none of the triggers in the family require params builderDefName and builderName.
+	-- We tell apart factory and constructor ownership via the build owner map.
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
-		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
-			and (trigger.type == triggerTypes.ConstructionFinished or trigger.type == triggerTypes.ConstructionCanceled)
+		return trigger.parameters.builderName
+			or trigger.parameters.builderDefName
 	end)
 
 	-- ConstructionFinished can't read beingBuilt at UnitFinished (the unit reads finished)
