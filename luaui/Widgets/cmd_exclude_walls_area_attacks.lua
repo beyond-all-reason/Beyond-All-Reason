@@ -14,7 +14,6 @@ end
 
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
-local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 local CMD_ATTACK = CMD.ATTACK
 local CMD_ATTACK_TARGETS = CMD.ATTACK_TARGETS
 local CMD_STOP = CMD.STOP
@@ -52,7 +51,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	local newCmds = {}
 	local targetIDs = {}
-	local targetListCommandID = cmdID == CMD_ATTACK and CMD_ATTACK_TARGETS or CMD_UNIT_SET_TARGETS
+	local targetListCommandID = cmdID == CMD_ATTACK and CMD_ATTACK_TARGETS
 	local somethingWasExcluded = false
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
