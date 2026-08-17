@@ -280,8 +280,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
