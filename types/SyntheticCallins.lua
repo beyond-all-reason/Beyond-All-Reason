@@ -73,7 +73,4 @@
 ---
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
 ---Dispatch: g:GameFramePost (executes in batches)
----
----Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep
----Dispatch: g:GameFramePost (executes in batches)
 ---@field FeatureBuildStepTotal? fun(self, featureIDs: integer[], parts: number[], count: integer, frame: integer)
