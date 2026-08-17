@@ -165,4 +165,8 @@ Weapon1SetWtdAim(pitch, heading)
 {
 	wtdHead1 = heading;
 	wtdPitch1 = <0> - pitch;
+	if (((get ABS(curHead1 - wtdHead1)) > (Weapon1TurretY / 30)) OR ((get ABS(curPitch1 - wtdPitch1)) > (Weapon1TurretX / 30)))
+	{
+		aim1 = 0;
+	}
 }
