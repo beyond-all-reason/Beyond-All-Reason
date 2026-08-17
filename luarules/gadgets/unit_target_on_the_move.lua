@@ -20,7 +20,7 @@ local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 if gadgetHandler:IsSyncedCode() then
 	local deleteMaxDistance = 30
 	local targetListLengthMax = 128
-	local unseenGraceTime = 10.0
+	local unseenGraceTime = 9.5
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -162,7 +162,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local unseenGracePasses = math.floor(unseenGraceTime / 0.5 - 1)
+	local unseenGracePasses = math.floor(unseenGraceTime / 0.5)
 
 	--------------------------------------------------------------------------------
 	-- Commands
