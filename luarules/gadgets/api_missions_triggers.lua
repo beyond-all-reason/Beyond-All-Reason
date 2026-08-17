@@ -23,10 +23,8 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local seismicContacts
+local SEISMIC_INTERVAL_FRAMES
 local statistics
-
--- The cadence a unit raises seismic pings and sampling interval for seismic triggers
-local SEISMIC_INTERVAL_FRAMES = 15
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
@@ -160,6 +158,7 @@ function gadget:Initialize()
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
 	seismicContacts         = GG['MissionAPI'].Modules.SeismicContacts
+	SEISMIC_INTERVAL_FRAMES = seismicContacts.UpdateInterval
 
 	statistics              = VFS.Include('luarules/mission_api/statistics.lua')
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })

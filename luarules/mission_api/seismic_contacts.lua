@@ -65,6 +65,8 @@ local DWELL_INTERVALS = 8
 
 -- Module code -----------------------------------------------------------------
 
+local SEISMIC_INTERVAL_FRAMES = math.floor(0.5 * Game.gameSpeed) -- on SlowUpdates
+
 -- Contacts : [allyTeamID][unitID]. A unit inside two allyTeams' coverages is a contact for
 -- each of them separately, since each hears its own ping and holds its own detection level.
 local contactsByAllyTeam = {}
@@ -123,4 +125,5 @@ return {
 	IsContact      = isContact,
 	RecordPing     = recordPing,
 	UpdateContacts = updateContacts,
+	UpdateInterval = SEISMIC_INTERVAL_FRAMES,
 }
