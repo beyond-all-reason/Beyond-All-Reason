@@ -114,6 +114,28 @@ local function isInCylinder(vector, origin, radius)
 	return radius * radius >= (v1 - o1) * (v1 - o1) + (v3 - o3) * (v3 - o3)
 end
 
+local positionGuidance = { 0, 0, 0, isInCylinder = isInCylinder }
+local velocityGuidance = { 0, 0, 0, 0 }
+
+local function getPosition(projectileID)
+	local position = positionGuidance
+	position[1], position[2], position[3] = spGetProjectilePosition(projectileID)
+	return position
+end
+
+local function getVelocity(projectileID)
+	local velocity = velocityGuidance
+	velocity[1], velocity[2], velocity[3], velocity[4] = spGetProjectileVelocity(projectileID)
+	return velocity
+end
+
+local function getPositionAndVelocity(projectileID)
+	local position, velocity = positionGuidance, velocityGuidance
+	position[1], position[2], position[3] = spGetProjectilePosition(projectileID)
+	velocity[1], velocity[2], velocity[3], velocity[4] = spGetProjectileVelocity(projectileID)
+	return position, velocity
+end
+
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
@@ -176,28 +198,6 @@ local function getVerticalizeWeapon(weaponDef)
 		model           = weaponDef.model,
 		cegTag          = weaponDef.cegTag,
 	}
-end
-
-local positionGuidance = { 0, 0, 0, isInCylinder = isInCylinder }
-local velocityGuidance = { 0, 0, 0, 0 }
-
-local function getPosition(projectileID)
-	local position = positionGuidance
-	position[1], position[2], position[3] = spGetProjectilePosition(projectileID)
-	return position
-end
-
-local function getVelocity(projectileID)
-	local velocity = velocityGuidance
-	velocity[1], velocity[2], velocity[3], velocity[4] = spGetProjectileVelocity(projectileID)
-	return velocity
-end
-
-local function getPositionAndVelocity(projectileID)
-	local position, velocity = positionGuidance, velocityGuidance
-	position[1], position[2], position[3] = spGetProjectilePosition(projectileID)
-	velocity[1], velocity[2], velocity[3], velocity[4] = spGetProjectileVelocity(projectileID)
-	return position, velocity
 end
 
 local function scheduleAt(projectileID, frame)
