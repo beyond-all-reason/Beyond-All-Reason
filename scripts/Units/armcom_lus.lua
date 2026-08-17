@@ -968,9 +968,9 @@ function SprayNano(heading, pitch)
 	SetSignalMask(SIG_AIM)
 	Sleep(1000)
 	while true do
-		Turn(torso, 2, rad(10) + buildHeading, rad(10))
+		Turn(torso, 2, rad(10), rad(10))
 		Sleep(2000)
-		Turn(torso, 2, rad(-10) + buildHeading, rad(10))
+		Turn(torso, 2, rad(-10), rad(10))
 		Sleep(2000)
 	end
 end
@@ -1185,8 +1185,11 @@ function script.AimWeapon(weapon, heading, pitch)
 			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-
-			WaitForTurn(aimy1, 2)
+			if math.abs(last_primary_heading - heading) > rad(10.0000) then
+				-- seems to take 1 frame for WaitForTurn to process
+				WaitForTurn(aimy1, 2)
+			end
+			last_primary_heading = heading
 			isAiming = true
 			if isBuilding == true then
 				StartThread(ResumeBuilding)
@@ -1201,7 +1204,13 @@ function script.AimWeapon(weapon, heading, pitch)
 		Turn(aimy1, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 		Turn(biggun, 1, rad(-105), rad(900.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 		Turn(luparm, 1, rad(15) - pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-		WaitForTurn(aimy1, 2)
+
+		if math.abs(last_primary_heading - heading) > rad(12.0000) then
+			-- seems to take 1 frame for WaitForTurn to process
+			WaitForTurn(aimy1, 2)
+		end
+
+		last_primary_heading = heading
 		return true
 	end
 end
@@ -1243,9 +1252,16 @@ function script.StartBuilding(heading, pitch)
 	Signal(SIG_AIM)
 	isBuilding = true
 	leftArm = false
-	Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+	Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 	Turn(rloarm, 1, rad(-40), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+
+	if math.abs(last_primary_heading - heading) > rad(10.0000) then
+		-- seems to take 1 frame for WaitForTurn to process
+		WaitForTurn(aimy1, 2)
+	end
+	last_primary_heading = heading
+
 	WaitForTurn(ruparm, 1)
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
 	buildHeading = heading
