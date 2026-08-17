@@ -50,13 +50,14 @@ local VFS_RAW_FIRST = VFS.RAW_FIRST
 local spSetEngineBuildSquareRendering = Spring.SetEngineBuildSquareRendering or function() end
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
 local spGetGroundNormal = Spring.GetGroundNormal
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -82,7 +83,7 @@ local mathCeil = math.ceil
 --------------------------------------------------------------------------------
 -- Configuration
 
-local ONLY_WHEN_BLOCKED = true  -- when true, only show the extended cells when the building can't be placed
+local ONLY_WHEN_BLOCKED = true -- when true, only show the extended cells when the building can't be placed
 local OPEN_YARDMAP_ONLY_WHEN_BLOCKED = true
 local CELL_DISTANCE = 2
 local CORNER_RADIUS = 0.22
@@ -115,10 +116,10 @@ local STATUS_RECLAIMABLE = 2
 local STATUS_OPEN = 3
 
 local STATUS_COLORS = {
-	[STATUS_BLOCKED]     = { 1.0, 0.1, 0.3, 0.33 },
-	[STATUS_OCCUPIED]    = { 0.75, 1.0, 0.15, 0.33 },
+	[STATUS_BLOCKED] = { 1.0, 0.1, 0.3, 0.33 },
+	[STATUS_OCCUPIED] = { 0.75, 1.0, 0.15, 0.33 },
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN]        = { 0.70, 0.90, 0.10, 0.33 },
+	[STATUS_OPEN] = { 0.70, 0.90, 0.10, 0.33 },
 }
 local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.45 }
 -- local STATUS_OUTLINE_COLORS = {
@@ -128,10 +129,10 @@ local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.45 }
 -- 	[STATUS_OPEN]        = { 0.85, 1.00, 0.50, 0.7 },
 -- }
 local STATUS_OUTLINE_COLORS = {
-	[STATUS_BLOCKED]     = { 0.50, 0.05, 0.05, 0.4 },
-	[STATUS_OCCUPIED]    = { 0.66, 0.15, 0.05, 0.4 },
+	[STATUS_BLOCKED] = { 0.50, 0.05, 0.05, 0.4 },
+	[STATUS_OCCUPIED] = { 0.66, 0.15, 0.05, 0.4 },
 	[STATUS_RECLAIMABLE] = { 0.55, 0.20, 0.05, 0.4 },
-	[STATUS_OPEN]        = { 0.30, 0.30, 0.05, 0.4 },
+	[STATUS_OPEN] = { 0.30, 0.30, 0.05, 0.4 },
 }
 local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
@@ -147,6 +148,7 @@ local shaderProgram = nil
 local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
 local heightOffsetLoc = nil
+local waterLevelLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -218,7 +220,7 @@ local function loadUnitYardmap(unitDef)
 	if not source then
 		return nil
 	end
-	return source:match("[Yy][Aa][Rr][Dd][Mm][Aa][Pp]%s*=%s*\"([^\"]*)\"")
+	return source:match('[Yy][Aa][Rr][Dd][Mm][Aa][Pp]%s*=%s*"([^"]*)"')
 		or source:match("[Yy][Aa][Rr][Dd][Mm][Aa][Pp]%s*=%s*'([^']*)'")
 end
 
@@ -362,8 +364,12 @@ local function hasQueuedBuildFootprintOverlap(unitDefID, x, z, facing, gameFrame
 	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
 	for index = 1, queuedBuildFootprintCount do
 		local queuedFootprint = queuedBuildFootprints[index]
-		if minX < queuedFootprint.maxX and maxX > queuedFootprint.minX
-			and minZ < queuedFootprint.maxZ and maxZ > queuedFootprint.minZ then
+		if
+			minX < queuedFootprint.maxX
+			and maxX > queuedFootprint.minX
+			and minZ < queuedFootprint.maxZ
+			and maxZ > queuedFootprint.minZ
+		then
 			return true
 		end
 	end
@@ -400,12 +406,24 @@ local function appendCollectedPreview(renderCache)
 end
 
 local function collectPreview(
-	renderCache, originX, originZ, numCells, xsize, zsize, extendedCells, cellScale, simplified
+	renderCache,
+	originX,
+	originZ,
+	numCells,
+	xsize,
+	zsize,
+	extendedCells,
+	cellScale,
+	simplified
 )
 	appendCollectedPreview(renderCache)
-	if renderCache.batchNumCells ~= numCells or renderCache.batchSimplified ~= simplified
-		or renderCache.batchOriginX ~= originX or renderCache.batchOriginZ ~= originZ
-		or renderCache.batchCellScale ~= cellScale then
+	if
+		renderCache.batchNumCells ~= numCells
+		or renderCache.batchSimplified ~= simplified
+		or renderCache.batchOriginX ~= originX
+		or renderCache.batchOriginZ ~= originZ
+		or renderCache.batchCellScale ~= cellScale
+	then
 		collectedBatchChanged = true
 		renderCache.batchOriginX = originX
 		renderCache.batchOriginZ = originZ
@@ -447,10 +465,18 @@ local function getCellGeometry(xsize, zsize, extendedCells, cellScale)
 			local isFootprintCell = xi >= 0 and xi < xsize and zi >= 0 and zi < zsize
 			local footprintEdges = 0
 			if isFootprintCell then
-				if xi == 0 then footprintEdges = footprintEdges + 1 end
-				if xi == xsize - 1 then footprintEdges = footprintEdges + 2 end
-				if zi == 0 then footprintEdges = footprintEdges + 4 end
-				if zi == zsize - 1 then footprintEdges = footprintEdges + 8 end
+				if xi == 0 then
+					footprintEdges = footprintEdges + 1
+				end
+				if xi == xsize - 1 then
+					footprintEdges = footprintEdges + 2
+				end
+				if zi == 0 then
+					footprintEdges = footprintEdges + 4
+				end
+				if zi == zsize - 1 then
+					footprintEdges = footprintEdges + 8
+				end
 			end
 
 			dataIndex = dataIndex + 1
@@ -472,8 +498,7 @@ local function beginBuildSquareDrawFrame(drawFrame)
 	if drawFrame ~= extendedCellsDrawFrame then
 		effectiveExtendedCells = drawSquareCount <= 1 and EXTENDED_CELLS or 0
 		simplifiedFootprintMode = SIMPLIFIED_FOOTPRINTS_ENABLED
-			and (drawSquareCount >= SIMPLIFIED_BUILDING_THRESHOLD
-				or drawSquareCellCount >= SIMPLIFIED_CELL_THRESHOLD)
+			and (drawSquareCount >= SIMPLIFIED_BUILDING_THRESHOLD or drawSquareCellCount >= SIMPLIFIED_CELL_THRESHOLD)
 		statusCheckPeriod = math.min(
 			MAX_STATUS_CHECK_PERIOD,
 			math.max(
@@ -654,6 +679,7 @@ local function getPreviewRenderCache(unitDefID, x, z, facing, sequenceIndex)
 	end
 
 	cache.unitDefID = unitDefID
+	cache.floatOnWater = UnitDefs[unitDefID].floatOnWater and 1 or 0
 	cache.x = x
 	cache.z = z
 	cache.facing = facing
@@ -686,6 +712,7 @@ layout (location = 0) in vec2 a_cornerPos;
 layout (location = 1) in vec4 a_cellData;
 layout (location = 2) in vec4 a_color;
 layout (location = 3) in vec4 a_outlineColor;
+layout (location = 4) in float a_floatOnWater;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -699,6 +726,7 @@ out vec2 v_cellUV;
 
 uniform sampler2D heightmapTex;
 uniform float heightOffset;
+uniform float waterLevel;
 uniform float cellInset;
 uniform float cellSize;
 uniform float minimumScreenDiameter;
@@ -732,7 +760,8 @@ void main() {
 	v_cellUV = cellUV;
 	if (isMiniMap == 0) {
 		vec2 uvhm = heightmapUVatWorldPos(vec2(wx, wz));
-		float wy = textureLod(heightmapTex, uvhm, 0.0).x + heightOffset;
+		float wy = textureLod(heightmapTex, uvhm, 0.0).x;
+		wy = mix(wy, max(wy, waterLevel), a_floatOnWater) + heightOffset;
 		vec4 clipPosition = cameraViewProj * vec4(wx, wy, wz, 1.0);
 		if (simplified > 0.5) {
 			vec2 centerWorldPos = a_cellData.xy + quadSize * 0.5;
@@ -826,7 +855,7 @@ local function goodbye(reason)
 end
 
 local function getCurrentHeightOffset()
-	if spGetGameFrame() <= 0 and WG["map_startbox"] ~= nil then
+	if spGetGameFrame() <= 0 and WG.map_startbox ~= nil then
 		return PREGAME_STARTBOX_HEIGHT_OFFSET
 	end
 	return HEIGHT_OFFSET
@@ -850,6 +879,7 @@ local function initGL4Resources()
 		},
 		uniformFloat = {
 			heightOffset = HEIGHT_OFFSET,
+			waterLevel = 0,
 			cellInset = CELL_DISTANCE * 0.5,
 			cellSize = SQUARE_SIZE,
 			minimumScreenDiameter = MINIMUM_SCREEN_DIAMETER,
@@ -872,12 +902,17 @@ local function initGL4Resources()
 	isMiniMapLoc = glGetUniformLocation(shaderID, "isMiniMap")
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
 	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
+	waterLevelLoc = glGetUniformLocation(shaderID, "waterLevel")
 
 	local quadVerts = {
-		0.0, 0.0,
-		SQUARE_SIZE, 0.0,
-		0.0, SQUARE_SIZE,
-		SQUARE_SIZE, SQUARE_SIZE,
+		0.0,
+		0.0,
+		SQUARE_SIZE,
+		0.0,
+		0.0,
+		SQUARE_SIZE,
+		SQUARE_SIZE,
+		SQUARE_SIZE,
 	}
 
 	quadVBO = glGetVBO(GL_ARRAY_BUFFER, false)
@@ -889,8 +924,9 @@ local function initGL4Resources()
 	batchInstanceVBO = glGetVBO(GL_ARRAY_BUFFER, true)
 	batchInstanceVBO:Define(MAX_BATCH_CELLS, {
 		{ id = 1, name = "a_cellData", size = 4 },
-		{ id = 2, name = "a_color",    size = 4 },
+		{ id = 2, name = "a_color", size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	batchVAO = glGetVAO()
@@ -900,8 +936,9 @@ local function initGL4Resources()
 	minimapInstanceVBO = glGetVBO(GL_ARRAY_BUFFER, true)
 	minimapInstanceVBO:Define(MAX_MINIMAP_BUILDINGS, {
 		{ id = 1, name = "a_cellData", size = 4 },
-		{ id = 2, name = "a_color",    size = 4 },
+		{ id = 2, name = "a_color", size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	minimapVAO = glGetVAO()
@@ -998,14 +1035,25 @@ function widget:Shutdown()
 end
 
 local function updateExtendedStatuses(
-	renderCache, unitDefID, unitDef, x, z, facing, xsize, zsize, extendedCells, openYardmapCells
+	renderCache,
+	unitDefID,
+	unitDef,
+	x,
+	z,
+	facing,
+	xsize,
+	zsize,
+	extendedCells,
+	openYardmapCells
 )
 	tracy.ZoneBeginN("W:BuildSquare:ExtendedStatuses")
 	local now = spGetTimer()
 	local expectedStatusCount = (xsize + extendedCells * 2) * (zsize + extendedCells * 2) - xsize * zsize
-	if renderCache.resolvedExtendedStatusCount == expectedStatusCount
+	if
+		renderCache.resolvedExtendedStatusCount == expectedStatusCount
 		and renderCache.extendedLastUpdate
-		and spDiffTimers(now, renderCache.extendedLastUpdate) < EXTENDED_STATUS_UPDATE_INTERVAL then
+		and spDiffTimers(now, renderCache.extendedLastUpdate) < EXTENDED_STATUS_UPDATE_INTERVAL
+	then
 		tracy.ZoneEnd()
 		return renderCache.extendedStatuses, renderCache.openYardmapStatuses, false
 	end
@@ -1026,8 +1074,7 @@ local function updateExtendedStatuses(
 		for xi = -extendedCells, xsize + extendedCells - 1 do
 			local isFootprintCell = xi >= 0 and xi < xsize and zi >= 0 and zi < zsize
 			local footprintCellIndex = isFootprintCell and (zi * xsize + xi + 1)
-			local isOpenYardmapCell = footprintCellIndex and openYardmapCells
-				and openYardmapCells[footprintCellIndex]
+			local isOpenYardmapCell = footprintCellIndex and openYardmapCells and openYardmapCells[footprintCellIndex]
 			if not isFootprintCell or isOpenYardmapCell then
 				local worldX = x + (xi - halfXsize) * SQUARE_SIZE
 				local worldZ = z + (zi - halfZsize) * SQUARE_SIZE
@@ -1036,19 +1083,24 @@ local function updateExtendedStatuses(
 				local candidateStepX = shiftX < 0 and -mathCeil(-shiftX / 2) or mathCeil(shiftX / 2)
 				local candidateStepZ = shiftZ < 0 and -mathCeil(-shiftZ / 2) or mathCeil(shiftZ / 2)
 				local candidateKey = (candidateStepZ + candidateRadius) * candidateStride
-					+ candidateStepX + candidateRadius + 1
+					+ candidateStepX
+					+ candidateRadius
+					+ 1
 				if candidateBuildHeightGenerations[candidateKey] ~= buildHeightGeneration then
 					local candidateX = x + candidateStepX * BUILD_GRID_SIZE
 					local candidateZ = z + candidateStepZ * BUILD_GRID_SIZE
 					local _, buildHeight = spPos2BuildPos(
-						unitDefID, candidateX, spGetGroundHeight(candidateX, candidateZ), candidateZ, facing
+						unitDefID,
+						candidateX,
+						spGetGroundHeight(candidateX, candidateZ),
+						candidateZ,
+						facing
 					)
 					candidateBuildHeights[candidateKey] = buildHeight
 					candidateBuildHeightGenerations[candidateKey] = buildHeightGeneration
 				end
-				local status, objectStatus = getPredictedCellStatus(
-					unitDef, worldX, worldZ, candidateBuildHeights[candidateKey]
-				)
+				local status, objectStatus =
+					getPredictedCellStatus(unitDef, worldX, worldZ, candidateBuildHeights[candidateKey])
 				if isFootprintCell then
 					if openYardmapStatuses[footprintCellIndex] ~= objectStatus then
 						openYardmapStatuses[footprintCellIndex] = objectStatus
@@ -1091,9 +1143,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	local centerGridZ = math.floor(z / SQUARE_SIZE)
 	local placementX = centerGridX * SQUARE_SIZE
 	local placementZ = centerGridZ * SQUARE_SIZE
-	local queuedFootprintConflict = hasQueuedBuildFootprintOverlap(
-		unitDefID, placementX, placementZ, facing, gameFrame
-	)
+	local queuedFootprintConflict = hasQueuedBuildFootprintOverlap(unitDefID, placementX, placementZ, facing, gameFrame)
 	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
@@ -1106,20 +1156,30 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		return
 	end
 	-- Avoid a one-frame VBO overflow before the next frame enables global simplification.
-	simplified = simplified or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
+	simplified = simplified
+		or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
 		or needsDistanceSimplification(footprint, placementX, placementZ)
 	local renderCache = orderedPreviewCaches[sequenceIndex]
-	if extendedCells == 0 and renderCache
-		and renderCache.unitDefID == unitDefID and renderCache.facing == facing
-		and renderCache.inputX == x and renderCache.inputZ == z
-		and renderCache.colorValid and renderCache.extendedStatusCount == 0
+	if
+		extendedCells == 0
+		and renderCache
+		and renderCache.unitDefID == unitDefID
+		and renderCache.facing == facing
+		and renderCache.inputX == x
+		and renderCache.inputZ == z
+		and renderCache.colorValid
+		and renderCache.extendedStatusCount == 0
 		and renderCache.simplifiedMode == simplified
-		and renderCache.queuedFootprintConflict == queuedFootprintConflict then
+		and renderCache.queuedFootprintConflict == queuedFootprintConflict
+	then
 		local previewWasDrawnLastFrame = renderCache.lastDrawFrame == extendedCellsDrawFrame - 1
 		local statusCheckDue = not previewWasDrawnLastFrame
 			or renderCache.statusCheckGameFrame == nil
-			or (statusChecksEnabled and renderCache.statusCheckGameFrame ~= gameFrame
-				and statusCheckTargetPhase == renderCache.statusCheckPhase % footprintStatusCheckPeriod)
+			or (
+				statusChecksEnabled
+				and renderCache.statusCheckGameFrame ~= gameFrame
+				and statusCheckTargetPhase == renderCache.statusCheckPhase % footprintStatusCheckPeriod
+			)
 		if not statusCheckDue then
 			renderCache.lastDrawFrame = extendedCellsDrawFrame
 			drawSquareCellCount = drawSquareCellCount + renderCache.sourceCellCount
@@ -1128,8 +1188,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		end
 	end
 
-	local cellScale = COMBINE_FOUR_CELLS
-		and xsize % 2 == 0 and zsize % 2 == 0 and extendedCells % 2 == 0 and 2 or 1
+	local cellScale = COMBINE_FOUR_CELLS and xsize % 2 == 0 and zsize % 2 == 0 and extendedCells % 2 == 0 and 2 or 1
 	local renderXSize = totalXSize / cellScale
 	local renderZSize = totalZSize / cellScale
 	local renderCellCount = renderXSize * renderZSize
@@ -1144,14 +1203,28 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	renderCache.lastDrawFrame = extendedCellsDrawFrame
 	local statusCheckDue = not previewWasDrawnLastFrame
 		or renderCache.statusCheckGameFrame == nil
-		or (statusChecksEnabled and renderCache.statusCheckGameFrame ~= gameFrame
-			and statusCheckTargetPhase == renderCache.statusCheckPhase % footprintStatusCheckPeriod)
-	if extendedCells == 0 and renderCache.colorValid
-		and renderCache.extendedStatusCount == 0 and renderCache.simplifiedMode == simplified
-		and not statusCheckDue then
+		or (
+			statusChecksEnabled
+			and renderCache.statusCheckGameFrame ~= gameFrame
+			and statusCheckTargetPhase == renderCache.statusCheckPhase % footprintStatusCheckPeriod
+		)
+	if
+		extendedCells == 0
+		and renderCache.colorValid
+		and renderCache.extendedStatusCount == 0
+		and renderCache.simplifiedMode == simplified
+		and not statusCheckDue
+	then
 		collectPreview(
-			renderCache, sx * SQUARE_SIZE, sz * SQUARE_SIZE,
-			renderInstanceCount, xsize, zsize, extendedCells, cellScale, simplified
+			renderCache,
+			sx * SQUARE_SIZE,
+			sz * SQUARE_SIZE,
+			renderInstanceCount,
+			xsize,
+			zsize,
+			extendedCells,
+			cellScale,
+			simplified
 		)
 		return
 	end
@@ -1161,13 +1234,23 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	if extendedCells > 0 then
 		local unitDef = UnitDefs[unitDefID]
 		extendedCellStatuses, openYardmapStatuses, openYardmapStatusesChanged = updateExtendedStatuses(
-			renderCache, unitDefID, unitDef, placementX, placementZ, facing,
-			xsize, zsize, extendedCells, footprint.openYardmapCells
+			renderCache,
+			unitDefID,
+			unitDef,
+			placementX,
+			placementZ,
+			facing,
+			xsize,
+			zsize,
+			extendedCells,
+			footprint.openYardmapCells
 		)
 	end
 	local extendedStatusCount = sourceCellCount - footprintCellCount
-	local needsColorUpload = not renderCache.colorValid or renderCache.simplifiedMode ~= simplified
-		or openYardmapStatusesChanged or renderCache.queuedFootprintConflict ~= queuedFootprintConflict
+	local needsColorUpload = not renderCache.colorValid
+		or renderCache.simplifiedMode ~= simplified
+		or openYardmapStatusesChanged
+		or renderCache.queuedFootprintConflict ~= queuedFootprintConflict
 
 	if not needsColorUpload and statusCheckDue then
 		for cellIdx = 1, footprintCellCount do
@@ -1207,8 +1290,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		renderCache.footprintIsValid = footprintIsValid
 		if simplified then
 			local color = footprintIsValid and VALID_FOOTPRINT_COLOR or STATUS_COLORS[STATUS_BLOCKED]
-			local outlineColor = footprintIsValid
-				and VALID_FOOTPRINT_OUTLINE_COLOR or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
+			local outlineColor = footprintIsValid and VALID_FOOTPRINT_OUTLINE_COLOR
+				or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
 			colorData[1] = color[1]
 			colorData[2] = color[2]
 			colorData[3] = color[3]
@@ -1224,8 +1307,15 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 			renderCache.colorRevision = (renderCache.colorRevision or 0) + 1
 			tracy.ZoneEnd()
 			collectPreview(
-				renderCache, sx * SQUARE_SIZE, sz * SQUARE_SIZE,
-				1, xsize, zsize, extendedCells, cellScale, true
+				renderCache,
+				sx * SQUARE_SIZE,
+				sz * SQUARE_SIZE,
+				1,
+				xsize,
+				zsize,
+				extendedCells,
+				cellScale,
+				true
 			)
 			return
 		end
@@ -1241,7 +1331,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 				sourceCellIndex = sourceCellIndex + 1
 				local isFootprintCell = xi >= 0 and xi < xsize and zi >= 0 and zi < zsize
 				local footprintCellIndex = isFootprintCell and (zi * xsize + xi + 1)
-				local isOpenYardmapCell = footprintCellIndex and openYardmapCells
+				local isOpenYardmapCell = footprintCellIndex
+					and openYardmapCells
 					and openYardmapCells[footprintCellIndex]
 				local status
 				local isOpenYardmapTerrainBlocked = false
@@ -1299,8 +1390,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 
 				local xi = renderXi - renderExtendedCells
 				local zi = renderZi - renderExtendedCells
-				local isFootprintCell = xi >= 0 and xi < renderFootprintXSize
-					and zi >= 0 and zi < renderFootprintZSize
+				local isFootprintCell = xi >= 0 and xi < renderFootprintXSize and zi >= 0 and zi < renderFootprintZSize
 				local color = STATUS_COLORS[status] or STATUS_COLORS[STATUS_BLOCKED]
 				local outlineColor = STATUS_OUTLINE_COLORS[status] or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
 				if isOpenYardmapCell and status ~= STATUS_BLOCKED then
@@ -1309,8 +1399,11 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 				elseif isFootprintCell and footprintIsValid and status == STATUS_OPEN then
 					color = VALID_FOOTPRINT_COLOR
 					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
-				elseif isFootprintCell and footprintIsValid
-					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE) then
+				elseif
+					isFootprintCell
+					and footprintIsValid
+					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE)
+				then
 					outlineColor = VALID_FOOTPRINT_OUTLINE_COLOR
 				elseif not isFootprintCell and status ~= STATUS_BLOCKED then
 					color = VALID_FOOTPRINT_COLOR
@@ -1319,8 +1412,11 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 
 				local alpha = color[4]
 				local outlineAlpha = outlineColor[4]
-				if isFootprintCell and footprintIsValid
-					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE) then
+				if
+					isFootprintCell
+					and footprintIsValid
+					and (status == STATUS_OCCUPIED or status == STATUS_RECLAIMABLE)
+				then
 					alpha = VALID_FOOTPRINT_COLOR[4]
 				end
 				if OPEN_YARDMAP_ONLY_WHEN_BLOCKED and footprintIsValid and isOpenYardmapCell then
@@ -1358,8 +1454,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 				colorData[colorDataIndex] = outlineColor[3]
 				colorDataIndex = colorDataIndex + 1
 				colorData[colorDataIndex] = outlineAlpha
+			end
 		end
-	end
 
 		for index = colorDataIndex + 1, renderCache.colorDataLength or 0 do
 			colorData[index] = nil
@@ -1370,8 +1466,15 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
 
 	collectPreview(
-		renderCache, sx * SQUARE_SIZE, sz * SQUARE_SIZE,
-		renderInstanceCount, xsize, zsize, extendedCells, cellScale, simplified
+		renderCache,
+		sx * SQUARE_SIZE,
+		sz * SQUARE_SIZE,
+		renderInstanceCount,
+		xsize,
+		zsize,
+		extendedCells,
+		cellScale,
+		simplified
 	)
 end
 
@@ -1392,9 +1495,7 @@ local function collectPregameBuildSquare()
 	end
 
 	local mouseX, mouseY = spGetMouseState()
-	local _, position = spTraceScreenRay(
-		mouseX, mouseY, true, false, false, unitDef.modCategories.underwater
-	)
+	local _, position = spTraceScreenRay(mouseX, mouseY, true, false, false, unitDef.modCategories.underwater)
 	if not position then
 		return
 	end
@@ -1452,10 +1553,9 @@ local function rebuildBatchBuffer()
 	for previewIndex = 1, collectedPreviewCount do
 		local renderCache = collectedPreviews[previewIndex]
 		if SIMPLIFIED_MINIMAP_ENABLED and minimapCount < MAX_MINIMAP_BUILDINGS then
-			local minimapColor = renderCache.footprintIsValid
-				and VALID_FOOTPRINT_COLOR or STATUS_COLORS[STATUS_BLOCKED]
-			local minimapOutlineColor = renderCache.footprintIsValid
-				and VALID_FOOTPRINT_OUTLINE_COLOR or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
+			local minimapColor = renderCache.footprintIsValid and VALID_FOOTPRINT_COLOR or STATUS_COLORS[STATUS_BLOCKED]
+			local minimapOutlineColor = renderCache.footprintIsValid and VALID_FOOTPRINT_OUTLINE_COLOR
+				or STATUS_OUTLINE_COLORS[STATUS_BLOCKED]
 			minimapDataIndex = minimapDataIndex + 1
 			minimapInstanceData[minimapDataIndex] = renderCache.batchOriginX
 			minimapDataIndex = minimapDataIndex + 1
@@ -1480,6 +1580,8 @@ local function rebuildBatchBuffer()
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[3]
 			minimapDataIndex = minimapDataIndex + 1
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[4]
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = renderCache.floatOnWater
 			minimapCount = minimapCount + 1
 		end
 
@@ -1510,6 +1612,8 @@ local function rebuildBatchBuffer()
 				batchInstanceData[dataIndex] = colorData[7]
 				dataIndex = dataIndex + 1
 				batchInstanceData[dataIndex] = colorData[8]
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = renderCache.floatOnWater
 			else
 				local cellScale = renderCache.batchCellScale or 1
 				local geometryData = getCellGeometry(
@@ -1531,7 +1635,8 @@ local function rebuildBatchBuffer()
 					batchInstanceData[dataIndex] = geometryData[geometryIndex + 3]
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = geometryData[geometryIndex + 4]
-						+ footprintValidityFlag + queuedFootprintConflictFlag
+						+ footprintValidityFlag
+						+ queuedFootprintConflictFlag
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 1]
 					dataIndex = dataIndex + 1
@@ -1548,6 +1653,8 @@ local function rebuildBatchBuffer()
 					batchInstanceData[dataIndex] = colorData[colorIndex + 7]
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 8]
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = renderCache.floatOnWater
 				end
 			end
 			instanceCount = instanceCount + renderCache.batchNumCells
@@ -1585,9 +1692,7 @@ end
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
 	collectPregameBuildSquare()
-	if collectedPreviewCount == 0
-		or collectedDrawFrame < drawFrame - 1
-		or collectedDrawFrame > drawFrame then
+	if collectedPreviewCount == 0 or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
 		batchInstanceCount = 0
 		minimapInstanceCount = 0
 		residentBatchPreviewCount = 0
@@ -1607,6 +1712,7 @@ function widget:DrawWorldPreUnit()
 	glBlending(true)
 	glUseShader(shaderProgram)
 	glUniform(heightOffsetLoc, getCurrentHeightOffset())
+	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
 	glUniformInt(isMiniMapLoc, 0)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)
@@ -1617,8 +1723,12 @@ end
 
 function widget:DrawInMiniMap()
 	local drawFrame = spGetDrawFrame()
-	if not SIMPLIFIED_MINIMAP_ENABLED or minimapInstanceCount == 0
-		or collectedDrawFrame < drawFrame - 1 or collectedDrawFrame > drawFrame then
+	if
+		not SIMPLIFIED_MINIMAP_ENABLED
+		or minimapInstanceCount == 0
+		or collectedDrawFrame < drawFrame - 1
+		or collectedDrawFrame > drawFrame
+	then
 		minimapInstanceCount = 0
 		return
 	end

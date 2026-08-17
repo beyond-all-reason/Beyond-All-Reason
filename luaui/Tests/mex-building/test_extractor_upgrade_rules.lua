@@ -11,27 +11,27 @@ function cleanup()
 end
 
 function test()
-	assert(WG["resource_spot_builder"], "resource_spot_builder API widget not loaded")
-	assert(WG["resource_spot_builder"].ExtractorCanBeUpgraded, "ExtractorCanBeUpgraded missing")
+	assert(WG.resource_spot_builder, "resource_spot_builder API widget not loaded")
+	assert(WG.resource_spot_builder.ExtractorCanBeUpgraded, "ExtractorCanBeUpgraded missing")
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 0
 
 	local cases = {
 		-- current unit, new unit, expected
-		{ "armmex", "armamex", true },       -- arm mex -> stealthy mex
-		{ "armamex", "armmex", false },      -- stealthy mex -> t1 mex
-		{ "armgmm", "armageo", true },       -- prude -> ageo
-		{ "armageo", "armgmm", true },       -- ageo -> prude
-		{ "armgeo", "corgeo", false },       -- t1 geo cross-faction
-		{ "armageo", "corageo", false },     -- ageo cross-faction
-		{ "armmoho", "cormoho", false },     -- t2 mex cross-faction
-		{ "armmoho", "armmex", false },     -- t2 mex to t1 mex
-		{ "armmoho", "cormoho", false },     -- t2 mex to t2 mex cross-faction
-		{ "armamex", "armmex", false },     -- t1 mex to t1 mex
-		{"armgmm", "armgmm", false },     -- prude -> prude
+		{ "armmex", "armamex", true }, -- arm mex -> stealthy mex
+		{ "armamex", "armmex", false }, -- stealthy mex -> t1 mex
+		{ "armgmm", "armageo", true }, -- prude -> ageo
+		{ "armageo", "armgmm", true }, -- ageo -> prude
+		{ "armgeo", "corgeo", false }, -- t1 geo cross-faction
+		{ "armageo", "corageo", false }, -- ageo cross-faction
+		{ "armmoho", "cormoho", false }, -- t2 mex cross-faction
+		{ "armmoho", "armmex", false }, -- t2 mex to t1 mex
+		{ "armmoho", "cormoho", false }, -- t2 mex to t2 mex cross-faction
+		{ "armamex", "armmex", false }, -- t1 mex to t1 mex
+		{ "armgmm", "armgmm", false }, -- prude -> prude
 	}
 
 	for i = 1, #cases do
@@ -49,10 +49,7 @@ function test()
 		end)
 		assert(currentUnitID, "failed to create " .. currentName)
 
-		local canUpgrade = WG["resource_spot_builder"].ExtractorCanBeUpgraded(
-			currentUnitID,
-			UnitDefNames[newName].id
-		)
+		local canUpgrade = WG.resource_spot_builder.ExtractorCanBeUpgraded(currentUnitID, UnitDefNames[newName].id)
 		assertEqual(
 			canUpgrade,
 			expected,
@@ -66,3 +63,5 @@ function test()
 		)
 	end
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

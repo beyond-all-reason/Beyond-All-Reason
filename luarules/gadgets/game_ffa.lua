@@ -8,21 +8,20 @@ function gadget:GetInfo()
 		date = "19 Jan 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not Spring.Utilities.Gametype.IsFFA() then
+if not BAR.Utilities.Gametype.IsFFA() then
 	return false
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- after this gameframe: lateDropGrace is used instead of earlyDropGrace
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 2 -- in frames
 
-	local isTeamFFA = Spring.Utilities.Gametype.IsTeams()
+	local isTeamFFA = BAR.Utilities.Gametype.IsTeams()
 	if isTeamFFA then
 		lateDropGrace = Game.gameSpeed * 8
 	end
@@ -54,7 +53,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function destroyTeam(teamID)
-
 		-- Check if the entire allyteam is dead and wipeout their units if so
 		local allyTeamDead = true
 		local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
@@ -73,9 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 					GG.wipeoutAllyTeam(wipeoutAllyID)
 				else
 					local teams = Spring.GetTeamList(wipeoutAllyID)
-					for _,tID in pairs(teams) do
+					for _, tID in pairs(teams) do
 						local teamUnits = Spring.GetTeamUnits(tID)
-						for i=1, #teamUnits do
+						for i = 1, #teamUnits do
 							Spring.DestroyUnit(teamUnits[i], false, leaveWreckage)
 						end
 					end
@@ -98,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local allResigned, noneControlling
-		for i=1, #teamList do
+		for i = 1, #teamList do
 			local teamID = teamList[i]
 			if not deadTeam[teamID] then
 				if not teamInfo[teamID] then
@@ -126,7 +124,8 @@ if gadgetHandler:IsSyncedCode() then
 				-- team is handled by skirmish AI, make sure the hosting player is present
 				if teamInfo[teamID].hostingPlayerID then
 					allResigned = false
-					noneControlling = noneControlling and not select(2, GetPlayerInfo(teamInfo[teamID].hostingPlayerID, false))
+					noneControlling = noneControlling
+						and not select(2, GetPlayerInfo(teamInfo[teamID].hostingPlayerID, false))
 				end
 
 				if noneControlling then
@@ -150,8 +149,8 @@ if gadgetHandler:IsSyncedCode() then
 				if gameFrame < leaveWreckageFromFrame then
 					-- silent removal
 					local teamUnits = Spring.GetTeamUnits(teamID)
-					for i=1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					for i = 1, #teamUnits do
+						Spring.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
 				destroyTeam(teamID)
@@ -167,26 +166,27 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
-
-else  -- UNSYNCED
-
+else -- UNSYNCED
 	local function teamDestroyed(_, teamID)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.destroyed', { team = teamID })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.ffaNoOwner.destroyed", { team = teamID })
 			Spring.SendMessage(message)
 		end
 	end
 
 	local function playerWarned(_, teamID, gracePeriod)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.disconnected', { team = teamID, gracePeriod = gracePeriod })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy(
+				"ui.ffaNoOwner.disconnected",
+				{ team = teamID, gracePeriod = gracePeriod }
+			)
 			Spring.SendMessage(message)
 		end
 	end
 
 	local function playerReconnected(_, teamID)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.reconnected', { team = teamID })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.ffaNoOwner.reconnected", { team = teamID })
 			Spring.SendMessage(message)
 		end
 	end

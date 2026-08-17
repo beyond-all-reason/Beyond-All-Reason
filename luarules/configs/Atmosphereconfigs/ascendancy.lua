@@ -5,16 +5,16 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
--- SND windy locations
-	if n%1150 == 0 then
+	-- SND windy locations
+	if n % 1150 == 0 then
 		SpawnCEGInPositionGround("noceg", 2200, 500, 4200, _, _, _, "windy", 0.2)
 	end
 
-	if n%1270 == 100 then
+	if n % 1270 == 100 then
 		SpawnCEGInPositionGround("noceg", 10000, 600, 4000, _, _, _, "windy", 0.2)
 	end
 
--- SND geos Replaced by SFX_geovent.lua
+	-- SND geos Replaced by SFX_geovent.lua
 	-- if n%120 == 5 then
 	-- 	SpawnCEGInPositionGround("noceg", 6181, 200, 7267, _, _, _, "geoventshort", 0.4)
 	-- end
@@ -43,20 +43,20 @@ function gadget:GameFrame(n)
 	-- 	SpawnCEGInPositionGround("noceg", 6050, 200, 4204, _, _, _, "geoventshort", 0.4)
 	-- end
 
--- ## Atmosphere CEG Functions
+	-- ## Atmosphere CEG Functions
 
--- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
--- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInPosition (cegname, posx, posy, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInPositionGround(cegname, posx, groundOffset, posz, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInArea(cegname, midposx, posy, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPos(cegname, groundOffset, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosBelowY(cegname, groundOffset, spawnOnlyBelowY, damage, paralyzedamage, damageradius, sound, soundvolume)
+	-- SpawnCEGInRandomMapPosPresetY(cegname, posy, damage, paralyzedamage, damageradius, sound, soundvolume)
 
--- Use _ for damage, paralyzedamage, damageradius if you want to disable
+	-- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
--- common foggy cliffs	
-	if n%360 == 0 then
+	-- common foggy cliffs
+	if n % 360 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 5600, 0, 128)
 		SpawnCEGInPositionGround("fogdirty", 5900, 0, 150)
 		SpawnCEGInPositionGround("fogdirty", 6530, 0, 220)
@@ -70,38 +70,38 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("fogdirty", 380, 0, 554)
 	end
 
--- rare foggy cliffs	
+	-- rare foggy cliffs
 	-- if n%380 == 150 then
-		-- SpawnCEGInPositionGround("fogdirty", 6139, 32, 2550)
-		-- SpawnCEGInPositionGround("fogdirty", 2256, 32, 4227)
-		-- SpawnCEGInPositionGround("fogdirty", 3994, 0, 7976)
+	-- SpawnCEGInPositionGround("fogdirty", 6139, 32, 2550)
+	-- SpawnCEGInPositionGround("fogdirty", 2256, 32, 4227)
+	-- SpawnCEGInPositionGround("fogdirty", 3994, 0, 7976)
 
 	-- end
 
--- -- mistyclouds	
+	-- -- mistyclouds
 	-- if n%1200 == 550 then
 	-- 	SpawnCEGInPositionGround("mistycloud", 9076, 150, 6829)
 	-- end
 
--- -- rare sanddune dust	
--- 	if n%450 == 0 then
--- 		SpawnCEGInPositionGround("dunecloud", 4542, 0, 5326)
--- 	end
+	-- -- rare sanddune dust
+	-- 	if n%450 == 0 then
+	-- 		SpawnCEGInPositionGround("dunecloud", 4542, 0, 5326)
+	-- 	end
 
--- alternate rare foggy cliffs	
+	-- alternate rare foggy cliffs
 	-- if n%620 == 300 then
-		-- SpawnCEGInPositionGround("fogdirty", 10965, 32, 4792)
-		-- SpawnCEGInPositionGround("fogdirty", 10910, 16, 1254)
-		-- SpawnCEGInPositionGround("fogdirty", 810, 0, 6156)
+	-- SpawnCEGInPositionGround("fogdirty", 10965, 32, 4792)
+	-- SpawnCEGInPositionGround("fogdirty", 10910, 16, 1254)
+	-- SpawnCEGInPositionGround("fogdirty", 810, 0, 6156)
 	-- end
 
--- super rare foggy cliffs	
+	-- super rare foggy cliffs
 	-- if n%1000 == 400 then
-		-- SpawnCEGInPositionGround("fogdirty", 6022, 16, 4232)
-		-- SpawnCEGInPositionGround("fogdirty", 9535, 32, 6993)
+	-- SpawnCEGInPositionGround("fogdirty", 6022, 16, 4232)
+	-- SpawnCEGInPositionGround("fogdirty", 9535, 32, 6993)
 	-- end
 
--- fireflies
+	-- fireflies
 	-- if n%1400 == 0 then
 	-- 	SpawnCEGInPositionGround("firefliesgreen", 3423, 32, 5559)
 	-- 	SpawnCEGInPositionGround("firefliesgreen", 7079, 32, 4449)
@@ -109,9 +109,8 @@ function gadget:GameFrame(n)
 	-- 	SpawnCEGInPositionGround("fireflies", 223, 32, 249)
 	-- end
 
--- pollen
-	if n%300 == 0 then
+	-- pollen
+	if n % 300 == 0 then
 		SpawnCEGInRandomMapPos("dustparticles", 50)
 	end
-		
 end
