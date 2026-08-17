@@ -896,8 +896,8 @@ local function weaponDef_Post(name, wDef)
 	end
 	]]
 
-	-- Underwater-launched torpedoes should rise toward surface targets sooner.
-	-- Preserve explicit special effects used by air-launched and other custom weapons.
+	-- Apply continuous surface-target depth tracking to torpedo weapons.
+	-- Preserve weapons that define their own projectile behavior.
 	if wDef.weapontype == "TorpedoLauncher" and not customparams.speceffect then
 		customparams.speceffect = "torpsurfacetrack"
 	end
