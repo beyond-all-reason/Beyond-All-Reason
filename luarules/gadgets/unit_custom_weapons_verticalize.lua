@@ -428,12 +428,12 @@ local function verticalize(projectileID, projectile)
 	local sinPitch = 1 - distance * projectile.cruiseEndInverse
 	if sinPitch < 0 then sinPitch = 0 end
 	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
-	local invDistance = cosPitch / distance
+	local distInverse = cosPitch / distance
 
 	-- Unit vector towards target
-	local tx = dx * invDistance
+	local tx = dx * distInverse
 	local ty = -sinPitch
-	local tz = dz * invDistance
+	local tz = dz * distInverse
 
 	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
 
