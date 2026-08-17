@@ -362,7 +362,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	
+
+	// clear before the interruptible restore so a resumed aim redraws the weapon
+	weaponReady = FALSE;
+
 	turn ruparm to x-axis <0> speed <300.0>;
 	turn luparm to x-axis <0> speed <300.0>;
 	turn ruparm to z-axis <12.799999> speed <300.0>;
@@ -396,9 +399,8 @@ ExecuteRestoreAfterDelay()
 			sleep 32;
 		}
 	}
-	weaponReady = FALSE;
 	isAiming = FALSE;
-	
+
 }
 
 static-var bAnimate;

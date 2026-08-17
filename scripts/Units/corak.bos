@@ -1002,6 +1002,8 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
+	weaponReady = FALSE;
+
 	// walk believed angles back in sync with the pieces (instant reset desyncs mid-restore aim)
 	set-signal-mask SIGNAL_AIM1;
 	var done;
@@ -1028,7 +1030,6 @@ ExecuteRestoreAfterDelay()
 			sleep 1;
 		}
 	}
-	weaponReady = FALSE;
     isAiming = 0;
 }
 SetStunned(State)
