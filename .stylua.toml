@@ -1,6 +1,6 @@
 syntax = "All"
-column_width = 2000
-line_endings = "Unix"
+column_width = 120
+line_endings = "Windows"
 indent_type = "Tabs"
 indent_width = 4
 quote_style = "AutoPreferDouble"

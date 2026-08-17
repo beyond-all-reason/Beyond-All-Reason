@@ -8,11 +8,9 @@ function gadget:GetInfo()
 		date = "15/06/2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -34,10 +32,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		return
 	end
 	if cmdID == CMD.FIRE_STATE then
-	-- Engine sets firestate and movestates via an internal command upon unit creation, right before calling UnitCreated()
-	-- We therefor still need to nilcheck the scriptEnv, as it might not "exist" yet
-	-- But in that case, cmdParams[1] is just the UnitDef's default firestate
-	-- so we can safely ignore that first command, as the script already expects that firestate starting value
+		-- Engine sets firestate and movestates via an internal command upon unit creation, right before calling UnitCreated()
+		-- We therefor still need to nilcheck the scriptEnv, as it might not "exist" yet
+		-- But in that case, cmdParams[1] is just the UnitDef's default firestate
+		-- so we can safely ignore that first command, as the script already expects that firestate starting value
 		local toFireState = cmdParams[1]
 		local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
 		if not scriptEnv then
