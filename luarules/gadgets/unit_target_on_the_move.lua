@@ -1076,7 +1076,7 @@ else -- UNSYNCED
 	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
 		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
 		local unitData = getUnitTargetList(unitID, not targetA and index)
-		if unitData then
+		if unitData and targetA then
 			unitData.targets[index] = {
 				userTarget = userTarget,
 				target = (not targetB and targetA) or { targetA, targetB, targetC },
