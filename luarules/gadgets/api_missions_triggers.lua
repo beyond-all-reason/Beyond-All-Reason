@@ -216,8 +216,9 @@ function gadget:GameFrame(frameNumber)
 	dispatchTriggerCallin('GameFrame', frameNumber)
 
 	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
-		for index = 1, seismicContacts.UpdateContacts(inactiveSeismicContacts) do
-			markDetectionDirty(inactiveSeismicContacts[index])
+		local n = seismicContacts.UpdateContacts(inactiveSeismicContacts)
+		for i = 1, n do
+			markDetectionDirty(inactiveSeismicContacts[i])
 		end
 	end
 
