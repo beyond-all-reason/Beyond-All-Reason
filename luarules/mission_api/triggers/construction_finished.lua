@@ -25,7 +25,7 @@ return {
 			end
 			-- We likely must guard against unusual cases like in-progress capture by enemy teams.
 			-- When a factory is captured while building, instead, it calls StopBuild immediately.
-			if parameters.teamID and not parameters.teamID ~= unitTeam then
+			if parameters.teamID and parameters.teamID ~= unitTeam then
 				return
 			end
 			if not context.IsNanoframeOwner(unitID, parameters.builderDefName, parameters.builderName) then
