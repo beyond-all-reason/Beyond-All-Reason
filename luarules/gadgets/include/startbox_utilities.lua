@@ -81,8 +81,11 @@ local function getActiveAllyTeamCount()
 	return count
 end
 
+-- Spare boxes are harmless: transformArrangement maps box i to allyteam i-1, so any
+-- past numTeams describe allyteams that do not exist. Too few would leave a team
+-- without a box, so that case still defers to the set.
 local function matchOverride(override, numTeams)
-	if override and override.startboxes and #override.startboxes == numTeams then
+	if override and override.startboxes and #override.startboxes >= numTeams then
 		return override
 	end
 
