@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Attack Targets",
-		desc = "Expands one ordered target-list command into queued attack commands",
+		desc = "Steps through an ordered target list using ordinary attack commands",
 		author = "BAR",
 		date = "2026-08-17",
 		license = "GNU GPL, v2 or later",
@@ -15,8 +15,8 @@ end
 local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 
 if gadgetHandler:IsSyncedCode() then
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
-	local expandedCommandTags = {}
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local targetListStates = {}
 
 	local canAttack = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -25,7 +25,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local commandDescription = {
 		id = CMD_ATTACK_TARGETS,
-		type = CMDTYPE.ICON_UNIT,
+		type = CMDTYPE.ICON,
 		name = "Attack Targets",
 		action = "attacktargets",
 		cursor = "Attack",
@@ -47,23 +47,31 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		if expandedCommandTags[unitID] == cmdTag then
-			expandedCommandTags[unitID] = nil
-			return true, true
+		local state = targetListStates[unitID]
+		if state == nil or state.cmdTag ~= cmdTag then
+			state = {
+				cmdTag = cmdTag,
+				nextTargetIndex = 1,
+			}
+			targetListStates[unitID] = state
 		end
 
-		local orders = {}
-		for i = #cmdParams, 1, -1 do
-			orders[#orders + 1] = { CMD.INSERT, { 0, CMD.ATTACK, 0, cmdParams[i] }, CMD.OPT_ALT }
+		while state.nextTargetIndex <= #cmdParams do
+			local targetID = cmdParams[state.nextTargetIndex]
+			state.nextTargetIndex = state.nextTargetIndex + 1
+
+			if Spring.ValidUnitID(targetID) and not Spring.GetUnitIsDead(targetID) then
+				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.ATTACK, 0, targetID }, CMD.OPT_ALT)
+				return true, false
+			end
 		end
 
-		expandedCommandTags[unitID] = cmdTag
-		spGiveOrderArrayToUnit(unitID, orders)
-		return true, false
+		targetListStates[unitID] = nil
+		return true, true
 	end
 
 	function gadget:UnitDestroyed(unitID)
-		expandedCommandTags[unitID] = nil
+		targetListStates[unitID] = nil
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID)
@@ -78,6 +86,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_ATTACK_TARGETS, CMDTYPE.ICON_UNIT, { 1, 0, 0, 0.8 }, true)
+		Spring.SetCustomCommandDrawData(CMD_ATTACK_TARGETS, nil)
 	end
 end

@@ -135,17 +135,16 @@ function test()
 			return queue[1].params, queue
 		end
 
-		if #queue ~= bomberCount + 1 or queue[#queue].id ~= listCommandID then
+		if #queue ~= 2 or queue[1].id ~= CMD.ATTACK or queue[2].id ~= listCommandID then
 			return nil
 		end
-		local targets = {}
-		for i = 1, bomberCount do
-			if queue[i].id ~= CMD.ATTACK or #queue[i].params ~= 1 then
-				return nil
-			end
-			targets[i] = queue[i].params[1]
+		if #queue[1].params ~= 1 or #queue[2].params ~= bomberCount then
+			return nil
 		end
-		return targets, queue
+		if queue[1].params[1] ~= queue[2].params[1] then
+			return nil
+		end
+		return queue[2].params, queue
 	end
 
 	issueAreaAttack()
@@ -162,7 +161,7 @@ function test()
 	end
 	Spring.Echo(
 		"[Attack Targets Test] queue mode="
-			.. (nativeTargetList and "native" or "lua-expanded")
+			.. (nativeTargetList and "native" or "lua-stepped")
 			.. ", representative commands="
 			.. #representativeQueue
 	)
