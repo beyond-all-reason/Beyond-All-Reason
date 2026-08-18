@@ -38,8 +38,18 @@ local function isFacingEW(facing)
 	return facingValue == 1 or facingValue == 3
 end
 
+--- Converts an angle in degrees to an engine heading value.
+--- Uses standard convention 0°-North, positive rotation clockwise.
+--- @param angle number
+--- @return integer heading value in 0-65535 range
+local function angleToHeading(angle)
+	local heading = math.floor( (angle % 360 - 180) / 360  * -65535 )
+	return heading
+end
+
 return {
 	FacingToHeading = facingToHeading,
 	HeadingToFacing = headingToFacing,
 	IsFacingEW = isFacingEW,
+	AngleToHeading = angleToHeading,
 }
