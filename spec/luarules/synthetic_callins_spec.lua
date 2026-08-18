@@ -17,7 +17,7 @@ for _, base in ipairs(BASES) do
 	describe("synthetic_callins " .. base .. " summary views", function()
 		local gh, synthetic, hook
 		local marked, list, count, totals, active
-		local postSeen, totalSeen, totalOrder, totalFrame
+		local postSeen, totalSeen, totalOrder
 		local postGadget, totalGadget
 
 		local function subscribe(g, view)
@@ -41,7 +41,7 @@ for _, base in ipairs(BASES) do
 		end
 
 		local function sweep()
-			postSeen, totalSeen, totalOrder, totalFrame = {}, {}, {}, nil
+			postSeen, totalSeen, totalOrder = {}, {}, {}
 			gh:GameFramePost(1)
 		end
 
@@ -73,23 +73,17 @@ for _, base in ipairs(BASES) do
 			hook = gh.GG["Accumulate" .. base]
 			marked, list, count, totals, active = synthetic.getMarks(base)
 
-			postSeen, totalSeen, totalOrder, totalFrame = {}, {}, {}, nil
+			postSeen, totalSeen, totalOrder = {}, {}, {}
 			postGadget = {
-				[base .. "Post"] = function(self, ids, count, frame)
-					for i = 1, count do
-						postSeen[#postSeen + 1] = ids[i]
-					end
+				[base .. "Post"] = function(self, id)
+					postSeen[#postSeen + 1] = id
 				end,
 			}
 			totalGadget = {
 				-- Additive so a duplicate dispatch cannot mask a wrong value.
-				[base .. "Total"] = function(self, ids, parts, count, frame)
-					totalFrame = frame
-					for i = 1, count do
-						local id = ids[i]
-						totalOrder[#totalOrder + 1] = id
-						totalSeen[id] = (totalSeen[id] or 0) + parts[i]
-					end
+				[base .. "Total"] = function(self, id, part)
+					totalOrder[#totalOrder + 1] = id
+					totalSeen[id] = (totalSeen[id] or 0) + part
 				end,
 			}
 		end)
@@ -115,7 +109,6 @@ for _, base in ipairs(BASES) do
 				assert.is_true(near(totalSeen[102], -0.4))
 				assert.same({ 101, 102 }, postSeen)
 				assert.same({ 101, 102 }, totalOrder)
-				assert.equals(1, totalFrame)
 				assert.is_true(stateClean())
 			end)
 
@@ -136,13 +129,11 @@ for _, base in ipairs(BASES) do
 				assert.same({ 101, 102 }, postSeen)
 			end)
 
-			it("gives each subscriber the whole batch in turn", function()
+			it("gives each event to every subscriber in layer order", function()
 				local log = {}
 				local function logger(tag)
-					return function(self, ids, count)
-						for i = 1, count do
-							log[#log + 1] = tag .. ids[i]
-						end
+					return function(self, id)
+						log[#log + 1] = tag .. id
 					end
 				end
 				local a = { [base .. "Post"] = logger("a") }
@@ -152,7 +143,7 @@ for _, base in ipairs(BASES) do
 				mark(101, 0.1)
 				mark(102, 0.1)
 				sweep()
-				assert.same({ "a101", "a102", "b101", "b102" }, log)
+				assert.same({ "a101", "b101", "a102", "b102" }, log)
 			end)
 		end)
 
@@ -270,11 +261,9 @@ for _, base in ipairs(BASES) do
 
 			it("appends mid-dispatch reports past the batch", function()
 				local reporter = {
-					[base .. "Post"] = function(self, ids, count)
-						for i = 1, count do
-							if ids[i] == 101 then
-								hook(103, 0.7)
-							end
+					[base .. "Post"] = function(self, id)
+						if id == 101 then
+							hook(103, 0.7)
 						end
 					end,
 				}
@@ -289,11 +278,9 @@ for _, base in ipairs(BASES) do
 
 			it("lands a mid-dispatch self re-report in the next frame", function()
 				local reporter = {
-					[base .. "Post"] = function(self, ids, count)
-						for i = 1, count do
-							if ids[i] == 101 and #postSeen <= 1 then
-								hook(101, 0.7)
-							end
+					[base .. "Post"] = function(self, id)
+						if id == 101 and #postSeen <= 1 then
+							hook(101, 0.7)
 						end
 					end,
 				}

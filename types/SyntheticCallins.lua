@@ -3,10 +3,8 @@
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
 ---
 ---The summary call-ins report a frame's events once, after the frame. They run
----only when something happened, and each subscriber receives the whole batch at
----once. Their arrays are shared buffers: read indices 1 to count during the
----call, and do not keep a reference. Their IDs are whatever the frame touched,
----and some can be dead by dispatch.
+---only when something happened, and each event runs the layer stack in turn, as
+---an engine-driven callin does.
 ---
 ---Each summary base has a Post and a Total. Both report the same objects in the
 ---same order, and Total adds the sum of each object's steps. We accumulate the
@@ -40,7 +38,7 @@
 ---
 ---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepPost? fun(self, unitIDs: integer[], count: integer, frame: integer)
+---@field UnitBuildStepPost? fun(self, unitID: integer)
 ---
 ---
 ---Runs for every feature that received a build step.
@@ -48,7 +46,7 @@
 ---
 ---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepPost? fun(self, featureIDs: integer[], count: integer, frame: integer)
+---@field FeatureBuildStepPost? fun(self, featureID: integer)
 ---
 ---
 ---Runs for every unit that received a build step, with the sum of its steps.
@@ -60,7 +58,7 @@
 ---
 ---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepTotal? fun(self, unitIDs: integer[], parts: number[], count: integer, frame: integer)
+---@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
 ---
 ---
 ---Runs for every feature that received a build step, with the sum of its steps.
@@ -72,4 +70,4 @@
 ---
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepTotal? fun(self, featureIDs: integer[], parts: number[], count: integer, frame: integer)
+---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)

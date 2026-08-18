@@ -198,7 +198,7 @@ if Script.GetSynced() then
 	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
 	local unitStepValues = {}
 
-	function summary.SweepUnitBuildStep(handler, frameNum)
+	function summary.SweepUnitBuildStep(handler)
 		local count = unitStepCount[1]
 		if not count or count == 0 then
 			return
@@ -219,13 +219,20 @@ if Script.GetSynced() then
 			end
 		end
 
-		-- Each subscriber receives the full batch at once, in layer order.
-		-- This is an optimization that scales into much higher event counts.
-		for _, g in ipairs(handler.UnitBuildStepPostList) do
-			g:UnitBuildStepPost(unitStepList, count, frameNum)
+		local postList = handler.UnitBuildStepPostList
+		for i = 1, count do
+			local unitID = unitStepList[i]
+			for _, g in ipairs(postList) do
+				g:UnitBuildStepPost(unitID)
+			end
 		end
-		for _, g in ipairs(handler.UnitBuildStepTotalList) do
-			g:UnitBuildStepTotal(unitStepList, unitStepValues, count, frameNum)
+
+		local totalList = handler.UnitBuildStepTotalList
+		for i = 1, count do
+			local unitID, part = unitStepList[i], unitStepValues[i]
+			for _, g in ipairs(totalList) do
+				g:UnitBuildStepTotal(unitID, part)
+			end
 		end
 
 		-- Shift any re-marks made during dispatch into the next batch.
@@ -244,7 +251,7 @@ if Script.GetSynced() then
 	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
 	local featureStepValues = {}
 
-	function summary.SweepFeatureBuildStep(handler, frameNum)
+	function summary.SweepFeatureBuildStep(handler)
 		local count = featureStepCount[1]
 		if not count or count == 0 then
 			return
@@ -263,11 +270,20 @@ if Script.GetSynced() then
 			end
 		end
 
-		for _, g in ipairs(handler.FeatureBuildStepPostList) do
-			g:FeatureBuildStepPost(featureStepList, count, frameNum)
+		local postList = handler.FeatureBuildStepPostList
+		for i = 1, count do
+			local featureID = featureStepList[i]
+			for _, g in ipairs(postList) do
+				g:FeatureBuildStepPost(featureID)
+			end
 		end
-		for _, g in ipairs(handler.FeatureBuildStepTotalList) do
-			g:FeatureBuildStepTotal(featureStepList, featureStepValues, count, frameNum)
+
+		local totalList = handler.FeatureBuildStepTotalList
+		for i = 1, count do
+			local featureID, part = featureStepList[i], featureStepValues[i]
+			for _, g in ipairs(totalList) do
+				g:FeatureBuildStepTotal(featureID, part)
+			end
 		end
 
 		local marked = featureStepCount[1]
@@ -319,8 +335,8 @@ local function install(handler)
 		local sweepFeatureBuildStep = summary.SweepFeatureBuildStep
 		function handler:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
-			sweepUnitBuildStep(self, frameNum)
-			sweepFeatureBuildStep(self, frameNum)
+			sweepUnitBuildStep(self)
+			sweepFeatureBuildStep(self)
 			tracy.ZoneEnd()
 			return gameFramePost(self, frameNum)
 		end
