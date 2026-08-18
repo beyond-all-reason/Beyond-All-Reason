@@ -1,6 +1,5 @@
 return {
 	raptor_air_scout_basic_t2_v1 = {
-		acceleration = 2,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.4,

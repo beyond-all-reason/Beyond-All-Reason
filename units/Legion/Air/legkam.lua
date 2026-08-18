@@ -1,6 +1,5 @@
 return {
 	legkam = {
-		acceleration = 0.3,
 		blocking = false,
 		maxdec = 0.1,
 		energycost = 2000,
