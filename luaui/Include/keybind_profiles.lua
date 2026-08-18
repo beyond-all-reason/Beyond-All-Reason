@@ -245,6 +245,56 @@ local function readFakeMeta(text)
 	return value ~= "" and value or nil
 end
 
+-- What a bind file binds, as one comparable string. Both sides of a comparison go through
+-- the reader, so comments, line endings and any later change to how we emit cannot read as
+-- an edit the player made.
+local function keymapOf(text)
+	local binds = readBindFile(text)
+	if not binds then
+		return nil
+	end
+
+	local parts = {}
+	for i = 1, #binds do
+		parts[i] = binds[i].keyset .. " " .. binds[i].action
+	end
+
+	return table.concat(parts, "\n") .. "\nfakemeta " .. tostring(readFakeMeta(text))
+end
+
+-- Whether some profile already holds this keymap. The one migration just made of the
+-- player's own file counts, which is what keeps the launch they arrive on from forking a
+-- second copy of what it has only now imported.
+local function matchesKnownProfile(text)
+	local theirs = keymapOf(text)
+	if not theirs then
+		return false
+	end
+
+	-- Nearly always our own output for the profile it names, and this runs on every game
+	-- load, so try that one before reading out every profile there is. Keeps the usual path
+	-- off the full scan however many the player has accumulated.
+	local claimed = generatedName(text)
+	local i = claimed and indexOf(claimed)
+	local stamped = (i and store.profiles[i]) or (claimed and M.isBuiltin(claimed))
+	if stamped and keymapOf(toBindFile(stamped)) == theirs then
+		return true
+	end
+
+	for _, p in ipairs(store.profiles) do
+		if keymapOf(toBindFile(p)) == theirs then
+			return true
+		end
+	end
+	for _, b in ipairs(builtins) do
+		if keymapOf(toBindFile(b)) == theirs then
+			return true
+		end
+	end
+
+	return false
+end
+
 -- A name no existing profile holds, for copies.
 function M.uniqueName(base)
 	M.load()
@@ -258,6 +308,21 @@ function M.uniqueName(base)
 	end
 
 	return base .. " " .. n
+end
+
+-- The next free "<name> (n)". A name already carrying one counts up from it, anything else
+-- starts at 2. Kept distinct from uniqueName's suffix so a copy the player never asked for
+-- reads as one rather than as another profile they made.
+local function nextCopyName(name)
+	local stem, n = name:match("^(.-) %((%d+)%)$")
+	n = tonumber(n) or 1
+	stem = stem or name
+
+	repeat
+		n = n + 1
+	until not indexOf(stem .. " (" .. n .. ")") and not M.isBuiltin(stem .. " (" .. n .. ")")
+
+	return stem .. " (" .. n .. ")"
 end
 
 -- Writes the store back to disk.
@@ -426,6 +491,43 @@ function M.setActive(name)
 	store.active = name
 
 	return M.save()
+end
+
+-- A keymap the player edited themselves, kept as a profile instead of overwritten the next
+-- time one is applied. Whichever file the engine is pointed at, since a hand-set
+-- KeybindingFile is the same player doing the same thing somewhere else.
+function M.adoptEditedKeymap()
+	M.load()
+
+	local configured = Spring.GetConfigString("KeybindingFile", ACTIVE_FILE)
+	local text = VFS.LoadFile(configured ~= "" and configured or ACTIVE_FILE)
+	if not text then
+		return nil
+	end
+
+	if matchesKnownProfile(text) then
+		return nil
+	end
+
+	local binds = readBindFile(text)
+	if not binds or #binds == 0 then
+		return nil
+	end
+
+	local previous = store.active
+	local name = nextCopyName(M.activeName() or "Custom")
+	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = readFakeMeta(text) }
+	store.active = name
+	if not M.save() then
+		table.remove(store.profiles)
+		store.active = previous
+		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
+			.. "; the edited " .. ACTIVE_FILE .. " was left alone rather than kept as a profile")
+
+		return nil
+	end
+
+	return name
 end
 
 -- Adds a profile of the player's own, without selecting it: whether it becomes the live one

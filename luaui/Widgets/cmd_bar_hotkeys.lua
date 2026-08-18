@@ -64,7 +64,26 @@ local function reloadBindings()
 end
 
 
+-- Anyone who was editing uikeys.txt by hand keeps what they wrote: it becomes a profile of
+-- theirs before the editor gets a chance to write over it. Materializing hands the file back
+-- to us, so the next launch finds one that matches and leaves it alone.
+local function adoptEditedKeymap()
+	local name = profiles.adoptEditedKeymap()
+	if not name then
+		return
+	end
+
+	spEcho("BAR Hotkeys: " .. profiles.activeFile .. " was edited outside the keybind editor; kept as profile " .. name)
+
+	local file = profiles.materialize(name)
+	if file then
+		Spring.SetConfigString("KeybindingFile", file)
+	end
+end
+
+
 function widget:Initialize()
+	adoptEditedKeymap()
 	reloadBindings()
 
 	WG['bar_hotkeys'] = {}
