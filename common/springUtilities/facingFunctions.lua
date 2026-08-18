@@ -16,14 +16,14 @@ local facingMap = {
 local facingNames = { [0] = "s", [1] = "e", [2] = "n", [3] = "w" }
 
 -- TODO: remove this if/when Spring.CreateFeature and/or Spring.GetHeadingFromFacing supports named facings
----Convert a named facing to a heading integer (engine uses 0-65535 headings).
+---Convert a named facing to a heading integer (-32768, 32767).
 ---@param facing string|integer
----@return integer heading value in 0-65535 range
+---@return integer heading value in range (-32768, 32767)
 local function facingToHeading(facing)
 	return Spring.GetHeadingFromFacing(facingMap[facing or 0])
 end
 
----Convert a heading integer (engine 0-65535) to a named facing letter.
+---Convert a heading integer (-32768, 32767) to a named facing letter.
 ---@param heading integer
 ---@return string facing one of 's', 'e', 'n', 'w'
 local function headingToFacing(heading)
@@ -41,9 +41,9 @@ end
 --- Converts an angle in degrees to an engine heading value.
 --- Uses standard convention 0°-North, positive rotation clockwise.
 --- @param angle number
---- @return integer heading value in 0-65535 range
+--- @return integer heading value in range (-32768, 32767)
 local function angleToHeading(angle)
-	local heading = math.floor( (angle % 360 - 180) / 360  * -65535 )
+	local heading = math.floor( (angle % 360 - 180) / 180  * -32767 )
 	return heading
 end
 
