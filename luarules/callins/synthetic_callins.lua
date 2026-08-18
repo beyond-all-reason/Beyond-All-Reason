@@ -20,6 +20,8 @@
 --     adds the custom GG.Accumulate<Base> hook later during install.
 --  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
+--  5. Add the callin to the handler in the Install section.
+--  6. Document the callin for addons in types/SyntheticCallins.lua.
 
 local env = Script.GetSynced() and "synced" or "unsynced"
 
@@ -63,7 +65,7 @@ for name, callinHolds in pairs(syntheticCallinHold) do
 end
 
 ---Engine callins stay installed while a synthetic reading them has subscribers.
-function gadgetHandler:HoldsCallIn(listName)
+local function holdsCallIn(self, listName)
 	local holders = callinHoldSummary[listName]
 	if not holders then
 		return false
@@ -172,21 +174,21 @@ end
 --------------------------------------------------------------------------------
 --  Dispatch  ------------------------------------------------------------------
 --
---  The gadgetHandler is available at load time, so we implement callins here.
+--  Callin implementations attach to the gadgetHandler in the Install section.
 --  
 --  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
 
-local summary = {}
+local callins = {}
 
 -- Shared environment
 
-function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+function callins.MetaUnitAdded(self, unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.MetaUnitAddedList) do
 		g:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
+function callins.MetaUnitRemoved(self, unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.MetaUnitRemovedList) do
 		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
@@ -199,7 +201,7 @@ if Script.GetSynced() then
 	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
 	local unitStepValues = {}
 
-	function summary.SweepUnitBuildStep(handler)
+	function callins.SweepUnitBuildStep(handler)
 		local count = unitStepCount[1]
 		if not count or count == 0 then
 			return
@@ -231,7 +233,6 @@ if Script.GetSynced() then
 			end
 		end
 
-		-- This safely allows starting or ending subscriptions in Post.
 		if active then
 			local totalList = handler.UnitBuildStepTotalList
 			for i = 1, count do
@@ -247,7 +248,7 @@ if Script.GetSynced() then
 	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
 	local featureStepValues = {}
 
-	function summary.SweepFeatureBuildStep(handler)
+	function callins.SweepFeatureBuildStep(handler)
 		local count = featureStepCount[1]
 		if not count or count == 0 then
 			return
@@ -298,9 +299,10 @@ end
 --  Install  -------------------------------------------------------------------
 
 local function install(handler)
-	local updateCallIn = handler.UpdateCallIn
+	handler.HoldsCallIn = holdsCallIn
 
 	---Synthetic callins have no engine hook, so they update their holds instead.
+	local updateCallIn = handler.UpdateCallIn
 	function handler:UpdateCallIn(name)
 		local callinHolds = syntheticCallinHold[name]
 		if not callinHolds then
@@ -316,13 +318,16 @@ local function install(handler)
 		end
 	end
 
+	handler.MetaUnitAdded   = callins.MetaUnitAdded
+	handler.MetaUnitRemoved = callins.MetaUnitRemoved
+
 	-- Wrap multi-env dispatchers for single-env synthetic callins at install
 	-- to prevent errors caused by discrepancies between here and gadgets.lua
 
 	if Script.GetSynced() then
 		local gameFramePost = handler.GameFramePost
-		local sweepUnitBuildStep = summary.SweepUnitBuildStep
-		local sweepFeatureBuildStep = summary.SweepFeatureBuildStep
+		local sweepUnitBuildStep = callins.SweepUnitBuildStep
+		local sweepFeatureBuildStep = callins.SweepFeatureBuildStep
 		function handler:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFrameSummary")
 			sweepUnitBuildStep(self)
