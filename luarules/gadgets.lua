@@ -285,9 +285,6 @@ local callInLists = {
 	"UnitCloaked",
 	"UnitDecloaked",
 
-	"MetaUnitAdded",
-	"MetaUnitRemoved",
-
 	-- optional
 	-- "UnitUnitCollision",
 	-- "UnitFeatureCollision",
@@ -345,13 +342,6 @@ local callInLists = {
 	"AllowWeaponTargetCheck",
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
-	"UnitAutoTargetRange",
-
-	-- Synthetic callins
-	"UnitBuildStepPost",
-	"FeatureBuildStepPost",
-	"UnitBuildStepTotal",
-	"FeatureBuildStepTotal",
 
 	-- unsynced
 	"DrawProjectile",
@@ -465,13 +455,6 @@ local function ShouldSkipHeadlessUnsyncedGadget(gadget, basename)
 	return true
 end
 
--- initialize the call-in lists
-do
-	for _, listname in ipairs(callInLists) do
-		gadgetHandler[listname .. "List"] = {}
-	end
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -482,6 +465,22 @@ local synthetic = VFS.Include(SCRIPT_DIR .. 'callins/synthetic_callins.lua', nil
 
 local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
 local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('FeatureBuildStep')
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Initialize the call-in lists.
+--
+
+for _, name in ipairs(synthetic.callinNames) do
+	callInLists[#callInLists + 1] = name
+end
+
+do
+	for _, listname in ipairs(callInLists) do
+		gadgetHandler[listname .. "List"] = {}
+	end
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
