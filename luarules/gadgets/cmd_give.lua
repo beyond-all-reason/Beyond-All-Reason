@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 -- usage: /luarules give 1 armcom 0
---        /luarules give 1 Armada Commander 0
+--        /luarules give 1 armada-commander 0
 
 local cmdname = "give"
 local PACKET_HEADER = "$g$"
@@ -141,17 +141,17 @@ else -- UNSYNCED
 		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
 	end
 
-	local isResourceName = { metal = true, energy = true }
-
-	-- unitdefs carry no humanName, so proper names live only in the i18n data.
-	-- They are per-language, which is why this resolves here and sends the unitdef
-	-- name onwards, instead of letting synced code do it and disagree per client.
+	-- BAR unitdefs carry no humanName, so a unit's proper name exists only in the
+	-- language files. Those are per-language, so resolve here and send the unitdef
+	-- name onwards rather than leaving synced code to disagree between clients.
 	local unitDefNameByProperName = {}
 	do
 		local unitNames = Json.decode(VFS.LoadFile("language/en/units.json")).units.names
 		for unitDefName, properName in pairs(unitNames) do
 			if UnitDefNames[unitDefName] then
-				local key = string.lower(properName)
+				-- spaces would break the one-word-per-argument syntax, so the name is
+				-- written with hyphens instead: "Armada Commander" -> armada-commander
+				local key = string.gsub(string.lower(properName), "[%s%-]+", "-")
 				local claimed = unitDefNameByProperName[key]
 				if claimed == nil then
 					unitDefNameByProperName[key] = unitDefName
@@ -166,7 +166,7 @@ else -- UNSYNCED
 
 	-- returns the unitdef name, or nil plus every unitdef sharing that proper name
 	local function resolveUnitName(name)
-		if UnitDefNames[name] then
+		if UnitDefNames[name] or name == "metal" or name == "energy" then
 			return name
 		end
 		local claimed = unitDefNameByProperName[string.lower(name)]
@@ -174,32 +174,6 @@ else -- UNSYNCED
 			return claimed
 		end
 		return nil, claimed
-	end
-
-	-- A proper name can hold spaces, and "Armada Commander Level 2" even ends in a
-	-- digit, so the name cannot be found by counting trailing numbers. It ends one
-	-- or two words from the end; only one of those splits resolves to a unit.
-	local function parseGive(words)
-		if tonumber(words[1]) == nil then
-			return nil
-		end
-		for last = #words - 1, math.max(#words - 2, 2), -1 do
-			local teamID = tonumber(words[last + 1])
-			local xp = words[last + 2] and tonumber(words[last + 2])
-			if teamID and (words[last + 2] == nil or xp) then
-				local name = table.concat(words, " ", 2, last)
-				if isResourceName[string.lower(name)] then
-					return string.lower(name), teamID, xp
-				end
-				local unitDefName, sharedBy = resolveUnitName(name)
-				if unitDefName then
-					return unitDefName, teamID, xp
-				elseif sharedBy then
-					return nil, nil, nil, name, sharedBy
-				end
-			end
-		end
-		return nil
 	end
 
 	local function RequestGive(cmd, line, words, playerID)
@@ -211,11 +185,11 @@ else -- UNSYNCED
 			elseif targettype == "feature" then
 				pos = { Spring.GetFeaturePosition(pos) }
 			end
-			local unitDefName, teamID, xp, sharedName, sharedBy = parseGive(words)
-			if sharedName then
+			local unitDefName, sharedBy = resolveUnitName(words[2] or "")
+			if sharedBy then
 				Spring.SendMessageToPlayer(
 					playerID,
-					"'" .. sharedName .. "' is the name of " .. #sharedBy .. " units, give one of: " .. table.concat(
+					"'" .. words[2] .. "' is the name of " .. #sharedBy .. " units, give one of: " .. table.concat(
 						sharedBy,
 						", "
 					)
@@ -226,7 +200,9 @@ else -- UNSYNCED
 				and pos[3] ~= nil
 				and pos[1] > 0
 				and pos[3] > 0
+				and words[1] ~= nil
 				and unitDefName ~= nil
+				and words[3] ~= nil
 			then
 				Spring.SendLuaRulesMsg(
 					PACKET_HEADER
@@ -235,12 +211,12 @@ else -- UNSYNCED
 						.. ":"
 						.. unitDefName
 						.. ":"
-						.. teamID
+						.. words[3]
 						.. ":"
 						.. pos[1]
 						.. ":"
 						.. pos[3]
-						.. (xp ~= nil and ":" .. xp or "")
+						.. (words[4] ~= nil and ":" .. words[4] or "")
 				)
 			else
 				Spring.SendMessageToPlayer(playerID, "failed to give, check syntax or cursor position")
