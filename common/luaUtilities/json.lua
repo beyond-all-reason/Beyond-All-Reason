@@ -156,7 +156,16 @@ local function rewriteJsonOnlyEscapes(literal)
 				out[#out + 1] = "/"
 				pos = pos + 2
 			elseif following == "u" then
-				local code = tonumber(literal:sub(pos + 2, pos + 5), 16)
+				-- Four hex digits are the only legal form. Without this check a short or
+				-- non-hex escape either loses characters silently or shifts the rest of the
+				-- literal out of step, and the failure then surfaces as a loadstring error
+				-- that says nothing about where it came from.
+				local hex = literal:sub(pos + 2, pos + 5)
+				if not hex:match("^%x%x%x%x$") then
+					error("Invalid \\u escape in JSON string: " .. literal:sub(pos, pos + 5))
+				end
+
+				local code = tonumber(hex, 16)
 				pos = pos + 6
 				-- Anything above the BMP arrives as a surrogate pair.
 				if code and code >= 0xD800 and code <= 0xDBFF and literal:sub(pos, pos + 1) == "\\u" then
@@ -166,7 +175,13 @@ local function rewriteJsonOnlyEscapes(literal)
 						pos = pos + 6
 					end
 				end
-				out[#out + 1] = code and utf8Escapes(code) or ""
+				-- A surrogate half that never found its partner is not a code point at all.
+				-- Encoding it anyway yields bytes no UTF-8 reader accepts, which spreads the
+				-- damage into whatever handles the string later, so drop it and leave the rest
+				-- of the string well formed.
+				if code < 0xD800 or code > 0xDFFF then
+					out[#out + 1] = utf8Escapes(code)
+				end
 			else
 				-- Kept as-is, which also steps past an escaped backslash so the character
 				-- after it is not mistaken for an escape of its own.
