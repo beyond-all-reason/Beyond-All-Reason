@@ -206,8 +206,10 @@ if Script.GetSynced() then
 		end
 		unitStepCount[1] = 0
 
-		-- Clear marks first so subscribers that throw do not leave any marks.
+		-- This safely allows starting or ending subscriptions in Post.
 		local active = unitStepActive[1]
+
+		-- Clear marks first so subscribers that throw do not leave any marks.
 		if active then
 			for i = 1, count do
 				local unitID = unitStepList[i]
