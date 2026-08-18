@@ -47,6 +47,7 @@ local syntheticCallins = {
 }
 
 local syntheticCallinHold = table.merge(syntheticCallins.shared, syntheticCallins[env])
+local callinNames = table.keys(syntheticCallinHold)
 
 local callinHoldSummary = {}
 for name, callinHolds in pairs(syntheticCallinHold) do
@@ -342,6 +343,7 @@ end
 --  Exports  -------------------------------------------------------------------
 
 return {
-	install  = install,
-	getMarks = getMarks,
+	install     = install,
+	getMarks    = getMarks,
+	callinNames = callinNames,
 }
