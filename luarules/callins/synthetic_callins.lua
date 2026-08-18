@@ -91,8 +91,8 @@ local syntheticCallinSummaries = {
 	FeatureBuildStep = true,
 }
 
--- [baseName] := { marked, list, count, totals, active, stop }
 local marks = {}
+local accumulate = {}
 
 local function makeStopMarking(marked, list, count)
 	return function()
@@ -103,14 +103,29 @@ local function makeStopMarking(marked, list, count)
 	end
 end
 
-local accumulate = {}
+---Marked IDs this frame, as a set.
+---@alias SummaryMarked table<integer, true>
+
+---Marked IDs this frame, as an array.
+---@alias SummaryList integer[]
+
+---Signed sums per marked ID, kept while active.
+---@alias SummaryTotals table<integer, number>
+
+---@class SummaryCount
+---@field [1] integer? the batch size; nil is inactive
+
+---@class SummaryActive
+---@field [1] true? whether accumulating totals
 
 local function createSummary(callinName)
 	if not syntheticCallinSummaries[callinName] then
 		return
 	end
 
+	---@type SummaryMarked, SummaryList, SummaryCount
 	local marked, list, count = {}, {}, table.new(1, 0)
+	---@type SummaryTotals, SummaryActive
 	local totals, active = {}, table.new(1, 0)
 	local stop = makeStopMarking(marked, list, count)
 
@@ -157,11 +172,20 @@ local function createSummary(callinName)
 	syntheticCallinUpdate[callinName .. 'Total'] = update
 end
 
--- baseName -> marked, list, count, totals, active
+---A summary's marking state. Callins from non-matching envs get empty tables.
+---@param baseName string
+---@return SummaryMarked marked
+---@return SummaryList   list
+---@return SummaryCount  count
+---@return SummaryTotals totals
+---@return SummaryActive active
 local function getMarks(baseName)
 	local mark = marks[baseName]
 	if not mark then
-		return
+		if not syntheticCallinSummaries[baseName] then
+			error('synthetic_callins: no such summary: ' .. tostring(baseName))
+		end
+		return {}, {}, {}, {}, {}
 	end
 	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
@@ -329,7 +353,7 @@ local function install(handler)
 		local sweepUnitBuildStep = callins.SweepUnitBuildStep
 		local sweepFeatureBuildStep = callins.SweepFeatureBuildStep
 		function handler:GameFramePost(frameNum)
-			tracy.ZoneBeginN("G:GameFrameSummary")
+			tracy.ZoneBeginN("G:GameFramePostSummary")
 			sweepUnitBuildStep(self)
 			sweepFeatureBuildStep(self)
 			tracy.ZoneEnd()
@@ -349,8 +373,12 @@ end
 --------------------------------------------------------------------------------
 --  Exports  -------------------------------------------------------------------
 
-return {
+---Synthetic callin registry and dispatch for gadgets.lua.
+---@class SyntheticCallinsAPI
+local synthetic = {
 	install     = install,
 	getMarks    = getMarks,
 	callinNames = callinNames,
 }
+
+return synthetic
