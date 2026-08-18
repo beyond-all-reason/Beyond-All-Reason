@@ -248,7 +248,7 @@ for _, base in ipairs(BASES) do
 				postSeen, totalSeen = {}, {}
 				assert.is_false(pcall(gh.GameFramePost, gh, 1))
 				assert.is_true(isEmpty(marked) and isEmpty(totals))
-				assert.equals(1, count[1]) -- the ghost batch redispatches once
+				assert.equals(0, count[1]) -- the aborted batch is not redispatched
 				unsubscribe(thrower, "Post")
 				mark(101, 0.4)
 				sweep()

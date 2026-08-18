@@ -203,6 +203,7 @@ if Script.GetSynced() then
 		if not count or count == 0 then
 			return
 		end
+		unitStepCount[1] = 0
 
 		-- Clear marks first so subscribers that throw do not leave any marks.
 		local active = unitStepActive[1]
@@ -237,17 +238,6 @@ if Script.GetSynced() then
 				end
 			end
 		end
-
-		-- To be on the safe side, ignore marks added by summary callins.
-		local marked = unitStepCount[1]
-		if marked then
-			for i = count + 1, marked do
-				local unitID = unitStepList[i]
-				unitStepMarked[unitID] = nil
-				unitStepTotals[unitID] = nil
-			end
-			unitStepCount[1] = 0
-		end
 	end
 
 	createSummary('FeatureBuildStep')
@@ -259,6 +249,7 @@ if Script.GetSynced() then
 		if not count or count == 0 then
 			return
 		end
+		featureStepCount[1] = 0
 
 		local active = featureStepActive[1]
 		if active then
@@ -290,16 +281,6 @@ if Script.GetSynced() then
 					g:FeatureBuildStepTotal(featureID, part)
 				end
 			end
-		end
-
-		local marked = featureStepCount[1]
-		if marked then
-			for i = count + 1, marked do
-				local featureID = featureStepList[i]
-				featureStepMarked[featureID] = nil
-				featureStepTotals[featureID] = nil
-			end
-			featureStepCount[1] = 0
 		end
 	end
 end
