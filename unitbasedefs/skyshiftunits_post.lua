@@ -9,7 +9,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "armpeep" then
-		uDef.acceleration = 0.8
 		uDef.blocking = false
 		uDef.maxdec = 0.8
 		uDef.energycost = 1550
@@ -52,7 +51,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "armfig" then
-		uDef.acceleration = 0.6
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
 		uDef.blocking = false
@@ -139,7 +137,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "armthund" then
-		uDef.acceleration = 0.3
 		uDef.maxdec = 0.3
 		uDef.energycost = 2400
 		uDef.metalcost = 220
@@ -221,7 +218,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "armkam" then
-		uDef.acceleration = 0.7
 		uDef.airstrafe = false
 		uDef.blocking = false
 		uDef.energycost = 2600
@@ -318,7 +314,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "armsfig" then
-		uDef.acceleration = 0.35
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
 		uDef.blocking = false
@@ -415,7 +410,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	---------------------------------------------
 
 	if name == "corfink" then
-		uDef.acceleration = 0.6
 		uDef.blocking = false
 		uDef.maxdec = 0.6
 		uDef.energycost = 1450
@@ -462,7 +456,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "corveng" then
-		uDef.acceleration = 0.45
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
 		uDef.blocking = false
@@ -553,7 +546,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "corshad" then
-		uDef.acceleration = 0.045
 		uDef.blocking = false
 		uDef.maxdec = 0.045
 		uDef.energycost = 2400
@@ -632,7 +624,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "corbw" then
-		uDef.acceleration = 0.5
 		uDef.blocking = false
 		uDef.maxdec = 0.4
 		uDef.energycost = 700
@@ -725,7 +716,6 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	if name == "corcut" then
-		uDef.acceleration = 1
 		uDef.airstrafe = false
 		uDef.blocking = false
 		uDef.maxdec = 0.85
