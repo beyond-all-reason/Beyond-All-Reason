@@ -25,6 +25,7 @@ local convertedUnitsNames = {
 	armbeamer = 3,
 	armpw = 2,
 	armpwt4 = 2,
+	corakt4 = 2,
 	armflea = 2,
 	armrock = 2,
 	armham = 2,
