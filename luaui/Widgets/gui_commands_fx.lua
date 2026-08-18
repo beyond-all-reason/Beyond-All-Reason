@@ -12,12 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathMax = math.max
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 -- future:          hotkey to show all current cmds? (like current shift+space)
@@ -26,25 +25,25 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 -- Command IDs consolidated into single table to reduce upvalue count
 local CMDS = {
-	RAW_MOVE     = GameCMD.RAW_MOVE,
-	ATTACK       = CMD.ATTACK,
-	CAPTURE      = CMD.CAPTURE,
-	FIGHT        = CMD.FIGHT,
-	GUARD        = CMD.GUARD,
-	INSERT       = CMD.INSERT,
-	LOAD_ONTO    = CMD.LOAD_ONTO,
-	LOAD_UNITS   = CMD.LOAD_UNITS,
-	MANUALFIRE   = CMD.MANUALFIRE,
-	MOVE         = CMD.MOVE,
-	PATROL       = CMD.PATROL,
-	RECLAIM      = CMD.RECLAIM,
-	REPAIR       = CMD.REPAIR,
-	RESTORE      = CMD.RESTORE,
-	RESURRECT    = CMD.RESURRECT,
+	RAW_MOVE = GameCMD.RAW_MOVE,
+	ATTACK = CMD.ATTACK,
+	CAPTURE = CMD.CAPTURE,
+	FIGHT = CMD.FIGHT,
+	GUARD = CMD.GUARD,
+	INSERT = CMD.INSERT,
+	LOAD_ONTO = CMD.LOAD_ONTO,
+	LOAD_UNITS = CMD.LOAD_UNITS,
+	MANUALFIRE = CMD.MANUALFIRE,
+	MOVE = CMD.MOVE,
+	PATROL = CMD.PATROL,
+	RECLAIM = CMD.RECLAIM,
+	REPAIR = CMD.REPAIR,
+	RESTORE = CMD.RESTORE,
+	RESURRECT = CMD.RESURRECT,
 	-- SET_TARGET = GameCMD.UNIT_SET_TARGET,  -- custom command, doesn't go through UnitCommand
-	UNLOAD_UNIT  = CMD.UNLOAD_UNIT,
+	UNLOAD_UNIT = CMD.UNLOAD_UNIT,
 	UNLOAD_UNITS = CMD.UNLOAD_UNITS,
-	BUILD        = -1,
+	BUILD = -1,
 }
 
 local os_clock = os.clock
@@ -72,7 +71,7 @@ local newUnitCommands = {}
 local useTeamColors = false
 local useTeamColorsWhenSpec = true
 
-local hideBelowGameframe = 100    -- delay to give spawn fx some time
+local hideBelowGameframe = 100 -- delay to give spawn fx some time
 
 local filterOwn = false
 local filterAIteams = true
@@ -85,15 +84,15 @@ local duration = 0.85
 
 local lineWidth = 5.5
 local lineOpacity = 0.75
-local lineWidthEnd = 0.8        -- multiplier
+local lineWidthEnd = 0.8 -- multiplier
 local lineTextureLength = 3
 local lineTextureSpeed = 4
 
 -- limit amount of effects to keep performance sane
-local maxCommandCount = 700        -- dont draw more commands than this amount, but keep processing them
-local maxTotalCommandCount = 1200        -- dont add more commands above this amount
-local cmdLimitPerUnitBase = 50            -- max commands fetched per unit at low load
-local cmdLimitPerUnitMin = 8              -- min commands fetched per unit at high load
+local maxCommandCount = 700 -- dont draw more commands than this amount, but keep processing them
+local maxTotalCommandCount = 1200 -- dont add more commands above this amount
+local cmdLimitPerUnitBase = 50 -- max commands fetched per unit at low load
+local cmdLimitPerUnitMin = 8 -- min commands fetched per unit at high load
 local cmdLimitPerUnit = cmdLimitPerUnitBase
 
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
@@ -117,23 +116,23 @@ local mapZ = Game.mapSizeZ
 
 -- CONFIG maps command ID directly to colour {r, g, b, alpha} — flat lookup, no .colour indirection
 local CONFIG = {
-	[CMDS.ATTACK]       = { 1.0, 0.2, 0.2, 0.30 },
-	[CMDS.CAPTURE]      = { 1.0, 1.0, 0.3, 0.30 },
-	[CMDS.FIGHT]        = { 1.0, 0.2, 1.0, 0.25 },
-	[CMDS.GUARD]        = { 0.6, 1.0, 1.0, 0.25 },
-	[CMDS.LOAD_ONTO]    = { 0.4, 0.9, 0.9, 0.25 },
-	[CMDS.LOAD_UNITS]   = { 0.4, 0.9, 0.9, 0.30 },
-	[CMDS.MANUALFIRE]   = { 1.0, 0.0, 0.0, 0.30 },
-	[CMDS.MOVE]         = { 0.1, 1.0, 0.1, 0.25 },
-	[CMDS.RAW_MOVE]     = { 0.1, 1.0, 0.1, 0.25 },
-	[CMDS.PATROL]       = { 0.2, 0.5, 1.0, 0.25 },
-	[CMDS.RECLAIM]      = { 0.5, 1.0, 0.4, 0.40 },
-	[CMDS.REPAIR]       = { 1.0, 0.9, 0.2, 0.40 },
-	[CMDS.RESTORE]      = { 0.0, 0.5, 0.0, 0.25 },
-	[CMDS.RESURRECT]    = { 0.9, 0.5, 1.0, 0.25 },
-	[CMDS.UNLOAD_UNIT]  = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.ATTACK] = { 1.0, 0.2, 0.2, 0.30 },
+	[CMDS.CAPTURE] = { 1.0, 1.0, 0.3, 0.30 },
+	[CMDS.FIGHT] = { 1.0, 0.2, 1.0, 0.25 },
+	[CMDS.GUARD] = { 0.6, 1.0, 1.0, 0.25 },
+	[CMDS.LOAD_ONTO] = { 0.4, 0.9, 0.9, 0.25 },
+	[CMDS.LOAD_UNITS] = { 0.4, 0.9, 0.9, 0.30 },
+	[CMDS.MANUALFIRE] = { 1.0, 0.0, 0.0, 0.30 },
+	[CMDS.MOVE] = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.RAW_MOVE] = { 0.1, 1.0, 0.1, 0.25 },
+	[CMDS.PATROL] = { 0.2, 0.5, 1.0, 0.25 },
+	[CMDS.RECLAIM] = { 0.5, 1.0, 0.4, 0.40 },
+	[CMDS.REPAIR] = { 1.0, 0.9, 0.2, 0.40 },
+	[CMDS.RESTORE] = { 0.0, 0.5, 0.0, 0.25 },
+	[CMDS.RESURRECT] = { 0.9, 0.5, 1.0, 0.25 },
+	[CMDS.UNLOAD_UNIT] = { 1.0, 0.8, 0.0, 0.25 },
 	[CMDS.UNLOAD_UNITS] = { 1.0, 0.8, 0.0, 0.25 },
-	[CMDS.BUILD]        = { 0.0, 1.0, 0.0, 0.25 },
+	[CMDS.BUILD] = { 0.0, 1.0, 0.0, 0.25 },
 }
 
 --------------------------------------------------------------------------------
@@ -178,28 +177,34 @@ local MAX_UNITS = Game.maxUnits
 -- GL4 instanced rendering
 --------------------------------------------------------------------------------
 
-local gl4 = nil  -- nil = not initialized, false = init failed, table = active
+local gl4 = nil -- nil = not initialized, false = init failed, table = active
 local GL4_MAX_SEGMENTS = 4096
-local GL4_FLOATS_PER_SEG = 12  -- 3 vec4 attributes per instance
+local GL4_FLOATS_PER_SEG = 12 -- 3 vec4 attributes per instance
 
 -- Pre-allocated arrays for build queue ghost rendering (legacy pass)
 local buildGhosts = {
-	x = {}, y = {}, z = {},
-	defID = {}, facing = {},
-	r = {}, g = {}, b = {}, a = {},
+	x = {},
+	y = {},
+	z = {},
+	defID = {},
+	facing = {},
+	r = {},
+	g = {},
+	b = {},
+	a = {},
 	count = 0,
 }
 
 -- Per-frame dedup for segments and build ghosts: avoids drawing identical
 -- waypoint->waypoint lines and glUnitShape calls when many units share the
 -- same build queue.  Uses a generation counter to avoid clearing per frame.
-local segDedupTbl = {}        -- [key] = generation
-local ghostDedupTbl = {}      -- [key] = generation
+local segDedupTbl = {} -- [key] = generation
+local ghostDedupTbl = {} -- [key] = generation
 local dedupGeneration = 0
-local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
+local MAX_BUILD_GHOSTS = 300 -- cap glUnitShape calls (expensive)
 
 -- Queue sharing: units with identical command queues share one parsed table
-local queueShareCache = {}  -- fingerprint -> { queue, queueSize, refCount }
+local queueShareCache = {} -- fingerprint -> { queue, queueSize, refCount }
 local queueShareGeneration = 0
 local EMPTY_TABLE = {}
 
@@ -288,11 +293,11 @@ local function InitGL4()
 	end
 
 	local locs = {
-		viewMat    = gl.GetUniformLocation(shader, 'u_viewMat'),
-		projMat    = gl.GetUniformLocation(shader, 'u_projMat'),
-		lineTexLen = gl.GetUniformLocation(shader, 'u_lineTexLen'),
-		lineWidth  = gl.GetUniformLocation(shader, 'u_lineWidth'),
-		useTex     = gl.GetUniformLocation(shader, 'u_useTex'),
+		viewMat = gl.GetUniformLocation(shader, "u_viewMat"),
+		projMat = gl.GetUniformLocation(shader, "u_projMat"),
+		lineTexLen = gl.GetUniformLocation(shader, "u_lineTexLen"),
+		lineWidth = gl.GetUniformLocation(shader, "u_lineWidth"),
+		useTex = gl.GetUniformLocation(shader, "u_useTex"),
 	}
 
 	-- Static quad VBO (TRIANGLE_STRIP order: BL, BR, TL, TR)
@@ -301,8 +306,8 @@ local function InitGL4()
 		gl.DeleteShader(shader)
 		return false
 	end
-	quadVBO:Define(4, { {id = 0, name = 'a_corner', size = 2} })
-	quadVBO:Upload({0,0, 1,0, 0,1, 1,1})
+	quadVBO:Define(4, { { id = 0, name = "a_corner", size = 2 } })
+	quadVBO:Upload({ 0, 0, 1, 0, 0, 1, 1, 1 })
 
 	-- Instance VBO (streaming — rebuilt each frame)
 	local instVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
@@ -311,9 +316,9 @@ local function InitGL4()
 		return false
 	end
 	instVBO:Define(GL4_MAX_SEGMENTS, {
-		{id = 1, name = 'a_posStart',  size = 4},
-		{id = 2, name = 'a_posEndW',   size = 4},
-		{id = 3, name = 'a_colorTex',  size = 4},
+		{ id = 1, name = "a_posStart", size = 4 },
+		{ id = 2, name = "a_posEndW", size = 4 },
+		{ id = 3, name = "a_colorTex", size = 4 },
 	})
 
 	local vao = gl.GetVAO()
@@ -325,12 +330,12 @@ local function InitGL4()
 	vao:AttachInstanceBuffer(instVBO)
 
 	gl4 = {
-		shader  = shader,
-		locs    = locs,
-		vao     = vao,
+		shader = shader,
+		locs = locs,
+		vao = vao,
 		quadVBO = quadVBO,
 		instVBO = instVBO,
-		segData = {},  -- flat float array, pre-allocated on use
+		segData = {}, -- flat float array, pre-allocated on use
 		segCount = 0,
 	}
 	return true
@@ -338,7 +343,9 @@ end
 
 local function ShutdownGL4()
 	if gl4 then
-		if gl4.shader then gl.DeleteShader(gl4.shader) end
+		if gl4.shader then
+			gl.DeleteShader(gl4.shader)
+		end
 		-- VAO/VBO are garbage-collected by Spring but nil them for safety
 		gl4.vao = nil
 		gl4.instVBO = nil
@@ -411,19 +418,26 @@ end
 
 local function getQueueFingerprint(unitID)
 	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then return nil, 0 end
+	if not cmdCount or cmdCount <= 0 then
+		return nil, 0
+	end
 	-- GetUnitCurrentCommand returns values directly — zero table allocation
 	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
-	if not cmdID then return nil, cmdCount end
-	-- Numeric fingerprint: cmdCount + cmdID + quantized position
+	if not cmdID then
+		return nil, cmdCount
+	end
+	-- Numeric fingerprint: fast cache lookup by command count, ID, and coarse position.
+	-- Cache hits also verify the complete target below before sharing a queue.
 	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
 	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
 	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
-	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount, p1, p2, p3
 end
 
 local function releaseQueue(command)
-	if not command.queue then return end
+	if not command.queue then
+		return
+	end
 	local shared = command.sharedQueue
 	if shared then
 		shared.refCount = shared.refCount - 1
@@ -488,30 +502,30 @@ end
 loadTeamColors()
 
 local function setCmdLineColors(alpha)
-	spLoadCmdColorsConfig('move        0.5  1.0  0.5  ' .. alpha)
-	spLoadCmdColorsConfig('attack      1.0  0.2  0.2  ' .. alpha)
-	spLoadCmdColorsConfig('fight       1.0  0.2  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('wait        0.5  0.5  0.5  ' .. alpha)
-	spLoadCmdColorsConfig('build       0.0  1.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('guard       0.6  1.0  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('stop        0.0  0.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('patrol      0.2  0.5  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('capture     1.0  1.0  0.3  ' .. alpha)
-	spLoadCmdColorsConfig('repair      1.0  0.9  0.2  ' .. alpha)
-	spLoadCmdColorsConfig('reclaim     0.5  1.0  0.4  ' .. alpha)
-	spLoadCmdColorsConfig('restore     0.0  1.0  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('resurrect   0.9  0.5  1.0  ' .. alpha)
-	spLoadCmdColorsConfig('load        0.4  0.9  0.9  ' .. alpha)
-	spLoadCmdColorsConfig('unload      1.0  0.8  0.0  ' .. alpha)
-	spLoadCmdColorsConfig('deathWatch  0.5  0.5  0.5  ' .. alpha)
+	spLoadCmdColorsConfig("move        0.5  1.0  0.5  " .. alpha)
+	spLoadCmdColorsConfig("attack      1.0  0.2  0.2  " .. alpha)
+	spLoadCmdColorsConfig("fight       1.0  0.2  1.0  " .. alpha)
+	spLoadCmdColorsConfig("wait        0.5  0.5  0.5  " .. alpha)
+	spLoadCmdColorsConfig("build       0.0  1.0  0.0  " .. alpha)
+	spLoadCmdColorsConfig("guard       0.6  1.0  1.0  " .. alpha)
+	spLoadCmdColorsConfig("stop        0.0  0.0  0.0  " .. alpha)
+	spLoadCmdColorsConfig("patrol      0.2  0.5  1.0  " .. alpha)
+	spLoadCmdColorsConfig("capture     1.0  1.0  0.3  " .. alpha)
+	spLoadCmdColorsConfig("repair      1.0  0.9  0.2  " .. alpha)
+	spLoadCmdColorsConfig("reclaim     0.5  1.0  0.4  " .. alpha)
+	spLoadCmdColorsConfig("restore     0.0  1.0  0.0  " .. alpha)
+	spLoadCmdColorsConfig("resurrect   0.9  0.5  1.0  " .. alpha)
+	spLoadCmdColorsConfig("load        0.4  0.9  0.9  " .. alpha)
+	spLoadCmdColorsConfig("unload      1.0  0.8  0.0  " .. alpha)
+	spLoadCmdColorsConfig("deathWatch  0.5  0.5  0.5  " .. alpha)
 end
 
 local function applyCmdQueueVisibility(hide)
 	if hide then
-		spLoadCmdColorsConfig('queueIconAlpha  0 ')
+		spLoadCmdColorsConfig("queueIconAlpha  0 ")
 		setCmdLineColors(0)
 	else
-		spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
+		spLoadCmdColorsConfig("queueIconAlpha  0.5 ")
 		setCmdLineColors(0.5)
 	end
 end
@@ -528,41 +542,41 @@ end
 
 function widget:Initialize()
 	--spLoadCmdColorsConfig('useQueueIcons  0 ')
-	spLoadCmdColorsConfig('queueIconScale  0.66 ')
+	spLoadCmdColorsConfig("queueIconScale  0.66 ")
 	applyCmdQueueVisibility(spIsGUIHidden())
 
 	resetEnabledTeams()
 
-	WG['commandsfx'] = {}
-	WG['commandsfx'].getOpacity = function()
+	WG.commandsfx = {}
+	WG.commandsfx.getOpacity = function()
 		return opacity
 	end
-	WG['commandsfx'].setOpacity = function(value)
+	WG.commandsfx.setOpacity = function(value)
 		opacity = value
 	end
-	WG['commandsfx'].getDuration = function()
+	WG.commandsfx.getDuration = function()
 		return duration
 	end
-	WG['commandsfx'].setDuration = function(value)
+	WG.commandsfx.setDuration = function(value)
 		duration = value
 	end
-	WG['commandsfx'].getFilterAI = function()
+	WG.commandsfx.getFilterAI = function()
 		return filterAIteams
 	end
-	WG['commandsfx'].setFilterAI = function(value)
+	WG.commandsfx.setFilterAI = function(value)
 		filterAIteams = value
 		resetEnabledTeams()
 	end
-	WG['commandsfx'].getUseTeamColors = function()
+	WG.commandsfx.getUseTeamColors = function()
 		return useTeamColors
 	end
-	WG['commandsfx'].setUseTeamColors = function(value)
+	WG.commandsfx.setUseTeamColors = function(value)
 		useTeamColors = value
 	end
-	WG['commandsfx'].setUseTeamColorsWhenSpec = function()
+	WG.commandsfx.getUseTeamColorsWhenSpec = function()
 		return useTeamColorsWhenSpec
 	end
-	WG['commandsfx'].setUseTeamColorsWhenSpec = function(value)
+	WG.commandsfx.setUseTeamColorsWhenSpec = function(value)
 		useTeamColorsWhenSpec = value
 	end
 
@@ -576,8 +590,8 @@ end
 function widget:Shutdown()
 	ShutdownGL4()
 	--spLoadCmdColorsConfig('useQueueIcons  1 ')
-	spLoadCmdColorsConfig('queueIconScale  1 ')
-	spLoadCmdColorsConfig('queueIconAlpha  1 ')
+	spLoadCmdColorsConfig("queueIconScale  1 ")
+	spLoadCmdColorsConfig("queueIconAlpha  1 ")
 	setCmdLineColors(0.7)
 end
 
@@ -629,9 +643,9 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 end
 
 -- Queue entry target types for pre-extracted positions
-local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
-local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
-local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
+local QTARGET_COORD = 1 -- static coordinate (MOVE, BUILD, PATROL, etc.)
+local QTARGET_UNIT = 2 -- unit target (needs live position each frame)
+local QTARGET_FEATURE = 3 -- feature target (position pre-extracted; features are static)
 
 local function getCommandsQueue(unitID, cmdCount)
 	if cmdCount <= 0 then
@@ -699,7 +713,6 @@ end
 local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
-
 	sec = sec + dt
 	if sec > lastUpdate + 0.1 then
 		local gf = spGetGameFrame()
@@ -751,7 +764,12 @@ function widget:Update(dt)
 		elseif totalCommands > 800 then
 			cmdLimitPerUnit = cmdLimitPerUnitMin
 		else
-			cmdLimitPerUnit = mathMax(cmdLimitPerUnitMin, mathFloor(cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)))
+			cmdLimitPerUnit = mathMax(
+				cmdLimitPerUnitMin,
+				mathFloor(
+					cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)
+				)
+			)
 		end
 
 		queueShareGeneration = queueShareGeneration + 1
@@ -771,10 +789,17 @@ function widget:Update(dt)
 				unitCommand[cmd.unitID] = i
 
 				-- Try to share queue with another unit that has identical commands
-				local fingerprint, cmdCount = getQueueFingerprint(cmd.unitID)
+				local fingerprint, cmdCount, p1, p2, p3 = getQueueFingerprint(cmd.unitID)
 				local cached = fingerprint and queueShareCache[fingerprint]
 				local our_q, qsize
-				if cached and cached.generation == qGen and cached.queue then
+				if
+					cached
+					and cached.generation == qGen
+					and cached.queue
+					and cached.targetP1 == p1
+					and cached.targetP2 == p2
+					and cached.targetP3 == p3
+				then
 					-- Reuse existing parsed queue (zero allocation)
 					cached.refCount = cached.refCount + 1
 					our_q = cached.queue
@@ -799,6 +824,9 @@ function widget:Update(dt)
 						entry.refCount = 1
 						entry.generation = qGen
 						entry.fingerprint = fingerprint
+						entry.targetP1 = p1
+						entry.targetP2 = p2
+						entry.targetP3 = p3
 						queueShareCache[fingerprint] = entry
 						commands[i].sharedQueue = entry
 					else
@@ -847,8 +875,12 @@ local function gl4DrawFunc()
 end
 
 function widget:DrawWorldPreUnit()
-	if hidden then return end
-	if spIsGUIHidden() then return end
+	if hidden then
+		return
+	end
+	if spIsGUIHidden() then
+		return
+	end
 
 	osClock = os_clock()
 	if drawLineTexture then
@@ -886,17 +918,21 @@ function widget:DrawWorldPreUnit()
 	-- Periodically prune stale dedup entries (~every 10 seconds at 60fps)
 	if dGen % 600 == 0 then
 		for k, g in pairs(segDD) do
-			if g < dGen - 2 then segDD[k] = nil end
+			if g < dGen - 2 then
+				segDD[k] = nil
+			end
 		end
 		for k, g in pairs(ghostDD) do
-			if g < dGen - 2 then ghostDD[k] = nil end
+			if g < dGen - 2 then
+				ghostDD[k] = nil
+			end
 		end
 	end
 
 	local commandCount = 0
 	local i = next(commands)
 	while i do
-		local nextI = next(commands, i)  -- grab next key before we might nil commands[i]
+		local nextI = next(commands, i) -- grab next key before we might nil commands[i]
 		local command = commands[i]
 		if command and command.time then
 			local progress = (osClock - command.time) * invDuration
@@ -910,15 +946,14 @@ function widget:DrawWorldPreUnit()
 					unitCommand[unitID] = nil
 				end
 				releaseTable(command)
-
-			elseif command.draw and (spIsUnitInView(unitID) or
-				(command.x and spIsSphereInView(command.x, command.y, command.z, 1))) then
-
+			elseif
+				command.draw
+				and (spIsUnitInView(unitID) or (command.x and spIsSphereInView(command.x, command.y, command.z, 1)))
+			then
 				-- draw command queue
 				local prevX, prevY, prevZ = getCachedUnitPosition(unitID)
 				local queueSize = command.queueSize
 				if queueSize > 0 and prevX and commandCount < maxCommandCount then
-
 					local lineAlphaMultiplier = opacityMul * (1 - progress)
 					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
 					local queue = command.queue
@@ -936,7 +971,9 @@ function widget:DrawWorldPreUnit()
 
 					for j = 1, queueEnd do
 						local qe = queue[j]
-						if not qe then break end  -- safety: queue may have been partially cleared
+						if not qe then
+							break
+						end -- safety: queue may have been partially cleared
 						-- Resolve position from pre-extracted data
 						local X, Y, Z
 						local ttype = qe.ttype
@@ -969,18 +1006,18 @@ function widget:DrawWorldPreUnit()
 								if drawSeg and segCount < GL4_MAX_SEGMENTS then
 									segCount = segCount + 1
 									local base = (segCount - 1) * GL4_FLOATS_PER_SEG
-									segData[base+1]  = prevX
-									segData[base+2]  = prevY
-									segData[base+3]  = prevZ
-									segData[base+4]  = X
-									segData[base+5]  = Y
-									segData[base+6]  = Z
-									segData[base+7]  = usedLineWidth
-									segData[base+8]  = lineAlpha
-									segData[base+9]  = lineColour[1]
-									segData[base+10] = lineColour[2]
-									segData[base+11] = lineColour[3]
-									segData[base+12] = texOffset
+									segData[base + 1] = prevX
+									segData[base + 2] = prevY
+									segData[base + 3] = prevZ
+									segData[base + 4] = X
+									segData[base + 5] = Y
+									segData[base + 6] = Z
+									segData[base + 7] = usedLineWidth
+									segData[base + 8] = lineAlpha
+									segData[base + 9] = lineColour[1]
+									segData[base + 10] = lineColour[2]
+									segData[base + 11] = lineColour[3]
+									segData[base + 12] = texOffset
 								end
 								-- Ghost dedup: same position = same building = draw once
 								if drawBuildQueue and qe.buildingID then
@@ -1051,14 +1088,20 @@ function widget:DrawWorldPreUnit()
 	glColor(1, 1, 1, 1)
 end
 
-
 function widget:PlayerChanged()
 	myTeamID = spGetMyTeamID()
 	mySpec = spGetSpectatingState()
 end
 
 function widget:GetConfigData()
-	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn, useTeamColors = useTeamColors, useTeamColorsWhenSpec = useTeamColorsWhenSpec, duration = duration }
+	return {
+		opacity = opacity,
+		filterAIteams = filterAIteams,
+		filterOwn = filterOwn,
+		useTeamColors = useTeamColors,
+		useTeamColorsWhenSpec = useTeamColorsWhenSpec,
+		duration = duration,
+	}
 end
 
 function widget:SetConfigData(data)
