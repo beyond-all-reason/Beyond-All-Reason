@@ -59,6 +59,7 @@ local skewTan = math.tan(math.rad(cfg.skewAngleDeg))
 
 -- System
 local guishaderEnabled = false
+local gameinfoEnabled = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = sp.GetSpectatingState()
 local myAllyTeamID = sp.GetMyAllyTeamID()
@@ -177,6 +178,7 @@ local showButtons = true
 local autoHideButtons = false
 local showResourceBars = true
 local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
+local RectRoundCircle
 local updateRes = { metal = { false, false, false, false }, energy = { false, false, false, false } }
 
 -- Display Lists (consolidated into table to save local slots)
@@ -303,6 +305,7 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
+	RectRoundCircle = WG.FlowUI.Draw.RectRoundCircle
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
@@ -365,17 +368,38 @@ local function updateButtons()
 	local sidePadding = textPadding
 	local offset = sidePadding
 	local lastbutton
+	local badgeMinRadius = fontsize * 0.42
+	local badgeFontsize = fontsize * 0.62
 
-	local function addButton(name, text)
-		local width = mathFloor((font2:GetTextWidth(text) * fontsize) + textPadding)
+	-- badge: optional number shown in a circle at the bottom right of the button text
+	local function addButton(name, text, badge)
+		local textWidth = font2:GetTextWidth(text) * fontsize
+		-- the circle grows along with the amount of characters the number has
+		local badgeRadius = badge
+			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.22))
+			or 0
+		local badgeWidth = badgeRadius * 2
+		local width = mathFloor(textWidth + badgeWidth + textPadding)
+		local textCenter = buttonsArea[3] - offset - (width / 2) - (badgeWidth / 2)
 		buttonsArea.buttons[name] = {
 			buttonsArea[3] - offset - width,
 			buttonsArea[2] + margin,
 			buttonsArea[3] - offset,
 			buttonsArea[4],
 			text,
-			buttonsArea[3] - offset - (width / 2),
+			textCenter,
 		}
+		if badge then
+			local button = buttonsArea.buttons[name]
+			button[7] = {
+				text = badge,
+				x = textCenter + (textWidth / 2) + badgeRadius + (1.5 * widgetScale),
+				-- slightly below the center of the button text, so it sits at its bottom right
+				y = button[2] + ((button[4] - button[2]) * 0.5) - (fontsize / 5) + (fontsize * 0.15),
+				radius = badgeRadius,
+				fontsize = badgeFontsize,
+			}
+		end
 		if not lastbutton then
 			buttonsArea.buttons[name][3] = buttonsArea[3]
 		end
@@ -404,6 +428,10 @@ local function updateButtons()
 	if WG.teamstats and not isScenario then
 		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
 	end
+	if WG.gameinfo then
+		local changedCount = WG.gameinfo.getChangedModoptionsCount and WG.gameinfo.getChangedModoptionsCount() or 0
+		addButton("info", BAR.I18N("ui.topbar.button.info"), changedCount > 0 and tostring(changedCount) or nil)
+	end
 	if gameIsOver then
 		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
 	end
@@ -431,6 +459,18 @@ local function updateButtons()
 		glDeleteList(dlist.buttons)
 	end
 	dlist.buttons = glCreateList(function()
+		for _, params in pairs(buttonsArea.buttons) do
+			local badge = params[7]
+			if badge then
+				-- corner size 0.586 x radius makes it a regular octagon, which reads as a circle at this size
+				-- the dark circle below the smaller colored one acts as its outline
+				local outlineColor = { 0.18, 0.18, 0.18, 1 }
+				local badgeColor = { 0.66, 0.66, 0.66, 1 }
+				local innerRadius = badge.radius - mathMax(1, badge.radius * 0.15)
+				RectRoundCircle(badge.x, badge.y, badge.radius, badge.radius * 0.586, 0, outlineColor, outlineColor)
+				RectRoundCircle(badge.x, badge.y, innerRadius, innerRadius * 0.586, 0, badgeColor, badgeColor)
+			end
+		end
 		font2:Begin(true)
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
@@ -442,6 +482,12 @@ local function updateButtons()
 				fontsize,
 				"co"
 			)
+			local badge = params[7]
+			if badge then
+				font2:SetTextColor(0.08, 0.08, 0.08, 1)
+				font2:Print(badge.text, badge.x, badge.y - (badge.fontsize * 0.32), badge.fontsize, "c")
+				font2:SetTextColor(0.92, 0.92, 0.92, 1)
+			end
 		end
 		font2:End()
 	end)
@@ -951,6 +997,15 @@ local function drawResbarValue(res)
 	font2:End()
 end
 
+-- storage is 0 when the team has no units (dead/resigned team, or before the commander spawned),
+-- dividing by it would put NaN into the bar geometry, which gl.Vertex errors on
+local function fillRatio(current, storage)
+	if not storage or storage <= 0 then
+		return 0
+	end
+	return current / storage
+end
+
 local function updateResbar(res)
 	if not showResourceBars then
 		return
@@ -995,7 +1050,7 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barArea = barArea
 	-- Always update barTexRect so it has current coordinates
 	resbarDrawinfo[res].barTexRect =
-		{ barArea[1], barArea[2], barArea[1] + ((r[res][1] / r[res][2]) * barWidth), barArea[4] }
+		{ barArea[1], barArea[2], barArea[1] + (fillRatio(r[res][1], r[res][2]) * barWidth), barArea[4] }
 
 	-- Ensure barColor is initialized
 	if not resbarDrawinfo[res].barColor then
@@ -1015,7 +1070,7 @@ local function updateResbar(res)
 		resbarDrawinfo[res].barArea = barArea
 
 		resbarDrawinfo[res].barTexRect =
-			{ barArea[1], barArea[2], barArea[1] + ((r[res][1] / r[res][2]) * barWidth), barArea[4] }
+			{ barArea[1], barArea[2], barArea[1] + (fillRatio(r[res][1], r[res][2]) * barWidth), barArea[4] }
 		-- Glow rectangles should be relative to barArea, not barTexRect, so they don't shift when resource values change
 		resbarDrawinfo[res].barGlowMiddleTexRect =
 			{ barArea[1], barArea[2] - glowSize, barArea[3], barArea[4] + glowSize }
@@ -1385,7 +1440,7 @@ local function updateResbarValues(res, update)
 			cappedCurRes = maxStorageRes * 1.07
 		end
 		local barSize = barHeight * 0.2
-		local valueWidth = mathFloor(((cappedCurRes / maxStorageRes) * barWidth))
+		local valueWidth = mathFloor(fillRatio(cappedCurRes, maxStorageRes) * barWidth)
 		if valueWidth < mathCeil(barSize) then
 			valueWidth = mathCeil(barSize)
 		end
@@ -1403,11 +1458,11 @@ local function updateResbarValues(res, update)
 				if res == "metal" then
 					color1 = { 0.51, 0.51, 0.5, 1 }
 					color2 = { 0.95, 0.95, 0.95, 1 }
-					glowAlpha = 0.025 + (0.05 * mathMin(1, cappedCurRes / r[res][2] * 40))
+					glowAlpha = 0.025 + (0.05 * mathMin(1, fillRatio(cappedCurRes, r[res][2]) * 40))
 				else
 					color1 = { 0.5, 0.45, 0, 1 }
 					color2 = { 0.8, 0.75, 0, 1 }
-					glowAlpha = 0.035 + (0.07 * mathMin(1, cappedCurRes / r[res][2] * 40))
+					glowAlpha = 0.035 + (0.07 * mathMin(1, fillRatio(cappedCurRes, r[res][2]) * 40))
 				end
 
 				RectRound(
@@ -1874,6 +1929,14 @@ function widget:Update(dt)
 		elseif not guishaderActive and guishaderEnabled then
 			guishaderEnabled = guishaderActive
 		end
+
+		-- the gameinfo widget loads after the topbar, so its button gets added once it is there
+		local gameinfoActive = WG.gameinfo ~= nil
+		if gameinfoActive ~= gameinfoEnabled then
+			gameinfoEnabled = gameinfoActive
+			refreshUi = true
+			updateButtons()
+		end
 	end
 
 	if now > timers.nextResBarUpdate then
@@ -2037,7 +2100,7 @@ local function drawResBars()
 				glColor(1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
 				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 1000 then
-				local process = (r[res][1] / r[res][2]) * 13
+				local process = fillRatio(r[res][1], r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
 					glColor(0.9, 0.4, 1, 0.045 * process)
@@ -2071,7 +2134,7 @@ local function drawResBars()
 				glColor(1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
 				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 2000 then
-				local process = (r[res][1] / r[res][2]) * 13
+				local process = fillRatio(r[res][1], r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
 					glColor(0.9, 0.55, 1, 0.045 * process)
@@ -3138,6 +3201,8 @@ local function applyButtonAction(button)
 		toggleWindow("changelog")
 	elseif button == "stats" then
 		toggleWindow("teamstats")
+	elseif button == "info" then
+		toggleWindow("gameinfo")
 	elseif button == "graphs" then
 		isvisible = graphsWindowVisible
 		hideWindows()

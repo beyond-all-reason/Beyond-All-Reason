@@ -81,8 +81,9 @@ local function getActiveAllyTeamCount()
 	return count
 end
 
+-- Will match any spare boxes, but will not leave any teams without a box.
 local function matchOverride(override, numTeams)
-	if override and override.startboxes and #override.startboxes == numTeams then
+	if override and override.startboxes and #override.startboxes >= numTeams then
 		return override
 	end
 

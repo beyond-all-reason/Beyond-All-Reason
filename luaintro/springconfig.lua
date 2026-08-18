@@ -181,6 +181,8 @@ if Spring.GetConfigInt("version", 0) < version then
 end
 
 Spring.SetConfigInt("NanoParticleMode", 1)
+Spring.SetConfigInt("UnitIconsSortedByDepth", 1)
+
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
