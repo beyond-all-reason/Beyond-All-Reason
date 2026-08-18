@@ -1,16 +1,15 @@
 function widget:GetInfo()
-  return {
-    name      = "API UnitBufferUniform Copy",
-    version   = "v0.1",
-    desc      = "Copies SUniformsBuffer every Gameframe",
-    author    = "Beherith",
-    date      = "2024.12.05",
-    license   = "GPL V2",
-    layer     = 0,
-    enabled   = false,
-  }
+	return {
+		name = "API UnitBufferUniform Copy",
+		version = "v0.1",
+		desc = "Copies SUniformsBuffer every Gameframe",
+		author = "Beherith",
+		date = "2024.12.05",
+		license = "GPL V2",
+		layer = 0,
+		enabled = false,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -20,7 +19,7 @@ local LuaShader = gl.LuaShader
 
 local cmpShader
 
--- The compute shader is reponsible for updating the position, velocity, and color of each particle 
+-- The compute shader is reponsible for updating the position, velocity, and color of each particle
 local cmpSrc = [[
 #version 430 core
 
@@ -51,9 +50,15 @@ layout(std140, binding=4) buffer UniformsBufferCopy {
 	SUniformsBuffer uniCopy[];
 };
 
+uniform uint numEntries;
+
 void main(void)
 {
 	uint index = gl_GlobalInvocationID.x;
+	if (index >= numEntries) {
+		return;
+	}
+
 	uniCopy[index].composite = uni[index].composite;
 	uniCopy[index].maxHealth = uni[index].maxHealth;
 	uniCopy[index].health = uni[index].health;
@@ -66,23 +71,37 @@ void main(void)
 }
 ]]
 
-local numEntries = 32768
-local structSize = 128
+local numEntries
+local structSizeInBytes
+local structSizeInVec4s
 
 local copyRequested = false
 
 local UniformsBufferCopy
 
 function widget:Initialize()
+	if not gl.GetEngineModelUniformDataSize then
+		spEcho("UnitBufferUniform Copy: engine does not support gl.GetEngineModelUniformDataSize")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	numEntries, structSizeInBytes = gl.GetEngineModelUniformDataSize(0)
+	if not numEntries or not structSizeInBytes or structSizeInBytes % 16 ~= 0 then
+		spEcho("UnitBufferUniform Copy: invalid engine model uniform buffer size")
+		widgetHandler:RemoveWidget()
+		return
+	end
+	structSizeInVec4s = structSizeInBytes / 16
+
 	UniformsBufferCopy = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
 	UniformsBufferCopy:Define(numEntries, {
-		{id = 0, name = "uints", size = structSize},
-	}
-	)
+		{ id = 0, name = "modelUniformData", type = GL.FLOAT_VEC4, size = structSizeInVec4s },
+	})
 	pcache = {}
-	
-	for i = 0,  (numEntries * structSize -1) do 
-		pcache[i+1] = 0
+
+	for i = 0, (numEntries * structSizeInVec4s * 4 - 1) do
+		pcache[i + 1] = 0
 	end
 	UniformsBufferCopy:Upload(pcache)
 	UniformsBufferCopy:BindBufferRange(4)
@@ -91,35 +110,44 @@ function widget:Initialize()
 		compute = cmpSrc,
 		uniformInt = {
 			heightmapTex = 0,
+			numEntries = numEntries,
 		},
 		uniformFloat = {
 			frameTime = 0.016,
-		}
+		},
 	}, "cmpShader")
-	
+
 	shaderCompiled = cmpShader:Initialize()
 	spEcho("cmpShader ", shaderCompiled)
-	if not shaderCompiled then widgetHandler:RemoveWidget() end
+	if not shaderCompiled then
+		widgetHandler:RemoveWidget()
+	end
 
 	spEcho("Hello")
-	WG['api_unitbufferuniform_copy'] = {}
-	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() 
+	WG.api_unitbufferuniform_copy = {}
+	WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy = function()
 		copyRequested = true
-		return UniformsBufferCopy 	
+		return UniformsBufferCopy
 	end
-	widgetHandler:RegisterGlobal('GetUnitUniformBufferCopy', WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy)
+	widgetHandler:RegisterGlobal("GetUnitUniformBufferCopy", WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy)
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GetUnitUniformBufferCopy')
+	widgetHandler:DeregisterGlobal("GetUnitUniformBufferCopy")
 
-	if cmpShader then cmpShader:Finalize() end
-	if UniformsBufferCopy then UniformsBufferCopy:Delete() end
+	if cmpShader then
+		cmpShader:Finalize()
+	end
+	if UniformsBufferCopy then
+		UniformsBufferCopy:Delete()
+	end
 end
 
 local lastUpdateFrame = 0
 function widget:DrawScreenPost()
-	if not copyRequested then return end
+	if not copyRequested then
+		return
+	end
 	if spGetGameFrame() == lastUpdateFrame then
 		return
 	else
@@ -127,6 +155,6 @@ function widget:DrawScreenPost()
 	end
 	UniformsBufferCopy:BindBufferRange(4) -- dunno why, but if we dont, it gets lost after a few seconds
 	cmpShader:Activate()
-	gl.DispatchCompute((Game.maxUnits/32), 1, 1)
+	gl.DispatchCompute(math.ceil(numEntries / 32), 1, 1)
 	cmpShader:Deactivate()
 end

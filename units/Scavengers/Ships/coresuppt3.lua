@@ -10,7 +10,7 @@ return {
 		buildtime = 400000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -14 -6",
-		collisionvolumescales = "84 84 246",--"19 19 58",
+		collisionvolumescales = "84 84 246", --"19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		explodeas = "bantha",
@@ -32,7 +32,7 @@ return {
 		turnrate = 120,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies & Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",

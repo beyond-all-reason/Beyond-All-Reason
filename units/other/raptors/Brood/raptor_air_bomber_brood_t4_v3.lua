@@ -1,6 +1,5 @@
 return {
 	raptor_air_bomber_brood_t4_v3 = {
-		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,

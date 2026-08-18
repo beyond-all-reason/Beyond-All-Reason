@@ -94,6 +94,13 @@ Avoid:
 - Re-implementing existing helpers/constants locally.
 - Adding expensive per-frame work in render/update callins.
 
+## Text and Translations
+
+- Use the I18N system for all user-facing text. Avoid hardcoding strings in the codebase.
+- Use the `Spring.I18N('ui.example.textname', { insertionvar = 'text' })` function to retrieve localized strings from the appropriate language files. (only available in LuaUI)
+- Only add to the english language file, other languages will be handled by the community. If you need to add a new string, please add it to the `en.lua` file in the `languages` folder.
+- Only use the `Spring.I18N` function for user-facing text, and avoid using it for internal code or debug messages.
+
 ## RmlUi interface framework
 
 - When working with the RmlUi interface framework, follow the RmlUi syntax and semantics, but always optimize for performance, meaning avoid unnecessary DOM updates, reflows, and excessive event handling and shadow DOM usage. Use the RmlUi API for all interface interactions. Where possible use absolute positioning and fixed layouts to reduce layout recalculations. Avoid using complex CSS selectors and prefer class-based styling for better performance. Use RmlUi's built-in event handling system instead of relying on external libraries or custom event handling code.

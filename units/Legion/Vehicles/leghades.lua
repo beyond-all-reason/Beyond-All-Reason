@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 2.424,
 		turnrate = 544,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",
@@ -123,7 +123,6 @@ return {
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				soundstartvolume = 2,
 				--sprayangle = 500,
 				turret = true,
 				weapontype = "Cannon",

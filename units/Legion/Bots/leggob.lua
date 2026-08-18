@@ -31,7 +31,7 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
@@ -119,7 +119,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun2",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1000,
 				texture1 = "shot",

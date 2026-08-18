@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -102,7 +102,7 @@ return {
 			leg_t2_microflak = {
 				accuracy = 1000,
 				areaofeffect = 44,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,
@@ -152,4 +152,3 @@ return {
 		},
 	},
 }
-

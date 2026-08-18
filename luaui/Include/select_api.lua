@@ -4,8 +4,8 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
-local defaultdamagetag = Game.armorTypes['default']
-local vtoldamagetag = Game.armorTypes['vtol']
+local defaultdamagetag = Game.armorTypes.default
+local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -55,11 +55,11 @@ local function logError(message)
 end
 
 local function isBuilder(udef)
-	return (udef.canReclaim and udef.reclaimSpeed > 0) or
-		(udef.canResurrect and udef.resurrectSpeed > 0) or
-		(udef.canRepair and udef.repairSpeed > 0) or
-		(udef.buildOptions and udef.buildOptions[1]) or
-		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
+	return (udef.canReclaim and udef.reclaimSpeed > 0)
+		or (udef.canResurrect and udef.resurrectSpeed > 0)
+		or (udef.canRepair and udef.repairSpeed > 0)
+		or (udef.buildOptions and udef.buildOptions[1])
+		or (udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
 end
 
 local function invertCurry(invert, filter, args)
@@ -89,7 +89,7 @@ end
 local function checkCmd(uid, cmdId, indexTemp)
 	local index = indexTemp or 1
 	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
+	if cmd and cmd[index] and cmd[index].id == cmdId then
 		return true
 	end
 	return false
@@ -133,7 +133,7 @@ local function parseFilter(filterDef)
 		local tokenLower = string.lower(token)
 
 		if tokenLower == "not" then
-			invert = true;
+			invert = true
 			token = getNextToken()
 			tokenLower = string.lower(token)
 		end
@@ -252,7 +252,7 @@ local function parseFilter(filterDef)
 				end
 
 				for _name, weapondef in pairs(udef.wDefs) do
-					if (weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag]) then
+					if weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag] then
 						return true
 					end
 				end
@@ -295,7 +295,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = UnitDefNames[name];
+			local udefid = UnitDefNames[name]
 
 			if udefid then
 				idMatchesSet[udefid] = true
@@ -399,8 +399,12 @@ local function getMouseWorldPos()
 	local mouseX, mouseY = spGetMouseState()
 	local desc, args = spTraceScreenRay(mouseX, mouseY, true)
 
-	if nil == desc then return end -- off map
-	if nil == args then return end
+	if nil == desc then
+		return
+	end -- off map
+	if nil == args then
+		return
+	end
 
 	local x = args[1]
 	local y = args[2]
@@ -448,7 +452,7 @@ local function getCountUnits(uids, countUntil, appendSelected)
 
 		-- break after full cycle or countUntil reached
 		if countUnitsIndex == countUnitsIndexStart or selectedCount >= countUntil then
-			break;
+			break
 		end
 	end
 
@@ -474,7 +478,6 @@ local function parseNumber(input, fn)
 		return fn(distance or 0, args)
 	end
 end
-
 
 local function parseConclusion(conclusionDef)
 	local appendSelected = true
@@ -566,12 +569,12 @@ local function parseSource(sourceDef)
 
 	if sourceDefLower == "allmap" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then

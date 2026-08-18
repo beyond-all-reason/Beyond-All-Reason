@@ -29,7 +29,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwww wwwwww wwwwww wwwwww wwwwww wwwwww",
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/arm_normal.dds",
 			removewait = true,
@@ -51,6 +51,18 @@ return {
 				metal = 350,
 				object = "Units/armanavaldefturret_dead.s3o",
 				reclaimable = true,
+			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 6200,
+				footprintx = 5,
+				footprintz = 5,
+				height = 4,
+				metal = 437,
+				object = "Units/arm5X5B.s3o",
+				reclaimable = true,
+				resurrectable = 0,
 			},
 		},
 		sfxtypes = {
