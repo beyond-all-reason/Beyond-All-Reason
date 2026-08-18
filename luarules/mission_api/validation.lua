@@ -464,7 +464,7 @@ validators[Types.Command] = function(command)
 		end
 		local consumer = consumedInAllowCommand[command]
 		if consumer then
-			return { { severity = 'warning', message = "Command " .. tostring(command) .. " is consumed in :AllowCommand by " .. consumer .. "; UnitOrdered will not observe it" } }
+			return { { severity = 'warning', message = "Command " .. tostring(command) .. " may fail to trigger in UnitOrdered" } }
 		end
 	elseif type(command) == 'string' then
 		if not UnitDefNames[command] then
