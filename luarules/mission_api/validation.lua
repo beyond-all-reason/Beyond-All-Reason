@@ -30,23 +30,23 @@ end
 -- Rather, the :AllowCommand callin catches them, executes their behavior and returns false.
 local consumedInAllowCommand = {}
 for _, entry in ipairs({
-	{ CMD.CLOAK,                         'unit_cloak (replaced by WANT_CLOAK)' },
-	{ CMD.STOCKPILE,                     'unit_stockpile_limit (stockpile-capped units)' },
-	{ GameCMD.UNIT_SET_TARGET,           'unit_target_on_the_move' },
-	{ GameCMD.UNIT_SET_TARGET_NO_GROUND, 'unit_target_on_the_move' },
-	{ GameCMD.UNIT_SET_TARGET_RECTANGLE, 'unit_target_on_the_move' },
-	{ GameCMD.UNIT_CANCEL_TARGET,        'unit_target_on_the_move' },
-	{ GameCMD.PRIORITY,                  'unit_builder_priority' },
-	{ GameCMD.FACTORY_GUARD,             'unit_factory_guard' },
-	{ GameCMD.STOP_PRODUCTION,           'cmd_factory_stop_production' },
-	{ GameCMD.QUOTA_BUILD_TOGGLE,        'unit_factory_quota' },
-	{ GameCMD.LAND_AT,                   'unit_air_plants' },
-	{ GameCMD.SMART_TOGGLE,              'unit_weapon_smart_select_helper' },
-	{ GameCMD.CARRIER_SPAWN_ONOFF,       'unit_carrier_spawner' },
-	{ GameCMD.MANUAL_LAUNCH,             'cmd_manual_launch (reissued as CMD.MANUALFIRE)' },
+	{ command = CMD.CLOAK,                         reason = 'unit_cloak (replaced by WANT_CLOAK)' },
+	{ command = CMD.STOCKPILE,                     reason = 'unit_stockpile_limit (stockpile-capped units)' },
+	{ command = GameCMD.UNIT_SET_TARGET,           reason = 'unit_target_on_the_move' },
+	{ command = GameCMD.UNIT_SET_TARGET_NO_GROUND, reason = 'unit_target_on_the_move' },
+	{ command = GameCMD.UNIT_SET_TARGET_RECTANGLE, reason = 'unit_target_on_the_move' },
+	{ command = GameCMD.UNIT_CANCEL_TARGET,        reason = 'unit_target_on_the_move' },
+	{ command = GameCMD.PRIORITY,                  reason = 'unit_builder_priority' },
+	{ command = GameCMD.FACTORY_GUARD,             reason = 'unit_factory_guard' },
+	{ command = GameCMD.STOP_PRODUCTION,           reason = 'cmd_factory_stop_production' },
+	{ command = GameCMD.QUOTA_BUILD_TOGGLE,        reason = 'unit_factory_quota' },
+	{ command = GameCMD.LAND_AT,                   reason = 'unit_air_plants' },
+	{ command = GameCMD.SMART_TOGGLE,              reason = 'unit_weapon_smart_select_helper' },
+	{ command = GameCMD.CARRIER_SPAWN_ONOFF,       reason = 'unit_carrier_spawner' },
+	{ command = GameCMD.MANUAL_LAUNCH,             reason = 'cmd_manual_launch (reissued as CMD.MANUALFIRE)' },
 }) do
-	if entry[1] then
-		consumedInAllowCommand[entry[1]] = entry[2]
+	if entry.command then
+		consumedInAllowCommand[entry.command] = entry.reason
 	end
 end
 
