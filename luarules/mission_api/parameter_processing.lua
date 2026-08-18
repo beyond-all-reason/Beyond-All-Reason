@@ -74,10 +74,9 @@ local processors = {
 	[ParameterTypes.Orders]                = processOrders,
 	[ParameterTypes.Command]               = processCommand,
 	[ParameterTypes.SoundFile]             = processSoundFile,
-	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
 }
 for enumSetType in pairs(enumSets) do
-	processors[enumSetType]    = processEnumSet
+	processors[enumSetType]                = processEnumSet
 end
 
 ----------------------------------------------------------------
