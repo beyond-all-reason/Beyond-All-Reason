@@ -37,12 +37,12 @@ local latches = {}
 
 local function inIdleTaskAtIndex(unitID, index)
 	local cmdID, cmdOptions, _, _, secondParam, _, fourthParam = Spring.GetUnitCurrentCommand(unitID, index)
-	local params = cmdID and IDLE_TASK_PARAMS[cmdID]
-	if not params or bit_and(cmdOptions, OPT_INTERNAL) == 0 then
+	local wantedParamCount = cmdID and IDLE_TASK_PARAMS[cmdID]
+	if not wantedParamCount or bit_and(cmdOptions, OPT_INTERNAL) == 0 then
 		return false
 	end
-	return (params == 1 and secondParam == nil)
-		or (params == 3 and fourthParam == nil) -- NB: leaky.
+	return (wantedParamCount == 1 and secondParam == nil)
+		or (wantedParamCount == 3 and fourthParam == nil) -- NB: leaky.
 end
 
 ---Whether everything in the unit's command queue is an idle task.
