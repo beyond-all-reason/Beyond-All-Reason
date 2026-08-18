@@ -96,7 +96,70 @@ local function pipFill(virtualIndex)
 	return 1, 1
 end
 
-local function buildCmdDesc(command, virtualIndex)
+-- the card seeds its cycle from the lowest state the selection holds, so anything
+-- acting on a keypress has to agree or the button appears to do nothing
+local function lowestSelectionVirtualIndex(selectedUnits)
+	local lowest
+	for index = 1, #selectedUnits do
+		local virtualIndex = resolveVirtualIndex(selectedUnits[index])
+		if virtualIndex and (lowest == nil or virtualIndex < lowest) then
+			lowest = virtualIndex
+		end
+	end
+
+	return lowest
+end
+
+-- the merged descriptor covers the whole selection, so prefer it over asking one
+-- unit; the lowest keeps the label and pips agreeing on the same state
+local function resolveSelectionVirtualIndex(modes, fallbackUnitID)
+	if modes and #modes > 0 and not Spring.GetModOptions().experimental_defend_firestate then
+		local lowest
+		for index = 1, #modes do
+			local state = CustomFirestateDefs.fromEngineFirestate(modes[index])
+			local virtualIndex = virtualIndexByStateDisabled[state]
+			if virtualIndex and (lowest == nil or virtualIndex < lowest) then
+				lowest = virtualIndex
+			end
+		end
+		if lowest then
+			return lowest
+		end
+	end
+
+	return resolveVirtualIndex(fallbackUnitID)
+end
+
+-- engine firestate only tells the whole story while Defend is off; with it on,
+-- Defend and Fire at will share one engine value, so the merged set can't
+-- separate them. presentModes is absent on engines predating RecoilEngine#3218.
+local function pipPartialMask(modes)
+	if Spring.GetModOptions().experimental_defend_firestate then
+		return nil
+	end
+	if not modes or #modes < 2 then
+		return nil
+	end
+
+	local mask = 0
+	for index = 1, #modes do
+		local state = CustomFirestateDefs.fromEngineFirestate(modes[index])
+		local virtualIndex = virtualIndexByStateDisabled[state]
+		if virtualIndex then
+			local fillMin, fillMax = pipFill(virtualIndex)
+			for pip = fillMin, fillMax do
+				local bit = 2 ^ (pip - 1)
+				if math.floor(mask / bit) % 2 == 0 then
+					mask = mask + bit
+				end
+			end
+		end
+	end
+
+	return mask
+end
+
+local function buildCmdDesc(command, virtualIndex, modes)
 	local cmdDesc = table.copy(command)
 	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
 		or labelByVirtualIndexDisabled
@@ -108,6 +171,7 @@ local function buildCmdDesc(command, virtualIndex)
 	}
 	cmdDesc.virtualIndex = virtualIndex
 	cmdDesc.pipFillMin, cmdDesc.pipFillMax = pipFill(virtualIndex)
+	cmdDesc.pipPartialMask = pipPartialMask(modes)
 	return cmdDesc
 end
 
@@ -171,7 +235,7 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if #selectedUnits == 0 then
 		return false
 	end
-	local virtualIndex = resolveVirtualIndex(selectedUnits[1])
+	local virtualIndex = lowestSelectionVirtualIndex(selectedUnits)
 	if virtualIndex == nil then
 		return false
 	end
@@ -233,6 +297,8 @@ return {
 	stateLabel = stateLabel,
 	pipFill = pipFill,
 	resolveVirtualIndex = resolveVirtualIndex,
+	resolveSelectionVirtualIndex = resolveSelectionVirtualIndex,
+	lowestSelectionVirtualIndex = lowestSelectionVirtualIndex,
 	nextCycledVirtualIndex = nextCycledVirtualIndex,
 	giveVirtualIndex = giveVirtualIndex,
 	hotkeyHandler = hotkeyHandler,
