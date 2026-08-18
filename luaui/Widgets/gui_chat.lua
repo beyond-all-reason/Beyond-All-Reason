@@ -4048,7 +4048,6 @@ function widget:MousePress(x, y, button)
 		)
 	then
 		self:cycleInputMode()
-		updateTextInputDlist = true
 		return true
 	end
 
