@@ -18,7 +18,7 @@ local onOrderGiven
 local descrByState = {
 	["Hold fire"] = "firestate_hold_fire_descr",
 	["Return fire"] = "firestate_return_fire_descr",
-	["Defend"] = "firestate_defend_descr",
+	Defend = "firestate_defend_descr",
 	["Fire at will"] = "firestate_fire_at_will_descr",
 	["Fire at all"] = "firestate_fire_at_all_descr",
 }
@@ -76,7 +76,8 @@ local function resolveVirtualIndex(unitID)
 	if userFirestate == nil then
 		return nil
 	end
-	local virtualIndexByState = Spring.GetModOptions().experimental_defend_firestate and virtualIndexByStateEnabled or virtualIndexByStateDisabled
+	local virtualIndexByState = Spring.GetModOptions().experimental_defend_firestate and virtualIndexByStateEnabled
+		or virtualIndexByStateDisabled
 	return virtualIndexByState[userFirestate]
 end
 
@@ -97,7 +98,8 @@ end
 
 local function buildCmdDesc(command, virtualIndex)
 	local cmdDesc = table.copy(command)
-	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
+	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
+		or labelByVirtualIndexDisabled
 	cmdDesc.params = {
 		virtualIndex - 1,
 		labels[1],
@@ -111,7 +113,8 @@ end
 
 local function stateLabel(cmd)
 	if cmd.virtualIndex then
-		local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
+		local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
+			or labelByVirtualIndexDisabled
 		return labels[cmd.virtualIndex]
 	end
 	return nil
@@ -188,7 +191,7 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 end
 
 local function hasMatchingStagedFirestate(engineParam)
-	local stagedFirestateByUnitId = WG['firestate'] and WG['firestate'].stagedFirestateByUnitId
+	local stagedFirestateByUnitId = WG.firestate and WG.firestate.stagedFirestateByUnitId
 	if not stagedFirestateByUnitId then
 		return false
 	end

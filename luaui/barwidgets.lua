@@ -11,24 +11,24 @@
 --------------------------------------------------------------------------------
 
 VFS.Include(LUAUI_DIRNAME .. "Headers/keysym.h.lua", nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "system.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "callins.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
 
 local gl = gl
 
-local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
-local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
+local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
+local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
-local SELECTOR_BASENAME = 'selector.lua'
+local SELECTOR_BASENAME = "selector.lua"
 
 local SAFEWRAP = 1
 -- 0: disabled
 -- 1: enabled, but can be overriden by widget.GetInfo().unsafe
 -- 2: always enabled
 
-local SAFEDRAW = false  -- requires SAFEWRAP to work
+local SAFEDRAW = false -- requires SAFEWRAP to work
 local glPopAttrib = gl.PopAttrib
 local glPushAttrib = gl.PushAttrib
 
@@ -41,6 +41,7 @@ Spring.SendCommands({
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
@@ -51,7 +52,9 @@ if anonymousMode ~= "disabled" then
 
 	-- disabling individual Spring functions isnt really good enough
 	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
-	Spring.SetTeamColor = function() return true end
+	Spring.SetTeamColor = function()
+		return true
+	end
 
 	if not Spring.GetSpectatingState() then
 		Spring.SendCommands("info 0")
@@ -90,7 +93,7 @@ widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
-	chobbyInterface = false,	-- will be true when chobby interface is on top
+	chobbyInterface = false, -- will be true when chobby interface is on top
 
 	xViewSize = 1,
 	yViewSize = 1,
@@ -98,174 +101,209 @@ widgetHandler = {
 	yViewSizeOld = 1,
 }
 
-
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
-	'GameOver',
-	'GameFrame',
-	'GameFramePost',
-	'GameSetup',
-	'GamePaused',
-	'TeamDied',
-	'TeamChanged',
-	'PlayerAdded',
-	'PlayerRemoved',
-	'PlayerChanged',
-	'ShockFront',
-	'WorldTooltip',
+	"GameOver",
+	"GameFrame",
+	"GameFramePost",
+	"GameSetup",
+	"GamePaused",
+	"TeamDied",
+	"TeamChanged",
+	"PlayerAdded",
+	"PlayerRemoved",
+	"PlayerChanged",
+	"ShockFront",
+	"WorldTooltip",
 	'GetBuildShape',
-	'MapDrawCmd',
-	'ActiveCommandChanged',
-	'CameraRotationChanged',
-	'CameraPositionChanged',
-	'DefaultCommand',
-	'UnitCreated',
-	'UnitFinished',
-	'UnitFromFactory',
-	'UnitDestroyed',
-	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
-	'RenderUnitDestroyed',
-	'UnitExperience',
-	'UnitTaken',
-	'UnitGiven',
-	'UnitIdle',
-	'UnitCommand',
-	'UnitCmdDone',
-	'UnitDamaged',
+	"MapDrawCmd",
+	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
+	"DefaultCommand",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitFromFactory",
+	"UnitDestroyed",
+	"UnitDestroyedByTeam", -- NB: called via gadget, not engine
+	"RenderUnitDestroyed",
+	"UnitExperience",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitIdle",
+	"UnitCommand",
+	"UnitCmdDone",
+	"UnitDamaged",
 	"UnitStunned",
-	'UnitEnteredRadar',
-	'UnitEnteredLos',
-	'UnitLeftRadar',
-	'UnitLeftLos',
-	'UnitEnteredWater',
-	'UnitEnteredAir',
-	'UnitLeftWater',
-	'UnitLeftAir',
-	'UnitSeismicPing',
-	'UnitLoaded',
-	'UnitUnloaded',
-	'UnitCloaked',
-	'UnitDecloaked',
-	'UnitMoveFailed',
-	'MetaUnitAdded',
-	'MetaUnitRemoved',
-	'RecvLuaMsg',
-	'StockpileChanged',
-	'SelectionChanged',
-	'DrawGenesis',
-	'DrawGroundDeferred',
-	'DrawWorld',
-	'DrawWorldPreUnit',
-	'DrawPreDecals',
-	'DrawWorldPreParticles',
-	'DrawWorldShadow',
-	'DrawWorldReflection',
-	'DrawWorldRefraction',
-	'DrawUnitsPostDeferred',
-	'DrawFeaturesPostDeferred',
-	'DrawScreenEffects',
-	'DrawScreenPost',
-	'DrawInMiniMap',
- 	'DrawBuildSquare',
-	'DrawOpaqueUnitsLua',
-	'DrawOpaqueFeaturesLua',
-	'DrawAlphaUnitsLua',
-	'DrawAlphaFeaturesLua',
-	'DrawShadowUnitsLua',
-	'DrawShadowFeaturesLua',
-	'SunChanged',
-	'FeatureCreated',
-	'FeatureDestroyed',
-	'UnsyncedHeightMapUpdate',
+	"UnitEnteredRadar",
+	"UnitEnteredLos",
+	"UnitLeftRadar",
+	"UnitLeftLos",
+	"UnitEnteredWater",
+	"UnitEnteredAir",
+	"UnitLeftWater",
+	"UnitLeftAir",
+	"UnitSeismicPing",
+	"UnitLoaded",
+	"UnitUnloaded",
+	"UnitCloaked",
+	"UnitDecloaked",
+	"UnitMoveFailed",
+	"MetaUnitAdded",
+	"MetaUnitRemoved",
+	"RecvLuaMsg",
+	"StockpileChanged",
+	"SelectionChanged",
+	"DrawGenesis",
+	"DrawGroundPreForward",
+	"DrawGroundPostForward",
+	"DrawGroundPreDeferred",
+	"DrawGroundPostDeferred",
+	"DrawGroundDeferred",
+	"DrawWorld",
+	"DrawWorldPreUnit",
+	"DrawPreDecals",
+	"DrawWorldPreParticles",
+	"DrawWorldShadow",
+	"DrawWorldReflection",
+	"DrawWorldRefraction",
+	"DrawUnitsPostDeferred",
+	"DrawFeaturesPostDeferred",
+	"DrawScreenEffects",
+	"DrawScreenPost",
+	"DrawInMiniMap",
+	"DrawBuildSquare",
+	"DrawOpaqueUnitsLua",
+	"DrawOpaqueFeaturesLua",
+	"DrawAlphaUnitsLua",
+	"DrawAlphaFeaturesLua",
+	"DrawShadowUnitsLua",
+	"DrawShadowFeaturesLua",
+	"SunChanged",
+	"FeatureCreated",
+	"FeatureDestroyed",
+	"UnsyncedHeightMapUpdate",
 }
+if Engine.FeatureSupport.nanoParticleUpdateCallin then
+	flexCallIns[#flexCallIns + 1] = "NanoParticleUpdate"
+end
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
 	flexCallInMap[ci] = true
 end
 
 local callInLists = {
-	'FontsChanged',
-	'GamePreload',
-	'GameStart',
-	'Shutdown',
-	'Update',
-	'TextCommand',
-	'CommandNotify',
-	'AddConsoleLine',
-	'ViewResize',
-	'DrawScreen',
-	'KeyPress',
-	'KeyRelease',
-	'TextInput',
-	'MousePress',
-	'MouseWheel',
-	'ControllerAdded',
-	'ControllerRemoved',
-	'ControllerConnected',
-	'ControllerDisconnected',
-	'ControllerRemapped',
-	'ControllerButtonUp',
-	'ControllerButtonDown',
-	'ControllerAxisMotion',
-	'IsAbove',
-	'GetTooltip',
-	'GroupChanged',
-	'GameProgress',
-	'CommandsChanged',
-	'LanguageChanged',
-	'UnitBlocked',
-	'VisibleUnitAdded',
-	'VisibleUnitRemoved',
-	'VisibleUnitsChanged',
-	'AlliedUnitAdded',
-	'AlliedUnitRemoved',
-	'AlliedUnitsChanged',
-	'UnitSale',
-	'UnitSold',
-	'VisibleExplosion',
-	'Barrelfire',
-	'CrashingAircraft',
-	'SendStats',
-	'SendStats_GameMode',
-	'ActivityEvent',
-	'FpsEvent',
-	'ApmEvent',
-	'GpuMemEvent',
-	'LuaMemEvent',
-	'SystemEvent',
-	'RankingEvent',
-	'MouseCursorEvent',
-	'CameraBroadcastEvent',
-	'FeatureReclaimStartedETA',
-	'UnitBuildspeedDebuffHealthbars',
-	'UnitBuildspeedDebuffEndHealthbars',
-	'GadgetAddMessage',
-	'GadgetReceiveAwards',
-	'UnitScriptLight',
-	'UnitScriptDistortion',
-	'UnitScriptDecal',
-	'GadgetRemoveGrass',
-	'GadgetCoopStartPoint',
-	'NotificationEvent',
-	'NightFactorChanged',
-	'ScavEvent',
-	'RaptorEvent',
-	'FeatureReclaimStartedHealthbars',
-	'UnitCaptureStartedHealthbars',
-	'ProjectileCreatedReloadHB',
-	'UnitParalyzeDamageHealthbars',
-	'UnitParalyzeDamageEffect',
-	'SelectedUnitsClear',
-	'SelectedUnitsBatchUpdate',
-	'SelectedUnitsRemove',
-	'SelectedUnitsAdd',
-	'LavaRenderState',
-	'ClearMapMarks',
+	"FontsChanged",
+	"GamePreload",
+	"GameStart",
+	"Shutdown",
+	"Update",
+	"TextCommand",
+	"CommandNotify",
+	"AddConsoleLine",
+	"ViewResize",
+	"DrawScreen",
+	"KeyPress",
+	"KeyRelease",
+	"TextInput",
+	"MousePress",
+	"MouseWheel",
+	"ControllerAdded",
+	"ControllerRemoved",
+	"ControllerConnected",
+	"ControllerDisconnected",
+	"ControllerRemapped",
+	"ControllerButtonUp",
+	"ControllerButtonDown",
+	"ControllerAxisMotion",
+	"IsAbove",
+	"GetTooltip",
+	"GroupChanged",
+	"GameProgress",
+	"CommandsChanged",
+	"LanguageChanged",
+	"UnitBlocked",
+	"VisibleUnitAdded",
+	"VisibleUnitRemoved",
+	"VisibleUnitsChanged",
+	"AlliedUnitAdded",
+	"AlliedUnitRemoved",
+	"AlliedUnitsChanged",
+	"UnitSale",
+	"UnitSold",
+	"VisibleExplosion",
+	"Barrelfire",
+	"CrashingAircraft",
+	"SendStats",
+	"SendStats_GameMode",
+	"ActivityEvent",
+	"FpsEvent",
+	"ApmEvent",
+	"GpuMemEvent",
+	"LuaMemEvent",
+	"SystemEvent",
+	"RankingEvent",
+	"MouseCursorEvent",
+	"CameraBroadcastEvent",
+	"FeatureReclaimStartedETA",
+	"UnitBuildspeedDebuffHealthbars",
+	"UnitBuildspeedDebuffEndHealthbars",
+	"GadgetAddMessage",
+	"GadgetReceiveAwards",
+	"UnitScriptLight",
+	"UnitScriptDistortion",
+	"UnitScriptDecal",
+	"GadgetRemoveGrass",
+	"GadgetCoopStartPoint",
+	"NotificationEvent",
+	"NightFactorChanged",
+	"ScavEvent",
+	"RaptorEvent",
+	"FeatureReclaimStartedHealthbars",
+	"UnitCaptureStartedHealthbars",
+	"ProjectileCreatedReloadHB",
+	"UnitParalyzeDamageHealthbars",
+	"UnitParalyzeDamageEffect",
+	"SelectedUnitsClear",
+	"SelectedUnitsSet",
+	"SelectedUnitsBatchUpdate",
+	"SelectedUnitsRemove",
+	"SelectedUnitsAdd",
+	"LavaRenderState",
+	"ClearMapMarks",
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
 	--  'MouseRelease',
+}
+
+local headlessDisabledCallIns = {
+	FontsChanged = true,
+	ViewResize = true,
+	DrawScreen = true,
+	DrawGenesis = true,
+	DrawGroundDeferred = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawPreDecals = true,
+	DrawWorldPreParticles = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawUnitsPostDeferred = true,
+	DrawFeaturesPostDeferred = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawInMiniMap = true,
+	DrawBuildSquare = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	SunChanged = true,
 }
 
 -- append the flex call-ins
@@ -276,7 +314,7 @@ end
 -- initialize the call-in lists
 do
 	for _, listname in ipairs(callInLists) do
-		widgetHandler[listname .. 'List'] = {}
+		widgetHandler[listname .. "List"] = {}
 	end
 end
 
@@ -293,7 +331,7 @@ function widgetHandler:LoadConfigData()
 		end
 		return {}
 	elseif chunk() == nil then
-		Spring.Log("barwidgets.lua", LOG.ERROR, 'Luaui config file was blank')
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Luaui config file was blank")
 		return {}
 	end
 	local tmp = {}
@@ -320,7 +358,7 @@ function widgetHandler:SaveConfigData()
 	filetable.order = self.orderList
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
-	table.save(filetable, CONFIG_FILENAME, '-- Widget Custom data and order, order = 0 disabled widget')
+	table.save(filetable, CONFIG_FILENAME, "-- Widget Custom data and order, order = 0 disabled widget")
 end
 
 function widgetHandler:SendConfigData()
@@ -333,10 +371,9 @@ function widgetHandler:SendConfigData()
 	end
 end
 
-
 --------------------------------------------------------------------------------
 local unsortedWidgets
-local doMoreYield = (Spring.Yield ~= nil);
+local doMoreYield = (Spring.Yield ~= nil)
 
 local function Yield()
 	if doMoreYield then
@@ -353,8 +390,8 @@ local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
 	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
-		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	for _, subDirectory in ipairs(VFS.SubDirs(folder)) do
+		table.append(widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode))
 	end
 
 	for _, file in ipairs(widgetFiles) do
@@ -374,14 +411,14 @@ local function CreateSandboxedSystem()
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
-		if string.find(k, '^GiveOrder') then
+		if string.find(k, "^GiveOrder") then
 			SandboxedSpring[k] = disabledOrder
 		else
 			SandboxedSpring[k] = v
 		end
 	end
 	for k, v in pairs(System) do
-		if k == 'Spring' then
+		if k == "Spring" then
 			SandboxedSystem[k] = SandboxedSpring
 		else
 			SandboxedSystem[k] = v
@@ -398,7 +435,7 @@ function widgetHandler:Initialize()
 		self.allowUserWidgets = true
 	end
 
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
 
@@ -456,22 +493,21 @@ function widgetHandler:AddSpadsMessage(contents)
 
 	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
 	-- Lua Message Format:
-		-- leetspeek luaspads:base64message
-		-- lu@$p@d$:ABCEDFGS==
-		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
+	-- leetspeek luaspads:base64message
+	-- lu@$p@d$:ABCEDFGS==
+	-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
-	if type(contents) == 'table' then
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
+	local gameSeconds = math.max(0, math.round(Spring.GetGameFrame() / 30))
+	if type(contents) == "table" then
 		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
-	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
+	local b64message = "lu@$p@d$:" .. string.base64Encode(rawmessage)
 	Spring.SendLuaRulesMsg(b64message)
 end
-
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
@@ -481,17 +517,19 @@ function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
 	if w then
 		widgetHandler:InsertWidgetRaw(w)
-		Spring.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		Spring.Echo("Reloaded from game: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 	end
 	return w
 end
 
-
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST)
+	local text = VFS.LoadFile(
+		filename,
+		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
+	)
 	if text == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
+		Spring.Echo("Failed to load: " .. basename .. "  (missing file: " .. filename .. ")")
 		return nil
 	end
 
@@ -500,13 +538,13 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
 		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
 		-- loading again with a code snippet that sets up external access to those variables.
-		localsAccess = localsAccess or VFS.Include('common/testing/locals_access.lua')
+		localsAccess = localsAccess or VFS.Include("common/testing/locals_access.lua")
 
 		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
 			return nil
 		end
 
@@ -514,7 +552,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+			Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
 			return nil
 		end
 		if err == false then
@@ -528,7 +566,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 
@@ -536,7 +574,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 	if err == false then
@@ -553,7 +591,12 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
-			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
+			Spring.Echo(
+				"Failed to load: " .. basename .. "  (user widgets may not access widgetHandler)",
+				fromZip,
+				filename,
+				allowuserwidgets
+			)
 			return nil
 		end
 	end
@@ -561,19 +604,19 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
 	if basename == SELECTOR_BASENAME then
-		self.orderList[name] = 1  -- always load the widget selector
+		self.orderList[name] = 1 -- always load the widget selector
 	end
 
 	err = self:ValidateWidget(widget)
 	if err then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
+		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
 		return nil
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
-			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
+			Spring.Echo("Failed to load: " .. basename .. "  (duplicate name)")
 			return nil
 		end
 	else
@@ -592,7 +635,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
+		Spring.Echo("Failed to load: " .. basename .. "  (no GetInfo() call)")
 		return nil
 	end
 
@@ -606,7 +649,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
+		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -619,7 +662,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return nil
 	end
 	if not fromZip then
-		local md5 = VFS.CalculateHash(text,0)
+		local md5 = VFS.CalculateHash(text, 0)
 		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
 		end
@@ -634,14 +677,12 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	return widget
 end
 
-local WidgetMeta =
-{
+local WidgetMeta = {
 	__index = System,
 	__metatable = true,
 }
 
-local SandboxedWidgetMeta =
-{
+local SandboxedWidgetMeta = {
 	__index = SandboxedSystem,
 	__metatable = true,
 }
@@ -663,7 +704,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 		setmetatable(widget, metaRef)
 	end
 
-	widget.WG = self.WG    -- the shared table
+	widget.WG = self.WG -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
@@ -763,30 +804,30 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 	end
 
-	widget.whInfo = {}  --  a proxy table
+	widget.whInfo = {} --  a proxy table
 	local mt = {
 		__index = wi,
 		__newindex = function()
 			error("whInfo tables are read-only")
 		end,
-		__metatable = "protected"
+		__metatable = "protected",
 	}
 	setmetatable(widget.whInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation. Saves 0.5us per tracy call, (1 us -> 0.5us)
 	if tracy then
-		widget._tracyUpdateName             = "W:Update:"             .. wi.name
-		widget._tracyViewResizeName         = "W:ViewResize:"         .. wi.name
-		widget._tracyDrawScreenName         = "W:DrawScreen:"         .. wi.name
-		widget._tracyDrawGenesisName        = "W:DrawGenesis:"        .. wi.name
-		widget._tracyDrawWorldName          = "W:DrawWorld:"          .. wi.name
-		widget._tracyDrawWorldPreUnitName   = "W:DrawWorldPreUnit:"   .. wi.name
-		widget._tracyDrawScreenEffectsName  = "W:DrawScreenEffects:"  .. wi.name
-		widget._tracyDrawScreenPostName     = "W:DrawScreenPost:"     .. wi.name
-		widget._tracyGameStartName          = "W:GameStart:"          .. wi.name
-		widget._tracyPlayerChangedName      = "W:PlayerChanged:"      .. wi.name
-		widget._tracyGameFrameName          = "W:GameFrame:"          .. wi.name
-		widget._tracyGameFramePostName      = "W:GameFramePost:"      .. wi.name
-		widget._tracyVisibleUnitsChangedName= "W:VisibleUnitsChanged:".. wi.name
+		widget._tracyUpdateName = "W:Update:" .. wi.name
+		widget._tracyViewResizeName = "W:ViewResize:" .. wi.name
+		widget._tracyDrawScreenName = "W:DrawScreen:" .. wi.name
+		widget._tracyDrawGenesisName = "W:DrawGenesis:" .. wi.name
+		widget._tracyDrawWorldName = "W:DrawWorld:" .. wi.name
+		widget._tracyDrawWorldPreUnitName = "W:DrawWorldPreUnit:" .. wi.name
+		widget._tracyDrawScreenEffectsName = "W:DrawScreenEffects:" .. wi.name
+		widget._tracyDrawScreenPostName = "W:DrawScreenPost:" .. wi.name
+		widget._tracyGameStartName = "W:GameStart:" .. wi.name
+		widget._tracyPlayerChangedName = "W:PlayerChanged:" .. wi.name
+		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
+		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
+		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
 	end
 end
 
@@ -797,24 +838,23 @@ function widgetHandler:ValidateWidget(widget)
 	return nil
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local function widgetFailure(w, funcName, errorMsg)
 	local name = w.whInfo.name
-	local errorBase = 'Error'
-	if funcName ~= 'Shutdown' then
+	local errorBase = "Error"
+	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
 		if not w.canControlUnits and errorMsg:find(SANDBOXED_ERROR_MSG) then
-			errorBase = 'Sandbox error'
+			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
 	else
-		Spring.Echo('Error in Shutdown()')
+		Spring.Echo("Error in Shutdown()")
 	end
-	Spring.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(errorMsg))
-	Spring.Echo('Removed widget: ' .. name)
+	Spring.Echo(errorBase .. " in " .. funcName .. "(): " .. tostring(errorMsg))
+	Spring.Echo("Removed widget: " .. name)
 	return nil
 end
 
@@ -847,7 +887,7 @@ local function SafeWrapFunc(func, funcName)
 	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
 	else
-		if string.sub(funcName, 1, 4) ~= 'Draw' then
+		if string.sub(funcName, 1, 4) ~= "Draw" then
 			return SafeWrapFuncNoGL(func, funcName)
 		else
 			return SafeWrapFuncGL(func, funcName)
@@ -860,7 +900,7 @@ local function SafeWrapWidget(widget)
 		return
 	elseif SAFEWRAP == 1 then
 		if widget.GetInfo and widget.GetInfo().unsafe then
-			Spring.Echo('LuaUI: loaded unsafe widget: ' .. widget.whInfo.name)
+			Spring.Echo("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
 	end
@@ -872,10 +912,9 @@ local function SafeWrapWidget(widget)
 	end
 
 	if widget.Initialize then
-		widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
+		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
 	end
 end
-
 
 --------------------------------------------------------------------------------
 
@@ -907,7 +946,6 @@ local function ArrayRemove(t, value)
 	end
 end
 
-
 --------------------------------------------------------------------------------
 --- Safe reordering
 
@@ -925,11 +963,11 @@ local callinDepth = 0
 function widgetHandler:HookReorderSpecialFuncs()
 	-- Methods that need manual PerformReorders calls because of not
 	-- being wrapped by UpdateCallIns.
-	self:HookReorderPost('DrawScreen', true)
-	self:HookReorderPost('Update', true)
-	self:HookReorderPost('MouseMove')
-	self:HookReorderPost('MouseRelease')
-	self:HookReorderPost('ConfigureLayout')
+	self:HookReorderPost("DrawScreen", true)
+	self:HookReorderPost("Update", true)
+	self:HookReorderPost("MouseMove")
+	self:HookReorderPost("MouseRelease")
+	self:HookReorderPost("ConfigureLayout")
 end
 
 function widgetHandler:HookReorderPost(name, topMethod)
@@ -938,15 +976,15 @@ function widgetHandler:HookReorderPost(name, topMethod)
 	-- We define some methods to be topMethod, those will hard set the callinDepth as a consistency
 	-- measure.
 	local func = self[name]
-	if not func or not type(func) == 'function' then
+	if not func or not type(func) == "function" then
 		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
 		return
 	end
-	if self[name .. 'Raw'] then
+	if self[name .. "Raw"] then
 		Spring.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
 		return
 	end
-	self[name .. 'Raw'] = func
+	self[name .. "Raw"] = func
 	self[name] = function(...)
 		callinDepth = topMethod and 1 or callinDepth + 1
 		local res = func(...)
@@ -962,13 +1000,23 @@ end
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
 	-- It will also create the widgetHandler usual api queing the calls.
-	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget', 'ReloadUserWidgetFromGame',
-		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
+	local reorderFuncNames = {
+		"InsertWidget",
+		"RemoveWidget",
+		"EnableWidget",
+		"DisableWidget",
+		"ReloadUserWidgetFromGame",
+		"ToggleWidget",
+		"LowerWidget",
+		"RaiseWidget",
+		"UpdateWidgetCallIn",
+		"RemoveWidgetCallIn",
+	}
 	local queueReorder = widgetHandler.QueueReorder
 
 	for idx, name in ipairs(reorderFuncNames) do
 		-- linked method index
-		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. 'Raw']
+		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. "Raw"]
 
 		-- widgetHandler api
 		widgetHandler[name] = function(s, ...)
@@ -978,7 +1026,7 @@ function widgetHandler:CreateQueuedReorderFuncs()
 end
 
 function widgetHandler:QueueReorder(methodIndex, ...)
-	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderQueue[#reorderQueue + 1] = { methodIndex, ... }
 	reorderNeeded = true
 end
 
@@ -1004,7 +1052,6 @@ end
 --------------------------------------------------------------------------------
 --- Unsafe insert/remove
 
-
 function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
@@ -1014,14 +1061,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
 		end
-		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
-			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 		end
 		return
 	end
@@ -1031,8 +1078,8 @@ function widgetHandler:InsertWidgetRaw(widget)
 	ArrayInsert(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
 		local func = widget[listname]
-		if type(func) == 'function' then
-			ArrayInsert(self[listname .. 'List'], func, widget)
+		if type(func) == "function" then
+			ArrayInsert(self[listname .. "List"], func, widget)
 		end
 	end
 	self:UpdateCallIns()
@@ -1066,7 +1113,7 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
-		ArrayRemove(self[listname .. 'List'], widget)
+		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
 end
@@ -1074,11 +1121,21 @@ end
 --------------------------------------------------------------------------------
 
 function widgetHandler:UpdateCallIn(name)
-	local listName = name .. 'List'
-	if name == 'Update' or	name == 'DrawScreen' then
+	local listName = name .. "List"
+	if isHeadless and headlessDisabledCallIns[name] then
+		_G[name] = nil
+		Script.UpdateCallIn(name)
 		return
 	end
-	if #self[listName] > 0 or not flexCallInMap[name] or (name == 'GotChatMsg' and actionHandler.HaveChatAction()) or (name == 'RecvFromSynced' and actionHandler.HaveSyncAction()) then
+	if name == "Update" or name == "DrawScreen" then
+		return
+	end
+	if
+		#self[listName] > 0
+		or not flexCallInMap[name]
+		or (name == "GotChatMsg" and actionHandler.HaveChatAction())
+		or (name == "RecvFromSynced" and actionHandler.HaveSyncAction())
+	then
 		-- always assign these call-ins
 		local selffunc = self[name]
 
@@ -1103,29 +1160,29 @@ function widgetHandler:UpdateCallIn(name)
 end
 
 function widgetHandler:UpdateWidgetCallInRaw(name, w)
-	local listName = name .. 'List'
+	local listName = name .. "List"
 	local ciList = self[listName]
 	if ciList then
 		local func = w[name]
-		if type(func) == 'function' then
+		if type(func) == "function" then
 			ArrayInsert(ciList, func, w)
 		else
 			ArrayRemove(ciList, w)
 		end
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('UpdateWidgetCallIn: bad name: ' .. name)
+		Spring.Echo("UpdateWidgetCallIn: bad name: " .. name)
 	end
 end
 
 function widgetHandler:RemoveWidgetCallInRaw(name, w)
-	local listName = name .. 'List'
+	local listName = name .. "List"
 	local ciList = self[listName]
 	if ciList then
 		ArrayRemove(ciList, w)
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('RemoveWidgetCallIn: bad name: ' .. name)
+		Spring.Echo("RemoveWidgetCallIn: bad name: " .. name)
 	end
 end
 
@@ -1148,7 +1205,7 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 		return false
 	end
 	if not ki.active then
-		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
+		Spring.Echo("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
@@ -1174,8 +1231,8 @@ function widgetHandler:DisableWidgetRaw(name)
 		if not w then
 			return false
 		end
-		Spring.Echo('Removed:  ' .. ki.filename)
-		self:RemoveWidgetRaw(w)     -- deactivate
+		Spring.Echo("Removed:  " .. ki.filename)
+		self:RemoveWidgetRaw(w) -- deactivate
 		self.orderList[name] = 0 -- disable
 		self:SaveConfigData()
 	end
@@ -1199,7 +1256,6 @@ function widgetHandler:ToggleWidgetRaw(name)
 	end
 	return true
 end
-
 
 --------------------------------------------------------------------------------
 
@@ -1241,7 +1297,7 @@ function widgetHandler:RaiseWidgetRaw(widget)
 	end
 	Raise(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
-		Raise(self[listname .. 'List'], widget[listname], widget)
+		Raise(self[listname .. "List"], widget[listname], widget)
 	end
 end
 
@@ -1269,18 +1325,18 @@ function widgetHandler:LowerWidgetRaw(widget)
 		end
 		local n = FindHighestIndex(t, i, w.whInfo.layer)
 		if n and n > i then
-			table.insert(t, n+1, w)
+			table.insert(t, n + 1, w)
 			table.remove(t, i)
 		end
 	end
 	Lower(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
-		Lower(self[listname .. 'List'], widget[listname], widget)
+		Lower(self[listname .. "List"], widget[listname], widget)
 	end
 end
 
 function widgetHandler:FindWidget(name)
-	if type(name) ~= 'string' then
+	if type(name) ~= "string" then
 		return nil
 	end
 	for k, v in ipairs(self.widgets) do
@@ -1290,7 +1346,6 @@ function widgetHandler:FindWidget(name)
 	end
 	return nil
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1336,7 +1391,6 @@ function widgetHandler:RemoveWidgetGlobals(owner)
 	return count
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -1357,7 +1411,6 @@ function widgetHandler:ConfigLayoutHandler(data)
 	ConfigLayoutHandler(data)
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -1372,7 +1425,7 @@ function widgetHandler:Shutdown()
 
 	-- save config
 	if self.__blankOutConfig then
-		table.save({ ["allowUserWidgets"] = self.allowUserWidgets }, CONFIG_FILENAME, '-- Widget Custom data and order')
+		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
 	else
 		self:SaveConfigData()
 	end
@@ -1389,11 +1442,9 @@ function widgetHandler:BlankOut()
 	end
 end
 
-
 local gcCheckCounter = 0
 
 function widgetHandler:Update()
-
 	gcCheckCounter = gcCheckCounter + 1
 	if gcCheckCounter >= 30 then
 		gcCheckCounter = 0
@@ -1408,7 +1459,7 @@ function widgetHandler:Update()
 	hourTimer = (hourTimer + deltaTime) % 3600.0
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("W:Update:"..w.whInfo.name)
+		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -1417,27 +1468,26 @@ function widgetHandler:Update()
 end
 
 function widgetHandler:ConfigureLayout(command)
-
-	if command == 'reconf' then
+	if command == "reconf" then
 		self:SendConfigData()
 		return true
-	elseif command == 'selector' then
+	elseif command == "selector" then
 		for _, w in ipairs(self.widgets) do
 			if w.whInfo.basename == SELECTOR_BASENAME then
-				return true  -- there can only be one
+				return true -- there can only be one
 			end
 		end
 		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
 		self:InsertWidgetRaw(sw)
 		self:RaiseWidgetRaw(sw)
 		return true
-	elseif string.find(command, 'togglewidget') == 1 then
+	elseif string.find(command, "togglewidget") == 1 then
 		self:ToggleWidgetRaw(string.sub(command, 14))
 		return true
-	elseif string.find(command, 'enablewidget') == 1 then
+	elseif string.find(command, "enablewidget") == 1 then
 		self:EnableWidgetRaw(string.sub(command, 14))
 		return true
-	elseif string.find(command, 'disablewidget') == 1 then
+	elseif string.find(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(string.sub(command, 15))
 		return true
 	end
@@ -1464,7 +1514,7 @@ end
 
 function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
 	tracy.ZoneBeginN("W:CameraRotationChanged")
-	for _,w in ipairs(self.CameraRotationChangedList) do
+	for _, w in ipairs(self.CameraRotationChangedList) do
 		w:CameraRotationChanged(rotx, roty, rotz)
 	end
 	tracy.ZoneEnd()
@@ -1472,7 +1522,7 @@ end
 
 function widgetHandler:CameraPositionChanged(posx, posy, posz)
 	tracy.ZoneBeginN("W:CameraPositionChanged")
-	for _,w in ipairs(self.CameraPositionChangedList) do
+	for _, w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(posx, posy, posz)
 	end
 	tracy.ZoneEnd()
@@ -1525,12 +1575,10 @@ function widgetHandler:CommandsChanged()
 	return
 end
 
-
 --------------------------------------------------------------------------------
 --
 --  Drawing call-ins
 --
-
 
 -- generates ViewResize() calls for the widgets
 function widgetHandler:SetViewSize(vsx, vsy)
@@ -1547,10 +1595,10 @@ function widgetHandler:SetViewSize(vsx, vsy)
 end
 
 function widgetHandler:ViewResize(vsx, vsy)
-	if type(vsx) == 'table' then
+	if type(vsx) == "table" then
 		vsy = vsx.viewSizeY
 		vsx = vsx.viewSizeX
-		print('real ViewResize') -- FIXME
+		print("real ViewResize") -- FIXME
 	end
 
 	tracy.ZoneBeginN("W:ViewResize")
@@ -1568,11 +1616,10 @@ function widgetHandler:ViewResize(vsx, vsy)
 	return
 end
 
-
 function widgetHandler:DrawScreen()
 	tracy.ZoneBeginN("W:DrawScreen")
 	if not Spring.IsGUIHidden() then
-		if not self.chobbyInterface  then
+		if not self.chobbyInterface then
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
@@ -1603,6 +1650,46 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundPreForward()
+	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	local list = self.DrawGroundPreForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostForward()
+	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	local list = self.DrawGroundPostForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	local list = self.DrawGroundPreDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	local list = self.DrawGroundPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawGroundDeferred()
 	tracy.ZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
@@ -1615,7 +1702,7 @@ end
 
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
-	if not self.chobbyInterface  then
+	if not self.chobbyInterface then
 		local list = self.DrawWorldList
 		for i = #list, 1, -1 do
 			local w = list[i]
@@ -1630,7 +1717,7 @@ end
 
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
-	if not self.chobbyInterface  then
+	if not self.chobbyInterface then
 		local list = self.DrawWorldPreUnitList
 		for i = #list, 1, -1 do
 			local w = list[i]
@@ -1815,7 +1902,11 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
 	-- The PIP widget will call these functions itself with proper coordinate transformations
 	-- during its render-to-texture pass in RenderPipContents()
-	if widgetHandler.minimap and widgetHandler.minimap.isPipMinimapActive and widgetHandler.minimap.isPipMinimapActive() then
+	if
+		widgetHandler.minimap
+		and widgetHandler.minimap.isPipMinimapActive
+		and widgetHandler.minimap.isPipMinimapActive()
+	then
 		tracy.ZoneEnd()
 		return
 	end
@@ -1828,15 +1919,18 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-  for _,w in ripairs(self.DrawBuildSquareList) do
-    w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-  end
-  return
+	tracy.ZoneBeginN("W:DrawBuildSquare")
+	local list = self.DrawBuildSquareList
+	for i = #list, 1, -1 do
+		list[i]:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+	end
+	tracy.ZoneEnd()
+	return
 end
 
 function widgetHandler:SunChanged()
 	tracy.ZoneBeginN("W:SunChanged")
-	local nmp = _G['NightModeParams']
+	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)
@@ -2123,7 +2217,7 @@ function widgetHandler:GetTooltip(x, y)
 	for _, w in ipairs(self.GetTooltipList) do
 		if w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
-			if type(tip) == 'string' and #tip > 0 then
+			if type(tip) == "string" and #tip > 0 then
 				tracy.ZoneEnd()
 				return tip
 			end
@@ -2132,7 +2226,6 @@ function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneEnd()
 	return ""
 end
-
 
 --------------------------------------------------------------------------------
 --
@@ -2238,7 +2331,6 @@ function widgetHandler:GameFrame(frameNum)
 	return
 end
 
-
 function widgetHandler:GameFramePost(frameNum)
 	tracy.ZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
@@ -2341,7 +2433,7 @@ function widgetHandler:WorldTooltip(ttType, ...)
 	tracy.ZoneBeginN("W:WorldTooltip")
 	for _, w in ipairs(self.WorldTooltipList) do
 		local tt = w:WorldTooltip(ttType, ...)
-		if type(tt) == 'string' and #tt > 0 then
+		if type(tt) == "string" and #tt > 0 then
 			tracy.ZoneEnd()
 			return tt
 		end
@@ -2403,13 +2495,13 @@ function widgetHandler:DefaultCommand(...)
 	local list = self.DefaultCommandList
 	for i = #list, 1, -1 do
 		local result = list[i]:DefaultCommand(...)
-		if type(result) == 'number' then
+		if type(result) == "number" then
 			tracy.ZoneEnd()
 			return result
 		end
 	end
 	tracy.ZoneEnd()
-	return nil  --  not a number, use the default engine command
+	return nil --  not a number, use the default engine command
 end
 
 function widgetHandler:LanguageChanged()
@@ -2427,7 +2519,6 @@ function widgetHandler:UnitBlocked(unitDefID, reasons)
 	end
 	tracy.ZoneEnd()
 end
-
 
 --------------------------------------------------------------------------------
 --
@@ -2456,7 +2547,6 @@ function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitCreated")
 	for _, w in ipairs(self.UnitCreatedList) do
-
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 	tracy.ZoneEnd()
@@ -2475,8 +2565,7 @@ end
 function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	tracy.ZoneBeginN("W:UnitFromFactory")
 	for _, w in ipairs(self.UnitFromFactoryList) do
-		w:UnitFromFactory(unitID, unitDefID, unitTeam,
-			factID, factDefID, userOrders)
+		w:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2514,8 +2603,7 @@ end
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	tracy.ZoneBeginN("W:UnitExperience")
 	for _, w in ipairs(self.UnitExperienceList) do
-		w:UnitExperience(unitID, unitDefID, unitTeam,
-			experience, oldExperience)
+		w:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2552,7 +2640,18 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+function widgetHandler:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeam,
+	cmdId,
+	cmdParams,
+	cmdOpts,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
@@ -2715,19 +2814,21 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg")
+	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+	if msg:find("LobbyOverlayActive", 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
+		tracy.ZoneBeginN("W:RecvLuaMsg:" .. w.whInfo.name)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
-	return retval  --  FIXME  --  another actionHandler type?
+	return retval --  FIXME  --  another actionHandler type?
 end
 
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
@@ -2788,7 +2889,6 @@ function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	end
 	tracy.ZoneEnd()
 end
-
 
 --------------------------------------------------------------------------------
 --
@@ -2975,6 +3075,15 @@ function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	return
 end
 
+function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
+	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	local list = self.NanoParticleUpdateList
+	for i = #list, 1, -1 do
+		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	tracy.ZoneBeginN("W:UnitScriptDistortion")
 	for _, w in ipairs(self.UnitScriptDistortionList) do
@@ -3101,6 +3210,15 @@ function widgetHandler:SelectedUnitsClear(playerID)
 	return
 end
 
+function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
+	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	for _, w in ipairs(self.SelectedUnitsSetList) do
+		w:SelectedUnitsSet(playerID, units, unitCount)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
 	tracy.ZoneBeginN("W:SelectedUnitsBatchUpdate")
 	for _, w in ipairs(self.SelectedUnitsBatchUpdateList) do
@@ -3136,7 +3254,6 @@ function widgetHandler:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
 	tracy.ZoneEnd()
 	return
 end
-
 
 --------------------------------------------------------------------------------
 --

@@ -1,7 +1,7 @@
 return {
 	armzeus = {
 		buildpic = "ARMZEUS.DDS",
-		buildtime = 9500,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 36 35",
@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 2950,
+		health = 3500,
 		maxacc = 0.138,
 		maxdec = 0.8625,
 		maxslope = 15,
@@ -24,7 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 380,
-		speed = 47.4,
+		speed = 48,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0428,
