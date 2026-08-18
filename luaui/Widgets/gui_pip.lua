@@ -5030,10 +5030,23 @@ local function ClampCameraAxis(pos, visibleSize, mapSize, marginFraction)
 	return math.min(math.max(pos, minPos), maxPos)
 end
 
+-- Minimum zoom for normal PIP mode: zoom-out stops as soon as the FIRST axis reaches
+-- map size plus the allowed edge margin of void on each side (span*(1-2m) = mapSize).
+-- Computed per axis so no edge can ever show more than mapEdgeMargin of void, even when
+-- the pip and map aspect ratios differ (the old min-dim/max-dim fit guaranteed the whole
+-- map fits, which let the mismatched axis show far more void than the margin allows).
+-- Rotation-aware: at 90°/270° the pip's width spans the map's Z axis.
 local function CalculatePipModeMinZoom(width, height)
 	local marginFraction = math.min(math.max(config.mapEdgeMargin or 0, 0), 0.49)
-	local fitZoom = math.min(width, height) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
-	return fitZoom * (1 - 2 * marginFraction)
+	if render.minimapRotation then
+		local rotDeg = math.abs(render.minimapRotation * 180 / math.pi) % 180
+		if rotDeg > 45 and rotDeg < 135 then
+			width, height = height, width
+		end
+	end
+	local minZoomX = width * (1 - 2 * marginFraction) / mapInfo.mapSizeX
+	local minZoomZ = height * (1 - 2 * marginFraction) / mapInfo.mapSizeZ
+	return math.max(minZoomX, minZoomZ)
 end
 
 function RecalculateWorldCoordinates()
@@ -10187,7 +10200,7 @@ function widget:ViewResize()
 	end
 
 	-- Calculate dynamic min zoom so full map is visible at max zoom-out
-	-- Use raw (non-rotated) dimensions and take min(dim)/max(mapSize) so zoom limit is the same regardless of rotation
+	-- Raw dimensions; CalculatePipModeMinZoom pairs pip axes with world axes (rotation-aware)
 	if not isMinimapMode then
 		-- When minimized, use saved expanded dimensions (not the tiny button size)
 		local rawW, rawH
@@ -21338,7 +21351,7 @@ function widget:Update(dt)
 		render.minimapRotation = currentRotation
 		if curCat ~= lastCat then
 			render.lastMinimapRotation = currentRotation
-			-- Recalculate dynamic min zoom (rotation-independent)
+			-- Recalculate dynamic min zoom (rotation-aware: axis pairing swaps at 90°/270°)
 			local pipWidth, pipHeight = GetEffectivePipDimensions()
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
@@ -24757,7 +24770,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				cameraState.targetZoom = minimapModeMinZoom
 			end
 		else
-			-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
+			-- Raw dimensions; CalculatePipModeMinZoom pairs pip axes with world axes (rotation-aware)
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
 			pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
