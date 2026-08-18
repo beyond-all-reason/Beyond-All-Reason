@@ -64,19 +64,19 @@ return {
 	-- -------------------------------------------------------------------------
 	labBuildoptions = {
 		-- ARM T1 Air Plant
-		armap                 = { "armhvytrans" },  -- Aircraft Plant | Produces Tech 1 Aircraft
+		armap                 = { "armatlas", "armhvytrans" },  -- Aircraft Plant | Produces Tech 1 Aircraft
 		-- ARM T2 Air Plant
 		armaap                = { "armdfly" },               -- Advanced Aircraft Plant | Produces Tech 2 Aircraft
 		-- ARM Platform (no transports by default)
 		armplat               = {},                          -- Seaplane Platform | Builds Seaplanes
 		-- COR T1 Air Plant
-		corap                 = { "corhvytrans" },  -- Aircraft Plant | Produces Tech 1 Aircraft
+		corap                 = { "corvalk", "corhvytrans" },  -- Aircraft Plant | Produces Tech 1 Aircraft
 		-- COR T2 Air Plant
 		coraap                = { "corseah" },               -- Advanced Aircraft Plant | Produces Tech 2 Aircraft
 		-- COR Platform (no transports by default)
 		corplat               = {},                          -- Seaplane Platform | Builds Seaplanes
 		-- Legion T1 Air Plant
-		legap                 = { "legatrans" },   -- Legion Drone Plant | Drone Plant
+		legap                 = { "leglts", "legatrans" },   -- Legion Drone Plant | Drone Plant
 		-- Legion T2 Air Plant
 		legaap                = { "legstronghold" },         -- Legion Advanced Aircraft Plant | Advanced Aircraft Plant
 	},
@@ -120,16 +120,15 @@ return {
 				loadtime            = 30,
 				transporterseats    = 1,
 				transportcegname    = "armada_ion",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 		armhvytrans = {
-			speed 					= 165, -- 110 -> 165; back to 110 while loaded with commander
 			customparams = {
 				loadtime            = 60,
 				transporterseats    = 4,
 				transportcegname    = "armada_ion",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 		corseah = {
@@ -142,11 +141,10 @@ return {
 		},
 		corhvytrans = {
 			customparams = {
-				speed 				= 150, -- 100 -> 150; back to 100 while loaded with commander
 				loadtime            = 60,
 				transporterseats    = 4,
 				transportcegname    = "cortex_grapple",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 		corvalk = {
@@ -154,7 +152,7 @@ return {
 				loadtime            = 30,
 				transporterseats    = 1,
 				transportcegname    = "cortex_grapple",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 		legstronghold = {
@@ -168,11 +166,10 @@ return {
 		},
 		legatrans = {
 			customparams = {
-				speed 				= 150, -- 100 -> 150; back to 100 while loaded with commander
 				loadtime            = 60,
 				transporterseats    = 4,
 				transportcegname    = "legion_grav_distort",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 		leglts = {
@@ -180,7 +177,7 @@ return {
 				loadtime            = 30,
 				transporterseats    = 1,
 				transportcegname    = "legion_grav_distort",
-				transportercomspeedmodstrength = 0.33,
+				transportercomspeedmodstrength = 0,
 			},
 		},
 	},
