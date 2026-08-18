@@ -2086,7 +2086,7 @@ local cache = {
 	isAirAttacker = {}, -- Air units with ground/sea attack weapons (bombers, gunships)
 	isExpensiveEco = {}, -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
 	isBuilder = {}, -- Units capable of an active worker task
-	maxIconShatters = 4,
+	maxIconShatters = 6,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
 	weaponIsPlasma = {},
@@ -6993,6 +6993,40 @@ local function DrawUnitpicHealthBar(cx, barY, barW, barH, outlineSize, healthFra
 	glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
 end
 
+-- Effective on-screen icon radius in logical pip pixels, before the per-def icon
+-- size multiplier: mirrors what GL4DrawIcons actually renders (resolution boost,
+-- unit-count density scaling, the shader's zoom-0.95 size cap — or the unitpic
+-- size when unitpics are the visible representation). Icon shatters use this at
+-- creation and per-frame so shards track the drawn icon size through zoom changes.
+function gl4Icons.GetEffectiveIconRadius()
+	local zoom = cameraState.zoom
+	local baseMult = gl4Icons.GetMinimapIconScale() * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
+	local radius = baseMult * math.sqrt(zoom)
+	radius = radius * (1.0 + 0.18 * math.min(math.max((render.vsy - 1080) / (2880 - 1080), 0), 1))
+	if config.iconDensityScaling then
+		local unitFraction = math.min(#miscState.pipUnits / config.iconDensityMaxUnits, 1.0)
+		local densityScale = 1.0 - (1.0 - config.iconDensityMinScale) * unitFraction
+		local zoomFade = 1.0
+			- math.min(
+				math.max(
+					(zoom - config.iconDensityZoomFadeStart)
+						/ (config.iconDensityZoomFadeEnd - config.iconDensityZoomFadeStart),
+					0
+				),
+				1
+			)
+		radius = radius * (1.0 - (1.0 - densityScale) * zoomFade)
+	end
+	if gl4Icons.unitpicsActive and config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold then
+		-- Unitpics keep growing with zoom (uncapped) at unitpicSizeMult of the icon radius
+		local zoomFrac = math.max(0, (zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
+		radius = radius * (0.88 + 0.05 * zoomFrac)
+	else
+		radius = math.min(radius, baseMult * math.sqrt(0.95))
+	end
+	return radius
+end
+
 local function DrawIconShatters()
 	if #cache.iconShatters == 0 then
 		return
@@ -7015,6 +7049,11 @@ local function DrawIconShatters()
 
 	-- When LOS view is active, hide shatters whose origin is outside the viewed allyteam's LOS
 	local shatterLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
+
+	-- Live icon radius: shards rescale with the currently drawn icon size, so zooming
+	-- during a shatter's lifetime can't leave shards frozen at their creation-time size
+	local currentIconRadius = gl4Icons.GetEffectiveIconRadius()
+	local invZoom = 1 / cameraState.zoom
 
 	local n = #cache.iconShatters
 	local i = 1
@@ -7047,10 +7086,13 @@ local function DrawIconShatters()
 			i = i + 1
 		else
 			-- Analytic travel remains strictly increasing throughout the effect.
-			-- Keeping shard size fixed prevents late-life shrink from reading as retreat.
 			local travelTime = age * (1 - 0.4 * progress)
 			local shardAlpha = progress < 0.65 and 1.0 or (1.0 - progress) / 0.35
-			local zoomInv = 1 / shatter.zoom
+			-- Creation-time pixel space → world units, tracking the live icon radius
+			-- (applies to both shard size and travel so the burst stays icon-relative)
+			local sizeScale = (currentIconRadius / shatter.iconRadius) * invZoom
+			-- Shards shrink as they spread so the burst reads as debris dissipating
+			local shrinkHalf = 0.5 * (1.0 - 0.5 * progress)
 
 			-- Compute per-shatter flash factor: inherited damage flash fading out
 			-- Cubic decay + slight linear tail, so it's bright initially then lingers
@@ -7065,13 +7107,13 @@ local function DrawIconShatters()
 			local fragCount = #fragments
 			for j = 1, fragCount do
 				local frag = fragments[j]
-				local fragX = shatter.originX + frag.vx * travelTime
-				local fragZ = shatter.originZ + frag.vz * travelTime
+				local fragX = shatter.originX + frag.vx * travelTime * sizeScale
+				local fragZ = shatter.originZ + frag.vz * travelTime * sizeScale
 				local rotation = frag.rot + frag.rotSpeed * age * 60
 
-				-- Convert the creation-time pixel size to world size. The GL4 quad shader
-				-- converts it back to PIP pixels and batches every shard in one draw call.
-				local halfSize = frag.size * zoomInv * 0.5
+				-- Convert the pixel size (tracking the live icon radius) to world size. The
+				-- GL4 quad shader converts it back to PIP pixels and batches every shard.
+				local halfSize = frag.size * sizeScale * shrinkHalf
 				local halfWidth, halfHeight
 				if j % 2 == 0 then
 					halfWidth, halfHeight = halfSize * 0.6, halfSize
@@ -15808,14 +15850,9 @@ local function DrawBuildCursorWithRotation()
 	if cache.unitIcon[buildDefID] then
 		local iconData = cache.unitIcon[buildDefID]
 		local texture = iconData.bitmap
-		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
-		local resScale = render.contentScale or 1
-		local unitBaseSize = gl4Icons.GetMinimapIconScale()
-		local iconSize = unitBaseSize
-			* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
-			* math.sqrt(cameraState.zoom)
-			* resScale
-			* iconData.size
+		-- Effective rendered icon size (zoom cap etc.), so the placement ghost
+		-- matches the icons around it instead of outgrowing them when zoomed in
+		local iconSize = gl4Icons.GetEffectiveIconRadius() * iconData.size
 		local sx, sy = WorldToPipCoords(wx, wz)
 
 		-- Color based on buildability
@@ -17083,14 +17120,9 @@ local function DrawBuildCursor()
 		local iconData = cache.unitIcon[buildDefID]
 		local texture = iconData.bitmap
 
-		-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
-		local resScale = render.contentScale or 1
-		local unitBaseSize = gl4Icons.GetMinimapIconScale()
-		local iconSize = unitBaseSize
-			* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
-			* math.sqrt(cameraState.zoom)
-			* resScale
-			* iconData.size
+		-- Effective rendered icon size (zoom cap etc.), so the placement ghost
+		-- matches the icons around it instead of outgrowing them when zoomed in
+		local iconSize = gl4Icons.GetEffectiveIconRadius() * iconData.size
 
 		local sx, sy = WorldToPipCoords(wx, wz)
 
@@ -22484,14 +22516,10 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	if not iconData or not iconData.size then
 		return
 	end -- Ensure icon has size data
-	-- Engine-matching icon size (same as GL4DrawIcons/DrawIcons)
-	local resScale = render.contentScale or 1
-	local unitBaseSize = gl4Icons.GetMinimapIconScale()
-	local iconSize = unitBaseSize
-		* (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25
-		* math.sqrt(cameraState.zoom)
-		* resScale
-		* iconData.size
+	-- Size of the icon as actually rendered: the raw engine formula overshoots it once
+	-- the shader's zoom cap (or density scaling) kicks in, making shards dwarf the icons.
+	local iconRadius = math.max(gl4Icons.GetEffectiveIconRadius(), 0.001)
+	local iconSize = iconRadius * iconData.size
 
 	-- Keep tiny icons visible: draw a small, stylized shatter instead of skipping entirely.
 	if iconSize < 6 then
@@ -22500,8 +22528,9 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 
 	-- Use fixed 2x2 grid: PIP has a hard draw budget, so keep the effect small but visible.
 	local grid = 2
-	-- Icon is rendered at 2*iconSize (from -iconSize to +iconSize), so fragments need to match
-	local fragSize = (iconSize * 2) / grid
+	-- Icon is rendered at 2*iconSize (from -iconSize to +iconSize); shards are drawn
+	-- smaller than their grid cell so the burst reads as debris, not a solid block
+	local fragSize = ((iconSize * 2) / grid) * 0.85
 
 	-- Get team color
 	local teamColor = teamColors[unitTeam]
@@ -22510,14 +22539,13 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	end
 	local teamR, teamG, teamB = teamColor[1], teamColor[2], teamColor[3]
 
-	-- Convert unit velocity from world units to screen units (if provided)
-	-- Scale by zoom to match fragment velocity scale
+	-- Unit momentum carried into the shards, in the same creation-time pixel space as
+	-- fragment sizes/speeds (draw converts pixels to world against the live icon radius)
 	local velModX = 0
 	local velModZ = 0
 	if unitVelX and unitVelZ then
-		-- Convert world velocity to screen velocity (scale by zoom factor)
 		-- Multiply by a factor to make the effect clearly visible
-		local velScale = 10.0 / cameraState.zoom
+		local velScale = 10.0
 		velModX = unitVelX * velScale
 		velModZ = unitVelZ * velScale
 	end
@@ -22536,11 +22564,10 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 			-- Add small random variation
 			angle = angle + (math.random() - 0.5) * 0.2
 
-			-- Divide by zoom to compensate for gl.Scale transformation
-			-- Use square root of iconSize to reduce the impact of larger icons on distance
+			-- Speed proportional to the rendered icon size (pixel space): shards spread
+			-- the same number of icon-widths per second at every zoom level
 			local speedVariation = 0.4 + math.random() * 1.2 -- 0.4 to 1.6
-			local speed = ((25 + math.random() * 15) * (math.sqrt(iconSize) / 6.3) * 3.0 * speedVariation)
-				/ cameraState.zoom
+			local speed = iconSize * (1.9 + math.random() * 1.1) * speedVariation
 
 			fragmentCount = fragmentCount + 1
 			fragments[fragmentCount] = {
@@ -22578,7 +22605,7 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 		teamG = teamG,
 		teamB = teamB,
 		duration = baseLifetime * lifetimeVariation,
-		zoom = cameraState.zoom, -- Store zoom factor to compensate for gl.Scale during rendering
+		iconRadius = iconRadius, -- Creation-time effective icon radius (shards rescale against the live value)
 		flashIntensity = flashIntensity, -- Inherited damage flash (0-1)
 		originX = ux, -- World origin for LOS filtering during rendering
 		originZ = uz,
