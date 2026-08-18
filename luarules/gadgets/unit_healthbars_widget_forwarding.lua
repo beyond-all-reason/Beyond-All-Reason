@@ -25,12 +25,9 @@ if gadgetHandler:IsSyncedCode() then
 	local unitreloadframe = {} -- maps unitID to next frame it can shoot its primary weapon, cause lasers retrigger projetileCreated every frame
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
-	function gadget:FeatureBuildStepTotal(featureIDs, parts, count)
-		for i = 1, count do
-			local featureID = featureIDs[i]
-			if not deadFeatureIDs[featureID] then
-				SendToUnsynced("featureReclaimFrame", featureID, parts[i])
-			end
+	function gadget:FeatureBuildStepTotal(featureID, part)
+		if not deadFeatureIDs[featureID] then
+			SendToUnsynced("featureReclaimFrame", featureID, part)
 		end
 	end
 

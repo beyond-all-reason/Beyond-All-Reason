@@ -53,14 +53,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function gadget:UnitBuildStepPost(unitIDs, count)
-	for i = 1, count do
-		local unitID = unitIDs[i]
-		if newNanoFrameNeutralState[unitID] ~= nil then
-			local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
-			if buildProgress and buildProgress >= blockingBuildProgress then
-				removeNanoFrame(unitID)
-			end
+function gadget:UnitBuildStepPost(unitID)
+	if newNanoFrameNeutralState[unitID] ~= nil then
+		local _, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		if buildProgress and buildProgress >= blockingBuildProgress then
+			removeNanoFrame(unitID)
 		end
 	end
 end

@@ -27,6 +27,7 @@ local featureParams = {}
 local positions = {}
 local positionPool = {}
 local poolSize = 0
+local gameFrame = 0
 
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
@@ -49,43 +50,46 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 	end
 end
 
-function gadget:FeatureBuildStepTotal(featureIDs, parts, count, frame)
-	if frame % 2 == 0 then
+function gadget:GameFrame(frame)
+	gameFrame = frame
+end
+
+function gadget:FeatureBuildStepTotal(featureID, part)
+	if gameFrame % 2 == 0 then
 		return
 	end
 
-	for i = 1, count do
-		local featureID = featureIDs[i]
-		local params = parts[i] < 0 and featureParams[featureID]
-		if params then
-			local position = positions[featureID]
-			if not position then
-				local x, y, z = GetFeaturePosition(featureID)
-				if x then
-					if poolSize > 0 then
-						position = positionPool[poolSize]
-						poolSize = poolSize - 1
-					else
-						position = {}
-					end
-					position[1], position[2], position[3] = x, y + params.y, z
-					positions[featureID] = position
-				end
+	local params = part < 0 and featureParams[featureID]
+	if not params then
+		return
+	end
+
+	local position = positions[featureID]
+	if not position then
+		local x, y, z = GetFeaturePosition(featureID)
+		if x then
+			if poolSize > 0 then
+				position = positionPool[poolSize]
+				poolSize = poolSize - 1
+			else
+				position = {}
 			end
-			if position then
-				SpawnCEG(
-					cegs[random(1, #cegs)],
-					position[1] + params.minX + (params.rangeX * random()),
-					position[2],
-					position[3] + params.minZ + (params.rangeZ * random()),
-					0,
-					1.0,
-					0,
-					0,
-					0
-				)
-			end
+			position[1], position[2], position[3] = x, y + params.y, z
+			positions[featureID] = position
 		end
+	end
+	if position then
+		SpawnCEG(
+			cegs[random(1, #cegs)],
+			position[1] + params.minX + (params.rangeX * random()),
+			position[2],
+			position[3] + params.minZ + (params.rangeZ * random()),
+			0,
+			1.0,
+			0,
+			0,
+			0
+		)
 	end
 end
 
