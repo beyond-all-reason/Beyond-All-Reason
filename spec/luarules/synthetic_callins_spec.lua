@@ -259,39 +259,6 @@ for _, base in ipairs(BASES) do
 				assert.is_true(isEmpty(totalSeen))
 			end)
 
-			it("appends mid-dispatch reports past the batch", function()
-				local reporter = {
-					[base .. "Post"] = function(self, id)
-						if id == 101 then
-							hook(103, 0.7)
-						end
-					end,
-				}
-				subscribe(reporter, "Post")
-				mark(101, 0.1)
-				sweep()
-				assert.is_nil(totalSeen[103])
-				assert.is_true(near(totalSeen[101], 0.1))
-				sweep()
-				assert.is_true(near(totalSeen[103], 0.7))
-			end)
-
-			it("lands a mid-dispatch self re-report in the next frame", function()
-				local reporter = {
-					[base .. "Post"] = function(self, id)
-						if id == 101 and #postSeen <= 1 then
-							hook(101, 0.7)
-						end
-					end,
-				}
-				subscribe(reporter, "Post")
-				mark(101, 0.1)
-				sweep()
-				assert.is_true(near(totalSeen[101], 0.1))
-				sweep()
-				assert.is_true(near(totalSeen[101], 0.7))
-			end)
-
 			it("preserves mid-frame state across repeated updates", function()
 				mark(101, 0.1)
 				gh:UpdateCallIn(base .. "Post")

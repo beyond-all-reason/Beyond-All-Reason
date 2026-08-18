@@ -205,8 +205,8 @@ if Script.GetSynced() then
 		end
 
 		-- Clear marks first so subscribers that throw do not leave any marks.
-		-- The count holds through dispatch so re-marks append past the batch.
-		if unitStepActive[1] then
+		local active = unitStepActive[1]
+		if active then
 			for i = 1, count do
 				local unitID = unitStepList[i]
 				unitStepValues[i] = unitStepTotals[unitID] or 0
@@ -227,22 +227,25 @@ if Script.GetSynced() then
 			end
 		end
 
-		local totalList = handler.UnitBuildStepTotalList
-		for i = 1, count do
-			local unitID, part = unitStepList[i], unitStepValues[i]
-			for _, g in ipairs(totalList) do
-				g:UnitBuildStepTotal(unitID, part)
+		-- This safely allows starting or ending subscriptions in Post.
+		if active then
+			local totalList = handler.UnitBuildStepTotalList
+			for i = 1, count do
+				local unitID, part = unitStepList[i], unitStepValues[i]
+				for _, g in ipairs(totalList) do
+					g:UnitBuildStepTotal(unitID, part)
+				end
 			end
 		end
 
-		-- Shift any re-marks made during dispatch into the next batch.
+		-- To be on the safe side, ignore marks added by summary callins.
 		local marked = unitStepCount[1]
-		if marked and marked > count then
-			for i = 1, marked - count do
-				unitStepList[i] = unitStepList[count + i]
+		if marked then
+			for i = count + 1, marked do
+				local unitID = unitStepList[i]
+				unitStepMarked[unitID] = nil
+				unitStepTotals[unitID] = nil
 			end
-			unitStepCount[1] = marked - count
-		elseif marked then
 			unitStepCount[1] = 0
 		end
 	end
@@ -257,7 +260,8 @@ if Script.GetSynced() then
 			return
 		end
 
-		if featureStepActive[1] then
+		local active = featureStepActive[1]
+		if active then
 			for i = 1, count do
 				local featureID = featureStepList[i]
 				featureStepValues[i] = featureStepTotals[featureID] or 0
@@ -278,21 +282,23 @@ if Script.GetSynced() then
 			end
 		end
 
-		local totalList = handler.FeatureBuildStepTotalList
-		for i = 1, count do
-			local featureID, part = featureStepList[i], featureStepValues[i]
-			for _, g in ipairs(totalList) do
-				g:FeatureBuildStepTotal(featureID, part)
+		if active then
+			local totalList = handler.FeatureBuildStepTotalList
+			for i = 1, count do
+				local featureID, part = featureStepList[i], featureStepValues[i]
+				for _, g in ipairs(totalList) do
+					g:FeatureBuildStepTotal(featureID, part)
+				end
 			end
 		end
 
 		local marked = featureStepCount[1]
-		if marked and marked > count then
-			for i = 1, marked - count do
-				featureStepList[i] = featureStepList[count + i]
+		if marked then
+			for i = count + 1, marked do
+				local featureID = featureStepList[i]
+				featureStepMarked[featureID] = nil
+				featureStepTotals[featureID] = nil
 			end
-			featureStepCount[1] = marked - count
-		elseif marked then
 			featureStepCount[1] = 0
 		end
 	end
