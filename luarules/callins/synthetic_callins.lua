@@ -52,6 +52,7 @@ local syntheticCallinSummaries = {
 	UnitBuildStep    = true,
 	FeatureBuildStep = true,
 }
+
 -- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
 -- We have to handle dropping tracked state, etc., during updates on our own.
 -- Update handlers receive the gadgetHandler to read their subscriber lists.
