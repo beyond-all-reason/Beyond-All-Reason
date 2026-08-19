@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "13 Feb 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -50,7 +50,7 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 				maxZ = maxZ,
 				y = math.floor(featureDef.model.maxy * 0.66),
 				rangeX = maxX - minX, -- Pre-calculate range to avoid subtraction in hot path
-				rangeZ = maxZ - minZ
+				rangeZ = maxZ - minZ,
 			}
 		end
 	end
@@ -61,7 +61,17 @@ function gadget:GameFrame(n)
 		for i = 1, pendingCount do
 			local featureID = pendingFeatureIDs[i]
 			if featureID then
-				SpawnCEG(pendingCEG[featureID], pendingX[featureID], pendingY[featureID], pendingZ[featureID], 0, 1.0, 0, 0, 0)
+				SpawnCEG(
+					pendingCEG[featureID],
+					pendingX[featureID],
+					pendingY[featureID],
+					pendingZ[featureID],
+					0,
+					1.0,
+					0,
+					0,
+					0
+				)
 				pendingMarked[featureID] = nil
 				pendingCEG[featureID] = nil
 				pendingX[featureID] = nil

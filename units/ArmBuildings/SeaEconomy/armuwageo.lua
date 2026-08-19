@@ -1,8 +1,8 @@
 return {
 	armuwageo = {
-		acceleration = 0,
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 0,
 		energycost = 27000,
 		metalcost = 1600,

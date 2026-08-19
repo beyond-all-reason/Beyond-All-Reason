@@ -14,10 +14,9 @@ function widget:GetInfo()
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- Has to be run before Smart Area Reclaim widget
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local tableInsert = table.insert
@@ -36,7 +35,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -57,8 +56,8 @@ local myAllyTeamID
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
 
----@field position1 table {x, y, z}
----@field position2 table {x, y, z}
+---@param position1 table {x, y, z}
+---@param position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
@@ -129,7 +128,7 @@ local function distributeTargetsToTransports(transports, targets)
 							allValidPassengers = {},
 							passengersByPriority = {},
 							maxPriority = -1,
-							transportHealth = transportDef.health
+							transportHealth = transportDef.health,
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
@@ -234,14 +233,12 @@ local function distributeTargetsToTransports(transports, targets)
 			local transportPos = transportInfo.position
 
 			while transportInfo.capacity > 0 do
-
 				local bestPassengerId
 				local passengerFound = false
 
 				for priority = 1, transportTypeData.maxPriority do
 					local passengers = passengersByPriority[priority]
 					if passengers then
-
 						local closestPassengerId
 						local closestDistSq
 
@@ -276,7 +273,6 @@ local function distributeTargetsToTransports(transports, targets)
 				if not passengerFound then
 					break
 				end
-
 			end
 		end
 	end
@@ -336,7 +332,10 @@ local function splitTargets(selectedUnits, filteredTargets)
 	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
 		unitTargetsMap[selectedUnitId] = {}
 		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
+			if
+				targetIdx % #filteredTargets == unitIdx % #filteredTargets
+				or unitIdx % #selectedUnits == targetIdx % #selectedUnits
+			then
 				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
 			end
 		end

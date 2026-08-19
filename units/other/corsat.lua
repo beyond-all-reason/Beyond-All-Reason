@@ -1,6 +1,5 @@
 return {
 	corsat = {
-		acceleration = 0.05,
 		airhoverfactor = 0.4,
 		blocking = false,
 		maxdec = 0.01,
@@ -43,7 +42,7 @@ return {
 		wingangle = 0.05,
 		wingdrag = 0.1,
 		customparams = {
-			unitgroup = 'util',
+			unitgroup = "util",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other",

@@ -195,7 +195,7 @@ return {
 				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
-				cylindertargeting=true,
+				cylindertargeting = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				customparams = {

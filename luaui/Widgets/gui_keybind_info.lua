@@ -12,7 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathFloor = math.floor
 
@@ -90,8 +89,8 @@ function widget:ViewResize()
 	keybinds = gl.CreateList(drawWindow)
 
 	if backgroundGuishader ~= nil then
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('keybindinfo')
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		else
 			glDeleteList(backgroundGuishader)
 		end
@@ -103,7 +102,6 @@ end
 
 -- Draws the panel and keeps the guishader rect in step with it.
 function widget:DrawScreen()
-
 	-- draw the help
 	if doUpdate then
 		if keybinds then
@@ -121,25 +119,25 @@ function widget:DrawScreen()
 	doUpdate = false
 
 	if show or showOnceMore then
-		gl.Texture(false)	-- some other widget left it on
+		gl.Texture(false) -- some other widget left it on
 		glCallList(keybinds)
 		keybindEditor.draw()
-		if WG['guishader'] and backgroundGuishader == nil then
+		if WG.guishader and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 			end)
-			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
 		end
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)  then
-			Spring.SetMouseCursor('cursornormal')
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			Spring.SetMouseCursor("cursornormal")
 		end
 	else
 		if backgroundGuishader ~= nil then
-			if WG['guishader'] then
-				WG['guishader'].DeleteDlist('keybindinfo')
+			if WG.guishader then
+				WG.guishader.DeleteDlist("keybindinfo")
 			else
 				glDeleteList(backgroundGuishader)
 			end
@@ -276,9 +274,9 @@ function widget:Update()
 			-- launch. isInputActive is the accessor that means chat is holding input;
 			-- getHandleInput is a saved option that reads true whoever the owner is, so poking
 			-- on that cancels the settings search box or the widget selector's filter instead.
-			if not ownsInput and WG['chat'] and WG['chat'].isInputActive and WG['chat'].isInputActive() then
-				WG['chat'].setHandleInput(false)
-				WG['chat'].setHandleInput(true)
+			if not ownsInput and WG.chat and WG.chat.isInputActive and WG.chat.isInputActive() then
+				WG.chat.setHandleInput(false)
+				WG.chat.setHandleInput(true)
 				ownsInput = widgetHandler:OwnText()
 			end
 		elseif not ownsInput then
@@ -334,8 +332,8 @@ function widget:Initialize()
 		end
 	end)
 
-	WG['keybinds'] = {}
-	WG['keybinds'].toggle = function(state)
+	WG.keybinds = {}
+	WG.keybinds.toggle = function(state)
 		local wanted = state
 		if wanted == nil then
 			wanted = not show
@@ -347,10 +345,10 @@ function widget:Initialize()
 			closePanel()
 		end
 	end
-	WG['keybinds'].isvisible = function()
+	WG.keybinds.isvisible = function()
 		return show
 	end
-	WG['keybinds'].reloadBindings = function()
+	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true
 	end
@@ -372,8 +370,8 @@ function widget:Shutdown()
 		keybinds = nil
 	end
 	if backgroundGuishader ~= nil then
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('keybindinfo')
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		else
 			glDeleteList(backgroundGuishader)
 		end

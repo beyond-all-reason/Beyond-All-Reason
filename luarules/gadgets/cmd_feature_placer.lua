@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name    = "Feature Placer",
-		desc    = "Synced gadget for placing, removing, and managing map features via brush tool",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer",
+		desc = "Synced gadget for placing, removing, and managing map features via brush tool",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -43,11 +43,11 @@ end
 local PLACELIST_HEADER = "$feature_place_list$"
 local TRANSFORM_HEADER = "$feature_transform$"
 local REMOVEIDS_HEADER = "$feature_remove_ids$"
-local REMOVE_HEADER   = "$feature_remove$"
-local UNDO_HEADER     = "$feature_undo$"
-local REDO_HEADER     = "$feature_redo$"
-local SAVE_HEADER     = "$feature_save$"
-local LOAD_HEADER     = "$feature_load$"
+local REMOVE_HEADER = "$feature_remove$"
+local UNDO_HEADER = "$feature_undo$"
+local REDO_HEADER = "$feature_redo$"
+local SAVE_HEADER = "$feature_save$"
+local LOAD_HEADER = "$feature_load$"
 local CLEARALL_HEADER = "$feature_clearall$"
 
 local MAX_UNDO = 100
@@ -60,32 +60,32 @@ local LIFT_EPSILON = 0.5
 ----------------------------------------------------------------
 -- Localize
 ----------------------------------------------------------------
-local max    = math.max
-local min    = math.min
-local floor  = math.floor
-local cos    = math.cos
-local sin    = math.sin
-local abs    = math.abs
+local max = math.max
+local min = math.min
+local floor = math.floor
+local cos = math.cos
+local sin = math.sin
+local abs = math.abs
 local random = math.random
-local pi     = math.pi
+local pi = math.pi
 
-local SendToUnsynced       = SendToUnsynced
-local CreateFeature        = Spring.CreateFeature
-local DestroyFeature       = Spring.DestroyFeature
-local GetGroundHeight      = Spring.GetGroundHeight
-local GetGroundNormal      = Spring.GetGroundNormal
-local GetAllFeatures       = Spring.GetAllFeatures
+local SendToUnsynced = SendToUnsynced
+local CreateFeature = Spring.CreateFeature
+local DestroyFeature = Spring.DestroyFeature
+local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundNormal = Spring.GetGroundNormal
+local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local GetFeaturePosition   = Spring.GetFeaturePosition
-local GetFeatureDefID      = Spring.GetFeatureDefID
-local GetFeatureHeading    = Spring.GetFeatureHeading
-local ValidFeatureID       = Spring.ValidFeatureID
-local GetGaiaTeamID        = Spring.GetGaiaTeamID
-local SetFeatureRotation   = Spring.SetFeatureRotation
-local GetFeatureRotation   = Spring.GetFeatureRotation
-local SetFeaturePosition   = Spring.SetFeaturePosition
-local SetFeatureMoveCtrl   = Spring.SetFeatureMoveCtrl
-local GetGameFrame         = Spring.GetGameFrame
+local GetFeaturePosition = Spring.GetFeaturePosition
+local GetFeatureDefID = Spring.GetFeatureDefID
+local GetFeatureHeading = Spring.GetFeatureHeading
+local ValidFeatureID = Spring.ValidFeatureID
+local GetGaiaTeamID = Spring.GetGaiaTeamID
+local SetFeatureRotation = Spring.SetFeatureRotation
+local GetFeatureRotation = Spring.GetFeatureRotation
+local SetFeaturePosition = Spring.SetFeaturePosition
+local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
+local GetGameFrame = Spring.GetGameFrame
 
 -- Same containment module the widget draws its brush outline from, so removal
 -- matches the shape the user sees. The copy that used to live here was
@@ -104,10 +104,10 @@ local gaiaTeamID
 -- Wobble animation
 ----------------------------------------------------------------
 local wobbleQueue = {}
-local WOBBLE_DURATION  = 22   -- frames (~0.73s at 30fps)
-local WOBBLE_AMPLITUDE = 8    -- degrees peak tilt
-local WOBBLE_FREQ      = 0.6  -- radians per frame
-local WOBBLE_RAMP      = 3    -- frames to ramp in
+local WOBBLE_DURATION = 22 -- frames (~0.73s at 30fps)
+local WOBBLE_AMPLITUDE = 8 -- degrees peak tilt
+local WOBBLE_FREQ = 0.6 -- radians per frame
+local WOBBLE_RAMP = 3 -- frames to ramp in
 
 -- GameFrame is registered only while wobble animations run; otherwise every
 -- match paid an empty pairs() walk every sim frame.
@@ -121,10 +121,10 @@ local function addWobble(featureID)
 		local pitch, yaw, roll = GetFeatureRotation(featureID)
 		wobbleQueue[featureID] = {
 			start = GetGameFrame(),
-			axis  = random() * 2 * pi,
+			axis = random() * 2 * pi,
 			pitch = pitch or 0,
-			yaw   = yaw or 0,
-			roll  = roll or 0,
+			yaw = yaw or 0,
+			roll = roll or 0,
 		}
 		if not wobbleActive then
 			wobbleActive = true
@@ -171,13 +171,17 @@ end
 
 local function readTransform(featureID)
 	local x, y, z = GetFeaturePosition(featureID)
-	if not x then return nil end
+	if not x then
+		return nil
+	end
 	local pitch, yaw, roll = GetFeatureRotation(featureID)
 	return { x = x, y = y, z = z, pitch = pitch or 0, yaw = yaw or 0, roll = roll or 0 }
 end
 
 local function applyTransform(featureID, t)
-	if not ValidFeatureID(featureID) then return false end
+	if not ValidFeatureID(featureID) then
+		return false
+	end
 
 	-- A transform supersedes any placement wobble still running on this feature.
 	-- Left in the queue, the wobble would keep writing its own rotation and then
@@ -226,7 +230,9 @@ end
 
 local function createFromPlacement(p)
 	local id = CreateFeature(p.defName, p.x, p.y, p.z, p.heading, gaiaTeamID)
-	if not id then return nil end
+	if not id then
+		return nil
+	end
 
 	if p.y > GetGroundHeight(p.x, p.z) + LIFT_EPSILON then
 		lockFeatureInPlace(id)
@@ -355,9 +361,7 @@ local function isRestingOrientation(featureID, def, x, z)
 		end
 	end
 
-	return abs(ux - ex) < UP_MATCH_EPSILON
-		and abs(uy - ey) < UP_MATCH_EPSILON
-		and abs(uz - ez) < UP_MATCH_EPSILON
+	return abs(ux - ex) < UP_MATCH_EPSILON and abs(uy - ey) < UP_MATCH_EPSILON and abs(uz - ez) < UP_MATCH_EPSILON
 end
 
 -- Snapshot everything needed to recreate a feature exactly, tilt and lift
@@ -366,10 +370,14 @@ end
 local function captureFeature(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
-	if not def then return nil end
+	if not def then
+		return nil
+	end
 
 	local x, y, z = GetFeaturePosition(featureID)
-	if not x then return nil end
+	if not x then
+		return nil
+	end
 
 	local pitch, _, roll = GetFeatureRotation(featureID)
 	return {
@@ -392,7 +400,9 @@ local function removeFeatures(centerX, centerZ, radius, shape, angleDeg)
 	local z2 = min(Game.mapSizeZ, centerZ + extent)
 
 	local features = GetFeaturesInRectangle(x1, z1, x2, z2)
-	if not features or #features == 0 then return end
+	if not features or #features == 0 then
+		return
+	end
 
 	local removed = {}
 	for i = 1, #features do
@@ -534,7 +544,9 @@ local function destroyAll(features)
 end
 
 local function featureUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 	closeStroke()
 
 	local entry = undoStack[#undoStack]
@@ -556,7 +568,9 @@ local function featureUndo()
 end
 
 local function featureRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 	closeStroke()
 
 	local entry = redoStack[#redoStack]
@@ -599,12 +613,8 @@ local function exportAllFeatures()
 			-- "Tilted" means tilted away from the engine's own resting alignment,
 			-- not simply non-zero pitch: ground-aligned features on a slope have
 			-- plenty of that without anyone having touched them.
-			if
-				not snapshot.resting
-				or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON
-			then
-				entry = entry
-					.. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
+			if not snapshot.resting or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON then
+				entry = entry .. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
 			end
 			data[#data + 1] = entry
 		end
@@ -658,14 +668,18 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Undo
 	if msg == UNDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureUndo()
 		return true
 	end
 
 	-- Redo
 	if msg == REDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureRedo()
 		return true
 	end
@@ -727,7 +741,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Clear all
 	if msg == CLEARALL_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		closeStroke()
 		clearAllFeatures()
 		return true
@@ -744,10 +760,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 		for word in payload:gmatch("%S+") do
 			parts[#parts + 1] = word
 		end
-		local centerX  = tonumber(parts[1])
-		local centerZ  = tonumber(parts[2])
-		local radius   = tonumber(parts[3])
-		local shape    = parts[4] or "circle"
+		local centerX = tonumber(parts[1])
+		local centerZ = tonumber(parts[2])
+		local radius = tonumber(parts[3])
+		local shape = parts[4] or "circle"
 		local angleDeg = tonumber(parts[5]) or 0
 
 		if not centerX or not centerZ or not radius then
@@ -781,7 +797,7 @@ function gadget:GameFrame(frame)
 			local angleDeg = WOBBLE_AMPLITUDE * sin(elapsed * WOBBLE_FREQ) * decay * ramp
 			local angle = angleDeg * pi / 180
 			local pitch = info.pitch + angle * cos(info.axis)
-			local roll  = info.roll + angle * sin(info.axis)
+			local roll = info.roll + angle * sin(info.axis)
 			SetFeatureRotation(fid, pitch, info.yaw, roll)
 		end
 	end

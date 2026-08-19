@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "BAR Hotkeys",
-		desc = "Enables BAR Hotkeys" ,
+		desc = "Enables BAR Hotkeys",
 		author = "Beherith",
 		date = "23 march 2012",
 		license = "GNU GPL, v2 or later",
@@ -12,15 +12,13 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 
-
 local function reloadWidgetsBindings()
-	local reloadableWidgets = {'buildmenu', 'ordermenu', 'keybinds', 'cmd_blueprint'}
+	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }
 
 	for _, w in pairs(reloadableWidgets) do
 		if WG[w] and WG[w].reloadBindings then
@@ -42,7 +40,6 @@ local function fallbackToProfile(missing)
 
 	return file
 end
-
 
 local function reloadBindings()
 	-- Still read from config rather than the store: on the launch a player is
@@ -86,8 +83,8 @@ function widget:Initialize()
 	adoptEditedKeymap()
 	reloadBindings()
 
-	WG['bar_hotkeys'] = {}
-	WG['bar_hotkeys'].reloadBindings = reloadBindings
+	WG.bar_hotkeys = {}
+	WG.bar_hotkeys.reloadBindings = reloadBindings
 end
 
 function widget:Shutdown()

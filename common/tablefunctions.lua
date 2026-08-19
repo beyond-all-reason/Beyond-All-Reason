@@ -6,7 +6,9 @@ run for end users.)
 ]]
 
 -- Lua 5.1 backwards compatibility
-table.pack = table.pack or function(...) return { n = select("#", ...), ... } end
+table.pack = table.pack or function(...)
+	return { n = select("#", ...), ... }
+end
 
 if not table.copy then
 	function table.copy(tbl)
@@ -56,7 +58,7 @@ if not table.mergeInPlace then
 	function table.mergeInPlace(mergeTarget, mergeData, deep)
 		deep = deep or false
 		for key, value in pairs(mergeData) do
-			if type(value) == 'table' and type(mergeTarget[key] or false) == 'table' then
+			if type(value) == "table" and type(mergeTarget[key] or false) == "table" then
 				table.mergeInPlace(mergeTarget[key], value, deep)
 			elseif type(value) == "table" and deep then
 				mergeTarget[key] = table.copy(value)
@@ -112,8 +114,7 @@ if not table.toString then
 	local tableSort = table.sort
 	local DEFAULT_INDENT_STEP = 2
 
-	local function tableToString(tbl, options, _seen, _depth)
-	end
+	local function tableToString(tbl, options, _seen, _depth) end
 
 	local function keyCmp(a, b)
 		local ta = type(a)
@@ -135,6 +136,21 @@ if not table.toString then
 
 	local tableConcat = table.concat
 
+	---Recursively turns a table into a string, suitable for printing.
+	---
+	---All types of keys and values are valid. How some special types are handled:
+	--- * `function` types are turned into "<function>"
+	--- * `userdata` types are turned into "<userdata>", unless they have a `tostring` metamethod, which is used instead
+	--- * cyclic or recursive references are turned into "<recursive_reference>"
+	--- * keys that are not strings or numbers (tables, functions, etc) are first run through table.toString
+	---
+	---In order to keep the output deterministic, keys are sorted.
+	---@param tbl table
+	---@param options table Optional parameters
+	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
+	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
+	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
+	---@return string
 	tableToString = function(tbl, options, _seen, _depth)
 		_seen = _seen or {}
 		_depth = _depth or 0
@@ -142,7 +158,7 @@ if not table.toString then
 		local inputType = type(tbl)
 
 		if inputType == "string" then
-			return "\"" .. tbl .. "\""
+			return '"' .. tbl .. '"'
 		elseif inputType == "userdata" then
 			return tostring(tbl) or "<userdata>"
 		elseif inputType ~= "table" then
@@ -169,61 +185,62 @@ if not table.toString then
 		local parts = {}
 		local n = 0
 
-		n = n + 1; parts[n] = "{"
+		n = n + 1
+		parts[n] = "{"
 		if keyCount > 0 and pretty then
-			n = n + 1; parts[n] = "\n"
+			n = n + 1
+			parts[n] = "\n"
 		end
 		for i = 1, keyCount do
 			local key = keys[i]
 			if pretty then
-				n = n + 1; parts[n] = stringRep(" ", (_depth + 1) * indent)
+				n = n + 1
+				parts[n] = stringRep(" ", (_depth + 1) * indent)
 			end
 			if key ~= i then
 				local keyType = type(key)
 				if keyType == "string" then
-					n = n + 1; parts[n] = key
-					n = n + 1; parts[n] = "="
+					n = n + 1
+					parts[n] = key
+					n = n + 1
+					parts[n] = "="
 				elseif keyType == "number" then
-					n = n + 1; parts[n] = "["
-					n = n + 1; parts[n] = tostring(key)
-					n = n + 1; parts[n] = "]="
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tostring(key)
+					n = n + 1
+					parts[n] = "]="
 				else
-					n = n + 1; parts[n] = "["
-					n = n + 1; parts[n] = tableToString(key, options, _seen)
-					n = n + 1; parts[n] = "]="
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tableToString(key, options, _seen)
+					n = n + 1
+					parts[n] = "]="
 				end
 			end
-			n = n + 1; parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
+			n = n + 1
+			parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
 			if i < keyCount or pretty then
-				n = n + 1; parts[n] = ","
+				n = n + 1
+				parts[n] = ","
 			end
 			if pretty then
-				n = n + 1; parts[n] = "\n"
+				n = n + 1
+				parts[n] = "\n"
 			end
 		end
 		if keyCount > 0 and pretty then
-			n = n + 1; parts[n] = stringRep(" ", _depth * indent)
+			n = n + 1
+			parts[n] = stringRep(" ", _depth * indent)
 		end
-		n = n + 1; parts[n] = "}"
+		n = n + 1
+		parts[n] = "}"
 
 		return tableConcat(parts)
 	end
 
-	---Recursively turns a table into a string, suitable for printing.
-	---
-	---All types of keys and values are valid. How some special types are handled:
-	--- * `function` types are turned into "<function>"
-	--- * `userdata` types are turned into "<userdata>", unless they have a `tostring` metamethod, which is used instead
-	--- * cyclic or recursive references are turned into "<recursive_reference>"
-	--- * keys that are not strings or numbers (tables, functions, etc) are first run through table.toString
-	---
-	---In order to keep the output deterministic, keys are sorted.
-	---@param tbl table
-	---@param options table Optional parameters
-	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
-	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
-	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
-	---@return string
 	table.toString = tableToString
 end
 
@@ -385,7 +402,9 @@ if not table.removeAll then
 	---@param tbl table<any, V>
 	---@param value V
 	function table.removeAll(tbl, value)
-		table.removeIf(tbl, function(v) return v == value end)
+		table.removeIf(tbl, function(v)
+			return v == value
+		end)
 	end
 end
 
@@ -545,7 +564,7 @@ if not table.valueIntersection then
 	---@param ... V[] Any number of array-style tables.
 	---@return V[] A new array containing only values present in all input arrays.
 	function table.valueIntersection(...)
-		local tables = { ...}
+		local tables = { ... }
 
 		-- Count occurrences of each value across all arrays
 		local valueCounts = {}
@@ -585,9 +604,11 @@ if not pairsByKeys then
 	---(Implementation copied straight from the docs at https://www.lua.org/pil/19.3.html.)
 	function pairsByKeys(tbl, keySortFunction)
 		local keys = {}
-		for key in pairs(tbl) do table.insert(keys, key) end
+		for key in pairs(tbl) do
+			table.insert(keys, key)
+		end
 		table.sort(keys, keySortFunction)
-		local i = 0           -- iterator variable
+		local i = 0 -- iterator variable
 		local iter = function() -- iterator function
 			i = i + 1
 			if keys[i] == nil then
