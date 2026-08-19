@@ -40,6 +40,10 @@ end
 
 _G.Game = _G.Game or {}
 
+-- alldefs_post divides by this to work out the collision speed threshold, so leaving it
+-- nil takes down the whole def post pass and every def arrives raw.
+_G.Game.gameSpeed = _G.Game.gameSpeed or 30
+
 _G.Game.envDamageTypes = _G.Game.envDamageTypes or {
     Debris            =  -1,
     GroundCollision   =  -2,
