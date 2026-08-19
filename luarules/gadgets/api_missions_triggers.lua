@@ -185,7 +185,7 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
-		isBuildFrameOwner         = isBuildFrameOwner,
+		IsBuildFrameOwner         = isBuildFrameOwner,
 		InFactory                = inFactory,
 		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,
