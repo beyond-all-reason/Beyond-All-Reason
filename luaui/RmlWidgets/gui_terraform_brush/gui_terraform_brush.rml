@@ -7,6 +7,8 @@
 </head>
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
+		<div class="flex flex-col-reverse">
+		<div id="status-summary" class="tf-status-summary mb-1"></div>
 		<div class="tf-header mb-2">
 			<div class="tf-header-top">
 				<div id="tf-handle" class="tf-drag-handle tf-title text-outline-darker">
@@ -15,7 +17,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.9</span>
+					<span class="tf-title-version">1.10</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -42,7 +44,7 @@
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			</div>
 		</div>
-		<div id="status-summary" class="tf-status-summary mb-1"></div>
+		</div>
 		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="frame-terrain">
 			<div id="btn-toggle-terrain" class="tf-section-title-row" style="cursor: pointer;">
@@ -5178,6 +5180,10 @@
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'protodesert'" data-event-mousedown="onPickBiome('protodesert')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
 									<div class="tf-biome-name">Protodesert</div>
+								</div>
+								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
+									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
+									<div class="tf-biome-name">Prototemperate</div>
 								</div>
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'bismuth'" data-event-mousedown="onPickBiome('bismuth')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_bismuth.png" />

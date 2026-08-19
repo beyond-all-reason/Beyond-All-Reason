@@ -1,18 +1,23 @@
+-- Add your project roots to Lua’s package.path for tests.
+-- This is necessary during the initial phase of the Lux rollout where we don't have a project root and `src/` directory
+-- in accordance with canonical lua rock/package structure.
+--   https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6005#issuecomment-3504830009
+-- Shared by every task: specs do `require("spec_helper")`, which needs "spec/?.lua" on package.path.
+-- Tasks without this fail at line 1 of every spec.
+local lpath = table.concat({
+  "./?.lua", "./?/init.lua",
+  "common/?.lua", "common/?/init.lua",
+  "common/luaUtilities/?.lua", "common/luaUtilities/?/init.lua",
+  "luarules/?.lua", "luarules/?/init.lua",
+  "luaui/?.lua", "luaui/?/init.lua",
+  "spec/?.lua", "spec/?/init.lua",
+}, ";")
+
 return {
 
   default = {
-    -- add your project roots to Lua’s package.path for tests
-    -- This is necessary during the initial phase of the Lux rollout
-    --   where we don't have a project root and `src/` directory in accordance with canonical lua rock/package structure
-    --   https://github.com/beyond-all-reason/Beyond-All-Reason/pull/6005#issuecomment-3504830009
-    lpath = table.concat({
-      "./?.lua", "./?/init.lua",
-      "common/?.lua", "common/?/init.lua",
-      "common/luaUtilities/?.lua", "common/luaUtilities/?/init.lua",
-      "luarules/?.lua", "luarules/?/init.lua",
-      "luaui/?.lua", "luaui/?/init.lua",
-      "spec/?.lua", "spec/?/init.lua",
-    }, ";")
+    lpath = lpath,
+    helper = "spec/spec_helper.lua",
   },
   -- Default configuration
   verbose = true,
@@ -26,10 +31,12 @@ return {
     output = "utfTerminal",
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
+    lpath = lpath,
     ROOT = { "spec/" }
   },
   unit = {
     verbose = true,
+    lpath = lpath,
     ROOT = { "spec/" }
   },
   coverage = {
@@ -37,6 +44,7 @@ return {
     output = "utfTerminal",
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
+    lpath = lpath,
     coverage = true,
     ROOT = { "spec/" }
   }
