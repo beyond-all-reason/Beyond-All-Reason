@@ -18,8 +18,10 @@ local types = {
 	-- String Validators:
 	String = 'String',
 	StageID = 'StageID',
+	StageIDs = 'StageIDs',
 	ObjectiveID = 'ObjectiveID',
 	TriggerID = 'TriggerID',
+	TriggerIDs = 'TriggerIDs',
 	UnitName = 'UnitName',
 	FeatureName = 'FeatureName',
 	UnitDefName = 'UnitDefName',

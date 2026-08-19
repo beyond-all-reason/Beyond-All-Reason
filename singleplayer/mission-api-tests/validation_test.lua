@@ -83,6 +83,37 @@ local triggers = {
 		type = 'invalidType',
 	},
 
+	-- Valid: settings are optional in raw missions, the loader applies the defaults.
+	triggerWithoutSettings = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	-- error: settings must be a table
+	triggerWithNonTableSettings = {
+		type = triggerTypes.TimeElapsed,
+		settings = 'notATable',
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	-- error: maxRepeats without repeating
+	triggerWithMaxRepeatsButNotRepeating = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			maxRepeats = 3,
+		},
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
 	triggerWithInvalidActionID = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -100,6 +131,7 @@ local triggers = {
 			difficulties = 0,
 			coop = 0,
 			active = 0,
+			stages = { 123 },   -- error: stage list entries must be stageID strings
 		},
 		parameters = {
 			seconds = 100000000,

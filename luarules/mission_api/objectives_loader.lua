@@ -17,31 +17,24 @@ local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
 ]]
 
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	local objectives = rawObjectives or {}
-
 	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(GG['MissionAPI'].TriggerDefinitions.Parameters, parameterTypes.Types.Quantity)
 
 	-- Build objective-to-stages mapping from stages structure
 	local objectiveToStages = {}
-	for stageID, stageData in pairs(stages or {}) do
-		if type(stageData) == 'table' and type(stageData.objectives) == 'table' then
-			for _, objectiveID in ipairs(stageData.objectives) do
-				if not objectiveToStages[objectiveID] then
-					objectiveToStages[objectiveID] = {}
-				end
-				table.insert(objectiveToStages[objectiveID], stageID)
-			end
+	for stageID, stageData in pairs(stages) do
+		for _, objectiveID in ipairs(stageData.objectives) do
+			table.insert(table.ensureTable(objectiveToStages, objectiveID), stageID)
 		end
 	end
 
-	for objectiveID, objective in pairs(objectives) do
-		local objectiveStages = objectiveToStages[objectiveID] or {}
-
-		if type(objectiveID) == 'string' and type(objective) == 'table' and type(objective.trigger) == 'table' then
+	for objectiveID, objective in pairs(rawObjectives) do
+		-- An objective without a trigger is completed by an UpdateObjective action instead.
+		if type(objective.trigger) == 'table' then
+			local objectiveStages = objectiveToStages[objectiveID] or {}
 			local amount = objective.amount
 			local triggerType = objective.trigger.type
-			local triggerParameters = type(objective.trigger.parameters) == 'table' and objective.trigger.parameters or {}
+			local triggerParameters = objective.trigger.parameters or {}
 
 			if triggerTypesWithQuantity[triggerType] then
 				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
@@ -56,7 +49,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 			else
 				-- Non-managed objective: synthesize trigger + action as usual.
 				local isRepeating = amount ~= nil
-				local maxRepeats = type(amount) == 'number' and amount > 1 and (amount - 1) or nil
+				local maxRepeats = amount and amount > 1 and (amount - 1) or nil
 				local triggerID = '__objective_' .. objectiveID
 				local actionID  = '__updateObjective_' .. objectiveID
 
@@ -81,8 +74,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 		end
 	end
 
-
-	return objectives
+	return rawObjectives
 end
 
 return {

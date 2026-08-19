@@ -25,22 +25,17 @@ local function processPositions(positions)
 end
 
 local function processOrders(orders)
-	for i, order in ipairs(orders) do
+	for index, order in ipairs(orders) do
 		local commandID = order[1]
 		if type(commandID) == 'string' then
-			local unitDef = UnitDefNames[commandID]
-			if unitDef then
-				orders[i] = { -unitDef.id, order[2], order[3] }
-			end
+			-- A build order names the unit to build, which the engine takes as a negative ID.
+			orders[index] = { -UnitDefNames[commandID].id, order[2], order[3] }
 		end
 	end
 end
 
 local function processSoundFile(soundfile)
-	local wavData = ReadWAV(soundfile)
-	if wavData then
-		GG['MissionAPI'].soundFiles[soundfile] = wavData.Length
-	end
+	GG['MissionAPI'].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
 
 local function processEnumSet(values)
@@ -68,8 +63,7 @@ end
 local function processParameters(actionsOrTriggers, schemaParameters)
 	for _, actionOrTrigger in pairs(actionsOrTriggers) do
 		local parameters = actionOrTrigger.parameters or {}
-		local schema = schemaParameters[actionOrTrigger.type] or {}
-		for _, parameter in ipairs(schema) do
+		for _, parameter in ipairs(schemaParameters[actionOrTrigger.type]) do
 			local value = parameters[parameter.name]
 			local processor = processors[parameter.type]
 			if value ~= nil and processor then
