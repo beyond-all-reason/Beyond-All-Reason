@@ -17,7 +17,7 @@ return {
 		footprintz = 2,
 		health = 3350,
 		maxslope = 17,
-		speed = 50.0,
+		speed = 44,
 		maxwaterdepth = 25,
 		movementclass = "BOT2",
 		nochasecategory = "VTOL",
@@ -30,7 +30,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.815,
-		turnrate = 1316.75,
+		turnrate = 1316,
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
