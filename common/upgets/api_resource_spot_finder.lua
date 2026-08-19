@@ -79,7 +79,7 @@ local geoSpots
 -- Find geothermal spots
 ------------------------------------------------------------
 
-local function GetFootprintPos(value) -- not entirely acurate, unsure why
+local function GetFootprintPos(value) -- not entirely accurate, unsure why
 	return (math.round(value / precision) * precision)
 end
 

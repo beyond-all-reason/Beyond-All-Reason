@@ -127,7 +127,7 @@ void main() {
 
 	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
 	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of whether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 	v_startcolorpower = startcolorpower;
 

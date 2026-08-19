@@ -33,7 +33,7 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.7 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
-local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
+local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targeting from getting stuck in a fire mode for too long.
 local aggroBackupCap = -16 --Like above, but a negative value because backup is triggered with negative aggro.
 local gameSpeed = Game.gameSpeed
 
@@ -294,7 +294,7 @@ local function updateAimingState(attackerID)
 		failureToFire = failureToFireCheck(attackerID, data, defData)
 	end
 
-	-- add or subtract aggro based on weapon targetting conditions
+	-- add or subtract aggro based on weapon targeting conditions
 	if priorityIsUserTarget and priorityCanShoot then
 		if failureToFire then
 			handleMisfire(data, defData)

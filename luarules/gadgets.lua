@@ -26,7 +26,7 @@ VFS.Include("init.lua", nil, VFSMODE)
 
 local SAFEWRAP = 0
 -- 0: disabled
--- 1: enabled, but can be overriden by gadget.GetInfo().unsafe
+-- 1: enabled, but can be overridden by gadget.GetInfo().unsafe
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
@@ -885,7 +885,7 @@ local callinDepth = 0
 
 function gadgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
-	-- It will also create the gadgetHandler usual api queing the calls.
+	-- It will also create the gadgetHandler usual api queueing the calls.
 	local reorderFuncNames = {
 		"InsertGadget",
 		"RemoveGadget",

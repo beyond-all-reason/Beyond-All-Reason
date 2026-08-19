@@ -722,7 +722,7 @@ local function drawOutlines()
 	end
 
 	gl.LineWidth(2)
-	gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
+	gl.DepthTest(GL.ALWAYS) -- so that it won't be drawn behind terrain
 	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
 	gl.Texture(0, "$heightmap")
 	outlineShader:Activate()
@@ -854,7 +854,7 @@ end
 
 local function createBlueprintFromSerialized(serializedBlueprint)
 	-- This function contains logic to handle blueprints with units that are not
-	-- in the base game (e.g., Legion, expiremental unit pack). It attempts to substitute
+	-- in the base game (e.g., Legion, experimental unit pack). It attempts to substitute
 	-- those units to a default faction (ARM) so that the blueprints can still be used.
 	if not serializedBlueprint or not serializedBlueprint.units then
 		return nil

@@ -226,7 +226,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end)
 		end,
-		-- flatten anything above/bellow these extremes
+		-- flatten anything above/below these extremes
 		flatten = function(value)
 			local height = tonumber(value[1])
 			if height == nil then
@@ -275,8 +275,8 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 	-- terrain deformer <br>
-	-- all deformers are performed independantly, rather than merged into a more efficent single caculation, to let the user stack them multiple times in whatever order
-	-- expected format, where each command must be seperated by a comma, space sensetive:
+	-- all deformers are performed independently, rather than merged into a more efficient single calculation, to let the user stack them multiple times in whatever order
+	-- expected format, where each command must be separated by a comma, space sensitive:
 	--		command <required> [optional], command [optional] [optional], command mode + <height>, etc
 	-- commands:
 	-- 		invertmap [height] or ["wet"]			inverts the height map around the specified point, or "wet" water level aka zero, if unspecified highest ends at zero
@@ -286,13 +286,13 @@ if gadgetHandler:IsSyncedCode() then
 	-- 		extremeabove <height> [multiplier]		increases the height intensity above specified point
 	-- 		extremebelow <height> [multiplier]		increases the height intensity below specified point
 	-- 		flatten <height>						lowers anything above to it
-	-- 		floor <height>							raises anything bellow to it
+	-- 		floor <height>							raises anything below to it
 	-- 		zero [height (not mode compatible)]		sets water level to lowest point or specified height to the roughly best of its ability
 	--		waterlevel <height>							move everything up or down
 	-- extra:
-	--		triangular brackets reffer to required <>
-	--		square brackets reffer to optional []
-	--		[height]/<height> can be replaced with "mode [int] [+/- <number>]", otpional offset requires a space before and after the + or -
+	--		triangular brackets refer to required <>
+	--		square brackets refer to optional []
+	--		[height]/<height> can be replaced with "mode [int] [+/- <number>]", optional offset requires a space before and after the + or -
 	--		when entering single value there can not be a space after the minus, except for mode offset
 	--		e.g. maxheight mode, minheight mode 2, extremeabove mode 1 + 15 2, zero -20
 
@@ -300,8 +300,8 @@ if gadgetHandler:IsSyncedCode() then
 		local commands = string.split(debugString, ",")
 
 		-- do we need a list of most common heights? and if so sample it once for all functions
-		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occuring value
-		-- height gets rounded into stepsize of MODESTEPSIZE variable, counted, and sorted based on that count, using the flatest surface found within that step as the representitive height
+		-- mode, math mode as in mean, median, and mode, where mode is the most commonly occurring value
+		-- height gets rounded into stepsize of MODESTEPSIZE variable, counted, and sorted based on that count, using the flattest surface found within that step as the representative height
 		local modeArray = { [1] = 0 }
 		if string.find(debugString, "mode") then
 			-- count the most common heights, in height groups step sized MODESTEPSIZE variable
@@ -370,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		-- end of mode height related sampling
 
-		-- go thourgh the commands
+		-- go through the commands
 		local command
 		local commandProc
 		for i = 1, #commands do
@@ -382,7 +382,7 @@ if gadgetHandler:IsSyncedCode() then
 					local j = 2
 					commandProc = {}
 					for k = 1, #command do
-						-- if mode is used, it requests most common height, substitue it
+						-- if mode is used, it requests most common height, substitute it
 						if command[j] == "mode" then
 							-- find which mode value to use, and if we're offsetting it
 							local offset = 0.0
@@ -418,7 +418,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				-- call the retrived function with partially processed params
+				-- call the retrieved function with partially processed params
 				func(commandProc)
 			end
 		end
@@ -435,7 +435,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end)
 
-			-- orginal height map so that restore ground command doesn't dig trenches or construct mountains
+			-- original height map so that restore ground command doesn't dig trenches or construct mountains
 			Spring.SetOriginalHeightMapFunc(function()
 				for z = 0, Game.mapSizeZ, Game.squareSize do
 					for x = 0, Game.mapSizeX, Game.squareSize do
@@ -460,9 +460,9 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then
 			local debugString = Spring.GetModOptions().debugcommands
 
-			-- "for fun" terrain moddifiers
-			-- they block any accompanying actual debug comands from running
-			-- see variable terrainTriggers for list of moddifiers
+			-- "for fun" terrain modifiers
+			-- they block any accompanying actual debug commands from running
+			-- see variable terrainTriggers for list of modifiers
 			-- some odd behavior with start box highlighting
 			if isTerrainMod(debugString) then
 				terrainMods(string.lower(debugString))
@@ -916,7 +916,7 @@ if gadgetHandler:IsSyncedCode() then
 				elseif action == "reclaim" then
 					local teamID = Spring.GetUnitTeam(unitID)
 					local unitDefID = Spring.GetUnitDefID(unitID)
-					Spring.DestroyUnit(unitID, false, true) -- this doesnt give back resources in itself
+					Spring.DestroyUnit(unitID, false, true) -- this doesn't give back resources in itself
 					Spring.AddTeamResource(teamID, "metal", UnitDefs[unitDefID].metalCost)
 					Spring.AddTeamResource(teamID, "energy", UnitDefs[unitDefID].energyCost)
 				elseif action == "wreck" then
@@ -1017,7 +1017,7 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.DestroyUnit(unitID, words[6] == "1" and true or false, false)
 
 				--if words[6] ~= '1' then
-				-- this wont clear up the wreck of the above destroyed unit, but its maybe even bettter this way :)
+				-- this won't clear up the wreck of the above destroyed unit, but its maybe even better this way :)
 				local featuresInRange =
 					Spring.GetFeaturesInSphere(tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), 220)
 				for j = 1, #featuresInRange do

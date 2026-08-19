@@ -152,6 +152,7 @@ local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
 local CATEGORY_ORDER = {
+	"geo",
 	"rocks",
 	"trees",
 	"foliage",
@@ -165,6 +166,7 @@ local CATEGORY_ORDER = {
 }
 
 local CATEGORY_LABELS = {
+	geo = "Geo",
 	rocks = "Rocks",
 	trees = "Trees",
 	foliage = "Foliage",
@@ -178,6 +180,13 @@ local CATEGORY_LABELS = {
 }
 
 local function classifyFeature(name, def)
+	-- Geothermal vents get their own category: real maps ship a def named
+	-- plain "geovent" (often model-less) next to the game's editor_geovent,
+	-- and both buried in Other made it easy to place the wrong one.
+	if def and def.geoThermal then
+		return "geo"
+	end
+
 	-- Exclude debris and heaps entirely
 	if name:find("_heap$") then
 		return nil
@@ -2507,6 +2516,18 @@ function widget:DrawScreen()
 	end)
 	glLineWidth(1)
 	gl.Color(1, 1, 1, 1)
+end
+
+-- The geo-circles widget (Geothermalspots) removes itself on maps that boot
+-- without geothermal features, so the first vent placed at runtime needs it
+-- brought back; once alive it tracks further vents through its own
+-- FeatureCreated. SendCommands like ensureBuildGridLoaded, so the call works
+-- from any context.
+function widget:FeatureCreated(featureID, allyTeamID)
+	local def = FeatureDefs[GetFeatureDefID(featureID)]
+	if def and def.geoThermal and not WG.geothermalspots then
+		Spring.SendCommands("luaui enablewidget Geothermalspots")
+	end
 end
 
 ----------------------------------------------------------------

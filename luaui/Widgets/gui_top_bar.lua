@@ -625,10 +625,10 @@ end
 local function checkTidalRelevant()
 	local mapMinHeight = 0
 
-	-- account for invertmap to the best of our abiltiy
+	-- account for invertmap to the best of our ability
 	if string.find(Spring.GetModOptions().debugcommands, "invertmap") then
 		if string.find(Spring.GetModOptions().debugcommands, "wet") then
-			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+			-- assume that they want water if keyword "wet" is involved, too violitile between initialization and subsequent post terraform checks
 			return true
 			--else
 			--	mapMinHeight = 0
@@ -638,7 +638,7 @@ local function checkTidalRelevant()
 	end
 
 	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
-	return mapMinHeight <= -20 -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
+	return mapMinHeight <= -20 -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle through unitdefs and read it from there)
 end
 
 local function updateTidal()
@@ -837,7 +837,7 @@ local function updateResbarText(res, force)
 							else
 								WG.notifications.queueNotification("YouAreWastingMetal")
 							end
-						elseif r[res][6] > 0.75 then -- supress if you are deliberately overflowing by adjustingthe share slider down
+						elseif r[res][6] > 0.75 then -- suppress if you are deliberately overflowing by adjustingthe share slider down
 							WG.notifications.queueNotification("YouAreOverflowingMetal")
 						end
 					end
@@ -1438,7 +1438,7 @@ local function updateResbarValues(res, update)
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
 		updateRes[res][1] = true
 		local maxStorageRes = smoothedResources[res][2]
-		local cappedCurRes = smoothedResources[res][1] -- limit so when production dies the value wont be much larger than what you can store
+		local cappedCurRes = smoothedResources[res][1] -- limit so when production dies the value won't be much larger than what you can store
 		if cappedCurRes > maxStorageRes * 1.07 then
 			cappedCurRes = maxStorageRes * 1.07
 		end
@@ -1900,7 +1900,7 @@ function widget:Update(dt)
 		mx, my = sp.GetMouseState()
 
 		hoveringTopbar = false
-		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
+		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the cursor is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 		end
 

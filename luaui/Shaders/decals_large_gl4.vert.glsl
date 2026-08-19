@@ -32,7 +32,7 @@ out DataGS {
 	mat3 tbnmatrix;
 };
 
-// This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
+// This function takes in a set of UV coordinates [0,1] and transforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
 	//return vec2(uvoffsets.p * u + uvoffsets.q, uvoffsets.s * v + uvoffsets.t); old
 	float a = uvoffsets.t - uvoffsets.s;

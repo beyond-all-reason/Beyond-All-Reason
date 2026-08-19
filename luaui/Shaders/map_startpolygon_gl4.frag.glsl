@@ -143,7 +143,7 @@ float Cellular3D(vec3 P)
     vec4 hash_z1 = fract( Pt * highz_mod.zzzz ) * 2.0 - 1.0;
 
     //  generate the 8 point positions
-    const float JITTER_WINDOW = 0.166666666;	// 0.166666666 will guarentee no artifacts.
+    const float JITTER_WINDOW = 0.166666666;	// 0.166666666 will guarantee no artifacts.
     hash_x0 = ( ( hash_x0 * hash_x0 * hash_x0 ) - sign( hash_x0 ) ) * JITTER_WINDOW + vec4( 0.0, 1.0, 0.0, 1.0 );
     hash_y0 = ( ( hash_y0 * hash_y0 * hash_y0 ) - sign( hash_y0 ) ) * JITTER_WINDOW + vec4( 0.0, 0.0, 1.0, 1.0 );
     hash_x1 = ( ( hash_x1 * hash_x1 * hash_x1 ) - sign( hash_x1 ) ) * JITTER_WINDOW + vec4( 0.0, 1.0, 0.0, 1.0 );
@@ -420,7 +420,7 @@ void main(void)
 
 		// absclamplify the cellnoise:
 		cellNoise += smoothstep( 0.0, 1.0, (1.0 - abs(cellNoise -0.5 ) * 10.0)) * 0.25;
-		// zero the cellnoise where you shouldnt be building:
+		// zero the cellnoise where you shouldn't be building:
 		cellNoise *= smoothstep(0.95, 1.0, mapnormal.y);
 
 		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));

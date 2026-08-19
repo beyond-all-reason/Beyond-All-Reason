@@ -1068,7 +1068,7 @@ local function removeExpiredParticles(gameFrame)
 			end
 			q.n = 0
 			particleRemoveQueue[f] = nil
-			-- Return the now-empty table to the pool for re-use instead of
+			-- Return the now-empty table to the pool for reuse instead of
 			-- letting it become garbage. Bounded to keep memory predictable.
 			if removeQueuePoolN < REMOVE_QUEUE_POOL_MAX then
 				removeQueuePoolN = removeQueuePoolN + 1

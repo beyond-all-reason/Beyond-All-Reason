@@ -84,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 			damage > 4
 			and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15)
 			and select(1, Spring.GetFeatureHealth(featureID)) > 0
-		then -- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged wont be called probably
+		then -- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged won't be called probably
 			local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 			if fx ~= nil then
 				local fdef = featureList[featureDefID]
