@@ -65,7 +65,9 @@ local function isTriggerValid(trigger)
 	return true
 end
 
-local function activateTrigger(trigger)
+-- providedValues: values the trigger observed at activation time, keyed by the
+-- names in its schema's `provides`. Actions opt in via their own `provided` map.
+local function activateTrigger(trigger, providedValues)
 	if not isTriggerValid(trigger) then
 		return false
 	end
@@ -74,7 +76,7 @@ local function activateTrigger(trigger)
 	trigger.repeatCount = trigger.repeatCount + 1
 
 	for _, actionID in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionID)
+		actionsDispatcher.Invoke(actionID, providedValues)
 	end
 
 	return true

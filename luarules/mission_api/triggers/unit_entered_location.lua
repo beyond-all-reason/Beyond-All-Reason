@@ -10,6 +10,7 @@ return {
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
 		requiresOneOf = { 'unitName', 'unitDefName' },
+		provides = { 'positionEntered' },
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context)
@@ -24,7 +25,8 @@ return {
 			previousUnitsInAreas[triggerID] = unitsInArea
 
 			for _, unitID in ipairs(unitsEnteredArea) do
-				context.ActivateTrigger(trigger)
+				local x, y, z = Spring.GetUnitBasePosition(unitID)
+				context.ActivateTrigger(trigger, { positionEntered = { x = x, y = y, z = z } })
 			end
 		end,
 	},
