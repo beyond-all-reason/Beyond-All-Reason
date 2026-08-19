@@ -88,7 +88,6 @@ return {
 			[30] = "legmg",
 			[31] = "armferret",
 			[32] = "armnanotc",
-			[33] = "legmext15",
 		},
 		customparams = {
 			unitgroup = 'builder',

@@ -61,7 +61,6 @@ return {
 			"legtl",
 			"legfrl",
 			"legfmg",
-            "legmext15",
 			"legfhive",
 		},
 		customparams = {

@@ -42,7 +42,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"legaap",
 			"leglab",

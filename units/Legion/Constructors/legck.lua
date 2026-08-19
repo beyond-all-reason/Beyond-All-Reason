@@ -43,7 +43,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"legalab",
 			"leglab",
@@ -69,7 +68,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mexT15_def = "legmext15",
+			--area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
