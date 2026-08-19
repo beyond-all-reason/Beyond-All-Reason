@@ -368,15 +368,15 @@ local function updateButtons()
 	local sidePadding = textPadding
 	local offset = sidePadding
 	local lastbutton
-	local badgeMinRadius = fontsize * 0.42
-	local badgeFontsize = fontsize * 0.62
+	local badgeMinRadius = fontsize * 0.47
+	local badgeFontsize = fontsize * 0.69
 
 	-- badge: optional number shown in a circle at the bottom right of the button text
 	local function addButton(name, text, badge)
 		local textWidth = font2:GetTextWidth(text) * fontsize
 		-- the circle grows along with the amount of characters the number has
 		local badgeRadius = badge
-			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.22))
+			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
 			or 0
 		local badgeWidth = badgeRadius * 2
 		local width = mathFloor(textWidth + badgeWidth + textPadding)
@@ -428,9 +428,12 @@ local function updateButtons()
 	if WG.teamstats and not isScenario then
 		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
 	end
-	if WG.gameinfo then
+	-- only shown when settings differ from their default, the amount of them is put in the badge
+	if WG.gameinfo and not isSinglePlayer then
 		local changedCount = WG.gameinfo.getChangedModoptionsCount and WG.gameinfo.getChangedModoptionsCount() or 0
-		addButton("info", BAR.I18N("ui.topbar.button.info"), changedCount > 0 and tostring(changedCount) or nil)
+		if changedCount > 0 then
+			addButton("info", BAR.I18N("ui.topbar.button.info"), tostring(changedCount))
+		end
 	end
 	if gameIsOver then
 		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
@@ -1931,7 +1934,7 @@ function widget:Update(dt)
 		end
 
 		-- the gameinfo widget loads after the topbar, so its button gets added once it is there
-		local gameinfoActive = WG.gameinfo ~= nil
+		local gameinfoActive = WG.gameinfo ~= nil and not isSinglePlayer
 		if gameinfoActive ~= gameinfoEnabled then
 			gameinfoEnabled = gameinfoActive
 			refreshUi = true
