@@ -1,9 +1,40 @@
----
---- Resource triggers and actions test mission.
----
-
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+
+local lobbyData = {
+	missionId = "resource_test",
+	title = "Resource Test",
+	description = "Tests triggers and action related to resources, including adding resources, and triggers for stored resources, income, and pull.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
 
 local triggers = {
 
@@ -158,7 +189,7 @@ local triggers = {
 	enoughMetalStored = {
 		type = triggerTypes.ResourceStored,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 1500,
 		},
 		actions = { 'messageMetalStored' },
@@ -167,7 +198,7 @@ local triggers = {
 	enoughEnergyStored = {
 		type = triggerTypes.ResourceStored,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			energy = 3000,
 		},
 		actions = { 'messageEnergyStored' },
@@ -176,7 +207,7 @@ local triggers = {
 	bothResourcesStored = {
 		type = triggerTypes.ResourceStored,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 1800,
 			energy = 3500,
 		},
@@ -188,7 +219,7 @@ local triggers = {
 	metalIncomeReached = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 5,
 		},
 		actions = { 'messageMetalIncome' },
@@ -197,7 +228,7 @@ local triggers = {
 	energyIncomeReached = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			energy = 500,
 		},
 		actions = { 'messageEnergyIncome' },
@@ -208,7 +239,7 @@ local triggers = {
 	extractorMetalIncomeReached = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 1,
 			sources = { 'extractor' },
 		},
@@ -219,7 +250,7 @@ local triggers = {
 		-- Triggered once armfus (second 20) is generating production energy income.
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			energy = 200,
 			sources = { 'production' },
 		},
@@ -230,7 +261,7 @@ local triggers = {
 		-- Triggered once armmmkr (second 24) is producing metal from energy.
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 0.5,
 			sources = { 'production' },
 		},
@@ -241,7 +272,7 @@ local triggers = {
 		-- Combined extractor + production metal income.
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 2,
 			sources = { 'extractor', 'production' },
 		},
@@ -251,7 +282,7 @@ local triggers = {
 	reclaimMetalIncomeReached = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 0.1,
 			sources = { 'reclaim' },
 		},
@@ -261,7 +292,7 @@ local triggers = {
 	unitReclaimMetalIncomeReached = {
 		type = triggerTypes.ResourceIncome,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 70,
 			sources = { 'reclaim' },
 		},
@@ -273,7 +304,7 @@ local triggers = {
 	metalPullReached = {
 		type = triggerTypes.ResourcePull,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 1,
 		},
 		actions = { 'messageMetalPull' },
@@ -282,7 +313,7 @@ local triggers = {
 	energyPullReached = {
 		type = triggerTypes.ResourcePull,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			energy = 100,
 		},
 		actions = { 'messageEnergyPull' },
@@ -297,7 +328,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmstor', x = 1900, z = 1800, team = 0 },
+				{ unitDefName = 'armmstor', x = 1900, z = 1800, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -306,7 +337,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armestor', x = 1900, z = 1900, team = 0 },
+				{ unitDefName = 'armestor', x = 1900, z = 1900, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -315,7 +346,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmex', x = 2220, z = 2210, team = 0 },
+				{ unitDefName = 'armmex', x = 2220, z = 2210, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -324,7 +355,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1900, team = 0 },
+				{ unitDefName = 'armfus', x = 1800, z = 1900, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -333,7 +364,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armmmkr', x = 1800, z = 2000, team = 0 },
+				{ unitDefName = 'armmmkr', x = 1800, z = 2000, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -342,7 +373,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corsilo', x = 2000, z = 2110, team = 0 },
+				{ unitDefName = 'corsilo', x = 2000, z = 2110, teamName = 'thePlayerTeam' },
 			},
 		},
 	},
@@ -360,7 +391,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 2100, z = 2100, team = 0, unitName = 'incomeReclaimer' },
+				{ unitDefName = 'armrectr', x = 2100, z = 2100, teamName = 'thePlayerTeam', unitName = 'incomeReclaimer' },
 			},
 		},
 	},
@@ -369,7 +400,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 2200, z = 2100, team = 0, unitName = 'unitReclaimTarget' },
+				{ unitDefName = 'armllt', x = 2200, z = 2100, teamName = 'thePlayerTeam', unitName = 'unitReclaimTarget' },
 			},
 		},
 	},
@@ -399,7 +430,7 @@ local actions = {
 	addMetalAndEnergy = {
 		type = actionTypes.AddResources,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 500,
 			energy = 1000,
 		},
@@ -410,7 +441,7 @@ local actions = {
 	addMetalOnly = {
 		type = actionTypes.AddResources,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			metal = 250,
 		},
 	},
@@ -420,7 +451,7 @@ local actions = {
 	addEnergyOnly = {
 		type = actionTypes.AddResources,
 		parameters = {
-			teamID = 0,
+			teamName = 'thePlayerTeam',
 			energy = 500,
 		},
 	},
@@ -679,6 +710,8 @@ local actions = {
 }
 
 return {
+	LobbyData   = lobbyData,
+	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

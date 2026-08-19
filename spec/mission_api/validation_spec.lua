@@ -52,6 +52,8 @@ describe("mission_api.validation", function()
 			Stages            = {},
 			Triggers          = {},
 			Actions           = {},
+			Teams             = { teamA = 0 },
+			AllyTeams         = { allyA = 0 },
 		}
 	end)
 
@@ -444,7 +446,7 @@ describe("mission_api.validation", function()
 			it("rejects wrong type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 123, team = 0, x = 0, z = 0 } } },
+					parameters = { unitLoadout = { { unitDefName = 123, teamName = 'teamA', x = 0, z = 0 } } },
 				})
 				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Unexpected parameter type, expected string, got number"))
 			end)
@@ -452,7 +454,7 @@ describe("mission_api.validation", function()
 			it("rejects unknown unit def name", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'noSuch', team = 0, x = 0, z = 0 } } },
+					parameters = { unitLoadout = { { unitDefName = 'noSuch', teamName = 'teamA', x = 0, z = 0 } } },
 				})
 				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Invalid unitDefName: noSuch"))
 			end)
@@ -488,9 +490,9 @@ describe("mission_api.validation", function()
 			it("reports a missing required field in a unitLoadout entry", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0 } } }, -- missing team
+					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0 } } }, -- missing teamName
 				})
-				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'team'"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'teamName'"))
 			end)
 
 			it("reports a missing position coordinate in a featureLoadout entry", function()
@@ -524,7 +526,7 @@ describe("mission_api.validation", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = {} } } },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', teamName = 'teamA', x = 0, z = 0, facing = {} } } },
 				})
 				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
 			end)
@@ -532,7 +534,7 @@ describe("mission_api.validation", function()
 			it("rejects invalid facing value", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = 'diagonal' } } },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', teamName = 'teamA', x = 0, z = 0, facing = 'diagonal' } } },
 				})
 				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
 			end)
@@ -563,68 +565,63 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
-		describe("TeamID", function()
+		describe("TeamName", function()
 			it("rejects wrong type", function()
 				actionErrors({
 					type       = actionTypes.AddResources,
-					parameters = { teamID = 'bad' },
+					parameters = { teamName = 123, metal = 1 },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: teamName"))
 			end)
 
-			it("rejects invalid team ID", function()
-				Spring.GetTeamAllyTeamID = function() return nil end
+			it("rejects invalid team name", function()
 				actionErrors({
 					type       = actionTypes.AddResources,
-					parameters = { teamID = 99 },
+					parameters = { teamName = 'noSuchTeam', metal = 1 },
 				})
-				assert.is_true(hasError("Invalid teamID: 99. Action: a, Parameter: teamID"))
+				assert.is_true(hasError("Invalid teamName: noSuchTeam. Action: a, Parameter: teamName"))
 			end)
 		end)
 
-		describe("AllyTeamID", function()
+		describe("AllyTeamName", function()
 			it("rejects wrong type", function()
 				triggerErrors({
 					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamID = 'bad' },
+					parameters = { unitName = 'x', spottingAllyTeamName = 123 },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: spottingAllyTeamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: spottingAllyTeamName"))
 			end)
 
-			it("rejects invalid ally team ID", function()
+			it("rejects invalid ally team name", function()
 				triggerErrors({
 					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamID = 99 },
+					parameters = { unitName = 'x', spottingAllyTeamName = 'noSuchAllyTeam' },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid allyTeamID: 99. Trigger: t, Parameter: spottingAllyTeamID"))
+				assert.is_true(hasError("Invalid teamName: noSuchAllyTeam. Trigger: t, Parameter: spottingAllyTeamName"))
 			end)
 		end)
 
-		describe("AllyTeamIDs", function()
-			before_each(function()
-				Spring.GetAllyTeamInfo = function(id) return id == 0 end
-			end)
-
+		describe("AllyTeamNames", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamIDs = 'bad' } })
-				assert.is_true(hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: allyTeamIDs"))
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = 'bad' } })
+				assert.is_true(hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: allyTeamNames"))
 			end)
 
 			it("rejects empty table", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamIDs = {} } })
-				assert.is_true(hasError("allyTeamIDs table is empty. Action: a, Parameter: allyTeamIDs"))
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = {} } })
+				assert.is_true(hasError("allyTeamNames table is empty. Action: a, Parameter: allyTeamNames"))
 			end)
 
-			it("rejects non-number element", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamIDs = { 'bad' } } })
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: allyTeamIDs.allyTeamID #1"))
+			it("rejects non-string element", function()
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = { 123 } } })
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: allyTeamNames.allyTeamName #1"))
 			end)
 
-			it("rejects invalid ally team ID element", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamIDs = { 99 } } })
-				assert.is_true(hasError("Invalid allyTeamID: 99. Action: a, Parameter: allyTeamIDs"))
+			it("rejects invalid ally team name element", function()
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = { 'noSuchAllyTeam' } } })
+				assert.is_true(hasError("Invalid allyTeamName: noSuchAllyTeam. Action: a, Parameter: allyTeamNames"))
 			end)
 		end)
 
@@ -797,12 +794,12 @@ describe("mission_api.validation", function()
 		it("passes for valid unit, feature, and marker references", function()
 			GG['MissionAPI'].Triggers = {
 				statsKill = {
-					type       = triggerTypes.TotalUnitsKilled,
-					parameters = { teamID = 0, quantity = 1, unitName = 'bot' },
-				},
+				type       = triggerTypes.TotalUnitsKilled,
+				parameters = { teamName = 'teamA', quantity = 1, unitName = 'bot' },
+			},
 			}
 			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'bot' } } } },
+				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'bot' } } } },
 				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
 				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'rock' } },
 				add    = { type = actionTypes.AddMarker, parameters = { name = 'flag' } },
@@ -820,7 +817,7 @@ describe("mission_api.validation", function()
 					textKey = "watch bot",
 					trigger = {
 						type = triggerTypes.UnitsOwned,
-						parameters = { teamID = 0, unitName = 'bot' },
+						parameters = { teamName = 'teamA', unitName = 'bot' },
 					},
 				},
 				watchRock = {
@@ -832,7 +829,7 @@ describe("mission_api.validation", function()
 				},
 			}
 			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'bot' } } } },
+				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'bot' } } } },
 				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
 			}
 
@@ -844,7 +841,7 @@ describe("mission_api.validation", function()
 		it("logs errors for unit, feature, and marker names that are created-but-not-referenced or referenced-but-not-created",
 			function()
 			GG['MissionAPI'].Actions = {
-				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'unusedUnit' } } } },
+				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'unusedUnit' } } } },
 				useUnknown   = { type = actionTypes.DespawnUnits, parameters = { unitName = 'unknownUnit' } },
 				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'unusedRock' } } } },
 				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },

@@ -6,9 +6,9 @@ local RESOURCE_PULL_INDEX = 3
 return {
 	type = 'ResourcePull',
 	parameters = {
-		{ name = 'teamID', required = true,  type = ParameterTypes.TeamID },
-		{ name = 'metal',  required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
+		{ name = 'teamName', required = true,  type = ParameterTypes.TeamName },
+		{ name = 'metal',    required = false, type = ParameterTypes.Number },
+		{ name = 'energy',   required = false, type = ParameterTypes.Number },
 		requiresOneOf = { 'metal', 'energy' },
 	},
 	callins = {
@@ -17,12 +17,15 @@ return {
 			if frameNumber % Game.gameSpeed ~= 0 then
 				return
 			end
-			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "metal")) < trigger.parameters.metal then
+
+			local teamId = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(teamId, "metal")) < trigger.parameters.metal then
 				return
 			end
-			if trigger.parameters.energy and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(trigger.parameters.teamID, "energy")) < trigger.parameters.energy then
+			if trigger.parameters.energy and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(teamId, "energy")) < trigger.parameters.energy then
 				return
 			end
+
 			context.ActivateTrigger(trigger)
 		end,
 	},

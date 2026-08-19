@@ -1,0 +1,98 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "campaign.schema.json",
+	"title": "Campaign Definition",
+	"description": "Schema for a BAR campaign definition file.",
+	"type": "object",
+	"required": ["campaignId", "title", "description", "players", "difficulties", "defaultDifficulty"],
+	"additionalProperties": false,
+	"definitions": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+$",
+			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
+		}
+	},
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "Path or URL to the JSON Schema for this file."
+		},
+		"campaignId": {
+			"$ref": "#/definitions/identifier"
+		},
+		"title": {
+			"type": "string",
+			"description": "Display title of the campaign."
+		},
+		"description": {
+			"type": "string",
+			"description": "Short description shown in the campaign selection UI."
+		},
+		"backgroundImage": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9._-]+$",
+			"description": "Filename of the background image used on the campaign screen."
+		},
+		"logo": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9._-]+$",
+			"description": "Filename of the campaign / faction logo image."
+		},
+		"prerequisites": {
+			"type": "array",
+			"description": "List of campaign IDs that must be completed before this one is unlocked.",
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		},
+		"players": {
+			"type": "array",
+			"description": "Supported player counts.",
+			"minItems": 1,
+			"items": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		"difficulties": {
+			"type": "object",
+			"description": "Map of difficulty names to their settings.",
+			"minProperties": 1,
+			"additionalProperties": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"playerHandicap": {
+						"type": "integer",
+						"minimum": -100,
+						"description": "Handicap percentage applied to players (positive for bonus, default 0)"
+					},
+					"enemyHandicap": {
+						"type": "integer",
+						"minimum": -100,
+						"description": "Handicap percentage applied to enemy AI (positive for bonus, default 0)"
+					}
+				}
+			}
+		},
+		"defaultDifficulty": {
+			"type": "string",
+			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'."
+		},
+		"unlocks": {
+			"type": "object",
+			"description": "Map of mission IDs to their unlock requirements.",
+			"propertyNames": {
+				"$ref": "#/definitions/identifier"
+			},
+			"additionalProperties": {
+				"type": "array",
+				"description": "List of mission IDs that must be completed to unlock this mission.",
+				"items": {
+					"$ref": "#/definitions/identifier"
+				}
+			}
+		}
+	}
+}

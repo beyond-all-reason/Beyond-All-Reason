@@ -1,0 +1,18 @@
+{
+	"$schema": "../schemata/campaign.schema.json",
+	"campaignId": "cortex-main",
+	"title": "Test Campaign 2 - Cortex",
+	"description": "This is a description field meant to hold longer string content.",
+	"backgroundImage": "BAR3-5K_Loadingscreen_2.jpg",
+	"logo": "cortex_logo.png",
+
+	"prerequisites": ["armada-main"],
+	"players": [1, 2, 3, 4],
+
+	"difficulties": {
+		"Beginner": {"playerHandicap": 50},
+		"Normal": {},
+		"Hard": {"playerHandicap": -25, "enemyHandicap": 25}
+	},
+	"defaultDifficulty": "Normal"
+}
