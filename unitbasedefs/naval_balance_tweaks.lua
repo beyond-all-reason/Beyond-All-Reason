@@ -20,14 +20,14 @@ local buildOptionReplacements = {
 	-- t2 arm cons
 	armacsub = { armkraken = "armanavaldefturret" },
 	armmls = {
-		armfhlt   = "armnavaldefturret",
+		armfhlt = "armnavaldefturret",
 		armkraken = "armanavaldefturret",
 	},
 
 	-- t2 cor cons
 	coracsub = { corfdoom = "coranavaldefturret" },
 	cormls = {
-		corfhlt  = "cornavaldefturret",
+		corfhlt = "cornavaldefturret",
 		corfdoom = "coranavaldefturret",
 	},
 

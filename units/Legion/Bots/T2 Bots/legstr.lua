@@ -31,13 +31,11 @@ return {
 		turnrate = 800,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 2,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -128,11 +126,15 @@ return {
 				sprayangle = 1024,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 2.0;
+				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 933,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 8,
 					vtol = 3,

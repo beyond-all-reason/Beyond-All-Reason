@@ -83,7 +83,7 @@ return {
 			[45] = "legfhive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorHovercraft",

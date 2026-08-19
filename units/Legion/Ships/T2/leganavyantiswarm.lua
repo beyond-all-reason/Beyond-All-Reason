@@ -137,7 +137,7 @@ return {
 				},
 				customparams = {
 					--exclude_preaim = true
-				}
+				},
 			},
 			light_antiair_missile = {
 				areaofeffect = 16,

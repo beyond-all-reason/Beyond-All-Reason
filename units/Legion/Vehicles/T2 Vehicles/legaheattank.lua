@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.6104,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -44,8 +44,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -139,13 +137,15 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					sweepfire_firetime = 1.8,
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 33,
 					vtol = 10,
 				},
-				customparams = {
-					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
 			},
 		},
 		weapons = {
