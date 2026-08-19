@@ -23,114 +23,113 @@
 --
 --------------------------------------------------------------------------------
 
-
 return {
-  ceg_test_projectile_unit = {
+	ceg_test_projectile_unit = {
 
-    --------------------------------------------------------------------------
-    -- REQUIRED BY BAR
-    --------------------------------------------------------------------------
-    customparams = {
-      faction = "NONE",
-      is_ceg_test_unit = 1,
-    },
+		--------------------------------------------------------------------------
+		-- REQUIRED BY BAR
+		--------------------------------------------------------------------------
+		customparams = {
+			faction = "NONE",
+			is_ceg_test_unit = 1,
+		},
 
-    --------------------------------------------------------------------------
-    -- Prevent XP / power warnings
-    --------------------------------------------------------------------------
-    metalcost  = 100,
-    energycost = 100,
-    buildtime  = 1,
-    maxdamage  = 1000000,
+		--------------------------------------------------------------------------
+		-- Prevent XP / power warnings
+		--------------------------------------------------------------------------
+		metalcost = 100,
+		energycost = 100,
+		buildtime = 1,
+		maxdamage = 1000000,
 
-    --------------------------------------------------------------------------
-    -- Engine-valid but inert
-    --------------------------------------------------------------------------
-    canmove        = true,
-    movementclass = "ABOT3",
-    speed          = 0.0001,
+		--------------------------------------------------------------------------
+		-- Engine-valid but inert
+		--------------------------------------------------------------------------
+		canmove = true,
+		movementclass = "ABOT3",
+		speed = 0.0001,
 
-    canattack        = true,
-    canattackground = true,
-    category         = "SURFACE",
+		canattack = true,
+		canattackground = true,
+		category = "SURFACE",
 
-    --------------------------------------------------------------------------
-    -- Invisible & non-interactive
-    --------------------------------------------------------------------------
-    drawtype    = 0,
-    selectable  = false,
-    blocking    = false,
-    yardmap     = "o",
+		--------------------------------------------------------------------------
+		-- Invisible & non-interactive
+		--------------------------------------------------------------------------
+		drawtype = 0,
+		selectable = false,
+		blocking = false,
+		yardmap = "o",
 
-    canstop    = false,
-    canpatrol  = false,
-    canrepeat  = false,
+		canstop = false,
+		canpatrol = false,
+		canrepeat = false,
 
-    initcloaked       = true,
-    cloakcost         = 0,
-    cloakcostmoving   = 0,
-    mincloakdistance  = 0,
-    stealth           = true,
-    sonarstealth      = true,
+		initcloaked = true,
+		cloakcost = 0,
+		cloakcostmoving = 0,
+		mincloakdistance = 0,
+		stealth = true,
+		sonarstealth = true,
 
-    --------------------------------------------------------------------------
-    -- Keep Spring pipeline intact
-    --------------------------------------------------------------------------
-    objectname = "Units/CORTHUD.s3o",
-    script     = "Units/CORTHUD.cob",
+		--------------------------------------------------------------------------
+		-- Keep Spring pipeline intact
+		--------------------------------------------------------------------------
+		objectname = "Units/CORTHUD.s3o",
+		script = "Units/CORTHUD.cob",
 
-    footprintx = 2,
-    footprintz = 2,
+		footprintx = 2,
+		footprintz = 2,
 
-    sightdistance    = 0,
-    radardistance    = 0,
-    seismicsignature = 0,
+		sightdistance = 0,
+		radardistance = 0,
+		seismicsignature = 0,
 
-    --------------------------------------------------------------------------
-    -- WEAPON: projectile CEG carrier
-    --------------------------------------------------------------------------
-    weapondefs = {
-      ceg_test_projectile = {
-        name        = "CEG Test Projectile",
-        weapontype  = "Cannon",
+		--------------------------------------------------------------------------
+		-- WEAPON: projectile CEG carrier
+		--------------------------------------------------------------------------
+		weapondefs = {
+			ceg_test_projectile = {
+				name = "CEG Test Projectile",
+				weapontype = "Cannon",
 
-        model = "Objects3D/empty.s3o",
-	noshadow	   = true,
-        cegtag             = "",
-        explosiongenerator = "",
+				model = "Objects3D/empty.s3o",
+				noshadow = true,
+				cegtag = "",
+				explosiongenerator = "",
 
-        gravityaffected = true,
-        mygravity       = 0.16,
+				gravityaffected = true,
+				mygravity = 0.16,
 
-        range          = 50000,
-        reloadtime     = 0.1,
-        weaponvelocity = 600,
+				range = 50000,
+				reloadtime = 0.1,
+				weaponvelocity = 600,
 
-        turret    = true,
-        tolerance = 5000,
+				turret = true,
+				tolerance = 5000,
 
-        collideground = true,
-        avoidfriendly = false,
-        avoidfeature  = false,
+				collideground = true,
+				avoidfriendly = false,
+				avoidfeature = false,
 
-        areaofeffect = 1,
-        damage = {
-          default = 1,
-        },
+				areaofeffect = 1,
+				damage = {
+					default = 1,
+				},
 
-        craterMult    = 0,
-        impulseFactor = 0,
-        impulseBoost  = 0,
+				craterMult = 0,
+				impulseFactor = 0,
+				impulseBoost = 0,
 
-        soundhit = "",
-      },
-    },
+				soundhit = "",
+			},
+		},
 
-    weapons = {
-      [1] = {
-        def = "CEG_TEST_PROJECTILE",
-        onlyTargetCategory = "SURFACE",
-      },
-    },
-  },
+		weapons = {
+			[1] = {
+				def = "CEG_TEST_PROJECTILE",
+				onlyTargetCategory = "SURFACE",
+			},
+		},
+	},
 }

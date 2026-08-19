@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "Jul 24, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -24,7 +24,19 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	if fromSynced then
 		return true
 	elseif cmdID == CMD_ATTACK and cmdParams[3] then
