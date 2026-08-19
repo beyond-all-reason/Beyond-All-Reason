@@ -74,8 +74,7 @@ end
 - Lua 5.1 syntax and semantics throughout. The game runs on Recoil, a SpringRTS fork; engine Lua API:
   https://recoilengine.org/docs/lua-api
 - Two compile-time limits per function: **200 locals** and **60 upvalues**. Both count variables live at the same
-  time, not how many are declared. Group related state into tables or split the function when approaching either,
-  and audit headroom with `tools/count_locals.py`.
+  time, not how many are declared. Group related state into tables or split the function when approaching either.
 - Naming: `camelCase` locals, `PascalCase` globals, `ALL_CAPS` constants. Avoid abbreviations (`ID` excepted) and
   single-letter names outside coordinates. Prefer names already used by similar code over inventing new ones.
 - `.lua`, `.rml`, and `.rcss` files must be **UTF-8 without BOM**: a BOM makes Lua fail to parse the file and makes
@@ -131,7 +130,6 @@ busted spec/common/lib_spline_spec.lua         # single spec file
 lx lint                                        # luacheck over the project; provisions luacheck itself
 luacheck path/to/file.lua                      # lint one file, if luacheck is installed directly
 stylua path/to/file.lua                        # format one file (`lx fmt` reformats the whole codebase)
-tools/count_locals.py luaui/Widgets --top 10   # Lua 5.1 local/upvalue headroom
 ```
 
 Scope `luacheck` and `stylua` to the files you touched; repository-wide runs create large unrelated diffs. `lx lint`
