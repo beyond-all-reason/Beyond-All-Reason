@@ -53,6 +53,9 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - Grass loaded from a map project now renders immediately instead of waiting for the Grass tool to be opened once.
 - Grass undo/redo now reports what it did (or why it could not) instead of silently doing nothing.
 - Tidied the custom export-range row layout.
+- The metal overlay's map dim no longer goes through the Darken map widget, whose persisted setting it could permanently overwrite when a session ended while the overlay was up (every later game then started with the terrain darkened, beyond the settings slider's range). The metal brush now draws its own dim while the overlay is active.
+- An empty New Map environment marker file no longer replaces the skybox of every subsequently loaded map with the first library one. The marker is now deleted after reading instead of blanked, and is only acted on when the session is actually a generated blank canvas.
+- The placeholder-fog suppression no longer removes the baked fog of real maps whenever the editor widget is enabled; it now applies only to generated blank canvases.
 
 ## 1.10 - 2026-08-08
 

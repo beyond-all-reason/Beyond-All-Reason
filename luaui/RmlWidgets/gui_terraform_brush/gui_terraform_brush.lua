@@ -13698,7 +13698,11 @@ function widget:Initialize()
 
 	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
 	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
-	widgetState._pendingFogOff = 15
+	-- Generated blank canvases only: on real maps the fog is the mapper's design and
+	-- killing it darkened every normal game this widget was enabled in.
+	if _isGeneratedBlankMap() then
+		widgetState._pendingFogOff = 15
+	end
 
 	-- The document itself is deferred to ensureDocument(), called from Update the
 	-- first time a tool engages. Everything below is document-independent and has
@@ -13740,39 +13744,41 @@ function widget:Initialize()
 
 	-- New Map environment preset: if the last Create wrote a pending preset, resolve
 	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
-	-- the fresh map has fully settled. The file is blanked on read so a plain /reload
-	-- never re-applies. Default (no preset) leaves the engine's blank-map lighting.
+	-- the fresh map has fully settled. The file is DELETED on read: it used to be
+	-- blanked instead, and an existing-but-empty file read as "New Map with Default
+	-- environment" on ANY later map, stomping real maps' skyboxes with the first
+	-- library one every game. Consuming it is additionally gated on the map actually
+	-- being a generated blank canvas; elsewhere the stale file is just cleaned up
+	-- (cmd_map_project.lua deletes it for the same reason before opening a project).
 	do
 		local rf = io.open("Terraform Brush/pending_newmap_env.lua", "r")
 		if rf then
 			local raw = rf:read("*a")
 			rf:close()
-			local wf = io.open("Terraform Brush/pending_newmap_env.lua", "w")
-			if wf then
-				wf:write("")
-				wf:close()
-			end
-			if raw and raw ~= "" then
-				local ok, t = pcall(function()
-					return loadstring(raw)()
-				end)
-				if ok and type(t) == "table" and t.preset then
-					for _, p in ipairs(widgetState.newMapEnvPresets) do
-						if p.name == t.preset then
-							widgetState._pendingEnvApply = p
-							widgetState._pendingEnvCountdown = 15
-							break
+			os.remove("Terraform Brush/pending_newmap_env.lua")
+			if _isGeneratedBlankMap() then
+				if raw and raw ~= "" then
+					local ok, t = pcall(function()
+						return loadstring(raw)()
+					end)
+					if ok and type(t) == "table" and t.preset then
+						for _, p in ipairs(widgetState.newMapEnvPresets) do
+							if p.name == t.preset then
+								widgetState._pendingEnvApply = p
+								widgetState._pendingEnvCountdown = 15
+								break
+							end
 						end
 					end
-				end
-			else
-				-- New Map with Default environment selected: blank maps often have no
-				-- map-defined skybox, so apply the first available library skybox.
-				local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
-				if first and first.path then
-					widgetState._pendingSkyboxPath = first.path
-					widgetState.envCurrentSkybox = first.path
-					Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+				else
+					-- New Map with Default environment selected: blank maps often have no
+					-- map-defined skybox, so apply the first available library skybox.
+					local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
+					if first and first.path then
+						widgetState._pendingSkyboxPath = first.path
+						widgetState.envCurrentSkybox = first.path
+						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+					end
 				end
 			end
 		end
