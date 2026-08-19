@@ -48,9 +48,7 @@ return {
 			restrictions_inclusion = "_noair_",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
-			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
+			unitgroup = 'weapon',
 		},
 		featuredefs = {
 			dead = {
@@ -167,6 +165,8 @@ return {
 					droneairtime = 60,
 					dronedocktime = 3,
 					droneammo = 12,
+					turretspeedx = 45,
+					turretspeedy = 80,
 				},
 			},
 		},
