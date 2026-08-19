@@ -519,7 +519,6 @@ end
 --
 function widget:Shutdown()
 	WG.smartselect = nil
-
 	WG.SmartSelect_MousePress2 = nil
 	WG.SmartSelect_SelectUnits = nil
 	WG.SmartSelect_SetReference = nil
