@@ -147,9 +147,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "GROUNDSCOUT",
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "RAILGUNT2",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
