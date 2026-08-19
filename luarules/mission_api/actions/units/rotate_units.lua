@@ -16,7 +16,7 @@ local function rotateUnits(unitName, direction)
                     Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
                 end
             elseif direction.angle then
-                -- Thanks AI. This makes sure no matter what angle someone gives, it's results gets normalised to between 0 and 360.
+                -- TODO: refactor to call CompassAngleToHeading when it is merged
                 local heading = math.floor( (direction.angle % 360 - 180) / 360  * -65535 )
                 Spring.SetUnitHeadingAndUpDir(unitID, heading, 0, 1, 0)
             end
