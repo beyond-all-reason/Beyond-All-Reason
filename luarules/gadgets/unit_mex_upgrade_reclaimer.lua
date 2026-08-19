@@ -111,7 +111,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:GameFrame(gf)
-	if gf % 99 then
+	if gf % 99 == 0 then
 		local newTransferredUnits = {}
 		for unitID, frame in pairs(_G.transferredUnits) do
 			if frame + 30 > gf then
