@@ -40,6 +40,7 @@ local sound_button2 = "LuaUI/Sounds/buildbar_rem.wav"
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ""
 local lastUpdateClock = 0
@@ -91,10 +92,73 @@ local selectionHowto = tooltipTextColor
 
 local anonymousName = "?????"
 
+---@type any, number, boolean?, number, string?
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
+---@type any, number, number, number, integer?
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
+---@type number, table<integer, integer[]>, table<integer, integer>, any, any, number
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
+
+---An area of the screen, as the info panel passes them around.
+---@class InfoRect
+---@field [1] number Left.
+---@field [2] number Bottom.
+---@field [3] number Right.
+---@field [4] number Top.
+
+---One way of drawing a selection, as a widget hands it to `WG.info.register.drawSelection` and
+---as the panel then holds on to it. Only the draw function is required.
+---@class InfoSelectionMode
+---@field draw fun(area: InfoRect) Draws the selection into the given area of the screen.
+---@field icon (fun(left: number, bottom: number, right: number, top: number))? Draws its glyph on the mode button.
+---@field mouseRelease (fun(x: number, y: number, button: integer): boolean?)? Returns true when it took the click.
+---@field hover (fun(mouseX: number, mouseY: number, leftHeld: boolean, middleHeld: boolean, rightHeld: boolean): string?)? Returns help text for whatever is under the cursor.
+---@field name string? Remembered across games, and the key the settings use.
+---@field title string? What an options list calls it; its name when it gave none.
+---@field description string? A line about it for that same list.
+---@field builtin boolean? True for the one the panel falls back on, which is never taken away.
+
+---The extras a cell carries over its unit picture. Everything is optional; what is left out is
+---not drawn.
+---@class InfoUnitCellOpts
+---@field padding number? How far the picture is inset on its left and bottom side.
+---@field zoom number? How far into the picture to zoom, as `WG.FlowUI.Draw.Unit` takes it.
+---@field corner number? Corner size for the picture.
+---@field fontCap number? Upper bound on the font size of the count and kill numbers.
+---@field count integer? How many units the cell stands for; only drawn above one.
+---@field countAtTop boolean? Put that number at the top of the cell rather than the bottom.
+---@field health number? Health fraction to draw a bar for, 0 to 1.
+---@field outline boolean? Outline the cell, marking it as standing for several units.
+---@field kills integer? Kills to draw a skull for; only drawn above zero.
+
+---How the panel keeps track of the ways it can draw a selection.
+---@class InfoSelectionModeState
+---@field list InfoSelectionMode[] The alternatives, in registration order.
+---@field index integer Which of them is drawing.
+---@field wanted string? The name of the mode the config asked for, until it registers.
+---@field toggleRect InfoRect The button switching between them.
+---@field enabled boolean Whether the ones other widgets added may be used at all.
+---@field modeEnabled table<string, boolean> Their name to false when turned off on its own.
+
+-- a selection can be drawn in more than one way; widgets add their own with
+-- WG.info.register.drawSelection(), and the button leading the header switches between them
+---@type InfoSelectionModeState
+local selectionModes = {
+	list = {}, -- the alternatives, in registration order
+	index = 1, -- which of them is drawing
+	wanted = nil, -- the name of the mode the config asked for, until it registers
+	toggleRect = { 0, 0, 0, 0 }, -- the button switching between them
+	enabled = true, -- whether the ones other widgets added may be used at all
+	modeEnabled = {}, -- their name -> false when turned off on its own
+}
+-- defined further down, where the pieces they are made of exist, but reached from above them
+local publishInfoApi, registerDrawSelection, drawSelectionTypes, drawSelectionTypesIcon
+local selectionModeUsable, usableSelectionModes
+---@type InfoUnitCellOpts
+local typeCellOpts = {} -- reused, so drawing a cell doesn't allocate
+---@type InfoRect
+local panelInterior = { 0, 0, 0, 0 } -- the panel inside its border, as far as a mode may draw
 local displayUnitID, displayUnitDefID, doUpdateClock
 local contentWidth, bfcolormap, selUnitTypes
 
@@ -137,6 +201,7 @@ local mySpec = Spring.GetSpectatingState()
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
+local glRect = gl.Rect
 local glColor = gl.Color
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -436,7 +501,14 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			else
-				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+				if
+					unitDef.customParams.weapons_smart_select
+					and (
+						weaponDef.customParams.smart_priority
+						or weaponDef.customParams.smart_backup
+						or weaponDef.customParams.smart_trajectory_checker
+					)
+				then
 					unitExempt = true -- NB: I hate this thing
 					if weaponDef.customParams.smart_priority then
 						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
@@ -865,6 +937,29 @@ function widget:GameFrame()
 	end
 end
 
+---Steps to the next way of drawing a selection that may be used, for the mode button and the
+---hotkey both.
+---@return boolean handled False when there is nowhere to switch to, letting the key through.
+local function cycleSelectionMode()
+	if SelectedUnitsCount <= 1 then
+		-- no selection to show either way, so let the key through to whatever else wants it
+		return false
+	end
+	if not selectionModes.enabled or usableSelectionModes() < 2 then
+		return false -- nothing to switch to, so let the key through to whatever else wants it
+	end
+	local list = selectionModes.list
+	local index = selectionModes.index
+	repeat
+		index = (index % #list) + 1
+	until selectionModeUsable(list[index]) or index == selectionModes.index
+	selectionModes.index = index
+	selectionModes.wanted = list[index].name
+	doUpdate = true
+	Spring.PlaySoundFile(sound_button, 0.5, "ui")
+	return true
+end
+
 function widget:Initialize()
 	tracy.ZoneBeginN("W:Info:Initialize")
 	isPregame = Spring.GetGameFrame() < 1
@@ -880,47 +975,67 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG.info = {}
+	---@return boolean show Whether a builder's build list is shown in the info panel.
 	WG.info.getShowBuilderBuildlist = function()
 		return showBuilderBuildlist
 	end
+	---@param value boolean Show a builder's build list in the info panel.
 	WG.info.setShowBuilderBuildlist = function(value)
 		showBuilderBuildlist = value
 	end
+	---@return boolean show Whether the cursor's map position is shown.
 	WG.info.getDisplayMapPosition = function()
 		return displayMapPosition
 	end
+	---@param value boolean Show the cursor's map position.
 	WG.info.setDisplayMapPosition = function(value)
 		displayMapPosition = value
 	end
+	---@return boolean alwaysShow Whether the panel stays open with nothing hovered.
 	WG.info.getAlwaysShow = function()
 		return alwaysShow
 	end
+	---@param value boolean Keep the panel open with nothing hovered.
 	WG.info.setAlwaysShow = function(value)
 		alwaysShow = value
 	end
+	---Pins the info panel to a specific unit, overriding what the cursor hovers.
+	---@param unitID integer
 	WG.info.displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
+	---Unpins the info panel from a specific unit.
 	WG.info.clearDisplayUnitID = function()
 		cfgDisplayUnitID = nil
 	end
+	---Pins the info panel to a unit definition, overriding what the cursor hovers.
+	---@param unitDefID integer
 	WG.info.displayUnitDefID = function(unitDefID)
 		cfgDisplayUnitDefID = unitDefID
 	end
+	---Unpins the info panel from a unit definition.
 	WG.info.clearDisplayUnitDefID = function()
 		cfgDisplayUnitDefID = nil
 	end
+	---@return number width
+	---@return number height
 	WG.info.getPosition = function()
 		return width, height
 	end
+	---@return boolean showing Whether the info panel is currently drawn.
 	WG.info.getIsShowing = function()
 		return infoShows
 	end
+	---Supplies custom hover info from another widget, e.g. the PIP window.
+	---@param hType "unit"|"feature"|"ground"|nil What kind of thing is hovered.
+	---@param hData integer? The unitID or featureID to render. Both arguments must be
+	---given for the custom hover to take effect.
 	WG.info.setCustomHover = function(hType, hData)
 		-- Allow external widgets to supply custom hover info (e.g., PIP window)
 		customHoverType = hType
 		customHoverData = hData
 	end
+	---Clears custom hover info supplied by another widget.
 	WG.info.clearCustomHover = function()
 		customHoverType = nil
 		customHoverData = nil
@@ -960,6 +1075,19 @@ function widget:Initialize()
 		rankTextures = WG.rankicons.getRankTextures()
 	end
 
+	-- "tp": also reachable as a console command, which is handy for checking the binding
+	widgetHandler:AddAction("info_cycle_selection_mode", cycleSelectionMode, nil, "tp")
+
+	publishInfoApi()
+	registerDrawSelection({
+		draw = drawSelectionTypes,
+		icon = drawSelectionTypesIcon,
+		name = "types",
+		title = "unit type icons",
+		description = "An icon per unit type, beside what the whole selection costs and can build",
+		builtin = true,
+	})
+
 	bfcolormap = {}
 	local hpcolormap = { { 1, 0.0, 0.0, 1 }, { 0.8, 0.60, 0.0, 1 }, { 0.0, 0.75, 0.0, 1 } }
 	for hp = 0, 100 do
@@ -969,6 +1097,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("info_cycle_selection_mode")
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
 	if infoBgTex then
@@ -1124,11 +1253,19 @@ end
 local killCountCache = {}
 local killCountCacheTime = 0
 
-local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
+-- draws one unit picture with the extras a cell can carry. px/py/sx/sy bound the whole cell, the
+-- picture itself is inset by opts.padding on its left and bottom side, like the grid lays them out.
+-- opts: padding, zoom, corner, fontCap, count, countAtTop, health (0-1), outline, kills
+---@param px number Left of the whole cell.
+---@param py number Bottom of the whole cell.
+---@param sx number Right of the whole cell.
+---@param sy number Top of the whole cell.
+---@param uDefID integer Whose unit picture to draw.
+---@param opts InfoUnitCellOpts
+local function drawUnitCell(px, py, sx, sy, uDefID, opts)
 	tracy.ZoneBeginN("W:Info:DrawSelection:Cell")
-	if not usedZoom then
-		usedZoom = defaultCellZoom
-	end
+	local padding = opts.padding or 1
+	local cellsize = sy - py
 	local unitTexture = "#" .. uDefID
 	if not selectionUnitpicWarm.warmed[uDefID] then
 		tracy.ZoneBeginN("W:Info:DrawSelection:Cell:TextureWarmFallback")
@@ -1142,16 +1279,16 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:UiUnit")
 	glColor(1, 1, 1, 1)
 	UiUnit(
-		cellRect[cellID][1] + cellPadding,
-		cellRect[cellID][2] + cellPadding,
-		cellRect[cellID][3],
-		cellRect[cellID][4],
-		cornerSize,
+		px + padding,
+		py + padding,
+		sx,
+		sy,
+		opts.corner,
 		1,
 		1,
 		1,
 		1,
-		usedZoom,
+		opts.zoom or defaultCellZoom,
 		nil,
 		nil,
 		unitTexture,
@@ -1161,110 +1298,251 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	tracy.ZoneEnd()
 
 	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:CountText")
-	local selCount = selUnitsCounts[uDefID]
-	-- unit count - calculate fontSize once
-	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selCount)) * 0.066))
-	if selCount > 1 then
-		--font2:Begin(true)
+	-- counts sit on top of the icon when asked, keeping clear of a health bar along its bottom
+	local countText = opts.count and opts.count > 1 and tostring(opts.count) or nil
+	local countLength = countText and string.len(countText) or 1
+	local fontSize = math_min(opts.fontCap or (cellsize * 0.6), cellsize * 0.6) * (1 - ((1 + countLength) * 0.066))
+	if countText then
 		font2:Print(
-			cachedColorStrings.white .. selCount,
-			cellRect[cellID][3] - cellPadding - (fontSize * 0.09),
-			cellRect[cellID][2] + (fontSize * 0.3),
+			cachedColorStrings.white .. countText,
+			sx - padding - (fontSize * 0.09),
+			opts.countAtTop and (sy - padding - fontSize) or (py + (fontSize * 0.3)),
 			fontSize,
 			"ro"
 		)
-		--font2:End()
 	end
 	tracy.ZoneEnd()
 
-	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:KillCount")
-	-- kill count - cached to reduce expensive calls
-	local currentTime = os_clock()
-	local kills = 0
-
-	-- Only update kill cache every 0.5 seconds
-	if currentTime - killCountCacheTime > 0.5 then
-		killCountCacheTime = currentTime
-		-- Clear old cache
-		for k in pairs(killCountCache) do
-			killCountCache[k] = nil
-		end
-	end
-
-	-- Check if we have cached value for this unitdef
-	if killCountCache[uDefID] then
-		kills = killCountCache[uDefID]
-	else
-		-- Calculate kills (expensive)
-		local unitsSortedForDef = selUnitsSorted[uDefID]
-		for i = 1, #unitsSortedForDef do
-			local unitKills = spGetUnitRulesParam(unitsSortedForDef[i], "kills")
-			if unitKills then
-				kills = kills + unitKills
-			end
-		end
-		killCountCache[uDefID] = kills
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:Health")
+	-- flat health bar along the bottom of the icon
+	if opts.health then
+		-- colored like the bars drawn in the world: red mixed into green by health, with the
+		-- brightest channel scaled up to full (see HealthbarsGL4.geom.glsl)
+		local red, green = 1 - opts.health, opts.health
+		local brightness = math_max(red, green)
+		local barMargin = math_max(1, math_floor(cellsize * 0.08))
+		local barLeft = px + padding + barMargin
+		local barRight = sx - barMargin
+		local barBottom = py + padding + barMargin
+		local barTop = barBottom + math_max(2, math_floor(cellsize * 0.11))
+		glColor(0.15, 0.15, 0.15, 1)
+		glRect(barLeft, barBottom, barRight, barTop)
+		glColor(red / brightness, green / brightness, 0, 1)
+		glRect(barLeft, barBottom, math_floor(barLeft + ((barRight - barLeft) * opts.health)), barTop)
+		glColor(1, 1, 1, 1)
 	end
 	tracy.ZoneEnd()
-	if kills > 0 then
+
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:Outline")
+	-- cells standing for several units are outlined, to set them apart from single unit icons
+	if opts.outline then
+		local thickness = math_max(1, math_floor(cellsize * 0.04))
+		local left, bottom = px + padding, py + padding
+		glColor(1, 1, 1, 0.8)
+		glRect(left, sy - thickness, sx, sy)
+		glRect(left, bottom, sx, bottom + thickness)
+		glRect(left, bottom + thickness, left + thickness, sy - thickness)
+		glRect(sx - thickness, bottom + thickness, sx, sy - thickness)
+		glColor(1, 1, 1, 1)
+	end
+	tracy.ZoneEnd()
+
+	if opts.kills and opts.kills > 0 then
 		tracy.ZoneBeginN("W:Info:DrawSelection:Cell:KillDraw")
-		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding * 0.5))) * 0.33)
+		local size = math_floor((sx - (px + (padding * 0.5))) * 0.33)
 		glColor(0.88, 0.88, 0.88, 0.66)
 		glTexture(":l:LuaUI/Images/skull.dds")
-		glTexRect(
-			cellRect[cellID][3] - size + (cellPadding * 0.5),
-			cellRect[cellID][4] - size - (cellPadding * 0.5),
-			cellRect[cellID][3] + (cellPadding * 0.5),
-			cellRect[cellID][4] - (cellPadding * 0.5)
-		)
+		glTexRect(sx - size + (padding * 0.5), sy - size - (padding * 0.5), sx + (padding * 0.5), sy - (padding * 0.5))
 		glTexture(false)
-		--font2:Begin(true)
 		font2:Print(
-			cachedColorStrings.white .. kills,
-			cellRect[cellID][3] - (size * 0.5) + (cellPadding * 0.5),
-			cellRect[cellID][4] - (cellPadding * 0.5) - (size * 0.5) - (fontSize * 0.19),
+			cachedColorStrings.white .. opts.kills,
+			sx - (size * 0.5) + (padding * 0.5),
+			sy - (padding * 0.5) - (size * 0.5) - (fontSize * 0.19),
 			fontSize * 0.66,
 			"oc"
 		)
-		--font2:End()
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 end
 
-local function drawSelection()
-	tracy.ZoneBeginN("W:Info:DrawSelection")
-	tracy.ZoneBeginN("W:Info:DrawSelection:Query")
-	selUnitsCounts = spGetSelectedUnitsCounts()
-	selUnitsSorted = spGetSelectedUnitsSorted()
-	selUnitTypes = 0
-
-	-- Reuse existing table instead of creating new one
-	if not selectionCells then
-		selectionCells = {}
-	else
-		-- Clear existing entries
-		for i = #selectionCells, 1, -1 do
-			selectionCells[i] = nil
+-- how many kills the units of a type have between them, cached: asking each unit is expensive
+---@param uDefID integer
+---@return integer kills Between all the selected units of that type.
+local function typeKillCount(uDefID)
+	local currentTime = os_clock()
+	if currentTime - killCountCacheTime > 0.5 then
+		killCountCacheTime = currentTime
+		for k in pairs(killCountCache) do
+			killCountCache[k] = nil
 		end
 	end
-
-	for k, uDefID in pairs(unitOrder) do
-		if selUnitsSorted[uDefID] then
-			if type(selUnitsSorted[uDefID]) == "table" then
-				selUnitTypes = selUnitTypes + 1
-				selectionCells[selUnitTypes] = uDefID
-			end
+	if killCountCache[uDefID] then
+		return killCountCache[uDefID]
+	end
+	local kills = 0
+	local unitsSortedForDef = selUnitsSorted[uDefID]
+	for i = 1, #unitsSortedForDef do
+		local unitKills = spGetUnitRulesParam(unitsSortedForDef[i], "kills")
+		if unitKills then
+			kills = kills + unitKills
 		end
 	end
-	tracy.ZoneEnd()
+	killCountCache[uDefID] = kills
+	return kills
+end
 
-	-- draw selection totals
-	local numLines
-	--local stats = getSelectionTotals(selectionCells)
-	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
-	local heightVar = 0
-	local heightStep = (fontSize * 1.36)
+-- adds a way of drawing a selection, and returns the index identifying it. draw() is called in
+-- place of the built in one; extras may carry icon(px, py, sx, sy) drawing the mode's glyph on the
+-- switching button, mouseRelease(x, y, button) and hover(x, y, b, b2, b3), plus a name to be
+-- remembered by across games
+-- where a named mode sits in the list, if it is in there at all
+---@param name string?
+---@return integer? index
+local function findDrawSelection(name)
+	if name == nil then
+		return nil
+	end
+	for i = 1, #selectionModes.list do
+		if selectionModes.list[i].name == name then
+			return i
+		end
+	end
+end
+
+---@param mode InfoSelectionMode
+---@return integer? index Identifies the mode, or nil when it came without a drawing function.
+function registerDrawSelection(mode)
+	if type(mode) ~= "table" or type(mode.draw) ~= "function" then
+		return
+	end
+	local list = selectionModes.list
+	-- a widget that reloads registers again; take the place of the mode it registered before
+	-- rather than leaving a stale copy of it in the list
+	local index = findDrawSelection(mode.name) or (#list + 1)
+	list[index] = mode
+	if mode.name and mode.name == selectionModes.wanted then
+		selectionModes.index = index
+	end
+	doUpdate = true
+	return index
+end
+
+-- take a mode back out, so a widget that is unloaded doesn't leave its drawing behind
+---@param name string
+local function unregisterDrawSelection(name)
+	local index = findDrawSelection(name)
+	if not index then
+		return
+	end
+	table.remove(selectionModes.list, index)
+	if selectionModes.index > index then
+		selectionModes.index = selectionModes.index - 1
+	elseif selectionModes.index == index then
+		selectionModes.index = 1 -- what was being drawn just went away
+	end
+	if selectionModes.index > #selectionModes.list then
+		selectionModes.index = 1
+	end
+	doUpdate = true
+end
+
+-- with the setting they hang under turned off there is only the built in mode; otherwise every
+-- mode, that one included, is there until turned off on its own
+---@param mode InfoSelectionMode?
+---@return boolean usable
+function selectionModeUsable(mode)
+	if mode == nil then
+		return false
+	end
+	if not selectionModes.enabled then
+		return mode.builtin == true
+	end
+	return selectionModes.modeEnabled[mode.name] ~= false
+end
+
+---@return integer count How many of them may be used as things stand.
+function usableSelectionModes()
+	local count = 0
+	for i = 1, #selectionModes.list do
+		if selectionModeUsable(selectionModes.list[i]) then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+---@return InfoSelectionMode? mode The one drawing, or nil when none has registered.
+local function activeSelectionMode()
+	local mode = selectionModes.list[selectionModes.index]
+	if selectionModeUsable(mode) then
+		return mode
+	end
+	for i = 1, #selectionModes.list do -- whatever was drawing is off now, take the next one that isn't
+		if selectionModeUsable(selectionModes.list[i]) then
+			return selectionModes.list[i]
+		end
+	end
+	for i = 1, #selectionModes.list do -- every last one is off, so draw the built in one anyway
+		if selectionModes.list[i].builtin then
+			return selectionModes.list[i]
+		end
+	end
+	return selectionModes.list[1]
+end
+
+-- the header font, which the totals and the button switching modes are both sized from
+---@return number fontSize
+local function selectionFontSize()
+	return (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
+end
+
+-- the button sits in the panel's bottom left corner, which a mode should leave clear
+local function setSelectionToggleRect()
+	local size = math_floor(selectionFontSize() * 1.23)
+	local rect = selectionModes.toggleRect
+	rect[1] = math_floor(backgroundRect[1])
+	rect[2] = math_floor(backgroundRect[2])
+	rect[3] = rect[1] + size
+	rect[4] = rect[2] + size
+end
+
+-- the top of the column of lines down the left side, which sits higher than the panel's own
+-- padding would put it so that there is more room below the column than above it
+---@param fontSize number As `selectionFontSize` gives it.
+---@return number top
+local function selectionTextTop(fontSize)
+	return backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) + (contentPadding * 0.45)
+end
+
+---@param text string May carry colour escapes.
+---@param baseline number
+local function printSelectionText(text, baseline)
+	font:Begin(true)
+	font:SetOutlineColor(0, 0, 0, 1)
+	font:Print(text, backgroundRect[1] + contentPadding, baseline, selectionFontSize(), "o")
+	font:End()
+end
+
+-- one line of that column, numbered from the first one below the header
+---@param line integer Counted from the first line below the header.
+---@param text string
+local function drawSelectionLine(line, text)
+	local fontSize = selectionFontSize()
+	printSelectionText(text, selectionTextTop(fontSize) - (fontSize * 0.85) - (line * (fontSize * 1.36)))
+end
+
+-- a line of that column placed by hand, centered on the given height instead of following the rows
+---@param text string
+---@param centerY number The height the line is centred on.
+local function drawSelectionLineAt(text, centerY)
+	printSelectionText(text, centerY - (selectionFontSize() * 0.36))
+end
+
+-- what a mode may put at the top of the panel: how many units are selected, lined up with whatever
+-- the mode lists below it
+local function drawSelectionHeader()
+	local fontSize = selectionFontSize()
 	font2:Begin(true)
 	font2:SetOutlineColor(0, 0, 0, 1)
 	font2:Print(
@@ -1274,11 +1552,72 @@ local function drawSelection()
 			.. "  "
 			.. getCachedTranslation("ui.info.unitsselected"),
 		backgroundRect[1] + contentPadding,
-		backgroundRect[4] - contentPadding - (fontSize * 1.2) - heightVar,
+		backgroundRect[4] - (contentPadding * 0.55) - (fontSize * 1.2),
 		(fontSize * 1.23),
 		"o"
 	)
 	font2:End()
+end
+
+-- the glyph for the built in mode: a coarse grid of cells, one per unit type
+---@param left number
+---@param bottom number
+---@param right number
+---@param _top number
+function drawSelectionTypesIcon(left, bottom, right, _top)
+	local size = right - left
+	local inset = math_max(2, math_floor(size * 0.28))
+	local inner = size - (inset * 2)
+	local gap = math_max(1, math_floor(inner * 0.12))
+	local cell = math_max(1, math_floor((inner - gap) * 0.5))
+	local step = cell + gap
+	for row = 0, 1 do
+		for col = 0, 1 do
+			local x, y = px + inset + (col * step), py + inset + (row * step)
+			glRect(x, y, x + cell, y + cell)
+		end
+	end
+end
+
+local function drawSelectionToggle()
+	local rect = selectionModes.toggleRect
+	if not rect[1] or not selectionModes.enabled or usableSelectionModes() < 2 then
+		return -- nothing to switch to
+	end
+	glTexture(false)
+	glColor(0.2, 0.2, 0.2, 1)
+	RectRound(rect[1], rect[2], rect[3], rect[4], elementCorner * 0.65, 0, 1, 0, 0)
+
+	-- a narrow square border around the contents, as the buttons over the minimap have
+	local size = rect[3] - rect[1]
+	local inset = math_max(1, math_floor(size * 0.14))
+	local thickness = math_max(1, math_floor(size * 0.06))
+	local left, bottom = rect[1] + inset, rect[2] + inset
+	local right, top = rect[3] - inset, rect[4] - inset
+	glColor(0.75, 0.75, 0.75, 1)
+	glRect(left, top - thickness, right, top)
+	glRect(left, bottom, right, bottom + thickness)
+	glRect(left, bottom + thickness, left + thickness, top - thickness)
+	glRect(right - thickness, bottom + thickness, right, top - thickness)
+
+	local mode = activeSelectionMode()
+	if mode and mode.icon then
+		mode.icon(rect[1], rect[2], rect[3], rect[4])
+	end
+	glColor(1, 1, 1, 1)
+end
+
+-- the built in way of drawing a selection: a cell per unit type, with what the whole selection
+-- costs and can build listed down the left side
+---@param area InfoRect What the mode has to draw its icons in.
+function drawSelectionTypes(area)
+	drawSelectionHeader()
+	-- the area is the grid inset by the panel's own padding; the layout wants it as it was
+	local gridWidth = backgroundRect[3] - area[1]
+	local fontSize = selectionFontSize()
+	local heightVar = 0 -- the header above this has already been drawn
+	local heightStep = (fontSize * 1.36)
+	local textTop = selectionTextTop(fontSize)
 	font:Begin(true)
 	font:SetOutlineColor(0, 0, 0, 1)
 	heightVar = heightVar + (fontSize * 0.85)
@@ -1368,7 +1707,7 @@ local function drawSelection()
 					or ""
 				),
 			backgroundRect[1] + contentPadding,
-			backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+			textTop - heightVar,
 			fontSize,
 			"o"
 		)
@@ -1392,7 +1731,7 @@ local function drawSelection()
 					or ""
 				),
 			backgroundRect[1] + contentPadding,
-			backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+			textTop - heightVar,
 			fontSize,
 			"o"
 		)
@@ -1407,7 +1746,7 @@ local function drawSelection()
 			.. tooltipValueWhiteColor
 			.. string.formatSI(totalMetalValue),
 		backgroundRect[1] + contentPadding,
-		backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+		textTop - heightVar,
 		fontSize,
 		"o"
 	)
@@ -1420,7 +1759,7 @@ local function drawSelection()
 			.. "\255\255\255\128   "
 			.. string.formatSI(totalEnergyValue),
 		backgroundRect[1] + contentPadding,
-		backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+		textTop - heightVar,
 		fontSize,
 		"o"
 	)
@@ -1435,7 +1774,7 @@ local function drawSelection()
 				.. tooltipValueYellowColor
 				.. string.formatSI(totalBuildPower),
 			backgroundRect[1] + contentPadding,
-			backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+			textTop - heightVar,
 			fontSize,
 			"o"
 		)
@@ -1447,27 +1786,13 @@ local function drawSelection()
 		font:Print(
 			tooltipLabelTextColor .. getCachedTranslation("ui.info.kills") .. "   " .. tooltipValueColor .. totalKills,
 			backgroundRect[1] + contentPadding,
-			backgroundRect[4] - (bgpadding * 2.4) - (fontSize * 0.8) - heightVar,
+			textTop - heightVar,
 			fontSize,
 			"o"
 		)
 	end
 	font:End()
 
-	-- selected units grid area
-	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6) -- leaving some room for the totals
-	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
-
-	-- Reuse customInfoArea table
-	if not customInfoArea then
-		customInfoArea = {}
-	end
-	customInfoArea[1] = backgroundRect[3] - gridWidth
-	customInfoArea[2] = backgroundRect[2]
-	customInfoArea[3] = backgroundRect[3] - bgpadding
-	customInfoArea[4] = backgroundRect[2] + gridHeight
-
-	-- draw selected unit icons
 	tracy.ZoneBeginN("W:Info:DrawSelection:Grid")
 	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:Layout")
 	local rows = 2
@@ -1486,20 +1811,10 @@ local function drawSelection()
 	-- adjust grid size to add some padding at the top and right side
 	cellsize = math_floor((cellsize * (1 - (0.04 / rows))) + 0.5) -- leave some space at the top
 	cellPadding = math_max(1, math_floor(cellsize * 0.03))
-	customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
+	area[3] = area[3] - cellPadding -- leave space at the right side
 	tracy.ZoneEnd()
 
-	-- draw grid (bottom right to top left)
-	-- Reuse cellRect table
 	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:CellRects")
-	if not cellRect then
-		cellRect = {}
-	else
-		-- Clear old entries
-		for i = #cellRect, 1, -1 do
-			cellRect[i] = nil
-		end
-	end
 	texOffset = (0.03 * rows) * zoomMult
 	cornerSize = math_max(1, cellPadding * 0.9)
 	if texOffset > 0.25 then
@@ -1507,36 +1822,111 @@ local function drawSelection()
 	end
 	tracy.ZoneEnd()
 
+	-- draw grid (bottom right to top left), leaving any empty space at the top left
 	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:Cells")
-	local cellID = selUnitTypes
 	for row = 1, rows do
+		local rowLastCell = selUnitTypes - ((row - 1) * colls)
+		local rowFirstCell = math_max(1, rowLastCell - colls + 1)
 		for coll = 1, colls do
-			if selectionCells[cellID] then
-				--local uDefID = selectionCells[cellID]
+			local cellID = rowLastCell + 1 - coll -- coll 1 is the rightmost one
+			if cellID >= rowFirstCell and selectionCells[cellID] then
 				local cellRectEntry = cellRect[cellID]
 				if not cellRectEntry then
-					cellRectEntry = {}
+					cellRectEntry = { 0, 0, 0, 0 }
 					cellRect[cellID] = cellRectEntry
 				end
-				cellRectEntry[1] = math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize))
-				cellRectEntry[2] = math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize))
-				cellRectEntry[3] = math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize))
-				cellRectEntry[4] = math_ceil(customInfoArea[2] + cellPadding + (row * cellsize))
-				drawSelectionCell(cellID, selectionCells[cellID], texOffset)
+				cellRectEntry[1] = math_ceil(area[3] - cellPadding - (coll * cellsize))
+				cellRectEntry[2] = math_ceil(area[2] + cellPadding + ((row - 1) * cellsize))
+				cellRectEntry[3] = math_ceil(area[3] - cellPadding - ((coll - 1) * cellsize))
+				cellRectEntry[4] = math_ceil(area[2] + cellPadding + (row * cellsize))
+				local uDefID = selectionCells[cellID] --[[@as integer]]
+				typeCellOpts.padding = cellPadding
+				typeCellOpts.zoom = texOffset
+				typeCellOpts.corner = cornerSize
+				typeCellOpts.fontCap = gridHeight * 0.17
+				typeCellOpts.count = selUnitsCounts[uDefID]
+				typeCellOpts.kills = typeKillCount(uDefID)
+				drawUnitCell(
+					cellRectEntry[1],
+					cellRectEntry[2],
+					cellRectEntry[3],
+					cellRectEntry[4],
+					uDefID,
+					typeCellOpts
+				)
 			end
-			cellID = cellID - 1
-			if cellID <= 0 then
-				break
-			end
-		end
-		if cellID <= 0 then
-			break
 		end
 	end
 	tracy.ZoneEnd()
 	glTexture(false)
 	glColor(1, 1, 1, 1)
 	tracy.ZoneEnd()
+end
+
+-- the chrome every mode shares: what is selected, the button switching modes, and the area left
+-- over for the mode itself to draw in
+local function drawSelection()
+	tracy.ZoneBeginN("W:Info:DrawSelection")
+	tracy.ZoneBeginN("W:Info:DrawSelection:Query")
+	selUnitsCounts = spGetSelectedUnitsCounts() --[[@as table<integer, integer>]]
+	selUnitsSorted = spGetSelectedUnitsSorted()
+	selUnitTypes = 0
+
+	-- Reuse existing table instead of creating new one
+	if not selectionCells then
+		selectionCells = {}
+	else
+		-- Clear existing entries
+		for i = #selectionCells, 1, -1 do
+			selectionCells[i] = nil
+		end
+	end
+
+	for k, uDefID in pairs(unitOrder) do
+		if selUnitsSorted[uDefID] then
+			if type(selUnitsSorted[uDefID]) == "table" then
+				selUnitTypes = selUnitTypes + 1
+				selectionCells[selUnitTypes] = uDefID
+			end
+		end
+	end
+	tracy.ZoneEnd()
+
+	setSelectionToggleRect()
+
+	-- selected units grid area
+	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.6) -- leaving some room for the totals
+	gridHeight = math_floor((backgroundRect[4] - backgroundRect[2]) - bgpadding)
+
+	-- the border is only drawn on the sides that don't run into the edge of the screen, matching
+	-- what UiElement does when it draws the panel
+	panelInterior[1] = backgroundRect[1] + (backgroundRect[1] > 0 and bgpadding or 0)
+	panelInterior[2] = backgroundRect[2] + (backgroundRect[2] > 0 and bgpadding or 0)
+	panelInterior[3] = backgroundRect[3] - (backgroundRect[3] < vsx and bgpadding or 0)
+	panelInterior[4] = backgroundRect[4] - (backgroundRect[4] < vsy and bgpadding or 0)
+
+	-- Reuse customInfoArea table
+	if not customInfoArea then
+		customInfoArea = {}
+	end
+	customInfoArea[1] = backgroundRect[3] - gridWidth
+	customInfoArea[2] = backgroundRect[2]
+	customInfoArea[3] = backgroundRect[3] - bgpadding
+	customInfoArea[4] = backgroundRect[2] + gridHeight
+
+	-- the cells belong to whichever mode draws them
+	if not cellRect then
+		cellRect = {}
+	else
+		for i = #cellRect, 1, -1 do
+			cellRect[i] = nil
+		end
+	end
+
+	local mode = activeSelectionMode()
+	if mode then
+		mode.draw(customInfoArea --[[@as InfoRect]])
+	end
 	tracy.ZoneEnd()
 end
 
@@ -2654,6 +3044,93 @@ local function RightMouseButton(unitDefID, unitTable)
 	Spring.PlaySoundFile(sound_button2, 0.5, "ui")
 end
 
+-- what other widgets may use to add a way of drawing a selection, and to draw the pieces this one
+-- already knows how to draw. added to the api the panel already publishes, never replacing it
+function publishInfoApi()
+	---@return boolean enabled Whether the ways of drawing a selection other widgets added may be used.
+	WG.info.getSelectionModesEnabled = function()
+		return selectionModes.enabled
+	end
+	---@param value boolean Allow the ways of drawing a selection other widgets added.
+	WG.info.setSelectionModesEnabled = function(value)
+		selectionModes.enabled = value and true or false
+		doUpdate = true
+	end
+	---Every way of drawing a selection, for an options list to offer one by one.
+	---@return { name: string, title: string, description: string?, enabled: boolean }[]
+	WG.info.getSelectionModes = function()
+		local modes = {}
+		for i = 1, #selectionModes.list do
+			local mode = selectionModes.list[i]
+			if mode.name then
+				modes[#modes + 1] = {
+					name = mode.name,
+					title = mode.title or mode.name,
+					description = mode.description,
+					enabled = selectionModes.modeEnabled[mode.name] ~= false,
+				}
+			end
+		end
+		return modes
+	end
+	---@param name string
+	---@return boolean enabled
+	WG.info.getSelectionModeEnabled = function(name)
+		return selectionModes.modeEnabled[name] ~= false
+	end
+	---Turns one way of drawing a selection on or off.
+	---@param name string|{ [1]: string, [2]: boolean } The mode, or both arguments as one table.
+	---@param value boolean?
+	WG.info.setSelectionModeEnabled = function(name, value)
+		if type(name) == "table" then
+			name, value = name[1], name[2]
+		end
+		selectionModes.modeEnabled[name] = value and true or false
+		doUpdate = true
+	end
+
+	WG.info.register = {
+		drawSelection = registerDrawSelection,
+	}
+	WG.info.unregister = {
+		drawSelection = unregisterDrawSelection,
+	}
+	-- the area a mode has to draw in, left of which the built in one lists its totals
+	WG.info.getSelectionArea = function()
+		return customInfoArea
+	end
+	-- the panel inside its border, which a mode may draw across without spilling onto the frame
+	WG.info.getPanelArea = function()
+		return panelInterior
+	end
+	-- the corner the button switching modes takes, which a mode should leave clear
+	WG.info.getModeButtonRect = function()
+		return selectionModes.toggleRect
+	end
+	-- how many units are selected, drawn where the built in mode draws it
+	WG.info.drawSelectionHeader = drawSelectionHeader
+	-- a line of the column below that header, numbered from 1, styled as the built in mode's
+	WG.info.drawSelectionLine = drawSelectionLine
+	-- the same line, centered on a height of the mode's choosing
+	WG.info.drawSelectionLineAt = drawSelectionLineAt
+	-- what is selected: units by type, counts by type, the types in display order, how many
+	WG.info.getSelection = function()
+		return selUnitsSorted, selUnitsCounts, selectionCells, selUnitTypes
+	end
+	WG.info.drawUnitCell = drawUnitCell
+	WG.info.unitTypeKills = typeKillCount
+	-- what a click on a cell does, as the cell per unit type mode does it
+	WG.info.clickCellUnits = function(button, unitDefID, unitTable)
+		if button == 1 then
+			LeftMouseButton(unitDefID, unitTable)
+		elseif button == 2 then
+			MiddleMouseButton(unitDefID, unitTable)
+		elseif button == 3 then
+			RightMouseButton(unitDefID, unitTable)
+		end
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -2718,6 +3195,24 @@ function widget:MouseRelease(x, y, button)
 		return
 	end
 
+	-- the button switching between the ways of drawing a selection, next to the header
+	if displayMode == "selection" and button == 1 and selectionModes.toggleRect[1] then
+		local rect = selectionModes.toggleRect
+		if math_isInRect(x, y, rect[1], rect[2], rect[3], rect[4]) then
+			cycleSelectionMode()
+			return -1
+		end
+	end
+
+	-- whatever the mode being drawn makes of the click; it knows where it drew, which may be
+	-- anywhere on the panel
+	if displayMode == "selection" then
+		local mode = activeSelectionMode()
+		if mode and mode.mouseRelease and mode.mouseRelease(x, y, button) then
+			return -1
+		end
+	end
+
 	if
 		displayMode
 		and customInfoArea
@@ -2737,15 +3232,7 @@ function widget:MouseRelease(x, y, button)
 						cellRect[cellID][4]
 					)
 				then
-					local unitTable = nil
-					local index = 0
-					for udid, uTable in pairs(selUnitsSorted) do
-						if udid == unitDefID then
-							unitTable = uTable
-							break
-						end
-						index = index + 1
-					end
+					local unitTable = selUnitsSorted[unitDefID]
 					if unitTable == nil then
 						return -1
 					end
@@ -2929,6 +3416,10 @@ function widget:DrawScreen()
 
 		-- selection grid
 		if displayMode == "selection" and selectionCells and selectionCells[1] and cellRect then
+			-- cells standing for several units of one type are explained like a whole unit type is,
+			-- a cell holding a single unit gets the singular help text, a row button the one of the
+			-- two matching what its row can do, and the rest of the panel none at all
+			local hoveredHowto
 			for cellID, unitDefID in pairs(selectionCells) do
 				if
 					cellRect[cellID]
@@ -2954,11 +3445,20 @@ function widget:DrawScreen()
 						color = { 1, 0.1, 0.1 }
 					end
 					cellZoom = cellZoom + math_min(0.33 * cellZoom * ((gridHeight / cellsize) - 2), 0.15) -- add extra zoom when small icons
-					drawSelectionCell(
-						cellID,
-						selectionCells[cellID],
-						texOffset + cellZoom,
-						{ color[1], color[2], color[3], 0.1 }
+					local uDefID = selectionCells[cellID] --[[@as integer]]
+					typeCellOpts.padding = cellPadding
+					typeCellOpts.zoom = texOffset + cellZoom
+					typeCellOpts.corner = cornerSize
+					typeCellOpts.fontCap = gridHeight * 0.17
+					typeCellOpts.count = selUnitsCounts[uDefID]
+					typeCellOpts.kills = typeKillCount(uDefID)
+					drawUnitCell(
+						cellRect[cellID][1],
+						cellRect[cellID][2],
+						cellRect[cellID][3],
+						cellRect[cellID][4],
+						uDefID,
+						typeCellOpts
 					)
 					-- highlight
 					glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -3006,12 +3506,42 @@ function widget:DrawScreen()
 					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+					hoveredHowto = selectionHowto
 					--cellHovered = cellID
 					break
 				end
 			end
 
-			if WG.tooltip then
+			drawSelectionToggle() -- only while the panel is hovered, like the buttons over the minimap
+			local toggleRect = selectionModes.toggleRect
+			local overToggle = toggleRect[1]
+				and math_isInRect(x, y, toggleRect[1], toggleRect[2], toggleRect[3], toggleRect[4])
+			if overToggle then
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				RectRound(
+					toggleRect[1],
+					toggleRect[2],
+					toggleRect[3],
+					toggleRect[4],
+					cellPadding * 0.9,
+					1,
+					1,
+					1,
+					1,
+					{ 1, 1, 1, b and 0.4 or 0.2 },
+					{ 1, 1, 1, b and 0.07 or 0.04 }
+				)
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			end
+
+			-- whatever the mode being drawn wants to show under the cursor, unless the button
+			-- switching modes is over that spot, since that is what a click there would hit
+			local mode = activeSelectionMode()
+			if mode and mode.hover and not overToggle then
+				hoveredHowto = mode.hover(x, y, b, b2, b3) or hoveredHowto
+			end
+
+			if WG.tooltip and hoveredHowto then
 				local statsIndent = "  "
 				local stats = ""
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
@@ -3036,7 +3566,7 @@ function widget:DrawScreen()
 						)
 				else
 					--textTitle = Spring.I18N('ui.info.selectedunits')..": " .. tooltipTextColor .. #selectedUnits
-					text = selectionHowto
+					text = hoveredHowto
 				end
 
 				WG.tooltip.ShowTooltip("info", text, nil, nil, textTitle)
@@ -3346,6 +3876,9 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		selectionMode = selectionModes.wanted,
+		selectionModesEnabled = selectionModes.enabled,
+		selectionModeEnabled = selectionModes.modeEnabled,
 		showBuilderBuildlist = showBuilderBuildlist,
 		displayMapPosition = displayMapPosition,
 		alwaysShow = alwaysShow,
@@ -3353,6 +3886,20 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	if data.showUnitCells ~= nil then -- what the setting was before the modes became pluggable
+		selectionModes.wanted = data.showUnitCells and "units" or "types"
+	end
+	if type(data.selectionMode) == "string" then
+		selectionModes.wanted = data.selectionMode
+	end
+	if data.selectionModesEnabled ~= nil then
+		selectionModes.enabled = data.selectionModesEnabled
+	end
+	if type(data.selectionModeEnabled) == "table" then
+		for name, enabled in pairs(data.selectionModeEnabled) do
+			selectionModes.modeEnabled[name] = enabled
+		end
+	end
 	if data.showBuilderBuildlist ~= nil then
 		showBuilderBuildlist = data.showBuilderBuildlist
 	end
