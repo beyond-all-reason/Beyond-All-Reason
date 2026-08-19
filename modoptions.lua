@@ -1670,15 +1670,6 @@ local options = {
         def  	= false,
     },
 
-	{
-        key    	= "legionsimplifiedmexes",
-        name   	= "Legion Simplified Mexes",
-        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
     {
         key     = "experimentallegionfaction_link",
         name    = "Development Discussion",
