@@ -94,6 +94,12 @@ local autoupdate = false -- auto update shader, for debugging only!
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
 local saturationThreshold = 16 * areaResolution
+local cellArea = areaResolution * areaResolution
+-- Overdraw budget: the maximum accumulated decal area per map cell, expressed in full layers of coverage
+-- of that cell. When exceeded, the oldest decals in the cell get evicted. New decals draw on top of old
+-- ones anyway, so evicting the oldest (most faded) ones is visually near-free, but it bounds the worst-case
+-- GPU fill cost when zooming into fields of stacked decals.
+local maxDecalLayersPerCell = 16
 
 ------------------------ GL4 BACKEND -----------------------------------
 
@@ -396,16 +402,33 @@ local function initAreas()
 	end
 end
 
+local RemoveDecal -- forward declaration, defined below, needed for eviction in AddDecalToArea
+
 local function AddDecalToArea(instanceID, posx, posz, width, length)
 	local hash = hashPos(posx, posz)
 	local maparea = areaDecals[hash]
 	if maparea == nil then
 		return
 	end
-	local area = width * length
+	-- cap the accounted area at one full cell, so a single giant decal counts as one layer, not dozens
+	local area = mathMin(width * length, cellArea)
 	maparea.instanceIDs[instanceID] = area
 	maparea.totalarea = maparea.totalarea + area
 	decalToArea[instanceID] = hash
+
+	-- evict the oldest decals in this cell while the accumulated area exceeds the overdraw budget
+	while maparea.totalarea > maxDecalLayersPerCell * cellArea do
+		local oldest
+		for id in pairs(maparea.instanceIDs) do
+			if id ~= instanceID and (oldest == nil or id < oldest) then
+				oldest = id
+			end
+		end
+		if oldest == nil then
+			break
+		end
+		RemoveDecal(oldest) -- updates maparea.totalarea via RemoveDecalFromArea
+	end
 end
 
 local function RemoveDecalFromArea(instanceID)
@@ -720,7 +743,7 @@ else
 	end
 end
 
-local function RemoveDecal(instanceID)
+function RemoveDecal(instanceID) -- assigns the forward-declared local above
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
 	local removed = false
