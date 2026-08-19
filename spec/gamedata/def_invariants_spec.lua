@@ -387,6 +387,47 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
+-- Weapons address armour by class name, and the engine resolves those names against
+	-- armordefs.lua at load. A name that file never defines is not an error anywhere - the weapon
+	-- just falls back to its default damage against those targets, so a value that looks tuned
+	-- does nothing. armordefs also lets a unit mint a class through customparams.armordef, so the
+	-- valid set is read from the file rather than hardcoded here.
+	it("only aims damage at armour classes armordefs defines", function()
+		-- armordefs walks DEFS.unitDefs for the customparams.armordef escape hatch, so it needs
+		-- the def set in place before it will load at all.
+		local previousDefs = _G.DEFS
+		_G.DEFS = { unitDefs = defs }
+		local armorDefs = VFS.Include("gamedata/armordefs.lua")
+		_G.DEFS = previousDefs
+
+		-- The VFS mock hands back an empty table when an include fails, which would quietly turn
+		-- this into "every damage key is wrong", so check the file actually produced classes.
+		assert.is_true(type(armorDefs) == "table" and next(armorDefs) ~= nil,
+			"gamedata/armordefs.lua produced no armour classes")
+
+		local classes = { default = true }
+		for class in pairs(armorDefs) do
+			classes[tostring(class):lower()] = true
+		end
+
+		local bad = {}
+		for name, def in pairs(defs) do
+			for weaponName, weapon in pairs(def.weapondefs or {}) do
+				if type(weapon) == "table" and type(weapon.damage) == "table" then
+					for class in pairs(weapon.damage) do
+						if not classes[tostring(class):lower()] then
+							bad[#bad + 1] = name .. "." .. tostring(weaponName) .. " -> " .. tostring(class)
+						end
+					end
+				end
+			end
+		end
+
+		table.sort(bad)
+		assert.same({}, bad)
+	end)
+
+
 	it("names a movedef that movedefs.lua emits", function()
 		-- movedefs.lua reads Game.speedModClasses at load; the spec globals do not define it.
 		_G.Game = _G.Game or {}
