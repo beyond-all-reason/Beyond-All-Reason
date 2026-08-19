@@ -48,6 +48,18 @@ local syntheticCallins = {
 	unsynced = {},
 }
 
+local syntheticCallinSummaries = {
+	UnitBuildStep    = true,
+	FeatureBuildStep = true,
+}
+-- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
+-- We have to handle dropping tracked state, etc., during updates on our own.
+-- Update handlers receive the gadgetHandler to read their subscriber lists.
+local syntheticCallinUpdate = {}
+
+--------------------------------------------------------------------------------
+--  Callin setup  --------------------------------------------------------------
+
 local syntheticCallinHold = table.merge(syntheticCallins.shared, syntheticCallins[env])
 local callinNames = table.keys(syntheticCallinHold)
 
@@ -78,18 +90,8 @@ local function holdsCallIn(self, listName)
 	return false
 end
 
--- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
--- We have to handle dropping tracked state, etc., during updates on our own.
--- Update handlers receive the gadgetHandler to read their subscriber lists.
-local syntheticCallinUpdate = {}
-
 --------------------------------------------------------------------------------
 --  Callin summary views  ------------------------------------------------------
-
-local syntheticCallinSummaries = {
-	UnitBuildStep    = true,
-	FeatureBuildStep = true,
-}
 
 local marks = {}
 local accumulate = {}
