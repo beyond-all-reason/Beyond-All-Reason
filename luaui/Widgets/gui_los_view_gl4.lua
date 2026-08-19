@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2024.11.19",
 		license = "GPL V2",
-		layer = -10000, -- lol this isnt even a number
+		layer = -10000, -- lol this isn't even a number
 		enabled = false,
 	}
 end

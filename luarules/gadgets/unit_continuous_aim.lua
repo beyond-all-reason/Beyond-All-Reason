@@ -230,7 +230,7 @@ for unitDefID, _ in pairs(convertedUnits) do
 				unitWeapons[unitDefID][id] = true -- no need to store weapondefid
 			end
 		else
-			-- units with no weapons shouldnt even be here
+			-- units with no weapons shouldn't even be here
 			convertedUnits[unitDefID] = nil
 		end
 	end

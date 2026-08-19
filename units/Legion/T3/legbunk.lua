@@ -223,7 +223,7 @@ return {
 				def = "AIMHULL",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
-				maxangledif = 340, --Needed because otherwise targetting logic breaks outside this area.
+				maxangledif = 340, --Needed because otherwise targeting logic breaks outside this area.
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",

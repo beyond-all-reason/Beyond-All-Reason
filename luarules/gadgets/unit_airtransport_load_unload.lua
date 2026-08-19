@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Load/unload",
-		desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
+		desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenance 686+)",
 		author = "Doo",
 		date = "2018",
 		license = "GNU GPL, v2 or later",

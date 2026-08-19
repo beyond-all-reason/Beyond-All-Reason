@@ -177,7 +177,7 @@ if gadgetHandler:IsSyncedCode() then
 		fromLua
 	)
 		if cmdID and (numObjects > 0 or numDecorations > 0) then
-			-- prevents area targetting
+			-- prevents area targeting
 			if cmdID == CMD_ATTACK then
 				if cmdParams and #cmdParams == 1 then
 					local uDefID = spGetUnitDefID(cmdParams[1])

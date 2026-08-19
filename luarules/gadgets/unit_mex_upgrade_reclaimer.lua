@@ -45,7 +45,7 @@ end
 --	return true
 --end
 
--- get the first mex bellow that isn't itself, stacking more than one should be prevented by yardmaps
+-- get the first mex below that isn't itself, stacking more than one should be prevented by yardmaps
 local function hasMexBeneath(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
@@ -92,7 +92,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- on completion open up yardmap to allow for another mex to built ontop
 	if isMex[unitDefID] then
 		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
-		-- if theres a mex below this one reclaim it, and donate this one to the owner of the previous mex
+		-- if there's a mex below this one reclaim it, and donate this one to the owner of the previous mex
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			local mexTeamID = Spring.GetUnitTeam(mex)

@@ -154,7 +154,7 @@ return {
 				impulsefactor = 0,
 				model = "empty.s3o",
 				mygravity = 0.4,
-				name = "Targetting System",
+				name = "Targeting System",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,
@@ -162,7 +162,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
-					water_splash = 0, -- targetting weapon aircraftbomb
+					water_splash = 0, -- targeting weapon aircraftbomb
 				},
 				damage = {
 					default = 0,

@@ -92,7 +92,7 @@ local UiElement, UiButton, elementPadding, uiPadding
 local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
---local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
+--local allowUnready = false	-- not enabled cause unreadying doesn't work, have to do workaround
 local showLockButton = true
 
 local numPlayers = BAR.Utilities.GetPlayerCount()

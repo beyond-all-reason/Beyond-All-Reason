@@ -103,7 +103,7 @@ local function refreshScreenModes()
 				displays[display].hz = videoMode.hz
 			end
 		end
-		-- Only capture the first occurence of the display index, it will contain maximum supported resolution
+		-- Only capture the first occurrence of the display index, it will contain maximum supported resolution
 		if display ~= videoMode.display then
 			display = videoMode.display
 			local w, h, x, y = Spring.GetScreenGeometry(display - 1)

@@ -210,7 +210,7 @@ local function updateStalling()
 									0,
 									1,
 									0,
-									1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+									1, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 									0,
 									0,
 									0,

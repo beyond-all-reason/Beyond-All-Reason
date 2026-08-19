@@ -295,7 +295,7 @@ function widget:Update(dt)
 
 	-- limit updaterate  (cause Spring.GetUnitsIn.... expensive mem alloc wise)
 	if
-		(not selRectChanged and sec < 1 / 30) -- limit to 30 updates per sec when selection rectangle didnt change
+		(not selRectChanged and sec < 1 / 30) -- limit to 30 updates per sec when selection rectangle didn't change
 		or selRectChanged and sec < 1 / 60 -- limit to 60 updates per sec
 	then
 		return
