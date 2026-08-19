@@ -116,6 +116,7 @@ local flexCallIns = {
 	"PlayerChanged",
 	"ShockFront",
 	"WorldTooltip",
+	'GetBuildShape',
 	"MapDrawCmd",
 	"ActiveCommandChanged",
 	"CameraRotationChanged",
@@ -2435,6 +2436,19 @@ function widgetHandler:WorldTooltip(ttType, ...)
 		if type(tt) == "string" and #tt > 0 then
 			tracy.ZoneEnd()
 			return tt
+		end
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GetBuildShape(...)
+	tracy.ZoneBeginN("W:GetBuildShape")
+	for _, w in ipairs(self.GetBuildShapeList) do
+		local shape = w:GetBuildShape(...)
+		if type(shape) == 'string' and #shape > 0 then
+			tracy.ZoneEnd()
+			return shape
 		end
 	end
 	tracy.ZoneEnd()
