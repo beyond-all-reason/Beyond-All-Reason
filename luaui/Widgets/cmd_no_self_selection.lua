@@ -2,13 +2,13 @@ local widget = widget ---@class Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Ignore Self",
-		desc    = "Avoid self-targeting with default commands (e.g. Guard on self)",
-		author  = "efrec",
-		date    = "2025-10-13",
+		name = "Ignore Self",
+		desc = "Avoid self-targeting with default commands (e.g. Guard on self)",
+		author = "efrec",
+		date = "2025-10-13",
 		version = "v1.0",
 		license = "GNU GPL, v2 or later",
-		layer   = -1e9, -- before other w:DefaultCommand
+		layer = -1e9, -- before other w:DefaultCommand
 		enabled = true,
 	}
 end
@@ -16,9 +16,9 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
----@type number in seconds
+---@type number # in seconds
 local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
----@type integer in pixels, as the Manhattan norm
+---@type integer # in pixels, as the Manhattan norm
 local doubleClickDist = 12
 ---@type table<CMD, true>
 local allowSelfCommand = {
@@ -155,6 +155,7 @@ function widget:MousePress(x, y, button)
 			selectClickTime = doubleClickTime
 		end
 	end
+	return false
 end
 
 function widget:Update(dt)
@@ -227,7 +228,7 @@ widget.UnitEnteredRadar = unitAccessGained
 ---@param ignoreWater boolean? (default: `false`)
 ---@param heightOffset number? (default: `0`)
 ---@return ("unit"|"feature"|"ground"|"sky")? description of traced object or position
----@return (integer|xyz)? result unitID or featureID (integer), or position triple (xyz)
+---@return (integer|xyz|string|number|nil)? result unitID or featureID (integer), or position triple (xyz)
 local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 	-- Explicitly check onlyCoords because `TraceScreenRay` accepts arguments (screenX, screenY, heightOffset).
 	local hiddenID = (onlyCoords ~= true) and not useMinimap and isVolumeHidden and selectedUnitID
@@ -236,7 +237,8 @@ local function traceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeS
 		restoreSelectionVolume(hiddenID)
 	end
 
-	local description, result = sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
+	local description, result =
+		sp_TraceScreenRay(screenX, screenY, onlyCoords, useMinimap, includeSky, ignoreWater, heightOffset)
 
 	if hiddenID then
 		removeSelectionVolume(hiddenID)

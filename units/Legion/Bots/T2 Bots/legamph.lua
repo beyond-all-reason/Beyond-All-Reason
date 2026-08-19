@@ -1,7 +1,6 @@
 return {
 	legamph = {
 		activatewhenbuilt = true,
-		brakerate = 0.5,
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,
@@ -205,7 +204,7 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
-				maindir = "0 0 1"
+				maindir = "0 0 1",
 			},
 			[2] = {
 				def = "COAX_DEPTHCHARGE",

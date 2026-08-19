@@ -21,10 +21,9 @@ function widget:GetInfo()
 		date = "Nov 17, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -42,16 +41,16 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGroundHeight = Spring.GetGroundHeight
-local spI18N = Spring.I18N
+local spI18N = BAR.I18N
 
-local start = false  --reclaim area cylinder drawing has been started
-local metal = 0  --metal count from features in cylinder
-local energy = 0  --energy count from features in cylinder
+local start = false --reclaim area cylinder drawing has been started
+local metal = 0 --metal count from features in cylinder
+local energy = 0 --energy count from features in cylinder
 local nonground = "" --if reclaim order done with right click on a feature or unit
-local rangestart = {0, 0, 0}  --counting start center
+local rangestart = { 0, 0, 0 } --counting start center
 local rangestartinminimap = false --both start and end need to be equaly checked
-local rangeend = {}  --counting radius end point
-local b1was = false  -- cursor was outside the map?
+local rangeend = {} --counting radius end point
+local b1was = false -- cursor was outside the map?
 local vsx, vsy = widgetHandler:GetViewSizes()
 local form = 12 --text format depends on screen size
 local xstart, ystart = 0, 0
@@ -88,11 +87,12 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 	form = mathFloor(vsx / 87)
 end
 
-local minimapPosx, minimapPosy, minimapSizex, minimapSizey, minimapMinimized, minimapMaximized = 0, 0, 1, 1, false, false
+local minimapPosx, minimapPosy, minimapSizex, minimapSizey, minimapMinimized, minimapMaximized =
+	0, 0, 1, 1, false, false
 local minimapUpdateFrame = 0
 
 local function UpdateMinimapGeometry()
@@ -113,7 +113,6 @@ local function MinimapToWorld(rx, ry)
 		return { -1, -1, -1 }
 	end
 end
-
 
 function widget:DrawScreen()
 	_, cmd, _ = spGetActiveCommand()
@@ -147,18 +146,23 @@ function widget:DrawScreen()
 		b1was = true
 	else
 		b1was = false
-		rangestart = {0, 0, 0}
+		rangestart = { 0, 0, 0 }
 	end
 	--bit more precise showing when mouse is moved by 4 pixels (start)
-	if (b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start == false) or (nonground == "Reclaim" and rangestart ~= nil and start == false and b2) then
+	if
+		(b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start == false)
+		or (nonground == "Reclaim" and rangestart ~= nil and start == false and b2)
+	then
 		xend, yend = x, y
 		if (xend > xstart + 4 or xend < xstart - 4) or (yend > ystart + 4 or yend < ystart - 4) then
 			start = true
 		end
 	end
 	--
-	if (b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start) or (nonground == "Reclaim" and start and b2 and rangestart ~= nil) then
-
+	if
+		(b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start)
+		or (nonground == "Reclaim" and start and b2 and rangestart ~= nil)
+	then
 		local inMinimap, rx, ry = InMinimap(x, y)
 		if inMinimap and rangestartinminimap then
 			rangeend = MinimapToWorld(rx, ry)
@@ -193,7 +197,11 @@ function widget:DrawScreen()
 			cachedEnergy = energy
 			metalParams.metal = metal
 			energyParams.energy = energy
-			cachedAreaText = "   " .. spI18N('ui.reclaimInfo.metal', metalParams) .. "\255\255\255\128" .. " " .. spI18N('ui.reclaimInfo.energy', energyParams)
+			cachedAreaText = "   "
+				.. spI18N("ui.reclaimInfo.metal", metalParams)
+				.. "\255\255\255\128"
+				.. " "
+				.. spI18N("ui.reclaimInfo.energy", energyParams)
 		end
 
 		local tx = x
@@ -206,9 +214,9 @@ function widget:DrawScreen()
 			ty = ty - form
 		end
 		font:Begin()
-		font:SetOutlineColor(0,0,0, 0.6)
+		font:SetOutlineColor(0, 0, 0, 0.6)
 		font:SetTextColor(1, 1, 1, 1)
-		font:Print(cachedAreaText, tx, ty, form, 'o')
+		font:Print(cachedAreaText, tx, ty, form, "o")
 		font:End()
 	else
 		-- Reset cache when not dragging
@@ -233,7 +241,7 @@ function widget:DrawScreen()
 				cachedUnitMetal = metal
 				metalParams.metal = metal
 				local color = isReclaimable[unitDefID] and "\255\255\255\255" or "\255\220\10\10"
-				cachedUnitText = color .. "   " .. spI18N('ui.reclaimInfo.metal', metalParams)
+				cachedUnitText = color .. "   " .. spI18N("ui.reclaimInfo.metal", metalParams)
 			end
 
 			local tx = x
@@ -246,11 +254,10 @@ function widget:DrawScreen()
 				ty = ty - form
 			end
 			font:Begin()
-			font:SetOutlineColor(0,0,0, 0.5)
+			font:SetOutlineColor(0, 0, 0, 0.5)
 			font:SetTextColor(1, 1, 1, 1)
-			font:Print(cachedUnitText, tx, ty, form, 'o')
+			font:Print(cachedUnitText, tx, ty, form, "o")
 			font:End()
 		end
 	end
 end
-

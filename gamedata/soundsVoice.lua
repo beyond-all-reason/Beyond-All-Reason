@@ -1,10 +1,10 @@
-local Sounds = {SoundItems = {}}
+local Sounds = { SoundItems = {} }
 
 --Special handling of Voice files -- We need to do this in separate file so the notifications widget can load the custom modded ones.
 local voiceAttributes = {
 	gain = 1,
 	pitchmod = 0,
-	gainmod  = 0,
+	gainmod = 0,
 	dopplerscale = 0,
 	maxconcurrent = 1,
 	priority = 1000,
@@ -12,18 +12,18 @@ local voiceAttributes = {
 }
 
 local function handleVoiceSoundFile(file) -- Creates a sound item that has the same name as the full path, for compatibility with existing solutions
-    local eventName = string.gsub(file, "\\", "/")
-    if not Sounds.SoundItems[eventName] then
-	    Sounds.SoundItems[eventName] = {}
-	    Sounds.SoundItems[eventName].file = file
-	    for attribute, attributeValue in pairs(voiceAttributes) do
-	    	Sounds.SoundItems[eventName][attribute] = attributeValue
-	    end
-	    --Spring.Echo(eventName)
-        --for attribute2, value in pairs(Sounds.SoundItems[file]) do
-	    --	Spring.Echo("attribute", attribute2, "value", value)
-	    --end
-    end
+	local eventName = string.gsub(file, "\\", "/")
+	if not Sounds.SoundItems[eventName] then
+		Sounds.SoundItems[eventName] = {}
+		Sounds.SoundItems[eventName].file = file
+		for attribute, attributeValue in pairs(voiceAttributes) do
+			Sounds.SoundItems[eventName][attribute] = attributeValue
+		end
+		--Spring.Echo(eventName)
+		--for attribute2, value in pairs(Sounds.SoundItems[file]) do
+		--	Spring.Echo("attribute", attribute2, "value", value)
+		--end
+	end
 end
 
 --local VoiceFilesLvl1Files = VFS.DirList("sounds/voice/")
@@ -58,7 +58,7 @@ end
 local voiceSoundEffectsAttributes = {
 	gain = 1,
 	pitchmod = 0,
-	gainmod  = 0,
+	gainmod = 0,
 	dopplerscale = 0,
 	maxconcurrent = 1,
 	priority = 999,
