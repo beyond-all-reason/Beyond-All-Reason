@@ -825,6 +825,26 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
+	-- The other direction, which the engine will never complain about: to Recoil a unitdef and a
+	-- weapondef are entries in two unrelated lists, so a weapon that only fires on command sits
+	-- happily on a unit that has no such command and simply never fires. BAR is what cares.
+	-- Stockpiled weapons are the exception: silos, junos and the like are released through the
+	-- launch flow rather than by the unit aiming them.
+	it("only puts a command fired weapon on a unit that can command it", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			if not (def.canmanualfire or def.candgun) then
+				for weaponName, weapon in pairs(def.weapondefs or {}) do
+					if type(weapon) == "table" and (weapon.commandfire or weapon.manualfire) and not weapon.stockpile then
+						bad[#bad + 1] = name .. "." .. tostring(weaponName)
+					end
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	it("never makes cloaking cheaper while moving", function()
 		local bad = {}
 		for name, def in pairs(defs) do
