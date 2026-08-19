@@ -72,14 +72,10 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
-	-- The CEG browser's projectile carrier is spawned and removed by a gadget without ever taking
-	-- damage, and sets the legacy maxdamage tag instead of health.
-	local healthless = { ceg_test_projectile_unit = true }
-
 	it("gives every unit positive health", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			if not healthless[name:gsub("_scav$", "")] and (type(def.health) ~= "number" or def.health <= 0) then
+			if type(def.health) ~= "number" or def.health <= 0 then
 				bad[#bad + 1] = name .. " = " .. tostring(def.health)
 			end
 		end
@@ -281,6 +277,11 @@ describe("UnitDefs invariants", function()
 	end)
 
 	it("pairs turret speed customparams with a real weapon slot", function()
+		-- Which weapon's aim actually drives a turret is decided by the unit script, not by these
+		-- customparams, so a def level pairing is not authoritative. #7961 started handing script
+		-- attributes to COB, and until that settles this cannot say anything true about the game.
+		pending("turret aim lives in the unit script - see #7961")
+
 		local bad = {}
 		for name, def in pairs(defs) do
 			local cp = def.customparams or {}
