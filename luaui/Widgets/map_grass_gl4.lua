@@ -1256,7 +1256,8 @@ local function savegrassCmd(_, _, params)
 	-- Instance buffer is tile-ordered; the on-disk TGA stays row-major for backward compatibility.
 	for y = 1, texture.height do
 		for x = 1, texture.width do
-			local elem = world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
+			local elem =
+				world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
 			texture[y][x] = grassPatchMultToByte((elem >= 0 and grassInstanceData[elem * 4 + 4]) or 0)
 		end
 	end
@@ -1373,6 +1374,7 @@ local function loadgrassCmd(_, _, params)
 	LoadGrassTGA(filename)
 	defineUploadGrassInstanceVBOData()
 	MakeAndAttachToVAO()
+	processChanges = true -- grass-less boot leaves this false; see loadGrass API
 	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
@@ -1595,7 +1597,8 @@ function widget:Initialize()
 		-- Instance buffer is tile-ordered; the on-disk TGA stays row-major for backward compatibility.
 		for y = 1, texture.height do
 			for x = 1, texture.width do
-				local elem = world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
+				local elem =
+					world2grassmap((x - 0.5) * grassConfig.patchResolution, (y - 0.5) * grassConfig.patchResolution)
 				texture[y][x] = grassPatchMultToByte((elem >= 0 and grassInstanceData[elem * 4 + 4]) or 0)
 			end
 		end
@@ -1629,6 +1632,11 @@ function widget:Initialize()
 		end
 		defineUploadGrassInstanceVBOData()
 		MakeAndAttachToVAO()
+		-- On maps that booted without engine grass, processChanges initialized
+		-- false and DrawWorldPreUnit bails on it before looking at the instance
+		-- data — the loaded grass existed but stayed invisible until something
+		-- (the Grass tool button) called enableEditMode.
+		processChanges = true
 	end
 	WG.grassgl4.clearGrass = function()
 		cleargrassCmd(nil, nil, {})
@@ -1801,7 +1809,8 @@ function widget:DrawWorldPreUnit()
 					else
 						local cxw = tx * tileWorldX + halfX
 						local ddx = cxw - cx
-						if ddx * ddx + ddz * ddz < fadeCullSq
+						if
+							ddx * ddx + ddz * ddz < fadeCullSq
 							and spIsSphereInView(cxw, tileMidHeight, czw, tileRadius)
 						then
 							visible = true
