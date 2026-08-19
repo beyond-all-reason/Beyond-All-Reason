@@ -195,6 +195,56 @@ local function getMarksUnsafe(baseName)
 	return mark.marked, mark.list, mark.count, mark.totals, mark.active
 end
 
+local function createSweep(callinName)
+	local marked, list, countBox, totals, activeBox = getMarksUnsafe(callinName)
+	local values = {}
+	local postName, totalName = callinName .. 'Post', callinName .. 'Total'
+	local postListName, totalListName = postName .. 'List', totalName .. 'List'
+
+	return function(handler)
+		local count = countBox[1]
+		if not count or count == 0 then
+			return
+		end
+		countBox[1] = 0
+
+		-- This safely allows starting or ending subscriptions in Post.
+		local active = activeBox[1]
+
+		-- Clear marks first so subscribers that throw do not leave any marks.
+		if active then
+			for i = 1, count do
+				local id = list[i]
+				values[i] = totals[id] or 0
+				totals[id] = nil
+				marked[id] = nil
+			end
+		else
+			for i = 1, count do
+				marked[list[i]] = nil
+			end
+		end
+
+		local postList = handler[postListName]
+		for i = 1, count do
+			local id = list[i]
+			for _, g in ipairs(postList) do
+				g[postName](g, id)
+			end
+		end
+
+		if active then
+			local totalList = handler[totalListName]
+			for i = 1, count do
+				local id, part = list[i], values[i]
+				for _, g in ipairs(totalList) do
+					g[totalName](g, id, part)
+				end
+			end
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 --  Dispatch  ------------------------------------------------------------------
 --
@@ -222,95 +272,10 @@ end
 
 if Script.GetSynced() then
 	createSummary('UnitBuildStep')
-	local unitStepMarked, unitStepList, unitStepCount, unitStepTotals, unitStepActive = getMarksUnsafe('UnitBuildStep')
-	local unitStepValues = {}
-
-	function callins.SweepUnitBuildStep(handler)
-		local count = unitStepCount[1]
-		if not count or count == 0 then
-			return
-		end
-		unitStepCount[1] = 0
-
-		-- This safely allows starting or ending subscriptions in Post.
-		local active = unitStepActive[1]
-
-		-- Clear marks first so subscribers that throw do not leave any marks.
-		if active then
-			for i = 1, count do
-				local unitID = unitStepList[i]
-				unitStepValues[i] = unitStepTotals[unitID] or 0
-				unitStepTotals[unitID] = nil
-				unitStepMarked[unitID] = nil
-			end
-		else
-			for i = 1, count do
-				unitStepMarked[unitStepList[i]] = nil
-			end
-		end
-
-		local postList = handler.UnitBuildStepPostList
-		for i = 1, count do
-			local unitID = unitStepList[i]
-			for _, g in ipairs(postList) do
-				g:UnitBuildStepPost(unitID)
-			end
-		end
-
-		if active then
-			local totalList = handler.UnitBuildStepTotalList
-			for i = 1, count do
-				local unitID, part = unitStepList[i], unitStepValues[i]
-				for _, g in ipairs(totalList) do
-					g:UnitBuildStepTotal(unitID, part)
-				end
-			end
-		end
-	end
+	callins.SweepUnitBuildStep = createSweep('UnitBuildStep')
 
 	createSummary('FeatureBuildStep')
-	local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = getMarksUnsafe('FeatureBuildStep')
-	local featureStepValues = {}
-
-	function callins.SweepFeatureBuildStep(handler)
-		local count = featureStepCount[1]
-		if not count or count == 0 then
-			return
-		end
-		featureStepCount[1] = 0
-
-		local active = featureStepActive[1]
-		if active then
-			for i = 1, count do
-				local featureID = featureStepList[i]
-				featureStepValues[i] = featureStepTotals[featureID] or 0
-				featureStepTotals[featureID] = nil
-				featureStepMarked[featureID] = nil
-			end
-		else
-			for i = 1, count do
-				featureStepMarked[featureStepList[i]] = nil
-			end
-		end
-
-		local postList = handler.FeatureBuildStepPostList
-		for i = 1, count do
-			local featureID = featureStepList[i]
-			for _, g in ipairs(postList) do
-				g:FeatureBuildStepPost(featureID)
-			end
-		end
-
-		if active then
-			local totalList = handler.FeatureBuildStepTotalList
-			for i = 1, count do
-				local featureID, part = featureStepList[i], featureStepValues[i]
-				for _, g in ipairs(totalList) do
-					g:FeatureBuildStepTotal(featureID, part)
-				end
-			end
-		end
-	end
+	callins.SweepFeatureBuildStep = createSweep('FeatureBuildStep')
 end
 
 -- Unsynced environment
