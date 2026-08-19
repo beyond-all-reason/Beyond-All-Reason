@@ -2,7 +2,7 @@ return {
 	leglob = {
 		maxacc = 0.12995,
 		maxdec = 0.77625,
-		energycost = 400,
+		energycost = 600,
 		metalcost = 60,
 		buildpic = "LEGLOB.DDS",
 		buildtime = 1100,
