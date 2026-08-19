@@ -2475,4 +2475,22 @@ for i = 1, 9 do
     }
 end
 
+options[#options + 1] = {
+	key = "attacktargetlistscenario",
+	name = "Attack target-list reproduction scenario",
+	desc = "Spawns the Fatboy, Tick, and Sheldon setup used by issue #8793.",
+	type = "bool",
+	def = false,
+	hidden = true,
+}
+
+options[#options + 1] = {
+	key = "attacktargetlistpreferlistedtargets",
+	name = "Attack target lists prefer listed targets",
+	desc = "Restrict opportunity fire during CMD_ATTACK_TARGETS to units in its target list.",
+	type = "bool",
+	def = true,
+	hidden = true,
+}
+
 return options

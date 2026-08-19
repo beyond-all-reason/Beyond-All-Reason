@@ -117,7 +117,7 @@ local modrules = {
 	targeting = {
 		-- While executing CMD.ATTACK_TARGETS, opportunity-fire targets are restricted to units in that list.
 		-- The ordered current target remains the movement goal and retains normal priority when it becomes attackable.
-		attackTargetListPreferListedTargets = true,
+		attackTargetListPreferListedTargets = Spring.GetModOptions().attacktargetlistpreferlistedtargets ~= false,
 	},
 
 	paralyze = {

@@ -1,0 +1,58 @@
+[game]
+{
+	mapname=All That Glitters v2.2.3;
+	gametype=Beyond All Reason $VERSION;
+	myplayername=AttackTargetListTest;
+	ishost=1;
+	hostip=127.0.0.1;
+	hostport=0;
+	startpostype=0;
+	nohelperais=0;
+
+	[modoptions]
+	{
+		attacktargetlistscenario=1;
+		// 1: listed-only opportunity fire, as in the proposed behavior video.
+		// 0: unrestricted opportunity fire, as in the current Attack video.
+		attacktargetlistpreferlistedtargets=1;
+	}
+
+	[allyteam0]
+	{
+		numallies=0;
+	}
+	[allyteam1]
+	{
+		numallies=0;
+	}
+
+	[team0]
+	{
+		teamleader=0;
+		allyteam=0;
+		startposx=1223;
+		startposz=1420;
+	}
+	[team1]
+	{
+		teamleader=0;
+		allyteam=1;
+		startposx=2972;
+		startposz=9219;
+	}
+
+	[player0]
+	{
+		team=0;
+		name=AttackTargetListTest;
+	}
+
+	[ai0]
+	{
+		shortname=NullAI;
+		name=Targets;
+		version=0.1;
+		team=1;
+		host=0;
+	}
+}
