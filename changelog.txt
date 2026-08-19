@@ -1,5 +1,17 @@
 # August
 • [Cortex Spybot] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
+• [T1, Seaplane Air Constructors] -35% energycost, -35% buildtime, -35% speed 
+• [LRPCs] 1100 -> 900 weaponvelocity
+• [Nukes] 1.3x base damage, 0.45 -> 0 edgeeffectiveness -> More damage dealt at the center of explosion, less damage on the edges of the explosion
+• [Sumo] 6500 -> 6000 health
+• [Mammoth] 22.5 -> 23 speed
+• [Legion changes]
+	- Basic mex now similar stats as other T1 mexes, T1.5 mex removed
+	- Wind generator 45m -> 43m cost
+	- Solar 155m -> 150m cost
+	- Goblin 25m, 500e -> 30m, 420e cost
+	- Satyr 400e -> 600e cost
+	- Phalanx 50 -> 44 speed
 • [Floating AA turrets] Stats made to match their land counterparts
 
 # July
