@@ -16,6 +16,7 @@ local function moveUnits(unitName, position, direction)
                         Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
                     end
                 elseif direction.angle then
+                    -- TODO: refactor to call CompassAngleToHeading when it is merged
                     local heading = math.floor( (direction.angle % 360 - 180) / 360  * -65535 )
                     Spring.SetUnitHeadingAndUpDir(unitID, heading, 0, 1, 0)
                 end
