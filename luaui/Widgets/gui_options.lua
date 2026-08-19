@@ -5410,6 +5410,20 @@ function init()
 			end,
 		},
 
+    {
+      id = "screen_select_double_click_enabled",
+      group = "control", category = types.advanced,
+      name = Spring.I18N('ui.settings.option.screen_select_double_click_enabled'),
+      type = "bool",
+      value = (WG['screenSelectCommands'] ~= nil and WG['screenSelectCommands'].getDoubleClickEnabled()) or true,
+      description = Spring.I18N('ui.settings.option.screen_select_double_click_enabled_descr'),
+		  onchange = function(i, value)
+        if WG['screenSelectCommands'] and WG['screenSelectCommands'].setDoubleClickEnabled then
+          WG['screenSelectCommands'].setDoubleClickEnabled(value)
+        end
+		  end,
+		},
+
 		{
 			id = "dragthreshold",
 			group = "control",
