@@ -636,7 +636,6 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIGNAL_AIM1;
 	turn aimy1 to y-axis heading speed <85.0>;
 	turn aimx1 to x-axis <0.0> - pitch speed <85.0>;
-	// 516 = angular units per frame at <85>/s
 	var delta;
 	delta = get ABS(wpnheading - heading);
 	if (delta > 32768)
@@ -645,7 +644,7 @@ AimWeapon1(heading, pitch)
 	}
 	if (delta > <45>)
 	{
-		holdFireUntil = (get GAME_FRAME) + (delta / 516);
+		holdFireUntil = (get GAME_FRAME) + (delta / (<85> / 30));
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
