@@ -5,6 +5,7 @@
 • [Nukes] 1.3x base damage, 0.45 -> 0 edgeeffectiveness -> More damage dealt at the center of explosion, less damage on the edges of the explosion
 • [Sumo] 6500 -> 6000 health
 • [Mammoth] 22.5 -> 23 speed
+• [Sheldon] 50.4 -> 50 speed
 • [Legion changes]
 	- Basic mex now similar stats as other T1 mexes, T1.5 mex removed
 	- Wind generator 45m -> 43m cost
