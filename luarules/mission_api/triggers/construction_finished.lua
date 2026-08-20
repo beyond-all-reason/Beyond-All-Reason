@@ -10,7 +10,7 @@ return {
 	},
 	callins = {
 		UnitFinished = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			if not context.WasUnderConstruction(unitID) then
+			if not context.WasUnderConstruction[unitID] then
 				return
 			end
 
