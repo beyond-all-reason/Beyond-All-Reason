@@ -272,11 +272,11 @@ local function buildResolvedCatalog()
 		end
 	end
 
-	L.other = Spring.I18N('ui.keybinds.editor.other')
+	L.other = Spring.I18N('categories.other')
 	L.otherLower = L.other:lower()
 	L.title = Spring.I18N('ui.keybinds.title')
 	L.allCategories = Spring.I18N('ui.keybinds.editor.allCategories')
-	L.gridNextPage = Spring.I18N('ui.keybinds.gridMenu.nextPage')
+	L.gridNextPage = Spring.I18N('actions.gridMenu.nextPage')
 	-- gui_gridmenu hardcodes both the caption and the key on this button, so it is not
 	-- bindable and there is no i18n key to read.
 	-- Shared with gui_gridmenu, which draws the button this mirrors.

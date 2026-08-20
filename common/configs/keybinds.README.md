@@ -133,10 +133,20 @@ read one can read the other.
 
 ## i18n
 
-The catalog carries i18n *keys*, not resolved strings. Each surface resolves them through
-its own localization store - in-game that's `Spring.I18N` (sourced from
-`language/en/interface.json`, translated via Transifex). Sharing the *strings* across
-surfaces is a separate concern from sharing this structure.
+The catalog carries i18n *keys*, not resolved strings. The ones it names live in
+`language/en/keybinds.json`, in three namespaces: `commands` for things that also appear on
+the command card (names and tooltips), `actions` for everything else a player can bind, and
+`categories` for the group titles. The loader globs every json in `language/<lang>/`, so the
+namespaces merge into one lookup and Transifex picks the file up from the directory filter.
+
+Nothing is written twice. A row whose action *is* a command points at the `commands` entry
+rather than repeating the string, which is why the wording there follows the command card.
+Two lookups still leave the file: the grid menu's category names stay in `ui.buildMenu.*`
+where that menu owns them, and `buildunit_` rows resolve `units.names.*` out of `units.json`.
+
+The editor's own UI - buttons, dialogs, prompts - is not vocabulary and stays in
+`interface.json` under `ui.keybinds.editor.*`. A surface that builds its own UI needs the
+three namespaces above and none of that.
 
 ## Not covered yet
 
