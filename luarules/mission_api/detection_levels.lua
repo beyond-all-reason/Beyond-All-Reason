@@ -51,18 +51,10 @@ local bit_and = math.bit_and
 
 local latches = {}
 
--- The allyTeams whose sensors count as detection, which is every one but Gaia's: wildlife
--- sees plenty and means nothing by it. AllyTeams hold still during a game, so this resolves
--- once and is then indexed directly by triggers that take no sensorAllyTeam.
-local sensorAllyTeams
+-- When the allyTeam is unspecified, this is the default: every allyTeam but the gaiaAllyTeam.
+local sensorAllyTeams = {}
 local sensorAllyTeamCount = 0
-
----Reads the team layout. Resolving on first use rather than at load keeps the layout a
----thing a caller can set, which is what any test of the max-over-allyTeams path needs.
-local function resolveSensorAllyTeams()
-	sensorAllyTeams = {}
-	sensorAllyTeamCount = 0
-
+do
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = gaiaTeamID and Spring.GetTeamAllyTeamID(gaiaTeamID)
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
@@ -95,10 +87,6 @@ end
 local function levelBitOf(unitID, sensorAllyTeam)
 	if sensorAllyTeam then
 		return LEVEL_BIT[levelForAllyTeam(unitID, sensorAllyTeam)]
-	end
-
-	if not sensorAllyTeams then
-		resolveSensorAllyTeams()
 	end
 
 	local level = LEVEL.UNSEEN
@@ -176,9 +164,8 @@ local function clear(triggerID, unitID)
 end
 
 return {
-	LevelBitOf             = levelBitOf,
-	CompileLevelMask       = compileLevelMask,
-	NewDetectionUpdate     = newDetectionUpdate,
-	Clear                  = clear,
-	ResolveSensorAllyTeams = resolveSensorAllyTeams,
+	LevelBitOf         = levelBitOf,
+	CompileLevelMask   = compileLevelMask,
+	NewDetectionUpdate = newDetectionUpdate,
+	Clear              = clear,
 }
