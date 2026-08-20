@@ -35,8 +35,8 @@ return {
 	},
 	callins = {
 		UnitCreated = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, builderID)
-			-- Catch for spawned units and resurrected units:
-			if not builderID or not Spring.GetUnitIsBeingBuilt(unitID) then
+			-- Catch for spawned units and resurrected units. Unit loadouts can include in-progress constructions.
+			if not (builderID or GG['MissionAPI'].spawnedUnitIsBeingBuilt) or not Spring.GetUnitIsBeingBuilt(unitID) then
 				return
 			end
 			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
