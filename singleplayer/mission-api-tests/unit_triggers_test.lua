@@ -127,6 +127,7 @@ local triggers = {
 		actions = { 'messageConstructionStartedByDecoy' },
 	},
 
+	-- We don't actually get any finishee attribution.
 	constructionFinishedByDecoy = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
@@ -359,7 +360,7 @@ local actions = {
 	messageConstructionFinishedByDecoy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The decoy commander finished a solar!",
+			message = "Some unit, maybe even the decoy commander, finished a solar!",
 		},
 	},
 
