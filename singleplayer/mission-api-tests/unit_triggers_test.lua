@@ -132,7 +132,6 @@ local triggers = {
 		parameters = {
 			unitDefName = 'armsolar',
 			teamID = 0,
-			builderName = 'decoys',
 		},
 		actions = { 'messageConstructionFinishedByDecoy' },
 	},
@@ -158,7 +157,6 @@ local triggers = {
 		parameters = {
 			unitDefName = 'armsolar',
 			teamID = 0,
-			builderName = 'canceler',
 		},
 		actions = { 'messageConstructionCanceledSolar' },
 	},
