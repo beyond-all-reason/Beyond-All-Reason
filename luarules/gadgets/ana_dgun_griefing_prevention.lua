@@ -173,12 +173,7 @@ local function GetApproxUnitRadius(unitDefID)
 end
 
 local function MakePlane(normalX, normalY, normalZ, pointX, pointY, pointZ)
-	return {
-		normalVecX = normalX,
-		normalVecY = normalY,
-		normalVecZ = normalZ,
-		d = -(normalX * pointX + normalY * pointY + normalZ * pointZ),
-	}
+	return {normalX, normalY, normalZ, -(normalX * pointX + normalY * pointY + normalZ * pointZ)}
 end
 
 local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, halfWidth)
@@ -226,10 +221,10 @@ local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, ha
 	}
 
 	Spring.Echo("BuildBeamPrismPlanes", "start", startX, startY, startZ, "end", endX, endY, endZ, "halfWidth", halfWidth)
-	for i = 1, #planes do
-		local plane = planes[i]
-		Spring.Echo("plane", i, "n", plane.normalVecX, plane.normalVecY, plane.normalVecZ, "d", plane.d)
-	end
+	-- for i = 1, #planes do
+	-- 	local plane = planes[i]
+	-- 	Spring.Echo("plane", i, "n", plane.normalVecX, plane.normalVecY, plane.normalVecZ, "d", plane.d)
+	-- end
 
 	return planes
 end
@@ -368,7 +363,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	-- Build a prism around the beam, then filter allied units manually.
 	-- Note: we would rather use the allegiance parameter with ALLY_UNITS. However, as of 2026-08-20, there is an engine-side bug that throws uncaught exception when trying to use it.
 	-- TODO use allegiance parameter once sprunk's fix is published in live engine version
-	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_SAFETY_WIDTH + DGUN_WIDTH / 2))
+	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_WIDTH / 2))
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
@@ -618,6 +613,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	end
 
 	local startX, startY, startZ, endX, endY, endZ = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
+	Spring.Echo("DGun segment", "start", startX, startY, startZ, "end", endX, endY, endZ)
 
 	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 
