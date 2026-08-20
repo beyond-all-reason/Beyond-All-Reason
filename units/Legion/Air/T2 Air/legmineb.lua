@@ -24,7 +24,6 @@ return {
 		maxslope = 10,
 		speed = 210.0,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legmineb.s3o",
 		script = "Units/legmineb.cob",
@@ -38,7 +37,7 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.125,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",

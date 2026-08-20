@@ -27,7 +27,7 @@ return {
 		script = "Units/ARMBEAVER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 266,
+		sightdistance = 330,
 		speed = 42,
 		terraformspeed = 400,
 		trackstrength = 5,

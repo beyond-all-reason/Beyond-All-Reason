@@ -1,13 +1,13 @@
 local scenariodata = {
-	index			= 3, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "tma20ffabarbs", -- no spaces, lowercase, this will be used to save the score
-    version         = "1", -- increment this to keep the score when changing a mission
-	title			= "One by One", -- can be anything
-	author			= "Beherith", -- your name here
-	imagepath		= "scenario004.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "You can hide behind radar jammers.", -- This text will be drawn over image
-    summary         = [[Competition for resources has never been this intense. Eliminate all 7 of your enemies in a free-for-all battle.]],
-	briefing 		= [[The Tycho Magnetic Anomaly 20 asteroid is very rich in resources, and has attracted the attention of your competition. There are a total of 7 enemy commanders on this map, all hell bent on destroying any opposition. Even cloaked Commanders emit a radar signature, but radar jammers can hide that as well. Armada's Sneaky Pete (Cloakable Radar Jammer Tower) can ensure that you dont fall victim to any surprise attacks.
+	index = 3, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "tma20ffabarbs", -- no spaces, lowercase, this will be used to save the score
+	version = "1", -- increment this to keep the score when changing a mission
+	title = "One by One", -- can be anything
+	author = "Beherith", -- your name here
+	imagepath = "scenario004.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "You can hide behind radar jammers.", -- This text will be drawn over image
+	summary = [[Competition for resources has never been this intense. Eliminate all 7 of your enemies in a free-for-all battle.]],
+	briefing = [[The Tycho Magnetic Anomaly 20 asteroid is very rich in resources, and has attracted the attention of your competition. There are a total of 7 enemy commanders on this map, all hell bent on destroying any opposition. Even cloaked Commanders emit a radar signature, but radar jammers can hide that as well. Armada's Sneaky Pete (Cloakable Radar Jammer Tower) can ensure that you dont fall victim to any surprise attacks.
 
 Score:
     1. Speed: destroy all enemy Commanders as fast as possible.
@@ -22,51 +22,51 @@ Tips:
     6. Sieze any opportunity to score a kill on an enemy Commander, and try to kill at least one Commander before advancing your tech tree. Use the metal from the spoils to quickly tech up.
     ]],
 
-	mapfilename		= "TMA20X 1.8", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
-	playerstartx	= "75%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "30%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1800, -- par time in seconds
-	parresources	= 1000000, -- par resource amount
-	difficulty		= 6, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-    -- handicap values range [-100 - +100], with 0 being regular resources
-        {name = "Beginner", playerhandicap = 50, enemyhandicap=0},
-        {name = "Novice"  , playerhandicap = 25, enemyhandicap=0},
-        {name = "Normal"  , playerhandicap = 0, enemyhandicap=0},
-        {name = "Hard"    , playerhandicap = 0,  enemyhandicap=25},
-        {name = "Brutal" , playerhandicap = 0,  enemyhandicap=50},
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Death of your Commander",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 means disable it        -- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
+	mapfilename = "TMA20X 1.8", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
+	playerstartx = "75%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "30%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1800, -- par time in seconds
+	parresources = 1000000, -- par resource amount
+	difficulty = 6, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		-- handicap values range [-100 - +100], with 0 being regular resources
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = 0 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = 0 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 25 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 50 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Death of your Commander", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 means disable it        -- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
+		--armavp = 0,
+		--coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "tma20ffabarbs",
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "tma20ffabarbs",
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
 
-    -- HOW TO MAKE THE START SCRIPT: Use Chobby's single player mode to set up your start script. When you launch a single player game, the start script is dumped into infolog.txt
-    -- The following keys MUST be present in startscript below
-    --  __SCENARIOOPTIONS__
-    -- __PLAYERNAME__
-    -- __BARVERSION__
-    -- __MAPNAME__
+	-- HOW TO MAKE THE START SCRIPT: Use Chobby's single player mode to set up your start script. When you launch a single player game, the start script is dumped into infolog.txt
+	-- The following keys MUST be present in startscript below
+	--  __SCENARIOOPTIONS__
+	-- __PLAYERNAME__
+	-- __BARVERSION__
+	-- __MAPNAME__
 
-    -- Optional keys:
-    -- __ENEMYHANDICAP__
-    -- __PLAYERSIDE__
-    -- __PLAYERHANDICAP__
-    -- __NUMRESTRICTIONS__
-    -- __RESTRICTEDUNITS__
+	-- Optional keys:
+	-- __ENEMYHANDICAP__
+	-- __PLAYERSIDE__
+	-- __PLAYERHANDICAP__
+	-- __NUMRESTRICTIONS__
+	-- __RESTRICTEDUNITS__
 
-	startscript		= [[
+	startscript = [[
     [Game]
 {
 	[allyTeam4]

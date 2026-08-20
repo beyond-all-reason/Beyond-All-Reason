@@ -12,7 +12,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 1560,
+		health = 1800,
 		maxacc = 0.138,
 		maxdec = 0.43125,
 		maxslope = 14,
@@ -25,11 +25,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,
-		speed = 49.5,
+		speed = 50,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
-		turnrate = 1285.69995,
+		turnrate = 1285,
 		upright = true,
 		customparams = {
 			model_author = "Flaka",
@@ -99,7 +99,7 @@ return {
 		weapondefs = {
 			armmav_weapon = {
 				alphadecay = 0.1,
-				areaofeffect = 8,
+				areaofeffect = 24,
 				avoidfeature = false,
 				cegtag = "impulse-trail",
 				craterareaofeffect = 0,
@@ -109,7 +109,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impactonly = 1,
 				impulsefactor = 1.1,
 				name = "Anti-swarm g2g gauss-impulse guns",
 				nogap = false,
@@ -126,7 +125,7 @@ return {
 				tolerance = 4000,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 600,
 				damage = {
 					default = 265,
 					vtol = 65,

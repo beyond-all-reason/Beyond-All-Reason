@@ -27,7 +27,7 @@ return {
 		script = "Units/CORACK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		sightdistance = 318.5,
+		sightdistance = 380,
 		speed = 33,
 		terraformspeed = 900,
 		turninplace = true,

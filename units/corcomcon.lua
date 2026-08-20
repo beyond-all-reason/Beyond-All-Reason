@@ -66,6 +66,7 @@ return {
 			[7] = "corcv",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			i18nfromunit = "corcom",
 			iscommander = true,
 			model_author = "Mr Bob",
@@ -244,10 +245,8 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitvolume = 36,
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,

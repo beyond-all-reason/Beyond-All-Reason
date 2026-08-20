@@ -2,10 +2,10 @@ return {
 	armassimilator = {
 		maxacc = 0.2369,
 		maxdec = 0.9039,
-		energycost = 25000,
+		energycost = 49000,
 		metalcost = 2500,
 		buildpic = "ARMASSIMILATOR.DDS",
-		buildtime = 25000,
+		buildtime = 80000,
 		canmove = true,
 		collisionvolumeoffsets = "0.0 -2.0 -5",
 		collisionvolumescales = "50.0 60.0 50.0",
@@ -33,7 +33,7 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
@@ -177,7 +177,7 @@ return {
 					default = 33,
 					vtol = 100,
 				},
-			}
+			},
 		},
 		weapons = {
 			[1] = {

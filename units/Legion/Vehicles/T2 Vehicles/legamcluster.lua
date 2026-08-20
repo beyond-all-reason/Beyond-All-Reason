@@ -1,7 +1,7 @@
 return {
 	legamcluster = {
 		maxacc = 0.018,
-		maxdec = 0.036,
+		maxdec = 0.1,
 		energycost = 5500,
 		metalcost = 460,
 		buildpic = "LEGAMCLUSTER.DDS",
@@ -26,18 +26,18 @@ return {
 		script = "Units/LEGAMCLUSTER_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 0,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
 		trackwidth = 36,
 		turninplace = true,
-		--usepiececollisionvolumes = 1,
+		usepiececollisionvolumes = 1,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.15,
 		turnrate = 180,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
 			firingceg = "barrelshot-medium",
@@ -130,7 +130,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 345,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {

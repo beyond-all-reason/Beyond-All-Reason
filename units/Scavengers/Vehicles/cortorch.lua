@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 4.7,
 		turnrate = 364,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka, Itanthias kitbash",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.0130,
@@ -77,7 +77,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
-				[2] = "custom:flamestream",
 			},
 		},
 		sounds = {
@@ -139,8 +138,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				startvelocity = 450,
 				texture1 = "null",
 				texture2 = "smoketraildark",

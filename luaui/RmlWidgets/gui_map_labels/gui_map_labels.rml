@@ -1,0 +1,77 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="gui_map_labels.rcss" />
+</head>
+<body>
+	<!-- World-anchored colored dots (positions synced every frame from map coords).
+	     Hidden until the header "show comments" button is switched on. -->
+	<div id="ml-dots-layer" class="hidden"></div>
+
+	<!-- Placement-mode ghost following the mouse cursor -->
+	<div id="ml-ghost" class="ml-ghost hidden">
+		<img class="ml-ghost-icon" src="/luaui/images/terraform_brush/map_labels.png" />
+		<div class="ml-ghost-hint">Click map to place &#8212; right-click cancels</div>
+	</div>
+
+	<!-- Comment popup, anchored next to the clicked dot -->
+	<div id="ml-popup" class="ml-popup widget-shadow rounded-md bg-darkest p-2 hidden">
+		<div class="flex flex-row items-center gap-1">
+			<div id="ml-popup-dot" class="ml-color-btn" onclick="widget:OnToggleColorPicker()"></div>
+			<div style="flex: 1;">
+				<div id="ml-popup-author" class="ml-popup-author">Author</div>
+				<div id="ml-popup-date" class="ml-popup-date"></div>
+			</div>
+			<div id="ml-btn-edit" class="ml-popup-btn" onclick="widget:OnPopupEdit()"><img class="ml-popup-icon" src="/luaui/images/terraform_brush/edit_pencil.png" /></div>
+			<div id="ml-btn-delete" class="ml-popup-btn ml-popup-btn-danger" onclick="widget:OnPopupDelete()"><img class="ml-popup-icon" src="/luaui/images/terraform_brush/trash.png" /></div>
+			<div id="ml-btn-popup-close" class="ml-popup-btn" onclick="widget:OnPopupClose()"><img class="ml-popup-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div id="ml-color-pop" class="ml-color-pop hidden">
+			<div id="ml-swatch-1" class="ml-swatch" style="background-color: #eab308;" onclick="widget:OnPickColor('#eab308')"></div>
+			<div id="ml-swatch-2" class="ml-swatch" style="background-color: #f97316;" onclick="widget:OnPickColor('#f97316')"></div>
+			<div id="ml-swatch-3" class="ml-swatch" style="background-color: #ef4444;" onclick="widget:OnPickColor('#ef4444')"></div>
+			<div id="ml-swatch-4" class="ml-swatch" style="background-color: #ec4899;" onclick="widget:OnPickColor('#ec4899')"></div>
+			<div id="ml-swatch-5" class="ml-swatch" style="background-color: #a855f7;" onclick="widget:OnPickColor('#a855f7')"></div>
+			<div id="ml-swatch-6" class="ml-swatch" style="background-color: #3b82f6;" onclick="widget:OnPickColor('#3b82f6')"></div>
+			<div id="ml-swatch-7" class="ml-swatch" style="background-color: #06b6d4;" onclick="widget:OnPickColor('#06b6d4')"></div>
+			<div id="ml-swatch-8" class="ml-swatch" style="background-color: #22c55e;" onclick="widget:OnPickColor('#22c55e')"></div>
+		</div>
+		<div id="ml-popup-view">
+			<div id="ml-popup-text" class="ml-popup-text"></div>
+		</div>
+		<div id="ml-popup-editbox" class="hidden">
+			<textarea id="ml-edit-text" class="ml-edit-textarea" rows="5" cols="28" onfocus="widget:OnTextFocus()" onblur="widget:OnTextBlur()"></textarea>
+			<div class="flex flex-row gap-1 justify-end" style="margin-top: 4dp;">
+				<div class="ml-action-btn ml-action-cancel" onclick="widget:OnEditCancel()">Cancel</div>
+				<div class="ml-action-btn ml-action-save" onclick="widget:OnEditSave()">Save</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main window: label browser (toggled from the terraform header) -->
+	<div id="ml-root" class="ml-root widget-shadow rounded-md bg-darkest p-2 hidden">
+		<div class="flex flex-row justify-between items-center" style="padding: 0 2dp 6dp 2dp;">
+			<div id="ml-handle" class="ml-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Map Labels</div>
+			<div id="ml-btn-quit" class="ml-quit-btn" onclick="widget:OnQuit()"><img class="ml-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-panel-body">
+
+		<div class="ml-section-header">
+			<div class="ml-section-label">AUTHOR</div>
+			<div class="ml-section-line"></div>
+		</div>
+		<input type="text" id="ml-author" class="ml-author-input mb-2" maxlength="24" onfocus="widget:OnAuthorFocus()" onblur="widget:OnAuthorBlur()" onchange="widget:OnAuthorChange()" />
+
+		<div id="ml-btn-new" class="ml-new-btn mb-2" onclick="widget:OnNewLabel()">+ NEW LABEL</div>
+
+		<div class="ml-section-header">
+			<div class="ml-section-label">LABELS</div>
+			<div class="ml-section-line"></div>
+		</div>
+		<div id="ml-list" class="ml-list"></div>
+		</div><!-- /tf-panel-body -->
+	</div>
+</body>
+</rml>

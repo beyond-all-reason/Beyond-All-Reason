@@ -46,6 +46,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			firestateoncloak = 0,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

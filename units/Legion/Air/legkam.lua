@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = false,
-		collisionvolumeoffsets = "0 5 12",
+		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "15 15 40",
 		collisionvolumetype = "CylZ",
 		cruisealtitude = 50,
@@ -42,7 +42,7 @@ return {
 		wingangle = 0.06296,
 		wingdrag = 0.06,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",
@@ -51,7 +51,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:genericunitexplosion-large",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

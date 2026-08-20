@@ -18,7 +18,7 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		health = 630,
+		health = 700,
 		maxslope = 20,
 		speed = 39,
 		maxwaterdepth = 25,
@@ -68,7 +68,7 @@ return {
 			"leghive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",

@@ -2,7 +2,7 @@ return {
 	legrail = {
 		maxacc = 0.0236,
 		airsightdistance = 900,
-		maxdec = 0.08,
+		maxdec = 0.1,
 		energycost = 3800,
 		metalcost = 240,
 		buildpic = "LEGRAIL.DDS",
@@ -38,7 +38,7 @@ return {
 		usepiececollisionvolumes = 1,
 		customparams = {
 			maxrange = 625,
-			unitgroup = 'weaponaa',
+			unitgroup = "weaponaa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",
@@ -130,7 +130,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 13,
 				texture1 = "shot",
 				texture2 = "empty",
 				thickness = 3.0,
@@ -175,7 +174,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 13,
 				texture1 = "shot",
 				texture2 = "empty",
 				thickness = 3.0,

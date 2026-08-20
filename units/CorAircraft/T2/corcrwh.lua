@@ -43,9 +43,7 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -148,10 +146,8 @@ return {
 				reloadtime = 0.4,
 				sizegrowth = 2.5,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 9.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 7.3,
 				soundtrigger = false,
 				sprayangle = 700,
 				tolerance = 20000,

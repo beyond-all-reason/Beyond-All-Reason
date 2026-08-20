@@ -1,9 +1,12 @@
-return {						--costs should be same as legmohoconct and legmohoconin
+return { --costs should be same as legmohoconct and legmohoconin
 	legmohocon = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 2048,
+		builder = true,
+		builddistance = 400,
+		workertime = 400,
 		energycost = 14500,
 		metalcost = 1060,
 		buildpic = "LEGMOHOCON.DDS",
@@ -35,7 +38,7 @@ return {						--costs should be same as legmohoconct and legmohoconin
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",

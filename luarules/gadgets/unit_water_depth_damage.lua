@@ -8,11 +8,13 @@ function gadget:GetInfo()
 		date = "2024.9.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 --use customParams.water_fall_damage_multiplier = 1.0 to change the amount of fall damage taken by specific units.
 
@@ -32,6 +34,10 @@ local fallDamage = 0.18
 --this influences the compounding escalation of fall damage from water collisions.
 local fallDamageCompoundingFactor = 1.05
 
+--slack (elmos) between a unit's depth and its movedef depth limit before we run the expensive
+--TestMoveOrder check; covers pos-vs-square-center height differences on sloped seafloor
+local drownDepthSlack = 8
+
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -39,7 +45,6 @@ local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
 local spAddUnitDamage = Spring.AddUnitDamage
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
@@ -48,11 +53,12 @@ local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spDestroyUnit = Spring.DestroyUnit
 
 local waterIsLava = Spring.GetModOptions().map_waterislava
-local largeSplashCEG = waterIsLava and 'lavasplash_large' or 'watersplash_large'
-local smallSplashCEG = waterIsLava and 'lavasplash_small' or 'watersplash_small'
+local largeSplashCEG = waterIsLava and "lavasplash_large" or "watersplash_large"
+local smallSplashCEG = waterIsLava and "lavasplash_small" or "watersplash_small"
 
 local unitDefData = {}
 local transportDrops = {}
@@ -66,8 +72,12 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	defData.drowningDamage = unitDef.health * drowningDamage
 	defData.fallDamage = unitDef.health * fallDamage * defData.fallDamageMultiplier
 	defData.unitDefID = unitDefID
-	if unitDef.moveDef.depth and unitDef.moveDef.smClass ~= Game.speedModClasses.Boat and unitDef.moveDef.smClass ~= Game.speedModClasses.ship then
-		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth  then
+	if
+		unitDef.moveDef.depth
+		and unitDef.moveDef.smClass ~= Game.speedModClasses.Boat
+		and unitDef.moveDef.smClass ~= Game.speedModClasses.ship
+	then
+		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
 			if unitDef.moveDef.smClass == Game.speedModClasses.Hover then --units must have "hover" in their movedef name in order to be treated as hovercraft
 				defData.isHover = true
 			else
@@ -75,6 +85,9 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			end
 		else
 			defData.isDrownable = true
+			-- pos.y below this means the unit may be beyond its movedef depth limit;
+			-- only then is the authoritative (and expensive) TestMoveOrder check needed
+			defData.drownCandidateY = drownDepthSlack - unitDef.moveDef.depth
 		end
 	end
 	if unitDef.customParams.decoration then
@@ -99,32 +112,37 @@ function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	if transportDrops[unitID] and not livingTransports[transportDrops[unitID]] then
-		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
-		local posX, posY, posZ = spGetUnitBasePosition(unitID)
-		if velLength > velocityThreshold then
-			spSpawnCEG(largeSplashCEG, posX, posY, posZ)
-			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
-			if unitDefData[unitDefID] then
-				local health, maxHealth = spGetUnitHealth(unitID)
-				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
-				if damage >= health then
-					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
-				else
-					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+	local defData = unitDefData[unitDefID]
+	if transportDrops[unitID] then
+		if not livingTransports[transportDrops[unitID]] then
+			local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
+			local posX, posY, posZ = spGetUnitBasePosition(unitID)
+			if velLength > velocityThreshold then
+				spSpawnCEG(largeSplashCEG, posX, posY, posZ)
+				spPlaySoundFile("xplodep3", 0.5, posX, posY, posZ, "sfx")
+				if defData then
+					local health, maxHealth = spGetUnitHealth(unitID)
+					local damage = (defData.fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
+					if damage >= health then
+						if spGetUnitRulesParam(unitID, "unit_effigy") then
+							spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+						else
+							spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+						end
+					else
+						spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+					end
 				end
+			else
+				spSpawnCEG(smallSplashCEG, posX, posY, posZ)
+				spPlaySoundFile("xplodep3", 0.3, posX, posY, posZ, "sfx")
 			end
-		else
-			spSpawnCEG(smallSplashCEG, posX, posY, posZ)
-			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
-		transportDrops[unitID] = nil
-	else
 		transportDrops[unitID] = nil
 	end
 
-	if unitDefData[unitDefID] and unitDefData[unitDefID].isDrownable then
-		drowningUnitsWatch[unitID] = unitDefData[unitDefID]
+	if defData and defData.isDrownable then
+		drowningUnitsWatch[unitID] = defData
 	end
 end
 
@@ -139,16 +157,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	drowningUnitsWatch[unitID] = nil
 end
 
-local function getUnitPositionHeight(unitID) -- returns nil for invalid units
-	if spGetUnitIsDead(unitID) ~= false or spValidUnitID(unitID) ~= true then return nil, nil, nil end
-	local posX, posY, posZ = spGetUnitPosition(unitID)
-	if posX and posY and posZ then
-		return posX, posY, posZ
-	else
-		return nil, nil, nil
-	end
-end
-
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
@@ -161,19 +169,20 @@ function gadget:GameFrame(frame)
 
 	if frame % gameSpeed == 6 then
 		for unitID, data in pairs(drowningUnitsWatch) do
-			local posX, posY, posZ = getUnitPositionHeight(unitID)
-			if posX then
+			local posX, posY, posZ = spGetUnitPosition(unitID)
+			if not posX then
+				drowningUnitsWatch[unitID] = nil --unit no longer exists
+			elseif posY < data.drownCandidateY and spGetUnitIsDead(unitID) == false then
+				--deep enough that the movedef depth limit may be exceeded: ask the engine
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
-					spSpawnCEG('blacksmoke', posX, posY, posZ) --actually looks like tiny bubbles underwater
-					spPlaySoundFile('lavarumbleshort1', 0.40, posX, posY, posZ, 'sfx')
+					spSpawnCEG("blacksmoke", posX, posY, posZ) --actually looks like tiny bubbles underwater
+					spPlaySoundFile("lavarumbleshort1", 0.40, posX, posY, posZ, "sfx")
 					if math.random(1, 6) == 1 then
-						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
+						spPlaySoundFile("alien_electric", 0.50, posX, posY, posZ, "sfx")
 					end
-					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, data.drowningDamage, 0, nil, waterDamageDefID)
 				end
-			else
-				drowningUnitsWatch[unitID] = nil --dead unit
 			end
 		end
 	end

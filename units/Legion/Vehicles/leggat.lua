@@ -1,7 +1,7 @@
 return {
-	leggat	= {
+	leggat = {
 		maxacc = 0.02,
-		maxdec = 0.04,
+		maxdec = 0.1,
 		energycost = 3600,
 		metalcost = 300,
 		buildpic = "LEGGAT.DDS",
@@ -10,6 +10,7 @@ return {
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "34 16 40",
 		collisionvolumetype = "Box",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
 		footprintx = 3,
@@ -36,7 +37,7 @@ return {
 		turninplacespeedlimit = 1.952,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.4",
@@ -132,7 +133,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1600,
 				texture1 = "shot",
