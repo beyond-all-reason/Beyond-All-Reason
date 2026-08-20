@@ -20,7 +20,7 @@ end
 -- ConstructionStarted activates once per buildee: on its own build frame, or on the first
 -- build-assist the filters take. Only an activation that goes through claims the buildee.
 local function startConstruction(trigger, triggerID, context, buildeeID)
-	if context.ActivateTrigger(trigger) then
+	if not context.HasConstructionStarted(unitID, triggerID) and context.ActivateTrigger(trigger) then
 		context.ClaimConstructionStart(buildeeID, triggerID)
 	end
 end
@@ -42,17 +42,11 @@ return {
 			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
 				return
 			end
-			if context.HasConstructionStarted(unitID, triggerID) then
-				return
-			end
 			startConstruction(trigger, triggerID, context, unitID)
 		end,
 		-- The triggers gadget resolves matching build placements into potential trigger subjects.
 		BuildAssisted = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, builderID)
 			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
-				return
-			end
-			if context.HasConstructionStarted(unitID, triggerID) then
 				return
 			end
 			startConstruction(trigger, triggerID, context, unitID)
