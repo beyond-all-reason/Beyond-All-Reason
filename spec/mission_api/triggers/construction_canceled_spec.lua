@@ -2,7 +2,7 @@ require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and then Spring.GetUnitIsBeingBuilt / UnitDefs inside its handler.
--- The builder is resolved inside the handler by the gadget via context.isBuildFrameOwner.
+-- The builder is resolved inside the handler by the gadget via context.IsBuildFrameOwner.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -30,7 +30,7 @@ describe("mission_api.triggers.construction_canceled", function()
 		local context = {
 			ActivateTrigger = function() fired = fired + 1 end,
 			DoesUnitHaveName = function() return true end,
-			isBuildFrameOwner = function() return true end,
+			IsBuildFrameOwner = function() return true end,
 			InFactory = function() return false end,
 		}
 		return context, function() return fired end
@@ -92,9 +92,9 @@ describe("mission_api.triggers.construction_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("defers builder filtering to context.isBuildFrameOwner", function()
+	it("defers builder filtering to context.IsBuildFrameOwner", function()
 		local context, fired = newContext()
-		context.isBuildFrameOwner = function() return false end
+		context.IsBuildFrameOwner = function() return false end
 		destroyed(trigger({ unitDefName = 'armsolar', builderDefName = 'armck' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)

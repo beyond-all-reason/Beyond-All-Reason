@@ -26,7 +26,7 @@ describe("mission_api.triggers.construction_finished", function()
 		local context = {
 			ActivateTrigger = function() fired = fired + 1 end,
 			DoesUnitHaveName = function() return true end,
-			isBuildFrameOwner = function() return true end,
+			IsBuildFrameOwner = function() return true end,
 			WasUnderConstruction = function() return true end,
 		}
 		return context, function() return fired end
@@ -93,9 +93,9 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("defers builder filtering to context.isBuildFrameOwner", function()
+	it("defers builder filtering to context.IsBuildFrameOwner", function()
 		local context, fired = newContext()
-		context.isBuildFrameOwner = function() return false end
+		context.IsBuildFrameOwner = function() return false end
 		finished(trigger({ unitDefName = 'armsolar', builderDefName = 'armck' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)

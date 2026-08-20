@@ -103,6 +103,26 @@ local function isFeatureInArea(featureID, area)
 	return math.isPointInArea(featureX, featureZ, area)
 end
 
+-- Attempt at single-assigning a construction task owner to each buildee.
+-- When multiple constructors place the same buildDefID, any can become an
+-- "owner" in some technical sense, since only factories own build frames.
+local function isBuildFrameOwner(unbuiltID, builderName, builderDefName)
+	if not builderName and not builderDefName then
+		return true
+	end
+	local builder = buildFrameOwners[unbuiltID]
+	if not builder then
+		return false
+	end
+	if builderDefName and builderDefName ~= UnitDefs[builder.defID].name then
+		return false
+	end
+	if builderName and not doesUnitHaveName(builder.id, builderName) then
+		return false
+	end
+	return true
+end
+
 local function inFactory(buildeeID)
 	local builder = buildFrameOwners[buildeeID]
 	return builder and builder.isFactory
@@ -167,6 +187,7 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
+		IsBuildFrameOwner        = isBuildFrameOwner,
 		InFactory                = inFactory,
 		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,

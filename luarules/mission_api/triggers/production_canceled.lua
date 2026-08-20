@@ -13,7 +13,7 @@ local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	if parameters.teamID and parameters.teamID ~= unitTeam then
 		return false
 	end
-	if not context.isBuildFrameOwner(unitID, parameters.factoryDefName, parameters.factoryName) then
+	if not context.IsBuildFrameOwner(unitID, parameters.factoryName, parameters.factoryDefName) then
 		return false
 	end
 	return true

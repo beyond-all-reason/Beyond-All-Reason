@@ -29,7 +29,7 @@ describe("mission_api.triggers.production_canceled", function()
 		local context = {
 			ActivateTrigger = function() fired = fired + 1 end,
 			DoesUnitHaveName = function() return true end,
-			isBuildFrameOwner = function() return true end,
+			IsBuildFrameOwner = function() return true end,
 			InFactory = function() return true end,
 		}
 		return context, function() return fired end
@@ -90,9 +90,9 @@ describe("mission_api.triggers.production_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("defers factory filtering to context.isBuildFrameOwner", function()
+	it("defers factory filtering to context.IsBuildFrameOwner", function()
 		local context, fired = newContext()
-		context.isBuildFrameOwner = function() return false end
+		context.IsBuildFrameOwner = function() return false end
 		canceled(trigger({ unitDefName = 'armsolar', factoryDefName = 'armlab' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
