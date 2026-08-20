@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name        = "Legacy Compatibility Layer",
 		desc        = "Bridges detached BAR.* modules back to Spring.* for older community widgets",
-		author      = "BAR Community",
+		author      = "CrossGamer",
 		date        = "2026",
 		license     = "GNU GPL, v2 or later",
 		layer       = -math.huge,
