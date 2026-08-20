@@ -257,7 +257,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 	if recursive then
 		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
 	else
-		cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
+		cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
 	end
 
 	local handle = io.popen(cmd)
