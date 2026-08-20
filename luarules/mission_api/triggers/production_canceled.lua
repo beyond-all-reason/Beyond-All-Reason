@@ -33,7 +33,7 @@ return {
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,
 		                         attackerID, attackerDefID, attackerTeam, weaponDefID)
-			if weaponDefID ~= DAMAGETYPE_FACTORY_CANCEL and weaponDefID ~= DAMAGETYPE_FACTORY_KILLED then
+			if weaponDefID ~= DAMAGETYPE_FACTORY_CANCEL and (weaponDefID ~= DAMAGETYPE_FACTORY_KILLED or not Spring.GetUnitIsBeingBuilt()) then
 				return
 			end
 
