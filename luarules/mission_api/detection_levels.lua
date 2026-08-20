@@ -5,31 +5,24 @@
 --- into, or falls out of, the sensors that each of them was configured to watch.
 --------------------------------------------------------------------------------
 
--- Each unit sits at exactly one of these levels per allyTeam.
+-- Each unit sits at exactly one of these levels per allyTeam (allied and enemy).
+-- Levels have an engine-implied order, e.g. vision suppresses seismic detection.
 local LEVEL = {
-	UNSEEN     = 0,
-	SEISMIC    = 1,
-	RADAR      = 2,
-	IDENTIFIED = 3,
-	VISION     = 4,
+	UNSEEN     = 2 ^ 0,
+	SEISMIC    = 2 ^ 1,
+	RADAR      = 2 ^ 2,
+	IDENTIFIED = 2 ^ 3,
+	VISION     = 2 ^ 4,
 }
 --
 -- All levels other than SEISMIC are engine state that we read directly.
 -- The sensor callins are trigger-edges, and LosStatus is backing state.
--- That leaves level-1 seismic "state", derived in seismic_contacts.lua.
-
--- Detection levels have implied order (e.g. vision suppresses seismic)
--- but the bitmasks used are an unordered set used to test containment.
-local LEVEL_BIT = {}
-for _, level in pairs(LEVEL) do
-	LEVEL_BIT[level] = 2 ^ level
-end
 
 -- The levels each sensor coerces a detected unit towards.
-local LEVEL_BITS_BY_SENSOR = {
-	seismic = LEVEL_BIT[LEVEL.SEISMIC],
-	radar   = LEVEL_BIT[LEVEL.RADAR] + LEVEL_BIT[LEVEL.IDENTIFIED],
-	vision  = LEVEL_BIT[LEVEL.VISION],
+local SENSOR_LEVEL = {
+	seismic = LEVEL.SEISMIC,
+	radar   = LEVEL.RADAR + LEVEL.IDENTIFIED,
+	vision  = LEVEL.VISION,
 }
 --
 -- IDENTIFIED is not addressable separately. It is a mix of radar and vision.
@@ -86,7 +79,7 @@ end
 ---@return integer levelBit
 local function levelBitOf(unitID, sensorAllyTeam)
 	if sensorAllyTeam then
-		return LEVEL_BIT[levelForAllyTeam(unitID, sensorAllyTeam)]
+		return levelForAllyTeam(unitID, sensorAllyTeam)
 	end
 
 	local level = LEVEL.UNSEEN
@@ -94,12 +87,12 @@ local function levelBitOf(unitID, sensorAllyTeam)
 		local allyTeamLevel = levelForAllyTeam(unitID, sensorAllyTeams[index])
 		if allyTeamLevel > level then
 			if allyTeamLevel == LEVEL.VISION then
-				return LEVEL_BIT[LEVEL.VISION] -- nothing outranks vision, so stop looking
+				return LEVEL.VISION -- nothing outranks vision, so stop looking
 			end
 			level = allyTeamLevel
 		end
 	end
-	return LEVEL_BIT[level]
+	return level
 end
 
 ---Bitmask for detection level bits so comparison uses a single bit_and.
@@ -109,10 +102,10 @@ local function compileLevelMask(sensorTypes)
 	local levelMask = 0
 	if sensorTypes then
 		for sensorType in pairs(sensorTypes) do
-			levelMask = levelMask + LEVEL_BITS_BY_SENSOR[sensorType]
+			levelMask = levelMask + SENSOR_LEVEL[sensorType]
 		end
 	else
-		for _, sensorBits in pairs(LEVEL_BITS_BY_SENSOR) do
+		for _, sensorBits in pairs(SENSOR_LEVEL) do
 			levelMask = levelMask + sensorBits
 		end
 	end

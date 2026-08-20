@@ -14,7 +14,7 @@ GG['MissionAPI'].Modules.SeismicContacts = {
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
--- LEVEL_BIT in the module: 2^level, over 0:unseen / 1:seismic / 2:radar / 3:typed / 4:vision.
+-- LEVEL in the module: 2^level, over 0:unseen / 1:seismic / 2:radar / 3:typed / 4:vision.
 local UNSEEN, SEISMIC, RADAR, IDENTIFIED, VISION = 1, 2, 4, 8, 16
 
 describe("mission_api.detection_levels", function()
