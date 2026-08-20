@@ -44,9 +44,6 @@ return {
 		-- Units captured while inside a factory are not canceled. Keep this so mission authors do not have to know
 		-- about the engine's split decision-making for canceling units when a factory vs its buildee is captured.
 		UnitTaken = function(trigger, triggerID, context, unitID, unitDefID, oldTeam, newTeam)
-			if Spring.AreTeamsAllied(oldTeam, newTeam) then
-				return
-			end
 			if not Spring.GetUnitIsBeingBuilt(unitID) or not context.InFactory(unitID) then
 				return
 			end
