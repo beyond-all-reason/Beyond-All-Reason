@@ -21,7 +21,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamID and not Spring.AreTeamsAllied(parameters.teamID, unitTeam) then
+			if parameters.teamID and not parameters.teamID ~= unitTeam then
 				return
 			end
 			context.ActivateTrigger(trigger)
