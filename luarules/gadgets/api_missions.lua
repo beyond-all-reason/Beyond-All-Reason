@@ -59,6 +59,7 @@ function gadget:Initialize()
 	local scriptPath = 'mission-api-tests/sound_test.lua'
 	--local scriptPath = 'mission-api-tests/issue_orders_test.lua'
 	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
+	--local scriptPath = 'mission-api-tests/unit_received_order_test.lua'
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
 	local scriptPath = 'mission-api-tests/resource_test.lua'
