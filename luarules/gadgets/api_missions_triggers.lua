@@ -103,24 +103,6 @@ local function isFeatureInArea(featureID, area)
 	return math.isPointInArea(featureX, featureZ, area)
 end
 
--- Attempt at single-assigning a construction task owner to each buildee.
-local function isBuildFrameOwner(nanoframeID, builderDefName, builderName)
-	if not builderDefName and not builderName then
-		return true
-	end
-	local builder = nanoframeOwners[nanoframeID]
-	if not builder then
-		return false
-	end
-	if builderDefName and builderDefName ~= UnitDefs[builder.defID].name then
-		return false
-	end
-	if builderName and not doesUnitHaveName(builder.id, builderName) then
-		return false
-	end
-	return true
-end
-
 local function inFactory(buildeeID)
 	local builder = nanoframeOwners[buildeeID]
 	return builder ~= nil and UnitDefs[builder.defID].isFactory == true
@@ -185,7 +167,6 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
-		IsBuildFrameOwner         = isBuildFrameOwner,
 		InFactory                = inFactory,
 		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,

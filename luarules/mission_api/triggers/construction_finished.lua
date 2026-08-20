@@ -6,8 +6,6 @@ return {
 		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamID',         required = false, type = ParameterTypes.TeamID },
-		{ name = 'builderName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'builderDefName', required = false, type = ParameterTypes.UnitDefName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -24,9 +22,6 @@ return {
 				return
 			end
 			if parameters.teamID and not Spring.AreTeamsAllied(parameters.teamID, unitTeam) then
-				return
-			end
-			if not context.isBuildFrameOwner(unitID, parameters.builderDefName, parameters.builderName) then
 				return
 			end
 			context.ActivateTrigger(trigger)

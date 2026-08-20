@@ -1,8 +1,7 @@
 require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
--- and UnitDefs inside its handler. The was-built proof and builder are resolved by the gadget
--- via both context.WasUnderConstruction and context.isBuildFrameOwner. Expensive little piece.
+-- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
