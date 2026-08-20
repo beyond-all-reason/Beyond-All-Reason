@@ -59,14 +59,13 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetUnitHealth = Spring.GetUnitHealth
-local ALLY_UNITS = Spring.ALLY_UNITS
+local ALLY_UNITS = Spring.ALLY_UNITS -- Currently unused. Will be used once GetUnitsInPlanes engine-side allegiance fix is live.
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 
 -- cached unitDef lookups
 local isCommander = {}
 local unitPower = {}
 local unitDisplayName = {}
-local unitApproxRadius = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local customParams = unitDef.customParams
@@ -76,27 +75,19 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 
 	unitPower[unitDefID] = unitDef.power or 0
 	unitDisplayName[unitDefID] = unitDef.name or ("unit #" .. tostring(unitDefID))
-
-	local radius = unitDef.radius
-	if radius and radius > 0 then
-		unitApproxRadius[unitDefID] = radius
-	else
-		local footprintX = unitDef.xsize or 0
-		local footprintZ = unitDef.zsize or 0
-		unitApproxRadius[unitDefID] = math.min(footprintX, footprintZ) * 4
-	end
 end
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
 
--- Excessively large dgun safety width to acount for some units, such as behemoths, being quite large.
--- Note that this safety width is only used to find allies that could be POTENTIALLY hit by the DGun.
--- A more precise check is used to evaluated whether a potential ally target is actually in danger.
-local DGUN_SAFETY_WIDTH = 100
+local function GetDGunWidth()
+	local armcomDef = UnitDefNames.armcom
+	local disintegratorDef = armcomDef and armcomDef.weapondefs and armcomDef.weapondefs.disintegrator
+	return (disintegratorDef and disintegratorDef.areaofeffect) or 36 -- hardcoded fallback
+end
 
--- Approximate actual width of the dgun projectile
-local DGUN_WIDTH = 20
+-- Width derived from armcom's disintegrator weapon definition.
+local DGUN_WIDTH = GetDGunWidth()
 
 local function GetConstructionTurretPower()
 	local unitDef = UnitDefNames.armnanotc or UnitDefNames.cornanotc or UnitDefNames.legnanotc
@@ -167,11 +158,6 @@ local function GetUnitDisplayName(unitDefID)
 	return unitDefID and unitDisplayName[unitDefID] or "unknown_unit"
 end
 
--- Used to determine whether DGun intersects a given unit
-local function GetApproxUnitRadius(unitDefID)
-	return unitDefID and unitApproxRadius[unitDefID] or 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
-end
-
 local function MakePlane(normalX, normalY, normalZ, pointX, pointY, pointZ)
 	return {normalX, normalY, normalZ, -(normalX * pointX + normalY * pointY + normalZ * pointZ)}
 end
@@ -219,12 +205,6 @@ local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, ha
 		MakePlane(upX, upY, upZ, centerX + upX * halfWidth, centerY + upY * halfWidth, centerZ + upZ * halfWidth), -- excludes units "above" the dgun
 		MakePlane(-upX, -upY, -upZ, centerX - upX * halfWidth, centerY - upY * halfWidth, centerZ - upZ * halfWidth), -- excludes units "below" the dgun
 	}
-
-	Spring.Echo("BuildBeamPrismPlanes", "start", startX, startY, startZ, "end", endX, endY, endZ, "halfWidth", halfWidth)
-	-- for i = 1, #planes do
-	-- 	local plane = planes[i]
-	-- 	Spring.Echo("plane", i, "n", plane.normalVecX, plane.normalVecY, plane.normalVecZ, "d", plane.d)
-	-- end
 
 	return planes
 end
@@ -359,7 +339,7 @@ end
 -- Returns True and explanation of most powerful threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_POWER)
 -- Returns False and nil if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
-local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
+local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 	-- Build a prism around the beam, then filter allied units manually.
 	-- Note: we would rather use the allegiance parameter with ALLY_UNITS. However, as of 2026-08-20, there is an engine-side bug that throws uncaught exception when trying to use it.
 	-- TODO use allegiance parameter once sprunk's fix is published in live engine version
@@ -411,7 +391,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 end
 
 -- If DGun target location is near a visible enemy, it can be fired indiscriminately (it won't be classified as griefing)
-local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
+local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
 
@@ -501,19 +481,8 @@ end
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam)
 	-- If it's an enemy ghost, add to cache. Otherwise don't worry about it
 	if allyTeam ~= myAllyTeamID or unitTeam == gaiaTeamID then
-		return -- not an event for us
+		return -- not an event for us to care about
 	end
-
-	local unitDefID = spGetUnitDefID(unitID)
-	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-	Spring.Echo(
-		"UnitLeftLos:",
-		"unitID", unitID,
-		"name", GetUnitDisplayName(unitDefID),
-		"team", unitTeam,
-		"allied", GetAllyTeamID(unitTeam) == myAllyTeamID,
-		"pos", unitX, unitY, unitZ
-	)
 
 	if Spring.GetUnitLeavesGhost(unitID) then
 		AddEnemyGhostToCache(unitID)
@@ -613,11 +582,10 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	end
 
 	local startX, startY, startZ, endX, endY, endZ = BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
-	Spring.Echo("DGun segment", "start", startX, startY, startZ, "end", endX, endY, endZ)
 
-	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
+	local enemiesNearby, explanation = HasKnownEnemyNearby(targetX, targetY, targetZ)
 
-	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
+	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 
 	-- If no allies threatened, then it's a nominal dgun
 	if not risksAllies and not allyThreatInfo then
