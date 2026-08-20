@@ -6,14 +6,22 @@
 • [Sumo] 6500 -> 6000 health
 • [Mammoth] 22.5 -> 23 speed
 • [Sheldon] 50.4 -> 50 speed
+• [Floating AA turrets] Stats made to match their land counterparts
 • [Legion changes]
 	- Basic mex now similar stats as other T1 mexes, T1.5 mex removed
 	- Wind generator 45m -> 43m cost
 	- Solar 155m -> 150m cost
 	- Goblin 25m, 500e -> 30m, 420e cost
-	- Satyr 400e -> 600e cost
+	- Satyr 400e -> 500e cost, 1100 -> 1220 buildtime, can no longer fire vertically
 	- Phalanx 50 -> 44 speed
-• [Floating AA turrets] Stats made to match their land counterparts
+	- Alaris weapon switched from gauss to a shotgun with the same range and a 10% higher dps.  Unit should feel more responsive overall with a slightly higher acceleration, turnrate, turret turnrate, and weapon projectile speed.  Unit speed reduced 102->99.  
+	- Helios 69 -> 75 speed, 330 -> 320 range, 400 -> 370 turnrate
+	- Lance 3800e -> 3600e cost
+	- Prometheus friendly fire significantly reduced
+	- Inferno firing pattern changed to sector fire so its shots will have much less vertical spread, 1100 -> 1200 range
+	- Perdition stockpile time 50s -> 40s 
+	- Rhapsis (T1 Medium AA Tower) 156 -> 180 DPS, 840 -> 950 range
+	- Pluto (T2 Microflak Tower) and Fulmen (Naval Microflak Tower) 800 -> 875 range
 
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
