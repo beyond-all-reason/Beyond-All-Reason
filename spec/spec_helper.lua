@@ -146,20 +146,21 @@ _G.VFS.Include = function(path, env, mode)
 		_G.VFS._sources[realPath] = source
 	end
 
+	-- Missing source is a real error. Larger feature tests will try to fallback and
+	-- tend to throw confusing "index a nil value" or etc. in code long after loading.
 	if source then
 		local chunk, compileError = loadstring(source, "@" .. realPath)
-		if chunk then
-			setfenv(chunk, env or _G)
-
-			local success, result = pcall(chunk)
-			if success then
-				return result
-			else
-				print("Error loading " .. path .. ": " .. tostring(result))
-			end
-		else
-			print("Error compiling " .. path .. ": " .. tostring(compileError))
+		if not chunk then
+			error(string.format("VFS.Include failed to compile '%s': %s", path, tostring(compileError)), 0)
 		end
+
+		setfenv(chunk, env or _G)
+
+		local success, result = pcall(chunk)
+		if not success then
+			error(string.format("VFS.Include failed to run '%s': %s", path, tostring(result)), 0)
+		end
+		return result
 	end
 
 	-- Fallback to old require method if file not found on disk (e.g. standard libs)
