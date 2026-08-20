@@ -2,6 +2,7 @@ name: Type Check
 
 on:
   pull_request:
+    paths: ['**.lua']
   workflow_dispatch:
 
 permissions:
