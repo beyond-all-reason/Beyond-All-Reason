@@ -9,7 +9,8 @@
 	- Inferno firing pattern changed to sector fire so its shots will have much less vertical spread, range increased 1100 -> 1200
 	- Perdition stockpile time reduced 50s -> 40s 
 	- Rhapsis (t1 medium aa tower) dps increased 156 -> 180, range and los increased 840 -> 950
-	- Pluto (T2 microflak tower) range increased 800 -> 875
+	- Pluto (T2 microflak tower) and Fulmen (Naval microflak tower) range increased 800 -> 875
+	
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
 • [Rover] 1000 -> 1100 buildtime
