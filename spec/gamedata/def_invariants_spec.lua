@@ -100,7 +100,11 @@ describe("UnitDefs invariants", function()
 		local bad = {}
 		for name, def in pairs(defs) do
 			if type(def.workertime) == "number" and def.terraformspeed ~= def.workertime * 30 then
-				bad[#bad + 1] = name .. " workertime=" .. tostring(def.workertime) .. " terraformspeed=" .. tostring(def.terraformspeed)
+				bad[#bad + 1] = name
+					.. " workertime="
+					.. tostring(def.workertime)
+					.. " terraformspeed="
+					.. tostring(def.terraformspeed)
 			end
 		end
 
@@ -115,12 +119,22 @@ describe("UnitDefs invariants", function()
 			local extracts = (tonumber(def.extractsmetal) or 0) > 0
 			local flagged = (tonumber(cp.metal_extractor) or 0) > 0
 			if extracts ~= flagged then
-				bad[#bad + 1] = name .. ": extractsmetal=" .. tostring(def.extractsmetal) .. " metal_extractor=" .. tostring(cp.metal_extractor)
+				bad[#bad + 1] = name
+					.. ": extractsmetal="
+					.. tostring(def.extractsmetal)
+					.. " metal_extractor="
+					.. tostring(cp.metal_extractor)
 			end
 
 			if cp.energyconv_capacity ~= nil or cp.energyconv_efficiency ~= nil then
-				if not ((tonumber(cp.energyconv_capacity) or 0) > 0 and (tonumber(cp.energyconv_efficiency) or 0) > 0) then
-					bad[#bad + 1] = name .. ": energyconv " .. tostring(cp.energyconv_capacity) .. "/" .. tostring(cp.energyconv_efficiency)
+				if
+					not ((tonumber(cp.energyconv_capacity) or 0) > 0 and (tonumber(cp.energyconv_efficiency) or 0) > 0)
+				then
+					bad[#bad + 1] = name
+						.. ": energyconv "
+						.. tostring(cp.energyconv_capacity)
+						.. "/"
+						.. tostring(cp.energyconv_efficiency)
 				end
 			end
 		end
@@ -153,7 +167,13 @@ describe("UnitDefs invariants", function()
 				for _, key in ipairs({ "dead", "heap" }) do
 					local feature = def.featuredefs[key]
 					if feature and feature.damage ~= def.health then
-						bad[#bad + 1] = name .. "." .. key .. " damage=" .. tostring(feature.damage) .. " health=" .. tostring(def.health)
+						bad[#bad + 1] = name
+							.. "."
+							.. key
+							.. " damage="
+							.. tostring(feature.damage)
+							.. " health="
+							.. tostring(def.health)
 					end
 				end
 			end
@@ -178,7 +198,14 @@ describe("UnitDefs invariants", function()
 				local expected = math.min(10, 5.5 + (footprintx + footprintz) / 12)
 				local actual = tonumber((def.customparams or {}).vertdisp)
 				if not actual or math.abs(actual - expected) > 1e-9 then
-					bad[#bad + 1] = string.format("%s vertdisp=%s footprint %sx%s wants %s", name, tostring(actual), tostring(footprintx), tostring(footprintz), tostring(expected))
+					bad[#bad + 1] = string.format(
+						"%s vertdisp=%s footprint %sx%s wants %s",
+						name,
+						tostring(actual),
+						tostring(footprintx),
+						tostring(footprintz),
+						tostring(expected)
+					)
 				end
 			end
 		end
@@ -191,7 +218,12 @@ describe("UnitDefs invariants", function()
 		for name, def in pairs(defs) do
 			local exported = (def.customparams or {}).buildsquare_yardmap
 			if def.yardmap ~= exported then
-				bad[#bad + 1] = string.format("%s yardmap=%s buildsquare_yardmap=%s", name, tostring(def.yardmap), tostring(exported))
+				bad[#bad + 1] = string.format(
+					"%s yardmap=%s buildsquare_yardmap=%s",
+					name,
+					tostring(def.yardmap),
+					tostring(exported)
+				)
 			end
 		end
 
@@ -201,7 +233,9 @@ describe("UnitDefs invariants", function()
 	local function isTriple(value)
 		local count = 0
 		for token in tostring(value):gmatch("%S+") do
-			if not tonumber(token) then return false end
+			if not tonumber(token) then
+				return false
+			end
 			count = count + 1
 		end
 
@@ -235,8 +269,10 @@ describe("UnitDefs invariants", function()
 	-- height pass in alldefs_post takes the second whitespace separated token, so a missing
 	-- space silently ships a sight and radar height the volume does not agree with.
 	local volumeKeys = {
-		"collisionvolumeoffsets", "collisionvolumescales",
-		"selectionvolumeoffsets", "selectionvolumescales",
+		"collisionvolumeoffsets",
+		"collisionvolumescales",
+		"selectionvolumeoffsets",
+		"selectionvolumescales",
 	}
 
 	it("writes volume offsets and scales as three numbers", function()
@@ -348,8 +384,17 @@ describe("UnitDefs invariants", function()
 	end)
 
 	local aircraftOnly = {
-		"hoverattack", "turnradius", "maxbank", "maxpitch", "bankingallowed", "crashdrag",
-		"wingangle", "wingdrag", "maxrudder", "maxelevator", "maxaileron",
+		"hoverattack",
+		"turnradius",
+		"maxbank",
+		"maxpitch",
+		"bankingallowed",
+		"crashdrag",
+		"wingangle",
+		"wingdrag",
+		"maxrudder",
+		"maxelevator",
+		"maxaileron",
 	}
 
 	it("keeps flight tags on aircraft", function()
@@ -387,7 +432,7 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
--- Weapons address armour by class name, and the engine resolves those names against
+	-- Weapons address armour by class name, and the engine resolves those names against
 	-- armordefs.lua at load. A name that file never defines is not an error anywhere - the weapon
 	-- just falls back to its default damage against those targets, so a value that looks tuned
 	-- does nothing. armordefs also lets a unit mint a class through customparams.armordef, so the
@@ -402,8 +447,10 @@ describe("UnitDefs invariants", function()
 
 		-- The VFS mock hands back an empty table when an include fails, which would quietly turn
 		-- this into "every damage key is wrong", so check the file actually produced classes.
-		assert.is_true(type(armorDefs) == "table" and next(armorDefs) ~= nil,
-			"gamedata/armordefs.lua produced no armour classes")
+		assert.is_true(
+			type(armorDefs) == "table" and next(armorDefs) ~= nil,
+			"gamedata/armordefs.lua produced no armour classes"
+		)
 
 		local classes = { default = true }
 		for class in pairs(armorDefs) do
@@ -426,7 +473,6 @@ describe("UnitDefs invariants", function()
 		table.sort(bad)
 		assert.same({}, bad)
 	end)
-
 
 	it("names a movedef that movedefs.lua emits", function()
 		-- movedefs.lua reads Game.speedModClasses at load; the spec globals do not define it.
@@ -457,7 +503,12 @@ describe("UnitDefs invariants", function()
 		local bad = {}
 		for name, def in pairs(defs) do
 			if def.minwaterdepth and def.maxwaterdepth and def.minwaterdepth >= def.maxwaterdepth then
-				bad[#bad + 1] = string.format("%s minwaterdepth=%s maxwaterdepth=%s", name, tostring(def.minwaterdepth), tostring(def.maxwaterdepth))
+				bad[#bad + 1] = string.format(
+					"%s minwaterdepth=%s maxwaterdepth=%s",
+					name,
+					tostring(def.minwaterdepth),
+					tostring(def.maxwaterdepth)
+				)
 			end
 		end
 
@@ -853,7 +904,14 @@ describe("UnitDefs invariants", function()
 			if (def.canmanualfire or def.candgun) and not manualFireExempt[name] then
 				local found = false
 				for _, weapon in pairs(def.weapondefs or {}) do
-					if type(weapon) == "table" and (weapon.manualfire or weapon.commandfire or tostring(weapon.weapontype or ""):lower() == "dgun") then
+					if
+						type(weapon) == "table"
+						and (
+							weapon.manualfire
+							or weapon.commandfire
+							or tostring(weapon.weapontype or ""):lower() == "dgun"
+						)
+					then
 						found = true
 					end
 				end
@@ -877,7 +935,11 @@ describe("UnitDefs invariants", function()
 		for name, def in pairs(defs) do
 			if not (def.canmanualfire or def.candgun) then
 				for weaponName, weapon in pairs(def.weapondefs or {}) do
-					if type(weapon) == "table" and (weapon.commandfire or weapon.manualfire) and not weapon.stockpile then
+					if
+						type(weapon) == "table"
+						and (weapon.commandfire or weapon.manualfire)
+						and not weapon.stockpile
+					then
 						bad[#bad + 1] = name .. "." .. tostring(weaponName)
 					end
 				end
@@ -895,7 +957,8 @@ describe("UnitDefs invariants", function()
 			local mobile = (tonumber(def.speed) or 0) > 0 or def.canmove == true
 
 			if mobile and standing and moving and moving < standing then
-				bad[#bad + 1] = string.format("%s cloakcost=%s cloakcostmoving=%s", name, tostring(standing), tostring(moving))
+				bad[#bad + 1] =
+					string.format("%s cloakcost=%s cloakcostmoving=%s", name, tostring(standing), tostring(moving))
 			end
 		end
 
