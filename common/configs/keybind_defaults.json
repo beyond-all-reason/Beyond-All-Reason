@@ -1158,6 +1158,10 @@
 					"action": "options"
 				},
 				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
 					"keyset": "Any+f12",
 					"action": "screenshot png"
 				},
@@ -2395,6 +2399,10 @@
 					"action": "options"
 				},
 				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
 					"keyset": "Any+f12",
 					"action": "screenshot png"
 				},
@@ -3538,6 +3546,10 @@
 				{
 					"keyset": "f10",
 					"action": "options"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
 				},
 				{
 					"keyset": "Any+f12",
@@ -5999,6 +6011,10 @@
 				{
 					"keyset": "Alt+sc_]",
 					"action": "blueprint_next"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
 				}
 			]
 		}
