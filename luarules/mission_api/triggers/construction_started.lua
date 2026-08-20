@@ -1,5 +1,30 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
+	local parameters = trigger.parameters
+	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+		return false
+	end
+	if parameters.teamID and unitTeam ~= parameters.teamID then
+		return false
+	end
+	if parameters.builderName and not context.DoesUnitHaveName(builderID, parameters.builderName) then
+		return false
+	end
+	if parameters.builderDefName and parameters.builderDefName ~= UnitDefs[Spring.GetUnitDefID(builderID)].name then
+		return false
+	end
+	return true
+end
+
+-- ConstructionStarted activates once per buildee: on its own build frame, or on the first
+-- build-assist the filters take. Only an activation that goes through claims the buildee.
+local function startConstruction(trigger, triggerID, context, buildeeID)
+	if context.ActivateTrigger(trigger) then
+		context.ClaimConstructionStart(buildeeID, triggerID)
+	end
+end
+
 return {
 	type = 'ConstructionStarted',
 	parameters = {
@@ -14,22 +39,23 @@ return {
 			if not builderID or not Spring.GetUnitIsBeingBuilt(unitID) then
 				return
 			end
-
-			local parameters = trigger.parameters
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
 				return
 			end
-			if parameters.teamID and unitTeam ~= parameters.teamID then
+			if context.HasConstructionStarted(unitID, triggerID) then
 				return
 			end
-			-- The builder is known directly - unlike in ConstructionFinished and ConstructionCanceled - so we can check:
-			if parameters.builderDefName and parameters.builderDefName ~= UnitDefs[Spring.GetUnitDefID(builderID)].name then
+			startConstruction(trigger, triggerID, context, unitID)
+		end,
+		-- The triggers gadget resolves matching build placements into potential trigger subjects.
+		BuildAssisted = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, builderID)
+			if not matchesBuild(trigger, context, unitDefID, unitTeam, builderID) then
 				return
 			end
-			if parameters.builderName and not context.DoesUnitHaveName(builderID, parameters.builderName) then
+			if context.HasConstructionStarted(unitID, triggerID) then
 				return
 			end
-			context.ActivateTrigger(trigger)
+			startConstruction(trigger, triggerID, context, unitID)
 		end,
 	},
 }

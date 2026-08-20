@@ -23,6 +23,7 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
+local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
 
@@ -32,7 +33,9 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
+local buildPlacements           = {}
 local buildFrameOwners          = {}
+local constructionStarts        = {}
 local underConstruction         = {}
 
 
@@ -128,6 +131,21 @@ local function inFactory(buildeeID)
 	return builder and builder.isFactory
 end
 
+-- ConstructionStarted gets buildees from two call-ins. Only one can claim.
+local function claimConstructionStart(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	if claims then
+		claims[triggerID] = true
+		return
+	end
+	constructionStarts[buildeeID] = { [triggerID] = true }
+end
+
+local function hasConstructionStarted(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	return claims and claims[triggerID]
+end
+
 ----------------------------------------------------------------
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
@@ -189,6 +207,8 @@ function gadget:Initialize()
 		DoesFeatureHaveName      = doesFeatureHaveName,
 		IsBuildFrameOwner        = isBuildFrameOwner,
 		InFactory                = inFactory,
+		ClaimConstructionStart   = claimConstructionStart,
+		HasConstructionStarted   = hasConstructionStarted,
 		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
@@ -221,17 +241,21 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
 
+	-- ConstructionStarted accepts some orders that assist an existing build frame.
+	needsBuildPlacements = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionStarted
+	end)
+
+	-- ConstructionFinished can't read beingBuilt at UnitFinished (always false).
+	needsBuildStartSet = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionFinished
+	end)
+
 	-- We tell apart factory and constructor ownership via the build owner map.
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
 		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
 			or (trigger.parameters.factoryName or trigger.parameters.factoryDefName)
 			or (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
-	end)
-
-	-- ConstructionFinished can't read beingBuilt at UnitFinished (the unit reads finished)
-	-- so needs a record of which units were built, rather than spawn or warp in at start.
-	needsBuildStartSet = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.ConstructionFinished
 	end)
 end
 
@@ -243,6 +267,25 @@ function gadget:GameFrame(frameNumber)
 	end
 
 	dispatchTriggerCallin('GameFrame', frameNumber)
+end
+
+function gadget:GameFramePost(frameNumber)
+	if not next(buildPlacements) then
+		return
+	end
+
+	for builderID, unitDefID in pairs(buildPlacements) do
+		local buildeeID = Spring.GetUnitIsBuilding(builderID)
+		if
+			buildeeID
+			and Spring.GetUnitIsBeingBuilt(buildeeID)
+			and Spring.GetUnitDefID(buildeeID) == unitDefID
+		then
+			dispatchTriggerCallin('BuildAssisted', buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
+		end
+	end
+
+	buildPlacements = {}
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
@@ -272,6 +315,10 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	dispatchTriggerCallin('UnitCreated', unitID, unitDefID, unitTeam, builderID)
 
+	if builderID then
+		buildPlacements[builderID] = nil
+	end
+
 	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
 	if beingBuilt then
 		if needsBuildStartSet then
@@ -298,8 +345,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		statistics.Increment(triggerTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
-	underConstruction[unitID] = nil
 	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
 
 	untrackUnitID(unitID)
 end
@@ -323,8 +371,9 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
 
-	underConstruction[unitID] = nil
 	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end
@@ -337,6 +386,13 @@ end
 
 function gadget:TeamDied(teamID)
 	dispatchTriggerCallin('TeamDied', teamID)
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	if x and needsBuildPlacements then
+		buildPlacements[builderID] = unitDefID
+	end
+	return true
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
