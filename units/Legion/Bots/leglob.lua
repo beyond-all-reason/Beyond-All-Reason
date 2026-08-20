@@ -2,7 +2,7 @@ return {
 	leglob = {
 		maxacc = 0.12995,
 		maxdec = 0.77625,
-		energycost = 600,
+		energycost = 400,
 		metalcost = 60,
 		buildpic = "LEGLOB.DDS",
 		buildtime = 1100,
@@ -33,7 +33,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
@@ -119,9 +119,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 220,
-				customparams = {
-					weapons_group = 1,
-				},
 				damage = {
 					default = 75,
 					vtol = 21,
@@ -150,9 +147,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					weapons_group = 2,
-				},
 				damage = {
 					default = 75,
 					vtol = 21,
