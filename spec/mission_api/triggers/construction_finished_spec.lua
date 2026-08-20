@@ -42,21 +42,19 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamID)
-		assert.is_true(names.builderName)
-		assert.is_true(names.builderDefName)
 		assert.are.same({ 'unitName', 'unitDefName' }, constructionFinished.parameters.requiresOneOf)
-	end)
-
-	it("filters by unitDefName", function()
-		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar' }), context, 2, 0) -- unitDefID 2 = armwin
-		assert.are.equal(0, fired())
 	end)
 
 	it("filters by unitName", function()
 		local context, fired = newContext()
 		context.DoesUnitHaveName = function() return false end
 		finished(trigger({ unitName = 'powerplant' }), context, 1, 0)
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters by unitDefName", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = 'armsolar' }), context, 2, 0) -- unitDefID 2 = armwin
 		assert.are.equal(0, fired())
 	end)
 

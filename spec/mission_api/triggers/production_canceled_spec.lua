@@ -101,12 +101,6 @@ describe("mission_api.triggers.production_canceled", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("does not fire for a buildee given to an allied team (production continues)", function()
-		local context, fired = newContext()
-		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 2)
-		assert.are.equal(0, fired())
-	end)
-
 	it("does not fire for a finished unit that is taken", function()
 		Spring.GetUnitIsBeingBuilt = function() return false end
 		local context, fired = newContext()

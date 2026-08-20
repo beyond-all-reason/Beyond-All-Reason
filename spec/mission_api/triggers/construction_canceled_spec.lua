@@ -10,8 +10,7 @@ GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/para
 _G.UnitDefs = { [1] = { name = 'armsolar' }, [2] = { name = 'armwin' } }
 
 local constructionCanceled = VFS.Include('luarules/mission_api/triggers/construction_canceled.lua')
-local onUnitDestroyed = constructionCanceled.callins.UnitDestroyed
-local onUnitTaken = constructionCanceled.callins.UnitTaken
+local onMetaUnitRemoved = constructionCanceled.callins.MetaUnitRemoved
 
 describe("mission_api.triggers.construction_canceled", function()
 	before_each(function()
@@ -37,11 +36,11 @@ describe("mission_api.triggers.construction_canceled", function()
 	local triggerID = 't'
 
 	local function destroyed(trigger, context, unitDefID, unitTeam)
-		onUnitDestroyed(trigger, triggerID, context, 100, unitDefID, unitTeam)
+		onMetaUnitRemoved(trigger, triggerID, context, 100, unitDefID, unitTeam)
 	end
 
-	local function taken(trigger, context, unitDefID, oldTeam, newTeam)
-		onUnitTaken(trigger, triggerID, context, 100, unitDefID, oldTeam, newTeam)
+	local function taken(trigger, context, unitDefID, oldTeam)
+		onMetaUnitRemoved(trigger, triggerID, context, 100, unitDefID, oldTeam)
 	end
 
 	it("declares its type and parameters", function()
@@ -53,8 +52,6 @@ describe("mission_api.triggers.construction_canceled", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamID)
-		assert.is_true(names.builderName)
-		assert.is_true(names.builderDefName)
 		assert.are.same({ 'unitName', 'unitDefName' }, constructionCanceled.parameters.requiresOneOf)
 	end)
 
@@ -99,27 +96,21 @@ describe("mission_api.triggers.construction_canceled", function()
 
 	it("fires for a nanoframe taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 9)
+		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
-	end)
-
-	it("does not fire for a nanoframe given to an allied team (construction continues)", function()
-		local context, fired = newContext()
-		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 2)
-		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a finished unit that is taken", function()
 		Spring.GetUnitIsBeingBuilt = function() return false end
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = 'armsolar' }), context, 1, 0, 9)
+		taken(trigger({ unitDefName = 'armsolar' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire for a buildee taken in a factory", function()
 		local context, fired = newContext()
 		context.InFactory = function() return true end
-		taken(trigger({ unitDefName = 'armsolar' }), context, 1, 0, 9)
+		taken(trigger({ unitDefName = 'armsolar' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 end)
