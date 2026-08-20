@@ -118,6 +118,7 @@ local TUNING_FRAMES = {
 	"frame-ts-normals",
 	"frame-ts-cliffs",
 	"frame-ts-place",
+	"frame-ts-slot4",
 	"frame-ts-blend",
 	"frame-ts-curv",
 	"frame-ts-light",
@@ -135,6 +136,10 @@ function M.attach(doc, ctx)
 	-- drop the cache and let the next M.sync re-apply it from the widget
 	ctx.widgetState.tsShaderLast = nil
 	ctx.widgetState.tsAlbDecoupleLast = nil
+	-- SLOT 4 label/material caches: markup defaults are the plateau-mode texts,
+	-- so force one re-apply from the widget on a fresh document
+	ctx.widgetState.tsSlot4Last = nil
+	ctx.widgetState.tsSlot4MatLast = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
 	for _, k in ipairs(KNOBS) do
@@ -180,6 +185,82 @@ function M.sync(doc, ctx, setSummary)
 		local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
 		if bkey and dm.tsBiome ~= bkey then
 			dm.tsBiome = bkey
+		end
+	end
+
+	-- EXTRA LAYER section (slot 4): mirror the mode buttons, retitle the two
+	-- reused sliders and the description line for the active mode, and gray
+	-- out the rows the mode ignores (covers startup + console /tileset slot4).
+	if WG.TilesetTerrain.getSlot4Mode then
+		local _, mname = WG.TilesetTerrain.getSlot4Mode()
+		if mname and dm.tsSlot4Mode ~= mname then
+			dm.tsSlot4Mode = mname
+		end
+		if mname and widgetState.tsSlot4Last ~= mname then
+			widgetState.tsSlot4Last = mname
+			-- { height-slider title, blend-slider title, description, sliders inert }
+			local modes = {
+				plateau = {
+					"Starts at height",
+					"Edge width",
+					"Flat ground above the height slider becomes this layer, like a mountain cap. The LAYERS tool's 4th channel also paints it anywhere.",
+					false,
+				},
+				detail = {
+					"(not used)",
+					"(not used)",
+					"Appears only where the LAYERS tool's 4th channel paints it. Unlike SURFACE variants it brings its own relief and roughness.",
+					true,
+				},
+				interm2 = {
+					"Amount",
+					"Patch edge",
+					"A second scree: takes over patches of the intermediate band so it reads less uniform. Amount 0 = none, 1 = the whole band.",
+					false,
+				},
+				cliff2 = {
+					"Splits at height",
+					"Edge width",
+					"A second rock: cliff faces above the height slider use this texture instead, reading as strata.",
+					false,
+				},
+				off = {
+					"(slot off)",
+					"(slot off)",
+					"The layer is disabled and its texture lookups are skipped, which renders slightly faster.",
+					true,
+				},
+			}
+			local m = modes[mname]
+			if m then
+				local e1 = doc:GetElementById("ts-label-platHeight")
+				local e2 = doc:GetElementById("ts-label-platBlend")
+				local ed = doc:GetElementById("ts-slot4-desc")
+				if e1 then
+					e1.inner_rml = m[1]
+				end
+				if e2 then
+					e2.inner_rml = m[2]
+				end
+				if ed then
+					ed.inner_rml = m[3]
+				end
+				if ctx.setDisabledIds then
+					ctx.setDisabledIds(doc, { "ts-row-platHeight", "ts-row-platBlend" }, m[4])
+					ctx.setDisabledIds(doc, { "ts-row-slot4-mat" }, mname == "off")
+				end
+			end
+		end
+	end
+	if WG.TilesetTerrain.getSlot4State then
+		local st = WG.TilesetTerrain.getSlot4State()
+		local mat = st.material or "biome pick"
+		if widgetState.tsSlot4MatLast ~= mat then
+			widgetState.tsSlot4MatLast = mat
+			local el = doc:GetElementById("ts-slot4-mat-name")
+			if el then
+				el.inner_rml = mat
+			end
 		end
 	end
 

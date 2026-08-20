@@ -5811,22 +5811,73 @@
 								<input type="text" id="ts-slider-intermediateFullDeg-numbox" class="tf-slider-numbox" readonly value="45.6" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Plateau height</div>
-								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('platHeight')" />
-								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="1.00" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Plateau blend</div>
-								<input type="range" id="ts-slider-platBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('platBlend')" />
-								<input type="text" id="ts-slider-platBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="tf-slider-label text-light">Cliff border</div>
 								<input type="range" id="ts-slider-cliffBlend" class="tf-slider" min="0.02" max="0.6" step="0.005" value="0.20" data-event-change="onTilesetKnob('cliffBlend')" />
 								<input type="text" id="ts-slider-cliffBlend-numbox" class="tf-slider-numbox" readonly value="0.20" />
 							</div>
 					</div>
 				</div><!-- /frame-ts-place -->
+
+				<!-- EXTRA LAYER (slot 4): the fourth texture suite. All 32 texture
+				     units are taken shader-side, so a "new" layer can only repurpose
+				     this one; the mode buttons swap where it appears, live. The two
+				     sliders are reused per mode; tf_tileset.sync retitles them, the
+				     description line, and grays out rows the mode ignores. -->
+				<div class="tf-section-frame tf-collapsed" id="frame-ts-slot4">
+					<div id="btn-toggle-ts-slot4" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-slot4" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">EXTRA LAYER</div>
+						<div id="btn-ts-reset-slot4" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('slot4')">RESET</div>
+					</div>
+					<div id="section-ts-slot4" class="hidden">
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">A fourth texture on top of base, intermediate and cliff. Pick where it appears:</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'plateau'" data-event-mousedown="onTsSlot4Mode('plateau')">
+								<div class="tf-btn-text">PLATEAU</div>
+								<div class="tf-s4-hint">by height</div>
+							</div>
+							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'detail'" data-event-mousedown="onTsSlot4Mode('detail')">
+								<div class="tf-btn-text">PAINTED</div>
+								<div class="tf-s4-hint">by brush</div>
+							</div>
+							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'interm2'" data-event-mousedown="onTsSlot4Mode('interm2')">
+								<div class="tf-btn-text">SCREE MIX</div>
+								<div class="tf-s4-hint">in intermediate</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'cliff2'" data-event-mousedown="onTsSlot4Mode('cliff2')">
+								<div class="tf-btn-text">STRATA</div>
+								<div class="tf-s4-hint">in cliffs</div>
+							</div>
+							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'off'" data-event-mousedown="onTsSlot4Mode('off')">
+								<div class="tf-btn-text">OFF</div>
+								<div class="tf-s4-hint">saves perf</div>
+							</div>
+						</div>
+						<div id="ts-slot4-desc" class="text-base text-light mb-1" style="opacity: 0.7;">Flat ground above the height slider becomes this layer, like a mountain cap.</div>
+						<div id="ts-row-slot4-mat" class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Texture</div>
+							<div class="tf-mode-btn tf-ts-row-btn tf-s4-arrow" data-event-mousedown="onTsSlot4Mat('prev')">
+								<div class="tf-btn-text">&lt;</div>
+							</div>
+							<div id="ts-slot4-mat-name" class="tf-s4-name">biome pick</div>
+							<div class="tf-mode-btn tf-ts-row-btn tf-s4-arrow" data-event-mousedown="onTsSlot4Mat('next')">
+								<div class="tf-btn-text">&gt;</div>
+							</div>
+						</div>
+						<div id="ts-row-platHeight" class="flex flex-row gap-1 items-center mb-1">
+							<div id="ts-label-platHeight" class="tf-slider-label text-light">Starts at height</div>
+							<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('platHeight')" />
+							<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div id="ts-row-platBlend" class="flex flex-row gap-1 items-center mb-1">
+							<div id="ts-label-platBlend" class="tf-slider-label text-light">Edge width</div>
+							<input type="range" id="ts-slider-platBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('platBlend')" />
+							<input type="text" id="ts-slider-platBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
+						</div>
+					</div>
+				</div><!-- /frame-ts-slot4 -->
 
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-blend">
 					<div id="btn-toggle-ts-blend" class="tf-section-title-row" style="cursor: pointer;">

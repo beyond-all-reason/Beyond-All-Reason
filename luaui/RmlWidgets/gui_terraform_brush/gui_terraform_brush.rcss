@@ -3563,6 +3563,47 @@ margin-top: 3dp;
 	border-color: #ffd47a;
 }
 
+/* === EXTRA LAYER (slot 4) ================================================ */
+/* Two-line mode buttons: label + a small placement hint underneath.         */
+.tf-s4-btn {
+	height: 46dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-s4-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-s4-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+.tf-s4-hint {
+	font-size: 0.8rem;
+	color: #9aa0ab;
+}
+.tf-s4-btn.active .tf-s4-hint {
+	color: #cdb27a;
+}
+/* Texture stepper: fixed-width prev/next arrows around the current name.    */
+.tf-s4-arrow {
+	flex: 0 0 auto;
+	width: 30dp;
+}
+.tf-s4-name {
+	flex: 1;
+	height: 36dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #26262d;
+	border: 1dp #50505a50;
+	border-radius: 8dp;
+	font-size: 0.9rem;
+	color: #d8dce4;
+}
+
 /* === BIOME LIBRARY picker (TILESET tool) ================================== */
 /* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
 /* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */

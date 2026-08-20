@@ -2966,6 +2966,9 @@ local initialModel = {
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
 	tsBiome = "",
+	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
+	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
+	tsSlot4Mode = "plateau",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -9577,6 +9580,51 @@ local initialModel = {
 			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
 			-- toggle on; also no-op on maps that booted without a real cubemap sky).
 			syncSkyboxToBiome(key)
+		end
+	end,
+	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
+	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
+	-- widget reseeds the two reused sliders on a change; tf_tileset.sync
+	-- restamps them and retitles their labels.
+	onTsSlot4Mode = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setSlot4Mode(name)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tsSlot4Mode = name
+			end
+		end
+	end,
+	-- EXTRA LAYER texture stepper: steps the suite through the active biome's
+	-- catalog in either direction (first entry = the biome's own plateau pick,
+	-- stored as nil so a biome swap falls back to the new biome's pick). The
+	-- name box text is synced in tf_tileset.M.sync from getSlot4State.
+	onTsSlot4Mat = function(_event, dir)
+		local T = WG.TilesetTerrain
+		if not (T and T.getSlot4Materials and T.setSlot4Material) then
+			return
+		end
+		local list, _, current = T.getSlot4Materials()
+		local n = #list
+		if n == 0 then
+			return
+		end
+		local cur = current or list[1].asset
+		local idx = 1
+		for i = 1, n do
+			if list[i].asset == cur then
+				idx = i
+				break
+			end
+		end
+		local step = (dir == "prev") and -1 or 1
+		local nxt = ((idx - 1 + step) % n) + 1
+		if T.setSlot4Material((nxt == 1) and nil or list[nxt].asset) then
+			playSound("click")
 		end
 	end,
 	onTsToggleSkyboxSync = function(_event)
