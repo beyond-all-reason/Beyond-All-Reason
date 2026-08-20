@@ -109,7 +109,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
-				flighttime = 3,W
+				flighttime = 3,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Light torpedo launcher",
