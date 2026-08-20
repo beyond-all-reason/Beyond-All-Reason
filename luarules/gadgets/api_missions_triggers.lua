@@ -225,6 +225,7 @@ function gadget:Initialize()
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
 		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
 			or (trigger.parameters.factoryName or trigger.parameters.factoryDefName)
+			or (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
 	end)
 
 	-- ConstructionFinished can't read beingBuilt at UnitFinished (the unit reads finished)
