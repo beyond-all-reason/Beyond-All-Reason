@@ -8,10 +8,10 @@ function gadget:GetInfo()
 		date = "2026-08-13",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
-
+-- FIXME delete this
 if gadgetHandler:IsSyncedCode() then
 	return false
 end

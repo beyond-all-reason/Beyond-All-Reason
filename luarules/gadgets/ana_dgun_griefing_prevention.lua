@@ -365,9 +365,10 @@ end
 -- Returns False and nil if DGUN threatens nothing
 -- Returns False and an explanation if DGUN threatens stuff, but not enough to be concerned about
 local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
-	-- Build a prism around the beam, then let the engine return allied units inside it.
-	-- FIXME null exception due to allegiance as last arg...why
-	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_SAFETY_WIDTH + DGUN_WIDTH / 2), ALLY_UNITS)
+	-- Build a prism around the beam, then filter allied units manually.
+	-- Note: we would rather use the allegiance parameter with ALLY_UNITS. However, as of 2026-08-20, there is an engine-side bug that throws uncaught exception when trying to use it.
+	-- TODO use allegiance parameter once sprunk's fix is published in live engine version
+	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_SAFETY_WIDTH + DGUN_WIDTH / 2))
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
@@ -377,10 +378,10 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		local unitTeam = spGetUnitTeam(unitID)
 
 		-- Exclude self-owned units (should always be allowed to shoot those)
-		-- Exclude allied comms (you can't DGun grief an allied comm)
-		if unitTeam ~= myTeamID and not isCommander[unitDefID] then
-			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			if unitX then
+		-- Exclude non-allied units and allied comms (you can't DGun grief an allied comm)
+		if unitTeam and unitTeam ~= myTeamID and spAreTeamsAllied(unitTeam, myTeamID) and not isCommander[unitDefID] then
+			local unitX = spGetUnitPosition(unitID)
+			if unitX then -- FIXME this check may be a relic of old line segment stuff
 				local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
 				if (captureProgress or 0) > 0 then
 					-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
@@ -390,7 +391,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 
 				local threatenedPower = 0
 				-- Partially built units only contribute proportional power to threat.
-				-- This is to prevent a malicious player from triggering false negatives
+				-- This is to prevent a malicious player from triggering false positives
 				-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
 				buildProgress = buildProgress or 1
 				threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
@@ -502,11 +503,23 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 end
 
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeam) -- FIXME test whether extra checks needed for units leaving LOS because they were destroyed
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam)
 	-- If it's an enemy ghost, add to cache. Otherwise don't worry about it
-	if allyTeam ~= myAllyTeamID then
+	if allyTeam ~= myAllyTeamID or unitTeam == gaiaTeamID then
 		return -- not an event for us
 	end
+
+	local unitDefID = spGetUnitDefID(unitID)
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	Spring.Echo(
+		"UnitLeftLos:",
+		"unitID", unitID,
+		"name", GetUnitDisplayName(unitDefID),
+		"team", unitTeam,
+		"allied", GetAllyTeamID(unitTeam) == myAllyTeamID,
+		"pos", unitX, unitY, unitZ
+	)
+
 	if Spring.GetUnitLeavesGhost(unitID) then
 		AddEnemyGhostToCache(unitID)
 	end
