@@ -1,21 +1,12 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 -- mirror eager module loading in api_missions.lua; the trigger files read
 -- GG['MissionAPI'].Modules.ParameterTypes at load time.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-
--- Build the modules and shims and shams for the Mission API. These have a specific load order.
-function RegisterMissionApiModules()
-	_G.GG['MissionAPI'] = _G.GG['MissionAPI'] or {}
-	local modules = _G.GG['MissionAPI'].Modules or {}
-	_G.GG['MissionAPI'].Modules = modules
-	modules.ParameterTypes  = modules.ParameterTypes  or VFS.Include('luarules/mission_api/parameter_types.lua')
-	modules.SeismicContacts = modules.SeismicContacts or VFS.Include('luarules/mission_api/seismic_contacts.lua')
-	modules.DetectionLevels = modules.DetectionLevels or VFS.Include('luarules/mission_api/detection_levels.lua')
-	return modules
-end
 RegisterMissionApiModules()
 
 local triggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()

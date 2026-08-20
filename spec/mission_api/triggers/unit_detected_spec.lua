@@ -1,4 +1,5 @@
 require("spec_helper")
+require("mission_api.spec_helper")
 
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
 -- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
@@ -21,8 +22,8 @@ local onDestroyed = unitDetected.callins.UnitDestroyed
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
--- The allyTeam layout bakes into detection_levels at its load above, from spec_helper's
--- stubs: two playing allyTeams and Gaia. These names address that layout.
+-- The allyTeam layout bakes into detection_levels at its load above, from the mission_api
+-- spec_helper's stubs: two playing allyTeams and Gaia. These names address that layout.
 local SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY = 0, 1, 2
 
 describe("mission_api.triggers.unit_detected", function()

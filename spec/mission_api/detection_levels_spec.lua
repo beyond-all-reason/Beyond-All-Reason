@@ -1,4 +1,5 @@
 require("spec_helper")
+require("mission_api.spec_helper")
 
 -- detection_levels reads the shared SeismicContacts module at load, so it is stubbed first.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
@@ -28,7 +29,7 @@ describe("mission_api.detection_levels", function()
 		Spring.GetUnitLosState = function(_unitID, allyTeamID, _raw)
 			return losStatusByAllyTeam[allyTeamID] or 0
 		end
-		-- Two playing allyTeams and Gaia, which spec_helper also assumes.
+		-- Two playing allyTeams and Gaia, which mission_api's spec_helper also assumes.
 		Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
 		Spring.GetGaiaTeamID = function() return 2 end
 		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
