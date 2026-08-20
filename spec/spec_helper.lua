@@ -65,6 +65,8 @@ _G.Game.envDamageTypes = _G.Game.envDamageTypes or {
 	-- More are added via code for our lua-scripted damages.
 }
 
+_G.CMD = _G.CMD or {}
+_G.GameCMD = _G.GameCMD or {}
 _G.GG = _G.GG or {}
 
 _G.unpack = _G.unpack
