@@ -11,8 +11,6 @@ GG['MissionAPI'].Modules.SeismicContacts = {
 	end,
 }
 
-local DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
-
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
@@ -20,16 +18,11 @@ local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 local UNSEEN, SEISMIC, RADAR, IDENTIFIED, VISION = 1, 2, 4, 8, 16
 
 describe("mission_api.detection_levels", function()
+	local DetectionLevels
 	local losStatusByAllyTeam
-
-	-- Latches live in the module keyed by triggerID, so each test takes a fresh ID rather than
-	-- inheriting the edges left by the test before it.
-	local triggerID
-	local triggerCount = 0
+	local triggerID = 'detected'
 
 	before_each(function()
-		triggerCount = triggerCount + 1
-		triggerID = 'detected-' .. triggerCount
 		losStatusByAllyTeam = {}
 		seismicContacts = {}
 		Spring.GetUnitLosState = function(_unitID, allyTeamID, _raw)
@@ -39,7 +32,9 @@ describe("mission_api.detection_levels", function()
 		Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
 		Spring.GetGaiaTeamID = function() return 2 end
 		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
-		DetectionLevels.ResolveSensorAllyTeams()
+		-- The module resolves the allyTeam layout at load, so each test reloads it after
+		-- the stubs above are in place. The reload also leaves the latch table empty.
+		DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 	end)
 
 	describe("detection levels derive from losStatus", function()

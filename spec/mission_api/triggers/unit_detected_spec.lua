@@ -1,8 +1,8 @@
 require("spec_helper")
 
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
--- reads SeismicContacts at its own load. Inside the handler it reads UnitDefs and Spring's
--- unit and LOS state.
+-- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
+-- reads UnitDefs and Spring's unit and LOS state.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -12,8 +12,7 @@ GG['MissionAPI'].Modules.SeismicContacts = GG['MissionAPI'].Modules.SeismicConta
 
 _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
 
-local DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
-GG['MissionAPI'].Modules.DetectionLevels = DetectionLevels
+GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 
 local unitDetected = VFS.Include('luarules/mission_api/triggers/unit_detected.lua')
 local onDetectionUpdate = unitDetected.callins.DetectionUpdate -- an artificial callin
@@ -22,7 +21,8 @@ local onDestroyed = unitDetected.callins.UnitDestroyed
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
--- Standard allyTeams setup for tests won't work for us. We need a bunch of allies.
+-- The allyTeam layout bakes into detection_levels at its load above, from spec_helper's
+-- stubs: two playing allyTeams and Gaia. These names address that layout.
 local SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY = 0, 1, 2
 
 describe("mission_api.triggers.unit_detected", function()
@@ -40,11 +40,6 @@ describe("mission_api.triggers.unit_detected", function()
 		Spring.GetUnitIsDead = function(_unitID) return false end
 		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
 		Spring.GetUnitTeam = function(_unitID) return 3 end
-
-		Spring.GetAllyTeamList = function() return { SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY } end
-		Spring.GetGaiaTeamID = function() return GAIA_ALLY end
-		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
-		DetectionLevels.ResolveSensorAllyTeams()
 	end)
 
 	local function freshTriggerID()
