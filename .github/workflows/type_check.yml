@@ -58,14 +58,27 @@ jobs:
           # Take the workspace root and analyze the entire tree in the report.
           # The report then has to be filtered to follow a CI rule on changes.
           set +e
-          emmylua_check -c .emmyrc.json -f json --output diagnostics.json .
+          emmylua_check -c .emmyrc.json -f json --output diagnostics.json . 2> emmylua.log
           emmylua_status=$?
           set -e
+          cat emmylua.log >&2
+
+          # Error and exit on missing config. This action is obsolete or broken.
+          if grep -Eq 'Failed to (read|parse) (lua )?config file' emmylua.log; then
+            echo "::error title=Type check ran without its config::emmylua_check could not load .emmyrc.json (missing or unparseable) and analyzed the tree unconfigured, so every finding is garbage. This is a CI defect, not a problem with this PR. Restore .emmyrc.json or fix type_check.yml."
+            exit 1
+          fi
 
           # Error for nonreporting, not for nonzero exit codes, as the failure case.
           # Emmylua exits nonzero for any type errors it finds, which is never none.
           if [ ! -s diagnostics.json ] || ! jq -e . diagnostics.json > /dev/null; then
             echo "emmylua_check produced no readable report (exit $emmylua_status)"
+            exit 1
+          fi
+
+          # The report filter works only on absolute paths under $PWD.
+          if ! jq -e --arg cwd "$PWD/" 'length == 0 or any(.[]; .file | startswith($cwd))' diagnostics.json > /dev/null; then
+            echo "::error title=Type check filter is broken::No path in diagnostics.json starts with $PWD, so the changed-file filter can never match and the check would pass while checking nothing. The emmylua report shape changed; update type_check.yml."
             exit 1
           fi
 
