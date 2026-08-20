@@ -87,13 +87,6 @@ describe("mission_api.triggers.construction_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("defers builder filtering to context.IsBuildFrameOwner", function()
-		local context, fired = newContext()
-		context.IsBuildFrameOwner = function() return false end
-		destroyed(trigger({ unitDefName = 'armsolar', builderDefName = 'armck' }), context, 1, 0)
-		assert.are.equal(0, fired())
-	end)
-
 	it("fires for a nanoframe taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
 		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0)

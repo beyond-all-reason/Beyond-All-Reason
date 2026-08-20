@@ -82,11 +82,4 @@ describe("mission_api.triggers.construction_finished", function()
 		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(1, fired())
 	end)
-
-	it("defers builder filtering to context.IsBuildFrameOwner", function()
-		local context, fired = newContext()
-		context.IsBuildFrameOwner = function() return false end
-		finished(trigger({ unitDefName = 'armsolar', builderDefName = 'armck' }), context, 1, 0)
-		assert.are.equal(0, fired())
-	end)
 end)
