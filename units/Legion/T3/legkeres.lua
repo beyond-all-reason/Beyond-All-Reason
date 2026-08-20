@@ -131,9 +131,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
-					bombers = 50,
 					default = 400,
-					fighters = 50,
 					subs = 150,
 					vtol = 50,
 				},
