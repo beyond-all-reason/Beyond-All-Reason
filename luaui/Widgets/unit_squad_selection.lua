@@ -33,6 +33,7 @@ end
 ---@field rightClickSquadCreate boolean
 ---@field rightClickMovesSquad boolean
 ---@field rightClickMoveRange number
+---@field rightClickMoveControlsReserves boolean
 ---@field ctrlRightClickCreatesSquad boolean
 ---@field ctrlRightClickDragCreatesSquad boolean
 ---@field commandCreatesSquad boolean
@@ -66,6 +67,7 @@ local config = {
 	rightClickSquadCreate = false, -- right-click creates squads; bind a hotkey via `squad_setting toggle rightClickSquadCreate` to flip on demand
 	rightClickMovesSquad = true, -- right-click commands the closest squad
 	rightClickMoveRange = 850, -- max world-distance (elmos) from the cursor for the right-click-move feature to highlight/pick a squad; 0 = unlimited. Also caps the passive closest-squad highlight, even when rightClickMovesSquad is off — left-click select itself has no cap, so a squad farther than this is still selectable, just not previewed
+	rightClickMoveControlsReserves = false, -- when false, the right-click-move feature ignores reserve squads and only picks manual ones; when true it can command reserves too and converts the commanded reserve into a manual squad
 	ctrlRightClickCreatesSquad = false, -- Ctrl+right-click creates a squad (click still passes through, so the engine's move-in-formation runs too which can cause issues)
 	ctrlRightClickDragCreatesSquad = true, -- hold Ctrl then right-click drag past the engine's MouseDragFrontCommandThreshold to create a squad (click still passes through but does nothing by default)
 	commandCreatesSquad = false, -- experimental
@@ -942,6 +944,15 @@ local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFil
 	end
 
 	return bestUnit and unitSquad[bestUnit] or nil, bestUnit
+end
+
+-- Squad-kind filter for the right-click-move pick. Reserves are left alone unless the player opted into commanding them.
+---@return SquadKind?
+local function rightClickMoveSquadKind()
+	if config.rightClickMoveControlsReserves then
+		return nil
+	end
+	return "manual"
 end
 
 -------------------------------------------------------------------------------
@@ -1833,6 +1844,7 @@ function widget:Initialize()
 		"cyclingToNextSquad",
 		"rightClickSquadCreate",
 		"rightClickMovesSquad",
+		"rightClickMoveControlsReserves",
 		"ctrlRightClickCreatesSquad",
 		"ctrlRightClickDragCreatesSquad",
 		"viewselectionDoubleTapMs",
@@ -2011,6 +2023,18 @@ function widget:Update(dt)
 					local saved = spGetSelectedUnits()
 					spSelectUnitArray(units)
 					spGiveOrder(CMD.MOVE, { wx, wy, wz }, opts)
+					-- Commanding a reserve promotes it to a manual squad.
+					if config.rightClickMoveControlsReserves and sq.isReserve then
+						createSquadFromSelection()
+						local promoted = unitSquad[units[1]]
+						if promoted then
+							-- Re-latch the Shift lock so queued follow-up moves keep hitting the same units.
+							if highlightLockedSquad == sq then
+								highlightLockedSquad = promoted
+							end
+							sq = promoted
+						end
+					end
 					if not keepSelection then
 						spSelectUnitArray(saved)
 					end
@@ -2050,9 +2074,9 @@ function widget:Update(dt)
 			local _, activeCmdID = spGetActiveCommand()
 			if config.rightClickMovesSquad and not activeCmdID and (alt or spGetSelectedUnits()[1] == nil) then
 				-- Squad-move engaged: RMB commands the closest squad.
+				local hx, hz = getMouseWorldPos()
 				if not (shift and highlightLockedSquad) then
-					local hx, hz = getMouseWorldPos()
-					highlightLockedSquad = hx and findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq) or nil
+					highlightLockedSquad = hx and findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq, rightClickMoveSquadKind()) or nil
 				end
 				highlightTarget = highlightLockedSquad
 				if shift then
@@ -2060,6 +2084,11 @@ function widget:Update(dt)
 					controlTarget = highlightLockedSquad
 				else
 					highlightLockedSquad = nil
+					-- A reserve the gesture skips is still selectable, so the preview keeps showing
+					-- the closest squad of any kind — same thing the passive highlight shows.
+					if hx and rightClickMoveSquadKind() then
+						highlightTarget = findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq) or highlightTarget
+					end
 				end
 			else
 				-- Passive closest-squad highlight
@@ -2082,10 +2111,15 @@ function widget:Update(dt)
 	-- Animate idle + highlight + control blends for all squads.
 	local step = config.idleColorBlendSeconds > 0 and constrain(dt / config.idleColorBlendSeconds, 0, 1) or 1
 	local hlStep = config.highlightBlendSeconds > 0 and constrain(dt / config.highlightBlendSeconds, 0, 1) or 1
+	-- A highlighted reserve the right-click move won't command only answers half the gestures (select yes, move no), so it previews at half strength.
+	local hlStrength = 1.0
+	if highlightTarget and highlightTarget.isReserve and config.rightClickMovesSquad and not config.rightClickMoveControlsReserves then
+		hlStrength = 0.5
+	end
 	for i = 1, #squads do
 		local s = squads[i]
 		squadIdleBlend[s] = approach(squadIdleBlend[s] or 0, squadIdleState[s] and 1 or 0, step)
-		squadHighlightBlend[s] = approach(squadHighlightBlend[s] or 0, s == highlightTarget and 1 or 0, hlStep)
+		squadHighlightBlend[s] = approach(squadHighlightBlend[s] or 0, s == highlightTarget and hlStrength or 0, hlStep)
 		squadControlBlend[s] = approach(squadControlBlend[s] or 0, s == controlTarget and 1 or 0, hlStep)
 	end
 end
@@ -2267,7 +2301,7 @@ function widget:MousePress(x, y, button)
 					local wx, wz = getMouseWorldPos()
 					if wx then
 						local maxDistSq = config.rightClickMoveRange > 0 and config.rightClickMoveRange * config.rightClickMoveRange or nil
-						sq = findClosestSquad(nil, nil, nil, wx, wz, nil, maxDistSq)
+						sq = findClosestSquad(nil, nil, nil, wx, wz, nil, maxDistSq, rightClickMoveSquadKind())
 					end
 				end
 				-- If the picked squad is exactly the current selection, don't intercept.
