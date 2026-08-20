@@ -16,8 +16,6 @@ describe("mission_api.triggers.production_canceled", function()
 	before_each(function()
 		-- Default: the unit was still under construction (a nanoframe).
 		Spring.GetUnitIsBeingBuilt = function() return true end
-		-- Default: Teams are only allied with themselves. SOME TESTS WIDEN THIS.
-		Spring.AreTeamsAllied = function(teamA, teamB) return teamA == teamB end
 	end)
 
 	local function trigger(parameters)
@@ -105,9 +103,6 @@ describe("mission_api.triggers.production_canceled", function()
 
 	it("does not fire for a buildee given to an allied team (production continues)", function()
 		local context, fired = newContext()
-		Spring.AreTeamsAllied = function(teamA, teamB)
-			return teamA == teamB or (teamA == 0 and teamB == 2) or (teamA == 2 and teamB == 0)
-		end
 		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 2)
 		assert.are.equal(0, fired())
 	end)

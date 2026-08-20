@@ -12,11 +12,6 @@ local constructionFinished = VFS.Include('luarules/mission_api/triggers/construc
 local onUnitFinished = constructionFinished.callins.UnitFinished
 
 describe("mission_api.triggers.construction_finished", function()
-	before_each(function()
-		-- Default: Teams are only allied with themselves. SOME TESTS WIDEN THIS.
-		Spring.AreTeamsAllied = function(teamA, teamB) return teamA == teamB end
-	end)
-
 	local function trigger(parameters)
 		return { parameters = parameters or {}, settings = {} }
 	end
@@ -86,9 +81,6 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("fires when finished on a team allied with teamID (captured onto our side)", function()
 		local context, fired = newContext()
-		Spring.AreTeamsAllied = function(teamA, teamB)
-			return teamA == teamB or (teamA == 0 and teamB == 2) or (teamA == 2 and teamB == 0)
-		end
 		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(1, fired())
 	end)
