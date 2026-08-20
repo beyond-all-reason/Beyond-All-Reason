@@ -10,7 +10,7 @@ local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return false
 	end
-	if parameters.teamID and not Spring.AreTeamsAllied(parameters.teamID, unitTeam) then
+	if parameters.teamID and parameters.teamID ~= unitTeam then
 		return false
 	end
 	if not context.isBuildFrameOwner(unitID, parameters.factoryDefName, parameters.factoryName) then
