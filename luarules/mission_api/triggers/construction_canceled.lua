@@ -10,9 +10,9 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'ConstructionCanceled',
 	parameters = {
-		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',         required = false, type = ParameterTypes.TeamID },
+		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
