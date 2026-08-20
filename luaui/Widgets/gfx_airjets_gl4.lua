@@ -562,9 +562,9 @@ local function Activate(unitID, unitDefID, who, when)
 				color[1], color[2], color[3] = spGetTeamColor(spGetUnitTeam(unitID))
 			end
 			if effectDef.teamcolorDesaturation then
-				color[1] = color[1] + ((1 - color[1])*effectDef.teamcolorDesaturation)
-				color[2] = color[2] + ((1 - color[2])*effectDef.teamcolorDesaturation)
-				color[3] = color[3] + ((1 - color[3])*effectDef.teamcolorDesaturation)
+				color[1] = color[1] + ((1 - color[1]) * effectDef.teamcolorDesaturation)
+				color[2] = color[2] + ((1 - color[2]) * effectDef.teamcolorDesaturation)
+				color[3] = color[3] + ((1 - color[3]) * effectDef.teamcolorDesaturation)
 			end
 		end
 		local effectdata = {
