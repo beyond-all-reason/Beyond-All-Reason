@@ -1,7 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local DAMAGETYPE_FACTORY_CANCEL = Game.envDamageTypes.FactoryCancel
-local DAMAGETYPE_FACTORY_KILLED = Game.envDamageTypes.FactoryKilled
+local DAMAGETYPE_FACTORY_KILLED = Game.envDamageTypes.FactoryKilled -- Kills current buildee, which might be completed. Oy vey.
 
 local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	local parameters = trigger.parameters
