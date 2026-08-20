@@ -89,7 +89,7 @@ local function spawnUnitLoadout(unitLoadout)
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
 		-- adjust for facing of non-square units
-		if Spring.Utilities.IsFacingEW(unit.facing) then
+		if BAR.Utilities.IsFacingEW(unit.facing) then
 			xsize, zsize = zsize, xsize
 		end
 
@@ -116,7 +116,7 @@ for _, unitDef in pairs(UnitDefs) do
 end
 
 local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = Spring.Utilities.FacingToHeading(facing or 0)
+	local heading = BAR.Utilities.FacingToHeading(facing or 0)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 
