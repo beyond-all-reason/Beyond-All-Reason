@@ -16,12 +16,55 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	return false
+	-- UNSYNCED
+	-- Mirror of the synced untargetable state, used to suppress the attack
+	-- cursor when hovering a unit made untargetable by the Unit Targetable
+	-- action (the order itself is refused in synced AllowCommand).
+	local CMD_ATTACK = CMD.ATTACK
+	local CMD_MANUALFIRE = CMD.MANUALFIRE
+	local CMD_MOVE = CMD.MOVE
+
+	local untargetableUnitIDs = {}
+	local untargetableCount = 0
+
+	local function handleUnitTargetableEvent(_, unitID, untargetable)
+		if untargetable then
+			if not untargetableUnitIDs[unitID] then
+				untargetableUnitIDs[unitID] = true
+				untargetableCount = untargetableCount + 1
+			end
+		elseif untargetableUnitIDs[unitID] then
+			untargetableUnitIDs[unitID] = nil
+			untargetableCount = untargetableCount - 1
+		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction('MissionAPI_UnitTargetable', handleUnitTargetableEvent)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction('MissionAPI_UnitTargetable')
+	end
+
+	function gadget:DefaultCommand(type, id, cmd)
+		if
+			untargetableCount > 0
+			and type == 'unit'
+			and untargetableUnitIDs[id]
+			and (cmd == CMD_ATTACK or cmd == CMD_MANUALFIRE)
+		then
+			return CMD_MOVE
+		end
+	end
+
+	return true
 end
 
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
+local untargetableUnitIDs = {}
 local statistics
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
@@ -133,6 +176,12 @@ end
 ----------------------------------------------------------------
 
 function gadget:Initialize()
+	-- Register before the MissionAPI check: RemoveGadget is deferred, and a
+	-- gadget defining AllowCommand without registrations gets auto-registered
+	-- for ALL commands by the gadget handler.
+	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
+	gadgetHandler:RegisterAllowCommand(CMD.MANUALFIRE)
+
 	if not GG['MissionAPI'] then
 		gadgetHandler:RemoveGadget()
 		return
@@ -142,6 +191,7 @@ function gadget:Initialize()
 	callins                 = GG['MissionAPI'].TriggerDefinitions.Callins
 	triggers                = GG['MissionAPI'].Triggers
 	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
+	untargetableUnitIDs     = GG['MissionAPI'].untargetableUnitIDs
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
@@ -242,8 +292,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		statistics.Increment(triggerTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
-	if GG['MissionAPI'].untargetableUnitIDs[unitID] then
-		GG['MissionAPI'].untargetableUnitIDs[unitID] = nil
+	if untargetableUnitIDs[unitID] then
+		GG['MissionAPI'].SetUnitTargetable(unitID, true)
 	end
 
 	untrackUnitID(unitID)
@@ -320,11 +370,23 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-    if GG['MissionAPI'].untargetableUnitIDs[targetID] then
-        return false, defPriority
-    end
+	if untargetableUnitIDs[targetID] then
+		return false, defPriority
+	end
 
-    return true, defPriority
+	return true, defPriority
+end
+
+-- Registered for CMD.ATTACK and CMD.MANUALFIRE (see Initialize). Refuses
+-- unit-targeted orders (single param) on untargetable units; ground and area
+-- attacks stay allowed, as area target selection already goes through
+-- AllowWeaponTarget engine-side.
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdParams[2] == nil and untargetableUnitIDs[cmdParams[1]] then
+		return false
+	end
+
+	return true
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
