@@ -600,6 +600,22 @@ AimWeapon2(heading, pitch)
 	signal SIGNAL_AIM3;
 	set-signal-mask SIGNAL_AIM3;
 	
+	var groundheight;
+	// on land, sink the rocket spawn into the pod so the missile emerges from the tube;
+	// in water, spawn above the pod mouth so it never starts below the waterline
+	groundheight = get GROUND_WATER_HEIGHT(get PIECE_XZ(pelvis));
+	if (groundheight < 0) {
+		move rocketflare1 to y-axis [0] now;
+		move rocketflare2 to y-axis [0] now;
+		move rocketflare1 to z-axis [0] now;
+		move rocketflare2 to z-axis [0] now;
+	} else {
+		move rocketflare1 to y-axis [-20.5] now;
+		move rocketflare2 to y-axis [-20.5] now;
+		move rocketflare1 to z-axis [5.6] now;
+		move rocketflare2 to z-axis [5.6] now;
+	}
+
 	if (!doorOpen){
 		turn rhatch to z-axis <-115> speed <100>;
 		turn lhatch to z-axis <115> speed <100>;
