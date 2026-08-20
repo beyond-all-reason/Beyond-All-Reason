@@ -9753,6 +9753,31 @@ function init()
 			end,
 		},
 
+		-- Synthetic select owning the rightClickMoveControlsReserves boolean.
+		{
+			id = "squad_rightClickMoveControlsReserves",
+			group = "game",
+			category = types.basic,
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves'),
+			type = "select",
+			options = {
+				Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1'),
+				Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2'),
+			},
+			value = (WG['squadselection'] ~= nil and WG['squadselection'].getRightClickMoveControlsReserves ~= nil and WG['squadselection'].getRightClickMoveControlsReserves() and 2) or 1,
+			description = Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr'),
+			onload = function(i)
+				local v = 1
+				if WG['squadselection'] ~= nil and WG['squadselection'].getRightClickMoveControlsReserves ~= nil and WG['squadselection'].getRightClickMoveControlsReserves() then
+					v = 2
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue("Squad Selection", "squadselection", "setRightClickMoveControlsReserves", { 'rightClickMoveControlsReserves' }, value == 2)
+			end,
+		},
+
 		{
 			id = "squad_mergeIntoReserves",
 			group = "game",
