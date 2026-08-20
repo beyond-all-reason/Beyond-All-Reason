@@ -287,3 +287,16 @@ _G.inspect = (function()
 		return _
 	end
 end)()
+
+-- Every spec file is run in a single Lua process via busted, so their globals are
+-- left behind from one file to the next in the order they are run. Clearing GG is
+-- one way to protect against those leaks; guarded against reruns using a _G gate.
+if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
+	local ok, busted = pcall(require, "busted")
+	if ok and type(busted) == "table" and busted.subscribe then
+		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
+		busted.subscribe({ "file", "start" }, function()
+			_G.GG = {}
+		end)
+	end
+end
