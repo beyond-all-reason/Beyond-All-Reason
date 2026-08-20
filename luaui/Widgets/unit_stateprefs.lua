@@ -28,10 +28,6 @@ stateprefs_record 		will save the preferred state for the selected unit/units fo
 stateprefs_clear 		will clears the preferred state for the selected unit/units for the selected command.
 stateprefs_clearunit 	will clears all saved states for the selected unit/units for all commands.
 
-Stockpile: set the unit's stockpile queue to the amount you want, then hold stateprefs_record
-and click the stockpile button. That snapshots the current stock+queued total (the click itself
-is blocked so record/clear key modifiers do not also change the queue).
-
 e.g. 
 bind alt 	stateprefs_clear
 bind ctrl 	stateprefs_record
