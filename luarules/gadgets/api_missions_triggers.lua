@@ -32,7 +32,7 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
-local nanoframeOwners           = {}
+local buildFrameOwners          = {}
 local underConstruction         = {}
 
 
@@ -104,8 +104,8 @@ local function isFeatureInArea(featureID, area)
 end
 
 local function inFactory(buildeeID)
-	local builder = nanoframeOwners[buildeeID]
-	return builder ~= nil and UnitDefs[builder.defID].isFactory == true
+	local builder = buildFrameOwners[buildeeID]
+	return builder and builder.isFactory
 end
 
 ----------------------------------------------------------------
@@ -202,8 +202,8 @@ function gadget:Initialize()
 
 	-- We tell apart factory and constructor ownership via the build owner map.
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
-		return trigger.parameters.builderName
-			or trigger.parameters.builderDefName
+		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
+			or (trigger.parameters.factoryName or trigger.parameters.factoryDefName)
 	end)
 
 	-- ConstructionFinished can't read beingBuilt at UnitFinished (the unit reads finished)
@@ -256,7 +256,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			underConstruction[unitID] = true
 		end
 		if needsBuildOwnerMap and builderID then
-			nanoframeOwners[unitID] = { id = builderID, defID = Spring.GetUnitDefID(builderID) }
+			local builderDefID = Spring.GetUnitDefID(builderID)
+			buildFrameOwners[unitID] = { id = builderID, defID = builderDefID, isFactory = UnitDefs[builderDefID].isFactory }
 		end
 	end
 end
@@ -276,7 +277,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	underConstruction[unitID] = nil
-	nanoframeOwners[unitID] = nil
+	buildFrameOwners[unitID] = nil
 
 	untrackUnitID(unitID)
 end
@@ -301,7 +302,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
 
 	underConstruction[unitID] = nil
-	nanoframeOwners[unitID] = nil
+	buildFrameOwners[unitID] = nil
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end
