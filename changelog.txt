@@ -1,5 +1,13 @@
 # August
 • [Floating AA turrets] Stats made to match their land counterparts
+• [Legion changes]
+	- Alaris weapon switched from gauss to a shotgun with the same range and a 10% higher dps.  Unit should feel more responsive overall with a slightly higher acceleration, turnrate, turret turnrate, and weapon projectile speed.  Unit speed reduced 102->99.  
+	- Helios speed increased 69 -> 75, range reduced 330 -> 320, turnrate reduced 400 -> 370
+	- Satyr can no longer fire vertically.  Energy and buildtime costs increased increase (60m400E 1100 buildtime -> 60m500E 1200 buildtime)
+	- Lance energy cost reduced slightly (3800 -> 3600)
+	- Prometheus friendly fire significantly reduced
+	- Inferno firing pattern changed to sector fire so its shots will have much less vertical spread, range increased 1100 -> 1200
+	- Perdition stockpile time reduced 50s -> 40s 
 
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
