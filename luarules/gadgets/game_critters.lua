@@ -230,7 +230,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitSensorRadius(unitID, "sonar", 0)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 		GiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
-		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
+		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesn't seem to work :S (maybe because they still patrol)
 	end
 end
 
@@ -339,7 +339,7 @@ local function adjustCritters(newAliveCritters)
 			critterBackup[unitID].z = z
 
 			Spring.DestroyUnit(unitID, false, true) -- reclaimed
-			totalCritters = totalCritters + 1 -- DestroyUnit callin substracts 1 here but we want to keep it constant, so re-adding
+			totalCritters = totalCritters + 1 -- DestroyUnit callin subtracts 1 here but we want to keep it constant, so re-adding
 
 			changed = true
 			if aliveCritters <= minCritters then
@@ -510,7 +510,7 @@ end
 
 -- increase/decrease critters according to unitcount
 function gadget:GameFrame(gameFrame)
-	if gameFrame == 1 and addedInitialCritters == nil then -- using gameframe 1 cause at GameStart commanders arent spawn yet
+	if gameFrame == 1 and addedInitialCritters == nil then -- using gameframe 1 cause at GameStart commanders aren't spawn yet
 		addedInitialCritters = true
 		addMapCritters()
 	end

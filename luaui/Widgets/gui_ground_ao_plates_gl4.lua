@@ -52,7 +52,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
 
 	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then
 		return
-	end -- these cant/dont have plates
+	end -- these can't/dont have plates
 
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
@@ -75,7 +75,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
 			q,
 			p,
 			t,
-			s, -- These are our default UV atlas tranformations, note how Y axis is flipped for atlas
+			s, -- These are our default UV atlas transformations, note how Y axis is flipped for atlas
 			0,
 			0,
 			0,

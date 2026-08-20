@@ -821,7 +821,7 @@ function widget:Initialize()
 				0, -- this is needed to keep the lua copy of the vbo the correct size
 			},
 			airjetkey,
-			true, -- update exisiting
+			true, -- update existing
 			nil, -- noupload
 			unitID -- unitID
 		)

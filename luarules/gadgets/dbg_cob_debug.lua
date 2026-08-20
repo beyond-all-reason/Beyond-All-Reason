@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function ResolveLine(unitDefID, line)
 		local cobname = string.sub(UnitDefs[unitDefID].scriptName, 1, -4)
 
-		-- we have to reload and cant cache because the dev might have reloaded the cob script
+		-- we have to reload and can't cache because the dev might have reloaded the cob script
 		local bosfile = VFS.LoadFile(cobname .. "bos")
 
 		local boslines = string.lines(bosfile)

@@ -123,7 +123,7 @@ local RectRound, UiElement, UiButton, elementPadding, uiPadding
 local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
---local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
+--local allowUnready = false	-- not enabled cause unreadying doesn't work, have to do workaround
 
 local numPlayers = BAR.Utilities.GetPlayerCount()
 
@@ -721,7 +721,7 @@ local function drawButton()
 			end
 			blinkButton = (numPlayers / numPlayersReady > 0.75)
 		end
-		-- in draftmode just blink the button if you didnt lock
+		-- in draftmode just blink the button if you didn't lock
 		if (draftMode ~= nil and draftMode ~= "disabled") and not cantPlaceNow and not locked then
 			blinkButton = true
 		end
@@ -1221,7 +1221,7 @@ function widget:DrawScreen()
 						"co"
 					)
 					font:End()
-				end -- and if the player doens't have green box? not tell them anything?
+				end -- and if the player doesn't have green box? not tell them anything?
 			end
 			-- non-UI part
 			if draftMode ~= "fair" then

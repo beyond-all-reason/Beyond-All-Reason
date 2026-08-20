@@ -56,7 +56,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		if by - SpGetGroundHeight(bx, bz) < 5 then
 			x = 0
 			y = 0
-			z = 0 --in particular, don't give any velocity if the transport has placed the unit slightly underground (or wierdness...)
+			z = 0 --in particular, don't give any velocity if the transport has placed the unit slightly underground (or weirdness...)
 		end
 		SpSetUnitVelocity(unitID, x, y, z)
 	else
