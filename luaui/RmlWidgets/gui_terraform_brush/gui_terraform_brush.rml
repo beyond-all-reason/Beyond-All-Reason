@@ -5830,32 +5830,24 @@
 						<div id="btn-ts-reset-slot4" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('slot4')">RESET</div>
 					</div>
 					<div id="section-ts-slot4" class="hidden">
-						<div class="text-base text-light mb-1" style="opacity: 0.7;">A fourth texture on top of base, intermediate and cliff. Pick where it appears:</div>
 						<div class="flex flex-row gap-1 mb-1">
 							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'plateau'" data-event-mousedown="onTsSlot4Mode('plateau')">
 								<div class="tf-btn-text">PLATEAU</div>
-								<div class="tf-s4-hint">by height</div>
 							</div>
 							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'detail'" data-event-mousedown="onTsSlot4Mode('detail')">
-								<div class="tf-btn-text">PAINTED</div>
-								<div class="tf-s4-hint">by brush</div>
+								<div class="tf-btn-text">PAINT</div>
 							</div>
 							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'interm2'" data-event-mousedown="onTsSlot4Mode('interm2')">
-								<div class="tf-btn-text">SCREE MIX</div>
-								<div class="tf-s4-hint">in intermediate</div>
+								<div class="tf-btn-text">SCREE</div>
 							</div>
-						</div>
-						<div class="flex flex-row gap-1 mb-1">
 							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'cliff2'" data-event-mousedown="onTsSlot4Mode('cliff2')">
 								<div class="tf-btn-text">STRATA</div>
-								<div class="tf-s4-hint">in cliffs</div>
 							</div>
 							<div class="tf-mode-btn tf-s4-btn" data-class-active="tsSlot4Mode == 'off'" data-event-mousedown="onTsSlot4Mode('off')">
 								<div class="tf-btn-text">OFF</div>
-								<div class="tf-s4-hint">saves perf</div>
 							</div>
 						</div>
-						<div id="ts-slot4-desc" class="text-base text-light mb-1" style="opacity: 0.7;">Flat ground above the height slider becomes this layer, like a mountain cap.</div>
+						<div id="ts-slot4-desc" class="tf-s4-desc mb-1">Flat ground above the height slider becomes this layer, like a mountain cap.</div>
 						<div id="ts-row-slot4-mat" class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Texture</div>
 							<div class="tf-mode-btn tf-ts-row-btn tf-s4-arrow" data-event-mousedown="onTsSlot4Mat('prev')">
