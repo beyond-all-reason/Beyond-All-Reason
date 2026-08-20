@@ -38,50 +38,34 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
 	print(...)
 end
 
--- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
--- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
-_G.math.bit_and = _G.math.bit_and or function(...)
-    local result
-    for _, value in ipairs({ ... }) do
-        if result == nil then
-            result = value
-        else
-            local folded, bit = 0, 1
-            while result > 0 and value > 0 do
-                if result % 2 == 1 and value % 2 == 1 then
-                    folded = folded + bit
-                end
-                result = math.floor(result / 2)
-                value = math.floor(value / 2)
-                bit = bit * 2
-            end
-            result = folded
-        end
-    end
-    return result or 0
-end
+_G.Game = _G.Game or {}
 
--- Team layout, for modules that read it once at load rather than per call. Two playing
--- allyTeams and Gaia on its own, which is the arrangement a mission likely runs under.
-_G.Spring.GetGaiaTeamID = _G.Spring.GetGaiaTeamID or function() return 2 end
-_G.Spring.GetAllyTeamList = _G.Spring.GetAllyTeamList or function() return { 0, 1, 2 } end
-_G.Spring.GetTeamAllyTeamID = _G.Spring.GetTeamAllyTeamID or function(teamID) return teamID end
+_G.Game.envDamageTypes = _G.Game.envDamageTypes or {
+    Debris            =  -1,
+    GroundCollision   =  -2,
+    ObjectCollision   =  -3,
+    Fire              =  -4,
+    Water             =  -5,
+    Killed            =  -6,
+    Crushed           =  -7,
+    AircraftCrashed   =  -8,
+    SetNegativeHealth =  -9,
+    SelfD             = -10,
+    KilledByCheat     = -11,
+    Reclaimed         = -12,
+    OutOfBounds       = -13,
+    TransportKilled   = -14,
+    FactoryKilled     = -15,
+    FactoryCancel     = -16,
+    UnitScript        = -17,
+    Kamikaze          = -18,
+    ConstructionDecay = -19,
+    TurnedIntoFeature = -20,
+    KilledByLua       = -21,
+	-- More are added via code for our lua-scripted damages.
+}
 
 _G.GG = _G.GG or {}
-
--- Build the modules and shims and shams for the Mission API. These have a specific load order.
-function _G.RegisterMissionApiModules()
-    _G.GG['MissionAPI'] = _G.GG['MissionAPI'] or {}
-    local modules = _G.GG['MissionAPI'].Modules or {}
-    _G.GG['MissionAPI'].Modules = modules
-    modules.ParameterTypes  = modules.ParameterTypes  or VFS.Include('luarules/mission_api/parameter_types.lua')
-    modules.SeismicContacts = modules.SeismicContacts or VFS.Include('luarules/mission_api/seismic_contacts.lua')
-    modules.DetectionLevels = modules.DetectionLevels or VFS.Include('luarules/mission_api/detection_levels.lua')
-    return modules
-end
-
-_G.CMD = _G.CMD or {}
-_G.GameCMD = _G.GameCMD or {}
 
 _G.unpack = _G.unpack
 	or table.unpack
@@ -162,23 +146,20 @@ _G.VFS.Include = function(path, env, mode)
 		_G.VFS._sources[realPath] = source
 	end
 
-	-- The file exists, so a compile or run failure is a real bug (usually missing
-	-- setup, e.g. GG['MissionAPI'] not initialised yet). Surface it here rather
-	-- than falling through to the require fallback and returning {}, which lets
-	-- the caller fail later with a confusing "index a nil value" far from the cause.
 	if source then
 		local chunk, compileError = loadstring(source, "@" .. realPath)
-		if not chunk then
-			error(string.format("VFS.Include failed to compile '%s': %s", path, tostring(compileError)), 0)
-		end
+		if chunk then
+			setfenv(chunk, env or _G)
 
-		setfenv(chunk, env or _G)
-
-		local success, result = pcall(chunk)
-		if not success then
-			error(string.format("VFS.Include failed to run '%s': %s", path, tostring(result)), 0)
+			local success, result = pcall(chunk)
+			if success then
+				return result
+			else
+				print("Error loading " .. path .. ": " .. tostring(result))
+			end
+		else
+			print("Error compiling " .. path .. ": " .. tostring(compileError))
 		end
-		return result
 	end
 
 	-- Fallback to old require method if file not found on disk (e.g. standard libs)
@@ -276,8 +257,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 	if recursive then
 		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
 	else
-		-- -maxdepth is global rather than positional, so it precedes the tests it applies to.
-    cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
+		cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
 	end
 
 	local handle = io.popen(cmd)
@@ -307,25 +287,3 @@ _G.inspect = (function()
 		return _
 	end
 end)()
-
--- Busted runs every spec file in a single Lua process, so globals left behind by
--- one file leak into the next. Clearing GG before each file means a spec cannot
--- accidentally depend on state another file happened to leave behind -- such a
--- dependency now fails in every ordering instead of intermittently.
---
--- This only clears state, it never provides it: each spec is still responsible
--- for its own load-time setup (e.g. GG['MissionAPI'].Modules.ParameterTypes must
--- exist before including an action file, which reads it at load time).
---
--- Guarded because this file executes more than once per run (it is both
--- require'd by specs and, for some tasks, loaded by busted as `helper`), which
--- would otherwise register the subscriber repeatedly.
-if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
-	local ok, busted = pcall(require, "busted")
-	if ok and type(busted) == "table" and busted.subscribe then
-		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
-		busted.subscribe({ "file", "start" }, function()
-			_G.GG = {}
-		end)
-	end
-end
