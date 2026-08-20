@@ -161,6 +161,32 @@ local triggers = {
 		actions = { 'messageConstructionCanceledSolar' },
 	},
 
+	spawnAssistDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 30,
+		},
+		actions = { 'spawnPlacer', 'orderPlacerBuild' },
+	},
+
+	joinAssistDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 36, -- The build is in progress, so an identical build-order becomes a build-assist.
+		},
+		actions = { 'spawnAssister', 'orderAssisterBuild' },
+	},
+
+	constructionStartedByAssister = {
+		type = triggerTypes.ConstructionStarted,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'assister',
+		},
+		actions = { 'messageConstructionStartedByAssister' },
+	},
+
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
@@ -344,6 +370,13 @@ local actions = {
 		},
 	},
 
+	messageConstructionStartedByAssister = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The assister joined the placer's solar as a build-assist!",
+		},
+	},
+
 	spawnCanceler = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -377,6 +410,45 @@ local actions = {
 		type = actionTypes.ReclaimUnits,
 		parameters = {
 			unitName = 'doomedSolar',
+		},
+	},
+
+	spawnPlacer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2520, z = 2480, team = 0, unitName = 'placer' },
+			},
+		},
+	},
+
+	orderPlacerBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'placer',
+			orders = {
+				{ 'armsolar', { 2600, 0, 2480 } },
+			},
+		},
+	},
+
+	-- The same order at the same place, so the placer's build frame takes it as a build-assist:
+	spawnAssister = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2680, z = 2480, team = 0, unitName = 'assister' },
+			},
+		},
+	},
+
+	orderAssisterBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'assister',
+			orders = {
+				{ 'armsolar', { 2600, 0, 2480 } },
+			},
 		},
 	},
 
