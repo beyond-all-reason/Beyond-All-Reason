@@ -506,7 +506,7 @@
 			},
 			{
 				"prefix": "factoryguard ",
-				"label": "actions.factory.guard",
+				"label": "commands.factoryguard",
 				"members": [
 					"0",
 					"1"

@@ -186,7 +186,6 @@
 		},
 		"factory": {
 			"queueMode": "Toggle factory repeat mode",
-			"guard": "Factory guard mode %{n}",
 			"loadPreset": "Load factory preset %{n}",
 			"savePreset": "Save factory preset %{n}",
 			"showPresets": "Show factory presets"

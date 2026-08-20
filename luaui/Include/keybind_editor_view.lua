@@ -207,8 +207,27 @@ end
 -- Catalog and the row list
 ----------------------------------------------------------------
 
+-- Whether a label wants the prefix argument placed inside it. Probed rather than declared,
+-- because a label shared with the command card names the thing rather than a numbered
+-- variant of it, and then the argument goes on the end instead.
+local labelPlacesArg = {}
+local function prefixRowLabel(key, arg, row, col)
+	local places = labelPlacesArg[key]
+	if places == nil then
+		places = Spring.I18N(key, { n = "", row = "", col = "" }):find("", 1, true) ~= nil
+		labelPlacesArg[key] = places
+	end
+
+	if places then
+		return Spring.I18N(key, { n = arg, row = row, col = col })
+	end
+
+	return Spring.I18N(key) .. " " .. arg
+end
+
 -- Resolve i18n labels once (search rebuilds rows per keystroke); redone on refresh.
 local function buildResolvedCatalog()
+	labelPlacesArg = {}
 	resolvedCatalog = {}
 	catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 	for _, group in ipairs(catalog) do
@@ -410,7 +429,7 @@ local function rebuildRows()
 						end
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
-					local label = item.label and Spring.I18N(item.label, { n = arg, row = row, col = col }) or action
+					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
 					if query == "" or categoryMatch or action:lower():find(query, 1, true) or label:lower():find(query, 1, true) then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
