@@ -348,14 +348,13 @@ end
 
 local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 	local valueSet = parameterTypes.Enums[enumSetName]
-	local emptyMessage = enumSetName .. " table must not be empty"
 	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
 
 	return function(values)
 		local luaTypeResult = validators[Types.Table](values)
 		if luaTypeResult then return luaTypeResult end
 		if #values == 0 then
-			return { { message = emptyMessage } }
+			return -- Empty table matches the empty/null set and is permissive.
 		end
 
 		local result = {}
@@ -367,25 +366,8 @@ local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 		if #result > 0 then return result end
 	end
 end
-
 for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
 	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
-end
-
-validators[Types.SensorTypes] = function(sensorTypes)
-	local luaTypeResult = validators[Types.Table](sensorTypes)
-	if luaTypeResult then return luaTypeResult end
-	if #sensorTypes == 0 then
-		return { { message = "Sensor types table must not be empty" } }
-	end
-
-	local result = {}
-	for i, sensorType in ipairs(sensorTypes) do
-		if not parameterTypeEnums[Types.SensorTypes][sensorType] then
-			result[#result + 1] = { message = "Invalid sensor type [" .. i .. "]: '" .. tostring(sensorType) .. "'. Must be one of: 'vision', 'radar', 'seismic'" }
-		end
-	end
-	if #result > 0 then return result end
 end
 
 --- String Validators:
