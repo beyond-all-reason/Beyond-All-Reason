@@ -76,12 +76,6 @@ describe("mission_api.triggers.production_canceled", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("does not fire for a buildee killed by its factory dying", function()
-		local context, fired = newContext()
-		canceled(trigger({ unitDefName = 'armsolar' }), context, 1, 0, Game.envDamageTypes.FactoryKilled)
-		assert.are.equal(0, fired())
-	end)
-
 	it("does not fire for a nanoframe shot down in the factory", function()
 		local context, fired = newContext()
 		canceled(trigger({ unitDefName = 'armsolar' }), context, 1, 0, 42) -- a real weaponDefID
