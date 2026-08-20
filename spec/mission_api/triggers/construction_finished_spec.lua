@@ -27,7 +27,7 @@ describe("mission_api.triggers.construction_finished", function()
 			ActivateTrigger = function() fired = fired + 1 end,
 			DoesUnitHaveName = function() return true end,
 			IsBuildFrameOwner = function() return true end,
-			WasUnderConstruction = function() return true end,
+			WasUnderConstruction = setmetatable({}, {__index = function() return true end}),
 		}
 		return context, function() return fired end
 	end
@@ -73,7 +73,7 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("does not fire for a unit that was never under construction (spawned)", function()
 		local context, fired = newContext()
-		context.WasUnderConstruction = function() return false end
+		context.WasUnderConstruction = {} -- gives nil
 		finished(trigger({ unitDefName = 'armsolar' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
