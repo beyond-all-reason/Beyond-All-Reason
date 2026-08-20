@@ -9,7 +9,7 @@
 -- bind, the three unbinds, keyload and fakemeta. Everything after migration goes through
 -- Spring.GetKeyBindings instead.
 
-local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local Json = Json or VFS.Include("common/luaUtilities/json.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
@@ -141,16 +141,22 @@ local function toBindFile(profile)
 	-- hotkey loader down with it.
 	local binds, dropped = {}, 0
 	for _, b in ipairs(profile.binds or {}) do
-		if type(b) == "table" and type(b.keyset) == "string" and type(b.action) == "string"
-			and b.keyset ~= "" and b.action ~= "" then
+		if
+			type(b) == "table"
+			and type(b.keyset) == "string"
+			and type(b.action) == "string"
+			and b.keyset ~= ""
+			and b.action ~= ""
+		then
 			binds[#binds + 1] = b
 		else
 			dropped = dropped + 1
 		end
 	end
 	if dropped > 0 then
-		Spring.Echo("[keybind_profiles] skipped " .. dropped .. " malformed binding(s) in profile "
-			.. tostring(profile.name))
+		Spring.Echo(
+			"[keybind_profiles] skipped " .. dropped .. " malformed binding(s) in profile " .. tostring(profile.name)
+		)
 	end
 
 	for _, b in ipairs(byPriority(binds)) do
@@ -196,15 +202,21 @@ local function readBindFile(text, depth)
 			binds = {}
 		elseif line:match("^%s*unbindaction%s+%S") then
 			local command = line:match("^%s*unbindaction%s+(%S+)")
-			drop(function(b) return b.action:match("^%S+") == command end)
+			drop(function(b)
+				return b.action:match("^%S+") == command
+			end)
 		elseif line:match("^%s*unbindkeyset%s+%S") then
 			local target = line:match("^%s*unbindkeyset%s+(%S+)"):lower()
-			drop(function(b) return b.keyset:lower() == target end)
+			drop(function(b)
+				return b.keyset:lower() == target
+			end)
 		elseif line:match("^%s*unbind%s+%S") then
 			local target, command = line:match("^%s*unbind%s+(%S+)%s+(%S+)")
 			if target then
 				target = target:lower()
-				drop(function(b) return b.keyset:lower() == target and b.action:match("^%S+") == command end)
+				drop(function(b)
+					return b.keyset:lower() == target and b.action:match("^%S+") == command
+				end)
 			end
 		else
 			-- A player's file can pull in others the same way the shipped presets did, and
@@ -217,8 +229,11 @@ local function readBindFile(text, depth)
 						binds[#binds + 1] = b
 					end
 				else
-					Spring.Echo("[keybind_profiles] Error: keyload could not read " .. included
-						.. "; any bindings it held are missing from the migrated profile")
+					Spring.Echo(
+						"[keybind_profiles] Error: keyload could not read "
+							.. included
+							.. "; any bindings it held are missing from the migrated profile"
+					)
 				end
 			end
 		end
@@ -366,8 +381,11 @@ local function backupActiveFile()
 
 	local file = io.open(BACKUP_FILE, "w")
 	if not file then
-		Spring.Echo("[keybind_profiles] Error: could not write " .. BACKUP_FILE
-			.. "; continuing without a copy of the original keymap")
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write "
+				.. BACKUP_FILE
+				.. "; continuing without a copy of the original keymap"
+		)
 
 		return
 	end
@@ -521,8 +539,13 @@ function M.adoptEditedKeymap()
 	if not M.save() then
 		table.remove(store.profiles)
 		store.active = previous
-		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
-			.. "; the edited " .. ACTIVE_FILE .. " was left alone rather than kept as a profile")
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write "
+				.. PROFILES_PATH
+				.. "; the edited "
+				.. ACTIVE_FILE
+				.. " was left alone rather than kept as a profile"
+		)
 
 		return nil
 	end
@@ -538,8 +561,13 @@ function M.create(name, binds, fakeMeta)
 	name = M.uniqueName(name)
 	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMeta }
 	if not M.save() then
-		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
-			.. "; profile " .. name .. " will be gone next launch")
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write "
+				.. PROFILES_PATH
+				.. "; profile "
+				.. name
+				.. " will be gone next launch"
+		)
 	end
 
 	return name
@@ -559,8 +587,13 @@ function M.rename(oldName, newName)
 		store.active = newName
 	end
 	if not M.save() then
-		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
-			.. "; the rename to " .. newName .. " will be gone next launch")
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write "
+				.. PROFILES_PATH
+				.. "; the rename to "
+				.. newName
+				.. " will be gone next launch"
+		)
 	end
 
 	return newName

@@ -12,14 +12,13 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 -- Shape and rules are documented in common/configs/keybinds.README.md; this is the
 -- contract Chobby and the lobby read too, so it is data rather than Lua.
-local catalog = keybindConfig.load('common/configs/keybind_catalog.json') or {}
+local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
 local text = VFS.Include("luaui/Include/keybind_text.lua")
-
 
 local view = {}
 
@@ -199,8 +198,12 @@ local function maxScroll()
 end
 
 local function clampScroll()
-	if scroll < 0 then scroll = 0 end
-	if scroll > maxScroll() then scroll = maxScroll() end
+	if scroll < 0 then
+		scroll = 0
+	end
+	if scroll > maxScroll() then
+		scroll = maxScroll()
+	end
 end
 
 ----------------------------------------------------------------
@@ -235,15 +238,20 @@ local function buildResolvedCatalog()
 			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
 		else
 			local title = Spring.I18N(group.category)
-			local g = { category = group.category, layout = group.layout, title = title,
-				titleLower = title:lower(), items = {} }
+			local g = {
+				category = group.category,
+				layout = group.layout,
+				title = title,
+				titleLower = title:lower(),
+				items = {},
+			}
 			for _, item in ipairs(group.items) do
 				if item.prefix then
 					if item.alwaysModifier == "any" then
 						catalogAnyPrefixes[#catalogAnyPrefixes + 1] = item.prefix
 					end
-					g.items[#g.items + 1] = { prefix = item.prefix, label = item.label,
-						unit = item.unit, members = item.members }
+					g.items[#g.items + 1] =
+						{ prefix = item.prefix, label = item.label, unit = item.unit, members = item.members }
 				else
 					if item.action then
 						if item.alwaysModifier == "any" then
@@ -291,15 +299,15 @@ local function buildResolvedCatalog()
 		end
 	end
 
-	L.other = Spring.I18N('categories.other')
+	L.other = Spring.I18N("categories.other")
 	L.otherLower = L.other:lower()
-	L.title = Spring.I18N('ui.keybinds.title')
-	L.allCategories = Spring.I18N('ui.keybinds.editor.allCategories')
-	L.gridNextPage = Spring.I18N('actions.gridMenu.nextPage')
+	L.title = Spring.I18N("ui.keybinds.title")
+	L.allCategories = Spring.I18N("ui.keybinds.editor.allCategories")
+	L.gridNextPage = Spring.I18N("actions.gridMenu.nextPage")
 	-- gui_gridmenu hardcodes both the caption and the key on this button, so it is not
 	-- bindable and there is no i18n key to read.
 	-- Shared with gui_gridmenu, which draws the button this mirrors.
-	L.gridBack = Spring.I18N('ui.buildMenu.back')
+	L.gridBack = Spring.I18N("ui.buildMenu.back")
 
 	categories = { { label = L.allCategories } }
 	otherCategoryKey = generatedOtherKey
@@ -320,23 +328,23 @@ local function buildResolvedCatalog()
 	if otherCategoryKey == generatedOtherKey then
 		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
 	end
-	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
-	L.newProfile = Spring.I18N('ui.keybinds.editor.newProfile')
-	L.duplicate = Spring.I18N('ui.keybinds.editor.duplicate')
-	L.edit = Spring.I18N('ui.keybinds.editor.edit')
-	L.editTitle = Spring.I18N('ui.keybinds.editor.editTitle')
-	L.delete = Spring.I18N('ui.keybinds.editor.delete')
-	L.duplicateTitle = Spring.I18N('ui.keybinds.editor.duplicateTitle')
-	L.save = Spring.I18N('ui.keybinds.editor.save')
-	L.reset = Spring.I18N('ui.keybinds.editor.reset')
-	L.resetConfirm = Spring.I18N('ui.keybinds.editor.resetConfirm')
-	L.saveTitle = Spring.I18N('ui.keybinds.editor.saveTitle')
-	L.discard = Spring.I18N('ui.keybinds.editor.discard')
-	L.unsavedTitle = Spring.I18N('ui.keybinds.editor.unsavedTitle')
-	L.unsavedMessage = Spring.I18N('ui.keybinds.editor.unsavedMessage')
-	L.applyFailedTitle = Spring.I18N('ui.keybinds.editor.applyFailedTitle')
-	L.accept = Spring.I18N('ui.keybinds.editor.accept')
-	L.cancel = Spring.I18N('ui.keybinds.editor.cancel')
+	L.pressKey = Spring.I18N("ui.keybinds.editor.pressKey")
+	L.newProfile = Spring.I18N("ui.keybinds.editor.newProfile")
+	L.duplicate = Spring.I18N("ui.keybinds.editor.duplicate")
+	L.edit = Spring.I18N("ui.keybinds.editor.edit")
+	L.editTitle = Spring.I18N("ui.keybinds.editor.editTitle")
+	L.delete = Spring.I18N("ui.keybinds.editor.delete")
+	L.duplicateTitle = Spring.I18N("ui.keybinds.editor.duplicateTitle")
+	L.save = Spring.I18N("ui.keybinds.editor.save")
+	L.reset = Spring.I18N("ui.keybinds.editor.reset")
+	L.resetConfirm = Spring.I18N("ui.keybinds.editor.resetConfirm")
+	L.saveTitle = Spring.I18N("ui.keybinds.editor.saveTitle")
+	L.discard = Spring.I18N("ui.keybinds.editor.discard")
+	L.unsavedTitle = Spring.I18N("ui.keybinds.editor.unsavedTitle")
+	L.unsavedMessage = Spring.I18N("ui.keybinds.editor.unsavedMessage")
+	L.applyFailedTitle = Spring.I18N("ui.keybinds.editor.applyFailedTitle")
+	L.accept = Spring.I18N("ui.keybinds.editor.accept")
+	L.cancel = Spring.I18N("ui.keybinds.editor.cancel")
 end
 
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
@@ -425,12 +433,19 @@ local function rebuildRows()
 							-- UnitDefNames, but their names live in the units i18n regardless.
 							local key = "units.names." .. arg
 							local name = Spring.I18N(key)
-							if name ~= key then arg = name end
+							if name ~= key then
+								arg = name
+							end
 						end
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
-					if query == "" or categoryMatch or action:lower():find(query, 1, true) or label:lower():find(query, 1, true) then
+					if
+						query == ""
+						or categoryMatch
+						or action:lower():find(query, 1, true)
+						or label:lower():find(query, 1, true)
+					then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
 				end
@@ -440,8 +455,12 @@ local function rebuildRows()
 				if item.action then
 					catalogActions[item.action] = true
 				end
-				if query == "" or categoryMatch or item.labelLower:find(query, 1, true)
-					or (item.actionLower and item.actionLower:find(query, 1, true)) then
+				if
+					query == ""
+					or categoryMatch
+					or item.labelLower:find(query, 1, true)
+					or (item.actionLower and item.actionLower:find(query, 1, true))
+				then
 					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 				end
 			end
@@ -581,8 +600,8 @@ local function applyActiveProfile(name, fromName)
 		menuToggle(wantsGridMenu(name))
 	end
 
-	if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-		WG['bar_hotkeys'].reloadBindings()
+	if WG["bar_hotkeys"] and WG["bar_hotkeys"].reloadBindings then
+		WG["bar_hotkeys"].reloadBindings()
 	else
 		view.refresh()
 	end
@@ -663,8 +682,7 @@ end
 
 -- Confirmation path; only a dialog with a name field has text to read.
 local function acceptDialog()
-	local name = dialog and not dialog.message
-		and nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "") or ""
+	local name = dialog and not dialog.message and nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "") or ""
 	local d = closeDialog()
 	if not d then
 		return
@@ -672,7 +690,9 @@ local function acceptDialog()
 
 	-- An empty name would make the profile unselectable, so treat it as a cancel.
 	if not d.message and name == "" then
-		if d.cancel then d.cancel() end
+		if d.cancel then
+			d.cancel()
+		end
 		return
 	end
 
@@ -769,11 +789,16 @@ local function guardDirty(proceed, onCancel)
 		message = L.unsavedMessage,
 		acceptLabel = L.save,
 		save = true,
-		accept = function() startSave(proceed, onCancel) end,
-		middle = { label = L.discard, action = function()
-			discardStaged()
-			proceed()
-		end },
+		accept = function()
+			startSave(proceed, onCancel)
+		end,
+		middle = {
+			label = L.discard,
+			action = function()
+				discardStaged()
+				proceed()
+			end,
+		},
 		cancel = onCancel,
 	})
 
@@ -830,25 +855,29 @@ local function startEdit()
 			profiles.rename(name, newName)
 			refreshPicker()
 		end,
-		middle = { label = L.delete, danger = true, action = function()
-			openDialog({
-				title = L.delete,
-				message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
-				acceptLabel = L.delete,
-				danger = true,
-				accept = function()
-					-- Re-seeded rather than just unflagged: clearing the flag alone would
-					-- leave the deleted profile's edits on screen with Save greyed out.
-					discardStaged()
-					profiles.delete(name)
+		middle = {
+			label = L.delete,
+			danger = true,
+			action = function()
+				openDialog({
+					title = L.delete,
+					message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
+					acceptLabel = L.delete,
+					danger = true,
+					accept = function()
+						-- Re-seeded rather than just unflagged: clearing the flag alone would
+						-- leave the deleted profile's edits on screen with Save greyed out.
+						discardStaged()
+						profiles.delete(name)
 
-					-- Whatever the store fell back to has to be made live; the deleted profile
-					-- is still what the engine has loaded. Selected rather than committed: the
-					-- staged keymap belongs to the profile just deleted.
-					selectProfile(profiles.activeName(), name)
-				end,
-			})
-		end },
+						-- Whatever the store fell back to has to be made live; the deleted profile
+						-- is still what the engine has loaded. Selected rather than committed: the
+						-- staged keymap belongs to the profile just deleted.
+						selectProfile(profiles.activeName(), name)
+					end,
+				})
+			end,
+		},
 	})
 end
 
@@ -862,7 +891,7 @@ local function ensureControls()
 		return
 	end
 
-	searchBox = Editbox.new({ placeholder = Spring.I18N('ui.keybinds.editor.search'), onChange = rebuildRows })
+	searchBox = Editbox.new({ placeholder = Spring.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
 	nameBox = Editbox.new({ maxChars = 40 })
 end
@@ -985,7 +1014,7 @@ end
 
 -- Picks up the font and the FlowUI entry points, which do not exist at include time.
 function view.init()
-	font = WG['fonts'].getFont()
+	font = WG["fonts"].getFont()
 	RectRound = WG.FlowUI.Draw.RectRound
 	Scroller = WG.FlowUI.Draw.Scroller
 	UiElement = WG.FlowUI.Draw.Element
@@ -1036,16 +1065,20 @@ end
 
 -- Panel closing: drop focus, tooltips and any open modal.
 function view.blur()
-	if WG['tooltip'] then
+	if WG["tooltip"] then
 		for _, b in ipairs(headerButtons) do
-			WG['tooltip'].RemoveTooltip('keybind_' .. b.id)
+			WG["tooltip"].RemoveTooltip("keybind_" .. b.id)
 		end
 	end
 	if searchBox then
 		searchBox:blur()
 	end
-	if presetDropdown then presetDropdown:close() end
-	if nameBox then nameBox:blur() end
+	if presetDropdown then
+		presetDropdown:close()
+	end
+	if nameBox then
+		nameBox:blur()
+	end
 	capturing = nil
 
 	-- Through cancel rather than dropped: a live modal is holding a rollback, and the picker
@@ -1425,9 +1458,15 @@ local function modPrefix()
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	local prefix = ""
-	if alt then prefix = prefix .. "Alt+" end
-	if ctrl then prefix = prefix .. "Ctrl+" end
-	if meta then prefix = prefix .. "Meta+" end
+	if alt then
+		prefix = prefix .. "Alt+"
+	end
+	if ctrl then
+		prefix = prefix .. "Ctrl+"
+	end
+	if meta then
+		prefix = prefix .. "Meta+"
+	end
 	-- A paired action answers held or not held, so Shift is not a modifier the player picks
 	-- for it: holding it must read as the bare key and get its partner written behind.
 	if shift and not (capturing and capturing.pair) then
@@ -1464,7 +1503,6 @@ local function chainRaw()
 
 	return table.concat(parts, ",")
 end
-
 
 ----------------------------------------------------------------
 -- Chip layout and text batching
@@ -1623,8 +1661,13 @@ local function flushText()
 	font:Begin()
 	for i = 0, pendingCount - 1 do
 		local at = i * 5
-		font:Print(pendingText[at + 1], pendingText[at + 2], pendingText[at + 3],
-			pendingText[at + 4], pendingText[at + 5])
+		font:Print(
+			pendingText[at + 1],
+			pendingText[at + 2],
+			pendingText[at + 3],
+			pendingText[at + 4],
+			pendingText[at + 5]
+		)
 	end
 	font:End()
 
@@ -1685,8 +1728,7 @@ local function gridGeometry()
 	local stripY = top - blockH
 	local gridBottom = stripY + strip + gap
 
-	return x1, x1 + blockW + blockGap, gridBottom, cell, strip, gap, stripY,
-		gridBottom + cell * gridRows + gap, headH
+	return x1, x1 + blockW + blockGap, gridBottom, cell, strip, gap, stripY, gridBottom + cell * gridRows + gap, headH
 end
 
 -- Cell rect for a grid position. Row 1 is the bottom row, so it is laid out upward.
@@ -1700,13 +1742,11 @@ end
 local function drawButtonFace(r, base)
 	local cs = floor(4 * scale)
 	RectRound(r[1], r[2], r[3], r[4], cs, 1, 1, 1, 1, base, base)
-	RectRound(r[1], r[2], r[3], (r[2] + r[4]) * 0.5, cs, 0, 0, 1, 1,
-		sheenTop, sheenNone)
+	RectRound(r[1], r[2], r[3], (r[2] + r[4]) * 0.5, cs, 0, 0, 1, 1, sheenTop, sheenNone)
 end
 
 local function drawSidebar(mx, my, fs, pad)
-	queueText(colorText .. L.title, area.x1 + pad, area.y2 - floor(17 * scale),
-		floor(rowHeight * 0.85), "ov")
+	queueText(colorText .. L.title, area.x1 + pad, area.y2 - floor(17 * scale), floor(rowHeight * 0.85), "ov")
 
 	for i, c in ipairs(categories) do
 		local x1, y1, x2, y2 = categoryRect(i)
@@ -1718,8 +1758,13 @@ local function drawSidebar(mx, my, fs, pad)
 				RectRound(x1, y1, x2, y2, floor(3 * scale), 1, 1, 1, 1, rowWash, rowWash)
 			end
 			-- Falls back when the catalog was rebuilt since the last layout pass.
-			queueText((selected and colorAction or colorDim) .. (c.fitted or c.label),
-				x1 + pad, (y1 + y2) * 0.5, fs, "ov")
+			queueText(
+				(selected and colorAction or colorDim) .. (c.fitted or c.label),
+				x1 + pad,
+				(y1 + y2) * 0.5,
+				fs,
+				"ov"
+			)
 		end
 	end
 end
@@ -1734,8 +1779,13 @@ local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, cs, mx, my, dim
 	-- Key is right aligned and gets only the width it needs, so the label keeps the rest
 	-- and stays readable.
 	local keyW = floor(font:GetTextWidth(key) * fs)
-	queueText((dim and colorDim or colorAction) .. text.fit(font, label, (x2 - x1) - keyW - pad * 5, fs),
-		x1 + pad * 2, (y1 + y2) * 0.5, fs, "ov")
+	queueText(
+		(dim and colorDim or colorAction) .. text.fit(font, label, (x2 - x1) - keyW - pad * 5, fs),
+		x1 + pad * 2,
+		(y1 + y2) * 0.5,
+		fs,
+		"ov"
+	)
 	queueText((dim and colorDim or colorKey) .. key, x2 - pad * 2, (y1 + y2) * 0.5, fs, "rov")
 end
 
@@ -1760,8 +1810,9 @@ local function gridCycleRect(x1, bsize)
 	local pad = floor(3 * scale)
 	-- Inset to match the cells below, which sit a pad in from the block edge.
 	local cx1 = x1 + pad
-	local need = floor((font:GetTextWidth(gridGroup.cycleLabel)
-		+ font:GetTextWidth(gridKeyText("gridmenu_cycle_builder"))) * fs) + pad * 10
+	local need = floor(
+		(font:GetTextWidth(gridGroup.cycleLabel) + font:GetTextWidth(gridKeyText("gridmenu_cycle_builder"))) * fs
+	) + pad * 10
 
 	return cx1, cx1 + math.max(need, floor(bsize * 2))
 end
@@ -1779,10 +1830,14 @@ local function drawGridMenu(mx, my)
 	local fill = pillFill
 
 	-- Same header the list puts above a category, so the two views read alike.
-	RectRound(listX1, listTop - headH, listRight, listTop, 0, 0, 0, 0, 0,
-		sheenTop, sheenTop)
-	queueText(colorHeader .. gridGroup.title, listX1 + floor(6 * scale), listTop - headH * 0.5,
-		floor(rowHeight * 0.55) * 0.95, "ov")
+	RectRound(listX1, listTop - headH, listRight, listTop, 0, 0, 0, 0, 0, sheenTop, sheenTop)
+	queueText(
+		colorHeader .. gridGroup.title,
+		listX1 + floor(6 * scale),
+		listTop - headH * 0.5,
+		floor(rowHeight * 0.55) * 0.95,
+		"ov"
+	)
 
 	for pass = 1, 2 do
 		local gx = (pass == 1) and x1 or x2
@@ -1794,11 +1849,15 @@ local function drawGridMenu(mx, my)
 				-- whose cells hold the same bindings and would just repeat them.
 				if gx == x1 then
 					if isInRect(mx, my, cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad) then
-						RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, cs, 1, 1, 1, 1,
-							hoverWash, hoverWash)
+						RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, cs, 1, 1, 1, 1, hoverWash, hoverWash)
 					end
-					queueText(colorKey .. gridKeyText(gridKeyActions[row][col]),
-						cx2 - pad * 3, cy2 - pad * 2 - keyFs, keyFs, "ro")
+					queueText(
+						colorKey .. gridKeyText(gridKeyActions[row][col]),
+						cx2 - pad * 3,
+						cy2 - pad * 2 - keyFs,
+						keyFs,
+						"ro"
+					)
 				end
 			end
 		end
@@ -1806,22 +1865,66 @@ local function drawGridMenu(mx, my)
 
 	for c = 1, gridCols do
 		local cx1 = x1 + (c - 1) * cell
-		drawGridPill(cx1 + pad, stripY, cx1 + cell - pad, stripY + strip,
-			gridGroup.categoryLabels[c] or "", gridKeyText(gridCategoryActions[c]),
-			stripFs, pad, cs, mx, my)
+		drawGridPill(
+			cx1 + pad,
+			stripY,
+			cx1 + cell - pad,
+			stripY + strip,
+			gridGroup.categoryLabels[c] or "",
+			gridKeyText(gridCategoryActions[c]),
+			stripFs,
+			pad,
+			cs,
+			mx,
+			my
+		)
 	end
 
 	-- Second grid is the view after a category is picked: Back on the left, Next page on
 	-- the right, matching how gui_gridmenu splits that strip into thirds.
 	local third = floor(cell * gridCols / 3)
-	drawGridPill(x2 + pad, stripY, x2 + third, stripY + strip,
-		L.gridBack, keybindModel.displayKeyset("shift", working.layout), stripFs, pad, cs, mx, my, true)
-	drawGridPill(x2 + gridCols * cell - third, stripY, x2 + gridCols * cell - pad, stripY + strip,
-		L.gridNextPage, gridKeyText("gridmenu_next_page"), stripFs, pad, cs, mx, my)
+	drawGridPill(
+		x2 + pad,
+		stripY,
+		x2 + third,
+		stripY + strip,
+		L.gridBack,
+		keybindModel.displayKeyset("shift", working.layout),
+		stripFs,
+		pad,
+		cs,
+		mx,
+		my,
+		true
+	)
+	drawGridPill(
+		x2 + gridCols * cell - third,
+		stripY,
+		x2 + gridCols * cell - pad,
+		stripY + strip,
+		L.gridNextPage,
+		gridKeyText("gridmenu_next_page"),
+		stripFs,
+		pad,
+		cs,
+		mx,
+		my
+	)
 
 	local ccx1, ccx2 = gridCycleRect(x1, strip)
-	drawGridPill(ccx1, builderY, ccx2, builderY + strip, gridGroup.cycleLabel,
-		gridKeyText("gridmenu_cycle_builder"), stripFs, pad, cs, mx, my)
+	drawGridPill(
+		ccx1,
+		builderY,
+		ccx2,
+		builderY + strip,
+		gridGroup.cycleLabel,
+		gridKeyText("gridmenu_cycle_builder"),
+		stripFs,
+		pad,
+		cs,
+		mx,
+		my
+	)
 end
 
 -- Routes a click in the grid view to the action that cell or button binds. Back is left
@@ -1862,8 +1965,7 @@ local function gridPress(x, y)
 
 	local ccx1, ccx2 = gridCycleRect(x1, strip)
 	if isInRect(x, y, ccx1, builderY, ccx2, builderY + strip) then
-		startCapture("gridmenu_cycle_builder", gridGroup.cycleLabel,
-			gridKeyRaw("gridmenu_cycle_builder"))
+		startCapture("gridmenu_cycle_builder", gridGroup.cycleLabel, gridKeyRaw("gridmenu_cycle_builder"))
 
 		return true
 	end
@@ -1891,12 +1993,23 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	if row.type == "link" then
 		local lx = listX1 + pad * 5
 		queueText(colorAction .. row.label, lx, cyc, fs, "ov")
-		queueText(colorKey .. string.char(226, 128, 186),
-			lx + floor(font:GetTextWidth(row.label) * fs) + pad * 2, cyc, fs, "ov")
+		queueText(
+			colorKey .. string.char(226, 128, 186),
+			lx + floor(font:GetTextWidth(row.label) * fs) + pad * 2,
+			cyc,
+			fs,
+			"ov"
+		)
 		return
 	end
 
-	queueText(colorAction .. text.fit(font, row.label, keyAreaX1 - (listX1 + pad) - pad, fs), listX1 + pad, cyc, fs, "ov")
+	queueText(
+		colorAction .. text.fit(font, row.label, keyAreaX1 - (listX1 + pad) - pad, fs),
+		listX1 + pad,
+		cyc,
+		fs,
+		"ov"
+	)
 
 	local c1, c2 = bottom + floor(3 * scale), top - floor(3 * scale)
 	local mets, cx, addW, rightGap = rowChipBand(row.action, fs, pad)
@@ -1992,9 +2105,22 @@ local function drawCaptureModal(mx, my)
 	RectRound(barX, barY, barX + barW, barY + barH, floor(2 * scale), 1, 1, 1, 1, { 1, 1, 1, 0.1 })
 	if hasChain and capturing.lastPress then
 		local frac = 1 - (spDiffTimers(spGetTimer(), capturing.lastPress) * 1000) / capturing.timeout
-		if frac < 0 then frac = 0 end
+		if frac < 0 then
+			frac = 0
+		end
 		if frac > 0 then
-			RectRound(barX, barY, barX + floor(barW * frac), barY + barH, floor(2 * scale), 1, 1, 1, 1, { 0.9, 0.7, 0.2, 0.9 })
+			RectRound(
+				barX,
+				barY,
+				barX + floor(barW * frac),
+				barY + barH,
+				floor(2 * scale),
+				1,
+				1,
+				1,
+				1,
+				{ 0.9, 0.7, 0.2, 0.9 }
+			)
 		end
 	end
 
@@ -2002,13 +2128,25 @@ local function drawCaptureModal(mx, my)
 	local lineStep = floor(chainFs * 1.15)
 
 	font:Begin()
-	font:Print(colorText .. text.fit(font, capturing.label or capturing.action, chainMaxW, tfs), cx, by2 - floor(26 * scale), tfs, "cov")
+	font:Print(
+		colorText .. text.fit(font, capturing.label or capturing.action, chainMaxW, tfs),
+		cx,
+		by2 - floor(26 * scale),
+		tfs,
+		"cov"
+	)
 	for li = 1, #chainLines do
 		local ly = chainCy + (#chainLines - 1) * lineStep * 0.5 - (li - 1) * lineStep
 		font:Print((hasContent and colorKey or colorDim) .. chainLines[li], cx, ly, chainFs, "cov")
 	end
 	font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
-	font:Print((hasChain and colorText or colorDim) .. L.accept, (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+	font:Print(
+		(hasChain and colorText or colorDim) .. L.accept,
+		(ok[1] + ok[3]) * 0.5,
+		(ok[2] + ok[4]) * 0.5,
+		sfs,
+		"cov"
+	)
 	font:End()
 end
 
@@ -2045,21 +2183,36 @@ local function drawProfileDialog(mx, my)
 	end
 
 	font:Begin()
-	font:Print(colorText .. text.fit(font, dialog.title, bx2 - bx1 - floor(32 * scale), tfs), cx, by2 - floor(26 * scale), tfs, "cov")
+	font:Print(
+		colorText .. text.fit(font, dialog.title, bx2 - bx1 - floor(32 * scale), tfs),
+		cx,
+		by2 - floor(26 * scale),
+		tfs,
+		"cov"
+	)
 	if dialog.middle then
-		font:Print(colorText .. dialog.middle.label,
-			(discard[1] + discard[3]) * 0.5, (discard[2] + discard[4]) * 0.5, sfs, "cov")
+		font:Print(
+			colorText .. dialog.middle.label,
+			(discard[1] + discard[3]) * 0.5,
+			(discard[2] + discard[4]) * 0.5,
+			sfs,
+			"cov"
+		)
 	end
 	if messageLines then
 		local top = (field[2] + field[4]) * 0.5 + (#messageLines - 1) * messageStep * 0.5
 		for i = 1, #messageLines do
-			font:Print(colorDim .. text.fit(font, messageLines[i], bx2 - bx1 - floor(32 * scale), sfs),
-				cx, top - (i - 1) * messageStep, sfs, "cov")
+			font:Print(
+				colorDim .. text.fit(font, messageLines[i], bx2 - bx1 - floor(32 * scale), sfs),
+				cx,
+				top - (i - 1) * messageStep,
+				sfs,
+				"cov"
+			)
 		end
 	end
 	font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
-	font:Print(colorText .. acceptLabelFor(dialog),
-		(ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+	font:Print(colorText .. acceptLabelFor(dialog), (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
 	font:End()
 
 	if not dialog.message then
@@ -2070,9 +2223,15 @@ end
 
 -- Paints the whole panel. Immediate mode, so this runs every frame.
 function view.draw()
-	if not font then view.init() end
-	if not working then view.refresh() end
-	if layoutPending then layoutHeader() end
+	if not font then
+		view.init()
+	end
+	if not working then
+		view.refresh()
+	end
+	if layoutPending then
+		layoutHeader()
+	end
 
 	-- Pinned rather than assumed: widgets on lower layers draw first and leave blending,
 	-- colour and depth wherever they finished, which changes how everything below
@@ -2084,7 +2243,11 @@ function view.draw()
 
 	local rawMx, rawMy, lmb = spGetMouseState()
 	if dragging then
-		if lmb then scrollFromY(rawMy) else dragging = false end
+		if lmb then
+			scrollFromY(rawMy)
+		else
+			dragging = false
+		end
 	end
 
 	-- Prevent the hover over preset options and modals from also being detected by the
@@ -2107,7 +2270,9 @@ function view.draw()
 	else
 		for r = 1, rowCount do
 			local row = rows[scroll + r]
-			if not row then break end
+			if not row then
+				break
+			end
 			local top = listTop - (r - 1) * rowHeight
 			drawRow(row, top, top - rowHeight, mx, my, fs, pad)
 		end
@@ -2155,8 +2320,13 @@ function view.draw()
 					if hovered and not fill then
 						Highlight(r[1], r[2], r[3], r[4], floor(6 * scale), hoverOpacity, { 1, 1, 1 })
 					end
-					queueText((enabled and colorText or colorDim) .. text.fit(font, L[b.id], r[3] - r[1] - pad * 2, bfs),
-						(r[1] + r[3]) * 0.5, (r[2] + r[4]) * 0.5, bfs, "cov")
+					queueText(
+						(enabled and colorText or colorDim) .. text.fit(font, L[b.id], r[3] - r[1] - pad * 2, bfs),
+						(r[1] + r[3]) * 0.5,
+						(r[2] + r[4]) * 0.5,
+						bfs,
+						"cov"
+					)
 				end
 			end
 		end
@@ -2165,10 +2335,10 @@ function view.draw()
 
 	-- Registered every frame because the rects move with the panel; the tooltip widget
 	-- owns the hover delay and only draws once the cursor settles.
-	if WG['tooltip'] then
+	if WG["tooltip"] then
 		for _, b in ipairs(headerButtons) do
 			if b.rect then
-				WG['tooltip'].AddTooltip('keybind_' .. b.id, b.rect, L[b.id])
+				WG["tooltip"].AddTooltip("keybind_" .. b.id, b.rect, L[b.id])
 			end
 		end
 	end
@@ -2188,7 +2358,11 @@ end
 scrollFromY = function(y)
 	local lb = listBottom()
 	local f = (listTop - y) / math.max(1, listTop - lb)
-	if f < 0 then f = 0 elseif f > 1 then f = 1 end
+	if f < 0 then
+		f = 0
+	elseif f > 1 then
+		f = 1
+	end
 	scroll = floor(f * maxScroll() + 0.5)
 	clampScroll()
 end
@@ -2276,8 +2450,13 @@ function view.mousePress(x, y, button)
 				acceptDialog()
 			elseif dialog.middle and isInRect(x, y, discard[1], discard[2], discard[3], discard[4]) then
 				middleDialog()
-			elseif (isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
-				or x < bx1 or x > bx2 or y < by1 or y > by2 then
+			elseif
+				(isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
+				or x < bx1
+				or x > bx2
+				or y < by1
+				or y > by2
+			then
 				cancelDialog()
 			elseif not dialog.message then
 				nameBox:mousePress(x, y)
@@ -2297,8 +2476,13 @@ function view.mousePress(x, y, button)
 				else
 					capturing = nil
 				end
-			elseif (isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
-				or x < bx1 or x > bx2 or y < by1 or y > by2 then
+			elseif
+				(isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
+				or x < bx1
+				or x > bx2
+				or y < by1
+				or y > by2
+			then
 				capturing = nil
 			end
 		elseif button >= 4 then
@@ -2429,7 +2613,9 @@ function view.keyPress(key, scanCode)
 	end
 
 	if presetDropdown and presetDropdown:isOpen() then
-		if key == 27 then presetDropdown:close() end
+		if key == 27 then
+			presetDropdown:close()
+		end
 		return true
 	end
 

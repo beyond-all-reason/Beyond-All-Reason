@@ -37,7 +37,6 @@ local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
 
 local showOnceMore = false
 
-
 local widgetScale = (vsy / 1080)
 local centerPosX = 0.5
 local centerPosY = 0.5
@@ -57,7 +56,21 @@ local heldAtOpen = {}
 
 -- Panel backdrop, baked into a display list rather than redrawn per frame.
 local function drawWindow()
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
+	UiElement(
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY,
+		0,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		WG.FlowUI.clampedOpacity
+	)
 end
 
 local function refreshText()
@@ -81,7 +94,13 @@ function widget:ViewResize()
 
 	keybindEditor.init()
 	local pad = mathFloor(8 * widgetScale)
-	keybindEditor.setArea(screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - pad, widgetScale)
+	keybindEditor.setArea(
+		screenX + pad,
+		screenY - screenHeight + pad,
+		screenX + screenWidth - pad,
+		screenY - pad,
+		widgetScale
+	)
 
 	if keybinds then
 		gl.DeleteList(keybinds)
@@ -97,8 +116,6 @@ function widget:ViewResize()
 		backgroundGuishader = nil
 	end
 end
-
-
 
 -- Draws the panel and keeps the guishader rect in step with it.
 function widget:DrawScreen()

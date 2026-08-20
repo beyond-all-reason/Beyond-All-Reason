@@ -19,8 +19,10 @@ end
 
 local function conformsTo(schemaPath, documentPath)
 	local problems = JsonSchema.validate(loadJson(schemaPath), loadJson(documentPath))
-	assert(#problems == 0, documentPath .. " does not match " .. schemaPath .. ":\n  " ..
-		table.concat(problems, "\n  "))
+	assert(
+		#problems == 0,
+		documentPath .. " does not match " .. schemaPath .. ":\n  " .. table.concat(problems, "\n  ")
+	)
 end
 
 describe("shipped keybind profiles", function()
@@ -61,7 +63,9 @@ describe("keybind catalog", function()
 		local function isModifierOnly(keyset)
 			local parts = 0
 			for part in keyset:gmatch("[^+]+") do
-				if not modifiers[part:lower()] then return false end
+				if not modifiers[part:lower()] then
+					return false
+				end
 				parts = parts + 1
 			end
 			return parts > 0
@@ -85,15 +89,21 @@ describe("keybind catalog", function()
 
 		for action, seen in pairs(kinds) do
 			if seen[true] and not seen[false] then
-				assert(hidden[action], "action is bound only to modifiers but is not hidden, so "
-					.. "the editor would offer an edit it cannot undo: " .. action)
+				assert(
+					hidden[action],
+					"action is bound only to modifiers but is not hidden, so "
+						.. "the editor would offer an edit it cannot undo: "
+						.. action
+				)
 			end
 		end
 
 		local listed = {}
 		for _, group in ipairs(catalog) do
 			for _, item in ipairs(group.items or {}) do
-				if item.action then listed[item.action] = true end
+				if item.action then
+					listed[item.action] = true
+				end
 			end
 		end
 		for action in pairs(hidden) do
@@ -112,7 +122,9 @@ describe("keybind catalog", function()
 		for _, group in ipairs(catalog) do
 			for _, item in ipairs(group.items or {}) do
 				local id = item.action or item.prefix
-				if id then check(id, "catalog action") end
+				if id then
+					check(id, "catalog action")
+				end
 			end
 			for _, id in ipairs(group.hidden or {}) do
 				check(id, "hidden action")

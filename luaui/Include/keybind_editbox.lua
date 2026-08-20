@@ -1,10 +1,9 @@
 -- Single-line text input for the keybind editor's search field.
 -- Active only while focused, so it is safe to host alongside game input.
 
-local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
-
 
 local Editbox = {}
 Editbox.__index = Editbox
@@ -16,7 +15,7 @@ local colorDim = "\255\160\160\160"
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
-	return WG['fonts'].getFont()
+	return WG["fonts"].getFont()
 end
 
 -- Single-line text field with a caret, selection and word motion.
@@ -110,14 +109,22 @@ function Editbox:setCaret(pos, extend)
 	end
 
 	local len = utf8.len(self.text)
-	if pos < 0 then pos = 0 elseif pos > len then pos = len end
+	if pos < 0 then
+		pos = 0
+	elseif pos > len then
+		pos = len
+	end
 	self.caret = pos
 end
 
 function Editbox:prevWord()
 	local pos = self.caret
-	while pos > 0 and utf8.sub(self.text, pos, pos):match("%s") do pos = pos - 1 end
-	while pos > 0 and not utf8.sub(self.text, pos, pos):match("%s") do pos = pos - 1 end
+	while pos > 0 and utf8.sub(self.text, pos, pos):match("%s") do
+		pos = pos - 1
+	end
+	while pos > 0 and not utf8.sub(self.text, pos, pos):match("%s") do
+		pos = pos - 1
+	end
 
 	return pos
 end
@@ -125,8 +132,12 @@ end
 function Editbox:nextWord()
 	local len = utf8.len(self.text)
 	local pos = self.caret
-	while pos < len and not utf8.sub(self.text, pos + 1, pos + 1):match("%s") do pos = pos + 1 end
-	while pos < len and utf8.sub(self.text, pos + 1, pos + 1):match("%s") do pos = pos + 1 end
+	while pos < len and not utf8.sub(self.text, pos + 1, pos + 1):match("%s") do
+		pos = pos + 1
+	end
+	while pos < len and utf8.sub(self.text, pos + 1, pos + 1):match("%s") do
+		pos = pos + 1
+	end
 
 	return pos
 end

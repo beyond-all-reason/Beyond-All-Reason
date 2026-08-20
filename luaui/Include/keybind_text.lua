@@ -2,7 +2,7 @@
 -- control clips the same way in the next. The font is passed in because each control
 -- draws with its own.
 
-local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local M = {}
 

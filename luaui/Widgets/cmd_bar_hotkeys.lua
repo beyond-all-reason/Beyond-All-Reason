@@ -27,7 +27,6 @@ local function reloadWidgetsBindings()
 	end
 end
 
-
 -- Nothing to load, so write the active profile out and point the config at it. This
 -- is also the upgrade path once the shipped preset files stop being installed.
 local function fallbackToProfile(missing)
@@ -60,7 +59,6 @@ local function reloadBindings()
 	reloadWidgetsBindings()
 end
 
-
 -- Anyone who was editing uikeys.txt by hand keeps what they wrote: it becomes a profile of
 -- theirs before the editor gets a chance to write over it. Materializing hands the file back
 -- to us, so the next launch finds one that matches and leaves it alone.
@@ -77,7 +75,6 @@ local function adoptEditedKeymap()
 		Spring.SetConfigString("KeybindingFile", file)
 	end
 end
-
 
 function widget:Initialize()
 	adoptEditedKeymap()

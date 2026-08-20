@@ -4,7 +4,7 @@
 -- on bad input, and an unguarded decode at include time takes the widget down with it.
 -- Callers do their own shape checks; this only guarantees a table or nil.
 
-local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local Json = Json or VFS.Include("common/luaUtilities/json.lua")
 
 local M = {}
 

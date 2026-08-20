@@ -339,12 +339,23 @@ end
 -- they map to the qwerty character and pick up the layout translation afterwards;
 -- the keycode names are the character outright.
 local scanKeyWords = {
-	minus = "-", equals = "=", comma = ",", apostrophe = "'", period = ".",
-	semicolon = ";", leftbracket = "[", rightbracket = "]", slash = "/",
-	backquote = "`", backslash = "\\",
+	minus = "-",
+	equals = "=",
+	comma = ",",
+	apostrophe = "'",
+	period = ".",
+	semicolon = ";",
+	leftbracket = "[",
+	rightbracket = "]",
+	slash = "/",
+	backquote = "`",
+	backslash = "\\",
 }
 local keyCodeWords = {
-	backquote = "`", tilde = "`", caret = "^", backslash = "\\",
+	backquote = "`",
+	tilde = "`",
+	caret = "^",
+	backslash = "\\",
 }
 
 local function sanitizeKey(key, layout)
@@ -383,7 +394,9 @@ local function sanitizeKey(key, layout)
 		return token
 	end)
 	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
-	key = key:gsub("%f[%u]([ACMS])%+", function(m) return modAbbrev[m] end)
+	key = key:gsub("%f[%u]([ACMS])%+", function(m)
+		return modAbbrev[m]
+	end)
 
 	return key
 end

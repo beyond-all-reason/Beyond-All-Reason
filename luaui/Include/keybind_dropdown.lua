@@ -16,7 +16,7 @@ local hoverOpacity = 0.25
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
-	return WG['fonts'].getFont()
+	return WG["fonts"].getFont()
 end
 
 -- Options may be plain strings or { label = ... } records.
@@ -123,7 +123,13 @@ function Dropdown:draw()
 	-- A profile name is free text and can outrun the control, which is fixed width so the
 	-- header does not reflow every time the selection changes.
 	local labelW = (arrowX - arrowH) - (x1 + inset) - inset * 2
-	font:Print(colorText .. text.fit(font, label, labelW, self.fontSize), x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
+	font:Print(
+		colorText .. text.fit(font, label, labelW, self.fontSize),
+		x1 + inset,
+		(y1 + y2) * 0.5,
+		self.fontSize,
+		"ov"
+	)
 	font:End()
 
 	if self.open and #self.optRects > 0 then
@@ -143,8 +149,13 @@ function Dropdown:draw()
 		for i, opt in ipairs(self.options) do
 			local r = self.optRects[i]
 			local w = (r.x2 - inset) - (r.x1 + inset)
-			font:Print(colorText .. text.fit(font, optionLabel(opt), w, self.fontSize),
-				r.x1 + inset, (r.y1 + r.y2) * 0.5, self.fontSize, "ov")
+			font:Print(
+				colorText .. text.fit(font, optionLabel(opt), w, self.fontSize),
+				r.x1 + inset,
+				(r.y1 + r.y2) * 0.5,
+				self.fontSize,
+				"ov"
+			)
 		end
 		font:End()
 	end

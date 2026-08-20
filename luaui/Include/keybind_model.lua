@@ -31,13 +31,17 @@ local function splitChain(raw)
 	for i = 1, #raw do
 		local c = raw:sub(i, i)
 		if c == "," and cur ~= "" and cur:sub(-1) ~= "+" and cur:sub(-3) ~= "sc_" then
-			if cur ~= "" then elems[#elems + 1] = cur end
+			if cur ~= "" then
+				elems[#elems + 1] = cur
+			end
 			cur = ""
 		else
 			cur = cur .. c
 		end
 	end
-	if cur ~= "" then elems[#elems + 1] = cur end
+	if cur ~= "" then
+		elems[#elems + 1] = cur
+	end
 
 	return elems
 end
@@ -49,8 +53,12 @@ end
 -- fold. Display is no use for this: it drops exactly the qualifiers that decide priority.
 local canonicalMods = { "any", "alt", "ctrl", "meta", "shift" }
 local modToken = {
-	["any+"] = "any", ["*+"] = "any", ["alt+"] = "alt",
-	["ctrl+"] = "ctrl", ["meta+"] = "meta", ["shift+"] = "shift",
+	["any+"] = "any",
+	["*+"] = "any",
+	["alt+"] = "alt",
+	["ctrl+"] = "ctrl",
+	["meta+"] = "meta",
+	["shift+"] = "shift",
 }
 
 local function canonicalElement(raw)

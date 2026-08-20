@@ -89,7 +89,12 @@ local function validateOneOf(schema, value, root, path, errors)
 	end
 
 	if matched ~= 1 then
-		errors[#errors + 1] = path .. ": matches " .. matched .. " of " .. #schema.oneOf .. " allowed shapes, expected exactly 1"
+		errors[#errors + 1] = path
+			.. ": matches "
+			.. matched
+			.. " of "
+			.. #schema.oneOf
+			.. " allowed shapes, expected exactly 1"
 	end
 end
 
@@ -145,7 +150,6 @@ validate = function(schema, value, root, path, errors)
 				validate(sub, value[name], root, path .. "." .. name, errors)
 			end
 		end
-
 	end
 
 	-- Each of these stands on its own in the spec, so none of them hangs off another
