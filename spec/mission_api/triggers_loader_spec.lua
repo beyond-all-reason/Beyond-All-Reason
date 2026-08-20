@@ -9,7 +9,6 @@ GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
 RegisterMissionApiModules()
 local realDefinitions  = triggersLoader.LoadTriggerDefinitions()
 local realTriggerFiles = VFS.DirList('luarules/mission_api/triggers/', '*.lua')
-GG['MissionAPI'] = nil
 
 describe("mission_api.triggers_loader", function()
 	local ParameterTypes = parameterTypes.Types
@@ -18,10 +17,6 @@ describe("mission_api.triggers_loader", function()
 		-- loadTriggerDefinitions reads the parameter-type table from GG at call time.
 		GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
 		RegisterMissionApiModules()
-	end)
-
-	after_each(function()
-		GG['MissionAPI'] = nil
 	end)
 
 	-- ── LoadTriggerDefinitions (isolated, mocked trigger files) ───────────────
