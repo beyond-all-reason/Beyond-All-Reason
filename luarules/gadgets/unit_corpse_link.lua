@@ -9,7 +9,8 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		handler = true,
-		enabled = not Engine.FeatureSupport.FeatureCreatedPassesSourceUnitID,
+		-- Stay enabled as a fallback when the engine omits sourceID (e.g. death anim moved the wreck).
+		enabled = true,
 	}
 end
 
@@ -20,11 +21,8 @@ end
 local CORPSE_LINK_TIMEOUT = Game.gameSpeed * 3 -- should be longer than the longest death animation
 local UPDATE_INTERVAL = Game.gameSpeed
 
+-- unitDefID -> { [unitID] = { x, z, timeout } }
 local corpseRegistryByDefID = {}
-
-local function getPositionHash(x, z)
-	return string.format("%f:%f", math.floor(x), math.floor(z))
-end
 
 local function GetFeatureResurrectDefID(featureID)
 	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
@@ -50,15 +48,40 @@ local function GetCorpsePriorUnitID(featureID)
 		return
 	end
 
-	local x, y, z = Spring.GetFeaturePosition(featureID)
-	local positionHash = getPositionHash(x, z)
-	local corpseLink = unitDefLink[positionHash]
-	if not corpseLink then
+	local x, _, z = Spring.GetFeaturePosition(featureID)
+	if not x then
 		return
 	end
 
-	corpseLink[positionHash] = nil
-	return corpseLink.unitID
+	-- Snap to the closest pending death of this unitDef. Exact-position matching
+	-- breaks when death animations carry the wreck away from UnitDestroyed coords.
+	local bestUnitID
+	local bestDistSq
+	for unitID, corpseLink in pairs(unitDefLink) do
+		local dx = corpseLink.x - x
+		local dz = corpseLink.z - z
+		local distSq = dx * dx + dz * dz
+		if bestDistSq == nil or distSq < bestDistSq then
+			bestDistSq = distSq
+			bestUnitID = unitID
+		end
+	end
+
+	if not bestUnitID then
+		return
+	end
+
+	unitDefLink[bestUnitID] = nil
+	return bestUnitID
+end
+
+local function ConsumeCorpseLink(unitID)
+	for _, unitDefLink in pairs(corpseRegistryByDefID) do
+		if unitDefLink[unitID] then
+			unitDefLink[unitID] = nil
+			return
+		end
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID)
@@ -67,14 +90,14 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 		unitDefLink = {}
 		corpseRegistryByDefID[unitDefID] = unitDefLink
 	end
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, _, z = Spring.GetUnitPosition(unitID)
 	if not x then
 		return
 	end
 
-	local positionHash = getPositionHash(x, z)
-	unitDefLink[positionHash] = {
-		unitID = unitID,
+	unitDefLink[unitID] = {
+		x = x,
+		z = z,
 		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT,
 	}
 end
@@ -85,10 +108,10 @@ function gadget:GameFrame(frame)
 	end
 
 	-- FIXME: could be sorted by timeout, so that we wouldn't have to iterate them all
-	for unitDefID, unitDefLink in pairs(corpseRegistryByDefID) do
-		for positionHash, corpseLink in pairs(unitDefLink) do
+	for _, unitDefLink in pairs(corpseRegistryByDefID) do
+		for unitID, corpseLink in pairs(unitDefLink) do
 			if corpseLink.timeout < frame then
-				unitDefLink[positionHash] = nil
+				unitDefLink[unitID] = nil
 			end
 		end
 	end
@@ -102,7 +125,13 @@ function gadget:Initialize()
 
 	originalFeatureCreated = gadgetHandler.FeatureCreated
 	gadgetHandler.FeatureCreated = function(self, featureID, allyTeam, sourceID)
-		sourceID = sourceID or GG.GetCorpsePriorUnitID(featureID)
+		if sourceID then
+			-- Engine already linked this wreck; drop our fallback entry so it
+			-- cannot be snapped to by a later feature.
+			ConsumeCorpseLink(sourceID)
+		else
+			sourceID = GG.GetCorpsePriorUnitID(featureID)
+		end
 		originalFeatureCreated(self, featureID, allyTeam, sourceID)
 	end
 end
