@@ -58,28 +58,34 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(0, fired())
 	end)
 
+	it("filters by teamID", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 9)
+		assert.are.equal(0, fired())
+	end)
+
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
 		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
-	it("does not fire for a unit that was never under construction (spawned)", function()
+	it("does not fire for a unit that was never under construction (spawned, etc)", function()
 		local context, fired = newContext()
 		context.WasUnderConstruction = {} -- gives nil
 		finished(trigger({ unitDefName = 'armsolar' }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
-	it("does not fire when finished on a team not allied with teamID (stolen away)", function()
-		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 9)
-		assert.are.equal(0, fired())
-	end)
-
-	it("fires when finished on a team allied with teamID (captured onto our side)", function()
+	it("does not fire when finished on a team allied with teamID", function()
 		local context, fired = newContext()
 		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 2) -- team 2 allied with 0
+		assert.are.equal(1, fired())
+	end)
+
+	it("does not fire when finished on a team hostile to teamID", function()
+		local context, fired = newContext()
+		finished(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 3)
 		assert.are.equal(1, fired())
 	end)
 end)
