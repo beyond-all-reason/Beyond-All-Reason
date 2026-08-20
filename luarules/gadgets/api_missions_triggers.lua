@@ -253,9 +253,10 @@ function gadget:Initialize()
 
 	-- We tell apart factory and constructor ownership via the build owner map.
 	needsBuildOwnerMap = table.any(triggers, function(trigger)
-		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
-			or (trigger.parameters.factoryName or trigger.parameters.factoryDefName)
-			or (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+		return (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+			or (trigger.parameters ~= nil) and
+				(trigger.parameters.builderName or trigger.parameters.builderDefName) or
+				(trigger.parameters.factoryName or trigger.parameters.factoryDefName)
 	end)
 end
 
