@@ -6,8 +6,8 @@
 --
 -- Migration is the exception: a player's own file has to be read as written, so the reader
 -- below understands the subset of the bind-file grammar that changes what ends up bound -
--- bind, the three unbinds, keyload and fakemeta. Everything after migration goes through
--- Spring.GetKeyBindings instead.
+-- bind, the three unbinds, keyload, keysym and fakemeta. Everything after migration goes
+-- through Spring.GetKeyBindings instead.
 
 local Json = Json or VFS.Include("common/luaUtilities/json.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
@@ -180,6 +180,26 @@ local function readBindFile(text, depth)
 	local breaks = "[^" .. string.char(13, 10) .. "]+"
 	local binds = {}
 
+	-- A file may name a key the engine has none for (capslock is commented out engine-side),
+	-- and every keyset after that point uses the name. Resolved here rather than carried, so
+	-- what we write out is only ever bind lines the engine already parses. The engine refuses
+	-- to redefine a name, so one definition per name is the whole of it.
+	local keySyms = {}
+	local function resolveKeySyms(keyset)
+		if not next(keySyms) then
+			return keyset
+		end
+
+		local out = {}
+		for element in (keyset .. ","):gmatch("([^,]*),") do
+			local mods, key = element:match("^(.-)([^+]+)$")
+			local named = key and keySyms[key:lower()]
+			out[#out + 1] = named and (mods .. named) or element
+		end
+
+		return table.concat(out, ",")
+	end
+
 	-- Applied to what has been collected so far rather than issued as commands, so an unbind
 	-- means "drop what this file has bound up to here". Matched on the command word, never
 	-- its args: "unbindaction factory_preset" takes every "factory_preset load N" with it.
@@ -197,7 +217,7 @@ local function readBindFile(text, depth)
 		line = line:gsub("//.*", ""):gsub("%s+$", "")
 		local keyset, action = line:match("^%s*bind%s+(%S+)%s+(.-)%s*$")
 		if keyset and action ~= "" then
-			binds[#binds + 1] = { keyset = keyset, action = action }
+			binds[#binds + 1] = { keyset = resolveKeySyms(keyset), action = action }
 		elseif line:match("^%s*unbindall%s*$") then
 			binds = {}
 		elseif line:match("^%s*unbindaction%s+%S") then
@@ -218,15 +238,27 @@ local function readBindFile(text, depth)
 					return b.keyset:lower() == target and b.action:match("^%S+") == command
 				end)
 			end
+		elseif line:match("^%s*keysym%s+%S+%s+%S") then
+			local name, code = line:match("^%s*keysym%s+(%S+)%s+(%S+)")
+			if not keySyms[name:lower()] then
+				keySyms[name:lower()] = code
+			end
 		else
 			-- A player's file can pull in others the same way the shipped presets did, and
 			-- those bindings are just as much theirs. Depth-capped rather than cycle-tracked.
 			local included = line:match("^%s*keyload%s+(%S+)")
 			if included and depth < 8 then
 				local text = VFS.LoadFile(included)
+				local retired = presetFiles[included] and M.isBuiltin(presetFiles[included])
 				if text then
 					for _, b in ipairs(readBindFile(text, depth + 1) or {}) do
 						binds[#binds + 1] = b
+					end
+				elseif retired then
+					-- The shipped presets stopped being files, so a keyload naming one has
+					-- nothing to read. Their bindings are the profile of that name now.
+					for _, b in ipairs(retired.binds or {}) do
+						binds[#binds + 1] = { keyset = b.keyset, action = b.action }
 					end
 				else
 					Spring.Echo(
