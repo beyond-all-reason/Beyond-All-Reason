@@ -1,6 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local DAMAGETYPE_FACTORY_CANCEL = Game.envDamageTypes.FactoryCancel
+local DAMAGETYPE_FACTORY_KILLED = Game.envDamageTypes.FactoryKilled
 
 local function matchesUnit(trigger, context, unitID, unitDefID, unitTeam)
 	local parameters = trigger.parameters
@@ -32,7 +33,7 @@ return {
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,
 		                         attackerID, attackerDefID, attackerTeam, weaponDefID)
-			if weaponDefID ~= DAMAGETYPE_FACTORY_CANCEL then
+			if weaponDefID ~= DAMAGETYPE_FACTORY_CANCEL and weaponDefID ~= DAMAGETYPE_FACTORY_KILLED then
 				return
 			end
 
