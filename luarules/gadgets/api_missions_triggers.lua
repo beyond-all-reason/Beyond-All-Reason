@@ -65,6 +65,7 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local untargetableUnitIDs = {}
+local untargetableCount = 0
 local statistics
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
@@ -143,6 +144,59 @@ local function isFeatureInArea(featureID, area)
 end
 
 ----------------------------------------------------------------
+--- Unit Targetable:
+----------------------------------------------------------------
+
+-- Purge queued attack orders aimed at a unit that just became untargetable
+-- (new ones are refused in AllowCommand).
+local function removeAttackOrdersTargeting(targetID)
+	for _, attackerID in ipairs(Spring.GetAllUnits()) do
+		if Spring.GetUnitCommandCount(attackerID) > 0 then
+			local commands = Spring.GetUnitCommands(attackerID, -1)
+			local removeTags = {}
+			for i = 1, #commands do
+				local command = commands[i]
+				if (command.id == CMD.ATTACK or command.id == CMD.MANUALFIRE)
+					and command.params[2] == nil
+					and command.params[1] == targetID
+				then
+					removeTags[#removeTags + 1] = command.tag
+				end
+			end
+			if #removeTags > 0 then
+				Spring.GiveOrderToUnit(attackerID, CMD.REMOVE, removeTags, 0)
+			end
+		end
+	end
+end
+
+-- Central switch behind the Unit Targetable action (exposed on GG['MissionAPI']
+-- in Initialize). AllowWeaponTarget is checked per candidate in every weapon
+-- and CAI target search, so it only stays subscribed while at least one unit
+-- is untargetable. The state is also mirrored to unsynced to suppress the
+-- attack cursor on hover.
+local function setUnitTargetable(unitID, targetable)
+	if not unitID then return end
+
+	local untargetable = not targetable and true or nil
+	if untargetableUnitIDs[unitID] == untargetable then return end
+
+	untargetableUnitIDs[unitID] = untargetable
+	untargetableCount = untargetableCount + (untargetable and 1 or -1)
+
+	if untargetable then
+		removeAttackOrdersTargeting(unitID)
+		if untargetableCount == 1 then
+			gadgetHandler:UpdateCallIn('AllowWeaponTarget')
+		end
+	elseif untargetableCount == 0 then
+		gadgetHandler:RemoveCallIn('AllowWeaponTarget')
+	end
+
+	SendToUnsynced('MissionAPI_UnitTargetable', unitID, not targetable)
+end
+
+----------------------------------------------------------------
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
 
@@ -193,6 +247,8 @@ function gadget:Initialize()
 	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
 	untargetableUnitIDs     = GG['MissionAPI'].untargetableUnitIDs
 
+	GG['MissionAPI'].SetUnitTargetable = setUnitTargetable
+
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
 	statistics              = VFS.Include('luarules/mission_api/statistics.lua')
@@ -238,6 +294,11 @@ function gadget:Initialize()
 	if not needsReclaimIncome and not needsFeatureReclaimTracking then
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
+
+	-- AllowWeaponTarget is checked per candidate in every weapon and CAI target
+	-- search, so only stay subscribed while some unit is actually untargetable
+	-- (toggled in setUnitTargetable):
+	gadgetHandler:RemoveCallIn('AllowWeaponTarget')
 end
 
 function gadget:GameFrame(frameNumber)
@@ -293,7 +354,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	if untargetableUnitIDs[unitID] then
-		GG['MissionAPI'].SetUnitTargetable(unitID, true)
+		setUnitTargetable(unitID, true)
 	end
 
 	untrackUnitID(unitID)
@@ -369,6 +430,7 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 	return true
 end
 
+-- Only subscribed while some unit is untargetable (see setUnitTargetable).
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	if untargetableUnitIDs[targetID] then
 		return false, defPriority

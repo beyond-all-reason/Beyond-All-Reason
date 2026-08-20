@@ -52,45 +52,6 @@ local function loadMission(scriptPath)
 	parameterProcessing.ProcessTriggerParameters(GG['MissionAPI'].Triggers)
 end
 
--- Purge queued attack orders aimed at a unit that just became untargetable.
--- New attack orders on it are refused in api_missions_triggers (AllowCommand).
-local function removeAttackOrdersTargeting(targetID)
-	for _, attackerID in ipairs(Spring.GetAllUnits()) do
-		if Spring.GetUnitCommandCount(attackerID) > 0 then
-			local commands = Spring.GetUnitCommands(attackerID, -1)
-			local removeTags = {}
-			for i = 1, #commands do
-				local command = commands[i]
-				if (command.id == CMD.ATTACK or command.id == CMD.MANUALFIRE)
-					and command.params[2] == nil
-					and command.params[1] == targetID
-				then
-					removeTags[#removeTags + 1] = command.tag
-				end
-			end
-			if #removeTags > 0 then
-				Spring.GiveOrderToUnit(attackerID, CMD.REMOVE, removeTags, 0)
-			end
-		end
-	end
-end
-
--- Central switch behind the Unit Targetable action. Auto-targeting and manual
--- attack orders are blocked in api_missions_triggers (AllowWeaponTarget and
--- AllowCommand), which also mirrors this state to unsynced so the attack
--- cursor is suppressed when hovering the unit.
-local function setUnitTargetable(unitID, targetable)
-	if not unitID then return end
-
-	GG['MissionAPI'].untargetableUnitIDs[unitID] = not targetable and true or nil
-
-	if not targetable then
-		removeAttackOrdersTargeting(unitID)
-	end
-
-	SendToUnsynced('MissionAPI_UnitTargetable', unitID, not targetable)
-end
-
 function gadget:Initialize()
 	--local scriptPath = 'mission-api-tests/validation_test.lua'
 	--local scriptPath = 'mission-api-tests/test_mission.lua'
@@ -117,7 +78,6 @@ function gadget:Initialize()
 	GG['MissionAPI'].trackedFeatureIDs      = {}
 	GG['MissionAPI'].trackedFeatureNames    = {}
 	GG['MissionAPI'].untargetableUnitIDs    = {}
-	GG['MissionAPI'].SetUnitTargetable      = setUnitTargetable
 	GG['MissionAPI'].markerNames            = {}
 	GG['MissionAPI'].soundFiles             = {}
 	GG['MissionAPI'].soundQueue             = {}
