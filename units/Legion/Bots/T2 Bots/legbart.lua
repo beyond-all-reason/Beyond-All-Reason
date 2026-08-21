@@ -31,7 +31,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
@@ -114,8 +114,8 @@ return {
 				noselfdamage = true,
 				projectiles = 2,
 				range = 625,
-				tolerance = 5000;
-				firetolerance = 5000;
+				tolerance = 5000,
+				firetolerance = 5000,
 				reloadtime = 4,
 				rgbcolor = "1 0.25 0.1",
 				size = 6,

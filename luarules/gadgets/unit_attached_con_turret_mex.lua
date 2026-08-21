@@ -1,20 +1,20 @@
-local gadget = gadget ---@class Gadget
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = 'Legion Con Turret Metal Extractor',
-        desc      = 'Allows the mex to function as a con turret by replacing it with a fake mex with a con turret attached',
-        author    = 'EnderRobo',
-        version   = 'v2',
-        date      = 'September 2024',
-        license   = 'GNU GPL, v2 or later',
-        layer     = 12, -- TODO: Why?
-        enabled   = true, -- auto-disables
-    }
+	return {
+		name = "Legion Con Turret Metal Extractor",
+		desc = "Allows the mex to function as a con turret by replacing it with a fake mex with a con turret attached",
+		author = "EnderRobo",
+		version = "v2",
+		date = "September 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 12, -- TODO: Why?
+		enabled = true, -- auto-disables
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -150,15 +150,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 
 		mexesToSwap[unitID] = {
 			swapDefs = swapDefs,
-			x        = ux,
-			y        = uy,
-			z        = uz,
-			facing   = Spring.GetUnitBuildFacing(unitID),
-			metal    = metalCost,
-			energy   = energyCost,
-			frame    = Spring.GetGameFrame() + 1,
+			x = ux,
+			y = uy,
+			z = uz,
+			facing = Spring.GetUnitBuildFacing(unitID),
+			metal = metalCost,
+			energy = energyCost,
+			frame = Spring.GetGameFrame() + 1,
 		}
-    end
+	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
@@ -170,7 +170,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		if pairedID and pairedID ~= 0 then
 			Spring.TransferUnit(pairedID, newTeam)
 		end
-    end
+	end
 end
 
 -- Remains are derived from its base build def, created manually on death.
@@ -202,7 +202,7 @@ local function createRemains(unitID, unitDefID, unitTeam)
 	if damage > maxHealth * 0.5 then
 		return -- obliterated: nothing left to salvage
 	elseif damage <= maxHealth * 0.25 then
-		local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
+		local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead", xx, yy, zz, facing, unitTeam)
 		if featureID then
 			Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
 		end
@@ -211,7 +211,18 @@ local function createRemains(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
 	if mexTurretDefID[unitDefID] and not paralyzer then
 		local frame = Spring.GetGameFrame()
 		if recentDamageFrame[unitID] == frame then
@@ -248,7 +259,19 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	unitTeam,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	-- accepts CMD.ONOFF:
 	if mexTurretDefID[unitDefID] then
 		local mexID = pairedUnits[unitID]
