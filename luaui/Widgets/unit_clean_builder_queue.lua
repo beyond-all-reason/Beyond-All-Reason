@@ -31,6 +31,7 @@ local trackedBuilders = {}
 local isBuilding = {}
 local builderDefs = {}
 local myTeamID = GetMyTeamID()
+local finishedButNotRepaired = {} -- unitID -> true, for buildings that are finished but not fully repaired yet
 
 -- Calculate maximum build distance from all builder units + margin
 local maxBuildDistance = 0
@@ -114,6 +115,22 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
 	end
 end
 
+function widget:GameFrame(f)
+	if f%5 == 0 then
+		for unitID, _ in pairs(finishedButNotRepaired) do
+			if not Spring.ValidUnitID(unitID) then
+				finishedButNotRepaired[unitID] = nil
+			else
+				local hp, maxHP = Spring.GetUnitHealth(unitID)
+				if hp and maxHP and hp == maxHP then
+					widget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+					finishedButNotRepaired[unitID] = nil
+				end
+			end
+		end
+	end
+end
+
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeamID or not isBuilding[unitDefID] then
 		return
@@ -127,6 +144,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- Use spatial query to only check nearby units (team-filtered to reduce table size)
 	local nearbyUnits = GetUnitsInCylinder(x, z, SEARCH_RADIUS, myTeamID)
 	if not nearbyUnits or #nearbyUnits == 0 then
+		return
+	end
+
+	local hp, maxHP = Spring.GetUnitHealth(unitID)
+	if hp and maxHP and hp < maxHP then
+		-- Building is not fully constructed; defer removal until it is finished
+		finishedButNotRepaired[unitID] = true
 		return
 	end
 
