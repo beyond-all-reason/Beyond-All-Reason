@@ -378,7 +378,7 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 				local accRate = state.origMaxAcc * maxAccelerationFactor
 				if isSlowed and accRate > speedFactor then
 					-- Clamp acceleration to mitigate prevent brief speedup when executing new order
-					-- 1 is here as an arbitary factor, there is no nice conversion which means that 1 is a good value.
+					-- 1 is here as an arbitrary factor, there is no nice conversion which means that 1 is a good value.
 					accRate = speedFactor
 				end
 				local attribute = {

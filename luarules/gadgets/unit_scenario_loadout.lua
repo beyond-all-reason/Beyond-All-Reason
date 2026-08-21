@@ -153,7 +153,7 @@ function gadget:GameFrame(n)
 		end
 		gadgetHandler:RemoveGadget()
 	end
-	--[[ periodic checking isnt very good
+	--[[ periodic checking isn't very good
 	if n %17 == 7 then
 		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do

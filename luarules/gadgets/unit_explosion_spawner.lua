@@ -18,7 +18,7 @@ end
 
 -- unit defs guide
 -- spawns_name = the string of the unit you want to spawn. If you list multiple, also include a spawns_mode entry example: "CORAK ARMPW CORJUGG"
--- spawns_surface = sting. SEA and LAND are the only supported options
+-- spawns_surface = string. SEA and LAND are the only supported options
 -- spawns_mode = if you have multiple entries, use one of these strings: "random" "random_locked" or "sequential"
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()

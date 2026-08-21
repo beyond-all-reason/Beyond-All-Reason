@@ -135,8 +135,8 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					sweepfire = 7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				},
+					sweepfire_firetime = 2.1667,
+				}
 			},
 			legphtarg = { --targetting only
 				areaofeffect = 121,
@@ -154,7 +154,7 @@ return {
 				impulsefactor = 0,
 				model = "empty.s3o",
 				mygravity = 0.4,
-				name = "Targetting System",
+				name = "Targeting System",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,
@@ -162,7 +162,7 @@ return {
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
-					water_splash = 0, -- targetting weapon aircraftbomb
+					water_splash = 0, -- targeting weapon aircraftbomb
 				},
 				damage = {
 					default = 0,

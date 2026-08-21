@@ -28,6 +28,7 @@ return { --costs should be same as legmohocon and legmohoconin
 		health = 3900,
 		maxslope = 10,
 		maxwaterdepth = 0,
+		metalstorage = 600,
 		movementclass = "NANO",
 		objectname = "Units/LEGMOHOCON.s3o",
 		onoffable = true,

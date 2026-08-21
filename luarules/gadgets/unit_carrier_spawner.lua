@@ -194,7 +194,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15 -- Checks the docking queue. Increasing 
 
 --Known bugs:
 -- Land carriers struggling with the attack formations
--- Drones occationally stuck hovering near the carrier instead of following the active command
+-- Drones occasionally stuck hovering near the carrier instead of following the active command
 
 for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -256,6 +256,16 @@ for weaponDefID = 0, #WeaponDefs do
 		end
 		wantedList[#wantedList + 1] = weaponDefID
 	end
+end
+
+-- Do not remove and insert a key on the iter table in the same step with pairs/next.
+-- We create a copy of just the top level of the iter table to get around this error.
+local function safe(tbl)
+	local copy = {}
+	for k, v in pairsNext, tbl do
+		copy[k] = v
+	end
+	return copy
 end
 
 local function randomPointInUnitCircle(offset)
@@ -1052,7 +1062,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local evolvedCarrierID = spGetUnitRulesParam(unitID, "unit_evolved")
 
 		if carrierMetaList[unitID].subUnitsList then
-			for subUnitID, droneMetaData in pairsNext, carrierMetaList[unitID].subUnitsList do
+			for subUnitID, droneMetaData in pairsNext, safe(carrierMetaList[unitID].subUnitsList) do
 				if carrierMetaList[unitID].subUnitsList[subUnitID] then
 					local standalone = false
 					local wild = false
@@ -1149,7 +1159,7 @@ end
 
 local function updateStandaloneDrones(frame)
 	local resourceFrames = (frame - previousHealFrame) / 30
-	for unitID, droneData in pairsNext, droneMetaList do
+	for unitID, droneData in pairsNext, safe(droneMetaList) do
 		if droneData.wild then
 			-- move around unless in combat
 			local dronex, droney, dronez = spGetUnitPosition(unitID)
@@ -1307,7 +1317,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 		perpendicularvectorx, perpendicularvectorz = -targetvectorz, targetvectorx
 	end
 	local orderUpdate = false
-	for subUnitID, droneData in pairsNext, carrierMetaData.subUnitsList do
+	for subUnitID, droneData in pairsNext, safe(carrierMetaData.subUnitsList) do
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
 		if not sy then
 			droneData = nil
@@ -1897,7 +1907,7 @@ function gadget:GameFrame(f)
 	end
 	if (DEFAULT_SPAWN_CHECK_FREQUENCY + lastSpawnCheck) < f then
 		lastSpawnCheck = f
-		for unitID, _ in pairs(carrierMetaList) do
+		for unitID, _ in pairs(safe(carrierMetaList)) do
 			local isDoneBuilding = not spGetUnitIsBeingBuilt(unitID)
 			if isDoneBuilding then
 				carrierMetaList[unitID].wasBuilt = true
@@ -1934,8 +1944,11 @@ function gadget:GameFrame(f)
 
 	if (CARRIER_UPDATE_FREQUENCY + lastCarrierUpdate) < f then
 		lastCarrierUpdate = f
-		for unitID, _ in pairsNext, carrierMetaList do
-			updateCarrier(unitID, carrierMetaList[unitID], f)
+		for unitID, _ in pairsNext, safe(carrierMetaList) do
+			local carrierMetaData = carrierMetaList[unitID]
+			if carrierMetaData then -- updates can chain-kill carriers
+				updateCarrier(unitID, carrierMetaData, f)
+			end
 		end
 		updateStandaloneDrones(f)
 		previousHealFrame = f
@@ -1980,9 +1993,12 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	for unitID, _ in pairsNext, carrierMetaList do
-		for subUnitID, value in pairsNext, carrierMetaList[unitID].subUnitsList do
-			spDestroyUnit(subUnitID, true, true)
+	for unitID, _ in pairsNext, safe(carrierMetaList) do
+		local carrierMetaData = carrierMetaList[unitID]
+		if carrierMetaData then
+			for subUnitID, value in pairsNext, safe(carrierMetaData.subUnitsList) do
+				spDestroyUnit(subUnitID, true, true)
+			end
 		end
 	end
 end

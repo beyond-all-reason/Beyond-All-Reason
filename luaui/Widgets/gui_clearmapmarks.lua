@@ -159,9 +159,9 @@ function widget:MouseRelease(mx, my, mb)
 			continuouslyClean = not continuouslyClean
 			WG.clearmapmarks.continuous = continuouslyClean
 			if continuouslyClean then
-				spEcho("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
+				spEcho("clearmapmarks: continuously cleaning all mapmarks enabled (for current game)")
 			else
-				spEcho("clearmapmarks: continously cleaning all mapmarks disabled")
+				spEcho("clearmapmarks: continuously cleaning all mapmarks disabled")
 			end
 		end
 	end

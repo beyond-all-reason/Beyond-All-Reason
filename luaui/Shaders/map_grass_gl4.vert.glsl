@@ -38,7 +38,6 @@
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
 uniform float distanceMult; //yes this is the additional distance multiplier
-uniform float grassBladeScale;
 
 uniform sampler2D grassBladeColorTex;
 
@@ -98,7 +97,7 @@ void main() {
     return;
   }
 
-  float bladeScale = instancePosRotSize.w * grassBladeScale;
+  float bladeScale = instancePosRotSize.w; // grassBladeScale is baked into the patch mesh at load time
   vec3 grassVertWorldPos = vertexPos * bladeScale; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
