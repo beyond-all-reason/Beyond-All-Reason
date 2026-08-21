@@ -220,7 +220,9 @@ function gadget:GameFrame(frameNumber)
 			markDetectionDirty(inactiveSeismicContacts[i])
 		end
 	end
+end
 
+function gadget:GameFramePost(frameNumber)
 	if detectionCount > 0 then
 		dispatchTriggerCallin('DetectionUpdate', detections)
 		for unitID in pairs(detections) do
