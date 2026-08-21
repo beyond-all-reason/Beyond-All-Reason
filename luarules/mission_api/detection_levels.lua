@@ -69,9 +69,9 @@ local function resolveLevel(unitID, allyTeamID)
 		return LEVEL.VISION
 	end
 	if bit_and(losStatus, LOS_INRADAR) ~= 0 then
-		return bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and LEVEL.IDENTIFIED or LEVEL.RADAR
+		return LEVEL[bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and "IDENTIFIED" or "RADAR"]
 	end
-	return isSeismicContact(unitID, allyTeamID) and LEVEL.SEISMIC or LEVEL.UNSEEN
+	return LEVEL[isSeismicContact(unitID, allyTeamID) and "SEISMIC" or "UNSEEN"]
 end
 
 -- Detection levels are resolved once by the first trigger to see each [allyTeamID][unitID].
