@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "2026.06.28",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -23,7 +23,7 @@ end
 
 --increase safety margin buffer so a pawn can walk through a minefield that's exposed
 
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local WeaponThreat = VFS.Include("modules/weaponthreat.lua")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ALWAYS_SHOOT = WeaponThreat.ALWAYS_SHOOT
@@ -134,8 +134,8 @@ local function checkDefendUnitHealth(attackerID, meta)
 end
 
 local function updateDefendWatchFromRulesParam(unitID)
-	local state = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
-	setDefendWatch(unitID, state == Firestates.DEFEND)
+	local state = spGetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM)
+	setDefendWatch(unitID, state == CustomFirestateDefs.DEFEND)
 end
 
 local function createUnitMeta(unitDefID)
@@ -146,7 +146,18 @@ local function createUnitMeta(unitDefID)
 	return meta
 end
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if cmdID == CMD_FIRE_STATE then
 		updateDefendWatchFromRulesParam(unitID)
 	end
@@ -235,7 +246,8 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 end
 
 function gadget:Initialize()
-	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs = WeaponThreat.buildDefendData()
+	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs =
+		WeaponThreat.buildDefendData()
 
 	for _, unitID in ipairs(spGetAllUnits()) do
 		local unitDefID = spGetUnitDefID(unitID)

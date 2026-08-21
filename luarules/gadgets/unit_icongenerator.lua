@@ -16,7 +16,8 @@
 example usage (need cheats):
 /luarules buildicons all
 /luarules buildicon armcom
-]]--
+]]
+--
 --TODO:
 --1. make blue water drop 256
 --2. fix the culling of floating structures
@@ -32,15 +33,13 @@ function gadget:GetInfo()
 		date = "Oct 01, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -10,
-		enabled = true
+		enabled = true,
 	}
 end
 
 --local renderOverlay = false
 
 if gadgetHandler:IsSyncedCode() then
-
-
 	local units = {}
 	local createunits = {}
 	local curTeam
@@ -75,13 +74,13 @@ if gadgetHandler:IsSyncedCode() then
 				local lus = false
 				local x, z = nextUnitX, nextUnitZ
 				nextUnitX = nextUnitX + 200
-				if (nextUnitX >= Game.mapSizeX) then
+				if nextUnitX >= Game.mapSizeX then
 					nextUnitX, nextUnitZ = 100, nextUnitZ + 200
 				end
 				local y = Spring.GetGroundHeight(0, 0)
 				Spring.LevelHeightMap(x - 50, z - 50, x + 50, z + 50, y)
 
-				local uid = Spring.CreateUnit(cunit.defname, x, y, z, "south", 0)    -- FIXME needs to be a non-gaia team if gaia doesn't have its unitlimit assigned
+				local uid = Spring.CreateUnit(cunit.defname, x, y, z, "south", 0) -- FIXME needs to be a non-gaia team if gaia doesn't have its unitlimit assigned
 
 				if uid then
 					units[#units + 1] = { id = uid, defname = cunit.defname, frame = n + cunit.time }
@@ -125,7 +124,6 @@ if gadgetHandler:IsSyncedCode() then
 
 						Spring.CallCOBScript(uid, "AimTertiary", 0, Spring.GetHeadingFromVector(0, 1), angle)
 						Spring.CallCOBScript(uid, "AimWeapon3", 0, Spring.GetHeadingFromVector(0, 1), angle)
-
 					end
 				end
 			end
@@ -141,7 +139,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if #msg < 9 or string.byte(msg, 1) ~= 98 or msg:sub(1, 9) ~= "buildicon" then return end -- 98 = 'b'
+		if #msg < 9 or string.byte(msg, 1) ~= 98 or msg:sub(1, 9) ~= "buildicon" then
+			return
+		end -- 98 = 'b'
 		if not Spring.IsCheatingEnabled() then
 			Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
 			return true
@@ -161,14 +161,14 @@ if gadgetHandler:IsSyncedCode() then
 		local sa = msg:find(";", w + 1, true)
 		local shotAngle = tonumber(msg:sub(w + 1, sa - 1))
 
-		createunits[#createunits + 1] = { defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
+		createunits[#createunits + 1] =
+			{ defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
 
 		gadget.GameFrame = GameFrame
 		gadgetHandler:UpdateCallIn("GameFrame")
 		gadgetHandler:UpdateCallIn("GameFrame")
 		return true
 	end
-
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ else
 	local renderX, renderY
 
 	local fbo
-	local pre_shader, clear_shader, post_shader
+	local pre_shader, post_shader
 	local albedo_tex, normal_tex, depth_tex
 	local final_tex, final_fbo
 	local halo_shader
@@ -205,6 +205,7 @@ else
 	local GL_RGBA = 0x1908
 	local GL_RGBA16F_ARB = 0x881A
 	local GL_DEPTH_COMPONENT32 = 0x81A7
+	local GL_FRAMEBUFFER = 0x8D40
 	local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 	local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
 	local GL_READ_FRAMEBUFFER_EXT = 0x8CA8
@@ -226,11 +227,11 @@ else
 
 	local function LoadScheme()
 		local G = getfenv()
-		G["scheme"] = scheme
-		G["ratio"] = ratio
-		G["ratio_name"] = ratio_name
-		G["iconX"] = iconX
-		G["iconY"] = iconY
+		G.scheme = scheme
+		G.ratio = ratio
+		G.ratio_name = ratio_name
+		G.iconX = iconX
+		G.iconY = iconY
 
 		autoConfigs = {} --// reset
 
@@ -401,8 +402,12 @@ else
 
       // ambient occlusion
         float ao = 0.0;
-        float aoMultiplier = 3.0 * ]] .. (aoContrast or 1) .. [[;
-        float aoTolerance = 0.0 + ]] .. (aoTolerance or 0) .. [[;
+        float aoMultiplier = 3.0 * ]]
+				.. (aoContrast or 1)
+				.. [[;
+        float aoTolerance = 0.0 + ]]
+				.. (aoTolerance or 0)
+				.. [[;
 
         depths = GetDepthsAO(texel,depth);
         depths = clamp(depth - depths - aoTolerance,0.0,1.0) * aoMultiplier;
@@ -417,13 +422,19 @@ else
         depths = clamp(depth - depths - aoTolerance,0.0,1.0) * aoMultiplier;
         ao += dot(depths,vec4(1.0));
 
-        ao = min(pow(ao,float(]] .. (aoPower or 1) .. [[)),1.0);
+        ao = min(pow(ao,float(]]
+				.. (aoPower or 1)
+				.. [[)),1.0);
 
 
       // outline
         float ol = 0.0;
-        float olMultiplier = 1.7 * float(]] .. (olContrast or 1) .. [[);
-        float olTolerance = 0.0 + float(]] .. (olTolerance or 0) .. [[);
+        float olMultiplier = 1.7 * float(]]
+				.. (olContrast or 1)
+				.. [[);
+        float olTolerance = 0.0 + float(]]
+				.. (olTolerance or 0)
+				.. [[);
 
         depths = GetDepthsOL(texel);
         depths = clamp(depths - vec4(depth) - olTolerance,0.0,0.1);
@@ -444,13 +455,23 @@ else
 
         gl_FragData[0] = color1;
 
-      ]] .. (((not textured) and '/*') or '') .. [[
-        vec3 lightPos     = vec3(]] .. (lightPos[1] .. ',' .. lightPos[2] .. ',' .. lightPos[3]) .. [[);
-        vec3 lightDiffuse = vec3(]] .. (lightDiffuse[1] .. ',' .. lightDiffuse[2] .. ',' .. lightDiffuse[3]) .. [[);
-        vec3 lightAmbient = vec3(]] .. (lightAmbient[1] .. ',' .. lightAmbient[2] .. ',' .. lightAmbient[3]) .. [[);
+      ]]
+				.. (((not textured) and "/*") or "")
+				.. [[
+        vec3 lightPos     = vec3(]]
+				.. (lightPos[1] .. "," .. lightPos[2] .. "," .. lightPos[3])
+				.. [[);
+        vec3 lightDiffuse = vec3(]]
+				.. (lightDiffuse[1] .. "," .. lightDiffuse[2] .. "," .. lightDiffuse[3])
+				.. [[);
+        vec3 lightAmbient = vec3(]]
+				.. (lightAmbient[1] .. "," .. lightAmbient[2] .. "," .. lightAmbient[3])
+				.. [[);
         gl_FragData[0].rgb  = albedo.rgb * (max(dot(normal.xyz,lightPos),0.0) * lightDiffuse + lightAmbient);
         gl_FragData[0].rgb *= min(vec3(1.0),color1.rgb);
-      ]] .. (((not textured) and '*/') or '') .. [[
+      ]]
+				.. (((not textured) and "*/") or "")
+				.. [[
 
         gl_FragData[0] = mix(gl_FragData[0], vec4(0.0,0.0,0.0,1.0), ol);  // outline
       }
@@ -528,20 +549,6 @@ else
 		if not halo_shader then
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
-
-		clear_shader = gl.CreateShader({
-			fragment = [[
-	  #version 150 compatibility
-      void main(void) {
-        gl_FragData[0] = vec4(0.0);
-        gl_FragData[1] = vec4(0.0);
-      }
-    ]]
-		})
-
-		if not clear_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
-		end
 	end
 
 	--------------------------------------------------------------------------------
@@ -554,8 +561,6 @@ else
 		gl.DeleteFBO(fbo)
 		gl.DeleteShader(pre_shader)
 
-		gl.DeleteShader(clear_shader)
-
 		gl.DeleteTexture(post_tex)
 		gl.DeleteFBO(post_fbo)
 		gl.DeleteShader(post_shader)
@@ -566,7 +571,7 @@ else
 		gl.DeleteShader(halo_shader)
 
 		fbo = nil
-		pre_shader, clear_shader, post_shader = nil, nil, nil, nil
+		pre_shader, post_shader = nil, nil
 		albedo_tex, normal_tex, depth_tex = nil, nil, nil
 		final_tex, final_fbo = nil, nil
 		post_tex, post_fbo = nil, nil
@@ -635,13 +640,15 @@ else
 		return top, left, bottom, right
 	end
 
-
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 
 	local function GetUnitDefDims(udid)
 		local dims = Spring.GetUnitDefDimensions(udid)
-		local midx, midy, midz = (dims.maxx + dims.minx) * 0.5, (math.max(0, dims.maxy) + math.max(0, dims.miny)) * 0.5, (dims.maxz + dims.minz) * 0.5
+		local midx, midy, midz =
+			(dims.maxx + dims.minx) * 0.5,
+			(math.max(0, dims.maxy) + math.max(0, dims.miny)) * 0.5,
+			(dims.maxz + dims.minz) * 0.5
 		local ax = math.max(math.abs(dims.maxx - midx), math.abs(dims.minx - midx))
 		local ay = math.max(math.abs(dims.maxy - midy), math.abs(dims.miny - midy))
 		local az = math.max(math.abs(dims.maxz - midz), math.abs(dims.minz - midz))
@@ -666,7 +673,14 @@ else
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PushMatrix()
 		gl.LoadIdentity()
-		gl.Ortho(-radius * renderScale, radius * renderScale, -radius * renderScale * ratio, radius * renderScale * ratio, -radius * 4, radius * 4)
+		gl.Ortho(
+			-radius * renderScale,
+			radius * renderScale,
+			-radius * renderScale * ratio,
+			radius * renderScale * ratio,
+			-radius * 4,
+			radius * 4
+		)
 		gl.ActiveTexture(0, gl.MatrixMode, GL.TEXTURE)
 		gl.PushMatrix()
 		gl.LoadIdentity()
@@ -694,7 +708,7 @@ else
 		gl.PushMatrix()
 		gl.LoadIdentity()
 
-		if (uid) then
+		if uid then
 			gl.UnitTextures(uid, true)
 			gl.UnitRaw(uid, true, -1)
 			gl.UnitTextures(uid, false)
@@ -729,12 +743,13 @@ else
 		gl.LoadIdentity()
 
 		gl.DepthMask(true)
-		gl.ActiveFBO(fbo, gl.Clear, GL.DEPTH_BUFFER_BIT)
+		gl.ActiveFBO(fbo, function()
+			gl.Clear(GL.DEPTH_BUFFER_BIT)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color0", 0, 0, 0, 0)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color1", 0, 0, 0, 0)
+		end)
 		gl.DepthMask(false)
 
-		gl.UseShader(clear_shader)
-		gl.ActiveFBO(fbo, gl.TexRect, -1, -1, 1, 1)
-		gl.UseShader(0)
 		gl.ActiveFBO(post_fbo, gl.Clear, GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 
 		gl.PopMatrix()
@@ -767,7 +782,7 @@ else
 			for i = 1, cnt - 1 do
 				for n = 1, 4 do
 					elements[#elements + 1] = {
-						v = {}
+						v = {},
 					}
 				end
 			end
@@ -807,17 +822,33 @@ else
 
 	local function Overlay(unitdefid)
 		local waterunit, amfibianunit, builderunit = false, false, false
-		if (UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0) or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0) then
+		if
+			(UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0)
+			or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0)
+		then
 			waterunit = true
 			if UnitDefs[unitdefid].levelGround == false then
 				amfibianunit = true
 			end
-
 		end
-		if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
+		if
+			(
+				UnitDefs[unitdefid].maxWaterDepth ~= nil
+				and UnitDefs[unitdefid].maxWaterDepth >= 255
+				and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)
+			) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0)
+		then
 			amfibianunit = true
 		end
-		if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or (UnitDefs[unitdefid].name == 'armnanotc' or UnitDefs[unitdefid].name == 'armnanotcplat' or UnitDefs[unitdefid].name == 'cornanotc' or UnitDefs[unitdefid].name == 'cornanotcplat') then
+		if
+			(UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true)
+			or (
+				UnitDefs[unitdefid].name == "armnanotc"
+				or UnitDefs[unitdefid].name == "armnanotcplat"
+				or UnitDefs[unitdefid].name == "cornanotc"
+				or UnitDefs[unitdefid].name == "cornanotcplat"
+			)
+		then
 			builderunit = true
 		end
 
@@ -900,7 +931,11 @@ else
 
 		if math.abs(math.min(wantedX - width, wantedY - height)) > 3 then
 			--Spring.Echo(i,UnitDefs[udid].name .. ": zoom (factor:" .. math.max(height/wantedY,width/wantedX) .. ")",width,height,wantedX,wantedY,autoConfigs[udid].zoom)
-			autoConfigs[udid].zoom = blend(autoConfigs[udid].zoom, autoConfigs[udid].zoom * math.max(height / wantedY, width / wantedX), autoConfigs[udid].attempt)
+			autoConfigs[udid].zoom = blend(
+				autoConfigs[udid].zoom,
+				autoConfigs[udid].zoom * math.max(height / wantedY, width / wantedX),
+				autoConfigs[udid].attempt
+			)
 			return false, left_, bottom_, width_, height_
 		end
 
@@ -911,7 +946,10 @@ else
 				autoConfigs[udid].offset = { autoConfigs[udid].offset[1] + offX, autoConfigs[udid].offset[2] + offY, 0 }
 				return false, left_, bottom_, width_, height_
 			else
-				Spring.Echo(i, UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)")
+				Spring.Echo(
+					i,
+					UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)"
+				)
 			end
 		end
 
@@ -925,7 +963,11 @@ else
 		local top, left, bottom, right
 		if unitAnimCfg[udid] and unitAnimCfg[udid][ac.attempt] then
 			-- when for anim-gif rotating, use same center cfg
-			top, left, bottom, right = unitAnimCfg[udid][ac.attempt][1], unitAnimCfg[udid][ac.attempt][2], unitAnimCfg[udid][ac.attempt][3], unitAnimCfg[udid][ac.attempt][4]
+			top, left, bottom, right =
+				unitAnimCfg[udid][ac.attempt][1],
+				unitAnimCfg[udid][ac.attempt][2],
+				unitAnimCfg[udid][ac.attempt][3],
+				unitAnimCfg[udid][ac.attempt][4]
 		else
 			top, left, bottom, right = DetectBoundings()
 			if not unitAnimCfg[udid] then
@@ -934,7 +976,8 @@ else
 			if not unitAnimCfg[udid][ac.attempt] then
 				unitAnimCfg[udid][ac.attempt] = {}
 			end
-			unitAnimCfg[udid][ac.attempt][1], unitAnimCfg[udid][ac.attempt][2], unitAnimCfg[udid][ac.attempt][3], unitAnimCfg[udid][ac.attempt][4] = top, left, bottom, right
+			unitAnimCfg[udid][ac.attempt][1], unitAnimCfg[udid][ac.attempt][2], unitAnimCfg[udid][ac.attempt][3], unitAnimCfg[udid][ac.attempt][4] =
+				top, left, bottom, right
 		end
 		--local top,left,bottom,right = DetectBoundings()
 
@@ -979,17 +1022,17 @@ else
 	local function GetFaction(unitdef)
 		local name = unitdef.name
 		if string.find(name, "_scav") then
-			return 'scav'
+			return "scav"
 		elseif string.sub(name, 1, 3) == "arm" then
-			return 'arm'
+			return "arm"
 		elseif string.sub(name, 1, 3) == "cor" then
-			return 'cor'
+			return "cor"
 		elseif string.sub(name, 1, 3) == "leg" then
-			return 'legion'
-		elseif string.find(name, 'raptor') then
-			return 'raptor'
+			return "legion"
+		elseif string.find(name, "raptor") then
+			return "raptor"
 		end
-		return 'unknown'
+		return "unknown"
 	end
 
 	local function CreateIcon(udid, uid)
@@ -1002,7 +1045,7 @@ else
 		local left, bottom = 0, 0
 		local width, height = 0, 0
 
-		if (not cfg.empty) then
+		if not cfg.empty then
 			repeat
 				myGLClear()
 
@@ -1020,29 +1063,35 @@ else
 				end)
 
 				attempts = attempts + 1
-			until (result or (attempts >= cfg.attempts))
+			until result or (attempts >= cfg.attempts)
 		else
 			myGLClear()
 		end
 
 		--// take screenshot
 		gl.ActiveFBO(final_fbo, true, function()
-
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 			gl.Color(1, 1, 1, 1)
-			if (background) then
+			if background then
 				Background(udid)
 			end
 
-			if (halo) then
+			if halo then
 				gl.UseShader(halo_shader)
 				gl.Blending("add")
 				gl.BlendEquationSeparate(0x8006, 0x8008)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE)
 				gl.Texture(2, depth_tex)
-				gl.TexRect(-1, -1, 1, 1,
-					left / (renderX), bottom / (renderY),
-					(left + width) / (renderX), (bottom + height) / (renderY))
+				gl.TexRect(
+					-1,
+					-1,
+					1,
+					1,
+					left / renderX,
+					bottom / renderY,
+					(left + width) / renderX,
+					(bottom + height) / renderY
+				)
 				gl.Texture(2, false)
 				gl.BlendEquationSeparate(0x8006, 0x8006)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ZERO)
@@ -1051,9 +1100,16 @@ else
 
 			gl.Blending("reset")
 			gl.Texture(post_tex)
-			gl.TexRect(-1, -1, 1, 1,
-				left / (renderX), bottom / (renderY),
-				(left + width) / (renderX), (bottom + height) / (renderY))
+			gl.TexRect(
+				-1,
+				-1,
+				1,
+				1,
+				left / renderX,
+				bottom / renderY,
+				(left + width) / renderX,
+				(bottom + height) / renderY
+			)
 			--if renderOverlay then
 			--  Overlay(udid)	-- draw water drop if water unit
 			--end
@@ -1061,11 +1117,11 @@ else
 			gl.Blending(false)
 			gl.Texture(false)
 
-			local outfile = (outdir) .. "/" .. (UnitDefs[udid].name)
+			local outfile = outdir .. "/" .. UnitDefs[udid].name
 			if cfg.frame ~= nil then
-				outfile = outfile .. '_' .. cfg.frame
+				outfile = outfile .. "_" .. cfg.frame
 			end
-			outfile = outfile .. (imageExt)
+			outfile = outfile .. imageExt
 
 			--if (VFS.FileExists(outfile, VFS.RAW)) then
 			--  os.remove(outfile)
@@ -1074,13 +1130,12 @@ else
 			gl.SaveImage(0, 0, iconX, iconY, outfile, { alpha = true })
 		end)
 
-		if (not result and not cfg.empty) then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, "icongen: " .. (UnitDefs[udid].name) .. ": give up :<")
+		if not result and not cfg.empty then
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, "icongen: " .. UnitDefs[udid].name .. ": give up :<")
 		end
 	end
 
 	local function AddUnitJob(udid, angle, frame)
-
 		--// generate unit icon settings (and merge defaults)
 		local cfg = unitConfigs[udid] or {}
 		autoConfigs[udid] = {}
@@ -1095,7 +1150,7 @@ else
 			unitConfigs[udid].frame = frame
 		end
 
-		if (cfg.unfold) then
+		if cfg.unfold then
 			--// unit does some unfolding/animation in cob,
 			--// so we need to create it first
 
@@ -1103,13 +1158,19 @@ else
 
 			local factionTeam = factionTeams[GetFaction(UnitDefs[udid] or {})]
 
-			local msg = "buildicon " ..
-				UnitDefs[udid].name .. ";" ..
-				((cfg.attack and "1") or "0") .. ";" ..
-				((cfg.move and "1") or "0") .. ";" ..
-				factionTeam .. ";" ..
-				(cfg.wait) .. ";" ..
-				(cfg.shotangle or "0") .. ";"
+			local msg = "buildicon "
+				.. UnitDefs[udid].name
+				.. ";"
+				.. ((cfg.attack and "1") or "0")
+				.. ";"
+				.. ((cfg.move and "1") or "0")
+				.. ";"
+				.. factionTeam
+				.. ";"
+				.. cfg.wait
+				.. ";"
+				.. (cfg.shotangle or "0")
+				.. ";"
 
 			Spring.SendLuaRulesMsg(msg)
 			return
@@ -1132,7 +1193,7 @@ else
 	local schemes, resolutions, ratios = {}, {}, {}
 
 	local function BuildIcon(cmd, line, words, playerID)
-		if (not Spring.IsCheatingEnabled()) then
+		if not Spring.IsCheatingEnabled() then
 			Spring.Echo("Cheating must be enabled")
 			return false
 		end
@@ -1140,12 +1201,12 @@ else
 		--  Spring.Echo("ModUICtrl is needed (type /luamoduictrl 1)")
 		--  return false
 		--end
-		if (final_tex or #jobs > 0) then
+		if final_tex or #jobs > 0 then
 			Spring.Echo("Wait until current process is finished")
 			return false
 		end
 
-		if (words[1] and words[1] ~= "all" and not UnitDefNames[words[1]]) then
+		if words[1] and words[1] ~= "all" and not UnitDefNames[words[1]] then
 			Spring.Echo("No such unit found")
 			return false
 		end
@@ -1154,8 +1215,6 @@ else
 		for _, res in pairs(resolutions) do
 			for _, _scheme in pairs(schemes) do
 				for _ratio_name, _ratio in pairs(ratios) do
-
-
 					AddJob(FreeResources)
 
 					AddJob(WaitForSyncedJobs)
@@ -1163,7 +1222,7 @@ else
 						AddJob(function()
 							AddUnitJob(UnitDefNames[words[1]].id, words[2], words[3])
 						end)
-						Spring.Echo('buildicon: ' .. words[1] .. '  ' .. (words[3] or ''))
+						Spring.Echo("buildicon: " .. words[1] .. "  " .. (words[3] or ""))
 					else
 						for udid = #UnitDefs, 1, -1 do
 							AddJob(function()
@@ -1179,12 +1238,21 @@ else
 						ratio, ratio_name = _ratio, _ratio_name
 						iconX, iconY = res[1], res[2]
 
-						outdir = "buildicons/" .. (scheme) .. "_" .. (ratio_name) .. "_" .. (iconX) .. "x" .. (iconY)
+						outdir = "buildicons/" .. scheme .. "_" .. ratio_name .. "_" .. iconX .. "x" .. iconY
 						Spring.CreateDir(outdir)
 
 						if words[3] then
 							-- if animation
-							outdir = "buildicons/" .. (scheme) .. "_" .. (ratio_name) .. "_" .. (iconX) .. "x" .. (iconY) .. '/' .. words[1]
+							outdir = "buildicons/"
+								.. scheme
+								.. "_"
+								.. ratio_name
+								.. "_"
+								.. iconX
+								.. "x"
+								.. iconY
+								.. "/"
+								.. words[1]
 							Spring.CreateDir(outdir)
 						end
 

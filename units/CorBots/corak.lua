@@ -16,14 +16,14 @@ return {
 		maxdec = 0.7,
 		maxslope = 17,
 		maxwaterdepth = 25,
-		metalcost = 42,
+		metalcost = 43,
 		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAK.s3o",
 		script = "Units/CORAK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 520,
 		speed = 81,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -35,8 +35,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",
 			unitgroup = "weapon",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -121,6 +119,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 37,
 					vtol = 7,

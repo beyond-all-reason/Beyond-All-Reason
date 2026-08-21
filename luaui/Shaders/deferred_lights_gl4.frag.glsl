@@ -281,7 +281,7 @@ vec4 capIntersect2( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra 
 
 float dot2(vec3 a){ return dot(a,a);}
 // cone defined by extremes pa and pb, and radious ra and rb
-// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+// Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
 vec4 coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
 {
     vec3  ba = pb - pa;
@@ -336,7 +336,7 @@ float integratescatterocclusion(float depthratio){
 }
 
 // cone defined by extremes pa and pb, and radious ra and rb
-// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+// Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
 // ra === 0
 // returns the distance from the ray to the cone, and the normal vector of the cones surface at that point.
 vec4 halfconeIntersect_IQ( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
@@ -510,7 +510,7 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 		return vec2(-b - disc, -b + disc) / (2.0 * a);
 	}
 }
-// This is the fast approx scattering useing a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
+// This is the fast approx scattering using a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
 // TODO: handle the case where viewpos is inside the volume!
 float SlowSphereRayMarchedScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
 	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
@@ -1112,7 +1112,7 @@ void main(void)
 	fragColor.rgb = targetcolor.rgb;
 	
 	// light mixdown:
-	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
+	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldn't let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
 	float mintarg = 0.4;
 	float targetbrightness =dot(targetcolor.rgb, vec3(0.375,0.5,0.125));
