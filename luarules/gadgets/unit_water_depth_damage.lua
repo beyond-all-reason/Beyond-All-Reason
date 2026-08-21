@@ -41,9 +41,6 @@ local drownDepthSlack = 8
 --check for modoption everyoneisparatrooper
 local everyoneIsParatrooper = Spring.GetModOptions().everyoneisparatrooper
 
--- for units that would normally drown; hover/amphibious units take some damage since water is their normal environment
-local everyoneIsParatrooperWaterFallDamageMultiplier = 0.25
-
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -99,9 +96,9 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		defData.isDrownable = false
 	end
 
-	--check if everyoneIsParatrooper, use reduced damage, else, standard fall damage
+	--check if everyoneIsParatrooper, remove water fall damage if unit is amphib / hover, else, standard water fall damage
     if everyoneIsParatrooper then
-        defData.fallDamageMultiplier = (defData.isAmphibious or defData.isHover) and 0 or everyoneIsParatrooperWaterFallDamageMultiplier
+        defData.fallDamageMultiplier = (defData.isAmphibious or defData.isHover) and 0 or 1
     else
         defData.fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
     end
