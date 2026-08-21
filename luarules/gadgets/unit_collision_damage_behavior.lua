@@ -49,7 +49,7 @@ local minImpulseToDamageRatio = 0.2
 local everyoneIsParatrooper = Spring.GetModOptions().everyoneisparatrooper
 
 --make fall damage survivable but damaging for modoption everyoneisparatrooper
-local paratrooperForAllFallDamageMultiple = 0.25
+local everyoneIsParatrooperFallDamageMultiple = 0.25
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
@@ -95,8 +95,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitDefData[unitDefID].velocityCap = velocityCap
 	end
 	
-	--use modoption everyoneIsParatrooper fall damage adjustment paratrooperForAllFallDamageMultiple
-	local fallDamageMultiplier = everyoneIsParatrooper and paratrooperForAllFallDamageMultiple or (unitDef.customParams.fall_damage_multiplier or 1.0)
+	--use modoption everyoneIsParatrooper fall damage adjustment everyoneIsParatrooperFallDamageMultiple
+	local fallDamageMultiplier = everyoneIsParatrooper and everyoneIsParatrooperFallDamageMultiple or (unitDef.customParams.fall_damage_multiplier or 1.0)
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
 	unitsMinImpulse[unitDefID] = unitDef.mass * minImpulseMultiplier
