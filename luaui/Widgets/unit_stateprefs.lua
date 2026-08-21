@@ -89,6 +89,7 @@ end
 
 local clearSound = "LuaUI/Sounds/switchoff.wav"
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
+local CMD_STOCKPILE = CMD.STOCKPILE
 local isRecordPressed = false
 local isClearPressed = false
 local spawnInitialFrame = Game.spawnInitialFrame
@@ -122,6 +123,72 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 
 	opts.coded = coded
 	return opts
+end
+
+-- Match unit_stockpile_limit: adjust engine queue toward a desired stock+queued target.
+local function setUnitStockpileTarget(unitID, target)
+	local stock, queued = Spring.GetUnitStockpile(unitID)
+	if stock == nil or queued == nil then
+		return
+	end
+	local count = stock + queued - target
+	while count < 0 do
+		if count <= -100 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "ctrl", "shift" })
+			count = count + 100
+		elseif count <= -20 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "ctrl" })
+			count = count + 20
+		elseif count <= -5 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "shift" })
+			count = count + 5
+		else
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, 0)
+			count = count + 1
+		end
+	end
+	while count > 0 do
+		if count >= 100 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "ctrl", "shift", "right" })
+			count = count - 100
+		elseif count >= 20 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "ctrl", "right" })
+			count = count - 20
+		elseif count >= 5 then
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "shift", "right" })
+			count = count - 5
+		else
+			Spring.GiveOrderToUnit(unitID, CMD_STOCKPILE, {}, { "right" })
+			count = count - 1
+		end
+	end
+end
+
+-- Snapshot current desired stockpile. Block the click so record/clear binds (often ctrl/alt)
+-- do not also change the queue via stockpile modifiers.
+local function handleStockpilePref(unitID, name)
+	local prefs = unitSet[name]
+	if isClearPressed then
+		if prefs and prefs[CMD_STOCKPILE] ~= nil then
+			prefs[CMD_STOCKPILE] = nil
+			pruneUnitPrefs(name)
+			spEcho("State pref removed: " .. name .. ", Stockpile")
+		end
+		return true
+	end
+
+	local stock, queued = Spring.GetUnitStockpile(unitID)
+	if stock == nil then
+		return true
+	end
+	local target = stock + (queued or 0)
+	if not prefs or prefs[CMD_STOCKPILE] ~= target then
+		prefs = prefs or {}
+		prefs[CMD_STOCKPILE] = target
+		unitSet[name] = prefs
+		spEcho("State pref changed:  " .. name .. ",  Stockpile " .. target)
+	end
+	return true
 end
 
 local function recordUserFirestateChanged(unitID, userState)
@@ -206,6 +273,21 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return false
 	end
 
+	local selectedUnits = spGetSelectedUnits()
+
+	-- Stockpile is CMDTYPE.ICON (not ICON_MODE); snapshot current stock+queued as the pref.
+	if cmdID == CMD_STOCKPILE then
+		local block = false
+		for i = 1, #selectedUnits do
+			local unitID = selectedUnits[i]
+			local name = unitName[spGetUnitDefID(unitID)]
+			if handleStockpilePref(unitID, name) then
+				block = true
+			end
+		end
+		return block
+	end
+
 	local index = Spring.GetCmdDescIndex(cmdID)
 	local command = Spring.GetActiveCmdDesc(index)
 	-- need to filter only state commands!
@@ -213,7 +295,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local selectedUnits = spGetSelectedUnits()
 	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
@@ -245,10 +326,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == Spring.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(prefs or {}) do
 			if cmdID == 115 then
-				return
-			end -- we're skipping "repeat" command here for now
-			if cmdID == CMD.FIRE_STATE then
+				-- skip "repeat" for now
+			elseif cmdID == CMD.FIRE_STATE then
 				WG.firestate.setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
+			elseif cmdID == CMD_STOCKPILE then
+				-- stockpile_limit sets desired to max on UnitCreated; adjust down/up to the pref
+				setUnitStockpileTarget(unitID, cmdParam)
 			else
 				Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 			end
