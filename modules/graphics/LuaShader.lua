@@ -13,6 +13,14 @@ local glUniformArray = gl.UniformArray
 
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 
+-- OpenGL 3.2 took the geometry shader stage into the standard, and came with this shading language
+-- version. Drivers newer than that mostly no longer name the extensions the stage arrived through.
+local GLSL_VERSION_WITH_GEOMETRY_SHADERS = 150
+
+-- [Some] Mesa versions prior to this stalled for several seconds the first time a geometry shader
+-- was drawn due to emulation involving memory buffers.
+local OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS = 2601 -- major * 100 + minor, so Mesa 26.1
+
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
 	if type(logEntries) == "number" then
@@ -34,11 +42,41 @@ local function new(class, shaderParams, shaderName, logEntries)
 	}, class)
 end
 
-local function IsGeometryShaderSupported()
-	local hasGeometryShaderExtension = gl.HasExtension("GL_ARB_geometry_shader4")
+--- Whether this machine has the geometry shader stage at all. Asking for the extensions alone finds
+--- only drivers old enough to still name them: the stage has been part of OpenGL since 3.2, and a
+--- current driver says so with its version rather than with an extension string. The names are kept
+--- for drivers older than that, and for OpenGL ES, whose version string the engine cannot read.
+local function HasGeometryShaderStage()
+	local glslVersion = Platform and Platform.glslVersionNum or 0
+	local hasStage = glslVersion >= GLSL_VERSION_WITH_GEOMETRY_SHADERS
+		or gl.HasExtension("GL_ARB_geometry_shader4")
 		or gl.HasExtension("GL_EXT_geometry_shader4")
 		or gl.HasExtension("GL_OES_geometry_shader")
-	return hasGeometryShaderExtension and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+
+	-- an engine that can build a shader with a geometry stage lets a widget set that stage up
+	return hasStage and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+end
+
+--- Which Mesa this is, as major * 100 + minor, or nil on a driver that is not Mesa. Mesa names
+--- itself in the version string it answers with, as in "4.6 (Compatibility Profile) Mesa 26.1.7".
+local function MesaVersion()
+	local glVersion = Platform and Platform.glVersion
+	if not glVersion then
+		return nil
+	end
+
+	local major, minor = glVersion:match("Mesa (%d+)%.(%d+)")
+	---@diagnostic disable-next-line: need-check-nil
+	return major and (tonumber(major) * 100 + tonumber(minor)) or nil
+end
+
+--- Whether to take a geometry shader where there is a path with one and a path without, which is
+--- what every reader of this has always used it for. Older Mesa is left out although it has the
+--- stage, since it incurs long delays for shader compilation.
+local function IsGeometryShaderSupported()
+	local mesaVersion = MesaVersion()
+	local mesaExpensive = mesaVersion ~= nil and mesaVersion < OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS
+	return HasGeometryShaderStage() and not mesaExpensive
 end
 
 local function IsTesselationShaderSupported()
