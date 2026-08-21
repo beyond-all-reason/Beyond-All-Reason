@@ -527,6 +527,9 @@ local function refreshCommands()
 					commandsVisuallyChanged = true
 					break
 				end
+			elseif cmd.action == "stockpile" and cmd.cachedText ~= prevCmdStates[i] then
+				commandsVisuallyChanged = true
+				break
 			end
 		end
 	end
@@ -541,6 +544,9 @@ local function refreshCommands()
 					or (tonumber(commands[i].params[1]) + 1)
 			elseif commands[i].id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
+				prevCmdModes[i] = nil
+			elseif commands[i].action == "stockpile" then
+				prevCmdStates[i] = commands[i].cachedText
 				prevCmdModes[i] = nil
 			else
 				prevCmdStates[i] = nil

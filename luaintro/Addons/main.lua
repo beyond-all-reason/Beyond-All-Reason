@@ -494,7 +494,7 @@ function addon.DrawLoadScreen()
 	local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
 	if ssx / vsx < 1 then -- adjust when window is larger than the screen resolution
 		--scale = ssx / vsx
-		--xDiv = xDiv * scale	-- this doesnt work
+		--xDiv = xDiv * scale	-- this doesn't work
 		--yDiv = yDiv * scale
 	end
 	gl.Color(1, 1, 1, 1)

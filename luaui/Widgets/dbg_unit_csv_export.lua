@@ -46,7 +46,7 @@ function widget:Initialize()
 
 	local columnSeparator = ";"
 	local columnSubSeparator = ", "
-	-- see https://springrts.com/wiki/Lua_UnitDefs for what is availible
+	-- see https://springrts.com/wiki/Lua_UnitDefs for what is available
 	file:write(
 		"id"
 			.. columnSeparator

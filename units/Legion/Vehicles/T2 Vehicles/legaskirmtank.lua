@@ -44,8 +44,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -136,6 +134,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 360,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 70,
 					vtol = 20,

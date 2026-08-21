@@ -180,7 +180,6 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			ultraheavyriotcannon = {
@@ -214,15 +213,12 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 750,
 				damage = {
-					bombers = 52,
 					default = 420,
-					fighters = 52,
 					subs = 160,
 					vtol = 52,
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			bigfootstep = {

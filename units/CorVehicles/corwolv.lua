@@ -48,8 +48,6 @@ return {
 			rockspeed = "2",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -132,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 580,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 300,
 					subs = 75,

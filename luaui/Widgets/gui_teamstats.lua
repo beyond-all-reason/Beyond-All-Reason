@@ -25,7 +25,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 local vsx, vsy = spGetViewGeometry()
 
-local fontSize = 22 -- is caclulated somewhere else anyway
+local fontSize = 22 -- is calculated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
