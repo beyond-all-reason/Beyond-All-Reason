@@ -5,9 +5,9 @@ return {
 	parameters = {
 		{ name = 'featureName',    required = false, type = ParameterTypes.FeatureName },
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },
-		{ name = 'allyTeamID',     required = false, type = ParameterTypes.AllyTeamID },
+		{ name = 'allyTeamName',   required = false, type = ParameterTypes.AllyTeamName },
 		{ name = 'area',           required = false, type = ParameterTypes.Area },
-		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamID', 'area' },
+		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamName', 'area' },
 	},
 	callins = {
 		FeatureDestroyed = function(trigger, triggerID, context, featureID, featureDefID, attackerAllyTeamID, reclaimerTeamID, reclaimLeft)
@@ -22,7 +22,7 @@ return {
 			if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 				return
 			end
-			if trigger.parameters.allyTeamID and attackerAllyTeamID ~= trigger.parameters.allyTeamID then
+			if trigger.parameters.allyTeamName and attackerAllyTeamID ~= GG['MissionAPI'].AllyTeams[trigger.parameters.allyTeamName] then
 				return
 			end
 			if trigger.parameters.area and not context.IsFeatureInArea(featureID, trigger.parameters.area) then

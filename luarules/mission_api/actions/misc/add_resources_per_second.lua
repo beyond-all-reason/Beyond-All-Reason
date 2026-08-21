@@ -1,6 +1,6 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function addResourcesPerSecond(teamID, metal, energy)
+local function addResourcesPerSecond(teamName, metal, energy)
 	local teamID = GG['MissionAPI'].Teams[teamName]
 	if metal then
 		GG["MissionAPIActionHelper"].addMetalPerSecond(teamID, metal)
