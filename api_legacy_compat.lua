@@ -11,14 +11,28 @@ function widget:GetInfo()
 	}
 end
 
+local ALIASES = {
+	GetMyTeamID              = "GetLocalTeamID",
+	GetMyPlayerID            = "GetLocalPlayerID",
+	GetMyAllyTeamID          = "GetLocalAllyTeamID",
+	GiveOrderToUnitArray     = "GiveOrderArrayToUnitArray",
+}
+
 local function installBridge()
 	if not Spring then return end
 
 	if BAR then
-		Spring.I18N      = Spring.I18N or BAR.I18N
-		Spring.Utilities = Spring.Utilities or BAR.Utilities
-		Spring.Debug     = Spring.Debug or BAR.Debug
-		Spring.Lava      = Spring.Lava or BAR.Lava
+		Spring.I18N              = Spring.I18N or BAR.I18N
+		Spring.Utilities         = Spring.Utilities or BAR.Utilities
+		Spring.Debug             = Spring.Debug or BAR.Debug
+		Spring.Lava              = Spring.Lava or BAR.Lava
+		Spring.GetModOptionsCopy = Spring.GetModOptionsCopy or BAR.GetModOptionsCopy
+	end
+
+	for oldName, newName in pairs(ALIASES) do
+		if not Spring[oldName] and Spring[newName] then
+			Spring[oldName] = Spring[newName]
+		end
 	end
 
 	local mt = getmetatable(Spring) or {}
@@ -36,6 +50,12 @@ local function installBridge()
 			rawset(t, key, BAR[key])
 			return BAR[key]
 		end
+
+		if ALIASES[key] and Spring[ALIASES[key]] then
+			rawset(t, key, Spring[ALIASES[key]])
+			return Spring[ALIASES[key]]
+		end
+
 		return nil
 	end
 
