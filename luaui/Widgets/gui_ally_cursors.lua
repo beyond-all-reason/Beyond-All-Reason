@@ -623,7 +623,7 @@ function widget:Update(dt)
 				end
 			end
 			if specList[playerID] and not showSpectatorName then
-				opacity = 0 -- doing this cause somehow setting cursors[playerID][8]=true doesnt remove the light but setting cursors[playerID]=nil does
+				opacity = 0 -- doing this cause somehow setting cursors[playerID][8]=true doesn't remove the light but setting cursors[playerID]=nil does
 			end
 			if opacity > 0.1 then
 				if not cursors[playerID] then

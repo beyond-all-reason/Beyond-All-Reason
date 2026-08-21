@@ -1,7 +1,7 @@
 // For N:\animations\Raptors\raptor_idle_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 //#define IDLEMOVESCALE 100 //Higher values are bigger, 100 is default
 //#define IDLEAMPLITUDE
-//#deine IDLESPEED
+//#define IDLESPEED
 
 Idle() {// For N:\animations\Raptors\raptor_idle_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	sleep 300;

@@ -1,5 +1,6 @@
 -- tf_tileset.lua: Tileset Terrain tuning UI module for gui_terraform_brush.
 -- Folds the /tileset prototype's knob panel into the TF brush as the TILESET
+-- floating window, opened from the SCENE menu and independent of the active
 -- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
 -- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
 -- generated from the same spec below, so this list and the .rml stay in step.
@@ -11,19 +12,19 @@ local WG = WG
 
 -- { knob key, numbox display format }. Order is irrelevant here (lookup by key).
 local KNOBS = {
-	{ "scaleSoil", "%.0f" },
-	{ "scaleRocky", "%.0f" },
+	{ "scaleBase", "%.0f" },
+	{ "scaleIntermediate", "%.0f" },
 	{ "scaleCliff", "%.0f" },
 	{ "scalePlat", "%.0f" },
 	{ "scaleFoot", "%.0f" },
 	-- albedo tiling per flat layer, as a multiple of that layer's shape scale
 	-- (albDecouple is the checkbox below, not a slider — same as debugView)
-	{ "albTileSoil", "%.2f" },
-	{ "albTileRocky", "%.2f" },
+	{ "albTileBase", "%.2f" },
+	{ "albTileIntermediate", "%.2f" },
 	{ "albTilePlat", "%.2f" },
 	{ "normalStrength", "%.2f" },
-	{ "soilNormStrength", "%.2f" },
-	{ "rockyNormStrength", "%.2f" },
+	{ "baseNormStrength", "%.2f" },
+	{ "intermediateNormStrength", "%.2f" },
 	{ "platNormStrength", "%.2f" },
 	{ "cliffNormStrength", "%.2f" },
 	{ "footNormStrength", "%.2f" },
@@ -34,14 +35,19 @@ local KNOBS = {
 	{ "platHeight", "%.2f" },
 	{ "platBlend", "%.2f" },
 	{ "cliffBlend", "%.2f" },
-	{ "gravelHeight", "%.2f" },
-	{ "gravelBlend", "%.2f" },
-	{ "talusPatch", "%.2f" },
-	{ "talusStartDeg", "%.1f" },
-	{ "talusFullDeg", "%.1f" },
+	{ "intermediateHeight", "%.2f" },
+	{ "intermediateBlend", "%.2f" },
+	{ "intermediateEvidence", "%.2f" },
+	{ "cavityFloor", "%.2f" },
+	{ "intermediateScatter", "%.2f" },
+	{ "intermediateStartDeg", "%.1f" },
+	{ "intermediateFullDeg", "%.1f" },
+	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
+	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
+	-- 0/1 slider.
 	{ "splatInfluence", "%.2f" },
-	{ "cliffProtect", "%d" },
-	{ "splatPunchTalus", "%.2f" },
+	{ "surfClaim", "%.2f" },
+	{ "splatPunchIntermediate", "%.2f" },
 	{ "splatPunchCliff", "%.2f" },
 	{ "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" },
@@ -53,6 +59,7 @@ local KNOBS = {
 	{ "maskScale1", "%.0f" },
 	{ "maskScale2", "%.0f" },
 	{ "lumaBlend", "%.2f" },
+	{ "lumaTops", "%.2f" },
 	{ "heightBlend", "%.2f" },
 	{ "heightDepth", "%.2f" },
 	{ "curvHighlight", "%.2f" },
@@ -61,6 +68,7 @@ local KNOBS = {
 	{ "specStrength", "%.2f" },
 	{ "specAA", "%.2f" },
 	{ "hemiAmbient", "%.2f" },
+	{ "exposure", "%.2f" },
 	{ "aoStrength", "%.2f" },
 	{ "wetBand", "%.0f" },
 	{ "wetGloss", "%.2f" },
@@ -71,12 +79,12 @@ local KNOBS = {
 	{ "tintR", "%.2f" },
 	{ "tintG", "%.2f" },
 	{ "tintB", "%.2f" },
-	{ "soilTintR", "%.2f" },
-	{ "soilTintG", "%.2f" },
-	{ "soilTintB", "%.2f" },
-	{ "rockyTintR", "%.2f" },
-	{ "rockyTintG", "%.2f" },
-	{ "rockyTintB", "%.2f" },
+	{ "baseTintR", "%.2f" },
+	{ "baseTintG", "%.2f" },
+	{ "baseTintB", "%.2f" },
+	{ "intermediateTintR", "%.2f" },
+	{ "intermediateTintG", "%.2f" },
+	{ "intermediateTintB", "%.2f" },
 	{ "cliffTintR", "%.2f" },
 	{ "cliffTintG", "%.2f" },
 	{ "cliffTintB", "%.2f" },
@@ -90,7 +98,7 @@ local KNOBS = {
 	{ "metalScale", "%.0f" },
 	{ "metalRelief", "%.2f" },
 	{ "metalEdge", "%.2f" },
-	-- silhouette band: which terrain layer skirts a spot (0 soil, 1 talus,
+	-- silhouette band: which terrain layer skirts a spot (0 base, 1 intermediate,
 	-- 2 cliff, 3 plateau) and how much it darkens
 	{ "metalApronLayer", "%d" },
 	{ "metalApronTone", "%.2f" },
@@ -123,8 +131,8 @@ local TUNING_FRAMES = {
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 	ctx.widgetState.tsLastVal = ctx.widgetState.tsLastVal or {}
-	-- fresh document: the SHADER checkbox is back at its markup default, so drop
-	-- the cache and let the next M.sync re-stamp it from the widget
+	-- fresh document: the section gray-out is back at its markup default, so
+	-- drop the cache and let the next M.sync re-apply it from the widget
 	ctx.widgetState.tsShaderLast = nil
 	ctx.widgetState.tsAlbDecoupleLast = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
@@ -143,25 +151,23 @@ function M.sync(doc, ctx, setSummary)
 	end
 	local widgetState = ctx.widgetState
 	local dm = widgetState.dmHandle
-	-- Only push values while the TILESET tool owns the panel.
-	if not dm or dm.activeTool ~= "ts" then
+	-- Only push values while the TILESET floating window (SCENE menu) is open.
+	-- It is independent of the active tool by design, so this is the only gate.
+	if not dm or not dm.envTilesetVisible then
 		return
 	end
 
-	-- Master SHADER switch: mirror the widget (covers the persisted-off startup
-	-- state and console-driven /tileset shader). With the shader off every tuning
-	-- section below it is inert, so gray them out.
+	-- Master SHADER button: mirror the widget (covers the persisted-off startup
+	-- state and console-driven /tileset shader). dm.tsShaderOn drives the
+	-- button highlight AND grays the PAINT SURFACES neighbour; with the shader
+	-- off every tuning section below is inert too, so gray those out here.
 	if WG.TilesetTerrain.isActive then
 		local on = WG.TilesetTerrain.isActive() and true or false
+		if dm.tsShaderOn ~= on then
+			dm.tsShaderOn = on
+		end
 		if widgetState.tsShaderLast ~= on then
 			widgetState.tsShaderLast = on
-			local el = doc:GetElementById("btn-ts-shader")
-			if el then
-				el:SetAttribute(
-					"src",
-					on and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
-				)
-			end
 			if ctx.setDisabledIds then
 				ctx.setDisabledIds(doc, TUNING_FRAMES, not on)
 			end
@@ -209,6 +215,7 @@ function M.sync(doc, ctx, setSummary)
 	local cache = widgetState.tsLastVal
 	local ds = uiState.draggingSlider
 	uiState.updatingFromCode = true
+	local stamped = false
 	for _, k in ipairs(KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
@@ -221,6 +228,7 @@ function M.sync(doc, ctx, setSummary)
 				local sl = doc:GetElementById(id)
 				if sl then
 					sl:SetAttribute("value", slStr)
+					stamped = true
 				end
 				local nb = doc:GetElementById(id .. "-numbox")
 				if nb then
@@ -230,6 +238,15 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 	uiState.updatingFromCode = false
+	-- RmlUi delivers the change events these SetAttribute stamps raise on a
+	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
+	-- this timestamp to drop that deferred echo — otherwise every programmatic
+	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
+	-- values into the knob table, compounding per swap (the "red intermediate area
+	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	if stamped then
+		uiState.tsStampFrame = Spring.GetDrawFrame()
+	end
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
 	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).
@@ -245,6 +262,16 @@ function M.sync(doc, ctx, setSummary)
 						or "/luaui/images/terraform_brush/check_off.png"
 				)
 			end
+		end
+	end
+
+	-- PROTECT CLIFFS button highlight: a knob, but rendered as a button rather
+	-- than a 0/1 slider, so mirror it by hand (covers startup, biome swaps and
+	-- console /tileset changes).
+	if knobs.cliffProtect ~= nil then
+		local cp = knobs.cliffProtect >= 1
+		if dm.tsCliffProtectOn ~= cp then
+			dm.tsCliffProtectOn = cp
 		end
 	end
 

@@ -10,9 +10,7 @@ static-var  isMoving, isAiming, gun_1, moveSpeed, currentSpeed, curHead1, curPit
 //#define DEBUG
 #include "../debug.h"
 
-// Note, removed old deprecated unitDefsTurretSpeeds.h 
-#define Weapon1TurretX <300>
-#define Weapon1TurretY <300>
+#include "../unitDefsTurretSpeeds.h";
 
 // Signal definitions
 #define SIGNAL_AIM1 256

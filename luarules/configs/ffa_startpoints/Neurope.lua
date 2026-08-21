@@ -19,8 +19,8 @@ local startPoints = {
 
 --[[
 Neurope is unbalanced by design, with almost only unique start positions. The
-layouts acknolowedge that and lean into the unbalanced nature of the map, with
-no intent whatsover to try and balance start positions themselves.
+layouts acknowledge that and lean into the unbalanced nature of the map, with
+no intent whatsoever to try and balance start positions themselves.
 
 Instead, we just try to maximize "coverage" of the map by distributing players
 on a somewhat even manner as much as possible, akin to the default map start
