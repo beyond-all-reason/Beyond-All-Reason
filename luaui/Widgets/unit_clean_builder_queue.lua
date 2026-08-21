@@ -119,7 +119,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
 end
 
 function widget:GameFrame(f)
-	if f%5 == 0 then
+	if f % 5 == 0 then
 		for unitID, _ in pairs(finishedButNotRepaired) do
 			if not ValidUnitID(unitID) then
 				finishedButNotRepaired[unitID] = nil
