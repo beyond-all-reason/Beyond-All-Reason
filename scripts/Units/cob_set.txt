@@ -6033,7 +6033,7 @@ Context control:
   -B, --before-context=NUM  print NUM lines of leading context
   -A, --after-context=NUM   print NUM lines of trailing context
   -C, --context[=NUM]       print NUM (default 2) lines of output context
-                            unless overriden by -A or -B
+                            unless overridden by -A or -B
   -NUM                      same as --context=NUM
   -U, --binary              do not strip CR characters at EOL (MSDOS)
   -u, --unix-byte-offsets   report offsets as if CRs were not there (MSDOS)
@@ -8260,7 +8260,7 @@ Context control:
   -B, --before-context=NUM  print NUM lines of leading context
   -A, --after-context=NUM   print NUM lines of trailing context
   -C, --context[=NUM]       print NUM (default 2) lines of output context
-                            unless overriden by -A or -B
+                            unless overridden by -A or -B
   -NUM                      same as --context=NUM
   -U, --binary              do not strip CR characters at EOL (MSDOS)
   -u, --unix-byte-offsets   report offsets as if CRs were not there (MSDOS)

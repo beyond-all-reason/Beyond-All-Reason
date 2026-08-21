@@ -91,7 +91,7 @@ local function NewSetListMin()
 	return t
 end
 
--- A SetListNoTable is a data structure used for storing only positive integer keys, or string keys which arent called 'count'
+-- A SetListNoTable is a data structure used for storing only positive integer keys, or string keys which aren't called 'count'
 -- It consists of only the table itself. Negative numbers are not allowed
 
 local SetListNoTableMT = {}

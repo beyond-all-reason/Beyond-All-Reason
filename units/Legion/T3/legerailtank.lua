@@ -1,7 +1,7 @@
 return {
 	legerailtank = {
-		acceleration = 0.035,
-		brakerate = 0.055,
+		maxacc = 0.035,
+		maxdec = 0.055,
 		energycost = 165000,
 		metalcost = 6500,
 		buildpic = "LEGERAILTANK.DDS",

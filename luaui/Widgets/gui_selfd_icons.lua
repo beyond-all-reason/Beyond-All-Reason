@@ -19,12 +19,16 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 local ignoreUnitDefs = {}
 local unitConf = {}
+local isTransportDef = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
 	unitConf[udid] = 7 + (scale / 2.5)
 	if string.find(unitDef.name, "droppod") then
 		ignoreUnitDefs[udid] = true
+	end
+	if unitDef.isTransport then
+		isTransportDef[udid] = true
 	end
 end
 
@@ -178,7 +182,8 @@ function widget:DrawWorld()
 	-- draw icon + countodown if there is an active self-d countdown going
 	for unitID, unitDefID in pairs(activeSelfD) do
 		if (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if spGetUnitTransporter(unitID) == nil then
+			local transporterID = spGetUnitTransporter(unitID)
+			if transporterID == nil or not isTransportDef[spGetUnitDefID(transporterID)] then
 				unitScale = unitConf[unitDefID]
 				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
 				if not drawLists[countdown] then
@@ -193,7 +198,8 @@ function widget:DrawWorld()
 	for unitID, unitDefID in pairs(queuedSelfD) do
 		-- don't draw this if it also has an active countdown
 		if activeSelfD[unitID] == nil and (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if spGetUnitTransporter(unitID) == nil then
+			local transporterID = spGetUnitTransporter(unitID)
+			if transporterID == nil or not isTransportDef[spGetUnitDefID(transporterID)] then
 				unitScale = unitConf[unitDefID]
 				if not drawLists[0] then
 					drawLists[0] = gl.CreateList(DrawIcon, 0)

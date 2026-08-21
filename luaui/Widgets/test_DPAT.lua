@@ -50,7 +50,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	if unitDefID == nil then
 		return
-	end -- these cant be selected
+	end -- these can't be selected
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0
 
@@ -81,7 +81,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 			cornersize,
 			additionalheight, -- lengthwidthcornerheight
 			spGetUnitTeam(unitID), -- teamID
-			numVertices, -- how many trianges should we make
+			numVertices, -- how many triangles should we make
 			gf,
 			0,
 			0,
@@ -89,7 +89,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 			0,
 			1,
 			0,
-			1, -- These are our default UV atlas tranformations
+			1, -- These are our default UV atlas transformations
 			0,
 			0,
 			0,

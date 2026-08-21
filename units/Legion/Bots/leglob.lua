@@ -119,6 +119,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 220,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					vtol = 21,
@@ -147,6 +150,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 75,
 					vtol = 21,

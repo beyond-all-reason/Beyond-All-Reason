@@ -1,6 +1,5 @@
 return {
 	raptor_air_fighter_basic_t4_v1 = {
-		acceleration = 2,
 		airsightdistance = 1500,
 		amphibious = true,
 		autoheal = 10,

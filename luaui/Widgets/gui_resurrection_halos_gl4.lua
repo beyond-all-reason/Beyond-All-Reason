@@ -84,7 +84,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 			8,
 			unitConf[unitDefID].height, -- lengthwidthcornerheight
 			0, -- teamID
-			4, -- how many trianges should we make (2 = cornerrect)
+			4, -- how many triangles should we make (2 = cornerrect)
 			gf,
 			0,
 			0,
@@ -92,7 +92,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 			0,
 			1,
 			0,
-			1, -- These are our default UV atlas tranformations
+			1, -- These are our default UV atlas transformations
 			0,
 			0,
 			0,

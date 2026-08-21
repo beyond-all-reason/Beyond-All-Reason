@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Air AttackSafetyDistance",
-		desc = "Allows the setting of attackSafetyDistance for strafe runninng aircraft, so fighters and bombers",
+		desc = "Allows the setting of attackSafetyDistance for strafe running aircraft, so fighters and bombers",
 		author = "Doo, Floris",
 		date = "Sept 19th 2017",
 		license = "GNU GPL, v2 or later",

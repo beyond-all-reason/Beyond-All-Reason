@@ -1,6 +1,5 @@
 return {
 	legnap = {
-		acceleration = 0.04,
 		airsightdistance = 800,
 		blocking = false,
 		maxdec = 0.045,
