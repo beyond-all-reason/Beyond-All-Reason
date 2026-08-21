@@ -23,10 +23,12 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetTeamList = Spring.GetTeamList
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitPaletteIndex = Spring.GetUnitPaletteIndex
+local spGetTeamColor = Spring.GetTeamColor
+local spGetCustomPaletteColor = Spring.GetCustomPaletteColor
 
 -- TODO:
 -- reflections
@@ -547,10 +549,24 @@ local function Activate(unitID, unitDefID, who, when)
 		return
 	end
 	local unitEffects = effectDefs[unitDefID]
+
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
+		if effectDef.teamcolored then
+			local unitCustomPaletteIndex = spGetUnitPaletteIndex(unitID)
+			if unitCustomPaletteIndex then
+				color[1], color[2], color[3] = spGetCustomPaletteColor(unitCustomPaletteIndex)
+			else
+				color[1], color[2], color[3] = spGetTeamColor(spGetUnitTeam(unitID))
+			end
+			if effectDef.teamcolorDesaturation then
+				color[1] = color[1] + ((1 - color[1]) * effectDef.teamcolorDesaturation)
+				color[2] = color[2] + ((1 - color[2]) * effectDef.teamcolorDesaturation)
+				color[3] = color[3] + ((1 - color[3]) * effectDef.teamcolorDesaturation)
+			end
+		end
 		local effectdata = {
 			effectDef.width * 0.4,
 			effectDef.length,
