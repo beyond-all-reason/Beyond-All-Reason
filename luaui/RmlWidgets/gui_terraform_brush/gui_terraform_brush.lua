@@ -3313,6 +3313,8 @@ local initialModel = {
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
+	fpScaleMinStr = "1.00",
+	fpScaleMaxStr = "1.00",
 	fpCountStr = "1",
 	fpCadenceStr = "1",
 	fpSlopeMaxStr = "45",
@@ -5289,6 +5291,44 @@ local initialModel = {
 		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setRotRandom(math.max(0, (st.rotRandom or 100) - 5))
+	end,
+
+	-- Scale variation (per-feature visual scale range)
+	onFpScaleMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(_elemSliderVal("fp-slider-scale-min", 1))
+	end,
+	onFpScaleMinDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) - 0.1)
+	end,
+	onFpScaleMinUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) + 0.1)
+	end,
+	onFpScaleMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(_elemSliderVal("fp-slider-scale-max", 1))
+	end,
+	onFpScaleMaxDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) - 0.1)
+	end,
+	onFpScaleMaxUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) + 0.1)
 	end,
 
 	-- Count
@@ -11350,6 +11390,8 @@ local guideHints = {
 	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
+	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). Most features land near this end — natural stands are mostly small with a few large.",
+	["fp-slider-scale-max"] = "Largest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
 	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely.",
 	["fp-slider-cadence"] = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load

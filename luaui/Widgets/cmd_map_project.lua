@@ -746,7 +746,10 @@ local function stepFeatures()
 		if num(a.pitch) ~= num(b.pitch) then
 			return num(a.pitch) < num(b.pitch)
 		end
-		return num(a.roll) < num(b.roll)
+		if num(a.roll) ~= num(b.roll) then
+			return num(a.roll) < num(b.roll)
+		end
+		return (a.scale or 1) < (b.scale or 1)
 	end)
 
 	local lines = {
@@ -757,22 +760,25 @@ local function stepFeatures()
 	}
 	local format = string.format
 	for _, e in ipairs(entries) do
-		-- The tail is present exactly when the gadget decided this feature was
-		-- transformed, so an unedited map writes the same 4-field records it
-		-- always did.
+		-- The tails are present exactly when the gadget decided this feature was
+		-- transformed or scaled, so an unedited map writes the same 4-field
+		-- records it always did.
+		local scaleField = e.scale and format(", scale = %.3f", e.scale) or ""
 		if e.pitch and e.roll and e.y then
 			lines[#lines + 1] = format(
-				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f },",
+				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f%s },",
 				e.name,
 				e.x,
 				e.z,
 				e.rot,
 				e.pitch,
 				e.roll,
-				e.y
+				e.y,
+				scaleField
 			)
 		else
-			lines[#lines + 1] = format("		{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+			lines[#lines + 1] =
+				format("		{ name = %q, x = %.1f, z = %.1f, rot = %d%s },", e.name, e.x, e.z, e.rot, scaleField)
 		end
 	end
 	lines[#lines + 1] = "	},"

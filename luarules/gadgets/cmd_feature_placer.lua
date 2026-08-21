@@ -86,6 +86,15 @@ local GetFeatureRotation = Spring.GetFeatureRotation
 local SetFeaturePosition = Spring.SetFeaturePosition
 local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
 local GetGameFrame = Spring.GetGameFrame
+local GetFeatureRootPiece = Spring.GetFeatureRootPiece
+local GetFeaturePieceMatrix = Spring.GetFeaturePieceMatrix
+local SetFeaturePieceMatrix = Spring.SetFeaturePieceMatrix
+local GetFeatureCollisionVolumeData = Spring.GetFeatureCollisionVolumeData
+local SetFeatureCollisionVolumeData = Spring.SetFeatureCollisionVolumeData
+local GetFeatureRadius = Spring.GetFeatureRadius
+local GetFeatureHeight = Spring.GetFeatureHeight
+local SetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
+local SetFeatureMidAndAimPos = Spring.SetFeatureMidAndAimPos
 
 -- Same containment module the widget draws its brush outline from, so removal
 -- matches the shape the user sees. The copy that used to live here was
@@ -99,6 +108,88 @@ local isInsideShape = BrushShapes.isInside
 local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
+
+-- Visual scale applied per feature, keyed by live featureID. The engine stores
+-- the scale inside the root piece matrix, which has no dedicated getter-side
+-- "scale" field, so this table is the authority for capture/save. Entries only
+-- exist for features that were actually scaled (scale ~= 1).
+local featureScales = {}
+
+----------------------------------------------------------------
+-- Per-feature scaling
+----------------------------------------------------------------
+-- Spring.SetFeaturePieceMatrix (engine 2025-06+) replaces a piece's local
+-- matrix. Features run no scripts, so nothing else ever writes it: composing a
+-- uniform scale into the ROOT piece scales the whole model, children included,
+-- and it sticks for the feature's lifetime.
+--
+-- Visual scale alone would desync interaction, so the collision volume, the
+-- selection/reclaim radius+height, and the mid/aim positions are scaled along
+-- with it. Footprint blocking stays def-side, which is fine for the 1x1
+-- feature defs this tool mostly places.
+local SCALE_EPSILON = 0.001
+local SCALE_MIN = 0.05
+local SCALE_MAX = 10
+
+local function applyFeatureScale(featureID, s)
+	if not s or abs(s - 1) < SCALE_EPSILON then
+		return
+	end
+	if not (SetFeaturePieceMatrix and GetFeatureRootPiece) then
+		return
+	end
+	s = max(SCALE_MIN, min(SCALE_MAX, s))
+
+	local root = GetFeatureRootPiece(featureID) or 1
+	-- Compose onto the piece's current local matrix rather than assuming
+	-- identity. M * diag(s,s,s,1) scales the three basis columns -- the first
+	-- twelve floats of the engine's flat matrix -- and leaves translation alone.
+	local m = { GetFeaturePieceMatrix(featureID, root) }
+	if not m[16] then
+		m = { s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1 }
+	else
+		for i = 1, 12 do
+			m[i] = m[i] * s
+		end
+	end
+	-- Engines to date REJECT matrices carrying scale: SetPieceSpaceMatrix gates
+	-- on IsRotOrRotTranMatrix() and discards the matrix (which is why the placer
+	-- ships baked model variants instead -- see tools/s3o_scale.py). Bail when
+	-- rejected so collision and radius are not scaled away from an unscaled
+	-- model. If a future engine accepts scale here, this path lights up whole.
+	if not SetFeaturePieceMatrix(featureID, root, m) then
+		return
+	end
+
+	local vsx, vsy, vsz, vox, voy, voz, vtype, ttype, axis = GetFeatureCollisionVolumeData(featureID)
+	if vsx and SetFeatureCollisionVolumeData then
+		SetFeatureCollisionVolumeData(
+			featureID,
+			vsx * s,
+			vsy * s,
+			vsz * s,
+			vox * s,
+			voy * s,
+			voz * s,
+			vtype,
+			ttype,
+			axis
+		)
+	end
+
+	local r = GetFeatureRadius and GetFeatureRadius(featureID)
+	local h = GetFeatureHeight and GetFeatureHeight(featureID)
+	if r and h and SetFeatureRadiusAndHeight then
+		SetFeatureRadiusAndHeight(featureID, r * s, h * s)
+	end
+
+	local bx, by, bz, mx, my, mz, ax, ay, az = GetFeaturePosition(featureID, true, true)
+	if mx and SetFeatureMidAndAimPos then
+		SetFeatureMidAndAimPos(featureID, (mx - bx) * s, (my - by) * s, (mz - bz) * s, (ax - bx) * s, (ay - by) * s, (az - bz) * s, true)
+	end
+
+	featureScales[featureID] = s
+end
 
 ----------------------------------------------------------------
 -- Wobble animation
@@ -198,9 +289,12 @@ local function applyTransform(featureID, t)
 end
 
 -- Wire format, entries separated by "|":
---   defName x z heading [pitch roll y]
--- The optional tail is omitted for the flat-on-ground case, which is almost
--- every feature, keeping messages small.
+--   defName x z heading                     (4 tokens, the common case)
+--   defName x z heading scale               (5)
+--   defName x z heading pitch roll y        (7)
+--   defName x z heading pitch roll y scale  (8)
+-- Disambiguated by token count; each optional tail is omitted whenever it holds
+-- the default, so an untouched map's wire traffic stays byte-identical.
 local function parsePlacement(entry)
 	local parts = {}
 	for word in entry:gmatch("%S+") do
@@ -217,14 +311,30 @@ local function parsePlacement(entry)
 	x = max(0, min(Game.mapSizeX, x))
 	z = max(0, min(Game.mapSizeZ, z))
 
+	local n = #parts
+	local scale
+	if n == 5 then
+		scale = tonumber(parts[5])
+	elseif n >= 8 then
+		scale = tonumber(parts[8])
+	end
+
+	local pitch, roll, y
+	if n >= 6 then
+		pitch = tonumber(parts[5]) or 0
+		roll = tonumber(parts[6]) or 0
+		y = tonumber(parts[7])
+	end
+
 	return {
 		defName = defName,
 		x = x,
 		z = z,
 		heading = (tonumber(parts[4]) or 0) % 65536,
-		pitch = tonumber(parts[5]) or 0,
-		roll = tonumber(parts[6]) or 0,
-		y = tonumber(parts[7]) or GetGroundHeight(x, z),
+		pitch = pitch or 0,
+		roll = roll or 0,
+		y = y or GetGroundHeight(x, z),
+		scale = scale,
 	}
 end
 
@@ -246,6 +356,11 @@ local function createFromPlacement(p)
 		local _, yaw = GetFeatureRotation(id)
 		SetFeatureRotation(id, p.pitch, yaw or 0, p.roll)
 	end
+
+	-- After creation on purpose: FeatureCreated callins (the dynamic collision
+	-- volume gadget among them) fire inside CreateFeature, so scaling here
+	-- multiplies on top of whatever they set rather than being stomped by it.
+	applyFeatureScale(id, p.scale)
 
 	return id
 end
@@ -388,6 +503,7 @@ local function captureFeature(featureID)
 		heading = GetFeatureHeading(featureID) or 0,
 		pitch = pitch or 0,
 		roll = roll or 0,
+		scale = featureScales[featureID],
 		resting = isRestingOrientation(featureID, def, x, z),
 	}
 end
@@ -613,8 +729,15 @@ local function exportAllFeatures()
 			-- "Tilted" means tilted away from the engine's own resting alignment,
 			-- not simply non-zero pitch: ground-aligned features on a slope have
 			-- plenty of that without anyone having touched them.
-			if not snapshot.resting or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON then
+			local tilted = not snapshot.resting
+				or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON
+			if tilted then
 				entry = entry .. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
+			end
+			-- Scale rides as the 5th token (no tilt) or 8th (tilt): the token
+			-- count is what tells the two tails apart on the other side.
+			if snapshot.scale then
+				entry = entry .. string.format(" %.3f", snapshot.scale)
 			end
 			data[#data + 1] = entry
 		end
@@ -778,8 +901,26 @@ end
 
 function gadget:Initialize()
 	gaiaTeamID = GetGaiaTeamID()
+
+	-- Deliberately NO walk over existing features here. Calling
+	-- GetFeatureRootPiece / GetFeaturePieceMatrix during LuaRules load CRASHES
+	-- the engine (access violation): map features' local piece models are only
+	-- instantiated when the drawer first touches them, and the piece callouts
+	-- deref an empty piece list before that. Runtime calls on freshly created
+	-- features are fine -- load-time calls on map features are not. The only
+	-- cost is that the (currently dormant) runtime-scale bookkeeping forgets
+	-- its entries across a /luarules reload; baked variant defs, the shipping
+	-- mechanism, carry their scale in the def and are unaffected.
+
 	-- Idle until the first wobble is queued (see addWobble).
 	gadgetHandler:RemoveCallIn("GameFrame")
+end
+
+-- Feature ids are recycled by the engine; without this a reclaimed or burned
+-- scaled feature would leave its stale scale behind for whatever feature
+-- inherits the id.
+function gadget:FeatureDestroyed(featureID, allyTeamID)
+	featureScales[featureID] = nil
 end
 
 function gadget:GameFrame(frame)

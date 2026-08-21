@@ -225,9 +225,69 @@ The panel exposes a **Tools row** of icon buttons. Each tool has its own sub-pan
 
 ### Feature Placer
 
-Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Undo/redo · Save/load/clear
+Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Scale variation · Undo/redo · Save/load/clear
 
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
+
+#### Scale Variation
+
+Scale Min / Scale Max sliders (0.1–3.0×) give every placed feature its own
+rolled scale, realised by snapping the roll to the nearest **pre-baked model
+variant** and placing that def. Variants are baked offline by
+`tools/s3o_scale.py` and declared in `features/enginetrees_override.lua`
+(factors 0.40 / 0.55 / 0.70 / 0.85 / 1.0 / 1.15, `customParams.scale_base` +
+`scale_factor`); each variant's collision cylinder, wood value, and mass are
+scaled with it. Variant defs are hidden from the asset library — the placer
+reaches them only through snapping. Defs with no variants ignore the roll, and
+the ghost preview shows exactly what will be placed either way.
+
+- Rolls are bottom-heavy (many small, few large), matching a natural stand.
+- With **Clustered** distribution, scale correlates with distance to the clump
+  nucleus: big features in the core, saplings at the fringe, and the minimum
+  spacing scales per pair so small features pack tighter.
+- Point mode rolls a scale per placement too.
+- Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
+  need no special handling.
+
+#### Tree Clumps (merged features)
+
+`tools/s3o_merge.py --palette` bakes multi-tree clump models — several firs
+merged into ONE s3o, one piece per tree (scale and rotation baked into the
+vertices, position as the piece offset) — and generates
+`features/tree_clumps.lua` (`treecluster_fir_s1/s2/m1/m2/l1/l2`: 3/5/8 trees,
+summed wood value/mass, clump-sized collision cylinder and footprint). They
+appear in the asset library under Trees like any other def.
+
+Why: features cannot be merged at runtime (defs and models are fixed at game
+start), but a placed clump is one feature entity — one sim object, one
+cull/drawFlag walk, one quadfield entry — instead of eight, while the engine's
+instanced drawer batches same-def clumps exactly like single trees. A forest
+built from clumps costs roughly an eighth of the per-entity overhead and
+stretches the map feature budget by the same factor. Trade-offs: the clump
+reclaims/burns as one, blocks pathing as one footprint blob rather than
+per-trunk, and sits flat — on steep ground fringe trees can float or sink, so
+place clumps on gentle terrain (smart filters help) and use single trees on
+slopes.
+
+The palette bake also emits whole-clump size variants (same 0.40–1.15 factor
+ladder as single trees, `scale_base`/`scale_factor` customParams), so the Scale
+Min/Max sliders snap clumps exactly like they snap trees — 36 defs total, the
+30 variants hidden from the library.
+
+The tool also takes a custom spec (`python tools/s3o_merge.py out.s3o spec.py`
+with `ENTRIES = {(file, x, z, yawDeg, scale, y), ...}`), which is the building
+block for a future "compile forest" export that converts a map's placed single
+trees into clumps at finalisation.
+
+Why baked variants: the engine has no runtime feature-scale API.
+`Spring.SetFeaturePieceMatrix` looks like one but gates on
+`IsRotOrRotTranMatrix()` and **discards matrices carrying scale**
+(`LocalModelPiece::SetPieceSpaceMatrix`), and `LocalModelPiece::SetScaling` is
+reachable only from unit animation scripts. The gadget still understands a
+per-entry scale token on the wire (4/5/7/8-token forms) and applies piece-matrix
+scale plus collision/radius/mid-aim scaling — but only when the engine reports
+the matrix accepted, so on current engines the path is a clean no-op and it
+lights up automatically if a real API lands.
 
 #### WYSIWYG Preview
 
@@ -694,7 +754,7 @@ mutating branch is gated on `Spring.IsCheatingEnabled()`.
 
 | Message | Format |
 |---------|--------|
-| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y]` per entry, joined by `\|`, 40 per message |
+| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y] [scale]` per entry, joined by `\|`, 40 per message. Token count disambiguates: 4 plain, 5 scale, 7 tilt, 8 tilt+scale |
 | `$feature_transform$` | `strokeId` then `fid x y z pitch yaw roll` per entry, joined by `\|` |
 | `$feature_remove_ids$` | `fid` per entry, joined by `\|` |
 | `$feature_remove$` | `x z radius shape rot` |
@@ -703,7 +763,8 @@ mutating branch is gated on `Spring.IsCheatingEnabled()`.
 | `$feature_undo$` / `$feature_redo$` / `$feature_clearall$` | (no args) |
 
 The optional `pitch roll y` tail is only sent for features the gizmo tilted or
-lifted. `strokeId` collapses one user action into one undo entry even when it is
+lifted, and the optional `scale` token only for features whose scale roll came
+out different from 1. `strokeId` collapses one user action into one undo entry even when it is
 split across several messages -- a 500-feature stamp is 13 batches, a gizmo drag
 over a large selection several more -- the same way the terraform brush merges a
 paint stroke. Only one stroke is open at a time, and the entry is pushed lazily
@@ -950,7 +1011,7 @@ Temporal dimension: **record and playback** brush strokes for dynamic, time-vary
 | # | Item | Notes |
 |---|------|-------|
 | 2 | **Feature placement preview** | WYSIWYG ghosts: the exact features about to be placed, at their exact positions and orientations, drawn as instanced translucent models under the cursor. Remove mode tints what the brush would destroy. See [Feature Placer → WYSIWYG Preview](#wysiwyg-preview). |
-| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid. Scale is not implemented because the engine exposes no feature-scale API. See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
+| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid; per-feature visual scale is rolled at placement time (see [Feature Placer → Scale Variation](#scale-variation)). See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
 | 4 | **Symmetry tool** | Full implementation. Mirror X/Y modes with axis angle rotation; N-way radial mode (2–16 copies); draggable origin gizmo; Flipped mode (mirror + invert heights); one-shot Mirror Terrain button. See [Instruments → Symmetry / Mirror Tool](#symmetry--mirror-tool). |
 | 5 | **Velocity-sensitive intensity** | Toggle in Overlays section; scales brush strength by mouse drag speed. See [Velocity-Sensitive Intensity](#velocity-sensitive-intensity). |
 | 7 | **Partial restore slider** | Slider in restore mode; 0–100% blend target sent to gadget. See [Restore](#restore). |
