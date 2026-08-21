@@ -571,7 +571,7 @@ if gadgetHandler:IsSyncedCode() then
 						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 						--Echo('tree created... ',featureID)
 					else
-						Damage = 0 -- so it doesnt take multiple frames for tree to get killed.
+						Damage = 0 -- so it doesn't take multiple frames for tree to get killed.
 						-- Map-placed tree features are treated as STATIC geometry by the GL4
 						-- renderer: their draw matrix is baked once and never refreshed, so
 						-- the per-frame Spring.SetFeatureDirection spin that topples the trunk

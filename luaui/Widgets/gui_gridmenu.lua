@@ -1026,7 +1026,7 @@ local function getActionHotkey(action)
 end
 
 -- Helper function for iterating over the actions with builder and factory tags,
--- with GetActionHotKeys those tags will be missed and the hotkey wont work
+-- with GetActionHotKeys those tags will be missed and the hotkey won't work
 local function getGridKey(action)
 	local key = getActionHotkey(action)
 		or getActionHotkey(action .. " builder")
@@ -2010,7 +2010,7 @@ local function drawButton(rect)
 			0,
 			0,
 			0.05
-		) -- this method with a lil zoom prevents faint edges aroudn the image
+		) -- this method with a lil zoom prevents faint edges around the image
 		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
 		gl.Texture(false)
 	end
@@ -3086,7 +3086,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	-- if theres no factory as active builder, cmd is not build return or cmd
+	-- if there's no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
 	if cmdID == GameCMD.STOP_PRODUCTION then
 		if WG.Quotas then

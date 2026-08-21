@@ -143,7 +143,7 @@ Smoke. For a nicer stream of smoke spawn it frequently over multiple frames, oth
 	},
 }
 
---spawnerDefs['heatcloud'] = spawnerDefs['CHeatCloudProjectile'] -- cleand up
+--spawnerDefs['heatcloud'] = spawnerDefs['CHeatCloudProjectile'] -- cleaned up
 
 ------------------------------------- VALIDATORS -------------------------------------
 
@@ -638,7 +638,7 @@ local cegDefTemplate = {
 	emitVector = {
 		type = "float[3]",
 		default = { 0.0, 0.0, 0.0 },
-		note = "The initial direction vector in which the particle is emitted. When spawning CEGs via EmitSfx you can make the particles go into the direction of the emiting piece with emitvector = dir. This is useful for e.g. fire coming out of a gun barrel.",
+		note = "The initial direction vector in which the particle is emitted. When spawning CEGs via EmitSfx you can make the particles go into the direction of the emitting piece with emitvector = dir. This is useful for e.g. fire coming out of a gun barrel.",
 		validator = isFloat3,
 	},
 	emitRot = {

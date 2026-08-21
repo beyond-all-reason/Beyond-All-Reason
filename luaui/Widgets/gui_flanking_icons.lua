@@ -59,7 +59,7 @@ local instanceCache = {
 	0,
 	1,
 	0,
-	1, -- These are our default UV atlas tranformations
+	1, -- These are our default UV atlas transformations
 	0,
 	0,
 	0,

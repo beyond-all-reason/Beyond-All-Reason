@@ -176,8 +176,16 @@ body {
 /* Bump section titles up one size inside env float windows */
 .tf-env-float-window .text-sm.text-light.font-bold { font-size: 1rem; }
 /* Bump green label text up one size inside env float windows for readability */
-.tf-env-float-window .text-sm.text-keybind { font-size: 1rem; }
-.tf-skybox-library-root .text-sm.text-keybind { font-size: 1rem; }
+.tf-env-float-window .text-sm.text-keybind { font-size: 1.125rem; }
+.tf-skybox-library-root .text-sm.text-keybind { font-size: 1.125rem; }
+
+/* Slider row title cell (left column of every label + slider + value row).
+   The slider sets the row height, so the label has vertical headroom: run it
+   one size over text-base. Column widened 96 -> 100dp for the larger glyphs. */
+.tf-slider-label {
+	font-size: 1.125rem;
+	flex: 0 0 100dp;
+}
 
 /* === Environment floating windows (shared base) === */
 .tf-env-float-window {
@@ -341,6 +349,31 @@ body {
 	color: #d1d5db;
 	padding-left: 2dp;
 	font-size: 1.4rem;
+}
+
+/* Save-progress segments in the status summary (FILE > Save): one box per
+   saver step — done = bright green, current pulses, rest stay dark.
+   The strip itself is a space-evenly flex row, so the segments sit inside
+   their own flex wrapper (one compact bar, not 18 spread-out items). Divs,
+   not inline-block spans: RmlUi has no inline-block, empty spans collapse. */
+.tf-ss-segwrap {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+.tf-ss-seg {
+	width: 9dp;
+	height: 9dp;
+	margin-right: 2dp;
+	border-radius: 1dp;
+	background-color: #2a2a34;
+}
+.tf-ss-seg.done {
+	background-color: #35d07f;
+}
+.tf-ss-seg.cur {
+	background-color: #1f8f58;
+	animation: pulse-opacity 0.8s infinite;
 }
 
 /* === Mode Buttons === */
@@ -699,8 +732,14 @@ body {
 	background-color: #2b2113;
 }
 
-/* Tileset tool */
-.tf-btn-tileset.active {
+/* Surface tool (soft variants; lit via dm.surfSoftOn) */
+.tf-btn-surface.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Layers tool (hard overrides through the splat engine; lit via dm.surfHardOn) */
+.tf-btn-layers.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -1519,6 +1558,9 @@ body {
 }
 
 /* === Quit Button === */
+/* Hover-only override: every window X pairs this with tf-header-btn, which
+   supplies the box (22dp, rounded, transparent border). Later in the sheet
+   than .tf-header-btn:hover, so the red wins on hover. */
 .tf-quit-btn:hover {
 	background-color: #4a2424;
 	border-color: #cc666690;
@@ -1599,6 +1641,29 @@ body {
 	opacity: 0.4;
 }
 .tf-btn-grass.disabled:hover {
+	background-color: #2a2a2e;
+	border-color: #33333560;
+	opacity: 0.55;
+}
+
+/* Splat tool disabled while the tileset shader owns $ssmf_splat_distr.
+   The shared .disabled rule sets pointer-events: none, which would also kill
+   the hover explainer telling the user WHERE that painting moved — so keep
+   hit-testing alive here (the click handler already early-returns). */
+.tf-btn-splat.disabled {
+	pointer-events: auto;
+	cursor: default;
+}
+
+/* UNITS placeholder: permanently grayed until the unit placer panel lands.
+   Hit-testing stays alive so hovering can explain itself in the readout. */
+.tf-btn-units {
+	background-color: #252528;
+	border-color: #33333540;
+	cursor: default;
+	opacity: 0.4;
+}
+.tf-btn-units:hover {
 	background-color: #2a2a2e;
 	border-color: #33333560;
 	opacity: 0.55;
@@ -2630,7 +2695,7 @@ body {
 	border-color: #ffd47a;
 }
 
-.tf-btn-tileset.active:hover {
+.tf-btn-layers.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
@@ -3480,6 +3545,24 @@ margin-top: 3dp;
 	opacity: 0.35;
 }
 
+/* === TILESET window head row: SHADER toggle + PAINT SURFACES launcher ===== */
+/* Text-only mode buttons (metal-submode look). SHADER lights up while the
+   tileset shader renders the ground; PAINT SURFACES picks up the shared
+   .disabled gray whenever the shader is off (data-class-disabled). */
+.tf-ts-row-btn {
+	height: 36dp;
+	justify-content: center;
+	padding-bottom: 0dp;
+}
+.tf-ts-row-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-ts-row-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
 /* === BIOME LIBRARY picker (TILESET tool) ================================== */
 /* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
 /* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
@@ -3514,6 +3597,166 @@ margin-top: 3dp;
 .tf-biome-tile.active .tf-biome-name {
 	color: #fdc04c;
 }
+
+/* === SURFACE tool (tileset variant paint) ================================= */
+/* Palette tiles reuse .tf-biome-tile; the thumb is an EMPTY rect that the     */
+/* widget overdraws with the variant's albedo via gl.TexRect (DrawScreenPost)  */
+/* — an RmlUi <img> would decode the full 4K bitmap into the TexMemPool.      */
+.tf-surf-thumb {
+	width: 52dp;
+	height: 52dp;
+	border-radius: 3dp;
+	background-color: #26263699;
+}
+/* Slot channel colors: 1 = cyan, 2 = magenta. They repeat on the slot rail,
+   the tile corner tags, the coverage bar and the in-world brush ring so the
+   user can track "which channel am I on" across every surface. */
+.surf-text-c1 { color: #38bdf8; }
+.surf-text-c2 { color: #e879f9; }
+
+/* NOW PAINTING strip: persistent readout of what the next stroke does */
+.surf-now-strip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	padding: 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+	background-color: #1c1c2899;
+}
+.surf-now-strip.surf-now-erase {
+	border-color: #ff8c3baa;
+}
+.surf-now-thumb {
+	width: 34dp;
+	height: 34dp;
+	border-radius: 3dp;
+	background-color: #26263699;
+}
+.surf-now-text { flex: 1 1 0; }
+
+/* Slot rail chips */
+.surf-slot-chip {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	padding: 3dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+	background-color: #22222e99;
+	cursor: pointer;
+	position: relative;
+}
+.surf-slot-chip:hover { border-color: #8a8aa8; }
+.surf-slot-chip.active { border-color: #fdc04c; background-color: #2b2113; }
+.surf-slot-c1.active { border-color: #38bdf8; background-color: #10222e; }
+.surf-slot-c2.active { border-color: #e879f9; background-color: #291029; }
+.surf-slot-chip.surf-slot-empty { opacity: 0.55; }
+.surf-slot-thumb {
+	width: 26dp;
+	height: 26dp;
+	border-radius: 3dp;
+	background-color: #26263699;
+	flex-shrink: 0;
+}
+.surf-slot-info { flex: 1 1 0; overflow: hidden; white-space: nowrap; }
+.surf-slot-free {
+	position: absolute;
+	top: -2dp;
+	right: 0;
+	font-size: 1.6rem;
+	color: #9ca3af;
+	cursor: pointer;
+	padding: 0 4dp;
+}
+/* Caret that opens the per-slot variant picker */
+
+/* Per-slot variant picker: the texture library only takes space while an
+   artist is actually choosing, instead of a permanently open grid. */
+.surf-picker {
+	margin-bottom: 6dp;
+	padding: 5dp;
+	border: 1dp #6a6a8899;
+	border-radius: 4dp;
+	background-color: #16161f;
+	max-height: 320dp;
+	overflow-y: auto;
+}
+.surf-slot-free:hover { color: #f87171; }
+
+/* Palette tiles that cannot be assigned while both slots are painted */
+.tf-biome-tile.surf-unassignable { opacity: 0.35; }
+
+/* Positioning scope for the corner tag (the shared biome-tile class is not
+   positioned, so an absolute child would anchor to the panel instead). */
+.tf-biome-tile.surf-tile { position: relative; }
+
+/* Selected tile ring in the CHANNEL color — matches rail, bar, brush ring */
+.tf-biome-tile.surf-sel-c1.active { border-color: #38bdf8; }
+.tf-biome-tile.surf-sel-c2.active { border-color: #e879f9; }
+
+/* Tile corner tags in slot colors (replace the label suffix) */
+.surf-tile-tag {
+	position: absolute;
+	top: 2dp;
+	left: 2dp;
+	padding: 0 4dp;
+	border-radius: 3dp;
+	font-size: 1.0rem;
+	font-weight: bold;
+	color: #0b0b12;
+}
+.surf-tile-tag.surf-tag-c1 { background-color: #38bdf8dd; }
+.surf-tile-tag.surf-tag-c2 { background-color: #e879f9dd; }
+
+/* Coverage meter: split base/V1/V2 bar (amber base below 80%) */
+.surf-cov-track {
+	flex: 1 1 0;
+	height: 8dp;
+	border: 1dp #4a4a6899;
+	border-radius: 3dp;
+	background-color: #1c1c2899;
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+}
+.surf-cov-fill {
+	height: 6dp;
+	background-color: #7fc97faa;
+}
+.surf-cov-fill.surf-cov-c1 { background-color: #38bdf8cc; }
+.surf-cov-fill.surf-cov-c2 { background-color: #e879f9cc; }
+.surf-cov-fill.surf-cov-amber {
+	background-color: #fdc04ccc;
+}
+.text-sm.surf-cov-amber, .text-base.surf-cov-amber {
+	color: #fdc04c;
+}
+
+/* === HARD SURFACES section (LAYERS tool) === */
+.tf-surf-ch-btn {
+	height: 32dp;
+	justify-content: center;
+	padding-bottom: 0dp;
+}
+/* Hard override channel identity colors (chip text, NOW strip name + swatch):
+   auto = neutral green, intermediate amber, cliff red, plateau blue. These repeat in
+   the HARD section so the user tracks "which override am I forcing". */
+.surf-hard-text-auto    { color: #4ade80; }
+.surf-hard-text-intermediate   { color: #d97706; }
+.surf-hard-text-cliff   { color: #f87171; }
+.surf-hard-text-plateau { color: #60a5fa; }
+#btn-surf-hard-ch1.active { border-color: #4ade80; background-color: #14291b; }
+#btn-surf-hard-ch2.active { border-color: #d97706; background-color: #2b1d07; }
+#btn-surf-hard-ch3.active { border-color: #f87171; background-color: #2b1414; }
+#btn-surf-hard-ch4.active { border-color: #60a5fa; background-color: #111f33; }
+.surf-hard-swatch-auto    { background-color: #4ade8055; border: 1dp #4ade80; }
+.surf-hard-swatch-intermediate   { background-color: #d9770655; border: 1dp #d97706; }
+.surf-hard-swatch-cliff   { background-color: #f8717155; border: 1dp #f87171; }
+.surf-hard-swatch-plateau { background-color: #60a5fa55; border: 1dp #60a5fa; }
 
 /* === Capture (top-down map photo + unit SVG layer) === */
 
