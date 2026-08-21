@@ -33,7 +33,7 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.7 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
-local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
+local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targeting from getting stuck in a fire mode for too long.
 local aggroBackupCap = -16 --Like above, but a negative value because backup is triggered with negative aggro.
 local gameSpeed = Game.gameSpeed
 
@@ -95,7 +95,50 @@ local trajectoryCmdDesc = {
 	action = "trajectory_toggle",
 	params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
 }
-local defaultCmdDesc = table.copy(trajectoryCmdDesc)
+local cmdDescMap = {
+	default    = table.copy(trajectoryCmdDesc),
+	trajectory = trajectoryCmdDesc,
+}
+
+local function getWeaponMisfireFrames(weaponDef)
+	return mathMax(
+		tonumber(weaponDef.customParams.smart_misfire_frames or 0) or 0,
+		weaponDef.reload * misfireMultiplier,
+		minimumMisfireFrames
+	)
+end
+
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	if unitDef.customParams.weapons_smart_select then
+		local unitDefData = {
+			canMove                    = not unitDef.isImmobile,
+			smartCmdDesc               = cmdDescMap[unitDef.customParams.smart_weapon_cmddesc],
+			priorityWeapon             = 0,
+			backupWeapon               = 0,
+			trajectoryCheckWeapon      = 0,
+			reloadFrames               = 0,
+			failedToFireFrameThreshold = 0,
+		}
+
+		for weaponNumber, weapon in pairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.smart_priority then
+				unitDefData.priorityWeapon = weaponNumber
+				unitDefData.reloadFrames = math.floor(weaponDef.reload * Game.gameSpeed)
+				unitDefData.failedToFireFrameThreshold = getWeaponMisfireFrames(weaponDef)
+			elseif weaponDef.customParams.smart_backup then
+				unitDefData.backupWeapon = weaponNumber
+			elseif weaponDef.customParams.smart_trajectory_checker then
+				unitDefData.trajectoryCheckWeapon = weaponNumber
+			end
+		end
+
+		-- Smart weapons are prevalidated in alldefs but we keep a final guard to protect against regression.
+		if table.all({ "priorityWeapon", "backupWeapon", "trajectoryCheckWeapon" }, function(key) return unitDefData[key] > 0 end) then
+			smartUnitDefs[unitDefID] = unitDefData
+		end
+	end
+end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
@@ -103,39 +146,6 @@ function gadget:Initialize()
 	local spGetUnitDefID = Spring.GetUnitDefID
 	for i = 1, #units do
 		gadget:UnitCreated(units[i], spGetUnitDefID(units[i]))
-	end
-end
-
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	local unitDefData = {}
-
-	for weaponNumber, weapon in pairs(unitDef.weapons) do
-		local weaponDef = WeaponDefs[weapon.weaponDef]
-
-		if weaponDef.customParams.smart_priority and not unitDefData.priorityWeapon then
-			unitDefData.priorityWeapon = weaponNumber
-			unitDefData.reloadFrames = math.floor(weaponDef.reload * Game.gameSpeed)
-			unitDefData.failedToFireFrameThreshold = mathMax(
-				tonumber(weaponDef.customParams.smart_misfire_frames or 0) or 0,
-				weaponDef.reload * misfireMultiplier,
-				minimumMisfireFrames
-			)
-
-			if unitDef.customParams.smart_weapon_cmddesc == "trajectory" then
-				unitDefData.smartCmdDesc = trajectoryCmdDesc
-			else
-				unitDefData.smartCmdDesc = defaultCmdDesc
-			end
-		elseif weaponDef.customParams.smart_backup and not unitDefData.backupWeapon then
-			unitDefData.backupWeapon = weaponNumber
-		elseif weaponDef.customParams.smart_trajectory_checker and not unitDefData.trajectoryCheckWeapon then
-			unitDefData.trajectoryCheckWeapon = weaponNumber
-		end
-	end
-
-	if unitDefData.priorityWeapon and unitDefData.backupWeapon and unitDefData.trajectoryCheckWeapon then
-		unitDefData.canMove = not unitDef.isImmobile
-		smartUnitDefs[unitDefID] = unitDefData
 	end
 end
 
@@ -284,7 +294,7 @@ local function updateAimingState(attackerID)
 		failureToFire = failureToFireCheck(attackerID, data, defData)
 	end
 
-	-- add or subtract aggro based on weapon targetting conditions
+	-- add or subtract aggro based on weapon targeting conditions
 	if priorityIsUserTarget and priorityCanShoot then
 		if failureToFire then
 			handleMisfire(data, defData)

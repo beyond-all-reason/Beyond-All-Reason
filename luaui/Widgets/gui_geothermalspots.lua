@@ -486,7 +486,30 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
+-- Geo vents can be placed and removed at runtime (map editor): rebuild the
+-- spots list through Initialize, the same refresh path terrain-height changes
+-- already use. Deferred by a frame because a feature is still alive inside
+-- its own FeatureDestroyed callin.
+local geoRebuildFrame = nil
+
+function widget:FeatureCreated(featureID, allyTeamID)
+	if geoFeatureDefs[spGetFeatureDefID(featureID)] then
+		geoRebuildFrame = spGetGameFrame() + 1
+	end
+end
+
+function widget:FeatureDestroyed(featureID, allyTeamID)
+	if geoFeatureDefs[spGetFeatureDefID(featureID)] then
+		geoRebuildFrame = spGetGameFrame() + 2
+	end
+end
+
 function widget:GameFrame(gf)
+	if geoRebuildFrame and gf >= geoRebuildFrame then
+		geoRebuildFrame = nil
+		widget:Initialize()
+		return
+	end
 	if checkspots or gf >= sceduledCheckedSpotsFrame then
 		checkGeothermalspots()
 	end

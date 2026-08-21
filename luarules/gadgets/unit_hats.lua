@@ -378,14 +378,14 @@ end
 --    if a hat is already present on a commander, then it is destroyed
 -- if the wearer dies, detach the hat
 -- decoys?
---  if decoys cant wear hats, then it becomes obvious
+--  if decoys can't wear hats, then it becomes obvious
 --  so decoys will be able to wear hats
 -- giving:
 -- wearer loses hat if given comm with hat
--- hats should not prevent game end! as they arent real units
+-- hats should not prevent game end! as they aren't real units
 -- attachunit somehow does not pass the direction, and passes the position of the piece attached to it about 1 frame late
 -- consider manually repositioning hats then? could start to get expensive
--- You cant pick up allied hats
+-- You can't pick up allied hats
 -- Hats should not prevent game ending if they are the only unit left.
 -- e.g. dying comms should give hats to gaia
 
@@ -612,7 +612,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 			Hats[hatID] = -1
 			Spring.SetUnitNoSelect(hatID, false)
 			SendToUnsynced("setUnitNoGroup", hatID, false)
-			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  number newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
 			local px, py, pz = Spring.GetUnitPosition(unitID)
 			if px and pz then
 				Spring.SetUnitPosition(hatID, px + 32, pz + 32)

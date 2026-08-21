@@ -140,7 +140,7 @@ function gadget:GameFrame(gf)
 				local totalConstructionCost = 0
 				for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
 					local completeness = select(2, spGetUnitIsBeingBuilt(unitID))
-					if not completeness then -- this shouldnt occur
+					if not completeness then -- this shouldn't occur
 						unfinishedUnits[allyTeamID][unitID] = nil
 					else
 						totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)

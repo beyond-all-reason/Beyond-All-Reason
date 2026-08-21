@@ -211,7 +211,7 @@ void main() {
 			// smaller delta hits should occlude less
 			float occlDelta = smoothstep(0,1,delta);
 
-			// hits further thay the rays length shouldnt occlude either
+			// hits further than the rays length shouldn't occlude either
 
 			float toofar = 1.0 - smoothstep (SSAO_RADIUS * 0.75, SSAO_RADIUS * 1.25, delta);
 

@@ -19,7 +19,7 @@ local Settings = {}
 Settings.cursorSet = "icexuick"
 Settings.cursorSize = 100
 Settings.sizeMult = Spring.GetConfigFloat("cursorsize", 1)
-Settings.version = 6 -- just so it wont restore configdata on load if it differs format
+Settings.version = 6 -- just so it won't restore configdata on load if it differs format
 
 local force = true
 local autoCursorSize
@@ -48,7 +48,7 @@ function NearestValue(table, number)
 end
 
 function widget:ViewResize()
-	local ssx, ssy = Spring.GetScreenGeometry() -- doesnt change when you unplug external display
+	local ssx, ssy = Spring.GetScreenGeometry() -- doesn't change when you unplug external display
 	autoCursorSize = 100 * (0.6 + (ssx * ssy / 10000000)) * Spring.GetConfigFloat("cursorsize", 1)
 	SetCursor(Settings.cursorSet)
 end

@@ -19,7 +19,7 @@ Tips:
     3. Use radar jammers to cover your tracks and hide secretive mining outposts.
     4. Whenever an enemy gets eliminated, swoop in quickly to secure the spoils.
     5. Protect your commander at all costs, and keep an eye on which of your opponents seem the strongest
-    6. Sieze any opportunity to score a kill on an enemy Commander, and try to kill at least one Commander before advancing your tech tree. Use the metal from the spoils to quickly tech up.
+    6. Seize any opportunity to score a kill on an enemy Commander, and try to kill at least one Commander before advancing your tech tree. Use the metal from the spoils to quickly tech up.
     ]],
 
 	mapfilename = "TMA20X 1.8", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
@@ -27,7 +27,7 @@ Tips:
 	playerstarty = "30%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime = 1800, -- par time in seconds
 	parresources = 1000000, -- par resource amount
-	difficulty = 6, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty = 6, -- Perceived difficulty at 'normal' level: integer 1-10
 	defaultdifficulty = "Normal", -- an entry of the difficulty table
 	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		-- handicap values range [-100 - +100], with 0 being regular resources

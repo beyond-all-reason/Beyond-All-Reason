@@ -101,7 +101,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 				cornersize,
 				additionalheight, -- lengthwidthcornerheight
 				unitTeamID, -- teamID
-				numVertices, -- how many trianges should we make
+				numVertices, -- how many triangles should we make
 				gf,
 				0,
 				0,
@@ -109,7 +109,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 				0,
 				1,
 				0,
-				1, -- These are our default UV atlas tranformations
+				1, -- These are our default UV atlas transformations
 				0,
 				0,
 				0,

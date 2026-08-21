@@ -327,7 +327,7 @@ if gadgetHandler:IsSyncedCode() then
 					if random <= ecoTierMaxProbability then
 						local target = units:GetRandom()
 						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-							-- Spring.Echo("Targetting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
+							-- Spring.Echo("Targeting eco: " .. random .. " found " .. UnitDefs[Spring.GetUnitDefID(target)].name);
 
 							local x, y, z = GetUnitPosition(target)
 							pos = { x = x + mRandom(-32, 32), y = y, z = z + mRandom(-32, 32) }
@@ -383,7 +383,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds
 		config.gracePeriod = t - 1
-		queenAnger = 0 -- reenable raptor spawning
+		queenAnger = 0 -- re-enable raptor spawning
 		techAnger = 0
 		playerAggression = 0
 		queenAngerAggressionLevel = 0
@@ -489,7 +489,7 @@ if gadgetHandler:IsSyncedCode() then
 			}
 		}
 
-		-> refference table to quickly check which unit is in which squad, and if it has a squad at all.
+		-> reference table to quickly check which unit is in which squad, and if it has a squad at all.
 		unitSquadTable = {
 			[unitID] = [squadID]
 		}

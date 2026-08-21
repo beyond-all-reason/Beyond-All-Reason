@@ -106,7 +106,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 then
 		unitBuildSpeed[unitDefID] = unitDef.buildSpeed
 	end
-	-- Units that can only repair, ressurrect, or capture don't have a passive mode (in this gadget)
+	-- Units that can only repair, resurrect, or capture don't have a passive mode (in this gadget)
 	local prioritizes = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
 	canPassive[unitDefID] = prioritizes and true or nil
 	-- Minor speedup for determining total resource drain per frame/interval
