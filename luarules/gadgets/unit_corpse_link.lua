@@ -9,8 +9,7 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		handler = true,
-		-- Stay enabled as a fallback when the engine omits sourceID (e.g. death anim moved the wreck).
-		enabled = true,
+		enabled = not Engine.FeatureSupport.FeatureCreatedPassesSourceUnitID,
 	}
 end
 
