@@ -42,10 +42,6 @@ local function new(class, shaderParams, shaderName, logEntries)
 	}, class)
 end
 
---- Whether this machine has the geometry shader stage at all. Asking for the extensions alone finds
---- only drivers old enough to still name them: the stage has been part of OpenGL since 3.2, and a
---- current driver says so with its version rather than with an extension string. The names are kept
---- for drivers older than that, and for OpenGL ES, whose version string the engine cannot read.
 local function HasGeometryShaderStage()
 	local glslVersion = Platform and Platform.glslVersionNum or 0
 	local hasStage = glslVersion >= GLSL_VERSION_WITH_GEOMETRY_SHADERS
@@ -70,9 +66,9 @@ local function MesaVersion()
 	return major and (tonumber(major) * 100 + tonumber(minor)) or nil
 end
 
---- Whether to take a geometry shader where there is a path with one and a path without, which is
---- what every reader of this has always used it for. Older Mesa is left out although it has the
---- stage, since it incurs long delays for shader compilation.
+--- Whether to take a geometry shader where there is a path with one and a path without.
+--- Older Mesa is left out although it has the stage, since it incurs long delays for
+--- shader compilation.
 local function IsGeometryShaderSupported()
 	local mesaVersion = MesaVersion()
 	local mesaExpensive = mesaVersion ~= nil and mesaVersion < OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS
