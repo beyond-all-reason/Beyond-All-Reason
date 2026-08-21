@@ -60,7 +60,7 @@ do
 end
 
 ---@param allyTeamID integer required; synced handles read as AllAccessTeam otherwise
-local function levelForAllyTeam(unitID, allyTeamID)
+local function resolveLevel(unitID, allyTeamID)
 	local losStatus = Spring.GetUnitLosState(unitID, allyTeamID, true)
 	if not losStatus then
 		return LEVEL.UNSEEN
@@ -72,6 +72,31 @@ local function levelForAllyTeam(unitID, allyTeamID)
 		return bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and LEVEL.IDENTIFIED or LEVEL.RADAR
 	end
 	return isSeismicContact(unitID, allyTeamID) and LEVEL.SEISMIC or LEVEL.UNSEEN
+end
+
+-- Detection levels are resolved once by the first trigger to see each [allyTeamID][unitID].
+-- That same detection level then is used by all remaining triggers in the sweep; so actions
+-- that set LOS bitmasks should not be invoked from same-frame triggers for detection level.
+local resolvedLevels = {}
+
+local function levelForAllyTeam(unitID, allyTeamID)
+	local levels = table.ensureTable(resolvedLevels, allyTeamID)
+	local level = levels[unitID]
+	if not level then
+		level = resolveLevel(unitID, allyTeamID)
+		levels[unitID] = level
+	end
+	return level
+end
+
+---Drop the levels of the last sweep. Raise DetectionUpdate after calling this.
+---We clear resolved levels before, and dirtied marks after; both are correct.
+local function beginUpdate()
+	for _, levels in pairs(resolvedLevels) do
+		for unitID in pairs(levels) do
+			levels[unitID] = nil
+		end
+	end
 end
 
 ---The level bit a unit currently sits at. Without a sensorAllyTeam, the highest level held
@@ -160,5 +185,6 @@ return {
 	LevelBitOf         = levelBitOf,
 	CompileLevelMask   = compileLevelMask,
 	NewDetectionUpdate = newDetectionUpdate,
+	BeginUpdate        = beginUpdate,
 	Clear              = clear,
 }

@@ -24,6 +24,7 @@ local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local seismicContacts
 local SEISMIC_INTERVAL_FRAMES
+local detectionLevels
 local statistics
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
@@ -159,6 +160,7 @@ function gadget:Initialize()
 
 	seismicContacts         = GG['MissionAPI'].Modules.SeismicContacts
 	SEISMIC_INTERVAL_FRAMES = seismicContacts.UpdateInterval
+	detectionLevels         = GG['MissionAPI'].Modules.DetectionLevels
 
 	statistics              = VFS.Include('luarules/mission_api/statistics.lua')
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
@@ -224,6 +226,7 @@ end
 
 function gadget:GameFramePost(frameNumber)
 	if detectionCount > 0 then
+		detectionLevels.BeginUpdate()
 		dispatchTriggerCallin('DetectionUpdate', detections)
 		for unitID in pairs(detections) do
 			detections[unitID] = nil
