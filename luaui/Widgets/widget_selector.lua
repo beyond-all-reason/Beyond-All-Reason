@@ -154,7 +154,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:TextInput(char) -- if it isnt working: chobby probably hijacked it
+function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
 	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
 		if inputTextInsertActive then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)

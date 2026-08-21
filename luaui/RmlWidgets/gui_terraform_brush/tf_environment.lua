@@ -225,6 +225,7 @@ function M.attach(doc, ctx)
 	widgetState.envMapRootEl = doc:GetElementById("tf-env-map-root")
 	widgetState.envWaterRootEl = doc:GetElementById("tf-env-water-root")
 	widgetState.envDimensionsRootEl = doc:GetElementById("tf-env-dimensions-root")
+	widgetState.envTilesetRootEl = doc:GetElementById("tf-env-tileset-root")
 	widgetState.splatTexRootEl = doc:GetElementById("tf-splattex-root")
 	widgetState.grassCfgRootEl = doc:GetElementById("tf-grasscfg-root")
 
@@ -432,6 +433,13 @@ function M.attach(doc, ctx)
 		"envDimensionsVisible"
 	)
 	envWindowToggle(
+		"btn-env-tileset",
+		"btn-env-tileset-close",
+		widgetState.envTilesetRootEl,
+		"envTilesetOpen",
+		"envTilesetVisible"
+	)
+	envWindowToggle(
 		"btn-sp-splattex",
 		"btn-splattex-close",
 		widgetState.splatTexRootEl,
@@ -474,6 +482,17 @@ function M.attach(doc, ctx)
 			expanded and "/luaui/images/terraform_brush/minus.png" or "/luaui/images/terraform_brush/plus.png"
 		)
 		toggleBtn:AddEventListener("click", function(event)
+			-- Controls embedded in the header row sit INSIDE this toggle, so
+			-- their clicks bubble up to here and would collapse the section as
+			-- a side effect of pressing them. The per-section RESET buttons are
+			-- the case that surfaced it: resetting a section also folded it
+			-- away. Ignore anything that originated on one — matched by class,
+			-- not by id, so any future header control gets the same treatment
+			-- just by wearing the same class.
+			local t = event.target_element
+			if t and t.IsClassSet and t:IsClassSet("tf-env-reset-btn") then
+				return
+			end
 			expanded = not expanded
 			playSound(expanded and "panelOpen" or "click")
 			section:SetClass("hidden", not expanded)
@@ -993,6 +1012,14 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-ts-tints", "img-toggle-ts-tints", "section-ts-tints", false)
 	envSectionToggle("btn-toggle-ts-debug", "img-toggle-ts-debug", "section-ts-debug", false)
 	envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
+
+	-- SURFACE tool (tileset variant paint) sections
+	envSectionToggle("btn-toggle-surf-palette", "img-toggle-surf-palette", "section-surf-palette", true)
+	envSectionToggle("btn-toggle-surf-hard", "img-toggle-surf-hard", "section-surf-hard", true)
+	envSectionToggle("btn-toggle-surf-brush", "img-toggle-surf-brush", "section-surf-brush", true)
+	envSectionToggle("btn-toggle-surf-fill", "img-toggle-surf-fill", "section-surf-fill", false)
+	envSectionToggle("btn-toggle-surf-sculpt", "img-toggle-surf-sculpt", "section-surf-sculpt", false)
+	envSectionToggle("btn-toggle-surf-grading", "img-toggle-surf-grading", "section-surf-grading", false)
 
 	-- Wire ± buttons for env color RGB sliders
 	do

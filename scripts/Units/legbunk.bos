@@ -227,7 +227,7 @@ QueryWeapon2(piecenum)
 	piecenum = piledriver;
 }
 
-//Targetting System / Responsible for torso rotation and saving that info for the other turrets.
+//Targeting System / Responsible for torso rotation and saving that info for the other turrets.
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;

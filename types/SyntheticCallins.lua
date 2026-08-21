@@ -1,0 +1,73 @@
+---@meta
+
+---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
+---
+---The summary call-ins report a frame's events once, after the frame. They run
+---only when something happened, and each event runs the layer stack in turn, as
+---an engine-driven callin does.
+---
+---Each summary base has a Post and a Total. Both report the same objects in the
+---same order, and Total adds the sum of each object's steps. We accumulate the
+---sums only while a Total has subscribers, and Post is the cheaper call-in when
+---we do not read them.
+---@class SyntheticCallins
+---
+---
+---Runs for every unit gained by a team, regardless of how it was gained.
+---
+---Dispatch: g:UnitCreated, g:UnitGiven.
+---@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---
+---
+---Runs for every unit lost to a team, regardless of how it was lost.
+---
+---Dispatch: g:UnitDestroyed, g:UnitTaken.
+---@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---
+---
+---Optionally replaces the autotarget search radius for a unit's command AI.
+---
+---Any return value of zero or less discontinues the chain and prevents the search.
+---
+---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
+---@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
+---
+---
+---Runs for every unit that received a build step.
+---Includes build, repair, reclaim, and capture. Denied steps do not count.
+---
+---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
+---Dispatch: g:GameFramePost.
+---@field UnitBuildStepPost? fun(self, unitID: integer)
+---
+---
+---Runs for every feature that received a build step.
+---Includes repair, reclaim, and resurrect. Denied steps do not count.
+---
+---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
+---Dispatch: g:GameFramePost.
+---@field FeatureBuildStepPost? fun(self, featureID: integer)
+---
+---
+---Runs for every unit that received a build step, with the sum of its steps.
+---Includes build, repair, reclaim, and capture. Denied steps do not count.
+---Steps are signed and opposing steps can net to (about) zero.
+---
+---A gadget that denies a step and substitutes its own result reports the
+---difference with GG.AccumulateUnitBuildStep(unitID, part).
+---
+---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
+---Dispatch: g:GameFramePost.
+---@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
+---
+---
+---Runs for every feature that received a build step, with the sum of its steps.
+---Includes repair, reclaim, and resurrect. Denied steps do not count.
+---Steps are signed and opposing steps can net to (about) zero.
+---
+---A gadget that denies a step and substitutes its own result reports the
+---difference with GG.AccumulateFeatureBuildStep(featureID, part).
+---
+---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
+---Dispatch: g:GameFramePost.
+---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)

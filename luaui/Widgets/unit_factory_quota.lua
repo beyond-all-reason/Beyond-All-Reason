@@ -144,7 +144,7 @@ local function fillQuotas()
 end
 
 function widget:GameFrame(n)
-	if n % 15 == 0 then -- improve perfomance
+	if n % 15 == 0 then -- improve performance
 		fillQuotas()
 	end
 end
