@@ -1,59 +1,67 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+local function getUnitStates(context, triggerID)
+	local constructionState = context.ConstructionState
+	local unitStates = constructionState[triggerID]
+	if not unitStates then
+		unitStates = {}
+		constructionState[triggerID] = unitStates
+	end
+	return unitStates
+end
+
 return {
 	type = 'ConstructionProgress',
 	parameters = {
-		{ name = 'teamID',      required = true,  type = ParameterTypes.TeamID },
 		{ name = 'progress',    required = true,  type = ParameterTypes.Fraction },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		-- The trigger activation wants a build progress as a continuous quantity that crosses a threshold.
-		-- 
-		-- We poll this rather than allow an event-driven trigger but this could be improved with a callin
-		-- from the engine. The design that follows from polling requires carefully setting the before and
-		-- after states of the targeted units: ignoring preexisting units, not refiring on lost progress.
-		-- 
-		-- Because we need to latch against early activation, the teamID is required (a unique constraint),
-		-- though this is a performance concern. This aligns with total_units_built so seemed unsurprising.
-		GameFrame = function(trigger, triggerID, context)
-			local parameters = trigger.parameters
-			local threshold = parameters.progress
-			local unitName = parameters.unitName
-			local unitDefName = parameters.unitDefName
-
-			-- Units can be "renamed" so our most (only) narrow category is `unitDefName`.
-			-- Re-deriving this set is a high cost. It could be maintained incrementally for performance.
-			local candidates = unitDefName
-				and Spring.GetTeamUnitsByDefs(parameters.teamID, UnitDefNames[unitDefName].id)
-				or Spring.GetTeamUnits(parameters.teamID)
-
-			local constructionState = context.ConstructionState
-			local previousState = constructionState[triggerID] or {}
-			local currentState = {}
-
-			local getUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-
-			for _, unitID in ipairs(candidates) do
-				local beingBuilt, buildProgress = getUnitIsBeingBuilt(unitID)
-				local previous = previousState[unitID]
-
-				-- Handle pre-existing units and units gaining and losing unitName.
-				if (beingBuilt or previous) and buildProgress then
-					local state = previous or 'building'
-					if state ~= 'done' and buildProgress >= threshold then
-						if not unitName or context.DoesUnitHaveName(unitID, unitName) then
-							context.ActivateTrigger(trigger)
-						end
-						state = 'done' -- Decay and reclaim must not rearm on the unit.
-					end
-					currentState[unitID] = state
-				end
+		-- Unit build steps include build, repair, and reclaim, so this sees finished units.
+		UnitBuildStepPost = function(trigger, triggerID, context, unitID)
+			local beingBuilt, buildProgress = Spring.GetUnitIsBeingBuilt(unitID)
+			if not buildProgress then
+				return
 			end
 
-			constructionState[triggerID] = currentState
+			local parameters = trigger.parameters
+			if parameters.teamID and parameters.teamID ~= Spring.GetUnitTeam(unitID) then
+				return
+			end
+			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then
+				return
+			end
+
+			-- To handle naming/renaming/unnaming, a unit can cross the threshold only once per trigger.
+			local unitStates = getUnitStates(context, triggerID)
+			local state = unitStates[unitID]
+			if state == 'done' then
+				return
+			end
+			if not beingBuilt and not state then
+				return
+			end
+			if buildProgress < parameters.progress then
+				unitStates[unitID] = 'building'
+				return
+			end
+			unitStates[unitID] = 'done'
+
+			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+				return
+			end
+
+			context.ActivateTrigger(trigger)
+		end,
+
+		MetaUnitRemoved = function(trigger, triggerID, context, unitID)
+			local unitStates = context.ConstructionState[triggerID]
+			if unitStates then
+				unitStates[unitID] = nil
+			end
 		end,
 	},
 }
