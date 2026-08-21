@@ -14,6 +14,7 @@ GG['MissionAPI'].Modules.SeismicContacts = GG['MissionAPI'].Modules.SeismicConta
 _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
 
 GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
+local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 
 local unitUndetected = VFS.Include('luarules/mission_api/triggers/unit_undetected.lua')
 local onDetectionUpdate = unitUndetected.callins.DetectionUpdate -- an artificial callin
@@ -68,6 +69,7 @@ describe("mission_api.triggers.unit_undetected", function()
 
 	---Runs one detection sweep over the given units, which is what the gadget raises per frame.
 	local function update(triggerType, triggerID, context, unitIDs)
+		DetectionLevels.BeginUpdate()
 		local dirtyUnits = {}
 		for _, unitID in ipairs(unitIDs) do
 			dirtyUnits[unitID] = true

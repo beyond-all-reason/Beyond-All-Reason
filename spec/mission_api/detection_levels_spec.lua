@@ -145,6 +145,7 @@ describe("mission_api.detection_levels", function()
 		end)
 
 		local function sweep(handler, ...)
+			DetectionLevels.BeginUpdate()
 			handler(trigger, triggerID, context, ...)
 		end
 
@@ -214,6 +215,81 @@ describe("mission_api.detection_levels", function()
 			losStatusByAllyTeam[0] = nil
 			sweep(onUndetected, { [100] = true })
 			assert.are.equal(0, fired)
+		end)
+	end)
+
+	-- Every trigger of both types runs over the same dirty units, so a sweep resolves each
+	-- unit's level once and hands the same answer to all of them.
+	describe("the sweep cache", function()
+		local FIRES_ON_DETECTED, FIRES_ON_UNDETECTED = true, false
+
+		local context
+		local losStateReads
+
+		before_each(function()
+			context = {
+				ActivateTrigger = function() end,
+				DoesUnitHaveName = function() return true end,
+			}
+			Spring.GetUnitIsDead = function() return false end
+			Spring.GetUnitDefID = function() return 1 end
+
+			losStateReads = 0
+			local getUnitLosState = Spring.GetUnitLosState
+			Spring.GetUnitLosState = function(unitID, allyTeamID, raw)
+				losStateReads = losStateReads + 1
+				return getUnitLosState(unitID, allyTeamID, raw)
+			end
+		end)
+
+		local function matchesAnything() return true end
+
+		local function newTrigger(parameters)
+			return { parameters = parameters or {}, settings = {} }
+		end
+
+		-- The layout is two playing allyTeams, so an unseen unit costs one read of each.
+		it("resolves each allyTeam once for the whole sweep", function()
+			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
+			local onUndetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesAnything)
+
+			DetectionLevels.BeginUpdate()
+			onDetected(newTrigger(), 'detected', context, { [100] = true })
+			onUndetected(newTrigger(), 'undetected', context, { [100] = true })
+
+			assert.are.equal(2, losStateReads)
+		end)
+
+		it("resolves again in the sweep that follows", function()
+			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
+
+			DetectionLevels.BeginUpdate()
+			onDetected(newTrigger(), 'detected', context, { [100] = true })
+			DetectionLevels.BeginUpdate()
+			onDetected(newTrigger(), 'detected', context, { [100] = true })
+
+			assert.are.equal(4, losStateReads)
+		end)
+
+		-- Resolving per allyTeam, rather than per trigger, is what shares these two.
+		it("shares a named sensorAllyTeam with the triggers that name none", function()
+			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
+
+			DetectionLevels.BeginUpdate()
+			onDetected(newTrigger({ sensorAllyTeam = 0 }), 'named', context, { [100] = true })
+			onDetected(newTrigger(), 'unnamed', context, { [100] = true })
+
+			assert.are.equal(2, losStateReads)
+		end)
+
+		it("stops looking once a level cannot be outranked", function()
+			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
+			losStatusByAllyTeam[0] = INLOS
+
+			DetectionLevels.BeginUpdate()
+			onDetected(newTrigger(), 'detected', context, { [100] = true })
+
+			assert.are.equal(1, losStateReads)
 		end)
 	end)
 end)
