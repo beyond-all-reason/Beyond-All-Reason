@@ -1,3 +1,0 @@
-bind Alt+b debug
-bind Alt+v debugcolvol
-bind Alt+p debugpath
