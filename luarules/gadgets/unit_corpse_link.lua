@@ -20,8 +20,9 @@ end
 local CORPSE_LINK_TIMEOUT = Game.gameSpeed * 3 -- should be longer than the longest death animation
 local UPDATE_INTERVAL = Game.gameSpeed
 
--- unitDefID -> { [unitID] = { x, z, timeout } }
+-- unitDefID -> { [unitID] = { x, y, z, timeout } }
 local corpseRegistryByDefID = {}
+local distance3dSquared = math.distance3dSquared
 
 local function GetFeatureResurrectDefID(featureID)
 	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
@@ -47,7 +48,7 @@ local function GetCorpsePriorUnitID(featureID)
 		return
 	end
 
-	local x, _, z = Spring.GetFeaturePosition(featureID)
+	local x, y, z = Spring.GetFeaturePosition(featureID)
 	if not x then
 		return
 	end
@@ -57,9 +58,7 @@ local function GetCorpsePriorUnitID(featureID)
 	local bestUnitID
 	local bestDistSq
 	for unitID, corpseLink in pairs(unitDefLink) do
-		local dx = corpseLink.x - x
-		local dz = corpseLink.z - z
-		local distSq = dx * dx + dz * dz
+		local distSq = distance3dSquared(corpseLink.x, corpseLink.y, corpseLink.z, x, y, z)
 		if bestDistSq == nil or distSq < bestDistSq then
 			bestDistSq = distSq
 			bestUnitID = unitID
@@ -89,13 +88,14 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 		unitDefLink = {}
 		corpseRegistryByDefID[unitDefID] = unitDefLink
 	end
-	local x, _, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = Spring.GetUnitPosition(unitID)
 	if not x then
 		return
 	end
 
 	unitDefLink[unitID] = {
 		x = x,
+		y = y,
 		z = z,
 		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT,
 	}
