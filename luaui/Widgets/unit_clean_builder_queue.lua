@@ -20,7 +20,10 @@ local GetTeamUnits = Spring.GetTeamUnits
 local GetMyTeamID = Spring.GetLocalTeamID
 local GetSpectatingState = Spring.GetSpectatingState
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local ValidUnitID = Spring.ValidUnitID
 local select = select
+local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitDefID = Spring.GetUnitDefID
 
 local CMD_REMOVE = CMD.REMOVE
 local CMD_REPEAT = CMD.REPEAT
@@ -118,10 +121,10 @@ end
 function widget:GameFrame(f)
 	if f%5 == 0 then
 		for unitID, _ in pairs(finishedButNotRepaired) do
-			if not Spring.ValidUnitID(unitID) then
+			if not ValidUnitID(unitID) then
 				finishedButNotRepaired[unitID] = nil
 			else
-				local hp, maxHP = Spring.GetUnitHealth(unitID)
+				local hp, maxHP = GetUnitHealth(unitID)
 				if hp and maxHP and hp == maxHP then
 					widget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 					finishedButNotRepaired[unitID] = nil
