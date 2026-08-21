@@ -3658,6 +3658,7 @@ margin-top: 3dp;
    user can track "which channel am I on" across every surface. */
 .surf-text-c1 { color: #38bdf8; }
 .surf-text-c2 { color: #e879f9; }
+.surf-text-c3 { color: #a3e635; }   /* slot 3 = the detail3 toggle's channel */
 
 /* NOW PAINTING strip: persistent readout of what the next stroke does */
 .surf-now-strip {
@@ -3699,6 +3700,7 @@ margin-top: 3dp;
 .surf-slot-chip.active { border-color: #fdc04c; background-color: #2b2113; }
 .surf-slot-c1.active { border-color: #38bdf8; background-color: #10222e; }
 .surf-slot-c2.active { border-color: #e879f9; background-color: #291029; }
+.surf-slot-c3.active { border-color: #a3e635; background-color: #1c2410; }
 .surf-slot-chip.surf-slot-empty { opacity: 0.55; }
 .surf-slot-thumb {
 	width: 26dp;
@@ -3742,6 +3744,7 @@ margin-top: 3dp;
 /* Selected tile ring in the CHANNEL color — matches rail, bar, brush ring */
 .tf-biome-tile.surf-sel-c1.active { border-color: #38bdf8; }
 .tf-biome-tile.surf-sel-c2.active { border-color: #e879f9; }
+.tf-biome-tile.surf-sel-c3.active { border-color: #a3e635; }
 
 /* Tile corner tags in slot colors (replace the label suffix) */
 .surf-tile-tag {
@@ -3756,6 +3759,7 @@ margin-top: 3dp;
 }
 .surf-tile-tag.surf-tag-c1 { background-color: #38bdf8dd; }
 .surf-tile-tag.surf-tag-c2 { background-color: #e879f9dd; }
+.surf-tile-tag.surf-tag-c3 { background-color: #a3e635dd; }
 
 /* Coverage meter: split base/V1/V2 bar (amber base below 80%) */
 .surf-cov-track {
@@ -3774,6 +3778,7 @@ margin-top: 3dp;
 }
 .surf-cov-fill.surf-cov-c1 { background-color: #38bdf8cc; }
 .surf-cov-fill.surf-cov-c2 { background-color: #e879f9cc; }
+.surf-cov-fill.surf-cov-c3 { background-color: #a3e635cc; }
 .surf-cov-fill.surf-cov-amber {
 	background-color: #fdc04ccc;
 }

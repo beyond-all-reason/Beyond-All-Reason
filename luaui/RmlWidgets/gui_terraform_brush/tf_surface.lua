@@ -59,11 +59,13 @@ function M.attach(doc, ctx)
 	widgetState.surfCoverageBarEl = doc:GetElementById("surf-coverage-bar")
 	widgetState.surfCovV1El = doc:GetElementById("surf-cov-v1")
 	widgetState.surfCovV2El = doc:GetElementById("surf-cov-v2")
+	widgetState.surfCovV3El = doc:GetElementById("surf-cov-v3")
 	widgetState.surfNowThumbEl = doc:GetElementById("surf-now-thumb")
 	widgetState.surfSlotThumbEls = {
 		base = doc:GetElementById("surf-slot-base-thumb"),
 		doc:GetElementById("surf-slot-1-thumb"),
 		doc:GetElementById("surf-slot-2-thumb"),
+		doc:GetElementById("surf-slot-3-thumb"),
 	}
 	widgetState.surfPaletteSectionEl = doc:GetElementById("section-surf-palette")
 	-- fresh document: rebuild the palette + re-stamp checkboxes on next sync
@@ -84,7 +86,7 @@ function M.attach(doc, ctx)
 
 	-- Slot free (×) and picker (▾) buttons: imperative so the click doesn't
 	-- bubble into the slot chip's select handler.
-	for slot = 1, 2 do
+	for slot = 1, 3 do
 		local btn = doc:GetElementById("surf-slot-" .. slot .. "-free")
 		if btn then
 			btn:AddEventListener("mousedown", function(event)
@@ -116,6 +118,8 @@ local function paletteSig(list, bkey, surfState, pickSlot)
 		tostring(surfState.variant or ""),
 		tostring(surfState.slot1 or ""),
 		tostring(surfState.slot2 or ""),
+		tostring(surfState.slot3 or ""),
+		tostring(surfState.detail3 or false),
 		tostring(pickSlot or "-"),
 	}
 	for i = 1, #list do
@@ -142,6 +146,8 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 			tile:SetClass("surf-sel-c1", true)
 		elseif surfState.slot2 == v.asset then
 			tile:SetClass("surf-sel-c2", true)
+		elseif surfState.slot3 == v.asset then
+			tile:SetClass("surf-sel-c3", true)
 		end
 	end
 
@@ -156,7 +162,8 @@ local function buildTile(doc, ctx, v, surfState, targetSlot)
 	-- Slot tag: colored corner badge in the slot's channel color (the same
 	-- color marks the slot rail, coverage bar and brush ring).
 	if not v.base then
-		local slotN = (surfState.slot1 == v.asset and 1) or (surfState.slot2 == v.asset and 2) or nil
+		local slotN = (surfState.slot1 == v.asset and 1) or (surfState.slot2 == v.asset and 2)
+			or (surfState.slot3 == v.asset and 3) or nil
 		if slotN then
 			local tag = doc:CreateElement("div")
 			tag:SetClass("surf-tile-tag", true)
@@ -282,6 +289,9 @@ local function rebuildPalette(doc, ctx, list, surfState)
 	end
 	if slotEls[2] and surfState.slot2 and byAsset[surfState.slot2] then
 		els[#els + 1] = { el = slotEls[2], tex = byAsset[surfState.slot2] }
+	end
+	if slotEls[3] and surfState.detail3 and surfState.slot3 and byAsset[surfState.slot3] then
+		els[#els + 1] = { el = slotEls[3], tex = byAsset[surfState.slot3] }
 	end
 end
 
@@ -525,18 +535,28 @@ function M.sync(doc, ctx, surfState, setSummary)
 	setDm("surfPreset", surfState.preset or "")
 	setDm("surfFillV1", surfState.fillV1 and true or false)
 	setDm("surfFillV2", surfState.fillV2 and true or false)
+	setDm("surfFillV3", surfState.fillV3 and true or false)
+	-- slot 3 rides the metal suite; the chip/fill rows data-if on this
+	setDm("surfDetail3", surfState.detail3 and true or false)
 	-- FILL WITH NOISE only writes a channel that is both assigned and enabled.
 	setDm(
 		"surfCanFill",
-		((surfState.slot1 and surfState.fillV1) or (surfState.slot2 and surfState.fillV2)) and true or false
+		(
+			(surfState.slot1 and surfState.fillV1)
+			or (surfState.slot2 and surfState.fillV2)
+			or (surfState.detail3 and surfState.slot3 and surfState.fillV3)
+		) and true or false
 	)
 	setDm("surfSlot1Name", shortAsset(surfState.slot1))
 	setDm("surfSlot2Name", shortAsset(surfState.slot2))
+	setDm("surfSlot3Name", shortAsset(surfState.slot3))
 	setDm("surfSlot1Assigned", surfState.slot1 ~= nil)
 	setDm("surfSlot2Assigned", surfState.slot2 ~= nil)
+	setDm("surfSlot3Assigned", surfState.slot3 ~= nil)
 	do
 		local cov = (pickSlot == 1) and (surfState.v1Coverage or 0)
 			or (pickSlot == 2) and (surfState.v2Coverage or 0)
+			or (pickSlot == 3) and (surfState.v3Coverage or 0)
 			or 0
 		setDm("surfPickerTitle", pickSlot and ("Assign to slot " .. pickSlot) or "")
 		setDm("surfPickerHasPaint", cov >= 0.005)
@@ -547,7 +567,8 @@ function M.sync(doc, ctx, surfState, setSummary)
 		local sel = surfState.variant
 		local selSlot = 0
 		if sel and sel ~= "" then
-			selSlot = (surfState.slot1 == sel and 1) or (surfState.slot2 == sel and 2) or 0
+			selSlot = (surfState.slot1 == sel and 1) or (surfState.slot2 == sel and 2)
+				or (surfState.slot3 == sel and 3) or 0
 		end
 		setDm("surfSelSlot", selSlot)
 		local nowName, nowDetail
@@ -573,13 +594,15 @@ function M.sync(doc, ctx, surfState, setSummary)
 		local cov = surfState.baseCoverage
 		local v1 = surfState.v1Coverage or 0
 		local v2 = surfState.v2Coverage or 0
+		local v3 = surfState.v3Coverage or 0
 		local covStr = cov and string.format("%d%%", math.floor(cov * 100 + 0.5)) or "\226\128\148"
 		setDm("surfCoverageStr", covStr)
 		setDm("surfCoverageAmber", (cov and cov < 0.8) and true or false)
 		setDm("surfBaseShare", covStr)
 		setDm("surfSlot1Share", surfState.slot1 and string.format("%.0f%%", v1 * 100) or "empty")
 		setDm("surfSlot2Share", surfState.slot2 and string.format("%.0f%%", v2 * 100) or "empty")
-		local key = string.format("%.3f|%.3f|%.3f", cov or -1, v1, v2)
+		setDm("surfSlot3Share", surfState.slot3 and string.format("%.0f%%", v3 * 100) or "empty")
+		local key = string.format("%.3f|%.3f|%.3f|%.3f", cov or -1, v1, v2, v3)
 		if widgetState.surfCovKey ~= key then
 			widgetState.surfCovKey = key
 			local basePct = cov and math.max(1, math.floor(cov * 100 + 0.5)) or 100
@@ -595,6 +618,10 @@ function M.sync(doc, ctx, surfState, setSummary)
 			local b2 = widgetState.surfCovV2El
 			if b2 then
 				b2:SetAttribute("style", "width: " .. math.floor(v2 * 100 + 0.5) .. "%;")
+			end
+			local b3 = widgetState.surfCovV3El
+			if b3 then
+				b3:SetAttribute("style", "width: " .. math.floor(v3 * 100 + 0.5) .. "%;")
 			end
 		end
 	end
@@ -645,7 +672,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		if surfState.eraseMode then
 			what = "ERASE \226\134\146 auto"
 		elseif surfState.variant and surfState.variant ~= "" then
-			local selSlot = (surfState.slot1 == surfState.variant and 1) or (surfState.slot2 == surfState.variant and 2)
+			local selSlot = (surfState.slot1 == surfState.variant and 1)
+				or (surfState.slot2 == surfState.variant and 2)
+				or (surfState.slot3 == surfState.variant and 3)
 			what = shortAsset(surfState.variant) .. (selSlot and (" \194\183" .. selSlot) or "")
 		else
 			what = "base"

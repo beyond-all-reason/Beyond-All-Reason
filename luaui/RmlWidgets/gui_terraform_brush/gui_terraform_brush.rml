@@ -5279,7 +5279,7 @@
 						<div id="surf-now-strip" class="surf-now-strip mb-1" data-class-surf-now-erase="surfErase">
 							<div id="surf-now-thumb" class="surf-now-thumb"></div>
 							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2">{{surfNowName}}</div>
+								<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2" data-class-surf-text-c3="surfSelSlot == 3">{{surfNowName}}</div>
 								<div class="text-base text-light" style="opacity: 0.7;">{{surfNowDetail}}</div>
 							</div>
 							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
@@ -5311,6 +5311,17 @@
 								</div>
 								<div id="surf-slot-2-free" class="surf-slot-free" data-if="surfSlot2Assigned">&#215;</div>
 							</div>
+							<!-- slot 3 exists while the metal suite is repurposed
+							     (TILESET > METAL SPOTS > DETAIL SLOT 3); it brings its
+							     own relief/roughness unlike slots 1/2 -->
+							<div id="surf-slot-3" class="surf-slot-chip surf-slot-c3" data-if="surfDetail3" data-class-active="surfSelSlot == 3" data-class-surf-slot-empty="!surfSlot3Assigned" data-event-mousedown="onSurfSlotSelect(3)">
+								<div id="surf-slot-3-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-info">
+									<div class="text-base font-bold surf-text-c3">3 &#183; {{surfSlot3Name}}</div>
+									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot3Share}}</div>
+								</div>
+								<div id="surf-slot-3-free" class="surf-slot-free" data-if="surfSlot3Assigned">&#215;</div>
+							</div>
 						</div>
 						<!-- Per-slot variant picker: opened by a slot's caret, so the
 						     full texture library only occupies space while choosing. -->
@@ -5329,6 +5340,7 @@
 								<div id="surf-coverage-bar" class="surf-cov-fill"></div>
 								<div id="surf-cov-v1" class="surf-cov-fill surf-cov-c1"></div>
 								<div id="surf-cov-v2" class="surf-cov-fill surf-cov-c2"></div>
+								<div id="surf-cov-v3" class="surf-cov-fill surf-cov-c3"></div>
 							</div>
 							<div class="text-base text-light" data-class-surf-cov-amber="surfCoverageAmber" style="min-width: 38dp; text-align: right;">{{surfCoverageStr}}</div>
 						</div>
@@ -5413,6 +5425,9 @@
 							</div>
 							<div id="btn-surf-fill-v2" class="tf-overlay-chip" data-class-active="surfFillV2" data-event-mousedown="onSurfFillToggle(2)">
 								<div class="tf-overlay-chip-label">V2 {{surfSlot2Name}}</div>
+							</div>
+							<div id="btn-surf-fill-v3" class="tf-overlay-chip" data-if="surfDetail3" data-class-active="surfFillV3" data-event-mousedown="onSurfFillToggle(3)">
+								<div class="tf-overlay-chip-label">V3 {{surfSlot3Name}}</div>
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">Seeds the whole mask from the tileset noise field (grunt-work done, erase and adjust). Only assigned slots fill.</div>
@@ -5569,6 +5584,20 @@
 						<div id="btn-ts-reset-metal" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('metal')">RESET</div>
 					</div>
 					<div id="section-ts-metal" class="hidden">
+						<!-- What the spot texture units (TU22-24) serve: the metal-spot
+						     material, or a THIRD paintable SURFACE variant with its own
+						     relief and roughness. In DETAIL SLOT 3 mode every metal
+						     visual is off and the body below grays out (tf_tileset.sync). -->
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-mode-btn tf-ts-row-btn" data-class-active="!tsDetail3On" data-event-mousedown="onTsSetDetail3(false)">
+								<div class="tf-btn-text">SPOT TEXTURE</div>
+							</div>
+							<div class="tf-mode-btn tf-ts-row-btn" data-class-active="tsDetail3On" data-event-mousedown="onTsSetDetail3(true)">
+								<div class="tf-btn-text">DETAIL SLOT 3</div>
+							</div>
+						</div>
+						<div class="tf-s4-desc mb-1" data-if="tsDetail3On">The spot texture units now serve a third paintable variant &#8212; SURFACE window, slot 3. Metal spots draw nothing in this mode.</div>
+						<div id="ts-metal-body">
 						<div class="tf-biome-grid flex flex-row gap-1 mb-1">
 							<div class="tf-biome-tile" data-class-active="tsMetalStyle == 'crystal'" data-event-mousedown="onPickMetalStyle('crystal')">
 								<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/metal_crystal.png" />
@@ -5640,6 +5669,7 @@
 							<input type="range" id="ts-slider-metalTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onTilesetKnob('metalTintB')" />
 							<input type="text" id="ts-slider-metalTintB-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
+						</div><!-- /ts-metal-body -->
 					</div>
 				</div><!-- /frame-ts-metal -->
 

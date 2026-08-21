@@ -140,6 +140,8 @@ function M.attach(doc, ctx)
 	-- so force one re-apply from the widget on a fresh document
 	ctx.widgetState.tsSlot4Last = nil
 	ctx.widgetState.tsSlot4MatLast = nil
+	-- same for the METAL SPOTS suite toggle's gray-out
+	ctx.widgetState.tsDetail3Last = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
 	for _, k in ipairs(KNOBS) do
@@ -270,6 +272,24 @@ function M.sync(doc, ctx, setSummary)
 		local _, _, mkey = WG.TilesetTerrain.getActiveMetalStyle()
 		if mkey and dm.tsMetalStyle ~= mkey then
 			dm.tsMetalStyle = mkey
+		end
+	end
+	-- METAL SPOTS suite toggle (SPOT TEXTURE / DETAIL SLOT 3): mirror the
+	-- widget into both windows' flags, and gray the metal body while the suite
+	-- is repurposed — every metal knob below the toggle is inert then.
+	if WG.TilesetTerrain.getDetail3 then
+		local d3 = WG.TilesetTerrain.getDetail3() and true or false
+		if dm.tsDetail3On ~= d3 then
+			dm.tsDetail3On = d3
+		end
+		if dm.surfDetail3 ~= d3 then
+			dm.surfDetail3 = d3
+		end
+		if widgetState.tsDetail3Last ~= d3 then
+			widgetState.tsDetail3Last = d3
+			if ctx.setDisabledIds then
+				ctx.setDisabledIds(doc, { "ts-metal-body" }, d3)
+			end
 		end
 	end
 	if WG.TilesetTerrain.getMetalLights then

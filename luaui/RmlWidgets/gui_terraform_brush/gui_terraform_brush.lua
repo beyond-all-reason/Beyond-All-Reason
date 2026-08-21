@@ -2969,6 +2969,10 @@ local initialModel = {
 	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
 	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
 	tsSlot4Mode = "plateau",
+	-- METAL SPOTS suite toggle (SPOT TEXTURE / DETAIL SLOT 3); synced from
+	-- WG.TilesetTerrain.getDetail3. Mirrored into surfDetail3 for the SURFACE
+	-- window's slot-3 controls.
+	tsDetail3On = false,
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -2982,8 +2986,13 @@ local initialModel = {
 	surfCoverageAmber = false,
 	surfSlot1Name = "\226\128\148",
 	surfSlot2Name = "\226\128\148",
+	surfSlot3Name = "\226\128\148",
 	surfFillV1 = true,
 	surfFillV2 = true,
+	surfFillV3 = true,
+	-- Slot 3 rides the metal suite (TILESET > METAL SPOTS > DETAIL SLOT 3);
+	-- its chip/fill controls only render while that toggle is on.
+	surfDetail3 = false,
 	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
 	-- (the fill shader preserves channels it is not allowed to write), so the
 	-- button grays out rather than looking broken.
@@ -2992,11 +3001,13 @@ local initialModel = {
 	surfNowName = "base (erase)",
 	surfNowDetail = "",
 	surfNowMode = "PAINT",
-	surfSelSlot = 0, -- 0 = base/erase, 1/2 = variant slots
+	surfSelSlot = 0, -- 0 = base/erase, 1/2/3 = variant slots
 	surfSlot1Assigned = false,
 	surfSlot2Assigned = false,
+	surfSlot3Assigned = false,
 	surfSlot1Share = "",
 	surfSlot2Share = "",
+	surfSlot3Share = "",
 	surfBaseShare = "",
 	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
 	surfPickerTitle = "",
@@ -9250,7 +9261,17 @@ local initialModel = {
 		end
 		local slot = tonumber(n)
 		local st = WG.SurfacePainter.getState() or {}
-		local asset = (slot == 1) and st.slot1 or st.slot2
+		if slot == 3 and not st.detail3 then
+			return -- chip is data-if hidden, but a stale click must not land
+		end
+		local asset
+		if slot == 1 then
+			asset = st.slot1
+		elseif slot == 2 then
+			asset = st.slot2
+		elseif slot == 3 then
+			asset = st.slot3
+		end
 		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
 			WG.SurfacePainter.setVariant(asset)
 		end
@@ -9268,13 +9289,14 @@ local initialModel = {
 		-- mask verbatim, so the button silently did nothing. The RML grays it
 		-- in that state (dm.surfCanFill) — this is the backstop that explains.
 		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
-		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2)) then
+		local v3ok = st.detail3 and st.slot3 and st.fillV3
+		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2) or v3ok) then
 			Spring.Echo(
 				"[Terraform Brush] SURFACE fill did nothing \226\128\148 "
 					.. (
-						(not st.slot1 and not st.slot2)
-							and "assign a variant to slot 1 or 2 first (the caret on a slot chip)."
-						or "enable V1 or V2 below."
+						(not st.slot1 and not st.slot2 and not st.slot3)
+							and "assign a variant to a slot first (click a slot chip)."
+						or "enable a V chip below."
 					)
 			)
 			return
@@ -9292,6 +9314,13 @@ local initialModel = {
 			WG.SurfacePainter.setFillV1(not st.fillV1)
 			if dm then
 				dm.surfFillV1 = not st.fillV1
+			end
+		elseif tonumber(n) == 3 then
+			if WG.SurfacePainter.setFillV3 then
+				WG.SurfacePainter.setFillV3(not st.fillV3)
+			end
+			if dm then
+				dm.surfFillV3 = not st.fillV3
 			end
 		else
 			WG.SurfacePainter.setFillV2(not st.fillV2)
@@ -9586,6 +9615,22 @@ local initialModel = {
 	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
 	-- widget reseeds the two reused sliders on a change; tf_tileset.sync
 	-- restamps them and retitles their labels.
+	-- METAL SPOTS suite toggle: what TU22-24 serve. false = the metal-spot
+	-- material (legacy), true = a third paintable SURFACE variant (slot 3).
+	onTsSetDetail3 = function(_event, on)
+		local T = WG.TilesetTerrain
+		if not (T and T.setDetail3) then
+			return
+		end
+		local want = (on == true) or (on == "true") or (on == 1)
+		local now = T.setDetail3(want)
+		playSound(now and "toggleOn" or "toggleOff")
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsDetail3On = now and true or false
+			dm.surfDetail3 = dm.tsDetail3On
+		end
+	end,
 	onTsSlot4Mode = function(_event, name)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
 			return
