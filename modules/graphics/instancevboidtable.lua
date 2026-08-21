@@ -70,7 +70,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttri
 end
 
 local function clearInstanceTable(iT)
-	-- this wont resize it, but quickly sets it to empty
+	-- this won't resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
 	iT.indextoInstanceID = {}
@@ -385,7 +385,10 @@ local function popElementInstance(iT, instanceID, noUpload)
 		if iT.indextoObjectType then
 			iT.indextoObjectType[oldElementIndex] = nil
 		end
-		if iT.VAO then
+		-- While dirty (deferred pushes pending), the submission does not contain
+		-- those pushes, so incremental indices are off the end of it and the engine
+		-- raises "wrong submitCmds index". Skip; uploadAllElements rebuilds it whole.
+		if iT.VAO and not iT.dirty then
 			iT.VAO:RemoveFromSubmission(oldElementIndex - 1)
 			--Spring.Echo("RemoveFromSubmissionLast",oldElementIndex-1 )
 		end
@@ -399,6 +402,22 @@ local function popElementInstance(iT, instanceID, noUpload)
 		end
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
+		if lastElementInstanceID == nil then
+			-- Bookkeeping is already inconsistent (e.g. an earlier pop aborted
+			-- mid-way). Converge toward empty instead of hard-erroring on a nil
+			-- table index, and leave the rebuild to uploadAllElements.
+			Spring.Echo(
+				"popElementInstance: no instanceID recorded for last element",
+				lastElementIndex,
+				"of",
+				iT.myName,
+				"while removing",
+				instanceID
+			)
+			iT.usedElements = iT.usedElements - 1
+			iT.dirty = true
+			return nil
+		end
 		local iTStep = iT.instanceStep
 		local endOffset = (iT.usedElements - 1) * iTStep
 
@@ -482,7 +501,9 @@ local function popElementInstance(iT, instanceID, noUpload)
 				iT.indextoObjectType[oldElementIndex] = objecttype
 				iT.indextoObjectType[lastElementIndex] = nil
 
-				if iT.VAO then
+				-- Same guard as the end-element case: a dirty table's submission
+				-- lags the bookkeeping, so index math against it is invalid.
+				if iT.VAO and not iT.dirty then
 					iT.VAO:RemoveFromSubmission(oldElementIndex - 1)
 					--Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
 				end
@@ -603,6 +624,12 @@ local function uploadAllElements(iT)
 	-- DANGER: stuff should be removed first!
 	-- upload all USED elements
 	if iT.usedElements == 0 then
+		-- Still sync the submission: if the last elements were popped while the
+		-- table was dirty, their draw commands are still queued in the VAO.
+		if iT.VAO then
+			iT.VAO:ClearSubmission()
+		end
+		iT.dirty = false
 		return
 	end
 	iT.instanceVBO:Upload(iT.instanceData, nil, 0, 1, iT.usedElements * iT.instanceStep)

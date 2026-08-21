@@ -21,7 +21,6 @@ return { --costs should be same as legmohocon and legmohoconct
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,
-		metalstorage = 600,
 		objectname = "Units/legmohocon.s3o",
 		onoffable = true,
 		script = "Units/legmohoconin.cob",

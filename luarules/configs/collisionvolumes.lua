@@ -37,7 +37,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 		    0,1,0[,    -- vType, tType, axis [,  -- Optional
 			0,0,0]}    -- Aimpoint X offset, Aimpoint Y offset, Aimpoint Z offset]},
 		off={32,48,32,0,-10,0,0,1,0},
-	}                  -- Aimpoint offsets are relative to unit's base position (aka unit coordiante space)
+	}                  -- Aimpoint offsets are relative to unit's base position (aka unit coordinate space)
 	pieceCollisionVolume["arm_big_bertha"] = {
 		["0"]={true,       -- [pieceIndexNumber]={enabled,
 			   48,74,48,   --            Volume X scale, Volume Y scale, Volume Z scale,
@@ -454,6 +454,10 @@ pieceCollisionVolume.armshockwave = {
 pieceCollisionVolume.legmohoconct = {
 	["0"] = { 70, 30, 70, 0, -3, 0, 1, 1 },
 	["1"] = { 21, 16, 30, 0, -3, -1, 2, 1 },
+}
+pieceCollisionVolume['legkeres'] = {
+	['0']={58,22,68,0,-6,1,2,0},
+	['2']={44,19,48,0,9.5,2,2,0},
 }
 
 for name, v in pairs(pieceCollisionVolume) do

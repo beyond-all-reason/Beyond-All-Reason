@@ -157,12 +157,17 @@ local function strokeEnd()
 	end
 end
 
+-- Feedback on every outcome: a silent no-op reads as "undo is broken", and
+-- the two real failure modes (empty stack vs missing grass API) need to be
+-- distinguishable from the console when players report it.
 local function grassUndo()
 	if #undoStack == 0 then
+		Echo("[Grass Brush] Nothing to undo")
 		return
 	end
 	local api = WG.grassgl4
 	if not api or not api.setDensityAt then
+		Echo("[Grass Brush] Undo unavailable: grass renderer API not loaded")
 		return
 	end
 	local patches = undoStack[#undoStack]
@@ -174,14 +179,17 @@ local function grassUndo()
 	if #redoStack > MAX_HISTORY then
 		table.remove(redoStack, 1)
 	end
+	Echo("[Grass Brush] Undo (" .. #patches .. " patches)")
 end
 
 local function grassRedo()
 	if #redoStack == 0 then
+		Echo("[Grass Brush] Nothing to redo")
 		return
 	end
 	local api = WG.grassgl4
 	if not api or not api.setDensityAt then
+		Echo("[Grass Brush] Redo unavailable: grass renderer API not loaded")
 		return
 	end
 	local patches = redoStack[#redoStack]
@@ -190,6 +198,7 @@ local function grassRedo()
 		api.setDensityAt(patches[i].x, patches[i].z, patches[i].after)
 	end
 	undoStack[#undoStack + 1] = patches
+	Echo("[Grass Brush] Redo (" .. #patches .. " patches)")
 end
 
 local function grassUndoToIndex(targetIdx)

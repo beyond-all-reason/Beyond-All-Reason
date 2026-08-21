@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Camera Joystick",
-		desc = "Control Rotateable overhead (CTRL+F4) camera with a joystick via joystick server from https://github.com/Beherith/camera_joystick_springrts",
+		desc = "Control Rotatable overhead (CTRL+F4) camera with a joystick via joystick server from https://github.com/Beherith/camera_joystick_springrts",
 		author = "Beherith",
 		date = "2021.04.06",
 		license = "GNU GPL, v2 or later",
@@ -272,7 +272,7 @@ end
 
 toggleRecording = function()
 	if isplayingback then
-		spEcho("Cant start playback while recording")
+		spEcho("Can't start playback while recording")
 		return
 	end
 	isrecording = not isrecording
@@ -286,7 +286,7 @@ end
 
 togglePlayback = function()
 	if isrecording then
-		spEcho("Cant start playback while recording")
+		spEcho("Can't start playback while recording")
 		return
 	end
 	isplayingback = not isplayingback
