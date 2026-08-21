@@ -73,6 +73,10 @@ local autoUpdate = false
 local enableLights = true
 local lightMult = 1.4
 
+-- 0 = never teamcolored, 1 = teamcolored only for effectdefs with teamcolored = true, 2 = force teamcolor on all airjets
+-- changeable ingame via /set AirjetsTeamColored <0|1|2>
+local teamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
+
 local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
 local texture2 = ":c:bitmaps/gpl/jet2.bmp" -- shape
 
@@ -554,18 +558,20 @@ local function Activate(unitID, unitDefID, who, when)
 		local effectDef = unitEffects[i]
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
-		if effectDef.teamcolored then
+		if teamColorMode == 2 or (teamColorMode == 1 and effectDef.teamcolored) then
+			local r, g, b
 			local unitCustomPaletteIndex = spGetUnitPaletteIndex(unitID)
 			if unitCustomPaletteIndex then
-				color[1], color[2], color[3] = spGetCustomPaletteColor(unitCustomPaletteIndex)
+				r, g, b = spGetCustomPaletteColor(unitCustomPaletteIndex)
 			else
-				color[1], color[2], color[3] = spGetTeamColor(spGetUnitTeam(unitID))
+				r, g, b = spGetTeamColor(spGetUnitTeam(unitID))
 			end
 			if effectDef.teamcolorDesaturation then
-				color[1] = color[1] + ((1 - color[1]) * effectDef.teamcolorDesaturation)
-				color[2] = color[2] + ((1 - color[2]) * effectDef.teamcolorDesaturation)
-				color[3] = color[3] + ((1 - color[3]) * effectDef.teamcolorDesaturation)
+				r = r + ((1 - r) * effectDef.teamcolorDesaturation)
+				g = g + ((1 - g) * effectDef.teamcolorDesaturation)
+				b = b + ((1 - b) * effectDef.teamcolorDesaturation)
 			end
+			color = { r, g, b } -- don't write into effectDef.color: it's shared by all units of this unitDef
 		end
 		local effectdata = {
 			effectDef.width * 0.4,
@@ -751,10 +757,6 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:Update(dt)
-	--spec, fullview = spGetSpectatingState()
-end
-
 function widget:DrawWorld()
 	DrawParticles(false)
 end
@@ -777,6 +779,20 @@ local function reInitialize()
 				local unitDefID = spGetUnitDefID(unitID)
 				AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 			end
+		end
+	end
+end
+
+local configCheckTimer = 0
+function widget:Update(dt)
+	--spec, fullview = spGetSpectatingState()
+	configCheckTimer = configCheckTimer + dt
+	if configCheckTimer > 0.5 then
+		configCheckTimer = 0
+		local newTeamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
+		if newTeamColorMode ~= teamColorMode then
+			teamColorMode = newTeamColorMode
+			reInitialize()
 		end
 	end
 end
@@ -827,9 +843,9 @@ function widget:Initialize()
 				emitVector[1],
 				emitVector[2],
 				emitVector[3],
-				color[1],
-				color[2],
-				color[3],
+				color3[1],
+				color3[2],
+				color3[3],
 				piecenum,
 				0,
 				0,
