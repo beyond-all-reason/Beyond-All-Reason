@@ -2302,6 +2302,7 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #dce0e8;
+	white-space: nowrap;
 }
 
 .tf-save-btn {
@@ -3369,6 +3370,7 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #c8d0d8;
+	white-space: nowrap;
 }
 
 /* Compact chip for section title rows.
