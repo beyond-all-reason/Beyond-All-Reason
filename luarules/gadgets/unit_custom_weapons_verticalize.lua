@@ -144,6 +144,9 @@ local function getVerticalizeWeapon(weaponDef)
 	if weaponDef.type ~= "StarburstLauncher" or weaponDef.interceptor ~= 0 then
 		return
 	end
+	if weaponDef.turnRate <= 0 then
+		return
+	end
 
 	local cruiseHeight = tonumber(weaponDef.customParams.cruise_altitude) or "auto"
 	local upTimeMax = tonumber(weaponDef.customParams.uptime_max) or weaponDef.uptime
@@ -188,6 +191,7 @@ local function getVerticalizeWeapon(weaponDef)
 
 		heightIntoTurn  = turnHeightMin,
 		rangeMinimum    = rangeMinimum,
+		rangeMaximum    = weaponDef.range,
 		upTimeMaxFrames = upTimeMaxFrames,
 		upTimeMinFrames = upTimeMinFrames,
 
@@ -195,8 +199,8 @@ local function getVerticalizeWeapon(weaponDef)
 		turnRadius      = turnRadiusMax,
 		chaseFactor     = chaseFactor,
 
-		gravity         = weaponDef.myGravity ~= 0 and weaponDef.myGravity or nil,
-		model           = weaponDef.model,
+		tracking        = weaponDef.tracks and turnRate or 0,
+		gravity         = weaponDef.myGravity ~= 0 and -weaponDef.myGravity or nil,
 		cegTag          = weaponDef.cegTag,
 	}
 end
@@ -281,11 +285,13 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	local weaponDefID = assert(Spring.GetProjectileDefID(projectileID))
 	local spawnParams = projectileParams
 	spawnParams.owner = Spring.GetProjectileOwnerID(projectileID) or -1
+	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
 	spawnParams['end'] = projectile.target
 	spawnParams.gravity = weapon.gravity
-	spawnParams.model = weapon.model
-	spawnParams.cegTag = weapon.cegTag
+	spawnParams.cegtag = weapon.cegTag -- note: is lower case
+	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
+	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
 	getVelocity(projectileID) -- populates spawnParams.speed
 	spawnParams.speed[4] = nil -- engine needs `xyz`
@@ -334,7 +340,7 @@ local function register(projectileID, weaponDefID)
 		turnRadius       = turnRadius,
 
 		phase            = 1,
-		pitch            = 1,
+		pitch            = 2,
 		cruiseEndRadius  = 0,
 		cruiseEndInverse = 0,
 	}
@@ -380,7 +386,7 @@ end
 
 local function turnToLevel(projectileID, projectile, frame)
 	local velocity = getVelocity(projectileID)
-	local pitch = velocity[2] / velocity[4]
+	local pitch = math_asin(math_clamp(velocity[2] / velocity[4], -1, 1))
 
 	-- StarburstProjectile disables turning at 8.1 degrees to target, then keeps constant pitch.
 	if projectile.pitch - pitch > projectile.turnRate * 0.5 then
