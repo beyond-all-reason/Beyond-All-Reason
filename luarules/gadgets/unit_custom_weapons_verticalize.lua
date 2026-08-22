@@ -93,8 +93,8 @@ local targetedUnit = string.byte("u")
 
 local weapons = {}
 local projectiles = {}
+local moveControl = {}
 local scheduled = {}
-local scripted = {}
 
 local gameFrame = 0
 local inSpawnProjectile = false
@@ -433,7 +433,7 @@ local function cruise(projectileID, projectile, frame)
 	end
 
 	-- We leave the engine `phase` tracking and begin using lua's scripted MoveControl.
-	scripted[projectileID] = projectile
+	moveControl[projectileID] = projectile
 
 	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
 	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
@@ -536,7 +536,7 @@ function gadget:GameFrame(frame)
 		updatePhases(checkList, frame)
 	end
 
-	for projectileID, projectile in pairs(scripted) do
+	for projectileID, projectile in pairs(moveControl) do
 		verticalize(projectileID, projectile)
 	end
 end
@@ -549,7 +549,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
 	projectiles[projectileID] = nil
-	scripted[projectileID] = nil
+	moveControl[projectileID] = nil
 end
 
 function gadget:Initialize()
