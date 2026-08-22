@@ -135,7 +135,8 @@ local frameTraceX, frameTraceZ = nil, nil
 
 local function sendPaintMessage(worldX, worldZ)
 	local ss = getSharedState()
-	local direction = (paintButton == 1) and 1 or -1
+	-- Remove submode always erases, whichever button started the drag
+	local direction = (subMode ~= "remove" and paintButton == 1) and 1 or -1
 	local tb = WG.TerraformBrush
 	local positions
 	if ss.gridSnap then
