@@ -260,7 +260,7 @@ local function appendSquadKeybinds()
 		keybindsText[#keybindsText + 1] = { type = lineType.key, key = key, text = text }
 	end
 	local function i18n(name)
-		return Spring.I18N('ui.keybinds.squads.' .. name)
+		return BAR.I18N('ui.keybinds.squads.' .. name)
 	end
 
 	keybindsText[#keybindsText + 1] = { type = lineType.blank }
