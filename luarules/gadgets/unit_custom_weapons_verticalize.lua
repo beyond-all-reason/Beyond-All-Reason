@@ -61,9 +61,9 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local cruiseHeightMin = 50     -- note: barely above ground
-local cruiseHeightMax = 3000   -- note: not all that high up
-local checkWindowFrames = 4    -- count of polling frames used to predict new phases
+local cruiseHeightMin = 50 -- note: barely above ground
+local cruiseHeightMax = 3000 -- note: not all that high up
+local checkWindowFrames = 4 -- count of polling frames used to predict new phases
 local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto target
 
 --------------------------------------------------------------------------------
@@ -308,7 +308,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
 	spawnParams["end"] = projectile.target
 	spawnParams.gravity = weapon.gravity
-	spawnParams.cegtag = weapon.cegTag      -- note: is lower case
+	spawnParams.cegtag = weapon.cegTag -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
 	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
@@ -370,11 +370,8 @@ local function register(projectileID, weaponDefID)
 	}
 
 	local cruiseDistance = distanceXZ(position, target) - weapon.rangeMinimum
-	local upTimeFrames = math_clamp(
-		getUptime(projectile,
-		ascendHeight - position[2]),
-		weapon.upTimeMinFrames, weapon.upTimeMaxFrames
-	)
+	local upTimeFrames =
+		math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
 
 	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 and respawn(weapon, projectileID, projectile, upTimeFrames) then
 		return
