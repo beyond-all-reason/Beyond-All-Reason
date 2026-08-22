@@ -1987,6 +1987,15 @@ local options = {
 		def = false,
 	},
 
+	{
+		key = "experimentalunifiedfactions",
+		name = "Allow Use All Units",
+		desc = "Every factory and constructor can build the matching units of all factions.\nShared structures stay as your own faction's version, faction-unique ones are added.\nCommanders are excluded. Legion units are only included when the Legion Faction option is also enabled.",
+		type = "bool",
+		section = "options_experimental",
+		def = false,
+	},
+
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "legionsimplifiedmexes",
