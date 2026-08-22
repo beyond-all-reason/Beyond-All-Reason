@@ -368,7 +368,7 @@ end
 local function ascend(projectileID, projectile, frame)
 	local position, velocity = getPositionAndVelocity(projectileID)
 
-	if projectile.ascendHeight - position[2] >= velocity[2] then
+	if projectile.ascendHeight - position[2] >= velocity[2] or velocity[4] <= 0 then
 		return frame + 1
 	end
 
@@ -386,6 +386,10 @@ end
 
 local function turnToLevel(projectileID, projectile, frame)
 	local velocity = getVelocity(projectileID)
+	if velocity[4] <= 0 then
+		return frame + 1
+	end
+
 	local pitch = math_asin(math_clamp(velocity[2] / velocity[4], -1, 1))
 
 	-- StarburstProjectile disables turning at 8.1 degrees to target, then keeps constant pitch.
@@ -410,11 +414,15 @@ local function cruise(projectileID, projectile, frame)
 		return frame + 1
 	end
 
+	-- We can track position and velocity entirely in lua without any engine callouts.
+	local velocity = getVelocity(projectileID)
+	if velocity[4] <= 0 then
+		return frame + 1 -- guidance will div0
+	end
+
 	-- We leave the engine `phase` tracking and begin using lua's scripted MoveControl.
 	scripted[projectileID] = projectile
 
-	-- We can track position and velocity entirely in lua without any engine callouts.
-	local velocity = getVelocity(projectileID)
 	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
 	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
 	projectile.speed = velocity[4]
