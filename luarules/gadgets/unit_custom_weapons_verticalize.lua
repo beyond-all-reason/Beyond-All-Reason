@@ -431,7 +431,6 @@ end
 
 local function cruise(projectileID, projectile, frame)
 	local position, velocity = getPositionAndVelocity(projectileID)
-
 	if velocity[4] <= 0 then
 		return frame + 1 -- guidance will div0
 	end
