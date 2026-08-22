@@ -1669,6 +1669,11 @@ end
 -- Other gadgets can call these to spawn fire/smoke effects
 --------------------------------------------------------------------------------
 
+---Starts the trailing fire/smoke effect for an aircraft that has begun crashing.
+---Does nothing if the effect system is unavailable or the unit is already tracked.
+---@param unitID UnitID
+---@param unitDefID UnitDefID
+---@param teamID TeamID
 local function apiCrashingAircraft(unitID, unitDefID, teamID)
 	if not particleVBO then
 		return
@@ -1702,24 +1707,29 @@ local function apiCrashingAircraft(unitID, unitDefID, teamID)
 	crashingAircraftCount = crashingAircraftCount + 1
 end
 
--- Add a generic point emitter at a fixed position.
+---Parameters accepted by `GG.FireSmoke.AddPointEmitter`.
+---@class GG.FireSmoke.EmitterParams
+---@field x number World position X coordinate.
+---@field y number? World position Y coordinate. Defaults to the ground height at `x`, `z`.
+---@field z number? World position Z coordinate. Defaults to `0`.
+---@field duration integer? Frames the emitter lives for. `0` = permanent. Defaults to `300`.
+---@field sizeScale number? Particle size multiplier. Defaults to `1.0`.
+---@field fireIntensity number? `0` emits smoke only. `[0,1)` range of fire chance/brightness. Defaults to `0`.
+---@field spawnCount integer? Particles emitted per interval. Defaults to `POINT_SPAWN_COUNT``.
+---@field spawnInterval integer? Frames between spawns. Defaults to `POINT_SPAWN_INTERVAL``.
+---@field priority integer? One of the `PRIORITY_ESSENTIAL` `_NORMAL` `_COSMETIC` constants. Defaults to `PRIORITY_NORMAL`.
+---@field smokeSizeMult number? Multiplier on spoke particle size. Defaults to `1.0`.
+---@field smokeLifeMult number? Multiplier on smoke particle lifetime. Defaults to `1.0`.
+---@field smokeAlpha number? Base smoke alpha (opacity). Defaults to `1.0`.
+---@field fireSizeMult number? Multiplier on fire particle size. Defaults to `1.0`.
+---@field fireLifeMult number? Multiplier on fire particle lifetime. Defaults to `1.0`.
+---@field posSpread number? Random position jitter applied per particle in elmos. Defaults to `POINT_POS_SPREAD`
+---@field velocityScale number? Multiplier on particle velocity. Defaults to `1.0`.
+
+---Registers a long-lived point emitter that keeps spawning particles.
 -- Returns emitterID (use to remove later) or nil if VBO not ready.
---
--- params table fields (all optional except x,y,z):
---   x, y, z            - world position (required)
---   duration            - emit for this many frames, 0 = permanent (default: 300)
---   sizeScale           - particle size multiplier (default: 1.0)
---   fireIntensity       - 0 = smoke only, 0-1 = fire chance/brightness (default: 0)
---   spawnCount          - smoke particles per interval (default: POINT_SPAWN_COUNT)
---   spawnInterval       - frames between spawns (default: POINT_SPAWN_INTERVAL)
---   priority            - PRIORITY_ESSENTIAL/NORMAL/COSMETIC (default: NORMAL)
---   smokeSizeMult       - multiplier on smoke particle size (default: 1.0)
---   smokeLifeMult       - multiplier on smoke lifetime (default: 1.0)
---   smokeAlpha          - base smoke alpha (default: 1.0)
---   fireSizeMult        - multiplier on fire particle size (default: 1.0)
---   fireLifeMult        - multiplier on fire particle lifetime (default: 1.0)
---   posSpread           - random position offset radius in elmos (default: POINT_POS_SPREAD)
---   velocityScale       - multiplier on particle velocity (default: 1.0)
+---@param params GG.FireSmoke.EmitterParams
+---@return integer? emitterID `nil` when the effect system is unavailable or `params` or `params.x` is missing.
 local function apiAddPointEmitter(params)
 	if not particleVBO then
 		return nil
@@ -1756,7 +1766,9 @@ local function apiAddPointEmitter(params)
 	return id
 end
 
--- Remove a point emitter by ID (returned from AddPointEmitter)
+---Removes a point emitter.
+---@param emitterID integer? As returned by `AddPointEmitter`.
+---@return boolean removed `false` if no such emitter exists.
 local function apiRemoveEmitter(emitterID)
 	if emitterID and pointEmitters[emitterID] then
 		pointEmitters[emitterID] = nil
@@ -1767,6 +1779,11 @@ local function apiRemoveEmitter(emitterID)
 end
 
 -- Update emitter position (for moving sources)
+---@param emitterID integer As returned by `AddPointEmitter`.
+---@param x number
+---@param y number
+---@param z number
+---@return boolean updated `false` if no such emitter exists.
 local function apiUpdateEmitterPos(emitterID, x, y, z)
 	local emitter = pointEmitters[emitterID]
 	if not emitter then
@@ -1778,8 +1795,18 @@ local function apiUpdateEmitterPos(emitterID, x, y, z)
 	return true
 end
 
--- Spawn a single particle directly (one-shot, no emitter tracking)
--- priority: PRIORITY_ESSENTIAL/NORMAL/COSMETIC (default: NORMAL)
+---Spawns a single one-shot particle with no emitter tracking.
+---@param px number
+---@param py number
+---@param pz number
+---@param vx number? Defaults to `0`.
+---@param vy number? Defaults to `0`.
+---@param vz number? Defaults to `0`.
+---@param size number? Defaults to `2`.
+---@param isFireType boolean? Spawn a flame particle instead of smoke.
+---@param lifetime integer? Frames the particle lives for. Defaults to `60`.
+---@param alpha number? Defaults to `1.0`.
+---@param priority integer? One of the `PRIORITY_*` constants. Defaults to `PRIORITY_NORMAL`.
 local function apiSpawnParticle(px, py, pz, vx, vy, vz, size, isFireType, lifetime, alpha, priority)
 	if not particleVBO then
 		return
@@ -1789,14 +1816,20 @@ local function apiSpawnParticle(px, py, pz, vx, vy, vz, size, isFireType, lifeti
 end
 
 -- Query current state
+---@return integer count Particles currently alive.
 local function apiGetParticleCount()
 	return particleVBO and particleVBO.usedElements or 0
 end
 
+---@return number count Particle budget for the whole system.
 local function apiGetMaxParticles()
 	return MAX_PARTICLES
 end
 
+---Returns the wind vector the particle simulation is currently using.
+---@return number windX
+---@return number windZ
+---@return number windStrength
 local function apiGetWindState()
 	return windX, windZ, windStrength
 end

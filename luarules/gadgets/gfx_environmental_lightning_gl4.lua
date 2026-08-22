@@ -40,7 +40,19 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetTeamInfo = Spring.GetTeamInfo
 
 	function gadget:Initialize()
+		---Spawns a configured lightning effect at a world position.
+		---@param configName string Key of the lightning config to spawn.
+		---@param x number
+		---@param y number
+		---@param z number
+		---@param sizeScale number? Defaults to `1.0`.
+		---@param intensityScale number? Defaults to `1.0`.
+		---@param ownerTeamID TeamID? Team the strike belongs to, used to derive the
+		---owning allyteam for visibility. Defaults to no owner.
 		GG.SpawnEnvironmentalLightning = function(configName, x, y, z, sizeScale, intensityScale, ownerTeamID)
+			-- This guard is necessary as long as some call sites pass in nil coordinates,
+			-- e.g. unsanitized Spring.GetUnitPosition for a dead unit
+			---@diagnostic disable-next-line: unnecessary-if
 			if not configName or not x or not y or not z then
 				return
 			end

@@ -138,7 +138,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- This checks whether the unit is under any scum
+	---Tests whether a map position is covered by raptor scum.
+	---Underwater scum is ignored for surface units, and positions outside the map never match.
+	---@param unitx number
+	---@param unity number? Height of the tested object. Defaults to `1`; values above `-1` skip underwater scum.
+	---@param unitz number
+	---@return integer? scumID `nil` when the position is not inside any scum.
 	local function IsPosInScum(unitx, unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then
@@ -173,8 +178,11 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
-	GG.IsPosInRaptorScum = IsPosInScum --(x,y,z)
+	GG.IsPosInRaptorScum = IsPosInScum
 
+	---Picks a scum patch at random.
+	---@param startID integer? Scum to start iterating from, so repeated calls can spread out.
+	---@return integer? scumID `nil` when no scum exists.
 	local function GetRandomScumID(startID)
 		if numscums < 1 then
 			return
@@ -190,8 +198,11 @@ if gadgetHandler:IsSyncedCode() then
 		return scumID
 	end
 
-	GG.GetRandomScumID = GetRandomScumID -- Returns nil or scumID
+	GG.GetRandomScumID = GetRandomScumID
 
+	---Picks a random map position inside a random scum patch, staying clear of the map edge.
+	---@return number? x `nil` when no scum exists or no valid position was found.
+	---@return number? z
 	local function GetRandomPositionInScum()
 		local scumID = GetRandomScumID()
 		if not scumID then
@@ -215,7 +226,7 @@ if gadgetHandler:IsSyncedCode() then
 		return px, pz
 	end
 
-	GG.GetRandomPositionInScum = GetRandomPositionInScum -- Returns nil or (X, Z)
+	GG.GetRandomPositionInScum = GetRandomPositionInScum
 
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]

@@ -2059,15 +2059,21 @@ function gadget:Initialize()
 	end
 
 	GG.Flamethrower = {
+		---@return integer count Particles currently alive.
 		GetParticleCount = function()
 			return particleVBO and particleVBO.usedElements or 0
 		end,
+		---@return integer count Particle budget for the whole system.
 		GetMaxParticles = function()
 			return CONFIG.maxParticles
 		end,
+		---@return table<string, any> config The live tuning table, including nested colour tables; treat as read-only.
 		GetConfig = function()
 			return CONFIG
 		end,
+		---Reports whether this gadget draws the flame effect for a weapon.
+		---@param weaponDefID WeaponDefID
+		---@return boolean
 		IsTracked = function(weaponDefID)
 			return weaponConfigs[weaponDefID] ~= nil
 		end,
