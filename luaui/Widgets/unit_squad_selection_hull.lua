@@ -502,7 +502,9 @@ function widget:DrawWorldPreUnit()
 	if not hullReady and not initGlHull() then
 		return
 	end
-	if not (hullShader and hullVbo and hullVao and hullColorLoc and hullStripeLoc and hullCentroidLoc and hullPulseLoc) then
+	if
+		not (hullShader and hullVbo and hullVao and hullColorLoc and hullStripeLoc and hullCentroidLoc and hullPulseLoc)
+	then
 		return
 	end
 
@@ -667,12 +669,19 @@ function widget:DrawWorldPreUnit()
 
 								hullVbo:Upload(scratchFlat, nil, nil, 1, fi)
 
-								local pulseVal = 1 + hullConfig.hullPulseAmplitude * math.sin(now * hullConfig.hullPulseRate + seed * 6.2831853)
+								local pulseVal = 1
+									+ hullConfig.hullPulseAmplitude
+										* math.sin(now * hullConfig.hullPulseRate + seed * 6.2831853)
 								glUniform(hullCentroidLoc, pcx, pcy, hullRadiusNorm)
 								glUniform(hullPulseLoc, pulseVal)
 
 								if squad.isReserve then
-									glUniform(hullStripeLoc, hullConfig.reserveStripePeriod, hullConfig.reserveStripeAlphaMul, seed * hullConfig.reserveStripePeriod)
+									glUniform(
+										hullStripeLoc,
+										hullConfig.reserveStripePeriod,
+										hullConfig.reserveStripeAlphaMul,
+										seed * hullConfig.reserveStripePeriod
+									)
 								else
 									glUniform(hullStripeLoc, 0, 1, 0)
 								end
