@@ -14396,6 +14396,19 @@ local function drawSkyboxThumbnailPreviews()
 	if not widgetState.skyboxLibraryOpen then
 		return
 	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
 	local thumbs = widgetState.envSkyboxThumbs
 	if not thumbs or #thumbs == 0 then
 		return
@@ -14501,6 +14514,19 @@ local function drawSurfPaletteThumbs()
 		return
 	end
 	if widgetState.lobbyHidden then
+		return
+	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
 		return
 	end
 	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
@@ -14643,6 +14669,11 @@ function widget:DrawScreenPost()
 		return
 	end
 	if widgetState.lobbyHidden then
+		return
+	end
+	-- ...and the root element carries the hidden class the same sync sets
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
 		return
 	end
 
