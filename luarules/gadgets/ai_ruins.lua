@@ -57,7 +57,14 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
 local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
-local spawnCutoffFrame = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
+-- All ruins finish spawning within the first seconds of the game, before the earliest
+-- possible player-built radar (~7s) can block them: the schedule's frame numbers are
+-- divided by spawnSpeedMultiplier, and as many blueprint ruins spawn per tick.
+local spawnSpeedMultiplier = 5
+local spawnCutoffFrame = math.ceil((math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3 / spawnSpeedMultiplier)
+
+-- capped so at least one spawn tick fits even on the smallest maps at the rarest density
+local blueprintTickInterval = math.min(math.ceil(5 / ruinDensityMultiplier), spawnCutoffFrame)
 
 -- TODO: Add weights to this crap.
 local landMexesList = {
@@ -568,7 +575,7 @@ local function SpawnMexGeoRandomStructures()
 end
 
 local function SpawnRandomStructures()
-	for i = 1, math.ceil(spawnCutoffFrame / 10) do
+	for i = 1, math.ceil(spawnCutoffFrame * spawnSpeedMultiplier / 10) do
 		for j = 1, math.ceil(10 * ruinDensityMultiplier) do
 			local posx = math.ceil(math.random(196, Game.mapSizeX - 196) / 16) * 16
 			local posz = math.ceil(math.random(196, Game.mapSizeZ - 196) / 16) * 16
@@ -622,37 +629,7 @@ local function SpawnRandomStructures()
 	end
 end
 
-function gadget:GameFrame(n)
-	if n == math.ceil(spawnCutoffFrame * 0.5) then
-		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
-		if mexSpots and #mexSpots > 5 then
-			SpawnMexes(mexSpots)
-		end
-	end
-
-	if n == 30 then
-		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-		if geoSpots and #geoSpots >= 1 then
-			SpawnGeos(geoSpots)
-		end
-	end
-
-	if n == spawnCutoffFrame + 30 then
-		SpawnMexGeoRandomStructures()
-	end
-
-	if n == spawnCutoffFrame + 60 then
-		SpawnRandomStructures()
-	end
-
-	if
-		n < (5 / ruinDensityMultiplier)
-		or n % math.ceil((5 / ruinDensityMultiplier)) ~= 0
-		or n > spawnCutoffFrame + 5
-	then
-		return
-	end
-
+local function SpawnBlueprintRuin()
 	local landRuin, seaRuin, posx, posy, posz, seaRuinChance, radius, canBuildHere, r, blueprintTierLevel
 	for i = 1, 100 do
 		local ruin
@@ -728,5 +705,37 @@ function gadget:GameFrame(n)
 				break
 			end
 		end
+	end
+end
+
+function gadget:GameFrame(n)
+	if n == math.ceil(spawnCutoffFrame * 0.5) then
+		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
+		if mexSpots and #mexSpots > 5 then
+			SpawnMexes(mexSpots)
+		end
+	end
+
+	if n == math.ceil(Game.gameSpeed / spawnSpeedMultiplier) then
+		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
+		if geoSpots and #geoSpots >= 1 then
+			SpawnGeos(geoSpots)
+		end
+	end
+
+	if n == spawnCutoffFrame + math.ceil(Game.gameSpeed / spawnSpeedMultiplier) then
+		SpawnMexGeoRandomStructures()
+	end
+
+	if n == spawnCutoffFrame + math.ceil(2 * Game.gameSpeed / spawnSpeedMultiplier) then
+		SpawnRandomStructures()
+	end
+
+	if n < blueprintTickInterval or n % blueprintTickInterval ~= 0 or n > spawnCutoffFrame + 5 then
+		return
+	end
+
+	for _ = 1, spawnSpeedMultiplier do
+		SpawnBlueprintRuin()
 	end
 end
