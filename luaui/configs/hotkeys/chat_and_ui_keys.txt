@@ -89,3 +89,4 @@ bind           Alt+sc_t  pip1_track     // track the selected units with pip1
 
 // toggles
 bind            Any+alt toggle_allied_upgrade
+bind     Ctrl+Shift+sc_s info_cycle_selection_mode // step through the ways the info panel can draw a selection
