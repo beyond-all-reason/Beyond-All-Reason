@@ -19,6 +19,8 @@ local CMD_AREA_ATTACK_GROUND = GameCMD.AREA_ATTACK_GROUND
 if gadgetHandler:IsSyncedCode() then
 	local attackList = {}
 	local closeList = {}
+	local activeAttacks = {}
+	local finishedAttacks = {}
 
 	local math_random = math.random
 	local math_pi = math.pi
@@ -30,9 +32,15 @@ if gadgetHandler:IsSyncedCode() then
 	local reissueOrder = Game.Commands.ReissueOrder
 
 	local canAreaAttack = {}
+	local areaAttackWeapons = {}
+	local areaAttackWeaponByUnitDef = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
-			canAreaAttack[unitDefID] = WeaponDefs[unitDef.weapons[1].weaponDef].range
+			local weaponDefID = unitDef.weapons[1].weaponDef
+			local weaponDef = WeaponDefs[weaponDefID]
+			canAreaAttack[unitDefID] = weaponDef.range
+			areaAttackWeapons[weaponDefID] = weaponDef.salvoSize
+			areaAttackWeaponByUnitDef[unitDefID] = weaponDefID
 		end
 	end
 	local range = canAreaAttack -- range per unitDefID, same data
@@ -47,6 +55,13 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	function gadget:GameFrame(f)
+		-- Removing a command from ProjectileCreated can invalidate the engine's
+		-- active weapon-command state, so defer it until the next game frame.
+		for unitID, commandTag in pairs(finishedAttacks) do
+			finishedAttacks[unitID] = nil
+			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { commandTag }, 0)
+		end
+
 		for i, o in pairs(attackList) do
 			attackList[i] = nil
 			local phase = math_random(200 * math_pi) / 100.0
@@ -98,7 +113,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local dist = math_sqrt((x - param[1]) * (x - param[1]) + (z - param[3]) * (z - param[3]))
 			if dist <= range[ud] - param[4] then
-				attackList[#attackList + 1] = { unit = u, x = param[1], y = param[2], z = param[3], radius = param[4] }
+				attackList[#attackList + 1] = {
+					unit = u,
+					x = param[1],
+					y = param[2],
+					z = param[3],
+					radius = param[4],
+				}
 			else
 				closeList[#closeList + 1] =
 					{ unit = u, x = param[1], y = param[2], z = param[3], radius = range[ud] - param[4] }
@@ -108,15 +129,67 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
+		local salvoSize = areaAttackWeapons[weaponDefID]
+		local unitDefID = Spring.GetUnitDefID(ownerID)
+		if not salvoSize or areaAttackWeaponByUnitDef[unitDefID] ~= weaponDefID then
+			return
+		end
+
+		local commands = Spring.GetUnitCommands(ownerID, 2)
+		local currentCommand = commands and commands[1]
+		if
+			not currentCommand
+			or currentCommand.id ~= CMD_ATTACK
+			or not currentCommand.params
+			or #currentCommand.params < 3
+		then
+			return
+		end
+
+		local attack = activeAttacks[ownerID]
+		if not attack or attack.commandTag ~= currentCommand.tag then
+			if not commands[2] then
+				return
+			end
+			attack = {
+				commandTag = currentCommand.tag,
+				weaponDefID = weaponDefID,
+				projectilesLeft = salvoSize,
+			}
+			activeAttacks[ownerID] = attack
+		elseif attack.weaponDefID ~= weaponDefID then
+			return
+		end
+
+		attack.projectilesLeft = attack.projectilesLeft - 1
+		if attack.projectilesLeft <= 0 then
+			activeAttacks[ownerID] = nil
+			-- Ground attacks are persistent when they are the last command. If
+			-- another command follows, advance after one complete salvo.
+			if commands[2] then
+				finishedAttacks[ownerID] = attack.commandTag
+			end
+		end
+	end
+
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
 			Spring.InsertUnitCmdDesc(u, aadesc)
 		end
 	end
 
+	function gadget:UnitDestroyed(unitID)
+		activeAttacks[unitID] = nil
+		finishedAttacks[unitID] = nil
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_AREA_ATTACK_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_AREA_ATTACK_GROUND)
+		for weaponDefID in pairs(areaAttackWeapons) do
+			Script.SetWatchProjectile(weaponDefID, true)
+		end
 	end
 else -- UNSYNCED
 	function gadget:Initialize()
