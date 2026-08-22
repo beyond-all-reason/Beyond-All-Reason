@@ -44,7 +44,80 @@ local function GetOrderedOptions(BuildOptions)
 	return Ordered
 end
 
-local function ResolveOption(AllUnitDefs, OptionName, OwnPrefix)
+local function NormalizeDisplayName(Display)
+	if string.sub(Display, 1, 7) == "Legion " then
+		return string.sub(Display, 8)
+	end
+	return Display
+end
+
+local function LoadDisplayNames()
+	local Loaded, Raw = pcall(VFS.LoadFile, "language/en/units.json")
+	if not Loaded or type(Raw) ~= "string" then
+		return {}
+	end
+
+	local Decoded, Parsed = pcall(function()
+		return VFS.Include("common/luaUtilities/json.lua").decode(Raw)
+	end)
+	if not Decoded or type(Parsed) ~= "table" then
+		return {}
+	end
+
+	local Units = Parsed.units
+	if type(Units) ~= "table" or type(Units.names) ~= "table" then
+		return {}
+	end
+	return Units.names
+end
+
+local function BuildDisplayIndex(AllUnitDefs, DisplayNames)
+	local Index = { Mobile = {}, Static = {} }
+
+	for UnitName, UnitDef in pairs(AllUnitDefs) do
+		local Prefix = GetFactionPrefix(UnitName)
+		local Display = DisplayNames[UnitName]
+
+		if Prefix ~= nil and Display ~= nil and not IsScavengerName(UnitName) and not IsCommanderDef(UnitDef) then
+			local Kind = IsMobileDef(UnitDef) and Index.Mobile or Index.Static
+			local Key = NormalizeDisplayName(Display)
+
+			if Kind[Prefix] == nil then
+				Kind[Prefix] = {}
+			end
+
+			if Kind[Prefix][Key] == nil then
+				Kind[Prefix][Key] = UnitName
+			else
+				Kind[Prefix][Key] = false
+			end
+		end
+	end
+
+	return Index
+end
+
+local function FindOwnByDisplay(Context, OptionName, OptionDef, OwnPrefix)
+	local Display = Context.DisplayNames[OptionName]
+	if Display == nil then
+		return nil
+	end
+
+	local Kind = IsMobileDef(OptionDef) and Context.DisplayIndex.Mobile or Context.DisplayIndex.Static
+	local OwnBucket = Kind[OwnPrefix]
+	if OwnBucket == nil then
+		return nil
+	end
+
+	local Match = OwnBucket[NormalizeDisplayName(Display)]
+	if Match then
+		return Match
+	end
+	return nil
+end
+
+local function ResolveOption(Context, OptionName, OwnPrefix)
+	local AllUnitDefs = Context.UnitDefs
 	local OptionDef = AllUnitDefs[OptionName]
 	if OptionDef == nil then
 		return nil
@@ -60,7 +133,7 @@ local function ResolveOption(AllUnitDefs, OptionName, OwnPrefix)
 	end
 
 	if IsMobileDef(OptionDef) then
-		return OptionName
+		return FindOwnByDisplay(Context, OptionName, OptionDef, OwnPrefix) or OptionName
 	end
 
 	local OwnVariant = OwnPrefix .. GetBaseName(OptionName)
@@ -68,7 +141,7 @@ local function ResolveOption(AllUnitDefs, OptionName, OwnPrefix)
 		return OwnVariant
 	end
 
-	return OptionName
+	return FindOwnByDisplay(Context, OptionName, OptionDef, OwnPrefix) or OptionName
 end
 
 local function CollectBuilderGroups(AllUnitDefs)
@@ -92,18 +165,18 @@ local function CollectBuilderGroups(AllUnitDefs)
 	return BuilderGroups
 end
 
-local function BuildMergedOptions(AllUnitDefs, GroupMembers, OwnPrefix)
+local function BuildMergedOptions(Context, GroupMembers, OwnPrefix)
 	local MergedOptions = {}
 	local SeenOptions = {}
 
 	local function AppendFrom(SourceName)
-		local SourceDef = AllUnitDefs[SourceName]
+		local SourceDef = Context.UnitDefs[SourceName]
 		if SourceDef == nil then
 			return
 		end
 
 		for _, OptionName in ipairs(GetOrderedOptions(SourceDef.buildoptions)) do
-			local Resolved = ResolveOption(AllUnitDefs, OptionName, OwnPrefix)
+			local Resolved = ResolveOption(Context, OptionName, OwnPrefix)
 			if Resolved ~= nil and not SeenOptions[Resolved] then
 				SeenOptions[Resolved] = true
 				MergedOptions[#MergedOptions + 1] = Resolved
@@ -124,12 +197,19 @@ local function BuildMergedOptions(AllUnitDefs, GroupMembers, OwnPrefix)
 end
 
 local function ApplyUnifiedFactions(AllUnitDefs)
+	local DisplayNames = LoadDisplayNames()
+	local Context = {
+		UnitDefs = AllUnitDefs,
+		DisplayNames = DisplayNames,
+		DisplayIndex = BuildDisplayIndex(AllUnitDefs, DisplayNames),
+	}
+
 	local BuilderGroups = CollectBuilderGroups(AllUnitDefs)
 	local MergedResults = {}
 
 	for _, GroupMembers in pairs(BuilderGroups) do
 		for OwnPrefix, BuilderName in pairs(GroupMembers) do
-			MergedResults[BuilderName] = BuildMergedOptions(AllUnitDefs, GroupMembers, OwnPrefix)
+			MergedResults[BuilderName] = BuildMergedOptions(Context, GroupMembers, OwnPrefix)
 		end
 	end
 
