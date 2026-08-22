@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 301, -- after Squad Selection (300); it produces the state this reads
-		enabled = true,
+		enabled = false, -- opt-in with Squad Selection; the settings panel's squad preset enables both together
 	}
 end
 
