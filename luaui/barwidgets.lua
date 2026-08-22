@@ -453,6 +453,20 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
+	-- Encapsulated modules ship their own unsynced widgets (modules/<name>/widgets/
+	-- and rml_widgets/). Game-side shim until the engine loads module
+	-- subdirectories natively.
+	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFS.ZIP)
+	-- Same on this side: /luaui reload re-reads the module surface, so drop
+	-- the memoised view of it first.
+	ModuleHandler.ResetCaches()
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
