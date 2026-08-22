@@ -150,7 +150,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 							local random = mRandom()
 							spSetFeatureResurrect(
 								featureID,
-								data.ressurectable,
+								data.resurrectable,
 								data.facing,
 								data.lastResurrectionCheck + (0.05 * random * data.age)
 							)
