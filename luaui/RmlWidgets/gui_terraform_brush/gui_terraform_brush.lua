@@ -2969,10 +2969,6 @@ local initialModel = {
 	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
 	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
 	tsSlot4Mode = "plateau",
-	-- METAL SPOTS suite toggle (SPOT TEXTURE / DETAIL SLOT 3); synced from
-	-- WG.TilesetTerrain.getDetail3. Mirrored into surfDetail3 for the SURFACE
-	-- window's slot-3 controls.
-	tsDetail3On = false,
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -2982,17 +2978,20 @@ local initialModel = {
 	surfHasVariants = false,
 	surfHasSculpted = false,
 	surfShaderOff = false,
-	surfCoverageStr = "\226\128\148",
-	surfCoverageAmber = false,
 	surfSlot1Name = "\226\128\148",
 	surfSlot2Name = "\226\128\148",
 	surfSlot3Name = "\226\128\148",
+	surfSlot4Name = "\226\128\148",
+	surfSlot5Name = "\226\128\148",
+	surfSlot6Name = "\226\128\148",
+	surfSlot7Name = "\226\128\148",
 	surfFillV1 = true,
 	surfFillV2 = true,
 	surfFillV3 = true,
-	-- Slot 3 rides the metal suite (TILESET > METAL SPOTS > DETAIL SLOT 3);
-	-- its chip/fill controls only render while that toggle is on.
-	surfDetail3 = false,
+	surfFillV4 = true,
+	surfFillV5 = true,
+	surfFillV6 = true,
+	surfFillV7 = true,
 	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
 	-- (the fill shader preserves channels it is not allowed to write), so the
 	-- button grays out rather than looking broken.
@@ -3001,16 +3000,20 @@ local initialModel = {
 	surfNowName = "base (erase)",
 	surfNowDetail = "",
 	surfNowMode = "PAINT",
-	surfSelSlot = 0, -- 0 = base/erase, 1/2/3 = variant slots
+	surfSelSlot = 0, -- 0 = base/erase, 1-7 = variant slots
 	surfSlot1Assigned = false,
 	surfSlot2Assigned = false,
 	surfSlot3Assigned = false,
-	surfSlot1Share = "",
-	surfSlot2Share = "",
-	surfSlot3Share = "",
-	surfBaseShare = "",
+	surfSlot4Assigned = false,
+	surfSlot5Assigned = false,
+	surfSlot6Assigned = false,
+	surfSlot7Assigned = false,
 	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
 	surfPickerTitle = "",
+	surfPickSlot = 0, -- slot whose library is open (lights that tile's PICK)
+	-- Picker hover preview (tf_surface drives both from the hovered tile)
+	surfPreviewName = "\226\128\148",
+	surfPreviewHint = "",
 	surfPickerHasPaint = false,
 	surfClearArm = false, -- CLEAR VARIANT armed, waiting for the confirm click
 	surfClearAllArm = false, -- CLEAR ALL armed
@@ -3032,6 +3035,33 @@ local initialModel = {
 	surfHardAltMin = false,
 	surfHardAltMax = false,
 	surfHardExportFmt = "PNG",
+	surfHardOverlay = false, -- LAYERS: splat override channel overlay (engine flag mirror)
+	-- SURFACE soft-submode smart filters (engine = dev_surface_painter)
+	surfSoftAvoidWater = false,
+	surfSoftAvoidCliffs = false,
+	surfSoftAltMin = false,
+	surfSoftAltMax = false,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl over
+	-- the map renders the selected layer inside the brush ring as if the
+	-- stroke had landed (engines drive WG.TilesetTerrain.setSurfacePreview),
+	-- so the artist can inspect where the texture's fixed features fall
+	-- before painting. This flag is the on/off gate, mirrored into both
+	-- engines by tf_surface's sync.
+	surfReveal = true,
+	-- sf (SURFACE/LAYERS shared panel) TB mirror set, syncTBMirrorControls
+	sfGridOverlay = false,
+	sfHeightColormap = false,
+	sfGridSnap = false,
+	sfAngleSnap = false,
+	sfMeasureActive = false,
+	sfSymmetryActive = false,
+	sfSymmetryRadial = false,
+	sfSymMirrorX = false,
+	sfSymMirrorY = false,
+	sfSymHasAxis = false,
+	sfMeasureShowLength = false,
+	sfMeasureRulerMode = false,
+	sfMeasureStickyMode = false,
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -9219,6 +9249,12 @@ local initialModel = {
 			if dm and dm.surfMode ~= "soft" then
 				dm.surfMode = "soft"
 			end
+			-- Sneak Peek re-arms on every entry into this mode: it is the
+			-- tool's discovery surface, so a mid-session toggle-off never
+			-- carries over to the next visit.
+			if dm then
+				dm.surfReveal = true
+			end
 			WG.SurfacePainter.activate()
 		end
 	end,
@@ -9251,6 +9287,10 @@ local initialModel = {
 		local dm = widgetState.dmHandle
 		if dm and dm.surfMode ~= "hard" then
 			dm.surfMode = "hard"
+		end
+		-- Sneak Peek re-arms on every entry into this mode (see SURFACE above)
+		if dm then
+			dm.surfReveal = true
 		end
 		WG.SplatPainter.activate()
 		widgetState.surfHardActive = true
@@ -9310,6 +9350,15 @@ local initialModel = {
 			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
 		elseif key == "fill-seed" then
 			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
+		elseif sp.setSmartFilter then
+			-- soft-submode FILTERS sliders (ids surf-soft-slider-*)
+			if key == "slope-max" then
+				sp.setSmartFilter("slopeMax", _elemSliderVal("surf-soft-slider-slope-max", 45))
+			elseif key == "alt-min" then
+				sp.setSmartFilter("altMin", _elemSliderVal("surf-soft-slider-alt-min", 0))
+			elseif key == "alt-max" then
+				sp.setSmartFilter("altMax", _elemSliderVal("surf-soft-slider-alt-max", 200))
+			end
 		end
 	end,
 	onSurfPreset = function(_event, name)
@@ -9327,6 +9376,43 @@ local initialModel = {
 		local st = WG.SurfacePainter.getState() or {}
 		WG.SurfacePainter.setEraseMode(not st.eraseMode)
 		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Pure panel state:
+	-- tf_surface mirrors it into both paint engines each sync; the engines
+	-- watch Ctrl and drive WG.TilesetTerrain.setSurfacePreview themselves.
+	onSurfRevealToggle = function(_event)
+		local dm = widgetState.dmHandle
+		if not dm then
+			return
+		end
+		dm.surfReveal = not dm.surfReveal
+		playSound(dm.surfReveal and "toggleOn" or "toggleOff")
+	end,
+	-- Soft-submode smart filters (engine = dev_surface_painter; mirrors
+	-- onSurfHardFilter's enable-follows-any-chip behaviour).
+	onSurfFilter = function(_event, key)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setSmartFilter) then
+			return
+		end
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.altMinEnable or sf2.altMaxEnable) and true or false
+		)
+	end,
+	-- LAYERS display: the splat engine's channel overlay, colored per override
+	onSurfHardOverlay = function(_event)
+		local sp = WG.SplatPainter
+		if not (sp and sp.setSplatOverlay) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setSplatOverlay(not st.showSplatOverlay)
+		playSound(st.showSplatOverlay and "toggleOff" or "toggleOn")
 	end,
 	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
 	-- slot's variant (no-op when the slot is empty — the palette assigns).
@@ -9348,24 +9434,26 @@ local initialModel = {
 		end
 		local slot = tonumber(n)
 		local st = WG.SurfacePainter.getState() or {}
-		if slot == 3 and not st.detail3 then
-			return -- chip is data-if hidden, but a stale click must not land
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return -- a chip the painter does not have (stale click)
 		end
-		local asset
-		if slot == 1 then
-			asset = st.slot1
-		elseif slot == 2 then
-			asset = st.slot2
-		elseif slot == 3 then
-			asset = st.slot3
+		local asset = st["slot" .. slot]
+		if asset and asset ~= "" then
+			-- ARM THE SLOT, nothing else. This used to open the library as well,
+			-- so switching brush threw the whole catalog on screen every time;
+			-- the tile's PICK button owns that now.
+			if WG.SurfacePainter.setVariant then
+				WG.SurfacePainter.setVariant(asset)
+			end
+			playSound("click")
+		else
+			-- an empty slot has nothing to paint with, so the only useful thing
+			-- a click can mean is "let me choose something for it"
+			local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
+			widgetState.surfPickerSlot = open
+			widgetState.surfPaletteSig = nil
+			playSound(open and "dropdown" or "click")
 		end
-		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
-			WG.SurfacePainter.setVariant(asset)
-		end
-		local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
-		widgetState.surfPickerSlot = open
-		widgetState.surfPaletteSig = nil -- rebuild for the new target
-		playSound(open and "dropdown" or "click")
 	end,
 	onSurfNoiseFill = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then
@@ -9376,14 +9464,19 @@ local initialModel = {
 		-- mask verbatim, so the button silently did nothing. The RML grays it
 		-- in that state (dm.surfCanFill) — this is the backstop that explains.
 		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
-		local v3ok = st.detail3 and st.slot3 and st.fillV3
-		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2) or v3ok) then
+		local anyAssigned, anyFill = false, false
+		for i = 1, (st.slotCount or 0) do
+			if st["slot" .. i] then
+				anyAssigned = true
+				if st["fillV" .. i] then anyFill = true end
+			end
+		end
+		if not anyFill then
 			Spring.Echo(
 				"[Terraform Brush] SURFACE fill did nothing \226\128\148 "
 					.. (
-						(not st.slot1 and not st.slot2 and not st.slot3)
-							and "assign a variant to a slot first (click a slot chip)."
-						or "enable a V chip below."
+						anyAssigned and "enable a V chip below."
+						or "assign a variant to a slot first (click a slot chip)."
 					)
 			)
 			return
@@ -9397,23 +9490,16 @@ local initialModel = {
 		end
 		local st = WG.SurfacePainter.getState() or {}
 		local dm = widgetState.dmHandle
-		if tonumber(n) == 1 then
-			WG.SurfacePainter.setFillV1(not st.fillV1)
-			if dm then
-				dm.surfFillV1 = not st.fillV1
-			end
-		elseif tonumber(n) == 3 then
-			if WG.SurfacePainter.setFillV3 then
-				WG.SurfacePainter.setFillV3(not st.fillV3)
-			end
-			if dm then
-				dm.surfFillV3 = not st.fillV3
-			end
-		else
-			WG.SurfacePainter.setFillV2(not st.fillV2)
-			if dm then
-				dm.surfFillV2 = not st.fillV2
-			end
+		local slot = tonumber(n)
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return
+		end
+		local want = not st["fillV" .. slot]
+		if WG.SurfacePainter.setFillV then
+			WG.SurfacePainter.setFillV(slot, want)
+		end
+		if dm then
+			dm["surfFillV" .. slot] = want
 		end
 		playSound("tick")
 	end,
@@ -9704,20 +9790,6 @@ local initialModel = {
 	-- restamps them and retitles their labels.
 	-- METAL SPOTS suite toggle: what TU22-24 serve. false = the metal-spot
 	-- material (legacy), true = a third paintable SURFACE variant (slot 3).
-	onTsSetDetail3 = function(_event, on)
-		local T = WG.TilesetTerrain
-		if not (T and T.setDetail3) then
-			return
-		end
-		local want = (on == true) or (on == "true") or (on == 1)
-		local now = T.setDetail3(want)
-		playSound(now and "toggleOn" or "toggleOff")
-		local dm = widgetState.dmHandle
-		if dm then
-			dm.tsDetail3On = now and true or false
-			dm.surfDetail3 = dm.tsDetail3On
-		end
-	end,
 	onTsSlot4Mode = function(_event, name)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
 			return
@@ -12713,6 +12785,7 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "fp-slider-grid-snap-size", "fp-grid-snap-size" },
 		{ "gb-slider-grid-snap-size", "gb-grid-snap-size" },
 		{ "mb-slider-grid-snap-size", "mb-grid-snap-size" },
+		{ "sf-slider-grid-snap-size", "sf-grid-snap-size" },
 		{ "slider-angle-snap-step", "tf-angle-snap-step" },
 		{ "st-slider-angle-snap-step", "st-angle-snap-step" },
 		{ "cl-slider-angle-snap-step", "cl-angle-snap-step" },
@@ -12723,6 +12796,7 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "fp-slider-angle-snap-step", "fp-angle-snap-step" },
 		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
 		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
+		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
 	}
 	for i = 1, #SNAP_SLIDERS do
 		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])

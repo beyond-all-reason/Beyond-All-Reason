@@ -5211,6 +5211,154 @@
 					<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — strokes are stored in the mask but invisible. Flip the SHADER switch in the TILESET window (SCENE menu).</div>
 				</div>
 
+				<!-- SF: DISPLAY (canonical section, shared by SURFACE and LAYERS) -->
+				<div class="tf-section-frame tf-collapsed" id="frame-sf-overlays">
+					<div id="btn-toggle-sf-overlays" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-sf-overlays" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">DISPLAY</div>
+						<div id="warn-chip-sf-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
+					</div>
+				<div id="section-sf-overlays" class="hidden">
+				<div class="flex flex-row items-center gap-1 mb-1">
+					<div id="btn-sf-grid-overlay" class="tf-overlay-chip" data-class-active="sfGridOverlay" data-event-mousedown="onTbToggleGridOverlay('sf')">
+						<div class="tf-overlay-chip-label">Grid</div>
+					</div>
+					<div id="btn-sf-height-colormap" class="tf-overlay-chip" data-class-active="sfHeightColormap" data-event-mousedown="onTbToggleHeightColormap('sf')">
+						<div class="tf-overlay-chip-label">Height Map</div>
+					</div>
+					<div id="btn-sf-reveal" class="tf-overlay-chip" data-class-active="surfReveal" data-event-mousedown="onSurfRevealToggle()">
+						<div class="tf-overlay-chip-label">Sneak Peek</div>
+					</div>
+					<div id="btn-sf-splat-overlay" class="tf-overlay-chip" data-if="surfMode == 'hard'" data-class-active="surfHardOverlay" data-event-mousedown="onSurfHardOverlay()">
+						<div class="tf-overlay-chip-label">Layer Map</div>
+					</div>
+				</div>
+				<div class="text-base text-light" style="opacity: 0.7;">Sneak Peek: hold Ctrl over the map to render the selected layer inside the brush ring as if the stroke had landed — scrub around to find where the texture's features fall, then click to commit.</div>
+				</div><!-- /section-sf-overlays -->
+				</div><!-- /frame-sf-overlays -->
+
+				<!-- SF: INSTRUMENTS (canonical section, shared TB mirror set) -->
+				<div class="tf-section-frame tf-collapsed" id="frame-sf-instruments">
+					<div id="btn-toggle-sf-instruments" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-sf-instruments" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">INSTRUMENTS</div>
+						<div id="warn-chip-sf-instruments" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
+					</div>
+				<div id="section-sf-instruments" class="hidden">
+				<div class="flex flex-row items-center gap-1 mb-1">
+					<div id="btn-sf-grid-snap" class="tf-overlay-chip" data-class-active="sfGridSnap" data-event-mousedown="onTbToggleGridSnap('sf')">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Grid Snap</div>
+					</div>
+					<div id="btn-sf-angle-snap" class="tf-overlay-chip" data-class-active="sfAngleSnap" data-event-mousedown="onTbToggleAngleSnap('sf')">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Protractor</div>
+					</div>
+					<div id="btn-sf-measure" class="tf-overlay-chip" data-class-active="sfMeasureActive" data-event-mousedown="onTbToggleMeasure('sf')">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Measure</div>
+					</div>
+					<div id="btn-sf-symmetry" class="tf-overlay-chip" data-class-active="sfSymmetryActive" data-event-mousedown="onTbToggleSymmetry('sf')">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Symmetry</div>
+					</div>
+				</div>
+				<div id="sf-grid-snap-size-row" class="tf-instrument-sub mb-1" data-if="sfGridSnap">
+					<div class="flex flex-row justify-between items-center mb-1">
+						<div class="text-lg text-light">SNAP SIZE: <span class="text-xl font-bold">{{tbGridSnapSizeStr}}</span></div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="sf-btn-snap-size-down" class="tf-sm-btn" data-event-mousedown="onTbSnapSizeStep(-16)">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+						</div>
+						<input type="range" id="sf-slider-grid-snap-size" class="tf-slider" min="16" max="128" step="1" value="48" data-event-change="onTbSnapSizeChange('sf')" />
+						<div id="sf-btn-snap-size-up" class="tf-sm-btn" data-event-mousedown="onTbSnapSizeStep(16)">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+						</div>
+						<input type="text" id="sf-slider-grid-snap-size-numbox" class="tf-slider-numbox" readonly value="48" />
+					</div>
+				</div>
+				<div id="sf-angle-snap-step-row" class="tf-instrument-sub mb-1" data-if="sfAngleSnap">
+					<div class="flex flex-row justify-between items-center mb-1">
+						<div class="text-lg text-light">ANGLE STEP: <span class="text-xl font-bold">{{tbAngleSnapStepStr}}</span>&#176;</div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="sf-btn-angle-step-down" class="tf-sm-btn" data-event-mousedown="onTbAngleStepStep(-1)">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+						</div>
+						<input type="range" id="sf-slider-angle-snap-step" class="tf-slider" min="0" max="5" step="1" value="1" data-event-change="onTbAngleStepChange('sf')" />
+						<div id="sf-btn-angle-step-up" class="tf-sm-btn" data-event-mousedown="onTbAngleStepStep(1)">
+							<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+						</div>
+						<input type="text" id="sf-slider-angle-snap-step-numbox" class="tf-slider-numbox" readonly value="15" />
+					</div>
+				</div>
+				<div id="sf-measure-toolbar-row" class="tf-instrument-sub mb-1" data-if="sfMeasureActive">
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="btn-sf-measure-ruler" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfMeasureRulerMode" data-event-mousedown="onTbToggleMeasureRuler('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Ruler Mode</div>
+						</div>
+						<div id="btn-sf-measure-sticky" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfMeasureStickyMode" data-event-mousedown="onTbToggleMeasureSticky('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Sticky</div>
+						</div>
+						<div id="btn-sf-measure-show-length" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfMeasureShowLength" data-event-mousedown="onTbToggleMeasureShowLength('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Show Length</div>
+						</div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="btn-sf-measure-clear" class="tf-sm-btn" style="flex: 1;" data-event-mousedown="onTbMeasureClear('sf')">
+							<div class="text-sm" style="text-align: center;">Clear All</div>
+						</div>
+					</div>
+				</div>
+				<div id="sf-symmetry-toolbar-row" class="tf-instrument-sub mb-1" data-if="sfSymmetryActive">
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="btn-sf-symmetry-radial" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfSymmetryRadial" data-event-mousedown="onTbToggleSymRadial('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Radial</div>
+						</div>
+						<div id="btn-sf-symmetry-mirror-x" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfSymMirrorX" data-event-mousedown="onTbToggleSymMirrorX('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Mirror X</div>
+						</div>
+						<div id="btn-sf-symmetry-mirror-y" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="sfSymMirrorY" data-event-mousedown="onTbToggleSymMirrorY('sf')">
+							<div class="tf-overlay-chip-label" style="text-align: center;">Mirror Y</div>
+						</div>
+					</div>
+					<div id="sf-symmetry-radial-count-row" class="mb-1" data-if="sfSymmetryRadial">
+						<div class="flex flex-row justify-between items-center mb-1">
+							<div class="text-lg text-light">COPIES: <span class="text-xl font-bold">{{tbSymCountStr}}</span></div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div id="sf-btn-symmetry-count-down" class="tf-sm-btn" data-event-mousedown="onTbSymCountDown('sf')">
+								<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+							</div>
+							<input type="range" id="sf-slider-symmetry-radial-count" class="tf-slider" min="2" max="16" step="1" value="2" data-event-change="onTbSymCountChange('sf')" />
+							<div id="sf-btn-symmetry-count-up" class="tf-sm-btn" data-event-mousedown="onTbSymCountUp('sf')">
+								<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+							</div>
+						</div>
+					</div>
+					<div id="sf-symmetry-mirror-angle-row" class="mb-1" data-if="sfSymHasAxis">
+						<div class="flex flex-row justify-between items-center mb-1">
+							<div class="text-lg text-light">AXIS ANGLE: <span class="text-xl font-bold">{{tbSymAngleStr}}</span>&#176;</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div id="sf-btn-symmetry-angle-down" class="tf-sm-btn" data-event-mousedown="onTbSymAngleDown('sf')">
+								<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+							</div>
+							<input type="range" id="sf-slider-symmetry-mirror-angle" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTbSymAngleChange('sf')" />
+							<div id="sf-btn-symmetry-angle-up" class="tf-sm-btn" data-event-mousedown="onTbSymAngleUp('sf')">
+								<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+							</div>
+						</div>
+					</div>
+					<div class="flex flex-row gap-1 items-center mb-1">
+						<div id="btn-sf-symmetry-place-origin" class="tf-sm-btn" style="flex: 1;" data-event-mousedown="onTbSymPlaceOrigin('sf')">
+							<div class="text-sm" style="text-align: center;">Set Origin</div>
+						</div>
+						<div id="btn-sf-symmetry-center-origin" class="tf-sm-btn" style="flex: 1;" data-event-mousedown="onTbSymCenterOrigin('sf')">
+							<div class="text-sm" style="text-align: center;">Center</div>
+						</div>
+					</div>
+				</div>
+				</div><!-- /section-sf-instruments -->
+				</div><!-- /frame-sf-instruments -->
+
 				<!-- HARD SURFACES: splat-override paint (engine = cmd_splat_painter,
 				     reused headless — the legacy SPLAT panel stays untouched). -->
 				<div class="tf-section-frame" id="frame-surf-hard" data-if="surfMode == 'hard'">
@@ -5244,37 +5392,7 @@
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. INTERMEDIATE / CLIFF / PLATEAU force that material where painted.</div>
-						<!-- Smart filters (Splat Painter engine set) -->
-						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">SMART FILTERS</div>
-						<div class="flex flex-row items-center gap-1 mb-1">
-							<div id="btn-surf-hard-water" class="tf-overlay-chip" data-class-active="surfHardAvoidWater" data-event-mousedown="onSurfHardFilter('avoidWater')">
-								<div class="tf-overlay-chip-label">Avoid Water</div>
-							</div>
-							<div id="btn-surf-hard-cliffs" class="tf-overlay-chip" data-class-active="surfHardAvoidCliffs" data-event-mousedown="onSurfHardFilter('avoidCliffs')">
-								<div class="tf-overlay-chip-label">Avoid Cliffs</div>
-							</div>
-							<div id="btn-surf-hard-altmin" class="tf-overlay-chip" data-class-active="surfHardAltMin" data-event-mousedown="onSurfHardFilter('altMinEnable')">
-								<div class="tf-overlay-chip-label">Alt Min</div>
-							</div>
-							<div id="btn-surf-hard-altmax" class="tf-overlay-chip" data-class-active="surfHardAltMax" data-event-mousedown="onSurfHardFilter('altMaxEnable')">
-								<div class="tf-overlay-chip-label">Alt Max</div>
-							</div>
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAvoidCliffs">
-							<div class="tf-slider-label text-light">Max slope</div>
-							<input type="range" id="surf-hard-slider-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" data-event-change="onSurfHardSlider('slope-max')" />
-							<input type="text" id="surf-hard-slider-slope-max-numbox" class="tf-slider-numbox" readonly value="45" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMin">
-							<div class="tf-slider-label text-light">Alt min</div>
-							<input type="range" id="surf-hard-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfHardSlider('alt-min')" />
-							<input type="text" id="surf-hard-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMax">
-							<div class="tf-slider-label text-light">Alt max</div>
-							<input type="range" id="surf-hard-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfHardSlider('alt-max')" />
-							<input type="text" id="surf-hard-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
-						</div>
+						<!-- Smart filters moved to the canonical FILTERS section below -->
 						<!-- Undo / redo + save (Splat Painter history and export) -->
 						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">UNDO &amp; SAVE</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5315,41 +5433,77 @@
 								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
 							</div>
 						</div>
-						<!-- SLOT RAIL: base + the two paint channels, explicit -->
+						<!-- SLOT RAIL. One tile per slot, thumbnail first: the texture is what
+						     the artist picks by, so it gets the space. ONE CLICK, ONE ACTION —
+						     the tile arms that slot for painting, PICK opens the library for it
+						     and X clears it. (Selecting used to open the library too, which
+						     meant the whole catalog appeared every time you switched brush.)
+						     Slots 1-3 paint into the first mask, 4-7 into the second one. -->
 						<div class="flex flex-row gap-1 mb-1">
 							<div id="surf-slot-base" class="surf-slot-chip" data-class-active="surfSelSlot == 0" data-event-mousedown="onSurfSelectBase()">
 								<div id="surf-slot-base-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold text-light">BASE</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfBaseShare}}</div>
+								<div class="surf-slot-cap text-light">BASE</div>
+								<div class="surf-slot-actions">
+									<div class="surf-slot-btn surf-slot-btn-mute">PAINT</div>
 								</div>
 							</div>
 							<div id="surf-slot-1" class="surf-slot-chip surf-slot-c1" data-class-active="surfSelSlot == 1" data-class-surf-slot-empty="!surfSlot1Assigned" data-event-mousedown="onSurfSlotSelect(1)">
 								<div id="surf-slot-1-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot1Share}}</div>
+								<div class="surf-slot-cap surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-1-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 1">PICK</div>
+									<div id="surf-slot-1-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot1Assigned">&#215;</div>
 								</div>
-								<div id="surf-slot-1-free" class="surf-slot-free" data-if="surfSlot1Assigned">&#215;</div>
 							</div>
 							<div id="surf-slot-2" class="surf-slot-chip surf-slot-c2" data-class-active="surfSelSlot == 2" data-class-surf-slot-empty="!surfSlot2Assigned" data-event-mousedown="onSurfSlotSelect(2)">
 								<div id="surf-slot-2-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot2Share}}</div>
+								<div class="surf-slot-cap surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-2-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 2">PICK</div>
+									<div id="surf-slot-2-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot2Assigned">&#215;</div>
 								</div>
-								<div id="surf-slot-2-free" class="surf-slot-free" data-if="surfSlot2Assigned">&#215;</div>
 							</div>
-							<!-- slot 3 exists while the metal suite is repurposed
-							     (TILESET > METAL SPOTS > DETAIL SLOT 3); it brings its
-							     own relief/roughness unlike slots 1/2 -->
-							<div id="surf-slot-3" class="surf-slot-chip surf-slot-c3" data-if="surfDetail3" data-class-active="surfSelSlot == 3" data-class-surf-slot-empty="!surfSlot3Assigned" data-event-mousedown="onSurfSlotSelect(3)">
+							<div id="surf-slot-3" class="surf-slot-chip surf-slot-c3" data-class-active="surfSelSlot == 3" data-class-surf-slot-empty="!surfSlot3Assigned" data-event-mousedown="onSurfSlotSelect(3)">
 								<div id="surf-slot-3-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold surf-text-c3">3 &#183; {{surfSlot3Name}}</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot3Share}}</div>
+								<div class="surf-slot-cap surf-text-c3">3 &#183; {{surfSlot3Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-3-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 3">PICK</div>
+									<div id="surf-slot-3-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot3Assigned">&#215;</div>
 								</div>
-								<div id="surf-slot-3-free" class="surf-slot-free" data-if="surfSlot3Assigned">&#215;</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="surf-slot-4" class="surf-slot-chip surf-slot-c4" data-class-active="surfSelSlot == 4" data-class-surf-slot-empty="!surfSlot4Assigned" data-event-mousedown="onSurfSlotSelect(4)">
+								<div id="surf-slot-4-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-cap surf-text-c4">4 &#183; {{surfSlot4Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-4-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 4">PICK</div>
+									<div id="surf-slot-4-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot4Assigned">&#215;</div>
+								</div>
+							</div>
+							<div id="surf-slot-5" class="surf-slot-chip surf-slot-c5" data-class-active="surfSelSlot == 5" data-class-surf-slot-empty="!surfSlot5Assigned" data-event-mousedown="onSurfSlotSelect(5)">
+								<div id="surf-slot-5-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-cap surf-text-c5">5 &#183; {{surfSlot5Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-5-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 5">PICK</div>
+									<div id="surf-slot-5-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot5Assigned">&#215;</div>
+								</div>
+							</div>
+							<div id="surf-slot-6" class="surf-slot-chip surf-slot-c6" data-class-active="surfSelSlot == 6" data-class-surf-slot-empty="!surfSlot6Assigned" data-event-mousedown="onSurfSlotSelect(6)">
+								<div id="surf-slot-6-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-cap surf-text-c6">6 &#183; {{surfSlot6Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-6-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 6">PICK</div>
+									<div id="surf-slot-6-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot6Assigned">&#215;</div>
+								</div>
+							</div>
+							<div id="surf-slot-7" class="surf-slot-chip surf-slot-c7" data-class-active="surfSelSlot == 7" data-class-surf-slot-empty="!surfSlot7Assigned" data-event-mousedown="onSurfSlotSelect(7)">
+								<div id="surf-slot-7-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-cap surf-text-c7">7 &#183; {{surfSlot7Name}}</div>
+								<div class="surf-slot-actions">
+									<div id="surf-slot-7-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 7">PICK</div>
+									<div id="surf-slot-7-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot7Assigned">&#215;</div>
+								</div>
 							</div>
 						</div>
 						<!-- Per-slot variant picker: opened by a slot's caret, so the
@@ -5357,22 +5511,24 @@
 						<div id="surf-picker" class="surf-picker hidden">
 							<div class="flex flex-row items-center mb-1">
 								<div class="text-base font-bold text-light" style="flex: 1;">{{surfPickerTitle}}</div>
-								<div id="surf-picker-close" class="surf-slot-free" style="position: relative; top: 0;">&#215;</div>
+								<div id="surf-picker-close" class="surf-slot-btn surf-slot-x surf-picker-x">&#215;</div>
+							</div>
+							<!-- Hover preview: the grid tiles are thumbnails, this is the one
+							     place big enough to judge a material by. Hovering a tile drives
+							     it; with nothing hovered it shows what the slot already holds.
+							     The picker has no scroll box of its own - it sizes to its
+							     content and rides the panel body's scroll. -->
+							<div class="surf-preview-row">
+								<div id="surf-picker-preview" class="surf-preview-thumb"></div>
+								<div class="surf-preview-text">
+									<div class="text-lg font-bold text-light">{{surfPreviewName}}</div>
+									<div class="text-base text-light" style="opacity: 0.75;">{{surfPreviewHint}}</div>
+								</div>
 							</div>
 							<div id="surf-palette-grid"></div>
 							<div class="text-base text-light" style="opacity: 0.7;" data-if="surfPickerHasPaint">This slot already carries paint &#8212; picking re-skins those areas.</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasVariants">No top variants in this biome &#8212; pick Teizer-5 or Enborelde in the TILESET window (SCENE menu).</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 60dp;">Coverage</div>
-							<div class="surf-cov-track">
-								<div id="surf-coverage-bar" class="surf-cov-fill"></div>
-								<div id="surf-cov-v1" class="surf-cov-fill surf-cov-c1"></div>
-								<div id="surf-cov-v2" class="surf-cov-fill surf-cov-c2"></div>
-								<div id="surf-cov-v3" class="surf-cov-fill surf-cov-c3"></div>
-							</div>
-							<div class="text-base text-light" data-class-surf-cov-amber="surfCoverageAmber" style="min-width: 38dp; text-align: right;">{{surfCoverageStr}}</div>
-						</div>
 						<div class="text-base text-light" style="opacity: 0.7;">Dot lightly &#8212; the base stays dominant. Alt-click the map to eyedrop.</div>
 					</div>
 				</div><!-- /frame-surf-palette -->
@@ -5384,18 +5540,27 @@
 						<div class="tf-collapsible-title">BRUSH</div>
 					</div>
 					<div id="section-surf-brush">
+						<!-- Brush modes, one row of four. Same .tf-mode-btn body as the terrain
+						     modes and MODIFY MODE sub-modes: an icon over a label, big enough to
+						     hit without aiming. ERASE is a toggle rather than a preset, but it
+						     belongs to the same decision ("what does dragging do") so it shares
+						     the row. -->
 						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfMode == 'soft'">
-							<div id="btn-surf-preset-dot" class="tf-overlay-chip" data-class-active="surfPreset == 'dot'" data-event-mousedown="onSurfPreset('dot')">
-								<div class="tf-overlay-chip-label">DOT</div>
+							<div id="btn-surf-preset-dot" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfPreset == 'dot'" data-event-mousedown="onSurfPreset('dot')">
+								<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_circle.png" />
+								<div class="tf-btn-text">DOT</div>
 							</div>
-							<div id="btn-surf-preset-wash" class="tf-overlay-chip" data-class-active="surfPreset == 'wash'" data-event-mousedown="onSurfPreset('wash')">
-								<div class="tf-overlay-chip-label">WASH</div>
+							<div id="btn-surf-preset-wash" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfPreset == 'wash'" data-event-mousedown="onSurfPreset('wash')">
+								<img class="tf-icon-md" src="/luaui/images/terraform_brush/curve_flat.png" />
+								<div class="tf-btn-text">WASH</div>
 							</div>
-							<div id="btn-surf-preset-fill" class="tf-overlay-chip" data-class-active="surfPreset == 'fill'" data-event-mousedown="onSurfPreset('fill')">
-								<div class="tf-overlay-chip-label">FILL</div>
+							<div id="btn-surf-preset-fill" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfPreset == 'fill'" data-event-mousedown="onSurfPreset('fill')">
+								<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_fill.png" />
+								<div class="tf-btn-text">FILL</div>
 							</div>
-							<div id="btn-surf-erase" class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
-								<div class="tf-overlay-chip-label">ERASE</div>
+							<div id="btn-surf-erase" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
+								<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_restore.png" />
+								<div class="tf-btn-text">ERASE</div>
 							</div>
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
@@ -5426,6 +5591,82 @@
 					</div>
 				</div><!-- /frame-surf-brush -->
 
+				<!-- SF: FILTERS (canonical section; soft = dev_surface_painter's
+				     stamp-shader filters, hard = the Splat Painter engine set that
+				     used to sit inline in the HARD SURFACES frame) -->
+				<div class="tf-section-frame tf-collapsed" id="frame-sf-smart">
+					<div id="btn-toggle-sf-smart" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-sf-smart" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">FILTERS</div>
+						<div id="warn-chip-sf-smart" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
+					</div>
+				<div id="section-sf-smart" class="hidden">
+					<div data-if="surfMode == 'soft'">
+						<div class="flex flex-row items-center gap-1 mb-1">
+							<div id="btn-surf-soft-water" class="tf-overlay-chip" data-class-active="surfSoftAvoidWater" data-event-mousedown="onSurfFilter('avoidWater')">
+								<div class="tf-overlay-chip-label">Avoid Water</div>
+							</div>
+							<div id="btn-surf-soft-cliffs" class="tf-overlay-chip" data-class-active="surfSoftAvoidCliffs" data-event-mousedown="onSurfFilter('avoidCliffs')">
+								<div class="tf-overlay-chip-label">Avoid Cliffs</div>
+							</div>
+							<div id="btn-surf-soft-altmin" class="tf-overlay-chip" data-class-active="surfSoftAltMin" data-event-mousedown="onSurfFilter('altMinEnable')">
+								<div class="tf-overlay-chip-label">Alt Min</div>
+							</div>
+							<div id="btn-surf-soft-altmax" class="tf-overlay-chip" data-class-active="surfSoftAltMax" data-event-mousedown="onSurfFilter('altMaxEnable')">
+								<div class="tf-overlay-chip-label">Alt Max</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfSoftAvoidCliffs">
+							<div class="tf-slider-label text-light">Max slope</div>
+							<input type="range" id="surf-soft-slider-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" data-event-change="onSurfSlider('slope-max')" />
+							<input type="text" id="surf-soft-slider-slope-max-numbox" class="tf-slider-numbox" readonly value="45" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfSoftAltMin">
+							<div class="tf-slider-label text-light">Alt min</div>
+							<input type="range" id="surf-soft-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfSlider('alt-min')" />
+							<input type="text" id="surf-soft-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfSoftAltMax">
+							<div class="tf-slider-label text-light">Alt max</div>
+							<input type="range" id="surf-soft-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfSlider('alt-max')" />
+							<input type="text" id="surf-soft-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Strokes refuse filtered ground per texel — a big brush sweeps around water, cliffs and out-of-band altitude on its own. Erasing always works.</div>
+					</div>
+					<div data-if="surfMode == 'hard'">
+						<div class="flex flex-row items-center gap-1 mb-1">
+							<div id="btn-surf-hard-water" class="tf-overlay-chip" data-class-active="surfHardAvoidWater" data-event-mousedown="onSurfHardFilter('avoidWater')">
+								<div class="tf-overlay-chip-label">Avoid Water</div>
+							</div>
+							<div id="btn-surf-hard-cliffs" class="tf-overlay-chip" data-class-active="surfHardAvoidCliffs" data-event-mousedown="onSurfHardFilter('avoidCliffs')">
+								<div class="tf-overlay-chip-label">Avoid Cliffs</div>
+							</div>
+							<div id="btn-surf-hard-altmin" class="tf-overlay-chip" data-class-active="surfHardAltMin" data-event-mousedown="onSurfHardFilter('altMinEnable')">
+								<div class="tf-overlay-chip-label">Alt Min</div>
+							</div>
+							<div id="btn-surf-hard-altmax" class="tf-overlay-chip" data-class-active="surfHardAltMax" data-event-mousedown="onSurfHardFilter('altMaxEnable')">
+								<div class="tf-overlay-chip-label">Alt Max</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAvoidCliffs">
+							<div class="tf-slider-label text-light">Max slope</div>
+							<input type="range" id="surf-hard-slider-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" data-event-change="onSurfHardSlider('slope-max')" />
+							<input type="text" id="surf-hard-slider-slope-max-numbox" class="tf-slider-numbox" readonly value="45" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMin">
+							<div class="tf-slider-label text-light">Alt min</div>
+							<input type="range" id="surf-hard-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfHardSlider('alt-min')" />
+							<input type="text" id="surf-hard-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMax">
+							<div class="tf-slider-label text-light">Alt max</div>
+							<input type="range" id="surf-hard-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfHardSlider('alt-max')" />
+							<input type="text" id="surf-hard-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
+						</div>
+					</div>
+				</div><!-- /section-sf-smart -->
+				</div><!-- /frame-sf-smart -->
+
 				<!-- FILL AND SEED -->
 				<div class="tf-section-frame tf-collapsed" id="frame-surf-fill" data-if="surfMode == 'soft'">
 					<div id="btn-toggle-surf-fill" class="tf-section-title-row" style="cursor: pointer;">
@@ -5455,12 +5696,26 @@
 							<div id="btn-surf-fill-v2" class="tf-overlay-chip" data-class-active="surfFillV2" data-event-mousedown="onSurfFillToggle(2)">
 								<div class="tf-overlay-chip-label">V2 {{surfSlot2Name}}</div>
 							</div>
-							<div id="btn-surf-fill-v3" class="tf-overlay-chip" data-if="surfDetail3" data-class-active="surfFillV3" data-event-mousedown="onSurfFillToggle(3)">
+							<div id="btn-surf-fill-v3" class="tf-overlay-chip" data-class-active="surfFillV3" data-event-mousedown="onSurfFillToggle(3)">
 								<div class="tf-overlay-chip-label">V3 {{surfSlot3Name}}</div>
+							</div>
+							<div id="btn-surf-fill-v4" class="tf-overlay-chip" data-class-active="surfFillV4" data-event-mousedown="onSurfFillToggle(4)">
+								<div class="tf-overlay-chip-label">V4 {{surfSlot4Name}}</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div id="btn-surf-fill-v5" class="tf-overlay-chip" data-class-active="surfFillV5" data-event-mousedown="onSurfFillToggle(5)">
+								<div class="tf-overlay-chip-label">V5 {{surfSlot5Name}}</div>
+							</div>
+							<div id="btn-surf-fill-v6" class="tf-overlay-chip" data-class-active="surfFillV6" data-event-mousedown="onSurfFillToggle(6)">
+								<div class="tf-overlay-chip-label">V6 {{surfSlot6Name}}</div>
+							</div>
+							<div id="btn-surf-fill-v7" class="tf-overlay-chip" data-class-active="surfFillV7" data-event-mousedown="onSurfFillToggle(7)">
+								<div class="tf-overlay-chip-label">V7 {{surfSlot7Name}}</div>
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">Seeds the whole mask from the tileset noise field (grunt-work done, erase and adjust). Only assigned slots fill.</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="!surfCanFill">Nothing to fill yet — assign a variant to slot 1 or 2 (the caret on a slot chip) and leave its V1/V2 chip on.</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="!surfCanFill">Nothing to fill yet — assign a variant to a slot (click a slot chip) and leave that slot's V chip on.</div>
 						<div class="flex flex-row gap-1 mb-1">
 							<div id="btn-surf-clear-variant" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearVariant()">
 								<div class="tf-action-btn-text" data-if="!surfClearArm">CLEAR VARIANT</div>
@@ -5613,19 +5868,6 @@
 						<div id="btn-ts-reset-metal" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('metal')">RESET</div>
 					</div>
 					<div id="section-ts-metal" class="hidden">
-						<!-- What the spot texture units (TU22-24) serve: the metal-spot
-						     material, or a THIRD paintable SURFACE variant with its own
-						     relief and roughness. In DETAIL SLOT 3 mode every metal
-						     visual is off and the body below grays out (tf_tileset.sync). -->
-						<div class="flex flex-row gap-1 mb-1">
-							<div class="tf-mode-btn tf-ts-row-btn" data-class-active="!tsDetail3On" data-event-mousedown="onTsSetDetail3(false)">
-								<div class="tf-btn-text">SPOT TEXTURE</div>
-							</div>
-							<div class="tf-mode-btn tf-ts-row-btn" data-class-active="tsDetail3On" data-event-mousedown="onTsSetDetail3(true)">
-								<div class="tf-btn-text">DETAIL SLOT 3</div>
-							</div>
-						</div>
-						<div class="tf-s4-desc mb-1" data-if="tsDetail3On">The spot texture units now serve a third paintable variant &#8212; SURFACE window, slot 3. Metal spots draw nothing in this mode.</div>
 						<div id="ts-metal-body">
 						<div class="tf-biome-grid flex flex-row gap-1 mb-1">
 							<div class="tf-biome-tile" data-class-active="tsMetalStyle == 'crystal'" data-event-mousedown="onPickMetalStyle('crystal')">

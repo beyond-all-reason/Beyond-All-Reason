@@ -4561,6 +4561,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 		local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 		local clSt = WG.CloneTool and WG.CloneTool.getState()
+		local sfSt = WG.SurfacePainter and WG.SurfacePainter.getState()
 		if
 			not (
 				(mbSt and mbSt.active)
@@ -4572,6 +4573,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 				or (lpSt and lpSt.active)
 				or (stSt and stSt.active)
 				or (clSt and clSt.active)
+				or (sfSt and sfSt.active)
 			)
 		then
 			return
@@ -7759,6 +7761,7 @@ function widget:DrawWorld()
 				local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 				local stState = WG.StartPosTool and WG.StartPosTool.getState()
 				local clState = WG.CloneTool and WG.CloneTool.getState()
+				local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
 					local wx, wz = getWorldMousePosition()
 					if wx and not extraState.symmetryHoveringOrigin then
@@ -7847,6 +7850,19 @@ function widget:DrawWorld()
 							1.0
 						)
 					end
+				elseif sfState and sfState.active then
+					-- SURFACE variant painter (rotationless circle brush)
+					local wx, wz = getWorldMousePosition()
+					if wx and not extraState.symmetryHoveringOrigin then
+						extraState.drawHeightColormap(
+							wx,
+							wz,
+							sfState.radius or 72,
+							"circle",
+							0,
+							1.0
+						)
+					end
 				end
 			end
 		end
@@ -7861,6 +7877,7 @@ function widget:DrawWorld()
 			local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 			local stState = WG.StartPosTool and WG.StartPosTool.getState()
 			local clState = WG.CloneTool and WG.CloneTool.getState()
+			local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 			local r
 			if fpState and fpState.active then
 				r = fpState.radius or 200
@@ -7880,6 +7897,8 @@ function widget:DrawWorld()
 				end
 			elseif clState and clState.active then
 				r = clState.radius or 300
+			elseif sfState and sfState.active then
+				r = sfState.radius or 72
 			end
 			if r then
 				local wx, wz = getWorldMousePosition()

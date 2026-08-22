@@ -165,6 +165,12 @@ local overlayShader = nil
 -- Overlay state
 local showSplatOverlay = false
 
+-- Ctrl sneak-peek gate (Terraform Brush DISPLAY chip). While on and the
+-- tileset shader is live, holding Ctrl renders the selected override channel's
+-- material inside the brush ring before any stroke lands (LAYERS tool; also
+-- works from the legacy splat panel since the engine is shared).
+local tilesetPreviewOn = true
+
 -- Drawing
 local drawCacheList = nil
 local leftMouseHeld = false
@@ -1040,11 +1046,16 @@ local function getState()
 		undoCount = #undoStack,
 		redoCount = #redoStack,
 		showSplatOverlay = showSplatOverlay,
+		previewEnabled = tilesetPreviewOn,
 	}
 end
 
 local function setSplatOverlay(enabled)
 	showSplatOverlay = enabled and true or false
+end
+
+local function setTilesetPreviewEnabled(enabled)
+	tilesetPreviewOn = enabled and true or false
 end
 
 local function activateSplat()
@@ -1213,6 +1224,7 @@ function widget:Initialize()
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
 		setSplatOverlay = setSplatOverlay,
+		setTilesetPreviewEnabled = setTilesetPreviewEnabled,
 		setGeoDecalSize = setGeoDecalSize,
 		placeGeoDecal = placeGeoDecal,
 		undoGeoDecal = undoGeoDecal,
@@ -1878,18 +1890,36 @@ function widget:DrawWorld()
 			return
 		end
 	end
+	-- CTRL SNEAK PEEK (tileset override channels): while Ctrl is held the
+	-- tileset shader renders the selected channel's material inside the brush
+	-- ring as if the stroke had landed. Channel R (auto) has nothing to force.
+	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
+	-- inert with the tileset shader off (the uniform simply never renders).
+	do
+		local T = WG.TilesetTerrain
+		if T and T.setSurfacePreview then
+			local mode = 0
+			if tilesetPreviewOn and not geoDecalMode and activeChannel >= 2 then
+				local _, pkCtrl = Spring.GetModKeyState()
+				if pkCtrl then
+					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
+				end
+			end
+			T.setSurfacePreview(mode, worldX, worldZ, activeRadius, activeCurve)
+		end
+	end
 	local groundY = GetGroundHeight(worldX, worldZ)
 
 	glPolygonOffset(1, 1)
 	if geoDecalMode then
 		-- Draw geo decal preview: magenta circle at decal size
 		local halfSize = GEO_DECAL_SIZE * 0.5
-		glColor(0.9, 0.3, 0.9, 0.8)
+		glColor(0.9, 0.3, 0.9, 0.8 * edgeFade)
 		glLineWidth(2.0)
 		glDrawGroundCircle(worldX, groundY, worldZ, halfSize, CIRCLE_SEGMENTS)
 		-- Inner crosshair
 		local crossSize = min(halfSize * 0.15, 16)
-		glColor(0.9, 0.3, 0.9, 0.5)
+		glColor(0.9, 0.3, 0.9, 0.5 * edgeFade)
 		glLineWidth(1.0)
 		glBeginEnd(GL.LINES, function()
 			glVertex(worldX - crossSize, groundY + 3, worldZ)

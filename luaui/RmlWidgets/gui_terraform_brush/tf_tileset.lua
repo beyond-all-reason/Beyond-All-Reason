@@ -274,24 +274,6 @@ function M.sync(doc, ctx, setSummary)
 			dm.tsMetalStyle = mkey
 		end
 	end
-	-- METAL SPOTS suite toggle (SPOT TEXTURE / DETAIL SLOT 3): mirror the
-	-- widget into both windows' flags, and gray the metal body while the suite
-	-- is repurposed — every metal knob below the toggle is inert then.
-	if WG.TilesetTerrain.getDetail3 then
-		local d3 = WG.TilesetTerrain.getDetail3() and true or false
-		if dm.tsDetail3On ~= d3 then
-			dm.tsDetail3On = d3
-		end
-		if dm.surfDetail3 ~= d3 then
-			dm.surfDetail3 = d3
-		end
-		if widgetState.tsDetail3Last ~= d3 then
-			widgetState.tsDetail3Last = d3
-			if ctx.setDisabledIds then
-				ctx.setDisabledIds(doc, { "ts-metal-body" }, d3)
-			end
-		end
-	end
 	if WG.TilesetTerrain.getMetalLights then
 		local glow = WG.TilesetTerrain.getMetalLights() and true or false
 		if widgetState.tsGlowLast ~= glow then

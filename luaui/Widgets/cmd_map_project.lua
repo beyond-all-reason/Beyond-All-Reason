@@ -399,10 +399,18 @@ local function stepSplat()
 	return true
 end
 
+-- How many SURFACE variant slots the manifest carries. The painter owns the
+-- real number (getState().slotCount); this only has to be >= it, since empty
+-- slots serialize as "" and load back as nil.
+local MAX_SURFACE_SLOTS = 8
+
 -- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
 -- mask PNG like the splat, plus a small surface.lua carrying biome + slot
 -- assignment — the mask channels are meaningless without knowing WHICH top
 -- variants they weight. Same request/poll shape as the splat step.
+-- The painter writes a second "surface_v4.png" beside the first whenever
+-- variant 4 carries paint (its weights do not fit the first mask's RGBA); it
+-- needs no manifest entry — the loader looks for the sibling itself.
 local function stepSurface()
 	local sp = WG.SurfacePainter
 	local c = job.cursor
@@ -431,14 +439,18 @@ local function stepSurface()
 		return true
 	end
 	local meta = (sp.getPersist and sp.getPersist()) or {}
+	-- every slot the painter reports, so this keeps working as slots are added
 	local lines = {
 		"return {",
 		string.format("\tbiome = %q,", tostring(meta.biome or "")),
-		string.format("\tslot1 = %q,", tostring(meta.slot1 or "")),
-		string.format("\tslot2 = %q,", tostring(meta.slot2 or "")),
-		"}",
-		"",
 	}
+	for i = 1, MAX_SURFACE_SLOTS do
+		lines[#lines + 1] = string.format("\tslot%d = %q,", i, tostring(meta["slot" .. i] or ""))
+	end
+	lines[#lines + 1] = "}"
+	lines[#lines + 1] = ""
+
+
 	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
 		warn("surface.lua write failed — the mask will load without slot assignments")
 	end
@@ -2045,10 +2057,12 @@ local function phaseSurface(c)
 				T.setBiome(meta.biome)
 			end
 			if sp.applySlots then
-				sp.applySlots(
-					(meta.slot1 and meta.slot1 ~= "") and meta.slot1 or nil,
-					(meta.slot2 and meta.slot2 ~= "") and meta.slot2 or nil
-				)
+				local picks = {}
+				for i = 1, MAX_SURFACE_SLOTS do
+					local a = meta["slot" .. i]
+					picks[i] = (a and a ~= "") and a or nil
+				end
+				sp.applySlots(picks)
 			end
 		elseif not T then
 			echoP(
