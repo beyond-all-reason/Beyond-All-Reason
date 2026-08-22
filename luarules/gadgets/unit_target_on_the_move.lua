@@ -20,12 +20,14 @@ local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 if gadgetHandler:IsSyncedCode() then
 	local deleteMaxDistance = 30
 	local targetListLengthMax = 128
+	local unseenGraceTime = 1.5
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spSetUnitTarget = Spring.SetUnitTarget
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitIsDead = Spring.GetUnitIsDead
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -159,6 +161,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
+	local unseenGracePasses = math.floor(unseenGraceTime / 0.5)
 
 	--------------------------------------------------------------------------------
 	-- Commands
@@ -321,12 +325,18 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
-	local function isUnseenEnemyUnit(targetData, allyTeam)
-		if targetData.alwaysSeen or not spValidUnitID(targetData.target) then
-			return false
+	local function wasTargetLost(target, alwaysSeen, allyTeam)
+		if type(target) ~= "number" then
+			return false, false
+		elseif alwaysSeen then
+			local isDead = spGetUnitIsDead(target) ~= false
+			return isDead, isDead
 		end
-		local los = spGetUnitLosState(targetData.target, allyTeam, true)
-		return not los or los % 4 == 0
+		local los = spGetUnitLosState(target, allyTeam, true)
+		if not los then
+			return true, true
+		end
+		return los % 4 == 0, false
 	end
 
 	--------------------------------------------------------------------------------
@@ -690,6 +700,7 @@ if gadgetHandler:IsSyncedCode() then
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
+								unseen = unseenGracePasses,
 								sent = false,
 							}
 						end
@@ -716,6 +727,7 @@ if gadgetHandler:IsSyncedCode() then
 							ignoreStop = ignoreStop,
 							userTarget = userTarget,
 							target = target,
+							unseen = unseenGracePasses,
 							sent = false,
 						},
 					}
@@ -730,6 +742,7 @@ if gadgetHandler:IsSyncedCode() then
 								ignoreStop = ignoreStop,
 								userTarget = userTarget,
 								target = target,
+								unseen = unseenGracePasses,
 								sent = false,
 							},
 						}
@@ -833,7 +846,13 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, unitData in pairsNext, setTargetData do
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
-				if isUnseenEnemyUnit(targets[index], unitData.allyTeam) then
+				local targetData = targets[index]
+				local isLost, isDead = wasTargetLost(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
+				if not isLost then
+					targetData.unseen = unseenGracePasses
+				elseif not isDead and targetData.unseen > 0 then
+					targetData.unseen = targetData.unseen - 1
+				else
 					removeTarget(unitID, unitData, index)
 				end
 			end
