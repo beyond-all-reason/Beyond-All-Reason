@@ -234,7 +234,8 @@ Distribution mode (random/regular/clustered) · Size/rotation/count/cadence slid
 Scale Min / Scale Max sliders (0.1–3.0×) give every placed feature its own
 rolled scale, realised by snapping the roll to the nearest **pre-baked model
 variant** and placing that def. Variants are baked offline by
-`tools/s3o_scale.py` and declared in `features/enginetrees_override.lua`
+`s3o_scale.py` (personal BAR tools collection, outside this repo; run from the
+.sdd root) into `objects3d/terraformbrush/`, declared in `features/enginetrees_override.lua`
 (factors 0.40 / 0.55 / 0.70 / 0.85 / 1.0 / 1.15, `customParams.scale_base` +
 `scale_factor`); each variant's collision cylinder, wood value, and mass are
 scaled with it. Variant defs are hidden from the asset library — the placer
@@ -249,45 +250,19 @@ the ghost preview shows exactly what will be placed either way.
 - Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
   need no special handling.
 
-#### Tree Clumps (merged features)
-
-`tools/s3o_merge.py --palette` bakes multi-tree clump models — several firs
-merged into ONE s3o, one piece per tree (scale and rotation baked into the
-vertices, position as the piece offset) — and generates
-`features/tree_clumps.lua` (`treecluster_fir_s1/s2/m1/m2/l1/l2`: 3/5/8 trees,
-summed wood value/mass, clump-sized collision cylinder and footprint). They
-appear in the asset library under Trees like any other def.
-
-Why: features cannot be merged at runtime (defs and models are fixed at game
-start), but a placed clump is one feature entity — one sim object, one
-cull/drawFlag walk, one quadfield entry — instead of eight, while the engine's
-instanced drawer batches same-def clumps exactly like single trees. A forest
-built from clumps costs roughly an eighth of the per-entity overhead and
-stretches the map feature budget by the same factor. Trade-offs: the clump
-reclaims/burns as one, blocks pathing as one footprint blob rather than
-per-trunk, and sits flat — on steep ground fringe trees can float or sink, so
-place clumps on gentle terrain (smart filters help) and use single trees on
-slopes.
-
-The palette bake also emits whole-clump size variants (same 0.40–1.15 factor
-ladder as single trees, `scale_base`/`scale_factor` customParams), so the Scale
-Min/Max sliders snap clumps exactly like they snap trees — 36 defs total, the
-30 variants hidden from the library.
-
-The tool also takes a custom spec (`python tools/s3o_merge.py out.s3o spec.py`
-with `ENTRIES = {(file, x, z, yawDeg, scale, y), ...}`), which is the building
-block for a future "compile forest" export that converts a map's placed single
-trees into clumps at finalisation.
-
 Why baked variants: the engine has no runtime feature-scale API.
-`Spring.SetFeaturePieceMatrix` looks like one but gates on
-`IsRotOrRotTranMatrix()` and **discards matrices carrying scale**
-(`LocalModelPiece::SetPieceSpaceMatrix`), and `LocalModelPiece::SetScaling` is
-reachable only from unit animation scripts. The gadget still understands a
-per-entry scale token on the wire (4/5/7/8-token forms) and applies piece-matrix
-scale plus collision/radius/mid-aim scaling — but only when the engine reports
-the matrix accepted, so on current engines the path is a clean no-op and it
-lights up automatically if a real API lands.
+`Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
+`LocalModelPiece::SetPieceSpaceMatrix` is only
+`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` — it validates the
+matrix, sets a flag, and **discards the geometry entirely** (no member stores
+it; a piece's transform comes solely from `CalcPieceSpaceTransform(pos, rot,
+scale)`, and `SetPosition`/`SetRotation`/`SetScaling` are reachable only from
+unit animation scripts). Features therefore cannot be scaled — or have their
+pieces posed at all — from Lua. The gadget still understands a per-entry scale
+token on the wire (4/5/7/8-token forms) and applies collision/radius/mid-aim
+scaling, but only when the engine reports the matrix accepted, so on current
+engines that path is a clean no-op and it lights up automatically if a real API
+ever lands.
 
 #### WYSIWYG Preview
 
