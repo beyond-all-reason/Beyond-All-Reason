@@ -21,6 +21,8 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
 
+local reissueOrder = Game.Commands.ReissueOrder
+
 -- TODO: do not use hardcoded unit names
 local unitDefData = {
 	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
@@ -37,6 +39,11 @@ end
 local fakeBuildDefID = {} -- combined mex + con unit model used while constructing
 local mexActualDefID = {} -- the mex, which is non-interactive, but extracts metal
 local mexTurretDefID = {} -- the con, which is interactive and shows in GUI, etc.
+
+-- the con turret is engine-"transported" by the mex and can never be targeted
+-- (targetableTransportedUnits = false), so attack orders aimed at it are
+-- redirected to the mex
+local turretToMex = {} -- con turret unitID -> its mex
 
 for unitName, unitPair in pairs(unitDefData) do
 	local buildDef = UnitDefNames[unitName]
@@ -106,6 +113,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
 	pairedUnits[mexID] = conID
+	turretToMex[conID] = mexID
 	setMexSpeed[conID] = mexID
 
 	if isUnitNeutral then
@@ -250,10 +258,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
+		turretToMex[unitID] = nil
 		local pairedUnitID = pairedUnits[unitID]
 		if pairedUnitID then
 			pairedUnits[unitID] = nil
 			pairedUnits[pairedUnitID] = nil
+			turretToMex[pairedUnitID] = nil
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
 	end
@@ -272,12 +282,18 @@ function gadget:AllowCommand(
 	fromLua,
 	fromInsert
 )
-	-- accepts CMD.ONOFF:
-	if mexTurretDefID[unitDefID] then
+	-- accepts CMD.ONOFF, CMD.ATTACK:
+	if cmdID == CMD.ONOFF and mexTurretDefID[unitDefID] then
 		local mexID = pairedUnits[unitID]
 		if mexID then
 			spGiveOrderToUnit(mexID, cmdID, cmdParams, cmdOptions)
 			setMexSpeed[unitID] = mexID
+		end
+	elseif cmdID == CMD.ATTACK and #cmdParams == 1 then
+		local mexID = turretToMex[cmdParams[1]]
+		if mexID then
+			reissueOrder(unitID, cmdID, { mexID }, cmdOptions, cmdTag, fromInsert)
+			return false
 		end
 	end
 	return true
@@ -285,6 +301,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ONOFF)
+	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
@@ -296,6 +313,7 @@ function gadget:Initialize()
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID
 					pairedUnits[pairedUnitID] = unitID
+					turretToMex[pairedUnitID] = unitID
 					setMexSpeed[pairedUnitID] = unitID
 				end
 			end
