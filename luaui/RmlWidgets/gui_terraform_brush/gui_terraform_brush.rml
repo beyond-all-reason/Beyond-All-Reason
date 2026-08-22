@@ -7085,15 +7085,32 @@
 				<div id="btn-wtype-ice" class="tf-wtype-btn"><div class="tf-wtype-btn-text">Ice</div></div>
 			</div>
 		</div>
+		<!-- Mirror of the Dimensions WATER LEVEL control: slider-env-wl is kept
+		     in lockstep with slider-env-waterlevel by the shared preview poll
+		     (envSyncWaterPreview), and both windows share the same handlers. -->
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">FLUID LEVEL</div>
+				<div id="btn-wtr-waterlevel-reset" class="tf-env-reset-btn" data-event-click="onEnvResetWaterLevel()">RESET</div>
 			</div>
-			<div class="flex flex-row gap-1 items-center">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
+				<div class="text-sm text-light" id="lbl-wtr-water-plane">{{envWaterPlaneStr}}</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
 				<div id="btn-env-wl-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
-				<input type="range" id="slider-env-wl" class="tf-slider" min="-500" max="500" step="0.5" value="0" />
+				<input type="range" id="slider-env-wl" class="tf-slider" min="-10000" max="10000" step="1" value="0" />
 				<div id="btn-env-wl-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
-				<input type="text" id="slider-env-wl-numbox" class="tf-slider-numbox" value="0.0" />
+				<input type="text" id="slider-env-wl-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="tf-dim-desc mb-1">{{envWaterTargetStr}}</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div id="btn-wtr-waterlevel-current" class="tf-action-btn" style="flex: 0 0 auto; padding: 0 12dp;" data-event-click="onEnvWaterCurrent()">
+					<div class="tf-action-btn-text">CURRENT</div>
+				</div>
+				<div id="btn-wtr-waterlevel-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyWaterLevel()">
+					<div class="tf-action-btn-text">APPLY</div>
+				</div>
 			</div>
 		</div>
 		<div id="env-water-std-sections">
@@ -7605,9 +7622,10 @@
 
 		<!-- HEIGHT EXTREMES -->
 		<div class="tf-section-frame">
+			<!-- No refresh control: the readouts poll every 10 ticks while the
+			     window is open (envRefreshDimExtremes in the Update loop). -->
 			<div class="tf-section-title-row">
-				<div class="tf-collapsible-title" style="flex: 1;">HEIGHT EXTREMES</div>
-				<div id="btn-dim-refresh-extremes" class="tf-env-reset-btn" data-event-click="onEnvDimRefresh()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/redo.png" /></div>
+				<div class="tf-collapsible-title">HEIGHT EXTREMES</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 70dp;">init min</div>
@@ -7630,41 +7648,73 @@
 		<!-- WATER LEVEL -->
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
-				<div class="tf-collapsible-title" style="flex: 1;">WATER LEVEL</div>
+				<div class="tf-collapsible-title">WATER LEVEL</div>
 				<div id="btn-dim-reset-waterlevel" class="tf-env-reset-btn" data-event-click="onEnvResetWaterLevel()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 70dp;">plane level</div>
 				<div class="text-sm text-light" id="lbl-dim-water-plane">{{envWaterPlaneStr}}</div>
 			</div>
+			<!-- Drag the slider and the new shoreline is drawn in the world at
+			     that height (see extraState.drawWaterLevelPreview); APPLY then
+			     slides the terrain so the water actually lands there. -->
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div class="text-sm text-keybind" style="width: 70dp;">adjust</div>
-				<input type="text" id="input-dim-waterlevel" class="tf-dim-input" value="0" />
+				<div id="btn-env-waterlevel-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-waterlevel" class="tf-slider" min="-10000" max="10000" step="1" value="0" />
+				<div id="btn-env-waterlevel-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-waterlevel-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="tf-dim-desc mb-1">{{envWaterTargetStr}}</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div id="btn-dim-waterlevel-current" class="tf-action-btn" style="flex: 0 0 auto; padding: 0 12dp;" data-event-click="onEnvWaterCurrent()">
+					<div class="tf-action-btn-text">CURRENT</div>
+				</div>
 				<div id="btn-dim-waterlevel-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyWaterLevel()">
-					<div class="tf-action-btn-text">SET</div>
+					<div class="tf-action-btn-text">APPLY</div>
 				</div>
 			</div>
-			<div class="text-xs text-keybind">+ = lower terrain. &#x2212; = raise terrain.</div>
 		</div>
 
-		<!-- HEIGHT BOUNDS -->
+		<!-- HEIGHT RANGE. Two ways to change the range the terrain occupies:
+		     RESCALE stretches the relief onto it (what you want when a map is
+		     too tall or too flat), CLAMP only cuts what sticks out. -->
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
-				<div class="tf-collapsible-title" style="flex: 1;">HEIGHT BOUNDS</div>
+				<div class="tf-collapsible-title">HEIGHT RANGE</div>
 				<div id="btn-dim-reset-bounds" class="tf-env-reset-btn" data-event-click="onEnvResetBounds()">RESET</div>
 			</div>
-			<div class="flex flex-row gap-1 items-center mb-1">
-				<div class="text-sm text-keybind" style="width: 70dp;">min height</div>
-				<input type="text" id="input-dim-minheight" class="tf-dim-input" value="" />
-				<div id="btn-dim-minheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMinHeight()">
-					<div class="tf-action-btn-text">SET</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-dim-mode-scale" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envDimRangeMode == 'scale'" data-event-mousedown="onEnvDimRangeMode('scale')">
+					<div class="tf-btn-text">RESCALE</div>
+				</div>
+				<div id="btn-dim-mode-clamp" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envDimRangeMode == 'clamp'" data-event-mousedown="onEnvDimRangeMode('clamp')">
+					<div class="tf-btn-text">CLAMP</div>
 				</div>
 			</div>
-			<div class="flex flex-row gap-1 items-center">
+			<div class="tf-dim-desc mb-1">{{envDimRangeDescStr}}</div>
+			<!-- Slider bounds are seeded from the map's extremes on open and by
+			     CURRENT/RESET (see envFillDimRangeInputs); the RML min/max are
+			     only a pre-attach placeholder. -->
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 70dp;">min height</div>
+				<div id="btn-env-dim-minheight-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-dim-minheight" class="tf-slider" min="-10000" max="10000" step="1" value="0" />
+				<div id="btn-env-dim-minheight-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-dim-minheight-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
 				<div class="text-sm text-keybind" style="width: 70dp;">max height</div>
-				<input type="text" id="input-dim-maxheight" class="tf-dim-input" value="" />
-				<div id="btn-dim-maxheight-apply" class="tf-action-btn" data-event-mousedown="onEnvApplyMaxHeight()">
-					<div class="tf-action-btn-text">SET</div>
+				<div id="btn-env-dim-maxheight-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+				<input type="range" id="slider-env-dim-maxheight" class="tf-slider" min="-10000" max="10000" step="1" value="0" />
+				<div id="btn-env-dim-maxheight-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+				<input type="text" id="slider-env-dim-maxheight-numbox" class="tf-slider-numbox" value="0" />
+			</div>
+			<div class="flex flex-row gap-1 items-center">
+				<div id="btn-dim-range-current" class="tf-action-btn" style="flex: 0 0 auto; padding: 0 12dp;" data-event-click="onEnvFillBoundsCurrent()">
+					<div class="tf-action-btn-text">CURRENT</div>
+				</div>
+				<div id="btn-dim-range-apply" class="tf-action-btn tf-save-btn" data-event-click="onEnvApplyHeightRange()">
+					<div class="tf-action-btn-text">APPLY</div>
 				</div>
 			</div>
 		</div>

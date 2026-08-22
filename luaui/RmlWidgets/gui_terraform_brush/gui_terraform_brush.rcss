@@ -1820,11 +1820,36 @@ body {
 	background-color: #161620;
 	border: 1dp #40404a60;
 	border-radius: 6dp;
-	max-width: 100dp;
 }
 
 .tf-dim-input:focus {
 	border-color: #6a6a80cc;
+}
+
+/* Dimensions window: the height-range mode switch. Text-only and short, so the
+   54dp icon body of .tf-mode-btn is dropped down to a single centred line. */
+.tf-dim-mode-btn {
+	height: 30dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-dim-mode-btn .tf-btn-text {
+	font-size: 1.05rem;
+}
+.tf-dim-mode-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-dim-mode-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* One-line explanation of the selected mode. */
+.tf-dim-desc {
+	font-size: 1.0rem;
+	color: #b9bfca;
 }
 
 .tf-preset-btn {

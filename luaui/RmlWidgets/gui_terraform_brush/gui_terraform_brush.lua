@@ -3344,6 +3344,9 @@ local initialModel = {
 	envCurrMinStr = "--",
 	envCurrMaxStr = "--",
 	envWaterPlaneStr = "--",
+	envWaterTargetStr = "Drag to move the shoreline.",
+	envDimRangeMode = "scale",
+	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
 	tfRestoreStrengthStr = "100%",
@@ -8537,66 +8540,110 @@ local initialModel = {
 		end
 		Spring.SendCommands("water 4")
 	end,
-	onEnvDimRefresh = function(_event)
-		if widgetState.envRefreshDimExtremes then
-			widgetState.envRefreshDimExtremes()
-		end
-	end,
+	-- Commits the previewed shoreline: the terrain slides so the water plane
+	-- lands on the slider's height. The slider is then reseeded (the terrain it
+	-- was measured against just moved) on a short delay, once the sim has
+	-- applied the shift.
 	onEnvApplyWaterLevel = function(_event)
-		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		local val = wlInputEl and tonumber(wlInputEl:GetAttribute("value"))
-		if val and val ~= 0 then
-			Spring.SendCommands("luarules waterlevel " .. tostring(val))
-			if wlInputEl then
-				wlInputEl:SetAttribute("value", "0")
-			end
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvApplyMinHeight = function(_event)
-		local doc = widgetState.document
-		local minHEl = doc and doc:GetElementById("input-dim-minheight")
-		local val = minHEl and tonumber(minHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampminheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvApplyMaxHeight = function(_event)
-		local doc = widgetState.document
-		local maxHEl = doc and doc:GetElementById("input-dim-maxheight")
-		local val = maxHEl and tonumber(maxHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampmaxheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvResetWaterLevel = function(_event)
-		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		if wlInputEl then
-			wlInputEl:SetAttribute("value", "0")
-		end
-	end,
-	onEnvResetBounds = function(_event)
-		local doc = widgetState.document
-		if not doc then
+		local tb = WG.TerraformBrush
+		if not (tb and tb.applyWaterLevel) then
 			return
 		end
-		local minHEl = doc:GetElementById("input-dim-minheight")
-		local maxHEl = doc:GetElementById("input-dim-maxheight")
-		if minHEl then
-			minHEl:SetAttribute("value", "")
+		local doc = widgetState.document
+		local sl = doc and doc:GetElementById("slider-env-waterlevel")
+		local level = sl and tonumber(sl:GetAttribute("value"))
+		if not level then
+			return
 		end
-		if maxHEl then
-			maxHEl:SetAttribute("value", "")
+		if not tb.applyWaterLevel(level) then
+			Spring.Echo("[Terraform Brush] Shoreline is already at that height.")
+			return
+		end
+		playSound("save")
+		widgetState.envWaterReseedTicks = 40
+	end,
+	onEnvDimRangeMode = function(_event, mode)
+		local dm = widgetState.dmHandle
+		if not dm or dm.envDimRangeMode == mode then
+			return
+		end
+		playSound("click")
+		dm.envDimRangeMode = mode
+		if mode == "clamp" then
+			dm.envDimRangeDescStr = "Cuts everything outside the range. Peaks and pits come out flat."
+		else
+			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
+		end
+	end,
+	-- Applies the slider min/max to the whole map. RESCALE remaps the live
+	-- extremes onto the range (the thing the old clamp-only buttons could never
+	-- do: lowering the max used to just shear the mountain tops off); CLAMP is
+	-- the old behaviour, kept for shaving a single runaway peak.
+	onEnvApplyHeightRange = function(_event)
+		local doc = widgetState.document
+		local minHEl = doc and doc:GetElementById("slider-env-dim-minheight")
+		local maxHEl = doc and doc:GetElementById("slider-env-dim-maxheight")
+		local newMin = minHEl and tonumber(minHEl:GetAttribute("value"))
+		local newMax = maxHEl and tonumber(maxHEl:GetAttribute("value"))
+		if not newMin or not newMax then
+			Spring.Echo("[Terraform Brush] Height range needs a number on both sliders.")
+			return
+		end
+		if newMax - newMin < 1 then
+			Spring.Echo("[Terraform Brush] Height range needs a max at least 1 above the min.")
+			return
+		end
+		local tb = WG.TerraformBrush
+		if not (tb and tb.remapHeights) then
+			return
+		end
+		local dm = widgetState.dmHandle
+		playSound("save")
+		-- No refresh here: the sim applies a frame or two later, so it would
+		-- only re-show the pre-edit numbers. The window poll picks it up.
+		tb.remapHeights(newMin, newMax, dm and dm.envDimRangeMode or "scale")
+	end,
+	-- Put the water back where the map had it, undoing every water level apply
+	-- made this session. Parking the slider is not enough on its own: an apply
+	-- already recentres it, so a slider-only reset is a visible no-op.
+	onEnvResetWaterLevel = function(_event)
+		local tb = WG.TerraformBrush
+		local shift = tb and tb.resetWaterLevel and tb.resetWaterLevel()
+		if shift then
+			playSound("save")
+			Spring.Echo(string.format("[Terraform Brush] Water level restored (undid %.0f).", shift))
+			widgetState.envWaterReseedTicks = 40
+		else
+			playSound("click")
+			Spring.Echo("[Terraform Brush] Water is already at the map's own level.")
+			if widgetState.envSeedWaterSlider then
+				widgetState.envSeedWaterSlider()
+			end
+		end
+	end,
+	-- "CURRENT" button: park the slider back on the water's live plane —
+	-- recentres the track and clears the shoreline preview without touching
+	-- the terrain (reseed = bounds centred on the plane, handle in the middle).
+	onEnvWaterCurrent = function(_event)
+		if widgetState.envSeedWaterSlider then
+			playSound("click")
+			widgetState.envSeedWaterSlider()
+		end
+	end,
+	-- "RESET" chip: back to the map's own height range. Init min/max come from
+	-- the map's SMF header, so they survive every edit and stay a true default.
+	onEnvResetBounds = function(_event)
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(true)
+		end
+	end,
+	-- "CURRENT" button: refill both boxes from the live extremes, so editing one
+	-- end of the range does not need the other typed back in by hand.
+	onEnvFillBoundsCurrent = function(_event)
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(false)
 		end
 	end,
 	onEnvSave = function(_event)
@@ -15525,6 +15572,14 @@ function widget:Update()
 			widgetState.rootElement:SetClass("hidden", not panelVisible)
 		end
 		if not panelVisible then
+			-- The water level preview plane is drawn in the world by the other
+			-- widget, so hiding the panel has to take it down explicitly.
+			if widgetState.envWaterPreviewAt ~= nil then
+				widgetState.envWaterPreviewAt = nil
+				if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+					WG.TerraformBrush.setWaterLevelPreview(nil)
+				end
+			end
 			-- Clear any locked sliders when panel hides
 			if next(widgetState.lockedSliders) then
 				for id, element in pairs(widgetState.lockedSliders) do
@@ -15685,6 +15740,55 @@ function widget:Update()
 					setDm("envWaterVisible", widgetState.envWaterOpen or false)
 					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
 					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
+					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with
+					-- the range they are about to change.
+					if widgetState.envDimensionsOpen and not widgetState.envDimWasOpen then
+						widgetState.envDimWasOpen = true
+						if widgetState.envFillDimRangeInputs then
+							widgetState.envFillDimRangeInputs()
+						end
+					elseif not widgetState.envDimensionsOpen then
+						widgetState.envDimWasOpen = false
+					end
+					-- Shoreline machinery runs while EITHER window holding a track is
+					-- open: WATER LEVEL lives in Dimensions, its FLUID LEVEL mirror in
+					-- Water. The extremes/plane readouts poll here too — they are the
+					-- only feedback that a range or water edit landed, and the sim
+					-- applies it a frame or two after the click (GetGroundExtremes is
+					-- an engine-cached read).
+					if widgetState.envDimensionsOpen or widgetState.envWaterOpen then
+						if not widgetState.envWaterUIWasOpen then
+							widgetState.envWaterUIWasOpen = true
+							-- Seed on the open edge, but never over a live preview: the
+							-- other window may already be mid-adjustment on its track.
+							if widgetState.envWaterPreviewAt == nil and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						widgetState.envDimTick = (widgetState.envDimTick or 0) + 1
+						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
+							widgetState.envDimTick = 0
+							widgetState.envRefreshDimExtremes()
+						end
+						-- Reseed after an apply, once the sim has moved the terrain the
+						-- slider's bounds were measured against.
+						if (widgetState.envWaterReseedTicks or 0) > 0 then
+							widgetState.envWaterReseedTicks = widgetState.envWaterReseedTicks - 1
+							if widgetState.envWaterReseedTicks == 0 and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						if widgetState.envSyncWaterPreview then
+							widgetState.envSyncWaterPreview()
+						end
+					elseif widgetState.envWaterUIWasOpen then
+						widgetState.envWaterUIWasOpen = false
+						widgetState.envWaterReseedTicks = 0
+						widgetState.envWaterPreviewAt = nil
+						if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+							WG.TerraformBrush.setWaterLevelPreview(nil)
+						end
+					end
 					-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
 					if not lpActive and widgetState.lightLibraryOpen then
 						widgetState.lightLibraryOpen = false
@@ -17386,6 +17490,12 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+
+	-- The water level preview plane is drawn by the other widget, so a shutdown
+	-- with the Dimensions window open would strand it on screen.
+	if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+		WG.TerraformBrush.setWaterLevelPreview(nil)
+	end
 
 	if WG.TerraformerShared then
 		-- Hand the mouse wheel back before leaving: a slider locked at shutdown

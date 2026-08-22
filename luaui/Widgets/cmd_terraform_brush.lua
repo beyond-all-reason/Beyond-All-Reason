@@ -28,6 +28,7 @@ local MSG = {
 	NOISE = "$terraform_noise$",
 	ERODE = "$terraform_erode$",
 	FILL_SHAPE = "$terraform_fill$",
+	REMAP = "$terraform_remap$",
 }
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
@@ -833,6 +834,56 @@ extraState.buildFullMapGrid = function()
 	extraState.gridDirty = false
 end
 
+-- WYSIWYG preview for the Dimensions window's water level slider.
+--
+-- The operation moves the terrain, not the water plane (Lua has no water plane
+-- setter), so what the user has to be shown is the resulting SHORELINE, drawn
+-- in the terrain's current frame: a quad across the map at the height the water
+-- will meet the land. Terrain standing above it occludes it, so the visible
+-- edge of the quad is exactly the coastline the apply will produce.
+--
+-- The depth test is what makes that read as water rather than as an abstract
+-- plane hanging in the sky: without it the quad is a flat sheet over the whole
+-- screen with no hills poking through, which looks like the terrain's new
+-- datum instead of a flooded landscape. Lua draw callins start with
+-- GL_DEPTH_TEST OFF, which is why every draw helper in this file ends by
+-- turning it on rather than starting that way, so it is enabled explicitly
+-- here and left on to match that convention.
+--
+-- The map-edge outline is drawn without depth test, so the level stays
+-- locatable when it sits below the terrain (or below the existing water)
+-- everywhere, which is the case while draining a map.
+extraState.drawWaterLevelPreview = function()
+	local y = extraState.waterPreviewLevel
+	if not y then
+		return
+	end
+	local msx, msz = Game.mapSizeX, Game.mapSizeZ
+
+	gl.DepthTest(true)
+	glColor(0.12, 0.45, 0.72, 0.55)
+	glBeginEnd(GL.QUADS, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	gl.DepthTest(false)
+	glLineWidth(2)
+	glColor(0.50, 0.92, 1.0, 0.85)
+	glBeginEnd(GL.LINE_LOOP, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	glLineWidth(1)
+	glColor(1, 1, 1, 1)
+	gl.DepthTest(true)
+end
+
 local lockedWorldX = nil
 local lockedWorldZ = nil
 local lockedGroundY = nil
@@ -872,6 +923,19 @@ local tessellationDirtyFrames = 0
 
 local function markTessellationDirty()
 	tessellationDirtyFrames = TESS_DIRTY_FRAMES
+end
+
+-- Client-side follow-up every whole-map terrain change needs: the mesh
+-- tessellation and shadows are stale, the tileset shader's height anchor still
+-- points at the old extremes, and the custom heightmap export range was seeded
+-- from them. Same set a full heightmap import arms.
+extraState._noteBulkTerrainChange = function()
+	tessellationDirtyFrames = 60
+	extraState._importNeedsShadowRefresh = 60
+	if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+		WG.TilesetTerrain.refreshHeightRef()
+	end
+	extraState._exportReseedFrames = 90
 end
 
 -- Terrain-change signal for draw-path caches: the engine fires this for ANY heightmap
@@ -3275,6 +3339,73 @@ function widget:Initialize()
 		end,
 		fullRestore = function()
 			SendLuaRulesMsg(MSG.FULL_RESTORE)
+		end,
+		-- Whole-map height range edit driven by the Dimensions window.
+		-- mode "scale" stretches the relief onto the new range, "clamp" only
+		-- cuts what falls outside it. Undoable like any other stroke.
+		remapHeights = function(newMin, newMax, mode)
+			newMin, newMax = tonumber(newMin), tonumber(newMax)
+			if not newMin or not newMax or newMax - newMin < 1 then
+				return false
+			end
+			SendLuaRulesMsg(
+				string.format(
+					"%s%.3f:%.3f:%s",
+					MSG.REMAP,
+					newMin,
+					newMax,
+					mode == "clamp" and "clamp" or "scale"
+				)
+			)
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- Dimensions window water level slider: pass the world height the water
+		-- should end up at to draw the preview plane, or nil to clear it.
+		setWaterLevelPreview = function(level)
+			extraState.waterPreviewLevel = tonumber(level)
+		end,
+		-- Move the shoreline to `level` (a world height in the terrain's current
+		-- coordinates). The engine has no water plane setter, so this is done the
+		-- way /luarules waterlevel does it: the whole terrain slides by the
+		-- difference, leaving the water plane where it is.
+		applyWaterLevel = function(level)
+			level = tonumber(level)
+			if not level then
+				return false
+			end
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local delta = level - plane
+			if math.abs(delta) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(delta))
+			-- Track the running total so the panel's RESET can put the map back.
+			-- Nothing else can tell us: the water level command overwrites its own
+			-- stored value instead of accumulating, and it moves the ORIGINAL
+			-- heightmap along with the live one, so the map's load-time datum is
+			-- not recoverable from the engine afterwards.
+			extraState.waterLevelShift = (extraState.waterLevelShift or 0) + delta
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- How far this session has moved the terrain under the water plane.
+		getWaterLevelShift = function()
+			return extraState.waterLevelShift or 0
+		end,
+		-- Put the water back where the map had it. Returns the shift that was
+		-- undone, or false when the map is already at its own water level.
+		resetWaterLevel = function()
+			local shift = extraState.waterLevelShift or 0
+			if math.abs(shift) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(-shift))
+			extraState.waterLevelShift = 0
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return shift
 		end,
 		-- Keybind configuration API
 		getKeybinds = function()
@@ -7376,6 +7507,16 @@ function widget:DrawWorld()
 			end
 		end
 		glCallList(extraState.gridDL)
+	end
+
+	-- Water level preview: same gating as the grid overlay (it is an editor
+	-- overlay, and a map capture would otherwise bake it into the photo).
+	if
+		extraState.waterPreviewLevel
+		and not Spring.IsGUIHidden()
+		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
+	then
+		extraState.drawWaterLevelPreview()
 	end
 
 	if not activeMode then
