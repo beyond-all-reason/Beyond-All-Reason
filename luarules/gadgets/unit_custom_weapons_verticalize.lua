@@ -63,7 +63,7 @@ end
 
 local cruiseHeightMin = 50      -- note: barely above ground
 local cruiseHeightMax = 3000    -- note: not all that high up
-local checkWindowFrames = 4     -- count of polling frames used to estimate phase end
+local checkWindowFrames = 4     -- count of polling frames used to predict new phases
 local chaseFactorDefault = 0.2  -- [0, 2] where 0 is a clean quarter-turn onto target
 
 --------------------------------------------------------------------------------
