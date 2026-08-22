@@ -6,11 +6,11 @@ end
 
 function gadget:GetInfo()
 	return {
-		name    = "Starburst cruise and verticalize",
-		desc    = "Trajectory alchemy for projectiles that must not hit terrain",
-		author  = "efrec",
+		name = "Starburst cruise and verticalize",
+		desc = "Trajectory alchemy for projectiles that must not hit terrain",
+		author = "efrec",
 		license = "GNU GPL, v2 or later",
-		layer   = -10000, -- before other gadgets can process projectiles
+		layer = -10000, -- before other gadgets can process projectiles
 		enabled = true,
 	}
 end
@@ -61,10 +61,10 @@ end
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
 
-local cruiseHeightMin = 50      -- note: barely above ground
-local cruiseHeightMax = 3000    -- note: not all that high up
-local checkWindowFrames = 4     -- count of polling frames used to predict new phases
-local chaseFactorDefault = 0.2  -- [0, 2] where 0 is a clean quarter-turn onto target
+local cruiseHeightMin = 50     -- note: barely above ground
+local cruiseHeightMax = 3000   -- note: not all that high up
+local checkWindowFrames = 4    -- count of polling frames used to predict new phases
+local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto target
 
 --------------------------------------------------------------------------------
 -- Localization ----------------------------------------------------------------
@@ -86,7 +86,7 @@ local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectilePosition = Spring.SetProjectilePosition
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
 
-local targetedUnit = string.byte('u')
+local targetedUnit = string.byte("u")
 
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
@@ -184,24 +184,24 @@ local function getVerticalizeWeapon(weaponDef)
 	local rangeMinimum = 2 * (turnSpeedMin / turnRate / math_pi)
 
 	return {
-		acceleration    = acceleration,
-		speedMax        = speedMax,
-		speedMin        = speedMin,
-		turnRate        = turnRate,
+		acceleration = acceleration,
+		speedMax = speedMax,
+		speedMin = speedMin,
+		turnRate = turnRate,
 
-		heightIntoTurn  = turnHeightMin,
-		rangeMinimum    = rangeMinimum,
-		rangeMaximum    = weaponDef.range,
+		heightIntoTurn = turnHeightMin,
+		rangeMinimum = rangeMinimum,
+		rangeMaximum = weaponDef.range,
 		upTimeMaxFrames = upTimeMaxFrames,
 		upTimeMinFrames = upTimeMinFrames,
 
-		cruiseHeight    = cruiseHeight,
-		turnRadius      = turnRadiusMax,
-		chaseFactor     = chaseFactor,
+		cruiseHeight = cruiseHeight,
+		turnRadius = turnRadiusMax,
+		chaseFactor = chaseFactor,
 
-		tracking        = weaponDef.tracks and turnRate or 0,
-		gravity         = weaponDef.myGravity ~= 0 and -weaponDef.myGravity or nil,
-		cegTag          = weaponDef.cegTag,
+		tracking = weaponDef.tracks and turnRate or 0,
+		gravity = weaponDef.myGravity ~= 0 and -weaponDef.myGravity or nil,
+		cegTag = weaponDef.cegTag,
 	}
 end
 
@@ -274,7 +274,7 @@ end
 ---@field tracking number
 ---@field upTime number
 local projectileParams = {
-	pos   = positionGuidance,
+	pos = positionGuidance,
 	speed = velocityGuidance,
 }
 
@@ -290,9 +290,9 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.owner = Spring.GetProjectileOwnerID(projectileID) or -1
 	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
-	spawnParams['end'] = projectile.target
+	spawnParams["end"] = projectile.target
 	spawnParams.gravity = weapon.gravity
-	spawnParams.cegtag = weapon.cegTag -- note: is lower case
+	spawnParams.cegtag = weapon.cegTag      -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
 	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
@@ -311,7 +311,12 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 
 	projectiles[respawnID] = projectile
 	scheduleAt(respawnID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
-	Spring.SetProjectileTarget(respawnID, projectile.target[1], projectile.ascendHeight + weapon.turnRadius, projectile.target[3])
+	Spring.SetProjectileTarget(
+		respawnID,
+		projectile.target[1],
+		projectile.ascendHeight + weapon.turnRadius,
+		projectile.target[3]
+	)
 	return true
 end
 
@@ -333,23 +338,27 @@ local function register(projectileID, weaponDefID)
 	local ascendHeight = math_max(ascentAboveLauncher, ascentAboveTarget)
 
 	local projectile = {
-		acceleration     = weapon.acceleration,
-		speedMax         = weapon.speedMax,
-		speedMin         = weapon.speedMin,
-		turnRate         = weapon.turnRate,
-		chaseFactor      = weapon.chaseFactor,
-		target           = target,
-		ascendHeight     = ascendHeight,
-		turnRadius       = turnRadius,
+		acceleration = weapon.acceleration,
+		speedMax = weapon.speedMax,
+		speedMin = weapon.speedMin,
+		turnRate = weapon.turnRate,
+		chaseFactor = weapon.chaseFactor,
+		target = target,
+		ascendHeight = ascendHeight,
+		turnRadius = turnRadius,
 
-		phase            = 1,
-		pitch            = 2,
-		cruiseEndRadius  = 0,
+		phase = 1,
+		pitch = 2,
+		cruiseEndRadius = 0,
 		cruiseEndInverse = 0,
 	}
 
 	local cruiseDistance = distanceXZ(position, target) - weapon.rangeMinimum
-	local upTimeFrames = math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
+	local upTimeFrames = math_clamp(
+		getUptime(projectile,
+		ascendHeight - position[2]),
+		weapon.upTimeMinFrames, weapon.upTimeMaxFrames
+	)
 
 	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 and respawn(weapon, projectileID, projectile, upTimeFrames) then
 		return
@@ -444,7 +453,9 @@ local function verticalize(projectileID, projectile)
 	local distance = math_diag(dx, dz)
 
 	local sinPitch = 1 - distance * projectile.cruiseEndInverse
-	if sinPitch < 0 then sinPitch = 0 end
+	if sinPitch < 0 then
+		sinPitch = 0
+	end
 	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
 
 	-- Unit vector towards target
@@ -456,7 +467,11 @@ local function verticalize(projectileID, projectile)
 	end
 
 	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
-	if cosAngle > 1 then cosAngle = 1 elseif cosAngle < -1 then cosAngle = -1 end
+	if cosAngle > 1 then
+		cosAngle = 1
+	elseif cosAngle < -1 then
+		cosAngle = -1
+	end
 
 	-- Spherical-lerp velocity toward the target up to the turnRate.
 	-- A vanishing sine is parallel or antiparallel so keeps steady.
