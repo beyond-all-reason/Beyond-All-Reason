@@ -79,6 +79,7 @@ local metalValue = DEFAULT_METAL_VALUE
 local painting = false
 local paintButton = 0 -- 1 = LMB (raise), 3 = RMB (lower/erase)
 local lastPaintTime = 0
+local edgeFade = 1 -- 1 on-map; <1 while the cursor is past the map edge (fades cursor visuals)
 
 local function getSharedState()
 	if WG.TerraformBrush then
@@ -108,9 +109,20 @@ local function snapToMetalGrid(wx, wz)
 end
 
 local function getWorldPos()
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local wx, wz, fade = tb.getWorldPositionExtended(getSharedState().radius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		edgeFade = 1
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local kind, pos = TraceScreenRay(mx, my, true)
 	if kind == "ground" then
+		edgeFade = 1
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -274,7 +286,7 @@ local function drawMetalOverlay(worldX, worldZ, radius)
 			if amount > 0.01 then
 				local wx = mx * METAL_SQ + halfSq
 				local brightness = min(1.0, amount / 120)
-				glColor(0.1, 0.4 + brightness * 0.6, 0.1, 0.35 + brightness * 0.3)
+				glColor(0.1, 0.4 + brightness * 0.6, 0.1, (0.35 + brightness * 0.3) * edgeFade)
 				local y = GetGroundHeight(wx, wz) + 0.5
 				glBeginEnd(GL_QUADS, function()
 					glVertex(wx - halfSq, y, wz - halfSq)
@@ -352,9 +364,9 @@ local function drawCursorInfo(worldX, worldZ)
 		text = format("Metal: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
 	end
 
-	glColor(0, 0, 0, 0.92)
+	glColor(0, 0, 0, 0.92 * edgeFade)
 	glText(text, sx + 2, sy - 2, 24, "ro")
-	glColor(1, 1, 1, 1.0)
+	glColor(1, 1, 1, 1.0 * edgeFade)
 	glText(text, sx, sy, 24, "ro")
 end
 
@@ -1793,7 +1805,7 @@ function widget:DrawWorld()
 	if not outlinePositions or #outlinePositions == 0 then
 		outlinePositions = { { x = worldX, z = worldZ, rot = ss.rotationDeg } }
 	end
-	glColor(colorR, colorG, colorB, 0.85)
+	glColor(colorR, colorG, colorB, 0.85 * edgeFade)
 	glLineWidth(2)
 	for oi = 1, #outlinePositions do
 		local op = outlinePositions[oi]
@@ -1802,7 +1814,7 @@ function widget:DrawWorld()
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
-	glColor(1, 1, 1, 0.5)
+	glColor(1, 1, 1, 0.5 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		glVertex(worldX - 8, groundY + 2, worldZ)
 		glVertex(worldX + 8, groundY + 2, worldZ)

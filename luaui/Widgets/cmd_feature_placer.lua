@@ -145,6 +145,9 @@ local fp = {
 }
 
 local updateTimer = 0
+-- Cursor fade from the edge-extended resolver: 1 inside the map, falling to 0
+-- as the cursor recedes past the border. Scales every brush-cursor visual.
+local edgeFade = 1
 local gridOverlay = false
 local gridSnap = false
 local gridShowing = false
@@ -480,6 +483,19 @@ end
 -- World mouse position
 ----------------------------------------------------------------
 local function getWorldMousePosition()
+	edgeFade = 1
+	-- Shared edge-extended cursor: keeps following the mouse slightly past the
+	-- map border, with fade < 1 once the footprint no longer touches the map.
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local radius = fp.mode == "point" and 64 or fp.radius
+		local wx, wz, fade = tb.getWorldPositionExtended(radius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then
@@ -635,6 +651,29 @@ local function ensureLayout(params)
 	return preview.layout
 end
 
+-- The edge-extended cursor can put part of the footprint outside the map, and
+-- both Scatter.resolve and the gadget CLAMP such positions onto the border
+-- instead of dropping them -- features would pile up along the edge line. So
+-- out-of-map entries are filtered per symmetry copy BEFORE resolving, using the
+-- same rotation maths resolve itself applies. Preview and placement share this,
+-- keeping the ghost preview truthful about what actually gets placed.
+local function layoutInsideMap(layout, centerX, centerZ, extraRotDeg)
+	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+	local kept = {}
+	for i = 1, #layout do
+		local entry = layout[i]
+		local dx, dz = entry.dx, entry.dz
+		if extraRotDeg ~= 0 then
+			dx, dz = Scatter.rotatePoint(dx, dz, extraRotDeg)
+		end
+		local x, z = centerX + dx, centerZ + dz
+		if x >= 0 and x <= mapX and z >= 0 and z <= mapZ then
+			kept[#kept + 1] = entry
+		end
+	end
+	return kept
+end
+
 -- Every placement the brush would make right now, across all symmetry copies.
 local function resolvePlacements(worldX, worldZ)
 	local params = layoutParams()
@@ -650,7 +689,8 @@ local function resolvePlacements(worldX, worldZ)
 		-- Each symmetry copy carries its own rotation, and the outline and the
 		-- erase brush both already honour it. The layout was rotated once by the
 		-- base rotation, so hand resolve() only the difference.
-		local resolved = Scatter.resolve(layout, p.x, p.z, params, (p.rot or fp.rotation) - fp.rotation)
+		local copyRot = (p.rot or fp.rotation) - fp.rotation
+		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
 			placements[#placements + 1] = resolved[j]
 		end
@@ -749,7 +789,7 @@ local function syncGhosts(items)
 				headingToYaw(item.heading),
 				item.pitch or 0,
 				item.roll or 0,
-				item.alpha or GHOST_ALPHA,
+				(item.alpha or GHOST_ALPHA) * edgeFade,
 				item.tintR or 1,
 				item.tintG or 1,
 				item.tintB or 1,
@@ -2041,9 +2081,9 @@ local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg, sf)
 					local valid = isPointValid(wx, wz, sf)
 
 					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08)
+						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
 					else
-						glColor(0.9, 0.15, 0.15, 0.14)
+						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
 					end
 
 					local x0 = wx - halfStep
@@ -2117,7 +2157,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	glLineWidth(1.5)
 
 	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55)
+		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
@@ -2126,7 +2166,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	end
 
 	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55)
+		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
@@ -2137,7 +2177,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	local stride = max(1, floor(#corners / 8))
 	local strutBot = botY or (topY and topY - 100) or 0
 	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2)
+	glColor(1, 1, 1, 0.2 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		for i = 1, #corners, stride do
 			local wx = cx + corners[i][1]
@@ -2581,13 +2621,13 @@ function widget:DrawWorld()
 	-- Color by mode (red when right-dragging to remove)
 	local _, _, _, _, rightPressed = GetMouseState()
 	if fp.dragging and fp.dragAction == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7)
+		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
 	elseif fp.mode == "scatter" then
-		glColor(0.2, 0.8, 0.4, 0.7)
+		glColor(0.2, 0.8, 0.4, 0.7 * edgeFade)
 	elseif fp.mode == "point" then
-		glColor(0.4, 0.7, 1.0, 0.7)
+		glColor(0.4, 0.7, 1.0, 0.7 * edgeFade)
 	elseif fp.mode == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7)
+		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
 	end
 
 	glLineWidth(2)
@@ -2629,13 +2669,13 @@ function widget:DrawWorld()
 		for i = 2, #positions do
 			local p = positions[i]
 			if fp.dragging and fp.dragAction == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3)
+				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			elseif fp.mode == "scatter" then
-				glColor(0.2, 0.8, 0.4, 0.3)
+				glColor(0.2, 0.8, 0.4, 0.3 * edgeFade)
 			elseif fp.mode == "point" then
-				glColor(0.4, 0.7, 1.0, 0.3)
+				glColor(0.4, 0.7, 1.0, 0.3 * edgeFade)
 			elseif fp.mode == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3)
+				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			end
 
 			if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
