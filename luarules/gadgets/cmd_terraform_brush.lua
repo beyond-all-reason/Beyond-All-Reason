@@ -144,7 +144,7 @@ local currentStrokeId = 0 -- incremented on each STROKE_END; tags all entries in
 local lastUndoFrame = -1 -- throttle: only one undo per game frame
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
-local MAX_BLUR_STEP = 6 -- smooth mode: widest neighbor spacing (grid cells) at max intensity
+local MAX_BLUR_STEP = 6 -- smooth mode: widest box half-width (grid cells) at max intensity
 
 -- ── Diagnostics ──────────────────────────────────────────────────────────────
 local DIAG = false -- set false to silence
@@ -157,6 +157,7 @@ local scratchHeightData = {}
 local scratchHeightDataMax = 0 -- high-water mark for reliable trimming (avoids # on reused table)
 local scratchSnapFlat = {} -- flat buffer: x,z,h,x,z,h,... (no sub-table allocation)
 local scratchBlurHeights = {} -- padded (sw+2)x(sh+2) height grid for smooth-mode local blur
+local scratchBlurSAT = {} -- summed-area table over scratchBlurHeights (dense box mean)
 local scratchParts = {}
 
 -- Parse a space-separated payload into scratchParts, reusing the table
@@ -831,34 +832,57 @@ local function applyTerraform(
 	local centerCellX = floor(centerX / squareSize + 0.5)
 	local centerCellZ = floor(centerZ / squareSize + 0.5)
 
-	-- Smooth mode (localBlur): each cell blends toward the mean of its OWN 3x3
+	-- Smooth mode (localBlur): each cell blends toward the mean of its OWN
 	-- neighborhood instead of one flat target for the whole stamp, so a cell at
 	-- the falloff edge blends toward a value close to its own height (most of
 	-- its neighbors are untouched terrain) -- no plateau-vs-untouched seam.
-	-- Neighbor spacing (blurStep, in grid cells) scales with intensity: at low
+	-- Box half-width (blurStep, in grid cells) scales with intensity: at low
 	-- intensity it stays tight (fine-detail smoothing only, gentle), so at high
 	-- intensity a single pass reaches wide enough to actually flatten broad
 	-- bumps instead of forever only erasing single-cell noise. Capped at half
 	-- the brush's own radius so small brushes don't sample past themselves.
-	-- Read the padded rect once; the main loop below reuses it for both the
-	-- cell's own height and all 8 neighbor samples.
-	local blurBuf, blurStride, blurStep
+	-- The mean must be DENSE over the (2*blurStep+1)^2 box, not 9 taps spaced
+	-- blurStep apart: sparse taps are phase-blind to ripples whose wavelength
+	-- divides the tap spacing, so those survive every pass while everything
+	-- else flattens -- visible as grid-aligned stripes. A summed-area table
+	-- over the padded rect gives the dense mean in 4 lookups per cell.
+	local blurBuf, blurStride, blurStep, blurSAT, satStride, blurInvArea
 	if localBlur then
 		local intensityT = max(0, min(1, math.log(intensity / 0.1) / math.log(100.0 / 0.1)))
 		blurStep = floor(1 + intensityT * (MAX_BLUR_STEP - 1) + 0.5)
 		blurStep = max(1, min(blurStep, floor(radius / squareSize / 2)))
 		blurStride = sw + 2 * blurStep
 		blurBuf = scratchBlurHeights
-		for pz = 0, sh - 1 + 2 * blurStep do
+		local padRows = sh + 2 * blurStep
+		for pz = 0, padRows - 1 do
 			local zCell = centerCellZ + (pz - blurStep - sCz)
 			local bz = max(0, min(mapSizeZ, zCell * squareSize))
 			local rowBase = pz * blurStride
-			for px = 0, sw - 1 + 2 * blurStep do
+			for px = 0, blurStride - 1 do
 				local xCell = centerCellX + (px - blurStep - sCx)
 				local bx = max(0, min(mapSizeX, xCell * squareSize))
 				blurBuf[rowBase + px + 1] = GetGroundHeight(bx, bz)
 			end
 		end
+		-- SAT[r][c] = sum of blurBuf rows < r, cols < c (zero first row/col).
+		blurSAT = scratchBlurSAT
+		satStride = blurStride + 1
+		for c = 1, satStride do
+			blurSAT[c] = 0
+		end
+		for r = 1, padRows do
+			local rowBase = r * satStride
+			local prevBase = rowBase - satStride
+			local bufBase = (r - 1) * blurStride
+			blurSAT[rowBase + 1] = 0
+			local rowSum = 0
+			for c = 1, blurStride do
+				rowSum = rowSum + blurBuf[bufBase + c]
+				blurSAT[rowBase + c + 1] = blurSAT[prevBase + c + 1] + rowSum
+			end
+		end
+		local boxSide = 2 * blurStep + 1
+		blurInvArea = 1 / (boxSide * boxSide)
 	end
 
 	-- Reuse scratch tables to reduce per-frame allocation
@@ -881,24 +905,19 @@ local function applyTerraform(
 						local current
 						local blurTarget
 						if localBlur then
-							local rowN = iz * blurStride
-							local rowC = (iz + blurStep) * blurStride
-							local rowS = (iz + 2 * blurStep) * blurStride
-							local colW = ix + 1
-							local colC = ix + blurStep + 1
-							local colE = ix + 2 * blurStep + 1
-							current = blurBuf[rowC + colC]
+							current = blurBuf[(iz + blurStep) * blurStride + ix + blurStep + 1]
+							-- Dense box mean over padded rows [iz, iz+2*blurStep],
+							-- cols [ix, ix+2*blurStep] via 4 SAT corner lookups.
+							local r0Base = iz * satStride
+							local r1Base = (iz + 2 * blurStep + 1) * satStride
+							local c0 = ix + 1
+							local c1 = ix + 2 * blurStep + 2
 							blurTarget = (
-								blurBuf[rowN + colW]
-								+ blurBuf[rowN + colC]
-								+ blurBuf[rowN + colE]
-								+ blurBuf[rowC + colW]
-								+ blurBuf[rowC + colE]
-								+ blurBuf[rowS + colW]
-								+ blurBuf[rowS + colC]
-								+ blurBuf[rowS + colE]
-								+ current
-							) / 9
+								blurSAT[r1Base + c1]
+								- blurSAT[r0Base + c1]
+								- blurSAT[r1Base + c0]
+								+ blurSAT[r0Base + c0]
+							) * blurInvArea
 						else
 							current = GetGroundHeight(x, z)
 						end
