@@ -5,8 +5,6 @@
 -------------------------------------------------------------------------------
 
 local spGetUnitPosition = Spring.GetUnitPosition
----@type fun(unitID: number, count: integer): commands: Command[]
-local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
@@ -271,44 +269,6 @@ local function pickUnits(pool, targetCount, selectedSet, append)
 end
 
 -------------------------------------------------------------------------------
--- Command queue
--------------------------------------------------------------------------------
-
--- Returns true if `unitId`'s command queue contains a CMD_WAIT anywhere.
--- Used by the uncategorized-reserve path in UnitCreated to skip the selection
--- auto-extend feature for a freshly resurrected unit (rez bots leave units in
--- CMD_WAIT until fully healed).
----@param unitId number
----@return boolean
-local function unitQueueHasWait(unitId)
-	local cmds = spGetUnitCommands(unitId, -1)
-	if not cmds then
-		return false
-	end
-	for i = 1, #cmds do
-		if cmds[i].id == CMD.WAIT then
-			return true
-		end
-	end
-	return false
-end
-
--- Returns true if the factory's command queue ends with CMD_WAIT or
--- CMD_PATROL — i.e. the rally's last waypoint is a "stay busy here" signal.
--- Used to opt the reserve out of the selection auto-extend feature.
----@param factoryId number
----@return boolean
-local function factoryRallyEndsWithWaitOrPatrol(factoryId)
-	local cmds = spGetUnitCommands(factoryId, -1)
-	if not cmds or #cmds == 0 then
-		return false
-	end
-
-	local lastId = cmds[#cmds].id
-	return lastId == CMD.WAIT or lastId == CMD.PATROL
-end
-
--------------------------------------------------------------------------------
 -- Mouse / world position
 -------------------------------------------------------------------------------
 
@@ -410,8 +370,6 @@ return {
 	poolFullySelected = poolFullySelected,
 	resolveTargetCount = resolveTargetCount,
 	pickUnits = pickUnits,
-	unitQueueHasWait = unitQueueHasWait,
-	factoryRallyEndsWithWaitOrPatrol = factoryRallyEndsWithWaitOrPatrol,
 	getMouseWorldPos = getMouseWorldPos,
 	addExcludedNames = addExcludedNames,
 }
