@@ -269,6 +269,9 @@ local function getUptime(projectile, height)
 end
 
 ---@class ProjectileParams
+---@field cegtag number
+---@field maxRange number
+---@field tracking number
 ---@field upTime number
 local projectileParams = {
 	pos   = positionGuidance,
