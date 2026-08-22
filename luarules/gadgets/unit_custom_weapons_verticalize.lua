@@ -102,6 +102,7 @@ local inSpawnProjectile = false
 --------------------------------------------------------------------------------
 -- Vectors minilib -------------------------------------------------------------
 
+local ARC_EPSILON = 1e-6
 local ARC_NORMAL_EPSILON = 1 - 1e-6
 
 local function distanceXZ(position1, position2)
@@ -428,33 +429,34 @@ local function verticalize(projectileID, projectile)
 	local sinPitch = 1 - distance * projectile.cruiseEndInverse
 	if sinPitch < 0 then sinPitch = 0 end
 	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
-	local distInverse = cosPitch / distance
 
 	-- Unit vector towards target
-	local tx = dx * distInverse
-	local ty = -sinPitch
-	local tz = dz * distInverse
-
-	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
-
-	if cosAngle >= ARC_NORMAL_EPSILON then
-		scripted[projectileID] = nil
-		Spring.SetProjectileMoveControl(projectileID, false)
-		return
+	local tx, ty, tz = 0, -sinPitch, 0
+	if distance > 0 then
+		local distInverse = cosPitch / distance
+		tx = dx * distInverse
+		tz = dz * distInverse
 	end
 
-	-- Spherical-lerp velocity toward the target up to the turnRate
-	local angle = math_acos(cosAngle < -1.0 and -1.0 or cosAngle)
-	local factor = projectile.turnRate / angle
-	if factor < ARC_NORMAL_EPSILON then
-		local weight1 = math_sin((1 - factor) * angle) / speed
-		local weight2 = math_sin(factor * angle)
-		local scale = speed / math_sin(angle)
-		vx = (vx * weight1 + tx * weight2) * scale
-		vy = (vy * weight1 + ty * weight2) * scale
-		vz = (vz * weight1 + tz * weight2) * scale
-	else
-		vx, vy, vz = tx * speed, ty * speed, tz * speed
+	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
+	if cosAngle > 1 then cosAngle = 1 elseif cosAngle < -1 then cosAngle = -1 end
+
+	-- Spherical-lerp velocity toward the target up to the turnRate.
+	-- A vanishing sine is parallel or antiparallel so keeps steady.
+	local sinAngle = math_sqrt(1 - cosAngle * cosAngle)
+	if sinAngle > ARC_EPSILON then
+		local angle = math_acos(cosAngle)
+		local factor = projectile.turnRate / angle
+		if factor < ARC_NORMAL_EPSILON then
+			local weight1 = math_sin((1 - factor) * angle) / speed
+			local weight2 = math_sin(factor * angle)
+			local scale = speed / sinAngle
+			vx = (vx * weight1 + tx * weight2) * scale
+			vy = (vy * weight1 + ty * weight2) * scale
+			vz = (vz * weight1 + tz * weight2) * scale
+		else
+			vx, vy, vz = tx * speed, ty * speed, tz * speed
+		end
 	end
 
 	local speedNew = speed + projectile.acceleration
