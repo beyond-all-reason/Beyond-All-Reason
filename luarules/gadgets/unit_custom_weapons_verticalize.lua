@@ -431,13 +431,13 @@ end
 
 local function cruise(projectileID, projectile, frame)
 	local position, velocity = getPositionAndVelocity(projectileID)
-	local target = projectile.target
 
 	if velocity[4] <= 0 then
 		return frame + 1 -- guidance will div0
 	end
 
 	-- Most vertical-launch missiles accelerate slowly so are still gaining speed here.
+	local target = projectile.target
 	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
 	if not position:isInCylinder(target, cruiseEndRadius) then
 		return frame + 1
@@ -464,6 +464,8 @@ local function verticalize(projectileID, projectile)
 	local dz = target[3] - pz
 	local distance = math_diag(dx, dz)
 
+	-- We don't have many weapondef-invariant checks left, so this
+	-- may be useful only for consistently shaping the drop, now.
 	local sinPitch = 1 - distance * projectile.cruiseEndInverse
 	if sinPitch < 0 then
 		sinPitch = 0
