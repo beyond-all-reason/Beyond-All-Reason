@@ -244,6 +244,65 @@ local function drawWindow(activetab)
 	end
 end
 
+-- Squad Selection is opt-in and some its gestures depend on which playstyle preset is active, so this section is built from the widget's config.
+-- Its settings panel calls WG['keybinds'].reloadBindings() whenever that changes.
+local function appendSquadKeybinds()
+	local api = WG["squadselection"]
+	if api == nil or api.getConfig == nil then
+		return
+	end
+	local squadConfig = api.getConfig()
+	if squadConfig == nil then
+		return
+	end
+
+	local function add(key, text)
+		keybindsText[#keybindsText + 1] = { type = lineType.key, key = key, text = text }
+	end
+	local function i18n(name)
+		return BAR.I18N("ui.keybinds.squads." .. name)
+	end
+
+	keybindsText[#keybindsText + 1] = { type = lineType.blank }
+	keybindsText[#keybindsText + 1] = { type = lineType.title, text = i18n("title") }
+
+	if squadConfig.leftClickSelectsSquad then
+		add(i18n("selectKey"), i18n("select"))
+		add(i18n("appendKey"), i18n("append"))
+		add(i18n("filteredKey"), i18n("filtered"))
+		if (squadConfig.viewselectionDoubleTapMs or 0) > 0 then
+			add(i18n("viewKey"), i18n("view"))
+		end
+	end
+
+	add(i18n("groupKey"), i18n("group"))
+
+	-- Which gesture creates a squad.
+	local createKey
+	if squadConfig.rightClickSquadCreate then
+		createKey = i18n("createRightClickKey")
+	elseif squadConfig.ctrlRightClickCreatesSquad then
+		createKey = i18n("createCtrlKey")
+	elseif squadConfig.ctrlRightClickDragCreatesSquad then
+		createKey = i18n("createCtrlDragKey")
+	else
+		createKey = getActionHotkey("squad_create")
+	end
+	add(createKey, i18n("create"))
+
+	if squadConfig.rightClickMovesSquad then
+		add(i18n("moveKey"), i18n("move"))
+		add(i18n("moveAltKey"), i18n("moveAlt"))
+		add(i18n("moveQueueKey"), i18n("moveQueue"))
+		add(i18n("moveFormationKey"), i18n("moveFormation"))
+		add(i18n("moveSelectKey"), i18n("moveSelect"))
+	end
+
+	add(getActionHotkey("squad_cycle_recent"), i18n("cycleRecent"))
+	add(getActionHotkey("squad_cycle_idle"), i18n("cycleIdle"))
+	add(getActionHotkey("squad_limit_flip"), i18n("limitFlip"))
+end
+
 local function refreshText()
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -569,6 +628,8 @@ local function refreshText()
 			text = BAR.I18N("ui.keybinds.console.pause"),
 		},
 	}
+
+	appendSquadKeybinds()
 end
 
 function widget:ViewResize()
