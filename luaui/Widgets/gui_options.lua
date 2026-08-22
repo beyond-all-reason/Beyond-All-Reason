@@ -8984,18 +8984,18 @@ function init()
 		},
 
 		-- SQUAD HULLS (widget: "Squad Selection", WG['squadselection']). 
-		{ id = "label_squad_hulls", group = "ui", name = Spring.I18N('ui.settings.option.squadSelection_header_hulls'), category = types.basic },
+		{ id = "label_squad_hulls", group = "ui", name = BAR.I18N('ui.settings.option.squadSelection_header_hulls'), category = types.basic },
 		{ id = "label_squad_hulls_spacer", group = "ui", category = types.basic },
 		{
 			id = "squad_hullDisplayMode",
 			group = "ui",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_hullDisplayMode'),
+			name = BAR.I18N('ui.settings.option.squadSelection_hullDisplayMode'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt2'),
-				Spring.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt3'),
+				BAR.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt1'),
+				BAR.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt2'),
+				BAR.I18N('ui.settings.option.squadSelection_hullDisplayMode_opt3'),
 			},
 			-- Derive the index from WG now (at init), so the cached draw list shows the
 			-- right option immediately. onload re-derives the same value on panel open.
@@ -9003,7 +9003,7 @@ function init()
 				or (WG['squadselection'].getVisualizationMode() ~= "convexHull" and 1)
 				or (WG['squadselection'].getShowReserveSquads() and 2)
 				or 3,
-			description = Spring.I18N('ui.settings.option.squadSelection_hullDisplayMode_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_hullDisplayMode_descr'),
 			onload = function(i)
 				local v = 1
 				if WG['squadselection'] ~= nil then
@@ -9035,13 +9035,13 @@ function init()
 			id = "squad_convexHullPadding",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_Padding'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelectionHull_Padding'),
 			type = "slider",
 			min = 0,
 			max = 200,
 			step = 5,
 			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullPadding ~= nil and WG['squadselectionhull'].getConvexHullPadding()) or 60,
-			description = Spring.I18N('ui.settings.option.squadSelectionHull_Padding_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelectionHull_Padding_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection Hull", "squad_convexHullPadding", { 'convexHullPadding' })
 			end,
@@ -9054,13 +9054,13 @@ function init()
 			id = "squad_convexHullArcResolution",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_ArcResolution'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelectionHull_ArcResolution'),
 			type = "slider",
 			min = 0.05,
 			max = 1.0,
 			step = 0.05,
 			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullArcResolution ~= nil and WG['squadselectionhull'].getConvexHullArcResolution()) or 0.4,
-			description = Spring.I18N('ui.settings.option.squadSelectionHull_ArcResolution_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelectionHull_ArcResolution_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection Hull", "squad_convexHullArcResolution", { 'convexHullArcResolution' })
 			end,
@@ -9073,13 +9073,13 @@ function init()
 			id = "squad_convexHullFillOpacity",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_FillOpacity'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelectionHull_FillOpacity'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
 			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullFillOpacity ~= nil and WG['squadselectionhull'].getConvexHullFillOpacity()) or 0.25,
-			description = Spring.I18N('ui.settings.option.squadSelectionHull_FillOpacity_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelectionHull_FillOpacity_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection Hull", "squad_convexHullFillOpacity", { 'convexHullFillOpacity' })
 			end,
@@ -9092,7 +9092,7 @@ function init()
 			id = "squad_convexHullBorderOpacity",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_BorderOpacity'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelectionHull_BorderOpacity'),
 			type = "slider",
 			min = 0,
 			max = 1,
@@ -9110,7 +9110,7 @@ function init()
 			id = "squad_convexHullBorderThickness",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_BorderThickness'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelectionHull_BorderThickness'),
 			type = "slider",
 			min = 0.5,
 			max = 5,
@@ -9127,18 +9127,18 @@ function init()
 			id = "squad_convexHullColorMode",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadColorMode'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_squadColorMode'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt2'),
-				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt3'),
+				BAR.I18N('ui.settings.option.squadSelection_squadColorMode_opt1'),
+				BAR.I18N('ui.settings.option.squadSelection_squadColorMode_opt2'),
+				BAR.I18N('ui.settings.option.squadSelection_squadColorMode_opt3'),
 			},
 			value = (WG['squadselection'] == nil and 1)
 				or (WG['squadselection'].getSquadColorMode() == "custom" and 2)
 				or (WG['squadselection'].getSquadColorMode() == "squad" and 3)
 				or 1,
-			description = Spring.I18N('ui.settings.option.squadSelection_squadColorMode_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_squadColorMode_descr'),
 			onload = function(i)
 				local raw = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadColorMode ~= nil and WG['squadselection'].getSquadColorMode()) or "player"
 				local modes = { "player", "custom", "squad" }
@@ -9159,13 +9159,13 @@ function init()
 			id = "squad_convexHullCustomColorR",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorR'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_squadCustomColorR'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorR ~= nil and WG['squadselection'].getSquadCustomColorR()) or 0,
-			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorR_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_squadCustomColorR_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { 'squadCustomColorR' })
 			end,
@@ -9178,13 +9178,13 @@ function init()
 			id = "squad_convexHullCustomColorG",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorG'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_squadCustomColorG'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorG ~= nil and WG['squadselection'].getSquadCustomColorG()) or 0.3,
-			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorG_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_squadCustomColorG_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { 'squadCustomColorG' })
 			end,
@@ -9197,13 +9197,13 @@ function init()
 			id = "squad_convexHullCustomColorB",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorB'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_squadCustomColorB'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorB ~= nil and WG['squadselection'].getSquadCustomColorB()) or 0.7,
-			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorB_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_squadCustomColorB_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { 'squadCustomColorB' })
 			end,
@@ -9740,7 +9740,7 @@ function init()
 		},
 
 		-- SQUAD SELECTION (widget: "Squad Selection", WG['squadselection'])
-		{ id = "label_squad", group = "game", name = Spring.I18N('ui.settings.option.squadSelection_header'), category = types.basic },
+		{ id = "label_squad", group = "game", name = BAR.I18N('ui.settings.option.squadSelection_header'), category = types.basic },
 		{ id = "label_squad_spacer", group = "game", category = types.basic },
 
 		-- Playstyle preset. Off disables the widgets entirely (the default), every other value enables them and writes the settings it owns.
@@ -9748,17 +9748,17 @@ function init()
 			id = "squad_preset",
 			group = "game",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_preset'),
+			name = BAR.I18N('ui.settings.option.squadSelection_preset'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_preset_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_preset_opt2'),
-				Spring.I18N('ui.settings.option.squadSelection_preset_opt3'),
-				Spring.I18N('ui.settings.option.squadSelection_preset_opt4'),
-				Spring.I18N('ui.settings.option.squadSelection_preset_opt5'),
+				BAR.I18N('ui.settings.option.squadSelection_preset_opt1'),
+				BAR.I18N('ui.settings.option.squadSelection_preset_opt2'),
+				BAR.I18N('ui.settings.option.squadSelection_preset_opt3'),
+				BAR.I18N('ui.settings.option.squadSelection_preset_opt4'),
+				BAR.I18N('ui.settings.option.squadSelection_preset_opt5'),
 			},
 			value = squadPreset.index[squadPreset.get()] or 1,
-			description = Spring.I18N('ui.settings.option.squadSelection_preset_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_preset_descr'),
 			onload = function(i)
 				options[i].value = squadPreset.index[squadPreset.get()] or 1
 			end,
@@ -9772,10 +9772,10 @@ function init()
 			id = "squad_cyclingToNextSquad",
 			group = "game",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_cyclingToNextSquad'),
+			name = BAR.I18N('ui.settings.option.squadSelection_cyclingToNextSquad'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getCyclingToNextSquad ~= nil and WG['squadselection'].getCyclingToNextSquad()),
-			description = Spring.I18N('ui.settings.option.squadSelection_cyclingToNextSquad_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_cyclingToNextSquad_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_cyclingToNextSquad", { 'cyclingToNextSquad' })
 			end,
@@ -9788,10 +9788,10 @@ function init()
 			id = "squad_leftClickSelectsSquad",
 			group = "game",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_leftClickSelectsSquad'),
+			name = BAR.I18N('ui.settings.option.squadSelection_leftClickSelectsSquad'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getLeftClickSelectsSquad ~= nil and WG['squadselection'].getLeftClickSelectsSquad()),
-			description = Spring.I18N('ui.settings.option.squadSelection_leftClickSelectsSquad_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_leftClickSelectsSquad_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_leftClickSelectsSquad", { 'leftClickSelectsSquad' })
 			end,
@@ -9804,10 +9804,10 @@ function init()
 			id = "squad_leftClickAlternativeSelection",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getLeftClickAlternativeSelection ~= nil and WG['squadselection'].getLeftClickAlternativeSelection()),
-			description = Spring.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_leftClickAlternativeSelection", { 'leftClickAlternativeSelection' })
 			end,
@@ -9821,20 +9821,20 @@ function init()
 			id = "squad_squadCreateMethod",
 			group = "game",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod'),
+			name = BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt2'),
-				Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt3'),
-				Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt4'),
+				BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt1'),
+				BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt2'),
+				BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt3'),
+				BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod_opt4'),
 			},
 			value = (WG['squadselection'] == nil and 1)
 				or (WG['squadselection'].getRightClickSquadCreate() and 2)
 				or (WG['squadselection'].getCtrlRightClickCreatesSquad() and 3)
 				or (WG['squadselection'].getCtrlRightClickDragCreatesSquad() and 4)
 				or 1,
-			description = Spring.I18N('ui.settings.option.squadSelection_squadCreateMethod_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_squadCreateMethod_descr'),
 			onload = function(i)
 				local v = 1
 				if WG['squadselection'] ~= nil then
@@ -9859,10 +9859,10 @@ function init()
 			id = "squad_rightClickMovesSquad",
 			group = "game",
 			category = types.basic,
-			name = Spring.I18N('ui.settings.option.squadSelection_rightClickMovesSquad'),
+			name = BAR.I18N('ui.settings.option.squadSelection_rightClickMovesSquad'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getRightClickMovesSquad ~= nil and WG['squadselection'].getRightClickMovesSquad()),
-			description = Spring.I18N('ui.settings.option.squadSelection_rightClickMovesSquad_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_rightClickMovesSquad_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_rightClickMovesSquad", { 'rightClickMovesSquad' })
 			end,
@@ -9876,14 +9876,14 @@ function init()
 			id = "squad_rightClickMoveControlsReserves",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves'),
+			name = widgetOptionColor .. "   " .. BAR.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2'),
+				BAR.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1'),
+				BAR.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2'),
 			},
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getRightClickMoveControlsReserves ~= nil and WG['squadselection'].getRightClickMoveControlsReserves() and 2) or 1,
-			description = Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr'),
 			onload = function(i)
 				local v = 1
 				if WG['squadselection'] ~= nil and WG['squadselection'].getRightClickMoveControlsReserves ~= nil and WG['squadselection'].getRightClickMoveControlsReserves() then
@@ -9900,10 +9900,10 @@ function init()
 			id = "squad_mergeIntoReserves",
 			group = "game",
 			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_mergeIntoReserves'),
+			name = BAR.I18N('ui.settings.option.squadSelection_mergeIntoReserves'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getMergeIntoReserves ~= nil and WG['squadselection'].getMergeIntoReserves()),
-			description = Spring.I18N('ui.settings.option.squadSelection_mergeIntoReserves_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_mergeIntoReserves_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_mergeIntoReserves", { 'mergeIntoReserves' })
 			end,
@@ -9916,13 +9916,13 @@ function init()
 			id = "squad_mruSize",
 			group = "game",
 			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_mruSize'),
+			name = BAR.I18N('ui.settings.option.squadSelection_mruSize'),
 			type = "slider",
 			min = 1,
 			max = 9,
 			step = 1,
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getMruSize ~= nil and WG['squadselection'].getMruSize()) or 3,
-			description = Spring.I18N('ui.settings.option.squadSelection_mruSize_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_mruSize_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_mruSize", { 'mruSize' })
 			end,
@@ -9935,10 +9935,10 @@ function init()
 			id = "squad_excludeConstructors",
 			group = "game",
 			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_excludeConstructors'),
+			name = BAR.I18N('ui.settings.option.squadSelection_excludeConstructors'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getExcludeConstructors ~= nil and WG['squadselection'].getExcludeConstructors()),
-			description = Spring.I18N('ui.settings.option.squadSelection_excludeConstructors_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_excludeConstructors_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_excludeConstructors", { 'excludeConstructors' })
 			end,
@@ -9954,10 +9954,10 @@ function init()
 			id = "squad_excludeResurrectionUnits",
 			group = "game",
 			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_excludeResurrectionUnits'),
+			name = BAR.I18N('ui.settings.option.squadSelection_excludeResurrectionUnits'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getExcludeResurrectionUnits ~= nil and WG['squadselection'].getExcludeResurrectionUnits()),
-			description = Spring.I18N('ui.settings.option.squadSelection_excludeResurrectionUnits_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_excludeResurrectionUnits_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { 'excludeResurrectionUnits' })
 			end,
@@ -9973,10 +9973,10 @@ function init()
 			id = "squad_excludeCombatEngineers",
 			group = "game",
 			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_excludeCombatEngineers'),
+			name = BAR.I18N('ui.settings.option.squadSelection_excludeCombatEngineers'),
 			type = "bool",
 			value = (WG['squadselection'] ~= nil and WG['squadselection'].getExcludeCombatEngineers ~= nil and WG['squadselection'].getExcludeCombatEngineers()),
-			description = Spring.I18N('ui.settings.option.squadSelection_excludeCombatEngineers_descr'),
+			description = BAR.I18N('ui.settings.option.squadSelection_excludeCombatEngineers_descr'),
 			onload = function(i)
 				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { 'excludeCombatEngineers' })
 			end,
