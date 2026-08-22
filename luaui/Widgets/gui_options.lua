@@ -3090,6 +3090,118 @@ function applyFilter()
 	windowList = gl.CreateList(DrawWindow)
 end
 
+-------------------------------------------------------------------------------
+-- Squad selection presets
+--
+-- The Squad Selection widget supports several playstyles, and each one wants a different set of its switches. Rather than show every switch to everyone, the panel offers a playstyle preset: picking one writes the settings that preset owns and hides their rows. Custom owns nothing and shows the full list.
+
+squadPreset = {
+	-- The playstyle definitions, shared with the widget.
+	definitions = VFS.Include("luaui/Include/squad_selection_presets.lua"),
+
+	-- Rows for settings a preset owns; hidden unless the preset is Custom. 
+	ownedOptions = {
+		'squad_cyclingToNextSquad',
+		'squad_leftClickAppendFiltersDomain',
+		'squad_squadCreateMethod',
+		'squad_rightClickMoveControlsReserves',
+		'squad_mergeIntoReserves',
+		'squad_selectionAutoExtend',
+	},
+
+	allOptions = {
+		'squad_cyclingToNextSquad',
+		'squad_leftClickSelectsSquad',
+		'squad_leftClickAppendFiltersDomain',
+		'squad_leftClickFilteredRetargets',
+		'squad_squadCreateMethod',
+		'squad_rightClickMovesSquad',
+		'squad_rightClickMoveControlsReserves',
+		'squad_mergeIntoReserves',
+		'squad_selectionAutoExtend',
+		'squad_mruSize',
+		'squad_excludeConstructors',
+		'squad_excludeResurrectionUnits',
+		'squad_excludeCombatEngineers',
+		'label_squad_hulls',
+		'label_squad_hulls_spacer',
+		'squad_hullDisplayMode',
+		'squad_convexHullPadding',
+		'squad_convexHullArcResolution',
+		'squad_convexHullFillOpacity',
+		'squad_convexHullBorderOpacity',
+		'squad_convexHullBorderThickness',
+		'squad_convexHullColorMode',
+		'squad_convexHullCustomColorR',
+		'squad_convexHullCustomColorG',
+		'squad_convexHullCustomColorB',
+	},
+
+	-- Rows that only make sense while the hull widget itself is running.
+	hullOptions = {
+		'squad_convexHullPadding',
+		'squad_convexHullArcResolution',
+		'squad_convexHullFillOpacity',
+		'squad_convexHullBorderOpacity',
+		'squad_convexHullBorderThickness',
+		'squad_convexHullColorMode',
+		'squad_convexHullCustomColorR',
+		'squad_convexHullCustomColorG',
+		'squad_convexHullCustomColorB',
+	},
+}
+-- Index-aligned with the squad_preset select's option labels. 'off' is not a preset but the widget being disabled, so it leads the shared list.
+squadPreset.names = { 'off' }
+for _, name in ipairs(squadPreset.definitions.names) do
+	squadPreset.names[#squadPreset.names + 1] = name
+end
+squadPreset.index = table.invert(squadPreset.names)
+
+-- The widget is unloaded while the preset is Off
+function squadPreset.get()
+	if not GetWidgetToggleValue("Squad Selection") then
+		return 'off'
+	end
+	if WG['squadselection'] ~= nil and WG['squadselection'].getPreset ~= nil then
+		return WG['squadselection'].getPreset()
+	end
+	local data = widgetHandler.configData["Squad Selection"]
+	return (data and data.preset) or 'custom'
+end
+
+function squadPreset.apply(name)
+	if name == 'off' then
+		if GetWidgetToggleValue("Squad Selection Hull") then
+			widgetHandler:DisableWidget("Squad Selection Hull")
+		end
+		if GetWidgetToggleValue("Squad Selection") then
+			widgetHandler:DisableWidget("Squad Selection")
+		end
+		scheduleInit = true
+		return
+	end
+
+	-- The two widgets are a pair: the hull widget only draws state the main one owns, so a preset enables and disables both.
+	if not GetWidgetToggleValue("Squad Selection") then
+		widgetHandler:EnableWidget("Squad Selection")
+	end
+	if not GetWidgetToggleValue("Squad Selection Hull") then
+		widgetHandler:EnableWidget("Squad Selection Hull")
+	end
+
+	for key, value in pairs(squadPreset.definitions.values[name] or {}) do
+		saveOptionValue("Squad Selection", "squadselection", 'set' .. key:sub(1, 1):upper() .. key:sub(2), { key }, value)
+	end
+	saveOptionValue("Squad Selection", nil, nil, { 'preset' }, name)
+
+	local api = WG['squadselection']
+	if api ~= nil and api.applyPreset ~= nil then
+		api.applyPreset(name)
+	end
+
+	scheduleInit = true
+end
+
 function init()
 	presets = {
 		lowest = {
@@ -9636,6 +9748,31 @@ function init()
 		{ id = "label_squad", group = "game", name = Spring.I18N('ui.settings.option.squadSelection_header'), category = types.basic },
 		{ id = "label_squad_spacer", group = "game", category = types.basic },
 
+		-- Playstyle preset. Off disables the widgets entirely (the default), every other value enables them and writes the settings it owns.
+		{
+			id = "squad_preset",
+			group = "game",
+			category = types.basic,
+			name = Spring.I18N('ui.settings.option.squadSelection_preset'),
+			type = "select",
+			options = {
+				Spring.I18N('ui.settings.option.squadSelection_preset_opt1'),
+				Spring.I18N('ui.settings.option.squadSelection_preset_opt2'),
+				Spring.I18N('ui.settings.option.squadSelection_preset_opt3'),
+				Spring.I18N('ui.settings.option.squadSelection_preset_opt4'),
+				Spring.I18N('ui.settings.option.squadSelection_preset_opt5'),
+			},
+			value = squadPreset.index[squadPreset.get()] or 1,
+			description = Spring.I18N('ui.settings.option.squadSelection_preset_descr'),
+			onload = function(i)
+				options[i].value = squadPreset.index[squadPreset.get()] or 1
+			end,
+			onchange = function(_, value)
+				-- Toggles widgets, so it schedules the rebuild for next frame rather than rebuilding here. See squadPreset.apply().
+				squadPreset.apply(squadPreset.names[value] or 'off')
+			end,
+		},
+
 		{
 			id = "squad_cyclingToNextSquad",
 			group = "game",
@@ -12254,16 +12391,31 @@ function init()
 		options[getOptionByID("gridmenu_shiftkeymodifier")] = nil
 	end
 
-	if not GetWidgetToggleValue('Squad Selection Hull') then
-		options[getOptionByID('squad_convexHullPadding')] = nil
-		options[getOptionByID('squad_convexHullArcResolution')] = nil
-		options[getOptionByID('squad_convexHullFillOpacity')] = nil
-		options[getOptionByID('squad_convexHullBorderOpacity')] = nil
-		options[getOptionByID('squad_convexHullBorderThickness')] = nil
-		options[getOptionByID('squad_convexHullColorMode')] = nil
-		options[getOptionByID('squad_convexHullCustomColorR')] = nil
-		options[getOptionByID('squad_convexHullCustomColorG')] = nil
-		options[getOptionByID('squad_convexHullCustomColorB')] = nil
+	local function removeOptions(ids)
+		for _, id in ipairs(ids) do
+			local i = getOptionByID(id)
+			if i then
+				options[i] = nil
+			end
+		end
+	end
+
+	-- Squad selection: the playstyle preset decides how much of the section is drawn. Off leaves just the preset select, Custom shows everything, and any other preset hides the rows it owns because it writes them itself.
+	if not widgetHandler.knownWidgets["Squad Selection"] then
+		removeOptions(squadPreset.allOptions)
+		removeOptions({ 'squad_preset', 'label_squad', 'label_squad_spacer' })
+	else
+		local activePreset = squadPreset.get()
+		if activePreset == 'off' then
+			removeOptions(squadPreset.allOptions)
+		else
+			if activePreset ~= 'custom' then
+				removeOptions(squadPreset.ownedOptions)
+			end
+			if not GetWidgetToggleValue('Squad Selection Hull') then
+				removeOptions(squadPreset.hullOptions)
+			end
+		end
 	end
 
 	if
