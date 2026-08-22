@@ -30,7 +30,7 @@ local mapBorderStyle = "texture" -- either 'texture' or 'cutaway'
 local gridSize = 32
 local gridSizeDeferred = 2 * gridSize
 
-local hasBadCulling = false
+local hasBadCulling = false -- AMD+Linux combo: face culling drops half the tris
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -730,7 +730,7 @@ function widget:Initialize()
 	planeVAO:AttachIndexBuffer(planeIndexVBO)
 	planeVAO:AttachInstanceBuffer(terrainInstanceVBODeferred)
 
-	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
+	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	--spEcho(gsSrc)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -1017,9 +1017,9 @@ function widget:DrawGroundDeferred()
 	--if true then return end
 	--local q = gl.CreateQuery()
 	if hasBadCulling then
-		gl.Culling(true)
-	else
 		gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
+	else
+		gl.Culling(GL.BACK)
 	end
 	--gl.DepthTest(GL.LEQUAL)
 	--gl.DepthMask(true)
@@ -1050,7 +1050,7 @@ function widget:DrawGroundDeferred()
 	--gl.DepthTest(GL.ALWAYS)
 	--gl.DepthTest(false)
 	--gl.DepthMask(false)
-	gl.Culling(GL.BACK)
+	gl.Culling(false) -- restore the default state, don't leak face culling into later draws
 end
 
 function widget:DrawWorldPreUnit()
@@ -1062,9 +1062,9 @@ function widget:DrawWorldPreUnit()
 
 	--local q = gl.CreateQuery()
 	if hasBadCulling then
-		gl.Culling(true)
-	else
 		gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
+	else
+		gl.Culling(GL.BACK)
 	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
@@ -1098,7 +1098,9 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(GL.ALWAYS)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
-	gl.Culling(GL.BACK)
+	-- Restore the default state. Leaving GL_CULL_FACE enabled here leaked into widgets drawn
+	-- after this one in DrawWorldPreUnit (e.g. buildsquare quads got back-face culled).
+	gl.Culling(false)
 end
 
 local function NightFactorChanged(red, green, blue)
