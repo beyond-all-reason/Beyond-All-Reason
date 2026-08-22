@@ -3614,25 +3614,6 @@ margin-top: 3dp;
 	font-size: 1.05rem;
 	color: #b9bfca;
 }
-/* Texture stepper: slim arrows around a value box showing the current pick. */
-.tf-s4-arrow {
-	flex: 0 0 auto;
-	width: 34dp;
-	height: 30dp;
-}
-.tf-s4-name {
-	flex: 1;
-	height: 30dp;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #33333c;
-	border: 1dp #50505a80;
-	border-radius: 6dp;
-	font-size: 1.05rem;
-	color: #e5e7eb;
-}
-
 /* === BIOME LIBRARY picker (TILESET tool) ================================== */
 /* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
 /* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */

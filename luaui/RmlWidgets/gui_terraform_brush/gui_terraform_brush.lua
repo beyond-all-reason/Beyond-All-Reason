@@ -9803,34 +9803,6 @@ local initialModel = {
 			end
 		end
 	end,
-	-- EXTRA LAYER texture stepper: steps the suite through the active biome's
-	-- catalog in either direction (first entry = the biome's own plateau pick,
-	-- stored as nil so a biome swap falls back to the new biome's pick). The
-	-- name box text is synced in tf_tileset.M.sync from getSlot4State.
-	onTsSlot4Mat = function(_event, dir)
-		local T = WG.TilesetTerrain
-		if not (T and T.getSlot4Materials and T.setSlot4Material) then
-			return
-		end
-		local list, _, current = T.getSlot4Materials()
-		local n = #list
-		if n == 0 then
-			return
-		end
-		local cur = current or list[1].asset
-		local idx = 1
-		for i = 1, n do
-			if list[i].asset == cur then
-				idx = i
-				break
-			end
-		end
-		local step = (dir == "prev") and -1 or 1
-		local nxt = ((idx - 1 + step) % n) + 1
-		if T.setSlot4Material((nxt == 1) and nil or list[nxt].asset) then
-			playSound("click")
-		end
-	end,
 	onTsToggleSkyboxSync = function(_event)
 		widgetState.tsSkyboxSync = not widgetState.tsSkyboxSync
 		playSound(widgetState.tsSkyboxSync and "toggleOn" or "toggleOff")
@@ -14510,8 +14482,73 @@ local function drawSurfPaletteThumbs()
 				local x = div.absolute_left
 				local y = div.absolute_top
 				if gl.Texture(0, tex) then
-					-- centered crop: a full 4K tile at 52dp reads as noise,
-					-- a quarter-window shows the material's actual character
+					-- centered crop: a full 4K tile at 52dp reads as noise, so a
+					-- quarter-window shows the material's actual character.
+					-- Entries may widen it (the picker's hover preview is big
+					-- enough to want the whole tile).
+					local u0 = els[i].u0 or 0.25
+					local u1 = els[i].u1 or 0.75
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, u0, u0, u1, u1)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- GL albedo thumbnails for the EXTRA LAYER material tiles (tf_tileset.lua's
+-- rebuildS4Palette). Same mechanism as drawSurfPaletteThumbs above, but gated
+-- on the TILESET floating window, not the active tool — the window is
+-- tool-independent by design. On widgetState, not a local: the main chunk sits
+-- near Lua 5.1's 200-local ceiling.
+widgetState.drawTs4PaletteThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	-- OFF mode grays the row out via the disabled class; GL overdraw ignores
+	-- CSS opacity, so it has to skip explicitly.
+	if dm.tsSlot4Mode == "off" then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.ts4SectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.ts4PaletteEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			-- collapsed sections / hidden windows report zero size (the same
+			-- guard the surf palette relies on)
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if gl.Texture(0, tex) then
+					-- centered quarter-window crop, like the surf tiles: a full
+					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
 					gl.Texture(0, false)
 				end
@@ -14531,6 +14568,9 @@ function widget:DrawScreenPost()
 
 	-- SURFACE palette tile thumbnails (early-outs on its own tool check).
 	drawSurfPaletteThumbs()
+
+	-- EXTRA LAYER material tile thumbnails (early-outs on its own window check).
+	widgetState.drawTs4PaletteThumbs()
 
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.

@@ -6149,16 +6149,8 @@
 							</div>
 						</div>
 						<div id="ts-slot4-desc" class="tf-s4-desc mb-1">Flat ground above the height slider becomes this layer, like a mountain cap.</div>
-						<div id="ts-row-slot4-mat" class="flex flex-row gap-1 items-center mb-1">
-							<div class="tf-slider-label text-light">Texture</div>
-							<div class="tf-mode-btn tf-ts-row-btn tf-s4-arrow" data-event-mousedown="onTsSlot4Mat('prev')">
-								<div class="tf-btn-text">&lt;</div>
-							</div>
-							<div id="ts-slot4-mat-name" class="tf-s4-name">biome pick</div>
-							<div class="tf-mode-btn tf-ts-row-btn tf-s4-arrow" data-event-mousedown="onTsSlot4Mat('next')">
-								<div class="tf-btn-text">&gt;</div>
-							</div>
-						</div>
+						<!-- material tiles built by tf_tileset.lua; thumbs GL-overdrawn like the SURFACE palette -->
+						<div id="ts-slot4-mat-grid"></div>
 						<div id="ts-row-platHeight" class="flex flex-row gap-1 items-center mb-1">
 							<div id="ts-label-platHeight" class="tf-slider-label text-light">Starts at height</div>
 							<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('platHeight')" />
