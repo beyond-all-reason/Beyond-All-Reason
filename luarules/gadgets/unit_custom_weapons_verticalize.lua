@@ -198,6 +198,7 @@ local function getVerticalizeWeapon(weaponDef)
 		cruiseHeight = cruiseHeight,
 		turnRadius = turnRadiusMax,
 		chaseFactor = chaseFactor,
+		diveSpeedGain = math_pi * acceleration * (1 + chaseFactor) / turnRate,
 
 		tracking = weaponDef.tracks and turnRate or 0,
 		gravity = weaponDef.myGravity ~= 0 and -weaponDef.myGravity or nil,
@@ -266,6 +267,21 @@ local function getUptime(projectile, height)
 	local t1 = (-b + discriminant) / (2 * a)
 	local t2 = (-b - discriminant) / (2 * a)
 	return (t1 >= 0 and t2 >= 0) and math_min(t1, t2) or (t1 >= 0 and t1 or t2)
+end
+
+-- Descent curvature is constant at radius r := (1 + chase) * v / turnRate.
+-- The radius increases with chase factor, then. Once r exceeds the height,
+-- which has to be avoided by tuning the weapondef properly and has no fix,
+-- the projectile flies in on a wider drop and impacts before verticalized.
+--
+-- That impact comes before the quarter turn, then, at acos(1 - height/r).
+-- Taking the quarter turn as the arc length is therefore an upper bound:
+--     v^2 = speed^2 + 2 * acceleration * arc
+--  => v^2 - diveSpeedGain * v - speed^2 = 0
+local function getDiveSpeed(projectile, speed)
+	local gain = projectile.diveSpeedGain
+	local diveSpeed = 0.5 * (gain + math_sqrt(gain * gain + 4 * speed * speed))
+	return diveSpeed < projectile.speedMax and diveSpeed or projectile.speedMax
 end
 
 ---@class ProjectileParams
@@ -343,13 +359,13 @@ local function register(projectileID, weaponDefID)
 		speedMin = weapon.speedMin,
 		turnRate = weapon.turnRate,
 		chaseFactor = weapon.chaseFactor,
+		diveSpeedGain = weapon.diveSpeedGain,
 		target = target,
 		ascendHeight = ascendHeight,
 		turnRadius = turnRadius,
 
 		phase = 1,
 		pitch = 2,
-		cruiseEndRadius = 0,
 		cruiseEndInverse = 0,
 	}
 
@@ -411,30 +427,29 @@ local function turnToLevel(projectileID, projectile, frame)
 	end
 
 	projectile.phase = projectile.phase + 1
-	local cruiseEndRadius = (1 + projectile.chaseFactor) * projectile.speedMax / projectile.turnRate
-	projectile.cruiseEndRadius = cruiseEndRadius
-	projectile.cruiseEndInverse = 1 / cruiseEndRadius
+	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
 	local cruiseDistance = distanceXZ(getPosition(projectileID), projectile.target) - cruiseEndRadius
 	return frame + math_floor(cruiseDistance / projectile.speedMax) - checkWindowFrames
 end
 
 local function cruise(projectileID, projectile, frame)
-	local position = getPosition(projectileID)
+	local position, velocity = getPositionAndVelocity(projectileID)
 	local target = projectile.target
 
-	if not position:isInCylinder(target, projectile.cruiseEndRadius) then
-		return frame + 1
-	end
-
-	-- We can track position and velocity entirely in lua without any engine callouts.
-	local velocity = getVelocity(projectileID)
 	if velocity[4] <= 0 then
 		return frame + 1 -- guidance will div0
+	end
+
+	-- Most vertical-launch missiles accelerate slowly so are still gaining speed here.
+	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
+	if not position:isInCylinder(target, cruiseEndRadius) then
+		return frame + 1
 	end
 
 	-- We leave the engine `phase` tracking and begin using lua's scripted MoveControl.
 	moveControl[projectileID] = projectile
 
+	projectile.cruiseEndInverse = 1 / cruiseEndRadius
 	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
 	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
 	projectile.speed = velocity[4]
