@@ -1,4 +1,6 @@
 # August
+• [Allow Use All Units] New experimental modoption. Every factory and constructor can build the matching units of all factions
+	- Shared structures stay as your own faction's version, so there are no duplicate lab, mex or solar buttons
 • [Floating AA turrets] Stats made to match their land counterparts
 
 # July

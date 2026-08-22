@@ -3568,6 +3568,10 @@
 			"name": "Legion Faction",
 			"desc": "3rd experimental faction"
 		},
+		"experimentalunifiedfactions": {
+			"name": "Allow Use All Units",
+			"desc": "Every factory and constructor can build the matching units of all factions.\nShared structures stay as your own faction's version, faction-unique ones are added.\nCommanders are excluded. Legion units are only included when the Legion Faction option is also enabled."
+		},
 		"legionsimplifiedmexes": {
 			"name": "Legion Simplified Mexes",
 			"desc": "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e"

@@ -348,6 +348,9 @@ preProcessUnitDefs()
 if scavengersEnabled then
 	createScavengerUnitDefs()
 end
+if modOptions.experimentalunifiedfactions then
+	VFS.Include("unitbasedefs/unified_factions.lua").Apply(UnitDefs)
+end
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
