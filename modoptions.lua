@@ -1799,6 +1799,21 @@ local options = {
 			},
 		},
 	},
+	
+	{
+		key = "sub_header",
+		section = "options_extra",
+		type = "separator",
+	},
+	
+	{
+		key = "everyoneisparatrooper",
+		name = "Everyone is Paratrooper",
+		desc = "All units survive when their transport is destroyed mid-air, like the Commando does, instead of exploding. Somewhat damaging.",
+		type = "bool",
+		section = "options_extra",
+		def = false,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

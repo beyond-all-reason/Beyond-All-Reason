@@ -27,10 +27,12 @@ function gadget:GetInfo()
 	}
 end
 
+local everyoneIsParatrooper = Spring.GetModOptions().everyoneisparatrooper
+
 local isParatrooper = {}
 
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams.paratrooper or ud.customParams.subfolder == "other/hats" then
+	if ud.customParams.paratrooper or ud.customParams.subfolder == "other/hats" or everyoneIsParatrooper then
 		isParatrooper[udid] = true
 	end
 end

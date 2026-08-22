@@ -38,6 +38,9 @@ local fallDamageCompoundingFactor = 1.05
 --TestMoveOrder check; covers pos-vs-square-center height differences on sloped seafloor
 local drownDepthSlack = 8
 
+--check for modoption everyoneisparatrooper
+local everyoneIsParatrooper = Spring.GetModOptions().everyoneisparatrooper
+
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -68,10 +71,8 @@ local livingTransports = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local defData = {}
-	defData.fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
-	defData.drowningDamage = unitDef.health * drowningDamage
-	defData.fallDamage = unitDef.health * fallDamage * defData.fallDamageMultiplier
 	defData.unitDefID = unitDefID
+
 	if
 		unitDef.moveDef.depth
 		and unitDef.moveDef.smClass ~= Game.speedModClasses.Boat
@@ -94,6 +95,18 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		defData.isAmphibious = true
 		defData.isDrownable = false
 	end
+
+	--check if everyoneIsParatrooper, remove water fall damage if unit is amphib / hover, else, standard water fall damage
+    if everyoneIsParatrooper then
+        defData.fallDamageMultiplier = (defData.isAmphibious or defData.isHover) and 0 or 1
+    else
+        defData.fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
+    end
+	
+	--damage moved to end to allow amphib / hover checks to survive water
+	defData.drowningDamage = unitDef.health * drowningDamage
+	defData.fallDamage = unitDef.health * fallDamage * defData.fallDamageMultiplier
+
 	unitDefData[unitDefID] = defData
 end
 
