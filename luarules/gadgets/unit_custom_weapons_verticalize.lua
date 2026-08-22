@@ -214,8 +214,6 @@ local function scheduleAt(projectileID, frame)
 	bin[#bin + 1] = projectileID
 end
 
--- Launching -------------------------------------------------------------------
-
 local function getUnitPositionWithError(unitID, teamID)
 	return CallAsTeam(teamID, Spring.GetUnitPosition, unitID)
 end
@@ -231,6 +229,8 @@ local function getTargetPosition(projectileID)
 	end
 	return xyz
 end
+
+-- Launching -------------------------------------------------------------------
 
 local function getUptime(projectile, height)
 	local speedMin = projectile.speedMin
