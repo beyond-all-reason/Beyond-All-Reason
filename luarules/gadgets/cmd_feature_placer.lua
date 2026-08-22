@@ -109,24 +109,26 @@ local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
 
--- Visual scale applied per feature, keyed by live featureID. The engine stores
--- the scale inside the root piece matrix, which has no dedicated getter-side
--- "scale" field, so this table is the authority for capture/save. Entries only
--- exist for features that were actually scaled (scale ~= 1).
+-- Visual scale applied per feature, keyed by live featureID. Nothing engine-side
+-- records it (see applyFeatureScale), so this table is the only authority for
+-- capture/save. Entries exist only for features that were actually scaled.
 local featureScales = {}
 
 ----------------------------------------------------------------
 -- Per-feature scaling
 ----------------------------------------------------------------
--- Spring.SetFeaturePieceMatrix (engine 2025-06+) replaces a piece's local
--- matrix. Features run no scripts, so nothing else ever writes it: composing a
--- uniform scale into the ROOT piece scales the whole model, children included,
--- and it sticks for the feature's lifetime.
+-- There is no way to scale a feature's model from Lua on current engines, so
+-- placement-time scaling ships as pre-baked model variants and this path stays
+-- dormant: Spring.SetFeaturePieceMatrix looks like the API for it, but
+-- LocalModelPiece::SetPieceSpaceMatrix only validates the matrix and throws the
+-- geometry away, leaving a piece's transform derived solely from its pos/rot/
+-- scale, which nothing outside a unit animation script can write.
 --
--- Visual scale alone would desync interaction, so the collision volume, the
--- selection/reclaim radius+height, and the mid/aim positions are scaled along
--- with it. Footprint blocking stays def-side, which is fine for the 1x1
--- feature defs this tool mostly places.
+-- Kept because the rest of it is correct and cheap: were the matrix honoured,
+-- visual scale alone would desync interaction, so the collision volume, the
+-- selection/reclaim radius+height, and the mid/aim positions are scaled to
+-- match. Footprint blocking stays def-side, which is fine for the 1x1 feature
+-- defs this tool mostly places.
 local SCALE_EPSILON = 0.001
 local SCALE_MIN = 0.05
 local SCALE_MAX = 10
@@ -152,11 +154,12 @@ local function applyFeatureScale(featureID, s)
 			m[i] = m[i] * s
 		end
 	end
-	-- Engines to date REJECT matrices carrying scale: SetPieceSpaceMatrix gates
-	-- on IsRotOrRotTranMatrix() and discards the matrix (which is why the placer
-	-- ships baked model variants instead -- see tools/s3o_scale.py). Bail when
-	-- rejected so collision and radius are not scaled away from an unscaled
-	-- model. If a future engine accepts scale here, this path lights up whole.
+	-- Engines to date cannot scale a feature at all: SetPieceSpaceMatrix only
+	-- validates the matrix with IsRotOrRotTranMatrix() and discards it, which
+	-- is why scaling ships as pre-baked model variants instead. Bail when the
+	-- call reports the matrix unusable, so collision and radius are not scaled
+	-- away from a model that stayed its original size. If a future engine
+	-- accepts the matrix, this path lights up as written.
 	if not SetFeaturePieceMatrix(featureID, root, m) then
 		return
 	end

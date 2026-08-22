@@ -242,8 +242,8 @@ the placer reaches them only through snapping.
 **No variant sets ship yet**, so the sliders are currently inert: a def with no
 variants ignores the roll and places at its normal size, and the ghost preview
 shows exactly that. The fir tree variants that drove this feature are shelved on
-the `feature-densification` branch along with the tree clump work; they are
-baked by `s3o_scale.py` in the personal BAR tools collection, outside this repo.
+the `feature-densification` branch along with the tree clump work, together
+with the offline script that bakes them.
 
 - Rolls are bottom-heavy (many small, few large), matching a natural stand.
 - With **Clustered** distribution, scale correlates with distance to the cluster
