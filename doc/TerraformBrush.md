@@ -231,34 +231,37 @@ Distribution mode (random/regular/clustered) · Size/rotation/count/cadence slid
 
 #### Scale Variation
 
-Scale Min / Scale Max sliders (0.1–3.0×) give every placed feature its own
-rolled scale, realised by snapping the roll to the nearest **pre-baked model
-variant** and placing that def. Variants are baked offline by
-`s3o_scale.py` (personal BAR tools collection, outside this repo; run from the
-.sdd root) into `objects3d/terraformbrush/`, declared in `features/enginetrees_override.lua`
-(factors 0.40 / 0.55 / 0.70 / 0.85 / 1.0 / 1.15, `customParams.scale_base` +
-`scale_factor`); each variant's collision cylinder, wood value, and mass are
-scaled with it. Variant defs are hidden from the asset library — the placer
-reaches them only through snapping. Defs with no variants ignore the roll, and
-the ghost preview shows exactly what will be placed either way.
+Scale Min / Scale Max sliders (0.1-3.0x) roll a per-feature scale at placement
+time. The roll is realised by snapping to the nearest **pre-baked model
+variant** of the chosen def and placing that variant instead: a def opts in by
+shipping sibling defs tagged `customParams.scale_base` (the def they vary) and
+`scale_factor` (their size), with the model, collision cylinder, wood value and
+mass all baked at that size. Variant defs are hidden from the asset library --
+the placer reaches them only through snapping.
+
+**No variant sets ship yet**, so the sliders are currently inert: a def with no
+variants ignores the roll and places at its normal size, and the ghost preview
+shows exactly that. The fir tree variants that drove this feature are shelved on
+the `feature-densification` branch along with the tree clump work; they are
+baked by `s3o_scale.py` in the personal BAR tools collection, outside this repo.
 
 - Rolls are bottom-heavy (many small, few large), matching a natural stand.
-- With **Clustered** distribution, scale correlates with distance to the clump
-  nucleus: big features in the core, saplings at the fringe, and the minimum
+- With **Clustered** distribution, scale correlates with distance to the cluster
+  nucleus: big features in the core, small ones at the fringe, and the minimum
   spacing scales per pair so small features pack tighter.
 - Point mode rolls a scale per placement too.
 - Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
   need no special handling.
 
-Why baked variants: the engine has no runtime feature-scale API.
-`Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
+Why baked variants rather than scaling at runtime: the engine has no
+feature-scale API. `Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
 `LocalModelPiece::SetPieceSpaceMatrix` is only
-`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` — it validates the
+`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` -- it validates the
 matrix, sets a flag, and **discards the geometry entirely** (no member stores
 it; a piece's transform comes solely from `CalcPieceSpaceTransform(pos, rot,
 scale)`, and `SetPosition`/`SetRotation`/`SetScaling` are reachable only from
-unit animation scripts). Features therefore cannot be scaled — or have their
-pieces posed at all — from Lua. The gadget still understands a per-entry scale
+unit animation scripts). Features therefore cannot be scaled -- or have their
+pieces posed at all -- from Lua. The gadget still understands a per-entry scale
 token on the wire (4/5/7/8-token forms) and applies collision/radius/mid-aim
 scaling, but only when the engine reports the matrix accepted, so on current
 engines that path is a clean no-op and it lights up automatically if a real API
