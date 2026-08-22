@@ -1242,7 +1242,8 @@ function M.attach(doc, ctx)
 			Spring.SetSunDirection(sx, sy, sz, val)
 		end
 	end)
-	widgetState.envSunIntensity = 1.0
+	-- Keep an intensity a project load already applied; default only when unset
+	widgetState.envSunIntensity = widgetState.envSunIntensity or 1.0
 
 	-- ---- Fog & Atmosphere sliders ----
 	envSlider("slider-env-fog-start", "lbl-env-fog-start", function(v)

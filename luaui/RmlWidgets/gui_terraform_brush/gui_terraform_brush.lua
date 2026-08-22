@@ -1956,6 +1956,24 @@ widgetState.disableFog = function()
 	Spring.SetAtmosphere({ fogStart = FOG_OFF.fogStart, fogEnd = FOG_OFF.fogEnd })
 end
 
+-- Push the live sun state into the ENV panel sliders. The sliders seed only once
+-- at document attach, so an environment applied afterwards (project load) must
+-- refresh them — otherwise the next nudge on any sun slider writes its stale
+-- attach-time value back through Spring.SetSunDirection.
+widgetState.refreshEnvSunSliders = function()
+	local sx, sy, sz = gl.GetSun("pos")
+	if not sx then
+		return
+	end
+	uiState.updatingFromCode = true
+	_envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(sx * 10000 + 0.5), string.format("%.2f", sx))
+	_envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(sy * 10000 + 0.5), string.format("%.2f", sy))
+	_envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(sz * 10000 + 0.5), string.format("%.2f", sz))
+	local si = widgetState.envSunIntensity or 1.0
+	_envSetSlider("slider-env-sun-intensity", "lbl-env-sun-intensity", math.floor(si * 1000 + 0.5), string.format("%.2f", si))
+	uiState.updatingFromCode = false
+end
+
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
@@ -1964,9 +1982,15 @@ widgetState.applyEnvConfig = function(d)
 		return
 	end
 	if d.sunDir then
-		local intensity = d.sunIntensity or 1.0
-		Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
-		widgetState.envSunIntensity = intensity
+		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
+		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
+		-- it would black out the map, so a degenerate direction is ignored.
+		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
+			local intensity = d.sunIntensity or 1.0
+			Spring.SetSunDirection(sdx, sdy, sdz, intensity)
+			widgetState.envSunIntensity = intensity
+			widgetState.refreshEnvSunSliders()
+		end
 	end
 	local shadowParams = {}
 	if d.groundShadowDensity then
@@ -2065,6 +2089,15 @@ widgetState.applyEnvConfig = function(d)
 		Spring.SetWaterParams(wcParams)
 		Spring.SendCommands("water 4")
 	end
+	-- Skybox: the engine has no getter for the active skybox, so the config
+	-- carries the library path the user picked (applySkybox re-validates it).
+	if type(d.skybox) == "string" and d.skybox ~= "" and widgetState.applySkybox then
+		widgetState.applySkybox(d.skybox)
+		widgetState.envCurrentSkybox = d.skybox
+		for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
+			t.element:SetClass("active", t.path == d.skybox)
+		end
+	end
 end
 
 -- Serialize the live environment state into the env-config Lua format (the same
@@ -2104,6 +2137,12 @@ widgetState.buildEnvConfigContent = function(opts)
 	local bstr = function(v)
 		return v and "true" or "false"
 	end
+	-- A nil or zero-length sun vector must not serialize as {0,0,0} — a config
+	-- carrying that would black out the map it is later applied to.
+	local sunDirLine = "\t-- sunDir omitted: engine returned no sun position at save time"
+	if sX and ((sX * sX + (sY or 0) * (sY or 0) + (sZ or 0) * (sZ or 0)) > 1e-6) then
+		sunDirLine = "\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ","
+	end
 	local outLines = {
 		"-- Environment config exported from BAR Terraform Brush",
 		"-- Map: " .. (Game.mapName or "unknown"),
@@ -2117,7 +2156,7 @@ widgetState.buildEnvConfigContent = function(opts)
 		'\tmapName = "' .. (Game.mapName or "unknown") .. '",',
 		"",
 		"\t-- Sun direction",
-		"\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ",",
+		sunDirLine,
 		"",
 		"\t-- Shadow density",
 		"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
@@ -2148,6 +2187,9 @@ widgetState.buildEnvConfigContent = function(opts)
 		"",
 		"\t-- Skybox rotation",
 		"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
+		"",
+		"\t-- Skybox texture (library path; the engine has no getter, the UI tracks the pick)",
+		"\tskybox = " .. string.format("%q", widgetState.envCurrentSkybox or "") .. ",",
 		"",
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
@@ -2529,6 +2571,18 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 			if base == m.skybox then
 				skyboxPath = thumb.path
 				break
+			end
+		end
+		if not skyboxPath then
+			-- The thumb cache only exists once the panel document has been built;
+			-- resolve straight against the library so a project reopens with its
+			-- sky even when the panel was never opened this session.
+			local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
+			for _, fp in ipairs(files) do
+				if fp:match("([^/\\]+)$") == m.skybox then
+					skyboxPath = fp:gsub("\\", "/")
+					break
+				end
 			end
 		end
 		if not skyboxPath then
@@ -14021,6 +14075,11 @@ function widget:Initialize()
 		end,
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
+		end,
+		-- Runtime skybox pick (library path, nil if untouched); the manifest
+		-- records its basename so reopening the project boots with the same sky.
+		getCurrentSkybox = function()
+			return widgetState.envCurrentSkybox
 		end,
 		-- Start script for opening a map project (blank map at the manifest's
 		-- size with project-local DNTS assets); called by WG.MapProject.open.
