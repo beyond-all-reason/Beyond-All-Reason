@@ -39,7 +39,6 @@ end
 ---@field ctrlRightClickDragCreatesSquad boolean
 ---@field commandCreatesSquad boolean
 ---@field mergeIntoReserves boolean
----@field selectionAutoExtend boolean
 ---@field showReserveSquads boolean
 ---@field viewselectionDoubleTapMs number
 ---@field viewselectionDoubleTapPx number
@@ -74,7 +73,6 @@ local config = {
 	ctrlRightClickDragCreatesSquad = true, -- hold Ctrl then right-click drag past the engine's MouseDragFrontCommandThreshold to create a squad (click still passes through but does nothing by default)
 	commandCreatesSquad = false, -- experimental
 	mergeIntoReserves = true, -- when false, `squad_create` never merges the selection into a reserve squad; it always creates a fresh manual squad
-	selectionAutoExtend = false, -- when true, freshly built units auto-extend the current selection while their reserve is fully selected (factory wait/patrol rally opt-out)
 	showReserveSquads = false, -- when true, auto per-factory reserves + uncategorized reserve are visualized
 	viewselectionDoubleTapMs = 300, -- second rapid same-place non-append squad-select tap (single-step, or multi-step at the last step) calls viewselection on the just-selected squad (0 disables).
 	viewselectionDoubleTapPx = 5, -- max screen-pixel distance between the two taps (0 disables the gesture). Intentionally not using the game's MouseDragFrontCommandThreshold config
@@ -155,8 +153,6 @@ local countSelectedIn = Util.countSelectedIn
 local poolFullySelected = Util.poolFullySelected
 local resolveTargetCount = Util.resolveTargetCount
 local pickUnits = Util.pickUnits
-local unitQueueHasWait = Util.unitQueueHasWait
-local factoryRallyEndsWithWaitOrPatrol = Util.factoryRallyEndsWithWaitOrPatrol
 local getMouseWorldPos = Util.getMouseWorldPos
 local addExcludedNames = Util.addExcludedNames
 
@@ -1903,7 +1899,6 @@ function widget:Initialize()
 		"excludedUnitTypes",
 		"showReserveSquads",
 		"mergeIntoReserves",
-		"selectionAutoExtend",
 		"visualizationMode",
 		"squadColorMode",
 		"squadCustomColorR",
@@ -2237,30 +2232,7 @@ function widget:UnitCreated(unitId, unitDefId, unitTeam, builderId)
 
 	if unitDefId and isCombat[unitDefId] then
 		local sq = (builderId and factorySquad[builderId]) or getUncategorizedReserveForDef(unitDefId)
-		local extendSelection = false
-		if sq.isReserve and config.selectionAutoExtend then
-			local selSet = {}
-			for _, u in ipairs(spGetSelectedUnits()) do
-				selSet[u] = true
-			end
-			extendSelection = squadFullySelected(sq, selSet)
-		end
-		-- Opt-out for the selection auto-extend, split by reserve kind:
-		--   Factory reserve -> the rally's trailing CMD_WAIT or CMD_PATROL is the signal — suppress the extend when set.
-		--   Uncategorized reserve -> no rally to inspect; fall back to the unit's own queue. Covers resurrection bots, which 'make' units with CMD_WAIT on until fully healed.
-		if extendSelection then
-			if sq.fromFactory and builderId then
-				if factoryRallyEndsWithWaitOrPatrol(builderId) then
-					extendSelection = false
-				end
-			elseif unitQueueHasWait(unitId) then
-				extendSelection = false
-			end
-		end
 		addToSquad(unitId, sq)
-		if extendSelection then
-			spSelectUnitArray({ unitId }, true)
-		end
 		log("Unit ", unitId, " created -> squad [", sq.index or "?", "] (", #sq, " units)")
 	end
 end

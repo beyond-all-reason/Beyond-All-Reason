@@ -3100,23 +3100,20 @@ squadPreset = {
 	-- Rows for settings a preset owns; hidden unless the preset is Custom. 
 	ownedOptions = {
 		'squad_cyclingToNextSquad',
-		'squad_leftClickAppendFiltersDomain',
+		'squad_leftClickAlternativeSelection',
 		'squad_squadCreateMethod',
 		'squad_rightClickMoveControlsReserves',
 		'squad_mergeIntoReserves',
-		'squad_selectionAutoExtend',
 	},
 
 	allOptions = {
 		'squad_cyclingToNextSquad',
 		'squad_leftClickSelectsSquad',
-		'squad_leftClickAppendFiltersDomain',
-		'squad_leftClickFilteredRetargets',
+		'squad_leftClickAlternativeSelection',
 		'squad_squadCreateMethod',
 		'squad_rightClickMovesSquad',
 		'squad_rightClickMoveControlsReserves',
 		'squad_mergeIntoReserves',
-		'squad_selectionAutoExtend',
 		'squad_mruSize',
 		'squad_excludeConstructors',
 		'squad_excludeResurrectionUnits',
@@ -9804,34 +9801,18 @@ function init()
 		},
 
 		{
-			id = "squad_leftClickAppendFiltersDomain",
+			id = "squad_leftClickAlternativeSelection",
 			group = "game",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_leftClickAppendFiltersDomain'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection'),
 			type = "bool",
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getLeftClickAppendFiltersDomain ~= nil and WG['squadselection'].getLeftClickAppendFiltersDomain()),
-			description = Spring.I18N('ui.settings.option.squadSelection_leftClickAppendFiltersDomain_descr'),
+			value = (WG['squadselection'] ~= nil and WG['squadselection'].getLeftClickAlternativeSelection ~= nil and WG['squadselection'].getLeftClickAlternativeSelection()),
+			description = Spring.I18N('ui.settings.option.squadSelection_leftClickAlternativeSelection_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_leftClickAppendFiltersDomain", { 'leftClickAppendFiltersDomain' })
+				loadWidgetData("Squad Selection", "squad_leftClickAlternativeSelection", { 'leftClickAlternativeSelection' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setLeftClickAppendFiltersDomain", { 'leftClickAppendFiltersDomain' }, value)
-			end,
-		},
-
-		{
-			id = "squad_leftClickFilteredRetargets",
-			group = "game",
-			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_leftClickFilteredRetargets'),
-			type = "bool",
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getLeftClickFilteredRetargets ~= nil and WG['squadselection'].getLeftClickFilteredRetargets()),
-			description = Spring.I18N('ui.settings.option.squadSelection_leftClickFilteredRetargets_descr'),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_leftClickFilteredRetargets", { 'leftClickFilteredRetargets' })
-			end,
-			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setLeftClickFilteredRetargets", { 'leftClickFilteredRetargets' }, value)
+				saveOptionValue("Squad Selection", "squadselection", "setLeftClickAlternativeSelection", { 'leftClickAlternativeSelection' }, value)
 			end,
 		},
 
@@ -9894,7 +9875,7 @@ function init()
 		{
 			id = "squad_rightClickMoveControlsReserves",
 			group = "game",
-			category = types.basic,
+			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_rightClickMoveControlsReserves'),
 			type = "select",
 			options = {
@@ -9928,22 +9909,6 @@ function init()
 			end,
 			onchange = function(_, value)
 				saveOptionValue("Squad Selection", "squadselection", "setMergeIntoReserves", { 'mergeIntoReserves' }, value)
-			end,
-		},
-
-		{
-			id = "squad_selectionAutoExtend",
-			group = "game",
-			category = types.advanced,
-			name = Spring.I18N('ui.settings.option.squadSelection_selectionAutoExtend'),
-			type = "bool",
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSelectionAutoExtend ~= nil and WG['squadselection'].getSelectionAutoExtend()),
-			description = Spring.I18N('ui.settings.option.squadSelection_selectionAutoExtend_descr'),
-			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_selectionAutoExtend", { 'selectionAutoExtend' })
-			end,
-			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setSelectionAutoExtend", { 'selectionAutoExtend' }, value)
 			end,
 		},
 
