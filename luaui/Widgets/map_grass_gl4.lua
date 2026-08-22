@@ -87,16 +87,16 @@ local grassConfig = {
 	patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
 	patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
 	patchSize = 4, -- 1 or 4 clusters of blades, 4 recommended
-	grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
+	grassBladeScale = 0.5, -- baked into the patch mesh: lower it for physically smaller blades; extra copies of the shrunken cluster are added automatically so ground coverage stays the same (vertex cost grows as 1/scale^2)
 	grassMinSize = 0.55, --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
 	grassMaxSize = 1.5, -- Size for grassmap value of 254
 	grassShaderParams = { -- allcaps because that's how i know
 		MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
 		MAPCOLORBASE = 1.0, --how much more to blend the bottom of the grass patches into map color
 		ALPHATHRESHOLD = 0.01, --alpha limit under which to discard a fragment
-		WINDSTRENGTH = 0.1, -- how much the wind will blow the grass
+		WINDSTRENGTH = 0.06, -- how much the wind will blow the grass
 		WINDSCALE = 0.33, -- how fast the wind texture moves
-		WINDSAMPLESCALE = 0.001, -- tiling resolution of the noise texture
+		WINDSAMPLESCALE = 0.0007, -- tiling resolution of the noise texture
 		FADESTART = 5000, -- distance at which grass starts to fade
 		FADEEND = 8000, --distance at which grass completely fades out
 		SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
@@ -467,6 +467,59 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	elseif grassPatchSize == 4 then
 		grassPatchVBOsize = 144
 		VBOData = VBOData[4]
+	end
+	-- Bake grassBladeScale into the mesh: uniformly shrink the blade cards (keeping their
+	-- bases on the ground plane), then replicate the shrunken cluster on a jittered sub-grid
+	-- inside the patch cell so total blade area stays ~constant. Smaller blades then don't
+	-- open gaps between the fixed one-instance-per-cell patches.
+	local bladeScale = grassConfig.grassBladeScale or 1
+	if bladeScale ~= 1 then
+		local srcStride = 17
+		local minY = math.huge
+		for v = 0, grassPatchVBOsize - 1 do
+			minY = mathMin(minY, VBOData[v * srcStride + 2])
+		end
+		-- capped: 16 copies (bladeScale 0.25) is already ~2300 soup verts per patch
+		local copies = mathMax(1, mathMin(16, mathFloor(1 / (bladeScale * bladeScale) + 0.5)))
+		local gridN = math.ceil(math.sqrt(copies))
+		local spacing = patchResolution / gridN
+		-- diagonal-stripe order spreads the picked cells when copies < gridN^2
+		local cells = {}
+		for cz = 0, gridN - 1 do
+			for cx = 0, gridN - 1 do
+				cells[#cells + 1] = { cx, cz, ((cx + cz) % gridN) * gridN * gridN + cz * gridN + cx }
+			end
+		end
+		table.sort(cells, function(a, b)
+			return a[3] < b[3]
+		end)
+		local scaledData = {}
+		local dst = 0
+		for c = 1, copies do
+			local ox, oz = 0, 0
+			local cosr, sinr = 1, 0
+			if copies > 1 then
+				local cell = cells[c]
+				ox = (cell[1] - (gridN - 1) * 0.5) * spacing + (mathRandom() - 0.5) * spacing * 0.5
+				oz = (cell[2] - (gridN - 1) * 0.5) * spacing + (mathRandom() - 0.5) * spacing * 0.5
+				local rot = mathRandom() * 6.283
+				cosr, sinr = math.cos(rot), math.sin(rot)
+			end
+			for v = 0, grassPatchVBOsize - 1 do
+				local base = v * srcStride
+				local px = VBOData[base + 1] * bladeScale
+				local pz = VBOData[base + 3] * bladeScale
+				scaledData[dst + 1] = cosr * px + sinr * pz + ox
+				scaledData[dst + 2] = minY + (VBOData[base + 2] - minY) * bladeScale
+				scaledData[dst + 3] = cosr * pz - sinr * px + oz
+				for f = 4, srcStride do
+					scaledData[dst + f] = VBOData[base + f]
+				end
+				dst = dst + srcStride
+			end
+		end
+		VBOData = scaledData
+		grassPatchVBOsize = grassPatchVBOsize * copies
 	end
 	-- What if we went down to 8 vertices?
 	if grassConfig.grassShaderParams.COMPACTVBO == 1 then
@@ -1186,7 +1239,6 @@ makeShaderVAO = function()
 		uniformFloat = {
 			grassuniforms = { 1, 1, 1, 1 },
 			distanceMult = distanceMult,
-			grassBladeScale = grassConfig.grassBladeScale,
 			nightFactor = { 1, 1, 1, 1 },
 		},
 		shaderConfig = grassConfig.grassShaderParams,

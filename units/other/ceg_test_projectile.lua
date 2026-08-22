@@ -40,7 +40,7 @@ return {
 		metalcost = 100,
 		energycost = 100,
 		buildtime = 1,
-		maxdamage = 1000000,
+		health = 100000,
 
 		--------------------------------------------------------------------------
 		-- Engine-valid but inert
