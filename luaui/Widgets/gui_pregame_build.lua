@@ -62,6 +62,7 @@ local unitshapes = {}
 local cachedAlphaResults
 local cachedStartPosition
 local cachedQueueMetrics
+---@type VertexData[]?
 local cachedQueueLineVerts
 local forceRefreshCache = false
 
@@ -682,14 +683,58 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges, alpha, drawOutline)
+local BUILD_DISTANCE_COLOR = { 0.3, 1.0, 0.3, 0.6 }
+local BUILD_LINES_COLOR = { 0.3, 1.0, 0.3, 0.6 }
+
+---The positional form every build order in this widget is passed around as.
+---@class BuildData
+---@field [1] UnitDefID
+---@field [2] number x
+---@field [3] number y
+---@field [4] number z
+---@field [5] integer facing
+
+---@class PlannedBuildingDraw
+---@field buildData BuildData
+---@field borderColor number[] rgba outline color
+---@field drawRanges boolean? whether to draw the extractor radius
+---@field drawOutline boolean? whether to draw the footprint, defaulting to true
+
+---@class PlannedCircleDraw
+---@field x number ground position the circle is centered on
+---@field y number
+---@field z number
+---@field radius number build radius
+
+---What the placement pass recorded for DrawWorld to replay. DrawWorld draws
+---these in field order, which is the order the pass fills them in.
+---@class PlacementPlan
+---@field circle PlannedCircleDraw? the start unit's build radius
+---@field queue PlannedBuildingDraw[] buildings already in the queue
+---@field lines VertexData[]? the stippled strip joining the queue
+---@field previews PlannedBuildingDraw[] buildings the pending drag would add
+---@field selected PlannedBuildingDraw? the building under the cursor
+
+-- gfx_DrawUnitShape_GL4 renders queued ghost models from DrawWorldPreUnit, which
+-- the engine fires before DrawWorld, so a shape submitted from DrawWorld is only
+-- rendered on the following frame. The placement pass therefore runs in
+-- DrawPreDecals, the one callin that comes before DrawWorldPreUnit while still
+-- being inside the world pass: the ghosts reach the drawer in time for the same
+-- frame, and the pass is still skipped whenever the world itself is not drawn.
+-- Its outlines are recorded here for DrawWorld to replay.
+---@type PlacementPlan
+local plan = { queue = {}, previews = {} }
+
+---@param planned PlannedBuildingDraw
+local function DrawPlannedBuilding(planned)
+	local buildData = planned.buildData
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local buildingWidth, buildingHeight = GetBuildingDimensions(bDefID, facing)
 	local halfBuildingWidth, halfBuildingHeight = buildingWidth * HALF, buildingHeight * HALF
 
 	gl.DepthTest(false)
-	if drawOutline ~= false then
-		gl.Color(borderColor)
+	if planned.drawOutline ~= false then
+		gl.Color(planned.borderColor)
 		gl.Shape(GL.LINE_LOOP, {
 			{ v = { bx - halfBuildingWidth, by, bz - halfBuildingHeight } },
 			{ v = { bx + halfBuildingWidth, by, bz - halfBuildingHeight } },
@@ -698,13 +743,22 @@ local function DrawBuilding(buildData, borderColor, drawRanges, alpha, drawOutli
 		})
 	end
 
-	if drawRanges then
+	if planned.drawRanges then
 		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
 		if isMex then
 			gl.Color(1.0, 0.0, 0.0, 0.5)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
 		end
 	end
+end
+
+---@param buildData BuildData
+---@param borderColor number[]
+---@param drawRanges boolean?
+---@param alpha number?
+---@param drawOutline boolean?
+---@return PlannedBuildingDraw
+local function planBuilding(buildData, borderColor, drawRanges, alpha, drawOutline)
 	if WG.StopDrawUnitShapeGL4 then
 		local id = buildData[1]
 			.. "_"
@@ -726,6 +780,13 @@ local function DrawBuilding(buildData, borderColor, drawRanges, alpha, drawOutli
 			alpha
 		)
 	end
+
+	return {
+		buildData = buildData,
+		borderColor = borderColor,
+		drawRanges = drawRanges,
+		drawOutline = drawOutline,
+	}
 end
 
 local function isUnderwater(unitDefID)
@@ -1159,7 +1220,9 @@ local function hasCacheExpired(currentStartPos, currentSelBuildData)
 	return false
 end
 
-function widget:DrawWorld()
+function widget:DrawPreDecals()
+	plan = { queue = {}, previews = {} }
+
 	if not WG.StopDrawUnitShapeGL4 then
 		return
 	end
@@ -1171,6 +1234,7 @@ function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if spGetGameFrame() > 0 then
+		widgetHandler:RemoveCallIn("DrawPreDecals")
 		widgetHandler:RemoveCallIn("DrawWorld")
 		return
 	end
@@ -1188,11 +1252,6 @@ function widget:DrawWorld()
 	local BORDER_COLOR_CLASH = { 0.7, 0.3, 0.3, 1.0 }
 	local BORDER_COLOR_INVALID = { 1.0, 0.0, 0.0, 1.0 }
 	local BORDER_COLOR_VALID = { 0.0, 1.0, 0.0, 1.0 }
-	local BUILD_DISTANCE_COLOR = { 0.3, 1.0, 0.3, 0.6 }
-	local BUILD_LINES_COLOR = { 0.3, 1.0, 0.3, 0.6 }
-
-	gl.LineWidth(1.49)
-
 	-- We need data about currently selected building, for drawing clashes etc
 	local selBuildData
 	if selBuildQueueDefID then
@@ -1218,10 +1277,9 @@ function widget:DrawWorld()
 		sy = spGetGroundHeight(sx, sz)
 
 		-- Draw start units build radius
-		gl.Color(BUILD_DISTANCE_COLOR)
 		local buildDistance = UnitDefs[startDefID].buildDistance
 		if buildDistance then
-			gl.DrawGroundCircle(sx, sy, sz, buildDistance, 40)
+			plan.circle = { x = sx, y = sy, z = sz, radius = buildDistance }
 		end
 	end
 
@@ -1287,7 +1345,10 @@ function widget:DrawWorld()
 	end
 
 	if not cachedQueueLineVerts or cacheExpired then
-		cachedQueueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
+		cachedQueueLineVerts = {}
+		if startChosen then
+			cachedQueueLineVerts[1] = { v = { sx, sy, sz } }
+		end
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 
@@ -1314,18 +1375,15 @@ function widget:DrawWorld()
 			local borderColor = isSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_NORMAL
 
 			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-				DrawBuilding(buildData, BORDER_COLOR_CLASH, false, alpha)
+				plan.queue[#plan.queue + 1] = planBuilding(buildData, BORDER_COLOR_CLASH, false, alpha)
 			else
-				DrawBuilding(buildData, borderColor, false, alpha)
+				plan.queue[#plan.queue + 1] = planBuilding(buildData, borderColor, false, alpha)
 			end
 		end
 	end
 
 	-- Draw queue lines
-	gl.Color(BUILD_LINES_COLOR)
-	gl.LineStipple("springdefault")
-	gl.Shape(GL.LINE_STRIP, queueLineVerts)
-	gl.LineStipple(false)
+	plan.lines = queueLineVerts
 
 	local function convertBuildPosToPreviewData(buildPos, buildFacing)
 		local posX, posY, posZ =
@@ -1485,20 +1543,23 @@ function widget:DrawWorld()
 			local clashesWithCommander = checkCommanderClash(previewBuildData, cx, cy, cz)
 
 			if clashesWithCommander then
-				DrawBuilding(previewBuildData, BORDER_COLOR_CLASH, false, ALPHA_DEFAULT)
+				plan.previews[#plan.previews + 1] =
+					planBuilding(previewBuildData, BORDER_COLOR_CLASH, false, ALPHA_DEFAULT)
 			elseif isValid then
 				local mexValid = checkMexValidity(posX, posZ, isMex)
 				if mexValid then
 					local wouldBeSpawned = previewSpawnStatus[previewIndex] or false
 					local borderColor = wouldBeSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID
 					local previewAlpha = wouldBeSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
-					DrawBuilding(previewBuildData, borderColor, false, previewAlpha)
+					plan.previews[#plan.previews + 1] = planBuilding(previewBuildData, borderColor, false, previewAlpha)
 					previewIndex = previewIndex + 1
 				else
-					DrawBuilding(previewBuildData, BORDER_COLOR_INVALID, false, ALPHA_DEFAULT)
+					plan.previews[#plan.previews + 1] =
+						planBuilding(previewBuildData, BORDER_COLOR_INVALID, false, ALPHA_DEFAULT)
 				end
 			else
-				DrawBuilding(previewBuildData, BORDER_COLOR_INVALID, false, ALPHA_DEFAULT)
+				plan.previews[#plan.previews + 1] =
+					planBuilding(previewBuildData, BORDER_COLOR_INVALID, false, ALPHA_DEFAULT)
 			end
 		end
 	end
@@ -1536,20 +1597,52 @@ function widget:DrawWorld()
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID)
 				or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
+			plan.selected = planBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		elseif isMex then
 			if WG.ExtractorSnap.position or isMetalMap then
 				local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID)
 					or BORDER_COLOR_INVALID
-				DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
+				plan.selected = planBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 			else
-				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha, drawSelectedOutline)
+				plan.selected =
+					planBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha, drawSelectedOutline)
 			end
 		else
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID)
 				or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
+			plan.selected = planBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		end
+	end
+end
+
+function widget:DrawWorld()
+	gl.LineWidth(1.49)
+
+	local circle = plan.circle
+	if circle then
+		gl.Color(BUILD_DISTANCE_COLOR)
+		gl.DrawGroundCircle(circle.x, circle.y, circle.z, circle.radius, 40)
+	end
+
+	-- the outlines overdraw each other, so the queue has to be laid down before
+	-- the lines joining it and before anything the pending drag would add
+	for i = 1, #plan.queue do
+		DrawPlannedBuilding(plan.queue[i])
+	end
+
+	if plan.lines then
+		gl.Color(BUILD_LINES_COLOR)
+		gl.LineStipple("springdefault")
+		gl.Shape(GL.LINE_STRIP, plan.lines)
+		gl.LineStipple(false)
+	end
+
+	for i = 1, #plan.previews do
+		DrawPlannedBuilding(plan.previews[i])
+	end
+
+	if plan.selected then
+		DrawPlannedBuilding(plan.selected)
 	end
 
 	-- Reset gl
