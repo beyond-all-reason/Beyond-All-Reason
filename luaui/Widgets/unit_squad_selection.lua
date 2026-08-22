@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = 300,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -24,6 +24,7 @@ end
 -------------------------------------------------------------------------------
 
 ---@class SquadConfig
+---@field preset string
 ---@field cyclingToNextSquad boolean
 ---@field leftClickSelectsSquad boolean
 ---@field leftClickAlternativeSelection boolean
@@ -58,6 +59,7 @@ end
 
 ---@type SquadConfig
 local config = {
+	preset = "custom", -- active playstyle profile; see PRESETS below. Defaults to "custom" so the widget on its own never presumes a playstyle: enabling it by hand, or loading a config saved before presets existed, leaves every setting exactly as it is. The settings panel writes a real preset when the player picks one. Never "off" -- the panel represents Off by disabling the widget
 	cyclingToNextSquad = true, -- when full squad/type is selected, exclude it to cycle to next
 	leftClickSelectsSquad = true, -- left-click can be used to select squads
 	leftClickAlternativeSelection = false, -- switches left-click (replace and append) between the normal selection — the whole closest squad, any kind, no distance cap — and the alternative one defined by leftClickAlternativeArgs. Bind a hotkey via `squad_setting toggle leftClickAlternativeSelection` to flip on demand
@@ -97,6 +99,15 @@ local configDefaults = {}
 for k, v in pairs(config) do
 	configDefaults[k] = v
 end
+
+---------------------------------------------------------------------------------
+-- Playstyle presets
+--
+-- Defined in a shared include because gui_options.lua reads them too: it writes a preset into our stored config while this widget is still disabled, so it cannot get them from us through WG.
+-------------------------------------------------------------------------------
+local Presets = VFS.Include("luaui/Include/squad_selection_presets.lua")
+local PRESET_NAMES = Presets.names ---@type string[]
+local PRESETS = Presets.values ---@type table<string, table<string, boolean|string>>
 
 -------------------------------------------------------------------------------
 -- Localized Spring API
@@ -1582,6 +1593,25 @@ local function getOptionValue(key)
 	return config[key]
 end
 
+-- Write every setting a preset owns, then record which preset is active.
+---@param name string one of PRESET_NAMES
+---@return boolean applied
+local function applyPreset(name)
+	local preset = PRESETS[name]
+	if not preset then
+		return false
+	end
+	for key, value in pairs(preset) do
+		setOptionValue(key, value)
+	end
+	config.preset = name
+	-- The controls reference lists the gestures the active preset enables.
+	if WG["keybinds"] and WG["keybinds"].reloadBindings then
+		WG["keybinds"].reloadBindings()
+	end
+	return true
+end
+
 -- Forward declaration; defined in the Lifecycle section. Re-classifies and
 -- re-routes every tracked unit (used by the exclude* settings written through
 -- the panel/WG API and by the excludedUnitTypes console commands).
@@ -1597,28 +1627,47 @@ local rebuildTracking
 --   /squad_setting set visualizationMode convexHull
 --   /squad_setting set visualizationMode none
 --   /squad_setting get cyclingToNextSquad
+--   /squad_setting preset squad
 --   /squad_setting reload
 -------------------------------------------------------------------------------
 
 local function squadSetting(_, _, args)
 	if not args or not args[1] then
-		spEcho("[Squad] Usage: squad_setting toggle|set|add|remove|get|reload <key> [value]")
+		spEcho("[Squad] Usage: squad_setting toggle|set|add|remove|get|preset|reload <key> [value]")
 		return
 	end
 	local action = args[1]
+
+	if action == "preset" then
+		if not args[2] then
+			spEcho("[Squad] preset = " .. tostring(config.preset) .. " (available: " .. table.concat(PRESET_NAMES, ", ") .. ")")
+			return
+		end
+		if not applyPreset(args[2]) then
+			spEcho("[Squad] Unknown preset: " .. tostring(args[2]) .. " (available: " .. table.concat(PRESET_NAMES, ", ") .. ")")
+			return
+		end
+		spEcho("[Squad] preset = " .. config.preset)
+		return
+	end
 
 	if action == "reload" then
 		for k, v in pairs(configDefaults) do
 			setOptionValue(k, v)
 		end
+		applyPreset(config.preset)
 		rebuildTracking()
-		spEcho("[Squad] Config reset to defaults from squad-selection.lua")
+		spEcho("[Squad] Config reset to defaults from squad-selection.lua (preset: " .. tostring(config.preset) .. ")")
 		return
 	end
 
 	local key = args[2]
 	if not key or config[key] == nil then
 		spEcho("[Squad] Unknown config key: " .. tostring(key))
+		return
+	end
+	if key == "preset" and action ~= "get" then
+		spEcho("[Squad] Use: squad_setting preset <" .. table.concat(PRESET_NAMES, "|") .. ">")
 		return
 	end
 
@@ -1836,6 +1885,7 @@ function widget:Initialize()
 	-- WG interface. Auto-generates
 	-- get<Key>/set<Key> pairs for every exposed config key.
 	local exposedSettings = {
+		-- `preset` is deliberately absent.
 		"leftClickSelectsSquad",
 		"leftClickAlternativeSelection",
 		"leftClickAlternativeArgs",
@@ -1873,6 +1923,14 @@ function widget:Initialize()
 		WG["squadselection"]["set" .. cap] = function(v)
 			setOptionValue(key, v)
 		end
+	end
+
+	-- Playstyle presets, driven by the settings panel.
+	WG["squadselection"].getPreset = function()
+		return config.preset
+	end
+	WG["squadselection"].applyPreset = function(name)
+		return applyPreset(name)
 	end
 
 	-- Re-classify units. Called by gui_options.lua after writing any of the exclude* settings
@@ -1963,6 +2021,11 @@ function widget:Initialize()
 
 		log("WG createSquadFromUnits: squad [", newSquad.index, "] with ", #newSquad, " units")
 		return newSquad.index
+	end
+
+	-- The controls reference only lists squad gestures while we are loaded.
+	if WG["keybinds"] and WG["keybinds"].reloadBindings then
+		WG["keybinds"].reloadBindings()
 	end
 
 	log("Initialized — ", count, " combat units in domain uncategorized reserves")
@@ -2141,6 +2204,10 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("squad_setting")
 	widgetHandler:RemoveAction("squad_cycle_recent")
 	widgetHandler:RemoveAction("squad_cycle_idle")
+	-- Drop the squad section from the controls reference (WG is already nil).
+	if WG["keybinds"] and WG["keybinds"].reloadBindings then
+		WG["keybinds"].reloadBindings()
+	end
 	log("Shutdown")
 end
 
