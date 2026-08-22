@@ -459,8 +459,12 @@ local function syncHard(doc, ctx, setSummary)
 	setDm("surfHardOverlay", spState.showSplatOverlay == true)
 	-- FILTERS live in a canonical collapsed section now, so they get the
 	-- standard "engaged while folded" warn chip.
-	ctx.syncWarnChip(doc, "warn-chip-sf-smart", "section-sf-smart",
-		(sf.avoidWater or sf.avoidCliffs or sf.altMinEnable or sf.altMaxEnable) and true or false)
+	ctx.syncWarnChip(
+		doc,
+		"warn-chip-sf-smart",
+		"section-sf-smart",
+		(sf.avoidWater or sf.avoidCliffs or sf.altMinEnable or sf.altMaxEnable) and true or false
+	)
 
 	-- BRUSH sliders mirror the splat engine in this submode (same slider-unit
 	-- mappings as the legacy panel: strength*100, curve*10).
@@ -620,8 +624,12 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfSoftAvoidCliffs", ssf.avoidCliffs == true)
 		setDm("surfSoftAltMin", ssf.altMinEnable == true)
 		setDm("surfSoftAltMax", ssf.altMaxEnable == true)
-		ctx.syncWarnChip(doc, "warn-chip-sf-smart", "section-sf-smart",
-			(ssf.avoidWater or ssf.avoidCliffs or ssf.altMinEnable or ssf.altMaxEnable) and true or false)
+		ctx.syncWarnChip(
+			doc,
+			"warn-chip-sf-smart",
+			"section-sf-smart",
+			(ssf.avoidWater or ssf.avoidCliffs or ssf.altMinEnable or ssf.altMaxEnable) and true or false
+		)
 	end
 	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
 	-- channel is both assigned and switched on.
@@ -632,7 +640,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfSlot" .. i .. "Name", shortAsset(asset))
 		setDm("surfSlot" .. i .. "Assigned", asset ~= nil)
 		setDm("surfFillV" .. i, fill and true or false)
-		if asset and fill then canFill = true end
+		if asset and fill then
+			canFill = true
+		end
 	end
 	setDm("surfCanFill", canFill)
 	setDm("surfPickSlot", pickSlot or 0)
@@ -760,8 +770,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 			what = "ERASE \226\134\146 auto"
 		elseif surfState.variant and surfState.variant ~= "" then
 			local selSlot = surfState.selSlot
-			what = shortAsset(surfState.variant)
-				.. ((selSlot and selSlot > 0) and (" \194\183" .. selSlot) or "")
+			what = shortAsset(surfState.variant) .. ((selSlot and selSlot > 0) and (" \194\183" .. selSlot) or "")
 		else
 			what = "base"
 		end

@@ -188,7 +188,16 @@ local function applyFeatureScale(featureID, s)
 
 	local bx, by, bz, mx, my, mz, ax, ay, az = GetFeaturePosition(featureID, true, true)
 	if mx and SetFeatureMidAndAimPos then
-		SetFeatureMidAndAimPos(featureID, (mx - bx) * s, (my - by) * s, (mz - bz) * s, (ax - bx) * s, (ay - by) * s, (az - bz) * s, true)
+		SetFeatureMidAndAimPos(
+			featureID,
+			(mx - bx) * s,
+			(my - by) * s,
+			(mz - bz) * s,
+			(ax - bx) * s,
+			(ay - by) * s,
+			(az - bz) * s,
+			true
+		)
 	end
 
 	featureScales[featureID] = s

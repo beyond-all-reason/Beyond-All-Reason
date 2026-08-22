@@ -3425,13 +3425,7 @@ function widget:Initialize()
 				return false
 			end
 			SendLuaRulesMsg(
-				string.format(
-					"%s%.3f:%.3f:%s",
-					MSG.REMAP,
-					newMin,
-					newMax,
-					mode == "clamp" and "clamp" or "scale"
-				)
+				string.format("%s%.3f:%.3f:%s", MSG.REMAP, newMin, newMax, mode == "clamp" and "clamp" or "scale")
 			)
 			extraState._noteBulkTerrainChange()
 			return true
@@ -7854,14 +7848,7 @@ function widget:DrawWorld()
 					-- SURFACE variant painter (rotationless circle brush)
 					local wx, wz = getWorldMousePosition()
 					if wx and not extraState.symmetryHoveringOrigin then
-						extraState.drawHeightColormap(
-							wx,
-							wz,
-							sfState.radius or 72,
-							"circle",
-							0,
-							1.0
-						)
+						extraState.drawHeightColormap(wx, wz, sfState.radius or 72, "circle", 0, 1.0)
 					end
 				end
 			end

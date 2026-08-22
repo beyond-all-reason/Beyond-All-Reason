@@ -1970,7 +1970,12 @@ widgetState.refreshEnvSunSliders = function()
 	_envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(sy * 10000 + 0.5), string.format("%.2f", sy))
 	_envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(sz * 10000 + 0.5), string.format("%.2f", sz))
 	local si = widgetState.envSunIntensity or 1.0
-	_envSetSlider("slider-env-sun-intensity", "lbl-env-sun-intensity", math.floor(si * 1000 + 0.5), string.format("%.2f", si))
+	_envSetSlider(
+		"slider-env-sun-intensity",
+		"lbl-env-sun-intensity",
+		math.floor(si * 1000 + 0.5),
+		string.format("%.2f", si)
+	)
 	uiState.updatingFromCode = false
 end
 
@@ -9522,7 +9527,9 @@ local initialModel = {
 		for i = 1, (st.slotCount or 0) do
 			if st["slot" .. i] then
 				anyAssigned = true
-				if st["fillV" .. i] then anyFill = true end
+				if st["fillV" .. i] then
+					anyFill = true
+				end
 			end
 		end
 		if not anyFill then

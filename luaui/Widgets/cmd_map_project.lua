@@ -450,7 +450,6 @@ local function stepSurface()
 	lines[#lines + 1] = "}"
 	lines[#lines + 1] = ""
 
-
 	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
 		warn("surface.lua write failed — the mask will load without slot assignments")
 	end
@@ -461,7 +460,9 @@ local function stepSurface()
 		(function()
 			local n = 0
 			for i = 1, MAX_SURFACE_SLOTS do
-				if meta["slot" .. i] then n = n + 1 end
+				if meta["slot" .. i] then
+					n = n + 1
+				end
 			end
 			return (n > 0) and (n .. " slot" .. ((n == 1) and "" or "s") .. " assigned") or "no slots assigned"
 		end)()
@@ -2236,10 +2237,7 @@ local function phaseTileset(c)
 	if d.slot4_material and d.slot4_material ~= "" and T.setSlot4Material then
 		T.setSlot4Material(d.slot4_material)
 	end
-	loadOk(
-		"tileset",
-		applied .. " knobs" .. ((unknown > 0) and (", " .. unknown .. " unknown skipped") or "")
-	)
+	loadOk("tileset", applied .. " knobs" .. ((unknown > 0) and (", " .. unknown .. " unknown skipped") or ""))
 	return true
 end
 
