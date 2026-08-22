@@ -118,6 +118,7 @@ local TUNING_FRAMES = {
 	"frame-ts-normals",
 	"frame-ts-cliffs",
 	"frame-ts-place",
+	"frame-ts-slot4",
 	"frame-ts-blend",
 	"frame-ts-curv",
 	"frame-ts-light",
@@ -135,6 +136,15 @@ function M.attach(doc, ctx)
 	-- drop the cache and let the next M.sync re-apply it from the widget
 	ctx.widgetState.tsShaderLast = nil
 	ctx.widgetState.tsAlbDecoupleLast = nil
+	-- SLOT 4 label caches: markup defaults are the plateau-mode texts, so force
+	-- one re-apply from the widget on a fresh document
+	ctx.widgetState.tsSlot4Last = nil
+	-- Drop the material-picker registry: its element handles belong to the old
+	-- document and the GL thumb pass must not touch them
+	ctx.widgetState.ts4PaletteSig = nil
+	ctx.widgetState.ts4PaletteEls = nil
+	ctx.widgetState.ts4SectionEl = nil
+	-- same for the METAL SPOTS suite toggle's gray-out
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
 	for _, k in ipairs(KNOBS) do
@@ -142,6 +152,60 @@ function M.attach(doc, ctx)
 		if el and trackSliderDrag then
 			trackSliderDrag(el, "ts-" .. k[1])
 		end
+	end
+end
+
+-- EXTRA LAYER material picker: one tile per catalog entry, thumb rects left
+-- empty here and GL-overdrawn with the material's albedo in DrawScreenPost
+-- (drawTs4PaletteThumbs in gui_terraform_brush.lua) — the same mechanism as
+-- the SURFACE palette, because an RmlUi <img> would decode the full 4K bitmap
+-- into the TexMemPool. Row 1 is the biome's own plateau pick; clicking it
+-- restores the "biome pick" default (material follows biome swaps again).
+local function rebuildS4Palette(doc, ctx, list, current)
+	local widgetState = ctx.widgetState
+	local grid = doc:GetElementById("ts-slot4-mat-grid")
+	widgetState.ts4SectionEl = doc:GetElementById("section-ts-slot4")
+	if not grid then
+		return
+	end
+	grid.inner_rml = ""
+	widgetState.ts4PaletteEls = {}
+	local row
+	for i = 1, #list do
+		local v = list[i]
+		if not row or ((i - 1) % 3) == 0 then
+			row = doc:CreateElement("div")
+			row:SetClass("flex", true)
+			row:SetClass("flex-row", true)
+			row:SetClass("gap-1", true)
+			row:SetClass("mb-1", true)
+			grid:AppendChild(row)
+		end
+		local tile = doc:CreateElement("div")
+		tile:SetClass("tf-biome-tile", true)
+		local isDefault = (i == 1)
+		local sel = (current and current == v.asset) or (not current and isDefault)
+		if sel then
+			tile:SetClass("active", true)
+		end
+		local thumb = doc:CreateElement("div")
+		thumb:SetClass("tf-surf-thumb", true)
+		tile:AppendChild(thumb)
+		local name = doc:CreateElement("div")
+		name:SetClass("tf-biome-name", true)
+		name.inner_rml = isDefault and "biome pick" or v.asset
+		tile:AppendChild(name)
+		tile:AddEventListener("mousedown", function(_event)
+			local T = WG.TilesetTerrain
+			if T and T.setSlot4Material then
+				T.setSlot4Material(isDefault and nil or v.asset)
+				if ctx.playSound then
+					ctx.playSound("click")
+				end
+			end
+		end, false)
+		row:AppendChild(tile)
+		widgetState.ts4PaletteEls[#widgetState.ts4PaletteEls + 1] = { el = thumb, tex = v.diff }
 	end
 end
 
@@ -180,6 +244,85 @@ function M.sync(doc, ctx, setSummary)
 		local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
 		if bkey and dm.tsBiome ~= bkey then
 			dm.tsBiome = bkey
+		end
+	end
+
+	-- EXTRA LAYER section (slot 4): mirror the mode buttons, retitle the two
+	-- reused sliders and the description line for the active mode, and gray
+	-- out the rows the mode ignores (covers startup + console /tileset slot4).
+	if WG.TilesetTerrain.getSlot4Mode then
+		local _, mname = WG.TilesetTerrain.getSlot4Mode()
+		if mname and dm.tsSlot4Mode ~= mname then
+			dm.tsSlot4Mode = mname
+		end
+		if mname and widgetState.tsSlot4Last ~= mname then
+			widgetState.tsSlot4Last = mname
+			-- { height-slider title, blend-slider title, description, sliders inert }
+			local modes = {
+				plateau = {
+					"Starts at height",
+					"Edge width",
+					"Flat ground above the height slider becomes this layer, like a mountain cap. The LAYERS tool's 4th channel also paints it anywhere.",
+					false,
+				},
+				detail = {
+					"(not used)",
+					"(not used)",
+					"Appears only where the LAYERS tool's 4th channel paints it. Unlike SURFACE variants it brings its own relief and roughness.",
+					true,
+				},
+				interm2 = {
+					"Amount",
+					"Patch edge",
+					"A second scree: takes over patches of the intermediate band so it reads less uniform. Amount 0 = none, 1 = the whole band.",
+					false,
+				},
+				cliff2 = {
+					"Splits at height",
+					"Edge width",
+					"A second rock: cliff faces above the height slider use this texture instead, reading as strata.",
+					false,
+				},
+				off = {
+					"(slot off)",
+					"(slot off)",
+					"The layer is disabled and its texture lookups are skipped, which renders slightly faster.",
+					true,
+				},
+			}
+			local m = modes[mname]
+			if m then
+				local e1 = doc:GetElementById("ts-label-platHeight")
+				local e2 = doc:GetElementById("ts-label-platBlend")
+				local ed = doc:GetElementById("ts-slot4-desc")
+				if e1 then
+					e1.inner_rml = m[1]
+				end
+				if e2 then
+					e2.inner_rml = m[2]
+				end
+				if ed then
+					ed.inner_rml = m[3]
+				end
+				if ctx.setDisabledIds then
+					ctx.setDisabledIds(doc, { "ts-row-platHeight", "ts-row-platBlend" }, m[4])
+					ctx.setDisabledIds(doc, { "ts-slot4-mat-grid" }, mname == "off")
+				end
+			end
+		end
+	end
+	-- Material picker tiles: rebuild when the biome catalog or the pick changes
+	-- (covers startup, biome swaps and console /tileset s4).
+	if WG.TilesetTerrain.getSlot4Materials then
+		local list, bkey, current = WG.TilesetTerrain.getSlot4Materials()
+		local sigParts = { tostring(bkey), tostring(current or "") }
+		for i = 1, #list do
+			sigParts[#sigParts + 1] = list[i].asset
+		end
+		local sig = table.concat(sigParts, "|")
+		if widgetState.ts4PaletteSig ~= sig then
+			widgetState.ts4PaletteSig = sig
+			rebuildS4Palette(doc, ctx, list, current)
 		end
 	end
 

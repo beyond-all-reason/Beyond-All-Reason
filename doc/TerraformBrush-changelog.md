@@ -4,6 +4,37 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.12 - 2026-08-22
+
+### New
+
+- The Dimensions window's HEIGHT BOUNDS became HEIGHT RANGE, with two modes. RESCALE remaps the whole relief onto a new min/max, so lowering the max compresses the terrain instead of shearing the mountain tops off; CLAMP keeps the old cut behavior for shaving a runaway peak. Both act on the whole map, are undoable like any brush stroke, and the sliders seed from the live extremes with CURRENT and RESET (the map's own range) refills.
+- WATER LEVEL is now a slider with a WYSIWYG shoreline preview: dragging draws the resulting coastline in the world at that height, APPLY slides the terrain so the water lands exactly on the previewed line, and RESET returns the map to its own level. The Water window carries a mirrored FLUID LEVEL track, kept in lockstep.
+- The brush cursor no longer dies at the map border. Every editor brush (terraform, splat, diffuse, grass, metal, features) follows the mouse past the edge through a shared resolver and fades out with distance, so terrain and paint right against the border are comfortable to work. The feature placer drops off-map placements per symmetry copy instead of clamping them, which used to pile features up along the edge line.
+- SURFACE grew from two paintable variant slots to seven: slots 1-3 in the first mask, 4-7 in a second one. The DETAIL SLOT 3 metal-suite toggle this branch briefly carried is gone again; slot 3 is a regular slot and the metal spots always keep their material.
+- DISPLAY, INSTRUMENTS and FILTERS are now canonical sections shared by the SURFACE and LAYERS submodes. The soft submode gains smart filters (avoid water, avoid cliffs, alt min/max), LAYERS gets a Layer Map overlay chip, and grid snap, protractor, measure, symmetry and the height colormap all work with the SURFACE brush.
+- Sneak Peek: while it is on, holding Ctrl renders the selected layer inside the brush ring as if the stroke had landed, in both submodes, so where a texture's fixed features fall can be judged before committing. It re-arms on every entry into the tool.
+- The Tileset window's EXTRA LAYER (slot 4) has its own section with a mode switch, and its texture choice is a tile grid with real albedo thumbnails instead of a prev/next name stepper. The first tile restores the biome's own pick, so the material follows biome swaps again.
+- Feature Placer scale variation groundwork: Scale Min / Max sliders roll a per-feature scale at placement time, realized by snapping to pre-baked model variants since the engine exposes no feature-scale API. No variant sets ship yet, so the sliders are inert for now; the fir variants and the tree clump work are shelved on a separate branch. With clustered distribution the roll correlates size with distance to the cluster core.
+- Map projects round-trip the full Tileset configuration through a new `tileset.lua` section: biome, metal-spot style, glow lights, the EXTRA LAYER material and every tuning knob survive save and open. All SURFACE slots persist too, with a second mask saved whenever slots 4-7 carry paint.
+- Map projects record the skybox picked at runtime in the ENVIRONMENT panel instead of the one the canvas booted with, env configs carry the skybox path, and a project reopens with its sky even if the skybox panel was never opened that session.
+
+### Improvements
+
+- The smooth brush computes a true dense box mean (summed-area table) instead of a sparse 9-tap blur. The sparse taps were blind to ripples whose wavelength matched their spacing, so grid-aligned stripes survived every smoothing pass while everything else flattened.
+- The SURFACE slot rail is thumbnail-first tiles: the texture takes the tile, PICK opens the library for that slot, X clears it, and clicking a tile only arms the brush. Selecting used to also open the library, which threw the whole catalog on screen every time the brush changed.
+- The SURFACE texture picker gained a large hover preview big enough to judge a material by; the coverage meter is retired, since an artist reads the ground rather than a histogram.
+- The SURFACE brush modes (DOT, WASH, FILL, ERASE) are proper icon buttons matching the terrain modes.
+- The Dimensions height extremes readouts poll while the window is open; the refresh button is gone.
+- The metal brush's Metal Value slider stays usable in remove submode, since the erase rate scales with it.
+
+### Fixes
+
+- Skybox and texture thumbnails no longer hang over the world after the panel closes. The GL overdraw passes kept rendering against stale layout boxes; they now bail when the panel is disengaged or hidden.
+- The metal brush's remove submode always erases, regardless of which mouse button started the drag.
+- An environment config saved while the engine reported no sun position no longer blacks out the map it is later applied to: a degenerate sun direction is neither serialized nor applied.
+- The ENV sun sliders reseed after a project load applies an environment, instead of writing their stale attach-time values back through the engine on the next nudge.
+
 ## 1.11 - 2026-08-14
 
 ### New

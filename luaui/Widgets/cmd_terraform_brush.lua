@@ -28,6 +28,7 @@ local MSG = {
 	NOISE = "$terraform_noise$",
 	ERODE = "$terraform_erode$",
 	FILL_SHAPE = "$terraform_fill$",
+	REMAP = "$terraform_remap$",
 }
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
@@ -833,6 +834,56 @@ extraState.buildFullMapGrid = function()
 	extraState.gridDirty = false
 end
 
+-- WYSIWYG preview for the Dimensions window's water level slider.
+--
+-- The operation moves the terrain, not the water plane (Lua has no water plane
+-- setter), so what the user has to be shown is the resulting SHORELINE, drawn
+-- in the terrain's current frame: a quad across the map at the height the water
+-- will meet the land. Terrain standing above it occludes it, so the visible
+-- edge of the quad is exactly the coastline the apply will produce.
+--
+-- The depth test is what makes that read as water rather than as an abstract
+-- plane hanging in the sky: without it the quad is a flat sheet over the whole
+-- screen with no hills poking through, which looks like the terrain's new
+-- datum instead of a flooded landscape. Lua draw callins start with
+-- GL_DEPTH_TEST OFF, which is why every draw helper in this file ends by
+-- turning it on rather than starting that way, so it is enabled explicitly
+-- here and left on to match that convention.
+--
+-- The map-edge outline is drawn without depth test, so the level stays
+-- locatable when it sits below the terrain (or below the existing water)
+-- everywhere, which is the case while draining a map.
+extraState.drawWaterLevelPreview = function()
+	local y = extraState.waterPreviewLevel
+	if not y then
+		return
+	end
+	local msx, msz = Game.mapSizeX, Game.mapSizeZ
+
+	gl.DepthTest(true)
+	glColor(0.12, 0.45, 0.72, 0.55)
+	glBeginEnd(GL.QUADS, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	gl.DepthTest(false)
+	glLineWidth(2)
+	glColor(0.50, 0.92, 1.0, 0.85)
+	glBeginEnd(GL.LINE_LOOP, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	glLineWidth(1)
+	glColor(1, 1, 1, 1)
+	gl.DepthTest(true)
+end
+
 local lockedWorldX = nil
 local lockedWorldZ = nil
 local lockedGroundY = nil
@@ -874,6 +925,19 @@ local function markTessellationDirty()
 	tessellationDirtyFrames = TESS_DIRTY_FRAMES
 end
 
+-- Client-side follow-up every whole-map terrain change needs: the mesh
+-- tessellation and shadows are stale, the tileset shader's height anchor still
+-- points at the old extremes, and the custom heightmap export range was seeded
+-- from them. Same set a full heightmap import arms.
+extraState._noteBulkTerrainChange = function()
+	tessellationDirtyFrames = 60
+	extraState._importNeedsShadowRefresh = 60
+	if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+		WG.TilesetTerrain.refreshHeightRef()
+	end
+	extraState._exportReseedFrames = 90
+end
+
 -- Terrain-change signal for draw-path caches: the engine fires this for ANY heightmap
 -- modification (our brush ticks, undo/redo, imports, other gadgets), so caches that
 -- bake GetGroundHeight samples key on extraState.terrainVersion and resample exactly
@@ -897,15 +961,74 @@ local function closeBrushStroke()
 	SendLuaRulesMsg(MSG.STROKE_END)
 end
 
-local function getWorldMousePosition()
+-- Intersect the raw mouse ray with the horizontal plane y = planeY, without
+-- requiring the ray to hit terrain (TraceScreenRay only reports hits inside
+-- map bounds, so it goes blind the moment the cursor crosses a map edge).
+-- Returns worldX, worldZ, or nil when the ray can't reach the plane (sky).
+-- GetPixelDir wants raw window coordinates while GetMouseState reports
+-- viewport bottom-origin ones, hence the conversion (TraceScreenRay does the
+-- same conversion internally in LuaUnsyncedRead.cpp; GetPixelDir does not).
+extraState.mouseRayOnPlane = function(mx, my, planeY)
+	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
+	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
+	if not dirX or abs(dirY) < 0.0001 then
+		return nil, nil
+	end
+	local camX, camY, camZ = GetCameraPosition()
+	local t = (planeY - camY) / dirY
+	if t <= 0 then
+		return nil, nil
+	end
+	return camX + dirX * t, camZ + dirZ * t
+end
+
+-- Shared mouse→world resolver, extended past the map edge. When the ray
+-- misses the terrain (TraceScreenRay only reports hits inside map bounds),
+-- the ground plane is extended outward so the brush keeps following the
+-- mouse. Strokes stay meaningful while the footprint still touches the map
+-- (within one `radius` of the edge; apply paths clamp away off-map cells) --
+-- needed to comfortably sculpt/paint right up against the border. Past that
+-- the position is still returned but with a fade factor dropping to zero one
+-- fade span later, so callers can dim their cursor with distance.
+-- Returns wx, wz, fade (fade = 1 anywhere the footprint touches the map).
+-- Also exported through WG.TerraformBrush for the sub-tool painters.
+extraState.worldMouseExtended = function(radius)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
-
 	if pos then
-		return pos[1], pos[3]
+		return pos[1], pos[3], 1
 	end
+	local wx, wz = extraState.mouseRayOnPlane(mx, my, 0)
+	if not wx then
+		return nil, nil, nil
+	end
+	-- Re-intersect at the height of the nearest in-map point so sloped/raised
+	-- borders land close to where the cursor visually points (GetGroundHeight
+	-- clamps out-of-map coords to the edge).
+	local edgeY = GetGroundHeight(wx, wz)
+	if edgeY and edgeY ~= 0 then
+		local ex, ez = extraState.mouseRayOnPlane(mx, my, edgeY)
+		if ex then
+			wx, wz = ex, ez
+		end
+	end
+	local dx = max(0, -wx, wx - Game.mapSizeX)
+	local dz = max(0, -wz, wz - Game.mapSizeZ)
+	local dist = (dx * dx + dz * dz) ^ 0.5
+	local band = radius or 0
+	local fadeSpan = max(band, 100)
+	if dist >= band + fadeSpan then
+		return nil, nil, nil
+	end
+	return wx, wz, 1 - max(0, dist - band) / fadeSpan
+end
 
-	return nil, nil
+local function getWorldMousePosition()
+	local wx, wz, fade = extraState.worldMouseExtended(activeRadius)
+	if wx then
+		extraState.brushEdgeFade = fade
+	end
+	return wx, wz
 end
 
 -- Project the mouse ray onto a fixed horizontal plane at planeY.
@@ -914,8 +1037,20 @@ local function getWorldMousePositionOnPlane(planeY)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if not pos then
-		return nil, nil
+		-- Cursor crossed the map edge mid-stroke: keep the drag alive by
+		-- intersecting the raw mouse ray with the locked plane, clamped into
+		-- the one-brush-radius overhang band so the stroke doesn't cut out.
+		local wx, wz = extraState.mouseRayOnPlane(mx, my, planeY)
+		if not wx then
+			return nil, nil
+		end
+		local band = activeRadius
+		wx = max(-band, min(Game.mapSizeX + band, wx))
+		wz = max(-band, min(Game.mapSizeZ + band, wz))
+		extraState.brushEdgeFade = 1 -- pinned at the paintable band while painting
+		return wx, wz
 	end
+	extraState.brushEdgeFade = 1
 
 	local camX, camY, camZ = GetCameraPosition()
 	local hitX, hitY, hitZ = pos[1], pos[2], pos[3]
@@ -2874,6 +3009,11 @@ function widget:Initialize()
 		end,
 		setMode = setMode,
 		setShape = setShape,
+		-- Shared edge-extended cursor for the sub-tool painters (splat, diffuse,
+		-- grass, features, ...): returns wx, wz, fade for the given brush radius.
+		getWorldPositionExtended = function(radius)
+			return extraState.worldMouseExtended(radius)
+		end,
 		rotate = rotateBy,
 		setRotation = setRotation,
 		setCurve = setCurve,
@@ -3275,6 +3415,67 @@ function widget:Initialize()
 		end,
 		fullRestore = function()
 			SendLuaRulesMsg(MSG.FULL_RESTORE)
+		end,
+		-- Whole-map height range edit driven by the Dimensions window.
+		-- mode "scale" stretches the relief onto the new range, "clamp" only
+		-- cuts what falls outside it. Undoable like any other stroke.
+		remapHeights = function(newMin, newMax, mode)
+			newMin, newMax = tonumber(newMin), tonumber(newMax)
+			if not newMin or not newMax or newMax - newMin < 1 then
+				return false
+			end
+			SendLuaRulesMsg(
+				string.format("%s%.3f:%.3f:%s", MSG.REMAP, newMin, newMax, mode == "clamp" and "clamp" or "scale")
+			)
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- Dimensions window water level slider: pass the world height the water
+		-- should end up at to draw the preview plane, or nil to clear it.
+		setWaterLevelPreview = function(level)
+			extraState.waterPreviewLevel = tonumber(level)
+		end,
+		-- Move the shoreline to `level` (a world height in the terrain's current
+		-- coordinates). The engine has no water plane setter, so this is done the
+		-- way /luarules waterlevel does it: the whole terrain slides by the
+		-- difference, leaving the water plane where it is.
+		applyWaterLevel = function(level)
+			level = tonumber(level)
+			if not level then
+				return false
+			end
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local delta = level - plane
+			if math.abs(delta) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(delta))
+			-- Track the running total so the panel's RESET can put the map back.
+			-- Nothing else can tell us: the water level command overwrites its own
+			-- stored value instead of accumulating, and it moves the ORIGINAL
+			-- heightmap along with the live one, so the map's load-time datum is
+			-- not recoverable from the engine afterwards.
+			extraState.waterLevelShift = (extraState.waterLevelShift or 0) + delta
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- How far this session has moved the terrain under the water plane.
+		getWaterLevelShift = function()
+			return extraState.waterLevelShift or 0
+		end,
+		-- Put the water back where the map had it. Returns the shift that was
+		-- undone, or false when the map is already at its own water level.
+		resetWaterLevel = function()
+			local shift = extraState.waterLevelShift or 0
+			if math.abs(shift) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(-shift))
+			extraState.waterLevelShift = 0
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return shift
 		end,
 		-- Keybind configuration API
 		getKeybinds = function()
@@ -4354,6 +4555,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 		local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 		local clSt = WG.CloneTool and WG.CloneTool.getState()
+		local sfSt = WG.SurfacePainter and WG.SurfacePainter.getState()
 		if
 			not (
 				(mbSt and mbSt.active)
@@ -4365,6 +4567,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 				or (lpSt and lpSt.active)
 				or (stSt and stSt.active)
 				or (clSt and clSt.active)
+				or (sfSt and sfSt.active)
 			)
 		then
 			return
@@ -7141,6 +7344,106 @@ end
 extraState.doUnmouseScreenFx = function() end -- intentionally empty
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- ── Edge fade ────────────────────────────────────────────────────────────────
+-- Past the paintable band (map + one brush radius) the brush keeps following
+-- the mouse but fades with distance, hitting zero one fade span out; opacity
+-- returns to full where the footprint touches the map again. brushFadeAlpha
+-- (0..1) mirrors brushEdgeFade, which the position helpers compute per call.
+
+-- Animated glow outline, shared by the normal draw path and the fade path.
+-- alphaMul scales the whole glow (1 = full strength).
+extraState.drawBrushGlow = function(worldX, worldZ, groundY, alphaMul)
+	-- Map intensity (0.1-100) to a 0-1 strength via log scale
+	local intFrac = (math.log(activeIntensity + 1) / math.log(101))
+	if intFrac < 0 then
+		intFrac = 0
+	elseif intFrac > 1 then
+		intFrac = 1
+	end
+	-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
+	-- Use a continuous timer so phase stays smooth when intensity changes.
+	if not extraState.brushPulseTimer then
+		extraState.brushPulseTimer = Spring.GetTimer()
+	end
+	local elapsed = Spring.DiffTimers(Spring.GetTimer(), extraState.brushPulseTimer)
+	local freqHz = 0.45 + 0.65 * intFrac
+	local pulse = sin(elapsed * freqHz * 2 * pi) -- -1..1
+	local pulse01 = 0.5 + 0.5 * pulse -- 0..1
+
+	local baseAlpha = 0.05 + 0.22 * intFrac
+	local swingAlpha = 0.04 + 0.20 * intFrac
+	local pulseAlpha = (baseAlpha + swingAlpha * pulse) * alphaMul
+
+	-- Thickness also breathes slightly, more noticeably at low intensity where
+	-- the slow pulse is the primary visual cue.
+	local halo = 14 + 3 * intFrac + (2.5 - 1.2 * intFrac) * pulse01
+	local core = 6 + 2 * intFrac + (1.8 - 0.8 * intFrac) * pulse01
+
+	local mr, mg, mb = getModeRGB()
+	-- Outer soft halo
+	glLineWidth(halo)
+	glColor(mr, mg, mb, pulseAlpha * 0.7)
+	extraState.drawCurrentOutline(worldX, worldZ, groundY)
+	-- Inner sharper halo
+	glLineWidth(core)
+	glColor(mr, mg, mb, pulseAlpha * 1.6)
+	extraState.drawCurrentOutline(worldX, worldZ, groundY)
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+-- Lightweight faded brush at opacity `a`: footprint fill + outline + glow.
+-- Used while the cursor is in the fade zone beyond the paintable band, because
+-- the normal path's display list bakes its colors and can't be dimmed after
+-- the fact. Heavy extras (height prisms, falloff curtains, colormap) are
+-- skipped -- fill + ring + glow carry the look.
+extraState.drawBrushFaded = function(wx, wz, gy, a)
+	if not activeMode then
+		return
+	end
+	if activeMode == "ramp" then
+		glColor(0.9, 0.7, 0.2, 0.7 * a)
+		glLineWidth(3)
+		glDrawGroundCircle(wx, gy, wz, activeRadius, CIRCLE_SEGMENTS)
+		glColor(1, 1, 1, 1)
+		glLineWidth(1)
+		return
+	end
+	local mr, mg, mb = getModeRGB()
+	local br, bg, bb = getModeRGBBright()
+	local intensityT = log(activeIntensity / MIN_INTENSITY) / log(MAX_INTENSITY / MIN_INTENSITY)
+	intensityT = max(0, min(1, intensityT))
+	local fillAlpha = min(0.6, 0.08 + intensityT * 0.45) * a
+	if activeMode == "raise" or activeMode == "lower" or activeMode == "level" then
+		local cr = mr * 0.55 + br * 0.45
+		local cg = mg * 0.55 + bg * 0.45
+		local cb = mb * 0.55 + bb * 0.45
+		extraState.drawShapeGroundFill(
+			wx,
+			wz,
+			activeRadius,
+			activeShape,
+			activeRotation,
+			gy,
+			activeLengthScale,
+			activeCurve,
+			cr,
+			cg,
+			cb,
+			fillAlpha
+		)
+	else
+		glColor(mr, mg, mb, fillAlpha)
+		extraState.drawShapeGroundFill(wx, wz, activeRadius, activeShape, activeRotation, gy, activeLengthScale)
+	end
+	glColor(mr, mg, mb, (0.4 + intensityT * 0.55) * a)
+	glLineWidth(3.5)
+	extraState.drawCurrentOutline(wx, wz, gy)
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+	extraState.drawBrushGlow(wx, wz, gy, a)
+end
+
 -- Draws measure distance labels. Called from both DrawScreen (normal) and
 -- DrawScreenEffects (F5 / hidden-UI mode) so they always show.
 function extraState.drawMeasureLabels()
@@ -7378,6 +7681,16 @@ function widget:DrawWorld()
 		glCallList(extraState.gridDL)
 	end
 
+	-- Water level preview: same gating as the grid overlay (it is an editor
+	-- overlay, and a map capture would otherwise bake it into the photo).
+	if
+		extraState.waterPreviewLevel
+		and not Spring.IsGUIHidden()
+		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
+	then
+		extraState.drawWaterLevelPreview()
+	end
+
 	if not activeMode then
 		invalidateDrawCache()
 		hideBuildGrid()
@@ -7442,6 +7755,7 @@ function widget:DrawWorld()
 				local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 				local stState = WG.StartPosTool and WG.StartPosTool.getState()
 				local clState = WG.CloneTool and WG.CloneTool.getState()
+				local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
 					local wx, wz = getWorldMousePosition()
 					if wx and not extraState.symmetryHoveringOrigin then
@@ -7530,6 +7844,12 @@ function widget:DrawWorld()
 							1.0
 						)
 					end
+				elseif sfState and sfState.active then
+					-- SURFACE variant painter (rotationless circle brush)
+					local wx, wz = getWorldMousePosition()
+					if wx and not extraState.symmetryHoveringOrigin then
+						extraState.drawHeightColormap(wx, wz, sfState.radius or 72, "circle", 0, 1.0)
+					end
 				end
 			end
 		end
@@ -7544,6 +7864,7 @@ function widget:DrawWorld()
 			local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 			local stState = WG.StartPosTool and WG.StartPosTool.getState()
 			local clState = WG.CloneTool and WG.CloneTool.getState()
+			local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 			local r
 			if fpState and fpState.active then
 				r = fpState.radius or 200
@@ -7563,6 +7884,8 @@ function widget:DrawWorld()
 				end
 			elseif clState and clState.active then
 				r = clState.radius or 300
+			elseif sfState and sfState.active then
+				r = sfState.radius or 72
 			end
 			if r then
 				local wx, wz = getWorldMousePosition()
@@ -7632,6 +7955,12 @@ function widget:DrawWorld()
 	else
 		worldX, worldZ = getWorldMousePosition()
 	end
+	-- Edge fade: the brush keeps following the mouse past the map edge; opacity
+	-- comes from how far past the paintable band the cursor is (computed by the
+	-- position helpers), reaching full again the moment the footprint touches
+	-- the map. worldX goes nil only once the fade has fully run out (or sky).
+	extraState.brushFadeAlpha = worldX and (extraState.brushEdgeFade or 1) or 0
+
 	if not worldX then
 		-- Mouse over UI: still draw symmetry lines at last known position
 		if extraState.symmetryActive and extraState.symmetryLastWorldX then
@@ -7799,45 +8128,11 @@ function widget:DrawWorld()
 		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush and WG.MapLabels.shouldSuppressBrush())
 
-	-- Animated glow outline — drawn every frame outside the display-list cache so it can pulse.
-	if activeMode and activeMode ~= "ramp" and not suppressBrush then
-		-- Map intensity (0.1-100) to a 0-1 strength via log scale
-		local intFrac = (math.log(activeIntensity + 1) / math.log(101))
-		if intFrac < 0 then
-			intFrac = 0
-		elseif intFrac > 1 then
-			intFrac = 1
-		end
-		-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
-		-- Use a continuous timer so phase stays smooth when intensity changes.
-		if not extraState.brushPulseTimer then
-			extraState.brushPulseTimer = Spring.GetTimer()
-		end
-		local elapsed = Spring.DiffTimers(Spring.GetTimer(), extraState.brushPulseTimer)
-		local freqHz = 0.45 + 0.65 * intFrac
-		local pulse = sin(elapsed * freqHz * 2 * pi) -- -1..1
-		local pulse01 = 0.5 + 0.5 * pulse -- 0..1
-
-		local baseAlpha = 0.05 + 0.22 * intFrac
-		local swingAlpha = 0.04 + 0.20 * intFrac
-		local pulseAlpha = baseAlpha + swingAlpha * pulse
-
-		-- Thickness also breathes slightly, more noticeably at low intensity where
-		-- the slow pulse is the primary visual cue.
-		local halo = 14 + 3 * intFrac + (2.5 - 1.2 * intFrac) * pulse01
-		local core = 6 + 2 * intFrac + (1.8 - 0.8 * intFrac) * pulse01
-
-		local mr, mg, mb = getModeRGB()
-		-- Outer soft halo
-		glLineWidth(halo)
-		glColor(mr, mg, mb, pulseAlpha * 0.7)
-		extraState.drawCurrentOutline(worldX, worldZ, groundY)
-		-- Inner sharper halo
-		glLineWidth(core)
-		glColor(mr, mg, mb, pulseAlpha * 1.6)
-		extraState.drawCurrentOutline(worldX, worldZ, groundY)
-		glColor(1, 1, 1, 1)
-		glLineWidth(1)
+	-- Animated glow outline — drawn every frame outside the display-list cache so
+	-- it can pulse. While the edge fade is still recovering, the fade path below
+	-- draws the glow instead (scaled by fade alpha), so skip it here.
+	if activeMode and activeMode ~= "ramp" and not suppressBrush and extraState.brushFadeAlpha >= 1 then
+		extraState.drawBrushGlow(worldX, worldZ, groundY, 1)
 	end
 
 	-- Unmouse amber glow + landing ring (only drawn while brush is parked beside UI)
@@ -7904,7 +8199,7 @@ function widget:DrawWorld()
 	-- each frame (trivially cheap), spline geometry uses a dedicated sub-cache that
 	-- only rebuilds when new path points are added or the brush radius changes.
 	if activeMode == "ramp" and activeShape == "circle" then
-		glColor(0.9, 0.7, 0.2, 0.7)
+		glColor(0.9, 0.7, 0.2, 0.7 * extraState.brushFadeAlpha)
 		glLineWidth(3)
 		glDrawGroundCircle(worldX, groundY, worldZ, activeRadius, CIRCLE_SEGMENTS)
 		if #rampSplinePoints >= 2 then
@@ -7951,6 +8246,15 @@ function widget:DrawWorld()
 		end
 		glColor(1, 1, 1, 1)
 		glLineWidth(1)
+		penRestoreDraw()
+		return
+	end
+
+	-- Edge fade-in: while opacity is still recovering, draw the lightweight
+	-- faded brush instead of the full-strength cached furniture (the display
+	-- list bakes its colors, so it can't be dimmed after the fact).
+	if extraState.brushFadeAlpha < 1 then
+		extraState.drawBrushFaded(worldX, worldZ, groundY, extraState.brushFadeAlpha)
 		penRestoreDraw()
 		return
 	end

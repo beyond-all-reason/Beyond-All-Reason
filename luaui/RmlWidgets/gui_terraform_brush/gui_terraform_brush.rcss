@@ -1820,11 +1820,36 @@ body {
 	background-color: #161620;
 	border: 1dp #40404a60;
 	border-radius: 6dp;
-	max-width: 100dp;
 }
 
 .tf-dim-input:focus {
 	border-color: #6a6a80cc;
+}
+
+/* Dimensions window: the height-range mode switch. Text-only and short, so the
+   54dp icon body of .tf-mode-btn is dropped down to a single centred line. */
+.tf-dim-mode-btn {
+	height: 30dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-dim-mode-btn .tf-btn-text {
+	font-size: 1.05rem;
+}
+.tf-dim-mode-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-dim-mode-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* One-line explanation of the selected mode. */
+.tf-dim-desc {
+	font-size: 1.0rem;
+	color: #b9bfca;
 }
 
 .tf-preset-btn {
@@ -2277,6 +2302,7 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #dce0e8;
+	white-space: nowrap;
 }
 
 .tf-save-btn {
@@ -3344,6 +3370,7 @@ body {
 	font-size: 1.05rem;
 	font-weight: bold;
 	color: #c8d0d8;
+	white-space: nowrap;
 }
 
 /* Compact chip for section title rows.
@@ -3563,6 +3590,32 @@ margin-top: 3dp;
 	border-color: #ffd47a;
 }
 
+/* === EXTRA LAYER (slot 4) ================================================ */
+/* One-row segmented mode switch: compact buttons, text sized up from the    */
+/* stock 0.9rem tf-btn-text so the labels carry the row, not the chrome.     */
+.tf-s4-btn {
+	height: 30dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-s4-btn .tf-btn-text {
+	font-size: 1.05rem;
+}
+.tf-s4-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-s4-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+/* Per-mode explanation under the switch: full-strength text, no opacity dim
+   (the old text-base + 0.7 opacity combo was the unreadable part).          */
+.tf-s4-desc {
+	font-size: 1.05rem;
+	color: #b9bfca;
+}
 /* === BIOME LIBRARY picker (TILESET tool) ================================== */
 /* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
 /* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
@@ -3613,6 +3666,12 @@ margin-top: 3dp;
    user can track "which channel am I on" across every surface. */
 .surf-text-c1 { color: #38bdf8; }
 .surf-text-c2 { color: #e879f9; }
+.surf-text-c3 { color: #a3e635; }
+.surf-text-c4 { color: #a78bfa; }
+/* slots 4-7 live in the second mask */
+.surf-text-c5 { color: #2dd4bf; }
+.surf-text-c6 { color: #fb7185; }
+.surf-text-c7 { color: #fbbf24; }
 
 /* NOW PAINTING strip: persistent readout of what the next stroke does */
 .surf-now-strip {
@@ -3629,20 +3688,43 @@ margin-top: 3dp;
 	border-color: #ff8c3baa;
 }
 .surf-now-thumb {
-	width: 34dp;
-	height: 34dp;
+	width: 46dp;
+	height: 46dp;
 	border-radius: 3dp;
 	background-color: #26263699;
 }
 .surf-now-text { flex: 1 1 0; }
 
-/* Slot rail chips */
+/* SURFACE brush modes: the stock mode-button body, with the amber active state
+   the terrain modes and the EXTRA LAYER row already use. ERASE lights orange
+   instead — it is a toggle over whichever preset is selected, not a fifth
+   preset, and the brush ring is orange while it is on. */
+.tf-surf-mode-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-surf-mode-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+#btn-surf-erase.active {
+	border-color: #ff8c3b;
+	background-color: #2e1c10;
+}
+#btn-surf-erase.active:hover {
+	background-color: #3d2614;
+	border-color: #ffa563;
+}
+
+/* Slot rail tiles. Thumbnail-first: a 26dp square told you nothing about the
+   material, so the texture now takes the full tile width and the caption sits
+   under it. */
 .surf-slot-chip {
 	flex: 1 1 0;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	align-items: center;
-	gap: 4dp;
+	gap: 1dp;
 	padding: 3dp;
 	border: 1dp #4a4a6899;
 	border-radius: 4dp;
@@ -3654,38 +3736,114 @@ margin-top: 3dp;
 .surf-slot-chip.active { border-color: #fdc04c; background-color: #2b2113; }
 .surf-slot-c1.active { border-color: #38bdf8; background-color: #10222e; }
 .surf-slot-c2.active { border-color: #e879f9; background-color: #291029; }
+.surf-slot-c3.active { border-color: #a3e635; background-color: #1c2410; }
+.surf-slot-c4.active { border-color: #a78bfa; background-color: #1d1830; }
+.surf-slot-c5.active { border-color: #2dd4bf; background-color: #0f2422; }
+.surf-slot-c6.active { border-color: #fb7185; background-color: #2b1319; }
+.surf-slot-c7.active { border-color: #fbbf24; background-color: #2b2011; }
 .surf-slot-chip.surf-slot-empty { opacity: 0.55; }
 .surf-slot-thumb {
-	width: 26dp;
-	height: 26dp;
+	width: 100%;
+	height: 54dp;
 	border-radius: 3dp;
 	background-color: #26263699;
 	flex-shrink: 0;
 }
-.surf-slot-info { flex: 1 1 0; overflow: hidden; white-space: nowrap; }
-.surf-slot-free {
-	position: absolute;
-	top: -2dp;
-	right: 0;
-	font-size: 1.6rem;
-	color: #9ca3af;
-	cursor: pointer;
-	padding: 0 4dp;
+/* caption + action row under the thumb — NOT floating over it, which the GL
+   thumbnail pass paints after RmlUi and would cover */
+.surf-slot-cap {
+	font-size: 1.0rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
 }
+/* PICK / X: real buttons, because a grey glyph beside the name was invisible
+   and because selecting a slot and choosing its texture are different actions */
+.surf-slot-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 2dp;
+	width: 100%;
+}
+.surf-slot-btn {
+	flex: 1 1 0;
+	padding: 4dp 0;
+	border: 1dp #5a5a7099;
+	border-radius: 3dp;
+	background-color: #2c2c3c99;
+	color: #c8d0d8;
+	font-size: 1.05rem;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+}
+.surf-slot-btn:hover {
+	border-color: #fdc04c;
+	background-color: #3a3320;
+	color: #fdc04c;
+}
+/* the slot whose library is open — so PICK reads as a toggle, not a one-shot */
+.surf-slot-btn.active {
+	border-color: #fdc04c;
+	background-color: #4a3f21;
+	color: #ffdb8a;
+}
+.surf-slot-btn.surf-slot-x {
+	flex: 0 0 22dp;
+	color: #9ca3af;
+	font-size: 1.25rem;
+}
+.surf-slot-btn.surf-slot-x:hover {
+	border-color: #f87171;
+	background-color: #3a1f1f;
+	color: #f87171;
+}
+/* the BASE tile has nothing to pick or clear: its action slot just labels what
+   clicking the tile does, so the row keeps the same height as its neighbours */
+.surf-slot-btn.surf-slot-btn-mute {
+	border-color: #3a3a4899;
+	background-color: #22222e99;
+	color: #6b7280;
+}
+.surf-slot-btn.surf-slot-btn-mute:hover {
+	border-color: #3a3a4899;
+	background-color: #22222e99;
+	color: #6b7280;
+}
+.surf-picker-x { flex: 0 0 26dp; }
 /* Caret that opens the per-slot variant picker */
 
 /* Per-slot variant picker: the texture library only takes space while an
    artist is actually choosing, instead of a permanently open grid. */
+/* Picker hover preview: big enough to actually read a material's character */
+.surf-preview-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 5dp;
+}
+.surf-preview-thumb {
+	width: 104dp;
+	height: 104dp;
+	border-radius: 4dp;
+	border: 1dp #4a4a6899;
+	background-color: #26263699;
+	flex-shrink: 0;
+}
+.surf-preview-text { flex: 1 1 0; overflow: hidden; }
+
+/* No scroller of its own: the picker sizes to its content and the panel body
+   scrolls if the window runs out of room. A nested scroll box meant two
+   scrollbars in one column and a grid you had to sweep twice. */
 .surf-picker {
 	margin-bottom: 6dp;
 	padding: 5dp;
 	border: 1dp #6a6a8899;
 	border-radius: 4dp;
 	background-color: #16161f;
-	max-height: 320dp;
-	overflow-y: auto;
 }
-.surf-slot-free:hover { color: #f87171; }
 
 /* Palette tiles that cannot be assigned while both slots are painted */
 .tf-biome-tile.surf-unassignable { opacity: 0.35; }
@@ -3697,6 +3855,11 @@ margin-top: 3dp;
 /* Selected tile ring in the CHANNEL color — matches rail, bar, brush ring */
 .tf-biome-tile.surf-sel-c1.active { border-color: #38bdf8; }
 .tf-biome-tile.surf-sel-c2.active { border-color: #e879f9; }
+.tf-biome-tile.surf-sel-c3.active { border-color: #a3e635; }
+.tf-biome-tile.surf-sel-c4.active { border-color: #a78bfa; }
+.tf-biome-tile.surf-sel-c5.active { border-color: #2dd4bf; }
+.tf-biome-tile.surf-sel-c6.active { border-color: #fb7185; }
+.tf-biome-tile.surf-sel-c7.active { border-color: #fbbf24; }
 
 /* Tile corner tags in slot colors (replace the label suffix) */
 .surf-tile-tag {
@@ -3711,30 +3874,12 @@ margin-top: 3dp;
 }
 .surf-tile-tag.surf-tag-c1 { background-color: #38bdf8dd; }
 .surf-tile-tag.surf-tag-c2 { background-color: #e879f9dd; }
+.surf-tile-tag.surf-tag-c3 { background-color: #a3e635dd; }
+.surf-tile-tag.surf-tag-c4 { background-color: #a78bfadd; }
+.surf-tile-tag.surf-tag-c5 { background-color: #2dd4bfdd; }
+.surf-tile-tag.surf-tag-c6 { background-color: #fb7185dd; }
+.surf-tile-tag.surf-tag-c7 { background-color: #fbbf24dd; }
 
-/* Coverage meter: split base/V1/V2 bar (amber base below 80%) */
-.surf-cov-track {
-	flex: 1 1 0;
-	height: 8dp;
-	border: 1dp #4a4a6899;
-	border-radius: 3dp;
-	background-color: #1c1c2899;
-	display: flex;
-	flex-direction: row;
-	overflow: hidden;
-}
-.surf-cov-fill {
-	height: 6dp;
-	background-color: #7fc97faa;
-}
-.surf-cov-fill.surf-cov-c1 { background-color: #38bdf8cc; }
-.surf-cov-fill.surf-cov-c2 { background-color: #e879f9cc; }
-.surf-cov-fill.surf-cov-amber {
-	background-color: #fdc04ccc;
-}
-.text-sm.surf-cov-amber, .text-base.surf-cov-amber {
-	color: #fdc04c;
-}
 
 /* === HARD SURFACES section (LAYERS tool) === */
 .tf-surf-ch-btn {
