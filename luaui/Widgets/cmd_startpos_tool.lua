@@ -167,6 +167,18 @@ local boxDragBoxIdx = nil -- which box
 local boxEdgeDrag = nil -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
 local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge currently under cursor
 local nextBoxAllyTeam = 1
+-- Anchor selected for curvature editing. Clicking a handle (press and release without
+-- moving) selects it and raises a gizmo along its outward normal; dragging along that
+-- gizmo sets the anchor strength between 0 and 1.
+-- Curvature editing hangs off one table rather than a dozen file-level locals: the main
+-- chunk of this widget sits on Lua's 200-local ceiling and each new one costs a slot.
+local strengthEdit = {
+	selBox = nil,
+	selVert = nil,
+	dragging = false,
+	GIZMO_LEN = 240, -- world units from anchor to the strength-1 end of the gizmo
+	scratch = {}, -- reused anchor ring, see buildRing
+}
 -- Whole-box drag (mouse pressed inside a startbox body, not on a handle/edge). Records the
 -- world-space cursor delta between frames and offsets every vertex (and spline control point
 -- when applicable). Separate from vertex-drag so hover hit-tests stay simple.
@@ -689,65 +701,108 @@ end
 -- Closed centripetal Catmull-Rom tessellation. Writes into `out` (reused when provided) and
 -- truncates to the required length. Returning a fresh table each mousemove during drag was
 -- the dominant source of GC pressure -> LuaRAM warnings on large freedraw splines.
-local function tessellateClosedCatmullRom(ctrls, samplesPerSegment, out)
-	samplesPerSegment = samplesPerSegment or 12
-	local n = #ctrls
-	out = out or {}
-	if n < 3 then
-		for i = 1, n do
-			local v = out[i]
-			if v then
-				v.x, v.z = ctrls[i].x, ctrls[i].z
-			else
-				out[i] = { x = ctrls[i].x, z = ctrls[i].z }
-			end
-		end
-		for i = #out, n + 1, -1 do
-			out[i] = nil
-		end
-		return out
-	end
-	local total = n * samplesPerSegment
-	local idx = 0
-	for i = 1, n do
-		local p0 = ctrls[((i - 2) % n) + 1]
-		local p1 = ctrls[((i - 1) % n) + 1]
-		local p2 = ctrls[(i % n) + 1]
-		local p3 = ctrls[((i + 1) % n) + 1]
-		for s = 0, samplesPerSegment - 1 do
-			local t = s / samplesPerSegment
-			local t2 = t * t
-			local t3 = t2 * t
-			local a = -0.5 * t3 + t2 - 0.5 * t
-			local b = 1.5 * t3 - 2.5 * t2 + 1.0
-			local c = -1.5 * t3 + 2.0 * t2 + 0.5 * t
-			local d = 0.5 * t3 - 0.5 * t2
-			idx = idx + 1
-			local x = a * p0.x + b * p1.x + c * p2.x + d * p3.x
-			local z = a * p0.z + b * p1.z + c * p2.z + d * p3.z
-			local v = out[idx]
-			if v then
-				v.x, v.z = x, z
-			else
-				out[idx] = { x = x, z = z }
-			end
-		end
-	end
-	for i = #out, total + 1, -1 do
-		out[i] = nil
-	end
-	return out
-end
+-- The game tessellates startbox anchors through this same module, so a preview built with
+-- it matches what the match will enforce vertex for vertex.
+strengthEdit.spline = VFS.Include("common/lib_spline.lua")
 
 -- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
 -- Mutates box.vertices in place and only flags a *pending* fill rebuild — the actual fill
 -- display list is regenerated on drag release (see isDraggingBox gate in ensureBoxFillList).
+-- Anchor ring in the {x, z, strength} shape strengthEdit.spline wants. Reused across calls: a control
+-- drag retessellates on every mousemove and this sits on that path.
+function strengthEdit.buildRing(handles)
+	local n = #handles
+	for i = 1, n do
+		local h = handles[i]
+		local a = strengthEdit.scratch[i]
+		if a then
+			a[1], a[2], a[3] = h.x, h.z, h.strength or 0
+		else
+			strengthEdit.scratch[i] = { h.x, h.z, h.strength or 0 }
+		end
+	end
+	for i = #strengthEdit.scratch, n + 1, -1 do
+		strengthEdit.scratch[i] = nil
+	end
+
+	return strengthEdit.scratch
+end
+
 local function retessellateSpline(box)
 	if box.kind ~= "spline" or not box.controls then
 		return
 	end
-	box.vertices = tessellateClosedCatmullRom(box.controls, 12, box.vertices)
+
+	local ring = strengthEdit.spline.TessellateRing(strengthEdit.buildRing(box.controls))
+	local out = box.vertices or {}
+	for i = 1, #ring do
+		local p = ring[i]
+		local v = out[i]
+		if v then
+			v.x, v.z = p[1], p[2]
+		else
+			out[i] = { x = p[1], z = p[2] }
+		end
+	end
+	for i = #out, #ring + 1, -1 do
+		out[i] = nil
+	end
+	box.vertices = out
 	box._fillNeedsRebuild = true
+end
+
+-- A polygon keeps its vertices as its anchors until a corner is first curved; only then does
+-- it need a control ring with a derived outline. Axis-aligned rects never curve.
+function strengthEdit.ensureCurvable(box)
+	if box.kind == "spline" then
+		return box.controls
+	end
+	if box.kind == "box" or not box.vertices or #box.vertices < 3 then
+		return nil
+	end
+
+	box.controls = box.vertices
+	box.vertices = {}
+	box.kind = "spline"
+	retessellateSpline(box)
+
+	return box.controls
+end
+
+-- Strength 0 is stored as absent, which is what the schema and Rowy both write.
+function strengthEdit.applyOne(handle, s)
+	if s < 0 then
+		s = 0
+	elseif s > 1 then
+		s = 1
+	end
+	handle.strength = (s > 0) and s or nil
+end
+
+function strengthEdit.setVertex(box, vi, s)
+	local handles = strengthEdit.ensureCurvable(box)
+	if not handles or not handles[vi] then
+		return false
+	end
+	strengthEdit.applyOne(handles[vi], s)
+	retessellateSpline(box)
+	invalidateBoxFill(box)
+
+	return true
+end
+
+function strengthEdit.setBox(box, s)
+	local handles = strengthEdit.ensureCurvable(box)
+	if not handles then
+		return false
+	end
+	for i = 1, #handles do
+		strengthEdit.applyOne(handles[i], s)
+	end
+	retessellateSpline(box)
+	invalidateBoxFill(box)
+
+	return true
 end
 
 local function removeLastStartbox()
@@ -761,6 +816,8 @@ local function removeLastStartbox()
 end
 
 local function clearAllStartboxes()
+	strengthEdit.selBox, strengthEdit.selVert = nil, nil
+	strengthEdit.dragging = false
 	for i = 1, #startboxes do
 		freeBoxFillList(startboxes[i])
 	end
@@ -910,6 +967,109 @@ local function getEditHandles(box)
 	return nil
 end
 
+-- Outward direction for the strength gizmo: anchor centroid -> anchor, so the gizmo always
+-- points away from the box body and never crosses it.
+function strengthEdit.axis(box, vi)
+	local handles = getEditHandles(box)
+	local v = handles and handles[vi]
+	if not v or #handles < 3 then
+		return nil
+	end
+
+	local cx, cz = 0, 0
+	for i = 1, #handles do
+		cx = cx + handles[i].x
+		cz = cz + handles[i].z
+	end
+	cx, cz = cx / #handles, cz / #handles
+
+	local dx, dz = v.x - cx, v.z - cz
+	local len = math.sqrt(dx * dx + dz * dz)
+	if len < 1 then
+		dx, dz, len = 1, 0, 1
+	end
+
+	return v.x, v.z, dx / len, dz / len
+end
+
+function strengthEdit.knob(box, vi)
+	local vx, vz, ux, uz = strengthEdit.axis(box, vi)
+	if not vx then
+		return nil
+	end
+	local handles = getEditHandles(box)
+	local s = (handles[vi].strength or 0) * strengthEdit.GIZMO_LEN
+
+	return vx + ux * s, vz + uz * s, vx, vz, ux, uz
+end
+
+-- Lifted out of DrawWorld: that function sits right on Lua's 60-upvalue ceiling, and the
+-- gizmo's own references were enough to push it over.
+function strengthEdit.draw(box, bi)
+	if strengthEdit.selBox ~= bi or not strengthEdit.selVert then
+		return
+	end
+
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, strengthEdit.selVert)
+	if not kx then
+		return
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	-- One height for the whole track, clear of the tallest ground beneath it, so the gizmo
+	-- reads as a straight ruler instead of draping over whatever slope it crosses.
+	local gy = math_max(GetGroundHeight(vx, vz) or 0, GetGroundHeight(ex, ez) or 0)
+	gy = math_max(gy, GetGroundHeight(kx, kz) or 0) + 48
+
+	-- Drawn without depth so a hill between the camera and the anchor cannot bury it.
+	glDepthTest(false)
+
+	glColor(0, 0, 0, 0.55)
+	glLineWidth(6.0)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(ex, gy, ez)
+	end)
+	glColor(1, 1, 1, 0.85)
+	glLineWidth(2.5)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(ex, gy, ez)
+	end)
+
+	-- Stem down to the anchor, so a track floating above uneven ground still reads as its.
+	glColor(1, 1, 1, 0.35)
+	glLineWidth(1.5)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(vx, (GetGroundHeight(vx, vz) or 0) + 4, vz)
+	end)
+
+	local kr = worldRadiusForScreenPx(kx, kz, 10)
+	glColor(0, 0, 0, 0.60)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(kx, gy, kz)
+		for s = 0, 18 do
+			local a = (s / 18) * 2 * math.pi
+			glVertex(kx + math_cos(a) * kr * 1.4, gy, kz + math_sin(a) * kr * 1.4)
+		end
+	end)
+	glColor(1, 1, 1, 0.95)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(kx, gy, kz)
+		for s = 0, 18 do
+			local a = (s / 18) * 2 * math.pi
+			glVertex(kx + math_cos(a) * kr, gy, kz + math_sin(a) * kr)
+		end
+	end)
+
+	glDepthTest(true)
+
+	glColor(1, 1, 1, 0.75)
+	glLineWidth(2.0)
+	glDrawGroundCircle(vx, GetGroundHeight(vx, vz) or 0, vz, worldRadiusForScreenPx(vx, vz, 26), 24)
+end
+
 local function findNearestPolygonEdgeMid(wx, wz)
 	local bestD = VERTEX_PICK_DIST_SQ
 	local bestBi, bestEi, bestMx, bestMz = nil, nil, nil, nil
@@ -1026,9 +1186,19 @@ local function saveStartboxes(name, explicitPath)
 	for i, box in ipairs(startboxes) do
 		lines[#lines + 1] = string.format("  [%d] = {", i)
 		lines[#lines + 1] = string.format("    allyTeam = %d,", box.allyTeam)
-		lines[#lines + 1] = "    vertices = {"
-		for _, v in ipairs(box.vertices) do
-			lines[#lines + 1] = string.format("      { x = %d, z = %d },", math_floor(v.x), math_floor(v.z))
+		lines[#lines + 1] = string.format("    kind = %q,", box.kind or "polygon")
+		-- Anchors, never the tessellated ring: the ring is derived and a curve cannot be
+		-- recovered from it. Strength is omitted when zero, matching the shared schema.
+		lines[#lines + 1] = "    anchors = {"
+		local anchors = getEditHandles(box) or box.vertices
+		for _, v in ipairs(anchors) do
+			local s = v.strength
+			if s and s > 0 then
+				lines[#lines + 1] = string.format("      { x = %d, z = %d, strength = %.3f },",
+					math_floor(v.x), math_floor(v.z), s)
+			else
+				lines[#lines + 1] = string.format("      { x = %d, z = %d },", math_floor(v.x), math_floor(v.z))
+			end
 		end
 		lines[#lines + 1] = "    },"
 		lines[#lines + 1] = "  },"
@@ -1058,10 +1228,26 @@ local function loadStartboxes(name, explicitPath)
 	if ok and data then
 		clearAllStartboxes()
 		for i, box in ipairs(data) do
-			startboxes[i] = {
-				vertices = box.vertices,
-				allyTeam = box.allyTeam or i,
-			}
+			-- anchors is the current shape; vertices is what older saves hold, and those had no
+			-- curvature to lose, so loading them as plain polygons is faithful.
+			local anchors = box.anchors
+			if anchors and box.kind ~= "box" then
+				startboxes[i] = {
+					controls = anchors,
+					vertices = {},
+					kind = "spline",
+					allyTeam = box.allyTeam or i,
+				}
+				retessellateSpline(startboxes[i])
+			else
+				-- Axis-aligned rects never curve, so their anchors are their vertices.
+				local verts = box.vertices or anchors
+				startboxes[i] = {
+					vertices = verts,
+					allyTeam = box.allyTeam or i,
+					kind = box.kind,
+				}
+			end
 		end
 		Echo("[StartPos Tool] Loaded startboxes from: " .. filename)
 		return true
@@ -1547,6 +1733,16 @@ function widget:MousePress(mx, my, button)
 		end
 	elseif subMode == "startbox" then
 		if button == 1 then
+			-- Strength gizmo of the selected anchor wins over vertex picking: it is deliberately
+			-- placed outside the box so it cannot collide with anything else worth grabbing.
+			if strengthEdit.selBox and strengthEdit.selVert and startboxes[strengthEdit.selBox] then
+				local kx, kz = strengthEdit.knob(startboxes[strengthEdit.selBox], strengthEdit.selVert)
+				if kx and distSq(wx, wz, kx, kz) < VERTEX_PICK_DIST_SQ then
+					strengthEdit.dragging = true
+					return true
+				end
+			end
+
 			-- Check for vertex drag first (polygon/freedraw boxes — placed boxes are always editable)
 			local bi, vi = findNearestBoxVertex(wx, wz)
 			if bi and vi then
@@ -1672,6 +1868,20 @@ end
 function widget:MouseMove(mx, my, dx, dy, button)
 	if not active then
 		return false
+	end
+
+	if strengthEdit.dragging and strengthEdit.selBox and strengthEdit.selVert then
+		local box = startboxes[strengthEdit.selBox]
+		local wx, wz = getWorldMousePosition()
+		if box and wx then
+			local _, _, vx, vz, ux, uz = strengthEdit.knob(box, strengthEdit.selVert)
+			if vx then
+				-- Project the cursor onto the gizmo axis; its length is the 0..1 range.
+				local along = (wx - vx) * ux + (wz - vz) * uz
+				strengthEdit.setVertex(box, strengthEdit.selVert, along / strengthEdit.GIZMO_LEN)
+			end
+		end
+		return true
 	end
 
 	if subMode == "express" and dragIdx then
@@ -1936,11 +2146,20 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
+	if strengthEdit.dragging then
+		strengthEdit.dragging = false
+		return true
+	end
+
 	-- Consolidated release for all startbox drag kinds (vertex / edge / body). Trigger the
 	-- deferred fill-list rebuild here so the translucent fill catches up after the user
 	-- lets go. During the drag itself ensureBoxFillList returned the stale list to avoid
 	-- O(N^2) rebuilds per mousemove.
 	if subMode == "startbox" and (boxDragIdx or boxEdgeDrag or boxBodyDrag) then
+		-- Press and release on a handle without moving is a selection, not a drag.
+		if boxDragIdx and boxDragBoxIdx and not dragging then
+			strengthEdit.selBox, strengthEdit.selVert = boxDragBoxIdx, boxDragIdx
+		end
 		if pendingFillRebuildIdx and startboxes[pendingFillRebuildIdx] then
 			invalidateBoxFill(startboxes[pendingFillRebuildIdx])
 		end
@@ -2008,13 +2227,19 @@ function widget:MouseRelease(mx, my, button)
 				-- Fit a minimal set of control points from the smoothed trace, then store as
 				-- a spline-kind box so the user can reshape via curve handles (not raw verts).
 				local controls = fitControlPoints(smoothed, targetCtrls)
-				local vertices = tessellateClosedCatmullRom(controls, 12)
+				-- A drawn outline is smooth by intent, so every fitted handle starts fully curved.
+				-- Sharpening individual corners afterwards is what the strength gizmo is for.
+				for ci = 1, #controls do
+					controls[ci].strength = 1
+				end
 				startboxes[#startboxes + 1] = {
-					vertices = vertices,
+					vertices = {},
 					controls = controls,
 					kind = "spline",
 					allyTeam = nextBoxAllyTeam,
 				}
+				-- Same path a control drag takes, so what is drawn matches what editing produces.
+				retessellateSpline(startboxes[#startboxes])
 				nextBoxAllyTeam = nextBoxAllyTeam + 1
 				if nextBoxAllyTeam > numAllyTeams then
 					nextBoxAllyTeam = 1
@@ -2063,6 +2288,16 @@ function widget:KeyPress(key, mods, isRepeat)
 		return false
 	end
 	-- Ctrl+Z: undo last placement
+	-- Ctrl+A: give every anchor in the selected box the selected anchor's strength.
+	if key == 97 and mods.ctrl and strengthEdit.selBox and strengthEdit.selVert then -- 97 = 'a'
+		local box = startboxes[strengthEdit.selBox]
+		local handles = box and getEditHandles(box)
+		if handles and handles[strengthEdit.selVert] then
+			strengthEdit.setBox(box, handles[strengthEdit.selVert].strength or 0)
+			return true
+		end
+	end
+
 	if key == 122 and mods.ctrl then -- 122 = 'z'
 		local entry = undoHistory[#undoHistory]
 		if entry then
@@ -2760,6 +2995,7 @@ function widget:DrawWorld()
 						glDrawGroundCircle(v.x, vy, v.z, vertR + worldRadiusForScreenPx(v.x, v.z, 4), 24)
 					end
 				end
+				strengthEdit.draw(box, bi)
 				-- Polygon / spline edge-midpoint ghost handle: faint circle at the edge midpoint
 				-- under the cursor; clicking it inserts a new vertex / control point there and
 				-- starts a drag (spline retessellates on each move).
@@ -3160,6 +3396,8 @@ function widget:Initialize()
 		loadStartboxes = loadStartboxes,
 		listSavedStartboxConfigs = listSavedStartboxConfigs,
 		clearAllStartboxes = clearAllStartboxes,
+		setVertexStrength = strengthEdit.setVertex,
+		setBoxStrength = strengthEdit.setBox,
 		finishStartbox = finishStartbox,
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,
