@@ -406,7 +406,7 @@ end
 local function getDiveSpeed(projectile, speed)
 	local gain = projectile.diveSpeedGain
 	local diveSpeed = 0.5 * (gain + math_sqrt(gain * gain + 4 * speed * speed))
-	return diveSpeed < projectile.speedMax and diveSpeed or projectile.speedMax
+	return math_min(diveSpeed, projectile.speedMax)
 end
 
 local function turnToLevel(projectileID, projectile, frame)
