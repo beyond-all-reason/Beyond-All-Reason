@@ -166,7 +166,6 @@ local boxDragIdx = nil -- which vertex is being dragged
 local boxDragBoxIdx = nil -- which box
 local boxEdgeDrag = nil -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
 local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge currently under cursor
-local nextBoxAllyTeam = 1
 -- Anchor selected for curvature editing. Clicking a handle (press and release without
 -- moving) selects it and raises a gizmo along its outward normal; dragging along that
 -- gizmo sets the anchor strength between 0 and 1.
@@ -618,16 +617,22 @@ local function addStartboxVertex(x, z)
 	currentBoxVerts[#currentBoxVerts + 1] = { x = x, z = z }
 end
 
+-- Ally team is the box's position in the list, never a running counter: that is what the
+-- modoption format means by order (box 1 is allyTeam 0) and it makes a delete impossible to
+-- desync. One box per team falls out of it.
+local function renumberBoxAllyTeams()
+	for i = 1, #startboxes do
+		startboxes[i].allyTeam = i
+	end
+end
+
 local function finishStartbox()
 	if #currentBoxVerts >= 3 then
 		startboxes[#startboxes + 1] = {
 			vertices = currentBoxVerts,
-			allyTeam = nextBoxAllyTeam,
+			allyTeam = #startboxes + 1,
 		}
-		nextBoxAllyTeam = nextBoxAllyTeam + 1
-		if nextBoxAllyTeam > numAllyTeams then
-			nextBoxAllyTeam = 1
-		end
+		renumberBoxAllyTeams()
 	end
 	currentBoxVerts = {}
 	drawingBox = false
@@ -809,9 +814,7 @@ local function removeLastStartbox()
 	if #startboxes > 0 then
 		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
-		if nextBoxAllyTeam > 1 then
-			nextBoxAllyTeam = nextBoxAllyTeam - 1
-		end
+		renumberBoxAllyTeams()
 	end
 end
 
@@ -824,7 +827,6 @@ local function clearAllStartboxes()
 	startboxes = {}
 	currentBoxVerts = {}
 	drawingBox = false
-	nextBoxAllyTeam = 1
 end
 
 local function findNearestBoxVertex(wx, wz)
@@ -1249,6 +1251,7 @@ local function loadStartboxes(name, explicitPath)
 				}
 			end
 		end
+		renumberBoxAllyTeams()
 		Echo("[StartPos Tool] Loaded startboxes from: " .. filename)
 		return true
 	else
@@ -1581,16 +1584,23 @@ local function decimatePoints(pts, minDistSq)
 end
 
 local function getState()
+	-- Startbox submode derives its ally-team count from the boxes drawn; the panel disables
+	-- the slider there and shows it as dynamic, so reporting the stale slider value would lie.
+	local allyCount = numAllyTeams
+	if subMode == "startbox" and #startboxes > 0 then
+		allyCount = #startboxes
+	end
+
 	return {
 		active = active,
 		subMode = subMode,
 		positions = positions,
-		numAllyTeams = numAllyTeams,
+		numAllyTeams = allyCount,
 		numTeamsPerAlly = numTeamsPerAlly,
 		nextAllyTeam = nextAllyTeam,
 		nextTeamSlot = nextTeamSlot,
 		placementMode = placementMode,
-		totalPlayers = numAllyTeams * numTeamsPerAlly,
+		totalPlayers = allyCount * numTeamsPerAlly,
 		maxAllyTeams = MAX_ALLYTEAMS,
 		maxTeamsPerAlly = MAX_TEAMS_PER_ALLY,
 		maxPositions = MAX_POSITIONS,
@@ -2236,14 +2246,11 @@ function widget:MouseRelease(mx, my, button)
 					vertices = {},
 					controls = controls,
 					kind = "spline",
-					allyTeam = nextBoxAllyTeam,
+					allyTeam = #startboxes + 1,
 				}
 				-- Same path a control drag takes, so what is drawn matches what editing produces.
 				retessellateSpline(startboxes[#startboxes])
-				nextBoxAllyTeam = nextBoxAllyTeam + 1
-				if nextBoxAllyTeam > numAllyTeams then
-					nextBoxAllyTeam = 1
-				end
+				renumberBoxAllyTeams()
 			end
 		end
 		freeDrawPts = {}
@@ -3026,7 +3033,7 @@ function widget:DrawWorld()
 
 	-- Draw current box being drawn
 	if drawingBox and #currentBoxVerts > 0 then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.6)
 		glLineWidth(2.0)
 		if #currentBoxVerts >= 2 then
@@ -3057,7 +3064,7 @@ function widget:DrawWorld()
 
 	-- Draw drag-rect preview (startboxMode == "box")
 	if subMode == "startbox" and boxRectActive and boxRectStartX and boxRectEndX then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
 		local z1, z2 = math_min(boxRectStartZ, boxRectEndZ), math_max(boxRectStartZ, boxRectEndZ)
 		glColor(color[1], color[2], color[3], 0.75)
@@ -3089,7 +3096,7 @@ function widget:DrawWorld()
 
 	-- Draw freedraw in-progress path
 	if subMode == "startbox" and freeDrawActive and #freeDrawPts >= 2 then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.85)
 		glLineWidth(2.2)
 		glBeginEnd(GL_LINE_STRIP, function()
