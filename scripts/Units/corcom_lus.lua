@@ -97,6 +97,8 @@ local function move(piece, axis, goal, speed)
 	Move(piece, axis, goal, speed)
 end
 
+local animSpeed, bAiming, bMoving, buildHeading, buildPitch, currentSpeed, isAiming, isAimingDgun, isBuilding, leftArm, rightArm
+
 function walk()
 	SetSignalMask(SIG_WALK)
 	if bMoving then --Frame:6
@@ -633,11 +635,11 @@ function bigfire()
 end
 
 function UnitSpeed()
-	maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
-	animFramesPerKeyframe = 6 --we need to calc the frames per keyframe value, from the known animtime
+	local maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
+	local animFramesPerKeyframe = 6 --we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed / (2 * animFramesPerKeyframe)) -- add fudge
 	while true do
-		vx, vy, vz, Speed = Spring.GetUnitVelocity(unitID)
+		local vx, vy, vz, Speed = Spring.GetUnitVelocity(unitID)
 		currentSpeed = Speed * 30
 		animSpeed = currentSpeed
 		if animSpeed < 1 then
