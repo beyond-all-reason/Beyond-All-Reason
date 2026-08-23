@@ -8870,9 +8870,11 @@ local initialModel = {
 		if WG.TerraformBrush.setErodeReposeDeg then
 			WG.TerraformBrush.setErodeReposeDeg(val)
 		end
-		-- Keep the attribute coherent for the steppers: outside a change event
-		-- GetAttribute returns the stale pre-drag value (rmlui quirk).
-		_noSetSliderVal("erode-repose", val)
+		-- No echo-write of the value attribute here: a stamp raises a DEFERRED
+		-- change event (see syncAndFlash), which re-enters this handler with
+		-- updatingFromCode already false and fights the native thumb drag.
+		-- The steppers read widget state, and the per-sync restamp reconciles
+		-- the attribute after release, so nothing needs the write.
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 	-- Steppers read the authoritative widget state, not the slider attribute,
@@ -17333,7 +17335,10 @@ function widget:Update()
 				uiState.updatingFromCode = true
 				local erodeSlider = getCachedEl(doc, "slider-erode-repose")
 				if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
-					erodeSlider:SetAttribute("value", tostring(state.erodeReposeDeg))
+					-- Dirty-checked: an unconditional stamp raises a deferred change
+					-- event every sync pass (after updatingFromCode is already
+					-- cleared), re-entering the slider handler each frame.
+					setAttrValueIfChanged(erodeSlider, "slider-erode-repose", tostring(state.erodeReposeDeg))
 				end
 				if dm then
 					local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
