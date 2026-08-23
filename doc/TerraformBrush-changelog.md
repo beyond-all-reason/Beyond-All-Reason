@@ -18,6 +18,9 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - Feature Placer scale variation groundwork: Scale Min / Max sliders roll a per-feature scale at placement time, realized by snapping to pre-baked model variants since the engine exposes no feature-scale API. No variant sets ship yet, so the sliders are inert for now; the fir variants and the tree clump work are shelved on a separate branch. With clustered distribution the roll correlates size with distance to the cluster core.
 - Map projects round-trip the full Tileset configuration through a new `tileset.lua` section: biome, metal-spot style, glow lights, the EXTRA LAYER material and every tuning knob survive save and open. All SURFACE slots persist too, with a second mask saved whenever slots 4-7 carry paint.
 - Map projects record the skybox picked at runtime in the ENVIRONMENT panel instead of the one the canvas booted with, env configs carry the skybox path, and a project reopens with its sky even if the skybox panel was never opened that session.
+- SMUDGE: a third MODIFY submode that drags terrain along the stroke, GIMP's smudge for the heightfield. A height grab is carried with the cursor and folded into the ground as it moves, so relief smears along the drag and tapers off; intensity sets how long the tail survives. L cycles SMOOTH, LEVEL and SMUDGE.
+- AUTORAMP: a third RAMP type. Click an existing cliff and it is rebuilt at a chosen angle with wavy lips, ridged erosion gullies and a scree fan at the base. Cliff start anchors the face (Extend keeps the top lip, Subtract keeps the bottom one, Average pivots on the mid line), and a WYSIWYG hover preview shows the exact resulting terrain as a translucent fill/cut mesh before the click - the preview and the apply run the same seeded math. R toggles RAMP and AUTORAMP.
+- The Tileset window gains a WATER section: walkable depth, shallows tint, clarity, curve, hue, saturation and power, and a deep-floor glow, driving the tileset shader's terrain-based water shading.
 
 ### Improvements
 
@@ -34,6 +37,9 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - The metal brush's remove submode always erases, regardless of which mouse button started the drag.
 - An environment config saved while the engine reported no sun position no longer blacks out the map it is later applied to: a degenerate sun direction is neither serialized nor applied.
 - The ENV sun sliders reseed after a project load applies an environment, instead of writing their stale attach-time values back through the engine on the next nudge.
+- Fast brush drags no longer leave gaps between stamps: the stroke interpolator used to widen its stamp spacing past the brush radius on quick flicks (visible as evenly spaced terrain ribs with SMUDGE), and now lags the cursor at proper overlap instead, catching up over the following ticks.
+- Slider restamps no longer fight the thumb mid-drag (the erode repose marble used to stick while the track still worked).
+- The Feature Placer no longer crashes the engine on model-less feature defs such as the geo vent crack.
 
 ## 1.11 - 2026-08-14
 
