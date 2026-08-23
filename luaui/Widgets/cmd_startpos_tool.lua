@@ -991,10 +991,18 @@ function boxExport.arrangement()
 			local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
 			for k = 1, #anchors do
 				local a = anchors[k]
-				if a.x < minX then minX = a.x end
-				if a.x > maxX then maxX = a.x end
-				if a.z < minZ then minZ = a.z end
-				if a.z > maxZ then maxZ = a.z end
+				if a.x < minX then
+					minX = a.x
+				end
+				if a.x > maxX then
+					maxX = a.x
+				end
+				if a.z < minZ then
+					minZ = a.z
+				end
+				if a.z > maxZ then
+					maxZ = a.z
+				end
 			end
 			poly[1] = { x = boxExport.toNorm(minX, sizeX), y = boxExport.toNorm(minZ, sizeZ) }
 			poly[2] = { x = boxExport.toNorm(maxX, sizeX), y = boxExport.toNorm(maxZ, sizeZ) }
@@ -1054,8 +1062,7 @@ local function copyStartboxOverride()
 	end
 
 	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
-	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.",
-		boxes, #value))
+	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value))
 
 	return true
 end
@@ -1499,8 +1506,8 @@ local function saveStartboxes(name, explicitPath)
 		for _, v in ipairs(anchors) do
 			local s = v.strength
 			if s and s > 0 then
-				lines[#lines + 1] = string.format("      { x = %d, z = %d, strength = %.3f },",
-					math_floor(v.x), math_floor(v.z), s)
+				lines[#lines + 1] =
+					string.format("      { x = %d, z = %d, strength = %.3f },", math_floor(v.x), math_floor(v.z), s)
 			else
 				lines[#lines + 1] = string.format("      { x = %d, z = %d },", math_floor(v.x), math_floor(v.z))
 			end
@@ -3045,8 +3052,11 @@ function widget:Update()
 		end
 	end
 
-	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil)
-		or (hoverPolyEdge ~= nil) or strengthEdit.hoverKnob
+	local shouldMove = (hoverPosIdx ~= nil)
+		or (hoverVertIdx ~= nil)
+		or (hoverBoxEdge ~= nil)
+		or (hoverPolyEdge ~= nil)
+		or strengthEdit.hoverKnob
 	if WG.StartPosTool then
 		WG.StartPosTool.hoveringDraggable = shouldMove
 	end
