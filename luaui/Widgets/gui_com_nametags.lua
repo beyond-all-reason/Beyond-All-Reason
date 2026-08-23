@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -25,6 +25,7 @@ local spGetPlayerList = Spring.GetPlayerList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
 local spIsUnitVisible = Spring.IsUnitVisible
 local spIsUnitIcon = Spring.IsUnitIcon
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -36,11 +37,13 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetModOptions = Spring.GetModOptions
 local spGetConfigString = Spring.GetConfigString
 local spIsGUIHidden = Spring.IsGUIHidden
+local spGetGroundHeight = Spring.GetGroundHeight
 
 -- Localized Lua functions
 local mathFloor = math.floor
 local mathDiag = math.diag
 local stringFind = string.find
+local stringChar = string.char
 local pairs = pairs
 local select = select
 local tonumber = tonumber
@@ -48,19 +51,9 @@ local tonumber = tonumber
 -- Localized GL functions
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local glDepthTest = gl.DepthTest
 local glAlphaTest = gl.AlphaTest
 local glColor = gl.Color
-local glTranslate = gl.Translate
-local glBillboard = gl.Billboard
-local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glBlending = gl.Blending
-local glScale = gl.Scale
-local glCallList = gl.CallList
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glDeleteList = gl.DeleteList
-local glCreateList = gl.CreateList
 local glLoadFont = gl.LoadFont
 local glDeleteFont = gl.DeleteFont
 
@@ -71,7 +64,7 @@ local glDeleteFont = gl.DeleteFont
 local hideBelowGameframe = 130 -- delay to give spawn fx some time
 local drawForIcon = true -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
-local useThickLeterring = false -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
+local useThickLeterring = false -- Sorry, the performance cost of this is quite high :( triples the amount of text drawn
 local heightOffset = 50
 local fontSize = 15 -- not real fontsize, it will be scaled
 local scaleFontAmount = 120
@@ -83,6 +76,12 @@ local showSkillValue = true
 local playerRankSize = fontSize * 1.05
 local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 
+-- Terrain occlusion of world-anchored nametags is sampled with Spring.GetGroundHeight,
+-- which is the most expensive part of the per-frame work. Each commander is re-evaluated
+-- only every N draw frames (staggered by unitID) unless the camera jumped.
+local occlusionCheckInterval = 4
+local cameraJumpDistance = 512 -- camera moved further than this in a single frame -> re-evaluate everything
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -91,6 +90,12 @@ local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
+-- Inline "text color + outline color" code understood by the engine font renderer.
+-- Baking the colors into the string lets all nametags be printed inside a single
+-- font:Begin()/font:End() batch (one draw call per font per frame) without any
+-- per-name SetTextColor/SetOutlineColor calls or display lists.
+local colorAndOutlineCode = (Engine and Engine.textColorCodes and Engine.textColorCodes.ColorAndOutline) or "\254"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -102,59 +107,73 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 50
 local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 10
-local font =
-	glLoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
-local fontfileScale2 = fontfileScale * 0.66
-local fonticon = glLoadFont(
-	fontfile,
-	fontfileSize * fontfileScale2,
-	fontfileOutlineSize * fontfileScale2,
-	fontfileOutlineStrength * 0.33
-)
+local font, shadowFont, fonticon
 
-local singleTeams = false
-local teamListLen = #spGetTeamList()
-local allyTeamListLen = #Spring.GetAllyTeamList()
-if teamListLen - 1 == allyTeamListLen - 1 then
-	singleTeams = true
+local function loadFonts()
+	local fontfileScale2 = fontfileScale * 0.66
+	font = glLoadFont(
+		fontfile,
+		fontfileSize * fontfileScale,
+		fontfileOutlineSize * fontfileScale,
+		fontfileOutlineStrength
+	)
+	shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+	fonticon = glLoadFont(
+		fontfile,
+		fontfileSize * fontfileScale2,
+		fontfileOutlineSize * fontfileScale2,
+		fontfileOutlineStrength * 0.33
+	)
 end
+
+local function deleteFonts()
+	glDeleteFont(font)
+	glDeleteFont(shadowFont)
+	glDeleteFont(fonticon)
+end
+
+loadFonts()
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = spGetModOptions().teamcolors_anonymous_mode
 local anonymousName = "?????"
 
-local usedFontSize = fontSize
-
-local comms = {}
-local comnameList = {}
-local comnameIconList = {}
-local teamColorKeys = {}
-local teams = spGetTeamList()
-local teamsLen = #teams
-local stringFormat = string.format
-for i = 1, teamsLen do
-	local teamID = teams[i]
-	local r, g, b = spGetTeamColor(teamID)
-	teamColorKeys[teamID] = stringFormat("%s_%s_%s", r, g, b)
-end
-teams = nil
-
-local drawScreenUnits = {}
+local comms = {} -- unitID -> nametag attributes, see GetCommAttributes()
+local occluded = {} -- unitID -> cached terrain-occlusion result of the world-anchored nametag
 local CheckedForSpec = false
 
 local spec = spGetSpectatingState()
-local myTeamID = spGetMyTeamID()
 local GaiaTeam = spGetGaiaTeamID()
 
--- Performance optimization caches
-local lastCameraPos = { 0, 0, 0 }
-local iconScaleCache = {} -- Cache icon scales to avoid recalculating
+-- Resolving the name shown for a team (player list, active/spec flags, rank, skill from the
+-- custom player table) costs several GetPlayerInfo calls, so it is cached per team and only
+-- re-resolved when players change.
+local teamNameInfo = {} -- teamID -> { name, rawName, playerID, rank, skill, decoyName }
+local teamColorCache = {} -- teamID -> { r, g, b } as last seen by the team color poll
+local teamList = {} -- all non-gaia teams (static for the duration of a game)
+local sweepIndex = 0 -- round-robin cursor for the per-team consistency sweep
+
+do
+	local teams = spGetTeamList()
+	for i = 1, #teams do
+		local teamID = teams[i]
+		if teamID ~= GaiaTeam then
+			teamList[#teamList + 1] = teamID
+			local r, g, b = spGetTeamColor(teamID)
+			teamColorCache[teamID] = { r, g, b }
+		end
+	end
+end
+
+local lastCamX, lastCamY, lastCamZ = 0, 0, 0
+local drawFrame = 0
 local iconResScale = math.sqrt(vsy / 1080) -- resolution compensation for icon nametags
+local iconFontSize = fontSize * 1.9 * iconResScale
 
 local comHeight = {}
-local comDefIDList = {} -- array of commander DefIDs for GetTeamUnitsByDefs
+local comIsDecoy = {}
+local comDefIDList = {} -- array of commander DefIDs for GetTeamUnitsByDefs / GetTeamUnitDefCount
 for unitDefID, defs in pairs(UnitDefs) do
 	if
 		defs.customParams.iscommander
@@ -163,13 +182,9 @@ for unitDefID, defs in pairs(UnitDefs) do
 		or defs.customParams.isscavdecoycommander
 	then
 		comHeight[unitDefID] = defs.height
+		comIsDecoy[unitDefID] = defs.customParams.decoyfor
 		comDefIDList[#comDefIDList + 1] = unitDefID
 	end
-end
-
-local sameTeamColors = false
-if WG.playercolorpalette ~= nil and WG.playercolorpalette.getSameTeamColors ~= nil then
-	sameTeamColors = WG.playercolorpalette.getSameTeamColors()
 end
 
 --------------------------------------------------------------------------------
@@ -180,351 +195,264 @@ local function round(num, idp)
 	return mathFloor(num * mult + 0.5) / mult
 end
 
--- gets the name, color, and height of the commander
-local function GetCommAttributes(unitID, unitDefID)
-	local team = spGetUnitTeam(unitID)
-	if team == nil then
-		return nil
+local function colorByte(value)
+	if value <= 0 then
+		return 0
+	elseif value >= 1 then
+		return 255
 	end
+	return mathFloor(value * 255 + 0.5)
+end
 
-	local playerRank
-	local name = ""
+-- prefixes text with an inline color code that sets both the text color and the outline color
+local function colorizeText(text, r, g, b, a, outlineR, outlineG, outlineB, outlineA)
+	return colorAndOutlineCode
+		.. stringChar(
+			colorByte(r),
+			colorByte(g),
+			colorByte(b),
+			colorByte(a),
+			colorByte(outlineR),
+			colorByte(outlineG),
+			colorByte(outlineB),
+			colorByte(outlineA)
+		)
+		.. text
+end
+
+-- resolves (and caches) what is shown for a team: player name + rank + skill, or AI /
+-- scavenger names. Expensive (several GetPlayerInfo calls incl. the custom player table),
+-- so the result is cached until players change.
+local function GetTeamNameInfo(team)
+	local info = teamNameInfo[team]
+	if info then
+		return info
+	end
+	info = { decoyName = BAR.I18N("units.decoyCommanderNameTag") }
+
 	local luaAI = spGetTeamLuaAI(team)
 	if luaAI and luaAI ~= "" and stringFind(luaAI, "Scavengers") then
 		--name = "Scav Commander" -- todo: i18n this thing
-		local unitDefCustomParams = UnitDefs[unitDefID].customParams
-		if unitDefCustomParams.decoyfor then
-			name = BAR.I18N("units.scavDecoyCommanderNameTag")
-		else
-			name = BAR.I18N("units.scavCommanderNameTag")
-		end
+		info.name = BAR.I18N("units.scavCommanderNameTag")
+		info.decoyName = BAR.I18N("units.scavDecoyCommanderNameTag")
 	elseif spGetGameRulesParam("ainame_" .. team) then
-		local unitDefCustomParams = UnitDefs[unitDefID].customParams
-		if unitDefCustomParams.decoyfor then
-			name = BAR.I18N("units.decoyCommanderNameTag")
-		else
-			name = BAR.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. team) })
-		end
+		info.name = BAR.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. team) })
 	else
-		local unitDefCustomParams = UnitDefs[unitDefID].customParams
-		if unitDefCustomParams.decoyfor then
-			name = BAR.I18N("units.decoyCommanderNameTag")
-		else
-			local players = spGetPlayerList(team)
-			local playersLen = players and #players or 0
-			if playersLen > 0 then
-				local firstPlayer = players[1]
-				name = spGetPlayerInfo(firstPlayer, false) or "------"
-				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(firstPlayer))
-					or name
-				playerRank = select(9, spGetPlayerInfo(firstPlayer, false))
-			else
-				name = "------"
-			end
-
-			if playersLen > 0 then
-				for i = 1, playersLen do
-					local pID = players[i]
-					local pname, active, isspec = spGetPlayerInfo(pID, false)
-					if active and not isspec then
-						pname = (
-							(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)
-						) or pname
-						playerRank = select(9, spGetPlayerInfo(pID, false))
-						name = pname
-						break
-					end
+		local playerID, playerRank
+		local name = "------"
+		local players = spGetPlayerList(team)
+		local playersLen = players and #players or 0
+		if playersLen > 0 then
+			-- default to the first player, prefer the first active non-spectating one
+			playerID = players[1]
+			name = spGetPlayerInfo(playerID, false) or "------"
+			playerRank = select(9, spGetPlayerInfo(playerID, false))
+			for i = 1, playersLen do
+				local pID = players[i]
+				local pname, active, isspec, _, _, _, _, _, rank = spGetPlayerInfo(pID, false)
+				if active and not isspec then
+					playerID = pID
+					name = pname
+					playerRank = rank
+					break
 				end
 			end
 		end
+		info.playerID = playerID
+		info.rawName = name
+		info.name = (
+			playerID
+			and WG.playernames
+			and WG.playernames.getPlayername
+			and WG.playernames.getPlayername(playerID)
+		) or name
+		info.rank = playerRank and playerRank + 1
 	end
 
-	local r, g, b, a = spGetTeamColor(team)
-	local bgColor = { 0, 0, 0, 1 }
-	if ColorIsDark(r, g, b) then
-		bgColor = { 1, 1, 1, 1 } -- try to keep these values the same as the playerlist
-	end
-
-	local skill
 	if showSkillValue then
 		local playerID = select(2, spGetTeamInfo(team, false))
 		if playerID then
 			local customtable = select(11, spGetPlayerInfo(playerID))
 			if customtable and customtable.skill then
-				skill = customtable.skill
+				local skill = customtable.skill
 				skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
 				skill = round(skill, 0)
 
 				if customtable.skilluncertainty and tonumber(customtable.skilluncertainty) > 6.65 then
 					skill = "??"
 				end
+				info.skill = skill
 			end
 		end
 	end
 
-	local xp = 0
-	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank + 1, xp, skill }
+	teamNameInfo[team] = info
+	return info
 end
 
-local function RemoveLists()
-	for name in pairs(comnameList) do
-		glDeleteList(comnameList[name])
+-- builds everything the draw loop needs for a commander: pre-colorized text strings and
+-- the world-space height offset. Cheap (team color + string concat), so it is simply
+-- re-built whenever a team color / name / rank setting changes.
+local function GetCommAttributes(unitDefID, team)
+	local info = GetTeamNameInfo(team)
+	local isDecoy = comIsDecoy[unitDefID]
+	local name = isDecoy and info.decoyName or info.name
+	local playerRank = (not isDecoy) and info.rank or nil
+
+	local r, g, b, a = spGetTeamColor(team)
+	local lightOutline = ColorIsDark(r, g, b) -- try to keep these values the same as the playerlist
+	local o = lightOutline and 1 or 0
+
+	local displayName = name
+	if anonymousMode ~= "disabled" and not spec then
+		displayName = anonymousName
 	end
-	for name in pairs(comnameIconList) do
-		glDeleteList(comnameIconList[name])
+
+	local attributes = {
+		team = team,
+		unitDefID = unitDefID,
+		text = colorizeText(displayName, r, g, b, a, o, o, o, 1),
+		height = comHeight[unitDefID] + heightOffset,
+	}
+
+	if useThickLeterring then
+		attributes.thickText = colorizeText(displayName, o, o, o, 1, o, o, o, 1)
+		if lightOutline and fontShadow then
+			attributes.shadowText = colorizeText(displayName, 0, 0, 0, shadowOpacity, 0, 0, 0, shadowOpacity)
+		end
 	end
-	comnameList = {}
-	comnameIconList = {}
+
+	if showPlayerRank and playerRank and (anonymousMode == "disabled" or spec) and not isSinglePlayer then
+		attributes.rankTexture = playerRankImages .. playerRank .. ".png"
+		attributes.halfTextWidth = font:GetTextWidth(displayName) * 0.5
+		if showSkillValue and info.skill then
+			attributes.skillText = colorizeText(tostring(info.skill), 0.66, 0.66, 0.66, 1, 0, 0, 0, 0.6)
+		end
+	end
+
+	return attributes
 end
 
-local function GetComnameListKey(attributes)
-	local name = attributes[1] or ""
-	local c = attributes[2] or { 1, 1, 1, 1 }
-	local rank = attributes[6] or 0
-	local skill = attributes[8] or ""
-	return stringFormat("%s|%.4f|%.4f|%.4f|%.4f|%s|%s", name, c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1, rank, skill)
-end
-
-local function createComnameList(attributes)
-	local listKey = GetComnameListKey(attributes)
-	if comnameList[listKey] ~= nil then
-		glDeleteList(comnameList[listKey])
-	end
-	comnameList[listKey] = glCreateList(function()
-		local x, y = 0, 0
-		if (anonymousMode == "disabled" or spec) and showPlayerRank and attributes[6] and not isSinglePlayer then
-			x = (playerRankSize * 0.5)
-		end
-		local outlineColor = { 0, 0, 0, 1 }
-		if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
-			outlineColor = { 1, 1, 1, 1 } -- try to keep these values the same as the playerlist
-		end
-		local name = attributes[1]
-		if anonymousMode ~= "disabled" and not spec then
-			name = anonymousName
-		end
-		if useThickLeterring then
-			if outlineColor[1] == 1 and fontShadow then
-				glTranslate(0, -(fontSize / 44), 0)
-				shadowFont:Begin()
-				shadowFont:SetTextColor({ 0, 0, 0, shadowOpacity })
-				shadowFont:SetOutlineColor({ 0, 0, 0, shadowOpacity })
-				shadowFont:Print(name, x, y, fontSize, "con")
-				shadowFont:End()
-				glTranslate(0, (fontSize / 44), 0)
-			end
-			font:SetTextColor(outlineColor)
-			font:SetOutlineColor(outlineColor)
-
-			font:Print(name, x - (fontSize / 38), y - (fontSize / 33), fontSize, "con")
-			font:Print(name, x + (fontSize / 38), y - (fontSize / 33), fontSize, "con")
-		end
-		font:Begin()
-		font:SetTextColor(attributes[2])
-		font:SetOutlineColor(outlineColor)
-		font:Print(name, x, y, fontSize, "con")
-		font:End()
-
-		-- player rank
-		if showPlayerRank and attributes[6] and (anonymousMode == "disabled" or spec) and not isSinglePlayer then
-			local halfSize = playerRankSize * 0.5
-			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
-			local y_l = y + (fontSize * 0.33)
-			glTexture(playerRankImages .. attributes[6] .. ".png")
-			glTexRect(x_l - halfSize, y_l - halfSize, x_l + halfSize, y_l + halfSize)
-			glTexture(false)
-
-			-- skill value
-			if showSkillValue and attributes[8] then
-				font:Begin()
-				font:SetTextColor(0.66, 0.66, 0.66, 1)
-				font:SetOutlineColor(0, 0, 0, 0.6)
-				font:Print(
-					attributes[8],
-					x_l - (playerRankSize * 0.86),
-					y_l - (playerRankSize * 0.29),
-					playerRankSize * 0.66,
-					"con"
-				)
-				font:End()
-			end
-		end
-	end)
+local function RemoveCom(unitID)
+	comms[unitID] = nil
+	occluded[unitID] = nil
 end
 
 local function CheckCom(unitID, unitDefID, unitTeam)
 	if not comHeight[unitDefID] or unitTeam == GaiaTeam then
-		if comms[unitID] then
-			comms[unitID] = nil
-			if comnameIconList[unitID] then
-				glDeleteList(comnameIconList[unitID])
-				comnameIconList[unitID] = nil
-			end
-		end
-		return false
+		RemoveCom(unitID)
+		return
 	end
-
-	local oldAttributes = comms[unitID]
-	local newAttributes = GetCommAttributes(unitID, unitDefID)
-	if not newAttributes then
-		if comms[unitID] then
-			comms[unitID] = nil
-			if comnameIconList[unitID] then
-				glDeleteList(comnameIconList[unitID])
-				comnameIconList[unitID] = nil
-			end
-		end
-		return false
-	end
-
-	comms[unitID] = newAttributes
-
-	if not oldAttributes then
-		return true
-	end
-
-	local hasChanged = (
-		oldAttributes[1] ~= newAttributes[1]
-		or oldAttributes[6] ~= newAttributes[6]
-		or oldAttributes[8] ~= newAttributes[8]
-		or oldAttributes[2][1] ~= newAttributes[2][1]
-		or oldAttributes[2][2] ~= newAttributes[2][2]
-		or oldAttributes[2][3] ~= newAttributes[2][3]
-		or oldAttributes[2][4] ~= newAttributes[2][4]
-	)
-
-	if hasChanged then
-		if comnameIconList[unitID] then
-			glDeleteList(comnameIconList[unitID])
-			comnameIconList[unitID] = nil
-		end
-	end
-
-	return hasChanged
+	comms[unitID] = GetCommAttributes(unitDefID, unitTeam)
 end
 
--- check if team colors have changed
-local function CheckTeamColors()
-	local detectedChanges = false
-	local teams = spGetTeamList()
-	local teamsLen = #teams
-	for i = 1, teamsLen do
-		local teamID = teams[i]
-		local r, g, b = spGetTeamColor(teamID)
-		local colorKey = stringFormat("%s_%s_%s", r, g, b)
-		if teamColorKeys[teamID] ~= colorKey then
-			teamColorKeys[teamID] = colorKey
-			detectedChanges = true
+-- re-creates the attributes of every tracked commander (of one team, or of all teams)
+local function RebuildAttributes(teamID)
+	for unitID, attributes in pairs(comms) do
+		if teamID == nil or attributes.team == teamID then
+			comms[unitID] = GetCommAttributes(attributes.unitDefID, attributes.team)
 		end
 	end
-	if detectedChanges then
-		RemoveLists()
+end
+
+-- Full enumeration of one team's commanders. GetTeamUnitsByDefs scans every unit of the
+-- team once per unitDefID in the list (80+ commander defs), which gets expensive for big
+-- teams - so this only runs when the cheap tally in SweepTeam disagrees with what we track.
+local function EnumerateTeam(teamID)
+	local found = spGetTeamUnitsByDefs(teamID, comDefIDList)
+	local seen = {}
+	if found then
+		for i = 1, #found do
+			local unitID = found[i]
+			seen[unitID] = true
+			CheckCom(unitID, spGetUnitDefID(unitID), teamID)
+		end
 	end
-	return detectedChanges
+	-- drop tracked commanders the engine no longer reports for this team (died out of LOS, transferred, ...)
+	for unitID, attributes in pairs(comms) do
+		if attributes.team == teamID and not seen[unitID] then
+			RemoveCom(unitID)
+		end
+	end
+end
+
+-- Cheap consistency check: GetTeamUnitDefCount is O(1) per def for allied/spectated teams
+-- and only walks the (few) units of that def for enemies. Enumerate only on a mismatch.
+local function SweepTeam(teamID)
+	local engineCount = 0
+	for i = 1, #comDefIDList do
+		engineCount = engineCount + (spGetTeamUnitDefCount(teamID, comDefIDList[i]) or 0)
+	end
+	local trackedCount = 0
+	for _, attributes in pairs(comms) do
+		if attributes.team == teamID then
+			trackedCount = trackedCount + 1
+		end
+	end
+	if engineCount ~= trackedCount then
+		EnumerateTeam(teamID)
+	end
 end
 
 local function CheckAllComs()
-	-- Only check team colors if needed
-	local colorChanged = CheckTeamColors()
-
-	-- check commanders using filtered query - much faster than scanning all units
-	local commsChanged = false
-
-	for _, teamID in ipairs(spGetTeamList()) do
-		if teamID ~= GaiaTeam then
-			local comUnits = spGetTeamUnitsByDefs(teamID, comDefIDList)
-			if comUnits then
-				for i = 1, #comUnits do
-					local unitID = comUnits[i]
-					local unitDefID = spGetUnitDefID(unitID)
-					if unitDefID and CheckCom(unitID, unitDefID, teamID) then
-						commsChanged = true
-					end
-				end
-			end
-		end
+	for i = 1, #teamList do
+		SweepTeam(teamList[i])
 	end
+end
 
-	-- If colors changed, force refresh of attributes
-	if colorChanged then
-		for unitID, _ in pairs(comms) do
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID then
-				comms[unitID] = GetCommAttributes(unitID, unitDefID)
-			end
-		end
-	end
-
-	-- Pre-create display lists for any new or refreshed commanders
-	if commsChanged or colorChanged then
-		for unitID, attributes in pairs(comms) do
-			local listKey = GetComnameListKey(attributes)
-			if attributes[1] and not comnameList[listKey] then
-				createComnameList(attributes)
-			end
-		end
-	end
+-- player assignments changed: re-resolve names, re-colorize everything
+local function InvalidateTeamNames()
+	teamNameInfo = {}
+	RebuildAttributes()
 end
 
 local sec = 0
-local colorCheckSec = 0
+local sweepSec = 0
 function widget:Update(dt)
 	sec = sec + dt
-	colorCheckSec = colorCheckSec + dt
+	sweepSec = sweepSec + dt
 
-	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
-	if colorCheckSec > 0.5 then
-		colorCheckSec = 0
-		local playerColorPalette = WG.playercolorpalette
-		if playerColorPalette ~= nil then
-			local getSameTeamColors = playerColorPalette.getSameTeamColors
-			if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then
-				sameTeamColors = getSameTeamColors()
-				RemoveLists()
-				CheckAllComs()
-				sec = 0
+	if sweepSec > 0.5 then
+		sweepSec = 0
+
+		-- team colors (player color palette / same-team-colors changes)
+		for i = 1, #teamList do
+			local teamID = teamList[i]
+			local r, g, b = spGetTeamColor(teamID)
+			local cached = teamColorCache[teamID]
+			if not cached then
+				teamColorCache[teamID] = { r, g, b }
+			elseif cached[1] ~= r or cached[2] ~= g or cached[3] ~= b then
+				cached[1], cached[2], cached[3] = r, g, b
+				RebuildAttributes(teamID)
 			end
-		elseif sameTeamColors then
-			sameTeamColors = false
-			RemoveLists()
-			CheckAllComs()
-			sec = 0
 		end
 
-		if not singleTeams and playerColorPalette ~= nil and playerColorPalette.getSameTeamColors then
-			local currentTeamID = spGetMyTeamID()
-			if myTeamID ~= currentTeamID then
-				myTeamID = currentTeamID
-				RemoveLists()
-				CheckAllComs()
-				sec = 0
-			end
+		-- verify the tracked commander set of one team per tick (round-robin); unit callins
+		-- keep the set up to date, this is only the safety net that used to be a full rescan
+		if #teamList > 0 then
+			sweepIndex = sweepIndex % #teamList + 1
+			SweepTeam(teamList[sweepIndex])
 		end
 	end
 
-	-- Check all commanders every 2 seconds instead of 1.2 (less frequent polling)
 	if sec > 2.0 then
 		sec = 0
-		CheckAllComs()
-	end
-end
 
-local spGetGroundHeight = Spring.GetGroundHeight
-
-local function DrawName(attributes)
-	local listKey = GetComnameListKey(attributes)
-	if comnameList[listKey] == nil then
-		createComnameList(attributes)
-	end
-	glTranslate(0, attributes[3], 0)
-	glBillboard()
-	if nameScaling then
-		glScale(usedFontSize / fontSize, usedFontSize / fontSize, usedFontSize / fontSize)
-	end
-	glCallList(comnameList[listKey])
-	if nameScaling then
-		glScale(1, 1, 1)
+		-- displayed player names (aliases via WG.playernames can change without a callin)
+		for teamID, info in pairs(teamNameInfo) do
+			if info.playerID then
+				local wantedName = (
+					WG.playernames
+					and WG.playernames.getPlayername
+					and WG.playernames.getPlayername(info.playerID)
+				) or info.rawName
+				if wantedName ~= info.name then
+					info.name = wantedName
+					RebuildAttributes(teamID)
+				end
+			end
+		end
 	end
 end
 
@@ -549,127 +477,141 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	iconResScale = math.sqrt(vsy / 1080)
+	iconFontSize = fontSize * 1.9 * iconResScale
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
-		RemoveLists()
-		CheckAllComs()
 		fontfileScale = newFontfileScale
-		fontfileScale2 = fontfileScale * 0.66
-		glDeleteFont(font)
-		glDeleteFont(shadowFont)
-		glDeleteFont(fonticon)
-		font = glLoadFont(
-			fontfile,
-			fontfileSize * fontfileScale,
-			fontfileOutlineSize * fontfileScale,
-			fontfileOutlineStrength
-		)
-		shadowFont = glLoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
-		fonticon = glLoadFont(
-			fontfile,
-			fontfileSize * fontfileScale2,
-			fontfileOutlineSize * fontfileScale2,
-			fontfileOutlineStrength * 0.33
-		)
+		deleteFonts()
+		loadFonts()
+		RebuildAttributes() -- cached text widths depend on the font
 	end
 end
 
-local function createComnameIconList(unitID, attributes)
-	if comnameIconList[unitID] ~= nil then
-		-- Don't recreate if it already exists unless forced
-		return
-	end
-	comnameIconList[unitID] = glCreateList(function()
-		local x, y, z = spGetUnitPosition(unitID)
-		if x and y and z then
-			x, z = spWorldToScreenCoords(x, y, z)
-
-			local outlineColor = { 0, 0, 0, 1 }
-			if ColorIsDark(attributes[2][1], attributes[2][2], attributes[2][3]) then
-				-- try to keep these values the same as the playerlist
-				outlineColor = { 1, 1, 1, 1 }
-			end
-			local name = attributes[1]
-			if anonymousMode ~= "disabled" and not spec then
-				name = anonymousName
-			end
-			fonticon:Begin()
-			fonticon:SetTextColor(attributes[2])
-			fonticon:SetOutlineColor(outlineColor)
-			fonticon:Print(name, 0, 0, fontSize * 1.9, "con")
-			fonticon:End()
-		end
-	end)
-end
-
-function widget:DrawScreenEffects() -- using DrawScreenEffects so nametags render after deferred lighting,
-	-- distortion, bloom and tonemapping passes — keeps them readable and uncolored
+-- Nametags are drawn in DrawScreenEffects so they render after the deferred lighting,
+-- distortion, bloom and tonemapping passes (which would otherwise discolor / ripple
+-- the text). All nametags are printed inside one font:Begin()/font:End() batch per
+-- font, so the whole set costs a single draw call per font per frame.
+function widget:DrawScreenEffects()
 	if spIsGUIHidden() then
 		return
 	end
-	if spGetGameFrame() < hideBelowGameframe then
+	local gameFrame = spGetGameFrame()
+	if gameFrame < hideBelowGameframe then
 		return
 	end
 
 	-- untested fix: when you resign, to also show enemy com playernames
-	if not CheckedForSpec and spGetGameFrame() > 1 then
-		if spec then
-			CheckedForSpec = true
-			CheckAllComs()
-		end
+	if not CheckedForSpec and gameFrame > 1 and spec then
+		CheckedForSpec = true
+		CheckAllComs()
 	end
 
-	glAlphaTest(GL_GREATER, 0)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	drawFrame = drawFrame + 1
 
-	-- Cache camera position to detect movement
 	local camX, camY, camZ = spGetCameraPosition()
-	local cameraMoved = (camX ~= lastCameraPos[1] or camY ~= lastCameraPos[2] or camZ ~= lastCameraPos[3])
-	if cameraMoved then
-		lastCameraPos[1], lastCameraPos[2], lastCameraPos[3] = camX, camY, camZ
+	-- a big camera jump invalidates every cached occlusion result at once
+	local cameraJumped = mathDiag(camX - lastCamX, camY - lastCamY, camZ - lastCamZ) > cameraJumpDistance
+	lastCamX, lastCamY, lastCamZ = camX, camY, camZ
+
+	local drawRanks = showPlayerRank
+	if drawRanks then
+		glAlphaTest(GL_GREATER, 0)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	-- Process all commanders in a single pass.
-	-- Icon-mode nametags go to drawScreenUnits (drawn below).
-	-- Non-icon (world) nametags get projected to screen and drawn inline here.
+	local fontBegun, iconFontBegun, shadowFontBegun = false, false, false
+	local boundRankTexture
+
 	for unitID, attributes in pairs(comms) do
 		if spIsUnitVisible(unitID, 50, false) then
 			local ux, uy, uz = spGetUnitPosition(unitID)
-			if ux and uy and uz then
-				local camDistance = math.max(150, mathDiag(camX - ux, camY - uy, camZ - uz))
-
+			if ux then
 				if drawForIcon and spIsUnitIcon(unitID) then
-					attributes[5] = camDistance
-					drawScreenUnits[unitID] = attributes
+					-- Icon-mode nametag: fixed screen size, slightly shrinking with camera distance
+					local sx, sy = spWorldToScreenCoords(ux, uy + 50 + heightOffset, uz)
+					local scale = 1 - mathDiag(camX - ux, camY - uy, camZ - uz) / 25000
+					if scale < 0.5 then
+						scale = 0.5
+					end
+					if not iconFontBegun then
+						fonticon:Begin()
+						iconFontBegun = true
+					end
+					fonticon:Print(attributes.text, sx, sy, iconFontSize * scale, "con")
 				else
-					-- World-anchored nametag, projected into screen space.
-					local nametagY = uy + attributes[3]
-					if not isOccludedByTerrain(camX, camY, camZ, ux, nametagY, uz) then
-						local sx, sy = spWorldToScreenCoords(ux, nametagY, uz)
-						if sx and sy and sx > -200 and sx < vsx + 200 and sy > -100 and sy < vsy + 100 then
-							local listKey = GetComnameListKey(attributes)
-							if comnameList[listKey] == nil then
-								createComnameList(attributes)
+					-- World-anchored nametag, projected into screen space
+					local ty = uy + attributes.height
+					local sx, sy = spWorldToScreenCoords(ux, ty, uz)
+					if sx > -200 and sx < vsx + 200 and sy > -100 and sy < vsy + 100 then
+						local isOccluded = occluded[unitID]
+						if isOccluded == nil or cameraJumped or (drawFrame + unitID) % occlusionCheckInterval == 0 then
+							isOccluded = isOccludedByTerrain(camX, camY, camZ, ux, ty, uz)
+							occluded[unitID] = isOccluded
+						end
+						if not isOccluded then
+							local camDistance = mathDiag(camX - ux, camY - uy, camZ - uz)
+							if camDistance < 150 then
+								camDistance = 150
 							end
 							-- Approximate the previous billboarded scale: the world-space
 							-- formula was usedFontSize = 0.5*fontSize + camDistance/scaleFontAmount,
 							-- billboarded; perspective then shrunk it by ~focalPx/camDistance.
 							-- Collapsing both gives a nearly distance-independent pixel size with
 							-- a small near-camera bump.
-							local worldScale = 0.5 + camDistance / (scaleFontAmount * fontSize)
-							local screenScale = worldScale * (vsy * 1.22 / camDistance)
+							local screenScale = (0.5 + camDistance / (scaleFontAmount * fontSize))
+								* (vsy * 1.22 / camDistance)
 							if screenScale < 0.9 then
 								screenScale = 0.9
-							end
-							if screenScale > 5.0 then
+							elseif screenScale > 5.0 then
 								screenScale = 5.0
 							end
-							glPushMatrix()
-							glTranslate(sx, sy, 0)
-							glScale(screenScale, screenScale, screenScale)
-							glCallList(comnameList[listKey])
-							glPopMatrix()
+							local size = fontSize * screenScale
+							local rankTexture = attributes.rankTexture
+							if rankTexture then
+								sx = sx + playerRankSize * 0.5 * screenScale -- make room for the rank icon
+							end
+
+							if not fontBegun then
+								font:Begin()
+								fontBegun = true
+							end
+							if useThickLeterring then
+								local shadowText = attributes.shadowText
+								if shadowText then
+									if not shadowFontBegun then
+										shadowFont:Begin()
+										shadowFontBegun = true
+									end
+									shadowFont:Print(shadowText, sx, sy - size / 44, size, "con")
+								end
+								local thickText = attributes.thickText
+								font:Print(thickText, sx - size / 38, sy - size / 33, size, "con")
+								font:Print(thickText, sx + size / 38, sy - size / 33, size, "con")
+							end
+							font:Print(attributes.text, sx, sy, size, "con")
+
+							-- player rank (+ skill value)
+							if rankTexture then
+								local halfSize = playerRankSize * 0.5 * screenScale
+								local x_l = sx - (attributes.halfTextWidth * size + halfSize + size * 0.1)
+								local y_l = sy + size * 0.33
+								if rankTexture ~= boundRankTexture then
+									glTexture(rankTexture)
+									boundRankTexture = rankTexture
+								end
+								glTexRect(x_l - halfSize, y_l - halfSize, x_l + halfSize, y_l + halfSize)
+								local skillText = attributes.skillText
+								if skillText then
+									font:Print(
+										skillText,
+										x_l - playerRankSize * 0.86 * screenScale,
+										y_l - playerRankSize * 0.29 * screenScale,
+										playerRankSize * 0.66 * screenScale,
+										"con"
+									)
+								end
+							end
 						end
 					end
 				end
@@ -677,60 +619,23 @@ function widget:DrawScreenEffects() -- using DrawScreenEffects so nametags rende
 		end
 	end
 
-	-- Batch process all icon-mode nametags queued above
-	if next(drawScreenUnits) then
-		for unitID, attributes in pairs(drawScreenUnits) do
-			-- Only create the display list if it doesn't exist or has changed
-			if not comnameIconList[unitID] then
-				createComnameIconList(unitID, attributes)
-			end
-
-			local x, y, z = spGetUnitPosition(unitID)
-			if x and y and z then
-				x, z = spWorldToScreenCoords(x, y + 50 + heightOffset, z)
-
-				-- Cache the scale calculation to avoid repeated divisions
-				local camDist = attributes[5]
-				local scale = iconScaleCache[camDist]
-				if not scale then
-					if camDist and camDist == camDist and camDist < math.huge then
-						scale = 1 - (camDist / 25000)
-						if scale < 0.5 then
-							scale = 0.5
-						end
-					else
-						scale = 0.5
-					end
-					iconScaleCache[camDist] = scale
-				end
-
-				local finalScale = scale * iconResScale
-				glPushMatrix()
-				glTranslate(x, z, 0)
-				glScale(finalScale, finalScale, finalScale)
-				glCallList(comnameIconList[unitID])
-				glPopMatrix()
-			end
-		end
-		-- Clear for next frame (wipe in-place to avoid table allocation)
-		for k in pairs(drawScreenUnits) do
-			drawScreenUnits[k] = nil
-		end
-
-		-- Clear icon scale cache periodically to avoid memory bloat
-		if spGetGameFrame() % 300 == 0 then
-			iconScaleCache = {}
-		end
+	if shadowFontBegun then
+		shadowFont:End()
+	end
+	if fontBegun then
+		font:End()
+	end
+	if iconFontBegun then
+		fonticon:End()
 	end
 
-	glAlphaTest(false)
-	glColor(1, 1, 1, 1)
-end
-
-function widget:DrawWorld()
-	-- intentionally empty; nametags are now drawn in DrawScreenEffects so they
-	-- render after distortion, bloom and tonemap passes (which would otherwise
-	-- discolor / ripple the text).
+	if drawRanks then
+		if boundRankTexture then
+			glTexture(false)
+		end
+		glAlphaTest(false)
+		glColor(1, 1, 1, 1)
+	end
 end
 
 function widget:Initialize()
@@ -740,108 +645,39 @@ function widget:Initialize()
 	end
 	WG.nametags.SetShowPlayerRank = function(value)
 		showPlayerRank = value
-		RemoveLists()
-		CheckAllComs()
+		RebuildAttributes()
 	end
 
 	CheckAllComs()
-
-	-- Pre-create nametag display lists for all player teams before game start
-	-- so there's no lag spike when commanders spawn in
-	for _, teamID in ipairs(spGetTeamList()) do
-		if teamID ~= GaiaTeam then
-			local playerRank
-			local name = ""
-			local luaAI = spGetTeamLuaAI(teamID)
-			if luaAI and luaAI ~= "" and stringFind(luaAI, "Scavengers") then
-				name = BAR.I18N("units.scavCommanderNameTag")
-			elseif spGetGameRulesParam("ainame_" .. teamID) then
-				name = BAR.I18N("ui.playersList.aiName", { name = spGetGameRulesParam("ainame_" .. teamID) })
-			else
-				local players = spGetPlayerList(teamID)
-				local playersLen = players and #players or 0
-				if playersLen > 0 then
-					for i = 1, playersLen do
-						local pID = players[i]
-						local pname, active, isspec = spGetPlayerInfo(pID, false)
-						if active and not isspec then
-							pname = (
-								(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)
-							) or pname
-							playerRank = select(9, spGetPlayerInfo(pID, false))
-							name = pname
-							break
-						end
-					end
-					if name == "" then
-						name = spGetPlayerInfo(players[1], false) or "------"
-						name = (
-							(WG.playernames and WG.playernames.getPlayername)
-							and WG.playernames.getPlayername(players[1])
-						) or name
-						playerRank = select(9, spGetPlayerInfo(players[1], false))
-					end
-				else
-					name = "------"
-				end
-			end
-
-			if name ~= "" then
-				local r, g, b, a = spGetTeamColor(teamID)
-				local skill
-				if showSkillValue then
-					local playerID = select(2, spGetTeamInfo(teamID, false))
-					if playerID then
-						local customtable = select(11, spGetPlayerInfo(playerID))
-						if customtable and customtable.skill then
-							skill = customtable.skill
-							skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
-							skill = round(skill, 0)
-							if customtable.skilluncertainty and tonumber(customtable.skilluncertainty) > 6.65 then
-								skill = "??"
-							end
-						end
-					end
-				end
-				local attrs = { name, { r, g, b, a }, 0, { 0, 0, 0, 1 }, nil, playerRank and playerRank + 1, 0, skill }
-				local listKey = GetComnameListKey(attrs)
-				if not comnameList[listKey] then
-					createComnameList(attrs)
-				end
-			end
-		end
-	end
 end
 
 function widget:Shutdown()
-	RemoveLists()
-	glDeleteFont(font)
-	glDeleteFont(shadowFont)
-	glDeleteFont(fonticon)
+	deleteFonts()
 end
 
 function widget:PlayerChanged(playerID)
 	local prevSpec = spec
 	spec = spGetSpectatingState()
-	myTeamID = spGetMyTeamID()
 
-	local name, _ = spGetPlayerInfo(playerID, false)
-	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	for _, attributes in pairs(comms) do
-		if attributes[1] == name then
-			local listKey = GetComnameListKey(attributes)
-			if comnameList[listKey] ~= nil then
-				glDeleteList(comnameList[listKey])
-				comnameList[listKey] = nil
-			end
+	-- team membership / active state changed: names may resolve differently now
+	InvalidateTeamNames()
+
+	if playerID == spGetMyPlayerID() then
+		-- our own view changed (resigned, spectator team/fullview switch): what the engine
+		-- lets us see changed, so re-check which commanders we track
+		if spec and prevSpec ~= spec then
+			CheckedForSpec = true
 		end
-	end
-	sec = 99
-
-	if spec and prevSpec ~= spec then
-		CheckedForSpec = true
 		CheckAllComs()
 	end
+end
+
+function widget:PlayerAdded(playerID)
+	InvalidateTeamNames()
+end
+
+function widget:PlayerRemoved(playerID, reason)
+	InvalidateTeamNames()
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -849,11 +685,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	comms[unitID] = nil
-	if comnameIconList[unitID] then
-		glDeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
+	RemoveCom(unitID)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
