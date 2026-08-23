@@ -1185,7 +1185,7 @@ local function updateStandaloneDrones(frame)
 				if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + droneData.lastOrderUpdate) < frame) then
 					local idleRadius = droneData.idleRadius * 0.2
 					droneData.lastOrderUpdate = frame
-					rx, rz = randomPointInUnitCircle(5)
+					local rx, rz = randomPointInUnitCircle(5)
 					spGiveOrderToUnit(
 						unitID,
 						CMD.MOVE,

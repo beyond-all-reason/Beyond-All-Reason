@@ -219,7 +219,7 @@ else
 				circleuniforms = { 1, 1, 1, 1 }, -- unused
 			},
 		}, "ground circles shader GL4")
-		shaderCompiled = circleShader:Initialize()
+		local shaderCompiled = circleShader:Initialize()
 		if not shaderCompiled then
 			goodbye("Failed to compile circleShader GL4 ")
 		end

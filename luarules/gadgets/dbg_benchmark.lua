@@ -1,5 +1,8 @@
 local gadget = gadget ---@type Gadget
 
+---@type table<string, true>
+local startPlayers
+
 function gadget:GetInfo()
 	return {
 		name = "Benchmark",
@@ -175,6 +178,10 @@ if gadgetHandler:IsSyncedCode() then
 	function ExecuteRemoveUnitDefName(unitdefname)
 		local unitDefID = UnitDefNames[unitdefname].id
 		if unitDefID then
+			---@type FeatureDefID?
+			local wreckFeatureDefID
+			---@type FeatureDefID?
+			local heapFeatureDefID
 			if FeatureDefNames[unitdefname .. "_dead"] then
 				wreckFeatureDefID = FeatureDefNames[unitdefname .. "_dead"].id
 			end
@@ -522,7 +529,6 @@ else -- UNSYNCED
 			sd = alpha * sd + (1 - alpha) * drawTime
 
 			lastFrameType = "draw"
-			dt = drawTime
 		end
 	end
 

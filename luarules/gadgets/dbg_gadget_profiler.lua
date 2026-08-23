@@ -217,7 +217,13 @@ else
 end
 
 local gname2name = {}
-Hook = function(gadget, callinName)
+---@class HookedGadget : Gadget
+---@field [string] function
+
+---@param gadget HookedGadget
+---@param callinName string
+---@return function
+local function Hook(gadget, callinName)
 	local gadgetName = gadget.ghInfo.name
 	local realFunc = gadget[callinName]
 
@@ -288,6 +294,8 @@ local function ForAllGadgetCallins(action)
 end
 
 -- Helper for StartHook
+---@param gadget HookedGadget
+---@param callin string
 local function AddHook(gadget, callin)
 	gadget[callin] = Hook(gadget, callin)
 end
@@ -335,6 +343,8 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 end
 
 -- Helper for Kill Hook
+---@param gadget HookedGadget
+---@param callin string
 local function RemoveHook(gadget, callin)
 	if gadget["_old" .. callin] then
 		gadget[callin] = gadget["_old" .. callin]
