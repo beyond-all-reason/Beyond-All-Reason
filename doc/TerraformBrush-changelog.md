@@ -30,6 +30,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - The SURFACE brush modes (DOT, WASH, FILL, ERASE) are proper icon buttons matching the terrain modes.
 - The Dimensions height extremes readouts poll while the window is open; the refresh button is gone.
 - The metal brush's Metal Value slider stays usable in remove submode, since the erase rate scales with it.
+- The MODIFY MODE row got real icons, including a hand-drawn SMUDGE glyph, at the same visual weight as the tool set. Panel icons are authored with their brightness in the RGB channels now, since RmlUi clamps mid-to-high alpha to fully opaque and alpha-authored softness rendered as solid white.
 
 ### Fixes
 
