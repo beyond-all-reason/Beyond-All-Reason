@@ -27,7 +27,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitLosState = Spring.GetUnitLosState
-	local spGetUnitRulesParam = Spring.GetUnitRulesParam
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -724,17 +723,7 @@ if gadgetHandler:IsSyncedCode() then
 			elseif nParams == 1 then
 				local target = cmdParams[1]
 				if spValidUnitID(target) and not spAreTeamsAllied(unitTeam, spGetUnitTeam(target)) then
-					local allowed = allowTargetUnit(unitID, weaponList, target)
-					if not allowed then
-						-- a paired unit half no weapon may target (eg. the Fortifier con
-						-- turret, engine-"transported" by its hidden mex): retry the pair
-						local pairedID = spGetUnitRulesParam(target, "pairedUnitID")
-						if pairedID and spValidUnitID(pairedID) and allowTargetUnit(unitID, weaponList, pairedID) then
-							target = pairedID
-							allowed = true
-						end
-					end
-					if allowed then
+					if allowTargetUnit(unitID, weaponList, target) then
 						addTargetList = {
 							{
 								alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],

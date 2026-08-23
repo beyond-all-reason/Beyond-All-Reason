@@ -33,6 +33,7 @@ return { --costs should be same as legmohocon and legmohoconct
 			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
+			nohealthbars = true,
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
