@@ -4569,26 +4569,36 @@ function widget:Update(dt)
 		-- Skipped in stamp mode (which is discrete stamps by design).
 		local prevX, prevZ = extraState.lastAppliedX, extraState.lastAppliedZ
 		local steps = 1
+		local endX, endZ = lockedWorldX, lockedWorldZ
 		if prevX and not isStampMode() then
-			local ddx = lockedWorldX - prevX
-			local ddz = lockedWorldZ - prevZ
+			local ddx = endX - prevX
+			local ddz = endZ - prevZ
 			local dist = (ddx * ddx + ddz * ddz) ^ 0.5
 			-- Denser overlap (~15% of radius) eliminates visible banding at
-			-- slow-to-mid drag speeds; fast drags are capped by maxSteps.
+			-- slow-to-mid drag speeds.
 			local stepSize = max(4, activeRadius * 0.15)
 			steps = floor(dist / stepSize + 0.5)
 			if steps < 1 then
 				steps = 1
 			end
+			-- The step cap must never widen the spacing: bridging the whole
+			-- distance with capped steps spread the stamps out past the brush
+			-- radius on fast drags, which smudge renders as terrain ribs (and
+			-- past 2R every dab re-grabs instead of painting). Saturate the
+			-- travel instead - the stroke lags the cursor and the remainder is
+			-- bridged on the following ticks, so the path stays gapless.
 			if steps > 48 then
 				steps = 48
+				local travel = steps * stepSize
+				endX = prevX + ddx / dist * travel
+				endZ = prevZ + ddz / dist * travel
 			end
 		end
 		if steps <= 1 or not prevX then
 			sendTerraformMessage(
 				activeDirection,
-				lockedWorldX,
-				lockedWorldZ,
+				endX,
+				endZ,
 				activeRadius,
 				activeShape,
 				activeRotation,
@@ -4605,8 +4615,8 @@ function widget:Update(dt)
 			end
 			for i = 1, steps do
 				local t = i / steps
-				local ix = prevX + (lockedWorldX - prevX) * t
-				local iz = prevZ + (lockedWorldZ - prevZ) * t
+				local ix = prevX + (endX - prevX) * t
+				local iz = prevZ + (endZ - prevZ) * t
 				sendTerraformMessage(
 					activeDirection,
 					ix,
@@ -4623,8 +4633,10 @@ function widget:Update(dt)
 		-- Per-tick MERGE_END: each tick = one undo entry, all tagged with same stroke ID.
 		-- UNDO_STROKE pops entire stroke atomically. closeBrushStroke() on mouse release.
 		afterBrushTick()
-		extraState.lastAppliedX = lockedWorldX
-		extraState.lastAppliedZ = lockedWorldZ
+		-- endX/endZ, not lockedWorld: on a saturated tick the stroke has only
+		-- reached the lag point, and the next tick must continue from there.
+		extraState.lastAppliedX = endX
+		extraState.lastAppliedZ = endZ
 	end
 
 	-- Seismic sound feedback: play periodic impact sounds while actively sculpting
