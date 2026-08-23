@@ -734,6 +734,13 @@ local function DrawSelections(selectionVBO, shader)
 		glDepthTest(true)
 
 		shader:Deactivate()
+
+		-- Exit stencil mode properly (same as gui_selectedunits_gl4), so stencil state doesn't
+		-- leak into widgets drawn after this one:
+		glStencilTest(false)
+		glStencilMask(255)
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+		glClear(GL_STENCIL_BUFFER_BIT)
 	end
 end
 

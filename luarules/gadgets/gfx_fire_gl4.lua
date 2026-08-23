@@ -10,8 +10,10 @@
 --        2 = ember        (procedural glowing dot, rises with strong wobble
 --                          and a flickering "flaky" alpha)
 --  * Automatic fire-hit damage effect: when a unit is hit by a Flame
---    weapontype weapon it gains a fire+smoke+ember emitter ATTACHED to the
+--    weapontype weapon it gains a fire+smoke emitter ATTACHED to the
 --    unit, so the spawn location follows the unit while it keeps burning.
+--    Embers are reserved for tree fires (see treeFire below); generic
+--    SpawnFire callers can opt in with opts.embers = true / opts.emberRate.
 --    Each fresh hit refreshes the burn timer.
 --  * Automatic wreckage effect: when a unit that leaves a corpse dies, a
 --    short fire + longer smoke emitter is spawned at the wreckage position.
@@ -157,6 +159,9 @@ local CONFIG = {
 	-- Default emitter emission rates (particles per sim frame, fractional ok)
 	fireRate = 1.1,
 	smokeRate = 0.35,
+	-- Generic embers are OFF by default: unit-hit and wreckage fires spawn none.
+	-- This rate only applies to SpawnFire callers that pass opts.embers = true
+	-- (or an explicit opts.emberRate). Tree fires use treeFire.emberRate.
 	emberRate = 0.5,
 
 	-- Tree fire: a column of flame that grows up a burning tree and topples
@@ -1471,7 +1476,7 @@ local function spawnFire(x, y, z, opts)
 		lightRadiusMult = opts.lightRadiusMult or 1.0,
 		fireRate = (opts.fire == false) and 0 or (opts.fireRate or CONFIG.fireRate),
 		smokeRate = (opts.smoke == false) and 0 or (opts.smokeRate or CONFIG.smokeRate),
-		emberRate = (opts.embers == false) and 0 or (opts.emberRate or CONFIG.emberRate),
+		emberRate = (opts.embers == true or opts.emberRate) and (opts.emberRate or CONFIG.emberRate) or 0,
 		fireEnd = now + fireDur,
 		smokeEnd = now + smokeDur,
 		emberEnd = now + emberDur,
@@ -1512,7 +1517,7 @@ local function addUnitFire(unitID, unitDefID, durationFrames)
 		lightRadiusMult = 1.0,
 		fireRate = CONFIG.fireRate,
 		smokeRate = CONFIG.smokeRate,
-		emberRate = CONFIG.emberRate,
+		emberRate = 0, -- embers are reserved for tree fires
 		fireEnd = now + fireDur,
 		emberEnd = now + fireDur,
 		smokeEnd = now + fireDur + CONFIG.unitSmokeExtra,
@@ -1608,7 +1613,7 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 		scavenger = scavenger and true or nil,
 		fireRate = CONFIG.fireRate * 0.82 * sm,
 		smokeRate = CONFIG.smokeRate * 1.3 * sm,
-		emberRate = CONFIG.emberRate * 0.62 * sm,
+		emberRate = 0, -- embers are reserved for tree fires
 		spreadPoints = spreadPoints,
 		spreadSizeMult = spreadSizeMult,
 		fireEnd = now + fireDur,
