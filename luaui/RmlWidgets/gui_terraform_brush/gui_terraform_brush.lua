@@ -3264,7 +3264,7 @@ local initialModel = {
 	-- Phase 2 step 2: active-state dm fields (data-class-active bindings)
 	activeMode = "", -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
 	activeShape = "circle", -- shared shape for all tools
-	activeSmoothMode = "", -- "smooth"/"level" when in smooth/level group, else ""
+	activeSmoothMode = "", -- "smooth"/"level"/"smudge" when in the modify group, else ""
 	noiseType = "perlin", -- noise type selection
 	mbSubMode = "paint", -- metal brush sub-mode
 	gbSubMode = "paint", -- grass brush sub-mode
@@ -16135,7 +16135,9 @@ function widget:Update()
 						or clActive
 						or decalsActive
 						or widgetState.surfActive
-					local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
+					local inSmoothGroup = tfActive
+						and tfState
+						and (tfState.mode == "smooth" or tfState.mode == "level" or tfState.mode == "smudge")
 					setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
 					-- erode controls: visible only in erode terraform mode
 					local inErode = tfActive and tfState and tfState.mode == "erode"

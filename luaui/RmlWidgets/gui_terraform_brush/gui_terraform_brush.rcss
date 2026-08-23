@@ -2445,6 +2445,11 @@ body {
 	background-color: #2b2113;
 }
 
+.tf-sm-btn-smudge.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
 .tf-ramp-btn-straight.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;

@@ -1989,6 +1989,10 @@
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_level.png" />
 					<div class="tf-btn-text">Level</div>
 				</div>
+				<div id="btn-smooth-sub-smudge" class="tf-mode-btn tf-sm-btn-smudge" data-class-active="activeSmoothMode == 'smudge'" data-event-mousedown="onTfSmoothSubMode('smudge')">
+					<img class="tf-icon-md" src="/luaui/images/terraform_brush/sm_smudge.png" />
+					<div class="tf-btn-text">Smudge</div>
+				</div>
 			</div>
 			</div><!-- /section-smooth-mode -->
 			</div><!-- /frame-smooth-mode -->

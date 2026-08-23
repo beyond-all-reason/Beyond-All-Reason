@@ -1207,7 +1207,12 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 	-- per-cell blur target instead. "smooth" rides the same wire slot as a
 	-- non-numeric sentinel (tonumber() on it is nil, same as the "no target"
 	-- case), so recordLinkedStroke/replay need no changes to carry it.
+	-- Smudge rides the slot the same way, with a stroke-start digit appended:
+	-- the gadget's carried height buffer must re-grab on a fresh drag, and only
+	-- the widget knows where strokes begin (lastAppliedX is nil until the first
+	-- dab of a drag has been sent).
 	local flattenStr = (activeMode == "smooth") and "smooth"
+		or (activeMode == "smudge") and ("smudge" .. (extraState.lastAppliedX == nil and "1" or "0"))
 		or (flattenHeight and string.format("%.0f", flattenHeight) or "nil")
 	local penPressureFactor = 1
 	if extraState.penPressureEnabled and extraState.penPressureModulateIntensity and not extraState.penOverUI then
@@ -4553,8 +4558,9 @@ function widget:Update(dt)
 		-- Level mode (direction=0) passes the flatten target height (first-click,
 		-- pinned). Smooth mode needs none: the gadget computes a local per-cell
 		-- blur target itself (see the "smooth" sentinel in sendTerraformMessage).
+		-- Smudge likewise: its target is the gadget's carried height buffer.
 		local fh = nil
-		if activeDirection == 0 and activeMode ~= "smooth" then
+		if activeDirection == 0 and activeMode ~= "smooth" and activeMode ~= "smudge" then
 			fh = lockedGroundY
 		end
 

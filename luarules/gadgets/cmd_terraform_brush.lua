@@ -148,6 +148,7 @@ local lastUndoFrame = -1 -- throttle: only one undo per game frame
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
 local MAX_BLUR_STEP = 6 -- smooth mode: widest box half-width (grid cells) at max intensity
+local MAX_SMUDGE_BUFFERS = 16 -- smudge mode: carried height grabs alive at once (one per stroke chain)
 
 -- ── Diagnostics ──────────────────────────────────────────────────────────────
 local DIAG = false -- set false to silence
@@ -161,6 +162,8 @@ local scratchHeightDataMax = 0 -- high-water mark for reliable trimming (avoids 
 local scratchSnapFlat = {} -- flat buffer: x,z,h,x,z,h,... (no sub-table allocation)
 local scratchBlurHeights = {} -- padded (sw+2)x(sh+2) height grid for smooth-mode local blur
 local scratchBlurSAT = {} -- summed-area table over scratchBlurHeights (dense box mean)
+local smudgeBuffers = {} -- smudge mode: carried brush-space height grabs, one per active stroke chain
+local smudgeClock = 0 -- smudge dab counter, used to retire chains whose stroke has ended
 local scratchParts = {}
 
 -- Parse a space-separated payload into scratchParts, reusing the table
@@ -927,7 +930,9 @@ local function applyTerraform(
 	opacity,
 	flattenHeight,
 	instant,
-	localBlur
+	localBlur,
+	localSmudge,
+	smudgeStart
 )
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
@@ -944,7 +949,7 @@ local function applyTerraform(
 	opacity = opacity or 0.3
 	local dirStep = direction * HEIGHT_STEP
 	local levelTarget
-	if direction == 0 and not localBlur then
+	if direction == 0 and not localBlur and not localSmudge then
 		-- Heights are only written after the loop, so this matches the
 		-- per-cell read it replaces.
 		levelTarget = flattenHeight or GetGroundHeight(centerX, centerZ)
@@ -1017,6 +1022,89 @@ local function applyTerraform(
 		blurInvArea = 1 / (boxSide * boxSide)
 	end
 
+	-- Smudge mode (localSmudge): GIMP's smudge, for the heightfield. A
+	-- brush-space height grab is taken on the first dab of a stroke and carried
+	-- with the cursor; every later dab folds the terrain under the (moved)
+	-- brush into it (rate = how much of the carried relief survives), then the
+	-- main loop paints the buffer back into the ground. Because the buffer is
+	-- indexed in brush space, relief grabbed at the previous position lands at
+	-- the new one -- features drag along the stroke and taper off as the carry
+	-- decays. Chains are matched per dab by proximity so each symmetry copy
+	-- continues its own buffer without any copy id on the wire; a stroke-start
+	-- dab (widget-flagged) always grabs fresh.
+	local smudgeHeights
+	if localSmudge then
+		smudgeClock = smudgeClock + 1
+		local buf
+		if not smudgeStart then
+			local bestD
+			for i = 1, #smudgeBuffers do
+				local b = smudgeBuffers[i]
+				if b.w == sw and b.h == sh then
+					local dx = centerCellX - b.cx
+					local dz = centerCellZ - b.cz
+					local d = dx * dx + dz * dz
+					if bestD == nil or d < bestD then
+						bestD, buf = d, b
+					end
+				end
+			end
+			-- A chain more than a brush diameter behind is another copy's (or a
+			-- stale one): grab fresh rather than teleport terrain across the map.
+			local maxCells = 2 * radius / squareSize
+			if buf and bestD > maxCells * maxCells then
+				buf = nil
+			end
+		end
+		local grab = false
+		if not buf then
+			-- Retire chains whose stroke ended long ago, and cap the pool.
+			for i = #smudgeBuffers, 1, -1 do
+				if smudgeClock - smudgeBuffers[i].clock > 512 then
+					table.remove(smudgeBuffers, i)
+				end
+			end
+			if #smudgeBuffers >= MAX_SMUDGE_BUFFERS then
+				local oldI = 1
+				for i = 2, #smudgeBuffers do
+					if smudgeBuffers[i].clock < smudgeBuffers[oldI].clock then
+						oldI = i
+					end
+				end
+				table.remove(smudgeBuffers, oldI)
+			end
+			buf = { w = sw, h = sh, heights = {} }
+			smudgeBuffers[#smudgeBuffers + 1] = buf
+			grab = true
+		end
+		buf.cx = centerCellX
+		buf.cz = centerCellZ
+		buf.clock = smudgeClock
+		smudgeHeights = buf.heights
+		-- Rate: fraction of the carried relief surviving each dab, mapped from
+		-- the intensity slider on the same log scale as smooth's blur width.
+		-- Higher intensity = longer drag tails.
+		local intensityT = max(0, min(1, math.log(intensity / 0.1) / math.log(100.0 / 0.1)))
+		local rate = 0.5 + 0.47 * intensityT
+		for iz = 0, sh - 1 do
+			local rowBase = iz * sw
+			local bz = max(0, min(mapSizeZ, (centerCellZ + (iz - sCz)) * squareSize))
+			for ix = 0, sw - 1 do
+				local bx = max(0, min(mapSizeX, (centerCellX + (ix - sCx)) * squareSize))
+				local cur = GetGroundHeight(bx, bz)
+				local idx = rowBase + ix + 1
+				if grab then
+					smudgeHeights[idx] = cur
+				else
+					smudgeHeights[idx] = cur + (smudgeHeights[idx] - cur) * rate
+				end
+			end
+		end
+		if grab then
+			return -- the first dab of a stroke only grabs; nothing to paint yet
+		end
+	end
+
 	-- Reuse scratch tables to reduce per-frame allocation
 	local heightData = scratchHeightData
 	local snapFlat = scratchSnapFlat
@@ -1069,7 +1157,9 @@ local function applyTerraform(
 							elseif direction < 0 and heightMin then
 								newHeight = current + (heightMin - current) * falloff
 							elseif direction == 0 then
-								local target = localBlur and blurTarget or levelTarget
+								local target = localBlur and blurTarget
+									or (localSmudge and smudgeHeights[sBase + ix + 1])
+									or levelTarget
 								newHeight = current + (target - current) * falloff
 								if heightMin then
 									newHeight = max(heightMin, newHeight)
@@ -1092,7 +1182,9 @@ local function applyTerraform(
 							local delta = (random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
 							newHeight = current + delta
 						elseif direction == 0 then
-							local target = localBlur and blurTarget or levelTarget
+							local target = localBlur and blurTarget
+								or (localSmudge and smudgeHeights[sBase + ix + 1])
+								or levelTarget
 							local diff = target - current
 							local blend = min(1.0, falloff * opacity * intensity)
 							newHeight = current + diff * blend
@@ -2925,8 +3017,12 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local opacity = tonumber(parts[14]) or 0.3
 	local instant = parts[15] == "1"
 	-- "smooth" is a sentinel (not a number): smooth mode has no single flatten
-	-- target, the gadget computes one locally per cell instead.
+	-- target, the gadget computes one locally per cell instead. "smudge0"/
+	-- "smudge1" ride the slot the same way; the digit marks a stroke-start dab
+	-- (the carried height buffer must re-grab there).
 	local localBlur = parts[16] == "smooth"
+	local localSmudge = parts[16] ~= nil and parts[16]:sub(1, 6) == "smudge"
+	local smudgeStart = localSmudge and parts[16]:sub(7, 7) == "1"
 	local flattenHeight = tonumber(parts[16])
 	if parts[17] then
 		ringInnerRatio = max(0.05, min(0.95, tonumber(parts[17]) or 0.6))
@@ -2958,7 +3054,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 		opacity,
 		flattenHeight,
 		instant,
-		localBlur
+		localBlur,
+		localSmudge,
+		smudgeStart
 	)
 	if dustMode then
 		spawnDust(centerX, centerZ, radius, intensity)
