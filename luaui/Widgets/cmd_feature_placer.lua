@@ -727,6 +727,16 @@ local function getFeatureVisualScale(featureID)
 	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
 		return 1
 	end
+	-- Model-less features (editor_geocrack and friends): the engine never
+	-- instantiates a LocalModel for them, and the piece callouts deref the empty
+	-- piece list -- an access violation, not a Lua error (the same crash the
+	-- gadget dodges by not walking map features at load). No model also means
+	-- nothing could have been scaled, so 1 is the true answer.
+	local defID = GetFeatureDefID(featureID)
+	local def = defID and FeatureDefs[defID]
+	if not def or (def.modelname or "") == "" then
+		return 1
+	end
 	local root = Spring.GetFeatureRootPiece(featureID) or 1
 	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
 	if not m11 then

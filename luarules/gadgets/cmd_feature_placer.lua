@@ -140,6 +140,13 @@ local function applyFeatureScale(featureID, s)
 	if not (SetFeaturePieceMatrix and GetFeatureRootPiece) then
 		return
 	end
+	-- Model-less defs (editor_geocrack and friends) never get a LocalModel, and
+	-- the piece callouts deref the empty piece list -- an access violation, the
+	-- same crash the Initialize comment below documents for map features.
+	local def = FeatureDefs[GetFeatureDefID(featureID) or -1]
+	if not def or (def.modelname or "") == "" then
+		return
+	end
 	s = max(SCALE_MIN, min(SCALE_MAX, s))
 
 	local root = GetFeatureRootPiece(featureID) or 1
