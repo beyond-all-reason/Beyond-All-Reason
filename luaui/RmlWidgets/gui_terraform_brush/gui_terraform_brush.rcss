@@ -2455,6 +2455,11 @@ body {
 	background-color: #2b2113;
 }
 
+.tf-ramp-btn-auto.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
 /* === Feature Placer Distribution Buttons === */
 .tf-fp-dist-btn {
 	flex: 1;

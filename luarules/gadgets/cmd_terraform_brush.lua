@@ -114,6 +114,7 @@ local WARM_HEADER = "$terraform_warm$"
 local WARM_HEADER_LENGTH = #WARM_HEADER
 local REMAP_HEADER = "$terraform_remap$"
 local REMAP_HEADER_LENGTH = #REMAP_HEADER
+local AUTORAMP_HEADER = "$terraform_autoramp$"
 local HEIGHT_STEP = 8
 local MAX_UNDO = 10000
 -- Total vertex budget across all undo+redo entries. Each vertex = 3 array
@@ -1858,6 +1859,138 @@ local function applyErode(centerX, centerZ, radius, shape, angleDeg, curve, inte
 end
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- AUTORAMP — one-click cliff restyler
+--
+-- The terrain math lives in common/autoramp_profile.lua, shared with the
+-- widget's WYSIWYG hover preview so what the preview shows is exactly what
+-- this synced apply produces (pure seeded math, deterministic across clients).
+-- This side feeds it the real heightmap and routes the result through the
+-- standard apply + undo-snapshot epilogue.
+-- ─────────────────────────────────────────────────────────────────────────────
+local AutorampProfile = VFS.Include("common/autoramp_profile.lua")
+
+local function applyAutoramp(
+	centerX,
+	centerZ,
+	radius,
+	angleDeg,
+	falloffK,
+	edgeNoiseK,
+	erosionK,
+	talusK,
+	seed,
+	startMode
+)
+	local res, err = AutorampProfile.compute({
+		centerX = centerX,
+		centerZ = centerZ,
+		radius = radius,
+		angleDeg = angleDeg,
+		falloffK = falloffK,
+		edgeNoiseK = edgeNoiseK,
+		erosionK = erosionK,
+		talusK = talusK,
+		seed = seed,
+		startMode = startMode,
+		cellSize = Game.squareSize,
+		mapSizeX = Game.mapSizeX,
+		mapSizeZ = Game.mapSizeZ,
+		getHeight = GetGroundHeight,
+	})
+	if not res then
+		if err == "no_cliff" then
+			echoGate("[Terraform Brush] Autoramp: no cliff inside the brush circle (all ground is too gentle)")
+		elseif err == "no_span" then
+			echoGate("[Terraform Brush] Autoramp: no usable cliff height at the click point")
+		elseif err == "no_contour" then
+			echoGate(
+				"[Terraform Brush] Autoramp: cliff mid-line is outside the brush — enlarge the brush or click the face"
+			)
+		end
+		return
+	end
+
+	local n = res.n
+	local ox = res.ox
+	local oz = res.oz
+	local cs = res.cellSize
+	local orig = res.orig
+	local out = res.newH
+	local heightData = scratchHeightData
+	local snapFlat = scratchSnapFlat
+	local hIdx = 0
+	local sCount = 0
+	for iz = 0, n - 1 do
+		local rowBase = iz * n
+		local z = (oz + iz) * cs
+		for ix = 0, n - 1 do
+			local i = rowBase + ix + 1
+			local o = orig[i]
+			if o then
+				local delta = out[i] - o
+				if delta > 0.05 or delta < -0.05 then
+					local x = (ox + ix) * cs
+					local base = sCount * 3
+					snapFlat[base + 1] = x
+					snapFlat[base + 2] = z
+					snapFlat[base + 3] = o
+					sCount = sCount + 1
+					hIdx = hIdx + 1
+					local he = heightData[hIdx]
+					if he then
+						he[1] = x
+						he[2] = z
+						he[3] = o + delta
+					else
+						heightData[hIdx] = { x, z, o + delta }
+					end
+				end
+			end
+		end
+	end
+
+	-- Trim scratch heightData using tracked max (avoids # on reused table)
+	for i = hIdx + 1, scratchHeightDataMax do
+		heightData[i] = nil
+	end
+	scratchHeightDataMax = hIdx
+	if hIdx > 0 then
+		applyHeightChanges(heightData, hIdx)
+		pushSnapshotFromFlat(snapFlat, sCount)
+	end
+end
+
+-- Hoisted handler: the RecvLuaMsg dispatcher sits near the 60-upvalue cap, so
+-- the parse/clamp body lives here and the dispatcher only gains two upvalues.
+local function handleAutoramp(payload)
+	local parts = parseParts(payload)
+	local centerX = tonumber(parts[1])
+	local centerZ = tonumber(parts[2])
+	local radius = tonumber(parts[3])
+	local angleDeg = tonumber(parts[4]) or 60
+	local falloffK = tonumber(parts[5]) or 0.5
+	local edgeNoiseK = tonumber(parts[6]) or 0.35
+	local erosionK = tonumber(parts[7]) or 0.35
+	local talusK = tonumber(parts[8]) or 0.4
+	local seed = tonumber(parts[9]) or 0
+	local startMode = parts[10]
+	if not centerX or not centerZ or not radius then
+		return
+	end
+	radius = max(MIN_RADIUS, min(MAX_RADIUS, radius))
+	angleDeg = max(10, min(85, angleDeg))
+	falloffK = max(0, min(1, falloffK))
+	edgeNoiseK = max(0, min(1, edgeNoiseK))
+	erosionK = max(0, min(1, erosionK))
+	talusK = max(0, min(1, talusK))
+	seed = floor(max(0, min(9999, seed)))
+	if startMode ~= "extend" and startMode ~= "subtract" then
+		startMode = "average"
+	end
+	applyAutoramp(centerX, centerZ, radius, angleDeg, falloffK, edgeNoiseK, erosionK, talusK, seed, startMode)
+end
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- FILL BRUSH — Radial-ray rim detection + BFS basin + IDW curved fill
 --
 -- Phase 1: Cast 48 radial rays from click outward. Each ray tracks the
@@ -2752,6 +2885,15 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if fillX and fillZ then
 			applyFill(fillX, fillZ)
 		end
+		return true
+	end
+
+	if msg:sub(1, #AUTORAMP_HEADER) == AUTORAMP_HEADER then
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
+			return true
+		end
+		handleAutoramp(msg:sub(#AUTORAMP_HEADER + 1))
 		return true
 	end
 

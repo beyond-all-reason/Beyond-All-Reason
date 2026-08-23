@@ -29,6 +29,7 @@ local MSG = {
 	ERODE = "$terraform_erode$",
 	FILL_SHAPE = "$terraform_fill$",
 	REMAP = "$terraform_remap$",
+	AUTORAMP = "$terraform_autoramp$",
 }
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
@@ -112,9 +113,9 @@ local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
 -- ═══════════════════════════════════════════════════════════════════════
 local DEFAULT_KEYBINDS = {
 	-- Terrain modes (no modifier required)
-	mode_level = { key = 108, label = "L", desc = "Smooth / Level mode (toggles)" },
+	mode_level = { key = 108, label = "L", desc = "Smooth / Level / Smudge mode (cycles)" },
 	mode_noise = { key = 110, label = "N", desc = "Noise mode" },
-	mode_ramp = { key = 114, label = "R", desc = "Ramp mode" },
+	mode_ramp = { key = 114, label = "R", desc = "Ramp / Autoramp mode (toggles)" },
 	mode_restore = { key = 101, label = "E", desc = "Restore mode" },
 	-- Shapes (no modifier required)
 	shape_circle = { key = 99, label = "C", desc = "Circle shape" },
@@ -612,6 +613,18 @@ local extraState = {
 	-- Erode: thermal (talus) erosion brush
 	erodeReposeDeg = 33, -- repose angle in degrees (10–60); slopes steeper than this shed material
 	erodePhase = 0, -- tick counter; rotates the gadget's strided cell subset on large brushes
+	-- Autoramp: one-click cliff restyler (RAMP TYPE "Auto")
+	autorampAngleDeg = 60, -- target face slope in degrees (10–85)
+	autorampFalloff = 0.5, -- 0–1: shoulder softness + blend band into untouched terrain
+	autorampEdgeNoise = 0.35, -- 0–1: wavy perturbation of the cliff line
+	autorampErosion = 0.35, -- 0–1: ridged gullies cut down the face
+	autorampTalus = 0.4, -- 0–1: scree buildup banked against the base
+	autorampStart = "average", -- cliff anchor: "extend" | "subtract" | "average"
+	autorampPreview = true, -- WYSIWYG hover preview of the resulting terrain
+	arPrevKey = nil, -- param+position signature of the cached preview
+	arPrevData = nil, -- last compute result from common/autoramp_profile.lua
+	arPrevDirty = false, -- preview display list needs rebuild/deletion
+	arPrevList = nil, -- GL display list of the preview mesh
 }
 
 -- Pen pressure: read tablet pressure from shared file written by tools/pen_pressure_server.py
@@ -712,6 +725,7 @@ extraState.modeCursors = {
 	restore = "cursornormal",
 	noise = "cursornormal",
 	erode = "cursornormal",
+	autoramp = "cursornormal",
 }
 
 -- D5: trigger cursor-anchored parameter feedback HUD (1.5s fade)
@@ -1325,9 +1339,11 @@ local function activate(direction, mode, args)
 		lower = "LOWER",
 		level = "LEVEL",
 		smooth = "SMOOTH",
+		smudge = "SMUDGE",
 		ramp = "RAMP",
 		restore = "RESTORE",
 		erode = "ERODE",
+		autoramp = "AUTORAMP",
 	}
 	local modeLabel = modeLabels[mode] or mode
 	Echo(
@@ -1377,6 +1393,15 @@ local function deactivateTerraform()
 	activeDirection = nil
 	activeMode = nil
 	extraState.heightSamplingMode = nil -- cancel pending height sampling
+	-- Drop the autoramp preview: DrawWorld stops running for this widget, so
+	-- delete the display list here instead of via the dirty flag.
+	extraState.arPrevData = nil
+	extraState.arPrevKey = nil
+	extraState.arPrevDirty = false
+	if extraState.arPrevList then
+		glDeleteList(extraState.arPrevList)
+		extraState.arPrevList = nil
+	end
 	return true
 end
 
@@ -1394,8 +1419,10 @@ extraState.MODE_PARAM_GROUPS = {
 	restore = "sculpt",
 	noise = "sculpt",
 	erode = "sculpt",
+	autoramp = "sculpt",
 	level = "modify",
 	smooth = "modify",
+	smudge = "modify",
 }
 extraState.paramGroup = "sculpt"
 extraState.modeParamSnapshots = {
@@ -1431,12 +1458,17 @@ local function setMode(mode)
 	elseif mode == "lower" then
 		activeDirection = -1
 		activeMode = "lower"
-	elseif mode == "level" or mode == "smooth" then
+	elseif mode == "level" or mode == "smooth" or mode == "smudge" then
 		activeDirection = 0
 		activeMode = mode
 		if activeShape == "ring" then
 			activeShape = "circle"
 		end
+	elseif mode == "autoramp" then
+		-- One-click region op: the gadget footprint is always a circle
+		activeDirection = 0
+		activeMode = "autoramp"
+		activeShape = "circle"
 	elseif mode == "ramp" then
 		activeDirection = 0
 		activeMode = "ramp"
@@ -1468,7 +1500,10 @@ local function setShape(shape)
 		if activeMode == "ramp" and shape ~= "circle" and shape ~= "square" then
 			return
 		end
-		if (activeMode == "level" or activeMode == "smooth") and shape == "ring" then
+		if (activeMode == "level" or activeMode == "smooth" or activeMode == "smudge") and shape == "ring" then
+			return
+		end
+		if activeMode == "autoramp" and shape ~= "circle" then
 			return
 		end
 		activeShape = shape
@@ -1970,6 +2005,11 @@ extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lu
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
 extraState._mapgen = VFS.Include("luaui/Widgets/cmd_terraform_brush_mapgen.lua")
 
+-- Autoramp terrain math shared with the synced gadget: the hover preview and
+-- the actual apply run the same pure seeded computation, so the preview IS the
+-- result. (Attached to extraState — 200-local limit.)
+extraState._autorampProfile = VFS.Include("common/autoramp_profile.lua")
+
 -- ============ New Map: post-reload procedural terrain apply ============
 -- The New Map dialog writes a recipe file and reloads the engine onto a flat
 -- blank map (the engine can only make flat maps). On the new session we read the
@@ -2299,6 +2339,13 @@ local function getState()
 		noiseLacunarity = noiseLacunarity,
 		noiseSeed = noiseSeed,
 		erodeReposeDeg = extraState.erodeReposeDeg,
+		autorampAngleDeg = extraState.autorampAngleDeg,
+		autorampFalloff = extraState.autorampFalloff,
+		autorampEdgeNoise = extraState.autorampEdgeNoise,
+		autorampErosion = extraState.autorampErosion,
+		autorampTalus = extraState.autorampTalus,
+		autorampStart = extraState.autorampStart,
+		autorampPreview = extraState.autorampPreview,
 		ringInnerRatio = ringInnerRatio,
 		importProgress = importHeightRows and importRowIndex or nil,
 		importTotal = importHeightRows and #importHeightRows or nil,
@@ -2972,6 +3019,12 @@ function widget:Initialize()
 	widgetHandler:AddAction("terraformsmooth", function(_, _, args)
 		return activate(0, "smooth", args)
 	end, nil, "t")
+	widgetHandler:AddAction("terraformsmudge", function(_, _, args)
+		return activate(0, "smudge", args)
+	end, nil, "t")
+	widgetHandler:AddAction("terraformautoramp", function(_, _, args)
+		return activate(0, "autoramp", args)
+	end, nil, "t")
 	widgetHandler:AddAction("terraformerode", function(_, _, args)
 		return activate(0, "erode", args)
 	end, nil, "t")
@@ -3211,6 +3264,29 @@ function widget:Initialize()
 		end,
 		setErodeReposeDeg = function(value)
 			extraState.erodeReposeDeg = max(10, min(60, tonumber(value) or 33))
+		end,
+		setAutorampAngleDeg = function(value)
+			extraState.autorampAngleDeg = max(10, min(85, tonumber(value) or 60))
+		end,
+		setAutorampFalloff = function(value)
+			extraState.autorampFalloff = max(0, min(1, tonumber(value) or 0.5))
+		end,
+		setAutorampEdgeNoise = function(value)
+			extraState.autorampEdgeNoise = max(0, min(1, tonumber(value) or 0.35))
+		end,
+		setAutorampErosion = function(value)
+			extraState.autorampErosion = max(0, min(1, tonumber(value) or 0.35))
+		end,
+		setAutorampTalus = function(value)
+			extraState.autorampTalus = max(0, min(1, tonumber(value) or 0.4))
+		end,
+		setAutorampStart = function(mode)
+			if mode == "extend" or mode == "subtract" or mode == "average" then
+				extraState.autorampStart = mode
+			end
+		end,
+		setAutorampPreview = function(value)
+			extraState.autorampPreview = value and true or false
 		end,
 		setRingInnerRatio = setRingInnerRatio,
 		-- Pen pressure API
@@ -3544,6 +3620,10 @@ function widget:Shutdown()
 		glDeleteList(extraState.protractorDL)
 		extraState.protractorDL = nil
 	end
+	if extraState.arPrevList then
+		glDeleteList(extraState.arPrevList)
+		extraState.arPrevList = nil
+	end
 	-- Release text ownership if measure mode was active when widget unloaded
 	if extraState.measureActive then
 		widgetHandler:DisownText()
@@ -3553,6 +3633,8 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("terraformdown")
 	widgetHandler:RemoveAction("terraformlevel")
 	widgetHandler:RemoveAction("terraformsmooth")
+	widgetHandler:RemoveAction("terraformsmudge")
+	widgetHandler:RemoveAction("terraformautoramp")
 	widgetHandler:RemoveAction("terraformerode")
 	widgetHandler:RemoveAction("terraformramp")
 	widgetHandler:RemoveAction("terraformrestore")
@@ -3906,6 +3988,182 @@ extraState.attachRampChain = function(pts, radius, clay)
 	extraState.measureLines[#extraState.measureLines + 1] = chain
 end
 
+-- ── Autoramp WYSIWYG preview ─────────────────────────────────────────────────
+-- Recomputes the shared profile math (common/autoramp_profile.lua) on a coarse
+-- grid under the cursor while AUTORAMP is armed, so the artist sees the exact
+-- resulting terrain before clicking. Runs every frame — refresh latency beats
+-- compute cost here (explicit call, 2026-08-23) — but the signature key (click
+-- cell + every knob + terrainVersion) makes identical frames free, so it only
+-- pays while the cursor or a knob actually moves. The draw side rebuilds its
+-- display list only when the data changed.
+-- (Attached to extraState: main chunk is at the 200-local limit.)
+extraState.updateAutorampPreview = function()
+	local es = extraState
+	if activeMode ~= "autoramp" or not es.autorampPreview then
+		if es.arPrevData or es.arPrevList then
+			es.arPrevData = nil
+			es.arPrevKey = nil
+			es.arPrevDirty = true
+		end
+		return
+	end
+	local wx, wz = getWorldMousePosition()
+	if not wx then
+		if es.arPrevData then
+			es.arPrevData = nil
+			es.arPrevKey = nil
+			es.arPrevDirty = true
+		end
+		return
+	end
+	local cwx, cwz = floor(wx), floor(wz)
+	-- Coarse preview grid: ~80 cells across the brush regardless of radius
+	local cell = floor(activeRadius / 40)
+	if cell < 8 then
+		cell = 8
+	elseif cell > 32 then
+		cell = 32
+	end
+	local key = cwx
+		.. ":"
+		.. cwz
+		.. ":"
+		.. activeRadius
+		.. ":"
+		.. cell
+		.. ":"
+		.. es.autorampAngleDeg
+		.. ":"
+		.. es.autorampFalloff
+		.. ":"
+		.. es.autorampEdgeNoise
+		.. ":"
+		.. es.autorampErosion
+		.. ":"
+		.. es.autorampTalus
+		.. ":"
+		.. es.autorampStart
+		.. ":"
+		.. es.terrainVersion
+	if key == es.arPrevKey then
+		return
+	end
+	es.arPrevKey = key
+	-- Same seed formula as the click in MousePress: preview IS the click result.
+	-- pcall: a compute error must degrade to "no preview", never kill the widget.
+	local ok, res = pcall(es._autorampProfile.compute, {
+		centerX = wx,
+		centerZ = wz,
+		radius = activeRadius,
+		angleDeg = es.autorampAngleDeg,
+		falloffK = es.autorampFalloff,
+		edgeNoiseK = es.autorampEdgeNoise,
+		erosionK = es.autorampErosion,
+		talusK = es.autorampTalus,
+		seed = (cwx * 73 + cwz * 179) % 10000,
+		startMode = es.autorampStart,
+		cellSize = cell,
+		mapSizeX = Game.mapSizeX,
+		mapSizeZ = Game.mapSizeZ,
+		getHeight = GetGroundHeight,
+	})
+	es.arPrevData = ok and res or nil
+	es.arPrevDirty = true
+end
+
+-- Draws the preview mesh: green where material is added (fill/talus), orange
+-- where it is removed (cut), alpha scaled by how much the height changes.
+-- Handles its own display-list lifecycle so it also cleans up after the data
+-- is cleared (mode left, preview toggled off, cursor off-map).
+function extraState.drawAutorampPreview(suppressed)
+	local es = extraState
+	if es.arPrevDirty then
+		es.arPrevDirty = false
+		if es.arPrevList then
+			glDeleteList(es.arPrevList)
+			es.arPrevList = nil
+		end
+		local res = es.arPrevData
+		if res then
+			es.arPrevList = glCreateList(function()
+				local n = res.n
+				local ox, oz, cs = res.ox, res.oz, res.cellSize
+				local orig, out = res.orig, res.newH
+				local span = res.hTop - res.hBot
+				if span < 1 then
+					span = 1
+				end
+				local alphaScale = 1
+				local function vtx(x, z, i)
+					local delta = out[i] - orig[i]
+					local a = 0.1 + abs(delta) / span * 0.5
+					if a > 0.42 then
+						a = 0.42
+					end
+					a = a * alphaScale
+					if delta >= 0 then
+						glColor(0.25, 0.95, 0.6, a) -- fill: material added
+					else
+						glColor(1.0, 0.45, 0.2, a) -- cut: material removed
+					end
+					glVertex(x, out[i] + 1.0, z)
+				end
+				local function meshQuads()
+					for iz = 0, n - 2 do
+						local rowBase = iz * n
+						local z0 = (oz + iz) * cs
+						local z1 = z0 + cs
+						for ix = 0, n - 2 do
+							local i00 = rowBase + ix + 1
+							local i10 = i00 + 1
+							local i01 = i00 + n
+							local i11 = i01 + 1
+							if orig[i00] and orig[i10] and orig[i01] and orig[i11] then
+								local m = abs(out[i00] - orig[i00])
+								local m2 = abs(out[i10] - orig[i10])
+								if m2 > m then
+									m = m2
+								end
+								m2 = abs(out[i01] - orig[i01])
+								if m2 > m then
+									m = m2
+								end
+								m2 = abs(out[i11] - orig[i11])
+								if m2 > m then
+									m = m2
+								end
+								if m > 0.3 then
+									local x0 = (ox + ix) * cs
+									local x1 = x0 + cs
+									vtx(x0, z0, i00)
+									vtx(x1, z0, i10)
+									vtx(x1, z1, i11)
+									vtx(x0, z1, i01)
+								end
+							end
+						end
+					end
+				end
+				-- Two passes: a faint ghost pass with depth testing off so CUT
+				-- regions (the new surface lies under the current ground, which
+				-- would occlude it) stay readable through the terrain, then a
+				-- full-strength depth-tested pass for everything actually in view.
+				gl.DepthTest(false)
+				alphaScale = 0.4
+				glBeginEnd(GL.QUADS, meshQuads)
+				gl.DepthTest(true)
+				alphaScale = 1
+				glBeginEnd(GL.QUADS, meshQuads)
+				gl.DepthTest(false)
+				glColor(1, 1, 1, 1)
+			end)
+		end
+	end
+	if es.arPrevList and not suppressed then
+		glCallList(es.arPrevList)
+	end
+end
+
 function widget:Update(dt)
 	-- Pen pressure: poll tablet pressure from shared file
 	extraState.readPenPressure(dt)
@@ -3947,6 +4205,11 @@ function widget:Update(dt)
 	if not activeMode then
 		return
 	end
+
+	-- Autoramp WYSIWYG: refresh the hover preview at frame rate, above the
+	-- 20 Hz brush gate — hover latency matters more than the compute cost, and
+	-- the signature key inside makes no-change frames free.
+	extraState.updateAutorampPreview()
 
 	updateTimer = updateTimer + dt
 	if updateTimer < UPDATE_INTERVAL then
@@ -4399,6 +4662,8 @@ local function getModeRGB()
 		return 0.9, 0.7, 0.2
 	elseif activeMode == "erode" then
 		return 0.72, 0.5, 0.25
+	elseif activeMode == "autoramp" then
+		return 0.2, 0.75, 0.65
 	else
 		return 0.3, 0.5, 0.9 -- level
 	end
@@ -4418,6 +4683,8 @@ local function getModeRGBBright()
 		return 1.0, 0.88, 0.4
 	elseif activeMode == "erode" then
 		return 0.92, 0.7, 0.42
+	elseif activeMode == "autoramp" then
+		return 0.4, 1.0, 0.88
 	else
 		return 0.5, 0.78, 1.0 -- level
 	end
@@ -8135,6 +8402,11 @@ function widget:DrawWorld()
 		extraState.drawBrushGlow(worldX, worldZ, groundY, 1)
 	end
 
+	-- Autoramp WYSIWYG: translucent fill/cut mesh of the resulting terrain.
+	-- Called for every active mode — it self-cleans its display list after the
+	-- preview data is cleared (mode left, toggle off, cursor off-map).
+	extraState.drawAutorampPreview(suppressBrush)
+
 	-- Unmouse amber glow + landing ring (only drawn while brush is parked beside UI)
 	extraState.doUnmouseDraw(worldX, worldZ, groundY)
 
@@ -8314,6 +8586,12 @@ function widget:DrawWorld()
 		-- transparent so the user can read the brush's effective strength profile
 		-- at a glance. Overall opacity still scales with intensity.
 		local fillAlpha = min(0.6, 0.08 + intensityT * 0.45)
+		if activeMode == "autoramp" then
+			-- Barely-there wash: the WYSIWYG preview mesh is the real feedback
+			-- here and a strong footprint fill would tint it. Intensity does not
+			-- feed autoramp, so the alpha is fixed rather than intensity-scaled.
+			fillAlpha = 0.05
+		end
 		-- Noise / restore / ramp apply uniformly inside the footprint, so we
 		-- skip the falloff gradient for those modes and keep the flat fill.
 		local usesFalloff = (activeMode == "raise" or activeMode == "lower" or activeMode == "level")
@@ -8716,15 +8994,22 @@ function widget:KeyPress(key, mods, isRepeat)
 			setShape("octagon")
 			return true
 		elseif key == getKeybindKey("mode_ramp") then
-			setMode("ramp")
+			-- Toggle between manual RAMP and one-click AUTORAMP
+			if activeMode == "ramp" then
+				setMode("autoramp")
+			else
+				setMode("ramp")
+			end
 			return true
 		elseif key == getKeybindKey("mode_restore") then
 			setMode("restore")
 			return true
 		elseif key == getKeybindKey("mode_level") then
-			-- Toggle between SMOOTH (primary) and LEVEL (submode)
+			-- Cycle the MODIFY submodes: SMOOTH → LEVEL → SMUDGE → SMOOTH
 			if activeMode == "smooth" then
 				setMode("level")
+			elseif activeMode == "level" then
+				setMode("smudge")
 			else
 				setMode("smooth")
 			end
@@ -8987,6 +9272,52 @@ function widget:MousePress(mx, my, button)
 					if p.x >= 0 and p.x <= Game.mapSizeX and p.z >= 0 and p.z <= Game.mapSizeZ then
 						SendLuaRulesMsg(MSG.FILL_SHAPE .. floor(p.x) .. " " .. floor(p.z))
 					end
+				end
+			end
+			return true
+		end
+		-- Autoramp: single-click region op — restyle the cliff under the cursor.
+		-- Like fill, never locks a drag; each click is one atomic undo stroke.
+		if activeMode == "autoramp" then
+			local worldX, worldZ = getWorldMousePosition()
+			if worldX then
+				local es = extraState
+				local paramTail = " "
+					.. activeRadius
+					.. " "
+					.. floor(es.autorampAngleDeg)
+					.. " "
+					.. string.format("%.2f", es.autorampFalloff)
+					.. " "
+					.. string.format("%.2f", es.autorampEdgeNoise)
+					.. " "
+					.. string.format("%.2f", es.autorampErosion)
+					.. " "
+					.. string.format("%.2f", es.autorampTalus)
+				local positions = extraState.getSymmetricPositions(worldX, worldZ, 0)
+				local sent = false
+				for _, p in ipairs(positions) do
+					if p.x >= 0 and p.x <= Game.mapSizeX and p.z >= 0 and p.z <= Game.mapSizeZ then
+						-- Seed from the click cell: deterministic per spot, so a
+						-- replayed or re-done click reproduces the same cliff.
+						local seed = (floor(p.x) * 73 + floor(p.z) * 179) % 10000
+						SendLuaRulesMsg(
+							MSG.AUTORAMP
+								.. floor(p.x)
+								.. " "
+								.. floor(p.z)
+								.. paramTail
+								.. " "
+								.. seed
+								.. " "
+								.. es.autorampStart
+						)
+						sent = true
+					end
+				end
+				if sent then
+					afterBrushTick()
+					closeBrushStroke()
 				end
 			end
 			return true

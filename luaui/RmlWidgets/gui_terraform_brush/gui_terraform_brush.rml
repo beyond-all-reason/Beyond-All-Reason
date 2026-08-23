@@ -1907,13 +1907,65 @@
 				</div>
 			<div id="section-ramp-type">
 			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="activeShape == 'square'" data-event-mousedown="onTfRampStraight()">
+				<div id="btn-ramp-straight" class="tf-mode-btn tf-ramp-btn-straight" data-class-active="tfRampType == 'straight'" data-event-mousedown="onTfRampStraight()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_straight.png" />
 					<div class="tf-btn-text">Straight</div>
 				</div>
-				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="activeShape == 'circle'" data-event-mousedown="onTfRampSpline()">
+				<div id="btn-ramp-spline" class="tf-mode-btn tf-ramp-btn-spline" data-class-active="tfRampType == 'spline'" data-event-mousedown="onTfRampSpline()">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_ramp_spline.png" />
 					<div class="tf-btn-text">Spline</div>
+				</div>
+				<div id="btn-ramp-auto" class="tf-mode-btn tf-ramp-btn-auto" data-class-active="tfRampType == 'auto'" data-event-mousedown="onTfRampAuto()">
+					<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_ramp.png" />
+					<div class="tf-btn-text">Auto</div>
+				</div>
+			</div>
+			<div data-if="tfRampType == 'auto'">
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-lg text-light">AUTORAMP</div>
+					<div id="btn-ar-preview" class="tf-overlay-chip" data-class-active="arPreview" data-event-mousedown="onTfArPreview()">
+						<div class="tf-overlay-chip-label">Preview</div>
+					</div>
+				</div>
+				<div class="flex flex-row justify-between items-center mb-1">
+					<div class="text-sm text-keybind">click a cliff to rebuild it</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Cliff start</div>
+					<div id="btn-ar-start-extend" class="tf-overlay-chip" data-class-active="arStart == 'extend'" data-event-mousedown="onTfArStart('extend')">
+						<div class="tf-overlay-chip-label">Extend</div>
+					</div>
+					<div id="btn-ar-start-subtract" class="tf-overlay-chip" data-class-active="arStart == 'subtract'" data-event-mousedown="onTfArStart('subtract')">
+						<div class="tf-overlay-chip-label">Subtract</div>
+					</div>
+					<div id="btn-ar-start-average" class="tf-overlay-chip" data-class-active="arStart == 'average'" data-event-mousedown="onTfArStart('average')">
+						<div class="tf-overlay-chip-label">Average</div>
+					</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Angle</div>
+					<input type="range" id="slider-ar-angle" class="tf-slider" min="10" max="85" step="1" value="60" data-event-change="onTfAutorampSlider('angle')" />
+					<input type="text" id="slider-ar-angle-numbox" class="tf-slider-numbox" value="60" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Falloff</div>
+					<input type="range" id="slider-ar-falloff" class="tf-slider" min="0" max="100" step="1" value="50" data-event-change="onTfAutorampSlider('falloff')" />
+					<input type="text" id="slider-ar-falloff-numbox" class="tf-slider-numbox" value="50" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Edge noise</div>
+					<input type="range" id="slider-ar-edgenoise" class="tf-slider" min="0" max="100" step="1" value="35" data-event-change="onTfAutorampSlider('edgenoise')" />
+					<input type="text" id="slider-ar-edgenoise-numbox" class="tf-slider-numbox" value="35" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Erosion</div>
+					<input type="range" id="slider-ar-erosion" class="tf-slider" min="0" max="100" step="1" value="35" data-event-change="onTfAutorampSlider('erosion')" />
+					<input type="text" id="slider-ar-erosion-numbox" class="tf-slider-numbox" value="35" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Buildup</div>
+					<input type="range" id="slider-ar-talus" class="tf-slider" min="0" max="100" step="1" value="40" data-event-change="onTfAutorampSlider('talus')" />
+					<input type="text" id="slider-ar-talus-numbox" class="tf-slider-numbox" value="40" />
 				</div>
 			</div>
 			</div><!-- /section-ramp-type -->

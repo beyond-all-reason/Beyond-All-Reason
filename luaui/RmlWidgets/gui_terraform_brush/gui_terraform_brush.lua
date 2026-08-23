@@ -3508,6 +3508,9 @@ local initialModel = {
 	tfRingVisible = false,
 	tfInRestore = false,
 	tfRampMode = false,
+	tfRampType = "", -- "straight"/"spline"/"auto" when in a ramp mode, else ""
+	arStart = "average", -- autoramp cliff anchor: "extend"/"subtract"/"average"
+	arPreview = true, -- autoramp WYSIWYG hover preview toggle
 	tfShapeRowVisible = true,
 	tfSmoothSubmodesVisible = false,
 	tfErodeControlsVisible = false,
@@ -8899,6 +8902,67 @@ local initialModel = {
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 
+	-- ── Autoramp submode sliders ─────────────────────────────────────────────
+	-- data-event-change="onTfAutorampSlider('angle')" etc. Angle is degrees;
+	-- the percent sliders map 0–100 onto the widget's 0–1 knobs.
+	onTfAutorampSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local tb = WG.TerraformBrush
+		-- Read-and-store only — no echo-write of the value attribute: a stamp
+		-- raises a deferred change event that re-enters this handler and fights
+		-- the native thumb drag (the marble sticks while the track still works).
+		-- The per-sync restamp reconciles the attribute once the drag ends.
+		if key == "angle" then
+			local val = _noSliderVal("ar-angle", 60)
+			if tb.setAutorampAngleDeg then
+				tb.setAutorampAngleDeg(val)
+			end
+		else
+			local setters = {
+				falloff = tb.setAutorampFalloff,
+				edgenoise = tb.setAutorampEdgeNoise,
+				erosion = tb.setAutorampErosion,
+				talus = tb.setAutorampTalus,
+			}
+			local defaults = { falloff = 50, edgenoise = 35, erosion = 35, talus = 40 }
+			local setter = setters[key]
+			if setter then
+				local val = _noSliderVal("ar-" .. key, defaults[key])
+				setter(val / 100)
+			end
+		end
+	end,
+
+	-- data-event-click="onTfArStart('extend')" — autoramp cliff anchor chips
+	onTfArStart = function(_event, mode)
+		playSound("toggleOn")
+		if WG.TerraformBrush and WG.TerraformBrush.setAutorampStart then
+			WG.TerraformBrush.setAutorampStart(mode)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arStart = mode
+		end
+	end,
+
+	-- data-event-click="onTfArPreview()" — autoramp WYSIWYG preview toggle
+	onTfArPreview = function(_event)
+		local tb = WG.TerraformBrush
+		if not tb then
+			return
+		end
+		local s = tb.getState and tb.getState()
+		local nv = not (s and s.autorampPreview)
+		playSound(nv and "toggleOn" or "toggleOff")
+		if tb.setAutorampPreview then
+			tb.setAutorampPreview(nv)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arPreview = nv
+		end
+	end,
+
 	-- data-event-click="onTfSetShape('circle')"
 	onTfSetShape = function(_event, shape)
 		playSound("shapeSwitch")
@@ -8942,10 +9006,16 @@ local initialModel = {
 	onTfRampStraight = function(_event)
 		playSound("tick")
 		if WG.TerraformBrush then
+			-- Leaving Auto: shape changes are rejected while autoramp is active
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
 			WG.TerraformBrush.setShape("square")
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = "square"
+			widgetState.dmHandle.tfRampType = "straight"
 		end
 	end,
 
@@ -8953,10 +9023,27 @@ local initialModel = {
 	onTfRampSpline = function(_event)
 		playSound("tick")
 		if WG.TerraformBrush then
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
 			WG.TerraformBrush.setShape("circle")
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "spline"
+		end
+	end,
+
+	-- data-event-click="onTfRampAuto()"
+	onTfRampAuto = function(_event)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMode("autoramp")
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "auto"
 		end
 	end,
 
@@ -11114,7 +11201,7 @@ local function setActiveClass(buttons, activeKey)
 	end
 end
 
-CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true }
+CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true, autoramp = true }
 
 clearPassthrough = function()
 	if widgetState.passthroughMode then
@@ -11372,6 +11459,16 @@ local guideHints = {
 	["btn-noise"] = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
 	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
+	["btn-ramp-auto"] = "Autoramp: click an existing cliff to rebuild it at a chosen angle, with wavy edges, erosion gullies and scree buildup at the base. One click per cliff; each click is one undo step.",
+	["slider-ar-angle"] = "Target slope of the rebuilt cliff face (10\xc2\xb0\xe2\x80\x9385\xc2\xb0). Low values turn the cliff into a walkable ramp; high values keep it a sheer wall.",
+	["slider-ar-falloff"] = "How softly the new face shoulders into the plateaus above and below. Low = hard crisp lips, high = wide rounded blend.",
+	["slider-ar-edgenoise"] = "Waviness of the cliff line: perturbs the top and bottom lips so the face meanders instead of running straight.",
+	["slider-ar-erosion"] = "Depth of ridged gullies cut down the face, like water-carved channels.",
+	["slider-ar-talus"] = "Scree fan banked against the cliff base \xe2\x80\x94 ground buildup from washed-off material.",
+	["btn-ar-preview"] = "WYSIWYG preview: while hovering, shows the exact resulting terrain as a translucent mesh \xe2\x80\x94 green where ground is added, orange where it is cut.",
+	["btn-ar-start-extend"] = "Cliff start \xe2\x80\x94 Extend: the top lip stays where it is; the new face spills outward over the low ground, never biting into the mesa.",
+	["btn-ar-start-subtract"] = "Cliff start \xe2\x80\x94 Subtract: the bottom lip stays where it is; the new face carves back into the mesa top.",
+	["btn-ar-start-average"] = "Cliff start \xe2\x80\x94 Average: the face pivots on the cliff's mid line, biting half into the top and spilling half over the bottom.",
 	["btn-passthrough"] = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"] = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
 	["btn-weather"] = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
@@ -12830,6 +12927,15 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
 		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
 		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
+		-- MODIFY/ERODE submode sliders: same data-event-change pattern, same
+		-- requirement. The drag ids must match the per-sync restamp guards
+		-- (uiState.draggingSlider ~= id) or the restamp fights the drag.
+		{ "slider-ar-angle", "ar-angle" },
+		{ "slider-ar-falloff", "ar-falloff" },
+		{ "slider-ar-edgenoise", "ar-edgenoise" },
+		{ "slider-ar-erosion", "ar-erosion" },
+		{ "slider-ar-talus", "ar-talus" },
+		{ "slider-erode-repose", "erode-repose" },
 	}
 	for i = 1, #SNAP_SLIDERS do
 		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])
@@ -17033,10 +17139,18 @@ function widget:Update()
 					ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
 					-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
 					ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
-					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore; irrelevant only for level
-					ctx.setDisabled(doc, "param-intensity-row", tMode == "level")
-					-- Height cap (min/max) irrelevant for ramp and restore modes
-					ctx.setDisabled(doc, "section-heightcap", tMode == "ramp" or tMode == "restore")
+					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore;
+					-- irrelevant for level and for autoramp (one-shot region op)
+					ctx.setDisabled(doc, "param-intensity-row", tMode == "level" or tMode == "autoramp")
+					-- Autoramp has its own Falloff knob in the AUTORAMP block; the
+					-- global FALL-OFF curve does not feed it
+					ctx.setDisabled(doc, "param-falloff-row", tMode == "autoramp")
+					-- Height cap (min/max) irrelevant for ramp, restore and autoramp modes
+					ctx.setDisabled(
+						doc,
+						"section-heightcap",
+						tMode == "ramp" or tMode == "restore" or tMode == "autoramp"
+					)
 				end
 
 				uiState.updatingFromCode = false
@@ -17044,7 +17158,9 @@ function widget:Update()
 
 			local dm = widgetState.dmHandle
 			do
-				local primaryKey = (state.mode == "level") and "smooth" or state.mode
+				local primaryKey = (state.mode == "level" or state.mode == "smudge") and "smooth"
+					or (state.mode == "autoramp") and "ramp"
+					or state.mode
 				if dm and dm.activeMode ~= primaryKey then
 					dm.activeMode = primaryKey
 				end
@@ -17055,17 +17171,26 @@ function widget:Update()
 
 			-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
 			do
-				local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
+				local inSmoothGroup = state.mode == "smooth" or state.mode == "level" or state.mode == "smudge"
 				local v = (inSmoothGroup and state.mode) or ""
 				if dm and dm.activeSmoothMode ~= v then
 					dm.activeSmoothMode = v
 				end
 			end
 
-			-- Show ramp-type-row when in ramp mode; hide normal shape row
+			-- Show ramp-type-row when in a ramp mode (incl. autoramp); hide normal shape row
 			do
-				local isRamp = state.mode == "ramp"
+				local isRamp = state.mode == "ramp" or state.mode == "autoramp"
+				local rampType = ""
+				if state.mode == "autoramp" then
+					rampType = "auto"
+				elseif state.mode == "ramp" then
+					rampType = (state.shape == "circle") and "spline" or "straight"
+				end
 				if widgetState.dmHandle then
+					if widgetState.dmHandle.tfRampType ~= rampType then
+						widgetState.dmHandle.tfRampType = rampType
+					end
 					if widgetState.dmHandle.tfRampMode ~= isRamp then
 						widgetState.dmHandle.tfRampMode = isRamp
 					end
@@ -17074,7 +17199,7 @@ function widget:Update()
 					end
 				end
 			end
-			-- Ramp type active state driven by dm.activeShape (data-class-active in RML)
+			-- Ramp type active state driven by dm.tfRampType (data-class-active in RML)
 
 			-- D4: Update contextual status summary line
 			do
@@ -17085,10 +17210,12 @@ function widget:Update()
 						lower = "#ef4444",
 						level = "#fdc04c",
 						smooth = "#fdc04c",
+						smudge = "#fdc04c",
 						ramp = "#fdc04c",
 						restore = "#fdc04c",
 						noise = "#fdc04c",
 						erode = "#fdc04c",
+						autoramp = "#fdc04c",
 					}
 					local m = state.mode or "---"
 					local mc = modeColors[m] or "#9ca3af"
@@ -17210,6 +17337,40 @@ function widget:Update()
 					local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
 					if dm.tfErodeReposeStr ~= v then
 						dm.tfErodeReposeStr = v
+					end
+				end
+				uiState.updatingFromCode = false
+			end
+
+			-- Sync the autoramp sliders from state when in autoramp mode; the
+			-- percent knobs are stored 0–1 widget-side, shown 0–100 here.
+			if state.mode == "autoramp" and state.autorampAngleDeg then
+				uiState.updatingFromCode = true
+				local arSync = {
+					{ "ar-angle", state.autorampAngleDeg },
+					{ "ar-falloff", (state.autorampFalloff or 0.5) * 100 },
+					{ "ar-edgenoise", (state.autorampEdgeNoise or 0.35) * 100 },
+					{ "ar-erosion", (state.autorampErosion or 0.35) * 100 },
+					{ "ar-talus", (state.autorampTalus or 0.4) * 100 },
+				}
+				for i = 1, #arSync do
+					local id, val = arSync[i][1], arSync[i][2]
+					local sl = getCachedEl(doc, "slider-" .. id)
+					if sl and uiState.draggingSlider ~= id then
+						-- Dirty-checked (cache keyed by element id, which is what
+						-- trackSliderDrag invalidates on mouseup): an unconditional
+						-- stamp raises a deferred change event every sync pass.
+						setAttrValueIfChanged(sl, "slider-" .. id, tostring(math.floor(val + 0.5)))
+					end
+				end
+				if dm then
+					local st = state.autorampStart or "average"
+					if dm.arStart ~= st then
+						dm.arStart = st
+					end
+					local pv = state.autorampPreview and true or false
+					if dm.arPreview ~= pv then
+						dm.arPreview = pv
 					end
 				end
 				uiState.updatingFromCode = false
