@@ -1177,7 +1177,8 @@ function strengthEdit.draw(box, bi)
 		glVertex(vx, (GetGroundHeight(vx, vz) or 0) + 4, vz)
 	end)
 
-	local kr = worldRadiusForScreenPx(kx, kz, 10)
+	local hot = strengthEdit.hoverKnob or strengthEdit.dragging
+	local kr = worldRadiusForScreenPx(kx, kz, hot and 15 or 10)
 	glColor(0, 0, 0, 0.60)
 	glBeginEnd(GL_TRIANGLE_FAN, function()
 		glVertex(kx, gy, kz)
@@ -1186,7 +1187,7 @@ function strengthEdit.draw(box, bi)
 			glVertex(kx + math_cos(a) * kr * 1.4, gy, kz + math_sin(a) * kr * 1.4)
 		end
 	end)
-	glColor(1, 1, 1, 0.95)
+	glColor(1, 1, 1, hot and 1.0 or 0.95)
 	glBeginEnd(GL_TRIANGLE_FAN, function()
 		glVertex(kx, gy, kz)
 		for s = 0, 18 do
@@ -1194,6 +1195,17 @@ function strengthEdit.draw(box, bi)
 			glVertex(kx + math_cos(a) * kr, gy, kz + math_sin(a) * kr)
 		end
 	end)
+	if hot then
+		-- Ring drawn flat at the gizmo height, not on the ground, so it tracks the knob.
+		glColor(1, 1, 1, 0.55)
+		glLineWidth(2.0)
+		glBeginEnd(GL_LINE_LOOP, function()
+			for s = 0, 22 do
+				local a = (s / 22) * 2 * math.pi
+				glVertex(kx + math_cos(a) * kr * 1.7, gy, kz + math_sin(a) * kr * 1.7)
+			end
+		end)
+	end
 
 	glDepthTest(true)
 
@@ -2812,6 +2824,7 @@ function widget:Update()
 	hoverPosIdx = nil
 	hoverBoxIdx = nil
 	hoverVertIdx = nil
+	strengthEdit.hoverKnob = false
 	hoverBoxEdge = nil
 	hoverPolyEdge = nil
 	if not active then
@@ -2841,8 +2854,19 @@ function widget:Update()
 			end
 			hoverPosIdx = bestIdx
 		elseif subMode == "startbox" then
-			hoverBoxIdx, hoverVertIdx = findNearestBoxVertex(wx, wz)
-			if not hoverBoxIdx then
+			-- Knob first, mirroring MousePress: it wins over vertex picking, so hover has to
+			-- agree or the highlight would point at something the click will not hit.
+			local selBox = strengthEdit.selBox and startboxes[strengthEdit.selBox]
+			if selBox and strengthEdit.selVert then
+				local kx, kz = strengthEdit.knob(selBox, strengthEdit.selVert)
+				if kx and distSq(wx, wz, kx, kz) < VERTEX_PICK_DIST_SQ then
+					strengthEdit.hoverKnob = true
+				end
+			end
+			if not strengthEdit.hoverKnob then
+				hoverBoxIdx, hoverVertIdx = findNearestBoxVertex(wx, wz)
+			end
+			if not strengthEdit.hoverKnob and not hoverBoxIdx then
 				local ebi, edge = findNearestBoxEdge(wx, wz)
 				if ebi and edge then
 					hoverBoxEdge = { bi = ebi, edge = edge }
@@ -2856,7 +2880,8 @@ function widget:Update()
 		end
 	end
 
-	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil) or (hoverPolyEdge ~= nil)
+	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil)
+		or (hoverPolyEdge ~= nil) or strengthEdit.hoverKnob
 	if WG.StartPosTool then
 		WG.StartPosTool.hoveringDraggable = shouldMove
 	end
