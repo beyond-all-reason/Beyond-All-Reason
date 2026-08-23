@@ -18,8 +18,6 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 7200,
 		speed = 33.3,
 		minwaterdepth = 12,
@@ -36,7 +34,7 @@ return {
 		turnrate = 60,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",
@@ -74,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -128,7 +121,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
-				soundstartvolume = 42,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,

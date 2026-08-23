@@ -2,7 +2,7 @@ return {
 	legamphtank = {
 		maxacc = 0.03572,
 		activatewhenbuilt = true,
-		maxdec = 0.07144,
+		maxdec = 0.1,
 		energycost = 2000,
 		metalcost = 200,
 		buildpic = "LEGAMPHTANK.DDS",
@@ -16,8 +16,6 @@ return {
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1340,
 		maxslope = 15,
@@ -40,7 +38,7 @@ return {
 		turninplacespeedlimit = 1.485,
 		turnrate = 398,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.7",
@@ -48,8 +46,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -85,10 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -133,6 +125,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 135,
+					turretspeedy = 135,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,

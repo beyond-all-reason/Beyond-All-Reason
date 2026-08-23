@@ -1,7 +1,7 @@
 return {
 	armgremlin = {
 		buildpic = "ARMGREMLIN.DDS",
-		buildtime = 6700,
+		buildtime = 8500,
 		canmove = true,
 		cloakcost = 5,
 		cloakcostmoving = 20,
@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.0697,
 		maxdec = 0.13939,
@@ -43,6 +41,7 @@ return {
 		turnrate = 701.79999,
 		customparams = {
 			basename = "base",
+			firestateoncloak = 0,
 			firingceg = "barrelshot-small",
 			kickback = "-0.65",
 			model_author = "FireStorm",
@@ -51,8 +50,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -88,11 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -137,6 +129,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 262.5,
 					vtol = 24,

@@ -17,8 +17,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 5320, --4x armclaw
@@ -41,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "armfort",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -87,10 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-lightning",
-				[2] = "deathceg4-lightning",
 			},
 		},
 		sounds = {

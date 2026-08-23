@@ -1,19 +1,21 @@
 function gadget:GetInfo()
 	return {
-		name    = "Territorial Domination",
-		desc    = "Implements territorial domination victory condition",
-		author  = "SethDGamre",
-		date    = "2025.02.08",
+		name = "Territorial Domination",
+		desc = "Implements territorial domination victory condition",
+		author = "SethDGamre",
+		date = "2025.02.08",
 		license = "GNU GPL, v2",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
-		depends = { 'gl4' },
+		depends = { "gl4" },
 	}
 end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or not isSynced then return false end
+if modOptions.deathmode ~= "territorial_domination" or not isSynced then
+	return false
+end
 
 local territorialDominationConfig = {
 	["20_minutes"] = {
@@ -31,10 +33,11 @@ local territorialDominationConfig = {
 	["35_minutes"] = {
 		maxRounds = 7,
 		minutesPerRound = 5,
-	}
+	},
 }
 
-local config = territorialDominationConfig[modOptions.territorial_domination_config] or territorialDominationConfig["25_minutes"]
+local config = territorialDominationConfig[modOptions.territorial_domination_config]
+	or territorialDominationConfig["25_minutes"]
 local MAX_ROUNDS = config.maxRounds
 local ROUND_SECONDS = 60 * config.minutesPerRound
 local ELIMINATION_THRESHOLD_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.2
@@ -124,7 +127,7 @@ for defID, def in pairs(UnitDefs) do
 		if def.speed == 0 then
 			defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
 		end
-		if def.customParams and def.customParams.objectify then
+		if def.customParams and (def.customParams.objectify or def.customParams.cannot_capture_territory) then
 			defData.power = nil
 		end
 	end
@@ -147,7 +150,9 @@ local function sortAllyPowersByStrength(allyPowers)
 	end
 
 	if teamCount > 1 then
-		table.sort(sortedTeams, function(a, b) return a.power > b.power end)
+		table.sort(sortedTeams, function(a, b)
+			return a.power > b.power
+		end)
 	end
 
 	return teamCount
@@ -184,8 +189,12 @@ local function processNeighborData(currentSquareData)
 				local neighborGridX = currentGridX + deltaX
 				local neighborGridZ = currentGridZ + deltaZ
 
-				if neighborGridX >= 0 and neighborGridX < numberOfSquaresX and
-					neighborGridZ >= 0 and neighborGridZ < numberOfSquaresZ then
+				if
+					neighborGridX >= 0
+					and neighborGridX < numberOfSquaresX
+					and neighborGridZ >= 0
+					and neighborGridZ < numberOfSquaresZ
+				then
 					local neighborGridID = neighborGridX * numberOfSquaresZ + neighborGridZ + 1
 					local neighborSquareData = captureGrid[neighborGridID]
 
@@ -258,7 +267,8 @@ local function initializeUnsyncedGrid()
 	local initVisibilityArray = table.concat(allVisibleArray)
 
 	for gridID, squareData in pairs(captureGrid) do
-		SendToUnsynced("InitializeGridSquare",
+		SendToUnsynced(
+			"InitializeGridSquare",
 			gridID,
 			gaiaAllyTeamID,
 			squareData.progress,
@@ -271,14 +281,16 @@ local function initializeUnsyncedGrid()
 	sentGridStructure = true
 end
 
-
 local function setAllyTeamRanks()
 	for i = 1, #rankedAllyScores do
 		rankedAllyScores[i] = nil
 	end
 	for allyID, scoreData in pairs(allyData) do
 		local securedScore = scoreData.score
-		local projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		local projectedPoints = 0
+		if currentRound <= MAX_ROUNDS then
+			projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		end
 		local rankingScore = securedScore + projectedPoints
 		local territoryCount = 0
 		for gridID, data in pairs(captureGrid) do
@@ -286,7 +298,10 @@ local function setAllyTeamRanks()
 				territoryCount = territoryCount + 1
 			end
 		end
-		table.insert(rankedAllyScores, { allyID = allyID, rankingScore = rankingScore, territoryCount = territoryCount })
+		table.insert(
+			rankedAllyScores,
+			{ allyID = allyID, rankingScore = rankingScore, territoryCount = territoryCount }
+		)
 	end
 
 	table.sort(rankedAllyScores, function(a, b)
@@ -304,7 +319,11 @@ local function setAllyTeamRanks()
 
 	if next(rankedAllyScores) then
 		for i, rankedEntry in ipairs(rankedAllyScores) do
-			if i == 1 or rankedEntry.rankingScore < previousScore or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount) then
+			if
+				i == 1
+				or rankedEntry.rankingScore < previousScore
+				or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount)
+			then
 				currentRank = currentRank + 1
 				previousScore = rankedEntry.rankingScore
 				previousTerritoryCount = rankedEntry.territoryCount
@@ -350,7 +369,6 @@ local function processLivingTeams()
 	end
 end
 
-
 local function createGridSquareData(x, z)
 	local originX = x * GRID_SIZE
 	local originZ = z * GRID_SIZE
@@ -370,10 +388,10 @@ local function createGridSquareData(x, z)
 	data.neighborAllyTeamCounts = {}
 	data.totalNeighborCount = 0
 	data.corners = {
-		{ x = data.mapOriginX,             z = data.mapOriginZ },
+		{ x = data.mapOriginX, z = data.mapOriginZ },
 		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ },
-		{ x = data.mapOriginX,             z = data.mapOriginZ + GRID_SIZE },
-		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE }
+		{ x = data.mapOriginX, z = data.mapOriginZ + GRID_SIZE },
+		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE },
 	}
 	return data
 end
@@ -391,7 +409,9 @@ local function generateCaptureGrid()
 end
 
 local function defeatAlly(allyID)
-	if DEBUGMODE or not allyTeamsWatch[allyID] then return end
+	if DEBUGMODE or not allyTeamsWatch[allyID] then
+		return
+	end
 	doomedAllies[allyID] = true
 	for unitID, commanderAllyID in pairs(livingCommanders) do
 		if commanderAllyID == allyID then
@@ -404,18 +424,22 @@ local function defeatAlly(allyID)
 
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+			if GG.SpawnEnvironmentalLightning then
+				GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+			end
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(x, y, z)
 
 			local allPlayers = Spring.GetPlayerList()
 			for _, playerID in ipairs(allPlayers) do
 				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
-				local notificationEvent = (playerAllyID == allyID) and "YourTeamEliminated" or "EnemyTeamEliminated"
+				local notificationEvent = (playerAllyID == allyID) and "TerritorialDomination/YourTeamEliminated"
+					or "TerritorialDomination/EnemyTeamEliminated"
 				SendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
 			end
 		end
 	end
-	
+
 	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 end
 
@@ -443,8 +467,12 @@ end
 
 local function processGridSquareCapture(gridID)
 	local data = captureGrid[gridID]
-	local units = spGetUnitsInRectangle(data.mapOriginX, data.mapOriginZ, data.mapOriginX + GRID_SIZE,
-		data.mapOriginZ + GRID_SIZE)
+	local units = spGetUnitsInRectangle(
+		data.mapOriginX,
+		data.mapOriginZ,
+		data.mapOriginX + GRID_SIZE,
+		data.mapOriginZ + GRID_SIZE
+	)
 
 	local allyPowers = {}
 	local hasUnits = false
@@ -524,7 +552,7 @@ local function processDecay(gridID)
 		else
 			progressChange = -DECAY_PROGRESS_INCREMENT
 		end
-		
+
 		if data.progress > OWNERSHIP_THRESHOLD then
 			addProgress(gridID, progressChange, data.allyOwnerID, false)
 		else
@@ -579,11 +607,11 @@ local function updateProjectedPoints()
 			end
 		end
 
-		projectedAllyTeamPoints[allyID] = projectedScore
-
-		if not gameOver and (currentRound <= MAX_ROUNDS) then
+		if currentRound <= MAX_ROUNDS then
+			projectedAllyTeamPoints[allyID] = projectedScore
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
 		else
+			projectedAllyTeamPoints[allyID] = 0
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
@@ -612,7 +640,6 @@ function gadget:GameFrame(frame)
 	elseif frameModulo == 1 then
 		processNeighborsAndDecay()
 	elseif frameModulo == 2 then
-
 		local seconds = spGetGameSeconds()
 		if seconds >= roundTimestamp or currentRound > MAX_ROUNDS then
 			local newHighestScore = 0
@@ -625,7 +652,11 @@ function gadget:GameFrame(frame)
 				end
 				currentRound = currentRound + 1
 				for allyID, scoreData in pairs(allyData) do
-					if scoreData.score < eliminationThreshold and allyTeamsWatch[allyID] and scoreData.rank > topLivingRankedScoreIndex then
+					if
+						scoreData.score < eliminationThreshold
+						and allyTeamsWatch[allyID]
+						and scoreData.rank > topLivingRankedScoreIndex
+					then
 						defeatAlly(allyID)
 						refreshLivingTeams = true
 					end
@@ -637,7 +668,7 @@ function gadget:GameFrame(frame)
 						refreshLivingTeams = true
 					end
 				end
-				
+
 				if refreshLivingTeams then
 					processLivingTeams()
 				end
@@ -652,10 +683,13 @@ function gadget:GameFrame(frame)
 		updateProjectedPoints()
 		setAllyTeamRanks()
 
-		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
+		Spring.SetGameRulesParam(
+			"territorialDominationRoundEndTimestamp",
+			currentRound > MAX_ROUNDS and 0 or roundTimestamp
+		)
 		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
-		
+
 		for allyID, scoreData in pairs(allyData) do
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
 		end
@@ -693,12 +727,12 @@ function gadget:Initialize()
 	end
 
 	allTeams = Spring.GetTeamList()
-	
+
 	updateProjectedPoints()
-	
+
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
-	
+
 	for allyID in pairs(allyTeamsWatch) do
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)

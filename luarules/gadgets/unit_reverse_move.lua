@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "27 of July 2017",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -56,7 +56,18 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if reverseUnit[unitID] then
 		refreshList[unitID] = unitDefID
 	end
@@ -78,7 +89,7 @@ end
 function gadget:GameFrame(f)
 	for unitID, unitDefID in pairs(refreshList) do
 		local cmd = spGetUnitCommands(unitID, 1)
-		if cmd and cmd[1] and cmd[1]["options"] and cmd[1]["options"].ctrl then
+		if cmd and cmd[1] and cmd[1].options and cmd[1].options.ctrl then
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitRspeed[unitDefID])
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", unitRspeed[unitDefID])
 		else

@@ -139,6 +139,7 @@ bind          Ctrl+sc_q  select PrevSelection++_ClearSelection_SelectPart_50+
 bind          Ctrl+sc_w  select AllMap+_InPrevSel+_ClearSelection_SelectAll+
 bind          Ctrl+sc_r  select AllMap+_Transport_Idle+_ClearSelection_SelectAll+
 bind          Ctrl+sc_y  select Visible+_Waiting+_ClearSelection_SelectAll+
+bind           Alt+sc_q  select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+ 
 
   // numpad movement
 bind            numpad2  moveback
@@ -169,8 +170,8 @@ bind                 F4  focus_camera_anchor 4
 
 // blueprint
 bind           Alt+sc_b  blueprint_place
-bind           Alt+sc_c  blueprint_create
-bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_t  blueprint_create
+bind           Alt+sc_y  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
 

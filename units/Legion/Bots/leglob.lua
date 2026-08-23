@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGLOB.DDS",
 		buildtime = 1100,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "20 18 20",
 		collisionvolumetype = "CylY",
@@ -15,8 +14,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 150,
 		health = 550,
@@ -36,7 +33,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
@@ -75,10 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -126,6 +119,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 220,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					vtol = 21,
@@ -154,6 +150,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 75,
 					vtol = 21,

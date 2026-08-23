@@ -17,8 +17,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1080,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03567,
 		maxdec = 0.03567,
 		metalcost = 180,
@@ -63,7 +61,7 @@ return {
 			"legtl",
 			"legfrl",
 			"legfmg",
-            "legmext15",
+			"legmext15",
 			"legfhive",
 		},
 		customparams = {
@@ -76,8 +74,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "42 30 50",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "42 30 50",
 				collisionvolumetype = "Box",
 				damage = 1380,
 				featuredead = "HEAP",
@@ -104,11 +102,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

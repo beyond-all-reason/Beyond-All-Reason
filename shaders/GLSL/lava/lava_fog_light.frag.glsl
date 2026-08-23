@@ -39,7 +39,7 @@ void main() {
 	vec2 camshift =  vec2(heatdistortx, heatdistortz) * 0.01;
 
 	//Get the fragment depth
-	// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
+	// note that WE CAN'T GO LOWER THAN THE ACTUAL LAVA LEVEL!
 
 	vec2 screenUV = clamp(v_screenUV, 1.0/(viewGeometry.xy), 1.0 - 1.0/ (viewGeometry.xy));
 

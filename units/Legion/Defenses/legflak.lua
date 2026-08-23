@@ -10,14 +10,12 @@ return {
 		buildtime = 19000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -3 0",
-		collisionvolumescales = "55 85 55",
+		collisionvolumescales = "55 70 55",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1750,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -34,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -109,7 +102,7 @@ return {
 			leg_t2_microflak = {
 				accuracy = 1000,
 				areaofeffect = 44,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,
@@ -138,9 +131,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 2600,
-				customparams = {
-					norangering = 1,
-				},
 				damage = {
 					vtol = 58,
 				},
@@ -162,4 +152,3 @@ return {
 		},
 	},
 }
-

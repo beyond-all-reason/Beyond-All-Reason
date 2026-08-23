@@ -2,7 +2,7 @@ return {
 	armbanth = {
 		airsightdistance = 1100,
 		buildpic = "ARMBANTH.DDS",
-		buildtime = 276000,
+		buildtime = 360000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -16,8 +16,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 69000,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 13500,
 		maxacc = 0.11845,
 		maxdec = 0.7521,
@@ -82,10 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -134,7 +128,6 @@ return {
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
 				soundstart = "banthie2",
-				soundstartvolume = 45,
 				thickness = 3.3,
 				tolerance = 10000,
 				turret = true,
@@ -208,10 +201,10 @@ return {
 				range = 0,
 				reloadtime = 1.5,
 				soundhit = "banthstep",
-				soundhitvolume = 35,
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},

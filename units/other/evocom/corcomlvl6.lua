@@ -1,5 +1,5 @@
 return {
-	corcomlvl6	= {
+	corcomlvl6 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -9,6 +9,7 @@ return {
 		builddistance = 185,
 		builder = true,
 		buildpic = "CORCOM.DDS",
+		onoffable = true,
 		buildtime = 182000,
 		cancapture = true,
 		cancloak = true,
@@ -29,10 +30,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
-		idleautoheal = 101,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 12000,
@@ -103,7 +102,7 @@ return {
 			"coruwageo",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -115,7 +114,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			shield_color_mult = 0.8,
-			shield_power = 10000,
+			shield_power = 19000,
 			shield_radius = 100,
 			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl7",
@@ -125,9 +124,10 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			effigy = "comeffigylvl3",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -175,10 +175,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -240,8 +236,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,
@@ -251,6 +245,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 90,
 					subs = 25,
@@ -289,6 +286,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1200,
 					subs = 600,
@@ -317,8 +317,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -326,14 +324,17 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
-            corcomeyelaser = {
+			corcomeyelaser = {
 				allowNonBlockingAim = true,
 				areaofeffect = 50,
 				avoidfeature = false,
@@ -363,12 +364,14 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3burn",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				thickness = 4.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 26,
 				},
@@ -389,15 +392,16 @@ return {
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
+					exterior = true,
 					force = 2.5,
 					intercepttype = 8191,
-					power = 10000,
-					powerregen = 250,
+					power = 19000,
+					powerregen = 625,
 					powerregenenergy = 50,
 					radius = 100,
 					repulser = false,
 					smart = true,
-					startingpower = 10000,
+					startingpower = 19000,
 					visiblerepulse = false,
 					badcolor = {
 						[1] = 1,
@@ -433,6 +437,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 675,
 					subs = 180,
@@ -449,17 +456,17 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				def = "REPULSOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [5] = {
+			[5] = {
 				def = "CORCOMEYELASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,

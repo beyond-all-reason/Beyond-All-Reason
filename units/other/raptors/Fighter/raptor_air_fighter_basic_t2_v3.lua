@@ -1,6 +1,5 @@
 return {
 	raptor_air_fighter_basic_t2_v3 = {
-		acceleration = 2,
 		airsightdistance = 600,
 		amphibious = true,
 		bankscale = "1",
@@ -32,8 +31,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = 1,
-		idleautoheal = 2,
-		idletime = 0,
 		maneuverleashlength = "1280",
 		mass = 90,
 		maxacc = 0.25,
@@ -72,13 +69,6 @@ return {
 			treeshader = "yes",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
@@ -120,7 +110,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

@@ -13,11 +13,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 860,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02208,
-		maxdec = 0.04416,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 12,
 		metalcost = 155,
@@ -79,11 +77,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -137,7 +130,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 500,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
@@ -149,6 +141,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 1,
 					vtol = 120,
@@ -183,7 +178,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 350,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
@@ -196,6 +190,7 @@ return {
 				customparams = {
 					overrange_distance = 662,
 					projectile_destruction_method = "descend",
+					weapons_group = 2,
 				},
 				damage = {
 					default = 63,

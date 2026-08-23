@@ -2,7 +2,7 @@ return {
 	legcomlvl5 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 15,--10,
+		autoheal = 15, --10,
 		maxdec = 1.125,
 		energycost = 60000,
 		metalcost = 6000,
@@ -28,10 +28,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "legcomlvl4",
-		idleautoheal = 10,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 12000,
@@ -49,7 +47,7 @@ return {
 		radaremitheight = 54,
 		reclaimable = false,
 		reclaimspeed = 1995,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legevocom2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -76,7 +74,7 @@ return {
 			"legamstor",
 			"leganavaladvgeo",
 			"leganavalmex",
-        	"leganavaleconv",
+			"leganavaleconv",
 			"legaheattank",
 			"leginf",
 			"legshot",
@@ -86,7 +84,7 @@ return {
 			"legflak",
 			"leganavaltorpturret",
 			"legmed",
-        	"legdtr",
+			"legdtr",
 			"legvcarry",
 			"legmg",
 			"legjuno",
@@ -98,8 +96,8 @@ return {
 			"legdrag",
 			"legarad",
 			"legfrad",
-        	"legstronghold",
-        	"legforti",
+			"legstronghold",
+			"legforti",
 			"legfdrag",
 			"leglab",
 			"legvp",
@@ -112,7 +110,7 @@ return {
 			"legnanotcplat",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "legmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -136,9 +134,10 @@ return {
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 			effigy = "comeffigylvl3",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -156,7 +155,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 3500,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 			},
@@ -186,10 +185,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -252,7 +247,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6heavy",
-				soundstartvolume = 4.5,
 				soundtrigger = true,
 				sprayangle = 968,
 				texture1 = "shot",
@@ -262,6 +256,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 999,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 50,
 				},
@@ -299,6 +296,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 425,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					-- commanders = 375,
 					default = 250, --278.4375,
@@ -334,12 +334,14 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 250,
 				},
@@ -368,8 +370,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -377,6 +377,10 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -415,7 +419,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				trajectoryheight = 1,
 				waterbounce = true,
@@ -446,7 +449,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

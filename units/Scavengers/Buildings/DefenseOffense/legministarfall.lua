@@ -1,10 +1,10 @@
 return {
 	legministarfall = {
-		acceleration = 0,
-		brakerate = 0,
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 29096,
-		buildcostenergy = 60000,
-		buildcostmetal = 2000,
+		energycost = 60000,
+		metalcost = 2000,
 		buildpic = "LEGSTARFALL.DDS",
 		buildtime = 65000,
 		canrepeat = false,
@@ -15,9 +15,7 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
-		maxdamage = 7000,
+		health = 7000,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/scavbuildings/legministarfall.s3o",
@@ -29,7 +27,7 @@ return {
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -74,12 +72,7 @@ return {
 				[4] = "custom:railgun-old",
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
-				[7] = "custom:lightning-stormbig",
-				[8] = "custom:ventair-puff",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
+				[7] = "custom:ventair-puff",
 			},
 		},
 		sounds = {
@@ -133,7 +126,6 @@ return {
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
 				soundstart = "cannon2",
-				soundhitvolume = 20,
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
@@ -169,7 +161,6 @@ return {
 				soundhit = "ministarfallchargup",
 				soundhitwet = "ministarfallchargup",
 				soundstart = "ministarfallchargup",
-				soundstartvolume = 124,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
@@ -186,12 +177,12 @@ return {
 				--engine bug?
 				burstControlWhenOutOfArc = 1,
 				maindir = "0 0 1",
-               --maxangledif = 10,
+				--maxangledif = 10,
 			},
 			[2] = {
 				def = "energycharger",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

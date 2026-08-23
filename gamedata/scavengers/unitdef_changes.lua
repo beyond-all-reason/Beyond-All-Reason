@@ -5,7 +5,6 @@
 -- -- Since you can't actually remove parameters normally, it will do it when you set string: 'nil' as value
 -- -- Normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
-
 local customDefs = {}
 
 -- local scavDifficulty = Spring.GetModOptions().scavdifficulty
@@ -30,14 +29,15 @@ local customDefs = {}
 -- end
 
 local scavUnit = {}
-for name,uDef in pairs(UnitDefs) do
+for name, uDef in pairs(UnitDefs) do
 	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" or string.sub(name, 1, 3) == "leg" then
-		scavUnit[#scavUnit+1] = name .. '_scav'
+		scavUnit[#scavUnit + 1] = name .. "_scav"
 	end
 end
 
 local legionLobberUnitsT1 = "leglob_scav leggob_scav leghades_scav leghelios_scav legsh_scav"
-local legionLobberUnitsT2 = "legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
+local legionLobberUnitsT2 =
+	"legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
 local legionLobberUnitsT3 = "legstr_scav leginfestor_scav legbart_scav legsrail_scav legmrv_scav legfloat_scav"
 local legionLobberUnitsT4 = "leginf_scav legaheattank_scav legaskirmtank_scav leginc_scav legmed_scav legavroc_scav"
 
@@ -130,9 +130,9 @@ customDefs.legcomlvl3 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl3 = {
@@ -147,9 +147,9 @@ customDefs.legdecomlvl3 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl4 = {
@@ -164,9 +164,26 @@ customDefs.legcomlvl4 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
+}
+
+customDefs.legdecomlvl4 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			range = 600,
+			burst = 2,
+			projectiles = 1,
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 60,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl5 = {
@@ -181,9 +198,26 @@ customDefs.legcomlvl5 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
+}
+
+customDefs.legdecomlvl5 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			range = 650,
+			burst = 2,
+			projectiles = 1,
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 60,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl6 = {
@@ -198,9 +232,9 @@ customDefs.legcomlvl6 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl6 = {
@@ -215,9 +249,9 @@ customDefs.legdecomlvl6 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl7 = {
@@ -232,9 +266,26 @@ customDefs.legcomlvl7 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
+}
+
+customDefs.legdecomlvl7 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 7000,
+			range = 750,
+			burst = 1,
+			projectiles = 1,
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 60,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl8 = {
@@ -249,9 +300,26 @@ customDefs.legcomlvl8 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
+}
+
+customDefs.legdecomlvl8 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 8000,
+			range = 800,
+			burst = 2,
+			projectiles = 1,
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 60,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl9 = {
@@ -266,9 +334,26 @@ customDefs.legcomlvl9 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
+}
+
+customDefs.legdecomlvl9 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 9000,
+			range = 850,
+			burst = 3,
+			projectiles = 1,
+			customparams = {
+				spawns_name = legionLobberUnitsT3,
+				spawns_mode = "random_locked",
+				spawns_expire = 60,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			},
+		},
+	},
 }
 
 customDefs.legcomlvl10 = {
@@ -283,9 +368,9 @@ customDefs.legcomlvl10 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.legdecomlvl10 = {
@@ -300,9 +385,9 @@ customDefs.legdecomlvl10 = {
 				spawns_mode = "random_locked",
 				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 customDefs.armrectr = {
@@ -328,9 +413,9 @@ customDefs.legkam = {
 				spawns_name = "cormine1_scav",
 				spawns_surface = "LAND",
 				spawns_expire = 99999,
-			}
-		}
-	}
+			},
+		},
+	},
 }
 
 -- local scavConstructorsList = {
@@ -1008,7 +1093,6 @@ customDefs.legkam = {
 -- 	mincloakdistance = 144,
 -- }
 
-
 -- -- Cloaked Jammers
 
 -- customDefs.armjamt = {
@@ -1244,7 +1328,6 @@ customDefs.legkam = {
 -- 		}
 -- 	}
 -- }
-
 
 -- -- Faster LLT - unique sound - shorter beamtime
 -- customDefs.armllt = {

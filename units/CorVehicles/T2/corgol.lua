@@ -1,7 +1,7 @@
 return {
 	corgol = {
 		buildpic = "CORGOL.DDS",
-		buildtime = 30000,
+		buildtime = 40000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
@@ -12,11 +12,9 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 7800,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.01018,
-		maxdec = 0.02037,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 12,
 		metalcost = 1650,
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 395,
-		speed = 40.5,
+		speed = 39,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "corwidetracks",
@@ -52,8 +50,6 @@ return {
 			techlevel = 2,
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			weapon1turretx = 30,
-			weapon1turrety = 40,
 		},
 		featuredefs = {
 			dead = {
@@ -90,10 +86,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:dust_cloud_dirt",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -132,13 +124,17 @@ return {
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 3,
+				reloadtime = 3.5,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					turretspeedx = 30,
+					turretspeedy = 40,
+				},
 				damage = {
 					default = 900,
 					subs = 200,

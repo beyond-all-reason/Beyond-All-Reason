@@ -23,8 +23,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hightrajectory = 1,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 30000,
@@ -88,7 +86,7 @@ return {
 				name = "METEORLAUNCHER",
 				proximitypriority = -1,
 				range = 72000,
-				reloadtime = 30,
+				reloadtime = 120,
 				soundhit = "nukecor",
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",
@@ -100,7 +98,8 @@ return {
 				},
 				customparams = {
 					shield_aoe_penetration = true,
-				}
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {

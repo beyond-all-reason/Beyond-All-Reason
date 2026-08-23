@@ -1,9 +1,9 @@
 return {
 	legerailtank = {
-		acceleration = 0.035,
-		brakerate = 0.055,
-		buildcostenergy = 165000,
-		buildcostmetal = 6500,
+		maxacc = 0.035,
+		maxdec = 0.055,
+		energycost = 165000,
+		metalcost = 6500,
 		buildpic = "LEGERAILTANK.DDS",
 		buildtime = 125000,
 		--canattack = false,
@@ -16,10 +16,8 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 16500,
+		health = 16500,
 		maxslope = 16,
 		speed = 61.0,
 		maxwaterdepth = 20,
@@ -83,11 +81,6 @@ return {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -115,7 +108,7 @@ return {
 				areaofeffect = 80,
 				avoidfeature = false,
 				burst = 1,
-				burstrate = 0.33,	-- this is controlled in the animation script
+				burstrate = 0.33, -- this is controlled in the animation script
 				burnblow = false,
 				cegtag = "railgun",
 				collisionSize = 0.667,
@@ -141,7 +134,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 30,
 				thickness = 4,
 				firetolerance = 7000,
 				tolerance = 7000,

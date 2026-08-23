@@ -2,10 +2,10 @@ return {
 	legstr = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		energycost = 5400,
-		metalcost = 360,
+		energycost = 5250,
+		metalcost = 355,
 		buildpic = "LEGSTR.DDS",
-		buildtime = 7200,
+		buildtime = 9240,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 48 32",
@@ -14,8 +14,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1780,
 		maxslope = 17,
 		speed = 84.0,
@@ -33,13 +31,11 @@ return {
 		turnrate = 800,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 2,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -75,11 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -131,16 +122,19 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6heavy",
-				soundstartvolume = 2.5,
 				soundtrigger = true,
 				sprayangle = 1024,
 				texture1 = "shot",
 				texture2 = "empty",
-				thickness = 2.0;
+				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 933,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 8,
 					vtol = 3,

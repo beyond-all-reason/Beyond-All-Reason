@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		hightrajectory = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 200000,
 		health = 10000,
 		maxslope = 17,
@@ -34,7 +32,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 265.64999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
@@ -74,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

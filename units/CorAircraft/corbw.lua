@@ -14,8 +14,6 @@ return {
 		footprintz = 2,
 		health = 83,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.25,
 		maxdec = 0.55,
 		maxslope = 10,
@@ -38,11 +36,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "emp",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

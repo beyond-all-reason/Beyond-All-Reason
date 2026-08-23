@@ -44,14 +44,17 @@ local base64chars = {
 local function base64Encode(data)
 	local bytes = {}
 	local result = {}
-	for spos = 0, string.len(data) - 1, 3 do
+	local resultCount = 0
+	local dataLen = #data
+	for spos = 0, dataLen - 1, 3 do
 		for byte = 1, 3 do
-			bytes[byte] = string.byte(string.sub(data, (spos + byte), (spos + byte))) or 0
+			bytes[byte] = data:byte(spos + byte) or 0
 		end
-		result[#result + 1] = base64chars[rsh(bytes[1], 2)] ..
+		resultCount = resultCount + 1
+		result[resultCount] = base64chars[rsh(bytes[1], 2)] ..
 			(base64chars[lor(lsh((bytes[1] % 4), 4), rsh(bytes[2], 4))] or "=") ..
-			(((#data - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=") ..
-			(((#data - spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
+			(((dataLen - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=") ..
+			(((dataLen - spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
 	end
 	result = table.concat(result)
 	return result
@@ -74,11 +77,14 @@ local base64bytes = {
 local function base64Decode(data)
 	local chars = {}
 	local result = {}
-	for dpos = 0, string.len(data) - 1, 4 do
+	local resultCount = 0
+	local dataLen = #data
+	for dpos = 0, dataLen - 1, 4 do
 		for char = 1, 4 do
-			chars[char] = base64bytes[(string.sub(data, (dpos + char), (dpos + char)) or "=")]
+			chars[char] = base64bytes[(data:sub(dpos + char, dpos + char) or "=")]
 		end
-		result[#result + 1] = string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))) ..
+		resultCount = resultCount + 1
+		result[resultCount] = string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))) ..
 			((chars[3] ~= nil) and string.char(lor(lsh(chars[2], 4), rsh(chars[3], 2))) or "") ..
 			((chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6), (chars[4]))) or "")
 	end

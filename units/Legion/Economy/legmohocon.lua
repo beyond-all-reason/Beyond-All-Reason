@@ -1,9 +1,12 @@
-return {						--costs should be same as legmohoconct and legmohoconin
+return { --costs should be same as legmohoconct and legmohoconin
 	legmohocon = {
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 2048,
+		builder = true,
+		builddistance = 400,
+		workertime = 400,
 		energycost = 14500,
 		metalcost = 1060,
 		buildpic = "LEGMOHOCON.DDS",
@@ -18,8 +21,6 @@ return {						--costs should be same as legmohoconct and legmohoconin
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,
@@ -37,7 +38,7 @@ return {						--costs should be same as legmohoconct and legmohoconin
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",
@@ -75,13 +76,6 @@ return {						--costs should be same as legmohoconct and legmohoconin
 				object = "Units/cor5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

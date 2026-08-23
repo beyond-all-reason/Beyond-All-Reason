@@ -25,9 +25,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4999,
 		health = 3350,
@@ -43,7 +41,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -92,7 +90,7 @@ return {
 			[32] = "armgeo",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -135,10 +133,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -189,8 +183,6 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
-				soundhitvolume = 11.5,
-				soundstartvolume = 13.0,
 				separation = 2.0,
 				nogap = false,
 				sizeDecay = 0.08,
@@ -199,6 +191,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 190,
 					subs = 70,
@@ -236,6 +231,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 					subs = 125,
@@ -264,6 +262,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 0,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 10000,
 				},
@@ -311,6 +312,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 150,
 					commanders = 1,
@@ -325,7 +330,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

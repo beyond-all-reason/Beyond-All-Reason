@@ -18,7 +18,6 @@ static-var  closed, gun_3, restore_delay, Static_Var_3, statechg_DesiredState, s
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
 #define MAX_AIMY1_VELOCITY <3.00>
 #define AIMY1_ACCELERATION <0.16>
 #define AIMY1_JERK <0.5>

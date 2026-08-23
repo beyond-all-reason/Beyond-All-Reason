@@ -1,7 +1,7 @@
 return {
 	correap = {
 		buildpic = "CORREAP.DDS",
-		buildtime = 11500,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 34 38",
@@ -12,14 +12,12 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 5300,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.0362,
-		maxdec = 0.0724,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 100,
-		metalcost = 665,
+		metalcost = 690,
 		movementclass = "MTANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORREAP.s3o",
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 462,
-		speed = 70.5,
+		speed = 69,
 		trackoffset = 8,
 		trackstrength = 8,
 		tracktype = "corwidetracks",
@@ -46,8 +44,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -84,10 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -133,6 +125,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 380,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 109,
 					vtol = 35,

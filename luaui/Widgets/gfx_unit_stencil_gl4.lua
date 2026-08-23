@@ -2,17 +2,16 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Unit Stencil GL4",
-		desc      = "A fun approach to minimizing the cost of some fun shaders",
-		author    = "Beherith",
-		date      = "2022.03.05",
-		license   = "GNU GPL, v2 or later",
-		layer     = 50,
-		enabled   = true,
-		depends   = {'gl4'},
+		name = "Unit Stencil GL4",
+		desc = "A fun approach to minimizing the cost of some fun shaders",
+		author = "Beherith",
+		date = "2022.03.05",
+		license = "GNU GPL, v2 or later",
+		layer = 50,
+		enabled = true,
+		depends = { "gl4" },
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -42,7 +41,12 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local vsSrc =  [[
+-- Use the geometry shader pipeline when supported, otherwise expand each unit
+-- bounding box into its 3 visible faces inside the vertex shader, drawing an
+-- instanced template mesh. Set to false to force-test the fallback.
+local useGeometryShader = LuaShader.isGeometryShaderSupported
+
+local vsSrc = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -101,7 +105,7 @@ void main()
     if (isSphereVisibleXY(vec4(uni[instData.y].drawPos.xyz, 1.0), addRadius + unitModelMaxXYZ.x + unitModelMaxXYZ.z)) 
     v_unitModelMaxXYZ.w = 0.0; 
 
-    // this checks the drawFlag of wether the unit is actually being drawn 
+    // this checks the drawFlag of whether the unit is actually being drawn 
     // (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
     if ((uni[instData.y].composite & 0x00000003u) < 1u ) 
     v_unitModelMaxXYZ.w = 0.0; 
@@ -181,8 +185,7 @@ void main(){
 }
 ]]
 
-local fsSrc =
-[[
+local fsSrc = [[
 #version 150 compatibility
 
 uniform float stencilColor = 1.0; // 1 if we are stenciling
@@ -193,18 +196,118 @@ void main(void)
 }
 ]]
 
+-- Non-geometry-shader fallback vertex shader: it expands the unit's bounding box
+-- into the same 3 camera-facing faces that the geometry shader emitted, but per
+-- vertex over an instanced template mesh (see the fallback VAO setup below).
+local vsSrcNoGS = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 5000
+
+layout (location = 0) in float vinfo; // template vertex index 0..11
+layout (location = 1) in vec4 unitModelMinXYZ;
+layout (location = 2) in vec4 unitModelMaxXYZ;
+layout (location = 3) in uvec4 instData;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+
+struct SUniformsBuffer {
+    uint composite; //   u8 drawFlag; u8 unused1; u16 id;
+
+    uint unused2;
+    uint unused3;
+    uint unused4;
+
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+
+    vec4 drawPos;
+    vec4 speed;
+    vec4[4] userDefined;
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+};
+
+#line 10000
+
+uniform float addRadius = 10;
+
+void main()
+{
+    vec4 drawPos = uni[instData.y].drawPos;
+    vec4 Mins = unitModelMinXYZ;
+    vec4 Maxs = unitModelMaxXYZ;
+
+    bool culled = false;
+    // Make no primitives on stuff outside of screen
+    if (isSphereVisibleXY(vec4(drawPos.xyz, 1.0), addRadius + unitModelMaxXYZ.x + unitModelMaxXYZ.z)) culled = true;
+    // drawFlag check (==1 when unit is visible and drawn as a full model, not an icon)
+    if ((uni[instData.y].composite & 0x00000003u) < 1u) culled = true;
+
+    if (culled) {
+        gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // degenerate offscreen
+        return;
+    }
+
+    vec4 centerpos = drawPos;
+    vec3 camPos = cameraViewInv[3].xyz;
+    vec3 camDir = normalize(camPos - centerpos.xyz);
+
+    float s = sin(centerpos.w);
+    float c = cos(centerpos.w);
+    mat3 rotY = mat3(
+        c, 0.0, -s,
+        0.0, 1.0, 0.0,
+        s, 0.0, c);
+
+    float leftright = (dot(vec3(c, 0.0, -s), camDir) < 0.0) ? Mins.x : Maxs.x;
+    float frontback = (dot(vec3(s, 0.0,  c), camDir) > 0.0) ? Maxs.z : Mins.z;
+
+    int vid = int(vinfo);
+    int face = vid / 4;
+    int corner = vid - face * 4;
+    vec3 p;
+    if (face == 0) { // top face
+        float x = ((corner & 1) == 0) ? Mins.x : Maxs.x;
+        float z = (corner < 2) ? Mins.z : Maxs.z;
+        p = vec3(x, Maxs.y, z);
+    } else if (face == 1) { // camera-facing left/right face
+        float y = (corner < 2) ? Maxs.y : Mins.y;
+        float z = ((corner & 1) == 0) ? Mins.z : Maxs.z;
+        p = vec3(leftright, y, z);
+    } else { // camera-facing front/back face
+        float x = ((corner & 1) == 0) ? Mins.x : Maxs.x;
+        float y = (corner < 2) ? Maxs.y : Mins.y;
+        p = vec3(x, y, frontback);
+    }
+
+    vec3 vecnorm = sign(p);
+    gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * (vec3(addRadius, 0.0, addRadius) * vecnorm + p), 1.0);
+}
+]]
+
 local function goodbye(reason)
-	spEcho("Unit Stencil GL4 widget exiting with reason: "..reason)
+	spEcho("Unit Stencil GL4 widget exiting with reason: " .. reason)
 end
 local resolution = 4
-local vsx, vsy  
+local vsx, vsy
 function widget:ViewResize()
-    local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
-    if unitFeatureStencilTex then gl.DeleteTexture(unitFeatureStencilTex) end
-    unitFeatureStencilTex = gl.CreateTexture(vsx/resolution, vsy/resolution, {
+	local GL_R8 = 0x8229
+	vsx, vsy = Spring.GetViewGeometry()
+	if unitFeatureStencilTex then
+		gl.DeleteTexture(unitFeatureStencilTex)
+	end
+	unitFeatureStencilTex = gl.CreateTexture(vsx / resolution, vsy / resolution, {
 		--format = GL.RGBA8,
-        format = GL_R8,
+		format = GL_R8,
 		fbo = true,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
@@ -213,83 +316,162 @@ function widget:ViewResize()
 	})
 end
 
+-- Builds the static 3-quad (12 vertex) template mesh used by the fallback path
+local function makeStencilTemplate()
+	local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	templateVBO:Define(12, { { id = 0, name = "vinfo", size = 1 } })
+	local vertexData = {}
+	for v = 0, 11 do
+		vertexData[#vertexData + 1] = v
+	end
+	templateVBO:Upload(vertexData)
+
+	local indexData = {}
+	for f = 0, 2 do -- each face is a 4-vertex strip -> 2 triangles
+		local b = f * 4
+		indexData[#indexData + 1] = b
+		indexData[#indexData + 1] = b + 1
+		indexData[#indexData + 1] = b + 2
+		indexData[#indexData + 1] = b + 2
+		indexData[#indexData + 1] = b + 1
+		indexData[#indexData + 1] = b + 3
+	end
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	indexVBO:Define(#indexData)
+	indexVBO:Upload(indexData)
+	return templateVBO, indexVBO, #indexData
+end
+
+-- Attaches a wrapped VAO to a stencil VBO. When the geometry shader is available
+-- each instance is a single point; otherwise we draw the template mesh instanced.
+local function attachStencilVAO(stencilVBO, templateVBO, indexVBO, indexCount)
+	if useGeometryShader then
+		stencilVBO.VAO = gl.GetVAO()
+		stencilVBO.VAO:AttachVertexBuffer(stencilVBO.instanceVBO)
+	else
+		local realVAO = InstanceVBOTable.makeVAOandAttach(templateVBO, stencilVBO.instanceVBO, indexVBO)
+		stencilVBO.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+	end
+end
+
+local function makeStencilVBO(name)
+	-- In the geometry shader path the instance attributes start at location 0; in
+	-- the fallback path location 0 is the template vertex, so they shift up by one.
+	if useGeometryShader then
+		return InstanceVBOTable.makeInstanceVBOTable({
+			{ id = 0, name = "unitModelMinXYZ", size = 4 },
+			{ id = 1, name = "unitModelMaxXYZ", size = 4 },
+			{ id = 2, name = "instData", size = 4, type = GL.UNSIGNED_INT },
+		}, 64, name, 2)
+	else
+		return InstanceVBOTable.makeInstanceVBOTable({
+			{ id = 1, name = "unitModelMinXYZ", size = 4 },
+			{ id = 2, name = "unitModelMaxXYZ", size = 4 },
+			{ id = 3, name = "instData", size = 4, type = GL.UNSIGNED_INT },
+		}, 64, name, 3)
+	end
+end
 
 local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	local DrawPrimitiveAtUnitShader =  LuaShader(
-		{
-			vertex = vsSrc,
+	local shaderName = DPATname .. "Shader GL4"
+
+	local DrawPrimitiveAtUnitShader = LuaShader({
+		vertex = vsSrc,
+		fragment = fsSrc,
+		geometry = gsSrc,
+		uniformInt = {
+			--DrawPrimitiveAtUnitTexture = 0;
+		},
+		uniformFloat = {
+			addRadius = 1,
+			stencilColor = 1,
+		},
+	}, shaderName)
+
+	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
+	useGeometryShader = shaderCompiled
+
+	if not shaderCompiled then
+		DrawPrimitiveAtUnitShader = LuaShader({
+			vertex = vsSrcNoGS,
 			fragment = fsSrc,
-			geometry = gsSrc,
 			uniformInt = {
 				--DrawPrimitiveAtUnitTexture = 0;
 			},
 			uniformFloat = {
 				addRadius = 1,
-                stencilColor = 1,
+				stencilColor = 1,
 			},
-		},
-		DPATname .. "Shader GL4"
-	  )
-	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
-	if not shaderCompiled then
-		goodbye("Failed to compile ".. DPATname .." GL4 ")
-		return
+		}, shaderName .. " (NoGS)")
+		shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
+		if not shaderCompiled then
+			goodbye("Failed to compile " .. DPATname .. " GL4 ")
+			return
+		end
 	end
 
-	unitStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
-		{
-			{id = 0, name = 'unitModelMinXYZ', size = 4},
-			{id = 1, name = 'unitModelMaxXYZ', size = 4},
-			{id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
-		},
-		64, -- maxelements
-		DPATname .. "VBO", -- name
-		2  -- unitIDattribID (instData)
-	)
+	local templateVBO, indexVBO, indexCount
+	if not useGeometryShader then
+		templateVBO, indexVBO, indexCount = makeStencilTemplate()
+	end
 
-	unitStencilVBO.VAO  = gl.GetVAO()
-	unitStencilVBO.VAO:AttachVertexBuffer(unitStencilVBO.instanceVBO)
+	unitStencilVBO = makeStencilVBO(DPATname .. "VBO")
+	attachStencilVAO(unitStencilVBO, templateVBO, indexVBO, indexCount)
 
-    featureStencilVBO = InstanceVBOTable.makeInstanceVBOTable(
-		{
-			{id = 0, name = 'unitModelMinXYZ', size = 4},
-			{id = 1, name = 'unitModelMaxXYZ', size = 4},
-			{id = 2, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
-		},
-		64, -- maxelements
-		"featurestencil VBO", -- name
-		2  -- unitIDattribID (instData)
-	)
-    
-	featureStencilVBO.VAO  = gl.GetVAO()
-	featureStencilVBO.VAO:AttachVertexBuffer(featureStencilVBO.instanceVBO)
-    featureStencilVBO.featureIDs = true
+	featureStencilVBO = makeStencilVBO("featurestencil VBO")
+	attachStencilVAO(featureStencilVBO, templateVBO, indexVBO, indexCount)
+	featureStencilVBO.featureIDs = true
 
 	return DrawPrimitiveAtUnitShader
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID)
-    if unitDimensionsXYZ[unitDefID] == nil then
-        local unitDef = UnitDefs[unitDefID]
-        unitDimensionsXYZ[unitDefID] = {
-            unitDef.model.minx,  math.min(0, unitDef.model.miny), unitDef.model.minz,
-            unitDef.model.maxx,  unitDef.model.maxy, unitDef.model.maxz,
-        }
-        local dimsXYZ  = unitDimensionsXYZ[unitDefID]
-        --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
-    end
-    local dimsXYZ  = unitDimensionsXYZ[unitDefID]
-	
+	if unitDimensionsXYZ[unitDefID] == nil then
+		local unitDef = UnitDefs[unitDefID]
+		unitDimensionsXYZ[unitDefID] = {
+			unitDef.model.minx,
+			math.min(0, unitDef.model.miny),
+			unitDef.model.minz,
+			unitDef.model.maxx,
+			unitDef.model.maxy,
+			unitDef.model.maxz,
+		}
+		local dimsXYZ = unitDimensionsXYZ[unitDefID]
+		--spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+	end
+	local dimsXYZ = unitDimensionsXYZ[unitDefID]
+
 	pushElementInstance(
 		unitStencilVBO, -- push into this Instance VBO Table
 		{
-            dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], 0, 
-            dimsXYZ[4], dimsXYZ[5], dimsXYZ[6], 0,
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+			dimsXYZ[1],
+			dimsXYZ[2],
+			dimsXYZ[3],
+			0,
+			dimsXYZ[4],
+			dimsXYZ[5],
+			dimsXYZ[6],
+			0,
+			0,
+			0,
+			0,
+			0, -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
@@ -311,31 +493,48 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:FeatureCreated(featureID, allyTeam)
-    local featureDefID = Spring.GetFeatureDefID(featureID)
-    --spEcho(featureDefID, featureID)
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	--spEcho(featureDefID, featureID)
 
-    if featureDimensionsXYZ[featureDefID] == nil then
-        local featureDef = FeatureDefs[featureDefID]
-        if featureDef.model then 
-            local dimsXYZ = {
-                featureDef.model.minx,  featureDef.model.miny, featureDef.model.minz,
-                featureDef.model.maxx,  featureDef.model.maxy, featureDef.model.maxz,
-            }
-            if (dimsXYZ[4] - dimsXYZ[1]) < 1 then return end -- goddamned geovents
-            featureDimensionsXYZ[featureDefID] =dimsXYZ
-            --spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
-        else
-            return
-        end
-    end
-    local dimsXYZ  = featureDimensionsXYZ[featureDefID]
-	if dimsXYZ == nil then return end
+	if featureDimensionsXYZ[featureDefID] == nil then
+		local featureDef = FeatureDefs[featureDefID]
+		if featureDef.model then
+			local dimsXYZ = {
+				featureDef.model.minx,
+				featureDef.model.miny,
+				featureDef.model.minz,
+				featureDef.model.maxx,
+				featureDef.model.maxy,
+				featureDef.model.maxz,
+			}
+			if (dimsXYZ[4] - dimsXYZ[1]) < 1 then
+				return
+			end -- goddamned geovents
+			featureDimensionsXYZ[featureDefID] = dimsXYZ
+			--spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
+		else
+			return
+		end
+	end
+	local dimsXYZ = featureDimensionsXYZ[featureDefID]
+	if dimsXYZ == nil then
+		return
+	end
 	pushElementInstance(
 		featureStencilVBO, -- push into this Instance VBO Table
 		{
-            dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], 0, 
-            dimsXYZ[4], dimsXYZ[5], dimsXYZ[6], 0,
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+			dimsXYZ[1],
+			dimsXYZ[2],
+			dimsXYZ[3],
+			0,
+			dimsXYZ[4],
+			dimsXYZ[5],
+			dimsXYZ[6],
+			0,
+			0,
+			0,
+			0,
+			0, -- these are just padding zeros, that will get filled in
 		},
 		featureID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
@@ -351,36 +550,36 @@ function widget:FeatureDestroyed(featureID)
 end
 
 local function DrawMe() -- about 0.025 ms
-	if unitStencilVBO.usedElements > 0  or featureStencilVBO.usedElements > 0 then
-        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
+	if unitStencilVBO.usedElements > 0 or featureStencilVBO.usedElements > 0 then
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		gl.Blending(GL.ONE, GL.ZERO)
-        gl.Culling(false)
+		gl.Culling(false)
 		unitStencilShader:Activate()
 		unitStencilShader:SetUniform("addRadius", addRadius)
-        if featureStencilVBO.usedElements > 0 then
-            unitStencilShader:SetUniform("stencilColor", 0.5)
-            featureStencilVBO.VAO:DrawArrays(GL.POINTS, featureStencilVBO.usedElements)
-        end
-        if unitStencilVBO.usedElements > 0 then 
-            unitStencilShader:SetUniform("stencilColor", 1.0)
-	    	unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
-        end
+		if featureStencilVBO.usedElements > 0 then
+			unitStencilShader:SetUniform("stencilColor", 0.5)
+			featureStencilVBO.VAO:DrawArrays(GL.POINTS, featureStencilVBO.usedElements)
+		end
+		if unitStencilVBO.usedElements > 0 then
+			unitStencilShader:SetUniform("stencilColor", 1.0)
+			unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
+		end
 		unitStencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
 
 function widget:DrawWorldPreUnit()
-    --DrawMe()
+	--DrawMe()
 end
 
 local stencilRequested = false
 
 function widget:DrawWorld()
-    if stencilRequested then 
-        gl.RenderToTexture(unitFeatureStencilTex, DrawMe)
-        stencilRequested = false
-    end
+	if stencilRequested then
+		gl.RenderToTexture(unitFeatureStencilTex, DrawMe)
+		stencilRequested = false
+	end
 end
 
 -- This shows the debug stencil texture
@@ -391,36 +590,44 @@ function widget:DrawScreen()
     gl.Texture(unitFeatureStencilTex)
 	gl.TexRect(0, 0, vsx/resolution, vsy/resolution, 0, 0, 1, 1)
 end
-]]--
+]]
+--
 
 local function GetUnitStencilTexture()
-    stencilRequested = true
-    return unitFeatureStencilTex
+	stencilRequested = true
+	return unitFeatureStencilTex
 end
 
 function widget:Initialize()
-	unitStencilShader = InitDrawPrimitiveAtUnit(shaderConfig, "unitStencils")
-    widget:ViewResize()
+	unitStencilShader = InitDrawPrimitiveAtUnit(nil, "unitStencils")
+	widget:ViewResize()
 
-    WG['unitstencilapi'] = {}
-    WG['unitstencilapi'].GetUnitStencilTexture = GetUnitStencilTexture
-    WG['unitstencilapi'].members = {ok = "yes", vsSrc = vsSrc, gsSrc = gsSrc, fsSrc = fsSrc, unitStencilVBO = unitStencilVBO, featureStencilVBO = featureStencilVBO}
-	widgetHandler:RegisterGlobal('GetUnitStencilTexture', WG['unitstencilapi'].GetUnitStencilTexture)
+	WG.unitstencilapi = {}
+	WG.unitstencilapi.GetUnitStencilTexture = GetUnitStencilTexture
+	WG.unitstencilapi.members = {
+		ok = "yes",
+		vsSrc = vsSrc,
+		gsSrc = gsSrc,
+		fsSrc = fsSrc,
+		unitStencilVBO = unitStencilVBO,
+		featureStencilVBO = featureStencilVBO,
+	}
+	widgetHandler:RegisterGlobal("GetUnitStencilTexture", WG.unitstencilapi.GetUnitStencilTexture)
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		local visibleUnits =  WG['unittrackerapi'].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end
-        for _, featureID in ipairs(Spring.GetAllFeatures()) do
-            widget:FeatureCreated(featureID)
-        end
+		for _, featureID in ipairs(Spring.GetAllFeatures()) do
+			widget:FeatureCreated(featureID)
+		end
 	end
 end
 
 function widget:Shutdown()
 	gl.DeleteTexture(unitFeatureStencilTex)
 	unitFeatureStencilTex = nil
-	WG['unitstencilapi'] = nil
-	widgetHandler:DeregisterGlobal('GetUnitStencilTexture')
+	WG.unitstencilapi = nil
+	widgetHandler:DeregisterGlobal("GetUnitStencilTexture")
 end

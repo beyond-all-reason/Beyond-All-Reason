@@ -1,7 +1,7 @@
 return {
 	legjav = {
 		buildpic = "legjav.DDS",
-		buildtime = 32000,
+		buildtime = 39850,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,11 +13,9 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 7200,
-		idleautoheal = 16,
-		idletime = 1800,
 		mass = 1200,
-		maxacc = 0.1750,
-		maxdec = 0.7500,
+		maxacc = 0.1850,
+		maxdec = 0.7750,
 		maxslope = 17,
 		maxwaterdepth = 32,
 		metalcost = 1200,
@@ -28,7 +26,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
-		speed = 65.0,
+		speed = 68.0,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.98,
@@ -41,8 +39,6 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -80,11 +76,6 @@ return {
 				[1] = "custom:barrelshot-tiny",
 				[2] = "custom:subbubbles",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -136,7 +127,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun12",
-				soundstartvolume = 6.0,
 				soundtrigger = true,
 				sprayangle = 1024,
 				texture1 = "shot",
@@ -145,7 +135,11 @@ return {
 				tolerance = 16000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 958,
+				weaponvelocity = 964,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 12,
 				},
@@ -180,7 +174,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 3,
 				sprayangle = 900,
 				texture1 = "shot",
 				texture2 = "empty",
@@ -189,6 +182,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 0,
 					vtol = 10,

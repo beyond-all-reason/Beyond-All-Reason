@@ -15,8 +15,6 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 800,
 		maxslope = 10,
@@ -38,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.96,
 		turnrate = 400,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0.6",
@@ -94,12 +92,6 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1590,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0828,
 		maxdec = 0.8211,
 		maxslope = 17,
@@ -25,7 +23,7 @@ return {
 		script = "Units/ARMWAR.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 350,
+		sightdistance = 380,
 		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -37,8 +35,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -69,12 +65,6 @@ return {
 				object = "Units/arm2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -116,7 +106,7 @@ return {
 				laserflaresize = 7.7,
 				name = "Dual close-quarters g2g laser",
 				noselfdamage = true,
-				range = 330,
+				range = 325,
 				reloadtime = 0.3,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
@@ -127,6 +117,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 55,
 					vtol = 9,

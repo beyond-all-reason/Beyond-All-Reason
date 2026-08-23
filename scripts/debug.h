@@ -33,10 +33,10 @@
 // 6. To print each time a builtin engine callin is called (see list below), rename the function like so:
 //	Open() -> print_Open()
 //	- Any arguments passed will also be forwarded correctly and printed out
-//	- Do not print_FUNCTIONS whos return values you depend on, such as AimWeaponX, HitByWeaponID and Killed
+//	- Do not print_FUNCTIONS whose return values you depend on, such as AimWeaponX, HitByWeaponID and Killed
 
 // IMPORTANT NOTE:
-// DO NOT print_ FUNCTIONS whos return values you need!
+// DO NOT print_ FUNCTIONS whose return values you need!
 
 #ifdef DEBUG
 lua_CobDebug(callerID, line, p1, p2, p3, p4, p5, p6, p7, p8)

@@ -17,8 +17,6 @@ return {
 		explodeas = "energystorage",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2000,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -34,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -70,13 +68,6 @@ return {
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

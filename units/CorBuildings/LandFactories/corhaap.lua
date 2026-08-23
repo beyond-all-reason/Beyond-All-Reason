@@ -3,8 +3,9 @@ return {
 		activatewhenbuilt = true,
 		builder = true,
 		buildpic = "CORAAP.DDS",
-		buildtime = 67300,
+		buildtime = 92000,
 		canmove = true,
+		canReclaim = false,
 		corpse = "DEAD",
 		energycost = 65000,
 		energystorage = 1400,
@@ -12,8 +13,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 17800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -30,7 +29,7 @@ return {
 		terraformspeed = 3000,
 		workertime = 1800,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
-		buildoptions = {		
+		buildoptions = {
 			[1] = "corhaca",
 			[2] = "corape",
 			[3] = "corhurc",
@@ -80,13 +79,6 @@ return {
 				object = "Units/cor7X7B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

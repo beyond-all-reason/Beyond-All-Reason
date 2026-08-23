@@ -6,13 +6,12 @@ local adjustSide = function(sideMin, sideMax, mapSize, spread)
 		return sideMin, sideMax
 	end
 
-	local incrementBy = math.ceil((spread - sideSize)/2)
+	local incrementBy = math.ceil((spread - sideSize) / 2)
 	sideMin = sideMin - incrementBy
 	sideMax = sideMax + incrementBy
 	sideMin = math.max(sideMin, 0)
 	sideMax = math.min(sideMax, mapSize)
 	return sideMin, sideMax
-
 end
 
 local adjustStartBox = function(startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax, spread)
@@ -24,7 +23,8 @@ end
 EnemyLib.GetAdjustedStartBox = function(enemyAllyTeamID, spread)
 	local startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax = Spring.GetAllyTeamStartBox(enemyAllyTeamID)
 	if startBoxXMin and startBoxZMin and startBoxXMax and startBoxZMax then
-		startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax = adjustStartBox(startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax, spread)
+		startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax =
+			adjustStartBox(startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax, spread)
 	end
 	return startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax
 end

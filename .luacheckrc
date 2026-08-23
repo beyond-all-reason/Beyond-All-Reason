@@ -7,6 +7,12 @@ allow_defined_top = true
 max_line_length = false
 codes = true
 
+exclude_files = {
+    "common/luaUtilities/**",
+    ".lux/**",
+    "recoil-lua-library/**",
+}
+
 -- Ideally reenable these warnings later
 redefined = false
 
@@ -16,6 +22,7 @@ ignore = {
     "542", -- TODO: empty if branch
     "611", -- TODO: line contains only whitespace
     "612", -- TODO: line contains trailing whitespace
+    "613", -- TODO: trailing whitespace in a string
     "614", -- TODO: trailing whitespace in a comment
     "621", -- TODO: inconsistent indentation
 }

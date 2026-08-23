@@ -4,11 +4,12 @@ return {
 		maxdec = 0,
 		buildangle = 1024,
 		energycost = 16000,
-		metalcost = 2800,
+		metalcost = 2500,
 		builder = true,
 		buildpic = "LEGAVP.DDS",
-		buildtime = 18500,
+		buildtime = 27750,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -17,8 +18,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		health = 5100,
 		maxslope = 15,
@@ -31,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
-		workertime = 300,
+		workertime = 600,
 		yardmap = [[h
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
@@ -67,7 +66,7 @@ return {
 			"legavantinuke",
 			"legavjam",
 			"legavrad",
-			"legafcv"
+			"legafcv",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
@@ -75,7 +74,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 0.01,
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
@@ -113,10 +112,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

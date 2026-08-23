@@ -1,25 +1,24 @@
 return {
 	legaheattank = {
 		maxacc = 0.02,
-		maxdec = 0.04,
+		maxdec = 0.1,
 		energycost = 19000,
 		metalcost = 1250,
 		buildpic = "LEGAHEATTANK.DDS",
-		buildtime = 19000,
+		buildtime = 25600,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 7700,
 		maxslope = 12,
-		speed = 51.0,
+		speed = 52,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL",
@@ -37,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.6104,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -45,8 +44,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -83,10 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -138,20 +131,21 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				tolerance = 5000,
 				thickness = 4.0,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					sweepfire_firetime = 1.8,
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 33,
 					vtol = 10,
 				},
-				customparams = {
-					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
 			},
 		},
 		weapons = {

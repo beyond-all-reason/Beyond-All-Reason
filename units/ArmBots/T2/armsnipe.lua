@@ -1,7 +1,7 @@
 return {
 	armsnipe = {
 		buildpic = "ARMSNIPE.DDS",
-		buildtime = 19000,
+		buildtime = 24000,
 		canmove = true,
 		cloakcost = 75,
 		cloakcostmoving = 200,
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 580,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -75,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-sniper",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -166,10 +159,8 @@ return {
 				rgbcolor = "1 1 0",
 				size = 0.1,
 				soundhit = "sniperhit",
-				soundhitvolume = 10,
 				soundhitwet = "sizzle",
 				soundstart = "sniper3",
-				soundstartvolume = 20,
 				thickness = 0.5,
 				turret = true,
 				weapontype = "Cannon",

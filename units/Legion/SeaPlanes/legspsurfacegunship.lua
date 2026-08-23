@@ -2,7 +2,7 @@ return {
 	legspsurfacegunship = {
 		blocking = false,
 		buildpic = "legspsurfacegunship.DDS",
-		buildtime = 10000,
+		buildtime = 12140,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 1200,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.17,
 		maxdec = 0.38,
 		maxslope = 10,
@@ -39,18 +37,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-small",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
 			},
 		},
 		sounds = {
@@ -82,6 +68,7 @@ return {
 				areaofeffect = 140,
 				avoidfeature = false,
 				burnblow = true,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
@@ -94,8 +81,6 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
-				soundhitvolume = 12.0,
-				soundstartvolume = 14.0,
 				separation = 2.0,
 				nogap = false,
 				size = 3,

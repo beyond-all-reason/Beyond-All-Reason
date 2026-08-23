@@ -14,11 +14,9 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 220,
 		maxslope = 16,
-		speed = 96,
+		speed = 102,
 		maxwaterdepth = 0,
 		movementclass = "HOVER2",
 		nochasecategory = "VTOL",
@@ -32,7 +30,7 @@ return {
 		turninplacespeedlimit = 2.9634,
 		turnrate = 540,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmHovercraft",
@@ -81,10 +79,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

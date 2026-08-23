@@ -1,13 +1,12 @@
 return {
 	legnap = {
-		acceleration = 0.04,
 		airsightdistance = 800,
 		blocking = false,
 		maxdec = 0.045,
 		energycost = 21000,
 		metalcost = 420,
 		buildpic = "LEGNAP.DDS",
-		buildtime = 36000,
+		buildtime = 41910,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -15,8 +14,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
 		maxbank = 0.8,
@@ -27,7 +24,6 @@ return {
 		maxslope = 10,
 		speed = 215,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
@@ -41,25 +37,11 @@ return {
 		wingangle = 0.06148,
 		wingdrag = 0.125,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -114,6 +96,7 @@ return {
 					area_onhit_damage = 30,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
+					water_splash = 0,
 				},
 				damage = {
 					default = 50,

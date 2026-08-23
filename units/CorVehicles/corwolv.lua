@@ -13,11 +13,9 @@ return {
 		footprintz = 2,
 		health = 750,
 		hightrajectory = 1,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02293,
-		maxdec = 0.04585,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 8,
 		metalcost = 170,
@@ -28,7 +26,7 @@ return {
 		script = "Units/CORWOLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 330,
 		speed = 48,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -50,8 +48,6 @@ return {
 			rockspeed = "2",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -87,10 +83,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -138,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 580,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 300,
 					subs = 75,

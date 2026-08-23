@@ -2,7 +2,7 @@ return {
 	leganavybattleship = {
 		buildangle = 16000,
 		buildpic = "leganavybattleship.DDS",
-		buildtime = 36000,
+		buildtime = 49350,
 		canmove = true,
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "48 48 120",
@@ -14,9 +14,7 @@ return {
 		floater = true,
 		footprintx = 7,
 		footprintz = 7,
-		health = 9000,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 10350,
 		maxacc = 0.005,
 		maxdec = 0.005,
 		metalcost = 2900,
@@ -35,7 +33,6 @@ return {
 		turnrate = 90,
 		waterline = 0,
 		customparams = {
-			--customrange = 700,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships/T2",
@@ -78,11 +75,6 @@ return {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -130,12 +122,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 440,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 270,
+					subs = 54,
 					vtol = 65,
 				},
 			},
-			land_burst_plasma_t2 = {
+			burst_plasma_t2_land = {
 				burstrate = 0.066,
 				burst = 3,
 				accuracy = 350,
@@ -158,8 +154,12 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 470,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 300,
+					subs = 60,
 					vtol = 65,
 				},
 			},
@@ -189,16 +189,18 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 3,
 				sprayangle = 950,
 				texture1 = "shot",
 				texture2 = "empty",
 				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
-				cylindertargeting=true,
+				cylindertargeting = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 20,
 					vtol = 6,
@@ -208,16 +210,16 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "burst_plasma_t2",
-				onlytargetcategory = "SURFACE",
-				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
+				def = "burst_plasma_t2",
+				fastautoretargeting = true,
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "burst_plasma_t2",
+				burstControlWhenOutOfArc = 2,
+				def = "burst_plasma_t2_land",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
-				burstControlWhenOutOfArc = 2,
 			},
 			[3] = {
 				badtargetcategory = "VTOL",

@@ -2,7 +2,7 @@ return {
 	legsptorpgunship = {
 		blocking = false,
 		buildpic = "legsptorpgunship.DDS",
-		buildtime = 9000,
+		buildtime = 10720,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -14,8 +14,6 @@ return {
 		footprintz = 3,
 		health = 900,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.24,
 		maxdec = 0.4,
 		maxslope = 10,
@@ -39,18 +37,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-tiny",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
 			},
 		},
 		sounds = {
@@ -104,8 +90,6 @@ return {
 				soundhit = "splsmed",
 				soundhitwet = "xplodep1",
 				soundstart = "torpedo1",
-				soundhitvolume = 1.5,
-				soundhitwetvolume = 3,
 				startvelocity = 200,
 				tolerance = 12000,
 				tracks = true,
@@ -123,6 +107,7 @@ return {
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
+					tracking_turn_radius = 800,
 				},
 			},
 		},

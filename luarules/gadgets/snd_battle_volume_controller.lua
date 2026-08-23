@@ -1,72 +1,132 @@
 function gadget:GetInfo()
-    return {
-    name      = "Battle Volume Controller",
-    desc      = "Controls Volume of Battle sounds based on camera zoom",
-    author    = "Damgam",
-    date      = "2025",
-    layer     = 5,
-    enabled   = true  --  loaded by default?
-    }
+	return {
+		name = "Battle Volume Controller",
+		desc = "Controls Volume of Battle sounds based on camera zoom",
+		author = "Damgam",
+		date = "2025",
+		layer = 5,
+		enabled = true, --  loaded by default?
+	}
 end
 
 if gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
-local VolumeSetting = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100))
-local VolumeTarget = 1
-local PreviousVolumeTarget = 1
+local math_sqrt = math.sqrt
+local math_floor = math.floor
+local spIsUnitInView = Spring.IsUnitInView
+local spGetCameraState = Spring.GetCameraState
+local spGetConfigFloat = Spring.GetConfigFloat
+local spGetConfigInt = Spring.GetConfigInt
+local spSetConfigInt = Spring.SetConfigInt
 
-local timer = 0
-local cameraHeight = 0
+local UPDATE_INTERVAL = 0.2
+local SETTINGS_POLL_INTERVAL = 1.0
 
-local cameraScale = 1
-local unitDamagedScale = 1
+local DMG_MULT = 0.9995
+local DMG_MULT_1K = DMG_MULT * DMG_MULT
+local DMG_MULT_10K = DMG_MULT_1K * DMG_MULT
+local DMG_MULT_100K = DMG_MULT_10K * DMG_MULT
+
+local VolumeSetting = spGetConfigInt("snd_volbattle_options", 100) or 100
+local VolumeTarget = 1.0
+local PreviousVolumeTarget = 1.0
+local zoomVolume = spGetConfigFloat("snd_zoomVolume", 1.00) or 1.00
+
+local timer = 0.0
+local settingsPollTimer = 0.0
+local cameraHeight = 0.0
+
+local unitDamagedScale = 1.0
 function gadget:Update(dt)
-    timer = timer + dt
-    if timer > 0.2 then
-        timer = 0
-        local camera = Spring.GetCameraState()
-        if camera.name == "spring" then
-            cameraHeight = camera.dist
-        elseif camera.name == "ta" then
-            cameraHeight = camera.height
-        elseif camera.name == "rot" or camera.name == "fps" or camera.name == "free" then
-            cameraHeight = camera.py
-        end
-        cameraHeight = (cameraHeight/2) * tonumber(Spring.GetConfigFloat("snd_zoomVolume", 1.00))
-        VolumeSetting = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100))
-    end
+	timer = timer + dt
+	if timer < UPDATE_INTERVAL then
+		return
+	end
 
-    cameraScale = math.clamp((100-math.sqrt(cameraHeight)), 3, 100)/100
+	local elapsed = timer
+	timer = timer - UPDATE_INTERVAL
 
-    VolumeTarget = math.round(math.clamp(VolumeSetting * cameraScale * unitDamagedScale, 1, 100))
-    if VolumeTarget ~= PreviousVolumeTarget then
-        --Spring.Echo("cameraScale", cameraScale, "unitDamagedScale", unitDamagedScale, "VolumeTarget", VolumeTarget)
-        Spring.SetConfigInt("snd_volbattle", VolumeTarget)
-        VolumeSetting = tonumber(Spring.GetConfigInt("snd_volbattle_options", 100))
-    end
+	if unitDamagedScale < 1 then
+		local nextScale = unitDamagedScale + elapsed * (0.1 - (unitDamagedScale * 0.1))
+		if nextScale < 0.4 then
+			nextScale = 0.4
+		elseif nextScale > 1 or nextScale > 0.9999 then
+			nextScale = 1
+		end
+		unitDamagedScale = nextScale
+	end
 
-    PreviousVolumeTarget = VolumeTarget + 0
-    unitDamagedScale = math.clamp(unitDamagedScale + dt*(0.1-(unitDamagedScale*0.1)), 0.4, 1)
-    if unitDamagedScale > 0.9999 then unitDamagedScale = 1 end
+	settingsPollTimer = settingsPollTimer + UPDATE_INTERVAL
+	if settingsPollTimer >= SETTINGS_POLL_INTERVAL then
+		settingsPollTimer = settingsPollTimer - SETTINGS_POLL_INTERVAL
+		VolumeSetting = spGetConfigInt("snd_volbattle_options", 100) or 100
+		zoomVolume = spGetConfigFloat("snd_zoomVolume", 1.00) or 1.00
+	end
+
+	local camera = spGetCameraState()
+	if not camera then
+		return
+	end
+	local cameraName = camera.name
+	if cameraName == "spring" then
+		cameraHeight = camera.dist or cameraHeight
+	elseif cameraName == "ta" then
+		cameraHeight = camera.height or cameraHeight
+	elseif cameraName == "rot" or cameraName == "fps" or cameraName == "free" then
+		cameraHeight = camera.py or cameraHeight
+	end
+	cameraHeight = (cameraHeight * 0.5) * zoomVolume
+
+	local cameraScale = 100 - math_sqrt(cameraHeight)
+	if cameraScale < 3 then
+		cameraScale = 3
+	elseif cameraScale > 100 then
+		cameraScale = 100
+	end
+	cameraScale = cameraScale * 0.01
+
+	local target = VolumeSetting * cameraScale * unitDamagedScale
+	if target < 1 then
+		target = 1
+	elseif target > 100 then
+		target = 100
+	end
+
+	VolumeTarget = math_floor(target + 0.5)
+	if VolumeTarget ~= PreviousVolumeTarget then
+		spSetConfigInt("snd_volbattle", VolumeTarget)
+		PreviousVolumeTarget = VolumeTarget
+	end
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-    if not paralyzer then
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	if paralyzer or damage <= 0 or unitDamagedScale <= 0.4 then
+		return
+	end
 
-        if damage and damage > 0 and Spring.IsUnitInView(unitID) then
-            unitDamagedScale = unitDamagedScale*0.9995
-            if damage > 1000 then
-                unitDamagedScale = unitDamagedScale*0.9995
-            end
-            if damage > 10000 then
-                unitDamagedScale = unitDamagedScale*0.9995
-            end
-            if damage > 100000 then
-                unitDamagedScale = unitDamagedScale*0.9995
-            end
-        end
-        
-    end
+	if spIsUnitInView(unitID) then
+		-- collapse cascading thresholds into a single multiplier
+		local mult = DMG_MULT
+		if damage > 100000 then
+			mult = DMG_MULT_100K -- ~0.998
+		elseif damage > 10000 then
+			mult = DMG_MULT_10K -- ~0.9985
+		elseif damage > 1000 then
+			mult = DMG_MULT_1K -- ~0.999
+		end
+		unitDamagedScale = unitDamagedScale * mult
+	end
 end
