@@ -669,6 +669,9 @@ end
 ----------------------------------------------------------------
 -- Rendering
 ----------------------------------------------------------------
+
+---Wraps a vertex buffer in an instance buffer for one gizmo primitive.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function makeInstanceTable(name, vbo, numVertices, primitiveType)
 	local iT = InstanceVBOTable.makeInstanceVBOTable(INSTANCE_LAYOUT, 8, name)
 	if not iT then

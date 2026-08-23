@@ -347,6 +347,7 @@ if Spring.GetModOptions().emprework then
 	)
 end
 
+---@type InstanceVBOTable?
 local paralyzedDrawUnitVBOTable
 
 local function initGL4()

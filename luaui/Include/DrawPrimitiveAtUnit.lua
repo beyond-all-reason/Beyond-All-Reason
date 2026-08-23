@@ -35,6 +35,7 @@ local shaderConfig = {
 }
 
 ---- GL4 Backend Stuff----
+---@type InstanceVBOTable?
 local DrawPrimitiveAtUnitVBO = nil
 local DrawPrimitiveAtUnitShader = nil
 
