@@ -1137,6 +1137,64 @@ end
 
 -- Lifted out of DrawWorld: that function sits right on Lua's 60-upvalue ceiling, and the
 -- gizmo's own references were enough to push it over.
+-- The height the gizmo floats at. Shared with the hit test: if these ever computed it
+-- separately, the knob would be pickable somewhere other than where it is drawn.
+function strengthEdit.gizmoY(box, vi)
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
+	if not kx then
+		return nil
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	local gy = math_max(GetGroundHeight(vx, vz) or 0, GetGroundHeight(ex, ez) or 0)
+
+	return math_max(gy, GetGroundHeight(kx, kz) or 0) + 48
+end
+
+-- Picked in screen space because the knob floats: tracing the cursor to the ground would
+-- test against its shadow, which is not where it appears at any shallow camera angle.
+function strengthEdit.knobHit(box, vi, mx, my)
+	local kx, kz = strengthEdit.knob(box, vi)
+	local gy = kx and strengthEdit.gizmoY(box, vi)
+	if not gy or not mx then
+		return false
+	end
+
+	local sx, sy, sz = WorldToScreenCoords(kx, gy, kz)
+	if not sz or sz <= 0 or sz >= 1 then
+		return false
+	end
+	local dx, dy = mx - sx, my - sy
+
+	return (dx * dx + dy * dy) <= 18 * 18
+end
+
+-- Strength from where the cursor sits along the track as drawn. Projecting the ground
+-- cursor onto the world axis instead would drift from the floating knob by the same offset
+-- that made picking wrong.
+function strengthEdit.fromMouse(box, vi, mx, my)
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
+	local gy = kx and strengthEdit.gizmoY(box, vi)
+	if not gy or not mx then
+		return nil
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	local ax, ay, az = WorldToScreenCoords(vx, gy, vz)
+	local bx, by, bz = WorldToScreenCoords(ex, gy, ez)
+	if not az or not bz or az <= 0 or az >= 1 or bz <= 0 or bz >= 1 then
+		return nil
+	end
+
+	local dx, dy = bx - ax, by - ay
+	local lenSq = dx * dx + dy * dy
+	if lenSq < 1 then
+		return nil
+	end
+
+	return ((mx - ax) * dx + (my - ay) * dy) / lenSq
+end
+
 function strengthEdit.draw(box, bi)
 	if strengthEdit.selBox ~= bi or not strengthEdit.selVert then
 		return
@@ -1150,8 +1208,10 @@ function strengthEdit.draw(box, bi)
 	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
 	-- One height for the whole track, clear of the tallest ground beneath it, so the gizmo
 	-- reads as a straight ruler instead of draping over whatever slope it crosses.
-	local gy = math_max(GetGroundHeight(vx, vz) or 0, GetGroundHeight(ex, ez) or 0)
-	gy = math_max(gy, GetGroundHeight(kx, kz) or 0) + 48
+	local gy = strengthEdit.gizmoY(box, strengthEdit.selVert)
+	if not gy then
+		return
+	end
 
 	-- Drawn without depth so a hill between the camera and the anchor cannot bury it.
 	glDepthTest(false)
@@ -1890,8 +1950,7 @@ function widget:MousePress(mx, my, button)
 			-- Strength gizmo of the selected anchor wins over vertex picking: it is deliberately
 			-- placed outside the box so it cannot collide with anything else worth grabbing.
 			if strengthEdit.selBox and strengthEdit.selVert and startboxes[strengthEdit.selBox] then
-				local kx, kz = strengthEdit.knob(startboxes[strengthEdit.selBox], strengthEdit.selVert)
-				if kx and distSq(wx, wz, kx, kz) < VERTEX_PICK_DIST_SQ then
+				if strengthEdit.knobHit(startboxes[strengthEdit.selBox], strengthEdit.selVert, mx, my) then
 					boxUndo.begin(strengthEdit.selBox)
 					strengthEdit.dragging = true
 					return true
@@ -2028,14 +2087,19 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	end
 
 	if strengthEdit.dragging and strengthEdit.selBox and strengthEdit.selVert then
+		-- No ground trace here on purpose: the knob floats, so a cursor over sky is still a
+		-- legitimate drag position.
 		local box = startboxes[strengthEdit.selBox]
-		local wx, wz = getWorldMousePosition()
-		if box and wx then
-			local _, _, vx, vz, ux, uz = strengthEdit.knob(box, strengthEdit.selVert)
-			if vx then
-				-- Project the cursor onto the gizmo axis; its length is the 0..1 range.
-				local along = (wx - vx) * ux + (wz - vz) * uz
-				strengthEdit.setVertex(box, strengthEdit.selVert, along / strengthEdit.GIZMO_LEN)
+		if box then
+			local s = strengthEdit.fromMouse(box, strengthEdit.selVert, mx, my)
+			if s then
+				-- Ctrl drives every anchor at once, the same meaning Ctrl+A has.
+				local _, ctrlHeld = Spring.GetModKeyState()
+				if ctrlHeld then
+					strengthEdit.setBox(box, s)
+				else
+					strengthEdit.setVertex(box, strengthEdit.selVert, s)
+				end
 			end
 		end
 		return true
@@ -2858,8 +2922,8 @@ function widget:Update()
 			-- agree or the highlight would point at something the click will not hit.
 			local selBox = strengthEdit.selBox and startboxes[strengthEdit.selBox]
 			if selBox and strengthEdit.selVert then
-				local kx, kz = strengthEdit.knob(selBox, strengthEdit.selVert)
-				if kx and distSq(wx, wz, kx, kz) < VERTEX_PICK_DIST_SQ then
+				local hmx, hmy = GetMouseState()
+				if strengthEdit.knobHit(selBox, strengthEdit.selVert, hmx, hmy) then
 					strengthEdit.hoverKnob = true
 				end
 			end
