@@ -73,17 +73,19 @@ end
 local UNITTEST = false
 if not Spring then
 	UNITTEST = true
-	Spring = {
+	-- rawset so the language server does not read these test stubs as competing
+	-- definitions of the engine globals, which makes every other field unknown
+	rawset(_G, "Spring", {
 		Echo = function(s)
 			print(s)
 		end,
-	}
-	gl = {
+	})
+	rawset(_G, "gl", {
 		CreateTexture = function()
 			return 0
 		end,
-	}
-	GL = {}
+	})
+	rawset(_G, "GL", {})
 end
 
 --- Create a new texture atlas for any image/text type

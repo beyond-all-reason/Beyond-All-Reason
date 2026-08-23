@@ -93,7 +93,9 @@
       ".lux"
     ],
     "ignoreGlobs": [
-      "**/.lux/**"
+      "**/.lux/**",
+      "spec/spec_helper.lua",
+      "spec/builders/**"
     ],
     "library": [
       ".lux/5.1/test_dependencies/5.1/01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b-mediator_lua@1.1.2-0/src",
