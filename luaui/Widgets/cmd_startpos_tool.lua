@@ -224,6 +224,9 @@ local undoHistory = {}
 -- operation (a vertex drag has none once insert and delete exist too). Functions are
 -- assigned further down, after retessellateSpline is in scope.
 local boxUndo = { redo = {} }
+-- Override-modoption export. Libs are pulled in on first use rather than at include time:
+-- this runs on a button press, and the widget is at Lua's file-local ceiling.
+local boxExport = {}
 
 -- ============================================================
 -- Helper Functions
@@ -957,6 +960,104 @@ function boxUndo.apply(entry)
 	renumberBoxAllyTeams()
 
 	return mirror
+end
+
+-- 0-200 normalised integers, the space the modoption and maps-metadata both use.
+function boxExport.toNorm(v, size)
+	local n = math_floor(v * 200 / math_max(1, size) + 0.5)
+	if n < 0 then
+		n = 0
+	elseif n > 200 then
+		n = 200
+	end
+
+	return n
+end
+
+-- Anchors, never the tessellated ring: the game re-tessellates from these through the same
+-- lib_spline this tool previews with. Strength is snapped to 0.025 like Rowy does and
+-- omitted at zero, which the schema reads as a sharp corner.
+function boxExport.arrangement()
+	local sizeX, sizeZ = Game.mapSizeX, Game.mapSizeZ
+	local out = {}
+	for bi = 1, #startboxes do
+		local box = startboxes[bi]
+		-- Not getEditHandles: this runs above its declaration. The only thing it adds is a nil
+		-- for rect kinds, and box.vertices is the right answer for those anyway.
+		local anchors = box.controls or box.vertices
+		local poly = {}
+		if box.kind == "box" and #anchors >= 3 then
+			-- Axis-aligned rects ship as the 2-point shorthand every consumer already handles.
+			local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
+			for k = 1, #anchors do
+				local a = anchors[k]
+				if a.x < minX then minX = a.x end
+				if a.x > maxX then maxX = a.x end
+				if a.z < minZ then minZ = a.z end
+				if a.z > maxZ then maxZ = a.z end
+			end
+			poly[1] = { x = boxExport.toNorm(minX, sizeX), y = boxExport.toNorm(minZ, sizeZ) }
+			poly[2] = { x = boxExport.toNorm(maxX, sizeX), y = boxExport.toNorm(maxZ, sizeZ) }
+		else
+			for k = 1, #anchors do
+				local a = anchors[k]
+				local pt = { x = boxExport.toNorm(a.x, sizeX), y = boxExport.toNorm(a.z, sizeZ) }
+				-- Snap first, then test: a strength small enough to round to zero must be omitted
+				-- rather than written as an explicit zero.
+				local st = a.strength and (math_floor(a.strength * 40 + 0.5) / 40)
+				if st and st > 0 then
+					pt.strength = st
+				end
+				poly[k] = pt
+			end
+		end
+		if #poly >= 2 then
+			out[#out + 1] = { poly = poly }
+		end
+	end
+
+	return out
+end
+
+function boxExport.encode()
+	local arrangement = boxExport.arrangement()
+	if #arrangement == 0 then
+		return nil
+	end
+
+	-- Json is a LuaUI global (luaui/system.lua). Including the module directly fails in this
+	-- sandbox: it opens with `local base = _G`, and _G is not exposed here.
+	if not Json then
+		Echo("[StartPos Tool] Json unavailable; cannot encode.")
+		return nil
+	end
+	boxExport.b64 = boxExport.b64 or VFS.Include("common/luaUtilities/base64.lua")
+	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
+	if not ok or not raw then
+		return nil
+	end
+	local packed = VFS.ZlibCompress(raw)
+	if not packed then
+		return nil
+	end
+
+	return (boxExport.b64.Encode(packed):gsub("=+$", "")), #arrangement
+end
+
+-- The value is only useful pasted into lobby chat, and the server truncates that, so the
+-- length is reported alongside it rather than left for the user to discover.
+local function copyStartboxOverride()
+	local value, boxes = boxExport.encode()
+	if not value then
+		Echo("[StartPos Tool] No startboxes to copy.")
+		return false
+	end
+
+	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
+	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.",
+		boxes, #value))
+
+	return true
 end
 
 local function findNearestBoxVertex(wx, wz)
@@ -3648,6 +3749,7 @@ function widget:Initialize()
 		loadStartPositions = loadStartPositions,
 		listSavedConfigs = listSavedConfigs,
 		saveStartboxes = saveStartboxes,
+		copyStartboxOverride = copyStartboxOverride,
 		loadStartboxes = loadStartboxes,
 		listSavedStartboxConfigs = listSavedStartboxConfigs,
 		clearAllStartboxes = clearAllStartboxes,
