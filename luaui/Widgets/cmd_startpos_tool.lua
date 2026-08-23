@@ -218,6 +218,12 @@ local hoverPolyEdge = nil
 -- Means: the last N entries in `positions` were added in one action;
 -- restoring removes them and rewinds nextAllyTeam to M.
 local undoHistory = {}
+-- Startbox undo/redo. Entries carry the submode that produced them because start positions
+-- and startboxes coexist: Ctrl+Z in one must not reach into the other's work. Startbox
+-- entries snapshot just the box they touch, which avoids needing an inverse for every
+-- operation (a vertex drag has none once insert and delete exist too). Functions are
+-- assigned further down, after retessellateSpline is in scope.
+local boxUndo = { redo = {} }
 
 -- ============================================================
 -- Helper Functions
@@ -633,6 +639,7 @@ local function finishStartbox()
 			allyTeam = #startboxes + 1,
 		}
 		renumberBoxAllyTeams()
+		boxUndo.push("add", #startboxes, startboxes[#startboxes])
 	end
 	currentBoxVerts = {}
 	drawingBox = false
@@ -812,6 +819,7 @@ end
 
 local function removeLastStartbox()
 	if #startboxes > 0 then
+		boxUndo.push("remove", #startboxes, startboxes[#startboxes])
 		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
 		renumberBoxAllyTeams()
@@ -825,8 +833,130 @@ local function clearAllStartboxes()
 		freeBoxFillList(startboxes[i])
 	end
 	startboxes = {}
+	-- Entries indexed into the list we just emptied are not reversible, so drop them rather
+	-- than let Ctrl+Z act on stale positions. Clearing is not itself undoable.
+	for i = #undoHistory, 1, -1 do
+		if undoHistory[i].mode == "startbox" then
+			table.remove(undoHistory, i)
+		end
+	end
+	boxUndo.redo = {}
 	currentBoxVerts = {}
 	drawingBox = false
+end
+
+function boxUndo.snap(box)
+	if not box then
+		return nil
+	end
+	local anchors = box.controls or box.vertices or {}
+	local out = { kind = box.kind, allyTeam = box.allyTeam, anchors = {} }
+	for k = 1, #anchors do
+		local a = anchors[k]
+		out.anchors[k] = { x = a.x, z = a.z, strength = a.strength }
+	end
+
+	return out
+end
+
+function boxUndo.build(snap)
+	local anchors = {}
+	for k = 1, #snap.anchors do
+		local a = snap.anchors[k]
+		anchors[k] = { x = a.x, z = a.z, strength = a.strength }
+	end
+	local box = { kind = snap.kind, allyTeam = snap.allyTeam }
+	if snap.kind == "spline" then
+		box.controls = anchors
+		box.vertices = {}
+		retessellateSpline(box)
+	else
+		box.vertices = anchors
+	end
+
+	return box
+end
+
+-- op is what the user just did, so undo knows how to reverse it: "add" drops the box at idx,
+-- "remove" puts it back, "edit" swaps the stored anchors in.
+function boxUndo.push(op, idx, box)
+	undoHistory[#undoHistory + 1] = {
+		mode = "startbox",
+		op = op,
+		idx = idx,
+		box = boxUndo.snap(box),
+	}
+	boxUndo.redo = {}
+end
+
+-- A drag fires MouseMove continuously, so the snapshot is taken once on press and only
+-- committed on release if the gesture actually changed something. One Ctrl+Z per gesture.
+function boxUndo.begin(idx)
+	boxUndo.pending = { idx = idx, box = boxUndo.snap(startboxes[idx]) }
+end
+
+function boxUndo.commit()
+	local pend = boxUndo.pending
+	boxUndo.pending = nil
+	if not pend or not pend.box then
+		return
+	end
+	-- A click that only selects a handle must not leave a no-op entry behind, or Ctrl+Z
+	-- appears to do nothing.
+	local now = boxUndo.snap(startboxes[pend.idx])
+	if now and #now.anchors == #pend.box.anchors then
+		local same = now.kind == pend.box.kind
+		for k = 1, #now.anchors do
+			local a, b = now.anchors[k], pend.box.anchors[k]
+			if a.x ~= b.x or a.z ~= b.z or a.strength ~= b.strength then
+				same = false
+				break
+			end
+		end
+		if same then
+			return
+		end
+	end
+	undoHistory[#undoHistory + 1] = {
+		mode = "startbox",
+		op = "edit",
+		idx = pend.idx,
+		box = pend.box,
+	}
+	boxUndo.redo = {}
+end
+
+-- Applies one entry and returns its mirror, so undo and redo share this and the caller just
+-- moves the mirror onto the other stack.
+function boxUndo.apply(entry)
+	local mirror = { mode = "startbox", op = entry.op, idx = entry.idx }
+	if entry.op == "add" then
+		mirror.box = boxUndo.snap(startboxes[entry.idx])
+		mirror.op = "remove"
+		if startboxes[entry.idx] then
+			freeBoxFillList(startboxes[entry.idx])
+			table.remove(startboxes, entry.idx)
+		end
+	elseif entry.op == "remove" then
+		mirror.op = "add"
+		local at = entry.idx
+		if at < 1 then
+			at = 1
+		elseif at > #startboxes + 1 then
+			at = #startboxes + 1
+		end
+		mirror.idx = at
+		table.insert(startboxes, at, boxUndo.build(entry.box))
+	else
+		mirror.box = boxUndo.snap(startboxes[entry.idx])
+		if startboxes[entry.idx] then
+			freeBoxFillList(startboxes[entry.idx])
+			startboxes[entry.idx] = boxUndo.build(entry.box)
+		end
+	end
+	renumberBoxAllyTeams()
+
+	return mirror
 end
 
 local function findNearestBoxVertex(wx, wz)
@@ -1676,6 +1806,7 @@ function widget:MousePress(mx, my, button)
 				local added = #positions - prevCount
 				if added > 0 then
 					undoHistory[#undoHistory + 1] = {
+						mode = subMode,
 						count = added,
 						prevNextAllyTeam = prevNext,
 						prevNextTeamSlot = prevNextSlot,
@@ -1730,6 +1861,7 @@ function widget:MousePress(mx, my, button)
 			local added = #positions - prevCount
 			if added > 0 then
 				undoHistory[#undoHistory + 1] = {
+					mode = subMode,
 					count = added,
 					prevNextAllyTeam = prevNext,
 					prevNextTeamSlot = prevNextSlot,
@@ -1748,6 +1880,7 @@ function widget:MousePress(mx, my, button)
 			if strengthEdit.selBox and strengthEdit.selVert and startboxes[strengthEdit.selBox] then
 				local kx, kz = strengthEdit.knob(startboxes[strengthEdit.selBox], strengthEdit.selVert)
 				if kx and distSq(wx, wz, kx, kz) < VERTEX_PICK_DIST_SQ then
+					boxUndo.begin(strengthEdit.selBox)
 					strengthEdit.dragging = true
 					return true
 				end
@@ -1756,6 +1889,7 @@ function widget:MousePress(mx, my, button)
 			-- Check for vertex drag first (polygon/freedraw boxes — placed boxes are always editable)
 			local bi, vi = findNearestBoxVertex(wx, wz)
 			if bi and vi then
+				boxUndo.begin(bi)
 				boxDragIdx = vi
 				boxDragBoxIdx = bi
 				dragStartX = mx
@@ -1770,6 +1904,7 @@ function widget:MousePress(mx, my, button)
 				local box = startboxes[pbi]
 				local handles = box and getEditHandles(box)
 				if handles then
+					boxUndo.begin(pbi)
 					local insertAt = pei + 1
 					table.insert(handles, insertAt, { x = pmx, z = pmz })
 					if box.kind == "spline" then
@@ -2158,6 +2293,7 @@ function widget:MouseRelease(mx, my, button)
 
 	if strengthEdit.dragging then
 		strengthEdit.dragging = false
+		boxUndo.commit()
 		return true
 	end
 
@@ -2180,6 +2316,7 @@ function widget:MouseRelease(mx, my, button)
 		boxEdgeDrag = nil
 		boxBodyDrag = nil
 		dragging = false
+		boxUndo.commit()
 		return true
 	end
 
@@ -2251,6 +2388,7 @@ function widget:MouseRelease(mx, my, button)
 				-- Same path a control drag takes, so what is drawn matches what editing produces.
 				retessellateSpline(startboxes[#startboxes])
 				renumberBoxAllyTeams()
+				boxUndo.push("add", #startboxes, startboxes[#startboxes])
 			end
 		end
 		freeDrawPts = {}
@@ -2300,23 +2438,44 @@ function widget:KeyPress(key, mods, isRepeat)
 		local box = startboxes[strengthEdit.selBox]
 		local handles = box and getEditHandles(box)
 		if handles and handles[strengthEdit.selVert] then
+			boxUndo.push("edit", strengthEdit.selBox, box)
 			strengthEdit.setBox(box, handles[strengthEdit.selVert].strength or 0)
 			return true
 		end
 	end
 
-	if key == 122 and mods.ctrl then -- 122 = 'z'
-		local entry = undoHistory[#undoHistory]
-		if entry then
-			for i = 1, entry.count do
+	-- Ctrl+Z / Ctrl+Y. Only entries from the current submode are eligible: positions and
+	-- startboxes coexist, so undoing in one submode must not silently rewind the other.
+	if (key == 122 or key == 121) and mods.ctrl then -- 122 = 'z', 121 = 'y'
+		local fromStack = (key == 122) and undoHistory or boxUndo.redo
+		local toStack = (key == 122) and boxUndo.redo or undoHistory
+		local at
+		for i = #fromStack, 1, -1 do
+			if (fromStack[i].mode or "express") == subMode then
+				at = i
+				break
+			end
+		end
+		if not at then
+			return true
+		end
+
+		local entry = fromStack[at]
+		table.remove(fromStack, at)
+		if entry.mode == "startbox" then
+			toStack[#toStack + 1] = boxUndo.apply(entry)
+		else
+			-- Positions rewind by count, the way they always have; the counter pair is
+			-- restored from the snapshot rather than guessed at.
+			for _ = 1, (entry.count or 0) do
 				if #positions > 0 then
 					positions[#positions] = nil
 				end
 			end
-			nextAllyTeam = entry.prevNextAllyTeam
+			nextAllyTeam = entry.prevNextAllyTeam or 1
 			nextTeamSlot = entry.prevNextTeamSlot or 1
-			undoHistory[#undoHistory] = nil
 		end
+
 		return true
 	end
 	return false
