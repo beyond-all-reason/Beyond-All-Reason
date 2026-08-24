@@ -35,12 +35,19 @@ local SENSOR_LEVEL = {
 -- detection events when updating both radar and vision together; radar's
 -- PREVLOS and CONTRADAR are used in the engine's own unit isTyped tests.
 
+local bit_and = math.bit_and
+
 local LOS_INLOS = 1
 local LOS_INRADAR = 2
 local LOS_ISTYPED = 12
 
+local LEVEL_UNSEEN = LEVEL.UNSEEN
+local LEVEL_SEISMIC = LEVEL.SEISMIC
+local LEVEL_RADAR = LEVEL.RADAR
+local LEVEL_IDENTIFIED = LEVEL.IDENTIFIED
+local LEVEL_VISION = LEVEL.VISION
+
 local isSeismicContact = GG['MissionAPI'].Modules.SeismicContacts.IsContact
-local bit_and = math.bit_and
 
 local latches = {}
 
@@ -63,15 +70,15 @@ end
 local function resolveLevel(unitID, allyTeamID)
 	local losStatus = Spring.GetUnitLosState(unitID, allyTeamID, true)
 	if not losStatus then
-		return LEVEL.UNSEEN
+		return LEVEL_UNSEEN
 	end
 	if bit_and(losStatus, LOS_INLOS) ~= 0 then
-		return LEVEL.VISION
+		return LEVEL_VISION
 	end
 	if bit_and(losStatus, LOS_INRADAR) ~= 0 then
-		return LEVEL[bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and "IDENTIFIED" or "RADAR"]
+		return bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and LEVEL_IDENTIFIED or LEVEL_RADAR
 	end
-	return LEVEL[isSeismicContact(unitID, allyTeamID) and "SEISMIC" or "UNSEEN"]
+	return isSeismicContact(unitID, allyTeamID) and LEVEL_SEISMIC or LEVEL_UNSEEN
 end
 
 -- Detection levels are resolved once by the first trigger to see each [allyTeamID][unitID].
@@ -107,12 +114,12 @@ local function levelBitOf(unitID, sensorAllyTeam)
 		return levelForAllyTeam(unitID, sensorAllyTeam)
 	end
 
-	local level = LEVEL.UNSEEN
+	local level = LEVEL_UNSEEN
 	for index = 1, sensorAllyTeamCount do
 		local allyTeamLevel = levelForAllyTeam(unitID, sensorAllyTeams[index])
 		if allyTeamLevel > level then
-			if allyTeamLevel == LEVEL.VISION then
-				return LEVEL.VISION -- nothing outranks vision, so stop looking
+			if allyTeamLevel == LEVEL_VISION then
+				return LEVEL_VISION -- nothing outranks vision, so stop looking
 			end
 			level = allyTeamLevel
 		end
