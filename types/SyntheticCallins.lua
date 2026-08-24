@@ -81,6 +81,6 @@
 ---
 ---`idled` is `true` when the unit ran out of work, `false` when it found some.
 ---
----Mark: g:UnitIdle, g:UnitCommand, g:UnitCreated, g:UnitFinished, g:UnitTaken, g:UnitDestroyed.
+---Mark: g:UnitIdle, g:UnitCommand, g:UnitTaken, g:UnitDestroyed.
 ---Dispatch: g:GameFramePost.
 ---@field UnitIdlePost? fun(self, unitID: integer, idled: boolean)
