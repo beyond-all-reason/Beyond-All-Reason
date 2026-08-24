@@ -26,6 +26,9 @@ local seismicContacts
 local SEISMIC_INTERVAL_FRAMES
 local detectionLevels
 local statistics
+local needsBuildPlacements
+local needsBuildOwnerMap
+local needsBuildStartSet
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
@@ -33,6 +36,10 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
+local buildPlacements           = {}
+local buildFrameOwners          = {}
+local constructionStarts        = {}
+local underConstruction         = {}
 local detections                = {}
 local detectionCount            = 0
 
@@ -101,6 +108,46 @@ end
 local function isFeatureInArea(featureID, area)
 	local featureX, _, featureZ = Spring.GetFeaturePosition(featureID)
 	return math.isPointInArea(featureX, featureZ, area)
+end
+
+-- Attempt at single-assigning a construction task owner to each buildee.
+-- When multiple constructors place the same buildDefID, any can become an
+-- "owner" in some technical sense, since only factories own build frames.
+local function isBuildFrameOwner(unbuiltID, builderName, builderDefName)
+	if not builderName and not builderDefName then
+		return true
+	end
+	local builder = buildFrameOwners[unbuiltID]
+	if not builder then
+		return false
+	end
+	if builderDefName and builderDefName ~= UnitDefs[builder.defID].name then
+		return false
+	end
+	if builderName and not doesUnitHaveName(builder.id, builderName) then
+		return false
+	end
+	return true
+end
+
+local function inFactory(buildeeID)
+	local builder = buildFrameOwners[buildeeID]
+	return builder and builder.isFactory
+end
+
+-- ConstructionStarted gets buildees from two call-ins. Only one can claim.
+local function claimConstructionStart(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	if claims then
+		claims[triggerID] = true
+		return
+	end
+	constructionStarts[buildeeID] = { [triggerID] = true }
+end
+
+local function hasConstructionStarted(buildeeID, triggerID)
+	local claims = constructionStarts[buildeeID]
+	return claims and claims[triggerID]
 end
 
 ----------------------------------------------------------------
@@ -175,6 +222,11 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
+		IsBuildFrameOwner        = isBuildFrameOwner,
+		InFactory                = inFactory,
+		ClaimConstructionStart   = claimConstructionStart,
+		HasConstructionStarted   = hasConstructionStarted,
+		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
@@ -205,6 +257,23 @@ function gadget:Initialize()
 	if not needsReclaimIncome and not needsFeatureReclaimTracking then
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
+
+	-- ConstructionStarted accepts some orders that assist an existing build frame.
+	needsBuildPlacements = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionStarted
+	end)
+
+	-- ConstructionFinished can't read beingBuilt at UnitFinished (always false).
+	needsBuildStartSet = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionFinished
+	end)
+
+	-- We tell apart factory and constructor ownership via the build owner map.
+	needsBuildOwnerMap = table.any(triggers, function(trigger)
+		return (trigger.type == triggerTypes.ConstructionCanceled or trigger.type == triggerTypes.ProductionCanceled)
+			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
+			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
+	end)
 end
 
 function gadget:GameFrame(frameNumber)
@@ -235,6 +304,25 @@ function gadget:GameFramePost(frameNumber)
 	end
 end
 
+function gadget:GameFramePost(frameNumber)
+	if not next(buildPlacements) then
+		return
+	end
+
+	for builderID, unitDefID in pairs(buildPlacements) do
+		local buildeeID = Spring.GetUnitIsBuilding(builderID)
+		if
+			buildeeID
+			and Spring.GetUnitIsBeingBuilt(buildeeID)
+			and Spring.GetUnitDefID(buildeeID) == unitDefID
+		then
+			dispatchTriggerCallin('BuildAssisted', buildeeID, unitDefID, Spring.GetUnitTeam(buildeeID), builderID)
+		end
+	end
+
+	buildPlacements = {}
+end
+
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin('MetaUnitAdded', unitID, unitDefID, unitTeam)
 
@@ -261,10 +349,25 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	dispatchTriggerCallin('UnitCreated', unitID, unitDefID, unitTeam, builderID)
+
+	if builderID then
+		buildPlacements[builderID] = nil
+	end
+
+	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+	if beingBuilt then
+		if needsBuildStartSet then
+			underConstruction[unitID] = true
+		end
+		if needsBuildOwnerMap and builderID then
+			local builderDefID = Spring.GetUnitDefID(builderID)
+			buildFrameOwners[unitID] = { id = builderID, defID = builderDefID, isFactory = UnitDefs[builderDefID].isFactory }
+		end
+	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
@@ -276,6 +379,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
 		statistics.Increment(triggerTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
+
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
 
 	untrackUnitID(unitID)
 end
@@ -315,6 +422,10 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
 
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
+
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end
 	-- Don't count starting commanders, initial loadout, wildlife, etc.
@@ -326,6 +437,13 @@ end
 
 function gadget:TeamDied(teamID)
 	dispatchTriggerCallin('TeamDied', teamID)
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	if x and needsBuildPlacements then
+		buildPlacements[builderID] = unitDefID
+	end
+	return true
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
