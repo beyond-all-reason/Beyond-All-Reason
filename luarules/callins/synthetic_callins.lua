@@ -295,7 +295,7 @@ local function createSweep(callinName)
 end
 
 ---We distrust the engine's `:UnitIdle` callin so read the unit queue directly.
----See unit_idle_stats.lua for detail on unit behaviors, namely, "idle tasks".
+---See unit_idle_states.lua for detail on unit behaviors, namely, "idle tasks".
 local function createUnitIdleSweep()
 	local marked, list, countBox = getMarksUnsafe('UnitIdle')
 	local latched = getLatchUnsafe('UnitIdle')
