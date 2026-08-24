@@ -6,7 +6,7 @@ GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 
-local actions  = VFS.Include('luarules/mission_api/actions/misc/defeat.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/game/defeat.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
