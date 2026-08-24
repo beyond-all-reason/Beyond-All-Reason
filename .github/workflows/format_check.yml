@@ -15,9 +15,7 @@ jobs:
 
       - name: Install stylua
         env:
-          # Pinned deliberately: a formatter's output is the contract, so an
-          # unannounced upgrade would start failing pull requests that were
-          # correctly formatted when they were written.
+          # Pinned so previously passing PRs do not become flagged on upgrade.
           STYLUA_VERSION: "2.5.2"
         run: |
           curl -fsSL -o stylua.zip \
