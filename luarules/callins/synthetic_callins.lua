@@ -201,14 +201,14 @@ local function createTransition(callinName)
 
 	marks[callinName] = { marked = marked, list = list, count = count, latched = latched, stop = stop }
 
-	-- After the last subscriber drops, any late-subscribers cannot trust
-	-- the latched states anymore, so the states also must be dropped.
 	local postList = callinName .. "PostList"
 	syntheticCallinUpdate[callinName .. "Post"] = function(gh)
 		if #gh[postList] > 0 then
 			count[1] = count[1] or 0
 		else
 			stop()
+			-- After the last subscriber drops, any late-subscribers cannot trust
+			-- the latched states anymore, so the states also must be dropped.
 			for id in pairs(latched) do
 				latched[id] = nil
 			end
