@@ -1,4 +1,4 @@
-return {						--costs should be same as legmohocon and legmohoconct
+return { --costs should be same as legmohocon and legmohoconct
 	legmohoconin = {
 		maxacc = 0,
 		activatewhenbuilt = true,
@@ -21,7 +21,6 @@ return {						--costs should be same as legmohocon and legmohoconct
 		health = 3900,
 		maxslope = 30,
 		maxwaterdepth = 20,
-		metalstorage = 600,
 		objectname = "Units/legmohocon.s3o",
 		onoffable = true,
 		script = "Units/legmohoconin.cob",
@@ -31,7 +30,7 @@ return {						--costs should be same as legmohocon and legmohoconct
 		icontype = "legmohocon",
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",

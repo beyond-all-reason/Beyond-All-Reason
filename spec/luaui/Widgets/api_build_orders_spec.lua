@@ -105,7 +105,9 @@ local function buildArmCorWorld()
 		:WithUnitDef(UnitDef.new("cormex"):WithDefID(20):WithCost(100):WithFootprint(2, 2))
 		:WithUnitDef(UnitDef.new("corsolr"):WithDefID(21):WithCost(100):WithFootprint(2, 2))
 		-- Constructors
-		:WithUnitDef(UnitDef.new("armcon"):WithDefID(100):WithSpeed(100):Builds(10, 11):WithFootprint(2, 2))
+		:WithUnitDef(
+			UnitDef.new("armcon"):WithDefID(100):WithSpeed(100):Builds(10, 11):WithFootprint(2, 2)
+		)
 		:WithUnitDef(UnitDef.new("armhcon"):WithDefID(101):WithSpeed(300):Builds(10, 11):WithFootprint(2, 2))
 		:WithUnitDef(UnitDef.new("armrcon"):WithDefID(102):WithSpeed(200):Builds(10):WithFootprint(2, 2))
 		:WithUnitDef(UnitDef.new("corcon"):WithDefID(200):WithSpeed(100):Builds(20, 21):WithFootprint(2, 2))
@@ -218,7 +220,12 @@ describe("api_build_orders", function()
 
 	describe("when every builder has zero build speed", function()
 		it("issues no orders", function()
-			local widget = withMinimalSubLogic(Builders.SpringUnsynced.new():WithUnitDef(UnitDef.new("armcon"):WithDefID(42):WithSpeed(0)):WithUnit(1, "armcon")):LoadWidget(WIDGET_PATH)
+			local widget = withMinimalSubLogic(
+				Builders.SpringUnsynced
+					.new()
+					:WithUnitDef(UnitDef.new("armcon"):WithDefID(42):WithSpeed(0))
+					:WithUnit(1, "armcon")
+			):LoadWidget(WIDGET_PATH)
 
 			local bo = widget.WG.api_build_orders
 			local calls = widget.captureArrayOrders()

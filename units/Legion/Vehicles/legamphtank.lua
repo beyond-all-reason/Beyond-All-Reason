@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 1.485,
 		turnrate = 398,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.7",
@@ -46,8 +46,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -127,6 +125,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 135,
+					turretspeedy = 135,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,
