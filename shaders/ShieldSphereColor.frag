@@ -153,7 +153,7 @@ float SimplexPerlin3D( vec3 P ) {
     //	http://briansharpe.wordpress.com/2012/01/13/simplex-noise/#comment-36
     const float FINAL_NORMALIZATION = 37.837227241611314102871574478976;
 
-    //  evaulate the kernel weights ( use (0.5-x*x)^3 instead of (0.6-x*x)^4 to fix discontinuities )
+    //  evaluate the kernel weights ( use (0.5-x*x)^3 instead of (0.6-x*x)^4 to fix discontinuities )
     vec4 kernel_weights = v1234_x * v1234_x + v1234_y * v1234_y + v1234_z * v1234_z;
     kernel_weights = max(0.5 - kernel_weights, 0.0);
     kernel_weights = kernel_weights*kernel_weights*kernel_weights;
@@ -322,7 +322,7 @@ void main() {
 			vec2 noiseVecOffset = 0.8 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
 
-			// Make chromatic aberation effect around the impact point
+			// Make chromatic aberration effect around the impact point
 			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
 			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.2);
 			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.2);

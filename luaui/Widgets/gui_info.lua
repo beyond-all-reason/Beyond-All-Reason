@@ -363,9 +363,23 @@ local function refreshUnitInfo()
 
 		local function calculateLaserDPS(def, damage)
 			local minIntensity = math.max(def.minIntensity, 0.5)
-			local mindps = minIntensity * (damage * def.salvoSize / def.reload)
-			local maxdps = damage * def.salvoSize / def.reload
-			return mindps, maxdps
+			local reload = def.reload
+			local burst = def.salvoSize * def.projectiles
+
+			local custom = def.customParams
+			if custom.sweepfire_firetime then
+				burst = tonumber(custom.sweepfire_firetime) * def.projectiles * Game.gameSpeed
+			end
+			if custom.sweepfire_reloadtime then
+				reload = tonumber(custom.sweepfire_reloadtime)
+			end
+
+			if not def.beamBurst then
+				burst = burst / (Game.gameSpeed * def.beamtime)
+			end
+
+			local maxdps = damage * burst / reload
+			return maxdps * minIntensity, maxdps
 		end
 
 		local function calculateWeaponDPS(def, damage)
@@ -436,10 +450,10 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 			else
-				if unitDef.name == "armamb" or unitDef.name == "cortoast" then -- weapons with low/high traj, this list is incomplete
-					unitExempt = true
-					if i == 1 then --Calculating using first weapon only
-						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
+				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+					unitExempt = true -- NB: I hate this thing
+					if weaponDef.customParams.smart_priority then
+						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
 					end
 				elseif
 					unitDef.customParams.evocomlvl -- use primary weapon for evolving commanders
@@ -470,7 +484,7 @@ local function refreshUnitInfo()
 							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
 						end
 					end
-				elseif unitDef.name == "corkorg" then --excluding korstomp from dps calcuation for juggernaut
+				elseif unitDef.name == "corkorg" then --excluding korstomp from dps calculation for juggernaut
 					unitExempt = true
 					if i == 1 then
 						local defDmg

@@ -444,7 +444,7 @@ return {
 				firestarter = 50,
 				impulsefactor = 0,
 				intensity = 24,
-				name = "Short-Range Lightening Discharge",
+				name = "Short-Range Lightning Discharge",
 				noselfdamage = true,
 				range = 425,
 				reloadtime = 0.1,

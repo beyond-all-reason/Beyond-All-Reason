@@ -125,7 +125,7 @@ local instanceCache = {
 	0,
 	0, -- lengthwidthcornerheight
 	0, -- teamID
-	useHexagons and 6 or 64, -- how many trianges should we make
+	useHexagons and 6 or 64, -- how many triangles should we make
 	0,
 	0,
 	0,
@@ -133,7 +133,7 @@ local instanceCache = {
 	0,
 	1,
 	0,
-	1, -- These are our default UV atlas tranformations
+	1, -- These are our default UV atlas transformations
 	0,
 	0,
 	0,
@@ -194,7 +194,7 @@ local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID == nil then
 		return
-	end -- these cant be selected
+	end -- these can't be selected
 
 	local numVertices = useHexagons and 6 or 64
 	local cornersize = 0

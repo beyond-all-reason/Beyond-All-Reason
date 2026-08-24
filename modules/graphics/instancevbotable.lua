@@ -52,7 +52,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	end
 
 	function instanceTable:clearInstanceTable()
-		-- this wont resize it, but quickly sets it to empty
+		-- this won't resize it, but quickly sets it to empty
 		self.usedElements = 0
 		self.instanceIDtoIndex = {}
 		self.indextoInstanceID = {}
@@ -94,7 +94,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	end
 
 	function instanceTable:clearInstanceTable()
-		-- this wont resize it, but quickly sets it to empty
+		-- this won't resize it, but quickly sets it to empty
 		self.usedElements = 0
 		self.instanceIDtoIndex = {}
 		self.indextoInstanceID = {}
@@ -181,7 +181,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 
 	newInstanceVBO:Upload(instanceData)
 
-	-- I believe that the openGL spec doesnt guarantee that a buffer has an idea before data is uploaded to it, so we will fill it with zeros.
+	-- I believe that the openGL spec doesn't guarantee that a buffer has an idea before data is uploaded to it, so we will fill it with zeros.
 	if gldebugannotations then
 		gl.ObjectLabel(GL_BUFFER, newInstanceVBO:GetID(), myName)
 	end
@@ -210,7 +210,7 @@ local function nextInstanceID(iT)
 end
 
 local function clearInstanceTable(iT)
-	-- this wont resize it, but quickly sets it to empty
+	-- this won't resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
 	iT.indextoInstanceID = {}
@@ -288,7 +288,7 @@ local function counttable(t)
 end
 
 local function validateInstanceVBOTable(iT, calledfrom)
-	-- check that instanceIDtoIndex and indextoInstanceID are valid and contigous:
+	-- check that instanceIDtoIndex and indextoInstanceID are valid and contiguous:
 	for i = 1, iT.usedElements do
 		if iT.indextoInstanceID[i] == nil then
 			Spring.Echo(

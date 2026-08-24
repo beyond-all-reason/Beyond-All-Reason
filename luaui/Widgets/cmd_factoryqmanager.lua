@@ -49,7 +49,7 @@ local CMD_OPT_ALT = CMD.OPT_ALT
 --1.2:
 --added: "Repeat"-State gets saved. Repeating queues show up as green preset number labels, non-repeated in gray as usual
 --added: Queues can be loaded by left-clicking on the preset box
---added: Queues get saved for each mod seperately
+--added: Queues get saved for each mod separately
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -413,7 +413,7 @@ end
 
 function loadQueue(unitId, unitDef, groupNo)
 	if savedQueues[curModId][unitDef.name] == nil then
-		--there are no queus for this factory type
+		--there are no queues for this factory type
 		return
 	end
 

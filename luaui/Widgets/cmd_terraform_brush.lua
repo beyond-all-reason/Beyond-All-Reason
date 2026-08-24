@@ -662,7 +662,7 @@ extraState.readPenPressure = function(dt)
 		if val then
 			extraState.penPressure = max(0.0, min(1.0, val))
 		else
-			Spring.Echo("[TF Pen] WARN: unparseable content: [" .. raw:sub(1, 60) .. "]")
+			Spring.Echo("[TF Pen] WARN: unparsable content: [" .. raw:sub(1, 60) .. "]")
 			return
 		end
 	end
@@ -2108,8 +2108,8 @@ local function getState()
 	local customMin = extraState.heightmapExportCustomMin
 	local customMax = extraState.heightmapExportCustomMax
 	if not customMin or not customMax or customMax <= customMin then
-		customMin = initMinH or currMinH or 0
-		customMax = initMaxH or currMaxH or (customMin + 1)
+		customMin = currMinH or initMinH or 0
+		customMax = currMaxH or initMaxH or (customMin + 1)
 	end
 	return {
 		active = activeMode ~= nil,
@@ -2715,6 +2715,17 @@ local function doImportHeightmapSend()
 		SendLuaRulesMsg((extraState._newmapCertify and "$c$" or "") .. MSG.IMPORT_END)
 		tessellationDirtyFrames = 60
 		extraState._importNeedsShadowRefresh = 60
+		-- The tileset shader anchors gravel/plateau placement to the ground
+		-- extremes, which this import just replaced wholesale. Arm its
+		-- re-snapshot window (tracks for a few seconds, so the async synced
+		-- apply lands inside it) instead of leaving placement anchored to the
+		-- pre-import canvas.
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+			WG.TilesetTerrain.refreshHeightRef()
+		end
+		-- Re-seed the custom export range once the synced apply has landed
+		-- (countdown consumed in DrawWorld); a hand-typed range is left alone.
+		extraState._exportReseedFrames = 90
 	end
 end
 
@@ -2738,19 +2749,77 @@ extraState._noiseSetters = {
 	setNoiseSeed = setNoiseSeed,
 }
 
--- Seed the custom export range from the map's terrain extremes when it was never
--- meaningfully set (pristine 0..1 default or a degenerate max<=min). Without this
--- entering CUSTOM mode keeps 0..1, which clamps every real height to white and
--- produces a blank/washed heightmap export. Attached to extraState to avoid a
--- chunk-level local (200-local limit).
-extraState._seedExportCustomRange = function()
+-- Exact terrain extremes by scanning heightmap vertices (the engine's
+-- GetGroundExtremes "current" values only ever widen after edits, and its
+-- "init" values on a generated blank canvas are the SMF header constants,
+-- neither of which describes the terrain actually on screen). Full vertex
+-- resolution up to ~2.5M samples, then halved so a 32x32 map stays a one-off
+-- sub-second scan. Attached to extraState to avoid a chunk-level local
+-- (200-local limit).
+extraState._scanTerrainExtremes = function()
+	local step = Game.squareSize or 8
+	local sizeX, sizeZ = Game.mapSizeX, Game.mapSizeZ
+	if not (sizeX and sizeZ) then
+		return nil
+	end
+	while (sizeX / step + 1) * (sizeZ / step + 1) > 2500000 do
+		step = step * 2
+	end
+	local GetGroundHeight = Spring.GetGroundHeight
+	local mn, mx = math.huge, -math.huge
+	for z = 0, sizeZ, step do
+		for x = 0, sizeX, step do
+			local h = GetGroundHeight(x, z)
+			if h < mn then
+				mn = h
+			end
+			if h > mx then
+				mx = h
+			end
+		end
+	end
+	if mn > mx then
+		return nil
+	end
+	return mn, mx
+end
+
+-- Seed the custom export range from the map's real terrain extremes when the
+-- user never set it: pristine 0..1 default, degenerate max<=min, or still
+-- exactly the values a previous auto-seed wrote (so post-import/post-load
+-- re-seeds may correct them, but a hand-typed range is never touched).
+-- `exact` runs the vertex scan above; otherwise the engine's current
+-- extremes serve (free, but only valid before edits widen them). The old
+-- code preferred the INIT extremes, which on a project canvas are the blank
+-- map's header values (-75..696 regardless of terrain), so every project
+-- export clipped anything above 696.
+extraState._seedExportCustomRange = function(exact)
 	local cmin = extraState.heightmapExportCustomMin
 	local cmax = extraState.heightmapExportCustomMax
-	if cmax <= cmin or (cmin == 0 and cmax == 1) then
-		local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
-		extraState.heightmapExportCustomMin = initMinH or currMinH or 0
-		extraState.heightmapExportCustomMax = initMaxH or currMaxH or 1
+	local seed = extraState._exportRangeAutoSeed
+	local pristine = not cmin
+		or not cmax
+		or cmax <= cmin
+		or (cmin == 0 and cmax == 1)
+		or (seed ~= nil and cmin == seed[1] and cmax == seed[2])
+	if not pristine then
+		return
 	end
+	local mn, mx
+	if exact then
+		mn, mx = extraState._scanTerrainExtremes()
+	end
+	if not mn then
+		local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
+		mn = currMinH or initMinH or 0
+		mx = currMaxH or initMaxH or 1
+	end
+	if mx <= mn then
+		mx = mn + 1
+	end
+	extraState.heightmapExportCustomMin = mn
+	extraState.heightmapExportCustomMax = mx
+	extraState._exportRangeAutoSeed = { mn, mx }
 end
 
 function widget:Initialize()
@@ -2853,6 +2922,27 @@ function widget:Initialize()
 			if num then
 				extraState.heightmapExportCustomMax = num
 			end
+		end,
+		-- Arm a deferred re-seed of the custom export range (exact scan a few
+		-- draw frames from now). Used by cmd_map_project after the heightmap
+		-- phase lands. No-op if the user hand-typed a range.
+		reseedExportRange = function(delayFrames)
+			extraState._exportReseedFrames = max(1, tonumber(delayFrames) or 1)
+		end,
+		-- FIT button: force the custom range to the terrain's exact extremes,
+		-- regardless of what was typed before. Returns min, max (or nil).
+		fitExportRangeToTerrain = function()
+			local mn, mx = extraState._scanTerrainExtremes()
+			if not mn then
+				return nil
+			end
+			if mx <= mn then
+				mx = mn + 1
+			end
+			extraState.heightmapExportCustomMin = mn
+			extraState.heightmapExportCustomMax = mx
+			extraState._exportRangeAutoSeed = { mn, mx }
+			return mn, mx
 		end,
 		setGridSnapSize = function(value)
 			extraState.gridSnapSize = max(16, min(128, tonumber(value) or 48))
@@ -7251,6 +7341,15 @@ function widget:DrawWorld()
 		end
 	end
 
+	-- Deferred custom-export-range re-seed: armed by imports/project loads so
+	-- the exact scan runs after the async synced apply has replaced the terrain.
+	if (extraState._exportReseedFrames or 0) > 0 then
+		extraState._exportReseedFrames = extraState._exportReseedFrames - 1
+		if extraState._exportReseedFrames == 0 then
+			extraState._seedExportCustomRange(true)
+		end
+	end
+
 	-- Full-map grid overlay: visible across the whole map regardless of brush active state.
 	-- Skipped with the interface hidden (F5) or while a map capture is walking
 	-- the camera — the capture reprojects the rendered frame, so the grid would
@@ -8148,9 +8247,14 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 
 	if not activeMode then
-		-- Tool switching keys (only when NOT in terrain mode, so terrain keys take priority)
-		if not mods.ctrl and not mods.alt and WG.TerraformBrushUI and WG.TerraformBrushUI.handleToolKey then
-			if WG.TerraformBrushUI.handleToolKey(key) then
+		-- Tool switching keys (only when NOT in terrain mode, so terrain keys take
+		-- priority). Gated on the editor actually being in use: with no tool or
+		-- passthrough panel up, an enabled-but-dormant Terraformer must pass every
+		-- key through to the engine's own keybinds instead of clicking tool
+		-- buttons from cold (f/m/g/... were invisibly swallowed in normal games).
+		local ui = WG.TerraformBrushUI
+		if not mods.ctrl and not mods.alt and ui and ui.handleToolKey and (not ui.isEngaged or ui.isEngaged()) then
+			if ui.handleToolKey(key) then
 				return true
 			end
 		end
