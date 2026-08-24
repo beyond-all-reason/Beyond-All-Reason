@@ -1219,7 +1219,13 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	return true
 end
 
-function widgetHandler:DisableWidgetRaw(name)
+---@param name string
+---@param persist boolean? Write the change to the player's widget config. Defaults to true.
+--- Pass false to take a widget off screen for this session alone: RemoveWidgetRaw is what
+--- deactivates it, so the config keeps saying the widget is enabled and the next game loads
+--- it as usual.
+---@return boolean
+function widgetHandler:DisableWidgetRaw(name, persist)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
@@ -1232,8 +1238,10 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
-		self.orderList[name] = 0 -- disable
-		self:SaveConfigData()
+		if persist ~= false then
+			self.orderList[name] = 0 -- disable
+			self:SaveConfigData()
+		end
 	end
 	return true
 end
