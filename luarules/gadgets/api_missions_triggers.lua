@@ -275,6 +275,7 @@ function gadget:Initialize()
 	watchIdleStates = table.any(triggers, function(trigger)
 		return trigger.type == triggerTypes.UnitIdled
 			or trigger.type == triggerTypes.UnitUnidled
+	end)
 end
 
 function gadget:GameFrame(frameNumber)
