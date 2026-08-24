@@ -2293,7 +2293,6 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
 
-	-- Commands are cleared on unit transfer.
 	local idleCount = unitIdleCount[1]
 	if idleCount and not unitIdleMarked[unitID] then
 		unitIdleMarked[unitID] = true
