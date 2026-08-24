@@ -1,11 +1,14 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 local triggersLoader = VFS.Include('luarules/mission_api/triggers_loader.lua')
 
 -- Load the real trigger definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
+RegisterMissionApiModules()
 local realDefinitions  = triggersLoader.LoadTriggerDefinitions()
 local realTriggerFiles = VFS.DirList('luarules/mission_api/triggers/', '*.lua')
 
@@ -15,6 +18,7 @@ describe("mission_api.triggers_loader", function()
 	before_each(function()
 		-- loadTriggerDefinitions reads the parameter-type table from GG at call time.
 		GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
+		RegisterMissionApiModules()
 	end)
 
 	-- ── LoadTriggerDefinitions (isolated, mocked trigger files) ───────────────
@@ -148,9 +152,15 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitTaken[T.UnitCaptured])
 			assert.is_function(C.UnitCreated[T.UnitResurrected])
 			assert.is_function(C.UnitCreated[T.ConstructionStarted])
+			assert.is_function(C.BuildAssisted[T.ConstructionStarted])
 			assert.is_function(C.UnitFinished[T.ConstructionFinished])
-			assert.is_function(C.UnitEnteredLos[T.UnitSpotted])
-			assert.is_function(C.UnitLeftLos[T.UnitUnspotted])
+			assert.is_function(C.DetectionUpdate[T.UnitDetected])
+			assert.is_function(C.DetectionUpdate[T.UnitUndetected])
+			assert.is_function(C.UnitBuildStepPost[T.ConstructionProgress])
+			assert.is_function(C.MetaUnitRemoved[T.ConstructionProgress])
+			assert.is_function(C.MetaUnitRemoved[T.ConstructionCanceled])
+			assert.is_function(C.UnitDestroyed[T.ProductionCanceled])
+			assert.is_function(C.UnitTaken[T.ProductionCanceled])
 			assert.is_function(C.TeamDied[T.TeamDestroyed])
 			assert.is_function(C.FeatureCreated[T.FeatureCreated])
 			assert.is_function(C.FeatureDestroyed[T.FeatureReclaimed])

@@ -87,7 +87,8 @@ Create()
 	//hide rrthrust;
 }
 
-SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
+// skybeam is weapons[2]; weapon 1 is the targeting bomb
+SetSweepfireTimeWeapon2(fireTimeValue, reloadTimeValue)
 {
 	fireTime = fireTimeValue;
 }

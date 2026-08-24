@@ -348,14 +348,13 @@ end
 
 local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 	local valueSet = parameterTypes.Enums[enumSetName]
-	local emptyMessage = enumSetName .. " table must not be empty"
 	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
 
 	return function(values)
 		local luaTypeResult = validators[Types.Table](values)
 		if luaTypeResult then return luaTypeResult end
 		if #values == 0 then
-			return { { message = emptyMessage } }
+			return -- Empty table matches the empty/null set and is permissive.
 		end
 
 		local result = {}
@@ -367,7 +366,6 @@ local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 		if #result > 0 then return result end
 	end
 end
-
 for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
 	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
 end
@@ -481,6 +479,17 @@ validators[Types.Quantity] = function(quantity)
 
 	if quantity < 0 then
 		return { { message = "Quantity must be >= 0, got " .. quantity } }
+	end
+end
+
+validators[Types.Fraction] = function(fraction)
+	local luaTypeResult = validators[Types.Number](fraction)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if fraction < 0.0 or fraction > 1.0 then
+		return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
 	end
 end
 

@@ -44,6 +44,7 @@ local glGetEngineUniformBufferDef = gl.GetEngineUniformBufferDef
 local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
 local glTexture = gl.Texture
+local glCulling = gl.Culling
 local vfsDirList = VFS.DirList
 local vfsLoadFile = VFS.LoadFile
 local VFS_RAW_FIRST = VFS.RAW_FIRST
@@ -71,6 +72,8 @@ local spGetMiniMapRotation = Spring.GetMiniMapRotation
 local GL_ARRAY_BUFFER = GL.ARRAY_BUFFER
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
 local GL_LESS = GL.LESS
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local SQUARE_SIZE = 8
 local BUILD_GRID_SIZE = SQUARE_SIZE * 2
@@ -1709,7 +1712,11 @@ function widget:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:BuildSquare:DrawBatch")
 	glTexture(0, "$heightmap")
 	glDepthTest(false)
-	glBlending(true)
+	-- Set blend func and culling explicitly: widgets drawn earlier in the same callin can leave
+	-- another blend func or face culling enabled (e.g. map edge extension), which would make
+	-- these quads invisible.
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glCulling(false)
 	glUseShader(shaderProgram)
 	glUniform(heightOffsetLoc, getCurrentHeightOffset())
 	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
@@ -1735,7 +1742,8 @@ function widget:DrawInMiniMap()
 
 	tracy.ZoneBeginN("W:BuildSquare:DrawMiniMapBatch")
 	glDepthTest(false)
-	glBlending(true)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glCulling(false)
 	glUseShader(shaderProgram)
 	local rotation = spGetMiniMapRotation and spGetMiniMapRotation() or 0
 	local rotationQuarterTurns = math.floor((rotation / math.pi * 2 + 0.5) % 4)

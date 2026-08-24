@@ -108,6 +108,16 @@ local triggers = {
 		actions = { 'messageConstructionStartedSolar' },
 	},
 
+	constructionHalfwaySolar = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			progress = 0.5,
+		},
+		actions = { 'messageConstructionHalfwaySolar' },
+	},
+
 	constructionFinishedSolar = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
@@ -115,6 +125,77 @@ local triggers = {
 			teamID = 0,
 		},
 		actions = { 'messageConstructionFinishedSolar' },
+	},
+
+	constructionStartedByDecoy = {
+		type = triggerTypes.ConstructionStarted,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'decoys',
+		},
+		actions = { 'messageConstructionStartedByDecoy' },
+	},
+
+	-- We don't actually get any finishee attribution.
+	constructionFinishedByDecoy = {
+		type = triggerTypes.ConstructionFinished,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+		},
+		actions = { 'messageConstructionFinishedByDecoy' },
+	},
+
+	spawnCancelDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 10, -- The build is underway before the reclaim.
+		},
+		actions = { 'spawnCanceler', 'orderCancelerBuild' },
+	},
+
+	reclaimCancelDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 21, -- Reclaim mid-build: ~11s into a ~32s solar.
+		},
+		actions = { 'nameDoomedSolar', 'reclaimDoomedSolar' },
+	},
+
+	constructionCanceledSolar = {
+		type = triggerTypes.ConstructionCanceled,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+		},
+		actions = { 'messageConstructionCanceledSolar' },
+	},
+
+	spawnAssistDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 30,
+		},
+		actions = { 'spawnPlacer', 'orderPlacerBuild' },
+	},
+
+	joinAssistDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 36, -- The build is in progress, so an identical build-order becomes a build-assist.
+		},
+		actions = { 'spawnAssister', 'orderAssisterBuild' },
+	},
+
+	constructionStartedByAssister = {
+		type = triggerTypes.ConstructionStarted,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'assister',
+		},
+		actions = { 'messageConstructionStartedByAssister' },
 	},
 
 	unitRessed = {
@@ -145,6 +226,54 @@ local triggers = {
 			spottingAllyTeamID = 0,
 		},
 		actions = { 'messageEngineerUnspotted' },
+	},
+
+	engineerDetectedByRadar = {
+		type = triggerTypes.UnitDetected,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			sensorTypes = { 'radar' },
+		},
+		actions = { 'messageEngineerDetectedByRadar' },
+	},
+
+	engineerUndetectedByRadar = {
+		type = triggerTypes.UnitUndetected,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			sensorAllyTeam = 0,
+			sensorTypes = { 'radar' },
+		},
+		actions = { 'messageEngineerUndetectedByRadar' },
+	},
+
+	engineerDetectedBySeismic = {
+		type = triggerTypes.UnitDetected,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			sensorTypes = { 'seismic' },
+		},
+		actions = { 'messageEngineerDetectedBySeismic' },
+	},
+
+	engineerUndetectedBySeismic = {
+		type = triggerTypes.UnitUndetected,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			sensorTypes = { 'seismic' },
+		},
+		actions = { 'messageEngineerUndetectedBySeismic' },
 	},
 }
 
@@ -272,10 +401,120 @@ local actions = {
 		},
 	},
 
+	messageConstructionHalfwaySolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Construction of solar halfway done!",
+		},
+	},
+
 	messageConstructionFinishedSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Construction of solar finished!",
+		},
+	},
+
+	messageConstructionStartedByDecoy = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Solar construction started by the decoy commander!",
+		},
+	},
+
+	messageConstructionFinishedByDecoy = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Some unit, maybe even the decoy commander, finished a solar!",
+		},
+	},
+
+	messageConstructionCanceledSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The canceler's solar was reclaimed mid-build (canceled)!",
+		},
+	},
+
+	messageConstructionStartedByAssister = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The assister joined the placer's solar as a build-assist!",
+		},
+	},
+
+	spawnCanceler = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2400, z = 2400, team = 0, unitName = 'canceler' },
+			},
+		},
+	},
+
+	orderCancelerBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'canceler',
+			orders = {
+				{ 'armsolar', { 2400, 0, 2480 } },
+			},
+		},
+	},
+
+	nameDoomedSolar = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			unitName = 'doomedSolar',
+			teamID = 0,
+			unitDefName = 'armsolar',
+			area = { x = 2400, z = 2480, radius = 100 },
+		},
+	},
+
+	reclaimDoomedSolar = {
+		type = actionTypes.ReclaimUnits,
+		parameters = {
+			unitName = 'doomedSolar',
+		},
+	},
+
+	spawnPlacer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2520, z = 2480, team = 0, unitName = 'placer' },
+			},
+		},
+	},
+
+	orderPlacerBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'placer',
+			orders = {
+				{ 'armsolar', { 2600, 0, 2480 } },
+			},
+		},
+	},
+
+	-- The same order at the same place, so the placer's build frame takes it as a build-assist:
+	spawnAssister = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2680, z = 2480, team = 0, unitName = 'assister' },
+			},
+		},
+	},
+
+	orderAssisterBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'assister',
+			orders = {
+				{ 'armsolar', { 2600, 0, 2480 } },
+			},
 		},
 	},
 
@@ -336,6 +575,34 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Engineer unspotted!",
+		},
+	},
+
+	messageEngineerDetectedByRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer detected by radar!",
+		},
+	},
+
+	messageEngineerUndetectedByRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer undetected by radar!",
+		},
+	},
+
+	messageEngineerDetectedBySeismic = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer detected by seismic!",
+		},
+	},
+
+	messageEngineerUndetectedBySeismic = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer undetected by seismic!",
 		},
 	},
 }
