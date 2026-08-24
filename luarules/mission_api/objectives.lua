@@ -41,7 +41,7 @@ end
 --- Update objective progress for a managed (statistics-based) objective.
 --- Called when the trigger's event fires with updated counts.
 local function updateObjectiveProgress(objectiveID, eventTeamID, eventUnitDefName, eventUnitNames, direction, managedObjMetadata)
-	if eventTeamID ~= managedObjMetadata.parameters.teamID then return end
+	if eventTeamID ~= GG['MissionAPI'].Teams[managedObjMetadata.parameters.teamName] then return end
 	if managedObjMetadata.parameters.unitDefName and eventUnitDefName ~= managedObjMetadata.parameters.unitDefName then return end
 	if managedObjMetadata.parameters.unitName and not (eventUnitNames or {})[managedObjMetadata.parameters.unitName] then return end
 

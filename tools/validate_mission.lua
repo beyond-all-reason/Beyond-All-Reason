@@ -135,6 +135,20 @@ _G.Spring = {
 --- GG (Gadget Globals shared table) ---
 _G.GG = {}
 
+--- Game (engine constants). Trigger and action definitions read these while
+--- being loaded, so this has to exist before any of them are included.
+--- envDamageTypes values are placeholders: definitions only compare them against
+--- runtime damage types, which never occur during static validation.
+_G.Game = {
+	gameSpeed = 30,
+	squareSize = 8,
+	maxUnits = 32000,
+	envDamageTypes = {
+		FactoryCancel = -6,
+		FactoryKilled = -5,
+	},
+}
+
 --- unpack compatibility ---
 _G.unpack = _G.unpack or table.unpack
 
@@ -153,9 +167,10 @@ _G.VFS.Include = function(path)
 	end
 	local result, err = _loadFile(path)
 	if result == nil and err then
-		eprint("VFS.Include: could not load '" .. path .. "': " .. tostring(err))
-		_vfsCache[path] = {}
-		return {}
+		-- Returning an empty table here would surface much later as a confusing
+		-- error in whichever loader consumed the file, so stop right away.
+		eprint("ERROR: could not load '" .. path .. "': " .. tostring(err))
+		os.exit(EXIT_ERROR)
 	end
 	-- _loadFile already stores in cache
 	if result == nil then result = {} end

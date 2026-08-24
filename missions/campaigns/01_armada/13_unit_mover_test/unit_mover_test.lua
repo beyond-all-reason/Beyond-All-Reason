@@ -2,7 +2,7 @@ local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
-    spawnTanks = {
+	spawnTanks = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
@@ -10,7 +10,7 @@ local triggers = {
 		actions = { 'spawnTanks' },
 	},
 
-    teleportTanksWithoutSetDirection = {
+	teleportTanksWithoutSetDirection = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
@@ -18,7 +18,7 @@ local triggers = {
 		actions = { 'teleportTanksWithoutSetDirection1' },
 	},
 
-    teleportTanksWithSetDirection1 = {
+	teleportTanksWithSetDirection1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
@@ -26,7 +26,7 @@ local triggers = {
 		actions = { 'teleportTanksWithSetDirection1' },
 	},
 
-    teleportTanksWithSetDirection2 = {
+	teleportTanksWithSetDirection2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
@@ -34,7 +34,7 @@ local triggers = {
 		actions = { 'teleportTanksWithSetDirection2' },
 	},
 
-    teleportTanksWithoutSetDirection2 = {
+	teleportTanksWithoutSetDirection2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
@@ -105,20 +105,11 @@ local triggers = {
 		},
 		actions = { 'teleportTanksWithSetAngle8' },
 	},
-
-	-- [validation.lua] Error: [Mission API] Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.. Action: rotateTanksWithBoth, Parameter: direction
-	-- rotateTanksWithBoth = {
-		-- type = triggerTypes.TimeElapsed,
-		-- parameters = {
-			-- seconds = 40,
-		-- },
-		-- actions = { 'rotateTanksWithBoth' },
-	-- },
 }
 
 local actions = {
 
-    spawnTanks = {
+	spawnTanks = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
@@ -126,7 +117,7 @@ local actions = {
 					unitDefName = 'armstump',
 					x = 2300,
 					z = 1900,
-					team = 0,
+					teamName = 'thePlayerTeam',
 					unitName = 'tanks',
 					quantity = 1
 				},
@@ -134,21 +125,21 @@ local actions = {
 		},
 	},
 
-    teleportTanksWithoutSetDirection1 = {
-        type = actionTypes.MoveUnits,
+	teleportTanksWithoutSetDirection1 = {
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
-            position = {
+			unitName = "tanks",
+			position = {
 				x = 2500,
 				z = 2000,
 			},
 		},
-    },
+	},
 
-    teleportTanksWithSetDirection1 = {
-        type = actionTypes.MoveUnits,
+	teleportTanksWithSetDirection1 = {
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 2500,
 				z = 2000,
@@ -158,12 +149,12 @@ local actions = {
 				z = 3000,
 			},
 		},
-    },
+	},
 
-    teleportTanksWithSetDirection2 = {
-        type = actionTypes.MoveUnits,
+	teleportTanksWithSetDirection2 = {
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 2500,
 				z = 2000,
@@ -173,12 +164,12 @@ local actions = {
 				z = 1000,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle1 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -187,12 +178,12 @@ local actions = {
 				angle = 0,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle2 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -201,12 +192,12 @@ local actions = {
 				angle = 90,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle3 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -215,12 +206,12 @@ local actions = {
 				angle = 180,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle4 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -229,12 +220,12 @@ local actions = {
 				angle = 270,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle5 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -243,12 +234,12 @@ local actions = {
 				angle = 360,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle6 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -257,12 +248,12 @@ local actions = {
 				angle = 450,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle7 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -271,12 +262,12 @@ local actions = {
 				angle = -90,
 			},
 		},
-    },
+	},
 
 	teleportTanksWithSetAngle8 = {
-        type = actionTypes.MoveUnits,
+		type = actionTypes.MoveUnits,
 		parameters = {
-            unitName = "tanks",
+			unitName = "tanks",
 			position = {
 				x = 3000,
 				z = 3000,
@@ -286,25 +277,7 @@ local actions = {
 				angle = -90,
 			},
 		},
-    },
-
-	-- [validation.lua] Error: [Mission API] Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.. Action: rotateTanksWithBoth, Parameter: direction
-	-- rotateTanksWithBoth = { -- This shouldn't work, but if it does, direction has priority.
-        -- type = actionTypes.RotateUnits,
-		-- parameters = {
-            -- unitName = "tanks",
-			-- position = {
-				-- x = 3000,
-				-- z = 3000,
-			-- },
-			-- direction = {
-				-- angle = -90,
-				-- x = 1000,
-				-- z = 1000,
-			-- },
-		-- },
-    -- },
-
+	},
 }
 
 return {

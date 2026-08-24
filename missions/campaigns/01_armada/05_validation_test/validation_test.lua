@@ -332,6 +332,49 @@ local actions = {
 		},
 	},
 
+	actionWithDirectionNotATable = {
+		type = actionTypes.MoveUnits,
+		parameters = {
+			unitName = 'loadoutCom',
+			position = { x = 1800, z = 1600 },
+			direction = 'notATable',
+		},
+	},
+
+	actionWithDirectionThatIsNeitherAngleNorVector = {
+		type = actionTypes.MoveUnits,
+		parameters = {
+			unitName = 'loadoutCom',
+			position = { x = 1800, z = 1600 },
+			direction = { y = 100 },  -- error: needs either 'angle', or 'x' and 'z'
+		},
+	},
+
+	actionWithDirectionHavingBothAngleAndVector = {
+		type = actionTypes.MoveUnits,
+		parameters = {
+			unitName = 'loadoutCom',
+			position = { x = 1800, z = 1600 },
+			direction = { angle = -90, x = 1000, z = 1000 },  -- error: angle and vector are mutually exclusive
+		},
+	},
+
+	actionWithDirectionFieldOfInvalidType = {
+		type = actionTypes.MoveUnits,
+		parameters = {
+			unitName = 'loadoutCom',
+			position = { x = 1800, z = 1600 },
+			direction = { x = 'notANumber', z = 1000 },  -- error: direction field must be a number
+		},
+	},
+
+	actionMissingRequiredDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'loadoutCom',  -- error: RotateUnits requires 'direction'
+		},
+	},
+
 	actionWithUnusedMarkerName = {
 		type = actionTypes.AddMarker,
 		parameters = {

@@ -6,6 +6,7 @@ require("spec_helper")
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+GG['MissionAPI'].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 _G.UnitDefs = { [1] = { name = 'armsolar' }, [2] = { name = 'armwin' } }
 
@@ -61,15 +62,15 @@ describe("mission_api.triggers.construction_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 9)
+		destroyed(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when an in-progress unit is destroyed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0)
+		destroyed(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -89,7 +90,7 @@ describe("mission_api.triggers.construction_canceled", function()
 
 	it("fires for a nanoframe taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0)
+		taken(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 

@@ -5,6 +5,7 @@ require("spec_helper")
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+GG['MissionAPI'].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
 _G.UnitDefs = { [1] = { name = 'armsolar' }, [2] = { name = 'armwin' }, [10] = { name = 'armck' }, [11] = { name = 'corck' } }
@@ -84,7 +85,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("filters by teamID", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 9, 10)
+		created(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -112,7 +113,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching construction", function()
 		local context, fired = newContext()
-		created(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 10)
+		created(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
@@ -124,7 +125,7 @@ describe("mission_api.triggers.construction_started", function()
 
 	it("fires for a matching build-assist", function()
 		local context, fired = newContext()
-		assisted(trigger({ unitDefName = 'armsolar', teamID = 0 }), context, 1, 0, 10)
+		assisted(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 
