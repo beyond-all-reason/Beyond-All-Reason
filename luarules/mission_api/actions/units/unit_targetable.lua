@@ -8,7 +8,7 @@ end
 
 return {
 	{
-		type = 'Unit Targetable',
+		type = 'UnitTargetable',
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
 			{ name = 'targetable', required = true, type = ParameterTypes.Boolean },
