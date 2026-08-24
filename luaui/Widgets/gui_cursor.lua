@@ -134,11 +134,15 @@ function SetCursor(cursorSet)
 			"uimove",
 		}
 		for i = 1, #cursorNames do
-			Spring.ReplaceMouseCursor(
-				cursorNames[i],
-				cursorDir .. "/" .. cursorNames[i],
-				(cursorNames[i] == "cursornormal")
-			)
+			local cursorName = cursorNames[i]
+			local cursorFileName = cursorName
+			-- BAR's cursor packs do not provide a separate area-attack cursor.
+			-- Keep the engine command mapped to the same animated cursor that the
+			-- former Lua area-attack command and regular Attack use.
+			if cursorName == "cursorareaattack" then
+				cursorFileName = "cursorattack"
+			end
+			Spring.ReplaceMouseCursor(cursorName, cursorDir .. "/" .. cursorFileName, (cursorName == "cursornormal"))
 		end
 
 		--local files = VFS.DirList("anims/"..cursorDir.."/")

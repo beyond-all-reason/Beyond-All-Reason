@@ -2,7 +2,9 @@ return {
 	cormart = {
 		buildpic = "CORMART.DDS",
 		buildtime = 9000,
+		canareaattack = true,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "38 24 41",
 		collisionvolumetype = "Box",
@@ -38,7 +40,6 @@ return {
 		usepiececollisionvolumes = 1,
 		customparams = {
 			basename = "base",
-			canareaattack = 1,
 			firingceg = "barrelshot-medium",
 			kickback = "-6",
 			model_author = "Mr Bob",

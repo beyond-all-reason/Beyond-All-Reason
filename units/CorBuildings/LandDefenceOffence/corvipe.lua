@@ -3,7 +3,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15000,
-		canrepeat = false,
+		canrepeat = true,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energycost = 14000,

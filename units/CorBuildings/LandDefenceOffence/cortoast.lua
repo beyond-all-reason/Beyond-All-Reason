@@ -4,7 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25700,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 30 15",
 		collisionvolumetype = "CylY",

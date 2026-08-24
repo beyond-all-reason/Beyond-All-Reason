@@ -4,7 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "ARMGUARD.DDS",
 		buildtime = 19300,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "48 40 48",
 		collisionvolumetype = "box",

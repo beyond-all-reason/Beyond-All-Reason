@@ -2,7 +2,9 @@ return {
 	armart = {
 		buildpic = "armart.DDS",
 		buildtime = 3000,
+		canareaattack = true,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 -5",
 		collisionvolumescales = "30 24 35",
 		collisionvolumetype = "Box",
@@ -38,7 +40,6 @@ return {
 		turnrate = 393.79999,
 		customparams = {
 			basename = "base",
-			canareaattack = 1,
 			kickback = "-6.25",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

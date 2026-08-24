@@ -6,7 +6,9 @@ return {
 		metalcost = 460,
 		buildpic = "LEGAMCLUSTER.DDS",
 		buildtime = 10450,
+		canareaattack = true,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",
@@ -39,7 +41,6 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			basename = "base",
-			canareaattack = 1,
 			firingceg = "barrelshot-medium",
 			kickback = "-6",
 			model_author = "ZephyrSkies",

@@ -2,7 +2,9 @@ return {
 	corwolv = {
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3550,
+		canareaattack = true,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 22 38",
 		collisionvolumetype = "Box",
@@ -38,7 +40,6 @@ return {
 		turnrate = 466,
 		customparams = {
 			basename = "base",
-			canareaattack = 1,
 			cobkickbackrestorespeed = "10",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",

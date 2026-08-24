@@ -7,7 +7,7 @@ return {
 		metalcost = 63000,
 		buildpic = "legstarfall.DDS",
 		buildtime = 1400000,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "125 135 120",
 		collisionvolumetype = "CylY",

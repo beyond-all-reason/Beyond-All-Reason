@@ -2,7 +2,7 @@ return {
 	armpb = {
 		buildpic = "ARMPB.DDS",
 		buildtime = 15000,
-		canrepeat = false,
+		canrepeat = true,
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,

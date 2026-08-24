@@ -6,7 +6,7 @@ return {
 		metalcost = 750,
 		buildpic = "legbombard.dds",
 		buildtime = 17500,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 18 32",
 		collisionvolumetype = "Box",
