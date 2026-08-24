@@ -17,6 +17,8 @@ end
 local objectivesController, stagesController, triggersController, actionsController, missionLoader
 
 local function loadMission(missionDir)
+	Spring.Echo("Loading mission " .. missionDir)
+
 	local mission = missionLoader.LoadMissionFiles(missionDir)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
