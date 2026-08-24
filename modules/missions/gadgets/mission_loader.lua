@@ -27,6 +27,7 @@ local Roster = VFS.Include("modules/missions/lib/roster.lua")
 local Objectives = VFS.Include("modules/missions/lib/objectives.lua")
 local Variables = VFS.Include("modules/missions/lib/variables.lua")
 local Events = VFS.Include("modules/missions/lib/events.lua")
+local Placement = VFS.Include("modules/placement/api.lua")
 
 local MISSIONS_DIR = "modules/missions/"
 local EVALUATE_PERIOD = 15 -- frames
@@ -515,8 +516,33 @@ local function spawnRoster(entries, playerTeam)
 		local unitID = entry.claim and existingUnitOf(teamID, entry.def) or nil
 		local claimed = unitID ~= nil
 		if unitID == nil then
-			local x, z = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
-			unitID = Spring.CreateUnit(entry.def, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+			local wantX, wantZ = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
+			-- positions are map fractions, so the author cannot know what is at that
+			-- point on THIS map; surface is unconstrained because a roster may want a ship
+			local def = UnitDefNames[entry.def]
+			local footprint = math.max(def.xsize or 8, def.zsize or 8) * 4
+			local x, y, z, why = Placement.NearestValid(wantX, wantZ, {
+				radius = footprint * 6,
+				footprint = footprint,
+				surface = "any",
+			})
+			if x == nil then
+				Spring.Log(
+					LOG_TAG,
+					LOG.ERROR,
+					"no room for roster unit "
+						.. entry.def
+						.. " near ("
+						.. math.floor(wantX)
+						.. ","
+						.. math.floor(wantZ)
+						.. "): "
+						.. tostring(why)
+				)
+				despawnRoster()
+				return false
+			end
+			unitID = Spring.CreateUnit(entry.def, x, y, z, 0, teamID)
 			if unitID == nil then
 				Spring.Log(LOG_TAG, LOG.ERROR, "could not spawn roster unit " .. entry.def .. " (unit limit)")
 				despawnRoster()

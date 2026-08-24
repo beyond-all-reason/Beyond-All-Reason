@@ -89,6 +89,32 @@ local function countFinishedUnits(unitDefName)
 	return count
 end
 
+-- The director publishes counters under its OWN name: a mission names a pack
+-- and has no way to know a flavor's rulesparam prefix.
+local WAVE_COUNTERS = {
+	waves_spawned = "wave",
+	waves_cleared = "cleared",
+	waves_boss_defeated = "bosses",
+}
+
+---@param probe table
+---@return table
+local function waveProgress(probe)
+	local counter = WAVE_COUNTERS[probe.kind]
+	local have = Spring.GetGameRulesParam("waves_" .. probe.pack .. "_" .. counter)
+	if have == nil then
+		-- "–" rather than 0: "no director exists" is what a mission author is usually debugging.
+		return { text = "–", state = "pending", pct = 0 }
+	end
+	local need = math.max(1, math.floor(probe.need or 1))
+	local done = have >= need
+	return {
+		text = math.floor(have) .. "/" .. need,
+		state = done and "done" or "pending",
+		pct = math.min(1, have / need),
+	}
+end
+
 local function sampleLive()
 	if not probes or #probes == 0 then
 		return
@@ -130,6 +156,8 @@ local function sampleLive()
 					state = spotted and "done" or "pending",
 					pct = spotted and 1 or 0,
 				}
+			elseif WAVE_COUNTERS[probe.kind] and probe.pack then
+				values[probe.key] = waveProgress(probe)
 			elseif probe.kind == "trigger_fired" and probe.trigger then
 				local mission = Spring.GetGameRulesParam("mission_name")
 				local fired = mission ~= nil
