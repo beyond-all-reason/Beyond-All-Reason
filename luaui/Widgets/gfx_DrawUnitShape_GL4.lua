@@ -226,8 +226,8 @@ local udefID = UnitDefNames.armcom.id
 local corcomUnitDefID = UnitDefNames.corcom.id
 local armcomUnitDefID = UnitDefNames.armcom.id
 
-local corDrawUnitVBOTable, corDrawUnitShapeVBOTable
-local armDrawUnitVBOTable, armDrawUnitShapeVBOTable
+local corDrawUnitVBOTable
+local armDrawUnitVBOTable
 local VBOTables = {}
 
 local corUnitDefIDs = {}
@@ -617,14 +617,10 @@ function widget:Initialize()
 	WG.StopDrawUnitGL4 = StopDrawUnitGL4
 	WG.StopDrawUnitShapeGL4 = StopDrawUnitShapeGL4
 	WG.StopDrawAll = StopDrawAll
-	WG.armDrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
-	WG.corDrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	widgetHandler:RegisterGlobal("DrawUnitGL4", DrawUnitGL4)
 	widgetHandler:RegisterGlobal("DrawUnitShapeGL4", DrawUnitShapeGL4)
 	widgetHandler:RegisterGlobal("StopDrawUnitGL4", StopDrawUnitGL4)
 	widgetHandler:RegisterGlobal("StopDrawUnitShapeGL4", StopDrawUnitShapeGL4)
-	widgetHandler:RegisterGlobal("armDrawUnitShapeVBOTable", armDrawUnitShapeVBOTable)
-	widgetHandler:RegisterGlobal("corDrawUnitShapeVBOTable", corDrawUnitShapeVBOTable)
 	widgetHandler:RegisterGlobal("StopDrawAll", StopDrawAll)
 end
 
@@ -659,14 +655,10 @@ function widget:Shutdown()
 	WG.StopDrawUnitGL4 = nil
 	WG.StopDrawUnitShapeGL4 = nil
 	WG.StopDrawAll = nil
-	WG.armDrawUnitShapeVBOTable = nil
-	WG.corDrawUnitShapeVBOTable = nil
 	widgetHandler:DeregisterGlobal("DrawUnitGL4")
 	widgetHandler:DeregisterGlobal("DrawUnitShapeGL4")
 	widgetHandler:DeregisterGlobal("StopDrawUnitGL4")
 	widgetHandler:DeregisterGlobal("StopDrawUnitShapeGL4")
-	widgetHandler:DeregisterGlobal("armDrawUnitShapeVBOTable")
-	widgetHandler:DeregisterGlobal("corDrawUnitShapeVBOTable")
 	widgetHandler:DeregisterGlobal("StopDrawAll")
 end
 

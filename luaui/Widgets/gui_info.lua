@@ -30,6 +30,7 @@ local emptyInfo = false
 local showEngineTooltip = false -- straight up display old engine delivered text
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
+local weaponInfo = VFS.Include("common/weapons.lua")
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -362,24 +363,7 @@ local function refreshUnitInfo()
 		end
 
 		local function calculateLaserDPS(def, damage)
-			local minIntensity = math.max(def.minIntensity, 0.5)
-			local reload = def.reload
-			local burst = def.salvoSize * def.projectiles
-
-			local custom = def.customParams
-			if custom.sweepfire_firetime then
-				burst = tonumber(custom.sweepfire_firetime) * def.projectiles * Game.gameSpeed
-			end
-			if custom.sweepfire_reloadtime then
-				reload = tonumber(custom.sweepfire_reloadtime)
-			end
-
-			if not def.beamBurst then
-				burst = burst / (Game.gameSpeed * def.beamtime)
-			end
-
-			local maxdps = damage * burst / reload
-			return maxdps * minIntensity, maxdps
+			return weaponInfo.GetDamagePerSecond(def, damage)
 		end
 
 		local function calculateWeaponDPS(def, damage)
@@ -544,28 +528,11 @@ local function refreshUnitInfo()
 					setEnergyAndMetalCosts(weaponDef)
 
 					if weaponDef.paralyzer ~= true then
-						if weaponDef.customParams then
-							if weaponDef.customParams.sweepfire then
-								unitDefInfo[unitDefID].maxdps = (
-									weaponDef.damages[0] * weaponDef.customParams.sweepfire
-								) / math.max(weaponDef.minIntensity, 0.5)
-								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
-							else
-								addDPS(calculateLaserDPS(weaponDef, defDmg))
-							end
-						else
-							addDPS(calculateLaserDPS(weaponDef, defDmg))
-						end
+						addDPS(calculateLaserDPS(weaponDef, defDmg))
 					else
-						-- calculate laser emp dmg
-						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
-						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
-						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
-						local mindps = minIntensity * (weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
-						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
-
-						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
-						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
+						local minemp, maxemp = calculateLaserDPS(weaponDef, weaponDef.damages[0])
+						unitDefInfo[unitDefID].minemp = (unitDefInfo[unitDefID].minemp or 0) + minemp
+						unitDefInfo[unitDefID].maxemp = (unitDefInfo[unitDefID].maxemp or 0) + maxemp
 					end
 				elseif weaponDef.paralyzer == true and unitDef.name ~= "armthor" then -- exclude thor emp missile
 					local defDmg = weaponDef.damages[0] --Damage to default armor category
