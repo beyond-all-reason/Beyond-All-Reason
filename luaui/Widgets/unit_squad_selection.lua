@@ -123,6 +123,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetActiveCommand = Spring.GetActiveCommand
+local spGetDefaultCommand = Spring.GetDefaultCommand
 local spGetLocalPlayerID = Spring.GetLocalPlayerID
 local spGetGroupUnits = Spring.GetGroupUnits
 local spGetUnitGroup = Spring.GetUnitGroup
@@ -202,6 +203,10 @@ local HIGHLIGHT_RECOMPUTE_INTERVAL = 1 / 30 -- 30 Hz is enough for a cosmetic hi
 ---@field squad Squad The picked squad to command on RMB release.
 ---@field formation boolean Ctrl held -> slowest-speed "move in formation".
 ---@field keepSelection boolean Space (meta) held -> keep the moved squad selected instead of restoring the prior selection.
+---@field x number Mouse screen x at press time (drag detection).
+---@field y number Mouse screen y at press time (drag detection).
+---@field requiresDrag boolean Alt RMB over a live selection: fire only once dragged, so a plain click stays the game's move-into-formation.
+---@field dragged boolean? True once the cursor passed MouseDragFrontCommandThreshold.
 
 local pendingDragCreate = nil ---@type PendingDragCreate?
 local pendingSquadMove = nil ---@type PendingSquadMove?
@@ -967,6 +972,38 @@ local function rightClickMoveSquadKind()
 		return nil
 	end
 	return "manual"
+end
+
+-- True when this right-click already means something to the engine (resurrect wreck for example).
+---@return boolean
+local function rightClickWouldIssueOrder()
+	local _, activeCmdID = spGetActiveCommand()
+	if activeCmdID then
+		return true
+	end
+	if spGetSelectedUnits()[1] == nil then
+		return false
+	end
+	local _, defaultCmdID = spGetDefaultCommand()
+	return defaultCmdID ~= nil and defaultCmdID ~= CMD.MOVE
+end
+
+-- Hand back a right-click the squad-move gesture consumed but did not use (alt + right click without drag to move into formation)
+local function giveBackRightClickMove()
+	if spGetSelectedUnits()[1] == nil then
+		return
+	end
+	local wx, wz = getMouseWorldPos()
+	if not wx then
+		return
+	end
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	local opts = CMD.OPT_RIGHT
+		+ (alt and CMD.OPT_ALT or 0)
+		+ (ctrl and CMD.OPT_CTRL or 0)
+		+ (meta and CMD.OPT_META or 0)
+		+ (shift and CMD.OPT_SHIFT or 0) ---@type integer
+	spGiveOrder(CMD.MOVE, { wx, spGetGroundHeight(wx, wz) or 0, wz }, opts)
 end
 
 -------------------------------------------------------------------------------
@@ -2091,14 +2128,25 @@ function widget:Update(dt)
 	end
 
 	if pendingSquadMove then
-		local _, _, _, _, rmb = spGetMouseState()
+		local mx, my, _, _, rmb = spGetMouseState()
+		if pendingSquadMove.requiresDrag and not pendingSquadMove.dragged then
+			local dx = mx - pendingSquadMove.x
+			local dy = my - pendingSquadMove.y
+			local threshold = spGetConfigInt("MouseDragFrontCommandThreshold", 30) or 30
+			pendingSquadMove.dragged = dx * dx + dy * dy >= threshold * threshold
+		end
 		if not rmb then
 			-- RMB released: move-order the picked squad to the release point.
 			local sq = pendingSquadMove.squad
 			local formation = pendingSquadMove.formation
 			local keepSelection = pendingSquadMove.keepSelection
+			local clickWithoutDrag = pendingSquadMove.requiresDrag and not pendingSquadMove.dragged
 			pendingSquadMove = nil
-			if sq and #sq > 0 then
+			if clickWithoutDrag then
+				-- Never dragged, this was the game's move-into-formation click.
+				giveBackRightClickMove()
+				log("RMB click handed back to the game (no drag)")
+			elseif sq and #sq > 0 then
 				local wx, wz = getMouseWorldPos()
 				if wx then
 					local wy = spGetGroundHeight(wx, wz) or 0
@@ -2169,8 +2217,11 @@ function widget:Update(dt)
 			local alt, _, _, shift = spGetModKeyState()
 			local maxDistSq = config.rightClickMoveRange > 0 and config.rightClickMoveRange * config.rightClickMoveRange
 				or nil
-			local _, activeCmdID = spGetActiveCommand()
-			if config.rightClickMovesSquad and not activeCmdID and (alt or spGetSelectedUnits()[1] == nil) then
+			if
+				config.rightClickMovesSquad
+				and (alt or spGetSelectedUnits()[1] == nil)
+				and not rightClickWouldIssueOrder()
+			then
 				-- Squad-move engaged: RMB commands the closest squad.
 				local hx, hz = getMouseWorldPos()
 				if not (shift and highlightLockedSquad) then
@@ -2363,7 +2414,7 @@ function widget:MousePress(x, y, button)
 	if button == 3 then
 		local plain = not (alt or ctrl or meta or shift)
 		local modCombo = ctrl and not alt and not meta and not shift
-		-- The squad-move gesture fires like a normal RMB move: Alt commands a squad even with units selected; without Alt only when nothing is selected, so we never hijack an RMB move of your current selection.
+		-- The squad-move gesture fires like a normal RMB move: Alt commands a squad even with units selected; without Alt only when nothing is selected, so we never hijack an RMB move of your current selection. With a selection the Alt form also needs a drag, since an Alt+RMB click is the game's own move-into-formation (see requiresDrag).
 		-- Shift queues, Ctrl makes it a slowest-speed "move in formation", and Space (meta) keeps the moved squad selected (effectively select them) — Space sets keepSelection only, never WHEN we fire.
 		local willCreate = (config.rightClickSquadCreate and plain) or (config.ctrlRightClickCreatesSquad and modCombo)
 		if willCreate and cursor ~= "cursornormal" then
@@ -2375,9 +2426,8 @@ function widget:MousePress(x, y, button)
 				y = y,
 			}
 		elseif config.rightClickMovesSquad and (alt or spGetSelectedUnits()[1] == nil) then
-			-- Skip when an active command is pending (fight, patrol, build, etc.): RMB cancels it, so intercepting would hijack the cancel.
-			local _, activeCmdID = spGetActiveCommand()
-			if activeCmdID then
+			-- Skip when the click already carries an order.
+			if rightClickWouldIssueOrder() then
 				return false
 			end
 			if spTraceScreenRay(x, y) ~= "unit" then
@@ -2412,6 +2462,9 @@ function widget:MousePress(x, y, button)
 						squad = sq,
 						formation = ctrl,
 						keepSelection = meta,
+						x = x,
+						y = y,
+						requiresDrag = alt and spGetSelectedUnits()[1] ~= nil,
 					}
 					if alt then
 						return true -- consume so the engine doesn't move the current selection
