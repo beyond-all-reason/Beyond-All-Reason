@@ -10,23 +10,22 @@ function widget:GetInfo()
 		date = "17 August 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spEcho = Spring.Echo
 local spPlaySoundFile = Spring.PlaySoundFile
-local spI18N = Spring.I18N
+local spI18N = BAR.I18N
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 -- Localized GL functions
@@ -197,7 +196,12 @@ function widget:DrawScreen()
 					v[8].v[1], v[8].v[2] = sx + highlightLineMax, sy
 
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-					glRect(sx - defs.highlightSize, sy - defs.highlightSize, sx + defs.highlightSize, sy + defs.highlightSize)
+					glRect(
+						sx - defs.highlightSize,
+						sy - defs.highlightSize,
+						sx + defs.highlightSize,
+						sy + defs.highlightSize
+					)
 					glShape(GL_LINES, v)
 				else
 					--out of screen
@@ -212,8 +216,12 @@ function widget:DrawScreen()
 					end
 					local xDiff = mathAbs(sx - sMidX)
 					local yDiff = mathAbs(sy - sMidY)
-					if xDiff < 0.001 then xDiff = 0.001 end
-					if yDiff < 0.001 then yDiff = 0.001 end
+					if xDiff < 0.001 then
+						xDiff = 0.001
+					end
+					if yDiff < 0.001 then
+						yDiff = 0.001
+					end
 					local xRatio = sMidX / xDiff
 					local yRatio = sMidY / yDiff
 					local edgeDist, textX, textY, textOptions
@@ -271,7 +279,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	sMidX = vsx * 0.5
 	sMidY = vsy * 0.5
@@ -293,7 +301,17 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 		local x, y, z = spGetUnitPosition(unitID)
 		local r, g, b = spGetTeamColor(oldTeam)
 		if x and r then
-			mapPoints[unitID] = { r = r, g = g, b = b, x = x, y = y, z = z, unitName = spI18N('ui.unitShare.unit', { unit = UnitDefs[unitDefID].translatedHumanName }), time = (timeNow + ttl), highlightSize = UnitDefs[unitDefID].radius * 0.6 }
+			mapPoints[unitID] = {
+				r = r,
+				g = g,
+				b = b,
+				x = x,
+				y = y,
+				z = z,
+				unitName = spI18N("ui.unitShare.unit", { unit = UnitDefs[unitDefID].translatedHumanName }),
+				time = (timeNow + ttl),
+				highlightSize = UnitDefs[unitDefID].radius * 0.6,
+			}
 			unitCount = unitCount + 1
 		end
 	end
@@ -315,8 +333,8 @@ function widget:Update(dt)
 	if unitCount > 0 then
 		msgTimer = msgTimer + dt
 		if msgTimer > 0.1 then
-			spEcho( spI18N('ui.unitShare.received', { count = unitCount }) )
-			spPlaySoundFile("beep4", 1, 'ui')
+			spEcho(spI18N("ui.unitShare.received", { count = unitCount }))
+			spPlaySoundFile("beep4", 1, "ui")
 			unitCount = 0
 			msgTimer = 0
 		end
@@ -372,7 +390,12 @@ function widget:DrawInMiniMap(sx, sy)
 				v[8].v[1], v[8].v[2] = x + minimapHighlightLineMax, y
 
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-				glRect(x - minimapHighlightSize, y - minimapHighlightSize, x + minimapHighlightSize, y + minimapHighlightSize)
+				glRect(
+					x - minimapHighlightSize,
+					y - minimapHighlightSize,
+					x + minimapHighlightSize,
+					y + minimapHighlightSize
+				)
 				glShape(GL_LINES, v)
 			end
 		end

@@ -1,6 +1,5 @@
 return {
 	armthundt4 = {
-		acceleration = 0.020,
 		maxdec = 0.010,
 		energycost = 150000,
 		metalcost = 15000,
@@ -38,7 +37,7 @@ return {
 		wingangle = 0.045,
 		wingdrag = 0.135,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",

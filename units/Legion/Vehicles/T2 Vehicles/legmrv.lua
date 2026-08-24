@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 600,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -129,6 +129,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 120,
 					vtol = 30,
@@ -141,7 +145,6 @@ return {
 				def = "QUICKSHOT_CANNON",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
-
 			},
 		},
 	},

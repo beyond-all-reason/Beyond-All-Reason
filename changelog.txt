@@ -1,3 +1,6 @@
+# August
+• [Floating AA turrets] Stats made to match their land counterparts
+
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
 • [Rover] 1000 -> 1100 buildtime
@@ -365,7 +368,7 @@
     - [Persecutor] (T2 Plasma Popup Artillery)
     - [Vanguard] (T3 Mobile All-Terrain Artillery)
 • [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe
-• [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
+• [Serpent] The Arm T2 battlesub now fires 2 medium torpedoes at once instead of 1 large one, overall dps unchanged but some aoe is added
 • [Kraken] The Cor T2 battlesub's torpedo aoe increased
 
 # December 2024
@@ -406,7 +409,7 @@
 
 # July 2024
 • [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
-• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
+• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Converters, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
 • [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.
 • [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
 • [Centurion] Unit script improved so the unit should keep firing while turning
@@ -603,7 +606,7 @@ Bugfixes
 
 # August 2022
 
- • [Torpedo gunships] weapon changed to match up with other torpedos (damage and speed), accuracy and targeting improved.
+ • [Torpedo gunships] weapon changed to match up with other torpedoes (damage and speed), accuracy and targeting improved.
 
 
 # May 2022
@@ -685,7 +688,7 @@ Air
  • T1 construction plane E cost -30%
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters
  • Torpedo bombers: Added 800 range radar+sonar, +10% los, -13% max velocity, reduced flight altitude 25%, split main weapon into 3-round burst (500 damage each instead of 1500), Increased cost by 21%
- • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
+ • Torpedo gunships: Targeting/tracking improvements, +17% los, added 535 range sonar
  • EMP bomber: 20% slower (still slightly faster than t1 fighters)
 
 Sea

@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name    = "Map Project",
-		desc    = "Save and load map projects: one git-friendly folder bundling heightmap, splat, metal, features, decals, lights, environment, weather, grass, start positions and (optionally) the unit loadout",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Map Project",
+		desc = "Save and load map projects: one git-friendly folder bundling heightmap, splat, metal, features, decals, lights, environment, weather, grass, start positions and (optionally) the unit loadout",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000000,
+		layer = 1000000,
 		enabled = false,
 	}
 end
@@ -35,33 +35,42 @@ end
 
 local Echo = Spring.Echo
 
-local PROJECTS_DIR   = "MapProjects/"
+local PROJECTS_DIR = "MapProjects/"
 local FORMAT_VERSION = 1
 local ELMOS_PER_UNIT = 512
-local POINTER_PATH   = "Terraform Brush/pending_project.lua"
-local ACK_PARAM      = "tfb_import_done"  -- rules param set by the terraform gadget after $terraform_import_end$
+local POINTER_PATH = "Terraform Brush/pending_project.lua"
+local ACK_PARAM = "tfb_import_done" -- rules param set by the terraform gadget after $terraform_import_end$
 
 -- Chunk budgets per Update tick (keep the UI responsive during save)
 local HEIGHT_ROWS_PER_TICK = 32
-local METAL_ROWS_PER_TICK  = 128
-local SPLAT_TIMEOUT_TICKS  = 300
+local METAL_ROWS_PER_TICK = 128
+local SPLAT_TIMEOUT_TICKS = 300
 
 -- Load driver pacing (all in draw-frame ticks unless noted)
-local CHEAT_RESEND_TICKS   = 150  -- min gap between /cheat sends ("cheat" TOGGLES — never double-send)
-local CHEAT_MAX_SENDS      = 8    -- then abort loudly
-local DNTS_WAIT_TICKS      = 300  -- wait for splat normals to appear before splat load
-local SPLAT_LOAD_TIMEOUT   = 600
-local IMPORT_START_TICKS   = 300  -- import never went in-flight => decode failed
-local ACK_TIMEOUT_FRAMES   = 120  -- GAME frames after stream end without sim ack => failed
-local DIFFUSE_TIMEOUT_TICKS = 3600  -- full-map diffuse capture/load is many chunked GL ticks
-local UNITS_TIMEOUT_TICKS  = 300  -- synced units export round-trip
-local UNITS_ACK_PARAM      = "mpu_ack"  -- rules param set by the units gadget after a replace
+local CHEAT_RESEND_TICKS = 150 -- min gap between /cheat sends ("cheat" TOGGLES — never double-send)
+local CHEAT_MAX_SENDS = 8 -- then abort loudly
+local DNTS_WAIT_TICKS = 300 -- wait for splat normals to appear before splat load
+local SPLAT_LOAD_TIMEOUT = 600
+local IMPORT_START_TICKS = 300 -- import never went in-flight => decode failed
+local ACK_TIMEOUT_FRAMES = 120 -- GAME frames after stream end without sim ack => failed
+local DIFFUSE_TIMEOUT_TICKS = 3600 -- full-map diffuse capture/load is many chunked GL ticks
+local UNITS_TIMEOUT_TICKS = 300 -- synced units export round-trip
+local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a replace
 
-local heightmapPNG = nil  -- lazy VFS.Include of the shared 16-bit PNG codec
+local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
 
-local job = nil      -- active save job, nil when idle
-local loadJob = nil  -- active load job, nil when idle (never both at once)
-local unitsRx = nil  -- receive buffer for the synced units export (stepUnits)
+local job = nil -- active save job, nil when idle
+local loadJob = nil -- active load job, nil when idle (never both at once)
+local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
+
+-- The project this session IS: set when a load starts (the session exists to
+-- replay that project) and when a save completes. FILE > Save targets it.
+local currentSlug = nil
+
+-- Outcome of the most recent save ({ok, slug}), for the UI's transient
+-- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
+-- running save disappears.
+local lastSaveInfo = nil
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -73,11 +82,28 @@ end
 
 -- Windows reserved device names make CreateDir fail or produce unusable paths.
 local RESERVED_NAMES = {
-	con = true, prn = true, aux = true, nul = true,
-	com1 = true, com2 = true, com3 = true, com4 = true, com5 = true,
-	com6 = true, com7 = true, com8 = true, com9 = true,
-	lpt1 = true, lpt2 = true, lpt3 = true, lpt4 = true, lpt5 = true,
-	lpt6 = true, lpt7 = true, lpt8 = true, lpt9 = true,
+	con = true,
+	prn = true,
+	aux = true,
+	nul = true,
+	com1 = true,
+	com2 = true,
+	com3 = true,
+	com4 = true,
+	com5 = true,
+	com6 = true,
+	com7 = true,
+	com8 = true,
+	com9 = true,
+	lpt1 = true,
+	lpt2 = true,
+	lpt3 = true,
+	lpt4 = true,
+	lpt5 = true,
+	lpt6 = true,
+	lpt7 = true,
+	lpt8 = true,
+	lpt9 = true,
 }
 
 local function validateSlug(slug)
@@ -105,7 +131,9 @@ end
 -- All orchestrator-written text uses LF.
 local function writeFile(path, content)
 	local f = io.open(path, "wb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	f:write(content)
 	f:close()
 	return #content
@@ -113,7 +141,9 @@ end
 
 local function fileSize(path)
 	local f = io.open(path, "rb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local size = f:seek("end")
 	f:close()
 	return size
@@ -122,7 +152,9 @@ end
 -- Numbers in the manifest: integers stay integers, floats get fixed precision
 -- (deterministic serialization).
 local function fmtNum(v)
-	if v == math.floor(v) then return string.format("%d", v) end
+	if v == math.floor(v) then
+		return string.format("%d", v)
+	end
 	return string.format("%.4f", v)
 end
 
@@ -135,27 +167,41 @@ end
 -- or stale in the VFS view within a session. Also the load-side manifest reader.
 local function readPrevManifest(dir)
 	local f = io.open(dir .. "project.lua", "r")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local raw = f:read("*a")
 	f:close()
 	local chunk = loadstring(raw)
-	if not chunk then return nil end
+	if not chunk then
+		return nil
+	end
 	local ok, data = pcall(chunk)
-	if not ok or type(data) ~= "table" then return nil end
+	if not ok or type(data) ~= "table" then
+		return nil
+	end
 	return data
 end
 
 -- Generic `return {...}` section file reader (raw io, same VFS-staleness rule).
 local function readLuaFile(path)
 	local f = io.open(path, "rb")
-	if not f then return nil, "cannot open" end
+	if not f then
+		return nil, "cannot open"
+	end
 	local raw = f:read("*a")
 	f:close()
 	local chunk, err = loadstring(raw)
-	if not chunk then return nil, "parse error: " .. tostring(err) end
+	if not chunk then
+		return nil, "parse error: " .. tostring(err)
+	end
 	local ok, data = pcall(chunk)
-	if not ok then return nil, "run error: " .. tostring(data) end
-	if type(data) ~= "table" then return nil, "not a table" end
+	if not ok then
+		return nil, "run error: " .. tostring(data)
+	end
+	if type(data) ~= "table" then
+		return nil, "not a table"
+	end
 	return data
 end
 
@@ -164,10 +210,14 @@ end
 -- every patch.
 local function readTGADims(path)
 	local f = io.open(path, "rb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local header = f:read(18)
 	f:close()
-	if not header or #header < 18 then return nil end
+	if not header or #header < 18 then
+		return nil
+	end
 	local w = header:byte(13) + header:byte(14) * 256
 	local h = header:byte(15) + header:byte(16) * 256
 	return w, h
@@ -192,7 +242,9 @@ end
 
 local function findSection(name)
 	for _, s in ipairs(job.sections) do
-		if s.name == name then return s end
+		if s.name == name then
+			return s
+		end
 	end
 	return nil
 end
@@ -211,7 +263,9 @@ local function stepPrepare()
 
 	local mo = job.mapOptions
 	if not (mo.blank_map_x or mo.blank_map_y) then
-		warn("current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas")
+		warn(
+			"current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas"
+		)
 	end
 	return true
 end
@@ -239,8 +293,12 @@ local function stepHeightmap()
 			local z = c.z
 			for x = 0, Game.mapSizeX, sq do
 				local gh = GetGroundHeight(x, z)
-				if gh < minH then minH = gh end
-				if gh > maxH then maxH = gh end
+				if gh < minH then
+					minH = gh
+				end
+				if gh > maxH then
+					maxH = gh
+				end
 				idx = idx + 1
 				heights[idx] = gh
 			end
@@ -248,7 +306,9 @@ local function stepHeightmap()
 			rows = rows + 1
 		end
 		c.idx, c.minH, c.maxH = idx, minH, maxH
-		if c.z <= Game.mapSizeZ then return false end
+		if c.z <= Game.mapSizeZ then
+			return false
+		end
 		-- Sampling complete; encode next tick (known hitch: the codec's per-pixel
 		-- loop is one synchronous call — announce it so the freeze is explained).
 		echoP("encoding heightmap PNG (" .. c.w .. "x" .. c.h .. ")...")
@@ -265,17 +325,29 @@ local function stepHeightmap()
 		minH = math.min(minH, prevRange.min)
 		maxH = math.max(maxH, prevRange.max)
 		if widened then
-			warn(string.format("terrain exceeded the recorded height range; widened to %d..%d (full heightmap diff this save)", minH, maxH))
+			warn(
+				string.format(
+					"terrain exceeded the recorded height range; widened to %d..%d (full heightmap diff this save)",
+					minH,
+					maxH
+				)
+			)
 		end
 	end
-	if maxH - minH < 1 then maxH = minH + 1 end
+	if maxH - minH < 1 then
+		maxH = minH + 1
+	end
 
 	local range = maxH - minH
 	local samples = {}
 	local floor = math.floor
 	for i = 1, c.idx do
 		local norm = (c.heights[i] - minH) / range
-		if norm < 0 then norm = 0 elseif norm > 1 then norm = 1 end
+		if norm < 0 then
+			norm = 0
+		elseif norm > 1 then
+			norm = 1
+		end
 		samples[i] = floor(norm * 65535 + 0.5)
 	end
 
@@ -327,6 +399,59 @@ local function stepSplat()
 	return true
 end
 
+-- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
+-- mask PNG like the splat, plus a small surface.lua carrying biome + slot
+-- assignment — the mask channels are meaningless without knowing WHICH top
+-- variants they weight. Same request/poll shape as the splat step.
+local function stepSurface()
+	local sp = WG.SurfacePainter
+	local c = job.cursor
+	if not c.requested then
+		if not (sp and sp.hasMaskState and sp.hasMaskState()) then
+			sectionSkip("surface", "no surface paint state (painter inactive or never used)")
+			return true
+		end
+		sp.saveMask(job.dir .. "surface.png")
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if sp.isSavePending() then
+		if c.ticks > SPLAT_TIMEOUT_TICKS then
+			warn("surface mask save timed out (painter draw pump never ran)")
+			sectionSkip("surface", "timeout")
+			return true
+		end
+		return false
+	end
+	local bytes = fileSize(job.dir .. "surface.png")
+	if not bytes then
+		sectionSkip("surface", "painter reported done but file missing")
+		return true
+	end
+	local meta = (sp.getPersist and sp.getPersist()) or {}
+	local lines = {
+		"return {",
+		string.format("\tbiome = %q,", tostring(meta.biome or "")),
+		string.format("\tslot1 = %q,", tostring(meta.slot1 or "")),
+		string.format("\tslot2 = %q,", tostring(meta.slot2 or "")),
+		"}",
+		"",
+	}
+	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
+		warn("surface.lua write failed — the mask will load without slot assignments")
+	end
+	sectionOk(
+		"surface",
+		"surface.png",
+		bytes,
+		(meta.slot1 or meta.slot2) and ("slots " .. tostring(meta.slot1 or "-") .. " / " .. tostring(meta.slot2 or "-"))
+			or "no slots assigned"
+	)
+	return true
+end
+
 -- Baked diffuse capture (per-square PNGs + enabled shading channels).
 -- On real (compiled) maps EVERY square is captured, so a map whose diffuse was
 -- generated externally (World Machine workflow) carries its full texture in
@@ -365,7 +490,7 @@ local function stepDiffuse()
 		local isBlank = (mo.blank_map_x or mo.blank_map_y) and true or false
 		if isBlank and not (dp.hasProjectState and dp.hasProjectState()) then
 			sectionSkip("diffuse", "no diffuse paint state")
-			job.diffuseStateEmpty = true  -- the ONE case where cleanup may wipe diffuse/
+			job.diffuseStateEmpty = true -- the ONE case where cleanup may wipe diffuse/
 			return true
 		end
 		Spring.CreateDir(job.dir .. "diffuse")
@@ -418,8 +543,12 @@ local function stepDiffuse()
 		count = #res.squares,
 		bytes = bytes,
 	}
-	sectionOk("diffuse", "diffuse/", bytes, #res.squares .. " squares"
-		.. (#res.channels > 0 and (", channels: " .. table.concat(res.channels, " ")) or ""))
+	sectionOk(
+		"diffuse",
+		"diffuse/",
+		bytes,
+		#res.squares .. " squares" .. (#res.channels > 0 and (", channels: " .. table.concat(res.channels, " ")) or "")
+	)
 	if (res.failed or 0) > 0 then
 		warn(res.failed .. " diffuse square(s) failed to capture")
 	end
@@ -463,7 +592,9 @@ local function stepMetal()
 		c.mz = c.mz + 1
 		rows = rows + 1
 	end
-	if c.mz < mmZ then return false end
+	if c.mz < mmZ then
+		return false
+	end
 
 	if c.spots == 0 then
 		sectionSkip("metal", "no metal on map")
@@ -515,15 +646,20 @@ local function writeFeaturesUnsynced(reason)
 		return true
 	end
 	table.sort(entries, function(a, b)
-		if a.name ~= b.name then return a.name < b.name end
-		if a.x ~= b.x then return a.x < b.x end
-		if a.z ~= b.z then return a.z < b.z end
+		if a.name ~= b.name then
+			return a.name < b.name
+		end
+		if a.x ~= b.x then
+			return a.x < b.x
+		end
+		if a.z ~= b.z then
+			return a.z < b.z
+		end
 		return a.rot < b.rot
 	end)
 	local lines = { "local setcfg = {", "\tunitlist = {},", "\tbuildinglist = {},", "\tobjectlist = {" }
 	for _, e in ipairs(entries) do
-		lines[#lines + 1] =
-			string.format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+		lines[#lines + 1] = string.format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
 	end
 	lines[#lines + 1] = "\t},"
 	lines[#lines + 1] = "}"
@@ -592,12 +728,24 @@ local function stepFeatures()
 		return v or 0
 	end
 	table.sort(entries, function(a, b)
-		if a.name ~= b.name then return a.name < b.name end
-		if a.x ~= b.x then return a.x < b.x end
-		if a.z ~= b.z then return a.z < b.z end
-		if a.rot ~= b.rot then return a.rot < b.rot end
-		if num(a.y) ~= num(b.y) then return num(a.y) < num(b.y) end
-		if num(a.pitch) ~= num(b.pitch) then return num(a.pitch) < num(b.pitch) end
+		if a.name ~= b.name then
+			return a.name < b.name
+		end
+		if a.x ~= b.x then
+			return a.x < b.x
+		end
+		if a.z ~= b.z then
+			return a.z < b.z
+		end
+		if a.rot ~= b.rot then
+			return a.rot < b.rot
+		end
+		if num(a.y) ~= num(b.y) then
+			return num(a.y) < num(b.y)
+		end
+		if num(a.pitch) ~= num(b.pitch) then
+			return num(a.pitch) < num(b.pitch)
+		end
 		return num(a.roll) < num(b.roll)
 	end)
 
@@ -615,7 +763,13 @@ local function stepFeatures()
 		if e.pitch and e.roll and e.y then
 			lines[#lines + 1] = format(
 				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f },",
-				e.name, e.x, e.z, e.rot, e.pitch, e.roll, e.y
+				e.name,
+				e.x,
+				e.z,
+				e.rot,
+				e.pitch,
+				e.roll,
+				e.y
 			)
 		else
 			lines[#lines + 1] = format("		{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
@@ -643,7 +797,9 @@ local function parseUnitBatches(batches)
 			x, z = tonumber(x), tonumber(z)
 			if name and x and z then
 				entries[#entries + 1] = {
-					name = name, x = x, z = z,
+					name = name,
+					x = x,
+					z = z,
 					rot = tonumber(rot) or 0,
 					team = tonumber(team) or 0,
 					neutral = neutral == "1",
@@ -661,7 +817,9 @@ local unitsWaiter = nil
 local unitsWaiterTicks = 0
 
 local function requestUnits(callback)
-	if type(callback) ~= "function" then return false end
+	if type(callback) ~= "function" then
+		return false
+	end
 	if job or loadJob then
 		callback(nil, "a project save/load is running")
 		return false
@@ -678,7 +836,9 @@ local function requestUnits(callback)
 end
 
 local function pollUnitsWaiter()
-	if not unitsWaiter then return end
+	if not unitsWaiter then
+		return
+	end
 	unitsWaiterTicks = unitsWaiterTicks + 1
 	if not (unitsRx and unitsRx.done) then
 		if unitsWaiterTicks > UNITS_TIMEOUT_TICKS then
@@ -745,10 +905,18 @@ local function stepUnits()
 	end
 	-- Unit IDs are transient; order by content for deterministic diffs.
 	table.sort(entries, function(a, b)
-		if a.team ~= b.team then return a.team < b.team end
-		if a.name ~= b.name then return a.name < b.name end
-		if a.x ~= b.x then return a.x < b.x end
-		if a.z ~= b.z then return a.z < b.z end
+		if a.team ~= b.team then
+			return a.team < b.team
+		end
+		if a.name ~= b.name then
+			return a.name < b.name
+		end
+		if a.x ~= b.x then
+			return a.x < b.x
+		end
+		if a.z ~= b.z then
+			return a.z < b.z
+		end
 		return a.rot < b.rot
 	end)
 	local lines = {
@@ -760,8 +928,15 @@ local function stepUnits()
 	}
 	local format = string.format
 	for _, e in ipairs(entries) do
-		lines[#lines + 1] = format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d, team = %d%s },",
-			e.name, e.x, e.z, e.rot, e.team, e.neutral and ", neutral = true" or "")
+		lines[#lines + 1] = format(
+			"\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d, team = %d%s },",
+			e.name,
+			e.x,
+			e.z,
+			e.rot,
+			e.team,
+			e.neutral and ", neutral = true" or ""
+		)
 	end
 	lines[#lines + 1] = "\t},"
 	lines[#lines + 1] = "}"
@@ -905,7 +1080,9 @@ local function stepWeather()
 			persistence = math.max(1, math.floor((s.expireFrame - now) / gameSpeed + 0.5))
 		end
 		local cegParts = {}
-		for i = 1, #s.cegs do cegParts[i] = format("%q", s.cegs[i]) end
+		for i = 1, #s.cegs do
+			cegParts[i] = format("%q", s.cegs[i])
+		end
 		blocks[#blocks + 1] = table.concat({
 			"\t\t{",
 			format("\t\t\tx = %s, z = %s,", fmtNum(s.x), fmtNum(s.z)),
@@ -943,7 +1120,7 @@ local function stepWeather()
 end
 
 local function stepGrass()
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api then
 		sectionSkip("grass", "grass widget not loaded")
 		return true
@@ -969,7 +1146,9 @@ end
 -- alpha carries the diffuse-blend weight).
 local function captureLiveTexture(texName, destPath)
 	local info = gl.TextureInfo(texName)
-	if not (info and info.xsize and info.xsize > 1) then return nil end
+	if not (info and info.xsize and info.xsize > 1) then
+		return nil
+	end
 	local w, h = info.xsize, info.ysize
 	local fbo = gl.CreateTexture(w, h, {
 		border = false,
@@ -979,7 +1158,9 @@ local function captureLiveTexture(texName, destPath)
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 	})
-	if not fbo then return nil end
+	if not fbo then
+		return nil
+	end
 	local ok
 	gl.RenderToTexture(fbo, function()
 		gl.Blending(false)
@@ -999,7 +1180,7 @@ local function stepAssets()
 	-- over months; projects must stay self-contained) and record the resolved
 	-- scales/mults so load does not depend on the library.
 	local dnts = nil
-	local seenSource = {}  -- dest name -> source path (detects basename collisions across sets)
+	local seenSource = {} -- dest name -> source path (detects basename collisions across sets)
 	for ch = 1, 4 do
 		local tex = mo["blank_map_splatdetailnormaltex" .. ch]
 		if tex and tex ~= "" then
@@ -1060,7 +1241,9 @@ local function stepAssets()
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
 			echoP("captured the map's live splat textures into assets/dnts/")
 		elseif findSection("splat") then
-			warn("map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas")
+			warn(
+				"map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas"
+			)
 		end
 	end
 	job.dnts = dnts
@@ -1097,7 +1280,9 @@ local function stepAssets()
 			end
 		end
 	end
-	table.sort(job.assetDecals, function(a, b) return a.name < b.name end)
+	table.sort(job.assetDecals, function(a, b)
+		return a.name < b.name
+	end)
 	return true
 end
 
@@ -1105,19 +1290,19 @@ end
 -- stale state from a previous save (e.g. metal cleared since) and must go, or a
 -- file-presence loader would resurrect deleted state.
 local SECTION_FILES = {
-	heightmap   = { "heightmap.png" },
-	splat       = { "splat.png" },
-	metal       = { "metal.lua" },
-	features    = { "features.lua" },
-	units       = { "units.lua" },
-	decals      = { "decals.lua" },
-	startpos    = { "startpos.lua" },
-	startboxes  = { "startboxes.lua" },
-	lights      = { "lights.lua" },
-	labels      = { "labels.lua" },
+	heightmap = { "heightmap.png" },
+	splat = { "splat.png" },
+	metal = { "metal.lua" },
+	features = { "features.lua" },
+	units = { "units.lua" },
+	decals = { "decals.lua" },
+	startpos = { "startpos.lua" },
+	startboxes = { "startboxes.lua" },
+	lights = { "lights.lua" },
+	labels = { "labels.lua" },
 	environment = { "environment.lua" },
-	weather     = { "weather.lua" },
-	grass       = { "grass_dist.tga", "grass_config.lua" },
+	weather = { "weather.lua" },
+	grass = { "grass_dist.tga", "grass_config.lua" },
 }
 
 local function stepCleanupStale()
@@ -1165,7 +1350,9 @@ local function stepManifest()
 		"\tmap = {",
 		string.format("\t\tsize_x = %d, size_z = %d,", Game.mapSizeX / ELMOS_PER_UNIT, Game.mapSizeZ / ELMOS_PER_UNIT),
 	}
-	local function add(line) lines[#lines + 1] = line end
+	local function add(line)
+		lines[#lines + 1] = line
+	end
 
 	local baseHeight = tonumber(mo.blank_map_height)
 	if baseHeight then
@@ -1198,8 +1385,16 @@ local function stepManifest()
 			add(string.format("\t\t\tdetail = %q,", job.dnts.detail))
 		end
 		local function quad(name, t)
-			add(string.format("\t\t\t%s = { %s, %s, %s, %s },", name,
-				fmtNum(t[1] or 0), fmtNum(t[2] or 0), fmtNum(t[3] or 0), fmtNum(t[4] or 0)))
+			add(
+				string.format(
+					"\t\t\t%s = { %s, %s, %s, %s },",
+					name,
+					fmtNum(t[1] or 0),
+					fmtNum(t[2] or 0),
+					fmtNum(t[3] or 0),
+					fmtNum(t[4] or 0)
+				)
+			)
 		end
 		quad("scales", job.dnts.scales)
 		quad("mults", job.dnts.mults)
@@ -1210,7 +1405,23 @@ local function stepManifest()
 	add("")
 	add("\tsections = {")
 	-- Fixed emission order (deterministic diffs); only sections actually written.
-	local order = { "heightmap", "splat", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "labels", "environment", "weather", "grass" }
+	local order = {
+		"heightmap",
+		"splat",
+		"surface",
+		"diffuse",
+		"metal",
+		"features",
+		"units",
+		"decals",
+		"startpos",
+		"startboxes",
+		"lights",
+		"labels",
+		"environment",
+		"weather",
+		"grass",
+	}
 	for _, name in ipairs(order) do
 		local s = findSection(name)
 		if s then
@@ -1221,12 +1432,23 @@ local function stepManifest()
 				for i, key in ipairs(d.channels or {}) do
 					chParts[i] = string.format("%q", key)
 				end
-				add(string.format('\t\tdiffuse = { dir = "diffuse/", version = 1, bytes = %d, square_size = %d, squares = %d, full = %s, channels = { %s } },',
-					s.bytes, d.squareSize or 1024, d.count or 0, tostring(d.full or false), table.concat(chParts, ", ")))
+				add(
+					string.format(
+						'\t\tdiffuse = { dir = "diffuse/", version = 1, bytes = %d, square_size = %d, squares = %d, full = %s, channels = { %s } },',
+						s.bytes,
+						d.squareSize or 1024,
+						d.count or 0,
+						tostring(d.full or false),
+						table.concat(chParts, ", ")
+					)
+				)
 			else
 				local extraFields = ""
 				if name == "units" and job.unitsCount then
 					extraFields = string.format(" count = %d,", job.unitsCount)
+				end
+				if name == "surface" then
+					extraFields = ' meta = "surface.lua",'
 				end
 				if name == "grass" then
 					if job.grassPatchResolution then
@@ -1234,7 +1456,15 @@ local function stepManifest()
 					end
 					extraFields = extraFields .. ' config = "grass_config.lua",'
 				end
-				add(string.format("\t\t%s = { file = %q, version = 1, bytes = %d,%s },", name, s.file, s.bytes, extraFields))
+				add(
+					string.format(
+						"\t\t%s = { file = %q, version = 1, bytes = %d,%s },",
+						name,
+						s.file,
+						s.bytes,
+						extraFields
+					)
+				)
 			end
 		end
 	end
@@ -1266,23 +1496,24 @@ local function stepManifest()
 end
 
 local STEPS = {
-	{ name = "prepare",     run = stepPrepare },
-	{ name = "heightmap",   run = stepHeightmap },
-	{ name = "splat",       run = stepSplat },
-	{ name = "diffuse",     run = stepDiffuse },
-	{ name = "metal",       run = stepMetal },
-	{ name = "features",    run = stepFeatures },
-	{ name = "units",       run = stepUnits },
-	{ name = "decals",      run = stepDecals },
-	{ name = "lights",      run = stepLights },
-	{ name = "labels",      run = stepLabels },
-	{ name = "startpos",    run = stepStartPos },
+	{ name = "prepare", run = stepPrepare },
+	{ name = "heightmap", run = stepHeightmap },
+	{ name = "splat", run = stepSplat },
+	{ name = "surface", run = stepSurface },
+	{ name = "diffuse", run = stepDiffuse },
+	{ name = "metal", run = stepMetal },
+	{ name = "features", run = stepFeatures },
+	{ name = "units", run = stepUnits },
+	{ name = "decals", run = stepDecals },
+	{ name = "lights", run = stepLights },
+	{ name = "labels", run = stepLabels },
+	{ name = "startpos", run = stepStartPos },
 	{ name = "environment", run = stepEnvironment },
-	{ name = "weather",     run = stepWeather },
-	{ name = "grass",       run = stepGrass },
-	{ name = "assets",      run = stepAssets },
-	{ name = "cleanup",     run = stepCleanupStale },
-	{ name = "manifest",    run = stepManifest },
+	{ name = "weather", run = stepWeather },
+	{ name = "grass", run = stepGrass },
+	{ name = "assets", run = stepAssets },
+	{ name = "cleanup", run = stepCleanupStale },
+	{ name = "manifest", run = stepManifest },
 }
 
 ----------------------------------------------------------------
@@ -1292,10 +1523,13 @@ local STEPS = {
 local function finishSave()
 	if job.failed then
 		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
+		lastSaveInfo = { ok = false, slug = job.slug }
 		job = nil
 		return
 	end
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
+	currentSlug = job.slug
+	lastSaveInfo = { ok = true, slug = job.slug }
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1341,11 +1575,22 @@ local function startSave(slug, opts)
 	return true
 end
 
+-- Does a project folder with a readable manifest exist? (UI overwrite guard:
+-- Save As over an existing project asks for a second click first.)
+local function projectExists(slug)
+	if not validateSlug(slug) then
+		return false
+	end
+	return readPrevManifest(PROJECTS_DIR .. slug .. "/") ~= nil
+end
+
 -- Does a saved project include a units section? (UI confirm guard: warns
 -- before a toggle-off re-save silently drops a previously saved loadout.)
 local function projectHasUnits(slug)
 	local ok = validateSlug(slug)
-	if not ok then return false end
+	if not ok then
+		return false
+	end
 	local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
 	return (manifest and manifest.sections and manifest.sections.units) and true or false
 end
@@ -1376,7 +1621,9 @@ local function listProjectsDetailed()
 		end
 	end
 	table.sort(out, function(a, b)
-		if (a.modified or "") ~= (b.modified or "") then return (a.modified or "") > (b.modified or "") end
+		if (a.modified or "") ~= (b.modified or "") then
+			return (a.modified or "") > (b.modified or "")
+		end
 		return a.slug < b.slug
 	end)
 	return out
@@ -1385,8 +1632,15 @@ end
 local function listProjects()
 	local found = listProjectsDetailed()
 	for _, p in ipairs(found) do
-		echoP(string.format("  %-24s %sx%s  modified %s", p.slug,
-			tostring(p.size_x), tostring(p.size_z), tostring(p.modified)))
+		echoP(
+			string.format(
+				"  %-24s %sx%s  modified %s",
+				p.slug,
+				tostring(p.size_x),
+				tostring(p.size_z),
+				tostring(p.modified)
+			)
+		)
 	end
 	if #found == 0 then
 		echoP("no projects in " .. PROJECTS_DIR)
@@ -1420,13 +1674,23 @@ local function deleteProject(slug)
 		return false
 	end
 	local removed, failed = 0, 0
-	if os.remove(dir .. "project.lua") then removed = removed + 1 else failed = failed + 1 end
+	if os.remove(dir .. "project.lua") then
+		removed = removed + 1
+	else
+		failed = failed + 1
+	end
 	for _, path in ipairs(VFS.DirList(dir, "*", VFS.RAW, true) or {}) do
-		if os.remove(path) then removed = removed + 1 else failed = failed + 1 end
+		if os.remove(path) then
+			removed = removed + 1
+		else
+			failed = failed + 1
+		end
 	end
 	-- Deepest first, otherwise a parent is still non-empty when we reach it.
 	local subs = VFS.SubDirs(dir, "*", VFS.RAW, true) or {}
-	table.sort(subs, function(a, b) return #a > #b end)
+	table.sort(subs, function(a, b)
+		return #a > #b
+	end)
 	subs[#subs + 1] = dir
 	for _, d in ipairs(subs) do
 		os.remove((d:gsub("[/\\]+$", "")))
@@ -1434,10 +1698,21 @@ local function deleteProject(slug)
 	-- Leftovers are inert: without project.lua the folder no longer lists, so
 	-- report and move on rather than failing the delete.
 	if failed > 0 then
-		echoP(string.format("deleted '%s' (%d files, %d could not be removed — folder may linger in %s)",
-			slug, removed, failed, PROJECTS_DIR))
+		echoP(
+			string.format(
+				"deleted '%s' (%d files, %d could not be removed — folder may linger in %s)",
+				slug,
+				removed,
+				failed,
+				PROJECTS_DIR
+			)
+		)
 	else
 		echoP(string.format("deleted project '%s' (%d files)", slug, removed))
+	end
+	-- The session's Save target is gone; the next Save must ask for a name.
+	if currentSlug == slug then
+		currentSlug = nil
 	end
 	return true
 end
@@ -1452,20 +1727,33 @@ local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
 	local content = string.format(
 		"return { path = %q, size_x = %d, size_z = %d, phase = %d, phases = %d }\n",
-		t.path, t.size_x, t.size_z, t.phase or 0, t.phases or 0)
+		t.path,
+		t.size_x,
+		t.size_z,
+		t.phase or 0,
+		t.phases or 0
+	)
 	return writeFile(POINTER_PATH, content) ~= nil
 end
 
 local function readPointer()
 	local f = io.open(POINTER_PATH, "r")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local raw = f:read("*a")
 	f:close()
-	if not raw or raw == "" then return nil end
+	if not raw or raw == "" then
+		return nil
+	end
 	local chunk = loadstring(raw)
-	if not chunk then return nil end
+	if not chunk then
+		return nil
+	end
 	local ok, t = pcall(chunk)
-	if ok and type(t) == "table" and type(t.path) == "string" then return t end
+	if ok and type(t) == "table" and type(t.path) == "string" then
+		return t
+	end
 	return nil
 end
 
@@ -1478,26 +1766,43 @@ end
 ----------------------------------------------------------------
 
 local function validateManifest(manifest)
-	if type(manifest) ~= "table" then return nil, "manifest is not a table" end
+	if type(manifest) ~= "table" then
+		return nil, "manifest is not a table"
+	end
 	if manifest.kind ~= "bar-map-project" then
 		return nil, "not a map project (kind=" .. tostring(manifest.kind) .. ")"
 	end
 	local fv = tonumber(manifest.format_version)
-	if not fv then return nil, "manifest has no format_version" end
+	if not fv then
+		return nil, "manifest has no format_version"
+	end
 	if fv > FORMAT_VERSION then
-		return nil, string.format(
-			"project format_version %d is NEWER than this tool understands (%d) — update the game before opening it (re-saving with an older tool would silently lose data)",
-			fv, FORMAT_VERSION)
+		return nil,
+			string.format(
+				"project format_version %d is NEWER than this tool understands (%d) — update the game before opening it (re-saving with an older tool would silently lose data)",
+				fv,
+				FORMAT_VERSION
+			)
 	end
 	local m = manifest.map
-	if type(m) ~= "table" then return nil, "manifest has no map block" end
-	local sx, sz = tonumber(m.size_x), tonumber(m.size_z)
-	if not sx or not sz then return nil, "manifest has no map size" end
-	if sx < 2 or sx > 64 or sz < 2 or sz > 64 or sx % 2 ~= 0 or sz % 2 ~= 0 then
-		return nil, string.format("implausible map size %sx%s (need even map units in 2..64)",
-			tostring(m.size_x), tostring(m.size_z))
+	if type(m) ~= "table" then
+		return nil, "manifest has no map block"
 	end
-	if type(manifest.sections) ~= "table" then return nil, "manifest has no sections table" end
+	local sx, sz = tonumber(m.size_x), tonumber(m.size_z)
+	if not sx or not sz then
+		return nil, "manifest has no map size"
+	end
+	if sx < 2 or sx > 64 or sz < 2 or sz > 64 or sx % 2 ~= 0 or sz % 2 ~= 0 then
+		return nil,
+			string.format(
+				"implausible map size %sx%s (need even map units in 2..64)",
+				tostring(m.size_x),
+				tostring(m.size_z)
+			)
+	end
+	if type(manifest.sections) ~= "table" then
+		return nil, "manifest has no sections table"
+	end
 	-- The format is git-managed and hand-editable: type-check every section
 	-- entry (and normalize bytes to a number) so a merge artifact fails with a
 	-- clean refusal instead of a raw Lua error mid-open.
@@ -1533,7 +1838,9 @@ end
 -- load best-effort (incomplete-save policy).
 local function sectionFile(key)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections[key]
-	if not (sec and sec.file) then return nil end
+	if not (sec and sec.file) then
+		return nil
+	end
 	local path = loadJob.dir .. sec.file
 	local size = fileSize(path)
 	if not size then
@@ -1545,7 +1852,14 @@ local function sectionFile(key)
 	end
 	if sec.bytes and sec.bytes > 0 and size ~= sec.bytes and not loadJob.byteWarned[key] then
 		loadJob.byteWarned[key] = true
-		echoP(string.format("WARNING: %s is %d bytes but the manifest recorded %d (incomplete save?) — loading best-effort", sec.file, size, sec.bytes))
+		echoP(
+			string.format(
+				"WARNING: %s is %d bytes but the manifest recorded %d (incomplete save?) — loading best-effort",
+				sec.file,
+				size,
+				sec.bytes
+			)
+		)
 	end
 	return path, sec
 end
@@ -1557,17 +1871,26 @@ end
 -- game frame does not advance the timeout clock does not run.
 local function phaseHeightmap(c)
 	local path = sectionFile("heightmap")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	local tb = WG.TerraformBrush
 	if not (tb and tb.getImportStatus) then
 		loadSkip("heightmap", "terraform brush widget not loaded")
 		return true
 	end
 	if not c.sent then
-		if tb.getImportStatus() then return false end  -- another import in flight; wait
+		if tb.getImportStatus() then
+			return false
+		end -- another import in flight; wait
 		c.ackBase = Spring.GetGameRulesParam(ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
-		Spring.SendCommands("terraformimport " .. path)
+		local range = loadJob.manifest.map and loadJob.manifest.map.height_range
+		if tb.importHeightmap then
+			tb.importHeightmap(path, range and range.min, range and range.max)
+		else
+			Spring.SendCommands("terraformimport " .. path)
+		end
 		c.sent = true
 		c.ticks = 0
 		echoP("heightmap: importing " .. path .. " ...")
@@ -1585,6 +1908,17 @@ local function phaseHeightmap(c)
 	end
 	local ack = Spring.GetGameRulesParam(ACK_PARAM) or 0
 	if ack > c.ackBase then
+		-- the tileset shader anchors gravel/plateau placement to the ground
+		-- extremes; the import just replaced them wholesale, so re-snapshot
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+			WG.TilesetTerrain.refreshHeightRef()
+		end
+		-- same story for the custom heightmap-export range: it was seeded from
+		-- the blank canvas, so re-seed it from the project terrain (no-op if
+		-- the user hand-typed a range)
+		if WG.TerraformBrush and WG.TerraformBrush.reseedExportRange then
+			WG.TerraformBrush.reseedExportRange(5)
+		end
 		loadOk("heightmap", "sim-acknowledged")
 		return true
 	end
@@ -1622,7 +1956,9 @@ local function phaseDntsSplat(c)
 	local m = loadJob.manifest.map or {}
 	local hasDnts = type(m.dnts) == "table"
 	local splatPath = sectionFile("splat")
-	if not splatPath and not hasDnts then return true end
+	if not splatPath and not hasDnts then
+		return true
+	end
 	if hasDnts and not c.dntsChecked then
 		c.ticks = (c.ticks or 0) + 1
 		local info = gl.TextureInfo("$ssmf_splat_normals:0")
@@ -1631,15 +1967,22 @@ local function phaseDntsSplat(c)
 			loadOk("dnts", "splat normals bound")
 		elseif c.ticks > DNTS_WAIT_TICKS then
 			c.dntsChecked = true
-			loadSkip("dnts", "splat normals never appeared (engine honoring blank_map_splat* keys?) — splat visuals may be missing")
+			loadSkip(
+				"dnts",
+				"splat normals never appeared (engine honoring blank_map_splat* keys?) — splat visuals may be missing"
+			)
 		else
 			return false
 		end
 	end
-	if not splatPath then return true end
+	if not splatPath then
+		return true
+	end
 	if not hasDnts and not c.noDntsWarned then
 		c.noDntsWarned = true
-		echoP("WARNING: project has splat.png but no DNTS record — the splat data will load with no textures to modulate")
+		echoP(
+			"WARNING: project has splat.png but no DNTS record — the splat data will load with no textures to modulate"
+		)
 	end
 	local sp = WG.SplatPainter
 	if not (sp and sp.loadSplats) then
@@ -1672,13 +2015,76 @@ local function phaseDntsSplat(c)
 	return true
 end
 
+-- Phase 2b: SURFACE variant mask. Restores the tileset biome + variant slot
+-- assignment from surface.lua first (the mask channels only mean something
+-- against those), then blits surface.png into the painter's mask — same
+-- request/poll shape as the splat phase. Soft-skips when the write-dir
+-- widgets (dev_tileset_terrain / dev_surface_painter) are not loaded.
+local function phaseSurface(c)
+	local maskPath = sectionFile("surface")
+	if not maskPath then
+		return true
+	end
+	local sp = WG.SurfacePainter
+	if not (sp and sp.loadMask) then
+		loadSkip("surface", "surface painter widget not loaded")
+		return true
+	end
+	if not c.surfMetaDone then
+		c.surfMetaDone = true
+		local meta = readLuaFile(loadJob.dir .. "surface.lua")
+		local T = WG.TilesetTerrain
+		if meta and T then
+			if meta.biome and meta.biome ~= "" and T.setBiome then
+				T.setBiome(meta.biome)
+			end
+			if sp.applySlots then
+				sp.applySlots(
+					(meta.slot1 and meta.slot1 ~= "") and meta.slot1 or nil,
+					(meta.slot2 and meta.slot2 ~= "") and meta.slot2 or nil
+				)
+			end
+		elseif not T then
+			echoP(
+				"WARNING: surface.png present but the tileset widget is not loaded — the mask loads with no variants bound"
+			)
+		end
+	end
+	if not c.surfRequested then
+		if not sp.loadMask(maskPath) then
+			loadSkip("surface", "load request rejected")
+			return true
+		end
+		c.surfRequested = true
+		c.surfTicks = 0
+		return false
+	end
+	if sp.isLoadPending() then
+		c.surfTicks = c.surfTicks + 1
+		if c.surfTicks > SPLAT_LOAD_TIMEOUT then
+			loadSkip("surface", "timed out waiting for the painter draw pump")
+			return true
+		end
+		return false
+	end
+	local result = sp.getLoadResult and sp.getLoadResult()
+	if result == "ok" then
+		loadOk("surface", nil)
+	else
+		loadSkip("surface", tostring(result or "no result reported"))
+	end
+	return true
+end
+
 -- Phase 3: diffuse. Per-square PNGs blitted into painter-owned seed+composite
 -- textures (later paint bakes over the loaded state), channel PNGs into the
 -- painter's channel textures. Files discovered by glob — the save side keeps
 -- the diffuse/ dir exact.
 local function phaseDiffuse(c)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections.diffuse
-	if not (sec and sec.dir) then return true end
+	if not (sec and sec.dir) then
+		return true
+	end
 	local dp = WG.DiffusePainter
 	if not (dp and dp.loadProject) then
 		loadSkip("diffuse", "diffuse painter widget not loaded")
@@ -1711,15 +2117,22 @@ local function phaseDiffuse(c)
 			return true
 		end
 		table.sort(sqs, function(a, b)
-			if a.sy ~= b.sy then return a.sy < b.sy end
+			if a.sy ~= b.sy then
+				return a.sy < b.sy
+			end
 			return a.sx < b.sx
 		end)
 		if not dp.loadProject(sqs, chans) then
 			loadSkip("diffuse", "painter is busy")
 			return true
 		end
-		echoP(string.format("diffuse: loading %d squares%s...", #sqs,
-			nChans > 0 and (" + " .. nChans .. " channel(s)") or ""))
+		echoP(
+			string.format(
+				"diffuse: loading %d squares%s...",
+				#sqs,
+				nChans > 0 and (" + " .. nChans .. " channel(s)") or ""
+			)
+		)
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -1736,8 +2149,12 @@ local function phaseDiffuse(c)
 	if not res or res.error or ((res.loaded or 0) == 0 and (res.channels or 0) == 0) then
 		loadSkip("diffuse", (res and (res.error or ((res.failed or 0) .. " square(s) failed"))) or "no result reported")
 	else
-		loadOk("diffuse", (res.loaded or 0) .. " squares"
-			.. ((res.channels or 0) > 0 and (", " .. res.channels .. " channel(s)") or ""))
+		loadOk(
+			"diffuse",
+			(res.loaded or 0)
+				.. " squares"
+				.. ((res.channels or 0) > 0 and (", " .. res.channels .. " channel(s)") or "")
+		)
 		if (res.failed or 0) > 0 then
 			echoP("WARNING: " .. res.failed .. " diffuse square(s) failed to load")
 		end
@@ -1749,7 +2166,9 @@ end
 -- save side: no dependency on the metal brush widget being enabled).
 local function phaseMetal(c)
 	local path = sectionFile("metal")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	if not c.spots then
 		local data, err = readLuaFile(path)
 		if not (data and type(data.spots) == "table") then
@@ -1791,7 +2210,9 @@ end
 -- Phase 5: features. Clear-all first so a resumed replay cannot duplicate.
 local function phaseFeatures(c)
 	local path = sectionFile("features")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	local fp = WG.FeaturePlacer
 	if not (fp and fp.load) then
 		loadSkip("features", "feature placer widget not loaded")
@@ -1811,7 +2232,9 @@ end
 -- like the heightmap phase.
 local function phaseUnits(c)
 	local path = sectionFile("units")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	if not c.sent then
 		local data, err = readLuaFile(path)
 		if not (data and type(data.units) == "table") then
@@ -1828,8 +2251,15 @@ local function phaseUnits(c)
 			local x, z = tonumber(u.x), tonumber(u.z)
 			if type(u.name) == "string" and x and z then
 				count = count + 1
-				parts[#parts + 1] = format("%s %.1f %.1f %d %d %d",
-					u.name, x, z, tonumber(u.rot) or 0, tonumber(u.team) or 0, u.neutral and 1 or 0)
+				parts[#parts + 1] = format(
+					"%s %.1f %.1f %d %d %d",
+					u.name,
+					x,
+					z,
+					tonumber(u.rot) or 0,
+					tonumber(u.team) or 0,
+					u.neutral and 1 or 0
+				)
 				if #parts >= 25 then
 					batches[#batches + 1] = table.concat(parts, "|")
 					parts = {}
@@ -1861,9 +2291,13 @@ local function phaseUnits(c)
 		local spawned = Spring.GetGameRulesParam("mpu_spawned") or 0
 		local failed = Spring.GetGameRulesParam("mpu_failed") or 0
 		local remapped = Spring.GetGameRulesParam("mpu_remapped") or 0
-		loadOk("units", spawned .. " spawned"
-			.. (failed > 0 and (", " .. failed .. " FAILED (unknown def or unit limit)") or "")
-			.. (remapped > 0 and (", " .. remapped .. " remapped to Gaia (team missing/dead)") or ""))
+		loadOk(
+			"units",
+			spawned
+				.. " spawned"
+				.. (failed > 0 and (", " .. failed .. " FAILED (unknown def or unit limit)") or "")
+				.. (remapped > 0 and (", " .. remapped .. " remapped to Gaia (team missing/dead)") or "")
+		)
 		return true
 	end
 	c.ticks = c.ticks + 1
@@ -1887,11 +2321,19 @@ local function phaseDecalsLights(c)
 		if dp and dp.load then
 			for _, a in ipairs((loadJob.manifest.assets and loadJob.manifest.assets.decals) or {}) do
 				if a.name and not VFS.FileExists("bitmaps/decals/" .. a.name .. ".png", VFS.MOD) then
-					echoP("WARNING: decal capture '" .. a.name .. "' is not installed in the game archive — copy "
-						.. loadJob.dir .. tostring(a.file) .. " into bitmaps/decals/ and restart to see it")
+					echoP(
+						"WARNING: decal capture '"
+							.. a.name
+							.. "' is not installed in the game archive — copy "
+							.. loadJob.dir
+							.. tostring(a.file)
+							.. " into bitmaps/decals/ and restart to see it"
+					)
 				end
 			end
-			if dp.clearAll then dp.clearAll() end
+			if dp.clearAll then
+				dp.clearAll()
+			end
 			dp.load(decalPath)
 			loadOk("decals", nil)
 		else
@@ -1929,7 +2371,9 @@ local function phaseDecalsLights(c)
 		-- by map name, which generated canvases share, so clear it rather than
 		-- letting the previously opened project's comments show up here.
 		local hasSection = loadJob.manifest.sections and loadJob.manifest.sections.labels
-		if not hasSection then ml.clearProject() end
+		if not hasSection then
+			ml.clearProject()
+		end
 	end
 	return true
 end
@@ -1938,7 +2382,9 @@ end
 -- pattern (the water renderer needs a few draw frames after map changes).
 local function phaseEnvironment(c)
 	local path = sectionFile("environment")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	local ui = WG.TerraformBrushUI
 	if not (ui and ui.applyEnvConfig) then
 		loadSkip("environment", "terraform UI widget not loaded")
@@ -1955,7 +2401,9 @@ local function phaseEnvironment(c)
 		return false
 	end
 	c.countdown = c.countdown - 1
-	if c.countdown > 0 then return false end
+	if c.countdown > 0 then
+		return false
+	end
 	ui.applyEnvConfig(c.cfg)
 	loadOk("environment", nil)
 	return true
@@ -1965,7 +2413,9 @@ end
 -- rebuild each from its serialized entry with rebased timing.
 local function phaseWeather(c)
 	local path = sectionFile("weather")
-	if not path then return true end
+	if not path then
+		return true
+	end
 	local wb = WG.WeatherBrush
 	if not (wb and wb.addSpawnerRaw) then
 		loadSkip("weather", "weather brush widget not loaded (or too old — needs addSpawnerRaw)")
@@ -1976,10 +2426,14 @@ local function phaseWeather(c)
 		loadSkip("weather", "unreadable weather.lua (" .. tostring(err) .. ")")
 		return true
 	end
-	if wb.clearAllPersistent then wb.clearAllPersistent() end
+	if wb.clearAllPersistent then
+		wb.clearAllPersistent()
+	end
 	local added = 0
 	for _, s in ipairs(data.spawners) do
-		if wb.addSpawnerRaw(s) then added = added + 1 end
+		if wb.addSpawnerRaw(s) then
+			added = added + 1
+		end
 	end
 	loadOk("weather", added .. " of " .. #data.spawners .. " spawners")
 	return true
@@ -2015,7 +2469,7 @@ local function phaseStartposGrass(c)
 	end
 	local grassPath, grassSec = sectionFile("grass")
 	if grassPath then
-		local api = WG["grassgl4"]
+		local api = WG.grassgl4
 		if not (api and api.loadGrass) then
 			loadSkip("grass", "grass widget not loaded")
 		else
@@ -2026,8 +2480,14 @@ local function phaseStartposGrass(c)
 			local ew = math.floor(Game.mapSizeX / sessionRes)
 			local eh = math.floor(Game.mapSizeZ / sessionRes)
 			if savedRes and savedRes ~= sessionRes then
-				loadSkip("grass", string.format(
-					"patch resolution mismatch (project %d, session %d) — a mismatched grid would misplace every patch", savedRes, sessionRes))
+				loadSkip(
+					"grass",
+					string.format(
+						"patch resolution mismatch (project %d, session %d) — a mismatched grid would misplace every patch",
+						savedRes,
+						sessionRes
+					)
+				)
 			elseif not tw then
 				loadSkip("grass", "cannot read grass_dist.tga header")
 			elseif tw ~= ew or th ~= eh then
@@ -2049,16 +2509,17 @@ local function phaseStartposGrass(c)
 end
 
 local LOAD_PHASES = {
-	{ name = "heightmap",       run = phaseHeightmap },
-	{ name = "dnts+splat",      run = phaseDntsSplat },
-	{ name = "diffuse",         run = phaseDiffuse },
-	{ name = "metal",           run = phaseMetal },
-	{ name = "features",        run = phaseFeatures },
-	{ name = "units",           run = phaseUnits },
-	{ name = "decals+lights",   run = phaseDecalsLights },  -- also map labels
-	{ name = "environment",     run = phaseEnvironment },
-	{ name = "weather",         run = phaseWeather },
-	{ name = "startpos+grass",  run = phaseStartposGrass },
+	{ name = "heightmap", run = phaseHeightmap },
+	{ name = "dnts+splat", run = phaseDntsSplat },
+	{ name = "surface", run = phaseSurface },
+	{ name = "diffuse", run = phaseDiffuse },
+	{ name = "metal", run = phaseMetal },
+	{ name = "features", run = phaseFeatures },
+	{ name = "units", run = phaseUnits },
+	{ name = "decals+lights", run = phaseDecalsLights }, -- also map labels
+	{ name = "environment", run = phaseEnvironment },
+	{ name = "weather", run = phaseWeather },
+	{ name = "startpos+grass", run = phaseStartposGrass },
 }
 
 local function finishLoad()
@@ -2088,7 +2549,9 @@ local function finishLoad()
 	-- full UpdateHeightBounds() with the comment "needed in case pre-game
 	-- terraform changed the map" — so starting the game is the cure.
 	if Spring.GetGameFrame() <= 0 then
-		echoP("starting the game: terrain taller than the canvas base is unclickable in pregame (engine clips ground rays at the last known max height, which only updates once sim frames run)")
+		echoP(
+			"starting the game: terrain taller than the canvas base is unclickable in pregame (engine clips ground rays at the last known max height, which only updates once sim frames run)"
+		)
 		Spring.SendCommands("forcestart")
 	end
 end
@@ -2112,7 +2575,9 @@ local function runLoadTick()
 		if not c.cheatLastSend or (c.cheatTicks - c.cheatLastSend) >= CHEAT_RESEND_TICKS then
 			c.cheatSends = (c.cheatSends or 0) + 1
 			if c.cheatSends > CHEAT_MAX_SENDS then
-				abortLoad("could not enable /cheat (required for terrain/metal/feature replay); enable cheats and open the project again")
+				abortLoad(
+					"could not enable /cheat (required for terrain/metal/feature replay); enable cheats and open the project again"
+				)
 				return
 			end
 			c.cheatLastSend = c.cheatTicks
@@ -2144,7 +2609,13 @@ local function runLoadTick()
 		loadJob.cursor = {}
 		loadJob.announced = nil
 		-- Journal progress so /luaui reload mid-load resumes here.
-		writePointer({ path = loadJob.dir, size_x = loadJob.sizeX, size_z = loadJob.sizeZ, phase = loadJob.phase, phases = #LOAD_PHASES })
+		writePointer({
+			path = loadJob.dir,
+			size_x = loadJob.sizeX,
+			size_z = loadJob.sizeZ,
+			phase = loadJob.phase,
+			phases = #LOAD_PHASES,
+		})
 		if not LOAD_PHASES[loadJob.phase + 1] then
 			finishLoad()
 		end
@@ -2159,14 +2630,25 @@ end
 -- session, and must not survive to ambush a future matching one).
 local function maybeStartLoad()
 	local ptr = readPointer()
-	if not ptr then return end
+	if not ptr then
+		return
+	end
 	local reasons = {}
-	if not (ptr.size_x and ptr.size_z
-		and Game.mapSizeX == ptr.size_x * ELMOS_PER_UNIT
-		and Game.mapSizeZ == ptr.size_z * ELMOS_PER_UNIT) then
-		reasons[#reasons + 1] = string.format("map size is %dx%d units, pointer wants %sx%s",
-			Game.mapSizeX / ELMOS_PER_UNIT, Game.mapSizeZ / ELMOS_PER_UNIT,
-			tostring(ptr.size_x), tostring(ptr.size_z))
+	if
+		not (
+			ptr.size_x
+			and ptr.size_z
+			and Game.mapSizeX == ptr.size_x * ELMOS_PER_UNIT
+			and Game.mapSizeZ == ptr.size_z * ELMOS_PER_UNIT
+		)
+	then
+		reasons[#reasons + 1] = string.format(
+			"map size is %dx%d units, pointer wants %sx%s",
+			Game.mapSizeX / ELMOS_PER_UNIT,
+			Game.mapSizeZ / ELMOS_PER_UNIT,
+			tostring(ptr.size_x),
+			tostring(ptr.size_z)
+		)
 	end
 	-- Project restarts auto-name their canvas "Editor Flat ...", but accept any
 	-- blank-generated map (mapoptions gate) so wizard-named canvases don't trip
@@ -2183,14 +2665,17 @@ local function maybeStartLoad()
 	if Spring.IsReplay() then
 		reasons[#reasons + 1] = "this is a replay"
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		reasons[#reasons + 1] = "not a local singleplayer session"
 	end
 	if #reasons > 0 then
 		deletePointer()
-		echoP("PENDING PROJECT LOAD CANCELLED — session mismatch: " .. table.concat(reasons, "; ")
-			.. ". Pointer removed; open the project again from the FILE menu.")
+		echoP(
+			"PENDING PROJECT LOAD CANCELLED — session mismatch: "
+				.. table.concat(reasons, "; ")
+				.. ". Pointer removed; open the project again from the FILE menu."
+		)
 		return
 	end
 	local manifest = readPrevManifest(ptr.path)
@@ -2226,9 +2711,9 @@ local function maybeStartLoad()
 		byteWarned = {},
 		missingWarned = {},
 	}
+	currentSlug = loadJob.slug
 	if loadJob.phase > 0 then
-		echoP(string.format("resuming project load '%s' at phase %d/%d",
-			loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
+		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
 	else
 		echoP(string.format("loading project '%s' (%d phases)...", loadJob.slug, #LOAD_PHASES))
 	end
@@ -2252,7 +2737,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false
@@ -2313,7 +2798,9 @@ function widget:DrawScreen()
 	if loadJob then
 		runLoadTick()
 	end
-	if not job then return end
+	if not job then
+		return
+	end
 	local step = STEPS[job.step]
 	if not step then
 		finishSave()
@@ -2353,7 +2840,9 @@ local function mapProjectAction(_, optLine, params)
 	elseif sub == "delete" then
 		deleteProject(params[2])
 	else
-		echoP("usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>")
+		echoP(
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>"
+		)
 	end
 end
 
@@ -2370,7 +2859,9 @@ function widget:Initialize()
 		end
 	end)
 	widgetHandler:RegisterGlobal("mapproject_units_save_end", function(_count)
-		if unitsRx then unitsRx.done = true end
+		if unitsRx then
+			unitsRx.done = true
+		end
 	end)
 	widgetHandler:RegisterGlobal("mapproject_units_save_denied", function(reason)
 		unitsRx = { batches = {}, done = true, denied = tostring(reason or "export denied") }
@@ -2382,10 +2873,33 @@ function widget:Initialize()
 		listDetailed = listProjectsDetailed,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
+		exists = projectExists,
+		-- Slug of the project this session was loaded from or last saved to
+		-- (nil until one of those happens) — the FILE > Save target.
+		current = function()
+			return currentSlug
+		end,
+		-- (step, total, stepName) of the running save, nil when idle — drives
+		-- the status-strip segment bar in the terraform UI.
+		saveProgress = function()
+			if not job then
+				return nil
+			end
+			local step = math.min(job.step, #STEPS)
+			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
+		end,
+		-- {ok, slug} of the most recent save (nil until one finishes).
+		lastSave = function()
+			return lastSaveInfo
+		end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
-		isBusy = function() return job ~= nil or loadJob ~= nil end,
-		isLoading = function() return loadJob ~= nil end,
+		isBusy = function()
+			return job ~= nil or loadJob ~= nil
+		end,
+		isLoading = function()
+			return loadJob ~= nil
+		end,
 	}
 	maybeStartLoad()
 end
