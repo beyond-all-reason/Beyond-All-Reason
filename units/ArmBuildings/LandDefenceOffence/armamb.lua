@@ -4,6 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "ARMAMB.DDS",
 		buildtime = 27000,
+		canareaattack = true,
 		canrepeat = true,
 		cloakcost = 24,
 		collisionvolumeoffsets = "0 0 0",

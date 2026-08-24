@@ -4,6 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORPUN.DDS",
 		buildtime = 17400,
+		canareaattack = true,
 		canrepeat = true,
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
