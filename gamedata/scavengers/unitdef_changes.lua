@@ -402,6 +402,10 @@ customDefs.legrezbot  = {
 	workertime = 800,
 }
 
+customDefs.legrezbot  = {
+	workertime = 800,
+}
+
 customDefs.armrecl = {
 	workertime = 600,
 }
