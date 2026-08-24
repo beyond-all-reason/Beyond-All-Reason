@@ -1,0 +1,74 @@
+local widget = widget ---@type Widget
+
+function widget:GetInfo()
+	return {
+		name = "Map Editor Session",
+		desc = "Opens the terraformer and strips the combat UI when the session was launched to edit a map",
+		author = "Robert Burnham",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		layer = 1000001,
+		enabled = true,
+		handler = true,
+	}
+end
+
+-- The lobby marks a session with the mapeditor modoption; everything here is keyed off that, so
+-- opening the terraformer in an ordinary game is untouched.
+
+local HIDDEN_WIDGETS = {
+	"AdvPlayersList",
+	"Build menu",
+	"Grid menu",
+	"Order menu",
+	"Unit Groups",
+	"Idle Builders",
+}
+
+local sessionActive = false
+local step = 1
+
+-- RemoveWidgetRaw rather than DisableWidgetRaw: the latter zeroes the widget's order and saves,
+-- which would leave a player's next real game missing its UI.
+local function hideWidget(name)
+	local instance = widgetHandler:FindWidget(name)
+	if instance then
+		widgetHandler:RemoveWidgetRaw(instance)
+	end
+end
+
+function widget:Initialize()
+	sessionActive = Spring.GetModOptions().mapeditor and true or false
+end
+
+-- Both steps run from Update, not Initialize: Initialize is called while the handler is still
+-- walking its load list, and removing widgets there reenters it.
+function widget:Update()
+	if not sessionActive then
+		return
+	end
+
+	-- Cheat is deliberately not sent here: engaging a terrain mode already nudges it on, and
+	-- the command toggles, so a second sender racing the first turns cheats back off.
+	if step == 1 then
+		step = 2
+		for i = 1, #HIDDEN_WIDGETS do
+			hideWidget(HIDDEN_WIDGETS[i])
+		end
+
+		-- The top bar keeps its buttons: they carry the only way back to the lobby.
+		if WG.topbar then
+			WG.topbar.setResourceBarsVisible(false)
+			WG.topbar.setIndicatorsVisible(false)
+		end
+
+		return
+	end
+
+	-- terraformbrush is one of the suite launcher's entry commands: it loads the whole suite on
+	-- first use and re-dispatches, so the editor needs no widget wrangling from here.
+	if step == 2 then
+		step = 3
+		Spring.SendCommands("terraformbrush")
+	end
+end

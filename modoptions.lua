@@ -2152,6 +2152,15 @@ local options = {
 	},
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "mapeditor",
+		name = "Map Editor Session",
+		desc = "Launch as a map editor: the combat UI is left out and the terraformer opens on load.",
+		section = "dev",
+		type = "bool",
+		def = false,
+	},
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
 		key = "pushresistant",
 		name = "Pushresistance",
 		desc = "Enable to do desync test by the use of pushresistance",
