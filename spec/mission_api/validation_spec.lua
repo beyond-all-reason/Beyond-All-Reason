@@ -1,9 +1,12 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 -- mirror eager module loading in api_missions.lua
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+RegisterMissionApiModules() -- handles some load order
 GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
 GG['MissionAPI'].TriggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 
@@ -437,6 +440,35 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("Fraction", function()
+			it("rejects wrong type", function()
+				triggerErrors({
+					type       = triggerTypes.ConstructionProgress,
+					parameters = { teamID = 0, unitDefName = 'armwar', progress = 'bad' },
+					actions    = { 'ok' },
+				})
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: progress"))
+			end)
+
+			it("rejects a value greater than 1", function()
+				triggerErrors({
+					type       = triggerTypes.ConstructionProgress,
+					parameters = { teamID = 0, unitDefName = 'armwar', progress = 5.0 },
+					actions    = { 'ok' },
+				})
+				assert.is_true(hasError("Fraction must be between 0 and 1, got 5. Trigger: t, Parameter: progress"))
+			end)
+
+			it("rejects a negative value", function()
+				triggerErrors({
+					type       = triggerTypes.ConstructionProgress,
+					parameters = { teamID = 0, unitDefName = 'armwar', progress = -0.5 },
+					actions    = { 'ok' },
+				})
+				assert.is_true(hasError("Fraction must be between 0 and 1, got -0.5. Trigger: t, Parameter: progress"))
+			end)
+		end)
+
 		describe("Boolean", function()
 			it("rejects wrong type", function()
 				actionErrors({ type = actionTypes.PlaySound, parameters = { soundfile = "x", enqueue = 'bad' } })
@@ -608,20 +640,20 @@ describe("mission_api.validation", function()
 		describe("AllyTeamID", function()
 			it("rejects wrong type", function()
 				triggerErrors({
-					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamID = 'bad' },
+					type       = triggerTypes.UnitDetected,
+					parameters = { unitName = 'x', sensorAllyTeam = 'bad' },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: spottingAllyTeamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: sensorAllyTeam"))
 			end)
 
 			it("rejects invalid ally team ID", function()
 				triggerErrors({
-					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamID = 99 },
+					type       = triggerTypes.UnitDetected,
+					parameters = { unitName = 'x', sensorAllyTeam = 99 },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid allyTeamID: 99. Trigger: t, Parameter: spottingAllyTeamID"))
+				assert.is_true(hasError("Invalid allyTeamID: 99. Trigger: t, Parameter: sensorAllyTeam"))
 			end)
 		end)
 

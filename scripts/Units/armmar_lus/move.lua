@@ -1,3 +1,6 @@
+-- Supplied by the including unit script, which shares this chunk's environment:
+-- luacheck: read_globals ang currentSpeed isAiming isMoving isUW timedMove timedTurn
+
 stepTimes = { 12800, 12800, 12800, 12800, 12800, 12800, 12800, 12800 }
 keyFramesWalk = { --Step1						Step2						Step3						Step4...
 	--x		y		z			x		y		z			x		y		z			x		y		z
