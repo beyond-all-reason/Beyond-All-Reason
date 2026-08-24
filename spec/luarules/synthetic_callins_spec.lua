@@ -64,8 +64,16 @@ for _, base in ipairs(BASES) do
 			local env
 			env = setmetatable({
 				gadgetHandler = gh,
-				Script = { GetSynced = function() return true end },
-				Spring = setmetatable({ IsDevLuaEnabled = function() return false end }, { __index = Spring }),
+				Script = {
+					GetSynced = function()
+						return true
+					end,
+				},
+				Spring = setmetatable({
+					IsDevLuaEnabled = function()
+						return false
+					end,
+				}, { __index = Spring }),
 				CMD = { MOVE = 10, REPAIR = 40, OPT_INTERNAL = 8 },
 				VFS = setmetatable({
 					Include = function(path)
@@ -75,7 +83,11 @@ for _, base in ipairs(BASES) do
 					end,
 				}, { __index = VFS }),
 				tracy = { ZoneBeginN = function() end, ZoneEnd = function() end },
-				table = setmetatable({ new = function() return {} end }, { __index = table }),
+				table = setmetatable({
+					new = function()
+						return {}
+					end,
+				}, { __index = table }),
 			}, { __index = _G })
 
 			local chunk = assert(loadfile(MODULE_PATH))
@@ -255,7 +267,11 @@ for _, base in ipairs(BASES) do
 			end)
 
 			it("leaves no marks behind a throwing subscriber", function()
-				local thrower = { [base .. "Post"] = function() error("boom") end }
+				local thrower = {
+					[base .. "Post"] = function()
+						error("boom")
+					end,
+				}
 				subscribe(thrower, "Post")
 				mark(101, 0.1)
 				postSeen, totalSeen = {}, {}
