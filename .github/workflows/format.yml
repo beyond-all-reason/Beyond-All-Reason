@@ -115,20 +115,6 @@ jobs:
             cat errlines.txt
           fi
 
-          # Render mismatches as github annotation bubbles close to the file-level,
-          # by targeting the first bad line. Leaving line=off annotates against the
-          # zeroth line, which does not exist; stylua indexes lines from zero, also.
-          # GH keeps up to 10 annotation bubbles and discards the rest, which go to
-          # the logs, so they have duplicate lists of gh annotation/stylua messages.
-          jq -r --arg ver "$ver" '
-            def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
-            def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
-            . as $f
-            | ([ .mismatches[]?.original_start_line ] | min) as $first
-            | (if $first == null or $first < 0 then 1 else $first + 1 end) as $line
-            | "::error file=\($f.file | prop),line=\($line),title=Not formatted::Run \($ver) on this file and commit the result."
-          ' mismatches.json
-
           if [ "$bad_files" -gt 10 ]; then
             while IFS= read -r file; do
               folder=${file%/*}
@@ -136,6 +122,43 @@ jobs:
               printf '%s\n' "$folder"
             done < misformatted.txt | sort | uniq -c | sort -rn > folders.txt
             bad_folders=$(wc -l < folders.txt)
+          fi
+
+          # Format mismatches render as github annotation bubbles on the first line.
+          # Leaving line=off annotates against the zeroth line, which does not exist.
+          # Stylua indexes from zero while github indexes from one, in this case.
+          # GH keeps up to 10 annotation bubbles and discards the rest (kept in logs)
+          # so these are sorted by the worst offenders, determined by total diff size.
+          jq -s -r --arg ver "$ver" '
+            def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+            def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+            map(
+              . as $f
+              | ([ .mismatches[]?.original_start_line ] | min) as $first
+              | (if $first == null or $first < 0 then 1 else $first + 1 end) as $line
+              | ([ .mismatches[]?
+                   | ([ (.original_end_line - .original_start_line),
+                        (.expected_end_line - .expected_start_line) ] | max) + 1
+                 ] | add // 1) as $lines
+              | { file: $f.file, line: $line, lines: $lines }
+            )
+            | sort_by(-.lines)
+            | .[0:10][]
+            | "::error file=\(.file | prop),line=\(.line),title=Not formatted::\(.lines) line(s) would change. Run \($ver) on this file and commit the result."
+          ' mismatches.json
+
+          # GH annotation cap of 10 is per-category, so folder rollups use warnings.
+          if [ "$bad_files" -gt 10 ] && [ "$bad_folders" -le 10 ]; then
+            while read -r count folder; do
+              echo "::warning title=Not formatted::$folder: $count file(s)"
+            done < folders.txt
+          fi
+
+          # Notices are a third pool, which we use to notify of >10 in other pools.
+          if [ "$bad_files" -gt 10 ]; then
+            echo "::notice title=Formatting::$bad_files file(s) are not formatted; the 10 largest are annotated and the job summary lists them all."
+          elif [ "$bad_files" -gt 0 ]; then
+            echo "::notice title=Formatting::$bad_files file(s) are not formatted."
           fi
 
           # One last clever-ish trick: When the file count is >10, list by folder.
