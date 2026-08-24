@@ -9,15 +9,20 @@
 --  event system, in many cases, so code built on top of these foundations needs
 --  to keep up with the times and adapt as the gaps fill in from the other side.
 --
---  This also produces two types of summary view of a base callin:
---  1. *Post.* This is a mark-and-sweep pattern to update dirtied IDs.
---  2. *Total.* This is an accumulator with a hook for custom results.
+--  This also produces a few types of "summary views" over a base callin:
+--  - *Post.* This is a mark-and-sweep pattern to update dirtied IDs.
+--  - *Total.* This is an accumulator with a hook for custom results.
+--  - *Transition.* Tracks state changes, holding a latch and ignoring loops.
 --
 --  Adding a new callin:
 --  1. Add the callin's envs and subscriptions to syntheticCallins.
---  2. If producing a summary view, add to syntheticCallinSummaries.
+--  2. If producing a summary view, add to one of the following sets:
+--     `syntheticCallinSummaries`:
 --     This produces both the <Base>Post and <Base>Total callins and
 --     adds the custom GG.Accumulate<Base> hook later during install.
+--     `syntheticCallinTransitions`:
+--     This produces only the <Base>Post callin and collects state changes
+--     to be raised later only if they do not resolve subframe, eg A->B->A.
 --  3. If the callin tracks more state, add it to syntheticCallinUpdate.
 --  4. Add the callin's implementation (and locals) to the Dispatch section.
 --  5. Add the callin to the handler in the Install section.
@@ -43,6 +48,7 @@ local syntheticCallins = {
 		FeatureBuildStepPost  = { 'GameFramePost', 'AllowFeatureBuildStep' },
 		UnitBuildStepTotal    = { 'GameFramePost', 'AllowUnitBuildStep' },
 		FeatureBuildStepTotal = { 'GameFramePost', 'AllowFeatureBuildStep' },
+		UnitIdlePost          = { 'GameFramePost', 'UnitIdle', 'UnitCommand', 'UnitTaken', 'UnitDestroyed' }, -- See modules/unit_idle_states.lua.
 	},
 
 	unsynced = {},
@@ -51,6 +57,10 @@ local syntheticCallins = {
 local syntheticCallinSummaries = {
 	UnitBuildStep    = true,
 	FeatureBuildStep = true,
+}
+
+local syntheticCallinTransitions = {
+	UnitIdle = true,
 }
 
 -- The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
@@ -121,6 +131,9 @@ end
 ---@class SummaryActive
 ---@field [1] true? whether accumulating totals
 
+---Sticky-state per marked ID, kept while active.
+---@alias SummaryLatched table<integer, true>
+
 local function createSummary(callinName)
 	if not syntheticCallinSummaries[callinName] then
 		return
@@ -175,6 +188,34 @@ local function createSummary(callinName)
 	syntheticCallinUpdate[callinName .. 'Total'] = update
 end
 
+local function createTransition(callinName)
+	if not syntheticCallinTransitions[callinName] then
+		return
+	end
+
+	---@type SummaryMarked, SummaryList, SummaryCount
+	local marked, list, count = {}, {}, table.new(1, 0)
+	---@type SummaryLatched
+	local latched = {}
+	local stop = makeStopMarking(marked, list, count)
+
+	marks[callinName] = { marked = marked, list = list, count = count, latched = latched, stop = stop }
+
+	-- After the last subscriber drops, any late-subscribers cannot trust
+	-- the latched states anymore, so the states also must be dropped.
+	local postList = callinName .. 'PostList'
+	syntheticCallinUpdate[callinName .. 'Post'] = function(gh)
+		if #gh[postList] > 0 then
+			count[1] = count[1] or 0
+		else
+			stop()
+			for id in pairs(latched) do
+				latched[id] = nil
+			end
+		end
+	end
+end
+
 ---A summary's marking state. Callins from non-matching envs get empty tables.
 ---@param baseName string
 ---@return SummaryMarked marked
@@ -185,7 +226,7 @@ end
 local function getMarks(baseName)
 	local mark = marks[baseName]
 	if not mark then
-		if not syntheticCallinSummaries[baseName] then
+		if not syntheticCallinSummaries[baseName] and not syntheticCallinTransitions[baseName] then
 			error('synthetic_callins: no such summary: ' .. tostring(baseName))
 		end
 		return {}, {}, {}, {}, {}
@@ -196,6 +237,11 @@ end
 local function getMarksUnsafe(baseName)
 	local mark = marks[baseName]
 	return mark.marked, mark.list, mark.count, mark.totals, mark.active
+end
+
+---@return SummaryLatched latched
+local function getLatchUnsafe(baseName)
+	return marks[baseName].latched
 end
 
 local function createSweep(callinName)
@@ -248,6 +294,58 @@ local function createSweep(callinName)
 	end
 end
 
+---We distrust the engine's `:UnitIdle` callin so read the unit queue directly.
+---See unit_idle_stats.lua for detail on unit behaviors, namely, "idle tasks".
+local function createUnitIdleSweep()
+	local marked, list, countBox = getMarksUnsafe('UnitIdle')
+	local latched = getLatchUnsafe('UnitIdle')
+	local transitions, states = {}, {}
+
+	local VFSMODE = Spring.IsDevLuaEnabled() and VFS.RAW_FIRST or VFS.ZIP_ONLY
+	local isIdle = VFS.Include('modules/unit_idle_states.lua', nil, VFSMODE).IsIdle
+
+	local spGetUnitDefID  = Spring.GetUnitDefID
+	local spGetUnitIsDead = Spring.GetUnitIsDead
+
+	return function(handler)
+		local count = countBox[1]
+		if not count or count == 0 then
+			return
+		end
+		countBox[1] = 0
+
+		-- Clear marks first so subscribers that throw do not leave any marks.
+		-- Gathering the batch up front also lets subscribers re-mark safely.
+		local n = 0
+		for i = 1, count do
+			local unitID = list[i]
+			marked[unitID] = nil
+
+			-- Units can be finalized between mark and sweep. Ignore dying units.
+			local unitDefID = spGetUnitDefID(unitID)
+			if unitDefID and spGetUnitIsDead(unitID) == false then
+				local idle = isIdle(unitID, unitDefID)
+				if idle ~= (latched[unitID] == true) then
+					latched[unitID] = idle or nil
+					n = n + 1
+					transitions[n] = unitID
+					states[n] = idle
+				end
+			else
+				latched[unitID] = nil
+			end
+		end
+
+		local postList = handler.UnitIdlePostList
+		for i = 1, n do
+			local unitID, idled = transitions[i], states[i]
+			for _, g in ipairs(postList) do
+				g:UnitIdlePost(unitID, idled)
+			end
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 --  Dispatch  ------------------------------------------------------------------
 --
@@ -279,6 +377,9 @@ if Script.GetSynced() then
 
 	createSummary('FeatureBuildStep')
 	callins.SweepFeatureBuildStep = createSweep('FeatureBuildStep')
+
+	createTransition('UnitIdle')
+	callins.SweepUnitIdle = createUnitIdleSweep()
 end
 
 -- Unsynced environment
@@ -320,11 +421,15 @@ local function install(handler)
 		local gameFramePost = handler.GameFramePost
 		local sweepUnitBuildStep = callins.SweepUnitBuildStep
 		local sweepFeatureBuildStep = callins.SweepFeatureBuildStep
+		local sweepUnitIdle = callins.SweepUnitIdle
+
 		function handler:GameFramePost(frameNum)
 			tracy.ZoneBeginN("G:GameFramePostSummary")
 			sweepUnitBuildStep(self)
 			sweepFeatureBuildStep(self)
+			sweepUnitIdle(self)
 			tracy.ZoneEnd()
+
 			return gameFramePost(self, frameNum)
 		end
 

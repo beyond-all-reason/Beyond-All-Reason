@@ -463,8 +463,11 @@ end
 --  The game injects some of its own callins into the engine-driven event system:
 local synthetic = VFS.Include(SCRIPT_DIR .. 'callins/synthetic_callins.lua', nil, VFSMODE) ---@type SyntheticCallinsAPI
 
+-- stylua: ignore start
 local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
 local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('FeatureBuildStep')
+local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks('UnitIdle')
+-- stylua: ignore end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -2151,6 +2154,15 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
+
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID -- Clears state, does not raise the callin.
+	end
+
 	tracy.ZoneEnd()
 	return
 end
@@ -2176,6 +2188,15 @@ function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
+
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+
 	tracy.ZoneEnd()
 	return
 end
@@ -2271,6 +2292,16 @@ function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
+
+	-- Commands are cleared on unit transfer.
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+
 	return
 end
 
@@ -2299,6 +2330,15 @@ function gadgetHandler:UnitCommand(
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
+
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+
 	tracy.ZoneEnd()
 	return
 end
