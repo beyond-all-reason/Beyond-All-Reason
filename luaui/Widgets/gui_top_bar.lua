@@ -382,7 +382,7 @@ local function updateButtons()
 		local textWidth = font2:GetTextWidth(text) * fontsize
 		-- the circle grows along with the amount of characters the number has
 		local badgeRadius = badge
-			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
+				and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
 			or 0
 		local badgeWidth = badgeRadius * 2
 		local width = mathFloor(textWidth + badgeWidth + textPadding)
