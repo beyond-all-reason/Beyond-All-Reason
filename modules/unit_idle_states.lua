@@ -7,15 +7,15 @@
 -- In addition, units may have "idle tasks". These are orders followed to avoid player
 -- frustration with useless units but are not player orders "to make yourself useful".
 
-local CMD_REPAIR   = CMD.REPAIR
-local CMD_MOVE     = CMD.MOVE
+local CMD_REPAIR = CMD.REPAIR
+local CMD_MOVE = CMD.MOVE
 local OPT_INTERNAL = CMD.OPT_INTERNAL -- Imperfect but acceptable marker for idle tasks.
 
 -- Idle tasks are a pure accident of the many ways units receive commands via the engine.
 -- We identify them by a command + params + internal triple. They have no simple summary.
 local IDLE_TASK_PARAMS = {
 	[CMD_REPAIR] = 1, -- a targetID
-	[CMD_MOVE]   = 3, -- a position
+	[CMD_MOVE] = 3, -- a position
 }
 --
 -- Post-resurrection repair is not currently idle, by the same engine property that makes
@@ -36,8 +36,7 @@ local function inIdleTaskAtIndex(unitID, index)
 		return false
 	end
 	-- This is a fast parameter count but is not very future-proof.
-	return (params == 1 and secondParam == nil)
-		or (params == 3 and fourthParam == nil)
+	return (params == 1 and secondParam == nil) or (params == 3 and fourthParam == nil)
 end
 
 ---Whether everything in the unit's command queue is an idle task.
@@ -61,8 +60,7 @@ local function isIdle(unitID, unitDefID)
 	end
 
 	local commandCount = spGetUnitCommandCount(unitID)
-	return commandCount == 0
-		or inIdleTask(unitID, commandCount)
+	return commandCount == 0 or inIdleTask(unitID, commandCount)
 end
 
 return {

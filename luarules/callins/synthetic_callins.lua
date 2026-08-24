@@ -38,24 +38,24 @@ local env = Script.GetSynced() and "synced" or "unsynced"
 -- can become unhooked whenever no addon happens to subscribe to their base.
 local syntheticCallins = {
 	shared = {
-		MetaUnitAdded   = { 'UnitGiven', 'UnitCreated' },
-		MetaUnitRemoved = { 'UnitTaken', 'UnitDestroyed' },
+		MetaUnitAdded = { "UnitGiven", "UnitCreated" },
+		MetaUnitRemoved = { "UnitTaken", "UnitDestroyed" },
 	},
 
 	synced = {
-		UnitAutoTargetRange   = { 'AllowWeaponTarget' },
-		UnitBuildStepPost     = { 'GameFramePost', 'AllowUnitBuildStep' },
-		FeatureBuildStepPost  = { 'GameFramePost', 'AllowFeatureBuildStep' },
-		UnitBuildStepTotal    = { 'GameFramePost', 'AllowUnitBuildStep' },
-		FeatureBuildStepTotal = { 'GameFramePost', 'AllowFeatureBuildStep' },
-		UnitIdlePost          = { 'GameFramePost', 'UnitIdle', 'UnitCommand', 'UnitTaken', 'UnitDestroyed' }, -- See modules/unit_idle_states.lua.
+		UnitAutoTargetRange = { "AllowWeaponTarget" },
+		UnitBuildStepPost = { "GameFramePost", "AllowUnitBuildStep" },
+		FeatureBuildStepPost = { "GameFramePost", "AllowFeatureBuildStep" },
+		UnitBuildStepTotal = { "GameFramePost", "AllowUnitBuildStep" },
+		FeatureBuildStepTotal = { "GameFramePost", "AllowFeatureBuildStep" },
+		UnitIdlePost = { "GameFramePost", "UnitIdle", "UnitCommand", "UnitTaken", "UnitDestroyed" }, -- See modules/unit_idle_states.lua.
 	},
 
 	unsynced = {},
 }
 
 local syntheticCallinSummaries = {
-	UnitBuildStep    = true,
+	UnitBuildStep = true,
 	FeatureBuildStep = true,
 }
 
@@ -77,13 +77,13 @@ local callinNames = table.keys(syntheticCallinHold)
 local callinHoldSummary = {}
 for name, callinHolds in pairs(syntheticCallinHold) do
 	for _, callin in ipairs(callinHolds) do
-		local listName = callin .. 'List'
+		local listName = callin .. "List"
 		local holders = callinHoldSummary[listName]
 		if not holders then
 			holders = {}
 			callinHoldSummary[listName] = holders
 		end
-		holders[#holders + 1] = name .. 'List'
+		holders[#holders + 1] = name .. "List"
 	end
 end
 
@@ -147,7 +147,7 @@ local function createSummary(callinName)
 
 	marks[callinName] = { marked = marked, list = list, count = count, totals = totals, active = active, stop = stop }
 
-	accumulate['Accumulate' .. callinName] = function(id, amount)
+	accumulate["Accumulate" .. callinName] = function(id, amount)
 		-- Call sites must not accumulate when not subscribed.
 		local n = count[1]
 		if not n then
@@ -167,8 +167,8 @@ local function createSummary(callinName)
 	end
 
 	-- Both summary views share updates so must handle updating together.
-	local postList = callinName .. 'PostList'
-	local totalList = callinName .. 'TotalList'
+	local postList = callinName .. "PostList"
+	local totalList = callinName .. "TotalList"
 	local function update(gh)
 		if #gh[totalList] > 0 then
 			active[1] = true
@@ -184,8 +184,8 @@ local function createSummary(callinName)
 			stop()
 		end
 	end
-	syntheticCallinUpdate[callinName .. 'Post'] = update
-	syntheticCallinUpdate[callinName .. 'Total'] = update
+	syntheticCallinUpdate[callinName .. "Post"] = update
+	syntheticCallinUpdate[callinName .. "Total"] = update
 end
 
 local function createTransition(callinName)
@@ -203,8 +203,8 @@ local function createTransition(callinName)
 
 	-- After the last subscriber drops, any late-subscribers cannot trust
 	-- the latched states anymore, so the states also must be dropped.
-	local postList = callinName .. 'PostList'
-	syntheticCallinUpdate[callinName .. 'Post'] = function(gh)
+	local postList = callinName .. "PostList"
+	syntheticCallinUpdate[callinName .. "Post"] = function(gh)
 		if #gh[postList] > 0 then
 			count[1] = count[1] or 0
 		else
@@ -227,7 +227,7 @@ local function getMarks(baseName)
 	local mark = marks[baseName]
 	if not mark then
 		if not syntheticCallinSummaries[baseName] and not syntheticCallinTransitions[baseName] then
-			error('synthetic_callins: no such summary: ' .. tostring(baseName))
+			error("synthetic_callins: no such summary: " .. tostring(baseName))
 		end
 		return {}, {}, {}, {}, {}
 	end
@@ -247,8 +247,8 @@ end
 local function createSweep(callinName)
 	local marked, list, countBox, totals, activeBox = getMarksUnsafe(callinName)
 	local values = {}
-	local postName, totalName = callinName .. 'Post', callinName .. 'Total'
-	local postListName, totalListName = postName .. 'List', totalName .. 'List'
+	local postName, totalName = callinName .. "Post", callinName .. "Total"
+	local postListName, totalListName = postName .. "List", totalName .. "List"
 
 	return function(handler)
 		local count = countBox[1]
@@ -297,14 +297,14 @@ end
 ---We distrust the engine's `:UnitIdle` callin so read the unit queue directly.
 ---See unit_idle_states.lua for detail on unit behaviors, namely, "idle tasks".
 local function createUnitIdleSweep()
-	local marked, list, countBox = getMarksUnsafe('UnitIdle')
-	local latched = getLatchUnsafe('UnitIdle')
+	local marked, list, countBox = getMarksUnsafe("UnitIdle")
+	local latched = getLatchUnsafe("UnitIdle")
 	local transitions, states = {}, {}
 
 	local VFSMODE = Spring.IsDevLuaEnabled() and VFS.RAW_FIRST or VFS.ZIP_ONLY
-	local isIdle = VFS.Include('modules/unit_idle_states.lua', nil, VFSMODE).IsIdle
+	local isIdle = VFS.Include("modules/unit_idle_states.lua", nil, VFSMODE).IsIdle
 
-	local spGetUnitDefID  = Spring.GetUnitDefID
+	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitIsDead = Spring.GetUnitIsDead
 
 	return function(handler)
@@ -350,7 +350,7 @@ end
 --  Dispatch  ------------------------------------------------------------------
 --
 --  Callin implementations attach to the gadgetHandler in the Install section.
---  
+--
 --  - UnitAutoTargetRange has its base implementation in gadgets.lua, instead.
 
 local callins = {}
@@ -372,13 +372,13 @@ end
 -- Synced environment
 
 if Script.GetSynced() then
-	createSummary('UnitBuildStep')
-	callins.SweepUnitBuildStep = createSweep('UnitBuildStep')
+	createSummary("UnitBuildStep")
+	callins.SweepUnitBuildStep = createSweep("UnitBuildStep")
 
-	createSummary('FeatureBuildStep')
-	callins.SweepFeatureBuildStep = createSweep('FeatureBuildStep')
+	createSummary("FeatureBuildStep")
+	callins.SweepFeatureBuildStep = createSweep("FeatureBuildStep")
 
-	createTransition('UnitIdle')
+	createTransition("UnitIdle")
 	callins.SweepUnitIdle = createUnitIdleSweep()
 end
 
@@ -411,7 +411,7 @@ local function install(handler)
 		end
 	end
 
-	handler.MetaUnitAdded   = callins.MetaUnitAdded
+	handler.MetaUnitAdded = callins.MetaUnitAdded
 	handler.MetaUnitRemoved = callins.MetaUnitRemoved
 
 	-- Wrap multi-env dispatchers for single-env synthetic callins at install
@@ -449,8 +449,8 @@ end
 ---Synthetic callin registry and dispatch for gadgets.lua.
 ---@class SyntheticCallinsAPI
 local synthetic = {
-	install     = install,
-	getMarks    = getMarks,
+	install = install,
+	getMarks = getMarks,
 	callinNames = callinNames,
 }
 
