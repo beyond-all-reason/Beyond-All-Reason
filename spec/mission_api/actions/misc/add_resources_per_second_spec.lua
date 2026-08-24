@@ -10,7 +10,7 @@ GG['MissionAPIActionHelper'] = {
     addEnergyPerSecond = function() end,
 }
 
-local actions  = VFS.Include('luarules/mission_api/actions/misc/add_resources_per_second.lua')
+local actions  = VFS.Include('luarules/mission_api/actions/resources/add_resources_per_second.lua')
 local action   = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
