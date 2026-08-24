@@ -67,17 +67,7 @@ _G.Game.envDamageTypes = _G.Game.envDamageTypes or {
 
 _G.GG = _G.GG or {}
 
--- Command ids and option bits, as numbered in rts/Sim/Units/CommandAI/Command.h.
-_G.CMD = _G.CMD or {
-    MOVE         = 10,
-    REPAIR       = 40,
-    OPT_META     = 4,
-    OPT_INTERNAL = 8,
-    OPT_RIGHT    = 16,
-    OPT_SHIFT    = 32,
-    OPT_CTRL     = 64,
-    OPT_ALT      = 128,
-}
+_G.CMD = _G.CMD or {}
 _G.GameCMD = _G.GameCMD or {}
 
 _G.Game = _G.Game or {}
@@ -223,16 +213,6 @@ end
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `VFS.Include("common/tablefunctions.lua")` is called
 VFS.Include("common/tablefunctions.lua")
 
--- Mission API modules, in load order. Trigger files read them at include time.
-function _G.RegisterMissionApiModules()
-    _G.GG['MissionAPI'] = _G.GG['MissionAPI'] or {}
-    local modules = _G.GG['MissionAPI'].Modules or {}
-    _G.GG['MissionAPI'].Modules = modules
-    modules.ParameterTypes = modules.ParameterTypes or VFS.Include('luarules/mission_api/parameter_types.lua')
-    modules.IdleStates     = modules.IdleStates     or VFS.Include('luarules/mission_api/idle_states.lua')
-    return modules
-end
-
 _G.VFS.SubDirs = function(path)
 	-- Check case-insensitive cache for correct directory path
 	if not _G.VFS._ci_file_cache then
@@ -310,8 +290,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 	if recursive then
 		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
 	else
-		-- -maxdepth is global rather than positional, so it precedes the tests it applies to.
-    cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
+		cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
 	end
 
 	local handle = io.popen(cmd)
