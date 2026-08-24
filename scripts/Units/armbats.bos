@@ -67,7 +67,7 @@ MoveBarrelBlast(flarepiece) // Pass whichever piece you want to locate on XZ
 }
 
 // Pass whichever piece you want to locate on XZ, AND the turret that it rotates around in Y
-// Also tell how many percent further out you want the emit to happend (100% is exactly under flarepiece, 200% is 2x further from TURRET)
+// Also tell how many percent further out you want the emit to happen (100% is exactly under flarepiece, 200% is 2x further from TURRET)
 MoveBarrelBlastTurret(flarepiece, turretpiece, percentfurther) 
 {
 	

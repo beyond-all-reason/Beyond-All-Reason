@@ -320,6 +320,31 @@ validators[Types.Area] = function(area)
 		end
 	end
 
+validators[Types.Direction] = function(direction)
+	local luaTypeResult = validators[Types.Table](direction)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local isAngle = direction.angle and true
+	local isDirection = direction.x and direction.z
+	if not isAngle and not isDirection then
+		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }" } }
+	end
+	if isAngle and isDirection then
+		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both." } }
+	end
+	if isDirection then
+		local positionResult = validators[Types.Position](direction)
+		for _, positionError in ipairs(positionResult or {}) do
+			if positionError.missing then
+				logError("Direction: missing required field '" .. positionError.fieldName .. "'")
+			else
+				logError("Direction: field '" .. positionError.fieldName .. "': " .. positionError.message)
+			end
+		end
+	end
+end
 
 local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 	local valueSet = parameterTypes.Enums[enumSetName]
@@ -478,6 +503,17 @@ validators[Types.Quantity] = function(quantity)
 
 	if quantity < 0 then
 		return { { message = "Quantity must be >= 0, got " .. quantity } }
+	end
+end
+
+validators[Types.Fraction] = function(fraction)
+	local luaTypeResult = validators[Types.Number](fraction)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if fraction < 0.0 or fraction > 1.0 then
+		return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
 	end
 end
 

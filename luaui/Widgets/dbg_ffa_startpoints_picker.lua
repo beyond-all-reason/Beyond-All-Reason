@@ -19,7 +19,7 @@ function widget:GetInfo()
 		author = "nbusseneau",
 		date = "2023-08-20",
 		license = "GPL-2.0-or-later",
-		layer = 1000, -- must run later than `cmd_bar_hotkeys` to avoid being overriden
+		layer = 1000, -- must run later than `cmd_bar_hotkeys` to avoid being overridden
 		handler = true, -- need superpowers to disable other widgets
 		enabled = false,
 	}

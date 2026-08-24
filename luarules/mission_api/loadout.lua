@@ -30,9 +30,12 @@ end
 local function spawnUnit(unit, pos)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG['MissionAPI'].nameOfUnitBeingSpawned = unit.unitName
+	GG['MissionAPI'].spawnedUnitIsBeingBuilt = unit.construction
+	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', unit.team, unit.construction)
 	local teamID = GG['MissionAPI'].Teams[unit.teamName]
 	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', teamID, unit.construction)
 	GG['MissionAPI'].nameOfUnitBeingSpawned = nil
+	GG['MissionAPI'].spawnedUnitIsBeingBuilt = nil
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
@@ -90,7 +93,7 @@ local function spawnUnitLoadout(unitLoadout)
 		local zsize = unitDef.zsize * Game.squareSize + spacing
 
 		-- adjust for facing of non-square units
-		if Spring.Utilities.IsFacingEW(unit.facing) then
+		if BAR.Utilities.IsFacingEW(unit.facing) then
 			xsize, zsize = zsize, xsize
 		end
 
@@ -114,7 +117,7 @@ for _, unitDef in pairs(UnitDefs) do
 end
 
 local function spawnFeature(featureDefName, position, facing, featureName)
-	local heading = Spring.Utilities.FacingToHeading(facing or 0)
+	local heading = BAR.Utilities.FacingToHeading(facing or 0)
 	local featureID = Spring.CreateFeature(featureDefName, position.x, position.y, position.z, heading, gaiaTeamID)
 	local unitDefName = corpseToUnitDefName[featureDefName]
 

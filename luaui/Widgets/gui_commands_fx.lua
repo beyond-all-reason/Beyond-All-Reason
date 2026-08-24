@@ -752,8 +752,8 @@ function widget:Update(dt)
 			uid = next(newUnitCommands)
 		end
 
-		-- process new commands (cant be done directly because at
-		-- widget:UnitCommand() the queue isnt updated yet)
+		-- process new commands (can't be done directly because at
+		-- widget:UnitCommand() the queue isn't updated yet)
 		-- Batch-limit: process at most 80 per tick to avoid allocation spikes
 		local processLimit = math.min(unprocessedCommandsNum, 80)
 		local processedCount = 0

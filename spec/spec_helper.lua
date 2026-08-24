@@ -38,10 +38,64 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
 	print(...)
 end
 
+_G.Game = _G.Game or {}
+
+_G.Game.envDamageTypes = _G.Game.envDamageTypes or {
+    Debris            =  -1,
+    GroundCollision   =  -2,
+    ObjectCollision   =  -3,
+    Fire              =  -4,
+    Water             =  -5,
+    Killed            =  -6,
+    Crushed           =  -7,
+    AircraftCrashed   =  -8,
+    SetNegativeHealth =  -9,
+    SelfD             = -10,
+    KilledByCheat     = -11,
+    Reclaimed         = -12,
+    OutOfBounds       = -13,
+    TransportKilled   = -14,
+    FactoryKilled     = -15,
+    FactoryCancel     = -16,
+    UnitScript        = -17,
+    Kamikaze          = -18,
+    ConstructionDecay = -19,
+    TurnedIntoFeature = -20,
+    KilledByLua       = -21,
+	-- More are added via code for our lua-scripted damages.
+}
+
 _G.GG = _G.GG or {}
 
 _G.CMD = _G.CMD or {}
 _G.GameCMD = _G.GameCMD or {}
+
+_G.Game = _G.Game or {}
+
+-- {def}IDs of environmental-damage sources, as passed to UnitDestroyed and UnitDamaged.
+_G.Game.envDamageTypes = _G.Game.envDamageTypes or {
+    Debris            =  -1,
+    GroundCollision   =  -2,
+    ObjectCollision   =  -3,
+    Fire              =  -4,
+    Water             =  -5,
+    Killed            =  -6,
+    Crushed           =  -7,
+    AircraftCrashed   =  -8,
+    SetNegativeHealth =  -9,
+    SelfD             = -10,
+    KilledByCheat     = -11,
+    Reclaimed         = -12,
+    OutOfBounds       = -13,
+    TransportKilled   = -14,
+    FactoryKilled     = -15,
+    FactoryCancel     = -16,
+    UnitScript        = -17,
+    Kamikaze          = -18,
+    ConstructionDecay = -19,
+    TurnedIntoFeature = -20,
+    KilledByLua       = -21,
+}
 
 _G.unpack = _G.unpack
 	or table.unpack
@@ -122,20 +176,23 @@ _G.VFS.Include = function(path, env, mode)
 		_G.VFS._sources[realPath] = source
 	end
 
+	-- The file exists, so a compile or run failure is a real bug (usually missing
+	-- setup, e.g. GG['MissionAPI'] not initialised yet). Surface it here rather
+	-- than falling through to the require fallback and returning {}, which lets
+	-- the caller fail later with a confusing "index a nil value" far from the cause.
 	if source then
 		local chunk, compileError = loadstring(source, "@" .. realPath)
-		if chunk then
-			setfenv(chunk, env or _G)
-
-			local success, result = pcall(chunk)
-			if success then
-				return result
-			else
-				print("Error loading " .. path .. ": " .. tostring(result))
-			end
-		else
-			print("Error compiling " .. path .. ": " .. tostring(compileError))
+		if not chunk then
+			error(string.format("VFS.Include failed to compile '%s': %s", path, tostring(compileError)), 0)
 		end
+
+		setfenv(chunk, env or _G)
+
+		local success, result = pcall(chunk)
+		if not success then
+			error(string.format("VFS.Include failed to run '%s': %s", path, tostring(result)), 0)
+		end
+		return result
 	end
 
 	-- Fallback to old require method if file not found on disk (e.g. standard libs)
@@ -263,3 +320,25 @@ _G.inspect = (function()
 		return _
 	end
 end)()
+
+-- Busted runs every spec file in a single Lua process, so globals left behind by
+-- one file leak into the next. Clearing GG before each file means a spec cannot
+-- accidentally depend on state another file happened to leave behind -- such a
+-- dependency now fails in every ordering instead of intermittently.
+--
+-- This only clears state, it never provides it: each spec is still responsible
+-- for its own load-time setup (e.g. GG['MissionAPI'].Modules.ParameterTypes must
+-- exist before including an action file, which reads it at load time).
+--
+-- Guarded because this file executes more than once per run (it is both
+-- require'd by specs and, for some tasks, loaded by busted as `helper`), which
+-- would otherwise register the subscriber repeatedly.
+if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
+	local ok, busted = pcall(require, "busted")
+	if ok and type(busted) == "table" and busted.subscribe then
+		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
+		busted.subscribe({ "file", "start" }, function()
+			_G.GG = {}
+		end)
+	end
+end

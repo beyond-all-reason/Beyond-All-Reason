@@ -10,10 +10,15 @@ return {
 	},
 	callins = {
 		UnitFinished = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
+			if not context.WasUnderConstruction[unitID] then
 				return
 			end
-			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+
+			local parameters = trigger.parameters
+			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+				return
+			end
+			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
 			if trigger.parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then

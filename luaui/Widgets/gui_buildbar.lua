@@ -69,7 +69,7 @@ local facRect = { -1, -1, -1, -1 }
 local boptRect = { -1, -1, -1, -1 }
 
 -- the following vars make it very easy to use the same code to render the menus, whatever side they are
--- cause we simple take topleft_startcorner and add recursivly *_inext to it to access they next icon pos
+-- cause we simple take topleft_startcorner and add recursively *_inext to it to access they next icon pos
 local fac_inext = { 0, 0 }
 local bopt_inext = { 0, 0 }
 
@@ -405,7 +405,7 @@ function widget:PlayerChanged()
 end
 
 -------------------------------------------------------------------------------
--- INITIALIZTION FUNCTIONS
+-- INITIALIZATION FUNCTIONS
 -------------------------------------------------------------------------------
 
 function widget:Initialize()

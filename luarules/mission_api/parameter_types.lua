@@ -11,6 +11,7 @@ local types = {
 	AllyTeamNames = 'AllyTeamNames',
 	Orders = 'Orders',
 	Area = 'Area',
+	Direction = 'Direction',
 	UnitLoadout = 'UnitLoadout',
 	FeatureLoadout = 'FeatureLoadout',
 	ResourceIncomeSources = 'ResourceIncomeSources',
@@ -33,6 +34,7 @@ local types = {
 	-- Number Validators:
 	Number = 'Number',
 	Quantity = 'Quantity',
+	Fraction = 'Fraction',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

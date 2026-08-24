@@ -733,7 +733,7 @@ Create(){
 	start-script UnitTimer();
 	set ARMORED to 1;
 	
-	//innitialize AI behavior
+	//initialize AI behavior
 	incrimentSensedVTOL	= (incrimentSensedVTOL + rand(15, 30)) / 2;
 	incrimentSensedGroundScout = (incrimentSensedGroundScout + rand(15, 30)) / 2;
 	incrimentSensedGroundNear = (incrimentSensedGroundNear + rand(15, 30)) / 2;

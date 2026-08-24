@@ -181,7 +181,7 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 		CATT_goalHeading = CATT_goalHeading - chassisTurnAngle;
 		CATT_delta = CATT_goalHeading - CATT1position;
 
-		// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
+		// Needs to use velocity, because if we use NOW, then any previous turn speed command won't be overridden!
 		turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
 		CATT_pastChassisHeading = CATT_nextChassisHeading; //track chassis heading
 		if (frames == 1) //exits if this is the 1 frame call-script from AimWeaponX->CATT1_Aim
@@ -190,7 +190,7 @@ CATT1_AimWithChassis(frames) // no need to signal, as threads inherit parents si
 		}
 		sleep 32;
 	}
-	CATT_isAiming = 0; //unset isAiming, becasue pastChassisHeading will stop being tracked once this thread is over, so will need to be reset when aiming again 
+	CATT_isAiming = 0; //unset isAiming, because pastChassisHeading will stop being tracked once this thread is over, so will need to be reset when aiming again 
 	#ifndef CATT_DONTRESTORE
 		start-script CATT1_Restore(); // spin up restore thread
 	#endif

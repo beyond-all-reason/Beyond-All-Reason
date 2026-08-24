@@ -492,7 +492,7 @@ function widget:MousePress(mx, my, mButton)
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
-	-- Is this line a path candidate (We don't do a path off an overriden command)
+	-- Is this line a path candidate (We don't do a path off an overridden command)
 	pathCandidate = (not overriddenCmd) and selectedUnitsCount == 1 and (not shift or repeatForSingleUnit)
 
 	-- Initialize path positions tracking
@@ -1146,7 +1146,7 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted, adjustLimit)
 		-- Delay is greater than desired, we have to reduce units
 		maxHungarianUnits = maxHungarianUnits - 1
 	elseif adjustLimit ~= false then
-		-- Delay is less than desired, so thats OK
+		-- Delay is less than desired, so that's OK
 		-- To make judgements we need number of units to be close to max
 		-- Because we are making predictions of time and we want them to be accurate
 		if #units > maxHungarianUnits * unitIncreaseThresh then

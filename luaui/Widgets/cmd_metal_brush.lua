@@ -314,6 +314,37 @@ local function drawCursorInfo(worldX, worldZ)
 
 	local sx, sy = WorldToScreenCoords(worldX, GetGroundHeight(worldX, worldZ), worldZ)
 
+	-- Anchor the readout just below the brush outline, right-aligned to its
+	-- right edge: close to where the eye already is, but never over the area
+	-- being painted. Sample 8 points on the shape's bounding circle
+	-- (circumradius — square/hexagon outlines reach past ss.radius at the
+	-- corners) for the outline's screen-space bottom and right extents,
+	-- whatever the camera angle.
+	do
+		local ss = getSharedState()
+		local bound = ss.radius or 0
+		if ss.shape == "square" then
+			bound = bound * 1.4143
+		elseif ss.shape == "hexagon" then
+			bound = bound * 1.1548
+		end
+		local bottomY, rightX = sy, sx
+		for i = 0, 7 do
+			local a = i * (pi * 0.25)
+			local px = worldX + bound * cos(a)
+			local pz = worldZ + bound * sin(a)
+			local psx, psy = WorldToScreenCoords(px, GetGroundHeight(px, pz), pz)
+			if psy and psy < bottomY then
+				bottomY = psy
+			end
+			if psx and psx > rightX then
+				rightX = psx
+			end
+		end
+		sx = rightX
+		sy = bottomY - 30
+	end
+
 	local text
 	if subMode == "stamp" then
 		text = format("STAMP: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
@@ -322,9 +353,9 @@ local function drawCursorInfo(worldX, worldZ)
 	end
 
 	glColor(0, 0, 0, 0.92)
-	glText(text, sx + 2, sy + 18, 24, "co")
+	glText(text, sx + 2, sy - 2, 24, "ro")
 	glColor(1, 1, 1, 1.0)
-	glText(text, sx, sy + 20, 24, "co")
+	glText(text, sx, sy, 24, "ro")
 end
 
 -- ============================================================
@@ -444,8 +475,7 @@ end
 local DEFAULT_CLUSTER_RADIUS = 256
 
 local mapOverlay = false
-local MAP_OVERLAY_DIM = 0.45 -- darkness applied to map while overlay is active
-local savedDarknessBeforeOverlay = nil -- non-nil while we've applied overlay dim
+local MAP_OVERLAY_DIM = 0.45 -- alpha of the map-dim quad drawn while overlay is active
 local savedBrushBeforeMetal = nil -- {gridSnap, radius, shape} to restore on tool exit
 local clusterCounter = false
 local clusterRadius = DEFAULT_CLUSTER_RADIUS
@@ -934,17 +964,6 @@ local function setMapOverlay(v)
 	mapOverlay = v and true or false
 	if mapOverlay then
 		invalidateMetalCaches()
-		-- Dim the map so metal patches stand out; save previous darkness to restore later
-		if savedDarknessBeforeOverlay == nil and WG.darkenmap then
-			savedDarknessBeforeOverlay = WG.darkenmap.getMapDarkness()
-			WG.darkenmap.setMapDarkness(MAP_OVERLAY_DIM)
-		end
-	else
-		-- Restore map brightness
-		if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
-			WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
-		end
-		savedDarknessBeforeOverlay = nil
 	end
 end
 
@@ -1275,11 +1294,6 @@ local function deactivate()
 	active = false
 	painting = false
 	paintButton = 0
-	-- Restore map brightness if overlay was on when we deactivated
-	if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
-		WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
-	end
-	savedDarknessBeforeOverlay = nil
 	-- Hand the pre-metal brush settings back to the shared brush
 	if savedBrushBeforeMetal ~= nil then
 		local tb = WG.TerraformBrush
@@ -1374,11 +1388,6 @@ function widget:Shutdown()
 	if clusterVisList then
 		gl.DeleteList(clusterVisList)
 		clusterVisList = nil
-	end
-	-- Restore map brightness if overlay dim was active
-	if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
-		WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
-		savedDarknessBeforeOverlay = nil
 	end
 end
 
@@ -1676,6 +1685,29 @@ function widget:Update(dt)
 	end
 
 	sendPaintMessage(worldX, worldZ)
+end
+
+function widget:DrawWorldPreUnit()
+	-- Map dim while the metal overlay is up, drawn pre-unit like the stock Darken
+	-- map widget so units stay bright. Deliberately NOT driven through WG.darkenmap:
+	-- that widget persists its live value, so a crash (or its Shutdown nil'ing
+	-- WG.darkenmap before our restore ran) saved the overlay dim as the user's
+	-- permanent darkenmap setting.
+	if active and mapOverlay then
+		local drawMode = Spring.GetMapDrawMode()
+		if drawMode == "height" or drawMode == "path" then
+			return
+		end
+		local camX, camY, camZ = Spring.GetCameraPosition()
+		local dirX, dirY, dirZ = Spring.GetCameraDirection()
+		gl.PushMatrix()
+		glColor(0, 0, 0, MAP_OVERLAY_DIM)
+		gl.Translate(camX + dirX * 360, camY + dirY * 360, camZ + dirZ * 360)
+		gl.Billboard()
+		gl.Rect(-5000, -5000, 5000, 5000)
+		gl.PopMatrix()
+		glColor(1, 1, 1, 1)
+	end
 end
 
 function widget:DrawWorld()

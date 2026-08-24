@@ -62,7 +62,7 @@ local SCORE_UPDATE_INTERVAL = 2.0
 
 local TIME_ZERO_STRING = "0:00"
 local KEY_ESCAPE = 27
-local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help destinguish points from territory counts in round 1.
+local AESTHETIC_POINTS_MULTIPLIER = 2 -- because bigger number feels good, and to help distinguish points from territory counts in round 1.
 
 local COLOR_BACKGROUND_ALPHA = 35
 local COLOR_BYTE_MAX = 255
