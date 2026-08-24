@@ -9,3 +9,4 @@ luaui/images/decals_gl4/decalsgl4_atlas_normal.lua
 unittextures/decals/unitaoplates_atlas.lua
 luarules/mission_api/triggers/
 luarules/mission_api/actions/
+singleplayer/mission-api-tests/
