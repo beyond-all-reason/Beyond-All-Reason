@@ -1,7 +1,8 @@
-name: Format
+name: Format Check
 
 on:
   pull_request:
+    paths: ['**.lua']
 
 permissions:
   contents: read
@@ -64,7 +65,7 @@ jobs:
           set -e
 
           if ! jq -e -s 'type == "array"' mismatches.json > /dev/null 2>&1; then
-            echo "::error title=Formatting check is broken::stylua wrote an unreadable Json report (exit $stylua_status). This is a CI defect, not a problem with this PR; fix format.yml or its pinned stylua."
+            echo "::error title=Formatting check is broken::stylua wrote an unreadable Json report (exit $stylua_status). This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
             cat mismatches.json errors.json
             exit 1
           fi
@@ -98,7 +99,7 @@ jobs:
           bad_files=$(wc -l < misformatted.txt)
           if [ "$bad_files" -eq 0 ] && [ ! -s errlines.txt ]; then
             if [ "$stylua_status" -ne 0 ] && [ "$parse_errors" -eq 0 ]; then
-              echo "::error title=Formatting check is broken::stylua exited $stylua_status without reporting anything. This is a CI defect, not a problem with this PR; fix format.yml or its pinned stylua."
+              echo "::error title=Formatting check is broken::stylua exited $stylua_status without reporting anything. This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
               exit 1
             fi
             echo "All changed files are formatted."
