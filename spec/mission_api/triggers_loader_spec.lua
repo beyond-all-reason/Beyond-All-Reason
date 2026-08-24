@@ -1,11 +1,14 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 local triggersLoader = VFS.Include('luarules/mission_api/triggers_loader.lua')
 
 -- Load the real trigger definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
+RegisterMissionApiModules()
 local realDefinitions  = triggersLoader.LoadTriggerDefinitions()
 local realTriggerFiles = VFS.DirList('luarules/mission_api/triggers/', '*.lua')
 
@@ -15,6 +18,7 @@ describe("mission_api.triggers_loader", function()
 	before_each(function()
 		-- loadTriggerDefinitions reads the parameter-type table from GG at call time.
 		GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
+		RegisterMissionApiModules()
 	end)
 
 	-- ── LoadTriggerDefinitions (isolated, mocked trigger files) ───────────────
@@ -155,6 +159,10 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitTaken[T.ProductionCanceled])
 			assert.is_function(C.UnitEnteredLos[T.UnitSpotted])
 			assert.is_function(C.UnitLeftLos[T.UnitUnspotted])
+			assert.is_function(C.IdleUpdate[T.UnitIdled])
+			assert.is_function(C.IdleUpdate[T.UnitUnidled])
+			assert.is_function(C.UnitDestroyed[T.UnitIdled])
+			assert.is_function(C.UnitDestroyed[T.UnitUnidled])
 			assert.is_function(C.TeamDied[T.TeamDestroyed])
 			assert.is_function(C.FeatureCreated[T.FeatureCreated])
 			assert.is_function(C.FeatureDestroyed[T.FeatureReclaimed])

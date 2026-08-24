@@ -1,10 +1,13 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 -- mirror eager module loading in api_missions.lua; the trigger files read
 -- GG['MissionAPI'].Modules.ParameterTypes at load time.
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+RegisterMissionApiModules()
 
 local triggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
