@@ -108,6 +108,16 @@ local triggers = {
 		actions = { 'messageConstructionStartedSolar' },
 	},
 
+	constructionHalfwaySolar = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			progress = 0.5,
+		},
+		actions = { 'messageConstructionHalfwaySolar' },
+	},
+
 	constructionFinishedSolar = {
 		type = triggerTypes.ConstructionFinished,
 		parameters = {
@@ -388,6 +398,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Construction of solar started!",
+		},
+	},
+
+	messageConstructionHalfwaySolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Construction of solar halfway done!",
 		},
 	},
 

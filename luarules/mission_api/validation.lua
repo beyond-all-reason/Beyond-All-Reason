@@ -482,6 +482,17 @@ validators[Types.Quantity] = function(quantity)
 	end
 end
 
+validators[Types.Fraction] = function(fraction)
+	local luaTypeResult = validators[Types.Number](fraction)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if fraction < 0.0 or fraction > 1.0 then
+		return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
+	end
+end
+
 validators[Types.TeamID] = function(teamID)
 		local luaTypeResult = validators[Types.Number](teamID)
 		if luaTypeResult then

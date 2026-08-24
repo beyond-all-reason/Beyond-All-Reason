@@ -32,6 +32,7 @@ local needsBuildStartSet
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
+local constructionState         = {}
 local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
@@ -230,6 +231,7 @@ function gadget:Initialize()
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
+		ConstructionState        = constructionState,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
@@ -247,6 +249,15 @@ function gadget:Initialize()
 
 	if not needsReclaimIncome then
 		gadgetHandler:RemoveCallIn('AllowUnitBuildStep')
+	end
+
+	-- Summary view over the *BuildStep callins behave similarly so we unhook them.
+	local needsConstructionProgress = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionProgress
+	end)
+
+	if not needsConstructionProgress then
+		gadgetHandler:RemoveCallIn('UnitBuildStepPost')
 	end
 
 	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
@@ -482,6 +493,10 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 		end
 	end
 	return true
+end
+
+function gadget:UnitBuildStepPost(unitID)
+	dispatchTriggerCallin('UnitBuildStepPost', unitID)
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
