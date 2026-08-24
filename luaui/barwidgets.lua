@@ -1197,7 +1197,7 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
-function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
+function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess, persist)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
@@ -1205,16 +1205,20 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	end
 	if not ki.active then
 		Spring.Echo("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
-		local order = widgetHandler.orderList[name]
-		if not order or order <= 0 then
-			self.orderList[name] = 1
+		if persist ~= false then
+			local order = widgetHandler.orderList[name]
+			if not order or order <= 0 then
+				self.orderList[name] = 1
+			end
 		end
 		local w = self:LoadWidget(ki.filename, ki.fromZip, enableLocalsAccess)
 		if not w then
 			return false
 		end
 		self:InsertWidgetRaw(w)
-		self:SaveConfigData()
+		if persist ~= false then
+			self:SaveConfigData()
+		end
 	end
 	return true
 end
