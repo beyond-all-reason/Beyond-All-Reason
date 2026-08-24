@@ -43,6 +43,7 @@ local SUITE_WIDGETS = {
 	"Feature Placer UI",
 	"Weather Brush UI",
 	"Map Labels UI",
+	"Map Project",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
