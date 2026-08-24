@@ -41,6 +41,7 @@ local sound_button2 = "LuaUI/Sounds/buildbar_rem.wav"
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ""
 local lastUpdateClock = 0
