@@ -16,15 +16,15 @@
 -- which also has a return-move, and cmd_build_bugger_off.lua, which has a bugger-move.
 -- To distinguish these commands from others, we assume each is issued with OPT_INTERNAL.
 
-local CMD_REPAIR   = CMD.REPAIR
-local CMD_MOVE     = CMD.MOVE
+local CMD_REPAIR = CMD.REPAIR
+local CMD_MOVE = CMD.MOVE
 local OPT_INTERNAL = CMD.OPT_INTERNAL -- Imperfect but acceptable marker for idle tasks.
 
 -- Idle tasks are a pure accident of the many ways units receive commands via the engine.
 -- We identify them by a command + params + internal triple. They have no simple summary.
 local IDLE_TASK_PARAMS = {
 	[CMD_REPAIR] = 1, -- a targetID
-	[CMD_MOVE]   = 3, -- a position
+	[CMD_MOVE] = 3, -- a position
 }
 --
 -- Counterexamples shape the rest of idle tasks, then. Autotargeting is not currently idle.
@@ -41,8 +41,7 @@ local function inIdleTaskAtIndex(unitID, index)
 	if not wantedParamCount or bit_and(cmdOptions, OPT_INTERNAL) == 0 then
 		return false
 	end
-	return (wantedParamCount == 1 and secondParam == nil)
-		or (wantedParamCount == 3 and fourthParam == nil) -- NB: leaky.
+	return (wantedParamCount == 1 and secondParam == nil) or (wantedParamCount == 3 and fourthParam == nil)
 end
 
 ---Whether everything in the unit's command queue is an idle task.
@@ -66,8 +65,7 @@ local function isIdle(unitID, unitDefID)
 	end
 
 	local commandCount = Spring.GetUnitCommandCount(unitID)
-	return commandCount == 0
-		or inIdleTask(unitID, commandCount)
+	return commandCount == 0 or inIdleTask(unitID, commandCount)
 end
 
 ---Build the IdleUpdate artificial callin for the UnitIdled and UnitUnidled triggers.
@@ -87,7 +85,8 @@ local function createIdleUpdate(fireOnIdle, matchesUnit)
 				if idle ~= (latched[unitID] == true) then
 					latched[unitID] = idle or nil
 					-- Dying units still hold orders, and unit tracking can change between updates.
-					if idle == fireOnIdle
+					if
+						idle == fireOnIdle
 						and Spring.GetUnitIsDead(unitID) == false
 						and matchesUnit(parameters, context, unitID, unitDefID)
 					then
@@ -109,5 +108,5 @@ end
 
 return {
 	CreateIdleUpdate = createIdleUpdate,
-	Clear            = clear,
+	Clear = clear,
 }
