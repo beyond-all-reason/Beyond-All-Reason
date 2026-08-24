@@ -30,8 +30,10 @@ end
 local function spawnUnit(unit, pos)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG['MissionAPI'].nameOfUnitBeingSpawned = unit.unitName
+	GG['MissionAPI'].spawnedUnitIsBeingBuilt = unit.construction
 	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', unit.team, unit.construction)
 	GG['MissionAPI'].nameOfUnitBeingSpawned = nil
+	GG['MissionAPI'].spawnedUnitIsBeingBuilt = nil
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
