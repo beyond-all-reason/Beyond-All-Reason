@@ -58,7 +58,6 @@ local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
 local proposed_unit_reworksTweaks =
 	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
-local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
 local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
 local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
 
@@ -595,11 +594,6 @@ local function unitDef_Post(name, uDef)
 	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		uDef = proposed_unit_reworksTweaks(name, uDef)
-	end
-
-	-- Community Balance Patch
-	if modOptions.community_balance_patch ~= "disabled" then
-		uDef = communityBalanceTweaks(name, uDef, modOptions)
 	end
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies

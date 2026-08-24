@@ -164,6 +164,14 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(true)
 
 		teamplatterShader:Deactivate()
+
+		-- Restore default state (same as gui_selectedunits_gl4), so culling/stencil state doesn't
+		-- leak into widgets drawn after this one:
+		gl.Culling(false)
+		glStencilTest(false)
+		glStencilMask(255)
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+		glClear(GL_STENCIL_BUFFER_BIT)
 	end
 end
 

@@ -22,6 +22,8 @@ local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
 local mathMax = math.max
 
+local accumulateFeatureBuildStep = GG.AccumulateFeatureBuildStep
+
 local featureListMaxResource = {}
 local featureListReclaimTime = {}
 local unitListReclaimSpeed = {}
@@ -64,6 +66,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 
 	local newpercent = select(5, GetFeatureResources(featureID)) - newstep
 	SetFeatureReclaim(featureID, newpercent)
+	accumulateFeatureBuildStep(featureID, -newstep)
 	return true
 end
 
