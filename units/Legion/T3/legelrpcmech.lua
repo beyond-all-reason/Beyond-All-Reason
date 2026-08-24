@@ -8,6 +8,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 70 110",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		energycost = 150000,
 		explodeas = "explosiont3",
@@ -153,13 +154,11 @@ return {
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 6,
 				},
 				damage = {

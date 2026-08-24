@@ -2,7 +2,7 @@ return {
 	leginf = {
 		maxacc = 0.0098,
 		airsightdistance = 1050,
-		maxdec = 0.0196,
+		maxdec = 0.1,
 		energycost = 30000,
 		metalcost = 1700,
 		buildpic = "LEGINF.DDS",
@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 0.95832,
 		turnrate = 169.39999,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (model), Phill-Art (concept art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles/T2 Vehicles",

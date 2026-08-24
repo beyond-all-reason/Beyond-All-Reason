@@ -31,12 +31,10 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -119,7 +117,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun2",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1000,
 				texture1 = "shot",
@@ -129,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 12,
 					vtol = 4,

@@ -127,6 +127,7 @@ return {
 				},
 				damage = {
 					default = 270,
+					subs = 54,
 					vtol = 65,
 				},
 			},
@@ -158,6 +159,7 @@ return {
 				},
 				damage = {
 					default = 300,
+					subs = 60,
 					vtol = 65,
 				},
 			},
@@ -187,14 +189,13 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 3,
 				sprayangle = 950,
 				texture1 = "shot",
 				texture2 = "empty",
 				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
-				cylindertargeting=true,
+				cylindertargeting = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				customparams = {

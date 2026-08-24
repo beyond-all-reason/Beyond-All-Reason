@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGHADES.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",
@@ -36,15 +36,13 @@ return {
 		turninplacespeedlimit = 2.424,
 		turnrate = 544,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",
-			weapon1turretx = 240,
-			weapon1turrety = 240,
 		},
 		featuredefs = {
 			dead = {
@@ -123,11 +121,14 @@ return {
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				soundstartvolume = 2,
 				--sprayangle = 500,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					turretspeedx = 240,
+					turretspeedy = 240,
+				},
 				damage = {
 					default = 75,
 					vtol = 25,

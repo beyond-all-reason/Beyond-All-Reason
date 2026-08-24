@@ -117,7 +117,6 @@ return {
 				reloadtime = 0.6,
 				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpcexplo",
-				soundhitvolume = 34,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
 				turret = true,

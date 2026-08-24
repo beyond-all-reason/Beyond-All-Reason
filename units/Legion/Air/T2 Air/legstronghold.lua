@@ -3,7 +3,7 @@ return {
 		maxacc = 0.12,
 		blocking = false,
 		maxdec = 0.6,
-		energycost = 11000,
+		energycost = 13000,
 		metalcost = 550,
 		buildpic = "legstronghold.DDS",
 		buildtime = 24200,
@@ -20,7 +20,7 @@ return {
 		hoverattack = true,
 		health = 2600,
 		maxslope = 10,
-		speed = 175,
+		speed = 160,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/legstronghold.s3o",
@@ -47,7 +47,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -96,7 +97,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 1.0,
 				sprayangle = 1000,
 				thickness = 0.75,
 				tolerance = 6000,

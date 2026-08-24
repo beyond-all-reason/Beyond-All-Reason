@@ -3,12 +3,12 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Area Attack Limiter",
-		desc = "Converts excess area attack commands to fight commands to reduce lag from large (air) engagements",
+		desc = "Converts excess area-form attack commands to fight commands to reduce lag from large (air) engagements",
 		author = "Floris",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -17,7 +17,6 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local CMD_ATTACK = CMD.ATTACK
-local CMD_AREA_ATTACK = CMD.AREA_ATTACK
 local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
 
@@ -34,28 +33,33 @@ end
 
 local isBomberUnitDef = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
+	if
+		(unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
 		or string.find(unitDef.name, "armlance")
 		or string.find(unitDef.name, "cortitan")
-		or string.find(unitDef.name, "legatorpbomber") then
+		or string.find(unitDef.name, "legatorpbomber")
+	then
 		isBomberUnitDef[unitDefID] = true
 	end
 end
 
--- Max units allowed to use the expensive engine-side area attack.
+-- Max non-bomber units allowed to use an area-form CMD_ATTACK.
 -- Excess units receive a FIGHT command to the area center instead,
--- which makes them converge and auto-engage without the costly
--- per-unit target resolution the engine performs for area attacks.
+-- which makes them converge and auto-engage without expanding the
+-- command into too many target-specific attack orders.
 local BATCH_LIMIT = 30
 
 local isReissuing = false
 
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- Guard against re-entrancy: GiveOrderArrayToUnitArray can trigger CommandNotify again
-	if isReissuing then return end
+	if isReissuing then
+		return
+	end
 
-	-- Only intercept area-format commands (4 params: x, y, z, radius)
-	if (cmdID ~= CMD_ATTACK and cmdID ~= CMD_AREA_ATTACK) or #cmdParams ~= 4 or cmdParams[4] <= 0 then
+	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
+	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.
+	if cmdID ~= CMD_ATTACK or #cmdParams ~= 4 or cmdParams[4] <= 0 then
 		return
 	end
 
@@ -64,10 +68,18 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	-- Preserve command options
 	local opts = 0
-	if cmdOpts.alt then opts = opts + CMD.OPT_ALT end
-	if cmdOpts.ctrl then opts = opts + CMD.OPT_CTRL end
-	if cmdOpts.meta then opts = opts + CMD.OPT_META end
-	if cmdOpts.right then opts = opts + CMD.OPT_RIGHT end
+	if cmdOpts.alt then
+		opts = opts + CMD.OPT_ALT
+	end
+	if cmdOpts.ctrl then
+		opts = opts + CMD.OPT_CTRL
+	end
+	if cmdOpts.meta then
+		opts = opts + CMD.OPT_META
+	end
+	if cmdOpts.right then
+		opts = opts + CMD.OPT_RIGHT
+	end
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
 
@@ -100,24 +112,25 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	-- pipeline. GiveOrderArrayToUnitArray doesn't reliably deliver area attack
 	-- commands (4-param CMD_ATTACK) to the engine.
 	isReissuing = true
+	CallAsTeam(Spring.GetLocalTeamID(), function()
+		Spring.SelectUnitArray(attackUnits)
+		if cmdOpts.shift then
+			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		else
+			Spring.GiveOrder(CMD_STOP, {}, 0)
+			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		end
 
-	Spring.SelectUnitArray(attackUnits)
-	if cmdOpts.shift then
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
-	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
-	end
+		Spring.SelectUnitArray(fightUnits)
+		if cmdOpts.shift then
+			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		else
+			Spring.GiveOrder(CMD_STOP, {}, 0)
+			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		end
 
-	Spring.SelectUnitArray(fightUnits)
-	if cmdOpts.shift then
-		Spring.GiveOrder(CMD_FIGHT, {x, y, z}, opts + CMD.OPT_SHIFT)
-	else
-		Spring.GiveOrder(CMD_STOP, {}, 0)
-		Spring.GiveOrder(CMD_FIGHT, {x, y, z}, opts + CMD.OPT_SHIFT)
-	end
-
-	Spring.SelectUnitArray(selUnits)
+		Spring.SelectUnitArray(selUnits)
+	end)
 	isReissuing = false
 
 	return true

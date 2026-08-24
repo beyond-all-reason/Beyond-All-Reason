@@ -1,6 +1,5 @@
 return {
 	raptor_air_fighter_basic_t2_v2 = {
-		acceleration = 2,
 		airsightdistance = 600,
 		amphibious = true,
 		bankscale = "1",
@@ -111,7 +110,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

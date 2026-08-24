@@ -1,7 +1,7 @@
 return {
 	armfav = {
 		buildpic = "ARMFAV.DDS",
-		buildtime = 950,
+		buildtime = 1100,
 		canmove = true,
 		category = "GROUNDSCOUT",
 		collisionvolumeoffsets = "0 0 0",
@@ -45,8 +45,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -107,7 +105,7 @@ return {
 				beamtime = 0.18,
 				beamttl = 1,
 				burstrate = 0.2,
-				corethickness = 0.3,
+				corethickness = 0.13,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -125,16 +123,19 @@ return {
 				range = 180,
 				reloadtime = 1,
 				rgbcolor = "1 1 0.4",
-				rgbcolor2 = "1 0.55 0.3",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir1",
 				soundtrigger = 1,
-				thickness = 0.9,
+				thickness = 0.85,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 35,
 					vtol = 2,

@@ -1,6 +1,10 @@
 {
 	"ui": {
-		"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"selfdPolicyWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+		"factoryqmanager": {
+			"saved": "Saved",
+			"loaded": "Loaded"
+		},
 		"rejoin": {
 			"catchingUp": "Catching up to "
 		},
@@ -17,7 +21,9 @@
 				"changes": "Changes",
 				"keys": "Keys",
 				"scavengers": "Scavengers",
+				"mission": "Mission",
 				"stats": "Statistics",
+				"info": "Info",
 				"graphs": "Graphs",
 				"save": "Save"
 			},
@@ -36,7 +42,7 @@
 			"commanderCount": "Commander Counter",
 			"commanderCountTooltip": "Displays the number of ally and enemy commanders",
 			"tidalspeed": "Tidal Speed",
-			"tidalspeedTooltip": "Tidal speed on this map (always constant)",
+			"tidalspeedTooltip": "Tidal (water) speed on this map  (always constant)",
 			"windspeed": "Wind Speed",
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
@@ -259,11 +265,20 @@
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
-			"firestate_tooltip": "Set under what conditions a unit should start firing at enemies (without explicit attack order)",
+			"Defend": "Defend",
+			"Fire at all": "Fire At All",
+			"firestate_hold_fire_descr": "Don't acquire targets without orders",
+			"firestate_return_fire_descr": "Return fire when attacked",
+			"firestate_defend_descr": "Fire upon enemies when they individually become a threat",
+			"firestate_fire_at_will_descr": "Fire upon enemies within range",
+			"firestate_fire_at_all_descr": "Fire upon anything belonging to the enemy within range",
+			"firestate_tooltip": "Set under what conditions a unit should start firing at enemies (without explicit attack order).",
 			"Hold pos": "Hold pos",
 			"Maneuver": "Maneuver",
 			"Roam": "Roam",
 			"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
+			"bomber_targeting": "Targeting",
+			"bomber_targeting_tooltip": "Hold Fire: Only attack with an explicit order. Fire at will: Idle bombers will seek targets within range.",
 			"Repeat on": "Repeat On",
 			"Repeat off": "Repeat Off",
 			"repeat_tooltip": "Repeat unit command queue",
@@ -279,8 +294,8 @@
 			" Fly ": "Fly",
 			"Land": "Land",
 			"idlemode_tooltip": "Sets what aircraft do when idle",
-			"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
-			"csSpawning_tooltip": "Sets the spawning state of the carrier",
+			"aplandat_tooltip": "Sets what aircraft do when leaving air factory",
+			"csspawning_tooltip": "Sets the spawning state of the carrier",
 			"Low traj": "High Traj",
 			"High traj": "High Traj",
 			"trajectory_toggle_tooltip": "Switch artillery firing angle between low, high and automatic trajectory",
@@ -323,6 +338,15 @@
 		},
 		"changelog": {
 			"title": "Changelog"
+		},
+		"missioninfo": {
+			"title": "Mission Info",
+			"difficulty": "Difficulty",
+			"objectives": "Objectives",
+			"victory": "Victory condition",
+			"defeat": "Defeat condition",
+			"summary": "Summary",
+			"briefing": "Briefing"
 		},
 		"keybinds": {
 			"title": "Keybinds",
@@ -480,6 +504,14 @@
 				"pause": "Pause"
 			}
 		},
+		"blueprint": {
+			"cursor_active": "Blueprint #%{index}",
+			"cursor_none": "No Blueprints",
+			"hotkey_next": "Next",
+			"hotkey_prev": "Previous",
+			"hotkey_delete": "Delete",
+			"hotkey_none": "<none>"
+		},
 		"ignore": {
 			"unknown": "unknown accountID",
 			"ignored": "You are now ignoring %{name} (%{accountID})",
@@ -493,8 +525,12 @@
 		"chat": {
 			"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
 			"shortcut": "CTRL + SHIFT",
+			"channelScopeAll": "ALL",
+			"channelScopeTeam": "TEAM",
+			"channelScopeSpec": "SPEC",
 			"everyone": "everyone",
 			"allies": "allies",
+			"label": "label",
 			"spectators": "spectators",
 			"spectator": "spectator",
 			"cmd": "COMMAND",
@@ -601,7 +637,10 @@
 			"windStrength": "Wind speed",
 			"waterDamage": "Water damage",
 			"raptorOptions": "Raptor options",
-			"modOptions": "Mod options",
+			"adjustedSettings": "Adjusted settings",
+			"settings": "Settings",
+			"range": "Range",
+			"default": "Default",
 			"reclaimableMetal": "Reclaimable Metal",
 			"reclaimableEnergy": "Reclaimable Energy"
 		},
@@ -646,6 +685,14 @@
 			"queenResistantToList": {
 				"one"   : "Queen is resistant to:",
 				"other" : "Queens are resistant to:"
+			},
+			"queenStaggerActive": {
+				"one"   : "Queen is Staggered!",
+				"other" : "Queens are Staggered!"
+			},
+			"queenStaggerPercentage": {
+				"one"   : "Queen Stagger: %{value}%%",
+				"other" : "Queens Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -700,6 +747,14 @@
 			"bossResistantToList": {
 				"one"   : "Boss is resistant to:",
 				"other" : "Bosses are resistant to:"
+			},
+			"bossStaggerActive": {
+				"one"   : "Boss is Staggered!",
+				"other" : "Bosss are Staggered!"
+			},
+			"bossStaggerPercentage": {
+				"one"   : "Boss Stagger: %{value}%%",
+				"other" : "Bosss Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -1061,7 +1116,7 @@
 				"audio": "Audio",
 				"notifications": "Notifications",
 				"accessibility": "Accessibility",
-				"custom": "Custom",
+				"custom": "Plugins",
 				"dev": "Dev"
 			},
 			"filter": "filter",
@@ -1177,6 +1232,10 @@
 				"mapedgeextension_curvature_descr": "Curve the mirrored edges away into the floor/seabed",
 				"lineofsight": "Fog of war",
 				"losopacity": "opacity",
+				"fogdiaglines": "diagonal lines",
+				"fogdiaglines_blur": "diagonal lines blur",
+				"territorial_domination_height_opacity": "Territorial Domination Grid Fade In Height",
+				"territorial_domination_height_opacity_descr": "Adjusts when territorial domination overlays fade in by camera height. Lower shows opacity sooner; higher requires zooming out more. Center is default.",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",
@@ -1197,11 +1256,12 @@
 				"featuredrawdist_descr": "Features (trees, stones, wreckage) stop being displayed at this distance",
 				"particles": "Particle limit",
 				"particles_descr": "Particle limit used for explosions, smoke, fire, missile trails and build particles\n\nBeware: too low value can result in missing effects.",
-				"nanoparticletype": "Particle type",
+				"nanoparticletype": "Nano particle type",
 				"nanoparticletype_descr": "Select the type of particles used for building and repairing units.",
-				"nanoparticletype_simple": "simple",
-				"nanoparticletype_smart": "smart",
-				"nanoparticletype_shapes": "shapes",
+				"nanoparticletype_basic": "basic",
+				"nanoparticletype_advanced": "advanced",
+				"nanoparticlelights": "nano particle lights",
+				"nanoparticlelights_descr": "Adds light sources to nano particles used for building and repairing.",
 				"lighteffects": "Lights",
 				"lighteffects_descr": "Adds lights to projectiles, lasers and explosions.",
 				"lighteffects_life": "lifetime",
@@ -1242,8 +1302,6 @@
 				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
-				"resurrectionhalos": "Resurrected unit halos",
-				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"xmas": "X-mas balls",
 				"xmas_descr": "disabling will make the xmas ball invisible (other decorations stay)",
 				"tombstones": "Tombstones",
@@ -1319,7 +1377,7 @@
 				"cursorsize": "Cursor size",
 				"cursorsize_descr": "Note that cursor already auto-scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size",
 				"doubleclicktime": "Double-click time",
-				"doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a doubleclick",
+				"doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a double-click",
 				"dragthreshold": "Drag threshold",
 				"dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
 				"crossalpha": "Cursor 'cross' alpha",
@@ -1355,6 +1413,8 @@
 				"mincamheight_descr": "Limit the max amount the camera can zoom in\n\nHigher = camera can zoom in less",
 				"scrollspeed": "scroll zoom speed",
 				"invertmouse": "invert mouse",
+				"zoomtocursor": "zoom to cursor",
+				"zoomfromcursor": "zoom from cursor",
 				"scrollinverse": "reverse scrolling",
 				"scrolltoggleoverview": "toggle overview on scroll",
 				"scrolltoggleoverview_descr": "toggle overview camera when using scrollwheel",
@@ -1431,6 +1491,14 @@
 				"pip_altkeyzoom_descr": "When enabled, scrolling over the minimap only zooms if ALT or middle mouse button is held. Otherwise scroll passes through to the game camera.",
 				"pip_commandfx": "command FX lines",
 				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
+				"pip_nanostreams": "nano streams",
+				"pip_nanostreams_descr": "Show lightweight animated nano streams for active builder tasks in PIP windows",
+				"pip_nanostream_usage": "reflect buildpower usage",
+				"pip_nanostream_usage_descr": "Scale nano stream width and opacity by the builder's current buildpower usage",
+				"pip_mapdrawings": "map drawing lines",
+				"pip_mapdrawings_descr": "Show temporary map drawing lines from non-spectator players in PIP windows",
+				"pip_mapdrawing_duration": "map drawing line duration",
+				"pip_mapdrawing_duration_descr": "Seconds before map drawing lines disappear from PIP windows",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
 				"pip_engine_fallback_threshold": "engine fallback unit threshold",
@@ -1569,7 +1637,7 @@
 				"teamplatter_opacity": "opacity",
 				"teamplatter_opacity_descr": "Set the opacity of the team spotters",
 				"teamplatter_skipownteam": "skip own units",
-				"teamplatter_skipownteam_descr": "Doesnt draw platters for yourself",
+				"teamplatter_skipownteam_descr": "Doesn't draw platters for yourself",
 				"enemyspotter": "Enemy spotters",
 				"enemyspotter_descr": "Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone",
 				"enemyspotter_opacity": "opacity",
@@ -1636,9 +1704,13 @@
 				"showbuilderqueue": "Show builder queue",
 				"showbuilderqueue_descr": "Shows ghosted buildings about to be built on the map",
 				"unitenergyicons": "Unit insufficient energy icons",
-				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
+				"unitenergyicons_descr": "Shows a red power bolt above units that can't fire their most e consuming weapon\nwhen you haven't enough energy available.",
 				"unitidlebuildericons": "Unit idle builder icons",
 				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
+				"unitfirestateicons": "Unit firing state icons",
+				"unitfirestateicons_descr": "Shows an icon above units that are either set on Hold fire or Defend.",
+				"resurrectionhalos": "Resurrected unit halos",
+				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"nametags_rank": "Commander name tag rank icon",
 				"nametags_rank_descr": "Display the player rank icon left of the commander player name.\n(only shown in multiplayer)",
 				"nametags_icon": "Commander name on icon",
@@ -1722,6 +1794,8 @@
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
+				"smartselect_includeresurrectors": "include resurrectors (if above is off)",
+				"smartselect_includeresurrectors_descr": "When rectangle-drag-selecting an area, exclude resurrection units (hold Shift to override)",
 				"smartselect_includeantinuke": "include antinuke units (if above is off)",
 				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
 				"smartselect_includeradar": "include radar units (if above is off)",
@@ -1730,6 +1804,8 @@
 				"smartselect_includejammer_descr": "When rectangle-drag-selecting an area, exclude jammer units (hold Shift to override)",
 				"onlyfighterspatrol": "Only fighters patrol",
 				"onlyfighterspatrol_descr": "Only fighters obey a factory's patrol route after leaving airlab.",
+				"bombers_default_hold_fire": "Set bombers on hold fire",
+				"bombers_default_hold_fire_descr": "Produced bombers start on Hold Fire after leaving airlab.",
 				"fightersfly": "Set fighters on Fly mode",
 				"fightersfly_descr": "Setting fighters on Fly mode when created",
 				"prioconturrets": "Priority construction turrets",
@@ -1752,12 +1828,12 @@
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
 				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
+				"factorypreset": "Factory Presets",
+				"factorypreset_descr": "Save and load factory build queues\nSelect a single factory and press space to open the preset menu",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
-				"transportai": "Transport AI",
-				"transportai_descr": "Transport units automatically pick up new units going to factory waypoint.",
 				"settargetdefault": "Set-target as default",
 				"settargetdefault_descr": "Replace default attack command to a set-target command\n(when rightclicked on enemy unit)",
 				"dgunnogroundenemies": "Dont snap DGun to ground units",
@@ -1788,10 +1864,14 @@
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
 				"restart": "Restart",
 				"restart_descr": "Restarts the game",
+				"restart_with_state": "Restart (keep units & orders)",
+				"restart_with_state_descr": "Saves every current unit (with its health, states and command queue), restarts the game, then restores them. Best used in singleplayer.",
 				"echocamerastate": "Echo cameraState",
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",
 				"storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
+				"cegbrowser": "CEG Effects Browser",
+				"cegbrowser_descr": "Custom Explosion Generators (CEGs) are used to create particle effects in engine. This widget allows you to browse, filter and preview CEGs in-game.",
 				"startboxeditor": "Startbox editor",
 				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
 				"tonemap": "Unit tonemapping",
@@ -1898,14 +1978,1931 @@
 			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		}
+	},
+	"cmd":{
+		"cheat":"Allow commands for cheating",
+		"give":"Give units (needs /cheat)",
+		"globallos":"See everything (needs /cheat)",
+		"godmode":"God mode (needs /cheat)",
+		"advmapshading": "Control advanced map shading mode",
+		"advmodelshading": "Control advanced model shading mode",
+		"aicontrol": "Creates a new instance of a Skirmish AI, to let it control a specific team",
+		"aikill": "Kills the Skirmish AI controlling a specified team",
+		"ailist": "Prints a list of all currently active Skirmish AIs",
+		"aireload": "Reloads the Skirmish AI controlling a specified team",
+		"airmesh": "Show/Hide the smooth air-mesh map overlay (needs /cheat)",
+		"allmapmarks": "Show/Hide all map marks drawn so far (needs /cheat)",
+		"ally": "Starts/Ends alliance of the local player's ally-team with another ally-team",
+		"atm": "Redirects command /ATM to its synced processor",
+		"buffertext": "Write the argument string(s) directly to the console history",
+		"chat": "Starts waiting for input to be sent to ",
+		"chatall": "Starts waiting for input to be sent to All",
+		"chatally": "Starts waiting for input to be sent to Ally",
+		"chatspec": "Starts waiting for input to be sent to Spec",
+		"clearmapmarks": "Remove all map marks drawn so far",
+		"clock": "Shows a small digital clock indicating the local time",
+		"cmdcolors": "Reloads cmdcolors.txt",
+		"commandhelp": "Prints info about a specific chat command",
+		"commandlist": "Prints all the available chat commands with description (if available) to the console",
+		"addmessage": "[text] Add a custom message to the on-screen messages widget",
+		"astt_toggleLog": "Toggle logging for the Alt-Set-Target-Type debug widget",
+		"blueprintcategorylist": "Print a list of blueprint categories to the console",
+		"blueprintmapreport": "Generate and print a blueprint map report to the console",
+		"clearconsole": "Clear console history/output shown by the chat widget",
+		"cleargrass": "Clear currently edited grass placements",
+		"debugapihighlightunit": "Toggle debug output for the Highlight Unit GL4 API widget",
+		"debugapiunittracker": "[draw|level] Toggle Unit Tracker GL4 debug draw or set debug level",
+		"debughealthbars": "Toggle debug mode for Health Bars GL4",
+		"decalsgl4skipdraw": "Toggle Decals GL4 rendering on/off (debug)",
+		"decalsgl4stats": "Print Decals GL4 runtime stats",
+		"defrange": "Toggle defense range overlays",
+		"distortionGL4skipdraw": "Toggle Distortion GL4 rendering on/off (debug)",
+		"distortionGL4stats": "Print Distortion GL4 runtime stats",
+		"dlgl4skipdraw": "Toggle Deferred Lighting GL4 rendering on/off (debug)",
+		"dlgl4stats": "Print Deferred Lighting GL4 runtime stats",
+		"drawframeload": "Toggle draw-frame load debug output",
+		"devmode": "Toggle developer mode in the options UI",
+		"dumpgrassshaders": "Dump grass shader source/diagnostics (debug)",
+		"ecostatsreclaim": "Toggle reclaim statistics in Ecostats",
+		"ecostatstext": "Toggle text mode/verbosity in Ecostats",
+		"editgrass": "Toggle grass edit mode",
+		"execute": "[lua expression] Evaluate expression in LuaUI and print result (dev/debug)",
+		"exportdefs": "Export game defs (units/weapons/features) to files",
+		"factoryreset": "Restore widget settings to defaults from Widget Selector",
+		"gameframeload": "Toggle game-frame load debug output",
+		"givefeatures": "Give map features/wrecks to a team (debug utility)",
+		"goto": "[x z] or [label] Move camera to target location",
+		"grapher": "Open/close LuaUI grapher tools",
+		"hidespecchat": "Toggle visibility of spectator chat lines",
+		"hidespecchatplayer": "[player] Toggle spectator-chat visibility for one player",
+		"histogram": "Toggle profiler histogram display",
+		"joystick": "Configure/toggle joystick camera controls",
+		"loadgrass": "[name] Load saved grass placement set",
+		"mapdarkness": "[0..1] Set or toggle map darkness overlay",
+		"mascot": "Control mascot widget options (emotes/sounds/appearance)",
+		"option": "[name] [value] Set one options value from chat",
+		"options": "Open/close the options window",
+		"placegrass": "Place grass at current cursor position in grass edit mode",
+		"playercamera": "Toggle Player Camera mode",
+		"profile": "Open/close profiling tools in the options UI",
+		"playertv": "Toggle Player TV auto-camera mode",
+		"playerview": "Toggle Player View (LOS-limited spectator view)",
+		"preventhistorymode": "Toggle history browsing mode behavior in chat input",
+		"ruinblueprint": "[name] Spawn/test a ruins blueprint by file name",
+		"savegame": "[filename] Save game state via LuaUI Savegame widget",
+		"savegrass": "[name] Save current grass placement set",
+		"sepiatone": "Toggle or set sepia/color filter mode",
+		"setalias": "[player] [alias] Set or clear a local player alias",
+		"snow": "Toggle/configure snow visual effect",
+		"speclist": "Toggle spectator list visibility",
+		"take2": "[#teamID] Take control of inactive ally teams (or a specific one)",
+		"toggleignore": "[player] Toggle ignore status for a player",
+		"userwidgets": "Toggle user widgets visibility in Widget Selector",
+		"widgetprofilertickrate": "[frames] Set widget profiler update tick rate",
+		"widgetselector": "Open Widget Selector",
+		"console": "Enables/Disables the in-game console",
+		"controlunit": "Start to first-person-control a unit",
+		"crash": "Invoke an artificial crash through a NULL-pointer dereference (SIGSEGV) (needs /cheat)",
+		"createvideo": "Start/Stop capturing a video of the game in progress",
+		"cross": "Allows one to exchange and modify the appearance of the cross/mouse-pointer in first-person-control view",
+		"ctrlpanel": "Reloads GUI config",
+		"debug": "Enable/Disable debug rendering mode",
+		"debugcolvol": "Enable/Disable drawing of collision volumes",
+		"debugcubemap": "Use debug cubemap texture instead of the sky",
+		"debugdrawai": "Enables/Disables debug drawing for AIs",
+		"debuggl": "Enable/Disable OpenGL debug-context output",
+		"debugglerrors": "Enable/Disable OpenGL debug-errors",
+		"debuginfo": "Print debug info to the chat/log-file about either sound, profiling, or command-descriptions",
+		"debugpath": "Enable/Disable drawing of pathfinder debug-data",
+		"debugquadfield": "Draw quadfield sectors around GuiTraceRay and selected units",
+		"debugshadowfrustum": "Enable/Disable drawing of shadow frustum shape",
+		"debugtraceray": "Enable/Disable drawing of traceray debug-data",
+		"debugvisibility": "Enable/Disable drawing of visible terrain",
+		"decguiopacity": "Decreases the the opacity(see-through-ness) of GUI elements",
+		"decreaseviewradius": "Decrease the view radius (higher performance, uglier view)",
+		"deselect": "Deselects all currently selected units",
+		"destroy": "Destroys one or multiple units by unitID immediately (needs /cheat)",
+		"disticon": "Set the distance between units and camera, at which they turn into icons (Graphic setting)",
+		"distsortprojectiles": "Enable/Disable sorting drawn projectiles by camera distance",
+		"divbyzero": "Invoke an artificial crash by performing a division-by-zero (needs /cheat)",
+		"drawinmap": "Enables drawing on the map",
+		"drawlabel": "Draws a label on the map at the current mouse-pointer position",
+		"draworderparticles": "Enable/Disable particles draw order: 0=disabled, 1=enabled",
+		"drawsky": "Whether to actually draw sky",
+		"dumpatlas": "Save Some Atlases",
+		"dumprng": "dump SyncedRNG-state to file",
+		"dumpshadows": "Save shadow map textures to files",
+		"dumpstate": "dump game-state to file",
+		"echo": "Write a string to the log file",
+		"endgraph": "Enables/Disables the statistics graphs shown at the end of the game",
+		"exception": "Invoke an artificial crash by throwing an std::runtime_error (needs /cheat)",
+		"featuredrawdistance": "No description available",
+		"featuredrawer": "Forces particular Feature drawer type",
+		"featurefadedistance": "No description available",
+		"font": "Reloads default or custom fonts",
+		"fps": "Shows/Hides the frames-per-second indicator",
+		"fpshud": "Enables/Disables HUD (GUI interface) shown in first-person-control mode",
+		"fullscreen": "Switches fullscreen mode",
+		"gameinfo": "Enables/Disables game-info panel rendering",
+		"gathermode": "Enter/Leave gather-wait command mode",
+		"grabinput": "Prevents/Enables the mouse from leaving the game window (windowed mode only)",
+		"grounddecals": "Enable/Disable ground-decal rendering",
+		"grounddetail": "Set the level of ground detail",
+		"group": "Manage control groups",
+		"group0": "Allows modifying the members of group 0",
+		"group1": "Allows modifying the members of group 1",
+		"group2": "Allows modifying the members of group 2",
+		"group3": "Allows modifying the members of group 3",
+		"group4": "Allows modifying the members of group 4",
+		"group5": "Allows modifying the members of group 5",
+		"group6": "Allows modifying the members of group 6",
+		"group7": "Allows modifying the members of group 7",
+		"group8": "Allows modifying the members of group 8",
+		"group9": "Allows modifying the members of group 9",
+		"hang": "Invoke an artificial hang (needs /cheat)",
+		"hardwarecursor": "Enables/Disables hardware mouse-cursor support",
+		"hideinterface": "Hide/Show the GUI controls",
+		"iconfadestart": "Set the distance where unit icons became completely opaque at",
+		"iconfadevanish": "Set the distance where unit icons fade out at",
+		"iconsasui": "Set whether unit icons are drawn as an UI element (true) or old LOD-like style (false, default).",
+		"iconscaleui": "Set the multiplier for the size of the UI unit icons",
+		"iconshidewithui": "Set whether unit icons are hidden when UI is hidden.",
+		"incguiopacity": "Increases the the opacity(see-through-ness) of GUI elements",
+		"increaseviewradius": "Increase terrain tessellation level",
+		"info": "Shows/Hides the player roster",
+		"inputtextgeo": "Move and/or resize the input-text field (the \"Say: \" thing)",
+		"lastmsgpos": "Moves the camera to show the position of the last message",
+		"lodscale": "Set the scale for either of: LOD (level-of-detail), shadow-LOD, reflection-LOD, refraction-LOD",
+		"luagaia": "Redirects command /LuaGaia to its synced processor",
+		"luagccontrol": "Toggle between 1/f and 30/s Lua garbage collection rate",
+		"lr": "Alias for /luaui reload  (reloading widgets)",
+		"luamenu": "Allows one to reload or disable LuaMenu, or alternatively to send a chat message to LuaMenu",
+		"luasave": "Save the game state to a specific file, add -y to overwrite when file is already present",
+		"luaui": {
+			"_description": "Allows one to reload or disable userside widgets (LuaUI), or alternatively to send a chat message to LuaUI (widgethandler)",
+			"reload": "Reload LuaUI (userside code/widgets)",
+			"disable": "Disable LuaUI",
+			"enable": "Enable LuaUI",
+			"reconf": "Rebuild LuaUI layout configuration",
+			"selector": "Open the widget selector",
+			"reset": "Reset the widget selector UI state",
+			"factoryreset": "Reset the widget selector and restore default layout state",
+			"togglewidget": "Toggle a widget by name",
+			"enablewidget": "Enable a widget by name",
+			"disablewidget": "Disable a widget by name"
 		},
-		"techBlocking": {
-			"techLevel": "TECH",
-			"techPopup": {
-				"level1": "Tech Level 1",
-				"level2": "Tech Level 2",
-				"level3": "Tech Level 3"
+		"mapborder": "Control map-border rendering",
+		"mapmarks": "Enables/Disables map marks rendering",
+		"mapmeshdrawer": "Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM",
+		"mapshadowpolyoffset": "No description available",
+		"maxnanoparticles": "Set the maximum number of nano-particles (Graphic setting)",
+		"maxparticles": "Set the maximum number of particles (Graphics setting)",
+		"maxviewrange": "Set maximum view-distance",
+		"minimap": "FIXME document subcommands",
+		"minviewrange": "Set minimum view-distance",
+		"mouse1": "Simulates a press of mouse-button 1",
+		"mouse2": "Simulates a press of mouse-button 2",
+		"mouse3": "Simulates a press of mouse-button 3",
+		"mouse4": "Simulates a press of mouse-button 4",
+		"mouse5": "Simulates a press of mouse-button 5",
+		"mousecancelselectionrectangle": "No description available",
+		"moveback": "Moves the camera Back a bit",
+		"movedown": "Moves the camera Down a bit",
+		"movefast": "Moves the camera Fast a bit",
+		"moveforward": "Moves the camera Forward a bit",
+		"moveleft": "Moves the camera Left a bit",
+		"movereset": "Moves the camera Reset a bit",
+		"moveright": "Moves the camera Right a bit",
+		"moverotate": "Moves the camera Rotate a bit",
+		"moveslow": "Moves the camera Slow a bit",
+		"movetilt": "Moves the camera Tilt a bit",
+		"moveup": "Moves the camera Up a bit",
+		"mutesound": "Mute/Unmute the current sound system",
+		"netmsgsmoothing": "Toggles whether client will use net-message smoothing; better for unstable connections",
+		"netping": "Send a ping request to the server",
+		"noluadraw": "Allow/Disallow Lua to draw on the map",
+		"noreturnexecute": "[lua statement] Execute LuaUI code without printing return values (dev/debug)",
+		"pastetext": "Paste either the argument string(s) or the content of the clip-board to chat input",
+		"pause": "Pause/Unpause the game",
+		"quitforce": "Exits game to system",
+		"quitmenu": "Opens the quit-menu, if it is not already open",
+		"quitmessage": "Deprecated, see /Quit instead (was used to quit the game immediately)",
+		"reloadforce": "Exits game to menu",
+		"reloadshaders": "Reloads all engine shaders",
+		"reloadtextures": "Reloads textures",
+		"remove": "Removes one or multiple units by unitID immediately, bypassing death sequence (needs /cheat)",
+		"resbar": "Shows/Hides team resource storage indicator bar",
+		"resync": "Redirects command /Resync to its synced processor",
+		"safegl": "Enables/Disables OpenGL safe-mode",
+		"save": "Save the game state to a specific file, add -y to overwrite when file is already present",
+		"say": "Say something in (public) chat",
+		"screenshot": "Take a screen-shot of the current view",
+		"select": "<chat command description: Select>",
+		"selectcycle": "<chat command description: SelectUnits>",
+		"selectunits": "<chat command description: SelectUnits>",
+		"send": "Send a string as raw network message to the game host (for debugging only)",
+		"set": {
+			"_description": "Set a springsettings.cfg config [key] [value]",
+			"address": "Last Ip/hostname used as direct connect in the menu.",
+			"AdvMapShading": "Enable shaders for terrain rendering.",
+			"AdvSky": "No description available",
+			"AdvUnitShading": "Determines whether specular highlights and other lighting effects are rendered for units.",
+			"AllowDeferredMapRendering": "Enable rendering the map to the map deferred buffers.",
+			"AllowDeferredModelBufferClear": "No description available",
+			"AllowDeferredModelRendering": "Allows the rendering of model deferred buffers.",
+			"AllowDrawMapDeferredEvents": "Enable DrawGroundDeferred Lua callin.",
+			"AllowDrawMapPostDeferredEvents": "Enable DrawGroundPostDeferred Lua callin.",
+			"AllowDrawModelPostDeferredEvents": "Enable Draw{Units,Features}PostDeferred Lua callins.",
+			"AllowMultiSampledFrameBuffers": "Enable FBOs that can have multisampled anti-aliasing.",
+			"AllowSpectatorJoin": "allow any unauthenticated clients to join as spectator with any name, name will be prefixed with ~",
+			"AlwaysSendDrawGroundEvents": "Always send DrawGround{Pre,Post}{Forward,Deferred} events",
+			"AnimationMT": "Enable multithreaded execution of animation ticks",
+			"AtiHacks": "Enables graphics drivers workarounds for users with AMD proprietary drivers.\n -1:=runtime detect, 0:=off, 1:=on",
+			"AtiSwapRBFix": "No description available",
+			"AutoAddBuiltUnitsToFactoryGroup": "Controls whether or not units built by factories will inherit that factory\u0027s unit group.",
+			"AutoAddBuiltUnitsToSelectedGroup": "No description available",
+			"AutohostIP": "No description available",
+			"AutohostPort": "Which port should the engine listen on for Autohost interface connections.",
+			"BlockCompositing": "Disables kwin compositing to fix tearing, possible fixes low FPS in windowed mode, too.",
+			"BuildIconsFirst": "No description available",
+			"BumpWaterAnisotropy": "No description available",
+			"BumpWaterBlurReflection": "No description available",
+			"BumpWaterDepthBits": "No description available",
+			"BumpWaterDynamicWaves": "No description available",
+			"BumpWaterEndlessOcean": "Sets whether Bumpmapped water will be drawn beyond the map edge.",
+			"BumpWaterOcclusionQuery": "No description available",
+			"BumpWaterReflection": "Determines the amount of objects reflected in Bumpmapped water.\n0:=off, 1:=fast (skip terrain), 2:=full",
+			"BumpWaterRefraction": "Determines the method of refraction with Bumpmapped water.\n0:=off, 1:=screencopy, 2:=own rendering cycle (disabled)",
+			"BumpWaterShoreWaves": "Enables rendering of shorewaves.",
+			"BumpWaterTexSizeReflection": "Sets the size of the framebuffer texture used to store the reflection in Bumpmapped water.",
+			"BumpWaterUseDepthTexture": "No description available",
+			"BumpWaterUseUniforms": "No description available",
+			"CamDollyFOV": "No description available",
+			"CameraMoveFastMult": "The multiplier applied to speed when camera is in movefast state.",
+			"CameraMoveSlowMult": "The multiplier applied to speed when camera is in moveslow state.",
+			"CamFrameTimeCorrection": "Sets whether the camera interpolation factor should be the inverse of fps or last draw frame time (0 = lastdrawframetime, 1 = fpsinv)",
+			"CamFreeAngVelTime": "No description available",
+			"CamFreeAutoTilt": "When free camera is locked, AutoTilt will point the camera in the direction of the ground\u0027s slope",
+			"CamFreeEnabled": "No description available",
+			"CamFreeFOV": "No description available",
+			"CamFreeGoForward": "No description available",
+			"CamFreeGravity": "When free camera is locked, Gravity will be used if you jump off of a ground ramp.",
+			"CamFreeGroundOffset": "Determines ground handling for the free camera.\n0 - the camera can move anywhere,\n\u003c 0 - the camera is always offset from the ground height by -CamFreeGroundOffset\n\u003e 0 - the camera can be \"locked\" to the ground by using SHIFT UP_ARROW. (and will use CamFreeGroundOffset as the offset). To release the lock, simply press SHIFT DOWN_ARROW.",
+			"CamFreeInvertAlt": "No description available",
+			"CamFreeScrollSpeed": "No description available",
+			"CamFreeSlide": "No description available",
+			"CamFreeTiltSpeed": "No description available",
+			"CamFreeVelTime": "No description available",
+			"CamMode": "Defines the used camera. Options are:\n0 = FPS\n1 = Overhead\n2 = Spring\n3 = RotOverhead\n4 = Free\n5 = Overview",
+			"CamModeName": "No description available",
+			"CamOverheadFastScale": "Scaling for CameraMoveFastMult.",
+			"CamOverviewDynamicRotation": "Transition from different camera preserves rotation",
+			"CamSpringEdgeRotate": "Rotate camera when cursor touches screen borders.",
+			"CamSpringEnabled": "No description available",
+			"CamSpringFastScaleMouseMove": "Scaling for CameraMoveFastMult in spring camera mode while moving mouse.",
+			"CamSpringFastScaleMousewheelMove": "Scaling for CameraMoveFastMult in spring camera mode while scrolling with mouse.",
+			"CamSpringFOV": "No description available",
+			"CamSpringHalflife": "For Spring Dampened camera. It is the time in milliseconds at which the camera should be approximately halfway towards the goal.",
+			"CamSpringLockCardinalDirections": "Whether cardinal directions should be `locked` for a short time when rotating.",
+			"CamSpringMinZoomDistance": "Minimum camera zoom distance, note this is the distance from frustrum location to the ground in the direction of view",
+			"CamSpringScrollSpeed": "No description available",
+			"CamSpringTrackMapHeightMode": "Camera height is influenced by terrain height. 0=Static 1=Terrain 2=Smoothmesh",
+			"CamSpringZoomInToMousePos": "No description available",
+			"CamSpringZoomOutFromMousePos": "No description available",
+			"CamTimeExponent": "Camera transitions happen at lerp(old, new, timeNorm ^ CamTimeExponent).",
+			"CamTimeFactor": "Scales the speed of camera transitions, e.g. zooming or position change.",
+			"CamTransitionMode": "Defines the function used for camera transitions. Options are:\n0 = Exponential Decay\n1 = Spring Dampened\n2 = Spring Dampened with timed transitions\n3 = Lerp Smoothed",
+			"ColorElev": "If heightmap (default hotkey [F1]) should be colored or not.",
+			"CompressTextures": "Runtime compress most textures to save VideoRAM.",
+			"CrossAlpha": "No description available",
+			"CrossMoveScale": "No description available",
+			"CrossSize": "No description available",
+			"CubeTexGenerateMipMaps": "Generate mipmaps for the reflection and specular cubemap textures, useful for efficient subsampling and blurring.",
+			"CubeTexSizeReflection": "The square resolution of each face of the environment reflection cubemap.",
+			"CubeTexSizeSpecular": "The square resolution of each face of the specular cubemap.",
+			"DebugGL": "Enables GL debug-context and output. (see GL_ARB_debug_output)",
+			"DebugGLStacktraces": "Create a stacktrace when an OpenGL error occurs",
+			"DefaultLuaMenu": "Sets the default menu to be used when spring is started.",
+			"DefaultStartScript": "filename of script.txt to use when no command line parameters are specified.",
+			"DemoFromDemo": "Enable recording a demo while playing back a demo.",
+			"DeprecatedGLWarnLevel": "No description available",
+			"DisableDemoVersionCheck": "Allow to play every replay file (may crash / cause undefined behaviour in replays)",
+			"DoubleClickTime": "Double click time in milliseconds.",
+			"DualScreenMiniMapAspectRatio": "Whether minimap preserves aspect ratio on dual screen mode.",
+			"DualScreenMiniMapOnLeft": "When set, will make the left half of the screen the minimap when DualScreenMode is set.",
+			"DualScreenMode": "Sets whether to split the screen in half, with one half for minimap and one for main screen. Right side is for minimap unless DualScreenMiniMapOnLeft is set.",
+			"DumpGameStateOnDesync": "Enable writing clientgamestate and servergamestate dumps when a desync is detected",
+			"EdgeMoveDynamic": "If EdgeMove scrolling speed should fade with edge distance.",
+			"EdgeMoveWidth": "The width (in percent of screen size) of the EdgeMove scrolling area.",
+			"ExtraTextureUpdateRate": "EXTREME CPU-HEAVY ON MEDIUM/BIG MAPS! DON\u0027T CHANGE DEFAULT!",
+			"FeatureDrawDistance": "Maximum distance at which features will be drawn.",
+			"FeatureFadeDistance": "Distance at which features will begin to fade from view.",
+			"FontFile": "Sets the font of Spring engine text.",
+			"FontOutlineWeight": "Sets the opacity of Spring engine text, such as the title screen version number, clock, and basic UI. Does not affect LuaUI elements.",
+			"FontOutlineWidth": "Sets the width of the black outline around Spring engine text, such as the title screen version number, clock, and basic UI. Does not affect LuaUI elements.",
+			"FontSize": "Sets the font size (in pixels) of the MainMenu and more.",
+			"ForceCoreContext": "No description available",
+			"ForceDisableClipCtrl": "No description available",
+			"ForceDisableExplicitAttribLocs": "No description available",
+			"ForceDisableGL4": "No description available",
+			"ForceDisablePersistentMapping": "No description available",
+			"ForceDisableShaders": "No description available",
+			"ForceSwapBuffers": "No description available",
+			"FPSClampPos": "No description available",
+			"FPSEnabled": "No description available",
+			"FPSFOV": "No description available",
+			"FPSMouseScale": "No description available",
+			"FPSScrollSpeed": "No description available",
+			"FSAA": "No description available",
+			"FSAALevel": "No description available",
+			"Fullscreen": "Sets whether the game will run in fullscreen, as opposed to a window. For Windowed Fullscreen of Borderless Window, set this to 0, WindowBorderless to 1, and WindowPosX and WindowPosY to 0.",
+			"FullscreenEdgeMove": "see WindowedEdgeMove, just for fullscreen mode",
+			"GameEndOnConnectionLoss": "No description available",
+			"GLContextMajorVersion": "No description available",
+			"GLContextMinorVersion": "No description available",
+			"GrassDetail": "Sets how detailed the engine rendered grass will be on any given map.",
+			"GroundDecals": "Controls whether ground decals underneath buildings, unit tracks \u0026 footprints as well as ground scars from explosions will be rendered.",
+			"GroundDetail": "Controls how detailed the map geometry will be. On lowered settings, cliffs may appear to be jagged or \"melting\".",
+			"GroundLODScaleReflection": "No description available",
+			"GroundLODScaleRefraction": "No description available",
+			"GroundLODScaleTerrainReflection": "No description available",
+			"GroundNormalTextureHighPrecision": "No description available",
+			"GroundScarAlphaFade": "No description available",
+			"GuiOpacity": "Sets the opacity of the built-in Spring UI. Generally has no effect on LuaUI widgets. Can be set in-game using shift+, to decrease and shift+. to increase.",
+			"HangTimeout": "Number of seconds that, if spent in the same code segment, indicate a hang; -1 to disable.",
+			"HardwareCursor": "Sets hardware mouse cursor rendering. If you have a low framerate, your mouse cursor will seem \"laggy\". Setting hardware cursor will render the mouse cursor separately from spring and the mouse will behave normally. Note, not all GPU drivers support it in fullscreen mode!",
+			"HighQualityDecals": "Forces MSAA processing of decals. Improves decals quality, but may ruin the performance.",
+			"HighResInfoTexture": "Use full heightmap resolution info texture (true), or half resolution (false)",
+			"HighResLos": "Controls whether LOS (\"L view\") edges are rendered in high resolution. Resource heavy!",
+			"HostIPDefault": "Default IP to use for hosting if not specified in script.txt",
+			"HostPortDefault": "Default Port to use for hosting if not specified in script.txt",
+			"InfoConsoleGeometry": "No description available",
+			"InfoMessageTime": "Time until old messages disappear from the ingame console.",
+			"InitialNetworkTimeout": "Time to wait for the initial connection to the game server.",
+			"InputTextGeo": "No description available",
+			"InvertMouse": "No description available",
+			"InvertQueueKey": "No description available",
+			"KeyChainTimeout": "Timeout in milliseconds waiting for a key chain shortcut.",
+			"LastSelectedMap": "Stores the previously played map.",
+			"LastSelectedMod": "Stores the previously played game.",
+			"LastSelectedScript": "Stores the previously played AI.",
+			"LastSelectedSetting": "Stores the previously selected setting, when editing settings within the Spring main menu.",
+			"LinkIncomingMaxPacketRate": "No description available",
+			"LinkIncomingMaxWaitingPackets": "No description available",
+			"LinkIncomingPeakBandwidth": "No description available",
+			"LinkIncomingSustainedBandwidth": "No description available",
+			"LinkOutgoingBandwidth": "No description available",
+			"LoadBadSaves": "No description available",
+			"LoadingMT": "Experimental option to load the game in separate thread. Expect visual glitches, crashes and deadlocks",
+			"LODScale": "No description available",
+			"LODScaleReflection": "No description available",
+			"LODScaleRefraction": "No description available",
+			"LODScaleShadow": "No description available",
+			"LogClientData": "No description available",
+			"LogFlushLevel": "Flush the logfile when a message\u0027s level exceeds this value. ERROR is flushed by default, WARNING is not.",
+			"LogRepeatLimit": "Allow at most this many consecutive identical messages to be logged.",
+			"LogSections": "Comma-separated list of enabled logsections, see infolog.txt / console output for possible values.",
+			"LuaGarbageCollectionMemLoadMult": "How much the amount of Lua memory in use increases the rate of garbage collection.",
+			"LuaGarbageCollectionRunTimeMult": "How many milliseconds the garbage collected can run for in each GC cycle",
+			"LuaShaders": "No description available",
+			"LuaSocketEnabled": "Enable LuaSocket support, allows Lua widgets to make TCP/UDP connections",
+			"LuaWritableConfigFile": "No description available",
+			"MapBorder": "Draws a solid border at the edges of the map.",
+			"MaxDynamicMapLights": "Maximum number of map-global dynamic lights that will be rendered at once. High numbers of lights cost performance, as they affect every map fragment.",
+			"MaxDynamicModelLights": "No description available",
+			"MaxFontTries": "Represents the maximum number of attempts to search for a glyph replacement using the FontConfig library (lower = foreign glyphs may fail to render, higher = searching for foreign glyphs can lag the game).",
+			"MaximumTransmissionUnit": "No description available",
+			"MaxNanoParticles": "No description available",
+			"MaxParticles": "No description available",
+			"MaxSounds": "Maximum sounds played in parallel.",
+			"MaxTextureAtlasSizeX": "The max X size of the projectile and Lua texture atlasses",
+			"MaxTextureAtlasSizeY": "The max Y size of the projectile and Lua texture atlasses",
+			"MenuArchive": "Archive name for the default Menu.",
+			"MiddleClickScrollSpeed": "No description available",
+			"MinDrawFPS": "Defines how many frames per second should minimally be rendered. To reach this number we will delay simframes.",
+			"MiniMapButtonSize": "No description available",
+			"MiniMapCanDraw": "Enables drawing with cursor over MiniMap.",
+			"MiniMapCanFlip": "Whether minimap inverts coordinates when camera Y rotation is between 90 and 270 degrees.",
+			"MiniMapCursorScale": "No description available",
+			"MiniMapDrawCommands": "No description available",
+			"MiniMapDrawProjectiles": "No description available",
+			"MiniMapFullProxy": "No description available",
+			"MiniMapGeometry": "No description available",
+			"MiniMapIcons": "No description available",
+			"MiniMapMarker": "No description available",
+			"MiniMapMouseWheel": "Whether MiniMap responds to MouseWheel events",
+			"MiniMapRefreshRate": "The refresh rate of the async MiniMap texture. Needs MiniMapRenderToTexture to be true. Value of \"0\" autoselects between 10-60FPS.",
+			"MiniMapRenderToTexture": "Asynchronous render MiniMap to a texture independent of screen FPS.",
+			"MiniMapUnitExp": "No description available",
+			"MiniMapUnitSize": "No description available",
+			"MinimizeOnFocusLoss": "When set to 1 minimize Window if it loses key focus when in fullscreen mode.",
+			"MinSampleShadingRate": "A value of 1.0 indicates that each sample in the framebuffer should be independently shaded. A value of 0.0 effectively allows the GL to ignore sample rate shading. Any value between 0.0 and 1.0 allows the GL to shade only a subset of the total samples within each covered fragment.",
+			"MinSimDrawBalance": "Percent of the time for simulation is minimum spend for drawing. E.g. if set to 0.15 then 15% of the total cpu time is exclusively reserved for drawing.",
+			"MouseDragBoxCommandThreshold": "Distance in pixels which the mouse must be dragged to trigger a rectangular area command.",
+			"MouseDragCircleCommandThreshold": "Distance in pixels which the mouse must be dragged to trigger a circular area command.",
+			"MouseDragFrontCommandThreshold": "Distance in pixels which the mouse must be dragged to trigger a formation front command.",
+			"MouseDragScrollThreshold": "No description available",
+			"MouseDragSelectionThreshold": "Distance in pixels which the mouse must be dragged to trigger a selection box.",
+			"MouseRelativeModeWarp": "No description available",
+			"MSAALevel": "Enables multisample anti-aliasing; \u0027level\u0027 is the number of samples used.",
+			"name": "Sets your name in the game. Since this is overridden by lobbies with your lobby username when playing, it usually only comes up when viewing replays or starting the engine directly for testing purposes.",
+			"NetworkLossFactor": "No description available",
+			"NetworkTimeout": "Number of seconds before connection to game server is considered lost.",
+			"NoHelperAIs": "No description available",
+			"OverheadEnabled": "No description available",
+			"OverheadFOV": "No description available",
+			"OverheadMaxHeightFactor": "Float multiplier for maximum overhead camera zoom distance",
+			"OverheadMinZoomDistance": "Minimum camera zoom distance",
+			"OverheadScrollSpeed": "No description available",
+			"OverheadTiltSpeed": "No description available",
+			"PathingThreadCount": "No description available",
+			"PitchAdjust": "Adjusts sound pitch proportional to [if set to 1, the square root of] game speed. Set to 2 for linear scaling.",
+			"PreloadModels": "The engine will preload all models",
+			"RapidTagResolutionOrder": "\u0027;\u0027 separated list of domains, preference order for resolving package from rapid tags",
+			"ReconnectTimeout": "No description available",
+			"RendererHash": "No description available",
+			"ROAM": "Use ROAM for terrain mesh rendering: 0 to disable, 1=VBO mode to enable.",
+			"RotateLogFiles": "Rotate logfiles, old logfiles will be moved into the subfolder \"log\".",
+			"RotOverheadClampMap": "No description available",
+			"RotOverheadEnabled": "No description available",
+			"RotOverheadFOV": "No description available",
+			"RotOverheadMouseScale": "No description available",
+			"RotOverheadScrollSpeed": "No description available",
+			"ScreenshotCounter": "Deprecated, does nothing, but not marked as such to keep compatibility with older engine versions",
+			"ScrollWheelSpeed": "No description available",
+			"SelectThroughGround": "How far beyond the ground to allow selecting objects.",
+			"ServerLogDebugMessages": "No description available",
+			"ServerLogInfoMessages": "No description available",
+			"ServerRecordDemos": "No description available",
+			"ServerSleepTime": "Number of milliseconds to sleep per tick for the server thread. Lower values have marginally higher CPU load, while high values can introduce additional latency.",
+			"SetCoreAffinity": "Defines a bitmask indicating which CPU cores the main-thread should use.",
+			"ShadowColorMode": "Whether the colorbuffer of shadowmap FBO is RGB vs greyscale(to conserve some VRAM)",
+			"ShadowMapSize": "Sets the resolution of shadows. Higher numbers increase quality at the cost of performance.",
+			"ShadowProjectionMode": "No description available",
+			"Shadows": "Sets whether shadows are rendered.\n-1:=forceoff, 0:=off, 1:=full, 2:=fast (skip terrain)",
+			"ShowClock": "Displays a clock on the top-right corner of the screen showing the elapsed time of the current game.",
+			"ShowFPS": "Displays current framerate.",
+			"ShowPlayerInfo": "No description available",
+			"ShowSpeed": "Displays current game speed.",
+			"SimpleMiniMapColors": "No description available",
+			"SmallFontFile": "Sets the font of Spring engine small text.",
+			"SmallFontOutlineWeight": "see FontOutlineWeight",
+			"SmallFontOutlineWidth": "see FontOutlineWidth",
+			"SmallFontSize": "Sets the font size (in pixels) of the engine GUIs and more.",
+			"SMFTexAniso": "No description available",
+			"SMFTextureLodBias": "In case SMFTextureStreaming = false, this parameter controls the sampling lod bias applied to diffuse texture",
+			"SMFTextureStreaming": "Dynamically load and unload SMF Diffuse textures. Saves VRAM, worse performance and image quality.",
+			"SmoothTimeOffset": "Enables frametimeoffset smoothing, 0 = off (old version), -1 = forced 0.5,  1-20 smooth, recommended = 2-3",
+			"snd_airAbsorption": "No description available",
+			"snd_device": "Sets the used output device. See \"Available Devices\" section in infolog.txt.",
+			"snd_volbattle": "Volume for \"battle\" sound channel.",
+			"snd_volgeneral": "Volume for \"general\" sound channel.",
+			"snd_volmaster": "Master sound volume.",
+			"snd_volmusic": "Volume for \"music\" sound channel.",
+			"snd_volui": "Volume for \"ui\" sound channel.",
+			"snd_volunitreply": "Volume for \"unit reply\" sound channel.",
+			"SoftParticles": "Soften up CEG particles on clipping edges",
+			"Sound": "Enables (OpenAL) or disables sound.",
+			"SourcePort": "No description available",
+			"SpeedControl": "Sets how server adjusts speed according to player\u0027s load (CPU), 1: use average, 2: use highest",
+			"SplashScreenDir": "No description available",
+			"SpringData": "List of additional data-directories, separated by \u0027;\u0027 on Windows and \u0027:\u0027 on other OSs",
+			"SpringDataRoot": "Optional custom data-directory content root (\u0027base\u0027, \u0027maps\u0027, ...) to scan for archives",
+			"SSMFTexAniso": "No description available",
+			"StoreDefaultSettings": "springsettings.cfg will save the settings values, if they match the implicit defaults and were set by a user explicitly",
+			"TCPAllowConnect": "No description available",
+			"TCPAllowListen": "No description available",
+			"TeamHighlight": "No description available",
+			"TeamNanoSpray": "No description available",
+			"TextureMemPoolSize": "Set to 0 to disable, otherwise specify a predefined memory to serve Bitmap allocation requests",
+			"TooltipGeometry": "No description available",
+			"TooltipOutlineFont": "No description available",
+			"UDPAllowConnect": "No description available",
+			"UDPAllowListen": "No description available",
+			"UDPConnectionLogDebugMessages": "No description available",
+			"UnitIconDist": "No description available",
+			"UnitIconFadeStart": "No description available",
+			"UnitIconFadeVanish": "No description available",
+			"UnitIconsAsUI": "Draw unit icons like it is an UI element and not like unit\u0027s LOD.",
+			"UnitIconScaleUI": "No description available",
+			"UnitIconsHideWithUI": "Hide unit icons when UI is hidden.",
+			"UnitLodDist": "No description available",
+			"UnitTransparency": "No description available",
+			"UpdateBoundingVolumeMT": "Enable multithreaded update of unit bounding volumes",
+			"UpdateWeaponVectorsMT": "Enable multithreaded update of weapon vectors",
+			"UseDistToGroundForIcons": "No description available",
+			"UseEFX": "No description available",
+			"UseFontConfigLib": "Whether the system fontconfig library (if present and enabled at compile-time) should be used for handling fonts.",
+			"UseHighResTimer": "On Windows, sets whether Spring will use low- or high-resolution timer functions for tasks like graphical interpolation between game frames.",
+			"UseLuaMemPools": "Whether Lua VM memory allocations are made from pools.",
+			"UseNetMessageSmoothingBuffer": "Buffer network packets for a few frames in an attempt to reduce lag from packet time variance. Introduces a fixed lag.",
+			"UsePBO": "No description available",
+			"UseSDLAudio": "If enabled, OpenAL-soft only renders audio into a SDL buffer and playback is done by the SDL audio layer, i.e. SDL handles the hardware",
+			"UseShaderCache": "If already compiled shaders should be shared via a cache, reducing compiles of already compiled shaders.",
+			"UseVBO": "No description available",
+			"VFSCacheArchiveFiles": "No description available",
+			"VSync": "Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).",
+			"Water": "Defines the type of water rendering. Can be set in game. Options are: 0 = Basic water, 1 = Reflective water, 2 = Reflective and Refractive water, 3 = Dynamic water, 4 = Bumpmapped water",
+			"WhiteListAdditionalPlayers": "No description available",
+			"WindowBorderless": "When set and Fullscreen is 0, will put the game in Borderless Window mode, also known as Windowed Fullscreen. When using this, it is generally best to also set WindowPosX and WindowPosY to 0",
+			"WindowedEdgeMove": "Sets whether moving the mouse cursor to the screen edge will move the camera across the map.",
+			"WindowPosX": "Sets the horizontal position of the game window, if Fullscreen is 0. When WindowBorderless is set, this should usually be 0.",
+			"WindowPosY": "Sets the vertical position of the game window, if Fullscreen is 0. When WindowBorderless is set, this should usually be 0.",
+			"WorkerThreadCount": "Number of workers (including the main thread!) used by ThreadPool.",
+			"XResolution": "Sets the width of the game screen. If set to 0 Spring will autodetect the current resolution of your desktop.",
+			"XResolutionWindowed": "See XResolution, just for windowed.",
+			"YResolution": "Sets the height of the game screen. If set to 0 Spring will autodetect the current resolution of your desktop.",
+			"YResolutionWindowed": "See YResolution, just for windowed."
+		},
+		"setspeed": "Set the simulation speed to any positive value, bounded by the minimum and maximum game speed settings.",
+		"shadows": "Control shadow rendering",
+		"sharedialog": "Opens the share dialog for sending units and resources to other players",
+		"showelevation": "Enable rendering of the auxiliary height-map overlay",
+		"showmetalmap": "Enable rendering of the auxiliary metal-map overlay",
+		"showpathcost": "Enable rendering of the path cost-map overlay (needs /cheat)",
+		"showpathflow": "Enable/Disable rendering of the path flow-map overlay (needs /cheat)",
+		"showpathheat": "Enable/Disable rendering of the path heat-map overlay (needs /cheat)",
+		"showpathtraversability": "Enable rendering of the path traversability-map overlay",
+		"showpathtype": "Shows path traversability for a given MoveDefName, MoveDefID or UnitDefName",
+		"showstandard": "Disable rendering of all auxiliary map overlays",
+		"slowdown": "Decreases the simulation speed. The engine will try to simulate less frames per second",
+		"softparticles": "Enable/Disable particles softening: 0=disabled, 1=enabled",
+		"soundchannelenable": "Enable/Disable specific sound channels: UnitReply, General, Battle, UserInterface, Music",
+		"sounddevice": "Switch the sound output system (currently only OpenAL / NullAudio)",
+		"specfullview": "Sets or toggles between full LOS or ally-team LOS if the local user is a spectator",
+		"spectator": "Lets the local user give up control over a team and start spectating",
+		"specteam": "Lets the local user specify the team to follow if he is a spectator",
+		"speed": "Shows/Hides the simulation speed indicator",
+		"speedcontrol": "Sets how server adjusts speed according to player's CPU load, 1: use average, 0: use highest",
+		"speedup": "Increases the simulation speed. The engine will try to simulate more frames per second",
+		"take": "Redirects command /Take to its synced processor",
+		"team": "Lets the local user change to another team (needs /cheat)",
+		"teamhighlight": "Enables/Disables uncontrolled team blinking",
+		"toggleinfo": "Toggles current info texture view",
+		"togglelos": "Enable rendering of the auxiliary LOS-map overlay",
+		"tooltip": "Enables/Disables the general tool-tips, displayed when hovering over units. features or the map",
+		"track": "Start/stop following the selected unit(s) with the camera",
+		"trackmode": "Shift through different ways of following selected unit(s)",
+		"tset": "Set a config key=value pair in the overlay, meaning it will not be persisted for future games",
+		"unitdrawer": "Forces particular Unit drawer type",
+		"viewselection": "Moves the camera to the center of the currently selected units",
+		"vsync": "Enables/Disables vertical-sync (Graphics setting)",
+		"w": "Say something in private to a specific player, by player-name",
+		"water": "Set water rendering mode",
+		"wbynum": "Say something in private to a specific player, by player-ID",
+		"windowborderless": "Switches borderless/decorated mode",
+		"wiremap": "Toggle wireframe-mode drawing of map geometry",
+		"wiremodel": "Toggle wireframe-mode drawing of model geometry",
+		"wiresky": "Toggle wireframe-mode drawing of skydome geometry",
+		"wirewater": "Toggle wireframe-mode drawing of water geometry",
+		"desync": "Allows creating an artificial desync of the local client with the rest of the participating hosts (needs /cheat)",
+		"devlua": "Enables/Disables Lua dev-mode (can cause desyncs if enabled) (needs /cheat)",
+		"editdefs": "Allows/Disallows editing of unit-, feature- and weapon-defs through Lua (needs /cheat)",
+		"nocost": "Enables/Disables everything-for-free, which allows everyone to build everything for zero resource costs (needs /cheat)",
+		"nohelp": "Enables/Disables widgets (LuaUI control)",
+		"nospecdraw": "Allows/Disallows spectators to draw on the map",
+		"nospectatorchat": "Enables/Disables spectators to use the chat",
+		"reloadcegs": "Reloads CEG scripts (needs /cheat)",
+		"reloadcob": "Reloads COB scripts (needs /cheat)",
+		"skip": "Fast-forwards to a given frame, or stops fast-forwarding",
+		"luarules":{
+			"loadmissiles": "Load missiles into all stockpile units",
+			"givecat": {
+				"_description": "[name] Select units by (multiple) category filters (add 'no' in front of filter to exclude)",
+				"arm": "Armada faction (excluding scav variants)",
+				"cor": "Cortex faction (excluding scav variants)",
+				"leg": "Legion faction (excluding scav variants)",
+				"scav": "Scavenger faction (including scav variants)",
+				"raptor": "Raptor faction",
+				"veh": "Vehicles",
+				"bot": "Bots",
+				"ship": "Shipyards",
+				"hover": "Hovercrafts",
+				"t1": "Tech 1 units",
+				"t2": "Tech 2 units",
+				"t3": "Tech 3 units",
+				"con": "Builder units",
+				"builder": "Builder units",
+				"mex": "Metal extractors",
+				"trans": "Transport units",
+				"transport": "Transport units",
+				"fac": "Factory structures",
+				"building": "All structures/buildings",
+				"air": "All aircraft",
+				"gunship": "Gunships (hovering aircraft)",
+				"airtransport": "Air transports",
+				"amphib": "Amphibious ground units",
+				"submarine": "Submarine/naval submersible units",
+				"watersurface": "Naval surface units",
+				"water": "All naval units (surface and submarine)",
+				"mobile": "Non-building units",
+				"scout": "Scout-tagged or high-vision/recon units",
+				"artillery": "Long-range artillery units (excludes nukes, bombers, drone carriers)",
+				"arty": "Long-range artillery units (alias of artillery)",
+				"riot": "Short-range anti-swarm/riot units",
+				"skirmish": "Skirmisher units",
+				"assault": "Assault units",
+				"weapon": "Units with at least one weapon",
+				"laser": "Units with laser or beam laser weapons",
+				"plasma": "Units with cannon/plasma weapons",
+				"missile": "Units with missile launcher weapons",
+				"depthcharge": "Units with depth charge-style weapons",
+				"torpedo": "Units with torpedo weapons",
+				"starburst": "Units with starburst missile weapons",
+				"flame": "Units with flame weapons",
+				"lightning": "Units having lightning cannon weapons",
+				"paralyzer": "Units having paralyzer weapons",
+				"emp": "Units having EMP/paralyzer weapons",
+				"interceptor": "Units with interceptor weapons",
+				"shield": "Units having a bubble shield",
+				"antinuke": "Units with anti-nuke interceptor weapons",
+				"nuke": "Units with strategic nuke weapons",
+				"aa": "Units in AA unitgroup (strict)",
+				"aa-all": "All anti-air capable units",
+				"bomber": "Bombers (including torpedo bombers)",
+				"fighter": "Fighters (air-to-air aircraft)",
+				"cloak": "Cloakable units",
+				"hoverattack": "Units with hover-attack behavior",
+				"stealth": "Stealthy units",
+				"commander": "Commander units",
+				"decoy": "Decoy units",
+				"resurrect": "Units that can resurrect",
+				"object": "Object-category/objectified units",
+				"objectify": "Units with customParam objectify",
+				"collide": "Units with collision enabled",
+				"utility": "Utility unitgroup units",
+				"startunit": "Starting units (commanders)",
+				"capture": "Units that can capture",
+				"seismic": "Units with seismic detection",
+				"seismicsignature": "Units having a seismic signature",
+				"radar": "Units with significant radar range",
+				"jammer": "Units with radar jamming",
+				"sonar": "Units with sonar range",
+				"onoffable": "Units that can be toggled on/off",
+				"stockpile": "Units with stockpile weapons",
+				"energy": "Energy-producing structures/units",
+				"energyconvert": "Energy-to-metal converter units",
+				"metal": "Metal-producing/extracting structures/units",
+				"all": "All unit types"
+			},
+			"destroyunits": "Self-destruct selected units",
+			"wreckunits": "Turn selected units into wrecks",
+			"reclaimunits": "Reclaim selected units and refund resources",
+			"removeunits": "Remove selected units from the map",
+			"removenearbyunits": "Remove units near cursor by radius",
+			"transferunits": "Transfer selected units to another team",
+			"neutralize": "Set selected units neutral on or off",
+			"maxhealth": "[value] Set selected units max health while preserving health percent",
+			"setsensors": "[0/1] Disable or restore selected unit sensors",
+			"setblocking": "Set selected units blocking on or off",
+			"relocate": "Relocate selected units to cursor while preserving formation",
+			"setradius": "[value] Adjust selected unit radius value",
+			"setheight": "[value] Adjust selected unit height value",
+			"select": "Select nearby unit or units in current selection bounds (makes unselectable units selectable)",
+			"unselect": "Make nearby unit or units in current selection bounds unselectable",
+			"halfhealth": "Halve health of all or only the selected units",
+			"sethealth": "[0-100] Set selected unit health percentage",
+			"xp": "[value] Give experience to selected units",
+			"spawnceg": "[name] Spawn a CEG effect at cursor",
+			"spawnunitexplosion": "[name] Spawn a unit explosion effect at cursor",
+			"desync": "Trigger a desync",
+			"dumpunits": "Dump all units to infolog",
+			"dumpfeatures": "Dump all features to infolog",
+			"dumploadout": "Dump units and features in loadout format",
+			"removeunitdef": "Remove all units and wreckage of a unit definition",
+			"removeobjects": "Remove all object units",
+			"clearwrecks": "Remove all wrecks and heaps",
+			"reducewrecks": "Damage wrecks to heaps and destroy heaps",
+			"godmode": "Toggle enemy-team godmode control",
+			"godmodeally": "Toggle allied-team godmode control",
+			"playertoteam": "Move a player to a team",
+			"killteam": "Kill all units of a team",
+			"modmarker": "Place a moderator map marker",
+			"ruinblueprinttest": "[filename] Spawn a scav ruin blueprint test from a blueprint file name (without .lua)",
+			"buildblock": "[teamID|all] [reason] [unitDefName|unitDefID]... Block listed units from being built for that reason",
+			"buildunblock": "[teamID|all] [reason|all] [unitDefName|unitDefID]... Remove build blocks from listed units",
+			"getscreenshot": "[playerName] Request a standard-width screenshot (600px) from a player",
+			"getscreenshotlq": "[playerName] Request a low-quality screenshot (360px) from a player",
+			"getscreenshothq": "[playerName] Request a high-quality screenshot (900px) from a player",
+			"give": "#amount [unitName|metal|energy] #teamID (#xp): Give units/resources at cursor position",
+			"take2": "(#teamID) Take control of inactive ally teams, or one specific inactive ally team",
+			"initialQueueTime": "[seconds] Set initial AFK queue grace time for idle-player detection",
+			"reloadluaui": "Reload LuaUI (bridge command because LuaUI cannot reload itself)",
+			"cmd": "[playerName|*] [command] [args...] Execute a console command for the target player(s)",
+			"undo": "#teamid #maxSecondsAgo (#receivingteamid): Restore recent self-destructed units and units killed by their explosions",
+			"reloadcusgl4": "Reload Custom Unit Shaders GL4",
+			"disablecusgl4": "Disable Custom Unit Shaders GL4",
+			"cusgl4updaterate": "Toggle CUS GL4 update rate (1 <-> 10)",
+			"debugcusgl4": "Toggle CUS GL4 debug mode",
+			"dumpcusgl4": "Dump CUS GL4 unit draw-bin contents to infolog",
+			"markbincusgl4": "[drawPass] Add map markers for objects inside a CUS GL4 draw pass bin",
+			"freetextures": "Free selected cached CUS GL4 textures from VRAM",
+			"benchmark": "[unitDef1] [unitDef2] [count] ([extra1] [extra2]) Start/stop benchmark scenario command",
+			"fightertest": "Alias of benchmark: [unitDef1] [unitDef2] [count] ([extra1] [extra2])",
+			"buildiconslow": "([unitIndex]) Build static build icons slowly (debug helper)",
+			"buildiconanim": "Build animated build icons",
+			"buildiconanimslow": "([unitIndex]) Build animated build icons slowly",
+			"profile": "([tick]) Start/stop LuaRules gadget profiler",
+			"kill_profiler": "Kill/cleanup LuaRules gadget profiler",
+			"synctest": "[arg1] [arg2] [arg3] [arg4] [arg5] [arg6] Run sync-test command with up to six arguments",
+			"setTestEndConditions": "Test helper: disable normal game-end gadgets and force test end-condition override",
+			"setTestReadyPlayers": "Test helper: set all players to ready state",
+			"unitcallinsgadget": "Toggle debug gadget for unit callins",
+			"volcano": "Toggle volcano pyroclastic system on/off",
+			"scumtextures": "Toggle raptor scum texture resolution",
+			"scumreloadshader": "Reload scum shader (currently stub/not implemented)",
+			"scumstats": "Print raptor scum stats and overlap metrics",
+			"scumdraw": "Toggle raptor scum drawing",
+			"scumoptimizeoverlap": "Toggle raptor scum overlap optimization",
+			"GlassUpdateSun": "Refresh glass shader sun uniforms",
+			"NightMode": "Reset lighting (no args) or set night lighting: [nightR] [nightG] [nightB] [azimuth] [altitude] [shadowFactor]",
+			"NightModeToggle": "Toggle automatic night-mode transitions",
+			"PrintSun": "Print current sun/atmosphere lighting settings",
+			"waterlevel": "[value] Adjust map water level offset",
+			"battleroyaledebug": "Reset battle royale radius to half start radius (debug)",
+			"HasRaptorEvent": "[0/1] Disable (0) or enable (1) LuaUI raptor event notifications",
+			"HasScavEvent": "[0/1] Disable (0) or enable (1) LuaUI scavenger event notifications",
+			"buildicon": "[unitDefName|all] (profile) (animFrames) Generate build icon(s) (needs /cheat)",
+			"buildicons": "Alias of buildicon: [unitDefName|all] (profile) (animFrames) (needs /cheat)",
+			"targetdrawteam": "[teamID] [0/1] Toggle target-line drawing for all units of a team",
+			"targetdrawunit": "[unitID] Toggle target-line drawing for one unit",
+			"zombiesetallgaia": "Convert all Gaia units to zombies",
+			"zombiequeueallcorpses": "Queue all corpses for zombie spawning",
+			"zombieautospawn": "[0/1] Disable or enable automatic zombie spawning",
+			"zombieclearspawns": "Clear all queued zombie spawns",
+			"zombiepacify": "[0/1] Disable or enable zombie pacified mode",
+			"zombiesuspendorders": "[0/1] Disable or enable zombie auto-order suspension",
+			"zombieaggroteam": "[teamID] Force zombies to aggro a specific team",
+			"zombieaggroally": "[allyID] Force zombies to aggro a specific ally-team",
+			"zombiekillall": "Kill all zombies",
+			"zombieclearallorders": "Clear all zombie orders",
+			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
+			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
+		}
+	},
+	"modoptions": {
+		"options_main": {
+			"name": "Main"
+		},
+		"ranked_game": {
+			"name": "Ranked Game",
+			"desc": "Should game results affect OpenSkill. Note that games with AI or games that are not balanced are always unranked."
+		},
+		"allowuserwidgets": {
+			"name": "Allow Custom Widgets",
+			"desc": "Allow custom user widgets or disallow them"
+		},
+		"allowunitcontrolwidgets": {
+			"name": "Allow Custom 'Unit Control' Widgets",
+			"desc": "Allow custom user 'unit control' widgets or disallow them"
+		},
+		"allowpausegameplay": {
+			"name": "Allow Commands While Paused",
+			"desc": "Allow giving unit commands while paused"
+		},
+		"maxunits": {
+			"name": "Max Units Per Player",
+			"desc": "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be."
+		},
+		"deathmode": {
+			"name": "Game End Mode",
+			"desc": "What it takes to eliminate a team",
+			"items": {
+				"neverend": {
+					"name": "Never ending",
+					"desc": "Teams are never eliminated"
+				},
+				"com": {
+					"name": "Kill all enemy Commanders",
+					"desc": "When a team has no Commanders left, it loses"
+				},
+				"territorial_domination": {
+					"name": "Territorial Domination",
+					"desc": "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins."
+				},
+				"builders": {
+					"name": "Kill all Builders",
+					"desc": "When a team has no builders left, it loses"
+				},
+				"killall": {
+					"name": "Kill everything",
+					"desc": "Every last unit must be eliminated, no exceptions!"
+				},
+				"own_com": {
+					"name": "Player resign on Com death",
+					"desc": "When player commander dies, you auto-resign."
+				}
 			}
+		},
+		"territorial_domination_config": {
+			"name": "Territorial Domination Length",
+			"desc": "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+			"items": {
+				"20_minutes": {
+					"name": "4 Rounds, 20 Minutes",
+					"desc": "Early tech emphasis, comebacks very likely, elimination unlikely."
+				},
+				"25_minutes": {
+					"name": "5 Rounds, 25 Minutes(Default)",
+					"desc": "Mid/late-game tech, comebacks a significant factor, eliminations uncommon"
+				},
+				"30_minutes": {
+					"name": "6 Rounds, 30 Minutes",
+					"desc": "Late-game tech, comebacks less significant, eliminations likely"
+				},
+				"35_minutes": {
+					"name": "7 Rounds, 35 Minutes",
+					"desc": "Super lategame tech, eliminations extremely likely"
+				}
+			}
+		},
+		"territorial_domination_elimination_threshold_multiplier": {
+			"name": "Elimination Threshold Multiplier",
+			"desc": "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient."
+		},
+		"draft_mode": {
+			"name": "Draft Spawn Order Mode",
+			"desc": "Random/Captain/Skill/Fair based startPosType modes. Default: Random.",
+			"items": {
+				"disabled": {
+					"name": "Disabled",
+					"desc": "Disable draft mod. Fast-PC place first."
+				},
+				"random": {
+					"name": "Random Order",
+					"desc": "Players get to pick a start position with a delay in a random order."
+				},
+				"captain": {
+					"name": "Captains First",
+					"desc": "Captain picks first, then everyone else in a random order."
+				},
+				"skill": {
+					"name": "Skill Order",
+					"desc": "Skill-based order, instead of random."
+				},
+				"fair": {
+					"name": "After full team has loaded",
+					"desc": "Everyone must join the game first - after that (+2sec delay) everyone can place."
+				}
+			}
+		},
+		"teamcolors_anonymous_mode": {
+			"name": "Anonymous Mode",
+			"desc": "Anonymize players by changing colors (based on chosen mode) and replacing names with question marks, making it harder to know who's who.",
+			"items": {
+				"disabled": {
+					"name": "Disabled"
+				},
+				"global": {
+					"name": "Shuffle Globally",
+					"desc": "You can distinguish different players and everyone sees the same colors globally. Diplomacy is the same as usual except using colors instead of names (e.g. \"Red, let's ally against Blue\")."
+				},
+				"local": {
+					"name": "Shuffle Locally",
+					"desc": "You can distinguish different players but everyone sees different colors locally. Diplomacy is harder but possible using positions (e.g. \"Southeast, let's ally against Northeast\")."
+				},
+				"disco": {
+					"name": "Shuffle Locally (Continiously)",
+					"desc": "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness."
+				},
+				"allred": {
+					"name": "Everyone Is Red",
+					"desc": "You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard."
+				}
+			}
+		},
+		"transportenemy": {
+			"name": "Enemy Transporting",
+			"desc": "Toggle which enemy units you can kidnap with an air transport",
+			"items": {
+				"notcoms": {
+					"name": "All But Commanders",
+					"desc": "Only commanders are immune to napping"
+				},
+				"none": {
+					"name": "Disallow All",
+					"desc": "No enemy units can be napped"
+				}
+			}
+		},
+		"teamffa_start_boxes_shuffle": {
+			"name": "Shuffle TeamFFA Start Boxes",
+			"desc": "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1."
+		},
+		"fixedallies": {
+			"name": "Disabled Dynamic Alliances",
+			"desc": "Disables the possibility of players to dynamically change alliances ingame"
+		},
+		"disablemapdamage": {
+			"name": "Disable Map Deformation",
+			"desc": "Prevents the map shape from being changed by weapons"
+		},
+		"disable_fogofwar": {
+			"name": "Disable Fog of War",
+			"desc": "Disable Fog of War"
+		},
+		"norushtimer": {
+			"name": "No Rush Time [minutes]",
+			"desc": "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting.\nPLEASE NOTE: For this to work, the game needs to have set startboxes.\n                          It won't work in FFA mode without boxes.\n                          Also, it does not affect Scavengers and Raptors.\nWARNING: No Rush Time over 30 minutes may cause performance or stability issues due to excessive unit buildup."
+		},
+		"norushmiddlefree": {
+			"name": "No Rush Non Base FFA",
+			"desc": "Allows units to leave startboxes but disallows commands issued in enemy startboxes.\nDoes not prevent commands onto the other side of startboxes so recommend East/West or North/South startboxes."
+		},
+		"comm_trans_slow": {
+			"name": "Slow Commander Transport",
+			"desc": "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished."
+		},
+		"tax_resource_sharing_amount": {
+			"name": "Resource Sharing Tax",
+			"desc": "Taxes resource sharing and overflow (engine TODO:)\nSet to [0] to turn off. Recommended: [0.4]."
+		},
+		"disable_unit_sharing": {
+			"name": "Disable Unit Sharing",
+			"desc": "Disable sharing units and structures to allies"
+		},
+		"disable_assist_ally_construction": {
+			"name": "Disable Assist Ally Construction",
+			"desc": "Disables assisting allied blueprints and labs."
+		},
+		"unit_restrictions_notech15": {
+			"name": "Disable Tech 1.5",
+			"desc": "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)"
+		},
+		"unit_restrictions_notech2": {
+			"name": "Disable Tech 2",
+			"desc": "Disable Tech 2"
+		},
+		"unit_restrictions_notech3": {
+			"name": "Disable Tech 3",
+			"desc": "Disable Tech 3"
+		},
+		"unit_restrictions_noair": {
+			"name": "Disable Air Units",
+			"desc": "Disable Air Units"
+		},
+		"unit_restrictions_nosea": {
+			"name": "Disable Sea Units",
+			"desc": "Disable Sea Units"
+		},
+		"unit_restrictions_noextractors": {
+			"name": "Disable Metal Extractors",
+			"desc": "Disable Metal Extractors"
+		},
+		"unit_restrictions_noconverters": {
+			"name": "Disable Energy Converters",
+			"desc": "Disable Energy Converters"
+		},
+		"unit_restrictions_nofusion": {
+			"name": "Disable Fusion Generators",
+			"desc": "Disables Normal and Advanced Fusion Energy Generators"
+		},
+		"unit_restrictions_notacnukes": {
+			"name": "Disable Tactical Missiles/EMPs",
+			"desc": "Disables Cortex Tactical Missile Launcher and Armada EMP Missile Launcher"
+		},
+		"unit_restrictions_nonukes": {
+			"name": "Disable Nuclear Missiles",
+			"desc": "Disable Nuclear Missiles"
+		},
+		"unit_restrictions_noantinuke": {
+			"name": "Disable Anti-Nuke Defence",
+			"desc": "Disables Nuke Interceptor Units and Structures."
+		},
+		"unit_restrictions_nolrpc": {
+			"name": "Disable Long Range Artilery (LRPC)",
+			"desc": "Disable Long Range Plasma Artilery (LRPC) structures"
+		},
+		"unit_restrictions_noendgamelrpc": {
+			"name": "Disable Endgame Artilery (LRPC)",
+			"desc": "Disable Endgame Long Range Plasma Artilery (LRPC) structures (AKA lolcannons)"
+		},
+		"options": {
+			"name": "Other",
+			"desc": "Options"
+		},
+		"map_tidal": {
+			"name": "Tidal Strength",
+			"desc": "Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+			"items": {
+				"unchanged": {
+					"name": "Unchanged",
+					"desc": "Use map settings"
+				},
+				"low": {
+					"name": "Low",
+					"desc": "Set tidal incomes to 13 energy per second"
+				},
+				"medium": {
+					"name": "Medium",
+					"desc": "Set tidal incomes to 18 energy per second"
+				},
+				"high": {
+					"name": "High",
+					"desc": "Set tidal incomes to 23 energy per second"
+				}
+			}
+		},
+		"critters": {
+			"name": "Animal amount",
+			"desc": "This multiplier will be applied on the amount of critters a map will end up with"
+		},
+		"map_atmosphere": {
+			"name": "Map Atmosphere and Ambient Sounds"
+		},
+		"ffa_wreckage": {
+			"name": "FFA Mode Wreckage",
+			"desc": "Killed players will blow up but leave wreckages"
+		},
+		"wreck_metal_ratio": {
+			"name": "Wreck Metal Percent",
+			"desc": "Percent of unit metal that is left in its wrecks"
+		},
+		"heap_metal_ratio": {
+			"name": "Heap Metal Percent",
+			"desc": "Percent of unit metal that is left in its heaps"
+		},
+		"coop": {
+			"name": "Cooperative mode",
+			"desc": "Adds extra commanders to id-sharing teams, 1 com per player"
+		},
+		"raptor_defense_options": {
+			"name": "Raptors",
+			"desc": "Various gameplay options that will change how the Raptor Defense is played."
+		},
+		"raptors_dev_channel_link": {
+			"name": "Development Discussion",
+			"desc": "Raptors development discussion."
+		},
+		"raptor_difficulty": {
+			"name": "Base Difficulty",
+			"desc": "Raptors difficulty",
+			"items": {
+				"veryeasy": {
+					"name": "Very Easy",
+					"desc": "Very Easy"
+				},
+				"easy": {
+					"name": "Easy",
+					"desc": "Easy"
+				},
+				"normal": {
+					"name": "Normal",
+					"desc": "Normal"
+				},
+				"hard": {
+					"name": "Hard",
+					"desc": "Hard"
+				},
+				"veryhard": {
+					"name": "Very Hard",
+					"desc": "Very Hard"
+				},
+				"epic": {
+					"name": "Epic",
+					"desc": "Epic"
+				}
+			}
+		},
+		"raptor_raptorstart": {
+			"name": "Hives Placement",
+			"desc": "Control where hives spawn",
+			"items": {
+				"avoid": {
+					"name": "Spawn Anywhere",
+					"desc": "Hives avoid player units"
+				},
+				"initialbox": {
+					"name": "Growing Spawn Box",
+					"desc": "Hives spawn in limited area that increases over time"
+				},
+				"alwaysbox": {
+					"name": "Always Start Box",
+					"desc": "Hives always spawn in raptor start box"
+				}
+			}
+		},
+		"raptor_endless": {
+			"name": "Endless Mode",
+			"desc": "When you kill the queen, the game doesn't end, but loops around at higher difficulty instead, infinitely."
+		},
+		"raptor_queentimemult": {
+			"name": "Queen Hatching Time Multiplier",
+			"desc": "How quickly Queen Hatch goes from 0 to 100%"
+		},
+		"raptor_queen_count": {
+			"name": "Raptor Queen Count",
+			"desc": "Number of queens that will spawn."
+		},
+		"raptor_spawncountmult": {
+			"name": "Unit Spawn Per Wave Multiplier",
+			"desc": "How many times more raptors will spawn per wave."
+		},
+		"raptor_firstwavesboost": {
+			"name": "First Waves Size Boost",
+			"desc": "Intended to use with heavily modified settings. Makes first waves larger, the bigger the number the larger they are. Cools down within first few waves."
+		},
+		"raptor_spawntimemult": {
+			"name": "Waves Amount Multiplier",
+			"desc": "How often new waves will spawn. Bigger Number = More Waves"
+		},
+		"raptor_graceperiodmult": {
+			"name": "Grace Period Time Multiplier",
+			"desc": "Time before Raptors become active."
+		},
+		"scav_defense_options": {
+			"name": "Scavengers",
+			"desc": "Gameplay options for Scavengers gamemode"
+		},
+		"scavengers_dev_channel_link": {
+			"name": "Development Discussion",
+			"desc": "Scavengers development discussion."
+		},
+		"scav_difficulty": {
+			"name": "Base Difficulty",
+			"desc": "Scavs difficulty",
+			"items": {
+				"veryeasy": {
+					"name": "Very Easy",
+					"desc": "Very Easy"
+				},
+				"easy": {
+					"name": "Easy",
+					"desc": "Easy"
+				},
+				"normal": {
+					"name": "Normal",
+					"desc": "Normal"
+				},
+				"hard": {
+					"name": "Hard",
+					"desc": "Hard"
+				},
+				"veryhard": {
+					"name": "Very Hard",
+					"desc": "Very Hard"
+				},
+				"epic": {
+					"name": "Epic",
+					"desc": "Epic"
+				}
+			}
+		},
+		"scav_scavstart": {
+			"name": "Spawn Beacons Placement",
+			"desc": "Control where spawners appear",
+			"items": {
+				"avoid": {
+					"name": "Spawn Anywhere",
+					"desc": "Beacons avoid player units"
+				},
+				"initialbox": {
+					"name": "Growing Spawn Box",
+					"desc": "Beacons spawn in limited area that increases over time"
+				}
+			}
+		},
+		"scav_endless": {
+			"name": "Endless Mode",
+			"desc": "When you kill the boss, the game doesn't end, but loops around at higher difficulty instead, infinitely."
+		},
+		"scav_bosstimemult": {
+			"name": "Boss Preparation Time Multiplier",
+			"desc": "How quickly Boss Anger goes from 0 to 100%."
+		},
+		"scav_boss_count": {
+			"name": "Scavengers Boss Count",
+			"desc": "Number of bosses that will spawn."
+		},
+		"scav_spawncountmult": {
+			"name": "Unit Spawn Per Wave Multiplier",
+			"desc": "How many times more scavs will spawn per wave."
+		},
+		"scav_spawntimemult": {
+			"name": "Waves Amount Multiplier",
+			"desc": "How often new waves will spawn. Bigger Number = More Waves"
+		},
+		"scav_graceperiodmult": {
+			"name": "Grace Period Time Multiplier",
+			"desc": "Time before Scavs become active."
+		},
+		"options_extra": {
+			"name": "Extras",
+			"desc": "Extra options"
+		},
+		"experimentalextraunits": {
+			"name": "Extra Units Pack",
+			"desc": "Pack of units that didn't make it to the main game roster. Balanced for PvP"
+		},
+		"scavunitsforplayers": {
+			"name": "Scavengers Units Pack",
+			"desc": "Units made for Scavengers, mostly silly and unbalanced for PvP."
+		},
+		"map_waterlevel": {
+			"name": "Water Level",
+			"desc": "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level"
+		},
+		"map_waterislava": {
+			"name": "Water Is Lava",
+			"desc": "Turns water into Lava"
+		},
+		"map_lavatiderhythm": {
+			"name": "Lava Tides",
+			"desc": "Lava level periodicially cycles height when tides are present",
+			"items": {
+				"default": {
+					"name": "Default",
+					"desc": "Map Settings"
+				},
+				"enabled": {
+					"name": "Enable/Override",
+					"desc": "Lava tides will use these settings over the map defaults"
+				},
+				"disabled": {
+					"name": "Disable",
+					"desc": "Lava will not have tides, even on maps that normally have it"
+				}
+			}
+		},
+		"map_lavatidemode": {
+			"name": "Lava Tide Mode",
+			"desc": "Toggle whether lava starts at high or low tide.",
+			"items": {
+				"lavastartlow": {
+					"name": "Start Low",
+					"desc": "Lava starts at low tide"
+				},
+				"lavastarthigh": {
+					"name": "Start High",
+					"desc": "Lava starts at high tide"
+				}
+			}
+		},
+		"map_lavahighlevel": {
+			"name": "Lava High Tide Level",
+			"desc": "Lava level at high tide"
+		},
+		"map_lavahighdwell": {
+			"name": "Lava High Tide Time",
+			"desc": "Time in seconds lava waits at high tide"
+		},
+		"map_lavalowlevel": {
+			"name": "Lava Low Tide Level",
+			"desc": "Lava level at low tide"
+		},
+		"map_lavalowdwell": {
+			"name": "Lava Low Tide Time",
+			"desc": "Time in seconds lava waits at low tide"
+		},
+		"map_tweaklava": {
+			"name": "Advanced Tide Rhythm",
+			"desc": "Table with format {MapHeight (elmo), Rate (elmo/s), Dwell Time (s)}, e.g. {0, 6, 60},{100, 3, 20}",
+			"hint": "{Lava Height, Rise/Fall Rate, Dwell Time}"
+		},
+		"ruins": {
+			"name": "Ruins",
+			"desc": "Remains of the battles once fought",
+			"items": {
+				"enabled": {
+					"name": "Enabled"
+				},
+				"scav_only": {
+					"name": "Enabled for Scavengers only"
+				},
+				"disabled": {
+					"name": "Disabled"
+				}
+			}
+		},
+		"ruins_density": {
+			"name": "Ruins: Density",
+			"items": {
+				"verydense": {
+					"name": "Very Dense"
+				},
+				"dense": {
+					"name": "Dense"
+				},
+				"normal": {
+					"name": "Normal"
+				},
+				"rare": {
+					"name": "Rare"
+				},
+				"veryrare": {
+					"name": "Very Rare"
+				}
+			}
+		},
+		"ruins_only_t1": {
+			"name": "Ruins: Only Tech 1"
+		},
+		"ruins_civilian_disable": {
+			"name": "Ruins: Disable Civilian (Not Implemented Yet)"
+		},
+		"lootboxes": {
+			"name": "Lootboxes",
+			"desc": "Random drops of valuable stuff.",
+			"items": {
+				"enabled": {
+					"name": "Enabled"
+				},
+				"scav_only": {
+					"name": "Enabled for Scavengers only"
+				},
+				"disabled": {
+					"name": "Disabled"
+				}
+			}
+		},
+		"lootboxes_density": {
+			"name": "Lootboxes: Density",
+			"items": {
+				"normal": {
+					"name": "Normal"
+				},
+				"rare": {
+					"name": "Rare"
+				},
+				"veryrare": {
+					"name": "Very Rare"
+				}
+			}
+		},
+		"evocom": {
+			"name": "Evolving Commanders",
+			"desc": "Commanders evolve, gaining new weapons and abilities."
+		},
+		"evocom_feedback_thread_link": {
+			"name": "Feedback thread",
+			"desc": "Discord discussion about Evolving Commanders."
+		},
+		"evocomlevelupmethod": {
+			"name": "EvoCom: Leveling Method",
+			"desc": "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
+			"items": {
+				"dynamic": {
+					"name": "Dynamic"
+				},
+				"timed": {
+					"name": "Timed"
+				}
+			}
+		},
+		"evocomlevelupmultiplier": {
+			"name": "EvoCom: Evolution Mult.",
+			"desc": "Adjusts the thresholds at which Dynamic evolutions occur"
+		},
+		"evocomleveluptime": {
+			"name": "EvoCom: Evolution Time",
+			"desc": "Rate at which commanders will evolve if Timed method is selected."
+		},
+		"evocomlevelcap": {
+			"name": "EvoCom: Max Level",
+			"desc": "Changes the Evolving Commanders maximum level"
+		},
+		"evocomxpmultiplier": {
+			"name": "EvoCom: Commander XP Multiplier",
+			"desc": "Does not affect leveling! Changes the rate at which Evolving Commanders gain Experience."
+		},
+		"comrespawn": {
+			"name": "Commander Respawning",
+			"desc": "Commanders can build one Effigy. The first one is free and given for you at the start. When the commander dies, the Effigy is sacrificed in its place.",
+			"items": {
+				"evocom": {
+					"name": "Evolving Commanders Only"
+				},
+				"all": {
+					"name": "All Commanders"
+				},
+				"disabled": {
+					"name": "Disabled"
+				}
+			}
+		},
+		"quick_start": {
+			"name": "Quick Start",
+			"desc": "Each player gets pre-game resources to spend on structures to be instantly spawned at the beginning of the game.",
+			"items": {
+				"default": {
+					"name": "Default",
+					"desc": "Default settings for game modes."
+				},
+				"enabled": {
+					"name": "Enabled",
+					"desc": "Quick Start alone, deducts 400 energy and 800 metal from starting resources."
+				},
+				"factory_discount": {
+					"name": "Enabled: Discounted First Factory",
+					"desc": "Quick Start The commander's first factory is discounted at any time. Deducts 400 energy and 800 metal from starting resources."
+				},
+				"factory_discount_only": {
+					"name": "First Factory Discount Only",
+					"desc": "No base budget, only first factory discount. No deduction from starting resources."
+				},
+				"disabled": {
+					"name": "Disabled",
+					"desc": "Disabled quick start for all game modes."
+				}
+			}
+		},
+		"quick_start_link": {
+			"name": "Feedback thread",
+			"desc": "Discord discussion about quick start."
+		},
+		"quick_start_amount": {
+			"name": "Quick Start Base Budget",
+			"desc": "How much pre-game resources you have to spend on pre-queuing structures.",
+			"items": {
+				"default": {
+					"name": "Default",
+					"desc": "Uses the default amount based on game mode"
+				},
+				"small": {
+					"name": "Small",
+					"desc": "800 Base Budget"
+				},
+				"normal": {
+					"name": "Normal",
+					"desc": "1200 Base Budget"
+				},
+				"large": {
+					"name": "Large",
+					"desc": "2400 Base Budget"
+				}
+			}
+		},
+		"enable_quickstart_overrides": {
+			"name": "Enable Quick Start Overrides",
+			"desc": "Allow overriding quick start range and budget (for debugging/modding)."
+		},
+		"override_quick_start_range": {
+			"name": "Override Quick Start Range",
+			"desc": "Override the quick start build range when overrides are enabled (values below 200 are clamped to 200)."
+		},
+		"override_quick_start_budget": {
+			"name": "Override Quick Start Budget",
+			"desc": "Override the quick start starting resources when overrides are enabled."
+		},
+		"assistdronesenabled": {
+			"name": "Commander Drones",
+			"items": {
+				"enabled": {
+					"name": "Enabled"
+				},
+				"disabled": {
+					"name": "Disabled"
+				}
+			}
+		},
+		"assistdronesbuildpowermultiplier": {
+			"name": "ComDrones: Buildpower Multiplier",
+			"desc": "How much buildpower commander drones should have"
+		},
+		"assistdronescount": {
+			"name": "ComDrones: Count",
+			"desc": "How many assist drones per commander should be spawned"
+		},
+		"assistdronesair": {
+			"name": "ComDrones: Use Air Drones",
+			"desc": "Switch between aircraft drones and amphibious vehicle drones."
+		},
+		"commanderbuildersenabled": {
+			"name": "Base Builder Turret",
+			"items": {
+				"enabled": {
+					"name": "Enabled"
+				},
+				"disabled": {
+					"name": "Disabled"
+				}
+			}
+		},
+		"commanderbuildersrange": {
+			"name": "Base Builder Turret: Range"
+		},
+		"commanderbuildersbuildpower": {
+			"name": "Base Builder Turret: Buildpower"
+		},
+		"zombies": {
+			"name": "Scavenger Zombies",
+			"items": {
+				"disabled": {
+					"name": "Disabled",
+					"desc": "Disabled"
+				},
+				"normal": {
+					"name": "Normal",
+					"desc": "Normal revival rate, normal strength."
+				},
+				"hard": {
+					"name": "Hard",
+					"desc": "Faster revival rate, stronger Zombies."
+				},
+				"nightmare": {
+					"name": "Nightmare",
+					"desc": "Faster revival rate, stronger Zombies, 2-5 spawn per corpse."
+				},
+				"akumu": {
+					"name": "Akumu",
+					"desc": "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses."
+				}
+			}
+		},
+		"options_experimental": {
+			"name": "Experimental",
+			"desc": "Experimental options"
+		},
+		"proposed_unit_reworks": {
+			"name": "Placeholder for BLT testing",
+			"desc": "Placeholder for official balance testing mod option"
+		},
+		"experimentallegionfaction": {
+			"name": "Legion Faction",
+			"desc": "3rd experimental faction"
+		},
+		"legionsimplifiedmexes": {
+			"name": "Legion Simplified Mexes",
+			"desc": "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e"
+		},
+		"experimentallegionfaction_link": {
+			"name": "Development Discussion",
+			"desc": "Discord discussion about Legion faction."
+		},
+		"easytax": {
+			"name": "Easy Tax v2",
+			"desc": "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax."
+		},
+		"easytax_link": {
+			"name": "Changelog",
+			"desc": "Easy Tax v2 description."
+		},
+		"techsplit": {
+			"name": "Tech Split",
+			"desc": "Adds a new tier between T1 and T2 for bots and vehicles"
+		},
+		"techsplit_balance": {
+			"name": "Tech Split Balance Test",
+			"desc": "Adjusts the balance of units in the proposed tech split."
+		},
+		"experimental_defend_firestate": {
+			"name": "Defend Combat Stance",
+			"desc": "Replaces Return Fire with the new Defend combat stance.\nDefending units will shoot threats to themselves when they become threats on a 1v1 basis."
+		},
+		"experimental_defend_firestate_link": {
+			"name": "Feedback thread",
+			"desc": "Discord discussion about the Defend Combat Stance rework."
+		},
+		"air_rework": {
+			"name": "Air Rework",
+			"desc": "Prototype version with more maneuverable, slower air units and more differentiation between them."
+		},
+		"skyshift": {
+			"name": "Skyshift: Air Rework",
+			"desc": "A complete overhaul of air units and mechanics"
+		},
+		"emprework": {
+			"name": "EMP Rework",
+			"desc": "EMP is changed to slow units movement and firerate, before eventually stunning."
+		},
+		"junorework": {
+			"name": "Juno Rework",
+			"desc": "Juno stuns certain units (such as radars and jammers) rather than magically deleting them"
+		},
+		"releasecandidates": {
+			"name": "Release Candidate Units",
+			"desc": "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex"
+		},
+		"naval_balance_tweaks": {
+			"name": "Proposed Naval Balance Tweaks",
+			"desc": "Modoption used to test specific balance adjustments dedicated towards naval units."
+		},
+		"naval_balance_tweaks_link": {
+			"name": "Feedback thread",
+			"desc": "Discord discussion about naval balance tweaks."
+		},
+		"forge_volcano": {
+			"name": "Forge Volcano Event",
+			"desc": "Enable the cinematic volcano eruption event on Forge v2.3."
+		},
+		"factory_costs": {
+			"name": "Factory Costs Test Patch",
+			"desc": "Cheaper and more efficient factories, more expensive nanos, and slower to build higher-tech units. Experimental, not expected to be balanced by itself - a test to try how the game plays if each player is more able to afford their own T2 factory, while making assisting them less efficient."
+		},
+		"modes": {
+			"name": "GameModes",
+			"desc": "Game Modes"
+		},
+		"shareddynamicalliancevictory": {
+			"name": "Dynamic Ally Victory",
+			"desc": "Ingame alliance should count for game over condition."
+		},
+		"ai_incomemultiplier": {
+			"name": "AI Income Multiplier",
+			"desc": "Multiplies AI resource income"
+		},
+		"defaultdecals": {
+			"name": "Default Decals",
+			"desc": "Use the default explosion decals instead of Decals GL4"
+		},
+		"dev": {
+			"name": "_DEV",
+			"desc": "tab that should be hidden by chobby"
+		},
+		"teamcolors_icon_dev_mode": {
+			"name": "Icon Dev Mode",
+			"desc": "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
+			"items": {
+				"disabled": {
+					"name": "Disabled",
+					"desc": "description"
+				},
+				"armblue": {
+					"name": "Armada Blue",
+					"desc": "description"
+				},
+				"corred": {
+					"name": "Cortex Red",
+					"desc": "description"
+				},
+				"scavpurp": {
+					"name": "Scavenger Purple",
+					"desc": "description"
+				},
+				"raptororange": {
+					"name": "Raptor Orange",
+					"desc": "description"
+				},
+				"gaiagray": {
+					"name": "Gaia Gray",
+					"desc": "description"
+				},
+				"leggren": {
+					"name": "Legion Green",
+					"desc": "description"
+				}
+			}
+		},
+		"debugcommands": {
+			"name": "Debug Commands",
+			"desc": "A pipe separated list of commands to execute at [gameframe]:luarules benchmark|100:forcequit..."
+		},
+		"animationcleanup": {
+			"name": "Animation Cleanup",
+			"desc": "Use animations from the BOSCleanup branch"
+		},
+		"pushresistant": {
+			"name": "Pushresistance",
+			"desc": "Enable to do desync test by the use of pushresistance"
+		},
+		"dummyboolfeelfreetotouch": {
+			"name": "dummy to hide some modoptions",
+			"desc": "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information"
+		},
+		"date_year": {
+			"name": "Year",
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+		},
+		"date_month": {
+			"name": "Month",
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+		},
+		"date_day": {
+			"name": "Day",
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+		},
+		"date_hour": {
+			"name": "Hour",
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+		},
+		"factionlimiter": {
+			"name": "Faction Limiter: ON\nBITMASK",
+			"desc": "BITMASK to be used via custom ui, only visible when boss\nSet to [0] To disable.\nOtherwise: 0th, 1st and 2nd bit are armada, cortex and legion respectively.\nOffset by 3 for each consecutive team.\nIf a team's bitmask is 0, All are Enabled.\nExample: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1"
+		},
+		"mapmetadata": {
+			"name": "MapMetadata",
+			"desc": "mapmetadata tab that should be hidden by chobby, which would have ideally been achieved by just not listing it and the following options here in the first place, but then SPADS refuses to set the modoption"
+		},
+		"mapmetadata_startpos": {
+			"name": "Map Metadata: StartPos",
+			"desc": "StartPos configuration. Format is: base64url(zlib(json))"
+		},
+		"mapmetadata_startboxes_set": {
+			"name": "Map Metadata: Startboxes Set",
+			"desc": "Per-team-count startbox arrangements (rect or polygon). Format is: base64url(zlib(json))"
+		},
+		"mapmetadata_startbox_override": {
+			"name": "Map Metadata: Startbox Override",
+			"desc": "Custom startbox arrangement that overrides the set when its team count matches. Format is: base64url(zlib(json))"
+		},
+		"options_cheats": {
+			"name": "Cheats",
+			"desc": "Options that alter the game balance in unintended way, Use at your own risk."
+		},
+		"dynamiccheats": {
+			"name": "Dynamic Cheats",
+			"desc": "Cheats marked as [Dynamic] react to the game state and are suspended when the opposition is losing"
+		},
+		"nowasting": {
+			"name": "No Resource Wasting",
+			"desc": "[Dynamic] Increases Buildpower for the affected team's builders and factories to prevent resource",
+			"items": {
+				"default": {
+					"name": "Default",
+					"desc": "Disabled, unless other features use it"
+				},
+				"disabled": {
+					"name": "Disabled",
+					"desc": "Disabled"
+				},
+				"ai": {
+					"name": "AI Only",
+					"desc": "All AI except Scavengers and Raptors"
+				},
+				"all": {
+					"name": "All",
+					"desc": "AI and Player Teams both excluding Scavengers and Raptors"
+				}
+			}
+		},
+		"allow_enemy_ai_spawn_placement": {
+			"name": "Allow Hostile AI Spawn Placement",
+			"desc": "When enabled, allows enemy allyteams to view and place enemy AI start positions during the pregame"
+		},
+		"startmetal": {
+			"name": "Starting Metal",
+			"desc": "Determines amount of metal and metal storage that each player will start with"
+		},
+		"startmetalstorage": {
+			"name": "Starting Metal Storage",
+			"desc": "Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with"
+		},
+		"startenergy": {
+			"name": "Starting Energy",
+			"desc": "Determines amount of energy and energy storage that each player will start with"
+		},
+		"startenergystorage": {
+			"name": "Starting Energy Storage",
+			"desc": "Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with"
+		},
+		"bonusstartresourcemultiplier": {
+			"name": "Apply Bonus to Starting Resources",
+			"desc": "If enabled, multiplies each players starting resources with their bonus."
+		},
+		"multiplier_resourceincome": {
+			"name": "Overall Resource Income",
+			"desc": "Stacks up with the three options below."
+		},
+		"multiplier_metalextraction": {
+			"name": "Metal Extraction"
+		},
+		"multiplier_energyconversion": {
+			"name": "Energy Conversion Efficiency",
+			"desc": "lower means you get less metal per energy converted"
+		},
+		"multiplier_energyproduction": {
+			"name": "Energy Production"
+		},
+		"multiplier_maxvelocity": {
+			"name": "Unit Max Velocity"
+		},
+		"multiplier_turnrate": {
+			"name": "Unit Turn Rate"
+		},
+		"multiplier_builddistance": {
+			"name": "Build Range"
+		},
+		"multiplier_buildpower": {
+			"name": "Build Power"
+		},
+		"multiplier_losrange": {
+			"name": "Vision Range"
+		},
+		"multiplier_radarrange": {
+			"name": "Radar And Sonar Range"
+		},
+		"multiplier_weaponrange": {
+			"name": "Weapon Range"
+		},
+		"multiplier_weapondamage": {
+			"name": "Weapon Damage",
+			"desc": "Also affects unit death explosions."
+		},
+		"multiplier_shieldpower": {
+			"name": "Shield Power"
+		},
+		"experimentalshields": {
+			"name": "Shield Type Override",
+			"desc": "Shield Type Override",
+			"items": {
+				"unchanged": {
+					"name": "Unchanged",
+					"desc": "Unchanged"
+				},
+				"absorbeverything": {
+					"name": "Absorb Everything",
+					"desc": "Shields absorb everything"
+				},
+				"bounceplasma": {
+					"name": "Deflect Plasma",
+					"desc": "Shields deflect plasma only"
+				},
+				"bounceeverything": {
+					"name": "Deflect Everything",
+					"desc": "Shields deflect everything"
+				}
+			}
+		},
+		"tweakunits": {
+			"name": "Tweak Units",
+			"desc": "For advanced users!!! A base64 encoded lua table of unit parameters to change.",
+			"hint": "Input must be base64"
+		},
+		"tweakdefs": {
+			"name": "Tweak Defs",
+			"desc": "For advanced users!!! A base64 encoded snippet of code that modifies game definitions.",
+			"hint": "Input must be base64"
+		},
+		"forceallunits": {
+			"name": "Force Load All Units (Dev/Modding)",
+			"desc": "Load all UnitDefs even if ais or options for them aren't enabled"
+		},
+		"holiday_events": {
+			"name": "Enable Holiday Events"
+		},
+		"tweakunits1": {
+			"name": "Tweak Units 1",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits2": {
+			"name": "Tweak Units 2",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits3": {
+			"name": "Tweak Units 3",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits4": {
+			"name": "Tweak Units 4",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits5": {
+			"name": "Tweak Units 5",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits6": {
+			"name": "Tweak Units 6",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits7": {
+			"name": "Tweak Units 7",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits8": {
+			"name": "Tweak Units 8",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakunits9": {
+			"name": "Tweak Units 9",
+			"desc": "A base64 encoded lua table of unit parameters to change."
+		},
+		"tweakdefs1": {
+			"name": "Tweak Defs 1",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs2": {
+			"name": "Tweak Defs 2",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs3": {
+			"name": "Tweak Defs 3",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs4": {
+			"name": "Tweak Defs 4",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs5": {
+			"name": "Tweak Defs 5",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs6": {
+			"name": "Tweak Defs 6",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs7": {
+			"name": "Tweak Defs 7",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs8": {
+			"name": "Tweak Defs 8",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
+		},
+		"tweakdefs9": {
+			"name": "Tweak Defs 9",
+			"desc": "A base64 encoded snippet of code that modifies game definitions."
 		}
 	}
+
 }

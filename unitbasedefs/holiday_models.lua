@@ -1,20 +1,20 @@
 local aprilFoolsModels = {
-	corak    = "units/event/aprilfools/CORAK.s3o",
-	corllt   = "units/event/aprilfools/CORllt.s3o",
-	corhllt  = "units/event/aprilfools/CORhllt.s3o",
-	corack   = "units/event/aprilfools/CORACK.s3o",
-	corck    = "units/event/aprilfools/CORCK.s3o",
-	armpw    = "units/event/aprilfools/ARMPW.s3o",
+	corak = "units/event/aprilfools/CORAK.s3o",
+	corllt = "units/event/aprilfools/CORllt.s3o",
+	corhllt = "units/event/aprilfools/CORhllt.s3o",
+	corack = "units/event/aprilfools/CORACK.s3o",
+	corck = "units/event/aprilfools/CORCK.s3o",
+	armpw = "units/event/aprilfools/ARMPW.s3o",
 	cordemon = "units/event/aprilfools/cordemon.s3o",
 	--correap -- Requires Model Update
 	corstorm = "units/event/aprilfools/corstorm.s3o",
-	armcv    = "units/event/aprilfools/armcv.s3o",
-	armrock  = "units/event/aprilfools/armrock.s3o",
-	armbull  = "units/event/aprilfools/armbull.s3o",
-	armllt   = "units/event/aprilfools/armllt.s3o",
-	armwin   = "units/event/aprilfools/armwin.s3o",
-	armham   = "units/event/aprilfools/armham.s3o",
-	corwin   = "units/event/aprilfools/corwin.s3o",
+	armcv = "units/event/aprilfools/armcv.s3o",
+	armrock = "units/event/aprilfools/armrock.s3o",
+	armbull = "units/event/aprilfools/armbull.s3o",
+	armllt = "units/event/aprilfools/armllt.s3o",
+	armwin = "units/event/aprilfools/armwin.s3o",
+	armham = "units/event/aprilfools/armham.s3o",
+	corwin = "units/event/aprilfools/corwin.s3o",
 	--corthud -- Requires Model Update
 }
 
@@ -40,6 +40,6 @@ local xmasModels = {
 
 return {
 	AprilFools = aprilFoolsModels,
-	Halloween  = halloweenModels,
-	Xmas       = xmasModels,
+	Halloween = halloweenModels,
+	Xmas = xmasModels,
 }

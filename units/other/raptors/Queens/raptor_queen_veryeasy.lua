@@ -1,6 +1,6 @@
 local playerCountScale = 1
-if Spring.Utilities.Gametype.IsRaptors() then
-	playerCountScale = (#Spring.GetTeamList() - 2)/8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+if BAR.Utilities.Gametype.IsRaptors() then
+	playerCountScale = (#Spring.GetTeamList() - 2) / 8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
 
 return {
@@ -13,7 +13,7 @@ return {
 		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/ve_raptorq.DDS",
-		buildtime = 1500000,
+		buildtime = 5000000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -34,7 +34,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		health = 625000,
+		health = 937500,
 		maxslope = 40,
 		speed = 75.0,
 		maxwaterdepth = 0,
@@ -62,7 +62,11 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
+			treeshader = "yes",
+			ispvefinalboss = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -110,7 +114,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 500*playerCountScale,
+					default = 500 * playerCountScale,
 				},
 			},
 			melee = {
@@ -138,7 +142,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 2500*playerCountScale,
+					default = 2500 * playerCountScale,
 				},
 			},
 			yellow_missile = {
@@ -170,7 +174,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
@@ -189,7 +192,7 @@ return {
 				},
 				damage = {
 					default = 1,
-					vtol = 1000*playerCountScale,
+					vtol = 1000 * playerCountScale,
 				},
 			},
 		},

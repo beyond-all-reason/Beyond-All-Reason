@@ -1,7 +1,7 @@
 return {
 	legmed = {
 		maxacc = 0.01,
-		maxdec = 0.02,
+		maxdec = 0.1,
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",
@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 220,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			techlevel = 2,

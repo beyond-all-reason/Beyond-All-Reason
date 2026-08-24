@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then
+if not BAR.Utilities.IsDevMode() then
 	return
 end
 
@@ -24,7 +24,7 @@ local spEcho = Spring.Echo
 local gadgetContents = {}
 local gadgetFileNames = {}
 local failedGadgets = {}
-local gadgetDependents = {}  -- gadgetName -> {dependentName1, dependentName2, ...}
+local gadgetDependents = {} -- gadgetName -> {dependentName1, dependentName2, ...}
 
 local function CacheGadgets()
 	for _, g in pairs(gadgetHandler.gadgets) do
@@ -49,7 +49,9 @@ local pendingReHook = {}
 
 local function ReHookProfiler(gadgetName)
 	local g = gadgetHandler:FindGadget(gadgetName)
-	if not g then return end
+	if not g then
+		return
+	end
 	for key, value in pairs(gadgetHandler) do
 		if type(value) == "table" then
 			local i = string.find(key, "List", 1, true)
@@ -76,7 +78,7 @@ local function CheckForChanges(gadgetName, fileName, label)
 		gadgetContents[gadgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			failedGadgets[gadgetName] = fileName
 			return
 		end
@@ -96,6 +98,7 @@ local function CheckForChanges(gadgetName, fileName, label)
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local updateQueue = {}
 
 	function gadget:Initialize()
 		CacheGadgets()
@@ -110,6 +113,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			pendingReHook = {}
 		end
+
+		local numGadgets = 8
+		while numGadgets > 0 and next(updateQueue) do
+			local gadgetName, fileName = next(updateQueue)
+			CheckForChanges(gadgetName, fileName, "synced")
+			updateQueue[gadgetName] = nil
+			numGadgets = numGadgets - 1
+		end
+
 		if frame - lastCheckFrame < 30 then
 			return
 		end
@@ -121,14 +133,13 @@ if gadgetHandler:IsSyncedCode() then
 		if frame - lastFullScanFrame >= 90 then
 			lastFullScanFrame = frame
 			CacheGadgets()
+			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do
-				CheckForChanges(gadgetName, fileName, "synced")
+				updateQueue[gadgetName] = fileName
 			end
 		end
 	end
-
 else
-
 	local spGetMouseState = Spring.GetMouseState
 	local mouseOffscreen = select(6, spGetMouseState())
 
@@ -137,6 +148,7 @@ else
 	end
 
 	local timeSinceCheck = 0
+	local updateQueue = {}
 	function gadget:Update(dt)
 		if next(pendingReHook) then
 			for name in pairs(pendingReHook) do
@@ -144,6 +156,17 @@ else
 			end
 			pendingReHook = {}
 		end
+
+		if next(updateQueue) then
+			local startTime = Spring.GetTimer()
+			-- 3 ms budget per frame
+			while next(updateQueue) and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+				local gadgetName, fileName = next(updateQueue)
+				CheckForChanges(gadgetName, fileName, "unsynced")
+				updateQueue[gadgetName] = nil
+			end
+		end
+
 		timeSinceCheck = timeSinceCheck + dt
 		if timeSinceCheck < 1 then
 			return
@@ -155,8 +178,9 @@ else
 
 		if not mouseOffscreen and prevMouseOffscreen then
 			CacheGadgets()
+			updateQueue = {}
 			for gadgetName, fileName in pairs(gadgetFileNames) do
-				CheckForChanges(gadgetName, fileName, "unsynced")
+				updateQueue[gadgetName] = fileName
 			end
 		else
 			for name, fileName in pairs(failedGadgets) do
@@ -164,5 +188,4 @@ else
 			end
 		end
 	end
-
 end

@@ -14,7 +14,7 @@ return {
 		health = 2500,
 		leavetracks = true,
 		maxacc = 0.02,
-		maxdec = 0.04537,
+		maxdec = 0.1,
 		maxslope = 20,
 		maxwaterdepth = 20,
 		metalcost = 1000,
@@ -44,8 +44,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 125,
-			weapon1turrety = 125,
 		},
 		featuredefs = {
 			dead = {
@@ -109,7 +107,6 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
@@ -145,6 +142,12 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 720,
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
+					turretspeedx = 125,
+					turretspeedy = 125,
+				},
 				damage = {
 					default = 1000,
 					subs = 500,

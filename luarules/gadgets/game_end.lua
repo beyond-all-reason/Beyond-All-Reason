@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "June, 2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -20,7 +20,6 @@ end
 	- has no alive teams
 ]]
 if gadgetHandler:IsSyncedCode() then
-
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 	local fixedallies = Spring.GetModOptions().fixedallies
 
@@ -51,7 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
 	local unitDecoration = {}
-	for udefID,def in ipairs(UnitDefs) do
+	for udefID, def in ipairs(UnitDefs) do
 		if def.customParams.iscommander then
 			isCommander[udefID] = true
 		end
@@ -67,22 +66,30 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
 	local GetAIInfo = Spring.GetAIInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
+	local GetTeamUnits = Spring.GetTeamUnits
+	local GetUnitDefID = Spring.GetUnitDefID
 	local GameOver = Spring.GameOver
 	local AreTeamsAllied = Spring.AreTeamsAllied
 	local GetGameFrame = Spring.GetGameFrame
+	local EMPTY_TABLE = {}
 
-	local playerQuitIsDead = true	-- gets turned off for 1v1's
+	local playerQuitIsDead = true -- gets turned off for 1v1's
 	local oneTeamWasActive = false
 	local teamToAllyTeam = { [gaiaTeamID] = gaiaAllyTeamID }
 	local playerIDtoAIs = {}
+	local playerInfoCache = {}
+	local teamEvalFrame = {}
+	local allyTeamEvalFrame = {}
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
-	local isFFA = Spring.Utilities.Gametype.IsFFA()
+	local isFFA = BAR.Utilities.Gametype.IsFFA()
 
 	local gameoverFrame
 	local gameoverWinners
 	local gameoverAnimFrame
 	local gameoverAnimUnits
+	local singleWinnerScratch = {}
+	local sharedWinnerScratch = {}
 
 	local globalLosGranted = false
 
@@ -107,10 +114,13 @@ if gadgetHandler:IsSyncedCode() then
 			dead,
 		},
 	}
-	]]--
+	]]
+	--
 
 	local function UpdateAllyTeamIsDead(allyTeamID, gf)
-		if gf == 0 then return end
+		if gf == 0 then
+			return
+		end
 
 		local wipeout = true
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
@@ -120,9 +130,9 @@ if gadgetHandler:IsSyncedCode() then
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
-					local teamUnits = Spring.GetTeamUnits(teamID)
-					for i=1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					local teamUnits = GetTeamUnits(teamID) or EMPTY_TABLE
+					for i = 1, #teamUnits do
+						Spring.DestroyUnit(teamUnits[i], false, true) -- reclaim, dont want to leave FFA comwreck for idling starts
 					end
 				end
 			else
@@ -133,64 +143,93 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function CheckPlayer(playerID, gf)
-		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+		local cachedPlayerInfo = playerInfoCache[playerID]
+		local active = cachedPlayerInfo and cachedPlayerInfo.active
+		local spectator = cachedPlayerInfo and cachedPlayerInfo.spectator
+		local teamID = cachedPlayerInfo and cachedPlayerInfo.teamID
+		local allyTeamID = cachedPlayerInfo and cachedPlayerInfo.allyTeamID
+		if teamID == nil then
+			_, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+		end
 		local team = allyTeamInfos[allyTeamID].teams[teamID]
 
 		if not spectator and active then
 			team.players[playerID] = gf
 		end
-		team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
+		if teamEvalFrame[teamID] ~= gf then
+			teamEvalFrame[teamID] = gf
 
-		local allResigned = true
-		if not team.dead then
-			if team.isAI then
-				allResigned = false
-			else
-				local players = GetPlayerList(teamID)
-				for _, playerID in pairs(players) do
-					local _, active, spec = GetPlayerInfo(playerID, false)
-					allResigned = allResigned and spec
+			team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
+
+			local allResigned = true
+			if not team.dead then
+				if team.isAI then
+					allResigned = false
+				else
+					for trackedPlayerID in pairs(team.players) do
+						local trackedInfo = playerInfoCache[trackedPlayerID]
+						local spec = trackedInfo and trackedInfo.spectator
+						if spec == nil then
+							_, _, spec = GetPlayerInfo(trackedPlayerID, false)
+						end
+						allResigned = allResigned and (spec == true)
+						if not allResigned then
+							break
+						end
+					end
 				end
 			end
-		end
-		if not team.dead and allResigned then
-			killTeamQueue[teamID] = gf
-		else
-			if not team.hasLeader and not team.dead then
-				if not killTeamQueue[teamID] then
-					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12))	-- add a grace period before killing the team
+			if not team.dead and allResigned then
+				killTeamQueue[teamID] = gf
+			else
+				if not team.hasLeader and not team.dead then
+					if not killTeamQueue[teamID] then
+						killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12)) -- add a grace period before killing the team
+					end
+				elseif killTeamQueue[teamID] then
+					killTeamQueue[teamID] = nil
 				end
-			elseif killTeamQueue[teamID] then
+			end
+			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
+				KillTeam(teamID)
 				killTeamQueue[teamID] = nil
 			end
-		end
-		if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
-			KillTeam(teamID)
-			killTeamQueue[teamID] = nil
-		end
 
-		-- if team isn't AI controlled, then we need to check if we have attached players
-		if not team.isAI then
-			team.isControlled = false
-			for _, isControlling in pairs(team.players) do
-				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
-					team.isControlled = true
-					break
+			-- if team isn't AI controlled, then we need to check if we have attached players
+			if not team.isAI then
+				team.isControlled = false
+				for _, isControlling in pairs(team.players) do
+					if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
+						team.isControlled = true
+						break
+					end
 				end
 			end
 		end
 
 		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
-		local AIHostList = playerIDtoAIs[playerID] or {}
-		for AITeam, AIAllyTeam in pairs(AIHostList) do
+		for AITeam, AIAllyTeam in pairs(playerIDtoAIs[playerID] or EMPTY_TABLE) do
 			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
 		end
 
-		UpdateAllyTeamIsDead(allyTeamID, gf)
+		if allyTeamEvalFrame[allyTeamID] ~= gf then
+			allyTeamEvalFrame[allyTeamID] = gf
+			UpdateAllyTeamIsDead(allyTeamID, gf)
+		end
 	end
 
 	local function CheckAllPlayers(gf)
 		playerList = GetPlayerList()
+		for i = 1, #playerList do
+			local playerID = playerList[i]
+			local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+			local info = playerInfoCache[playerID] or {}
+			info.active = active
+			info.spectator = spectator
+			info.teamID = teamID
+			info.allyTeamID = allyTeamID
+			playerInfoCache[playerID] = info
+		end
 		for i = 1, #playerList do
 			CheckPlayer(playerList[i], gf)
 		end
@@ -201,7 +240,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().deathmode == 'neverend' then
+		if Spring.GetModOptions().deathmode == "neverend" then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
@@ -212,10 +251,10 @@ if gadgetHandler:IsSyncedCode() then
 				teamCount = teamCount + 1
 			end
 		end
-		if #allyteamList-1 < 2 then  -- sandbox mode
+		if #allyteamList - 1 < 2 then -- sandbox mode
 			gadgetHandler:RemoveGadget(self)
 			return
-		elseif teamCount == 2 or isFFA then  -- let player quit & rejoin in 1v1
+		elseif teamCount == 2 or isFFA then -- let player quit & rejoin in 1v1
 			playerQuitIsDead = false
 		end
 
@@ -235,6 +274,10 @@ if gadgetHandler:IsSyncedCode() then
 						players = {},
 						hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0,
 					}
+					local teamPlayers = GetPlayerList(teamID) or EMPTY_TABLE
+					for p = 1, #teamPlayers do
+						teamInfo.players[teamPlayers[p]] = false
+					end
 					-- engine AI
 					teamInfo.isAI = select(4, GetTeamInfo(teamID, false))
 					if teamInfo.isAI then
@@ -245,16 +288,16 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					-- lua AI
 					local luaAi = GetTeamLuaAI(teamID)
-					if luaAi and luaAi ~= '' then
+					if luaAi and luaAi ~= "" then
 						teamInfo.isAI = true
 						teamInfo.isControlled = true
 					end
 
 					teamInfo.unitCount = GetTeamUnitCount(teamID)
 					allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
-					local units = Spring.GetTeamUnits(teamID)
+					local units = GetTeamUnits(teamID) or EMPTY_TABLE
 					for u = 1, #units do
-						if unitDecoration[Spring.GetUnitDefID(units[u])] then
+						if unitDecoration[GetUnitDefID(units[u])] then
 							allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
 						end
 					end
@@ -281,23 +324,27 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
+		for i = #singleWinnerScratch, 1, -1 do
+			singleWinnerScratch[i] = nil
+		end
 		local winnerCount = 0
-		local candidateWinners = {}
 		for allyTeamID in pairs(allyTeamInfos) do
 			if not allyTeamInfos[allyTeamID].dead then
 				winnerCount = winnerCount + 1
-				candidateWinners[winnerCount] = allyTeamID
+				singleWinnerScratch[winnerCount] = allyTeamID
 			end
 		end
 		if winnerCount > 1 then
 			return false
 		end
-		return candidateWinners
+		return singleWinnerScratch
 	end
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
-		local candidateWinners = {}
+		for allyTeamID in pairs(sharedWinnerScratch) do
+			sharedWinnerScratch[allyTeamID] = nil
+		end
 		local winnerCountSquared = 0
 		local aliveCount = 0
 		for allyTeamA in pairs(allyTeamInfos) do
@@ -307,7 +354,7 @@ if gadgetHandler:IsSyncedCode() then
 					if not allyTeamInfos[allyTeamB].dead and AreAllyTeamsDoubleAllied(allyTeamA, allyTeamB) then
 						-- store both check directions
 						-- since we're gonna check if we're allied against ourself, only secondAllyTeamID needs to be stored
-						candidateWinners[allyTeamB] = true
+						sharedWinnerScratch[allyTeamB] = true
 						winnerCountSquared = winnerCountSquared + 1
 					end
 				end
@@ -321,7 +368,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
 		--local winnersCorrectFormat = {}
 		local winnersCorrectFormatCount = 0
-		for winner in pairs(candidateWinners) do
+		for winner in pairs(sharedWinnerScratch) do
 			winnersCorrectFormatCount = winnersCorrectFormatCount + 1
 			--winnersCorrectFormat[winnersCorrectFormatCount] = winner
 		end
@@ -345,12 +392,12 @@ if gadgetHandler:IsSyncedCode() then
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
 					if Spring.ValidUnitID(unitID) then
-						if Spring.GetCOBScriptID(unitID, 'GameOverAnim') then
-							Spring.CallCOBScript(unitID, 'GameOverAnim', 0, true)
+						if Spring.GetCOBScriptID(unitID, "GameOverAnim") then
+							Spring.CallCOBScript(unitID, "GameOverAnim", 0, true)
 						else
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
-							if scriptEnv and scriptEnv['GameOverAnim'] then
-								Spring.UnitScript.CallAsUnit(unitID, scriptEnv['GameOverAnim'], true)
+							if scriptEnv and scriptEnv.GameOverAnim then
+								Spring.UnitScript.CallAsUnit(unitID, scriptEnv.GameOverAnim, true)
 							end
 						end
 					end
@@ -382,9 +429,9 @@ if gadgetHandler:IsSyncedCode() then
 				gameoverWinners = winners
 
 				-- make all winner commanders dance!
-				gameoverAnimFrame = gf + 55		-- delay a bit because walking commanders need to stop walking + a delay look nice
+				gameoverAnimFrame = gf + 55 -- delay a bit because walking commanders need to stop walking + a delay look nice
 				gameoverAnimUnits = {}
-				if type(winners) == 'table' then
+				if type(winners) == "table" then
 					local winnerSet = {}
 					for u = 1, #winners do
 						winnerSet[winners[u]] = true
@@ -393,7 +440,7 @@ if gadgetHandler:IsSyncedCode() then
 					for i = 1, #units do
 						local unitID = units[i]
 						if isCommander[Spring.GetUnitDefID(unitID)] and winnerSet[Spring.GetUnitAllyTeam(unitID)] then
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
+							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0) -- give stop cmd so commanders can animate in place
 							gameoverAnimUnits[unitID] = true
 						end
 					end
@@ -449,9 +496,8 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitTaken = gadget.UnitDestroyed
 
 	function gadget:RecvLuaMsg(msg, playerID)
-
 		-- detect when no players are ingame (thus only specs remain) and shutdown the game
-		if GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
+		if GetGameFrame() == 0 and string.byte(msg, 1) == 112 and string.byte(msg, 2) == 99 then -- 'p'=112, 'c'=99
 			local activeTeams = 0
 			local leaderPlayerID, isDead, isAiTeam, active, spec
 			for _, teamID in ipairs(teamList) do
@@ -473,9 +519,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
-else	-- Unsynced
-
+else -- Unsynced
 	local sec = 0
 	local cheated = false
 	local IsCheatingEnabled = Spring.IsCheatingEnabled
@@ -485,7 +529,7 @@ else	-- Unsynced
 			sec = sec + Spring.GetLastUpdateSeconds()
 			if sec > 3 then
 				sec = 0
-				Spring.SendLuaRulesMsg('pc')
+				Spring.SendLuaRulesMsg("pc")
 			end
 		end
 	end
@@ -500,7 +544,7 @@ else	-- Unsynced
 		if Spring.IsReplay() then
 			return
 		end
-		local myTeamID = Spring.GetMyAllyTeamID()
+		local myTeamID = Spring.GetLocalAllyTeamID()
 		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
 		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
 		stats = stats[1]
@@ -510,7 +554,7 @@ else	-- Unsynced
 		stats.endtime = Spring.GetGameFrame() / 30
 		stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
 
-		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil then
 			local message = Json.encode(stats)
 			Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 		end

@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMFAST.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 351,
+		sightdistance = 380,
 		speed = 111.3,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -36,8 +36,6 @@ return {
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 400,
-			weapon1turrety = 500,
 		},
 		featuredefs = {
 			dead = {
@@ -124,6 +122,10 @@ return {
 				weapontimer = 0.6,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 400,
+					turretspeedy = 500,
+				},
 				damage = {
 					default = 12,
 					vtol = 4,

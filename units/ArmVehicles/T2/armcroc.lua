@@ -15,7 +15,7 @@ return {
 		health = 5000,
 		leavetracks = true,
 		maxacc = 0.03252,
-		maxdec = 0.06504,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 255,
 		metalcost = 750,
@@ -46,8 +46,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 75,
 		},
 		featuredefs = {
 			dead = {
@@ -117,10 +115,10 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				name = "Medium g2g gauss-cannon",
 				noselfdamage = true,
-				predictboost = 1,
+				predictboost = 0.6,
 				range = 480,
 				reloadtime = 1.6,
 				soundhit = "xplomed4",
@@ -128,7 +126,11 @@ return {
 				soundstart = "cannon2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 75,
+				},
 				damage = {
 					default = 225,
 					subs = 100,

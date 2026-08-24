@@ -14,7 +14,7 @@ return {
 		health = 1070,
 		leavetracks = true,
 		maxacc = 0.033,
-		maxdec = 0.066,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		metalcost = 320,
@@ -25,7 +25,7 @@ return {
 		script = "Units/ARMMART.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 286,
+		sightdistance = 330,
 		speed = 60,
 		trackoffset = -8,
 		trackstrength = 8,
@@ -46,8 +46,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 35,
-			weapon1turrety = 35,
 		},
 		featuredefs = {
 			dead = {
@@ -128,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 355,
+				customparams = {
+					turretspeedx = 35,
+					turretspeedy = 35,
+				},
 				damage = {
 					default = 260,
 					subs = 65,

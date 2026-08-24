@@ -28,7 +28,7 @@ return {
 		script = "Units/CORCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 260,
+		sightdistance = 330,
 		speed = 51,
 		terraformspeed = 450,
 		trackoffset = 3,

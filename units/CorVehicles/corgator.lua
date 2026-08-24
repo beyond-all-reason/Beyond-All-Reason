@@ -14,7 +14,7 @@ return {
 		health = 820,
 		leavetracks = true,
 		maxacc = 0.04631,
-		maxdec = 0.09262,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 12,
 		metalcost = 120,
@@ -43,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 192.5,
-			weapon1turrety = 192.5,
 		},
 		featuredefs = {
 			dead = {
@@ -129,6 +127,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeeds = "192.5 192.5",
+				},
 				damage = {
 					default = 75,
 					vtol = 14,

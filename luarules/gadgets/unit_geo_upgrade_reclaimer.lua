@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Geo Upgrade Reclaimer",
-		desc      = "Insta reclaims/refunds t1 geo when t2 on top has finished, also shares t2 geos build upon ally t1 geo owner",
-		author    = "Floris",
-		date      = "February 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "Geo Upgrade Reclaimer",
+		desc = "Insta reclaims/refunds t1 geo when t2 on top has finished, also shares t2 geos build upon ally t1 geo owner",
+		author = "Floris",
+		date = "February 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -16,9 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-
-local transferInstantly = true	-- false = transfer geo on completion
-
+local transferInstantly = true -- false = transfer geo on completion
+local SendToUnsynced = SendToUnsynced
 
 _G.transferredUnits = {}
 
@@ -28,7 +27,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isGeo[unitDefID] = unitDef.metalCost
 	end
 end
-
 
 local function hasGeoUnderneat(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
@@ -49,6 +47,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
 			Spring.SetUnitNoSelect(geo, true)
+			SendToUnsynced("setUnitNoGroup", geo, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(geo)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
@@ -66,6 +65,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
 			Spring.SetUnitNoSelect(geo, false)
+			SendToUnsynced("setUnitNoGroup", geo, false)
 		end
 	end
 end
@@ -78,14 +78,17 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			local geoTeamID = Spring.GetUnitTeam(geo)
 			Spring.DestroyUnit(geo, false, true)
 			Spring.AddTeamResource(unitTeam, "metal", isGeo[Spring.GetUnitDefID(geo)])
-			if not transferInstantly and geoTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(geoTeamID, false)) then
+			if
+				not transferInstantly
+				and geoTeamID ~= unitTeam
+				and not select(3, Spring.GetTeamInfo(geoTeamID, false))
+			then
 				_G.transferredUnits[unitID] = Spring.GetGameFrame()
 				Spring.TransferUnit(unitID, geoTeamID)
 			end
 		end
 	end
 end
-
 
 -- the mex upgrade reclaimer gadget already does this
 --function gadget:GameFrame(gf)

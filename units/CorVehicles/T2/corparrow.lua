@@ -15,7 +15,7 @@ return {
 		health = 6300,
 		leavetracks = true,
 		maxacc = 0.0266,
-		maxdec = 0.05321,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 255,
 		metalcost = 1050,
@@ -47,8 +47,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 35,
-			weapon1turrety = 55,
 		},
 		featuredefs = {
 			dead = {
@@ -127,6 +125,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
+				customparams = {
+					turretspeedx = 35,
+					turretspeedy = 55,
+				},
 				damage = {
 					default = 370,
 					subs = 185,

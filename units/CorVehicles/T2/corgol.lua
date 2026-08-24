@@ -14,7 +14,7 @@ return {
 		health = 7800,
 		leavetracks = true,
 		maxacc = 0.01018,
-		maxdec = 0.02037,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 12,
 		metalcost = 1650,
@@ -50,8 +50,6 @@ return {
 			techlevel = 2,
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			weapon1turretx = 30,
-			weapon1turrety = 40,
 		},
 		featuredefs = {
 			dead = {
@@ -133,6 +131,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
+				customparams = {
+					turretspeedx = 30,
+					turretspeedy = 40,
+				},
 				damage = {
 					default = 900,
 					subs = 200,

@@ -14,7 +14,7 @@ return {
 		health = 1200,
 		leavetracks = true,
 		maxacc = 0.03,
-		maxdec = 0.06,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		metalcost = 400,
@@ -25,7 +25,7 @@ return {
 		script = "Units/CORMART.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 330,
 		speed = 58,
 		trackoffset = 9,
 		trackstrength = 8,
@@ -46,8 +46,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 35,
-			weapon1turrety = 35,
 		},
 		featuredefs = {
 			dead = {
@@ -128,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 349,
+				customparams = {
+					turretspeedx = 35,
+					turretspeedy = 35,
+				},
 				damage = {
 					default = 420,
 					subs = 140,
