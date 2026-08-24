@@ -3,13 +3,15 @@
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
 ---
 ---The summary call-ins report a frame's events once, after the frame. They run
----only when something happened, and each event runs the layer stack in turn, as
----an engine-driven callin does.
+---only when something happened, and each event runs the layer stack in order.
 ---
 ---Each summary base has a Post and a Total. Both report the same objects in the
 ---same order, and Total adds the sum of each object's steps. We accumulate the
 ---sums only while a Total has subscribers, and Post is the cheaper call-in when
 ---we do not read them.
+---
+---A transition base has only a Post, and reports an object once per change in
+---its tracked state, rather than once per frame in which it saw an event.
 ---@class SyntheticCallins
 ---
 ---
@@ -71,3 +73,14 @@
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
 ---@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
+---
+---
+---Runs for every unit that ran out of work, or that found some again.
+---Includes exhausted queues, factory queues, and the "idle tasks" that
+---units carry out on their own, which do not count as positive work.
+---
+---`idled` is `true` when the unit ran out of work, `false` when it found some.
+---
+---Mark: g:UnitIdle, g:UnitCommand, g:UnitCreated, g:UnitFinished, g:UnitTaken, g:UnitDestroyed.
+---Dispatch: g:GameFramePost.
+---@field UnitIdlePost? fun(self, unitID: integer, idled: boolean)
