@@ -58,14 +58,15 @@ local function processEnumSet(values)
 end
 
 local processors = {
-	[ParameterTypes.Position]              = processPosition,
-	[ParameterTypes.Positions]             = processPositions,
-	[ParameterTypes.Direction]             = processDirection,
-	[ParameterTypes.Orders]                = processOrders,
-	[ParameterTypes.SoundFile]             = processSoundFile,
+
+	[ParameterTypes.Position]      = processPosition,
+	[ParameterTypes.Positions]     = processPositions,
+	[ParameterTypes.Direction]     = processDirection,
+	[ParameterTypes.Orders]        = processOrders,
+	[ParameterTypes.SoundFile]     = processSoundFile,
 }
 for enumSetType in pairs(enumSets) do
-	processors[enumSetType]    = processEnumSet
+	processors[enumSetType]        = processEnumSet
 end
 
 ----------------------------------------------------------------
