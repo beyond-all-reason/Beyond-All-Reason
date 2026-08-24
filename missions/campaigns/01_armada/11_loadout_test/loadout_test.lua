@@ -1,41 +1,6 @@
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 
-local lobbyData = {
-	missionId = "loadout_test",
-	title = "Loadout Test",
-	description = "Tests pre-spawning units and features via UnitLoadout and FeatureLoadout, and the actions SpawnUnits and CreateFeatures.",
-	unlocked = true,
-}
-
-local startScript = {
-	mapName = "Quicksilver Remake 1.24",
-	startPosType = 'chooseBeforeGame',
-	allyTeams = {
-		thePlayerAllyTeam = {
-			teams = {
-				thePlayerTeam = {
-					name = "TestPlayer",
-					Side = 'Cortex',
-					StartPosX = 2200,
-					StartPosZ = 1500,
-				},
-			},
-		},
-		theEnemyAllyTeam = {
-			teams = {
-				theEnemyTeam = {
-					name = "Mission Bots",
-					Side = 'Armada',
-					StartPosX = 3000,
-					StartPosZ = 2400,
-					ai = "NullAI",
-				},
-			}
-		},
-	},
-}
-
 local triggers = {
 
 	intro = {
@@ -209,8 +174,6 @@ local featureLoadout = {
 }
 
 return {
-	LobbyData   = lobbyData,
-	StartScript = startScript,
 	Triggers       = triggers,
 	Actions        = actions,
 	UnitLoadout    = unitLoadout,

@@ -1,41 +1,6 @@
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
-local lobbyData = {
-	missionId = "statistics_triggers_test",
-	title = "Statistics Triggers Test",
-	description = "Tests triggers related to unit statistics: TotalUnitsKilled, TotalUnitsLost, TotalUnitsCaptured, TotalUnitsBuilt, and UnitsOwned.",
-	unlocked = true,
-}
-
-local startScript = {
-	mapName = "Quicksilver Remake 1.24",
-	startPosType = 'chooseBeforeGame',
-	allyTeams = {
-		thePlayerAllyTeam = {
-			teams = {
-				thePlayerTeam = {
-					name = "TestPlayer",
-					Side = 'Cortex',
-					StartPosX = 2200,
-					StartPosZ = 1500,
-				},
-			},
-		},
-		theEnemyAllyTeam = {
-			teams = {
-				theEnemyTeam = {
-					name = "Mission Bots",
-					Side = 'Armada',
-					StartPosX = 3000,
-					StartPosZ = 2400,
-					ai = "NullAI",
-				},
-			}
-		},
-	},
-}
-
 local triggers = {
 
 	-- ── Spawns ────────────────────────────────────────────────────────────────
@@ -458,8 +423,6 @@ local actions = {
 }
 
 return {
-	LobbyData   = lobbyData,
-	StartScript = startScript,
 	Triggers = triggers,
 	Actions = actions,
 }

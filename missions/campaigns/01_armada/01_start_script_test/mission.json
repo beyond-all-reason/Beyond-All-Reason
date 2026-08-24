@@ -1,0 +1,66 @@
+{
+	"$schema": "../../../schemata/mission.schema.json",
+	"missionId": "start_script_test",
+	"authors": ["Rasoul"],
+	"title": "Start Script Test",
+	"description": "Tests start script options like difficulty and disabling comm. And also: Lorem Ipsum dolor sit amet, consectetur adipiscing elit.",
+	"image": "scenario002.jpg",
+	"startPos": { "x": 0.25, "y": 0.25 },
+	"briefing": {
+		"alliesPresent": ["Fortified Outpost", "Reinforcements en route"],
+		"objectives": ["Build a base.", "Obliterate their nukes."],
+		"knownHostiles": ["Raptors - extremely likely", "Unidentified raiders - inbound"],
+		"newUnits": [
+			{ "unitDefName": "armflash", "description": "Blitz - a fast assault tank." },
+			{ "unitDefName": "armcv", "description": "Construction Vehicle - builds structures." }
+		]
+	},
+	"startScript": {
+		"mapName": "Fallendell_V4",
+		"startPosType": "chooseBeforeGame",
+		"disableFactionPicker": true,
+		"disableInitialCommanderSpawn": true,
+		"players": { "min": 1, "max": 4 },
+		"unitLimits": {
+			"armavp": 0,
+			"coravp": 5
+		},
+		"modOptions": {
+			"deathMode": "builders",
+			"maxunits": 2000,
+			"map_waterlevel": 150,
+			"startenergy": 1500,
+			"startmetal": 500,
+			"ruins": "enabled"
+		},
+		"mapOptions": {
+			"roads": 1,
+			"waterlevel": 0,
+			"waterdamage": 0
+		},
+		"allyTeams": {
+			"thePlayerAllyTeam": {
+				"teams": {
+					"thePlayerTeam": {
+						"name": "PlayerPawns",
+						"side": "Cortex",
+						"startPosX": 700,
+						"startPosZ": 700
+					}
+				}
+			},
+			"theEnemyAllyTeam": {
+				"teams": {
+					"theEnemyTeam": {
+						"name": "Mission Bots",
+						"side": "Armada",
+						"startPosX": 3000,
+						"startPosZ": 2400,
+						"incomeMultiplier": 1.5,
+						"ai": "SimpleAI"
+					}
+				}
+			}
+		}
+	}
+}

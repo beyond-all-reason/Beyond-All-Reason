@@ -2,7 +2,12 @@
 	validate_mission.lua  –  standalone mission-validation tool
 	Run from the BAR.sdd root directory:
 
-	    lua tools/validate_mission.lua <mission_script.lua> [options]
+	    lua tools/validate_mission.lua <missionFolder> [options]
+
+	<missionFolder> is a mission folder, e.g.
+	    missions/campaigns/01_armada/03_sound_test
+
+	The mission.json inside it is read to resolve team and ally team names.
 
 	Options:
 	    --permissive-defs    Accept any WeaponDefName / FeatureDefName (useful when
@@ -32,9 +37,11 @@ local verbose        = false
 for _, a in ipairs(args) do
 	if a == "--help" then
 		print(([[
-Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
+Usage: lua tools/validate_mission.lua <missionFolder> [options]
 
-  <mission_script.lua>   Path to a mission Lua file (relative to BAR.sdd root).
+  <missionFolder>        Path to a mission folder (relative to BAR.sdd root).
+                         The mission.json inside it is read to resolve team and
+                         ally team names.
   --permissive-defs      Skip validation of WeaponDefNames and FeatureDefNames
                          (always treat them as valid). UnitDefNames are still
                          validated from the units/ directory on disk.
@@ -55,9 +62,13 @@ Usage: lua tools/validate_mission.lua <mission_script.lua> [options]
 end
 
 if missionPath == nil then
-	eprint("Usage: lua tools/validate_mission.lua <mission_script.lua> [--permissive-defs] [--verbose]")
+	eprint("Usage: lua tools/validate_mission.lua <missionFolder> [--permissive-defs] [--verbose]")
 	os.exit(EXIT_ERROR)
 end
+
+-- Only a mission folder is accepted; tolerate a trailing slash from tab completion.
+local missionDir = missionPath:gsub("/+$", "")
+local missionDataPath   = missionDir .. "/mission.json"
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Bootstrap: load common/tablefunctions.lua so table.* helpers are available before any other file is touched.
@@ -160,6 +171,33 @@ _G.VFS.LoadFile = function(path)
 	return data
 end
 
+-- Shell out for directory listings; the loaders use these to discover the trigger and action definition files.
+local function popenLines(command)
+	local results = {}
+	local handle = io.popen(command)
+	if handle then
+		for line in handle:lines() do
+			results[#results + 1] = line
+		end
+		handle:close()
+	end
+	table.sort(results)
+	return results
+end
+
+_G.VFS.DirList = function(dir, pattern)
+	local namePattern = (pattern or "*"):gsub("^%*", "*")
+	return popenLines(("find %s -maxdepth 1 -type f -name '%s' 2>/dev/null"):format(dir, namePattern))
+end
+
+_G.VFS.SubDirs = function(dir)
+	local subDirs = popenLines(("find %s -mindepth 1 -maxdepth 1 -type d 2>/dev/null"):format(dir))
+	for i, path in ipairs(subDirs) do
+		subDirs[i] = path .. "/" -- engine returns trailing slashes
+	end
+	return subDirs
+end
+
 -- Little-endian integer unpack helpers (mirror engine VFS.UnpackU32/U16).
 _G.VFS.UnpackU32 = function(s)
 	local a, b, c, d = s:byte(1, 4)
@@ -201,8 +239,8 @@ _G.CMD = {
 	GUARD        = 25,
 	AISELECT     = 30,
 	GROUPSELECT  = 35,
-	GROUPADD     = 40,
-	GROUPCLEAR   = 45,
+	GROUPADD     = 36,
+	GROUPCLEAR   = 37,
 	REPAIR       = 40,
 	FIRE_STATE   = 45,
 	MOVE_STATE   = 50,
@@ -224,15 +262,15 @@ _G.CMD = {
 	LOOPBACKATTACK  = 130,
 	DO_SEISMICPING  = 135,
 }
--- Fix collisions caused by sharing values: reassign carefully.
--- (The exact numeric values don't matter for validation; they just need
--- to be distinct non-nil integers so the command validator table keys work.)
+-- The engine's CMD table maps both ways (name -> id and id -> name), and validation.lua builds its set of known command
+-- IDs from the table's keys. Without the reverse entries every numeric command ID looks unknown.
 do
-	local next_id = 1
-	local seen = {}
-	for name, _ in pairs(_G.CMD) do
-		_G.CMD[name] = next_id
-		next_id = next_id + 1
+	local reverse = {}
+	for name, id in pairs(_G.CMD) do
+		reverse[id] = name
+	end
+	for id, name in pairs(reverse) do
+		_G.CMD[id] = name
 	end
 end
 
@@ -289,17 +327,12 @@ if not permissiveDefs then
 end
 
 --------------------------------------------------------------------------------
--- Load the mission script and extract allyTeams / teams / ais / players
+-- Load the mission script and extract allyTeams / teams from mission.json
 --------------------------------------------------------------------------------
 
--- We need TriggerTypes / ActionTypes available when the mission file executes
--- (missions do things like `local triggerTypes = GG['MissionAPI'].TriggerTypes`).
-local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local actionsSchema  = VFS.Include('luarules/mission_api/actions_schema.lua')
-
+-- Missions reference GG['MissionAPI'].TriggerDefinitions / ActionDefinitions at
+-- load time, so the definitions have to exist before the mission file runs.
 _G.GG['MissionAPI'] = {
-	TriggerTypes      = triggersSchema.Types,
-	ActionTypes       = actionsSchema.Types,
 	Triggers          = {},
 	Actions           = {},
 	Stages            = {},
@@ -310,31 +343,46 @@ _G.GG['MissionAPI'] = {
 	AIs               = {},
 	Players           = {},
 	Difficulty        = 0,
+	Modules           = {
+		ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua'),
+	},
 }
 
-local missionChunk, loadErr = loadfile(missionPath)
-if not missionChunk then
-	eprint("ERROR: Could not load mission file '" .. missionPath .. "': " .. tostring(loadErr))
-	os.exit(EXIT_ERROR)
-end
+local stagesController     = VFS.Include('luarules/mission_api/stages_loader.lua')
+local objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
+local triggersController   = VFS.Include('luarules/mission_api/triggers_loader.lua')
+local actionsController    = VFS.Include('luarules/mission_api/actions_loader.lua')
 
-local missionOk, mission = pcall(missionChunk)
+_G.GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+_G.GG['MissionAPI'].ActionDefinitions  = actionsController.LoadActionDefinitions()
+
+
+-- Same loader the gadget uses: every *.lua in the mission folder is a part.
+local missionLoader = VFS.Include('luarules/mission_api/mission_loader.lua')
+
+local missionOk, mission = pcall(missionLoader.LoadMissionFiles, missionDir)
 if not missionOk then
-	eprint("ERROR: Error executing mission file '" .. missionPath .. "': " .. tostring(mission))
+	eprint("ERROR: Could not load mission '" .. missionDir .. "': " .. tostring(mission))
 	os.exit(EXIT_ERROR)
 end
 
 if type(mission) ~= "table" then
-	eprint("ERROR: Mission file did not return a table (got " .. type(mission) .. ").")
+	eprint("ERROR: Mission did not load to a table (got " .. type(mission) .. ").")
 	os.exit(EXIT_ERROR)
 end
+
+if verbose then
+	print(string.format("[validate_mission] Loaded %d trigger types, %d action types",
+		table.count(_G.GG['MissionAPI'].TriggerDefinitions.Types),
+		table.count(_G.GG['MissionAPI'].ActionDefinitions.Types)))
+end
+
 
 local initialStage   = mission.InitialStage
 local rawStages      = mission.Stages or {}
 local rawObjectives  = mission.Objectives or {}
 local rawTriggers    = mission.Triggers or {}
 local rawActions     = mission.Actions or {}
-local startScript    = mission.StartScript or {}
 local unitLoadout    = mission.UnitLoadout
 local featureLoadout = mission.FeatureLoadout
 
@@ -355,8 +403,24 @@ if type(rawObjectives) ~= "table" then
 	os.exit(EXIT_ERROR)
 end
 
--- Extract AllyTeams / Teams / AIs / Players from startScript so that
--- validators for TeamName / AllyTeamName work correctly.
+-- Team and ally team names live in mission.json (the lobby facing half of the
+-- mission); the validators for TeamName / AllyTeamName parameters need them.
+local json = VFS.Include('common/luaUtilities/json.lua')
+
+local missionDataText = VFS.LoadFile(missionDataPath)
+if not missionDataText then
+	eprint("ERROR: Could not read mission data '" .. missionDataPath .. "'.")
+	os.exit(EXIT_ERROR)
+end
+
+local missionDataOk, missionData = pcall(json.decode, missionDataText)
+if not missionDataOk or type(missionData) ~= "table" then
+	eprint("ERROR: Could not parse '" .. missionDataPath .. "': " .. tostring(missionData))
+	os.exit(EXIT_ERROR)
+end
+
+local startScript = missionData.startScript or {}
+
 local function extractAllyTeams(ss)
 	local allyTeams = {}
 	if type(ss.allyTeams) == "table" then
@@ -389,6 +453,8 @@ if verbose then
 	for k in pairs(_G.GG['MissionAPI'].AllyTeams) do at[#at+1] = k end
 	local tm = {}
 	for k in pairs(_G.GG['MissionAPI'].Teams) do tm[#tm+1] = k end
+	table.sort(at)
+	table.sort(tm)
 	print("[validate_mission] AllyTeams: " .. table.concat(at, ", "))
 	print("[validate_mission] Teams: "     .. table.concat(tm, ", "))
 end
@@ -397,11 +463,7 @@ end
 -- Run the validation pipeline (mirrors api_missions.lua:loadMission)
 --------------------------------------------------------------------------------
 
-local stagesController     = VFS.Include('luarules/mission_api/stages_loader.lua')
-local objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
-local triggersController   = VFS.Include('luarules/mission_api/triggers_loader.lua')
-local actionsController    = VFS.Include('luarules/mission_api/actions_loader.lua')
-local validation           = VFS.Include('luarules/mission_api/validation.lua')
+local validation = VFS.Include('luarules/mission_api/validation.lua')
 
 -- Run a single pipeline step, aborting with a clear message if it errors.
 local function runStep(label, fn)
@@ -457,10 +519,10 @@ end
 
 local errorMessages = logs[LOG.ERROR] or {}
 if #errorMessages == 0 then
-	print("OK – no validation errors found in: " .. missionPath)
+	print("OK – no validation errors found in: " .. missionDir)
 	os.exit(EXIT_OK)
 else
-	eprint(string.format("FAILED – %d validation error(s) in: %s", #errorMessages, missionPath))
+	eprint(string.format("FAILED – %d validation error(s) in: %s", #errorMessages, missionDir))
 	for _, message in ipairs(errorMessages) do
 		eprint("  [ERROR] " .. message)
 	end

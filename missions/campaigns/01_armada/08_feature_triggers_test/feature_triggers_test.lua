@@ -1,41 +1,6 @@
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
-local lobbyData = {
-	missionId = "feature_triggers_test",
-	title = "Feature Triggers Test",
-	description = "Tests triggers related to features, including creation, destruction, reclamation, and resurrection.",
-	unlocked = true,
-}
-
-local startScript = {
-	mapName = "Quicksilver Remake 1.24",
-	startPosType = 'chooseBeforeGame',
-	allyTeams = {
-		thePlayerAllyTeam = {
-			teams = {
-				thePlayerTeam = {
-					name = "TestPlayer",
-					Side = 'Cortex',
-					StartPosX = 2200,
-					StartPosZ = 1500,
-				},
-			},
-		},
-		theEnemyAllyTeam = {
-			teams = {
-				theEnemyTeam = {
-					name = "Mission Bots",
-					Side = 'Armada',
-					StartPosX = 3000,
-					StartPosZ = 2400,
-					ai = "NullAI",
-				},
-			}
-		},
-	},
-}
-
 local triggers = {
 
 	spawnFeatures = {
@@ -244,8 +209,6 @@ local actions = {
 }
 
 return {
-	LobbyData   = lobbyData,
-	StartScript = startScript,
 	Triggers    = triggers,
 	Actions     = actions,
 }

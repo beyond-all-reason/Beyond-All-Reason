@@ -14,10 +14,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local objectivesController, stagesController, triggersController, actionsController
+local objectivesController, stagesController, triggersController, actionsController, missionLoader
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include(scriptPath)
+local function loadMission(missionDir)
+	local mission = missionLoader.LoadMissionFiles(missionDir)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -93,6 +93,7 @@ function gadget:Initialize()
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
+	missionLoader = VFS.Include('luarules/mission_api/mission_loader.lua')
 
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 	GG['MissionAPI'].ActionDefinitions = actionsController.LoadActionDefinitions()
@@ -100,7 +101,13 @@ function gadget:Initialize()
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
 	GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(missionOptions.missionScriptPath);
+	if not missionOptions.missionFolder then
+		Spring.Log('api_missions.lua', LOG.ERROR, "[Mission API] missionoptions has no 'missionFolder'")
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	loadMission(missionOptions.missionFolder);
 end
 
 function gadget:GamePreload()

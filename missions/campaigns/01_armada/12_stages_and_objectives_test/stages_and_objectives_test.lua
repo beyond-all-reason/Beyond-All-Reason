@@ -1,41 +1,6 @@
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
-local lobbyData = {
-	missionId = "stages_and_objectives_test",
-	title = "Stages and Objectives Test",
-	description = "Tests stages and objectives.",
-	unlocked = true,
-}
-
-local startScript = {
-	mapName = "Quicksilver Remake 1.24",
-	startPosType = 'chooseBeforeGame',
-	allyTeams = {
-		thePlayerAllyTeam = {
-			teams = {
-				thePlayerTeam = {
-					name = "TestPlayer",
-					Side = 'Cortex',
-					StartPosX = 2200,
-					StartPosZ = 1500,
-				},
-			},
-		},
-		theEnemyAllyTeam = {
-			teams = {
-				theEnemyTeam = {
-					name = "Mission Bots",
-					Side = 'Armada',
-					StartPosX = 3000,
-					StartPosZ = 2400,
-					ai = "NullAI",
-				},
-			}
-		},
-	},
-}
-
 local initialStage = 'firstStage'
 local stages = {
 	firstStage = {
@@ -141,8 +106,6 @@ local actions = {
 }
 
 return {
-	LobbyData   = lobbyData,
-	StartScript = startScript,
 	InitialStage = initialStage,
 	Stages = stages,
 	Objectives = objectives,

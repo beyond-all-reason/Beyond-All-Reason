@@ -1,10 +1,11 @@
 {
-	"$schema": "../schemata/campaign.schema.json",
+	"$schema": "../../schemata/campaign.schema.json",
 	"campaignId": "armada-main",
+	"authors": ["Rasoul"],
 	"title": "Test Campaign 1 - Armada",
 	"description": "This campaign has Mission API test missions, for now.",
 	"backgroundImage": "BAR3-5K_Loadingscreen_1.jpg",
-	"logo": "armada_logo.png",
+	"logo": "armada_faction.png",
 
 	"players": [1, 2, 4],
 
