@@ -1219,12 +1219,6 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	return true
 end
 
----@param name string
----@param persist boolean? Write the change to the player's widget config. Defaults to true.
---- Pass false to take a widget off screen for this session alone: RemoveWidgetRaw is what
---- deactivates it, so the config keeps saying the widget is enabled and the next game loads
---- it as usual.
----@return boolean
 function widgetHandler:DisableWidgetRaw(name, persist)
 	local ki = self.knownWidgets[name]
 	if not ki then
