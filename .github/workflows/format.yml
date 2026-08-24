@@ -52,6 +52,110 @@ jobs:
           echo "Checking:"
           tr '\0' '\n' < changed.txt
 
-          # --respect-ignores is required because .styluaignore is bypassed for
-          # paths named directly on the command line.
-          xargs -0r ./stylua --check --respect-ignores < changed.txt
+          # No human being fixes their formatting by reading a diff from a linter
+          # so we prevent the logging of any diff. The JSON check output reports
+          # formatting mismatches per file on stdout and parse errs on stderr, so
+          # we consume these and produce a concise file list into the output log,
+          # while making sure our ignore list is respected as well. It is a mess.
+          set +e
+          xargs -0r ./stylua --check --respect-ignores --output-format Json \
+            < changed.txt > mismatches.json 2> errors.json
+          stylua_status=$?
+          set -e
+
+          if ! jq -e -s 'type == "array"' mismatches.json > /dev/null 2>&1; then
+            echo "::error title=Formatting check is broken::stylua wrote an unreadable Json report (exit $stylua_status). This is a CI defect, not a problem with this PR; fix format.yml or its pinned stylua."
+            cat mismatches.json errors.json
+            exit 1
+          fi
+          jq -r '.file' mismatches.json | sort -u > misformatted.txt
+
+          # A report that is not JSON (a crash or etc) is kept raw.
+          if [ ! -s errors.json ]; then
+            : > errlines.txt
+          elif jq -e . errors.json > /dev/null 2>&1; then
+            jq -r '
+              if type == "array" then .[] else . end
+              | "\(.filename // "stylua")\(if .location then ":\(.location.start_line)" else "" end): \(.message)"
+            ' errors.json > errlines.txt
+          else
+            cp errors.json errlines.txt
+          fi
+
+          # Pass or fail is decided from reports, not status, to backstop a crash.
+          bad_files=$(wc -l < misformatted.txt)
+          if [ "$bad_files" -eq 0 ] && [ ! -s errlines.txt ]; then
+            if [ "$stylua_status" -ne 0 ]; then
+              echo "::error title=Formatting check is broken::stylua exited $stylua_status without reporting anything. This is a CI defect, not a problem with this PR; fix format.yml or its pinned stylua."
+              exit 1
+            fi
+            echo "All changed files are formatted."
+            exit 0
+          fi
+
+          ver=$(./stylua --version)
+          if [ "$bad_files" -gt 0 ]; then
+            echo "$bad_files file(s) are not formatted with $ver:"
+            cat misformatted.txt
+          fi
+          if [ -s errlines.txt ]; then
+            echo "stylua reported errors:"
+            cat errlines.txt
+          fi
+
+          # Render mismatches as github annotation bubbles at the file level.
+          # At most 10 can be displayed, so the logs hang onto the rest.
+          jq -r --arg ver "$ver" '
+            def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+            def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+            "::error file=\(.file | prop),title=Not formatted::Run \($ver) on this file and commit the result."
+          ' mismatches.json
+          if jq -e . errors.json > /dev/null 2>&1; then
+            jq -r '
+              def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+              def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+              if type == "array" then .[] else . end
+              | if .filename then
+                  "::error file=\(.filename | prop)\(if .location then ",line=\(.location.start_line)" else "" end),title=\(.type // "error" | tostring | prop)::\(.message | esc)"
+                else
+                  "::error title=\(.type // "error" | tostring | prop)::\(.message | esc)"
+                end
+            ' errors.json
+          fi
+
+          if [ "$bad_files" -gt 10 ]; then
+            while IFS= read -r file; do
+              folder=${file%/*}
+              [ "$folder" = "$file" ] && folder="(root)"
+              printf '%s\n' "$folder"
+            done < misformatted.txt | sort | uniq -c | sort -rn > folders.txt
+            bad_folders=$(wc -l < folders.txt)
+          fi
+
+          # One last clever-ish trick: When the file count is >10, list by folder.
+          # When the folder count is >10, throw our hands up in the air, give up.
+          {
+            echo "### Formatting check failed"
+            echo
+            if [ "$bad_files" -gt 0 ]; then
+              echo "$bad_files changed file(s) are not formatted. Run $ver on them and commit the result."
+              echo
+              if [ "$bad_files" -le 10 ]; then
+                sed -e 's/^/- `/' -e 's/$/`/' misformatted.txt
+              elif [ "$bad_folders" -le 10 ]; then
+                while read -r count folder; do
+                  echo "- \`$folder\`: $count file(s)"
+                done < folders.txt
+              else
+                echo "The files span $bad_folders folders; the workflow log lists every one."
+              fi
+            fi
+            if [ -s errlines.txt ]; then
+              echo
+              echo "stylua could not check every file:"
+              echo
+              sed 's/^/- /' errlines.txt
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit 1
