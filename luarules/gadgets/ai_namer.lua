@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "AI namer",
-		desc = "Assignes names to AI teams",
+		desc = "Assigns names to AI teams",
 		author = "Floris",
 		date = "May 2018",
 		license = "GNU GPL, v2 or later",

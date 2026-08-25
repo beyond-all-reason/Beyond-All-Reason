@@ -120,7 +120,7 @@ end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
 
-	-- Note that we are createing a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
+	-- Note that we are creating a special Circle VBO, that starts at the center vertex! This is needed for triangle fans
 	local circleVBO, numVertices = InstanceVBOTable.makeCircleVBO(circleSegments, nil, true, "radarrangeCircles")
 	local circleInstanceVBOLayout = {
 		{ id = 1, name = "radius_params", size = 4 }, -- radius, gameframe, 2 unused floats

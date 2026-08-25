@@ -1,6 +1,5 @@
 return {
 	legfig = {
-		acceleration = 0.35,
 		airsightdistance = 950,
 		blocking = false,
 		maxdec = 0.075,

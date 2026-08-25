@@ -153,7 +153,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	local gf = (flash and Spring.GetGameFrame()) or 0
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
+	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these can't have plates
 	--local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds

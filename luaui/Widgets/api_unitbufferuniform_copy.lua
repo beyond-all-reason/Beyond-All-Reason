@@ -19,7 +19,7 @@ local LuaShader = gl.LuaShader
 
 local cmpShader
 
--- The compute shader is reponsible for updating the position, velocity, and color of each particle
+-- The compute shader is responsible for updating the position, velocity, and color of each particle
 local cmpSrc = [[
 #version 430 core
 

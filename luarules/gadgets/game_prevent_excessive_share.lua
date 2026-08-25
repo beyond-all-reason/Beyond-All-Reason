@@ -50,7 +50,7 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 		return false
 	end
 
-	-- Allow anything we don't explictly block
+	-- Allow anything we don't explicitly block
 	return true
 end
 

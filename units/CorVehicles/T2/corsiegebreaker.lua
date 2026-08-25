@@ -1,8 +1,8 @@
 return {
 	corsiegebreaker = {
-		acceleration = 0.0206,
+		maxacc = 0.0206,
 		activatewhenbuilt = false,
-		brakerate = 0.05321,
+		maxdec = 0.05321,
 		energycost = 15000,
 		metalcost = 1100,
 		buildpic = "CORSIEGEBREAKER.DDS",
@@ -19,7 +19,7 @@ return {
 		leavetracks = true,
 		health = 3000,
 		maxslope = 12,
-		maxvelocity = 1.8,
+		speed = 54,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/CORSIEGEBREAKER.s3o",
@@ -166,9 +166,6 @@ return {
 					commanders = 1500,
 					default = 4000, --76
 				},
-				--customparams = {
-				--sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				--}
 			},
 
 			dreadshot = { --silent version

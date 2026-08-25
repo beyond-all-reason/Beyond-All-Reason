@@ -2,7 +2,7 @@
 ** EXPtype.h -- Explosion Type information and GET/SET constants for scripts
 **
 ** This Script contains constants compatible only with Spring RTS engine
-** not for use with Total Annihilation or TA:Kindgoms
+** not for use with Total Annihilation or TA:Kingdoms
 */
 
 #ifndef CONSTANTS_H_
@@ -180,7 +180,7 @@
 #define KSIN			135 // get, kiloSine    1024*sin(x) as COB uses only integers
 #define KCOS			136 // get, kiloCosine  1024*cos(x)
 
-#define KTAN			137 // get, kiloTangent 1024*tan(x) carefull with angles close to 90 deg. might cause overflow
+#define KTAN			137 // get, kiloTangent 1024*tan(x) careful with angles close to 90 deg. might cause overflow
 #define SQRT			138 // get, square root (floored to integer)
 
 #define ENERGY_MAKE             140 // set or get (100*E production)

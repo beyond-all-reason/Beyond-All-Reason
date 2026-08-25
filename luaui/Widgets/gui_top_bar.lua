@@ -109,6 +109,7 @@ local maxWindText = "\255\166\166\166" .. tostring(maxWind)
 local noWindText1 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind1")
 local noWindText2 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind2")
 local windFunctions = VFS.Include("common/wind_functions.lua")
+local noWind = windFunctions.isNoWind() -- constant per game: Game.windMin/windMax never change
 
 local function refreshWindTidalTextCache()
 	tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
@@ -140,6 +141,8 @@ local glPopMatrix = gl.PopMatrix
 local glRotate = gl.Rotate
 local glTranslate = gl.Translate
 local glScale = gl.Scale
+local glMatrixMode = gl.MatrixMode
+local glLoadIdentity = gl.LoadIdentity
 local r2tHelper = gl.R2tHelper
 
 -- Graphics
@@ -204,6 +207,8 @@ local cache = {
 	lastWarning = { metal = nil, energy = nil },
 	lastValueWidth = { metal = -1, energy = -1 },
 	lastResbarValueWidth = { metal = 1, energy = 1 },
+	lastDrawnValue = { metal = "", energy = "" },
+	warningCleared = { metal = false, energy = false },
 	prevShowButtons = showButtons,
 }
 
@@ -368,15 +373,15 @@ local function updateButtons()
 	local sidePadding = textPadding
 	local offset = sidePadding
 	local lastbutton
-	local badgeMinRadius = fontsize * 0.42
-	local badgeFontsize = fontsize * 0.62
+	local badgeMinRadius = fontsize * 0.47
+	local badgeFontsize = fontsize * 0.69
 
 	-- badge: optional number shown in a circle at the bottom right of the button text
 	local function addButton(name, text, badge)
 		local textWidth = font2:GetTextWidth(text) * fontsize
 		-- the circle grows along with the amount of characters the number has
 		local badgeRadius = badge
-			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.22))
+			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
 			or 0
 		local badgeWidth = badgeRadius * 2
 		local width = mathFloor(textWidth + badgeWidth + textPadding)
@@ -428,9 +433,12 @@ local function updateButtons()
 	if WG.teamstats and not isScenario then
 		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
 	end
-	if WG.gameinfo then
+	-- only shown when settings differ from their default, the amount of them is put in the badge
+	if WG.gameinfo and not isSinglePlayer then
 		local changedCount = WG.gameinfo.getChangedModoptionsCount and WG.gameinfo.getChangedModoptionsCount() or 0
-		addButton("info", BAR.I18N("ui.topbar.button.info"), changedCount > 0 and tostring(changedCount) or nil)
+		if changedCount > 0 then
+			addButton("info", BAR.I18N("ui.topbar.button.info"), tostring(changedCount))
+		end
 	end
 	if gameIsOver then
 		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
@@ -604,7 +612,7 @@ local function updateWind()
 	end)
 
 	if WG.tooltip and refreshUi then
-		local avgWindValueForTooltip = windFunctions.isNoWind() and BAR.I18N("ui.topbar.wind.nowind1") or avgWindValue
+		local avgWindValueForTooltip = noWind and BAR.I18N("ui.topbar.wind.nowind1") or avgWindValue
 		WG.tooltip.AddTooltip(
 			"wind",
 			area,
@@ -622,10 +630,10 @@ end
 local function checkTidalRelevant()
 	local mapMinHeight = 0
 
-	-- account for invertmap to the best of our abiltiy
+	-- account for invertmap to the best of our ability
 	if string.find(Spring.GetModOptions().debugcommands, "invertmap") then
 		if string.find(Spring.GetModOptions().debugcommands, "wet") then
-			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
+			-- assume that they want water if keyword "wet" is involved, too violitile between initialization and subsequent post terraform checks
 			return true
 			--else
 			--	mapMinHeight = 0
@@ -635,7 +643,7 @@ local function checkTidalRelevant()
 	end
 
 	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
-	return mapMinHeight <= -20 -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
+	return mapMinHeight <= -20 -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle through unitdefs and read it from there)
 end
 
 local function updateTidal()
@@ -834,7 +842,7 @@ local function updateResbarText(res, force)
 							else
 								WG.notifications.queueNotification("YouAreWastingMetal")
 							end
-						elseif r[res][6] > 0.75 then -- supress if you are deliberately overflowing by adjustingthe share slider down
+						elseif r[res][6] > 0.75 then -- suppress if you are deliberately overflowing by adjustingthe share slider down
 							WG.notifications.queueNotification("YouAreOverflowingMetal")
 						end
 					end
@@ -971,6 +979,7 @@ local function updateResbarText(res, force)
 				showingWarning[res] = false
 				updateRes[res][3] = true
 			end
+			cache.warningCleared[res] = false
 
 			showOverflowTooltip[res] = nil
 		end
@@ -979,6 +988,7 @@ end
 
 local function drawResbarValue(res)
 	local value = short(smoothedResources[res][1])
+	cache.lastDrawnValue[res] = value
 	cache.lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
 	font2:Begin(true)
 	if res == "metal" then
@@ -1433,9 +1443,11 @@ local function updateResbarValues(res, update)
 	if update then
 		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2] -- only read values if update is needed
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1] -- only read values if update is needed
-		updateRes[res][1] = true
+		if short(smoothedResources[res][1]) ~= cache.lastDrawnValue[res] then
+			updateRes[res][1] = true
+		end
 		local maxStorageRes = smoothedResources[res][2]
-		local cappedCurRes = smoothedResources[res][1] -- limit so when production dies the value wont be much larger than what you can store
+		local cappedCurRes = smoothedResources[res][1] -- limit so when production dies the value won't be much larger than what you can store
 		if cappedCurRes > maxStorageRes * 1.07 then
 			cappedCurRes = maxStorageRes * 1.07
 		end
@@ -1543,72 +1555,45 @@ local function updateResbarValues(res, update)
 
 				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			end)
-		end
 
-		-- energy glow effect
-		if res == "energy" then
-			if dlist.energyGlow then
-				glDeleteList(dlist.energyGlow)
-			end
-
-			dlist.energyGlow = glCreateList(function()
-				-- energy glow effect
-				glColor(1, 1, 1, 0.33)
-				glBlending(GL.SRC_ALPHA, GL.ONE)
-				glTexture(textures.energyGlow)
-				TexturedRectRound(
-					resbarDrawinfo[res].barTexRect[1],
-					resbarDrawinfo[res].barTexRect[2],
-					resbarDrawinfo[res].barTexRect[1] + valueWidth,
-					resbarDrawinfo[res].barTexRect[4],
-					barSize,
-					0,
-					0,
-					1,
-					1,
-					barWidth / 0.5,
-					-now / 80
-				)
-				TexturedRectRound(
-					resbarDrawinfo[res].barTexRect[1],
-					resbarDrawinfo[res].barTexRect[2],
-					resbarDrawinfo[res].barTexRect[1] + valueWidth,
-					resbarDrawinfo[res].barTexRect[4],
-					barSize,
-					0,
-					0,
-					1,
-					1,
-					barWidth / 0.33,
-					now / 70
-				)
-				TexturedRectRound(
-					resbarDrawinfo[res].barTexRect[1],
-					resbarDrawinfo[res].barTexRect[2],
-					resbarDrawinfo[res].barTexRect[1] + valueWidth,
-					resbarDrawinfo[res].barTexRect[4],
-					barSize,
-					0,
-					0,
-					1,
-					1,
-					barWidth / 0.45,
-					-now / 55
-				)
-				glTexture(false)
-
+			-- energy glow effect: static geometry lists (texture offset baked at 0); the
+			-- slow texture scroll is applied per-frame via the texture matrix in
+			-- drawResBars, so the lists no longer get rebuilt at the 20Hz update rate
+			if res == "energy" then
+				local glow = dlist.energyGlow
+				if glow then
+					glDeleteList(glow[1])
+					glDeleteList(glow[2])
+					glDeleteList(glow[3])
+					glDeleteList(glow[4])
+				end
+				local gx1 = resbarDrawinfo[res].barTexRect[1]
+				local gy1 = resbarDrawinfo[res].barTexRect[2]
+				local gx2 = gx1 + valueWidth
+				local gy2 = resbarDrawinfo[res].barTexRect[4]
+				glow = {}
+				glow[1] = glCreateList(function()
+					glColor(1, 1, 1, 0.33)
+					glBlending(GL.SRC_ALPHA, GL.ONE)
+					glTexture(textures.energyGlow)
+					TexturedRectRound(gx1, gy1, gx2, gy2, barSize, 0, 0, 1, 1, barWidth / 0.5, 0)
+				end)
+				glow[2] = glCreateList(function()
+					TexturedRectRound(gx1, gy1, gx2, gy2, barSize, 0, 0, 1, 1, barWidth / 0.33, 0)
+				end)
+				glow[3] = glCreateList(function()
+					TexturedRectRound(gx1, gy1, gx2, gy2, barSize, 0, 0, 1, 1, barWidth / 0.45, 0)
+				end)
 				-- colorize a bit more (with added size)
 				local addedSize = mathFloor((barHeight * 0.15) + 0.5)
-				glColor(1, 1, 0, 0.14)
-				RectRound(
-					resbarDrawinfo[res].barTexRect[1] - addedSize,
-					resbarDrawinfo[res].barTexRect[2] - addedSize,
-					resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize,
-					resbarDrawinfo[res].barTexRect[4] + addedSize,
-					barHeight * 0.33
-				)
-				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			end)
+				glow[4] = glCreateList(function()
+					glTexture(false)
+					glColor(1, 1, 0, 0.14)
+					RectRound(gx1 - addedSize, gy1 - addedSize, gx2 + addedSize, gy2 + addedSize, barHeight * 0.33)
+					glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+				end)
+				dlist.energyGlow = glow
+			end
 		end
 	end
 end
@@ -1897,7 +1882,7 @@ function widget:Update(dt)
 		mx, my = sp.GetMouseState()
 
 		hoveringTopbar = false
-		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the curser is high enough, too
+		if mx > topbarArea[1] and my > topbarArea[2] then -- checking if the cursor is high enough, too
 			hoveringTopbar = hoveringElement(mx, my)
 		end
 
@@ -1931,7 +1916,7 @@ function widget:Update(dt)
 		end
 
 		-- the gameinfo widget loads after the topbar, so its button gets added once it is there
-		local gameinfoActive = WG.gameinfo ~= nil
+		local gameinfoActive = WG.gameinfo ~= nil and not isSinglePlayer
 		if gameinfoActive ~= gameinfoEnabled then
 			gameinfoEnabled = gameinfoActive
 			refreshUi = true
@@ -2048,28 +2033,30 @@ local function renderResbarText()
 	glTranslate(-topbarArea[1], -topbarArea[2], 0)
 
 	local res = "metal"
-	drawResbarValue(res)
+	if updateRes[res][1] then
+		updateRes[res][1] = false
+		drawResbarValue(res)
+	end
 	if updateRes[res][2] then
 		updateRes[res][2] = false
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		if not showingWarning[res] then
-			updateRes[res][3] = false
-		end
+		updateRes[res][3] = false
 		drawResbarStorage(res)
 	end
 
 	res = "energy"
-	drawResbarValue(res)
+	if updateRes[res][1] then
+		updateRes[res][1] = false
+		drawResbarValue(res)
+	end
 	if updateRes[res][2] then
 		updateRes[res][2] = false
 		drawResbarPullIncome(res)
 	end
 	if updateRes[res][3] then
-		if not showingWarning[res] then
-			updateRes[res][3] = false
-		end
+		updateRes[res][3] = false
 		drawResbarStorage(res)
 	end
 end
@@ -2079,8 +2066,7 @@ local function drawResBars()
 		return
 	end
 
-	glPushMatrix()
-
+	-- (no matrix push/pop needed: nothing in here touches the modelview matrix)
 	local update = false
 
 	if now > timers.nextBarsUpdate and (not timers.deferResourceUpdate or now > timers.nextForcedBarsUpdate) then
@@ -2092,25 +2078,29 @@ local function drawResBars()
 	local res = "metal"
 	if dlist.resbar[res][1] and dlist.resbar[res][2] then
 		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
-			glBlending(GL.SRC_ALPHA, GL.ONE)
+			-- only touch blending state when a flash actually gets drawn
+			local fr, fg, fb, fa
 			if allyteamOverflowingMetal then
-				glColor(1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress)
-				glCallList(dlist.resbar[res][4]) -- flash bar
+				fr, fg, fb, fa = 1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress
 			elseif overflowingMetal then
-				glColor(1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
-				glCallList(dlist.resbar[res][4]) -- flash bar
+				fr, fg, fb, fa = 1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4))
 			elseif r[res][1] < 1000 then
 				local process = fillRatio(r[res][1], r[res][2]) * 13
 				if process < 1 then
-					process = 1 - process
-					glColor(0.9, 0.4, 1, 0.045 * process)
-					glCallList(dlist.resbar[res][4]) -- flash bar
+					fr, fg, fb, fa = 0.9, 0.4, 1, 0.045 * (1 - process)
 				end
 			end
-			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			if fa then
+				glBlending(GL.SRC_ALPHA, GL.ONE)
+				glColor(fr, fg, fb, fa)
+				glCallList(dlist.resbar[res][4]) -- flash bar
+				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			end
 		end
 
-		updateResbarValues(res, update)
+		if update then
+			updateResbarValues(res, update)
+		end
 		if dlist.resValuesBar[res] then
 			glCallList(dlist.resValuesBar[res]) -- res bar
 		end
@@ -2126,30 +2116,56 @@ local function drawResBars()
 	res = "energy"
 	if dlist.resbar[res][1] and dlist.resbar[res][2] then
 		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
-			glBlending(GL.SRC_ALPHA, GL.ONE)
+			-- only touch blending state when a flash actually gets drawn
+			local fr, fg, fb, fa
 			if allyteamOverflowingEnergy then
-				glColor(1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress)
-				glCallList(dlist.resbar[res][4]) -- flash bar
+				fr, fg, fb, fa = 1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress
 			elseif overflowingEnergy then
-				glColor(1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
-				glCallList(dlist.resbar[res][4]) -- flash bar
+				fr, fg, fb, fa = 1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4))
 			elseif r[res][1] < 2000 then
 				local process = fillRatio(r[res][1], r[res][2]) * 13
 				if process < 1 then
-					process = 1 - process
-					glColor(0.9, 0.55, 1, 0.045 * process)
-					glCallList(dlist.resbar[res][4]) -- flash bar
+					fr, fg, fb, fa = 0.9, 0.55, 1, 0.045 * (1 - process)
 				end
 			end
-			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			if fa then
+				glBlending(GL.SRC_ALPHA, GL.ONE)
+				glColor(fr, fg, fb, fa)
+				glCallList(dlist.resbar[res][4]) -- flash bar
+				glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			end
 		end
 
-		updateResbarValues(res, update)
+		if update then
+			updateResbarValues(res, update)
+		end
 		if dlist.resValuesBar[res] then
 			glCallList(dlist.resValuesBar[res]) -- res bar
 		end
-		if dlist.energyGlow then
-			glCallList(dlist.energyGlow)
+		local glow = dlist.energyGlow
+		if glow then
+			-- animate the texture scroll via the texture matrix instead of rebaking
+			-- the display lists each update (offsets match the old -now/80 etc bakes).
+			-- glow[1] bakes color/blending/texture-bind, glow[4] bakes the unbind,
+			-- colorize overlay and blending restore; translates compose so each layer
+			-- needs only the delta from the previous one.
+			-- NOTE: no Push/PopMatrix here! gl.CallList resets the engine's *tracked*
+			-- matrix mode to the one recorded at list creation (MODELVIEW), so a
+			-- push/pop pair around CallList desyncs the tracker and underflows the
+			-- modelview stack. Translate/LoadIdentity are raw GL calls and stay safe.
+			local o1 = -now / 80
+			local o2 = now / 70
+			local o3 = -now / 55
+			glMatrixMode(GL.TEXTURE)
+			glTranslate(o1, o1, 0)
+			glCallList(glow[1])
+			glTranslate(o2 - o1, o2 - o1, 0)
+			glCallList(glow[2])
+			glTranslate(o3 - o2, o3 - o2, 0)
+			glCallList(glow[3])
+			glLoadIdentity()
+			glMatrixMode(GL.MODELVIEW)
+			glCallList(glow[4])
 		end
 		if dlist.resbar[res][2] then
 			glCallList(dlist.resbar[res][2]) -- sliders
@@ -2159,7 +2175,6 @@ local function drawResBars()
 			glCallList(dlist.resbar[res][7])
 		end -- overflow warning
 	end
-	glPopMatrix()
 
 	if update then
 		local scissors = {}
@@ -2214,7 +2229,11 @@ local function drawResBars()
 			}
 		end
 
-		r2tHelper.RenderToTexture(uiTex, renderResbarText, true, scissors)
+		-- skip the whole FBO roundtrip when no text region actually changed
+		-- (an empty scissors list would clear the entire texture!)
+		if scissors[1] then
+			r2tHelper.RenderToTexture(uiTex, renderResbarText, true, scissors)
+		end
 	end
 end
 
@@ -2708,7 +2727,7 @@ local function drawUi()
 	local windH = windArea[4] - windArea[2]
 	local fontsize = windH / 3.2
 	local windSkewCX = windArea[1] + ((windArea[3] - windArea[1]) / 2) - (cfg.useSkew and windH * skewTan * 0.5 or 0)
-	if windFunctions.isNoWind() then
+	if noWind then
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print(
@@ -2757,6 +2776,11 @@ local function renderUi()
 	glScale(2 / (topbarArea[3] - topbarArea[1]), 2 / (topbarArea[4] - topbarArea[2]), 0)
 	glTranslate(-topbarArea[1], -topbarArea[2], 0)
 	drawUi()
+	-- uiTex was just recreated blank: force all resbar texts to re-render on the next
+	-- bars update (their dirty flags may be clear when the values didn't change)
+	local um, ue = updateRes.metal, updateRes.energy
+	um[1], um[2], um[3] = true, true, true
+	ue[1], ue[2], ue[3] = true, true, true
 end
 
 local function renderWindText()
@@ -2845,6 +2869,33 @@ function widget:DrawScreen()
 			r2tHelper.RenderToTexture(uiTex, renderUi, true)
 		end
 
+		-- bake the two per-frame texture blits (was r2tHelper.BlendTexRect: 6 gl calls
+		-- each) into display lists: 1 gl call each per frame. The lists bake the
+		-- texture binds by id, so they must be recreated here alongside the textures.
+		-- (gl.* globals used on purpose: local aliases would add DrawScreen upvalues)
+		if dlist.blendBg then
+			glDeleteList(dlist.blendBg)
+		end
+		dlist.blendBg = glCreateList(function()
+			gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Color(1, 1, 1, 1)
+			gl.Texture(uiBgTex)
+			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+			gl.Texture(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end)
+		if dlist.blendUi then
+			glDeleteList(dlist.blendUi)
+		end
+		dlist.blendUi = glCreateList(function()
+			gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Color(1, 1, 1, 1)
+			gl.Texture(uiTex)
+			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+			gl.Texture(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end)
+
 		if WG.guishader then
 			if uiBgList then
 				glDeleteList(uiBgList)
@@ -2859,8 +2910,8 @@ function widget:DrawScreen()
 		end
 	end
 
-	if uiBgTex then
-		r2tHelper.BlendTexRect(uiBgTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], true)
+	if dlist.blendBg then
+		glCallList(dlist.blendBg)
 	end
 
 	if dlist.wind1 then
@@ -2890,11 +2941,25 @@ function widget:DrawScreen()
 	-- Pre-clear storage text from uiTex before rendering it to screen.
 	-- drawResBars() updates uiTex AFTER BlendTexRect each frame, so without this
 	-- the stale storage text is visible for up to ~50ms when the warning first activates.
-	if uiTex and (showingWarning.metal or showingWarning.energy) then
+	-- Only done ONCE per warning activation (cache.warningCleared); the region stays
+	-- cleared since drawResbarStorage skips drawing while the warning is showing.
+	if
+		uiTex
+		and (
+			(showingWarning.metal and not cache.warningCleared.metal)
+			or (showingWarning.energy and not cache.warningCleared.energy)
+		)
+	then
 		local scissorsCount = 0
 		for i = 1, 2 do
 			local res = resourceNames[i]
-			if showingWarning[res] and resbarDrawinfo[res] and resbarDrawinfo[res].textStorage then
+			if
+				showingWarning[res]
+				and not cache.warningCleared[res]
+				and resbarDrawinfo[res]
+				and resbarDrawinfo[res].textStorage
+			then
+				cache.warningCleared[res] = true
 				scissorsCount = scissorsCount + 1
 				local scissor = storageScissors[scissorsCount]
 				scissor[1] = (resbarDrawinfo[res].textStorage[2] - topbarArea[1])
@@ -2913,12 +2978,12 @@ function widget:DrawScreen()
 		end
 	end
 
-	if uiTex then
-		r2tHelper.BlendTexRect(uiTex, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], true)
+	if dlist.blendUi then
+		glCallList(dlist.blendUi)
 	end
 
 	-- current wind
-	if not windFunctions.isNoWind() then
+	if not noWind then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
 			windTextScissor[1] = windArea[1] - topbarArea[1]
@@ -3608,6 +3673,15 @@ function widget:Shutdown()
 		dlist.coms = glDeleteList(dlist.coms)
 		dlist.buttons = glDeleteList(dlist.buttons)
 		dlist.quit = glDeleteList(dlist.quit)
+		dlist.blendBg = glDeleteList(dlist.blendBg)
+		dlist.blendUi = glDeleteList(dlist.blendUi)
+
+		if dlist.energyGlow then
+			for i = 1, 4 do
+				glDeleteList(dlist.energyGlow[i])
+			end
+			dlist.energyGlow = nil
+		end
 
 		for n, _ in pairs(dlist.windText) do
 			dlist.windText[n] = glDeleteList(dlist.windText[n])

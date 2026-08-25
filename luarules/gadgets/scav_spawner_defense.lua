@@ -368,7 +368,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds
 		config.gracePeriod = t - 1
-		bossAnger = 0 -- reenable scav spawning
+		bossAnger = 0 -- re-enable scav spawning
 		techAnger = 0
 		waveParameters.waveTechAnger = 0
 		playerAggression = 0
@@ -475,7 +475,7 @@ if gadgetHandler:IsSyncedCode() then
 			}
 		}
 
-		-> refference table to quickly check which unit is in which squad, and if it has a squad at all.
+		-> reference table to quickly check which unit is in which squad, and if it has a squad at all.
 		unitSquadTable = {
 			[unitID] = [squadID]
 		}
@@ -2992,8 +2992,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			captureRuns = (captureRuns + 1) % 4
 
-			for unitID, _ in pairs(capturableUnits) do
-				if unitID % 4 == captureRuns then
+			-- Removing and inserting a key to a table in next/pairs corrupts the iterator.
+			-- Copy the table and loop only the values that existed in it before the update.
+			local capturableIDs = {}
+			for unitID in pairs(capturableUnits) do
+				capturableIDs[#capturableIDs + 1] = unitID
+			end
+			for i = 1, #capturableIDs do
+				local unitID = capturableIDs[i]
+				if capturableUnits[unitID] and unitID % 4 == captureRuns then
 					local ux, uy, uz = GetUnitPosition(unitID)
 					local health, maxHealth, _, captureLevel = GetUnitHealth(unitID)
 					if health then

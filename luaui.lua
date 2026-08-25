@@ -20,7 +20,7 @@ local STARTUP_FILENAME = LUAUI_DIRNAME .. "main.lua"
 --------------------------------------------------------------------------------
 
 do
-	-- use a versionned directory name if it exists
+	-- use a versioned directory name if it exists
 	local sansslash = string.sub(LUAUI_DIRNAME, 1, -2)
 	local versiondir = sansslash
 		.. "-"

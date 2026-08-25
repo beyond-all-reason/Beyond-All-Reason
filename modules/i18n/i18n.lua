@@ -91,7 +91,7 @@ function i18n.setLanguage(language)
 	end
 
 	-- Font substitution is handled at the OS level, meaning we cannot control which fallback font is used
-	-- Manually switching fonts is requred until Spring handles font substitution at the engine level
+	-- Manually switching fonts is required until Spring handles font substitution at the engine level
 	-- LuaUI reload must be invoked for widgets to refresh all their font objects
 	local asianLanguage = language == "zh"
 	local currentFont = Spring.GetConfigString("bar_font")

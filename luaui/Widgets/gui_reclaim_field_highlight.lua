@@ -2602,19 +2602,6 @@ local function MarkRegionDirty(x, z, radius)
 	end
 end
 
-local function IsInDirtyRegion(x, z)
-	if not dirty.useRegional or #dirty.regions == 0 then
-		return true
-	end
-	for i = 1, #dirty.regions do
-		local region = dirty.regions[i]
-		local dx, dz = x - region.x, z - region.z
-		if dx * dx + dz * dz <= region.radius * region.radius then
-			return true
-		end
-	end
-	return false
-end
 
 -- Forward declarations for per-cluster display list management
 local DeleteClusterDisplayList
@@ -3360,28 +3347,87 @@ local function DrawHullVertices(hull)
 	end
 end
 
--- Reusable buffer for DrawHullVerticesGradient inner points
+-- Reusable buffer for the gradient fill's inner ring
 local innerPointsBuf = {}
 
--- Draw gradient fill from center (transparent) to configurable radius (gradientAlpha)
--- Also fills the inner area with fillAlpha
-local function DrawHullVerticesGradient(hull, center, colors)
+-- Allocation-free display-list recording scratch.
+--
+-- gl.CreateList() records its callback immediately, so the geometry/colours it
+-- reads only need to be valid *during* that call. Previously each rebuild
+-- allocated a fresh colours table plus a fresh closure per list; during fades
+-- (up to maxRebuildsPerFrame per frame) that was a steady stream of garbage.
+-- We now stash the transient inputs on one reusable `dlScratch` table and hand
+-- gl.CreateList a set of persistent recorder functions instead. The recorders
+-- live on the table rather than as file-scope locals to respect the chunk's
+-- 200 local/upvalue budget.
+--
+-- The gradient is emitted as a TRIANGLE_FAN (inner disc) plus a closed
+-- TRIANGLE_STRIP (the ramp ring) rather than as independent TRIANGLES. Each
+-- glVertex/glColor is a separate Lua->C call recorded into the list, and
+-- compiling these lists is the single most expensive thing in the draw path,
+-- so the call count matters directly: for a hull of H points the old form cost
+-- ~15H calls, this one costs ~5H. Same triangles, same colours, ~3x cheaper to
+-- record and a third of the vertex data to store and replay.
+local dlScratch = {
+	hull = nil,
+	center = nil,
+	colors = { fill = nil, fillAlpha = 0, gradientAlpha = 0 },
+}
+
+-- Inner disc: fan from the centre out to the inner ring, one uniform alpha.
+dlScratch.emitInnerFan = function()
+	local center = dlScratch.center
+	local colors = dlScratch.colors
+	local col = colors.fill or reclaimColor
+	glColor(col[1], col[2], col[3], colors.fillAlpha)
+	glVertex(center.x, center.y, center.z)
+	local hullCount = #dlScratch.hull
+	for j = 1, hullCount do
+		local p = innerPointsBuf[j]
+		glVertex(p.x, p.y, p.z)
+	end
+	local first = innerPointsBuf[1] -- close the fan
+	glVertex(first.x, first.y, first.z)
+end
+
+-- Ramp ring: closed strip alternating inner (fillAlpha) and outer
+-- (gradientAlpha) vertices, so the strip's implicit triangles reproduce the
+-- inner/outer/inner + inner/outer/outer pairs the old code emitted by hand.
+dlScratch.emitGradientRing = function()
+	local hull = dlScratch.hull
+	local colors = dlScratch.colors
+	local col = colors.fill or reclaimColor
+	local r, g, b = col[1], col[2], col[3]
+	local fa, ga = colors.fillAlpha, colors.gradientAlpha
 	local hullCount = #hull
+	for j = 1, hullCount do
+		local inner = innerPointsBuf[j]
+		local outer = hull[j]
+		glColor(r, g, b, fa)
+		glVertex(inner.x, inner.y, inner.z)
+		glColor(r, g, b, ga)
+		glVertex(outer.x, outer.y, outer.z)
+	end
+	local inner = innerPointsBuf[1] -- close the ring
+	local outer = hull[1]
+	glColor(r, g, b, fa)
+	glVertex(inner.x, inner.y, inner.z)
+	glColor(r, g, b, ga)
+	glVertex(outer.x, outer.y, outer.z)
+end
+
+dlScratch.emitGradient = function()
+	local hull = dlScratch.hull
+	local hullCount = hull and #hull or 0
 	if hullCount < 3 then
 		return
 	end
 
-	-- Use provided colors or default to metal colors
-	local reclaimCol = colors and colors.fill or reclaimColor
-	local r, g, b = reclaimCol[1], reclaimCol[2], reclaimCol[3]
-	local cx, cy, cz = center.x, center.y, center.z
+	-- Inner ring, shared by both passes below. Plain Lua, so it is fine to run
+	-- here inside gl.CreateList's recording callback.
+	local center = dlScratch.center
+	local cx, cz = center.x, center.z
 	local innerRadius = gradientInnerRadius
-
-	-- Use custom alpha values if provided, otherwise use defaults
-	local fillAlphaValue = colors and colors.fillAlpha or fillAlpha
-	local gradientAlphaValue = colors and colors.gradientAlpha or gradientAlpha
-
-	-- Calculate the inner boundary using configurable radius
 	for i = 1, hullCount do
 		local hullPoint = hull[i]
 		local dx = hullPoint.x - cx
@@ -3399,66 +3445,11 @@ local function DrawHullVerticesGradient(hull, center, colors)
 			}
 		end
 	end
-	local innerPoints = innerPointsBuf
 
-	-- First, fill the inner area with solid fillAlpha (fan triangulation from center)
-	glColor(r, g, b, fillAlphaValue)
-	for j = 1, hullCount do
-		local nextIdx = (j == hullCount) and 1 or (j + 1)
-		local inner = innerPoints[j]
-		local innerNext = innerPoints[nextIdx]
-		glVertex(cx, cy, cz)
-		glVertex(inner.x, inner.y, inner.z)
-		glVertex(innerNext.x, innerNext.y, innerNext.z)
-	end
-
-	-- Then draw gradient triangles between inner (fillAlpha) and outer (gradientAlpha) rings
-	for j = 1, hullCount do
-		local nextIdx = (j == hullCount) and 1 or (j + 1)
-		local inner = innerPoints[j]
-		local innerNext = innerPoints[nextIdx]
-		local outer = hull[j]
-		local outerNext = hull[nextIdx]
-
-		-- Triangle 1: inner[j] -> outer[j] -> inner[next]
-		glColor(r, g, b, fillAlphaValue)
-		glVertex(inner.x, inner.y, inner.z)
-
-		glColor(r, g, b, gradientAlphaValue)
-		glVertex(outer.x, outer.y, outer.z)
-
-		glColor(r, g, b, fillAlphaValue)
-		glVertex(innerNext.x, innerNext.y, innerNext.z)
-
-		-- Triangle 2: inner[next] -> outer[j] -> outer[next]
-		glColor(r, g, b, fillAlphaValue)
-		glVertex(innerNext.x, innerNext.y, innerNext.z)
-
-		glColor(r, g, b, gradientAlphaValue)
-		glVertex(outer.x, outer.y, outer.z)
-
-		glColor(r, g, b, gradientAlphaValue)
-		glVertex(outerNext.x, outerNext.y, outerNext.z)
-	end
+	glBeginEnd(GL.TRIANGLE_FAN, dlScratch.emitInnerFan)
+	glBeginEnd(GL.TRIANGLE_STRIP, dlScratch.emitGradientRing)
 end
 
--- Allocation-free display-list recording scratch.
---
--- gl.CreateList() records its callback immediately, so the geometry/colours it
--- reads only need to be valid *during* that call. Previously each rebuild
--- allocated a fresh colours table plus a fresh closure per list; during fades
--- (up to maxRebuildsPerFrame per frame) that was a steady stream of garbage.
--- We now stash the transient inputs on one reusable `dlScratch` table and hand
--- gl.CreateList a pair of persistent recorder functions instead. Packed onto a
--- single table to respect the file's 200 local/upvalue budget.
-local dlScratch = {
-	hull = nil,
-	center = nil,
-	colors = { fill = nil, fillAlpha = 0, gradientAlpha = 0 },
-}
-dlScratch.emitGradient = function()
-	glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, dlScratch.hull, dlScratch.center, dlScratch.colors)
-end
 dlScratch.emitEdge = function()
 	glBeginEnd(GL.LINE_LOOP, DrawHullVertices, dlScratch.hull)
 end
@@ -3553,7 +3544,7 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	end
 
 	-- Fill the reusable scratch colours table (alpha baked in). Safe to reuse
-	-- because gl.CreateList records DrawHullVerticesGradient immediately below.
+	-- because gl.CreateList records dlScratch.emitGradient immediately below.
 	local scratchColors = dlScratch.colors
 	if isEnergy then
 		scratchColors.fill = energyReclaimColor
@@ -3652,7 +3643,6 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 	tracy.ZoneEnd()
 end
 
-local cachedCameraFacing = 0
 
 -- Process deferred features that may have come into view
 local function ProcessDeferredFeatures(frame)
@@ -4024,7 +4014,13 @@ local function UpdateReclaimFields()
 		end
 		batch.clusterJobBudget = clamp(dynamicBudget, batch.clusterJobBudgetMin, batch.clusterJobBudgetMax)
 		batch.clusterJobStart = osClock()
+		-- Wraps the whole slice so a capture can separate the recluster
+		-- coroutine from the rest of UpdateReclaimFields. The Cluster:* phases
+		-- nest inside this and are entered once per cluster, which is why no
+		-- single phase looks large on its own.
+		tracy.ZoneBeginN("W:ReclaimField:ClusterSlice")
 		local ok, err = coroutine.resume(batch.clusterJobCo)
+		tracy.ZoneEnd()
 		if debugTiming then
 			local dt = osClock() - tClusterSlice0
 			timingAccum.clusterSlice = timingAccum.clusterSlice + dt
@@ -4940,6 +4936,346 @@ local function DrawFadingCluster(uid, entry, drawGradient)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Batched flat-on-ground labels
+--------------------------------------------------------------------------------
+-- Value labels lie flat on the ground, so each one used to push its own
+-- ground-plane matrix. A matrix change per label forces the font into
+-- immediate mode, and every immediate Print then costs a glPushAttrib /
+-- glPopAttrib pair, two glGetIntegerv driver round-trips, a shader swap, two
+-- texture binds and two draw calls -- all of it per label, none of it
+-- proportional to how much text is actually drawn.
+--
+-- Instead, put every label on ONE horizontal plane y = planeY and slide each
+-- label along its own eye ray until it lands there, scaling its font size by
+-- the same factor. Uniform scaling about the eye point is exactly
+-- projection-invariant: P = eye + t*(L - eye) drawn at size*t covers the same
+-- pixels as L drawn at size, and both quads stay horizontal so the ground-plane
+-- rotation is unchanged. Depth testing is already off for this pass, so moving
+-- labels off the terrain costs nothing. Result: one matrix, one Begin/End and
+-- one draw call for the whole screen.
+--
+-- Labels at or above the camera height cannot be slid onto a plane below it (t
+-- would flip sign), and extreme t loses float precision; both fall back to the
+-- original per-label matrix path.
+--
+-- The helpers live inside an immediately-called function rather than at file
+-- scope: this chunk sits on Lua 5.1's hard 200-locals-per-function limit, and
+-- nesting them keeps the whole batcher down to a single top-level local.
+
+local DrawReclaimLabels = (function()
+	-- Parallel flat scratch arrays, never reallocated. Metal labels fill
+	-- 1..lbl.metalEnd, energy labels lbl.metalEnd+1..lbl.count; `slow` holds
+	-- the stragglers that still need their own matrix.
+	local lbl = {
+		x = {},
+		y = {},
+		z = {},
+		fs = {},
+		alpha = {},
+		text = {},
+		lx = {}, -- projected position in the shared plane's local frame
+		ly = {},
+		sfs = {}, -- font size scaled onto the plane; 0 means "moved to slow"
+		count = 0,
+		metalEnd = 0,
+		maxY = 0, -- highest collected label; anchors the shared plane
+		forceSlow = false,
+		minEyeGap = 8, -- elmos the camera must clear a label by to batch it
+		minScale = 0.02, -- reject labels that would shrink past this, to bound precision loss
+	}
+	local slow = { x = {}, y = {}, z = {}, fs = {}, alpha = {}, text = {}, energy = {}, count = 0 }
+
+	-- GetTextWidth is size-independent (normalised to font size 1) and the
+	-- label set is a handful of distinct formatted amounts, so memoising it
+	-- removes a per-icon, per-frame engine call.
+	local textWidthCache = {}
+	local textWidthFont
+
+	local function CachedTextWidth(text)
+		local w = textWidthCache[text]
+		if not w then
+			w = (animCfg.getTextWidth or gl.GetTextWidth)(text)
+			textWidthCache[text] = w
+		end
+		return w
+	end
+
+	local function CollectLabel(x, y, z, fs, alpha, text, isEnergy, camY)
+		if not lbl.forceSlow and (camY - y) > lbl.minEyeGap then
+			local n = lbl.count + 1
+			lbl.count = n
+			lbl.x[n], lbl.y[n], lbl.z[n] = x, y, z
+			lbl.fs[n], lbl.alpha[n], lbl.text[n] = fs, alpha, text
+			if y > lbl.maxY then
+				lbl.maxY = y
+			end
+		else
+			local s = slow.count + 1
+			slow.count = s
+			slow.x[s], slow.y[s], slow.z[s] = x, y, z
+			slow.fs[s], slow.alpha[s], slow.text[s], slow.energy[s] = fs, alpha, text, isEnergy
+		end
+	end
+
+	local function CollectLiveLabels(clusters, lists, isEnergy, camY)
+		local sizeMul = isEnergy and energyTextSizeMultiplier or 1
+		local gen = batch.clusterGeneration
+		local getAlpha = animState.GetClusterAnimAlphaAndScale
+		for cid = 1, #clusters do
+			local cluster = clusters[cid]
+			local clusterData = lists[cid]
+			if
+				cluster
+				and cluster.textX
+				and cluster.text
+				and clusterData
+				and clusterData.gradient
+				and clusterData.generation == gen
+			then
+				local effAlpha = getAlpha(cluster.uid, isEnergy)
+				if effAlpha > 0.001 then
+					CollectLabel(
+						cluster.textX,
+						cluster.center.y,
+						cluster.textZ,
+						cluster.font * sizeMul,
+						effAlpha,
+						cluster.text,
+						isEnergy,
+						camY
+					)
+				end
+			end
+		end
+	end
+
+	local function CollectFadingLabels(fadingTbl, isEnergy, camY)
+		local sizeMul = isEnergy and energyTextSizeMultiplier or 1
+		for _uid, entry in pairs(fadingTbl) do
+			local alpha = entry.alpha or 0
+			local dl = entry.displayLists
+			if alpha > 0.001 and entry.text and entry.textX and entry.center and dl and dl.gradient then
+				CollectLabel(
+					entry.textX,
+					entry.center.y,
+					entry.textZ,
+					(entry.font or fontSizeMin) * sizeMul,
+					alpha,
+					entry.text,
+					isEnergy,
+					camY
+				)
+			end
+		end
+	end
+
+	-- Slide every collected label onto the shared plane and pre-rotate it into
+	-- the plane's local frame, so the emit loops below are pure array lookups.
+	local function ProjectLabels(camX, camY, camZ, k, cosF, sinF)
+		local X, Y, Z, FS = lbl.x, lbl.y, lbl.z, lbl.fs
+		local LX, LY, SFS = lbl.lx, lbl.ly, lbl.sfs
+		local minScale = lbl.minScale
+		local metalEnd = lbl.metalEnd
+		for i = 1, lbl.count do
+			local t = k / (camY - Y[i])
+			if t < minScale then
+				SFS[i] = 0 -- flagged; picked up by the per-label fallback instead
+				local s = slow.count + 1
+				slow.count = s
+				slow.x[s], slow.y[s], slow.z[s] = X[i], Y[i], Z[i]
+				slow.fs[s], slow.alpha[s], slow.text[s] = FS[i], lbl.alpha[i], lbl.text[i]
+				slow.energy[s] = i > metalEnd
+			else
+				local px = camX + t * (X[i] - camX)
+				local pz = camZ + t * (Z[i] - camZ)
+				-- The plane matrix's xz block is a reflection, so it is its own
+				-- inverse: world -> local is the same multiply as local -> world.
+				LX[i] = cosF * px - sinF * pz
+				LY[i] = -sinF * px - cosF * pz
+				SFS[i] = FS[i] * t
+			end
+		end
+	end
+
+	-- "n" clears the font's default nearest-pixel snap: local coords are now
+	-- world-scale, so integer truncation would jitter labels by a whole elmo.
+	local function EmitLabels(font, i0, i1, col, iconOff)
+		local A, T, LX, LY, SFS = lbl.alpha, lbl.text, lbl.lx, lbl.ly, lbl.sfs
+		local cr, cg, cb, ca = col[1], col[2], col[3], col[4]
+		local lastAlpha, lastOutline = -1, -1
+		for i = i0, i1 do
+			local fs = SFS[i]
+			if fs > 0 then
+				local alpha = A[i]
+				local textAlpha = ca * alpha
+				if textAlpha ~= lastAlpha then
+					lastAlpha = textAlpha
+					font:SetTextColor(cr, cg, cb, textAlpha)
+				end
+				local outlineAlpha = 0.7 * alpha
+				if outlineAlpha ~= lastOutline then
+					lastOutline = outlineAlpha
+					font:SetOutlineColor(0, 0, 0, outlineAlpha)
+				end
+				font:Print(T[i], LX[i] + fs * iconOff, LY[i], fs, "covn")
+			end
+		end
+	end
+
+	local function EmitLabelIcons(i0, i1, col, glTexRect)
+		local A, T, LX, LY, SFS = lbl.alpha, lbl.text, lbl.lx, lbl.ly, lbl.sfs
+		local cr, cg, cb, ca = col[1], col[2], col[3], col[4]
+		for i = i0, i1 do
+			local fs = SFS[i]
+			if fs > 0 then
+				local is = fs * iconSizeRatio
+				local ix1 = LX[i] - (CachedTextWidth(T[i]) * fs + fs * iconGapRatio + is) * 0.5
+				local ly = LY[i]
+				glColor(cr, cg, cb, ca * A[i])
+				glTexRect(ix1, ly - is * 0.5, ix1 + is, ly + is * 0.5)
+			end
+		end
+	end
+
+	-- Original per-label path, kept for the degenerate cases described above.
+	local function DrawSlowLabels(font, cosF, sinF, negSinF, negCosF, iconOff)
+		for s = 1, slow.count do
+			local col = slow.energy[s] and energyNumberColor or numberColor
+			local alpha = slow.alpha[s]
+			local fs = slow.fs[s]
+			glPushMatrix()
+			glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, slow.x[s], slow.y[s], slow.z[s], 1)
+			if font then
+				font:SetOutlineColor(0, 0, 0, 0.7 * alpha)
+				font:SetTextColor(col[1], col[2], col[3], col[4] * alpha)
+				font:Print(slow.text[s], fs * iconOff, 0, fs, "cov")
+			else
+				glColor(col[1], col[2], col[3], col[4] * alpha)
+				glText(slow.text[s], 0, 0, fs, "co")
+			end
+			glPopMatrix()
+		end
+	end
+
+	local function DrawSlowLabelIcons(cosF, sinF, negSinF, negCosF, glTexRect, glTexture)
+		local boundEnergy
+		for s = 1, slow.count do
+			local isEnergy = slow.energy[s] and true or false
+			if isEnergy ~= boundEnergy then
+				boundEnergy = isEnergy
+				glTexture(isEnergy and ":l:LuaUI/Images/energy.png" or ":l:LuaUI/Images/metal.png")
+			end
+			local col = isEnergy and energyNumberColor or numberColor
+			local fs = slow.fs[s]
+			local is = fs * iconSizeRatio
+			local ix1 = -(CachedTextWidth(slow.text[s]) * fs + fs * iconGapRatio + is) * 0.5
+			glPushMatrix()
+			glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, slow.x[s], slow.y[s], slow.z[s], 1)
+			glColor(col[1], col[2], col[3], col[4] * slow.alpha[s])
+			glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
+			glPopMatrix()
+		end
+		if boundEnergy ~= nil then
+			glTexture(false)
+		end
+	end
+
+	return function(showMetal, showEnergy)
+		tracy.ZoneBeginN("W:ReclaimField:DrawLabels")
+
+		local widgetFont = animCfg.font
+		if widgetFont ~= textWidthFont then
+			textWidthFont = widgetFont
+			textWidthCache = {}
+		end
+
+		-- Ground-plane rotation, shared by every label and icon this frame.
+		local upX, upZ = -camUpVector[1], -camUpVector[3]
+		local lenSq = upX * upX + upZ * upZ
+		local cosF, sinF
+		if lenSq > 0.0001 then
+			local invLen = 1 / sqrt(lenSq)
+			cosF = upZ * invLen
+			sinF = upX * invLen
+		else
+			cosF, sinF = 1, 0
+		end
+		local negSinF = -sinF
+		local negCosF = -cosF
+
+		local camX, camY, camZ = spGetCameraPosition()
+		local iconOff = showResourceIcons and (iconSizeRatio + iconGapRatio) * 0.5 or 0
+
+		lbl.count, lbl.metalEnd, slow.count = 0, 0, 0
+		lbl.maxY = -mathHuge
+		lbl.forceSlow = (widgetFont == nil) -- no font object: gl.Text, one call each
+
+		if showMetal then
+			CollectLiveLabels(featureClusters, clusterDisplayLists, false, camY)
+			CollectFadingLabels(animState.fading, false, camY)
+		end
+		lbl.metalEnd = lbl.count
+		if showEnergy then
+			CollectLiveLabels(energyFeatureClusters, energyClusterDisplayLists, true, camY)
+			CollectFadingLabels(animState.fadingEnergy, true, camY)
+		end
+
+		local planeY = 0
+		if lbl.count > 0 then
+			-- Anchor the plane at the highest visible label. Then every
+			-- t <= 1, so labels only ever slide *towards* the camera and
+			-- none can be pushed out through the far clip plane.
+			planeY = lbl.maxY
+			local k = camY - planeY
+			ProjectLabels(camX, camY, camZ, k, cosF, sinF)
+
+			glPushMatrix()
+			glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, 0, planeY, 0, 1)
+			widgetFont:Begin()
+			if lbl.metalEnd > 0 then
+				EmitLabels(widgetFont, 1, lbl.metalEnd, numberColor, iconOff)
+			end
+			if lbl.count > lbl.metalEnd then
+				EmitLabels(widgetFont, lbl.metalEnd + 1, lbl.count, energyNumberColor, iconOff)
+			end
+			widgetFont:End()
+			glPopMatrix()
+		end
+
+		if slow.count > 0 then
+			DrawSlowLabels(widgetFont, cosF, sinF, negSinF, negCosF, iconOff)
+		end
+		tracy.ZoneEnd()
+
+		-- Resource icons: ground-plane quads to the left of each value label,
+		-- reusing the projected positions so they lie flat like the labels do.
+		if showResourceIcons and (lbl.count > 0 or slow.count > 0) then
+			tracy.ZoneBeginN("W:ReclaimField:DrawResourceIcons")
+			local glTexRect = gl.TexRect
+			local glTexture = gl.Texture
+			if lbl.count > 0 then
+				glPushMatrix()
+				glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, 0, planeY, 0, 1)
+				if lbl.metalEnd > 0 then
+					glTexture(":l:LuaUI/Images/metal.png")
+					EmitLabelIcons(1, lbl.metalEnd, numberColor, glTexRect)
+				end
+				if lbl.count > lbl.metalEnd then
+					glTexture(":l:LuaUI/Images/energy.png")
+					EmitLabelIcons(lbl.metalEnd + 1, lbl.count, energyNumberColor, glTexRect)
+				end
+				glTexture(false)
+				glPopMatrix()
+			end
+			if slow.count > 0 then
+				DrawSlowLabelIcons(cosF, sinF, negSinF, negCosF, glTexRect, glTexture)
+			end
+			tracy.ZoneEnd()
+		end
+	end
+end)()
+
 function widget:DrawWorld()
 	if spIsGUIHidden() == true then
 		return
@@ -4963,492 +5299,7 @@ function widget:DrawWorld()
 	glDepthTest(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- Compute rotation components directly from camUpVector
-	local upX, upZ = -camUpVector[1], -camUpVector[3]
-	local lenSq = upX * upX + upZ * upZ
-	local cosF, sinF
-	if lenSq > 0.0001 then
-		local invLen = 1 / sqrt(lenSq)
-		cosF = upZ * invLen
-		sinF = upX * invLen
-	else
-		cosF, sinF = 1, 0
-	end
-	local negSinF = -sinF
-	local negCosF = -cosF
-
-	-- Draw text using high-quality font in IMMEDIATE mode (no outer Begin/End).
-	-- Inside a Begin/End block the font batches all quads and flushes them at
-	-- End() with whatever modelview is current then (identity -> origin). In
-	-- immediate mode each Print flushes with the current GL matrix, so our
-	-- ground-plane glMultMatrix applies and text lies flat like the icons.
-	tracy.ZoneBeginN("W:ReclaimField:DrawLabels")
-	local widgetFont = animCfg.font
-	if widgetFont then
-		if showMetal then
-			local nc = numberColor
-			for clusterID = 1, #featureClusters do
-				local cluster = featureClusters[clusterID]
-				local clusterData = clusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-					if effAlpha > 0.001 then
-						local drawAlpha = effAlpha
-						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
-						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
-						local fs = cluster.font
-						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fading) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.001 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local drawAlpha = alpha
-					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
-					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
-					local fs = entry.font or fontSizeMin
-					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
-					glPopMatrix()
-				end
-			end
-		end
-		if showEnergy then
-			local enc = energyNumberColor
-			for clusterID = 1, #energyFeatureClusters do
-				local cluster = energyFeatureClusters[clusterID]
-				local clusterData = energyClusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-					if effAlpha > 0.001 then
-						local drawAlpha = effAlpha
-						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
-						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
-						local fs = cluster.font * energyTextSizeMultiplier
-						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fadingEnergy) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.001 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local drawAlpha = alpha
-					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
-					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
-					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
-					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
-					glPopMatrix()
-				end
-			end
-		end
-	else
-		-- Fallback to gl.Text if font handler not available
-		if showMetal then
-			for clusterID = 1, #featureClusters do
-				local cluster = featureClusters[clusterID]
-				local clusterData = clusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-					if effAlpha > 0.01 then
-						local nc = numberColor
-						glColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						glText(cluster.text, 0, 0, cluster.font, "co")
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fading) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local nc = numberColor
-					glColor(nc[1], nc[2], nc[3], nc[4] * alpha)
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					glText(entry.text, 0, 0, entry.font or fontSizeMin, "co")
-					glPopMatrix()
-				end
-			end
-		end
-		if showEnergy then
-			for clusterID = 1, #energyFeatureClusters do
-				local cluster = energyFeatureClusters[clusterID]
-				local clusterData = energyClusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-					if effAlpha > 0.01 then
-						local enc = energyNumberColor
-						glColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						glText(cluster.text, 0, 0, cluster.font * energyTextSizeMultiplier, "co")
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fadingEnergy) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local enc = energyNumberColor
-					glColor(enc[1], enc[2], enc[3], enc[4] * alpha)
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					glText(entry.text, 0, 0, (entry.font or fontSizeMin) * energyTextSizeMultiplier, "co")
-					glPopMatrix()
-				end
-			end
-		end
-	end
-	tracy.ZoneEnd()
-
-	-- Draw resource icons (ground-plane quads to the left of each value label,
-	-- using the same matrix as the text so they lie flat like the labels do)
-	if showResourceIcons then
-		tracy.ZoneBeginN("W:ReclaimField:DrawResourceIcons")
-		local glTexRect = gl.TexRect
-		local glTexture = gl.Texture
-		local getTextWidth = animCfg.getTextWidth or gl.GetTextWidth
-		if showMetal then
-			glTexture(":l:LuaUI/Images/metal.png")
-			for clusterID = 1, #featureClusters do
-				local cluster = featureClusters[clusterID]
-				local clusterData = clusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and cluster.text
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-					if effAlpha > 0.01 then
-						local fs = cluster.font
-						local is = fs * iconSizeRatio
-						local tw = getTextWidth(cluster.text) * fs
-						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * effAlpha)
-						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fading) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local fs = entry.font or fontSizeMin
-					local is = fs * iconSizeRatio
-					local tw = getTextWidth(entry.text) * fs
-					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * alpha)
-					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
-					glPopMatrix()
-				end
-			end
-			glTexture(false)
-		end
-		if showEnergy then
-			glTexture(":l:LuaUI/Images/energy.png")
-			for clusterID = 1, #energyFeatureClusters do
-				local cluster = energyFeatureClusters[clusterID]
-				local clusterData = energyClusterDisplayLists[clusterID]
-				if
-					cluster
-					and cluster.textX
-					and cluster.text
-					and clusterData
-					and clusterData.gradient
-					and clusterData.generation == batch.clusterGeneration
-				then
-					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-					if effAlpha > 0.01 then
-						local fs = cluster.font * energyTextSizeMultiplier
-						local is = fs * iconSizeRatio
-						local tw = getTextWidth(cluster.text) * fs
-						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
-						glPushMatrix()
-						glMultMatrix(
-							cosF,
-							0,
-							negSinF,
-							0,
-							negSinF,
-							0,
-							negCosF,
-							0,
-							0,
-							1,
-							0,
-							0,
-							cluster.textX,
-							cluster.center.y,
-							cluster.textZ,
-							1
-						)
-						glColor(
-							energyNumberColor[1],
-							energyNumberColor[2],
-							energyNumberColor[3],
-							energyNumberColor[4] * effAlpha
-						)
-						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
-						glPopMatrix()
-					end
-				end
-			end
-			for uid, entry in pairs(animState.fadingEnergy) do
-				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
-					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
-					local is = fs * iconSizeRatio
-					local tw = getTextWidth(entry.text) * fs
-					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
-					glPushMatrix()
-					glMultMatrix(
-						cosF,
-						0,
-						negSinF,
-						0,
-						negSinF,
-						0,
-						negCosF,
-						0,
-						0,
-						1,
-						0,
-						0,
-						entry.textX,
-						entry.center.y,
-						entry.textZ,
-						1
-					)
-					glColor(
-						energyNumberColor[1],
-						energyNumberColor[2],
-						energyNumberColor[3],
-						energyNumberColor[4] * alpha
-					)
-					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
-					glPopMatrix()
-				end
-			end
-			glTexture(false)
-		end
-		tracy.ZoneEnd()
-	end
+	DrawReclaimLabels(showMetal, showEnergy)
 
 	glDepthTest(true)
 	if debugTiming then

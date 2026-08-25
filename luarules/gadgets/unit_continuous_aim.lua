@@ -76,7 +76,8 @@ local convertedUnitsNames = {
 	cordoom = 5,
 	corshiva = 5,
 	corcat = 5,
-	corkarg = 5,
+	corkarg = 3,
+	corkarganetht4 = 3,
 	corbhmth = 5,
 	armguard = 5,
 	armamb = 5,
@@ -230,7 +231,7 @@ for unitDefID, _ in pairs(convertedUnits) do
 				unitWeapons[unitDefID][id] = true -- no need to store weapondefid
 			end
 		else
-			-- units with no weapons shouldnt even be here
+			-- units with no weapons shouldn't even be here
 			convertedUnits[unitDefID] = nil
 		end
 	end
