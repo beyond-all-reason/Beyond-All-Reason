@@ -1,6 +1,45 @@
 local GL_BUFFER = 0x82E0
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 --Spring.Echo("gldebugannotations", gldebugannotations)
+
+---@alias lightVBOType "point"|"beam"|"cone"
+
+--- A wrapper around a `VBO`, produced by `makeInstanceVBOTable`. Note the
+--- vocabulary: this is the wrapper, not a VBO itself; `pushElementInstance`
+--- and friends all take the wrapper.
+---@class InstanceVBOTable
+---@field instanceVBO VBO
+---@field instanceData number[]
+---@field instanceStep integer
+---@field usedElements integer
+---@field maxElements integer
+---@field myName string
+---@field instanceIDtoIndex table<any, integer>
+---@field indextoInstanceID table<integer, any>
+---@field indextoUnitID table<integer, integer>?
+---@field unitIDattribID integer?
+---@field layout table[]
+---@field dirty boolean
+---@field numVertices integer
+---@field primitiveType integer
+---@field VAO VAO?
+---@field vertexVBO VBO?
+---@field indexVBO VBO?
+---@field clearInstanceTable fun(self: InstanceVBOTable)
+---@field makeVAOandAttach fun(self: InstanceVBOTable, vertexVBO: any?, instanceVBO: any?, indexVBO: any?): any
+---@field Draw fun(self: InstanceVBOTable)
+---@field draw fun(self: InstanceVBOTable, primitiveType: integer?)
+---@field compact fun(self: InstanceVBOTable)
+---@field Delete fun(self: InstanceVBOTable)
+---@field debug boolean?
+---@field [string] any
+
+--- Allocates an instance buffer. Returns `nil` when the VBO cannot be created.
+---@param layout table[] Attribute descriptors, e.g. `{{id = 1, name = 'pos', size = 4}}`.
+---@param maxElements integer? Grows dynamically anyway. Defaults to `64`.
+---@param myName string? Name used in log messages. Defaults to `"InstanceVBOTable"`.
+---@param unitIDattribID integer? Attribute id of the uvec4 holding unitID bindings.
+---@return InstanceVBOTable? instanceTable
 local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
@@ -24,6 +63,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	for i, attribute in pairs(layout) do
 		instanceStep = instanceStep + attribute.size
 	end
+	---@type table<integer, integer>
 	local instanceData = {}
 	for i = 1, instanceStep * maxElements do
 		instanceData[i] = 0
@@ -32,16 +72,23 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		instanceVBO = newInstanceVBO,
 		instanceData = instanceData,
 		instanceStep = instanceStep,
+		---@type integer
 		usedElements = 0,
 		maxElements = maxElements,
 		myName = myName,
+		---@type table<integer, integer>
 		instanceIDtoIndex = {}, -- this maps each instance ID to where it is in the buffer, 1 based
+		---@type table<integer, integer>
 		indextoInstanceID = {}, -- this tells us what instanceID is located in any given pos
 		layout = layout,
+		---@type boolean
 		dirty = false,
+		---@type integer
 		numVertices = 0,
 		primitiveType = GL.TRIANGLES,
+		---@type boolean
 		debugZombies = true, -- this is new, and its for debugging non-existing stuff on unitdestroyed
+		---@type integer
 		lastInstanceID = 0,
 	}
 
@@ -209,6 +256,8 @@ local function nextInstanceID(iT)
 	return iT.lastInstanceID
 end
 
+--- Empties the table without resizing its buffer.
+---@param iT InstanceVBOTable
 local function clearInstanceTable(iT)
 	-- this won't resize it, but quickly sets it to empty
 	iT.usedElements = 0
@@ -219,6 +268,11 @@ local function clearInstanceTable(iT)
 	end
 end
 
+--- Attaches a vertex buffer to an instance buffer, and an index buffer if given.
+---@param vertexVBO VBO?
+---@param instanceVBO VBO?
+---@param indexVBO VBO?
+---@return VAO? vao `nil` when the VAO could not be created.
 local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
 	-- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance.
 	--iT.vertexVBO = vertexVBO
@@ -343,7 +397,9 @@ local function validateInstanceVBOTable(iT, calledfrom)
 	end
 end
 
-function locateInvalidUnits(iT)
+--- Reports instances bound to units that no longer exist.
+---@param iT InstanceVBOTable
+local function locateInvalidUnits(iT)
 	if iT.validinfo == nil then
 		iT.validinfo = {}
 	end
@@ -489,6 +545,14 @@ Here is how you upload starting from 1st element and starting from 4th element i
 ]]
 --
 
+--- Adds or updates one instance.
+---@param iT InstanceVBOTable
+---@param thisInstance number[] Exactly `iT.instanceStep` values.
+---@param instanceID string|number|nil Key for later reference; `nil` auto-generates one.
+---@param updateExisting boolean? Allow overwriting an element with the same key.
+---@param noUpload boolean? Skip the upload, to batch several operations.
+---@param unitID integer? Bind the instance to a unit, so the buffer tracks it.
+---@return string|number|nil instanceID The key it was filed under; `nil` on failure.
 local function pushElementInstance(iT, thisInstance, instanceID, updateExisting, noUpload, unitID)
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
@@ -574,6 +638,11 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	return instanceID
 end
 
+--- Removes one instance, swapping the last element into its place.
+---@param iT InstanceVBOTable
+---@param instanceID string|number
+---@param noUpload boolean?
+---@return integer? index The buffer index it occupied; `nil` when not found.
 local function popElementInstance(iT, instanceID, noUpload)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
@@ -738,6 +807,11 @@ local function popElementInstance(iT, instanceID, noUpload)
 	return oldElementIndex
 end
 
+--- Reads one instance back out of the buffer.
+---@param iT InstanceVBOTable
+---@param instanceID string|number
+---@param cacheTable number[]? Reused output table, to avoid an allocation.
+---@return number[]? instanceData
 local function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
@@ -756,6 +830,8 @@ local function getElementInstanceData(iT, instanceID, cacheTable)
 	return iData
 end
 
+--- Uploads every used element.
+---@param iT InstanceVBOTable
 local function uploadAllElements(iT)
 	-- upload all USED elements
 	if iT.usedElements == 0 then
@@ -773,6 +849,9 @@ local function uploadAllElements(iT)
 	end
 end
 
+---@param iT InstanceVBOTable
+---@param startElementIndex integer
+---@param endElementIndex integer
 local function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(
 		iT.instanceData, -- The lua mirrored VBO data
@@ -799,6 +878,9 @@ end
 -- This function allows for order-preserving compacting of a list of instances based on these funcs.
 -- It is designed for Decals GL4, where draw order matters a lot!
 -- remove takes priority over keep
+---@param iT InstanceVBOTable
+---@param removelist table<string|number, true>? Instance keys to drop.
+---@param keeplist table<string|number, true>? Instance keys to keep, dropping the rest.
 local function compactInstanceVBO(iT, removelist, keeplist)
 	local usedElements = iT.usedElements
 	if usedElements == 0 then
@@ -836,6 +918,7 @@ local function compactInstanceVBO(iT, removelist, keeplist)
 	return numremoved
 end
 
+---@param iT InstanceVBOTable
 local function drawInstanceVBO(iT)
 	if iT.usedElements > 0 then
 		if iT.indexVBO then
@@ -868,6 +951,16 @@ end
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
+--- The geometry helpers below each build a standalone `VBO` -- not an
+--- `InstanceVBOTable` -- for use as the vertex or index side of `makeVAOandAttach`.
+--- Each also returns its element count. `name` is only used in log messages.
+
+---@param circleSegments integer
+---@param radius number
+---@param startCenter boolean? Emit a centre vertex first, for a triangle fan.
+---@param name string?
+---@return VBO? circleVBO
+---@return integer numVertices
 local function makeCircleVBO(circleSegments, radius, startCenter, name)
 	-- Makes circle of radius in xy space
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
@@ -913,6 +1006,13 @@ local function makeCircleVBO(circleSegments, radius, startCenter, name)
 	return circleVBO, #VBOData / 4
 end
 
+---@param xsize number Spans `-xsize` to `xsize`.
+---@param ysize number
+---@param xresolution integer? Subdivisions.
+---@param yresolution integer?
+---@param name string?
+---@return VBO? planeVBO
+---@return integer numVertices
 local function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
 	if not xsize then
 		xsize = 1
@@ -957,6 +1057,12 @@ local function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- mak
 	return planeVBO, #VBOData / 2
 end
 
+---@param xresolution integer
+---@param yresolution integer
+---@param cutcircle boolean? Drop the triangles outside the inscribed circle.
+---@param name string?
+---@return VBO? planeIndexVBO
+---@return number[] indexData The raw index list the buffer was filled from.
 local function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	xresolution = math.floor(xresolution)
 	if not yresolution then
@@ -1006,6 +1112,11 @@ local function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	return planeIndexVBO, IndexVBOData
 end
 
+---@param numPoints integer
+---@param randomFactor number?
+---@param name string?
+---@return VBO? pointVBO
+---@return integer numPoints
 local function makePointVBO(numPoints, randomFactor, name)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
@@ -1038,6 +1149,17 @@ local function makePointVBO(numPoints, randomFactor, name)
 	return pointVBO, numPoints
 end
 
+---@param minX number?
+---@param minY number?
+---@param maxX number?
+---@param maxY number?
+---@param minU number?
+---@param minV number?
+---@param maxU number?
+---@param maxV number?
+---@param name string?
+---@return VBO? rectVBO
+---@return integer numVertices
 local function makeRectVBO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	if minX == nil then
 		minX, minY, maxX, maxY, minU, minV, maxU, maxV = 0, 0, 1, 1, 0, 0, 1, 1
@@ -1090,6 +1212,9 @@ local function makeRectVBO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	return rectVBO, 6
 end
 
+---@param name string?
+---@return VBO? rectIndexVBO
+---@return integer numIndices
 local function makeRectIndexVBO(name)
 	local rectIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 	if rectIndexVBO == nil then
@@ -1104,6 +1229,12 @@ local function makeRectIndexVBO(name)
 	return rectIndexVBO, 6
 end
 
+---@param numSegments integer
+---@param height number
+---@param radius number
+---@param name string?
+---@return VBO? coneVBO
+---@return integer numVertices
 local function makeConeVBO(numSegments, height, radius, name)
 	-- make a cone that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
@@ -1169,6 +1300,14 @@ local function makeConeVBO(numSegments, height, radius, name)
 	return coneVBO, #VBOData / 4
 end
 
+---@param numSegments integer
+---@param height number
+---@param radius number
+---@param hastop boolean?
+---@param hasbottom boolean?
+---@param name string?
+---@return VBO? cylinderVBO
+---@return integer numVertices
 local function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, name)
 	-- make a cylinder that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
@@ -1274,6 +1413,15 @@ local function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, n
 	return cylinderVBO, #VBOData / 4
 end
 
+---@param minX number
+---@param minY number
+---@param minZ number
+---@param maxX number
+---@param maxY number
+---@param maxZ number
+---@param name string?
+---@return VBO? boxVBO
+---@return integer numVertices
 local function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ, name) -- make a box
 	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
@@ -1446,6 +1594,14 @@ end
 ---@param sectorCount number is the number of orange slices around the belly in XY
 ---@param stackCount number how many horizontal slices along Z, usually less than sectorcount
 ---@param radius number how many elmos in radius, default 1
+---@param sectorCount integer
+---@param stackCount integer
+---@param radius number
+---@param name string?
+---@return VBO? sphereVBO
+---@return integer numVertices
+---@return VBO sphereIndexVBO
+---@return integer numIndices
 local function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.songho.ca/opengl/gl_sphere.html
 	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if sphereVBO == nil then
@@ -1566,6 +1722,17 @@ local function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://ww
 	return sphereVBO, numVerts, sphereIndexVBO, #VBOData
 end
 
+--- A screen-space textured rectangle, already wrapped in a VAO.
+---@param minX number?
+---@param minY number?
+---@param maxX number?
+---@param maxY number?
+---@param minU number?
+---@param minV number?
+---@param maxU number?
+---@param maxV number?
+---@param name string?
+---@return VAO? rectVAO
 local function MakeTexRectVAO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	-- Draw with myGL4TexRectVAO:DrawArrays(GL.TRIANGLES)
 	minX, minY, maxX, maxY, minU, minV, maxU, maxV =
@@ -1621,7 +1788,10 @@ local function MakeTexRectVAO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, na
 	return myGL4TexRectVAO
 end
 
-return {
+--- The shared instance-buffer helpers, reached as `gl.InstanceVBOTable`.
+--- `luaui/Include/instancevbotable.lua` is a deprecated shim that re-exports it.
+---@class InstanceVBOTableModule
+local InstanceVBOTableModule = {
 	makeInstanceVBOTable = makeInstanceVBOTable,
 	clearInstanceTable = clearInstanceTable,
 	makeVAOandAttach = makeVAOandAttach,
@@ -1645,3 +1815,11 @@ return {
 	makeSphereVBO = makeSphereVBO,
 	MakeTexRectVAO = MakeTexRectVAO,
 }
+
+-- Publishing the module on the global `gl` here, and not only through the
+-- assignment in modules/graphics/init.lua, is what lets the language server
+-- type `gl.InstanceVBOTable`: that assignment targets a `gl` parameter, so
+-- nothing connects it to the global the consumers actually read.
+gl.InstanceVBOTable = InstanceVBOTableModule
+
+return InstanceVBOTableModule
