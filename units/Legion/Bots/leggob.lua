@@ -139,6 +139,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
+				burstcontrolwhenoutofarc = 2,
 				def = "SEMIAUTO",
 				onlytargetcategory = "NOTSUB",
 			},
