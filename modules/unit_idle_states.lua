@@ -1,8 +1,8 @@
 -- The engine misses a very large portion of its one side of the idle responsibility:
 -- A factory's build queue empties through CFactoryCAI::ExecuteStop, which is just a pop;
 -- multi-command removals only "finish" the first command removed, so tend not to report;
--- units that are built or spawned are not marked as idle, though they have no commands;
--- but we have kept this last gap, for now, rather than treat it as crossing a boundary.
+-- units that are built or spawned are not marked as idle, though they have no commands.
+-- Our code also considers newly-created units as neither idle nor busy, at the moment.
 
 -- In addition, units may have "idle tasks". These are orders followed to avoid player
 -- frustration with useless units but are not player orders "to make yourself useful".
