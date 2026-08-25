@@ -208,22 +208,24 @@ local triggers = {
 	},
 
 	engineerSpotted = {
-		type = triggerTypes.UnitSpotted,
+		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
+			sensorTypes = { 'vision' },
 		},
 		actions = { 'messageEngineerSpotted' },
 	},
 
 	engineerUnspotted = {
-		type = triggerTypes.UnitUnspotted,
+		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
-			spottingAllyTeamID = 0,
+			sensorAllyTeamID = 0,
+			sensorTypes = { 'vision' },
 		},
 		actions = { 'messageEngineerUnspotted' },
 	},
