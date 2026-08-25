@@ -4,8 +4,6 @@
 -- units that are built or spawned are not marked as idle, though they have no commands.
 -- Our code also considers newly-created units as neither idle nor busy, at the moment.
 
--- In addition, units may have "idle tasks". These are orders followed to avoid player
--- frustration with useless units but are not player orders "to make yourself useful".
 -- In addition, units may have "idle tasks", as opposed to "busy tasks". These are not
 -- issued via player input but from code. Code that issues idle tasks can detect idleness
 -- via an empty command queue rather than by isIdle to avoid issuing multiple idle tasks.
