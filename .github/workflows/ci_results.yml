@@ -80,13 +80,38 @@ jobs:
                     | select(.name != "CI Results")
                     | { name, status, conclusion,
                         url: .html_url,
-                        started: .run_started_at,
-                        updated: .updated_at } ]' > runs.json
+                        id: .id } ]' > runs.json
+
+          # A row per job rather than per workflow, so every link lands on the
+          # log that failed instead of a run page the reader has to click
+          # through. It also means a workflow that grows a second job shows up
+          # as two rows without this needing to know about it.
+          : > jobs.json
+          while IFS=$(printf '\t') read -r wf id url; do
+            [ -n "$id" ] || continue
+            # gh api has no --arg, so the workflow name is grafted on in a
+            # second jq rather than inside the query.
+            if gh api "repos/$REPO/actions/runs/$id/jobs" --paginate --jq '.jobs[]' > raw.json 2> jobs.err; then
+              jq -c --arg wf "$wf" --arg run "$url" \
+                '{ workflow: $wf, run: $run, name, status, conclusion,
+                   url: .html_url, started: .started_at, completed: .completed_at }' \
+                raw.json >> jobs.json
+            else
+              # A run whose jobs cannot be listed still deserves a row, so it
+              # falls back to the workflow itself.
+              cat jobs.err >&2
+              jq -c --arg wf "$wf" --arg url "$url" --arg id "$id" \
+                '.[] | select((.id | tostring) == $id)
+                 | { workflow: $wf, run: $url, name: $wf, status: .status,
+                     conclusion: .conclusion, url: $url, started: null, completed: null }' \
+                runs.json >> jobs.json
+            fi
+          done < <(jq -r '.[] | "\(.name)\t\(.id)\t\(.url)"' runs.json)
 
           # The header and the table, rendered in one pass so the counts and
           # the rows cannot disagree.
           jq -n -r \
-            --slurpfile runs runs.json \
+            --slurpfile jobs <(jq -s '.' jobs.json) \
             --arg marker "$MARKER" '
             def icon:
               if . == "success" then "✅"
@@ -105,21 +130,21 @@ jobs:
               | if $s < 60 then "\($s)s"
                 else "\(($s / 60 | floor))m\($s % 60)s" end;
 
-            ($runs[0] | sort_by(.name)) as $rows
+            ($jobs[0] | sort_by(.workflow, .name)) as $rows
             | ([ $rows[] | select(.conclusion == "failure") ] | length) as $failed
             | ([ $rows[] | select(.status != "completed") ] | length) as $running
 
             | $marker,
               "## CI results",
               "",
-              ( if $running > 0 then "\($running) workflow\(if $running == 1 then "" else "s" end) still running."
-                elif $failed > 0 then "\($failed) workflow\(if $failed == 1 then "" else "s" end) failed."
+              ( if $running > 0 then "\($running) job\(if $running == 1 then "" else "s" end) still running."
+                elif $failed > 0 then "\($failed) job\(if $failed == 1 then "" else "s" end) failed."
                 else "All checks passed." end ),
               "",
-              "| Workflow | Result | Time |",
-              "| --- | --- | --- |",
+              "| Workflow | Job | Result | Time |",
+              "| --- | --- | --- | --- |",
               ( $rows[]
-                | "| [\(.name)](\(.url)) | \(.conclusion | icon) \(.conclusion | statusText) | \(if .status == "completed" then duration(.started; .updated) else "—" end) |" )
+                | "| \(.workflow) | [\(.name)](\(.url)) | \(.conclusion | icon) \(.conclusion | statusText) | \(if .completed and .started then duration(.started; .completed) else "—" end) |" )
           ' > body.md
 
           # Each check writes the same job summary it shows on its own page to

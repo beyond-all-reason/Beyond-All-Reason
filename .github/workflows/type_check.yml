@@ -177,7 +177,10 @@ jobs:
           # Annotations cannot be bucketed the same way -- GitHub has only the
           # error, warning and notice pools -- but each bubble already carries
           # its code as the title, so the two views agree.
-          jq -r --arg mode "$MODE" --arg where "$WHERE" '
+          # One program, rendered twice: in full for this job's own summary
+          # page, and compact for the CI Results comment, which is capped at
+          # 65536 characters and which a full report can exceed on its own.
+          SUMMARY_JQ='
             def cell: gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
             def sevname: if . == 1 then "error" elif . == 2 then "warning"
                          elif . == 3 then "info" else "hint" end;
@@ -225,15 +228,24 @@ jobs:
                        else empty end )
                 else empty end ),
 
-              ( [ $codes[] | select(.severity != 1) ][]
+              # The comment gets the headline, the counts and the errors.
+              # The per-code detail would swamp it many times over, so it stays
+              # on the summary page of the job that produced it.
+              ( if $detail != "full" then empty else
+                [ $codes[] | select(.severity != 1) ][]
                 | . as $c
                 | [ $all[] | select(.code == $c.code) ] as $f
                 | "",
                   "<details><summary><code>\($c.code)</code> - \($c.n) \($c.severity | sevname)\(plural($c.n))</summary>",
                   "", "| Location | Message |", "| --- | --- |",
                   rows($f),
-                  "", "</details>" )
-          ' filtered.json | tee ci-report.md >> "$GITHUB_STEP_SUMMARY"
+                  "", "</details>" end )
+          '
+
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail full \
+            "$SUMMARY_JQ" filtered.json >> "$GITHUB_STEP_SUMMARY"
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail compact \
+            "$SUMMARY_JQ" filtered.json > ci-report.md
 
           # Errors fail a pull request. A manual run is an analytics view, so it
           # reports and stays green -- a red X on a report nobody asked to gate
