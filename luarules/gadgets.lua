@@ -464,9 +464,9 @@ end
 local synthetic = VFS.Include(SCRIPT_DIR .. "callins/synthetic_callins.lua", nil, VFSMODE) ---@type SyntheticCallinsAPI
 
 -- stylua: ignore start
-local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
-local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('FeatureBuildStep')
-local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks('UnitIdle')
+local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks("UnitBuildStep")
+local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks("FeatureBuildStep")
+local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks("UnitIdle")
 -- stylua: ignore end
 
 local function markIdle(unitID)
