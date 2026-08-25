@@ -1,9 +1,12 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 -- mirror eager module loading in api_missions.lua
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+RegisterMissionApiModules() -- handles some load order
 GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
 GG['MissionAPI'].TriggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 
@@ -615,20 +618,20 @@ describe("mission_api.validation", function()
 		describe("AllyTeamName", function()
 			it("rejects wrong type", function()
 				triggerErrors({
-					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamName = 123 },
+					type       = triggerTypes.UnitDetected,
+					parameters = { unitName = 'x', sensorAllyTeamName = 123 },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: spottingAllyTeamName"))
+				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: sensorAllyTeamName"))
 			end)
 
 			it("rejects invalid ally team name", function()
 				triggerErrors({
-					type       = triggerTypes.UnitSpotted,
-					parameters = { unitName = 'x', spottingAllyTeamName = 'noSuchAllyTeam' },
+					type       = triggerTypes.UnitDetected,
+					parameters = { unitName = 'x', sensorAllyTeamName = 'noSuchAllyTeam' },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Invalid teamName: noSuchAllyTeam. Trigger: t, Parameter: spottingAllyTeamName"))
+				assert.is_true(hasError("Invalid allyTeamName: noSuchAllyTeam. Trigger: t, Parameter: sensorAllyName"))
 			end)
 		end)
 

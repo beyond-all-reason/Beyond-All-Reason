@@ -18,6 +18,15 @@ jobs:
         uses: actions/checkout@v5
         with:
           submodules: recursive
+          # Pull down only the PR's changed files and the checkers's own config files
+          filter: blob:none
+          # Cone mode cannot filter correctly for our repo, picks up asset files, etc.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.emmyrc.json
+            /.gitmodules
+            /recoil-lua-library
+            *.lua
 
       - name: Install emmylua_check
         env:
