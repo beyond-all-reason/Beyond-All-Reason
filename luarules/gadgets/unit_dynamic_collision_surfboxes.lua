@@ -38,7 +38,7 @@ local spSetUnitMidAndAimPos = Spring.SetUnitMidAndAimPos
 
 local updateFrames = math_clamp(math.round(updateTime * Game.gameSpeed), 1, Game.gameSpeed)
 
-local surfHeight = 0 -- minimum elevation that colliders try to maintain
+local surfHeight = 0.0 -- minimum elevation that colliders try to maintain
 do
 	local waterLevel = Spring.GetWaterPlaneLevel()
 	local unitSpeedFast = 100 -- some typical but quick unit speed
@@ -66,7 +66,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 		local is = unitDef.modCategories
 		if (is.ship or is.hover or is.vtol) and not (is.underwater or is.canbeuw) then
-			Spring.Log("[HITBOXES]", LOG.WARNING, "Floating unit assigned a surfbox: " .. unitDef.name)
+			Spring.Log("Surfboxes", LOG.WARNING, "Floating unit assigned a surfbox: " .. unitDef.name)
 		end
 	end
 end
@@ -125,7 +125,7 @@ local function surf(unitID)
 	local volume = data.volume
 	local unitOffset = volume[5]
 	local unitHeight = spGetUnitHeight(unitID)
-	local ux, uy, uz = spGetUnitPosition(unitID)
+	local _, uy = spGetUnitPosition(unitID)
 
 	if uy < -waterDepthMax or uy + unitOffset + unitHeight >= surfHeight + (hasSurfbox and 1 or -1) then
 		if hasSurfbox then
@@ -155,7 +155,7 @@ local function surf(unitID)
 	end
 
 	-- The ellipsoid is a more tight-fitting shape so we increase its dimensions.
-	local shapeDimensionRatio = inflateRatios[volume[7]]
+	local shapeDimensionRatio = inflateRatios[volume[7]] or 1.0
 
 	local ratioX = shapeDimensionRatio
 	local ratioY = shapeDimensionRatio * stretch
@@ -169,7 +169,8 @@ local function surf(unitID)
 	if maxXZ / minXYZ > 1.25 then
 		-- Exchange less eccentricity between axes as the unit tilts more.
 		ratioX = ratioX / (1 + (volume[1] / minXYZ - 0.5) * 0.30 * upward)
-		local rateY = 1 / (1 - (volume[2] / minXYZ - 0.5) * 0.23 * upward) -- not symmetrical
+		-- Not symmetrical, so the divisor is floored to keep very tall shapes sane.
+		local rateY = 1 / math.max(1 - (volume[2] / minXYZ - 0.5) * 0.23 * upward, 0.5)
 		ratioZ = ratioZ / (1 + (volume[3] / minXYZ - 0.5) * 0.30 * upward)
 		ratioY = ratioY * rateY
 		yOffset = yOffset + (rateY * rateY - rateY) * (unitHeight * 0.5) -- less lift
@@ -196,17 +197,17 @@ local function surf(unitID)
 		position[2] + yOffset * 0.75,
 		position[3],
 		position[4],
-		position[5] + yOffset * 0.5, -- keep aim point close to the model to "look right"
+		position[5] + yOffset * 0.5, -- keep aim point close to the model
 		position[6],
 		true
 	)
 end
 
--- Engine events
+-- Engine events ---------------------------------------------------------------
 
 function gadget:Initialize()
 	if not next(canSurf) then
-		widgetHandler:RemoveWidget()
+		gadgetHandler:RemoveGadget(self)
 		return
 	end
 
@@ -214,23 +215,31 @@ function gadget:Initialize()
 	local waterLevel = Spring.GetWaterPlaneLevel()
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
-		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		local _, uy = Spring.GetUnitPosition(unitID)
 		if uy <= waterLevel then
-			gadget:UnitEnteredWater(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+			gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		end
 	end
 end
 
-function gadget:GameFrame(n)
-	if n % updateFrames == 0 then
+function gadget:Shutdown()
+	for unitID in pairs(isUsingSurfbox) do
+		restoreVolume(unitID)
+	end
+end
+
+function gadget:GameFrame(frame)
+	if frame % updateFrames == 0 then
 		for unitID in pairs(surfersInWater) do
 			surf(unitID)
 		end
 	end
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if canSurf[unitDefID] then
 		surferUnitData[unitID] = getUnitData(unitID, unitDefID)
 	end
