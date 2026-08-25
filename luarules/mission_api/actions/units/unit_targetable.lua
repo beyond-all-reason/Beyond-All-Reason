@@ -1,9 +1,9 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local tracking = GG['MissionAPI'].Modules.Tracking
 
 local function setTargetable(unitName, targetable)
-	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
-	GG['MissionAPI'].SetUnitTargetable(GG['MissionAPI'].trackedUnitIDs[unitName], targetable)
+	GG.SetUnitUntargetable(GG['MissionAPI'].trackedUnitIDs[unitName], not targetable)
 end
 
 return {
