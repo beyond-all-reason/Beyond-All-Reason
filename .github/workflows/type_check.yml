@@ -140,13 +140,13 @@ jobs:
           # rather than letting the report order decide what a reviewer sees.
           if [ "$MODE" = "pr" ]; then
             jq -r '
-              def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
-              def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+              def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+              def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
               def pool($sev; $kind):
                 [ .[] | select(.severity == $sev) ]
                 | sort_by(.path, .line, .col)
                 | .[0:10][]
-                | "::\($kind) file=\(.path | prop),line=\(.line),col=\(.col),title=\(.code | prop)::\(.message | esc)";
+                | "::\($kind) file=\(prop(.path)),line=\(.line),col=\(.col),title=\(prop(.code))::\(esc(.message))";
               pool(1; "error"), pool(2; "warning")
             ' filtered.json
 
@@ -159,13 +159,13 @@ jobs:
           # is uncapped in here -- on a whole-tree run that is tens of thousands
           # of lines, which is readable folded and unreadable flat.
           jq -r '
-            def sevname: if . == 1 then "error" elif . == 2 then "warning"
-                         elif . == 3 then "info" else "hint" end;
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
             def plural($n): if $n == 1 then "" else "s" end;
             group_by(.code)
             | sort_by(.[0].severity, -length)
             | .[]
-            | ("::group::\(.[0].code) - \(length) \(.[0].severity | sevname)\(plural(length))"),
+            | ("::group::\(.[0].code) - \(length) \(sevname(.[0].severity))\(plural(length))"),
               (sort_by(.path, .line, .col)[] | "\(.path):\(.line):\(.col): \(.message)"),
               "::endgroup::"
           ' filtered.json
@@ -183,21 +183,21 @@ jobs:
           # page, and compact for the CI Results comment, which is capped at
           # 65536 characters and which a full report can exceed on its own.
           SUMMARY_JQ='
-            def cell: gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
+            def cell($s): $s | gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
             # emmylua messages can carry a whole union type. The comment has a
             # byte budget the summary page does not, so they are clipped there.
-            def msg: cell
-              | if $detail == "full" or (length <= 120) then .
-                else .[0:119] + "…" end;
-            def sevname: if . == 1 then "error" elif . == 2 then "warning"
-                         elif . == 3 then "info" else "hint" end;
+            def msg($s): cell($s) as $t
+              | if $detail == "full" or ($t | length) <= 120 then $t
+                else $t[0:119] + "…" end;
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
             def plural($n): if $n == 1 then "" else "s" end;
 
             # Fifty rows per code is where a table stops being readable. The
             # log above is uncapped, so nothing is actually lost.
             def rows($f):
               ( $f | sort_by(.path, .line, .col) | .[0:50][]
-                | "| `\(.path):\(.line)` | \(.message | msg) |" ),
+                | "| `\(.path):\(.line)` | \(msg(.message)) |" ),
               ( if ($f | length) > 50
                 then "", "_Showing 50 of \($f | length); the workflow log lists every one._"
                 else empty end );
@@ -220,7 +220,7 @@ jobs:
 
               ( if ($all | length) > 0
                 then "", "| Code | Severity | Count |", "| --- | --- | --- |",
-                     ( $codes[] | "| `\(.code)` | \(.severity | sevname) | \(.n) |" )
+                     ( $codes[] | "| `\(.code)` | \(sevname(.severity)) | \(.n) |" )
                 else empty end ),
 
               # Errors are not collapsed and keep a Code column, since one run
@@ -230,7 +230,7 @@ jobs:
                 then "", "#### Errors", "",
                      "| Location | Code | Message |", "| --- | --- | --- |",
                      ( $errors | sort_by(.path, .line, .col) | .[0:$cap][]
-                       | "| `\(.path):\(.line)` | `\(.code)` | \(.message | msg) |" ),
+                       | "| `\(.path):\(.line)` | `\(.code)` | \(msg(.message)) |" ),
                      ( if ($errors | length) > $cap
                        then "", "_Showing \($cap) of \($errors | length); the workflow log lists every one._"
                        else empty end )
@@ -244,7 +244,7 @@ jobs:
                 | . as $c
                 | [ $all[] | select(.code == $c.code) ] as $f
                 | "",
-                  "<details><summary><code>\($c.code)</code> - \($c.n) \($c.severity | sevname)\(plural($c.n))</summary>",
+                  "<details><summary><code>\($c.code)</code> - \($c.n) \(sevname($c.severity))\(plural($c.n))</summary>",
                   "", "| Location | Message |", "| --- | --- |",
                   rows($f),
                   "", "</details>" end )

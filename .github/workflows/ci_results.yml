@@ -113,16 +113,16 @@ jobs:
           jq -n -r \
             --slurpfile jobs <(jq -s '.' jobs.json) \
             --arg marker "$MARKER" '
-            def icon:
-              if . == "success" then "✅"
-              elif . == "failure" then "❌"
-              elif . == "cancelled" then "⚪"
-              elif . == "skipped" then "⏭️"
-              elif . == null then "🟡"
+            def icon($c):
+              if $c == "success" then "✅"
+              elif $c == "failure" then "❌"
+              elif $c == "cancelled" then "⚪"
+              elif $c == "skipped" then "⏭️"
+              elif $c == null then "🟡"
               else "⚠️" end;
 
-            def statusText:
-              if . == null then "running" else . end;
+            def statusText($c):
+              if $c == null then "running" else $c end;
 
             # Whole seconds are enough here and read better than 3m39.412s.
             def duration($a; $b):
@@ -144,7 +144,7 @@ jobs:
               "| Workflow | Job | Result | Time |",
               "| --- | --- | --- | --- |",
               ( $rows[]
-                | "| \(.workflow) | [\(.name)](\(.url)) | \(.conclusion | icon) \(.conclusion | statusText) | \(if .completed and .started then duration(.started; .completed) else "—" end) |" )
+                | "| \(.workflow) | [\(.name)](\(.url)) | \(icon(.conclusion)) \(statusText(.conclusion)) | \(if .completed and .started then duration(.started; .completed) else "—" end) |" )
           ' > body.md
 
           # Each check writes the same job summary it shows on its own page to
