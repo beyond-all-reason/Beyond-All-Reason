@@ -79,9 +79,9 @@ local isUsingSurfbox = {} -- units with a modified collider
 -- Local functions
 
 local function toUnitSpace(dx, dy, dz, frontX, frontY, frontZ, rightX, rightY, rightZ, upX, upY, upZ)
-	return dx * rightX + dy * upX + dz * frontX,
-		dx * rightY + dy * upY + dz * frontY,
-		dx * rightZ + dy * upZ + dz * frontZ
+	return dx * rightX + dy * rightY + dz * rightZ,
+		dx * upX + dy * upY + dz * upZ,
+		dx * frontX + dy * frontY + dz * frontZ
 end
 
 local function calculateUnitMidAndAimPos(unitID)
