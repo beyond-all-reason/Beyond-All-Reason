@@ -32,12 +32,8 @@ end
 
 local function processOrders(orders)
 	for _, order in ipairs(orders) do
-		local commandID = order[1]
-		local commandIndex = 1
-		if commandID == CMD.INSERT then
-			commandIndex = 3 -- The rolled array shifts commandParams[2] => [3].
-			commandID = order[3]
-		end
+		local commandIndex = order[1] == CMD.INSERT and 3 or 1
+		local commandID = order[commandIndex]
 		if type(commandID) == 'string' then
 			local unitDef = UnitDefNames[commandID]
 			if unitDef then
