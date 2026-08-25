@@ -304,6 +304,9 @@ function gadget:GameFrame(frameNumber)
 	end
 end
 
+-- Both the detection sweep and the build-assist sweep run at the end of the frame.
+-- They have to share one callin: a second `function gadget:GameFramePost` would
+-- silently replace the first, which is how detection stopped being dispatched.
 function gadget:GameFramePost(frameNumber)
 	if detectionCount > 0 then
 		detectionLevels.BeginUpdate()
@@ -313,9 +316,7 @@ function gadget:GameFramePost(frameNumber)
 		end
 		detectionCount = 0
 	end
-end
 
-function gadget:GameFramePost(frameNumber)
 	if not next(buildPlacements) then
 		return
 	end

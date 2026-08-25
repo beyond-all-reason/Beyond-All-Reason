@@ -33,6 +33,9 @@ describe("mission_api.detection_levels", function()
 		Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
 		Spring.GetGaiaTeamID = function() return 2 end
 		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
+		-- Tests drive LOS per allyTeam directly, so units are owned by Gaia, which never
+		-- senses. Tests about the owner's own vision override this.
+		Spring.GetUnitAllyTeam = function(_unitID) return 2 end
 		-- The module resolves the allyTeam layout at load, so each test reloads it after
 		-- the stubs above are in place. The reload also leaves the latch table empty.
 		DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')

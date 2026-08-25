@@ -107,21 +107,28 @@ local function beginUpdate()
 end
 
 ---The level bit a unit currently sits at. Without a sensorAllyTeam, the highest level held
----by any single allyTeam wins, so a unit seen by one and unheard by another reads as seen.
+---by any allyTeam other than the unit's own wins, so a unit seen by one and unheard by
+---another reads as seen. The owner is skipped because an allyTeam always has vision of
+---its own units, which would otherwise report every unit as seen by every sensor.
 ---@return integer levelBit
 local function levelBitOf(unitID, sensorAllyTeam)
 	if sensorAllyTeam then
 		return levelForAllyTeam(unitID, sensorAllyTeam)
 	end
 
+	local ownerAllyTeam = Spring.GetUnitAllyTeam(unitID)
+
 	local level = LEVEL_UNSEEN
 	for index = 1, sensorAllyTeamCount do
-		local allyTeamLevel = levelForAllyTeam(unitID, sensorAllyTeams[index])
-		if allyTeamLevel > level then
-			if allyTeamLevel == LEVEL_VISION then
-				return LEVEL_VISION -- nothing outranks vision, so stop looking
+		local allyTeamID = sensorAllyTeams[index]
+		if allyTeamID ~= ownerAllyTeam then
+			local allyTeamLevel = levelForAllyTeam(unitID, allyTeamID)
+			if allyTeamLevel > level then
+				if allyTeamLevel == LEVEL_VISION then
+					return LEVEL_VISION -- nothing outranks vision, so stop looking
+				end
+				level = allyTeamLevel
 			end
-			level = allyTeamLevel
 		end
 	end
 	return level
