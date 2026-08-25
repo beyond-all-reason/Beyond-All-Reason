@@ -461,7 +461,7 @@ end
 --  Synthetic callins
 --
 --  The game injects some of its own callins into the engine-driven event system:
-local synthetic = VFS.Include(SCRIPT_DIR .. 'callins/synthetic_callins.lua', nil, VFSMODE) ---@type SyntheticCallinsAPI
+local synthetic = VFS.Include(SCRIPT_DIR .. "callins/synthetic_callins.lua", nil, VFSMODE) ---@type SyntheticCallinsAPI
 
 -- stylua: ignore start
 local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
