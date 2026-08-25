@@ -2,10 +2,10 @@ return {
 	legshot = {
 		maxacc = 0.16,
 		maxdec = 0.8,
-		energycost = 4750,
-		metalcost = 450,
+		energycost = 5000,
+		metalcost = 470,
 		buildpic = "LEGSHOT.DDS",
-		buildtime = 7800,
+		buildtime = 11000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "33 37 33",
@@ -15,8 +15,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3350,
 		maxslope = 17,
 		speed = 50.0,
@@ -35,11 +33,13 @@ return {
 		turnrate = 1316.75,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (modeller), Protar (concept art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
+			reactive_armor_health = 400,
+			reactive_armor_restore = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -75,12 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3",
-				[4] = "deathceg4-fire",
 			},
 		},
 		sounds = {
@@ -120,13 +114,11 @@ return {
 				impulsefactor = 2.5,
 				name = "Medium Blast Riot Cannon",
 				noselfdamage = true,
-				range = 300,
+				range = 280,
 				reloadtime = 2.0,
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
-				soundhitvolume = 12.0,
-				soundstartvolume = 14.0,
 				separation = 2.0,
 				nogap = false,
 				size = 4,
@@ -141,9 +133,6 @@ return {
 					subs = 90,
 					vtol = 35,
 				},
-				customparams = {
-					--exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

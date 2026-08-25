@@ -23,6 +23,7 @@ string legvp   ("legvp");
 string legavp  ("legavp");
 string legap   ("legap");
 string legsy   ("legsy");
+string legadvshipyard   ("legadvshipyard");
 
 int switchInterval = MakeSwitchInterval();
 int switchFrame = 0;

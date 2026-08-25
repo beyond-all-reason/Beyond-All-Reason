@@ -6,7 +6,9 @@ run for end users.)
 ]]
 
 -- Lua 5.1 backwards compatibility
-table.pack = table.pack or function(...) return { n = select("#", ...), ... } end
+table.pack = table.pack or function(...)
+	return { n = select("#", ...), ... }
+end
 
 if not table.copy then
 	function table.copy(tbl)
@@ -56,7 +58,7 @@ if not table.mergeInPlace then
 	function table.mergeInPlace(mergeTarget, mergeData, deep)
 		deep = deep or false
 		for key, value in pairs(mergeData) do
-			if type(value) == 'table' and type(mergeTarget[key] or false) == 'table' then
+			if type(value) == "table" and type(mergeTarget[key] or false) == "table" then
 				table.mergeInPlace(mergeTarget[key], value, deep)
 			elseif type(value) == "table" and deep then
 				mergeTarget[key] = table.copy(value)
@@ -68,13 +70,51 @@ if not table.mergeInPlace then
 	end
 end
 
+if not table.sortStable then
+	local function compareDefault(a, b)
+		return a < b
+	end
+
+	---Sorts list elements in a given order, *in-place*, from `list[1]` to `list[#list]`.
+	---This method preserves elements' original order when possible, unlike `table.sort`.
+	---@generic T
+	---@param tbl T[]
+	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	table.sortStable = function(tbl, compare)
+		if not compare then
+			compare = compareDefault
+		end
+		local index = table.getKeyOf -- local speedup
+		table.sort(tbl, function(a, b)
+			local comparison = compare(a, b)
+			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+		end)
+	end
+end
+
+if not table.ensureTable then
+	---Ensures a table exists at the specified key, creating one if needed.
+	---@param tbl table
+	---@param key any
+	---@return table nested in tbl at key
+	function table.ensureTable(tbl, key)
+		local sub = tbl[key]
+		if sub == nil then
+			sub = {}
+			tbl[key] = sub
+		elseif type(sub) ~= "table" then
+			error("existing entry is not a table")
+		end
+		return sub
+	end
+end
+
 if not table.toString then
 	local stringRep = string.rep
 	local tableSort = table.sort
 	local DEFAULT_INDENT_STEP = 2
 
-	local function tableToString(tbl, options, _seen, _depth)
-	end
+	local function tableToString(tbl, options, _seen, _depth) end
 
 	local function keyCmp(a, b)
 		local ta = type(a)
@@ -94,69 +134,7 @@ if not table.toString then
 		end
 	end
 
-	tableToString = function(tbl, options, _seen, _depth)
-		_seen = _seen or {}
-		_depth = _depth or 0
-
-		local inputType = type(tbl)
-
-		if inputType == "string" then
-			return "\"" .. tbl .. "\""
-		elseif inputType == "userdata" then
-			return tostring(tbl) or "<userdata>"
-		elseif inputType ~= "table" then
-			return tostring(tbl)
-		end
-
-		if _seen[tbl] then
-			return "<recursive_reference>"
-		end
-
-		_seen[tbl] = true
-
-		local keys = {}
-		for key in pairs(tbl) do
-			keys[#keys + 1] = key
-		end
-		tableSort(keys, (options and options.keyCmp) or keyCmp)
-
-		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
-
-		local str = "{"
-		if #keys > 0 and options and options.pretty then
-			str = str .. "\n"
-		end
-		for i, key in ipairs(keys) do
-			if options and options.pretty then
-				str = str .. stringRep(" ", (_depth + 1) * indent)
-			end
-			if key ~= i then
-				local keyType = type(key)
-				if keyType == "string" then
-					str = str .. key .. "="
-				elseif keyType == "number" then
-					str = str .. "[" .. key .. "]="
-				else
-					str = str .. "[" .. tableToString(key, options, _seen) .. "]="
-				end
-			end
-			str = str .. tableToString(tbl[key], options, _seen, _depth + 1) .. ","
-			if options and options.pretty then
-				str = str .. "\n"
-			end
-		end
-		if #keys > 0 then
-			-- remove the last comma (normal) or newline (pretty)
-			str = str:sub(1, #str - 1)
-
-			if options and options.pretty then
-				str = str .. "\n" .. stringRep(" ", _depth * indent)
-			end
-		end
-		str = str .. "}"
-
-		return str
-	end
+	local tableConcat = table.concat
 
 	---Recursively turns a table into a string, suitable for printing.
 	---
@@ -173,6 +151,96 @@ if not table.toString then
 	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
 	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
 	---@return string
+	tableToString = function(tbl, options, _seen, _depth)
+		_seen = _seen or {}
+		_depth = _depth or 0
+
+		local inputType = type(tbl)
+
+		if inputType == "string" then
+			return '"' .. tbl .. '"'
+		elseif inputType == "userdata" then
+			return tostring(tbl) or "<userdata>"
+		elseif inputType ~= "table" then
+			return tostring(tbl)
+		end
+
+		if _seen[tbl] then
+			return "<recursive_reference>"
+		end
+
+		_seen[tbl] = true
+
+		local keys = {}
+		local keyCount = 0
+		for key in pairs(tbl) do
+			keyCount = keyCount + 1
+			keys[keyCount] = key
+		end
+		tableSort(keys, (options and options.keyCmp) or keyCmp)
+
+		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
+		local pretty = options and options.pretty
+
+		local parts = {}
+		local n = 0
+
+		n = n + 1
+		parts[n] = "{"
+		if keyCount > 0 and pretty then
+			n = n + 1
+			parts[n] = "\n"
+		end
+		for i = 1, keyCount do
+			local key = keys[i]
+			if pretty then
+				n = n + 1
+				parts[n] = stringRep(" ", (_depth + 1) * indent)
+			end
+			if key ~= i then
+				local keyType = type(key)
+				if keyType == "string" then
+					n = n + 1
+					parts[n] = key
+					n = n + 1
+					parts[n] = "="
+				elseif keyType == "number" then
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tostring(key)
+					n = n + 1
+					parts[n] = "]="
+				else
+					n = n + 1
+					parts[n] = "["
+					n = n + 1
+					parts[n] = tableToString(key, options, _seen)
+					n = n + 1
+					parts[n] = "]="
+				end
+			end
+			n = n + 1
+			parts[n] = tableToString(tbl[key], options, _seen, _depth + 1)
+			if i < keyCount or pretty then
+				n = n + 1
+				parts[n] = ","
+			end
+			if pretty then
+				n = n + 1
+				parts[n] = "\n"
+			end
+		end
+		if keyCount > 0 and pretty then
+			n = n + 1
+			parts[n] = stringRep(" ", _depth * indent)
+		end
+		n = n + 1
+		parts[n] = "}"
+
+		return tableConcat(parts)
+	end
+
 	table.toString = tableToString
 end
 
@@ -186,10 +254,51 @@ if not table.invert then
 	end
 end
 
+if not table.getUniqueArray then
+	local sort, floor = table.sort, math.floor
+
+	local lookup = {}
+	local function sortLookup(a, b)
+		return lookup[a] < lookup[b]
+	end
+
+	---Produces a new table that contains no duplicate and/or non-sequence-able entries.
+	---
+	---Values with non-integer keys are _ignored_. Values with integer keys are _sorted_.
+	---
+	---The final/sorted array forms a compact sequence with no gaps so can have new keys.
+	---@param tbl table may contain array, hash, or mixed data and can have gaps
+	---@return table sequence containing only unique entries, ordered by their integer indices
+	function table.getUniqueArray(tbl)
+		local unique, count = {}, 0
+		local invert = {}
+
+		-- Iterate the hash part to pull hashed integer keys back into the array part.
+		for index, option in pairs(tbl) do
+			if type(index) == "number" and index >= 1 and index == floor(index) then
+				if not invert[option] then
+					count = count + 1
+					unique[count] = option
+					invert[option] = index
+				elseif invert[option] > index then
+					invert[option] = index
+				end
+			end
+		end
+
+		lookup = invert
+		sort(unique, sortLookup)
+
+		return unique
+	end
+end
+
 if not table.append then
 	function table.append(appendTarget, appendData)
-		for _, value in pairs(appendData) do
-			table.insert(appendTarget, value)
+		local n = #appendTarget
+		for i = 1, #appendData do
+			n = n + 1
+			appendTarget[n] = appendData[i]
 		end
 	end
 end
@@ -207,6 +316,24 @@ if not table.count then
 			count = count + 1
 		end
 		return count
+	end
+end
+
+if not table.isEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return boolean
+	function table.isEmpty(tbl)
+		return next(tbl) == nil
+	end
+end
+
+if not table.isNilOrEmpty then
+	---Check if the table is empty.
+	---@param tbl table
+	---@return number
+	function table.isNilOrEmpty(tbl)
+		return tbl == nil or table.isEmpty(tbl)
 	end
 end
 
@@ -239,6 +366,22 @@ if not table.contains then
 	end
 end
 
+if not table.keys then
+	---Returns all keys of a table as an array, and the count of keys.
+	---@generic K
+	---@param tbl table<K, any>
+	---@return K[] keys
+	---@return number count
+	function table.keys(tbl)
+		local keys, count = {}, 0
+		for key in pairs(tbl) do
+			count = count + 1
+			keys[count] = key
+		end
+		return keys, count
+	end
+end
+
 if not table.removeIf then
 	---Remove values in table if they match the given predicate.
 	---@generic V
@@ -259,7 +402,9 @@ if not table.removeAll then
 	---@param tbl table<any, V>
 	---@param value V
 	function table.removeAll(tbl, value)
-		table.removeIf(tbl, function(v) return v == value end)
+		table.removeIf(tbl, function(v)
+			return v == value
+		end)
 	end
 end
 
@@ -412,6 +557,41 @@ if not table.any then
 	end
 end
 
+if not table.valueIntersection then
+	---Creates a new array-style table containing the intersection of all input arrays.
+	---Returns only unique elements that appear in all input arrays.
+	---@generic V
+	---@param ... V[] Any number of array-style tables.
+	---@return V[] A new array containing only values present in all input arrays.
+	function table.valueIntersection(...)
+		local tables = { ... }
+
+		-- Count occurrences of each value across all arrays
+		local valueCounts = {}
+		for _, tbl in pairs(tables) do
+			-- Use a set for each array to handle duplicates correctly
+			local seen = {}
+			for _, value in pairs(tbl) do
+				if not seen[value] then
+					seen[value] = true
+					valueCounts[value] = (valueCounts[value] or 0) + 1
+				end
+			end
+		end
+
+		-- Keep only values that appear in all arrays
+		local result = {}
+		local numTables = table.count(tables)
+		for value, count in pairs(valueCounts) do
+			if count == numTables then
+				result[#result + 1] = value
+			end
+		end
+
+		return result
+	end
+end
+
 if not pairsByKeys then
 	---pairs-like iterator function traversing the table in the order of its keys.
 	---Natural sort order will be used by default, optionally pass a comparator
@@ -424,9 +604,11 @@ if not pairsByKeys then
 	---(Implementation copied straight from the docs at https://www.lua.org/pil/19.3.html.)
 	function pairsByKeys(tbl, keySortFunction)
 		local keys = {}
-		for key in pairs(tbl) do table.insert(keys, key) end
+		for key in pairs(tbl) do
+			table.insert(keys, key)
+		end
 		table.sort(keys, keySortFunction)
-		local i = 0           -- iterator variable
+		local i = 0 -- iterator variable
 		local iter = function() -- iterator function
 			i = i + 1
 			if keys[i] == nil then

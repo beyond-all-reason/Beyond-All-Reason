@@ -6,7 +6,7 @@ return {
 		energycost = 200000,
 		metalcost = 10000,
 		buildpic = "LEGMECH.DDS",
-		buildtime = 200000,
+		buildtime = 260000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -11 0",
 		collisionvolumescales = "66 86 66",
@@ -15,8 +15,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 25,
-		idletime = 900,
 		mass = 200000,
 		health = 60000,
 		maxslope = 17,
@@ -36,7 +34,7 @@ return {
 		turnrate = 450,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			customrange = 400,
 			model_author = "Kremenchuk",
 			normaltex = "unittextures/leegmech_normal.dds",
@@ -77,10 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -156,6 +150,7 @@ return {
 					area_onhit_time = 10,
 					overrange_distance = 805,
 					projectile_destruction_method = "descend",
+					water_splash = 0,
 				},
 				damage = {
 					default = 30,
@@ -182,7 +177,6 @@ return {
 				soundhit = "xplomed2xs",
 				soundhitwet = "splsmed",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 12,
 				sprayangle = 1500,
 				tolerance = 6000,
 				turret = true,
@@ -221,7 +215,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgun3",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
@@ -262,7 +255,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 7.5,
 				sprayangle = 968,
 				thickness = 1.4,
 				turret = true,
@@ -301,12 +293,14 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 12,
 				sprayangle = 1000,
 				thickness = 1.1,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 75,
 				},

@@ -9,14 +9,12 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 32 20",
 		collisionvolumetype = "CylY",
-		corpse = "DRAGONSEYES_DEAD",
+		corpse = "HEAP",
 		energycost = 850,
 		energyupkeep = 3,
 		footprintx = 1,
 		footprintz = 1,
 		health = 280,
-		idleautoheal = 5,
-		idletime = 300,
 		initcloaked = true,
 		levelground = false,
 		maxacc = 0,
@@ -33,6 +31,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			cannot_capture_territory = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -41,7 +40,7 @@ return {
 			unitgroup = "util",
 		},
 		featuredefs = {
-			dragonseyes_dead = {
+			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",
@@ -55,11 +54,6 @@ return {
 				object = "Units/arm1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
 			},
 		},
 		sounds = {

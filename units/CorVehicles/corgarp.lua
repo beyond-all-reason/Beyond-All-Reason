@@ -13,11 +13,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1420,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03226,
-		maxdec = 0.06453,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 200,
 		metalcost = 220,
@@ -48,8 +46,6 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -86,10 +82,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -122,6 +114,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "PincerCannon",
 				noselfdamage = true,
@@ -133,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 130,
+					turretspeedy = 130,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,

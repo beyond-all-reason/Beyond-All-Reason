@@ -13,7 +13,11 @@
 			"legafus": [25, 100, 90, 6000, 6.44]
 		},
 		"water": {
-			"legtide": [140, 250]
+			"legtide": [140, 250],
+			"legwin": [100, 200],
+			"legsolar": [10],
+			"legadvsol": [120, 160],
+			"leganavalfusion": [100, 200]
 		}
 	},
 

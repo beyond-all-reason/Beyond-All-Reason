@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
-		buildtime = 18000,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "40 25 74",
@@ -16,8 +16,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1110,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.042,
 		maxdec = 0.042,
 		metalcost = 700,
@@ -35,7 +33,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 385.5,
 		waterline = 80,
-		workertime = 300,
+		workertime = 350,
 		buildoptions = {
 			[1] = "coruwfus",
 			[2] = "coruwmmm",
@@ -88,13 +86,6 @@ return {
 				object = "Units/cor4X4C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

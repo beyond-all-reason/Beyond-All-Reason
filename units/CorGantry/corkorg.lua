@@ -1,7 +1,7 @@
 return {
 	corkorg = {
 		buildpic = "corkorg.DDS",
-		buildtime = 555000,
+		buildtime = 730000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -6 -5",
@@ -15,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 149000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 29000,
 		maxacc = 0.1242,
 		maxdec = 0.8211,
@@ -77,13 +75,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -114,6 +105,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.8,
 				intensity = 5,
 				name = "GaussCannon",
@@ -174,6 +166,9 @@ return {
 					commanders = 1200,
 					default = 5500,
 					vtol = 2750,
+				},
+				customparams = {
+					sound_volume_multiplier = 2.5,
 				},
 			},
 			corkorg_rocket = {
@@ -241,7 +236,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,

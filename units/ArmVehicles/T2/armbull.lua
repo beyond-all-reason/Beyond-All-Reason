@@ -1,7 +1,7 @@
 return {
 	armbull = {
 		buildpic = "ARMBULL.DDS",
-		buildtime = 17200,
+		buildtime = 23000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "44 23 52",
@@ -12,11 +12,9 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4650,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03542,
-		maxdec = 0.07083,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 15,
 		metalcost = 950,
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
-		speed = 60,
+		speed = 62,
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "armbull_tracks",
@@ -46,8 +44,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -84,10 +80,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -131,6 +123,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 270,
 					subs = 100,

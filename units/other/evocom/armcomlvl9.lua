@@ -1,5 +1,5 @@
 return {
-	armcomlvl9	= {
+	armcomlvl9 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -30,10 +30,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 124,
-		idletime = 450,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 12300,
@@ -49,7 +47,7 @@ return {
 		radardistance = 1200,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/ARMCOMHILVL.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -113,7 +111,7 @@ return {
 			"armannit3",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "armmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -137,9 +135,10 @@ return {
 			workertimeboost = 3.5,
 			wtboostunittype = "TURRET MOBILE",
 			effigy = "comeffigylvl5",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -187,10 +186,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:genericshellexplosion-huge-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -266,6 +261,7 @@ return {
 					overrange_distance = 1001,
 					projectile_destruction_method = "descend",
 					stockpilelimit = 5,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 3600,
@@ -295,9 +291,7 @@ return {
 				soundhitdry = "hackshot",
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw2",
-				soundstartvolume = 30,
 				soundhitdryvolume = 40,
-				soundhitwetvolume = 30,
 				soundtrigger = 1,
 				texture3 = "largebeam",
 				thickness = 3,
@@ -306,6 +300,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 60000,
 				},
@@ -343,6 +340,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 1400,
 					subs = 700,
@@ -372,8 +372,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -381,11 +379,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor1 = {
@@ -444,7 +445,7 @@ return {
 				firestarter = 50,
 				impulsefactor = 0,
 				intensity = 24,
-				name = "Short-Range Lightening Discharge",
+				name = "Short-Range Lightning Discharge",
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 0.1,
@@ -462,15 +463,16 @@ return {
 					spark_forkdamage = "0.33",
 					spark_maxunits = "12",
 					spark_range = "100",
-					},
-					damage = {
-						default = 88,
-					},
+					weapons_group = 1,
+				},
+				damage = {
+					default = 88,
+				},
 			},
 			empflashbang = {
 				areaofeffect = 50,
 				avoidfeature = false,
-				beamdecay = .8,
+				beamdecay = 0.8,
 				beamttl = 0.8,
 				burnblow = true,
 				collideenemy = false,
@@ -503,6 +505,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 20000,
 				},
@@ -517,13 +523,13 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "LONGGUN",
 				onlytargetcategory = "EMPABLE",
@@ -531,7 +537,7 @@ return {
 			[5] = {
 				def = "SHORTGUN",
 				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				fastautoretargeting = true,
 			},
 			[6] = {
 				def = "EMPFLASHBANG",

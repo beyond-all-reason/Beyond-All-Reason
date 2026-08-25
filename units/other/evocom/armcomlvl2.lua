@@ -28,10 +28,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "armcom",
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 6000,
@@ -43,11 +41,11 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/ARMCOM" .. (Spring.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/ARMCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -97,7 +95,7 @@ return {
 			"armfrock",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "armmex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -121,9 +119,10 @@ return {
 			evolution_power_threshold = 22000,
 			evolution_power_multiplier = 1,
 			effigy = "comeffigylvl1",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -170,10 +169,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -243,6 +238,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 14,
 				},
@@ -280,6 +278,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 400,
 					subs = 200,
@@ -309,8 +310,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -318,11 +317,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor1 = {
@@ -370,12 +372,12 @@ return {
 			[1] = {
 				def = "SHORTGUN",
 				onlytargetcategory = "NOTSUB",
-                fastautoretargeting = true,
+				fastautoretargeting = true,
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

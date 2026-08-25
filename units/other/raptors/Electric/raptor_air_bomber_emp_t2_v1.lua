@@ -1,6 +1,5 @@
 return {
 	raptor_air_bomber_emp_t2_v1 = {
-		acceleration = 1,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -30,8 +29,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = 1,
-		idleautoheal = 15,
-		idletime = 900,
 		maneuverleashlength = "20000",
 		mass = 227.5,
 		maxacc = 0.25,
@@ -70,13 +67,6 @@ return {
 			paralyzemultiplier = 0,
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",

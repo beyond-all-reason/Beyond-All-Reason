@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2008-02-04",
 		license = "Public domain",
 		layer = 1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -42,7 +42,8 @@ for i = 1, #teamList do
 
 		-- ignore all other teams in this allyteam as well
 		--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
-		local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamList[i])
+		local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys =
+			spGetTeamInfo(teamList[i])
 		local teammates = spGetTeamList(allyTeam)
 		for j = 1, #teammates do
 			ignoredTeams[teammates[j]] = true
@@ -60,7 +61,14 @@ local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander or (Spring.GetModOptions().deathmode == "builders" and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)) then
+	if
+		unitDef.customParams.iscommander
+		or unitDef.customParams.isscavcommander
+		or (
+			Spring.GetModOptions().deathmode == "builders"
+			and ((unitDef.buildOptions and #unitDef.buildOptions > 0) or unitDef.canResurrect == true)
+		)
+	then
 		isCommander[unitDefID] = true
 	end
 end
@@ -105,8 +113,8 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -118,8 +126,8 @@ local function transferCommander(unitID, unitTeam, newTeam)
 		aliveComCount[newAllyTeamID] = aliveComCount[newAllyTeamID] + 1
 		aliveTeamComCount[newTeam] = aliveTeamComCount[newTeam] + 1
 		-- remove from unitTeam
-		local x,_,z = spGetUnitPosition(unitID)
-		commanderDeathQueue[unitID] = {unitTeam, x, z}
+		local x, _, z = spGetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = { unitTeam, x, z }
 	end
 end
 
@@ -136,9 +144,14 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadget:Initialize()
-	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isn't regular
 	local deathmode = Spring.GetModOptions().deathmode
-	if deathmode ~= 'com' and deathmode ~= 'own_com' and deathmode ~= 'territorial_domination' and deathmode ~= 'builders' and not Spring.GetModOptions().temp_enable_territorial_domination then
+	if
+		deathmode ~= "com"
+		and deathmode ~= "own_com"
+		and deathmode ~= "territorial_domination"
+		and deathmode ~= "builders"
+	then
 		gadgetHandler:RemoveGadget(self)
 	end
 
@@ -158,7 +171,7 @@ function gadget:Initialize()
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 
-	-- for debug purpose: destroy comless allyteams (usefull when team has no coms because of error and you do luarules reload)
+	-- for debug purpose: destroy comless allyteams (useful when team has no coms because of error and you do luarules reload)
 	if Spring.GetGameFrame() > 1 then
 		for allyTeamID, count in ipairs(aliveComCount) do
 			if count <= 0 then

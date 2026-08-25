@@ -17,8 +17,6 @@ return {
 		explodeas = "",
 		footprintx = 0,
 		footprintz = 0,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 10,
 		health = 11,
@@ -65,7 +63,7 @@ return {
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
 				model = "scavs/scavbeacondroppodbyar.s3o",
-        mygravity = 0.1, -- to ensure consistent speed
+				mygravity = 0.1, -- to ensure consistent speed
 				name = "Droppod",
 				range = 29999,
 				reloadtime = 5,

@@ -11,8 +11,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2500,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -71,10 +69,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:juno_sphere_emit",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -144,6 +138,7 @@ return {
 					stockpilelimit = 20,
 					nofire = true,
 					water_splash = 0, -- juno can explode on water
+					junotype = "base",
 				},
 				damage = {
 					default = 1,

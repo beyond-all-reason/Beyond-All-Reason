@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 26100,
+		buildtime = 33000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 4900,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 970,
 		maxacc = 0.253,
 		maxdec = 0.8211,
@@ -41,8 +39,6 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -79,11 +75,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:subbubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -149,6 +140,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},
@@ -162,6 +156,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Double close-quarters gauss cannon",
 				noselfdamage = true,
@@ -175,6 +170,10 @@ return {
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 235,
 					vtol = 60,

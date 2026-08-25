@@ -1,7 +1,9 @@
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -279,7 +281,7 @@ vec4 capIntersect2( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra 
 
 float dot2(vec3 a){ return dot(a,a);}
 // cone defined by extremes pa and pb, and radious ra and rb
-// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+// Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
 vec4 coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
 {
     vec3  ba = pb - pa;
@@ -334,7 +336,7 @@ float integratescatterocclusion(float depthratio){
 }
 
 // cone defined by extremes pa and pb, and radious ra and rb
-// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+// Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
 // ra === 0
 // returns the distance from the ray to the cone, and the normal vector of the cones surface at that point.
 vec4 halfconeIntersect_IQ( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
@@ -508,7 +510,7 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 		return vec2(-b - disc, -b + disc) / (2.0 * a);
 	}
 }
-// This is the fast approx scattering useing a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
+// This is the fast approx scattering using a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
 // TODO: handle the case where viewpos is inside the volume!
 float SlowSphereRayMarchedScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
 	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
@@ -880,10 +882,22 @@ void main(void)
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
 	
 	
-	vec3 reflection = reflect(lightDirection, normals.xyz);
-	specular = dot(reflection, viewDirection);
-	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
-	attenuation = pow(attenuation, 1.0);
+	// Blinn-Phong specular: half-vector instead of reflect(). Produces rounder
+	// highlights that elongate naturally at grazing angles (more wet-metal/PBR look)
+	// instead of Phong's teardrop-then-pop. Exponent is ~4x Phong to match the
+	// equivalent highlight tightness.
+	vec3 halfVector = normalize(-lightDirection + viewDirection);
+	specular = max(0.0, dot(halfVector, normals.xyz));
+	specular = v_modelfactor_specular_scattering_lensflare.y * pow(specular, 32.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
+	// Core-weighted falloff:
+	//  - attCore: quick drop right outside the center (reduces "blob" look)
+	//  - attTailEase: smooth/eased approach to zero near the max radius
+	// Blend keeps the soft radius edge while making the center visibly hotter.
+	float attLinear = attenuation;
+	float attCore = pow(attLinear, 2.5);
+	float attTailEase = attLinear * attLinear * (3.0 - 2.0 * attLinear);
+	attenuation = mix(attCore, attTailEase, 0.17);
+	attenuation = clamp(attenuation * (1.0 + 0.22 * attLinear * attLinear), 0.0, 1.0);
 
 	//Give each light a unique blue noise sampling offset 
 	vec2 blueNoiseUV = (gl_FragCoord.xy + float(v_noiseoffset.a)*7.0)/64.0;
@@ -1098,7 +1112,7 @@ void main(void)
 	fragColor.rgb = targetcolor.rgb;
 	
 	// light mixdown:
-	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
+	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldn't let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
 	float mintarg = 0.4;
 	float targetbrightness =dot(targetcolor.rgb, vec3(0.375,0.5,0.125));

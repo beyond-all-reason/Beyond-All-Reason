@@ -1,7 +1,7 @@
 return {
 	armsptk = {
 		buildpic = "ARMSPTK.DDS",
-		buildtime = 8800,
+		buildtime = 11500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "42 28 42",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1390,
-		idleautoheal = 5,
-		idletime = 600,
 		maxacc = 0.207,
 		maxdec = 0.6486,
 		maxwaterdepth = 12,
@@ -68,13 +66,6 @@ return {
 				object = "Units/arm3X3A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

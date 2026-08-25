@@ -1,0 +1,85 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, rotor1, fan1;
+
+static-var  resourceRate;
+static-var  Stunned;
+
+// Signal definitions
+#define SIGNAL_TURNON 4
+
+Create()
+{
+	resourceRate = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	set ARMORED to 1;
+}
+
+SetStunned(State)
+{
+	Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;	
+	
+	spin fan1 around y-axis speed resourceRate accelerate 90;
+    spin rotor1 around y-axis speed (-0.5)*resourceRate accelerate 45;
+	set ARMORED to 0;
+	while( TRUE )
+	{
+		emit-sfx 259 from fan1;
+		sleep 250;
+	}
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	stop-spin fan1 around y-axis decelerate 180;
+    stop-spin rotor1 around y-axis decelerate 180;
+	set ARMORED to 1;
+}
+
+SetSpeed(windOrMetal)
+{
+	resourceRate = windOrMetal * 10;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan1 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan1 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

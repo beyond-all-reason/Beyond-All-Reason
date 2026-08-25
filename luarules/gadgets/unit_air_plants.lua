@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -38,10 +38,11 @@ local isAirplantNames = {
 	legap = true,
 	legaap = true,
 	legapt3 = true,
+	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
-for name,v in pairs(isAirplantNamesCopy) do
-	isAirplantNames[name..'_scav'] = true
+for name, v in pairs(isAirplantNamesCopy) do
+	isAirplantNames[name .. "_scav"] = true
 end
 -- convert unitname -> unitDefID
 local isAirplant = {}
@@ -57,10 +58,10 @@ local buildingUnits = {}
 local landCmd = {
 	id = CMD_LAND_AT,
 	name = "apLandAt",
-	action = "apLandAt",
+	action = "aplandat",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
-	params = { '1', ' Fly ', 'Land' }
+	params = { "1", " Fly ", "Land" },
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -90,7 +91,18 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if isAirplant[unitDefID] and plantList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
 		landCmd.params[1] = cmdParams[1]

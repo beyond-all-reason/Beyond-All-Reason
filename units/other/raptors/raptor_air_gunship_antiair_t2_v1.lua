@@ -1,6 +1,5 @@
 return {
 	raptor_air_gunship_antiair_t2_v1 = {
-		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -30,8 +29,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = 1,
-		idleautoheal = 5,
-		idletime = 0,
 		maneuverleashlength = "20000",
 		mass = 227.5,
 		maxacc = 0.25,
@@ -60,7 +57,7 @@ return {
 		wingangle = 0.06593,
 		wingdrag = 0.835,
 		workertime = 0,
-        hoverAttack = true,
+		hoverAttack = true,
 		customparams = {
 			subfolder = "other/raptors",
 			model_author = "KDR_11k, Beherith",
@@ -68,13 +65,6 @@ return {
 			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
@@ -116,7 +106,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

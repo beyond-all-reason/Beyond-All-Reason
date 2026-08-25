@@ -2,7 +2,7 @@ return {
 	corsent = {
 		airsightdistance = 900,
 		buildpic = "CORSENT.DDS",
-		buildtime = 12000,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2700,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05823,
 		maxdec = 0.11647,
@@ -79,11 +77,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

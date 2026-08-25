@@ -9,6 +9,7 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 72400,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 8 1",
 		collisionvolumescales = "268 98 164",
 		collisionvolumetype = "Box",
@@ -17,8 +18,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 18,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 11100,
 		maxslope = 15,
 		maxwaterdepth = 0,
@@ -45,7 +44,8 @@ return {
 			buildinggrounddecalsizey = 15,
 			buildinggrounddecalsizex = 21,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'buildert3',
+			unitgroup = "buildert3",
+			restrictions_inclusion = "_noair_",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
@@ -83,10 +83,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1,11 +1,11 @@
 return {
 	legmed = {
 		maxacc = 0.01,
-		maxdec = 0.02,
+		maxdec = 0.1,
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",
-		buildtime = 22500,
+		buildtime = 30370,
 		canmove = true,
 		collisionvolumeoffsets = "0 -12 0",
 		collisionvolumescales = "48 31 69",
@@ -15,8 +15,6 @@ return {
 		explodeas = "largeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 3000,
 		maxslope = 16,
@@ -37,7 +35,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 220,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies, EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			techlevel = 2,
@@ -73,13 +71,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -109,9 +100,9 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
-				explosiongenerator = "custom:genericshellexplosion-large-bomb",
+				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 100,
-				flighttime = 3.5,
+				flighttime = 5,
 				impulsefactor = 0.2,
 				metalpershot = 0,
 				model = "leghomingmissile.s3o",
@@ -133,9 +124,9 @@ return {
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 30000,
+				turnrate = 15000,
 				tracks = true,
-				weaponacceleration = 420,
+				weaponacceleration = 300,
 				weapontimer = 0.2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 550,
@@ -147,6 +138,7 @@ return {
 					default = 500,
 				},
 				customparams = {
+					guidance_lost_radius = 100,
 					projectile_destruction_method = "descend",
 					overrange_distance = 1093,
 					speceffect = "guidance",
@@ -182,6 +174,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

@@ -2,10 +2,10 @@ return {
 	leghades = {
 		maxacc = 0.06788,
 		maxdec = 0.13575,
-		energycost = 800,
+		energycost = 850,
 		metalcost = 65,
 		buildpic = "LEGHADES.DDS",
-		buildtime = 1600,
+		buildtime = 1650,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "16 10 23",
@@ -14,8 +14,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 1,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 425,
 		maxslope = 10,
@@ -28,7 +26,7 @@ return {
 		script = "Units/LEGHADES.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",
@@ -38,15 +36,13 @@ return {
 		turninplacespeedlimit = 2.424,
 		turnrate = 544,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",
-			weapon1turretx = 240,
-			weapon1turrety = 240,
 		},
 		featuredefs = {
 			dead = {
@@ -82,10 +78,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -124,16 +116,19 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 210,
-				reloadtime = 2.25,
+				reloadtime = 2.3,
 				size = 2,
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				soundstartvolume = 2,
 				--sprayangle = 500,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					turretspeedx = 240,
+					turretspeedy = 240,
+				},
 				damage = {
 					default = 75,
 					vtol = 25,

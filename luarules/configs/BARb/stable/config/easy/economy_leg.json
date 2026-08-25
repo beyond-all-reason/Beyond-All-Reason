@@ -13,17 +13,22 @@
 			"legafus": [12, 50]
 		},
 		"water": {
-			"legtide": [140, 250]
+			"legtide": [140, 250],
+			"legwin": [100, 200],
+			"legsolar": [10],
+			"legadvsol": [120, 160],
+			"leganavalfusion": [100, 200]
 		}
 	},
 
 	"geo": {
 		"legion": "leggeo"
 	},
+
 	"mex": {
 		"legion": "legmex"
 	},
-	//"terra": "armsy",
+
 	"assist": {
 		"legion": "legnanotc"
 	},

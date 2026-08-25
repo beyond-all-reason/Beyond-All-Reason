@@ -18,9 +18,7 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
-		health = 630,
+		health = 700,
 		maxslope = 20,
 		speed = 39,
 		maxwaterdepth = 25,
@@ -70,7 +68,7 @@ return {
 			"leghive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
@@ -105,12 +103,6 @@ return {
 				object = "Units/cor2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-builder",
-				[2] = "deathceg2-builder",
 			},
 		},
 		sounds = {

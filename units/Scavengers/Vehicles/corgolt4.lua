@@ -14,8 +14,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
 		health = 83000,
@@ -38,7 +36,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-4",
@@ -46,8 +44,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			techlevel = 3,
-			weapon1turretx = 20,
-			weapon1turrety = 170,
 		},
 		featuredefs = {
 			dead = {
@@ -84,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,6 +131,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 20,
+					turretspeedy = 170,
+				},
 				damage = {
 					commanders = 1500,
 					default = 8000,

@@ -14,8 +14,6 @@ return {
 		explodeas = "empblast",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 600,
 		mass = 5000,
 		health = 28000,
 		speed = 36.0,
@@ -33,7 +31,7 @@ return {
 		turninplacespeedlimit = 350,
 		turnrate = 650,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
@@ -69,13 +67,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,7 +106,7 @@ return {
 				firestarter = 70,
 				flighttime = 4,
 				impulsefactor = 0.123,
-				model = "catapultmissile.s3o",	--catapultmissile.s3o
+				model = "catapultmissile.s3o", --catapultmissile.s3o
 				movingaccuracy = 450,
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,

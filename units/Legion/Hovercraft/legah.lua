@@ -16,8 +16,6 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1120,
 		maxslope = 16,
 		speed = 88.5,
@@ -36,7 +34,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorHovercraft",
@@ -85,10 +83,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -141,7 +135,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 3,
 				sprayangle = 900,
 				texture1 = "shot",
 				texture2 = "empty",
@@ -165,4 +158,3 @@ return {
 		},
 	},
 }
-

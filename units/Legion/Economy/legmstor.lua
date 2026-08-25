@@ -15,8 +15,6 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 2100,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -33,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -67,13 +65,6 @@ return {
 				object = "Units/cor5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

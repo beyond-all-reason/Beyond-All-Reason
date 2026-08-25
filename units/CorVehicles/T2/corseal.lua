@@ -2,7 +2,7 @@ return {
 	corseal = {
 		activatewhenbuilt = true,
 		buildpic = "CORSEAL.DDS",
-		buildtime = 12050,
+		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "31 31 31",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2600,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.05125,
 		maxdec = 0.1025,
@@ -49,8 +47,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 75,
 		},
 		featuredefs = {
 			dead = {
@@ -87,11 +83,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:DUST_CLOUD",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -136,6 +127,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 260,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 75,
+				},
 				damage = {
 					default = 116,
 					vtol = 29,

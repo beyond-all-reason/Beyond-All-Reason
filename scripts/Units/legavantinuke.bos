@@ -1,0 +1,181 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+    antinuke,
+    anpanelf,
+    anpanell,
+    anpanelr,
+    flare,
+    base,
+    trackRearRight,
+    trackFrontRight,
+    trackFrontLeft,
+    trackRearLeft
+;
+
+
+static-var  restore_delay, missiles_stockpiled, isOpen;
+
+// Signal definitions
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+
+
+#define BASEPIECE base
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 8
+#define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <10.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
+
+static-var  Stunned;
+
+Create()
+{
+    turn anpanell to y-axis <30> now;
+	turn anpanelr to y-axis <-30> now;
+
+	restore_delay = 3000;
+	missiles_stockpiled = 0;
+    call-script TB_Init();
+    start-script Activate();
+}
+
+Activate()
+{
+	if (Stunned){
+		return (0);
+	}
+}
+
+openAbm()
+{
+	move anpanell to x-axis [-8.66]/2 speed [17.32];
+	move anpanell to z-axis [-5]/2 speed [10];
+	move anpanelr to x-axis [8.66]/2 speed [17.32];
+	move anpanelr to z-axis [-5]/2 speed [10];
+	move anpanelf to z-axis [10]/2 speed [20];
+	
+	turn anpanelf to x-axis <60> speed <180>;
+	turn anpanell to z-axis <60> speed <180>;
+	turn anpanelr to z-axis <-60> speed <180>;
+	
+	move anpanelf to y-axis [-5] speed [5];
+	move anpanell to y-axis [-5] speed [5];
+	move anpanelr to y-axis [-5] speed [5];
+	
+	start-script RestoreAfterDelay();
+}
+
+closeAbm()
+{
+	move anpanelf to y-axis [0] speed [8];
+	move anpanell to y-axis [0] speed [8];
+	move anpanelr to y-axis [0] speed [8];
+	
+	wait-for-move anpanelf along y-axis;
+	
+	move anpanell to x-axis [0] speed [8.66];
+	move anpanell to z-axis [0] speed [5];
+	move anpanelr to x-axis [0] speed [8.66];
+	move anpanelr to z-axis [0] speed [5];
+	move anpanelf to z-axis [0] speed [10];
+	
+	turn anpanelf to x-axis <0> speed <120>;
+	turn anpanell to z-axis <0> speed <120>;
+	turn anpanelr to z-axis <0> speed <120>;
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+ExecuteRestoreAfterDelay()
+{
+	start-script closeAbm();
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS * 2;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+AimWeapon1(heading, pitch)
+{	
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	start-script openAbm();
+	return (1);
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode turret type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode dbl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

@@ -1,6 +1,5 @@
 return {
 	raptor_air_fighter_basic_t4_v1 = {
-		acceleration = 2,
 		airsightdistance = 1500,
 		amphibious = true,
 		autoheal = 10,
@@ -71,13 +70,6 @@ return {
 			treeshader = "yes",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
@@ -119,7 +111,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

@@ -2,7 +2,7 @@ return {
 	armserp = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 22770,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 30 57",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 3550,
-		idleautoheal = 15,
-		idletime = 900,
 		maxacc = 0.02,
 		maxdec = 0.02,
 		metalcost = 1800,
@@ -79,11 +77,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -126,7 +119,6 @@ return {
 				range = 800,
 				reloadtime = 8,
 				soundhit = "xplodep1",
-				soundhitvolume = 14,
 				soundstart = "torpedo1",
 				startvelocity = 150,
 				tolerance = 8000,

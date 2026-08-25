@@ -1,7 +1,7 @@
 return {
 	corpyro = {
 		buildpic = "CORPYRO.DDS",
-		buildtime = 5030,
+		buildtime = 6500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "28 35 28",
@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.5175,
 		maxdec = 2.2425,
 		maxslope = 17,
@@ -26,7 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
-		sightdistance = 318,
+		sightdistance = 380,
 		speed = 82.5,
 		strafetoattack = true,
 		turninplace = true,
@@ -60,13 +58,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
-				[2] = "custom:flamestream",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3",
-				[4] = "deathceg4-fire",
 			},
 		},
 		sounds = {
@@ -117,10 +108,8 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 0.8,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 7.5,
 				soundhitwet = "sizzle",
 				soundstart = "flamhvy1",
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				tolerance = 2500,

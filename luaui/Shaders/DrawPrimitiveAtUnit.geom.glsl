@@ -2,7 +2,9 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -35,7 +37,7 @@ mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
 
-// This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
+// This function takes in a set of UV coordinates [0,1] and transforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
 	//return vec2(uvoffsets.p * u + uvoffsets.q, uvoffsets.s * v + uvoffsets.t); old
 	float a = uvoffsets.t - uvoffsets.s;

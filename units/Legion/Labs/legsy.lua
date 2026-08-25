@@ -4,6 +4,7 @@ return {
 		buildpic = "legsy.DDS",
 		buildtime = 5100,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 42 96",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 4300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 450,
@@ -38,7 +37,7 @@ return {
 			[5] = "legnavyfrigate",
 			[6] = "legnavydestro",
 			[7] = "legnavysub",
-            [8] = "legnavyartyship",
+			[8] = "legnavyartyship",
 		},
 		customparams = {
 			model_author = "Tharsis",
@@ -65,10 +64,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

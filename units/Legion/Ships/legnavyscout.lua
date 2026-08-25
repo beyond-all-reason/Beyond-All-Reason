@@ -1,7 +1,7 @@
 return {
 	legnavyscout = {
-		maxacc = 0.08,
-		maxdec = 0.08,
+		maxacc = 0.085,
+		maxdec = 0.085,
 		buildangle = 16384,
 		energycost = 1600,
 		metalcost = 120,
@@ -16,10 +16,8 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 700,
-		speed = 93,
+		speed = 97,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",
@@ -33,7 +31,7 @@ return {
 		turnrate = 430,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
@@ -42,8 +40,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "20 16 41",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "20 16 41",
 				collisionvolumetype = "Box",
 				damage = 300,
 				featuredead = "HEAP",
@@ -73,11 +71,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 				[2] = "custom:waterwake-small-long",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -117,7 +110,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				impulsefactor = 1.5,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Twin Rapid-fire Machine Guns",
 				noselfdamage = true,
@@ -129,7 +122,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun2",
-				soundstartvolume = 6.0,
 				soundtrigger = true,
 				sprayangle = 800,
 				texture1 = "shot",
@@ -141,13 +133,13 @@ return {
 				weaponvelocity = 1050,
 				damage = {
 					default = 12,
-					vtol = 6,
+					vtol = 3,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory="vtol",
+				badtargetcategory = "vtol",
 				def = "mg_guns",
 				onlytargetcategory = "NOTSUB",
 			},

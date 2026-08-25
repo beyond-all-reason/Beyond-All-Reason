@@ -2,7 +2,9 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 #line 5000
 
@@ -30,7 +32,7 @@ out DataGS {
 	mat3 tbnmatrix;
 };
 
-// This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
+// This function takes in a set of UV coordinates [0,1] and transforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
 	//return vec2(uvoffsets.p * u + uvoffsets.q, uvoffsets.s * v + uvoffsets.t); old
 	float a = uvoffsets.t - uvoffsets.s;
@@ -70,15 +72,23 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 #line 11000
 void main()
 {
+	// Calc the fade alpha first: dead or off-screen decals collapse to a single clipped vertex, so their
+	// triangles never rasterize (mirrors the v_skipdraw culling done in the geometry shader path).
+	float currentFrame = timeInfo.x + timeInfo.w;
+	float lifetonow = currentFrame - worldPos.w;
+	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
+	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
+	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
+
+	// note: isSphereVisibleXY() is misnamed, it returns true when the sphere is OUTSIDE the view
+	float maxradius = lengthwidthrotation.x + lengthwidthrotation.y;
+	if ((currentAlpha < 0.01) || isSphereVisibleXY(vec4(worldPos.xyz, 1.0), maxradius)) {
+		gl_Position = vec4(-2.0, -2.0, -2.0, 1.0);
+		return;
+	}
+
 	// take the vertex, scale it to size, and rotate it around 0,0
-	
-	#if 0
-		//if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
-		//	gl_Position= vec4(-100,-100,-100,1);
-		//	return; // yay for useless visiblity culling!
-		//}
-	#endif
-	
 	vec4 vertexPos = vec4(xyworld_xyfract.x, 0.0, xyworld_xyfract.y, 1.0);
 	vertexPos.xz *= lengthwidthrotation.xy * 0.5;
 	
@@ -111,13 +121,7 @@ void main()
 	g_position = vertexPos;
 	g_parameters = parameters;
 	
-	// Calc alphadecay
-	float currentFrame = timeInfo.x + timeInfo.w;
-	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
-	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
-	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
-	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
-	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
+	// pass the fade alpha computed at the top
 	g_position.w = currentAlpha;
 	
 	// heatdecay is:

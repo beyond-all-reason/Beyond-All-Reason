@@ -19,7 +19,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-		idleautoheal = 0,
 		mass = 25,
 		health = 560000,
 		maxslope = 64,
@@ -38,7 +37,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
-			unitgroup = 'util',
+			unitgroup = "util",
 			model_author = "Floris",
 			nohealthbars = true,
 			subfolder = "other",

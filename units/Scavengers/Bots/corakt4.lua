@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1000000,
 		health = 11100,
 		maxslope = 17,
@@ -34,12 +32,10 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -70,12 +66,6 @@ return {
 				object = "Units/cor4X4C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -130,6 +120,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 100,
 					vtol = 20,

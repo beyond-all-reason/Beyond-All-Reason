@@ -22,6 +22,9 @@
 // This ensures that the CATT1_Aim() thread is not killed when the AimWeapon thread is killed.
 // Then we have to manually set the signal mask for CATT_Aim() to the desired value.
 
+// TODO: Catch up units that use constant_acceleration_turret_turning_{1, 2, 3}.h
+// TODO: with the changes in constant_acceleration_turret_turning.h (not numbered)
+
 // The piece that will aim left-right
 #ifndef CATT1_PIECE_Y
 	#define CATT1_PIECE_Y aimy
@@ -208,7 +211,7 @@ CATT1_Aim(heading, pitch){
 			// Perform the turn with a NOW, this means that this will be run every frame!
 			//turn CATT1_PIECE_Y to y-axis CATT1position now;
 
-			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
+			// Needs to use velocity, because if we use NOW, then any previous turn speed command won't be overridden!
 			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
 
 			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {

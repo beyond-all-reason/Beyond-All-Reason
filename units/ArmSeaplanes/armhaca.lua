@@ -4,7 +4,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMACA.DDS",
-		buildtime = 48000,
+		buildtime = 58000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -18,8 +18,6 @@ return {
 		footprintz = 2,
 		health = 1405,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.07,
 		maxdec = 0.4275,
 		maxslope = 10,
@@ -75,20 +73,6 @@ return {
 			subfolder = "ArmSeaplanes",
 			techlevel = 3,
 			unitgroup = "builder",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2-builder",
-				[2] = "airdeathceg3-builder",
-				[3] = "airdeathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

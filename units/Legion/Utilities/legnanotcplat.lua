@@ -2,7 +2,7 @@ return {
 	legnanotcplat = {
 		maxacc = 0,
 		maxdec = 4.5,
-		energycost = 2600,
+		energycost = 3200,
 		metalcost = 230,
 		builddistance = 400,
 		builder = true,
@@ -15,7 +15,7 @@ return {
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
+		cantbetransported = true, -- transports cannot drop them back into water, re-enable once that works
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
@@ -23,8 +23,7 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
+		leavesghost = true,
 		mass = 700,
 		health = 560,
 		maxslope = 10,
@@ -51,13 +50,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/SeaUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

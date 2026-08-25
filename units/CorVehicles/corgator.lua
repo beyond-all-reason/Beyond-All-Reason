@@ -1,22 +1,20 @@
 return {
 	corgator = {
 		buildpic = "CORGATOR.DDS",
-		buildtime = 2200,
+		buildtime = 2300,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "30 15 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 1040,
+		energycost = 1100,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		health = 820,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.04631,
-		maxdec = 0.09262,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 12,
 		metalcost = 120,
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 330,
-		speed = 85.5,
+		speed = 85,
 		trackoffset = 8,
 		trackstrength = 5,
 		tracktype = "corwidetracks",
@@ -45,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 192.5,
-			weapon1turrety = 192.5,
 		},
 		featuredefs = {
 			dead = {
@@ -77,12 +73,6 @@ return {
 				object = "Units/cor2X2F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -126,7 +116,7 @@ return {
 				name = "Laser",
 				noselfdamage = true,
 				range = 230,
-				reloadtime = 0.76667,
+				reloadtime = 0.8,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -137,6 +127,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeeds = "192.5 192.5",
+				},
 				damage = {
 					default = 75,
 					vtol = 14,

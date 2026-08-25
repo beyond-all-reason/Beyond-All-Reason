@@ -16,8 +16,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1670,
 		maxslope = 20,
 		maxwaterdepth = 0,
@@ -33,7 +31,7 @@ return {
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -73,11 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -133,8 +126,6 @@ return {
 				soundhit = "impact",
 				soundhitwet = "splslrg",
 				soundstart = "aarocket",
-				soundhitvolume = 8,
-				soundstartvolume = 8,
 				sprayangle = 10000,
 				startvelocity = 1400,
 				stockpile = true,
@@ -187,7 +178,6 @@ return {
 				soundhit = "impact",
 				soundhitwet = "splshbig",
 				soundstart = "railgun3",
-				soundstartvolume = 80,
 				thickness = 4,
 				tolerance = 6000,
 				turret = true,

@@ -34,7 +34,7 @@ static-var  isAiming, gun1, oldheading, shotcount;
 #define CATT1_PRECISION <5>
 #define CATT1_RESTORE_SPEED <1.0>
 #define CATT1_RESTORE_DELAY 1000
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 
 #define BASEPIECE base

@@ -1,11 +1,11 @@
 return {
 	legamcluster = {
 		maxacc = 0.018,
-		maxdec = 0.036,
+		maxdec = 0.1,
 		energycost = 5500,
 		metalcost = 460,
 		buildpic = "LEGAMCLUSTER.DDS",
-		buildtime = 8000,
+		buildtime = 10450,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
@@ -14,8 +14,6 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 1250,
 		maxslope = 12,
@@ -28,18 +26,18 @@ return {
 		script = "Units/LEGAMCLUSTER_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 0,
 		trackstrength = 6,
 		tracktype = "corwidetracks",
 		trackwidth = 36,
 		turninplace = true,
-		--usepiececollisionvolumes = 1,
+		usepiececollisionvolumes = 1,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.15,
 		turnrate = 180,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
 			firingceg = "barrelshot-medium",
@@ -48,8 +46,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles",
 			techlevel = 2,
-			weapon1turretx = 35,
-			weapon1turrety = 35,
 		},
 		featuredefs = {
 			dead = {
@@ -86,11 +82,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -114,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_artillery = {
+			cluster_artillery = {
 				accuracy = 400,
 				areaofeffect = 130,
 				avoidfeature = false,
@@ -128,7 +119,7 @@ return {
 				name = "Long-range g2g plasma cannon",
 				noselfdamage = true,
 				range = 930,
-				reloadtime = 6,
+				reloadtime = 7.2,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
@@ -137,13 +128,15 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 345,
 				customparams = {
-					cluster_def = 'cluster_munition',
-					cluster_number = 7,
+					cluster_def = "cluster_munition",
+					cluster_number = 5,
+					turretspeedx = 35,
+					turretspeedy = 35,
 				},
 				damage = {
-					default = 230,
-					subs = 55,
-					vtol = 55,
+					default = 300,
+					subs = 75,
+					vtol = 75,
 				},
 			},
 			cluster_munition = {
@@ -165,17 +158,17 @@ return {
 				soundstart = "cannhvy2",
 				weapontype = "Cannon",
 				damage = {
-					default = 62,
-					lboats = 62,
-					subs = 12,
-					vtol = 12,
+					default = 105,
+					lboats = 105,
+					subs = 18,
+					vtol = 18,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "ARM_ARTILLERY",
+				def = "CLUSTER_ARTILLERY",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

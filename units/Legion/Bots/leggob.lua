@@ -14,8 +14,6 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 200,
 		maxslope = 17,
 		speed = 75,
@@ -33,12 +31,10 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -69,12 +65,6 @@ return {
 				object = "Units/cor2X2C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -114,6 +104,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
+				impulsefactor = 0,
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
@@ -126,7 +117,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun2",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1000,
 				texture1 = "shot",
@@ -136,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 12,
 					vtol = 4,

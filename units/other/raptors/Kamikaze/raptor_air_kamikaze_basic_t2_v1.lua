@@ -1,6 +1,5 @@
 return {
 	raptor_air_kamikaze_basic_t2_v1 = {
-		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -29,8 +28,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = 1,
-		idleautoheal = 5,
-		idletime = 0,
 		maneuverleashlength = "20000",
 		mass = 227.5,
 		maxacc = 0.25,
@@ -69,13 +66,6 @@ return {
 			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",

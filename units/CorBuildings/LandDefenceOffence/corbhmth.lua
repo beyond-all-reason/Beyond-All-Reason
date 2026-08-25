@@ -16,8 +16,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 8300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -78,11 +76,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -118,10 +111,8 @@ return {
 				range = 1650,
 				reloadtime = 4.166,
 				soundhit = "xplonuk5",
-				soundhitvolume = 30,
 				soundhitwet = "splslrg",
 				soundstart = "xplolrg5",
-				soundstartvolume = 20,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 620,

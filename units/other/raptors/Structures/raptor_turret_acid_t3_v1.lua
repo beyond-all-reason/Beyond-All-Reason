@@ -22,8 +22,6 @@ return {
 		explodeas = "tentacle_death",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 11100,
@@ -112,6 +110,8 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

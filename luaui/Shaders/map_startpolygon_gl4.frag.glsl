@@ -15,6 +15,9 @@ uniform int rotationMiniMap = 0;
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 uniform vec4 pingData; // x,y,z = ping pos, w = ping time
+uniform vec4 pipVisibleArea = vec4(0, 1, 0, 1); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
+uniform int waterSurfaceMode;
+uniform float waterLevel;
 float noRushFramesLeft;
 
 
@@ -27,7 +30,6 @@ layout (std430, binding = 4) buffer startPolygonBuffer {
 in DataVS {
 	vec4 v_position;
 };
-
 uniform sampler2D mapDepths;
 uniform sampler2D mapNormals;
 uniform sampler2D heightMapTex;
@@ -141,7 +143,7 @@ float Cellular3D(vec3 P)
     vec4 hash_z1 = fract( Pt * highz_mod.zzzz ) * 2.0 - 1.0;
 
     //  generate the 8 point positions
-    const float JITTER_WINDOW = 0.166666666;	// 0.166666666 will guarentee no artifacts.
+    const float JITTER_WINDOW = 0.166666666;	// 0.166666666 will guarantee no artifacts.
     hash_x0 = ( ( hash_x0 * hash_x0 * hash_x0 ) - sign( hash_x0 ) ) * JITTER_WINDOW + vec4( 0.0, 1.0, 0.0, 1.0 );
     hash_y0 = ( ( hash_y0 * hash_y0 * hash_y0 ) - sign( hash_y0 ) ) * JITTER_WINDOW + vec4( 0.0, 0.0, 1.0, 1.0 );
     hash_x1 = ( ( hash_x1 * hash_x1 * hash_x1 ) - sign( hash_x1 ) ) * JITTER_WINDOW + vec4( 0.0, 1.0, 0.0, 1.0 );
@@ -182,11 +184,19 @@ vec2 CubicSampler(vec2 uvsin, vec2 texdims){
 void main(void)
 {
 	vec4 mapWorldPos = vec4(1);
+	bool isWaterSurface = false;
 	float mapdepth = texture(mapDepths, v_position.zw).x;
 	// Transform screen-space depth to world-space position
 	if (isMiniMap == 1) {
 		mapWorldPos.y = (MINY + MAXY) * 0.5;
-		mapWorldPos.xz = (v_position.xy * 0.5 + 0.5);
+		
+		// Check if PIP mode (visible area not default)
+		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+		
+		// Start with NDC coords [-1,1] -> normalized coords [0,1]
+		vec2 normCoords = v_position.xy * 0.5 + 0.5;
+		
+		mapWorldPos.xz = normCoords;
 		if (rotationMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
 		}else if (rotationMiniMap == 1){
@@ -194,9 +204,21 @@ void main(void)
 		}else if (rotationMiniMap == 2){
 			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}else if (rotationMiniMap == 3){
-			mapWorldPos.z = 1.0 - mapWorldPos.x;
-			mapWorldPos.x = 1.0 - mapWorldPos.x;
+			float tmpX = mapWorldPos.x;
+			mapWorldPos.x = 1.0 - mapWorldPos.z;
+			mapWorldPos.z = 1.0 - tmpX;
 		}
+		
+		// For PIP: remap the [0,1] world-normalized coords to visible area
+		// AFTER rotation has been applied
+		if (isPip) {
+			// mapWorldPos.xz is now in [0,1] world-normalized space
+			// Map screen [0,1] to visible portion of world [visL,visR] x [visB,visT]
+			mapWorldPos.x = mix(pipVisibleArea.x, pipVisibleArea.y, mapWorldPos.x);
+			// Flip Y: screen top (1) -> visB, screen bottom (0) -> visT
+			mapWorldPos.z = mix(pipVisibleArea.w, pipVisibleArea.z, mapWorldPos.z);
+		}
+		
 		mapWorldPos.xz *= mapSize.xy;
 		
 		fragColor.rgba = vec4(0.5);
@@ -216,6 +238,19 @@ void main(void)
 		if ((mapWorldPos.x < 0) || (mapWorldPos.x > mapSize.x) || (mapWorldPos.z < 0) || (mapWorldPos.z > mapSize.y)){
 			fragColor.rgba = vec4(0);
 			return;
+		}
+
+		if (waterSurfaceMode > 0) {
+			vec3 cameraPos = cameraViewInv[3].xyz;
+			vec3 waterRayDirection = normalize(mapWorldPos.xyz - cameraPos);
+			if (waterRayDirection.y < -0.0001) {
+				float waterRayDistance = (waterLevel - cameraPos.y) / waterRayDirection.y;
+				float terrainRayDistance = length(mapWorldPos.xyz - cameraPos);
+				if (waterRayDistance > 0.0 && waterRayDistance < terrainRayDistance) {
+					mapWorldPos.xyz = cameraPos + waterRayDirection * waterRayDistance;
+					isWaterSurface = true;
+				}
+			}
 		}
 	}
 	// Status Indicators
@@ -246,17 +281,17 @@ void main(void)
 	}
 	#else
 		int startpoint = 0;
-		int teamID = int(polyVerts[startpoint].x);
-		int endpoint = 2;
-		// fair warning: there is probably a bug here that causes an infinite loop if the last box is the same team as the first box
-		// also, its not very efficient
-		// Whoever reads this code, I'm sorry :'(
 		for (int i = 0; i < NUM_POLYGONS; i = i + 1){
-			while (int(polyVerts[endpoint].x) == teamID){
-				endpoint = endpoint + 1;
-				if (endpoint == NUM_POINTS){
-					break;
-				}
+			if (startpoint >= NUM_POINTS) {
+				break;
+			}
+
+			int teamID = int(polyVerts[startpoint].x);
+			int vertexCount = max(int(polyVerts[startpoint].y), 0);
+			int endpoint = min(startpoint + vertexCount, NUM_POINTS);
+			if ((endpoint - startpoint) < 3) {
+				startpoint = endpoint;
+				continue;
 			}
 
 			float signedDistance = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
@@ -290,7 +325,6 @@ void main(void)
 			}
 			// Advance pointer
 			startpoint = endpoint;
-			teamID = int(polyVerts[startpoint].x);
 		}
 	#endif
 
@@ -346,6 +380,9 @@ void main(void)
 	//uvhm = CubicSampler(uvhm, (mapSize.xy * 0.125) + 1.0);
 	vec3 mapnormal = textureLod(mapNormals, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
+	if (isWaterSurface) {
+		mapnormal = vec3(0.0, 1.0, 0.0);
+	}
 
 	if (mapnormal.y < MAX_STEEPNESS){
 		isPassable = true;
@@ -383,7 +420,7 @@ void main(void)
 
 		// absclamplify the cellnoise:
 		cellNoise += smoothstep( 0.0, 1.0, (1.0 - abs(cellNoise -0.5 ) * 10.0)) * 0.25;
-		// zero the cellnoise where you shouldnt be building:
+		// zero the cellnoise where you shouldn't be building:
 		cellNoise *= smoothstep(0.95, 1.0, mapnormal.y);
 
 		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
