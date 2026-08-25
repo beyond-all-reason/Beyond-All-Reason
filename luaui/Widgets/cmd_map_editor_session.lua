@@ -13,8 +13,16 @@ function widget:GetInfo()
 	}
 end
 
--- The lobby marks a session with the mapeditor modoption; everything here is keyed off that, so
--- opening the terraformer in an ordinary game is untouched.
+-- The lobby marks a session with the mapeditor modoption. Stopping the file here rather than
+-- checking the flag inside the callins means an ordinary game defines none of them and pays
+-- nothing, and opening the terraformer in a normal game is untouched.
+--
+-- Not gated through the enabled field: LoadWidget only consults that when the widget has no
+-- entry in the order list, and the first game without the modoption writes a zero, after which
+-- the field is never read again.
+if not Spring.GetModOptions().mapeditor then
+	return
+end
 
 local HIDDEN_WIDGETS = {
 	"AdvPlayersList",
@@ -25,7 +33,6 @@ local HIDDEN_WIDGETS = {
 	"Idle Builders",
 }
 
-local sessionActive = false
 local step = 1
 
 -- RemoveWidgetRaw rather than DisableWidgetRaw: the latter zeroes the widget's order and saves,
@@ -37,17 +44,9 @@ local function hideWidget(name)
 	end
 end
 
-function widget:Initialize()
-	sessionActive = Spring.GetModOptions().mapeditor and true or false
-end
-
 -- Both steps run from Update, not Initialize: Initialize is called while the handler is still
 -- walking its load list, and removing widgets there reenters it.
 function widget:Update()
-	if not sessionActive then
-		return
-	end
-
 	-- Cheat is deliberately not sent here: engaging a terrain mode already nudges it on, and
 	-- the command toggles, so a second sender racing the first turns cheats back off.
 	if step == 1 then
