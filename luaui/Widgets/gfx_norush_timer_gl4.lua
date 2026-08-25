@@ -22,7 +22,7 @@ local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRapt
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
-local StartPolygons = {} -- list of { team = allyTeamID, poly = { {x, z}, ... } }
+local StartPolygons = {} -- list of { team = teamID, poly = { {x, z}, ... } }
 local startPolygonBuffer
 local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
@@ -111,6 +111,14 @@ function widget:GameFrame(n)
 	-- TODO: Remove the widget when the timer is up?
 end
 
+-- teamColor in the shader is indexed by team, so each polygon carries a team from its
+-- allyteam rather than the allyteam id itself.
+local function ColourTeamOf(allyTeamID)
+	local teams = Spring.GetTeamList(allyTeamID)
+
+	return (teams and teams[1]) or 0
+end
+
 -- Spring.GetAllyTeamStartBox only ever reports the bounding box of a polygon startbox, so
 -- drawing from it marked out a larger area than game_no_rush_mode actually enforces. The
 -- gadget's own parser is included here instead, the way map_startbox.lua does it, so the
@@ -128,19 +136,13 @@ local function BuildStartPolygons()
 		-- either; the engine rectangles stay authoritative in that case.
 		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
 		if pok and startBoxConfig and isExplicit then
-			local activeAllyTeams = {}
+			-- Walked in allyteam order rather than with pairs(): the buffer order decides which
+			-- colour each zone gets, and pairs() would let two clients disagree about it.
 			for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-				activeAllyTeams[allyTeamID] = true
-			end
-			for allyTeamID, entry in pairs(startBoxConfig) do
-				if
-					allyTeamID ~= gaiaAllyTeamID
-					and allyTeamID ~= pveAllyTeamID
-					and activeAllyTeams[allyTeamID]
-					and entry.boxes
-				then
+				local entry = startBoxConfig[allyTeamID]
+				if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
 					for _, polygon in ipairs(entry.boxes) do
-						polygons[#polygons + 1] = { team = allyTeamID, poly = polygon }
+						polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
 					end
 				end
 			end
@@ -156,7 +158,7 @@ local function BuildStartPolygons()
 			if xn then
 				-- Expressed as a ring so the shader keeps a single code path.
 				polygons[#polygons + 1] =
-					{ team = allyTeamID, poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
+					{ team = ColourTeamOf(allyTeamID), poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
 			end
 		end
 	end

@@ -13,7 +13,7 @@ uniform int noRushTimer;
 float noRushFramesLeft;
 
 layout (std430, binding = 4) buffer startPolygonBuffer {
-	//-- Quads of: teamID, numVertices, x, z. NUM_POLYGONS blocks, NUM_POINTS vertices total.
+	//-- Quads of: teamID (for teamColor), numVertices, x, z. NUM_POLYGONS blocks.
 	vec4 polyVerts[];
 };
 
@@ -90,7 +90,9 @@ void main(void)
 		float dist = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
 		if (closestbox > dist){
 			closestbox = dist;
-			mycolor = teamColor[i].rgb;
+			// Keyed on the team the buffer carries, not the loop counter: one allyteam can own
+			// several polygons, which would shift every later box onto the wrong colour.
+			mycolor = teamColor[int(polyVerts[startpoint].x)].rgb;
 		}
 		startpoint = endpoint;
 	}
