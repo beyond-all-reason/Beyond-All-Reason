@@ -364,15 +364,15 @@ if gadgetHandler:IsSyncedCode() then
 		if activeTargets[unitID] and not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
+		activeTargets[unitID] = nil
+		removeFromQueue(unitID)
 		if keeptrack then
 			setTargetPassive(unitID, setTargetData[unitID])
 		else
+			setTargetData[unitID] = nil
+			pausedTargets[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
-		removeFromQueue(unitID)
-		setTargetData[unitID] = nil
-		activeTargets[unitID] = nil
-		pausedTargets[unitID] = nil
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 	end
 
@@ -489,24 +489,26 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
-		local currentIndex = unitData.currentIndex
+		local oldIndex = unitData.currentIndex
+		local currentIndex = oldIndex
 		local minIndex
 		local moveToIndex = 0
 		for i = 1, n do
 			if targetList[i].ignoreStop then
 				moveToIndex = moveToIndex + 1
+				if oldIndex == i then
+					currentIndex = moveToIndex
+				end
 				if moveToIndex ~= i then
-					targetList[moveToIndex] = i
+					targetList[moveToIndex] = targetList[i]
 				end
 			else
 				currentTargets[targetList[i].target] = nil
 				if not minIndex then
 					minIndex = i
 				end
-				if i == currentIndex then
+				if oldIndex == i then
 					currentIndex = 0 -- invalid, see below
-				elseif currentIndex > i then
-					currentIndex = currentIndex - 1
 				end
 			end
 		end
@@ -516,9 +518,12 @@ if gadgetHandler:IsSyncedCode() then
 		for i = moveToIndex + 1, n do
 			targetList[i] = nil
 		end
-		if currentIndex ~= unitData.currentIndex then
-			unitData.currentIndex = currentIndex == 0 and 1 or currentIndex
+		if currentIndex == 0 then
+			unitData.currentIndex = 1
 			unitData.activeTarget = false
+		else
+			unitData.currentIndex = currentIndex
+			-- The active target remains the same.
 		end
 		refreshSendData(unitID, unitData, minIndex)
 	end
@@ -872,6 +877,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
+		local currentTargets = unitData.currentTargets
 		local targetCount = #targets
 		local activeIndex = 0
 		local updateIndex = 0 -- table.remove is slow, as is iterating forward then backward, so we do an erase-remove
@@ -893,7 +899,8 @@ if gadgetHandler:IsSyncedCode() then
 					targets[updateIndex] = targetData
 				end
 			else
-				SendToUnsynced("targetDrop", unitID, index)
+				currentTargets[targetData.target] = nil
+				SendToUnsynced("targetDrop", unitID, updateIndex + 1)
 			end
 		end
 		if updateIndex == 0 then
@@ -1088,7 +1095,7 @@ else -- UNSYNCED
 	function handleTargetListEvent(_, unitID, index, userTarget, targetA, targetB, targetC)
 		--tracy.ZoneBeginN(string.format("handleTargetListEvent %d %d ", unitID, index))
 		local unitData = getUnitTargetList(unitID, not targetA and index)
-		if unitData then
+		if unitData and targetA then
 			unitData.targets[index] = {
 				userTarget = userTarget,
 				target = (not targetB and targetA) or { targetA, targetB, targetC },

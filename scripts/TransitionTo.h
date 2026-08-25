@@ -2,7 +2,7 @@
 // for units that have complex open-close animations.
 // This ensures that any open/close anim executes fully, and then finally ends up in the wanted status
 
-// Ensure that this function isnt terminated by signals
+// Ensure that this function isn't terminated by signals
 // Might make sense to set-signal-mask 0 it
 
 // When using this function, you should have an Open and Close function defined.

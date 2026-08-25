@@ -41,7 +41,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 	v11.3 (Bluestone): More cleaning up
 	v11.4 (Bluestone): Mute people with ctrl+click on their name
 	v12   (Floris): Restyled looks + added imageDirectory var + HD-ified rank and some other icons
-	v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on doubleclick. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
+	v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on double-click. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
 	v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
 	v15   (Floris): Integrated LockCamers widget code
 	v16	  (Floris): Added chips next to gambling-spectators for betting system
@@ -398,7 +398,7 @@ local forceMainListRefresh = true
 local modules = {}
 local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
 
--- these are not considered as normal module since they dont take any place and wont affect other's position
+-- these are not considered as normal module since they dont take any place and won't affect other's position
 -- (they have no module.width and are not part of modules)
 local m_point, m_take
 
@@ -1644,7 +1644,7 @@ function SortList()
 	-- calls the (cascade) sorting for players
 	vOffset = SortAllyTeams(vOffset)
 
-	-- calls the sortings for specs if see spec is on
+	-- calls the sorting for specs if see spec is on
 	vOffset = SortSpecs(vOffset)
 
 	-- set the widget height according to space needed to show team
@@ -2029,7 +2029,7 @@ function widget:DrawScreen()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
--- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
+-- old function called from wherever but it must run in DrawScreen now so we schedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
 	if onlyMainList == nil then
 		onlyMainList = true
@@ -3345,7 +3345,7 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
 	end
 	nameText = nameText .. willSub
 
-	-- includes readystate icon if factions arent shown
+	-- includes readystate icon if factions aren't shown
 	local xPadding = 0
 	if not gameStarted and not m_side.active then
 		xPadding = 16
@@ -4591,11 +4591,11 @@ function widget:SetConfigData(data)
 	end
 
 	--not technically modules
-	m_point.active = true -- m_point.default doesnt work
+	m_point.active = true -- m_point.default doesn't work
 	if data.m_pointActive ~= nil then
 		m_point.active = data.m_pointActive
 	end
-	m_take.active = true -- m_take.default doesnt work
+	m_take.active = true -- m_take.default doesn't work
 	if data.m_takeActive ~= nil then
 		m_take.active = data.m_takeActive
 	end
@@ -4605,7 +4605,7 @@ function widget:SetConfigData(data)
 		for _, module in pairs(modules) do
 			if module.name == name then
 				if name == "ally" then
-					-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
+					-- needs to be always active (some already stored it as false before, this makes sure its corrected)
 					module.active = true
 				else
 					module.active = module.default
@@ -4873,7 +4873,7 @@ function widget:Update(delta)
 	mySpecStatus, fullView, _ = spGetSpectatingState()
 
 	if scheduledSpecFullView ~= nil then
-		-- this is needed else the minimap/world doesnt update properly
+		-- this is needed else the minimap/world doesn't update properly
 		Spring.SendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then
