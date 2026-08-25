@@ -51,11 +51,11 @@ end
 
 -- Inflates a bounded ellipsoid to match its bounding shape's surface and volume.
 local inflateRatios = {
-	[0] = 1, -- ellipsoid
+	[0] = 1.0, -- ellipsoid
 	[1] = 1.25, -- cylinder
 	[2] = 1.455, -- box
-	[3] = 1, -- sphere
-	[4] = 1, -- footprint, as sphere
+	[3] = 1.0, -- sphere
+	[4] = 1.0, -- footprint, as sphere
 }
 
 local canSurf = {} -- units that will have their colvols dynamically replaced
