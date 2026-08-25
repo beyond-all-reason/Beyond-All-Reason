@@ -214,7 +214,7 @@ widget.UnitLeftRadar = unitAccessLost
 widget.UnitEnteredLos = unitAccessGained
 widget.UnitEnteredRadar = unitAccessGained
 
--- Interwupget communications and compatability
+-- Interwupget communications and compatibility
 
 ---Get information about a ray traced from screen to world position.
 --

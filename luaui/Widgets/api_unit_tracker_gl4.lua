@@ -56,7 +56,7 @@ local L_DEPRECATED = LOG.DEPRECATED
 -- todo: test this in singleplayer scenarios, and loaded games!
 
 -- SUPER IMPORTANT: NEVER EVER ADD UNITS TO A VBO TABLE THAT ARE IN unitDefIgnore!
--- As the unit tracker api wont track them as actual units, and wont ever remove them either!
+-- As the unit tracker api won't track them as actual units, and won't ever remove them either!
 
 local alliedUnits = {} -- table of unitID : unitDefID
 local alliedUnitsTeam = {} -- table of unitID : unitTeam
@@ -250,7 +250,7 @@ local instanceVBOCacheTable = {
 	8,
 	8, -- lengthwidthcornerheight
 	0, -- teamID
-	2, -- how many trianges should we make (2 = cornerrect)
+	2, -- how many triangles should we make (2 = cornerrect)
 	0,
 	0,
 	0,
@@ -258,7 +258,7 @@ local instanceVBOCacheTable = {
 	0,
 	1,
 	0,
-	1, -- These are our default UV atlas tranformations
+	1, -- These are our default UV atlas transformations
 	0,
 	0,
 	0,
@@ -347,7 +347,7 @@ local myPlayerID = Spring.GetLocalPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	--[[
-	-- This isnt helping
+	-- This isn't helping
 	if type(myAllyTeamID) ~= "number" or (type(myAllyTeamID) == "number" and ((myAllyTeamID < 0 ) or (myAllyTeamID > 32))) then
 		local localMyAllyTeamID = myAllyTeamID
 		Spring.Debug.TraceFullEcho(nil,nil,nil, "api_unit_tracker_gl4 error on myAllyTeamID")
@@ -360,7 +360,7 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	-- unitID is valid
 	-- unit
 	-- SPECTATING SYNTHETIC in that replay from start and /skip 1 DOES THIS SHIT! 20220307_201548_DSDR 4_105.1.1-861-ge8bf8a9 BAR105.sdfz
-	-- Which is odd, because that commander belongs to petTurtle, who is on the other allyteam anyway, so this shouldnt really ever get called
+	-- Which is odd, because that commander belongs to petTurtle, who is on the other allyteam anyway, so this shouldn't really ever get called
 	-- now why that allyteamID is invalid, I dont really know yet, as the allyteamID == 1, which seems sane
 
 	if unitDefID == nil then
@@ -909,7 +909,7 @@ function widget:GameStart()
 		end
 		client:close()
 	end
-	--local succes, res = pcall(LobbyInfo)
+	--local success, res = pcall(LobbyInfo)
 end
 
 function widget:Initialize()

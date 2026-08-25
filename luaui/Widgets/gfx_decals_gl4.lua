@@ -28,7 +28,7 @@ local spEcho = Spring.Echo
 
 -- Notes and TODO
 -- yes these are geometry shader decals
--- we are gonna try to smaple heightmap
+-- we are gonna try to sample heightmap
 -- atlasColor is diffuse + alpha
 -- The color is expected to blend up to 0.5,
 -- atlasNormals is normals + emission
@@ -68,7 +68,7 @@ local shaderConfig = {
 	LOSDARKNESS = 0.7, -- additional LOS darken factor
 	PARALLAX = 0, -- 1 for on, kinda broken, do not use
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
-	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
+	USEGLOW = 1, -- 1 for on, kinda weird at the moment
 	GLOWTHRESHOLD = 0.99,
 	FADEINTIME = 20, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
@@ -87,13 +87,19 @@ local largesizethreshold = 512 -- if min(width,height)> than this, then we use t
 local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 2000) / 1000 -- used for the initial value of lifeTimeMult
 local lifeTimeMult = 0.7 + math.min(gpuMem / 6000, 2.3) -- A global lifetime multiplier for configurability
-local lifeTimeMultMult = 1.5 -- an additional liftime multiplier that isnt saved to user config, so changing thsi will affect everyones lifetiem regardless of their save config value
+local lifeTimeMultMult = 1.5 -- an additional lifetime multiplier that isn't saved to user config, so changing this will affect everyones lifetiem regardless of their save config value
 
 local autoupdate = false -- auto update shader, for debugging only!
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
 local saturationThreshold = 16 * areaResolution
+local cellArea = areaResolution * areaResolution
+-- Overdraw budget: the maximum accumulated decal area per map cell, expressed in full layers of coverage
+-- of that cell. When exceeded, the oldest decals in the cell get evicted. New decals draw on top of old
+-- ones anyway, so evicting the oldest (most faded) ones is visually near-free, but it bounds the worst-case
+-- GPU fill cost when zooming into fields of stacked decals.
+local maxDecalLayersPerCell = 16
 
 ------------------------ GL4 BACKEND -----------------------------------
 
@@ -396,16 +402,33 @@ local function initAreas()
 	end
 end
 
+local RemoveDecal -- forward declaration, defined below, needed for eviction in AddDecalToArea
+
 local function AddDecalToArea(instanceID, posx, posz, width, length)
 	local hash = hashPos(posx, posz)
 	local maparea = areaDecals[hash]
 	if maparea == nil then
 		return
 	end
-	local area = width * length
+	-- cap the accounted area at one full cell, so a single giant decal counts as one layer, not dozens
+	local area = mathMin(width * length, cellArea)
 	maparea.instanceIDs[instanceID] = area
 	maparea.totalarea = maparea.totalarea + area
 	decalToArea[instanceID] = hash
+
+	-- evict the oldest decals in this cell while the accumulated area exceeds the overdraw budget
+	while maparea.totalarea > maxDecalLayersPerCell * cellArea do
+		local oldest
+		for id in pairs(maparea.instanceIDs) do
+			if id ~= instanceID and (oldest == nil or id < oldest) then
+				oldest = id
+			end
+		end
+		if oldest == nil then
+			break
+		end
+		RemoveDecal(oldest) -- updates maparea.totalarea via RemoveDecalFromArea
+	end
 end
 
 local function RemoveDecalFromArea(instanceID)
@@ -462,7 +485,7 @@ function widget:Update() -- this is pointlessly expensive!
 		return
 	end
 	local hash = hashPos(updatePositionX, updatePositionZ)
-	--spEcho("Updateing smoothness at",updatePositionX, updatePositionZ)
+	--spEcho("Updating smoothness at",updatePositionX, updatePositionZ)
 	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
@@ -529,7 +552,7 @@ local function AddDecal(
 	-- glowsustain: how many frames to elapse before glow starts to recede
 	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
 	-- fadeintime: how many frames it takes for a decal to reach its max alpha after spawning
-	-- spawnframe: really shouldnt be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
+	-- spawnframe: really shouldn't be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
@@ -577,7 +600,7 @@ local function AddDecal(
 	end
 
 	dCT[1], dCT[2], dCT[3], dCT[4] = length, width, rotation, maxalpha -- lengthwidthrotation maxalpha
-	dCT[5], dCT[6], dCT[7], dCT[8] = p, q, s, t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+	dCT[5], dCT[6], dCT[7], dCT[8] = p, q, s, t -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 	dCT[9], dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
 	dCT[13], dCT[14], dCT[15], dCT[16] = posx, posy, posz, spawnframe
 	dCT[17], dCT[18], dCT[19], dCT[20] = bwfactor, glowsustain, glowadd, fadeintime -- params
@@ -720,7 +743,7 @@ else
 	end
 end
 
-local function RemoveDecal(instanceID)
+function RemoveDecal(instanceID) -- assigns the forward-declared local above
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
 	local removed = false

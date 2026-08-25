@@ -760,7 +760,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -782,11 +782,11 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -832,7 +832,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -854,7 +854,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -1097,7 +1097,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -1119,7 +1119,7 @@ local unitGrids = {
 		{
 			{ "cormex", "corsolar", "corwin" }, -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "cortide" }, -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "cormstor", "coruwes", "corfmkr" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl" }, -- LLT, offshore torp launcher
@@ -1319,7 +1319,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl" }, -- LLT, offshore torp launcher
@@ -1341,7 +1341,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin" }, -- mex, solar, wind
 			{ "legeconv", "", "leguwmstore", "legtide" }, -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legestor", "legmstor", "leguwestore", "legfeconv" }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "legtl", "leggob", "leglob" }, -- LLT, offshore torp launcher, goblin, lobber

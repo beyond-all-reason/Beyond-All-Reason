@@ -47,12 +47,13 @@ local function decodeModoption(raw)
 	end
 
 	local okDecode, decoded = pcall(base64.Decode, raw)
-	if not okDecode or not decoded then
+	if not okDecode or not decoded or decoded == "" then
 		return nil
 	end
 
-	local decompressed = VFS.ZlibDecompress(decoded)
-	if not decompressed then
+	-- VFS.ZlibDecompress raises on non-zlib or empty input rather than returning nil.
+	local okZlib, decompressed = pcall(VFS.ZlibDecompress, decoded)
+	if not okZlib or not decompressed then
 		return nil
 	end
 
@@ -81,8 +82,9 @@ local function getActiveAllyTeamCount()
 	return count
 end
 
+-- Will match any spare boxes, but will not leave any teams without a box.
 local function matchOverride(override, numTeams)
-	if override and override.startboxes and #override.startboxes == numTeams then
+	if override and override.startboxes and #override.startboxes >= numTeams then
 		return override
 	end
 

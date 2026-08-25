@@ -1,3 +1,6 @@
+-- Supplied by the including unit script, which shares this chunk's environment:
+-- luacheck: read_globals WeaponDrawn ang defs weapons
+
 hasWpn = true
 sleeptime = 3800 * 2
 --Weapon 1

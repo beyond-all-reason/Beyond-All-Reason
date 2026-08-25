@@ -55,7 +55,7 @@ local function command(cmdID)
 		return ret
 	end
 
-	-- If not found, return UKNOWN with the cmdID
+	-- If not found, return UNKNOWN with the cmdID
 	return "UNKNOWN(" .. cmdID .. ")"
 end
 

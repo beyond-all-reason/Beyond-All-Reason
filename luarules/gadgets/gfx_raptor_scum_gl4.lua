@@ -138,13 +138,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- This checks wether the unit is under any scum
+	-- This checks whether the unit is under any scum
 	local function IsPosInScum(unitx, unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then
 			return nil
 		end
-		-- underwater scum doesnt count for hovers, ships
+		-- underwater scum doesn't count for hovers, ships
 		unity = unity or 1
 		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then
 			return nil
@@ -249,7 +249,7 @@ if gadgetHandler:IsSyncedCode() then
 		if debugmode then
 			Spring.Echo("AddOrUpdateScum", posx, posy, posz, radius, growthrate, scumID)
 		end
-		-- if scumID is supplied, we are updateing an existing scum instance!
+		-- if scumID is supplied, we are updating an existing scum instance!
 
 		local gf = spGetGameFrame()
 		local deathtime
@@ -397,7 +397,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
+		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can receive
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
 		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0),
@@ -698,13 +698,13 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		end
 	end
 
-	-- This checks wether the unit is under any scum
+	-- This checks whether the unit is under any scum
 	local function IsPosInScum(unitx, unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then
 			return nil
 		end
-		-- underwater scum doesnt count for hovers, ships
+		-- underwater scum doesn't count for hovers, ships
 		unity = unity or 1
 		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then
 			return nil
@@ -779,7 +779,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		if debugmode then
 			Spring.Echo("AddOrUpdateScum", posx, posy, posz, radius, growthrate, scumID)
 		end
-		-- if scumID is supplied, we are updateing an existing scum instance!
+		-- if scumID is supplied, we are updating an existing scum instance!
 
 		local gf = Spring.GetGameFrame()
 		local deathtime
