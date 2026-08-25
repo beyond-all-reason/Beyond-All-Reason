@@ -53,7 +53,6 @@ local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
 local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
@@ -595,11 +594,6 @@ local function unitDef_Post(name, uDef)
 	-- Proposed Unit Reworks
 	if modOptions.proposed_unit_reworks == true then
 		uDef = proposed_unit_reworksTweaks(name, uDef)
-	end
-
-	-- Legion Simplified Mex Rebalance
-	if modOptions.legionsimplifiedmexes == true then
-		legionSimpleMexes(name, uDef)
 	end
 
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies

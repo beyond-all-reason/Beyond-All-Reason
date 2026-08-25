@@ -897,6 +897,8 @@ local impactShaderConfig = {
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local boltVBO
 local boltShader
 local glowShader

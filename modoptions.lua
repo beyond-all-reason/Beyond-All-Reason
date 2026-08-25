@@ -1862,16 +1862,6 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "legionsimplifiedmexes",
-		name = "Legion Simplified Mexes",
-		desc = "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
-		type = "bool",
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
 		key = "experimentallegionfaction_link",
 		name = "Development Discussion",
 		desc = "Discord discussion about Legion faction.",

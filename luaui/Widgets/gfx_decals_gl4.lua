@@ -133,8 +133,11 @@ end
 
 atlas.flip(atlas)
 
+---@type InstanceVBOTable?
 local decalVBO = nil
+---@type InstanceVBOTable?
 local decalLargeVBO = nil
+---@type InstanceVBOTable?
 local decalExtraLargeVBO = nil
 
 local decalShader = nil
