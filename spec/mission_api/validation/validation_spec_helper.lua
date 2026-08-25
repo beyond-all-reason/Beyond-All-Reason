@@ -22,7 +22,7 @@ local definitions = {
 }
 GG['MissionAPI'] = previousMissionAPI
 
-local validation = VFS.Include('luarules/mission_api/validation/mission_validation.lua')
+local validation = VFS.Include('luarules/mission_api/validation.lua')
 
 local helper = {
 	definitions  = definitions,

@@ -43,7 +43,7 @@ local function toMessages(entries)
 	return messages
 end
 
-local function createValidationReport()
+local function createReport()
 	local errors, warnings = {}, {}
 	local sequence = 0
 
@@ -78,6 +78,6 @@ local function createValidationReport()
 end
 
 return {
-	CreateValidationReport = createValidationReport,
-	Sections               = sections,
+	Create   = createReport,
+	Sections = sections,
 }

@@ -1,10 +1,44 @@
 ---
---- Checks the unit, feature, and marker names created and referenced across the mission.
+--- Checks references: objectives in a stage, nextStage, and unit, feature, and marker names.
 ---
 
-local SECTION = VFS.Include('luarules/mission_api/validation/validation_report.lua').Sections.References
-local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
-local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local SECTION = VFS.Include('luarules/mission_api/validation/report.lua').Sections.References
+local getTypesWithParameterType = VFS.Include('luarules/mission_api/schema_utils.lua').GetTypesWithParameterType
+
+--------------------------------------------------------------------------------
+-- Stage and objective references
+--------------------------------------------------------------------------------
+
+local function validateStageObjectiveReferences(context, report)
+	for stageID, stageData in pairs(context.Stages) do
+		if type(stageData) == 'table' and type(stageData.objectives) == 'table' then
+			for _, objectiveID in ipairs(stageData.objectives) do
+				if type(objectiveID) == 'string' and context.Objectives[objectiveID] == nil then
+					report.Error(SECTION, 'Stage', stageID, "Stage refers to non-existent objective",
+						"Objective: " .. objectiveID)
+				end
+			end
+		end
+	end
+end
+
+local function validateObjectiveNextStageReferences(context, report)
+	for objectiveID, objective in pairs(context.Objectives) do
+		if type(objective) == 'table' and objective.nextStage ~= nil then
+			if type(objective.nextStage) ~= 'string' then
+				report.Error(SECTION, 'Objective', objectiveID,
+					"Unexpected parameter type, expected string, got " .. type(objective.nextStage), "Field: nextStage")
+			elseif context.Stages[objective.nextStage] == nil then
+				report.Error(SECTION, 'Objective', objectiveID, "Objective references non-existent nextStage",
+					"Stage: " .. objective.nextStage)
+			end
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Unit, feature and marker name references
+--------------------------------------------------------------------------------
 
 local function recordSource(sourcesByName, name, source)
 	local sources = table.ensureTable(sourcesByName, name)
@@ -131,9 +165,14 @@ local function getReferencingActionTypes(context, nameType, creatingActionTypes)
 	return referencingActionTypes
 end
 
+--------------------------------------------------------------------------------
+
 local function validate(context, report)
 	local actionTypes = context.ActionTypes
 	local Types = context.Types
+
+	validateStageObjectiveReferences(context, report)
+	validateObjectiveNextStageReferences(context, report)
 
 	local unitCreatingActionTypes = {
 		[actionTypes.SpawnUnits] = true,

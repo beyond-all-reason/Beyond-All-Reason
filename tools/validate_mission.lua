@@ -301,7 +301,7 @@ end
 -- Validate, on the raw mission data, exactly as api_missions.lua does
 --------------------------------------------------------------------------------
 
-local validation = VFS.Include("luarules/mission_api/validation/mission_validation.lua")
+local validation = VFS.Include("luarules/mission_api/validation.lua")
 
 local result = validation.ValidateMission(mission, {
 	ParameterTypes     = parameterTypes,

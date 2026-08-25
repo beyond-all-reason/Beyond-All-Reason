@@ -21,7 +21,7 @@ local missionValidationFailure
 
 -- Runs on the raw mission data
 local function validateMission(mission)
-	local validation = VFS.Include('luarules/mission_api/validation/mission_validation.lua')
+	local validation = VFS.Include('luarules/mission_api/validation.lua')
 	local result = validation.ValidateMission(mission, {
 		ParameterTypes     = GG['MissionAPI'].Modules.ParameterTypes,
 		TriggerDefinitions = GG['MissionAPI'].TriggerDefinitions,

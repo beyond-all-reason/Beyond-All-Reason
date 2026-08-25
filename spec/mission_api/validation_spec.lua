@@ -4,9 +4,9 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local validation = VFS.Include('luarules/mission_api/validation/mission_validation.lua')
+local validation = VFS.Include('luarules/mission_api/validation.lua')
 
-describe("mission_api.validation.mission_validation", function()
+describe("mission_api.validation", function()
 	before_each(V.mockEngineGlobals)
 
 	describe("mission shape", function()
