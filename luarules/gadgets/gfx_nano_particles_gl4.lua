@@ -1304,19 +1304,9 @@ local function initGL4()
 		forceupdate = true,
 	}
 
-	-- AMD GPUs have no native geometry-shader stage. Mesa emulates this GS by translating it
-	-- onto the hardware's real shader stages, emitting every vertex through memory buffers.
-	-- This is slow both to compile (a multi-second GS compile that stalls on the first draw,
-	-- and isn't kept in the disk cache so it recurs) and to run (those memory round-trips
-	-- cost bandwidth every frame). The no-GS path draws the same particles with none of that.
-	-- AMD-on-Linux is always Mesa.
-	local preferNoGS = (Platform ~= nil and Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux")
+	useGeometryShader = LuaShader.isGeometryShaderSupported
 
-	-- Try the geometry-shader path first (unless we already know to skip it); only
-	-- fall back if compile actually fails. LuaShader.isGeometryShaderSupported can
-	-- report false negatives on some drivers (e.g. AMD/Mesa), so we don't trust it
-	-- alone.
-	useGeometryShader = not preferNoGS
+	-- a driver can still fail to compile one, and the path that needs none is right here
 	nanoShader = useGeometryShader and LuaShader.CheckShaderUpdates(shaderCacheGS) or nil
 	if not nanoShader then
 		if useGeometryShader then

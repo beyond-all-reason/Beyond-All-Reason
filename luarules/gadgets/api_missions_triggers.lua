@@ -22,6 +22,9 @@ end
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
+local seismicContacts
+local SEISMIC_INTERVAL_FRAMES
+local detectionLevels
 local statistics
 
 local watchIdleStates = false
@@ -31,6 +34,7 @@ local needsBuildStartSet
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
+local constructionState         = {}
 local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
@@ -39,6 +43,8 @@ local buildPlacements           = {}
 local buildFrameOwners          = {}
 local constructionStarts        = {}
 local underConstruction         = {}
+local detections                = {}
+local detectionCount            = 0
 local dirtyIdleUnits            = {}
 local dirtyIdleUnitCount        = 0
 
@@ -177,6 +183,16 @@ local function dispatchTriggerCallin(callinName, ...)
 	end
 end
 
+-- Detection events are hot paths with complicated routing at M^2 routing cost.
+-- Their updates combine in `DetectionUpdate` following a per-event dirty mark.
+local function markDetectionDirty(unitID)
+	if not detections[unitID] then
+		detections[unitID] = true
+		detectionCount = detectionCount + 1
+	end
+end
+local inactiveSeismicContacts = {}
+
 -- Idleness has an engine callin in name but, in practice, it is nearly unusable.
 -- We mark units and sweep them up in `IdleUpdate` once per frame with any marks.
 local function markIdleDirty(unitID)
@@ -206,6 +222,10 @@ function gadget:Initialize()
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
+	seismicContacts         = GG['MissionAPI'].Modules.SeismicContacts
+	SEISMIC_INTERVAL_FRAMES = seismicContacts.UpdateInterval
+	detectionLevels         = GG['MissionAPI'].Modules.DetectionLevels
+
 	statistics              = VFS.Include('luarules/mission_api/statistics.lua')
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
 
@@ -227,6 +247,7 @@ function gadget:Initialize()
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
+		ConstructionState        = constructionState,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
@@ -244,6 +265,15 @@ function gadget:Initialize()
 
 	if not needsReclaimIncome then
 		gadgetHandler:RemoveCallIn('AllowUnitBuildStep')
+	end
+
+	-- Summary view over the *BuildStep callins behave similarly so we unhook them.
+	local needsConstructionProgress = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionProgress
+	end)
+
+	if not needsConstructionProgress then
+		gadgetHandler:RemoveCallIn('UnitBuildStepPost')
 	end
 
 	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
@@ -287,16 +317,32 @@ function gadget:GameFrame(frameNumber)
 
 	dispatchTriggerCallin('GameFrame', frameNumber)
 
-	if dirtyIdleUnitCount > 0 then
+	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
+		local n = seismicContacts.UpdateContacts(inactiveSeismicContacts)
+		for i = 1, n do
+			markDetectionDirty(inactiveSeismicContacts[i])
+		end
+	end
+
+  if dirtyIdleUnitCount > 0 then
 		dispatchTriggerCallin('IdleUpdate', dirtyIdleUnits)
 		for unitID in pairs(dirtyIdleUnits) do
 			dirtyIdleUnits[unitID] = nil
 		end
 		dirtyIdleUnitCount = 0
-	end
+  end
 end
 
 function gadget:GameFramePost(frameNumber)
+	if detectionCount > 0 then
+		detectionLevels.BeginUpdate()
+		dispatchTriggerCallin('DetectionUpdate', detections)
+		for unitID in pairs(detections) do
+			detections[unitID] = nil
+		end
+		detectionCount = 0
+	end
+
 	if not next(buildPlacements) then
 		return
 	end
@@ -395,12 +441,28 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
+-- Sensor callins are relatively hot and require complicated routing.
+-- They are replaced with one mark-and-sweep and an update per frame.
+
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitEnteredLos', unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitLeftLos', unitID, unitTeam, losAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
+	markDetectionDirty(unitID)
+end
+
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	markDetectionDirty(unitID)
 end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
@@ -475,6 +537,10 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 		end
 	end
 	return true
+end
+
+function gadget:UnitBuildStepPost(unitID)
+	dispatchTriggerCallin('UnitBuildStepPost', unitID)
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)

@@ -15,6 +15,7 @@ local types = {
 	UnitLoadout = 'UnitLoadout',
 	FeatureLoadout = 'FeatureLoadout',
 	ResourceIncomeSources = 'ResourceIncomeSources',
+	SensorTypes = 'SensorTypes',
 
 	-- String Validators:
 	String = 'String',
@@ -32,6 +33,7 @@ local types = {
 	-- Number Validators:
 	Number = 'Number',
 	Quantity = 'Quantity',
+	Fraction = 'Fraction',
 	TeamID = 'TeamID',
 	AllyTeamID = 'AllyTeamID',
 
@@ -49,6 +51,7 @@ local enums = {
 
 local enumSets = {
 	[types.ResourceIncomeSources] = { 'extractor', 'production', 'reclaim', 'transfer' },
+	[types.SensorTypes] = { 'vision', 'radar', 'seismic' },
 }
 
 for enumSetName, enumSetValues in pairs(enumSets) do
