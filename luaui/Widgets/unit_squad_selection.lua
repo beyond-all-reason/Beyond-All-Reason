@@ -518,6 +518,10 @@ local function pushToMru(sq)
 	if not sq then
 		return
 	end
+	-- With rightClickMoveControlsReserves on, reserves are a staging pool so we should keep them out of the MRU
+	if sq.isReserve and config.rightClickMoveControlsReserves then
+		return
+	end
 	for i = 1, #mru do
 		if mru[i] == sq then
 			table.remove(mru, i)
