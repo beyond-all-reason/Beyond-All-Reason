@@ -31,7 +31,6 @@ end
 local consumedInAllowCommand = {}
 for _, entry in ipairs({
 	{ command = CMD.CLOAK,                         reason = 'unit_cloak (replaced by WANT_CLOAK)' },
-	{ command = CMD.STOCKPILE,                     reason = 'unit_stockpile_limit (stockpile-capped units)' },
 	{ command = GameCMD.UNIT_SET_TARGET,           reason = 'unit_target_on_the_move' },
 	{ command = GameCMD.UNIT_SET_TARGET_NO_GROUND, reason = 'unit_target_on_the_move' },
 	{ command = GameCMD.UNIT_SET_TARGET_RECTANGLE, reason = 'unit_target_on_the_move' },
