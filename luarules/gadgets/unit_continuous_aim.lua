@@ -124,6 +124,7 @@ local convertedUnitsNames = {
 	legcomt2com = 5,
 	legstr = 3,
 	legamph = 4,
+	legaheattank = 4,
 	legbart = 5,
 	legmrv = 5,
 	legsco = 5,
