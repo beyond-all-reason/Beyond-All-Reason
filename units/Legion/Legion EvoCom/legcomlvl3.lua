@@ -65,7 +65,6 @@ return {
 			"legwin",
 			"legadvsol",
 			"legeconv",
-			"legmext15",
 			"leggeo",
 			"legtide",
 			"legestor",
