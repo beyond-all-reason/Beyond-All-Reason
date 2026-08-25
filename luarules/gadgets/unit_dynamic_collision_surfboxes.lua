@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Surfboxes (Unit Volumes)",
-		desc    = "Allows units to be hit by impact-only weapons in water even when submerged",
-		author  = "efrec",
-		date    = "2025",
+		name = "Surfboxes (Unit Volumes)",
+		desc = "Allows units to be hit by impact-only weapons in water even when submerged",
+		author = "efrec",
+		date = "2025",
 		license = "GNU GPL, v2 or later",
-		layer   = 1, -- after unit_dynamic_collision_volume.lua
+		layer = 1, -- after unit_dynamic_collision_volume.lua
 		enabled = Spring.GetModOptions().experimental_unit_surfboxes,
 	}
 end
@@ -51,11 +51,11 @@ end
 
 -- Inflates a bounded ellipsoid to match its bounding shape's surface and volume.
 local inflateRatios = {
-	--[[ ellipsoid ]] [0] = 1,
-	--[[ cylinder  ]] [1] = 1.25,
-	--[[ box       ]] [2] = 1.455,
-	--[[ sphere    ]] [3] = 1,
-	--[[ footprint ]] [4] = 1, -- as sphere
+	[0] = 1, -- ellipsoid
+	[1] = 1.25, -- cylinder
+	[2] = 1.455, -- box
+	[3] = 1, -- sphere
+	[4] = 1, -- footprint, as sphere
 }
 
 local canSurf = {} -- units that will have their colvols dynamically replaced
@@ -79,10 +79,9 @@ local isUsingSurfbox = {} -- units with a modified collider
 -- Local functions
 
 local function toUnitSpace(dx, dy, dz, frontX, frontY, frontZ, rightX, rightY, rightZ, upX, upY, upZ)
-	return
-		dx * rightX + dy * upX + dz * frontX,
-    	dx * rightY + dy * upY + dz * frontY,
-    	dx * rightZ + dy * upZ + dz * frontZ
+	return dx * rightX + dy * upX + dz * frontX,
+		dx * rightY + dy * upY + dz * frontY,
+		dx * rightZ + dy * upZ + dz * frontZ
 end
 
 local function calculateUnitMidAndAimPos(unitID)
@@ -100,7 +99,7 @@ local function getUnitData(unitID, unitDefID)
 	if not data then
 		data = {
 			position = calculateUnitMidAndAimPos(unitID),
-			volume   = { spGetUnitCollisionVolumeData(unitID) },
+			volume = { spGetUnitCollisionVolumeData(unitID) },
 		}
 		surferDefData[unitDefID] = data
 	end
