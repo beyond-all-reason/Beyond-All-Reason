@@ -486,7 +486,7 @@ validators[Types.Command] = function(command)
 		end
 		local consumer = consumedInAllowCommand[command]
 		if consumer then
-			return { { severity = 'warning', message = "Command " .. tostring(command) .. " may fail to trigger in UnitOrdered" } }
+			return { { severity = 'warning', message = "Command " .. tostring(CMD[command] or GameCMD[command] or command) .. " may fail to trigger in UnitOrdered" } }
 		end
 	elseif type(command) == 'string' then
 		if not UnitDefNames[command] then
