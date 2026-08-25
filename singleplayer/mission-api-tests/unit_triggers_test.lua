@@ -198,6 +198,40 @@ local triggers = {
 		actions = { 'messageConstructionStartedByAssister' },
 	},
 
+	spawnReclaimDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 50,
+		},
+		actions = { 'spawnDoomedRadar', 'spawnReclaimer' },
+	},
+
+	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
+	orderReclaimDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 52,
+		},
+		actions = { 'orderReclaimerReclaim' },
+	},
+
+	unitReclaimedRadar = {
+		type = triggerTypes.UnitReclaimed,
+		parameters = {
+			unitDefName = 'armrad',
+			teamID = 0,
+		},
+		actions = { 'messageUnitReclaimedRadar' },
+	},
+
+	unitReclaimedByName = {
+		type = triggerTypes.UnitReclaimed,
+		parameters = {
+			unitName = 'doomedRadar',
+		},
+		actions = { 'messageUnitReclaimedByName' },
+	},
+
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
@@ -516,6 +550,49 @@ local actions = {
 			unitName = 'assister',
 			orders = {
 				{ 'armsolar', { 2600, 0, 2480 } },
+			},
+		},
+	},
+
+	messageUnitReclaimedRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A radar was reclaimed by a builder!",
+		},
+	},
+
+	messageUnitReclaimedByName = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The doomed radar, by name, was reclaimed!",
+		},
+	},
+
+	spawnDoomedRadar = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armrad', x = 2400, z = 3000, team = 0, unitName = 'doomedRadar' },
+			},
+		},
+	},
+
+	spawnReclaimer = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2560, z = 3000, team = 0, unitName = 'reclaimer' },
+			},
+		},
+	},
+
+	-- An ordered reclaim, not the ReclaimUnits action: that one destroys by Lua and is not a reclaim.
+	orderReclaimerReclaim = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'reclaimer',
+			orders = {
+				{ CMD.RECLAIM, { unitName = 'doomedRadar' } },
 			},
 		},
 	},
