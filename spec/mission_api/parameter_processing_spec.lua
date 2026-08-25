@@ -1,9 +1,8 @@
 require("spec_helper")
-
-local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+local registerMissionApiModules = require("mission_api.spec_helper")
 
 -- Definition files and parameter_processing itself read from GG when they are included.
-GG['MissionAPI'] = { Modules = { ParameterTypes = parameterTypes } }
+local parameterTypes = registerMissionApiModules().ParameterTypes
 local actionDefinitions  = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
 local triggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 GG['MissionAPI'].ActionDefinitions  = actionDefinitions

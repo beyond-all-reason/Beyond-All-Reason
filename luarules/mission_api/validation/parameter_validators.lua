@@ -94,7 +94,6 @@ end
 
 local function getEnumSetValidator(enums, enumSetName, enumSetList)
 	local valueSet = enums[enumSetName]
-	local emptyMessage = enumSetName .. " table must not be empty"
 	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
 
 	return function(values)
@@ -103,7 +102,7 @@ local function getEnumSetValidator(enums, enumSetName, enumSetList)
 			return luaTypeResult
 		end
 		if #values == 0 then
-			return { { message = emptyMessage } }
+			return -- Empty table matches the empty set and is permissive.
 		end
 
 		local results = {}
@@ -199,10 +198,21 @@ local function registerValueValidators(parameterValidators, context)
 			return { { message = "Quantity must be >= 0, got " .. quantity } }
 		end
 	end
+
+	parameterValidators[Types.Fraction] = function(fraction)
+		local luaTypeResult = parameterValidators[Types.Number](fraction)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if fraction < 0.0 or fraction > 1.0 then
+			return { { message = "Fraction must be between 0 and 1, got " .. fraction } }
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
--- Spatial validators: Position, Positions and Area
+-- Spatial validators: Position, Positions, Area and Direction
 --------------------------------------------------------------------------------
 
 -- Height is optional, so a position without y is only checked for x and z.
@@ -278,6 +288,27 @@ local function registerSpatialValidators(parameterValidators, context)
 		end
 
 		return result
+	end
+
+	--- A direction is either an angle or a vector, which is validated as a position.
+	parameterValidators[Types.Direction] = function(direction)
+		local luaTypeResult = validateTableType(direction)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local isAngle = direction.angle ~= nil
+		local isVector = direction.x ~= nil and direction.z ~= nil
+		if not isAngle and not isVector then
+			return { { message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }" } }
+		end
+		if isAngle and isVector then
+			return { { message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both" } }
+		end
+
+		if isVector then
+			return parameterValidators[Types.Position](direction)
+		end
 	end
 end
 

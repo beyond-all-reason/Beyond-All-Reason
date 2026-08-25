@@ -74,6 +74,7 @@ function gadget:Initialize()
 	--local scriptPath = 'mission-api-tests/resource_test.lua'
 	--local scriptPath = 'mission-api-tests/loadout_test.lua'
 	--local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
+	--local scriptPath = 'mission-api-tests/unit_mover_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -96,6 +97,8 @@ function gadget:Initialize()
 	GG['MissionAPI'].Modules.Loadout        = VFS.Include('luarules/mission_api/loadout.lua')
 	GG['MissionAPI'].Modules.Sounds         = VFS.Include('luarules/mission_api/sounds.lua')
 	GG['MissionAPI'].Modules.Objectives     = VFS.Include('luarules/mission_api/objectives.lua')
+	GG['MissionAPI'].Modules.SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
+	GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')

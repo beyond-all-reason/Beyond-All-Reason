@@ -58,4 +58,19 @@ globals = {
     -- "LCS", "Path", "Table", "Log", "String", "Shaders", "Time", "Array", "StartScript",
 
     "CMDTYPE", "COBSCALE", "CallAsTeam", "SYNCED", "loadlib",
+    -- Unit scripts (LUS)
+    "piece", "script", "UnitScript", "UNITSCRIPT_DIR", "Turn", "Move", "Spin", "StopSpin", "Hide",
+    "Show", "Explode", "EmitSfx", "Sleep", "StartThread", "Signal", "SetSignalMask", "WaitForTurn",
+    "WaitForMove", "GetUnitValue", "SetUnitValue", "x_axis", "y_axis", "z_axis", "SIG_WALK",
+    "SFX", "unitID", "MultiMove", "MultiTurn",
+    -- BAR namespace and shared helpers
+    "BAR", "Utilities", "Debug", "I18N", "I18N_PATH", "Lava", "GetModOptionsCopy", "lowerkeys", "pairsByKeys",
+    "ipairs_reverse",
+    -- Handler internals
+    "addon", "handler", "actionHandler", "fontHandler", "ghInfo", "CALLIN_MAP", "_G",
+    -- Game data and commands
+    "GameCMD", "ExplosionDefs", "GadgetCrashingAircraft", "Scenario", "SG", "CMD_AREA_MEX", "CMD_WANTED_SPEED",
+    "CMD_WANT_CLOAK",
+    -- Lua/runtime
+    "socket", "gcinfo", "game_engine",
 }

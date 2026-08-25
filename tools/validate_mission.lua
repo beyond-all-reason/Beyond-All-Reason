@@ -124,6 +124,42 @@ function Spring.GetAllyTeamList()
 	return allyTeamIDs
 end
 
+--- Gaia sits on its own ally team, after the playing ones.
+function Spring.GetGaiaTeamID()
+	return teamCount
+end
+
+--- Engine constants that Mission API modules read when they are included.
+_G.Game = {
+	gameSpeed      = 30,
+	maxUnits       = 32000,
+	squareSize     = 8,
+	envDamageTypes = {},
+}
+
+--- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, and
+--- detection_levels.lua folds detection masks with it.
+function math.bit_and(...)
+	local result
+	for _, value in ipairs({ ... }) do
+		if result == nil then
+			result = value
+		else
+			local folded, bit = 0, 1
+			while result > 0 and value > 0 do
+				if result % 2 == 1 and value % 2 == 1 then
+					folded = folded + bit
+				end
+				result = math.floor(result / 2)
+				value = math.floor(value / 2)
+				bit = bit * 2
+			end
+			result = folded
+		end
+	end
+	return result or 0
+end
+
 _G.GG = {}
 _G.unpack = _G.unpack or table.unpack
 
@@ -266,8 +302,10 @@ end
 
 local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
--- Definition files read the parameter types from GG when they are included.
+-- Definition files read these modules from GG when they are included, in this order.
 _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
+_G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+_G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
 local actionDefinitions  = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
 local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()

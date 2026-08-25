@@ -1,7 +1,8 @@
 require("spec_helper")
+local registerMissionApiModules = require("mission_api.spec_helper")
 
--- Trigger and action definition files read ParameterTypes from GG at include time.
-GG['MissionAPI'] = { Modules = { ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua') } }
+-- Trigger and action definition files read the Mission API modules from GG at include time.
+registerMissionApiModules()
 local actionDefinitions  = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
 local triggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 GG['MissionAPI'] = nil

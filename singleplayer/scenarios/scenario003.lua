@@ -14,7 +14,7 @@ Tips:
 - AI's expand very quickly, and you must prevent them from getting too much metal early on before they overwhelm you
 - Early raids on the enemy's bases is key to keeping them on the back foot.
 - The enemies randomly start with the Armada or Cortex factions.
-- Keep up continous pressure, the moment you sit back, the enemy will overwhelm you!
+- Keep up continuous pressure, the moment you sit back, the enemy will overwhelm you!
 
 Good luck, you will need all your skill here!
     ]],
@@ -24,7 +24,7 @@ Good luck, you will need all your skill here!
 	playerstarty = "40%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime = 1800, -- par time in seconds
 	parresources = 1000000, -- par resource amount
-	difficulty = 10, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty = 10, -- Perceived difficulty at 'normal' level: integer 1-10
 	defaultdifficulty = "Normal", -- an entry of the difficulty table
 	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		-- handicap values range [-100 - +100], with 0 being regular resources

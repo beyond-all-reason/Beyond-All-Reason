@@ -28,7 +28,7 @@ local glTranslate = gl.Translate
 
 --[[
 
--- Availible API functions:
+-- Available API functions:
 WG['tooltip'].AddTooltip(name, area, value, delay, x, y, title)  -- area: {x1,y1,x2,y2}   value(optional): 'text'   delay(optional): #seconds   x/y(optional): display coordinates   title(optional): 'text'
 WG['tooltip'].RemoveTooltip(name)
 
@@ -329,8 +329,8 @@ local function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 
-	local addX = mathFloor(vsx * 0.33) -- temp add something so flowui doesnt think its near screen edge
-	local addY = mathFloor(vsy * 0.5) -- temp add something so flowui doesnt think its near screen edge
+	local addX = mathFloor(vsx * 0.33) -- temp add something so flowui doesn't think its near screen edge
+	local addY = mathFloor(vsy * 0.5) -- temp add something so flowui doesn't think its near screen edge
 
 	-- Calculate dimensions if not already done
 	if not tooltips[name].maxWidth or not tooltips[name].maxHeight then
@@ -345,7 +345,7 @@ local function drawTooltip(name, x, y)
 			maxHeight = math_ceil(maxHeight + (titleFontSize * 1.22))
 		end
 		if tooltips[name].value and tooltips[name].value ~= "" then
-			-- get text dimentions
+			-- get text dimensions
 			lines = string_lines(tooltips[name].value)
 			for i, line in ipairs(lines) do
 				maxWidth = math_ceil(mathMax(maxWidth, (font:GetTextWidth(line) * fontSize)))

@@ -104,7 +104,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 
 	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then
 		return
-	end -- these cant have plates
+	end -- these can't have plates
 	local decalInfo = featureDefIDtoDecalInfo[featureDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[featureDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
@@ -123,7 +123,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 			0,
 			additionalheight, -- lengthwidthcornerheight
 			0, --Spring.GetUnitTeam(featureID), -- teamID
-			numVertices, -- how many trianges should we make
+			numVertices, -- how many triangles should we make
 			gf,
 			0,
 			decalInfo.alpha * decalAlpha,
@@ -131,7 +131,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 			q,
 			p,
 			t,
-			s, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			s, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 			0,
 			0,
 			0,

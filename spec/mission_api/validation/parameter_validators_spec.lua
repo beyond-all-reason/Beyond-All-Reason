@@ -54,6 +54,34 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Fraction", function()
+		local function validateProgress(progress)
+			return V.validateTrigger(V.trigger(V.triggerTypes.ConstructionProgress, {
+				teamID      = 0,
+				unitDefName = 'armwar',
+				progress    = progress,
+			}))
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(validateProgress('bad'),
+				"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: progress")
+		end)
+
+		it("rejects a value greater than one", function()
+			V.assertMessage(validateProgress(5.0), "Fraction must be between 0 and 1, got 5. Trigger: t, Parameter: progress")
+		end)
+
+		it("rejects a negative value", function()
+			V.assertMessage(validateProgress(-0.5), "Fraction must be between 0 and 1, got -0.5. Trigger: t, Parameter: progress")
+		end)
+
+		it("accepts the bounds", function()
+			V.assertNoMessageContaining(validateProgress(0), "Fraction")
+			V.assertNoMessageContaining(validateProgress(1), "Fraction")
+		end)
+	end)
+
 	describe("TriggerID", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({ type = V.actionTypes.EnableTrigger, parameters = { triggerID = 123 } })
@@ -317,6 +345,43 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("Direction", function()
+		local function validateDirection(direction)
+			return V.validateAction({
+				type       = V.actionTypes.RotateUnits,
+				parameters = { unitName = 'x', direction = direction },
+			})
+		end
+
+		it("rejects the wrong type", function()
+			V.assertMessage(validateDirection('bad'),
+				"Unexpected parameter type, expected table, got string. Action: a, Parameter: direction")
+		end)
+
+		it("rejects a table that is neither an angle nor a vector", function()
+			V.assertMessage(validateDirection({}),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }. Action: a, Parameter: direction")
+		end)
+
+		it("rejects a table that is both an angle and a vector", function()
+			V.assertMessage(validateDirection({ angle = 1, x = 0, z = 0 }),
+				"Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both. Action: a, Parameter: direction")
+		end)
+
+		it("validates a vector as a position", function()
+			V.assertMessage(validateDirection({ x = 'bad', z = 0 }),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: direction.x")
+		end)
+
+		it("accepts an angle", function()
+			V.assertNoMessageContaining(validateDirection({ angle = 90 }), "direction")
+		end)
+
+		it("accepts a vector", function()
+			V.assertNoMessageContaining(validateDirection({ x = 1, z = 1 }), "direction")
+		end)
+	end)
+
 	--- Validates the allyTeamIDs parameter of the action under test.
 	local function validateAllyTeamIDs(allyTeamIDs)
 		return V.validateAction({ type = V.actionTypes.Victory, parameters = { allyTeamIDs = allyTeamIDs } })
@@ -340,21 +405,21 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("AllyTeamID", function()
 		it("rejects the wrong type", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitSpotted, {
-				unitName           = 'x',
-				spottingAllyTeamID = 'bad',
+			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+				unitName       = 'x',
+				sensorAllyTeam = 'bad',
 			}))
 
-			V.assertMessage(result, "Unexpected parameter type, expected number, got string. Trigger: t, Parameter: spottingAllyTeamID")
+			V.assertMessage(result, "Unexpected parameter type, expected number, got string. Trigger: t, Parameter: sensorAllyTeam")
 		end)
 
 		it("rejects an ally team that does not exist", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitSpotted, {
-				unitName           = 'x',
-				spottingAllyTeamID = 99,
+			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitDetected, {
+				unitName       = 'x',
+				sensorAllyTeam = 99,
 			}))
 
-			V.assertMessage(result, "Invalid allyTeamID: 99. Trigger: t, Parameter: spottingAllyTeamID")
+			V.assertMessage(result, "Invalid allyTeamID: 99. Trigger: t, Parameter: sensorAllyTeam")
 		end)
 	end)
 

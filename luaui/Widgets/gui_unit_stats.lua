@@ -26,6 +26,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local texts = {}
+local weaponInfo = VFS.Include("common/weapons.lua")
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua"))
 	and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
@@ -78,7 +79,7 @@ include("keysym.h.lua")
 
 ----v1.5 by Doo changes
 -- Fixed some issues with the add of BeamTime values
--- Added a 1/30 factor to stockpiling weapons (seems like the lua wDef.stockpileTime is in frames while the weaponDefs uses seconds) Probably the 1/30 value in older versions wasnt a "min reloadtime" but the 1/30 factor for stockpile weapons with a typo
+-- Added a 1/30 factor to stockpiling weapons (seems like the lua wDef.stockpileTime is in frames while the weaponDefs uses seconds) Probably the 1/30 value in older versions wasn't a "min reloadtime" but the 1/30 factor for stockpile weapons with a typo
 
 ----v1.4 by Doo changes
 -- Added beamtime to oRld value to properly count dps of BeamLaser weapons
@@ -211,8 +212,14 @@ local targetableTypes = {
 -- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
 -- Others might be checked for abilities still, e.g. antinuke interceptors.
 local weaponGroupNumbers = table.new(#WeaponDefs, 1) -- defID [0] is hashed
+local isBogusWeapon = table.new(#WeaponDefs, 1)
+local isWeaponBackup = table.new(#WeaponDefs, 1)
 for weaponDefID = 0, #WeaponDefs do
-	weaponGroupNumbers[weaponDefID] = tonumber(WeaponDefs[weaponDefID].customParams.weapons_group or -1) or -1
+	local weaponDef = WeaponDefs[weaponDefID]
+	weaponGroupNumbers[weaponDefID] = tonumber(weaponDef.customParams.weapons_group or -1) or -1
+	isBogusWeapon[weaponDefID] = weaponDef.customParams.bogus == "1"
+	isWeaponBackup[weaponDefID] = weaponDef.customParams.smart_priority == nil
+		and (weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker)
 end
 
 ------------------------------------------------------------------------------------
@@ -763,25 +770,35 @@ local function computeContent(uDefID, uID, shiftBool)
 	------------------------------------------------------------------------------------
 	-- Weapons
 	------------------------------------------------------------------------------------
+	local hasSmartPriority = uDef.customParams.weapons_smart_select ~= nil
+
 	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	local weaponNums = {}
+	local weaponDefToNum = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
-		if weaponGroupNumbers[wDefID] >= 0 then
+		if isBogusWeapon[wDefID] then
+			-- continue
+		elseif weaponGroupNumbers[wDefID] >= 0 then
 			local wCount = wepCounts[wDefID]
 			if wCount then
 				wepCounts[wDefID] = wCount + 1
 			else
 				wepCounts[wDefID] = 1
 				wepsCompact[#wepsCompact + 1] = wDefID
-				weaponNums[#wepsCompact] = i
+				weaponDefToNum[wDefID] = i
 			end
 		end
 	end
+
 	tableSortStable(wepsCompact, function(a, b)
-		return weaponGroupNumbers[a] < weaponGroupNumbers[b]
+		if weaponGroupNumbers[a] ~= weaponGroupNumbers[b] then
+			return weaponGroupNumbers[a] < weaponGroupNumbers[b]
+		end
+		if weaponDefToNum[a] ~= weaponDefToNum[b] then
+			return weaponDefToNum[a] < weaponDefToNum[b]
+		end
 	end)
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
@@ -807,14 +824,23 @@ local function computeContent(uDefID, uID, shiftBool)
 	for i = 1, #wepsCompact do
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
+		local weaponNumber = weaponDefToNum[wDefId] or -1 -- No weaponNum for detonation weapons.
 
 		-- Handle projectiles that spawn additional projectiles.
 		-- Many properties (might) have nothing to do with the spawned projectile:
-		local burst = uWep.salvoSize * uWep.projectiles
+		-- `reload` is a reported reload while `dpsCycle` is the engine's true time between shots.
+		-- Weapons with a firing time (so, beam weapons) can extend that time beyond their reload.
 		local range = uWep.range
 		local reload = uWep.reload
 		local accuracy = uWep.accuracy
 		local moveError = uWep.targetMoveError
+
+		if uID and weaponNumber > 0 then
+			reload = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or reload
+		end
+		local reloadBonus = reload > 0 and (uWep.reload / reload - 1) or 0
+
+		local burst, dpsCycle = weaponInfo.GetFiringCycle(uWep, reload)
 
 		local damages = uWep.damages
 		local defaultArmorIndex = armorTypes.default
@@ -823,6 +849,10 @@ local function computeContent(uDefID, uID, shiftBool)
 		local baseArmorDamage = damages[baseArmorIndex]
 
 		local custom = uWep.customParams
+
+		if uWep.type == "BeamLaser" and custom.sweepfire_reloadtime then
+			reload = tonumber(custom.sweepfire_reloadtime)
+		end
 
 		if custom.spark_forkdamage then
 			-- Sparks are hardcoded to target the default armor type:
@@ -841,12 +871,11 @@ local function computeContent(uDefID, uID, shiftBool)
 			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
-		if range > 0 and uWep.customParams.bogus ~= "1" then
-			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime / 30 or uWep.reload)
-			if uID and useExp and not (uWep.stockpile and uWep.stockpileTime) then
-				oRld = spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTimeXP")
-					or spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTime")
-					or oRld
+		if range > 0 then
+			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
+			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
+				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or
+				       spGetUnitWeaponState(uID, weaponNumber, "reloadTime")   or oRld
 			end
 
 			local wpnName = uWep.description
@@ -866,7 +895,6 @@ local function computeContent(uDefID, uID, shiftBool)
 
 			if uExp ~= 0 then
 				local rangeBonus = range ~= 0 and (range / uWep.range - 1) or 0
-				local reloadBonus = reload ~= 0 and (uWep.reload / reload - 1) or 0
 				local accuracyBonus = accuracy ~= 0 and (uWep.accuracy / accuracy - 1) or 0
 				local moveErrorBonus = moveError ~= 0 and (uWep.targetMoveError / moveError - 1) or 0
 				DrawText(
@@ -959,24 +987,19 @@ local function computeContent(uDefID, uID, shiftBool)
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 					damageString = texts.burst .. " = " .. (format(yellow .. "%d", burstDamage)) .. white .. "."
 				else
-					local dps = burstDamage / (useExp and reload or uWep.reload)
+					local dps = burstDamage / dpsCycle
 					if custom.area_onhit_damage and custom.area_onhit_time then
 						local areaDps = custom.area_onhit_damage * burst
 						local duration = custom.area_onhit_time
-						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
+						dps = max(dps + areaDps, areaDps * duration / dpsCycle)
 					end
-					totaldps = totaldps + wepCount * dps
-					totalbDamages = totalbDamages + wepCount * burstDamage
-					damageString = texts.dps
-						.. " = "
-						.. (format(yellow .. "%d", dps))
-						.. white
-						.. "; "
-						.. texts.burst
-						.. " = "
-						.. (format(yellow .. "%d", burstDamage))
-						.. white
-						.. (wepCount > 1 and (" (" .. texts.each .. ").") or ".")
+					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
+					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
+					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
+						totaldps = totaldps + wepCount*dps
+						totalbDamages = totalbDamages + wepCount* burstDamage
+					end
 				end
 				DrawText(texts.dmg .. ":", damageString)
 

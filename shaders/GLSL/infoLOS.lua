@@ -89,7 +89,7 @@ return {
 			float radar = tex2Texel.r;
 			gl_FragColor = max(gl_FragColor, radarColor2 * radar);
 
-			// Line of sight (LOS), the higest level of intel
+			// Line of sight (LOS), the highest level of intel
 			// losColor is the color of ground covered by direct vison (LOS).
 			// Often airlos is greater than groundlos.
 			float groundlos = getTexel(tex0, texCoord).r;

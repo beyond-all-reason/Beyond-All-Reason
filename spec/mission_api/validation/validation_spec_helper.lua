@@ -4,19 +4,20 @@
 ---
 
 require("spec_helper")
+local registerMissionApiModules = require("mission_api.spec_helper")
 
 -- busted only exposes luassert as a global inside spec files, not in required modules.
 local assert = require('luassert')
 
 local Builders = VFS.Include("spec/builders/index.lua")
 
--- The definition files read ParameterTypes from GG when they are included, mirroring
--- the eager module loading in api_missions.lua. The mock is built rather than installed,
--- and GG is put back afterwards, so no other spec's mock is disturbed.
+-- The definition files read the Mission API modules from GG when they are included, in a
+-- specific load order, mirroring the eager module loading in api_missions.lua. GG is put
+-- back afterwards, so no other spec's mock is disturbed.
 local previousMissionAPI = GG['MissionAPI']
-GG['MissionAPI'] = Builders.MissionApi.new():Build()
+local modules = registerMissionApiModules()
 local definitions = {
-	ParameterTypes     = GG['MissionAPI'].Modules.ParameterTypes,
+	ParameterTypes     = modules.ParameterTypes,
 	ActionDefinitions  = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions(),
 	TriggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions(),
 }
