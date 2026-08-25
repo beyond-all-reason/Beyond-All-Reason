@@ -54,6 +54,8 @@ jobs:
       - name: Run emmylua_check
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # The slice ci_results.yml allots one report. Keep the two in step.
+          REPORT_LIMIT: 6000
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             MODE=pr
@@ -182,6 +184,11 @@ jobs:
           # 65536 characters and which a full report can exceed on its own.
           SUMMARY_JQ='
             def cell: gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
+            # emmylua messages can carry a whole union type. The comment has a
+            # byte budget the summary page does not, so they are clipped there.
+            def msg: cell
+              | if $detail == "full" or (length <= 120) then .
+                else .[0:119] + "…" end;
             def sevname: if . == 1 then "error" elif . == 2 then "warning"
                          elif . == 3 then "info" else "hint" end;
             def plural($n): if $n == 1 then "" else "s" end;
@@ -190,7 +197,7 @@ jobs:
             # log above is uncapped, so nothing is actually lost.
             def rows($f):
               ( $f | sort_by(.path, .line, .col) | .[0:50][]
-                | "| `\(.path):\(.line)` | \(.message | cell) |" ),
+                | "| `\(.path):\(.line)` | \(.message | msg) |" ),
               ( if ($f | length) > 50
                 then "", "_Showing 50 of \($f | length); the workflow log lists every one._"
                 else empty end );
@@ -218,13 +225,14 @@ jobs:
 
               # Errors are not collapsed and keep a Code column, since one run
               # can fail on several different ones at once.
-              ( if ($errors | length) > 0
+              ( (if $detail == "full" then 50 else 10 end) as $cap
+                | if ($errors | length) > 0
                 then "", "#### Errors", "",
                      "| Location | Code | Message |", "| --- | --- | --- |",
-                     ( $errors | sort_by(.path, .line, .col) | .[0:50][]
-                       | "| `\(.path):\(.line)` | `\(.code)` | \(.message | cell) |" ),
-                     ( if ($errors | length) > 50
-                       then "", "_Showing 50 of \($errors | length); the workflow log lists every one._"
+                     ( $errors | sort_by(.path, .line, .col) | .[0:$cap][]
+                       | "| `\(.path):\(.line)` | `\(.code)` | \(.message | msg) |" ),
+                     ( if ($errors | length) > $cap
+                       then "", "_Showing \($cap) of \($errors | length); the workflow log lists every one._"
                        else empty end )
                 else empty end ),
 
@@ -246,6 +254,17 @@ jobs:
             "$SUMMARY_JQ" filtered.json >> "$GITHUB_STEP_SUMMARY"
           jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail compact \
             "$SUMMARY_JQ" filtered.json > ci-report.md
+
+          # The compact report is bounded by construction: at most one row per
+          # diagnostic code plus twenty errors. If it is over its slice of the
+          # CI Results comment anyway, the rendering has regressed and the
+          # comment would be cut mid-table, so say so rather than ship it.
+          report_bytes=$(wc -c < ci-report.md)
+          if [ "$report_bytes" -gt "$REPORT_LIMIT" ]; then
+            echo "::error title=Type check report is oversized::The compact report is $report_bytes bytes, past the $REPORT_LIMIT the CI Results comment allots it, so it would be truncated mid-table. This is a CI defect, not a problem with this PR; fix the compact rendering in type_check.yml."
+            exit 1
+          fi
+          echo "Compact report: $report_bytes bytes (limit $REPORT_LIMIT)."
 
           # Errors fail a pull request. A manual run is an analytics view, so it
           # reports and stays green -- a red X on a report nobody asked to gate
