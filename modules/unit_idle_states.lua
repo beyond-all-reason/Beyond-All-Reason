@@ -6,6 +6,9 @@
 
 -- In addition, units may have "idle tasks". These are orders followed to avoid player
 -- frustration with useless units but are not player orders "to make yourself useful".
+-- In addition, units may have "idle tasks", as opposed to "busy tasks". These are not
+-- issued via player input but from code. Code that issues idle tasks can detect idleness
+-- via an empty command queue rather than by isIdle to avoid issuing multiple idle tasks.
 
 local CMD_REPAIR = CMD.REPAIR
 local CMD_MOVE = CMD.MOVE
