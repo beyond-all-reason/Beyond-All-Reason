@@ -381,9 +381,11 @@ local function updateButtons()
 	local function addButton(name, text, badge)
 		local textWidth = font2:GetTextWidth(text) * fontsize
 		-- the circle grows along with the amount of characters the number has
-		local badgeRadius = badge
-				and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
-			or 0
+		local badgeRadius = 0
+		if badge then
+			local badgeTextWidth = font2:GetTextWidth(badge) * badgeFontsize
+			badgeRadius = mathMax(badgeMinRadius, (badgeTextWidth / 2) + (fontsize * 0.25))
+		end
 		local badgeWidth = badgeRadius * 2
 		local width = mathFloor(textWidth + badgeWidth + textPadding)
 		local textCenter = buttonsArea[3] - offset - (width / 2) - (badgeWidth / 2)
