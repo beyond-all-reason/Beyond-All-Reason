@@ -469,6 +469,16 @@ local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, f
 local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks('UnitIdle')
 -- stylua: ignore end
 
+local function markIdle(unitID)
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -2150,19 +2160,10 @@ end
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	tracy.ZoneBeginN("G:UnitDestroyed")
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
-
-	local idleCount = unitIdleCount[1]
-	if idleCount and not unitIdleMarked[unitID] then
-		unitIdleMarked[unitID] = true
-		idleCount = idleCount + 1
-		unitIdleCount[1] = idleCount
-		unitIdleList[idleCount] = unitID -- Clears state, does not raise the callin.
-	end
-
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2188,15 +2189,7 @@ function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
-
-	local idleCount = unitIdleCount[1]
-	if idleCount and not unitIdleMarked[unitID] then
-		unitIdleMarked[unitID] = true
-		idleCount = idleCount + 1
-		unitIdleCount[1] = idleCount
-		unitIdleList[idleCount] = unitID
-	end
-
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2288,19 +2281,10 @@ end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-
-	local idleCount = unitIdleCount[1]
-	if idleCount and not unitIdleMarked[unitID] then
-		unitIdleMarked[unitID] = true
-		idleCount = idleCount + 1
-		unitIdleCount[1] = idleCount
-		unitIdleList[idleCount] = unitID
-	end
-
+	markIdle(unitID)
 	return
 end
 
@@ -2329,15 +2313,7 @@ function gadgetHandler:UnitCommand(
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
-
-	local idleCount = unitIdleCount[1]
-	if idleCount and not unitIdleMarked[unitID] then
-		unitIdleMarked[unitID] = true
-		idleCount = idleCount + 1
-		unitIdleCount[1] = idleCount
-		unitIdleList[idleCount] = unitID
-	end
-
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
