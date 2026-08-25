@@ -1907,6 +1907,16 @@ local options = {
 		linkheight = 325,
 		linkwidth = 350,
 	},
+	
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "experimental_unit_surfboxes",
+		name = "Shallow water test",
+		desc = "Scouts submerged in very shallow water can be shot and killed",
+		section = "options_experimental",
+		type = "bool",
+		def = false,
+	},
 
 	-- Hidden Tests
 
@@ -2676,15 +2686,6 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 		type = "subheader",
 		def = true,
 	},
-
-	{
-      key    	= "experimental_unit_surfboxes",
-      name   	= "Fish in a Barrel",
-      desc   	= "Scouts submerged in very shallow water can be shot and killed",
-      type   	= "bool",
-      section = "options_experimental",
-      def  	= false,
-  },
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
