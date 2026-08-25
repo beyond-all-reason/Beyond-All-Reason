@@ -57,14 +57,26 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
 local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
--- All ruins finish spawning within the first seconds of the game, before the earliest
--- possible player-built radar (~7s) can block them: the schedule's frame numbers are
--- divided by spawnSpeedMultiplier, and as many blueprint ruins spawn per tick.
-local spawnSpeedMultiplier = 5
-local spawnCutoffFrame = math.ceil((math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3 / spawnSpeedMultiplier)
+-- All ruins spawn during loading (GamePreload), like scenario unit loadouts: the whole
+-- cost is absorbed into the loading screen and ruins are never seen appearing.
+-- spawnAmountBudget scales ruin amounts with map area.
+local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
+local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
 
--- capped so at least one spawn tick fits even on the smallest maps at the rarest density
-local blueprintTickInterval = math.min(math.ceil(5 / ruinDensityMultiplier), spawnCutoffFrame)
+-- Ruins overlapping a start position are erased right after commanders are placed: the
+-- cleared area is just commander size plus a small margin, so ruins stand right outside.
+local startClearMargin = 8
+local maxCommanderRadius = 0
+local maxUnitRadius = 0
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.radius > maxUnitRadius then
+		maxUnitRadius = unitDef.radius
+	end
+	if unitDef.customParams.iscommander and unitDef.radius > maxCommanderRadius then
+		maxCommanderRadius = unitDef.radius
+	end
+end
+local startClearRadius = maxCommanderRadius + startClearMargin
 
 -- TODO: Add weights to this crap.
 local landMexesList = {
@@ -575,7 +587,7 @@ local function SpawnMexGeoRandomStructures()
 end
 
 local function SpawnRandomStructures()
-	for i = 1, math.ceil(spawnCutoffFrame * spawnSpeedMultiplier / 10) do
+	for i = 1, math.ceil(spawnAmountBudget / 10) do
 		for j = 1, math.ceil(10 * ruinDensityMultiplier) do
 			local posx = math.ceil(math.random(196, Game.mapSizeX - 196) / 16) * 16
 			local posz = math.ceil(math.random(196, Game.mapSizeZ - 196) / 16) * 16
@@ -708,34 +720,56 @@ local function SpawnBlueprintRuin()
 	end
 end
 
-function gadget:GameFrame(n)
-	if n == math.ceil(spawnCutoffFrame * 0.5) then
-		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
-		if mexSpots and #mexSpots > 5 then
-			SpawnMexes(mexSpots)
-		end
+function gadget:GamePreload()
+	if Spring.GetGameRulesParam("loadedGame") == 1 or Spring.GetGameFrame() >= 1 then
+		return -- savegames and mid-game reloads already have their ruins
 	end
 
-	if n == math.ceil(Game.gameSpeed / spawnSpeedMultiplier) then
-		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-		if geoSpots and #geoSpots >= 1 then
-			SpawnGeos(geoSpots)
-		end
+	-- geos first, mexes halfway through the blueprint ruins, defence batches last:
+	-- spawn order affects placement success rates near resource spots
+	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
+	if geoSpots and #geoSpots >= 1 then
+		SpawnGeos(geoSpots)
 	end
 
-	if n == spawnCutoffFrame + math.ceil(Game.gameSpeed / spawnSpeedMultiplier) then
-		SpawnMexGeoRandomStructures()
-	end
-
-	if n == spawnCutoffFrame + math.ceil(2 * Game.gameSpeed / spawnSpeedMultiplier) then
-		SpawnRandomStructures()
-	end
-
-	if n < blueprintTickInterval or n % blueprintTickInterval ~= 0 or n > spawnCutoffFrame + 5 then
-		return
-	end
-
-	for _ = 1, spawnSpeedMultiplier do
+	local firstHalfTicks = math.floor(blueprintTicksTotal * 0.5)
+	for _ = 1, firstHalfTicks do
 		SpawnBlueprintRuin()
 	end
+
+	local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
+	if mexSpots and #mexSpots > 5 then
+		SpawnMexes(mexSpots)
+	end
+
+	for _ = 1, blueprintTicksTotal - firstHalfTicks do
+		SpawnBlueprintRuin()
+	end
+
+	SpawnMexGeoRandomStructures()
+	SpawnRandomStructures()
+end
+
+function gadget:GameFrame(n)
+	if n == 1 then
+		-- commanders were placed in GameStart; erase the ruins they physically overlap,
+		-- counting each unit's own radius so large buildings poking into the area go too
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			if teamID ~= GaiaTeamID then
+				local x, _, z = Spring.GetTeamStartPosition(teamID)
+				if x > 0 then
+					local nearbyRuins = Spring.GetUnitsInCylinder(x, z, startClearRadius + maxUnitRadius, GaiaTeamID)
+					for i = 1, #nearbyRuins do
+						local unitID = nearbyRuins[i]
+						local ux, _, uz = Spring.GetUnitPosition(unitID)
+						if math.distance2d(ux, uz, x, z) - Spring.GetUnitRadius(unitID) < startClearRadius then
+							Spring.DestroyUnit(unitID, false, true)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	gadgetHandler:RemoveGadget(self)
 end
