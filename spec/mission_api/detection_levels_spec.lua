@@ -12,6 +12,9 @@ GG['MissionAPI'].Modules.SeismicContacts = {
 	end,
 }
 
+-- Triggers name their sensor allyTeam, which the module resolves through this lookup.
+GG['MissionAPI'].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
+
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
@@ -33,6 +36,9 @@ describe("mission_api.detection_levels", function()
 		Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
 		Spring.GetGaiaTeamID = function() return 2 end
 		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
+		-- Tests drive LOS per allyTeam directly, so units are owned by Gaia, which never
+		-- senses. Tests about the owner's own vision override this.
+		Spring.GetUnitAllyTeam = function(_unitID) return 2 end
 		-- The module resolves the allyTeam layout at load, so each test reloads it after
 		-- the stubs above are in place. The reload also leaves the latch table empty.
 		DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
@@ -84,7 +90,7 @@ describe("mission_api.detection_levels", function()
 		end)
 	end)
 
-	describe("without a sensorAllyTeam", function()
+	describe("without a sensorAllyTeamName", function()
 		-- allyTeams are 0:reference, 1:enemy, 2:gaia
 		it("ignores Gaia, which sees plenty and means nothing by it", function()
 			losStatusByAllyTeam[2] = INLOS
@@ -272,11 +278,11 @@ describe("mission_api.detection_levels", function()
 		end)
 
 		-- Resolving per allyTeam, rather than per trigger, is what shares these two.
-		it("shares a named sensorAllyTeam with the triggers that name none", function()
+		it("shares a named sensorAllyTeamName with the triggers that name none", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger({ sensorAllyTeam = 0 }), 'named', context, { [100] = true })
+			onDetected(newTrigger({ sensorAllyTeamName = 'sensorAlly' }), 'named', context, { [100] = true })
 			onDetected(newTrigger(), 'unnamed', context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)

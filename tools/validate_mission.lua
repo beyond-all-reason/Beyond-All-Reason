@@ -130,6 +130,12 @@ _G.Spring = {
 		bucket[#bucket + 1] = message
 	end,
 	Echo = function() end,
+
+	-- detection_levels reads the allyTeam layout as it loads. Validation is static and
+	-- never evaluates detection, so an empty layout is enough to get the module loaded.
+	GetGaiaTeamID = function() return nil end,
+	GetTeamAllyTeamID = function() return nil end,
+	GetAllyTeamList = function() return {} end,
 }
 
 --- GG (Gadget Globals shared table) ---
@@ -362,6 +368,11 @@ _G.GG['MissionAPI'] = {
 		ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua'),
 	},
 }
+
+-- The detection triggers read these two at their own load time, in the order the
+-- gadget sets them up: detection_levels reads SeismicContacts as it loads.
+_G.GG['MissionAPI'].Modules.SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
+_G.GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 
 local stagesController     = VFS.Include('luarules/mission_api/stages_loader.lua')
 local objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')

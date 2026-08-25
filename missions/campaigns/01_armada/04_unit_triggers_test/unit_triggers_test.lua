@@ -207,26 +207,26 @@ local triggers = {
 		actions = { 'messageRessed' },
 	},
 
-	engineerSpotted = {
-		type = triggerTypes.UnitSpotted,
+	engineerDetected = {
+		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamName = 'theEnemyTeam',
-			spottingAllyTeamName = 'thePlayerAllyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 		},
-		actions = { 'messageEngineerSpotted' },
+		actions = { 'messageEngineerDetected' },
 	},
 
-	engineerUnspotted = {
-		type = triggerTypes.UnitUnspotted,
+	engineerUndetected = {
+		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamName = 'theEnemyTeam',
-			spottingAllyTeamName = 'thePlayerAllyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 		},
-		actions = { 'messageEngineerUnspotted' },
+		actions = { 'messageEngineerUndetected' },
 	},
 
 	engineerDetectedByRadar = {
@@ -234,7 +234,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
+			owningTeamName = 'theEnemyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 			sensorTypes = { 'radar' },
 		},
 		actions = { 'messageEngineerDetectedByRadar' },
@@ -245,8 +246,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorAllyTeam = 0,
+			owningTeamName = 'theEnemyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 			sensorTypes = { 'radar' },
 		},
 		actions = { 'messageEngineerUndetectedByRadar' },
@@ -260,7 +261,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
+			owningTeamName = 'theEnemyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageEngineerDetectedBySeismic' },
@@ -271,7 +273,8 @@ local triggers = {
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
-			owningTeamID = 1,
+			owningTeamName = 'theEnemyTeam',
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 			sensorTypes = { 'seismic' },
 		},
 		actions = { 'messageEngineerUndetectedBySeismic' },
@@ -284,7 +287,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam', unitName = 'bots' },
+				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam' },
 			},
 		},
 	},
@@ -293,7 +296,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'bots', quantity = 4 },
+				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'bots', quantity = 6 },
 			},
 		},
 	},
@@ -565,17 +568,17 @@ local actions = {
 		},
 	},
 
-	messageEngineerSpotted = {
+	messageEngineerDetected = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Engineer spotted!",
+			message = "Engineer detected!",
 		},
 	},
 
-	messageEngineerUnspotted = {
+	messageEngineerUndetected = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Engineer unspotted!",
+			message = "Engineer undetected!",
 		},
 	},
 

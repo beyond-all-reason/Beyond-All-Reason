@@ -313,9 +313,7 @@ function gadget:GameFramePost(frameNumber)
 		end
 		detectionCount = 0
 	end
-end
 
-function gadget:GameFramePost(frameNumber)
 	if not next(buildPlacements) then
 		return
 	end

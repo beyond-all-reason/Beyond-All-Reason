@@ -12,6 +12,8 @@ GG['MissionAPI'].Modules.SeismicContacts = GG['MissionAPI'].Modules.SeismicConta
 }
 
 _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
+GG['MissionAPI'].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
+GG['MissionAPI'].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
 
 GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
@@ -42,6 +44,10 @@ describe("mission_api.triggers.unit_detected", function()
 		Spring.GetUnitIsDead = function(_unitID) return false end
 		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
 		Spring.GetUnitTeam = function(_unitID) return 3 end
+		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
+		-- never senses, so ownership does not mask those setups; tests about the owner's own
+		-- vision override this.
+		Spring.GetUnitAllyTeam = function(_unitID) return GAIA_ALLY end
 	end)
 
 	local function freshTriggerID()
@@ -106,8 +112,8 @@ describe("mission_api.triggers.unit_detected", function()
 			end
 			assert.is_true(names.unitName)
 			assert.is_true(names.unitDefName)
-			assert.is_true(names.owningTeamID)
-			assert.is_true(names.sensorAllyTeam)
+			assert.is_true(names.owningTeamName)
+			assert.is_true(names.sensorAllyTeamName)
 			assert.is_true(names.sensorTypes)
 			assert.are.same({ 'unitName', 'unitDefName' }, unitDetected.parameters.requiresOneOf)
 		end)
@@ -129,20 +135,20 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on owningTeamID", function()
+		it("filters on owningTeamName", function()
 			local context, fired = newContext()
 			Spring.GetUnitTeam = function(_unitID) return 5 end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'armpw', owningTeamID = 3 }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = 'armpw', owningTeamName = 'theEnemyTeam' }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on sensorAllyTeam", function()
+		it("filters on sensorAllyTeamName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ unitDefName = 'armpw', sensorAllyTeam = SENSOR_ALLY })
+			local t = trigger({ unitDefName = 'armpw', sensorAllyTeamName = 'sensorAlly' })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -169,11 +175,31 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.are.equal(1, fired())
 		end)
 
-		it("activates for a unit detected only by another allyTeam, absent a sensorAllyTeam", function()
+		it("activates for a unit detected only by another allyTeam, absent a sensorAllyTeamName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
 			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			assert.are.equal(1, fired())
+		end)
+
+		-- An allyTeam always has vision of its own units. Counting that would report every unit
+		-- as seen by every sensor, which silently disables sensorTypes and UnitUndetected.
+		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeamName", function()
+			local context, fired = newContext()
+			local unitID = freshUnitID()
+			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			seeUnit(unitID, OTHER_ALLY)
+			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			assert.are.equal(0, fired())
+		end)
+
+		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeamName", function()
+			local context, fired = newContext()
+			local unitID = freshUnitID()
+			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
+			update(trigger({ unitDefName = 'armpw', sensorTypes = { radar = true } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 	end)
