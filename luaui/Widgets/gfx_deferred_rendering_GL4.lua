@@ -342,30 +342,48 @@ local skipdraw = false
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type lights, ones that dont get updated every frame
-local pointLightVBO = {} -- an instanceVBOTable
-local coneLightVBO = {} -- an instanceVBOTable
-local beamLightVBO = {} -- an instanceVBOTable
-local lightVBOMap -- a table of the above 3, keyed by light type, {point = pointLightVBO, ...}
+---@type InstanceVBOTable?
+local pointLightVBO
+---@type InstanceVBOTable?
+local coneLightVBO
+---@type InstanceVBOTable?
+local beamLightVBO
+---Table of the above 3, keyed by light type, {point = pointLightVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local lightVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based lights
-local unitPointLightVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeLightVBO = {} -- an instanceVBOTable
-local unitBeamLightVBO = {} -- an instanceVBOTable
-local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = unitPointLightVBO, ...}
+---@type InstanceVBOTable?
+local unitPointLightVBO
+---@type InstanceVBOTable?
+local unitConeLightVBO
+---@type InstanceVBOTable?
+local unitBeamLightVBO
+---Table of the above 3, keyed by light type, {point = unitPointLightVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local unitLightVBOMap
 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointLightVBO = {} -- for plasma balls
-local projectileBeamLightVBO = {} -- for lasers
-local projectileConeLightVBO = {} -- for rockets
-local projectileLightVBOMap -- a table of the above 3, keyed by light type
+---@type InstanceVBOTable?
+local projectilePointLightVBO -- for plasma balls
+---@type InstanceVBOTable?
+local projectileBeamLightVBO -- for lasers
+---@type InstanceVBOTable?
+local projectileConeLightVBO -- for rockets
+---Table of the above three, keyed by light shape.
+---@type table<lightVBOType, InstanceVBOTable?>
+local projectileLightVBOMap
 
-local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
-local predictivePointLightVBO = {} -- dedicated VBO for gadget-fed predictive nano lights
+---@type InstanceVBOTable?
+local cursorPointLightVBO -- this will contain ally and player cursor lights
+---@type InstanceVBOTable?
+local predictivePointLightVBO -- dedicated VBO for gadget-fed predictive nano lights
 local engineNano = {
+	---@type InstanceVBOTable?
 	vbo = nil,
 	batchCount = 0,
 	spawnCount = 0,
@@ -542,6 +560,8 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one light instance buffer and attaches its VAO.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetLightVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetLightVBO == nil then

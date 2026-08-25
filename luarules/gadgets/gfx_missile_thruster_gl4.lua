@@ -817,6 +817,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local flameVBO
 local flameShader
 local crossFlameShader -- 90-degree rotated flame for volume from all angles

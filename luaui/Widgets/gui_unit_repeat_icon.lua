@@ -25,6 +25,8 @@ local repeatTexture = "LuaUI/Images/repeat.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local repeatVBO = nil
 local repeatShader = nil
 
