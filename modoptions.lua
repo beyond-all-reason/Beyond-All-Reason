@@ -1907,7 +1907,7 @@ local options = {
 		linkheight = 325,
 		linkwidth = 350,
 	},
-	
+
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "experimental_unit_surfboxes",
