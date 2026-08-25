@@ -233,7 +233,7 @@ jobs:
                   "", "| Location | Message |", "| --- | --- |",
                   rows($f),
                   "", "</details>" )
-          ' filtered.json >> "$GITHUB_STEP_SUMMARY"
+          ' filtered.json | tee ci-report.md >> "$GITHUB_STEP_SUMMARY"
 
           # Errors fail a pull request. A manual run is an analytics view, so it
           # reports and stays green -- a red X on a report nobody asked to gate
@@ -241,3 +241,13 @@ jobs:
           if [ "$MODE" = "pr" ] && [ "$errors" -ne 0 ]; then
             exit 1
           fi
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

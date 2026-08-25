@@ -185,6 +185,16 @@ jobs:
               echo
               sed 's/^/- /' errlines.txt
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee ci-report.md >> "$GITHUB_STEP_SUMMARY"
 
           exit 1
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore
