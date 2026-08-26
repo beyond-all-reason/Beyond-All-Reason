@@ -24,7 +24,6 @@ local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
 
-local watchIdleStates = false
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
@@ -46,8 +45,6 @@ local constructionStarts        = {}
 local underConstruction         = {}
 local detections                = {}
 local detectionCount            = 0
-local dirtyIdleUnits            = {}
-local dirtyIdleUnitCount        = 0
 
 ----------------------------------------------------------------
 --- Utility Functions:
@@ -194,18 +191,6 @@ local function markDetectionDirty(unitID)
 end
 local inactiveSeismicContacts = {}
 
--- Idleness has an engine callin in name but, in practice, it is nearly unusable.
--- We mark units and sweep them up in `IdleUpdate` once per frame with any marks.
-local function markIdleDirty(unitID)
-	if not watchIdleStates then
-		return
-	end
-	if not dirtyIdleUnits[unitID] then
-		dirtyIdleUnits[unitID] = true
-		dirtyIdleUnitCount = dirtyIdleUnitCount + 1
-	end
-end
-
 ----------------------------------------------------------------
 --- Call-ins:
 ----------------------------------------------------------------
@@ -302,11 +287,6 @@ function gadget:Initialize()
 			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
 			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
 	end)
-
-	watchIdleStates = table.any(triggers, function(trigger)
-		return trigger.type == triggerTypes.UnitIdled
-			or trigger.type == triggerTypes.UnitUnidled
-	end)
 end
 
 function gadget:GameFrame(frameNumber)
@@ -324,14 +304,6 @@ function gadget:GameFrame(frameNumber)
 			markDetectionDirty(inactiveSeismicContacts[i])
 		end
 	end
-
-  if dirtyIdleUnitCount > 0 then
-		dispatchTriggerCallin('IdleUpdate', dirtyIdleUnits)
-		for unitID in pairs(dirtyIdleUnits) do
-			dirtyIdleUnits[unitID] = nil
-		end
-		dirtyIdleUnitCount = 0
-  end
 end
 
 function gadget:GameFramePost(frameNumber)
@@ -389,13 +361,8 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	dispatchTriggerCallin('UnitCreated', unitID, unitDefID, unitTeam, builderID)
 
-	-- Cheap way of detecting factory build orders, which skip UnitCommand,
-	-- and of identifying spawned units and marking them immediately idle.
 	if builderID then
 		buildPlacements[builderID] = nil
-		markIdleDirty(builderID)
-	else
-		markIdleDirty(unitID)
 	end
 
 	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
@@ -438,9 +405,6 @@ end
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	dispatchTriggerCallin('UnitTaken', unitID, unitDefID, oldTeam, newTeam)
 
-	-- This double-marks on enemy capture but is required for ally transfer.
-	markIdleDirty(unitID)
-
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
@@ -470,12 +434,12 @@ function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
-function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	markIdleDirty(unitID)
-end
+-- Idle state is summarised once post-frame by the UnitIdlePost synthetic callin, which
+-- reads the command queue directly and reports only the units whose state changed.
+-- See luarules/callins/synthetic_callins.lua and modules/unit_idle_states.lua.
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-	markIdleDirty(unitID)
+function gadget:UnitIdlePost(unitID, idled)
+	dispatchTriggerCallin('UnitIdlePost', unitID, idled)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -484,7 +448,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	buildFrameOwners[unitID] = nil
 	constructionStarts[unitID] = nil
 	underConstruction[unitID] = nil
-	markIdleDirty(unitID)
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end

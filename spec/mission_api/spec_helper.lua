@@ -31,9 +31,9 @@ _G.math.bit_and = _G.math.bit_and
 	end
 
 -- Command ids and option bits, as numbered in rts/Sim/Units/CommandAI/Command.h.
--- idle_states keys a table by CMD.MOVE and CMD.REPAIR at load, so a bare `CMD = {}`
--- fails there with "table index is nil". Specs that swap CMD out for their own table
--- get these put back by RegisterMissionApiModules, which reloads the modules anyway.
+-- Modules that key a table by a command id at load fail on a bare `CMD = {}` with
+-- "table index is nil", so the ids specs rely on are filled in here. Specs that swap
+-- CMD out for their own table get these put back by RegisterMissionApiModules.
 local function installCommandIDs()
 	_G.CMD     = _G.CMD or {}
 	_G.GameCMD = _G.GameCMD or {}
