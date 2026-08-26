@@ -704,6 +704,53 @@ local function updateBuildProgress()
 	redrawProgress = true
 end
 
+-- State and parameters for warning the player when alt-click to add a unit to
+-- the front of the queue will cause a current build to be canceled
+local cancelWarning = {
+	-- Is the build shown by the progress indicator about to be thrown away?
+	---@type boolean
+	active = false,
+	---@type rgba
+	color = { 0.8, 0.05, 0.05, 0.45 },
+}
+
+-- Applies the same conditions as engine FactoryCAI::GiveCommandReal to
+-- determine whether alt-click will cancel the currently building unit
+---@return boolean
+function cancelWarning.isPending()
+	if disableInput or not builderIsFactory or not activeBuilderID or not currentlyBuildingRectID then
+		return false
+	end
+
+	local alt = Spring.GetModKeyState()
+	if not alt then
+		return false
+	end
+
+	-- Re-picking whatever is already in production leaves the buildee untouched
+	local hoveredDefID = WG.buildmenu.hoverID
+	local hoveredCellID = hoveredDefID and uDefCellIds[hoveredDefID]
+	if not hoveredCellID or hoveredCellID == currentlyBuildingRectID then
+		return false
+	end
+
+	if cellRects[hoveredCellID].opts.disabled then
+		return false
+	end
+
+	-- Repeat mode inserts behind the queue front rather than replacing it
+	local _, _, _, repeatOrders = Spring.GetUnitStates(activeBuilderID, false, true)
+	return not repeatOrders
+end
+
+function cancelWarning.update()
+	local pending = cancelWarning.isPending()
+	if pending ~= cancelWarning.active then
+		cancelWarning.active = pending
+		redrawProgress = true
+	end
+end
+
 local function updateSelectedCell()
 	for i = 1, cellCount do
 		local cellRect = cellRects[i]
@@ -1933,6 +1980,8 @@ function widget:Update(dt)
 		doUpdateClock = nil
 		doUpdate = nil
 	end
+
+	cancelWarning.update()
 end
 
 -------------------------------------------------------------------------------
@@ -2714,15 +2763,33 @@ local function drawBuildProgress(cellRect)
 		return
 	end
 
+	local x1 = cellRect.x + cellPadding + iconPadding
+	local y1 = cellRect.y + cellPadding + iconPadding
+	local x2 = cellRect.xEnd - cellPadding - iconPadding
+	local y2 = cellRect.yEnd - cellPadding - iconPadding
+	local cornerRadius = cellSize * 0.03
+
 	RectRoundProgress(
-		cellRect.x + cellPadding + iconPadding,
-		cellRect.y + cellPadding + iconPadding,
-		cellRect.xEnd - cellPadding - iconPadding,
-		cellRect.yEnd - cellPadding - iconPadding,
-		cellSize * 0.03,
+		x1,
+		y1,
+		x2,
+		y2,
+		cornerRadius,
 		1 - cellRect.opts.progress, -- make the effect wind counter-clockwise
 		{ 0.08, 0.08, 0.08, 0.6 }
 	)
+
+	-- Fill the sector already built, so the red covers exactly the progress an alt-click
+	-- would throw away and grows with it. RectRoundProgress only ever winds one way from
+	-- the top, so mirror it across the cell to land in the gap the shading leaves rather
+	-- than on top of the shading itself.
+	if cancelWarning.active then
+		gl.PushMatrix()
+		gl.Translate(x1 + x2, 0, 0)
+		gl.Scale(-1, 1, 1)
+		RectRoundProgress(x1, y1, x2, y2, cornerRadius, cellRect.opts.progress, cancelWarning.color)
+		gl.PopMatrix()
+	end
 end
 
 -------------------------------------------------------------------------------
