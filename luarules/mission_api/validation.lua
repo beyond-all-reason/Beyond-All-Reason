@@ -2,16 +2,15 @@
 --- Validators for Mission API objects loaded from missions.
 ---
 
-VFS.Include('common/wav.lua')
+VFS.Include("common/wav.lua")
 
 local function logError(message)
-	GG['MissionAPI'].HasValidationErrors = true
-	Spring.Log('validation.lua', LOG.ERROR, "[Mission API] " .. message)
+	GG["MissionAPI"].HasValidationErrors = true
+	Spring.Log("validation.lua", LOG.ERROR, "[Mission API] " .. message)
 end
 local function logWarn(message)
-	Spring.Log('validation.lua', LOG.WARNING, "[Mission API] " .. message)
+	Spring.Log("validation.lua", LOG.WARNING, "[Mission API] " .. message)
 end
-
 
 ----------------------------------------------------------------
 --- Parameter Type Validators:
@@ -35,17 +34,26 @@ end
 
 local function validateField(value, fieldName, expectedType)
 	if not value then
-		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName, fieldName = fieldName, missing = true }
+		return {
+			message = "Missing required parameter",
+			parameterNameSuffix = "." .. fieldName,
+			fieldName = fieldName,
+			missing = true,
+		}
 	end
 	if type(value) ~= expectedType then
-		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName, fieldName = fieldName }
+		return {
+			message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value),
+			parameterNameSuffix = "." .. fieldName,
+			fieldName = fieldName,
+		}
 	end
 end
 
-local parameterTypes = GG['MissionAPI'].Modules.ParameterTypes
+local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes
 local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
-local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 
 local validators = {}
@@ -57,85 +65,85 @@ local function validateLuaTypeCurried(expectedType)
 		return luaTypeResult and { { message = luaTypeResult } } or nil
 	end
 end
-validators[Types.Table] = validateLuaTypeCurried('table')
-validators[Types.String] = validateLuaTypeCurried('string')
-validators[Types.Number] = validateLuaTypeCurried('number')
-validators[Types.Boolean] = validateLuaTypeCurried('boolean')
-validators[Types.Function] = validateLuaTypeCurried('function')
+validators[Types.Table] = validateLuaTypeCurried("table")
+validators[Types.String] = validateLuaTypeCurried("string")
+validators[Types.Number] = validateLuaTypeCurried("number")
+validators[Types.Boolean] = validateLuaTypeCurried("boolean")
+validators[Types.Function] = validateLuaTypeCurried("function")
 
 --- Table Validators:
 
 validators[Types.Position] = function(position)
-		local luaTypeResult = validators[Types.Table](position)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		local result = {}
-		local fields = position.y ~= nil and { "x", "y", "z" } or { "x", "z" }
-		for _, field in pairs(fields) do
-			local fieldResult = validateField(position[field], field, 'number')
-			if fieldResult then
-				result[#result + 1] = fieldResult
-			end
-		end
-
-		return result
+	local luaTypeResult = validators[Types.Table](position)
+	if luaTypeResult then
+		return luaTypeResult
 	end
 
+	local result = {}
+	local fields = position.y ~= nil and { "x", "y", "z" } or { "x", "z" }
+	for _, field in pairs(fields) do
+		local fieldResult = validateField(position[field], field, "number")
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		end
+	end
+
+	return result
+end
+
 validators[Types.Positions] = function(positions)
-		local luaTypeResult = validators[Types.Table](positions)
-		if luaTypeResult then
-			return luaTypeResult
-		end
+	local luaTypeResult = validators[Types.Table](positions)
+	if luaTypeResult then
+		return luaTypeResult
+	end
 
-		local result = {}
-		if not positions or #positions < 2 then
-			result[#result + 1] = { message = "Positions table needs at least two positions" }
-		end
+	local result = {}
+	if not positions or #positions < 2 then
+		result[#result + 1] = { message = "Positions table needs at least two positions" }
+	end
 
-		for i, position in pairs(positions) do
-			local fieldResult = validateField(position, "position #" .. i, 'table')
-			if fieldResult then
-				result[#result + 1] = fieldResult
-			else
-				local positionResult = validators[Types.Position](position)
-				if positionResult then
-					for _, validationResult in pairs(positionResult) do
-						result[#result + 1] = {
-							message = validationResult.message,
-							parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or ''),
-						}
-					end
+	for i, position in pairs(positions) do
+		local fieldResult = validateField(position, "position #" .. i, "table")
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		else
+			local positionResult = validators[Types.Position](position)
+			if positionResult then
+				for _, validationResult in pairs(positionResult) do
+					result[#result + 1] = {
+						message = validationResult.message,
+						parameterNameSuffix = "[" .. i .. "]" .. (validationResult.parameterNameSuffix or ""),
+					}
 				end
 			end
 		end
-
-		return result
 	end
+
+	return result
+end
 
 validators[Types.AllyTeamNames] = function(allyTeamNames)
-		local luaTypeResult = validators[Types.Table](allyTeamNames)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if table.isNilOrEmpty(allyTeamNames) then
-			return { { message = "allyTeamNames table is empty" } }
-		end
-
-		local result = {}
-		for i, allyTeamName in pairs(allyTeamNames) do
-			local fieldResult = validateField(allyTeamName, "allyTeamName #" .. i, 'string')
-			if fieldResult then
-				result[#result + 1] = fieldResult
-			elseif not GG['MissionAPI'].AllyTeams[allyTeamName] then
-				result[#result + 1] = { message = "Invalid allyTeamName: " .. allyTeamName }
-			end
-		end
-
-		return result
+	local luaTypeResult = validators[Types.Table](allyTeamNames)
+	if luaTypeResult then
+		return luaTypeResult
 	end
+
+	if table.isNilOrEmpty(allyTeamNames) then
+		return { { message = "allyTeamNames table is empty" } }
+	end
+
+	local result = {}
+	for i, allyTeamName in pairs(allyTeamNames) do
+		local fieldResult = validateField(allyTeamName, "allyTeamName #" .. i, "string")
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		elseif not GG["MissionAPI"].AllyTeams[allyTeamName] then
+			result[#result + 1] = { message = "Invalid allyTeamName: " .. allyTeamName }
+		end
+	end
+
+	return result
+end
 
 validators[Types.Orders] = function(orders)
 
@@ -146,26 +154,33 @@ validators[Types.Orders] = function(orders)
 		local params = order[2]
 		local function validateNumberArrayCurried(sizes, message, nameKeys)
 			return function()
-				local luaTypeResult = validateLuaType(params, 'table')
+				local luaTypeResult = validateLuaType(params, "table")
 				if luaTypeResult then
-					result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
+					result[#result + 1] =
+						{ message = luaTypeResult, parameterNameSuffix = "[" .. orderNumber .. "][2]" }
 					return
 				end
 
-				if nameKeys and table.any(nameKeys, function(nameKey) return params[nameKey] ~= nil end) then
+				if nameKeys and table.any(nameKeys, function(nameKey)
+					return params[nameKey] ~= nil
+				end) then
 					-- params has a nameKey field, so it's a unit or feature name parameter
 					return
 				end
 
 				if not table.contains(sizes, #(params or {})) then
-					result[#result + 1] = { message = "Parameter must be an array of " .. message, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
+					result[#result + 1] = {
+						message = "Parameter must be an array of " .. message,
+						parameterNameSuffix = "[" .. orderNumber .. "][2]",
+					}
 					return
 				end
 
 				for i, param in ipairs(params or {}) do
-					local luaTypeRes = validateLuaType(param, 'number')
+					local luaTypeRes = validateLuaType(param, "number")
 					if luaTypeRes then
-						result[#result + 1] = { message = luaTypeRes, parameterNameSuffix = '[' .. orderNumber .. '][2][' .. i .. ']' }
+						result[#result + 1] =
+							{ message = luaTypeRes, parameterNameSuffix = "[" .. orderNumber .. "][2][" .. i .. "]" }
 						return
 					end
 				end
@@ -173,20 +188,36 @@ validators[Types.Orders] = function(orders)
 		end
 
 		local function validateNumber()
-			local luaTypeResult = validateLuaType(params, 'number')
+			local luaTypeResult = validateLuaType(params, "number")
 			if luaTypeResult then
-				result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = '[' .. orderNumber .. '][2]' }
+				result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = "[" .. orderNumber .. "][2]" }
 			end
 		end
 
-		local validateUnitName = validateNumberArrayCurried({ -1 }, "{ unitName = 'aUnitName' }", { 'unitName' })
+		local validateUnitName = validateNumberArrayCurried({ -1 }, "{ unitName = 'aUnitName' }", { "unitName" })
 		local validate3 = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}")
-		local validate3orUnitName = validateNumberArrayCurried({ 3 }, "3 numbers {x, y, z}, or a unit name", { 'unitName' })
+		local validate3orUnitName = validateNumberArrayCurried(
+			{ 3 },
+			"3 numbers {x, y, z}, or a unit name",
+			{ "unitName" }
+		)
 		local validate3or4 = validateNumberArrayCurried({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
 		local validate4 = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}")
-		local validate4orUnitName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
-		local validate4orFeatureName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
-		local validate4orEitherName = validateNumberArrayCurried({ 4 }, "4 numbers {x, y, z, radius}, or a unit/feature name", { 'unitName', 'featureName' })
+		local validate4orUnitName = validateNumberArrayCurried(
+			{ 4 },
+			"4 numbers {x, y, z, radius}, or a unit name",
+			{ "unitName" }
+		)
+		local validate4orFeatureName = validateNumberArrayCurried(
+			{ 4 },
+			"4 numbers {x, y, z, radius}, or a feature name",
+			{ "featureName" }
+		)
+		local validate4orEitherName = validateNumberArrayCurried(
+			{ 4 },
+			"4 numbers {x, y, z, radius}, or a unit/feature name",
+			{ "unitName", "featureName" }
+		)
 
 		local commandValidators = {
 			-- No parameters:
@@ -202,7 +233,7 @@ validators[Types.Orders] = function(orders)
 			-- 3 or 4 number parameters:
 			[CMD.UNLOAD_UNITS] = validate3or4,
 			-- 4 number parameters:
-			[CMD.AREA_ATTACK] = false,        -- currently broken in engine
+			[CMD.AREA_ATTACK] = false, -- currently broken in engine
 			[GameCMD.AREA_ATTACK_GROUND] = validate4, -- Only artillery units (customParams.canareaattack = 1) support this
 			[CMD.RESTORE] = validate4,
 			-- 3 number parameters, or unit name:
@@ -222,26 +253,39 @@ validators[Types.Orders] = function(orders)
 			[CMD.MOVE_STATE] = validateNumber,
 		}
 		if commandID == nil then
-			result[#result + 1] = { message = "Order is missing a command ID", parameterNameSuffix = '[' .. orderNumber .. ']' }
+			result[#result + 1] =
+				{ message = "Order is missing a command ID", parameterNameSuffix = "[" .. orderNumber .. "]" }
 		elseif commandValidators[commandID] then
 			commandValidators[commandID]()
-		elseif type(commandID) == 'string' then
+		elseif type(commandID) == "string" then
 			-- build command: See https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
 			-- commandID is a unitDefName string
 			local unitDef = UnitDefNames[commandID]
 			if not unitDef then
-				result[#result + 1] = { message = "Invalid build order unitDefName: " .. commandID, parameterNameSuffix = '[' .. orderNumber .. '][1]' }
+				result[#result + 1] = {
+					message = "Invalid build order unitDefName: " .. commandID,
+					parameterNameSuffix = "[" .. orderNumber .. "][1]",
+				}
 			end
 
 			-- parameters must be 3 or 4 numbers {x, y, z, optional facing}, or empty for factories
-			validateNumberArrayCurried({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")()
+			validateNumberArrayCurried(
+				{ 0, 3, 4 },
+				"3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories"
+			)()
 			if #(params or {}) == 4 then
 				if not parameterTypeEnums[Types.Facing][params[4]] then
-					result[#result + 1] = { message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", parameterNameSuffix = '[' .. orderNumber .. '][2][4]' }
+					result[#result + 1] = {
+						message = "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3",
+						parameterNameSuffix = "[" .. orderNumber .. "][2][4]",
+					}
 				end
 			end
 		elseif not knownCMDs[commandID] then
-			result[#result + 1] = { message = "Unknown command ID: " .. tostring(commandID), parameterNameSuffix = '[' .. orderNumber .. '][1]' }
+			result[#result + 1] = {
+				message = "Unknown command ID: " .. tostring(commandID),
+				parameterNameSuffix = "[" .. orderNumber .. "][1]",
+			}
 		else
 			logWarn("No validator implemented for orders with command ID: " .. tostring(commandID))
 		end
@@ -250,7 +294,7 @@ validators[Types.Orders] = function(orders)
 	local function validateOrderOptions(options, orderNumber)
 		local validOptions = { right = true, alt = true, ctrl = true, shift = true, meta = true }
 		if options then
-			local luaTypeResult = validateLuaType(options, 'table')
+			local luaTypeResult = validateLuaType(options, "table")
 			if luaTypeResult then
 				result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
 				return
@@ -258,7 +302,10 @@ validators[Types.Orders] = function(orders)
 
 			for _, optionName in pairs(options) do
 				if not validOptions[optionName] then
-					result[#result + 1] = { message = "Invalid order option: " .. optionName, parameterNameSuffix = "[" .. orderNumber .. "][3]" }
+					result[#result + 1] = {
+						message = "Invalid order option: " .. optionName,
+						parameterNameSuffix = "[" .. orderNumber .. "][3]",
+					}
 				end
 			end
 		end
@@ -274,7 +321,7 @@ validators[Types.Orders] = function(orders)
 	end
 
 	for i, order in pairs(orders) do
-		local fieldResult = validateField(order, "order #" .. i, 'table')
+		local fieldResult = validateField(order, "order #" .. i, "table")
 		if fieldResult then
 			result[#result + 1] = fieldResult
 		else
@@ -287,38 +334,42 @@ validators[Types.Orders] = function(orders)
 end
 
 validators[Types.Area] = function(area)
-		local luaTypeResult = validators[Types.Table](area)
-		if luaTypeResult then
-			return luaTypeResult
-		end
+	local luaTypeResult = validators[Types.Table](area)
+	if luaTypeResult then
+		return luaTypeResult
+	end
 
-		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
-		local isCircle = area.x and area.z and area.radius
-		if not isRectangle and not isCircle then
-			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }" } }
-		else
-			local result = {}
-			for key, value in pairs(area) do
-				local fieldResult = validateField(value, key, 'number')
-				if fieldResult then
-					result[#result + 1] = fieldResult
-				end
-			end
-			if not table.isNilOrEmpty(result) then
-				return result
+	local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
+	local isCircle = area.x and area.z and area.radius
+	if not isRectangle and not isCircle then
+		return {
+			{
+				message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }",
+			},
+		}
+	else
+		local result = {}
+		for key, value in pairs(area) do
+			local fieldResult = validateField(value, key, "number")
+			if fieldResult then
+				result[#result + 1] = fieldResult
 			end
 		end
-		if isRectangle then
-			local result = {}
-			if area.x1 >= area.x2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2" }
-			end
-			if area.z1 >= area.z2 then
-				result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2" }
-			end
+		if not table.isNilOrEmpty(result) then
 			return result
 		end
 	end
+	if isRectangle then
+		local result = {}
+		if area.x1 >= area.x2 then
+			result[#result + 1] = { message = "Invalid area rectangle parameter, x1 must be less than x2" }
+		end
+		if area.z1 >= area.z2 then
+			result[#result + 1] = { message = "Invalid area rectangle parameter, z1 must be less than z2" }
+		end
+		return result
+	end
+end
 
 validators[Types.Direction] = function(direction)
 	local luaTypeResult = validators[Types.Table](direction)
@@ -329,10 +380,18 @@ validators[Types.Direction] = function(direction)
 	local isAngle = direction.angle and true
 	local isDirection = direction.x and direction.z
 	if not isAngle and not isDirection then
-		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }" } }
+		return {
+			{
+				message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }",
+			},
+		}
 	end
 	if isAngle and isDirection then
-		return { { message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both." } }
+		return {
+			{
+				message = "Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.",
+			},
+		}
 	end
 	if isDirection then
 		local positionResult = validators[Types.Position](direction)
@@ -352,7 +411,9 @@ local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 
 	return function(values)
 		local luaTypeResult = validators[Types.Table](values)
-		if luaTypeResult then return luaTypeResult end
+		if luaTypeResult then
+			return luaTypeResult
+		end
 		if #values == 0 then
 			return -- Empty table matches the empty/null set and is permissive.
 		end
@@ -360,10 +421,21 @@ local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
 		local result = {}
 		for i, value in ipairs(values) do
 			if not valueSet[value] then
-				result[#result + 1] = { message = "Invalid " .. enumSetName .. " [" .. i .. "]: '" .. tostring(value) .. "'. Must be one of: " .. allowedList }
+				result[#result + 1] = {
+					message = "Invalid "
+						.. enumSetName
+						.. " ["
+						.. i
+						.. "]: '"
+						.. tostring(value)
+						.. "'. Must be one of: "
+						.. allowedList,
+				}
 			end
 		end
-		if #result > 0 then return result end
+		if #result > 0 then
+			return result
+		end
 	end
 end
 for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
@@ -378,7 +450,7 @@ validators[Types.StageID] = function(stageID)
 		return luaTypeResult
 	end
 
-	if not GG['MissionAPI'].Stages[stageID] then
+	if not GG["MissionAPI"].Stages[stageID] then
 		return { { message = "Invalid stageID: " .. stageID } }
 	end
 end
@@ -389,35 +461,35 @@ validators[Types.ObjectiveID] = function(objectiveID)
 		return luaTypeResult
 	end
 
-	if not GG['MissionAPI'].Objectives[objectiveID] then
+	if not GG["MissionAPI"].Objectives[objectiveID] then
 		return { { message = "Invalid objectiveID: " .. objectiveID } }
 	end
 end
 
 validators[Types.TriggerID] = function(triggerID)
-		local luaTypeResult = validators[Types.String](triggerID)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if not GG['MissionAPI'].Triggers[triggerID] then
-			return { { message = "Invalid triggerID: " .. triggerID } }
-		end
+	local luaTypeResult = validators[Types.String](triggerID)
+	if luaTypeResult then
+		return luaTypeResult
 	end
+
+	if not GG["MissionAPI"].Triggers[triggerID] then
+		return { { message = "Invalid triggerID: " .. triggerID } }
+	end
+end
 
 validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
 
 validators[Types.UnitDefName] = function(unitDefName)
-		local luaTypeResult = validators[Types.String](unitDefName)
-		if luaTypeResult then
-			return luaTypeResult
-		end
-
-		if not UnitDefNames[unitDefName] then
-			return { { message = "Invalid unitDefName: " .. unitDefName } }
-		end
+	local luaTypeResult = validators[Types.String](unitDefName)
+	if luaTypeResult then
+		return luaTypeResult
 	end
+
+	if not UnitDefNames[unitDefName] then
+		return { { message = "Invalid unitDefName: " .. unitDefName } }
+	end
+end
 
 validators[Types.WeaponDefName] = function(weaponDefName)
 	local luaTypeResult = validators[Types.String](weaponDefName)
@@ -464,16 +536,22 @@ validators[Types.AllyTeamName] = function(allyTeamName)
 end
 
 validators[Types.Facing] = function(facing)
-		local expectedTypes = { string = true, number = true }
-		local actualType = type(facing)
-		if not expectedTypes[actualType] then
-			return { { message = "Unexpected parameter type, expected string or number, got " .. actualType } }
-		end
-
-		if not parameterTypeEnums[Types.Facing][facing] then
-			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'." } }
-		end
+	local expectedTypes = { string = true, number = true }
+	local actualType = type(facing)
+	if not expectedTypes[actualType] then
+		return { { message = "Unexpected parameter type, expected string or number, got " .. actualType } }
 	end
+
+	if not parameterTypeEnums[Types.Facing][facing] then
+		return {
+			{
+				message = "Invalid facing: "
+					.. facing
+					.. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'.",
+			},
+		}
+	end
+end
 
 validators[Types.SoundFile] = function(soundfile)
 	local luaTypeResult = validators[Types.String](soundfile)
@@ -515,48 +593,94 @@ validators[Types.Fraction] = function(fraction)
 	end
 end
 
-
 ----------------------------------------------------------------
 --- Trigger/Action Validation Functions:
 ----------------------------------------------------------------
 
-local triggerDefinitions = GG['MissionAPI'].TriggerDefinitions
+local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions
 local triggersSchemaSettings = triggerDefinitions.Settings
 local triggersSchemaParameters = triggerDefinitions.Parameters
-local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
+local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
-local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
+local function validate(
+	schemaParameters,
+	actionOrTriggerType,
+	actionOrTriggerParameters,
+	actionOrTrigger,
+	actionOrTriggerID
+)
 	if not actionOrTriggerType then
 		logError(actionOrTrigger .. " missing type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	elseif not schemaParameters[actionOrTriggerType] then
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
 		actionOrTriggerParameters = actionOrTriggerParameters or {}
-		local parametersTypeResult = validateLuaType(actionOrTriggerParameters, 'table')
+		local parametersTypeResult = validateLuaType(actionOrTriggerParameters, "table")
 		if parametersTypeResult then
-			logError(parametersTypeResult .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: parameters")
+			logError(
+				parametersTypeResult
+					.. ". "
+					.. actionOrTrigger
+					.. ": "
+					.. actionOrTriggerID
+					.. ", Parameter: parameters"
+			)
 			actionOrTriggerParameters = {}
 		end
 
 		-- Check for requiresOneOf parameters:
 		local requiresOneOf = schemaParameters[actionOrTriggerType].requiresOneOf
-		if requiresOneOf and table.all(requiresOneOf, function(paramName) return actionOrTriggerParameters[paramName] == nil end) then
-			logError(actionOrTrigger .." '" .. actionOrTriggerID .. "' is missing required parameter. At least one of " .. table.toString(requiresOneOf) .. " is required.")
+		if
+			requiresOneOf
+			and table.all(requiresOneOf, function(paramName)
+				return actionOrTriggerParameters[paramName] == nil
+			end)
+		then
+			logError(
+				actionOrTrigger
+					.. " '"
+					.. actionOrTriggerID
+					.. "' is missing required parameter. At least one of "
+					.. table.toString(requiresOneOf)
+					.. " is required."
+			)
 		end
 		-- Validate each parameter:
 		for _, parameter in ipairs(schemaParameters[actionOrTriggerType]) do
 			local value = actionOrTriggerParameters[parameter.name]
 			if value == nil then
 				if parameter.required then
-					logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
+					logError(
+						actionOrTrigger
+							.. " missing required parameter. "
+							.. actionOrTrigger
+							.. ": "
+							.. actionOrTriggerID
+							.. ", Parameter: "
+							.. parameter.name
+					)
 				end
 			else
-				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
+				local validationResults = validators[parameter.type](
+					value,
+					actionOrTrigger,
+					actionOrTriggerID,
+					parameter.name
+				) or {}
 				for _, validationResult in pairs(validationResults) do
-					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
+					logError(
+						validationResult.message
+							.. ". "
+							.. actionOrTrigger
+							.. ": "
+							.. actionOrTriggerID
+							.. ", Parameter: "
+							.. parameter.name
+							.. (validationResult.parameterNameSuffix or "")
+					)
 				end
 			end
 		end
@@ -580,14 +704,19 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 	-- Validate prerequisites triggerIDs exist:
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID] then
-			logError("Trigger prerequisite does not exist. Trigger: " .. triggerID .. ", Prerequisite triggerID: " .. prerequisiteTriggerID)
+			logError(
+				"Trigger prerequisite does not exist. Trigger: "
+					.. triggerID
+					.. ", Prerequisite triggerID: "
+					.. prerequisiteTriggerID
+			)
 		end
 	end
 
 	-- Validate stages exist:
 	if trigger.settings.stages then
 		for _, stage in pairs(trigger.settings.stages) do
-			if not GG['MissionAPI'].Stages[stage] then
+			if not GG["MissionAPI"].Stages[stage] then
 				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
 			end
 		end
@@ -596,7 +725,7 @@ end
 
 local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
-		if fieldName ~= 'nextStage' and objective[fieldName] ~= nil then
+		if fieldName ~= "nextStage" and objective[fieldName] ~= nil then
 			local validator = validators[fieldType]
 			local results = validator(objective[fieldName]) or {}
 			if #results > 0 then
@@ -609,7 +738,7 @@ local function validateObjectiveSchemaFields(objective, objectiveIDText)
 end
 
 local function validateObjectiveInlineTrigger(objective, objectiveIDText)
-	if type(objective.trigger) ~= 'table' then
+	if type(objective.trigger) ~= "table" then
 		return
 	end
 
@@ -624,7 +753,7 @@ local function validateObjectiveInlineTrigger(objective, objectiveIDText)
 	-- Inject it here so the required-parameter check passes even if the user omitted it,
 	-- and warn if the user explicitly specified it (since it will be ignored).
 	local triggerParams = objective.trigger.parameters or {}
-	local triggerParamsTypeResult = validateLuaType(triggerParams, 'table')
+	local triggerParamsTypeResult = validateLuaType(triggerParams, "table")
 	if triggerParamsTypeResult then
 		logError(triggerParamsTypeResult .. ". Objective trigger: " .. objectiveIDText .. ", Parameter: parameters")
 		triggerParams = {}
@@ -637,23 +766,23 @@ local function validateObjectiveInlineTrigger(objective, objectiveIDText)
 		triggerParams = table.copy(triggerParams or {})
 		triggerParams.quantity = 1
 	end
-	validate(triggersSchemaParameters, objective.trigger.type, triggerParams, 'Objective trigger', objectiveIDText)
+	validate(triggersSchemaParameters, objective.trigger.type, triggerParams, "Objective trigger", objectiveIDText)
 end
 
 local function validateObjective(objectiveID, objective)
 	local objectiveIDText = tostring(objectiveID)
-	if type(objectiveID) ~= 'string' then
+	if type(objectiveID) ~= "string" then
 		logError("Objective ID must be a string, got " .. type(objectiveID))
 	end
 
-	if type(objective) ~= 'table' then
+	if type(objective) ~= "table" then
 		logError("Objective data must be a table, got " .. type(objective) .. ". Objective: " .. objectiveIDText)
 		return
 	end
 
 	if not objective.textKey then
 		logError("Objective missing textKey: " .. objectiveIDText)
-	elseif objective.textKey == '' then
+	elseif objective.textKey == "" then
 		logError("Objective has empty textKey: " .. objectiveIDText)
 	end
 
@@ -668,7 +797,7 @@ local function validateObjectives(objectives)
 end
 
 local function validateInitialStage(initialStage)
-	local stages = GG['MissionAPI'].Stages
+	local stages = GG["MissionAPI"].Stages
 	local hasStages = next(stages)
 	if hasStages then
 		if not initialStage then
@@ -689,7 +818,7 @@ local function validateTriggers(triggers, rawActions)
 			logError("Trigger has no actions: " .. triggerID)
 		else
 			for _, action in pairs(trigger.actions) do
-				if action == nil or action == '' then
+				if action == nil or action == "" then
 					logError("Trigger has empty action ID: " .. triggerID)
 				elseif not rawActions[action] then
 					logError("Trigger has invalid action ID: " .. triggerID .. ", Action: " .. action)
@@ -697,13 +826,13 @@ local function validateTriggers(triggers, rawActions)
 			end
 		end
 		validateTriggerSettings(trigger, triggerID, triggers)
-		validate(triggersSchemaParameters, trigger.type, trigger.parameters, 'Trigger', triggerID)
+		validate(triggersSchemaParameters, trigger.type, trigger.parameters, "Trigger", triggerID)
 	end
 end
 
 local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
-	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
+	for _, trigger in pairs(GG["MissionAPI"].Triggers) do
 		for _, actionID in pairs(trigger.actions or {}) do
 			allActionIDsReferencedByTriggers[actionID] = true
 		end
@@ -719,7 +848,7 @@ local function validateActions(actions)
 		if not allActionIDsReferencedByTriggers[actionID] then
 			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
 		end
-		validate(actionsSchemaParameters, action.type, action.parameters, 'Action', actionID)
+		validate(actionsSchemaParameters, action.type, action.parameters, "Action", actionID)
 	end
 	if not table.isEmpty(unreferencedActionIDs) then
 		table.sort(unreferencedActionIDs)
@@ -733,10 +862,12 @@ local function validateStagesReferences(stages, objectives)
 	end
 
 	for stageID, stageData in pairs(stages) do
-		if type(stageData) == 'table' and stageData.objectives then
+		if type(stageData) == "table" and stageData.objectives then
 			for i, objectiveID in ipairs(stageData.objectives or {}) do
-				if type(objectiveID) == 'string' and objectives[objectiveID] == nil then
-					logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
+				if type(objectiveID) == "string" and objectives[objectiveID] == nil then
+					logError(
+						"Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID
+					)
 				end
 			end
 		end
@@ -749,22 +880,31 @@ local function validateStages(stages)
 	end
 
 	for stageID, stageData in pairs(stages) do
-		if type(stageID) ~= 'string' then
+		if type(stageID) ~= "string" then
 			logError("Stage ID must be a string, got " .. type(stageID))
 		end
 
-		if type(stageData) ~= 'table' then
+		if type(stageData) ~= "table" then
 			logError("Stage data must be a table, got " .. type(stageData) .. ". Stage: " .. stageID)
 		else
 			local objectives_list = stageData.objectives
 			if objectives_list == nil then
 				logError("Stage missing 'objectives' field. Stage: " .. stageID)
-			elseif type(objectives_list) ~= 'table' then
-				logError("Stage 'objectives' field must be a table, got " .. type(objectives_list) .. ". Stage: " .. stageID)
+			elseif type(objectives_list) ~= "table" then
+				logError(
+					"Stage 'objectives' field must be a table, got " .. type(objectives_list) .. ". Stage: " .. stageID
+				)
 			else
 				for i, objectiveID in ipairs(objectives_list) do
-					if type(objectiveID) ~= 'string' then
-						logError("Stage 'objectives' entry #" .. i .. " must be a string, got " .. type(objectiveID) .. ". Stage: " .. stageID)
+					if type(objectiveID) ~= "string" then
+						logError(
+							"Stage 'objectives' entry #"
+								.. i
+								.. " must be a string, got "
+								.. type(objectiveID)
+								.. ". Stage: "
+								.. stageID
+						)
 					end
 				end
 				if #objectives_list == 0 then
@@ -777,12 +917,23 @@ end
 
 local function validateObjectiveNextStageReferences(objectives)
 	for objectiveID, objective in pairs(objectives) do
-		if type(objective) == 'table' and objective.nextStage ~= nil then
+		if type(objective) == "table" and objective.nextStage ~= nil then
 			local objectiveIDText = tostring(objectiveID)
-			if type(objective.nextStage) ~= 'string' then
-				logError("Unexpected parameter type, expected string, got " .. type(objective.nextStage) .. ". Objective: " .. objectiveIDText .. ", Field: nextStage")
-			elseif GG['MissionAPI'].Stages[objective.nextStage] == nil then
-				logError("Objective references non-existent nextStage. Objective: " .. objectiveIDText .. ", Stage: " .. objective.nextStage)
+			if type(objective.nextStage) ~= "string" then
+				logError(
+					"Unexpected parameter type, expected string, got "
+						.. type(objective.nextStage)
+						.. ". Objective: "
+						.. objectiveIDText
+						.. ", Field: nextStage"
+				)
+			elseif GG["MissionAPI"].Stages[objective.nextStage] == nil then
+				logError(
+					"Objective references non-existent nextStage. Objective: "
+						.. objectiveIDText
+						.. ", Stage: "
+						.. objective.nextStage
+				)
 			end
 		end
 	end
@@ -795,7 +946,7 @@ end
 local function validateUnitLoadoutEntry(entry, index, context)
 	local prefix = (context or "UnitLoadout") .. " entry #" .. index
 
-	if type(entry) ~= 'table' then
+	if type(entry) ~= "table" then
 		logError(prefix .. ": entry must be a table, got " .. type(entry))
 		return
 	end
@@ -846,7 +997,11 @@ local function validateUnitLoadoutEntry(entry, index, context)
 	if entry.construction ~= nil then
 		local constructionResult = validators[Types.Boolean](entry.construction)
 		if constructionResult and not table.isEmpty(constructionResult) then
-			logError(prefix .. ", field 'construction': " .. (constructionResult[1] and constructionResult[1].message or "invalid"))
+			logError(
+				prefix
+					.. ", field 'construction': "
+					.. (constructionResult[1] and constructionResult[1].message or "invalid")
+			)
 		end
 	end
 
@@ -875,7 +1030,13 @@ local function validateUnitLoadoutEntry(entry, index, context)
 		local ordersResult = validators[Types.Orders](entry.orders)
 		if ordersResult and not table.isEmpty(ordersResult) then
 			for _, err in ipairs(ordersResult) do
-				logError(prefix .. ", field 'orders'" .. (err.parameterNameSuffix or "") .. ": " .. (err.message or "invalid"))
+				logError(
+					prefix
+						.. ", field 'orders'"
+						.. (err.parameterNameSuffix or "")
+						.. ": "
+						.. (err.message or "invalid")
+				)
 			end
 		end
 	end
@@ -884,7 +1045,7 @@ end
 local function validateFeatureLoadoutEntry(entry, index, context)
 	local prefix = (context or "FeatureLoadout") .. " entry #" .. index
 
-	if type(entry) ~= 'table' then
+	if type(entry) ~= "table" then
 		logError(prefix .. ": entry must be a table, got " .. type(entry))
 		return
 	end
@@ -919,7 +1080,11 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 	if entry.featureName ~= nil then
 		local featureNameResult = validators[Types.String](entry.featureName)
 		if featureNameResult and not table.isEmpty(featureNameResult) then
-			logError(prefix .. ", field 'featureName': " .. (featureNameResult[1] and featureNameResult[1].message or "invalid"))
+			logError(
+				prefix
+					.. ", field 'featureName': "
+					.. (featureNameResult[1] and featureNameResult[1].message or "invalid")
+			)
 		end
 	end
 end
@@ -928,10 +1093,11 @@ end
 --- Errors are logged directly by the entry helper; this returns {} so the
 --- generic validate() machinery has nothing extra to report.
 local function validateUnitLoadout(unitLoadout, actionOrTrigger, actionOrTriggerID, parameterName)
-	if type(unitLoadout) ~= 'table' then
+	if type(unitLoadout) ~= "table" then
 		return { { message = "UnitLoadout must be a table, got " .. type(unitLoadout) } }
 	end
-	local context = actionOrTriggerID and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "unitLoadout"))
+	local context = actionOrTriggerID
+		and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "unitLoadout"))
 	for i, entry in ipairs(unitLoadout) do
 		validateUnitLoadoutEntry(entry, i, context)
 	end
@@ -940,10 +1106,11 @@ end
 
 --- Validator for a featureLoadout table (array of feature entries).
 local function validateFeatureLoadout(featureLoadout, actionOrTrigger, actionOrTriggerID, parameterName)
-	if type(featureLoadout) ~= 'table' then
+	if type(featureLoadout) ~= "table" then
 		return { { message = "FeatureLoadout must be a table, got " .. type(featureLoadout) } }
 	end
-	local context = actionOrTriggerID and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "featureLoadout"))
+	local context = actionOrTriggerID
+		and (actionOrTrigger .. " '" .. actionOrTriggerID .. "' " .. (parameterName or "featureLoadout"))
 	for i, entry in ipairs(featureLoadout) do
 		validateFeatureLoadoutEntry(entry, i, context)
 	end
@@ -951,7 +1118,7 @@ local function validateFeatureLoadout(featureLoadout, actionOrTrigger, actionOrT
 end
 
 -- Patch the new types into the validators table now that the functions exist.
-validators[Types.UnitLoadout]    = validateUnitLoadout
+validators[Types.UnitLoadout] = validateUnitLoadout
 validators[Types.FeatureLoadout] = validateFeatureLoadout
 
 local function validateLoadouts(unitLoadout, featureLoadout)
@@ -962,7 +1129,6 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 		validateFeatureLoadout(featureLoadout)
 	end
 end
-
 
 local function validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
@@ -985,7 +1151,7 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 
 	-- Loadout entries with a unitName count as creating that name.
 	for i, entry in ipairs(unitLoadout or {}) do
-		if type(entry) == 'table' and type(entry.unitName) == 'string' then
+		if type(entry) == "table" and type(entry.unitName) == "string" then
 			createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
 			createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "UnitLoadout entry #" .. i
 		end
@@ -995,9 +1161,12 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.SpawnUnits and action.parameters and action.parameters.unitLoadout then
 			for i, entry in ipairs(action.parameters.unitLoadout) do
-				if type(entry) == 'table' and type(entry.unitName) == 'string' then
+				if type(entry) == "table" and type(entry.unitName) == "string" then
 					createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
-					createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action " .. actionID .. ", unitLoadout entry #" .. i
+					createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action "
+						.. actionID
+						.. ", unitLoadout entry #"
+						.. i
 				end
 			end
 		end
@@ -1008,7 +1177,7 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		if action.type == actionTypes.IssueOrders then
 			for _, order in ipairs(action.parameters.orders) do
 				local params = order[2]
-				if type(params) == 'table' and type(params.unitName) == 'string' then
+				if type(params) == "table" and type(params.unitName) == "string" then
 					local refsToUnitName = table.ensureTable(referencedUnitNames, params.unitName)
 					refsToUnitName[#refsToUnitName + 1] = "action " .. actionID .. " (orders)"
 				end
@@ -1019,16 +1188,23 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 	-- Objective inline triggers can also refer to unit names.
 	for objectiveID, objective in pairs(objectives or {}) do
 		local unitName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.unitName
-		if type(unitName) == 'string' then
+		if type(unitName) == "string" then
 			referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
-			referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = "objective " .. objectiveID .. " (trigger)"
+			referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = "objective "
+				.. objectiveID
+				.. " (trigger)"
 		end
 	end
 
-	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
+	local function recordUnitNameCreationsAndReferences(
+		typesNamingUnits,
+		typesReferencingUnitNames,
+		actionsOrTriggers,
+		label
+	)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
-			if type(unitName) == 'string' then
+			if type(unitName) == "string" then
 				if typesNamingUnits[actionOrTrigger.type] then
 					local creatorsOfUnitName = table.ensureTable(createdUnitNames, unitName)
 					creatorsOfUnitName[#creatorsOfUnitName + 1] = label .. actionOrTriggerID
@@ -1045,12 +1221,22 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 
 	for unitName, labels in pairs(referencedUnitNames) do
 		if not createdUnitNames[unitName] then
-			logWarn("Unit name '" .. unitName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+			logWarn(
+				"Unit name '"
+					.. unitName
+					.. "' not created in any trigger or action. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
 		end
 	end
 	for unitName, labels in pairs(createdUnitNames) do
 		if not referencedUnitNames[unitName] then
-			logWarn("Unit name '" .. unitName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
+			logWarn(
+				"Unit name '"
+					.. unitName
+					.. "' created, but not referenced by any trigger or action. Created in: "
+					.. table.concat(labels, ", ")
+			)
 		end
 	end
 end
@@ -1069,9 +1255,10 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 
 	-- Loadout entries with a featureName count as creating that name.
 	for i, entry in ipairs(featureLoadout or {}) do
-		if type(entry) == 'table' and type(entry.featureName) == 'string' then
+		if type(entry) == "table" and type(entry.featureName) == "string" then
 			createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
-			createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "FeatureLoadout entry #" .. i
+			createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "FeatureLoadout entry #"
+				.. i
 		end
 	end
 
@@ -1079,9 +1266,12 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.CreateFeatures and action.parameters and action.parameters.featureLoadout then
 			for i, entry in ipairs(action.parameters.featureLoadout) do
-				if type(entry) == 'table' and type(entry.featureName) == 'string' then
+				if type(entry) == "table" and type(entry.featureName) == "string" then
 					createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
-					createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action " .. actionID .. ", featureLoadout entry #" .. i
+					createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action "
+						.. actionID
+						.. ", featureLoadout entry #"
+						.. i
 				end
 			end
 		end
@@ -1092,7 +1282,7 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 		if action.type == actionTypes.IssueOrders then
 			for _, order in ipairs(action.parameters.orders) do
 				local params = order[2]
-				if type(params) == 'table' and type(params.featureName) == 'string' then
+				if type(params) == "table" and type(params.featureName) == "string" then
 					local refsToFeatureName = table.ensureTable(referencedFeatureNames, params.featureName)
 					refsToFeatureName[#refsToFeatureName + 1] = "action " .. actionID .. " (orders)"
 				end
@@ -1103,16 +1293,21 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	-- Objective inline triggers can also refer to feature names.
 	for objectiveID, objective in pairs(objectives or {}) do
 		local featureName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.featureName
-		if type(featureName) == 'string' then
+		if type(featureName) == "string" then
 			local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
 			refsToFeatureName[#refsToFeatureName + 1] = "objective " .. objectiveID .. " (trigger)"
 		end
 	end
 
-	local function recordFeatureNameCreationsAndReferences(typesNamingFeatures, typesReferencingFeatureNames, actionsOrTriggers, label)
+	local function recordFeatureNameCreationsAndReferences(
+		typesNamingFeatures,
+		typesReferencingFeatureNames,
+		actionsOrTriggers,
+		label
+	)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local featureName = (actionOrTrigger.parameters or {}).featureName
-			if type(featureName) == 'string' then
+			if type(featureName) == "string" then
 				if typesNamingFeatures[actionOrTrigger.type] then
 					local creatorsOfFeatureName = table.ensureTable(createdFeatureNames, featureName)
 					creatorsOfFeatureName[#creatorsOfFeatureName + 1] = label .. actionOrTriggerID
@@ -1125,16 +1320,31 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	end
 
 	recordFeatureNameCreationsAndReferences({}, triggerTypesReferencingFeatureNames, triggers, "trigger ")
-	recordFeatureNameCreationsAndReferences(actionTypesNamingFeatures, actionTypesReferencingFeatureNames, actions, "action ")
+	recordFeatureNameCreationsAndReferences(
+		actionTypesNamingFeatures,
+		actionTypesReferencingFeatureNames,
+		actions,
+		"action "
+	)
 
 	for featureName, labels in pairs(referencedFeatureNames) do
 		if not createdFeatureNames[featureName] then
-			logWarn("Feature name '" .. featureName .. "' not created in any trigger or action. Referenced in: " .. table.concat(labels, ", "))
+			logWarn(
+				"Feature name '"
+					.. featureName
+					.. "' not created in any trigger or action. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
 		end
 	end
 	for featureName, labels in pairs(createdFeatureNames) do
 		if not referencedFeatureNames[featureName] then
-			logWarn("Feature name '" .. featureName .. "' created, but not referenced by any trigger or action. Created in: " .. table.concat(labels, ", "))
+			logWarn(
+				"Feature name '"
+					.. featureName
+					.. "' created, but not referenced by any trigger or action. Created in: "
+					.. table.concat(labels, ", ")
+			)
 		end
 	end
 end
@@ -1160,25 +1370,35 @@ local function validateMarkerNameReferences(actionTypes, actions)
 
 	for markerName, actionIDs in pairs(referencedMarkerNames) do
 		if not createdMarkerNames[markerName] then
-			logWarn("Marker name '" .. markerName .. "' is not created in any action. Referenced in: " .. table.concat(actionIDs, ", "))
+			logWarn(
+				"Marker name '"
+					.. markerName
+					.. "' is not created in any action. Referenced in: "
+					.. table.concat(actionIDs, ", ")
+			)
 		end
 	end
 	for markerName, actionIDs in pairs(createdMarkerNames) do
 		if not referencedMarkerNames[markerName] then
-			logWarn("Marker name '" .. markerName .. "' is not referenced by any action. Referenced in: " .. table.concat(actionIDs, ", "))
+			logWarn(
+				"Marker name '"
+					.. markerName
+					.. "' is not referenced by any action. Referenced in: "
+					.. table.concat(actionIDs, ", ")
+			)
 		end
 	end
 end
 
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
-	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
-	local objectives = GG['MissionAPI'].Objectives
-	local stages = GG['MissionAPI'].Stages
-	local triggers = GG['MissionAPI'].Triggers
-	local actions = GG['MissionAPI'].Actions
-	local unitLoadout = GG['MissionAPI'].UnitLoadout
-	local featureLoadout = GG['MissionAPI'].FeatureLoadout
+	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
+	local objectives = GG["MissionAPI"].Objectives
+	local stages = GG["MissionAPI"].Stages
+	local triggers = GG["MissionAPI"].Triggers
+	local actions = GG["MissionAPI"].Actions
+	local unitLoadout = GG["MissionAPI"].UnitLoadout
+	local featureLoadout = GG["MissionAPI"].FeatureLoadout
 
 	validateStagesReferences(stages, objectives)
 	validateObjectiveNextStageReferences(objectives)

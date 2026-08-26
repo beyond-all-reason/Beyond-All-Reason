@@ -18,7 +18,7 @@ local triggers = {
 			maxRepeats = 77,
 		},
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			duration = 60,
@@ -35,7 +35,7 @@ local triggers = {
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			duration = 60,
@@ -71,7 +71,7 @@ local triggers = {
 	botEnteredLocation = {
 		type = triggerTypes.UnitEnteredLocation,
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
@@ -82,13 +82,13 @@ local triggers = {
 	botLeftLocation = {
 		type = triggerTypes.UnitLeftLocation,
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamName = 'thePlayerTeam',
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
 		-- for some reason, CMD.CAPTURE doesn't work in the same frame as either acting unit or its target is spawned
-		actions = { 'messageBotLeftLocation', 'orderDecoysCaptureAndBuild', 'spawnEngineer', 'orderEngineerMove' },
+		actions = { 'messageBotLeftLocation', 'orderDecoysCaptureAndBuild' },
 	},
 
 	unitCaptured = {
@@ -224,7 +224,7 @@ local triggers = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamName = 'theEnemyTeam',
-			sensorAllyTeamID = 0,
+			sensorAllyTeamName = 'thePlayerAllyTeam',
 			sensorTypes = { 'vision' },
 		},
 		actions = { 'messageEngineerUndetected' },

@@ -5,53 +5,66 @@
 local types = {
 
 	-- Table Validators:
-	Table = 'Table',
-	Position = 'Position',
-	Positions = 'Positions',
-	AllyTeamNames = 'AllyTeamNames',
-	Orders = 'Orders',
-	Area = 'Area',
-	Direction = 'Direction',
-	UnitLoadout = 'UnitLoadout',
-	FeatureLoadout = 'FeatureLoadout',
-	ResourceIncomeSources = 'ResourceIncomeSources',
-	SensorTypes = 'SensorTypes',
+	Table = "Table",
+	Position = "Position",
+	Positions = "Positions",
+	AllyTeamNames = "AllyTeamNames",
+	Orders = "Orders",
+	Area = "Area",
+	Direction = "Direction",
+	UnitLoadout = "UnitLoadout",
+	FeatureLoadout = "FeatureLoadout",
+	ResourceIncomeSources = "ResourceIncomeSources",
+	SensorTypes = "SensorTypes",
 
 	-- String Validators:
-	String = 'String',
-	StageID = 'StageID',
-	ObjectiveID = 'ObjectiveID',
-	TriggerID = 'TriggerID',
-	UnitName = 'UnitName',
-	FeatureName = 'FeatureName',
-	UnitDefName = 'UnitDefName',
-	FeatureDefName = 'FeatureDefName',
-	WeaponDefName = 'WeaponDefName',
-	TeamName = 'TeamName',
-	AllyTeamName = 'AllyTeamName',
-	Facing = 'Facing',
-	SoundFile = 'SoundFile',
+	String = "String",
+	StageID = "StageID",
+	ObjectiveID = "ObjectiveID",
+	TriggerID = "TriggerID",
+	UnitName = "UnitName",
+	FeatureName = "FeatureName",
+	UnitDefName = "UnitDefName",
+	FeatureDefName = "FeatureDefName",
+	WeaponDefName = "WeaponDefName",
+	TeamName = "TeamName",
+	AllyTeamName = "AllyTeamName",
+	Facing = "Facing",
+	SoundFile = "SoundFile",
 
 	-- Number Validators:
-	Number = 'Number',
-	Quantity = 'Quantity',
-	Fraction = 'Fraction',
+	Number = "Number",
+	Quantity = "Quantity",
+	Fraction = "Fraction",
 
 	-- Boolean Validators:
-	Boolean = 'Boolean',
+	Boolean = "Boolean",
 
 	-- Function Validators:
-	Function = 'Function',
+	Function = "Function",
 
 }
 
 local enums = {
-	[types.Facing] = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true },
+	[types.Facing] = {
+		[0] = true,
+		[1] = true,
+		[2] = true,
+		[3] = true,
+		n = true,
+		s = true,
+		e = true,
+		w = true,
+		north = true,
+		south = true,
+		east = true,
+		west = true,
+	},
 }
 
 local enumSets = {
-	[types.ResourceIncomeSources] = { 'extractor', 'production', 'reclaim', 'transfer' },
-	[types.SensorTypes] = { 'vision', 'radar', 'seismic' },
+	[types.ResourceIncomeSources] = { "extractor", "production", "reclaim", "transfer" },
+	[types.SensorTypes] = { "vision", "radar", "seismic" },
 }
 
 for enumSetName, enumSetValues in pairs(enumSets) do

@@ -8,11 +8,11 @@
 -- Each unit sits at exactly one of these levels per allyTeam (allied and enemy).
 -- Levels have an engine-implied order, e.g. vision suppresses seismic detection.
 local LEVEL = {
-	UNSEEN     = 2 ^ 0,
-	SEISMIC    = 2 ^ 1,
-	RADAR      = 2 ^ 2,
+	UNSEEN = 2 ^ 0,
+	SEISMIC = 2 ^ 1,
+	RADAR = 2 ^ 2,
 	IDENTIFIED = 2 ^ 3,
-	VISION     = 2 ^ 4,
+	VISION = 2 ^ 4,
 }
 --
 -- All levels other than SEISMIC are engine state that we read directly.
@@ -21,8 +21,8 @@ local LEVEL = {
 -- The levels each sensor coerces a detected unit towards.
 local SENSOR_LEVEL = {
 	seismic = LEVEL.SEISMIC,
-	radar   = LEVEL.RADAR + LEVEL.IDENTIFIED,
-	vision  = LEVEL.VISION,
+	radar = LEVEL.RADAR + LEVEL.IDENTIFIED,
+	vision = LEVEL.VISION,
 }
 --
 -- IDENTIFIED is not addressable separately. It is a mix of radar and vision.
@@ -47,7 +47,7 @@ local LEVEL_RADAR = LEVEL.RADAR
 local LEVEL_IDENTIFIED = LEVEL.IDENTIFIED
 local LEVEL_VISION = LEVEL.VISION
 
-local isSeismicContact = GG['MissionAPI'].Modules.SeismicContacts.IsContact
+local isSeismicContact = GG["MissionAPI"].Modules.SeismicContacts.IsContact
 
 local latches = {}
 
@@ -183,7 +183,8 @@ local function newDetectionUpdate(fireOnDetection, matchesUnit)
 			if isDetected ~= (latched[unitID] == true) then
 				latched[unitID] = isDetected or nil
 				-- Dying units remain detectable, and unit tracking can change between updates.
-				if isDetected == fireOnDetection
+				if
+					isDetected == fireOnDetection
 					and Spring.GetUnitIsDead(unitID) == false
 					and matchesUnit(parameters, context, unitID, Spring.GetUnitDefID(unitID))
 				then
@@ -204,9 +205,9 @@ local function clear(triggerID, unitID)
 end
 
 return {
-	LevelBitOf         = levelBitOf,
-	CompileLevelMask   = compileLevelMask,
+	LevelBitOf = levelBitOf,
+	CompileLevelMask = compileLevelMask,
 	NewDetectionUpdate = newDetectionUpdate,
-	BeginUpdate        = beginUpdate,
-	Clear              = clear,
+	BeginUpdate = beginUpdate,
+	Clear = clear,
 }

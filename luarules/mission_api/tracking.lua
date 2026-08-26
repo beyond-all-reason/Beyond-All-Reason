@@ -2,10 +2,10 @@
 --- Utility module for tracking unit/feature names and IDs.
 ---
 
-local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
-local trackedUnitNames = GG['MissionAPI'].trackedUnitNames
-local trackedFeatureIDs   = GG['MissionAPI'].trackedFeatureIDs
-local trackedFeatureNames = GG['MissionAPI'].trackedFeatureNames
+local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
+local trackedUnitNames = GG["MissionAPI"].trackedUnitNames
+local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
+local trackedFeatureNames = GG["MissionAPI"].trackedFeatureNames
 
 local function trackEntity(name, ID, trackedIDs, trackedNames)
 	if not name or not ID then
@@ -32,7 +32,9 @@ local function doesEntityHaveName(ID, name, trackedIDs)
 end
 
 local function untrackID(ID, trackedIDs, trackedNames)
-	if isIDUntracked(ID, trackedNames) then return end
+	if isIDUntracked(ID, trackedNames) then
+		return
+	end
 
 	for name in pairs(trackedNames[ID]) do
 		trackedIDs[name][ID] = nil
@@ -45,7 +47,9 @@ local function untrackID(ID, trackedIDs, trackedNames)
 end
 
 local function untrackName(name, trackedIDs, trackedNames)
-	if isNameUntracked(name, trackedIDs) then return end
+	if isNameUntracked(name, trackedIDs) then
+		return
+	end
 
 	for ID in pairs(trackedIDs[name]) do
 		trackedNames[ID][name] = nil
@@ -114,17 +118,17 @@ end
 
 return {
 	-- Unit tracking
-	TrackUnit              = trackUnit,
-	IsUnitIDUntracked      = isUnitIDUntracked,
-	IsUnitNameUntracked    = isUnitNameUntracked,
-	DoesUnitHaveName       = doesUnitHaveName,
-	UntrackUnitID          = untrackUnitID,
-	UntrackUnitName        = untrackUnitName,
+	TrackUnit = trackUnit,
+	IsUnitIDUntracked = isUnitIDUntracked,
+	IsUnitNameUntracked = isUnitNameUntracked,
+	DoesUnitHaveName = doesUnitHaveName,
+	UntrackUnitID = untrackUnitID,
+	UntrackUnitName = untrackUnitName,
 	-- Feature tracking
-	TrackFeature           = trackFeature,
-	IsFeatureIDUntracked   = isFeatureIDUntracked,
+	TrackFeature = trackFeature,
+	IsFeatureIDUntracked = isFeatureIDUntracked,
 	IsFeatureNameUntracked = isFeatureNameUntracked,
-	DoesFeatureHaveName    = doesFeatureHaveName,
-	UntrackFeatureID       = untrackFeatureID,
-	UntrackFeatureName     = untrackFeatureName,
+	DoesFeatureHaveName = doesFeatureHaveName,
+	UntrackFeatureID = untrackFeatureID,
+	UntrackFeatureName = untrackFeatureName,
 }
