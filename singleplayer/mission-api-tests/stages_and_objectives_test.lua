@@ -129,7 +129,7 @@ local triggers = {
 
 	-- A metric type used by a trigger rather than an objective. Compare with the
 	-- `destroyBots` objective above: same type, parameters and threshold. Both
-	-- fire on the same edge; the objective completes and this sends reinforcements.
+	-- fire on the same edge; the objective completes and this announces it.
 	botsWipedOut = {
 		type = metricTypes.UnitsOwned,
 		parameters = {
@@ -140,7 +140,7 @@ local triggers = {
 		settings = {
 			stages = { 'thirdStage' },
 		},
-		actions = { 'spawnBotDestroyerReinforcements' },
+		actions = { 'messageBotsWipedOut' },
 	},
 
 	-- Triggers take `count` too, so "on the 4th one" no longer needs to be
@@ -152,7 +152,7 @@ local triggers = {
 			teamID = 0,
 		},
 		count = 4,
-		actions = { 'spawnMoreBotDestroyers' },
+		actions = { 'messageFourthBot' },
 	},
 }
 
@@ -163,8 +163,11 @@ local actions = {
 		parameters = {
 			unitLoadout = {
 				{ unitDefName = 'corak',x = 1800,z = 1800,team = 0,unitName = 'bots',
+					-- Hold position and hold fire: the bots are targets, not combatants,
+					-- so the turrets always win and the mission always completes.
 					orders = {
 						{ CMD.MOVE_STATE, 0, {} },
+						{ CMD.FIRE_STATE, 0, {} },
 					},
 				},
 			},
@@ -189,25 +192,19 @@ local actions = {
 		},
 	},
 
-	-- Separate spawn points, so repeat reinforcements do not land on top of the
-	-- turrets already there.
-	spawnMoreBotDestroyers = {
-		type = actionTypes.SpawnUnits,
+	-- The two triggers below exist to demonstrate their condition shapes, so they
+	-- only announce themselves rather than spawning more turrets.
+	messageBotsWipedOut = {
+		type = actionTypes.SendMessage,
 		parameters = {
-			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1600, z = 2150, team = 1 },
-				{ unitDefName = 'armllt', x = 2000, z = 2150, team = 1 },
-			},
+			message = "All bots destroyed.",
 		},
 	},
 
-	spawnBotDestroyerReinforcements = {
-		type = actionTypes.SpawnUnits,
+	messageFourthBot = {
+		type = actionTypes.SendMessage,
 		parameters = {
-			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1650, z = 2100, team = 1 },
-				{ unitDefName = 'armllt', x = 1950, z = 2100, team = 1 },
-			},
+			message = "A fourth bot has appeared.",
 		},
 	},
 }
