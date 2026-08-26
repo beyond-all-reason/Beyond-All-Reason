@@ -3108,7 +3108,9 @@ function widget:DrawScreen()
 							),
 							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
-						if not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+						if
+							not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4])
+						then
 							UiSelectHighlight(
 								lineArea[1] - translatedX,
 								lineArea[2] - translatedY - (lineHeight * checkedLines),
