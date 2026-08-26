@@ -1145,6 +1145,8 @@ function widget:Initialize()
 
 	updatePosition()
 	WG.playertv = {}
+	---Where the PlayerTV panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.playertv.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

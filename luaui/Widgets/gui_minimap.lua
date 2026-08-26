@@ -37,6 +37,7 @@ local ratio = Game.mapX / Game.mapY
 local maxWidth = mathMin(maxHeight * ratio, maxAllowedWidth * (vsx / vsy))
 local usedWidth = mathFloor(maxWidth * vsy)
 local usedHeight = mathFloor(maxHeight * vsy)
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false

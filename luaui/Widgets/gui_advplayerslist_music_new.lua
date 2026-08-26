@@ -959,6 +959,8 @@ function widget:Initialize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
 	WG.music = {}
+	---Where the music player panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition|false position `false` once the widget has shut down.
 	WG.music.GetPosition = function()
 		if shutdown then
 			return false
