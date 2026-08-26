@@ -1,7 +1,7 @@
 require("spec_helper")
 require("mission_api.spec_helper")
 
-local SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
+local SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 
 -- These boundaries are not based on the actual configuration values in the specced file.
 -- We want these values to be, actually, configurable. And we can admit to ourselves that
@@ -10,9 +10,9 @@ local SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
 -- design target is human-perceptual, not mathematical-definite, so we can do the below:
 
 local SATURATING_INTERVALS = 64 -- more pinged intervals than any cap should need to fill
-local LONGEST_RUN = 512         -- more silent intervals than any contact should survive
-local SLOWEST_PERIOD = 12       -- slower than any break-even ping period should sit
-local RUN_CYCLES = 100          -- ping cycles long enough for a losing rate to drain a full score
+local LONGEST_RUN = 512 -- more silent intervals than any contact should survive
+local SLOWEST_PERIOD = 12 -- slower than any break-even ping period should sit
+local RUN_CYCLES = 100 -- ping cycles long enough for a losing rate to drain a full score
 
 -- Tests, then, must not name a configuration value or number. They measure what the module does;
 -- they assert the relationships that the design requires; they hold up after fudging the numbers.
@@ -128,7 +128,9 @@ describe("mission_api.seismic_contacts", function()
 
 			for _ = 1, LONGEST_RUN do
 				advance()
-				if not isContact(once) then break end
+				if not isContact(once) then
+					break
+				end
 			end
 			assert.is_false(isContact(many)) -- counting them would outlive the single ping
 		end)
@@ -160,7 +162,9 @@ describe("mission_api.seismic_contacts", function()
 			advance({ unitID })
 			local survived = 0
 			for _ = 1, LONGEST_RUN do
-				if not isContact(unitID) then break end
+				if not isContact(unitID) then
+					break
+				end
 				survived = survived + 1
 				advance()
 			end
@@ -216,7 +220,9 @@ describe("mission_api.seismic_contacts", function()
 			local reported = false
 			for _ = 1, LONGEST_RUN do
 				reported = reported or isFallenContact(advance(), unitID)
-				if not isContact(unitID) then break end
+				if not isContact(unitID) then
+					break
+				end
 			end
 			assert.is_true(reported) -- Marks the contact dirty so the rest of the sensorType enum can be checked before dropping.
 		end)

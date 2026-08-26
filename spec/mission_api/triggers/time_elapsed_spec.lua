@@ -2,14 +2,14 @@ require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time,
 -- and Game.gameSpeed inside its GameFrame handler.
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+GG["MissionAPI"] = GG["MissionAPI"] or {}
+GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 
 _G.Game = _G.Game or {}
 _G.Game.gameSpeed = 30
 
-local timeElapsed = VFS.Include('luarules/mission_api/triggers/time_elapsed.lua')
+local timeElapsed = VFS.Include("luarules/mission_api/triggers/time_elapsed.lua")
 local onGameFrame = timeElapsed.callins.GameFrame
 
 describe("mission_api.triggers.time_elapsed", function()
@@ -23,17 +23,19 @@ describe("mission_api.triggers.time_elapsed", function()
 		local fired = {}
 		local context = { ActivateTrigger = function() end }
 		for frame = 1, maxFrame do
-			context.ActivateTrigger = function() fired[#fired + 1] = frame end
-			onGameFrame(triggerTable, 't', context, frame)
+			context.ActivateTrigger = function()
+				fired[#fired + 1] = frame
+			end
+			onGameFrame(triggerTable, "t", context, frame)
 		end
 		return fired
 	end
 
 	it("declares seconds as required and interval as optional", function()
-		assert.are.equal('TimeElapsed', timeElapsed.type)
-		assert.are.equal('seconds',  timeElapsed.parameters[1].name)
+		assert.are.equal("TimeElapsed", timeElapsed.type)
+		assert.are.equal("seconds", timeElapsed.parameters[1].name)
 		assert.is_true(timeElapsed.parameters[1].required)
-		assert.are.equal('interval', timeElapsed.parameters[2].name)
+		assert.are.equal("interval", timeElapsed.parameters[2].name)
 		assert.is_falsy(timeElapsed.parameters[2].required)
 	end)
 
@@ -58,16 +60,10 @@ describe("mission_api.triggers.time_elapsed", function()
 
 	it("fires at the target then every interval when repeating", function()
 		-- seconds = 1 -> frame 30; interval = 2 -> every 60 frames.
-		assert.are.same(
-			{ 30, 90, 150 },
-			firedFrames(trigger({ seconds = 1, interval = 2 }, { repeating = true }), 200)
-		)
+		assert.are.same({ 30, 90, 150 }, firedFrames(trigger({ seconds = 1, interval = 2 }, { repeating = true }), 200))
 	end)
 
 	it("fires only once when repeating without an interval", function()
-		assert.are.same(
-			{ 30 },
-			firedFrames(trigger({ seconds = 1 }, { repeating = true }), 200)
-		)
+		assert.are.same({ 30 }, firedFrames(trigger({ seconds = 1 }, { repeating = true }), 200))
 	end)
 end)

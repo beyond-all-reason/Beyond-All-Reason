@@ -1,8 +1,7 @@
-local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionFunctions = actionDefinitions.Functions
 local parameterSchema = actionDefinitions.Parameters
-local actions = GG['MissionAPI'].Actions
-
+local actions = GG["MissionAPI"].Actions
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
 local function unpackActionParameters(actionId, i)
