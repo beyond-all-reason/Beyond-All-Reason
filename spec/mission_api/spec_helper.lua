@@ -35,18 +35,18 @@ _G.math.bit_and = _G.math.bit_and
 -- "table index is nil", so the ids specs rely on are filled in here. Specs that swap
 -- CMD out for their own table get these put back by RegisterMissionApiModules.
 local function installCommandIDs()
-	_G.CMD     = _G.CMD or {}
+	_G.CMD = _G.CMD or {}
 	_G.GameCMD = _G.GameCMD or {}
 
 	local CMD = _G.CMD
-	CMD.MOVE         = CMD.MOVE         or 10
-	CMD.REPAIR       = CMD.REPAIR       or 40
-	CMD.OPT_META     = CMD.OPT_META     or 4
+	CMD.MOVE = CMD.MOVE or 10
+	CMD.REPAIR = CMD.REPAIR or 40
+	CMD.OPT_META = CMD.OPT_META or 4
 	CMD.OPT_INTERNAL = CMD.OPT_INTERNAL or 8
-	CMD.OPT_RIGHT    = CMD.OPT_RIGHT    or 16
-	CMD.OPT_SHIFT    = CMD.OPT_SHIFT    or 32
-	CMD.OPT_CTRL     = CMD.OPT_CTRL     or 64
-	CMD.OPT_ALT      = CMD.OPT_ALT      or 128
+	CMD.OPT_RIGHT = CMD.OPT_RIGHT or 16
+	CMD.OPT_SHIFT = CMD.OPT_SHIFT or 32
+	CMD.OPT_CTRL = CMD.OPT_CTRL or 64
+	CMD.OPT_ALT = CMD.OPT_ALT or 128
 end
 
 installCommandIDs()
