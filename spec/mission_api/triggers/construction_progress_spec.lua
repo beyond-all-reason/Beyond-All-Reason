@@ -235,24 +235,6 @@ describe("mission_api.triggers.construction_progress", function()
 		assert.are.equal(0, fired())
 	end)
 
-	-- These describe the removed UnitBuildStepPost callin, which was handed the frame's net
-	-- build step. UnitBuildStepPost receives only a unitID, so the trigger cannot currently
-	-- tell building from reclaiming: a nanoframe reclaimed down past the threshold still
-	-- fires. Pending until the gadget passes the step delta again.
-	pending("ignores a frame whose steps net a loss", function()
-		local context, fired = newContext()
-		building(100, 0.6)
-		step(trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100, -0.1)
-		assert.are.equal(0, fired())
-	end)
-
-	pending("ignores a frame whose steps net zero", function()
-		local context, fired = newContext()
-		building(100, 0.6)
-		step(trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" }), context, 100, 0)
-		assert.are.equal(0, fired())
-	end)
-
 	it("forgets a unit when it is removed, so a reused unit ID arms again", function()
 		local context, fired = newContext()
 		local t = trigger({ teamID = 0, progress = 0.5, unitDefName = "armsolar" })
