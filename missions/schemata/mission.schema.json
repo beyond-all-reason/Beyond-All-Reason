@@ -187,31 +187,6 @@
 				"minimum": 1
 			}
 		},
-		"difficulties": {
-			"type": "object",
-			"description": "Map of difficulty names to their settings. Omit in a campaign mission to inherit the campaign's value; required for a scenario.",
-			"minProperties": 1,
-			"additionalProperties": {
-				"type": "object",
-				"additionalProperties": false,
-				"properties": {
-					"playerHandicap": {
-						"type": "integer",
-						"minimum": -100,
-						"description": "Handicap percentage applied to players (positive for bonus, default 0)"
-					},
-					"enemyHandicap": {
-						"type": "integer",
-						"minimum": -100,
-						"description": "Handicap percentage applied to enemy AI (positive for bonus, default 0)"
-					}
-				}
-			}
-		},
-		"defaultDifficulty": {
-			"type": "string",
-			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'. Omit in a campaign mission to inherit the campaign's value; required for a scenario."
-		},
 		"startScript": {
 			"type": "object",
 			"description": "Everything the lobby needs to build the engine start script for this mission.",

@@ -8,12 +8,5 @@
 	"logo": "cortex_faction.png",
 
 	"prerequisites": ["armada-main"],
-	"players": [1, 2, 3, 4],
-
-	"difficulties": {
-		"Beginner": {"playerHandicap": 50},
-		"Normal": {},
-		"Hard": {"playerHandicap": -25, "enemyHandicap": 25}
-	},
-	"defaultDifficulty": "Normal"
+	"players": [1, 2, 3, 4]
 }

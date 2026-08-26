@@ -4,7 +4,7 @@
 	"title": "Campaign Definition",
 	"description": "Schema for a BAR campaign definition file. Lives at missions/campaigns/<campaign>/campaign.json; every subfolder next to it is a mission.",
 	"type": "object",
-	"required": ["campaignId", "title", "description", "players", "difficulties", "defaultDifficulty"],
+	"required": ["campaignId", "title", "description", "players"],
 	"additionalProperties": false,
 	"definitions": {
 		"identifier": {
@@ -63,31 +63,6 @@
 				"type": "integer",
 				"minimum": 1
 			}
-		},
-		"difficulties": {
-			"type": "object",
-			"description": "Map of difficulty names to their settings.",
-			"minProperties": 1,
-			"additionalProperties": {
-				"type": "object",
-				"additionalProperties": false,
-				"properties": {
-					"playerHandicap": {
-						"type": "integer",
-						"minimum": -100,
-						"description": "Handicap percentage applied to players (positive for bonus, default 0)"
-					},
-					"enemyHandicap": {
-						"type": "integer",
-						"minimum": -100,
-						"description": "Handicap percentage applied to enemy AI (positive for bonus, default 0)"
-					}
-				}
-			}
-		},
-		"defaultDifficulty": {
-			"type": "string",
-			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'."
 		},
 		"missions": {
 			"type": "array",

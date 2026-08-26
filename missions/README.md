@@ -61,8 +61,8 @@ Team and ally team names come from `startScript.allyTeams` in `mission.json`; th
 `unlocks` in `campaign.json` maps `missionId` to its prerequisites. Missions not listed there are available from the
 start.
 
-`players`, `difficulties`, `defaultDifficulty` and `authors` are campaign level. A campaign mission may override them; a
-scenario must set the first three itself. `authors` is optional everywhere.
+`players` and `authors` are campaign level. A campaign mission may override them; a scenario must set `players` itself.
+`authors` is optional everywhere.
 
 ## Validating
 

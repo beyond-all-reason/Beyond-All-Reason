@@ -9,13 +9,6 @@
 
 	"players": [1, 2, 4],
 
-	"difficulties": {
-		"Beginner": {"playerHandicap": 50},
-		"Normal": {},
-		"Hard": {"playerHandicap": -25, "enemyHandicap": 25}
-	},
-	"defaultDifficulty": "Normal",
-
 	"missions": [
 		"start_script_test",
 		"markers_test",
