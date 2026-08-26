@@ -398,6 +398,12 @@ local function SpawnGeos(geoSpots)
 				geosList = seaGeosList
 			end
 
+			local geo = geosList[math.random(1, #geosList)]
+			local defID = UnitDefNames[geo].id
+			local facing = math.random(0, 3)
+			-- 5x5 geos must use the odd (8-mod-16) grid to be upgradable.
+			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
+
 			local radius = 32
 			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
@@ -422,8 +428,7 @@ local function SpawnGeos(geoSpots)
 			end
 
 			if canBuildHere then
-				local geo = geosList[math.random(1, #geosList)]
-				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local unit = Spring.CreateUnit(defID, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
