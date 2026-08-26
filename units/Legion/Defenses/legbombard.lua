@@ -6,7 +6,7 @@ return {
 		metalcost = 750,
 		buildpic = "legbombard.dds",
 		buildtime = 17500,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 18 32",
 		collisionvolumetype = "Box",
@@ -26,6 +26,7 @@ return {
 		sightdistance = 598,
 		yardmap = "ooooooooo",
 		customparams = {
+			groundattackaftersalvos = 1,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legbombard_aoplane.dds",
 			buildinggrounddecalsizey = 5,
