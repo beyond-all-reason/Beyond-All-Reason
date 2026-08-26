@@ -20,7 +20,8 @@ end
 --     engine's radar LOS (LosMap.cpp: midpoint-circle disk, rays, CastLos angle test) per radar cell.
 --  2. Smoothing pass (every frame, a few thousand texels): a ping-ponged state texture eases towards
 --     the coverage, so cubes rise/sink smoothly instead of popping while dragging.
---  3. Cube pass: one instanced draw of a unit cube per 16 elmo grid cell. The vertex shader looks up
+--  3. Cube pass: one instanced draw of a unit cube per cube of the NxN block inside each radar cell
+--     (CUBES_PER_CELL by radarMipLevel, cube size as a fraction of the spacing). The vertex shader looks up
 --     the radar cell the cube is in, samples the heightmap and animates the cube; the fragment shader
 --     does per-face shading and zoom-independent edge lines. Only cells under the screen's ground
 --     footprint are drawn; flat shapes draw a single quad per cell. Optionally (LOD_MAX_INSTANCES) the
@@ -28,15 +29,18 @@ end
 ------------------------------------------------------------------------------------------------
 
 -- Tunables
-local CUBE_SPACING = 13 -- elmos between cube centers; must divide the radar cell size
-local CUBE_WIDTH = 4.8 -- elmos
+-- Cubes are laid out as an NxN block centered inside every radar cell (cell size = 8 << radarMipLevel elmo);
+-- N by radarMipLevel, so the look stays consistent when the game's radar resolution changes.
+local CUBES_PER_CELL = { [1] = 2, [2] = 3, [3] = 5, [4] = 8 }
+local CUBE_FILL = 0.28 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
 local CUBE_SINK = 2 -- elmos the cube base is pushed below ground, so cubes never float on slopes
 local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime with WG.radarPreview.setShape(name)
 local CUBE_SHAPES = {
-	-- height at full coverage (elmo), lift of the top face above ground (elmo), conform = top face tilts with the terrain
-	cube = { height = 6, lift = 0, conform = 0 },
-	slab = { height = 3, lift = 0, conform = 0 },
-	tile = { height = 0.5, lift = 0.5, conform = 0 },
+	-- height at full coverage as a multiple of the cube width, lift of the top face above ground (elmo),
+	-- conform = top face tilts with the terrain
+	cube = { height = 2.0, lift = 0, conform = 0 },
+	slab = { height = 1.0, lift = 0, conform = 0 },
+	tile = { height = 0.5, lift = 0, conform = 0 },
 	flat = { height = 0, lift = 1.5, conform = 1 }, -- flat square
 }
 local LIFT_PER_DISTANCE = 0.001 -- extra lift per elmo of camera distance, keeps flat shapes above the terrain LOD mesh
@@ -45,7 +49,7 @@ local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so t
 local SMOOTH_RATE = 14 -- 1/s, how fast the cubes follow coverage changes (higher = snappier)
 local LOD_MAX_INSTANCES = 0 -- > 0: thin the grid to double spacing once more cubes than this are on screen (cubes visibly fill in/out with zoom; try 50000 on integrated graphics)
 local FOOTPRINT_MARGIN = 48 -- elmos of slack around the screen's ground footprint
-local MAX_RADIUS_CELLS = 160 -- sanity limit of the radar radius in cells (160 * 64 = 10240 elmo)
+local MAX_RADIUS_CELLS = 256 -- sanity limit of the radar radius in cells (coverage texture and ray table size)
 local RAY_SSBO_BINDING = 5 -- shader storage binding of the per-radius ray table (4, 6, 7 are used elsewhere in BAR)
 
 -- With deferred map/model rendering the cubes are occluded via the g-buffer depths (terrain and units)
@@ -74,8 +78,8 @@ local shaderConfig = {
 	TILE_CLIFF_END = 55.0, -- degrees: terrain steeper than this gets flat tiles (cliffs)
 	BASE_COLOR = "vec3(0.22, 0.85, 0.50)",
 	HIGHLIGHT_COLOR = "vec3(0.65, 1.00, 0.80)",
-	BASE_ALPHA = 0.4,
-	LINE_ALPHA = 0.4, -- opacity of the cube edge lines
+	BASE_ALPHA = 0.5,
+	LINE_ALPHA = 0.5, -- opacity of the cube edge lines
 }
 
 -- Engine radar model (rts/Sim/Misc/LosHandler.cpp, LosMap.cpp)
@@ -90,6 +94,11 @@ end
 local SQUARE_SIZE = 8
 local RADAR_CELL = SQUARE_SIZE * 2 ^ RADAR_MIP_LEVEL -- elmos per radar cell
 local HEIGHT_BUCKET = 2 ^ (RADAR_MIP_LEVEL + 2) -- emitter heights are quantized to buckets of this size
+
+-- derived cube grid: N cubes per radar cell edge (fallback: about one cube per 13 elmo)
+local CUBES_PER_CELL_EDGE = CUBES_PER_CELL[RADAR_MIP_LEVEL] or math.max(1, math.floor(RADAR_CELL / 13 + 0.5))
+local CUBE_SPACING = RADAR_CELL / CUBES_PER_CELL_EDGE -- elmos between cube centers
+local CUBE_WIDTH = CUBE_FILL * CUBE_SPACING -- elmos
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -131,8 +140,12 @@ do
 			local dims = Spring.GetUnitDefDimensions(unitDefID)
 			-- ILosType::GetRadius: (radarDistance / SQUARE_SIZE) >> radarMipLevel, integer arithmetic
 			local radiusCells = mathFloor(mathFloor(unitDef.radarDistance / SQUARE_SIZE) / 2 ^ RADAR_MIP_LEVEL)
+			if radiusCells > MAX_RADIUS_CELLS then
+				spEcho("Sensor Ranges Radar Preview: " .. unitDef.name .. " radar radius clamped to " .. MAX_RADIUS_CELLS .. " cells")
+				radiusCells = MAX_RADIUS_CELLS
+			end
 			radarDefs[-unitDefID] = {
-				radiusCells = mathMin(radiusCells, MAX_RADIUS_CELLS),
+				radiusCells = radiusCells,
 				emitHeight = unitDef.radarEmitHeight or 0,
 				midY = (dims and dims.midy) or 0, -- unit->midPos.y - unit->pos.y
 			}
@@ -217,7 +230,7 @@ local cubeShaderCache = {
 	},
 	uniformFloat = {
 		radarcenter_range = { 0, 0, 0, 2000 },
-		gridParams = { RADAR_CELL, 1, CUBE_SPACING, 1 },
+		gridParams = { RADAR_CELL, 1, CUBE_SPACING, CUBES_PER_CELL_EDGE },
 		lookupParams = { 0, 0, 1, 0 },
 		shapeParams = { CUBE_WIDTH, 6, CUBE_SINK, 0 },
 		animParams = { 0, 0, 0, 0 },
@@ -424,7 +437,6 @@ local function makeSet(radiusCells)
 	local set = {
 		radius = radiusCells,
 		N = coverageCells, -- coverage texels per side
-		M = 2 * mathCeil((radiusCells + 2) * RADAR_CELL / CUBE_SPACING) + 1, -- cube cells per side
 		target = makeDataTexture(coverageCells, coverageCells, GL_R16F, GL.NEAREST),
 		state = { -- R = smoothed coverage, G = smoothed boundary factor
 			makeDataTexture(coverageCells, coverageCells, GL_RG16F, stateFilter),
@@ -618,21 +630,22 @@ local function getScreenFootprint(camX, camY, camZ)
 	return minX, maxX, minZ, maxZ
 end
 
--- Which cube cells to draw this frame: the screen footprint clipped to the grid. With LOD_MAX_INSTANCES
--- the grid blends to double spacing once more cubes than that would be on screen (far zoom).
+-- Which cubes to draw this frame: the radar disc's cubes (absolute cube grid indices, CUBES_PER_CELL_EDGE
+-- per radar cell) clipped to the screen footprint. With LOD_MAX_INSTANCES the grid blends to double
+-- spacing once more cubes than that would be on screen (far zoom).
 -- Returns x0, z0, cellsX, cellsZ, stride, lodBlend.
-local function getCubeWindow(set, cx, cz, camX, camY, camZ)
-	local M = set.M
-	local half = (M - 1) * 0.5
-
-	local x0, x1, z0, z1 = 0, M - 1, 0, M - 1
+local function getCubeWindow(set, bx, bz, camX, camY, camZ)
+	local n = CUBES_PER_CELL_EDGE
+	local radius = set.radius
+	local x0, x1 = (bx - radius) * n, (bx + radius + 1) * n - 1
+	local z0, z1 = (bz - radius) * n, (bz + radius + 1) * n - 1
 	local minX, maxX, minZ, maxZ = getScreenFootprint(camX, camY, camZ)
 	if minX then
 		local margin = mathCeil(FOOTPRINT_MARGIN / CUBE_SPACING)
-		x0 = mathMax(0, mathFloor((minX - cx) / CUBE_SPACING + half) - margin)
-		x1 = mathMin(M - 1, mathCeil((maxX - cx) / CUBE_SPACING + half) + margin)
-		z0 = mathMax(0, mathFloor((minZ - cz) / CUBE_SPACING + half) - margin)
-		z1 = mathMin(M - 1, mathCeil((maxZ - cz) / CUBE_SPACING + half) + margin)
+		x0 = mathMax(x0, mathFloor(minX / CUBE_SPACING) - margin)
+		x1 = mathMin(x1, mathFloor(maxX / CUBE_SPACING) + margin)
+		z0 = mathMax(z0, mathFloor(minZ / CUBE_SPACING) - margin)
+		z1 = mathMin(z1, mathFloor(maxZ / CUBE_SPACING) + margin)
 	end
 	if x1 < x0 or z1 < z0 then
 		return 0, 0, 0, 0, 1, 0
@@ -712,8 +725,7 @@ function widget:DrawWorld()
 
 	local radius = def.radiusCells
 	local range = radius * RADAR_CELL
-	local cx = mathFloor((mousepos[1] + CUBE_SPACING * 0.5) / CUBE_SPACING) * CUBE_SPACING
-	local cz = mathFloor((mousepos[3] + CUBE_SPACING * 0.5) / CUBE_SPACING) * CUBE_SPACING
+	local cx, cz = mousepos[1], mousepos[3] -- center of the animations; the cube grid itself is world-fixed
 
 	-- frame bookkeeping: a gap in draw frames or a different radar means the preview just (re)appeared
 	local now = osClock()
@@ -771,7 +783,7 @@ function widget:DrawWorld()
 	local camX, camY, camZ = spGetCameraPosition()
 	local dx, dy, dz = camX - cx, camY - midY, camZ - cz
 	local camDist = mathSqrt(dx * dx + dy * dy + dz * dz)
-	local x0, z0, cellsX, cellsZ, stride, lodBlend = getCubeWindow(set, cx, cz, camX, camY, camZ)
+	local x0, z0, cellsX, cellsZ, stride, lodBlend = getCubeWindow(set, bx, bz, camX, camY, camZ)
 	if cellsX > 0 and cellsZ > 0 then
 		gl.Texture(0, "$heightmap")
 		gl.Texture(1, nextTex)
@@ -788,9 +800,9 @@ function widget:DrawWorld()
 		gl.Culling(GL.BACK)
 		cubeShader:Activate()
 		cubeShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
-		cubeShader:SetUniform("gridParams", RADAR_CELL, set.N, CUBE_SPACING, set.M)
+		cubeShader:SetUniform("gridParams", RADAR_CELL, set.N, CUBE_SPACING, CUBES_PER_CELL_EDGE)
 		cubeShader:SetUniform("lookupParams", bx, bz, radius, 0)
-		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
+		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
 		cubeShader:SetUniform("animParams", now, now - spawnStart, lodBlend, shape.conform)
 		cubeShader:SetUniform("windowParams", x0, z0, cellsX, stride)
 		if shape.height > 0 then

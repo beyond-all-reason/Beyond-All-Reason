@@ -15,11 +15,11 @@
 layout (location = 0) in vec4 cubeVertex; // unit cube corner: x,z in [-0.5, 0.5], y in [0, 1]
 
 uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
-uniform vec4 gridParams;        // radar cell size (elmo), coverage texels per side, cube spacing, cube cells per side
+uniform vec4 gridParams;        // radar cell size (elmo), coverage texels per side, cube spacing (elmo), cubes per radar cell edge
 uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, unused
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
-uniform vec4 windowParams;      // first cell x, first cell z, cells per row, cell stride (1 or 2)
+uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
@@ -66,6 +66,8 @@ void cullInstance() {
 void main() {
 	int stride = int(windowParams.w);
 	int rowLength = int(windowParams.z);
+	// absolute cube grid index: the spacing divides the radar cell size, so with center = (index + 0.5) * spacing
+	// every radar cell holds an NxN block of cubes centered inside it
 	ivec2 cell = ivec2(windowParams.xy) + ivec2(gl_InstanceID % rowLength, gl_InstanceID / rowLength) * stride;
 
 	// optional far LOD: cells with an odd index shrink away, the remaining ones grow to keep the visual density
@@ -74,9 +76,8 @@ void main() {
 	float lodScale = 1.0 - isFine * lodBlend;
 
 	float range = radarcenter_range.w;
-	float halfCells = 0.5 * (gridParams.w - 1.0);
-	vec2 fromCenter = (vec2(cell) - halfCells) * gridParams.z;
-	vec2 cellXZ = radarcenter_range.xz + fromCenter;
+	vec2 cellXZ = (vec2(cell) + 0.5) * gridParams.z;
+	vec2 fromCenter = cellXZ - radarcenter_range.xz;
 	float dist = length(fromCenter);
 
 	// which radar cell is this cube in, relative to the emitter's cell
