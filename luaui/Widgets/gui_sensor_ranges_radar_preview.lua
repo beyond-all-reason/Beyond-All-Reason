@@ -28,8 +28,8 @@ end
 ------------------------------------------------------------------------------------------------
 
 -- Tunables
-local CUBE_SPACING = 16 -- elmos between cube centers; must divide the radar cell size
-local CUBE_WIDTH = 5.5 -- elmos
+local CUBE_SPACING = 13 -- elmos between cube centers; must divide the radar cell size
+local CUBE_WIDTH = 4.8 -- elmos
 local CUBE_SINK = 2 -- elmos the cube base is pushed below ground, so cubes never float on slopes
 local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime with WG.radarPreview.setShape(name)
 local CUBE_SHAPES = {
@@ -61,19 +61,21 @@ local shaderConfig = {
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
 	SWEEP_BEAM = 9.0, -- degrees: width of the bright leading edge
 	SWEEP_STRENGTH = 0.55, -- how much the sweep brightens/raises cubes
-	SPAWN_SPEED = 1.6, -- radar ranges per second the spawn ripple travels outward
-	SPAWN_BUMP = 0.3, -- width of the overshoot behind the ripple front, in radar ranges
+	SPAWN_SPEED = 2.5, -- radar ranges per second the spawn ripple travels outward
+	SPAWN_BUMP = 0.25, -- width of the overshoot behind the ripple front, in radar ranges
 	PULSE_SPACING = 180.0, -- elmos between the outward travelling wave rings
 	PULSE_SPEED = 90.0, -- elmos per second the rings travel
-	PULSE_POWER = 3.0, -- higher = narrower rings
-	PULSE_STRENGTH = 0.75, -- how much the rings raise/brighten cubes
+	PULSE_POWER = 4.5, -- higher = narrower rings
+	PULSE_STRENGTH = 1.0, -- how much the rings raise/brighten cubes
+	EDGE_STRENGTH = 0.15, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
+	RIM_STRENGTH = 0.25, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
 	TILE_CLIFF_START = 35.0, -- degrees: terrain steeper than this starts flattening the tiles again
 	TILE_CLIFF_END = 55.0, -- degrees: terrain steeper than this gets flat tiles (cliffs)
 	BASE_COLOR = "vec3(0.22, 0.85, 0.50)",
 	HIGHLIGHT_COLOR = "vec3(0.65, 1.00, 0.80)",
-	BASE_ALPHA = 0.3,
-	LINE_ALPHA = 0.3, -- opacity of the cube edge lines
+	BASE_ALPHA = 0.4,
+	LINE_ALPHA = 0.4, -- opacity of the cube edge lines
 }
 
 -- Engine radar model (rts/Sim/Misc/LosHandler.cpp, LosMap.cpp)

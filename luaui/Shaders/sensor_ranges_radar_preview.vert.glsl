@@ -45,6 +45,8 @@ const float pulseFreq = 2.0 * PI / float(PULSE_SPACING);
 const float pulseSpeed = 2.0 * PI * float(PULSE_SPEED) / float(PULSE_SPACING);
 const float pulsePower = float(PULSE_POWER);
 const float pulseStrength = float(PULSE_STRENGTH);
+const float edgeStrength = float(EDGE_STRENGTH); // glow of cubes at the coverage boundary (0 = off)
+const float rimStrength = float(RIM_STRENGTH);   // glow of the outermost ring of cubes (0 = off)
 const float tileMaxTilt = tan(radians(float(TILE_MAX_TILT)));      // slope (rise/run) of the steepest tile tilt
 const float tileCliffStart = tan(radians(float(TILE_CLIFF_START))); // terrain slope where tiles start flattening
 const float tileCliffEnd = tan(radians(float(TILE_CLIFF_END)));     // terrain slope where tiles are flat again
@@ -116,11 +118,11 @@ void main() {
 	// the main animation: rings travelling outward from the radar
 	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower);
 
-	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim
+	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;
 	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist);
 
-	float glow = clamp(sweep + beam + edge * 0.5 + rim * 0.35 + ring * 0.6 * pulseStrength + bump * 0.7, 0.0, 1.5);
+	float glow = clamp(sweep + beam + edge * edgeStrength + rim * rimStrength + ring * 0.6 * pulseStrength + bump * 0.7, 0.0, 1.5);
 
 	float height = shapeParams.y * (0.35 + 0.65 * coverage) * spawn
 		* (1.0 + 0.5 * sweep + pulseStrength * ring + 0.6 * bump);
