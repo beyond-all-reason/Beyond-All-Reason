@@ -3,5 +3,5 @@
 
 	"campaigns": ["armada-main", "cortex-main"],
 
-	"standalone": []
+	"scenarios": []
 }

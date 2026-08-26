@@ -6,7 +6,7 @@ Campaign and mission definitions for the Mission API.
 
 ```
 missions/
-├── manifest.json                 order of campaigns and standalone missions
+├── manifest.json                 order of campaigns and scenarios
 ├── campaigns/
 │   └── <campaign>/
 │       ├── campaign.json
@@ -15,7 +15,7 @@ missions/
 │           ├── mission.json      lobby data: title, briefing, start script
 │           ├── <mission>.lua     in-game logic
 │           └── <asset>.jpg
-├── standalone/                   missions with no campaign
+├── scenarios/                    missions belonging to no campaign
 │   └── <mission>/                same contract as a campaign mission
 └── schemata/
     ├── manifest.schema.json
@@ -27,7 +27,7 @@ Everything a mission owns lives in its own folder, so it can be added, moved or 
 
 `mission.json` is read by the lobby before launch. The Lua is read by the engine and returns `Stages`, `Objectives`,
 `Triggers`, `Actions`, `UnitLoadout`, `FeatureLoadout`. Set `$schema` in `mission.json` for editor completion —
-`../../../schemata/…` in a campaign, `../../schemata/…` in `standalone/`.
+`../../../schemata/…` in a campaign, `../../schemata/…` in `scenarios/`.
 
 ## Presentation order
 
@@ -35,7 +35,7 @@ Order is declared, and always by ID rather than by path:
 
 | List                      | Lives in             | Orders                            |
 |---------------------------|----------------------|-----------------------------------|
-| `campaigns`, `standalone` | `manifest.json`      | campaigns, campaign-less missions |
+| `campaigns`, `scenarios`  | `manifest.json`      | campaigns, campaign-less missions |
 | `missions`                | each `campaign.json` | missions within that campaign     |
 
 The lists are optional. The lobby should display the items in listed order, and unlisted items
@@ -62,7 +62,7 @@ Team and ally team names come from `startScript.allyTeams` in `mission.json`; th
 start.
 
 `players`, `difficulties`, `defaultDifficulty` and `authors` are campaign level. A campaign mission may override them; a
-standalone mission must set the first three itself. `authors` is optional everywhere.
+scenario must set the first three itself. `authors` is optional everywhere.
 
 ## Validating
 

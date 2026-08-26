@@ -180,7 +180,7 @@
 		},
 		"players": {
 			"type": "array",
-			"description": "Player counts this mission can be played at. Omit in a campaign mission to inherit the campaign's value; required for a standalone mission. Must stay consistent with startScript.players.",
+			"description": "Player counts this mission can be played at. Omit in a campaign mission to inherit the campaign's value; required for a scenario. Must stay consistent with startScript.players.",
 			"minItems": 1,
 			"items": {
 				"type": "integer",
@@ -189,7 +189,7 @@
 		},
 		"difficulties": {
 			"type": "object",
-			"description": "Map of difficulty names to their settings. Omit in a campaign mission to inherit the campaign's value; required for a standalone mission.",
+			"description": "Map of difficulty names to their settings. Omit in a campaign mission to inherit the campaign's value; required for a scenario.",
 			"minProperties": 1,
 			"additionalProperties": {
 				"type": "object",
@@ -210,7 +210,7 @@
 		},
 		"defaultDifficulty": {
 			"type": "string",
-			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'. Omit in a campaign mission to inherit the campaign's value; required for a standalone mission."
+			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'. Omit in a campaign mission to inherit the campaign's value; required for a scenario."
 		},
 		"startScript": {
 			"type": "object",
