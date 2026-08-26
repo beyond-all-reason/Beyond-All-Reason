@@ -309,6 +309,9 @@ local function registerSpatialValidators(parameterValidators, context)
 		if isVector then
 			return parameterValidators[Types.Position](direction)
 		end
+
+		local angleResult = validateField(direction.angle, 'angle', 'number')
+		return angleResult and { angleResult } or nil
 	end
 end
 

@@ -174,6 +174,26 @@ local triggers = {
 		},
 		actions = { 'actionMissingType' },
 	},
+
+	triggerWithFractionOutOfRange = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 5.0, -- error: a fraction must be between 0 and 1
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidFractionType = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 'notANumber',
+		},
+		actions = { 'actionMissingType' },
+	},
 }
 
 local actions = {
@@ -485,6 +505,38 @@ local actions = {
 		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'loadoutCom',
+		},
+	},
+
+	actionWithInvalidDirectionAngle = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 'north' }, -- error: an angle must be a number
+		},
+	},
+
+	actionWithAmbiguousDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 90, x = 1, z = 1 }, -- error: an angle and a vector are mutually exclusive
+		},
+	},
+
+	actionWithEmptyDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = {}, -- error: neither an angle nor a vector
+		},
+	},
+
+	actionWithInvalidDirectionVector = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { x = 'notANumber', z = 1 },
 		},
 	},
 }

@@ -7,6 +7,35 @@ local V = require("mission_api.validation.validation_spec_helper")
 describe("mission_api.validation.parameter_validators", function()
 	before_each(V.mockEngineGlobals)
 
+	--- Without a validator, the schema walker calls a nil value
+	it("has a validator for every parameter type the definitions use", function()
+		local parameterTypes = V.definitions.ParameterTypes
+		local parameterValidators = VFS.Include('luarules/mission_api/validation/parameter_validators.lua')
+			.CreateParameterValidators({
+				Stages   = {},
+				Objectives = {},
+				Triggers = {},
+				Actions  = {},
+				Types    = parameterTypes.Types,
+				Enums    = parameterTypes.Enums,
+				EnumSets = parameterTypes.EnumSets,
+			})
+
+		local missing = {}
+		for _, definitions in ipairs({ V.definitions.ActionDefinitions, V.definitions.TriggerDefinitions }) do
+			for entityType, parameters in pairs(definitions.Parameters) do
+				for _, parameter in ipairs(parameters) do
+					if parameterValidators[parameter.type] == nil then
+						missing[#missing + 1] = entityType .. "." .. parameter.name .. " (" .. tostring(parameter.type) .. ")"
+					end
+				end
+			end
+		end
+		table.sort(missing)
+
+		assert.are.same({}, missing)
+	end)
+
 	describe("String", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = { message = 123 } })
@@ -371,6 +400,11 @@ describe("mission_api.validation.parameter_validators", function()
 		it("validates a vector as a position", function()
 			V.assertMessage(validateDirection({ x = 'bad', z = 0 }),
 				"Unexpected parameter type, expected number, got string. Action: a, Parameter: direction.x")
+		end)
+
+		it("rejects an angle that is not a number", function()
+			V.assertMessage(validateDirection({ angle = 'north' }),
+				"Unexpected parameter type, expected number, got string. Action: a, Parameter: direction.angle")
 		end)
 
 		it("accepts an angle", function()
