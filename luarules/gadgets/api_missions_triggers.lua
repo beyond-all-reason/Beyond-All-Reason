@@ -381,6 +381,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	dispatchTriggerCallin('UnitCommand', unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 end
 
+function gadget:UnitIdlePost(unitID, idled)
+	dispatchTriggerCallin('UnitIdlePost', unitID, idled)
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
@@ -410,9 +414,6 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
--- Sensor callins are relatively hot and require complicated routing.
--- They are replaced with one mark-and-sweep and an update per frame.
-
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
@@ -432,14 +433,6 @@ end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
-end
-
--- Idle state is summarised once post-frame by the UnitIdlePost synthetic callin, which
--- reads the command queue directly and reports only the units whose state changed.
--- See luarules/callins/synthetic_callins.lua and modules/unit_idle_states.lua.
-
-function gadget:UnitIdlePost(unitID, idled)
-	dispatchTriggerCallin('UnitIdlePost', unitID, idled)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
