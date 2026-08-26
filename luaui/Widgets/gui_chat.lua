@@ -3108,7 +3108,9 @@ function widget:DrawScreen()
 							),
 							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
-						if not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+						if
+							not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4])
+						then
 							UiSelectHighlight(
 								lineArea[1] - translatedX,
 								lineArea[2] - translatedY - (lineHeight * checkedLines),
@@ -3550,6 +3552,27 @@ function state.insertInputTextAtCursor(text)
 	end
 end
 
+function state.acceptAutocomplete()
+	if inputMode == "label" or not autocompleteText or not autocompleteWords[1] then
+		return false
+	end
+	if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+		return false
+	end
+	if inputTextPosition ~= utf8.len(inputText) then
+		return false
+	end
+
+	inputText = inputText .. autocompleteText
+	inputTextPosition = utf8.len(inputText)
+	inputHistory[#inputHistory] = inputText
+	inputSelectionStart = nil
+	autocompleteText = nil
+	autocompleteWords = {}
+
+	return true
+end
+
 function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if
@@ -3561,6 +3584,16 @@ function widget:TextInput(char) -- if it isn't working: chobby probably hijacked
 		state.insertInputTextAtCursor(char)
 		return true
 	end
+end
+
+function widget:cycleInputMode(reverse)
+	local inputModeOrder = mySpec and {'', 's:'} or {'', 's:', 'a:'}
+	local modeIndex = table.getKeyOf(inputModeOrder, inputMode) or 1
+	local direction = reverse and -1 or 1
+
+	inputMode = inputModeOrder[(modeIndex - 1 + direction) % #inputModeOrder + 1]
+
+	updateTextInputDlist = true
 end
 
 function widget:KeyRelease(key, mods, label, unicode, scanCode)
@@ -3860,6 +3893,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 				inputTextPosition = 0
 			end
 			cursorBlinkTimer = 0
+		elseif key == 275 and not shift and state.acceptAutocomplete() then -- RIGHT, accept autocomplete
+			cursorBlinkTimer = 0
 		elseif key == 275 then -- RIGHT
 			if shift then
 				-- Start or extend selection
@@ -3926,7 +3961,9 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= "label" then -- TAB
 			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
+			if inputText == '' and not isRepeat then
+				self:cycleInputMode(shift)
+			elseif autocompleteText and autocompleteWords[1] then
 				inputText = utf8.sub(inputText, 1, inputTextPosition)
 					.. autocompleteText
 					.. utf8.sub(inputText, inputTextPosition + 1)
@@ -4050,14 +4087,7 @@ function widget:MousePress(x, y, button)
 			state.inputButtonRect[4]
 		)
 	then
-		if inputMode == "a:" then
-			inputMode = ""
-		elseif inputMode == "s:" then
-			inputMode = mySpec and "" or "a:"
-		else
-			inputMode = "s:"
-		end
-		updateTextInputDlist = true
+		self:cycleInputMode()
 		return true
 	end
 

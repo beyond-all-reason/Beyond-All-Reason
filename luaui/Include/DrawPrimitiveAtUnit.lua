@@ -193,22 +193,46 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		DrawPrimitiveAtUnitVBO.nogsTemplateVBO = templateVBO
 		DrawPrimitiveAtUnitVBO.nogsIndexVBO = indexVBO
 
+		-- The instance table doubles its buffer as soon as it fills up, and rebuilds its VAO from
+		-- the vertex and index buffers it finds on itself. Without these it would rebuild the VAO
+		-- of the geometry shader path instead, which draws this template mesh as bare points.
+		DrawPrimitiveAtUnitVBO.vertexVBO = templateVBO
+		DrawPrimitiveAtUnitVBO.indexVBO = indexVBO
+
 		-- Wrap the real VAO so existing consumers can keep calling
 		-- VBO.VAO:DrawArrays(GL.POINTS, usedElements); under the hood we draw the
-		-- template mesh instanced once per element.
-		local indexCount = #indexData
-		DrawPrimitiveAtUnitVBO.VAO = {
+		-- template mesh instanced once per element. That rebuild on resize puts a plain VAO in the
+		-- field, so the wrapper is kept behind the field rather than in it, and takes over whatever
+		-- lands there.
+		local vaoWrapper = {
 			realVAO = realVAO,
-			indexCount = indexCount,
+			indexCount = #indexData,
 			DrawArrays = function(self, _primitiveType, instanceCount)
 				if instanceCount and instanceCount > 0 then
 					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
 				end
 			end,
+			DrawElements = function(self, primitiveType, count, indexOffset, instanceCount, baseVertex)
+				self.realVAO:DrawElements(primitiveType, count, indexOffset, instanceCount, baseVertex)
+			end,
 			Delete = function(self)
 				self.realVAO:Delete()
 			end,
 		}
+		setmetatable(DrawPrimitiveAtUnitVBO, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 	return DrawPrimitiveAtUnitVBO, DrawPrimitiveAtUnitShader
 end

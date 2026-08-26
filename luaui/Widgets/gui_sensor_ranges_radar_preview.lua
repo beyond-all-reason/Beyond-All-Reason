@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+-- springsettings RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
+
 ------------------------------------------------------------------------------------------------
 -- How it works
 --  0. Mip pass (once a second while shown): rebuilds the engine's radar-mip-level heightmap
@@ -31,22 +33,24 @@ end
 -- Tunables
 -- Cubes are laid out as an NxN block centered inside every radar cell (cell size = 8 << radarMipLevel elmo);
 -- N by radarMipLevel, so the look stays consistent when the game's radar resolution changes.
-local CUBES_PER_CELL = { [1] = 2, [2] = 3, [3] = 5, [4] = 8 }
-local CUBE_FILL = 0.28 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
+local CUBES_PER_CELL = { [1] = 1, [2] = 1, [3] = 2, [4] = 3 }
+local CUBE_FILL = 0.22 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
 local CUBE_SINK = 2 -- elmos the cube base is pushed below ground, so cubes never float on slopes
 local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime with WG.radarPreview.setShape(name)
 local CUBE_SHAPES = {
 	-- height at full coverage as a multiple of the cube width, lift of the top face above ground (elmo),
 	-- conform = top face tilts with the terrain
-	cube = { height = 2.0, lift = 0, conform = 0 },
-	slab = { height = 1.0, lift = 0, conform = 0 },
-	tile = { height = 0.5, lift = 0, conform = 0 },
+	cube = { height = 0.8, lift = 0, conform = 0 },
+	tile = { height = 0.2, lift = 0, conform = 0 },
 	flat = { height = 0, lift = 1.5, conform = 1 }, -- flat square
 }
 local LIFT_PER_DISTANCE = 0.001 -- extra lift per elmo of camera distance, keeps flat shapes above the terrain LOD mesh
 local COVERAGE_SMOOTH = false -- true: blend coverage between radar cells (prettier), false: exact engine cells (blocky)
+local ALLIED_COVERAGE_POLL_SECONDS = 2 -- how often the RadarPreviewAlliedCoverage / RadarPreviewBackground settings are re-read
+local BACKGROUND_LIFT = 2.0 -- elmos the background sheet (RadarPreviewBackground configint, default on) floats above the terrain
 local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so terraforming shows up
 local SMOOTH_RATE = 14 -- 1/s, how fast the cubes follow coverage changes (higher = snappier)
+local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so cubes keep up with the cursor
 local LOD_MAX_INSTANCES = 0 -- > 0: thin the grid to double spacing once more cubes than this are on screen (cubes visibly fill in/out with zoom; try 50000 on integrated graphics)
 local FOOTPRINT_MARGIN = 48 -- elmos of slack around the screen's ground footprint
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the radar radius in cells (coverage texture and ray table size)
@@ -60,6 +64,13 @@ local hasModelDepth = hasMapDepth and Spring.GetConfigString("AllowDeferredModel
 local shaderConfig = {
 	TERRAIN_DEPTH_TEST = hasMapDepth and 1 or 0,
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
+	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cubes covered only by other allied radars
+	ALLIED_ALPHA = 0.45, -- their opacity relative to the previewed radar's cubes
+	BACKGROUND_COLOR = "vec3(0.10, 0.45, 0.28)", -- background sheet under the cubes (RadarPreviewBackground setting)
+	BACKGROUND_ALPHA = 0.14,
+	OUTLINE_COLOR = "vec3(0.45, 1.00, 0.57)", -- outline along the border with uncovered radar cells
+	OUTLINE_ALPHA = 0.24,
+	OUTLINE_WIDTH = 2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution (0.8 = 2 px on a 2721 px tall screen)
 	MIN_COVERAGE = 0.04, -- cubes below this (smoothed) coverage are not drawn
 	SWEEP_SPEED = 0.11, -- radar sweep revolutions per second
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
@@ -68,18 +79,18 @@ local shaderConfig = {
 	SPAWN_SPEED = 2.5, -- radar ranges per second the spawn ripple travels outward
 	SPAWN_BUMP = 0.25, -- width of the overshoot behind the ripple front, in radar ranges
 	PULSE_SPACING = 180.0, -- elmos between the outward travelling wave rings
-	PULSE_SPEED = 90.0, -- elmos per second the rings travel
+	PULSE_SPEED = 100.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
-	PULSE_STRENGTH = 1.0, -- how much the rings raise/brighten cubes
-	EDGE_STRENGTH = 0.15, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
-	RIM_STRENGTH = 0.25, -- how much the outermost ring of cubes brightens; 0 disables
+	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
+	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
+	RIM_STRENGTH = 0.22, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
 	TILE_CLIFF_START = 35.0, -- degrees: terrain steeper than this starts flattening the tiles again
 	TILE_CLIFF_END = 55.0, -- degrees: terrain steeper than this gets flat tiles (cliffs)
 	BASE_COLOR = "vec3(0.22, 0.85, 0.50)",
 	HIGHLIGHT_COLOR = "vec3(0.65, 1.00, 0.80)",
-	BASE_ALPHA = 0.5,
-	LINE_ALPHA = 0.5, -- opacity of the cube edge lines
+	BASE_ALPHA = 0.55,
+	LINE_ALPHA = 0.55, -- opacity of the cube edge lines
 }
 
 -- Engine radar model (rts/Sim/Misc/LosHandler.cpp, LosMap.cpp)
@@ -99,6 +110,10 @@ local HEIGHT_BUCKET = 2 ^ (RADAR_MIP_LEVEL + 2) -- emitter heights are quantized
 local CUBES_PER_CELL_EDGE = CUBES_PER_CELL[RADAR_MIP_LEVEL] or math.max(1, math.floor(RADAR_CELL / 13 + 0.5))
 local CUBE_SPACING = RADAR_CELL / CUBES_PER_CELL_EDGE -- elmos between cube centers
 local CUBE_WIDTH = CUBE_FILL * CUBE_SPACING -- elmos
+local MAP_CELLS_X = math.floor(Game.mapSizeX / RADAR_CELL) -- radar cells of the whole map
+local MAP_CELLS_Z = math.floor(Game.mapSizeZ / RADAR_CELL)
+local MAP_CUBES_X = MAP_CELLS_X * CUBES_PER_CELL_EDGE -- cube grid size of the whole map
+local MAP_CUBES_Z = MAP_CELLS_Z * CUBES_PER_CELL_EDGE
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -123,6 +138,14 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetDrawFrame = Spring.GetDrawFrame
+local spGetGlobalLos = Spring.GetGlobalLos
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetTeamList = Spring.GetTeamList
+local spGetTeamUnits = Spring.GetTeamUnits
+local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
+local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -165,6 +188,13 @@ local TILE_INDEX_COUNT = 6
 
 local mipTex = nil -- radar-cell heightmap of the whole map
 local mipUpdatedAt = -mathHuge
+local alliedTex = nil -- map-wide union of the allied radars' coverage, only used under global LOS / full view
+local alliedUpdatedAt = -mathHuge
+local alliedRadars = {} -- reused scratch list of { bx, bz, radius, losHeight }
+local alliedRadarCount = 0
+local showAllied = false -- live value of the RadarPreviewAlliedCoverage configint setting
+local showBackground = true -- live value of the RadarPreviewBackground configint setting
+local alliedConfigCheckedAt = -mathHuge
 local sets = {} -- radius in cells -> coverage/state textures and grid dimensions
 local mousepos = { 0, 0, 0 }
 local selectedRadarUnitID = false
@@ -175,6 +205,7 @@ local lastDrawFrame = -10
 local lastDrawTime = 0
 local lastRadius = nil
 local spawnStart = 0
+local cellMovedAt = -mathHuge -- last time the previewed emitter moved to another radar cell
 
 local passVsPath = "LuaUI/Shaders/sensor_ranges_radar_preview_pass.vert.glsl"
 
@@ -200,6 +231,8 @@ local coverageShaderCache = {
 	},
 	uniformFloat = {
 		losParams = { 0, 0, 1, 0 },
+		coverageAbsolute = { 0 },
+		passRect = { -1, -1, 1, 1 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -227,6 +260,7 @@ local cubeShaderCache = {
 		coverageTex = 1,
 		mapDepths = hasMapDepth and 2 or nil,
 		modelDepths = hasModelDepth and 3 or nil,
+		radarInfoTex = 4,
 	},
 	uniformFloat = {
 		radarcenter_range = { 0, 0, 0, 2000 },
@@ -235,6 +269,7 @@ local cubeShaderCache = {
 		shapeParams = { CUBE_WIDTH, 6, CUBE_SINK, 0 },
 		animParams = { 0, 0, 0, 0 },
 		windowParams = { 0, 0, 1, 1 },
+		modeParams = { 0, 0, 0, 0 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -428,7 +463,15 @@ local function buildRayData(radius)
 			end
 		end
 	end
-	return data, listOffset -- vec4 entries
+	-- shader storage buffers are allocated in 64 byte (4 x vec4) units and the upload must fill them
+	local entries = listOffset
+	while entries % 4 ~= 0 do
+		for _ = 1, 4 do
+			data[#data + 1] = 0
+		end
+		entries = entries + 1
+	end
+	return data, entries -- vec4 entries
 end
 
 local function makeSet(radiusCells)
@@ -457,23 +500,27 @@ local function makeSet(radiusCells)
 	if not set.raySSBO then
 		return nil
 	end
-	set.raySSBO:Define(rayEntries, { { id = 0, name = "rayData", size = 4 } })
+	-- LuaVBO shader storage buffers use std140 vec4 attributes: with size = 4 one element is 4 x vec4 = 64 bytes
+	-- and the upload consumes 16 floats per element, so the entry count is padded to a multiple of 4 above
+	set.raySSBO:Define(rayEntries / 4, { { id = 0, name = "rayData", size = 4 } })
 	set.raySSBO:Upload(rayData)
 	return set
 end
 
 local function deleteTextures()
 	for _, set in pairs(sets) do
-		if set.target then
-			gl.DeleteTexture(set.target)
-		end
-		for i = 1, 2 do
-			if set.state[i] then
-				gl.DeleteTexture(set.state[i])
+		if set then
+			if set.target then
+				gl.DeleteTexture(set.target)
 			end
-		end
-		if set.raySSBO then
-			set.raySSBO:Delete()
+			for i = 1, 2 do
+				if set.state[i] then
+					gl.DeleteTexture(set.state[i])
+				end
+			end
+			if set.raySSBO then
+				set.raySSBO:Delete()
+			end
 		end
 	end
 	sets = {}
@@ -481,6 +528,20 @@ local function deleteTextures()
 		gl.DeleteTexture(mipTex)
 		mipTex = nil
 	end
+	if alliedTex then
+		gl.DeleteTexture(alliedTex)
+		alliedTex = nil
+	end
+end
+
+-- coverage/ray-table set for a radius in cells, created on demand (allied radar units of any size)
+local function getSet(radiusCells)
+	local set = sets[radiusCells]
+	if set == nil then
+		set = makeSet(radiusCells) or false
+		sets[radiusCells] = set
+	end
+	return set or nil
 end
 
 local function initgl4()
@@ -535,6 +596,11 @@ local function initgl4()
 		goodbye("Failed to create the radar preview heightmap texture")
 		return false
 	end
+	alliedTex = makeDataTexture(MAP_CELLS_X, MAP_CELLS_Z, GL_R16F, GL.NEAREST)
+	if not alliedTex then
+		goodbye("Failed to create the allied radar coverage texture")
+		return false
+	end
 
 	for _, def in pairs(radarDefs) do
 		if not sets[def.radiusCells] then
@@ -560,6 +626,19 @@ local function setShape(name)
 	return true
 end
 
+local function readConfig()
+	showAllied = Spring.GetConfigInt("RadarPreviewAlliedCoverage", 1) ~= 0
+	showBackground = Spring.GetConfigInt("RadarPreviewBackground", 1) ~= 0
+end
+
+function widget:Update()
+	local now = osClock()
+	if now - alliedConfigCheckedAt > ALLIED_COVERAGE_POLL_SECONDS then
+		alliedConfigCheckedAt = now
+		readConfig()
+	end
+end
+
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -568,6 +647,7 @@ function widget:Initialize()
 	if not initgl4() then
 		return
 	end
+	readConfig()
 	WG.radarPreview = {
 		setShape = setShape,
 		getShape = function()
@@ -639,6 +719,9 @@ local function getCubeWindow(set, bx, bz, camX, camY, camZ)
 	local radius = set.radius
 	local x0, x1 = (bx - radius) * n, (bx + radius + 1) * n - 1
 	local z0, z1 = (bz - radius) * n, (bz + radius + 1) * n - 1
+	if showAllied then -- allied coverage can be anywhere on the map; uncovered cubes exit the vertex shader early
+		x0, x1, z0, z1 = 0, MAP_CUBES_X - 1, 0, MAP_CUBES_Z - 1
+	end
 	local minX, maxX, minZ, maxZ = getScreenFootprint(camX, camY, camZ)
 	if minX then
 		local margin = mathCeil(FOOTPRINT_MARGIN / CUBE_SPACING)
@@ -666,6 +749,74 @@ local function getCubeWindow(set, bx, bz, camX, camY, camZ)
 	return x0, z0, cellsX, cellsZ, stride, lodBlend
 end
 
+-- Allied radar units the engine would give radar coverage (ILosType::UpdateUnit: finished, activated,
+-- not stunned, emitter above its own cell), with their emitter cell, radius in cells and bucketed height.
+local function collectAlliedRadars()
+	local count = 0
+	local teams = spGetTeamList(spGetMyAllyTeamID())
+	for t = 1, #teams do
+		local units = spGetTeamUnits(teams[t])
+		for u = 1, #units do
+			local unitID = units[u]
+			local radarRadius = spGetUnitSensorRadius(unitID, "radar")
+			if radarRadius and radarRadius > 0 and spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) then
+				local radiusCells = mathFloor(mathFloor(radarRadius / SQUARE_SIZE) / 2 ^ RADAR_MIP_LEVEL)
+				if radiusCells >= 1 and radiusCells <= MAX_RADIUS_CELLS then
+					local _, _, _, mx, my, mz = spGetUnitPosition(unitID, true)
+					local unitDefID = spGetUnitDefID(unitID)
+					local emitHeight = (unitDefID and UnitDefs[unitDefID].radarEmitHeight) or 0
+					local losHeight = (mathFloor(mathMax(my + emitHeight, 0) / HEIGHT_BUCKET) + 0.5) * HEIGHT_BUCKET
+					local bx, bz = mathFloor(mx / RADAR_CELL), mathFloor(mz / RADAR_CELL)
+					local cellCenterX = (bx + 0.5) * RADAR_CELL + SQUARE_SIZE * 0.5
+					local cellCenterZ = (bz + 0.5) * RADAR_CELL + SQUARE_SIZE * 0.5
+					if losHeight > spGetGroundHeight(cellCenterX, cellCenterZ) then
+						count = count + 1
+						local radar = alliedRadars[count]
+						if not radar then
+							radar = {}
+							alliedRadars[count] = radar
+						end
+						radar.bx, radar.bz, radar.radius, radar.losHeight = bx, bz, radiusCells, losHeight
+					end
+				end
+			end
+		end
+	end
+	alliedRadarCount = count
+end
+
+-- Renders the union of the collected radars' coverage into alliedTex (one texel per radar cell): each
+-- radar draws just its disc's rectangle with the exact coverage shader, MAX-blended over the others.
+local function drawAlliedUnion()
+	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	gl.Blending(GL.ONE, GL.ONE)
+	gl.BlendEquation(GL.MAX)
+	coverageShader:Activate()
+	coverageShader:SetUniform("coverageAbsolute", 1)
+	local sx, sz = 2 / MAP_CELLS_X, 2 / MAP_CELLS_Z
+	for i = 1, alliedRadarCount do
+		local radar = alliedRadars[i]
+		local set = getSet(radar.radius)
+		if set then
+			set.raySSBO:BindBufferRange(RAY_SSBO_BINDING)
+			coverageShader:SetUniform("losParams", radar.bx, radar.bz, radar.radius, radar.losHeight)
+			coverageShader:SetUniform(
+				"passRect",
+				(radar.bx - radar.radius) * sx - 1,
+				(radar.bz - radar.radius) * sz - 1,
+				(radar.bx + radar.radius + 1) * sx - 1,
+				(radar.bz + radar.radius + 1) * sz - 1
+			)
+			passVAO:DrawArrays(GL.TRIANGLES)
+		end
+	end
+	coverageShader:SetUniform("coverageAbsolute", 0)
+	coverageShader:SetUniform("passRect", -1, -1, 1, 1)
+	coverageShader:Deactivate()
+	gl.BlendEquation(GL.FUNC_ADD)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
 function widget:DrawWorld()
 	local cmdID
 	if selectedRadarUnitID then
@@ -678,8 +829,14 @@ function widget:DrawWorld()
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then
-			return
-		end -- not a build command
+			-- before game start builds are queued through the pregame build widget, not via an active command
+			local pregameBuild = WG["pregame-build"]
+			local pregameDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
+			if not pregameDefID then
+				return
+			end
+			cmdID = -pregameDefID
+		end
 	end
 
 	local def = radarDefs[cmdID]
@@ -756,6 +913,9 @@ function widget:DrawWorld()
 	if set.bx then
 		shiftX = bx - set.bx
 		shiftZ = bz - set.bz
+		if shiftX ~= 0 or shiftZ ~= 0 then
+			cellMovedAt = now
+		end
 	end
 	if fresh or refresh or set.bx ~= bx or set.bz ~= bz or set.losHeight ~= losHeight then
 		gl.Texture(0, mipTex)
@@ -774,10 +934,26 @@ function widget:DrawWorld()
 	gl.Texture(0, prevTex)
 	gl.Texture(1, set.target)
 	smoothShader:Activate()
-	smoothShader:SetUniform("smoothParams", shiftX, shiftZ, 1 - mathExp(-dt * SMOOTH_RATE), fresh and 1 or 0)
+	-- while the placement preview is being dragged across radar cells the cubes must keep up with the cursor
+	local smoothRate = (not selectedRadarUnitID and (now - cellMovedAt) < 0.3) and SMOOTH_RATE_DRAG or SMOOTH_RATE
+	smoothShader:SetUniform("smoothParams", shiftX, shiftZ, 1 - mathExp(-dt * smoothRate), fresh and 1 or 0)
 	gl.RenderToTexture(nextTex, drawPass)
 	smoothShader:Deactivate()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- 2b. under global LOS or spectator full view the engine's radar map covers everything, so union the
+	-- coverage of the allied radar units ourselves instead (exact, refreshed once a second)
+	local manualAllied = false
+	if showAllied then
+		local _, fullView = spGetSpectatingState()
+		manualAllied = fullView or spGetGlobalLos() or false
+		if manualAllied and (now - alliedUpdatedAt) > COVERAGE_REFRESH_SECONDS then
+			collectAlliedRadars()
+			gl.Texture(0, mipTex)
+			gl.RenderToTexture(alliedTex, drawAlliedUnion)
+			alliedUpdatedAt = now
+		end
+	end
 
 	-- 3. the cubes
 	local camX, camY, camZ = spGetCameraPosition()
@@ -787,6 +963,11 @@ function widget:DrawWorld()
 	if cellsX > 0 and cellsZ > 0 then
 		gl.Texture(0, "$heightmap")
 		gl.Texture(1, nextTex)
+		if showAllied then
+			-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
+			-- allied radars when the engine map is all-covering (global LOS / spectator full view)
+			gl.Texture(4, manualAllied and alliedTex or "$info:radar")
+		end
 		if hasMapDepth then
 			gl.Texture(2, "$map_gbuffer_zvaltex")
 			if hasModelDepth then
@@ -801,10 +982,17 @@ function widget:DrawWorld()
 		cubeShader:Activate()
 		cubeShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
 		cubeShader:SetUniform("gridParams", RADAR_CELL, set.N, CUBE_SPACING, CUBES_PER_CELL_EDGE)
-		cubeShader:SetUniform("lookupParams", bx, bz, radius, 0)
-		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
+		cubeShader:SetUniform("lookupParams", bx, bz, radius, showAllied and 1 or 0)
 		cubeShader:SetUniform("animParams", now, now - spawnStart, lodBlend, shape.conform)
 		cubeShader:SetUniform("windowParams", x0, z0, cellsX, stride)
+		if showBackground then
+			-- background sheet under the cubes, outlined along the border with uncovered cells
+			cubeShader:SetUniform("modeParams", 1, 0, 0, 0)
+			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, 0, CUBE_SINK, BACKGROUND_LIFT + camDist * LIFT_PER_DISTANCE)
+			tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
+			cubeShader:SetUniform("modeParams", 0, 0, 0, 0)
+		end
+		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
 		if shape.height > 0 then
 			cubeVAO:DrawElements(GL.TRIANGLES, CUBE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
 		else
@@ -815,6 +1003,7 @@ function widget:DrawWorld()
 		gl.DepthTest(false)
 		gl.Texture(2, false)
 		gl.Texture(3, false)
+		gl.Texture(4, false)
 	end
 
 	gl.Texture(0, false)

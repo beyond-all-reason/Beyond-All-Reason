@@ -20,6 +20,9 @@
 
 uniform sampler2D mipHeightTex; // radar-cell heightmap (sensor_ranges_radar_preview_mip.frag.glsl)
 uniform vec4 losParams;         // emitter cell x, emitter cell y, radius in cells, emitter height (bucketed)
+// 0: the target texture is the (2 * radius + 1)^2 disc around the emitter (texel = cell offset + radius)
+// 1: the target texture is the whole map (texel = absolute radar cell), used to union allied radars
+uniform float coverageAbsolute = 0.0;
 
 // per first-quadrant cell (y * (radius + 1) + x): (offset, count); then per ray through a cell: (targetX, targetY)
 layout(std430, binding = 5) buffer RayData {
@@ -80,10 +83,14 @@ bool visibleAlongRay(ivec2 target, int steps, int rot, ivec2 base, float losHeig
 
 void main() {
 	int radius = int(losParams.z);
-	ivec2 off = ivec2(gl_FragCoord.xy) - ivec2(radius);
 	ivec2 base = ivec2(losParams.xy);
+	ivec2 off = ivec2(gl_FragCoord.xy) - ((coverageAbsolute > 0.5) ? base : ivec2(radius));
 	float losHeight = losParams.w;
 
+	if (any(greaterThan(abs(off), ivec2(radius)))) {
+		fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+		return;
+	}
 	if (off == ivec2(0)) {
 		fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 		return;

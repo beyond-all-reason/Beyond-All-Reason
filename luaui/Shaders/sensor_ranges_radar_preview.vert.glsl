@@ -16,17 +16,22 @@ layout (location = 0) in vec4 cubeVertex; // unit cube corner: x,z in [-0.5, 0.5
 
 uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
 uniform vec4 gridParams;        // radar cell size (elmo), coverage texels per side, cube spacing (elmo), cubes per radar cell edge
-uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, unused
+uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, allied coverage on (1) / off (0)
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
 uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
+uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders)
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
+uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when lookupParams.w = 1)
 
 out DataVS {
-	vec3 localPos; // position on the unit cube, for per-face shading and edge lines
-	vec4 fx;       // coverage, glow, beam, spawn
+	vec3 localPos;       // position on the unit cube, for per-face shading and edge lines
+	vec4 fx;             // coverage, glow, beam, spawn
+	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
+	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
+	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -56,11 +61,28 @@ float heightAtWorldPos(vec2 w) {
 	return max(0.0, textureLod(heightmapTex, uvhm, 0.0).x);
 }
 
+// is the radar cell covered by the previewed radar (and, with includeAllied and allied coverage enabled, any allied radar)?
+float coveredAt(ivec2 radarCell, bool includeAllied) {
+	int radius = int(lookupParams.z);
+	ivec2 texel = radarCell - ivec2(lookupParams.xy) + ivec2(radius);
+	float c = 0.0;
+	if (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, ivec2(int(gridParams.y))))) {
+		c = texelFetch(coverageTex, texel, 0).r;
+	}
+	if (includeAllied && lookupParams.w > 0.5 && all(greaterThanEqual(radarCell, ivec2(0))) && all(lessThan(radarCell, textureSize(radarInfoTex, 0)))) {
+		c = max(c, texelFetch(radarInfoTex, radarCell, 0).r);
+	}
+	return step(0.5, c);
+}
+
 // Every corner lands on the same clip-space point: zero area, nothing gets rasterized.
 void cullInstance() {
 	gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 	localPos = vec3(0.0);
 	fx = vec4(0.0);
+	previewWeight = 0.0;
+	outlineSides = vec4(0.0);
+	unionOutlineSides = vec4(0.0);
 }
 
 void main() {
@@ -74,6 +96,10 @@ void main() {
 	float lodBlend = animParams.z;
 	float isFine = float((cell.x | cell.y) & 1);
 	float lodScale = 1.0 - isFine * lodBlend;
+	bool background = modeParams.x > 0.5;
+	if (background) {
+		lodScale = 1.0; // the sheet just uses wider tiles at the coarse stride
+	}
 
 	float range = radarcenter_range.w;
 	vec2 cellXZ = (vec2(cell) + 0.5) * gridParams.z;
@@ -85,27 +111,76 @@ void main() {
 	int radius = int(lookupParams.z);
 	ivec2 worldCell = ivec2(floor(cellXZ / radarCell));
 	ivec2 off = worldCell - ivec2(lookupParams.xy);
-	if (any(greaterThan(abs(off), ivec2(radius)))) {
+	bool inPreviewDisc = all(lessThanEqual(abs(off), ivec2(radius)));
+
+	// coverage of the previewed radar: R = smoothed coverage, G = boundary factor (covered cell next to an
+	// uncovered one); texel center = radar cell center, nearest or bilinear depending on the texture's filter
+	vec2 coverageState = vec2(0.0);
+	if (inPreviewDisc) {
+		vec2 coverageUV = (cellXZ / radarCell - lookupParams.xy + float(radius)) / gridParams.y;
+		coverageState = texture(coverageTex, coverageUV).rg;
+	}
+	float coverage = coverageState.r;
+
+	// with allied coverage enabled (lookupParams.w), cubes covered only by other allied radars are drawn too but
+	// stay static; the previewed radar's animation applies in proportion to its own coverage
+	float weight = 1.0;
+	if (lookupParams.w > 0.5) {
+		float allied = 0.0;
+		if (all(greaterThanEqual(worldCell, ivec2(0))) && all(lessThan(worldCell, textureSize(radarInfoTex, 0)))) {
+			allied = step(0.5, texelFetch(radarInfoTex, worldCell, 0).r);
+		}
+		weight = smoothstep(0.0, 0.5, coverage);
+		coverage = max(coverage, allied);
+	} else if (!inPreviewDisc) {
 		cullInstance();
 		return;
 	}
-	// texel center = radar cell center; nearest or bilinear depending on the texture's filter
-	// R = smoothed coverage, G = boundary factor (covered cell next to an uncovered one)
-	vec2 coverageUV = (cellXZ / radarCell - lookupParams.xy + float(radius)) / gridParams.y;
-	vec2 coverageState = texture(coverageTex, coverageUV).rg;
-	float coverage = coverageState.r;
 
 	float distN = dist / range;
 	float time = animParams.x;
 
-	// spawn ripple: an expanding ring raises the cubes when the preview appears; they overshoot, then settle
+	// spawn ripple: an expanding ring raises the cubes when the preview appears; they overshoot, then settle.
+	// Cubes of other allied radars simply fade in.
 	float front = animParams.y * spawnSpeed;
-	float spawn = smoothstep(distN - 0.10, distN + 0.02, front);
-	float bump = sin(clamp((front - distN) / spawnBump, 0.0, 1.0) * PI);
+	float spawn = mix(min(animParams.y * 4.0, 1.0), smoothstep(distN - 0.10, distN + 0.02, front), weight);
+	float bump = sin(clamp((front - distN) / spawnBump, 0.0, 1.0) * PI) * weight;
 
 	if (coverage < minCoverage || lodScale < 0.02 || spawn < 0.01) {
 		cullInstance();
 		return;
+	}
+
+	// background pass: which sides of this cell border an uncovered radar cell (only cells on their radar
+	// cell's border can, so the neighbour lookups are rare)
+	// outlineSides: the previewed radar's own coverage border (always drawn, even inside allied coverage);
+	// unionOutlineSides: the border of all coverage with uncovered cells
+	outlineSides = vec4(0.0);
+	unionOutlineSides = vec4(0.0);
+	if (background) {
+		int n = int(gridParams.w);
+		ivec2 sub = cell - worldCell * n;
+		float ownCovered = step(0.5, coverageState.r);
+		if (sub.x == 0) {
+			ivec2 rc = worldCell + ivec2(-1, 0);
+			outlineSides.x = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.x = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.x >= n - stride) {
+			ivec2 rc = worldCell + ivec2(1, 0);
+			outlineSides.y = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.y = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.y == 0) {
+			ivec2 rc = worldCell + ivec2(0, -1);
+			outlineSides.z = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.z = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.y >= n - stride) {
+			ivec2 rc = worldCell + ivec2(0, 1);
+			outlineSides.w = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.w = 1.0 - coveredAt(rc, true);
+		}
 	}
 
 	// rotating radar sweep: a bright leading edge SWEEP_BEAM degrees wide, with a trail fading out over
@@ -113,15 +188,15 @@ void main() {
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = trail * trail * sweepStrength;
-	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength;
+	float sweep = trail * trail * sweepStrength * weight;
+	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight;
 
 	// the main animation: rings travelling outward from the radar
-	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower);
+	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight;
 
 	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;
-	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist);
+	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist) * weight;
 
 	float glow = clamp(sweep + beam + edge * edgeStrength + rim * rimStrength + ring * 0.6 * pulseStrength + bump * 0.7, 0.0, 1.5);
 
@@ -132,15 +207,20 @@ void main() {
 	float coarseGrow = lodBlend * (1.0 - isFine);
 	height *= lodScale * (1.0 + 0.5 * coarseGrow);
 	width *= lodScale * (1.0 + 0.9 * coarseGrow);
+	if (background) {
+		width = gridParams.z * float(stride); // exactly one cell (or LOD block): the tiles form a seamless sheet
+		height = 0.0;
+	}
 
 	// Cubes are rigid: every corner uses the cell center height, so slopes and cliffs never stretch or
 	// shear them (the uphill side sinks into the slope, the downhill side hovers a little; the bottom face
 	// covers that). Flat tiles (conform = 1) get a planar tilt from the terrain gradient around their
 	// center, capped at TILE_MAX_TILT degrees and fading back to flat on cliffs, where tilted tiles look odd.
-	vec2 vertexXZ = cellXZ + cubeVertex.xz * width;
 	float centerGround = heightAtWorldPos(cellXZ);
+
+	vec2 vertexXZ = cellXZ + cubeVertex.xz * width;
 	float tilt = 0.0;
-	if (animParams.w > 0.0) {
+	if (animParams.w > 0.0 && !background) {
 		float halfW = 0.5 * width;
 		vec2 grad = vec2(
 			heightAtWorldPos(cellXZ + vec2(halfW, 0.0)) - heightAtWorldPos(cellXZ - vec2(halfW, 0.0)),
@@ -151,9 +231,15 @@ void main() {
 	}
 	float base = centerGround + tilt - shapeParams.z;
 	float top = centerGround + tilt + shapeParams.w + height;
+	if (background) {
+		// per-corner terrain height: neighbouring tiles share their corners, so the sheet has no seams
+		top = heightAtWorldPos(vertexXZ) + shapeParams.w;
+		base = top;
+	}
 	vec3 worldPos = vec3(vertexXZ.x, mix(base, top, cubeVertex.y), vertexXZ.y);
 
 	localPos = cubeVertex.xyz;
 	fx = vec4(coverage, glow, beam, spawn);
+	previewWeight = weight;
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 }
