@@ -210,6 +210,7 @@ local cache = {
 	lastDrawnValue = { metal = "", energy = "" },
 	warningCleared = { metal = false, energy = false },
 	prevShowButtons = showButtons,
+	showIndicators = true,
 }
 
 -- Reused scratch tables for DrawScreen to avoid per-frame allocations.
@@ -380,9 +381,11 @@ local function updateButtons()
 	local function addButton(name, text, badge)
 		local textWidth = font2:GetTextWidth(text) * fontsize
 		-- the circle grows along with the amount of characters the number has
-		local badgeRadius = badge
-			and mathMax(badgeMinRadius, ((font2:GetTextWidth(badge) * badgeFontsize) / 2) + (fontsize * 0.25))
-			or 0
+		local badgeRadius = 0
+		if badge then
+			local badgeTextWidth = font2:GetTextWidth(badge) * badgeFontsize
+			badgeRadius = mathMax(badgeMinRadius, (badgeTextWidth / 2) + (fontsize * 0.25))
+		end
 		local badgeWidth = badgeRadius * 2
 		local width = mathFloor(textWidth + badgeWidth + textPadding)
 		local textCenter = buttonsArea[3] - offset - (width / 2) - (badgeWidth / 2)
@@ -2620,7 +2623,7 @@ local function drawUiBackground()
 			)
 		end
 	end
-	if comsArea[1] then
+	if cache.showIndicators and comsArea[1] then
 		local H = comsArea[4] - comsArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2644,7 +2647,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if windArea[1] then
+	if cache.showIndicators and windArea[1] then
 		local H = windArea[4] - windArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2668,7 +2671,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if displayTidalSpeed and tidalarea[1] then
+	if cache.showIndicators and displayTidalSpeed and tidalarea[1] then
 		local H = tidalarea[4] - tidalarea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2727,7 +2730,7 @@ local function drawUi()
 	local windH = windArea[4] - windArea[2]
 	local fontsize = windH / 3.2
 	local windSkewCX = windArea[1] + ((windArea[3] - windArea[1]) / 2) - (cfg.useSkew and windH * skewTan * 0.5 or 0)
-	if noWind then
+	if cache.showIndicators and noWind then
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print(
@@ -2748,7 +2751,7 @@ local function drawUi()
 	end
 
 	-- tidal speed
-	if displayTidalSpeed then
+	if cache.showIndicators and displayTidalSpeed then
 		local fontSize = (tidalarea[4] - tidalarea[2]) / 2.3
 		local skewCenterOffset = cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0
 		font2:Begin(true)
@@ -2983,7 +2986,7 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if not noWind then
+	if cache.showIndicators and not noWind then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
 			windTextScissor[1] = windArea[1] - topbarArea[1]
@@ -2998,7 +3001,7 @@ function widget:DrawScreen()
 	drawResBars()
 
 	glPushMatrix()
-	if displayComCounter and dlist.coms then
+	if cache.showIndicators and displayComCounter and dlist.coms then
 		-- commander counter
 		if
 			refreshUi
@@ -3639,6 +3642,19 @@ function widget:Initialize()
 
 	WG.topbar.getResourceBarsVisible = function()
 		return showResourceBars
+	end
+
+	WG.topbar.setIndicatorsVisible = function(visible)
+		if cache.showIndicators == visible then
+			return
+		end
+
+		cache.showIndicators = visible
+		refreshUi = true
+	end
+
+	WG.topbar.getIndicatorsVisible = function()
+		return cache.showIndicators
 	end
 
 	updateAvgWind()

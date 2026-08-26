@@ -230,6 +230,46 @@ local triggers = {
 			unitName = 'doomedRadar',
 		},
 		actions = { 'messageUnitReclaimedByName' },
+  },
+	spawnProductionDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 45,
+		},
+		actions = { 'spawnFactories', 'orderBotLabBuilds', 'orderVehiclePlantBuilds' },
+	},
+
+	-- Fires once per buildee, so twice over the bot lab's two pawns.
+	productionStartedPawn = {
+		type = triggerTypes.ProductionStarted,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			unitDefName = 'armpw',
+			teamID = 0,
+		},
+		actions = { 'messageProductionStartedPawn' },
+	},
+
+	productionStartedByBotLab = {
+		type = triggerTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armck',
+			teamID = 0,
+			factoryName = 'botlab',
+		},
+		actions = { 'messageProductionStartedByBotLab' },
+	},
+
+	productionStartedByVehiclePlant = {
+		type = triggerTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armfav',
+			teamID = 0,
+			factoryDefName = 'armvp',
+		},
+		actions = { 'messageProductionStartedByVehiclePlant' },
 	},
 
 	unitRessed = {
@@ -523,6 +563,58 @@ local actions = {
 			unitName = 'reclaimer',
 			orders = {
 				{ CMD.RECLAIM, { unitName = 'doomedRadar' } },
+	},
+
+	messageProductionStartedPawn = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A pawn went onto a build pad (production started)!",
+		},
+	},
+
+	messageProductionStartedByBotLab = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The named bot lab started a construction bot!",
+		},
+	},
+
+	messageProductionStartedByVehiclePlant = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A vehicle plant, whichever one, started a fast assault vehicle!",
+		},
+	},
+
+	spawnFactories = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armlab', x = 2400, z = 3000, team = 0, unitName = 'botlab' },
+				{ unitDefName = 'armvp', x = 2750, z = 3000, team = 0, unitName = 'vehicleplant' },
+			},
+		},
+	},
+
+	-- Factory build orders carry no position, so their parameters are empty.
+	orderBotLabBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'botlab',
+			orders = {
+				{ 'armpw', {} },
+				{ 'armck', {}, { 'shift' } },
+				{ 'armpw', {}, { 'shift' } },
+			},
+		},
+	},
+
+	orderVehiclePlantBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'vehicleplant',
+			orders = {
+				{ 'armfav', {} },
 			},
 		},
 	},
