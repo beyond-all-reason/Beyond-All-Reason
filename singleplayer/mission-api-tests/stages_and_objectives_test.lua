@@ -140,7 +140,7 @@ local triggers = {
 		settings = {
 			stages = { 'thirdStage' },
 		},
-		actions = { 'spawnBotDestroyer' },
+		actions = { 'spawnBotDestroyerReinforcements' },
 	},
 
 	-- Triggers take `count` too, so "on the 4th one" no longer needs to be
@@ -152,7 +152,7 @@ local triggers = {
 			teamID = 0,
 		},
 		count = 4,
-		actions = { 'spawnBotDestroyer' },
+		actions = { 'spawnMoreBotDestroyers' },
 	},
 }
 
@@ -175,7 +175,38 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2100, team = 1, quantity = 3, spacing = 60 },
+				-- Explicit positions rather than quantity + spacing: the grid is laid out
+				-- around the centre, which pulled a turret to 208 elmos, inside corak's
+				-- 215 range. At z = 2150 every turret is 350+ away but still inside
+				-- armllt's 430, so they shoot and are not shot at.
+				{ unitDefName = 'armllt', x = 1700, z = 2150, team = 1 },
+				{ unitDefName = 'armllt', x = 1800, z = 2150, team = 1 },
+				{ unitDefName = 'armllt', x = 1900, z = 2150, team = 1 },
+				-- armllt costs 20 energy per shot and team 1 produces none, so the
+				-- turrets stop firing without this.
+				{ unitDefName = 'armfus', x = 1800, z = 2450, team = 1 },
+			},
+		},
+	},
+
+	-- Separate spawn points, so repeat reinforcements do not land on top of the
+	-- turrets already there.
+	spawnMoreBotDestroyers = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 1600, z = 2150, team = 1 },
+				{ unitDefName = 'armllt', x = 2000, z = 2150, team = 1 },
+			},
+		},
+	},
+
+	spawnBotDestroyerReinforcements = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armllt', x = 1650, z = 2100, team = 1 },
+				{ unitDefName = 'armllt', x = 1950, z = 2100, team = 1 },
 			},
 		},
 	},
