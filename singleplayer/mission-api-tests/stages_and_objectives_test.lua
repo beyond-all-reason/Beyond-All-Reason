@@ -1,7 +1,5 @@
 ---
---- Annotated reference for the condition format. This format is implemented, so
---- this file is runnable; stages_and_objectives_test.lua is the same mission
---- without the commentary.
+--- Annotated reference for the condition format, and a runnable test mission.
 ---
 --- Concepts:
 ---   trigger    - type + parameters + settings + actions. Standalone automation.
@@ -81,7 +79,10 @@ local objectives = {
 		textKey = "build_3_bots",
 
 		-- Event type with a count: completes on the third matching occurrence.
-		type = eventTypes.ConstructionFinished,
+		-- UnitExists rather than ConstructionFinished because these bots are
+		-- spawned by SpawnUnits, and a spawned unit is created complete, so it
+		-- never was under construction.
+		type = eventTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
 			teamID = 0,
@@ -148,7 +149,7 @@ local triggers = {
 	-- Triggers take `count` too, so "on the 4th one" no longer needs to be
 	-- expressed as a repeat stride.
 	fourthBotBuilt = {
-		type = eventTypes.ConstructionFinished,
+		type = eventTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
 			teamID = 0,
