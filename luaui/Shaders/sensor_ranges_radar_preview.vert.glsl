@@ -160,8 +160,9 @@ void main() {
 	// shear them (the uphill side sinks into the slope, the downhill side hovers a little; the bottom face
 	// covers that). Flat tiles (conform = 1) get a planar tilt from the terrain gradient around their
 	// center, capped at TILE_MAX_TILT degrees and fading back to flat on cliffs, where tilted tiles look odd.
-	vec2 vertexXZ = cellXZ + cubeVertex.xz * width;
 	float centerGround = heightAtWorldPos(cellXZ);
+
+	vec2 vertexXZ = cellXZ + cubeVertex.xz * width;
 	float tilt = 0.0;
 	if (animParams.w > 0.0) {
 		float halfW = 0.5 * width;

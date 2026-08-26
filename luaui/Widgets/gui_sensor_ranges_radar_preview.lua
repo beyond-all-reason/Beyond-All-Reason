@@ -31,8 +31,8 @@ end
 -- Tunables
 -- Cubes are laid out as an NxN block centered inside every radar cell (cell size = 8 << radarMipLevel elmo);
 -- N by radarMipLevel, so the look stays consistent when the game's radar resolution changes.
-local CUBES_PER_CELL = { [1] = 2, [2] = 3, [3] = 5, [4] = 8 }
-local CUBE_FILL = 0.28 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
+local CUBES_PER_CELL = { [1] = 1, [2] = 1, [3] = 2, [4] = 3 }
+local CUBE_FILL = 0.22 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
 local CUBE_SINK = 2 -- elmos the cube base is pushed below ground, so cubes never float on slopes
 local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime with WG.radarPreview.setShape(name)
 local CUBE_SHAPES = {
@@ -63,7 +63,7 @@ local shaderConfig = {
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COVERAGE = SHOW_ALLIED_COVERAGE and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cubes covered only by other allied radars
-	ALLIED_ALPHA = 0.7, -- their opacity relative to the previewed radar's cubes
+	ALLIED_ALPHA = 0.75, -- their opacity relative to the previewed radar's cubes
 	MIN_COVERAGE = 0.04, -- cubes below this (smoothed) coverage are not drawn
 	SWEEP_SPEED = 0.11, -- radar sweep revolutions per second
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
