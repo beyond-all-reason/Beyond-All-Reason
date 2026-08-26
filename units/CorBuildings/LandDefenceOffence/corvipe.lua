@@ -3,7 +3,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15000,
-		canrepeat = false,
+		canrepeat = true,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energycost = 14000,
@@ -25,6 +25,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
+			groundattackaftersalvos = 1,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 4.7,
 			buildinggrounddecalsizey = 4.7,
