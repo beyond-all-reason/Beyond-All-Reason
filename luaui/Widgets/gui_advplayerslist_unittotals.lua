@@ -155,6 +155,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.unittotals = {}
+	---Where the unit totals panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.unittotals.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

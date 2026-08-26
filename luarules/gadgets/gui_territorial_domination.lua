@@ -46,6 +46,7 @@ local NOTIFY_DELAY = math.floor(Game.gameSpeed * 1)
 local squareVBO = nil
 local squareVAO = nil
 local squareShader = nil
+---@type InstanceVBOTable?
 local instanceVBO = nil
 local cachedMinimapFlipped = nil
 

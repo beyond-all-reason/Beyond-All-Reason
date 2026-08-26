@@ -39,9 +39,6 @@ _G.Spring.GetTeamAllyTeamID = _G.Spring.GetTeamAllyTeamID or function(teamID)
 	return teamID
 end
 
--- Sim frames per second, which seismic_contacts reads at load for its update interval.
-_G.Game.gameSpeed = _G.Game.gameSpeed or 30
-
 -- validation.lua reads both command tables at load; specs fill in real IDs as needed.
 _G.CMD = _G.CMD or {}
 _G.GameCMD = _G.GameCMD or {}

@@ -574,6 +574,7 @@ local coneShaderSourceCache = {
 	silent = not autoReload,
 }
 
+---@type InstanceVBOTable?
 local startConeVBOTable = nil
 local startConeShader = nil
 
