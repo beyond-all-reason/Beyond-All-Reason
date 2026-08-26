@@ -592,6 +592,7 @@ void main() {
 local fireTexture = "bitmaps/projectiletextures/BARFlame02.tga"
 local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
+---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
 local nextParticleID = 0

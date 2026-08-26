@@ -111,6 +111,7 @@ end
 local teamIncomeMultipliers = {} -- {key teamID value Multiplier number}
 
 local spotVBO = nil
+---@type InstanceVBOTable?
 local spotInstanceVBO = nil
 local spotShader = nil
 

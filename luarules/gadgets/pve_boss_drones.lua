@@ -555,73 +555,84 @@ end
 
 function gadget:GameFrame(frame)
 	if frame % 30 == 13 then
-		for unitID, unitDroneStats in pairs(aliveCarriers) do
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			for index, stats in pairs(unitDroneStats) do
-				if
-					stats.aliveDrones
-						<= (unitList[unitDefID][index].maxAllowed - unitList[unitDefID][index].spawnedPerWave)
-					and Spring.GetGameSeconds() >= stats.lastSpawned + unitList[unitDefID][index].spawnTimer
-				then
-					for _ = 1, unitList[unitDefID][index].spawnedPerWave do
-						local x, y, z = Spring.GetUnitPosition(unitID)
-						local spawnx = x
-							+ math.random(
-								-unitList[unitDefID][index].spawnRadius,
-								unitList[unitDefID][index].spawnRadius
-							)
-						local spawny = y
-						local spawnz = z
-							+ math.random(
-								-unitList[unitDefID][index].spawnRadius,
-								unitList[unitDefID][index].spawnRadius
-							)
-						if
-							(
-								unitList[unitDefID][index].type == "air"
-								and UnitDefNames[unitList[unitDefID][index].name].canFly
-							)
-							or (unitList[unitDefID][index].type == "ground" and positionCheckLibrary.FlatAreaCheck(
-								spawnx,
-								spawny,
-								spawnz,
-								64,
-								30,
-								true
-							))
-							or (unitList[unitDefID][index].type == "land" and positionCheckLibrary.FlatAreaCheck(
-								spawnx,
-								spawny,
-								spawnz,
-								64,
-								30,
-								true
-							) and Spring.GetGroundHeight(spawnx, spawnz) > 0)
-							or (
-								unitList[unitDefID][index].type == "sea"
-								and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true)
-								and Spring.GetGroundHeight(spawnx, spawnz) <= 0
-							)
-						then
-							local droneID = Spring.CreateUnit(
-								unitList[unitDefID][index].name,
-								spawnx,
-								spawny,
-								spawnz,
-								math.random(0, 3),
-								Spring.GetUnitTeam(unitID)
-							)
-							if droneID then
-								aliveDrones[droneID] = {
-									owner = unitID,
-									ownerDefID = unitDefID,
-									index = index,
-									fightRadius = unitList[unitDefID][index].fightRadius,
-								}
-								aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
-								aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
-								Spring.GiveOrderToUnit(droneID, 37382, { 1 }, 0)
-								--Spring.GiveOrderToUnit(droneID, CMD.MOVE_STATE, 2, 0)
+		-- Spawned drones can be carriers themselves (queen and brood chains).
+		-- UnitCreated adds those to aliveCarriers, so we iterate over a copy.
+		local carrierIDs = {}
+		local carrierCount = 0
+		for unitID in pairs(aliveCarriers) do
+			carrierCount = carrierCount + 1
+			carrierIDs[carrierCount] = unitID
+		end
+		for i = 1, carrierCount do
+			local unitID = carrierIDs[i]
+			local unitDroneStats = aliveCarriers[unitID]
+			if unitDroneStats then
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				for index, stats in pairs(unitDroneStats) do
+					if
+						stats.aliveDrones
+							<= (unitList[unitDefID][index].maxAllowed - unitList[unitDefID][index].spawnedPerWave)
+						and Spring.GetGameSeconds() >= stats.lastSpawned + unitList[unitDefID][index].spawnTimer
+					then
+						for _ = 1, unitList[unitDefID][index].spawnedPerWave do
+							local x, y, z = Spring.GetUnitPosition(unitID)
+							local spawnx = x
+								+ math.random(
+									-unitList[unitDefID][index].spawnRadius,
+									unitList[unitDefID][index].spawnRadius
+								)
+							local spawny = y
+							local spawnz = z
+								+ math.random(
+									-unitList[unitDefID][index].spawnRadius,
+									unitList[unitDefID][index].spawnRadius
+								)
+							if
+								(
+									unitList[unitDefID][index].type == "air"
+									and UnitDefNames[unitList[unitDefID][index].name].canFly
+								)
+								or (unitList[unitDefID][index].type == "ground" and positionCheckLibrary.FlatAreaCheck(
+									spawnx,
+									spawny,
+									spawnz,
+									64,
+									30,
+									true
+								))
+								or (unitList[unitDefID][index].type == "land" and positionCheckLibrary.FlatAreaCheck(
+									spawnx,
+									spawny,
+									spawnz,
+									64,
+									30,
+									true
+								) and Spring.GetGroundHeight(spawnx, spawnz) > 0)
+								or (
+									unitList[unitDefID][index].type == "sea"
+									and positionCheckLibrary.FlatAreaCheck(spawnx, spawny, spawnz, 64, 30, true)
+									and Spring.GetGroundHeight(spawnx, spawnz) <= 0
+								)
+							then
+								local droneID = Spring.CreateUnit(
+									unitList[unitDefID][index].name,
+									spawnx,
+									spawny,
+									spawnz,
+									math.random(0, 3),
+									Spring.GetUnitTeam(unitID)
+								)
+								if droneID then
+									aliveDrones[droneID] = {
+										owner = unitID,
+										ownerDefID = unitDefID,
+										index = index,
+										fightRadius = unitList[unitDefID][index].fightRadius,
+									}
+									aliveCarriers[unitID][index].aliveDrones = aliveCarriers[unitID][index].aliveDrones + 1
+									aliveCarriers[unitID][index].lastSpawned = Spring.GetGameSeconds()
+									Spring.GiveOrderToUnit(droneID, 37382, { 1 }, 0)
+								end
 							end
 						end
 					end

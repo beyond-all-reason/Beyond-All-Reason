@@ -862,7 +862,7 @@ local function clearAllOrders()
 	end
 end
 
-function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+function gadget:FeatureBuildStepPost(featureID)
 	local featureData = corpsesData[featureID]
 	if featureData then
 		if not featureData.tamperedFrame then
@@ -876,7 +876,6 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		end
 		featureData.tamperedFrame = gameFrame
 	end
-	return true
 end
 
 function UnitEnteredAir(unitID)

@@ -1736,6 +1736,14 @@ local function writePointer(t)
 	return writeFile(POINTER_PATH, content) ~= nil
 end
 
+-- Counts clients rather than team-attached players: a map editor session runs with no teams
+-- at all, so its lone spectator counts as zero. api_permissions gates the same way.
+local function isLocalSession()
+	local count = BAR.Utilities and BAR.Utilities.GetPlayerCount and BAR.Utilities.GetPlayerCount()
+
+	return count == nil or count <= 1
+end
+
 local function readPointer()
 	local f = io.open(POINTER_PATH, "r")
 	if not f then
@@ -2665,8 +2673,7 @@ local function maybeStartLoad()
 	if Spring.IsReplay() then
 		reasons[#reasons + 1] = "this is a replay"
 	end
-	local gt = BAR.Utilities and BAR.Utilities.Gametype
-	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
+	if not isLocalSession() then
 		reasons[#reasons + 1] = "not a local singleplayer session"
 	end
 	if #reasons > 0 then
@@ -2737,8 +2744,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
-	local gt = BAR.Utilities and BAR.Utilities.Gametype
-	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
+	if not isLocalSession() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false
 	end

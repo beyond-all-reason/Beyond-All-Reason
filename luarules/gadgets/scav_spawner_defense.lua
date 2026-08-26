@@ -2992,8 +2992,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			captureRuns = (captureRuns + 1) % 4
 
-			for unitID, _ in pairs(capturableUnits) do
-				if unitID % 4 == captureRuns then
+			-- Removing and inserting a key to a table in next/pairs corrupts the iterator.
+			-- Copy the table and loop only the values that existed in it before the update.
+			local capturableIDs = {}
+			for unitID in pairs(capturableUnits) do
+				capturableIDs[#capturableIDs + 1] = unitID
+			end
+			for i = 1, #capturableIDs do
+				local unitID = capturableIDs[i]
+				if capturableUnits[unitID] and unitID % 4 == captureRuns then
 					local ux, uy, uz = GetUnitPosition(unitID)
 					local health, maxHealth, _, captureLevel = GetUnitHealth(unitID)
 					if health then

@@ -2835,6 +2835,13 @@ drawUi = function()
 	end
 end
 
+-- Commands (area reclaim, build placement, ...) use the mouse and CTRL themselves,
+-- so the chat box must not grab the cursor or clicks while one is active.
+function state.hasActiveCommand()
+	local _, activeCmdID = spGetActiveCommand()
+	return activeCmdID ~= nil
+end
+
 drawTextInput = function()
 	if handleTextInput then
 		if showTextInput and updateTextInputDlist then
@@ -2845,6 +2852,9 @@ drawTextInput = function()
 			drawChatInputCursor()
 			-- button hover
 			local x, y, b = spGetMouseState()
+			if state.hasActiveCommand() then
+				return
+			end
 			local hoveredEmojiIndex, hoverLeft, hoverBottom, hoverRight, hoverTop = state.getEmojiPickerHoverRect(x, y)
 			if hoveredEmojiIndex then
 				Spring.SetMouseCursor("cursornormal")
@@ -3053,8 +3063,10 @@ function widget:DrawScreen()
 		updateDrawUi = true
 	end
 
+	local _, activeCmdID = spGetActiveCommand()
 	local ctrlHover = enableShortcutClick
 		and ctrl
+		and not activeCmdID
 		and math_isInRect(
 			x,
 			y,
@@ -3096,7 +3108,7 @@ function widget:DrawScreen()
 							),
 							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
-						if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+						if not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
 							UiSelectHighlight(
 								lineArea[1] - translatedX,
 								lineArea[2] - translatedY - (lineHeight * checkedLines),
@@ -3960,6 +3972,9 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
+		return false
+	end
+	if state.hasActiveCommand() then
 		return false
 	end
 	state.emojiPickerPressFromButton = false
