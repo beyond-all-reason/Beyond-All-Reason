@@ -2835,7 +2835,7 @@ else -- UNSYNCED
 		end
 
 		-- give units
-		local exlusions = {
+		local exclusions = {
 			meteor = true,
 			raptor_hive = true,
 			nuketest = true,
@@ -2845,18 +2845,18 @@ else -- UNSYNCED
 			scavtacnukespawner = true,
 			scavempspawner = true,
 		}
-		local newExlusions = {}
-		for k, v in pairs(exlusions) do
-			newExlusions[k] = true
-			newExlusions[k .. "_scav"] = true
+		local newExclusions = {}
+		for k, v in pairs(exclusions) do
+			newExclusions[k] = true
+			newExclusions[k .. "_scav"] = true
 		end
-		exlusions = newExlusions
-		newExlusions = nil
+		exclusions = newExclusions
+		newExclusions = nil
 		local giveUnits = {}
 		for _, ud in pairs(UnitDefs) do
 			local give = true
 			for _, Condition in ipairs(Accept) do
-				if not Condition(ud) or exlusions[ud.name] then
+				if not Condition(ud) or exclusions[ud.name] then
 					give = false
 					break
 				end

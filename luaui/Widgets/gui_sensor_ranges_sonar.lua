@@ -43,6 +43,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local sonarStencilShader = nil
 local sonarCircleShader = nil
+---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
 local sonarStencilTexture
