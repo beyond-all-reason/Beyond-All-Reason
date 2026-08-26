@@ -2,10 +2,10 @@
 --- Loadout spawning logic used in :GamePreload() and the SpawnUnits and CreateFeatures actions.
 ---
 
-local tracking = GG['MissionAPI'].Modules.Tracking
+local tracking = GG["MissionAPI"].Modules.Tracking
 
-local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
-local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs
+local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
+local trackedFeatureIDs = GG["MissionAPI"].trackedFeatureIDs
 
 --- Units
 
@@ -19,7 +19,9 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 
 	for x = left, left + xGridSize - xSpacing, xSpacing do
 		for z = top, top + zGridSize - zSpacing, zSpacing do
-			if count >= quantity then return positions end
+			if count >= quantity then
+				return positions
+			end
 			table.insert(positions, { x = x, y = Spring.GetGroundHeight(x, z), z = z })
 			count = count + 1
 		end
@@ -29,11 +31,12 @@ end
 
 local function spawnUnit(unit, pos)
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
-	GG['MissionAPI'].nameOfUnitBeingSpawned = unit.unitName
-	GG['MissionAPI'].spawnedUnitIsBeingBuilt = unit.construction
-	local unitID = Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or 's', unit.team, unit.construction)
-	GG['MissionAPI'].nameOfUnitBeingSpawned = nil
-	GG['MissionAPI'].spawnedUnitIsBeingBuilt = nil
+	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
+	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
+	local unitID =
+		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", unit.team, unit.construction)
+	GG["MissionAPI"].nameOfUnitBeingSpawned = nil
+	GG["MissionAPI"].spawnedUnitIsBeingBuilt = nil
 
 	if unitID and unit.neutral then
 		Spring.SetUnitNeutral(unitID, true)
@@ -45,8 +48,15 @@ local function spawnUnit(unit, pos)
 end
 
 local function convertOrdersTargetingNames(orders)
-	local commandsAcceptingName = { [CMD.GUARD] = true, [CMD.REPAIR] = true, [CMD.CAPTURE] = true, [CMD.ATTACK] = true,
-									[CMD.LOAD_UNITS] = true, [CMD.RECLAIM] = true, [CMD.RESURRECT] = true }
+	local commandsAcceptingName = {
+		[CMD.GUARD] = true,
+		[CMD.REPAIR] = true,
+		[CMD.CAPTURE] = true,
+		[CMD.ATTACK] = true,
+		[CMD.LOAD_UNITS] = true,
+		[CMD.RECLAIM] = true,
+		[CMD.RESURRECT] = true,
+	}
 
 	-- Replace name param with unitIDs or featureIDs, duplicating order for each unitID
 	local newOrders = {}
@@ -55,7 +65,7 @@ local function convertOrdersTargetingNames(orders)
 		local params = order[2] or {}
 		local options = order[3] or {}
 
-		if commandsAcceptingName[commandID] and type(params) == 'table' and (params.unitName or params.featureName) then
+		if commandsAcceptingName[commandID] and type(params) == "table" and (params.unitName or params.featureName) then
 			local thingIDs = {}
 			local offset = 0
 			if params.featureName then
@@ -71,7 +81,7 @@ local function convertOrdersTargetingNames(orders)
 			for thingID in pairs(thingIDs) do
 				newOrders[#newOrders + 1] = { commandID, thingID + offset, table.copy(options) }
 				if isFirstUnitID then
-					table.insert(options, 'shift')
+					table.insert(options, "shift")
 					isFirstUnitID = false
 				end
 			end
@@ -98,7 +108,7 @@ local function spawnUnitLoadout(unitLoadout)
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in pairs(positions) do
 			local unitID = spawnUnit(unit, pos)
-			Spring.GiveOrderArrayToUnit(unitID,  convertOrdersTargetingNames(unit.orders))
+			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
 		end
 	end
 end

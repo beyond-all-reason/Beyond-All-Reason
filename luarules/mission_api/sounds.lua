@@ -5,12 +5,12 @@
 local nextSoundAt = 0
 
 local function enqueueSound(soundfile, volume, position)
-	local soundQueue = GG['MissionAPI'].soundQueue
+	local soundQueue = GG["MissionAPI"].soundQueue
 	soundQueue[#soundQueue + 1] = {
 		soundfile = soundfile,
 		volume = volume,
 		position = position,
-		length = GG['MissionAPI'].soundFiles[soundfile]
+		length = GG["MissionAPI"].soundFiles[soundfile],
 	}
 end
 
@@ -24,7 +24,7 @@ local function playSound(soundfile, volume, position)
 end
 
 local function processSoundQueue(frameNumber)
-	local soundQueue = GG['MissionAPI'].soundQueue
+	local soundQueue = GG["MissionAPI"].soundQueue
 
 	if frameNumber < nextSoundAt or #soundQueue == 0 then
 		return
