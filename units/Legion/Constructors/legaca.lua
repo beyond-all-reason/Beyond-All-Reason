@@ -8,7 +8,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACA.DDS",
-		buildtime = 17500,
+		buildtime = 20000,
 		canfly = true,
 		canmove = true,
 		collide = true,

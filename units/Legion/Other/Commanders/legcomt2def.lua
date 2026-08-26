@@ -87,10 +87,9 @@ return {
 			[28] = "legmg",
 			[29] = "armclaw",
 			[30] = "armferret",
-			[31] = "legmext15",
-			[32] = "corjamt",
-			[33] = "armguard",
-			[34] = "armcir",
+			[31] = "corjamt",
+			[32] = "armguard",
+			[33] = "armcir",
 		},
 		customparams = {
 			unitgroup = "builder",

@@ -173,7 +173,9 @@ void main() {
 local featureShapeShader
 local vertexVBO, indexVBO
 
-local texKeyToBucket = {} -- "tex1|tex2" -> instance table
+---Instance buffers keyed by the texture pair they draw with.
+---@type table<string, InstanceVBOTable?>
+local texKeyToBucket = {}
 local buckets = {} -- array of the above, for iteration
 local featureDefIDToBucket = {} -- featureDefID -> instance table
 local unsupportedDefIDs = {} -- featureDefIDs with no usable model, warned about once

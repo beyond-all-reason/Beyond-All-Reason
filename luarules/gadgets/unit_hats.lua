@@ -47,7 +47,8 @@ function gadget:GameID(gameID)
 	math.randomseed(FakeRandomSeed)
 end
 
-PlayerCosmeticList = {
+---@type table<integer,string[]>
+local PlayerCosmeticList = {
 	[439] = { -- Goopy
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
@@ -205,16 +206,17 @@ PlayerCosmeticList = {
 
 -- Cosmetic Defs
 
---[[
-	slot = "hat", "rightshoulder", "leftshoulder", "necklace", "belt"
-	implementation = "unit", "baked" - unit uses separate unit attached, baked uses model parts baked into the model
-	unitDefID = UnitDefNames.unitdefname and UnitDefNames.unitdefname.id - only for unit implementation
-	scriptCall = "ShowCrown" - only for baked implementation
-	faction = {arm = true, cor = true, leg = true},
-	conflictsWith = {"HatName"}
-]]
+---A single cosmetic that can be attached to a commander.
+---@class CosmeticDefinition
+---@field slot "hat"|"rightshoulder"|"leftshoulder"|"necklace"|"belt" Attaches to the `<slot>cosmeticpoint` piece.
+---@field implementation "unit"|"baked" `unit` attaches a separate unit, `baked` uses model parts baked into the model.
+---@field faction {arm: boolean, cor: boolean, leg: boolean} Factions the cosmetic is offered to.
+---@field conflictsWith string[] Names of cosmetics that cannot be worn alongside this one.
+---@field unitDefID UnitDefID? Unit to attach; set only for the `unit` implementation.
+---@field scriptCall string? LUS function that reveals the baked parts; set only for the `baked` implementation.
 
-CosmeticDefinitions = {
+---@type table<string, CosmeticDefinition>
+local CosmeticDefinitions = {
 
 	------------------------------------------
 	-- Hats
@@ -365,7 +367,8 @@ CosmeticDefinitions = {
 	------------------------------------------
 }
 
-CosmeticUnitDefIDToPiece = {}
+---@type table<UnitDefID, string>
+local CosmeticUnitDefIDToPiece = {}
 for _, def in pairs(CosmeticDefinitions) do
 	if def.implementation == "unit" then
 		CosmeticUnitDefIDToPiece[def.unitDefID] = def.slot .. "cosmeticpoint"

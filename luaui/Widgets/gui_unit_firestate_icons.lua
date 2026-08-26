@@ -41,7 +41,10 @@ local returnFireTexture = "LuaUI/Images/returnfire.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local holdFireVBO = nil
+---@type InstanceVBOTable?
 local returnFireVBO = nil
 local fireIconShader = nil
 
@@ -86,6 +89,9 @@ local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.85, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 --------------------------------------------------------------------------------
 -- GL4 Initialization
 --------------------------------------------------------------------------------
+
+---Builds the instance buffer backing one fire state icon.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThisShader)
 	local instanceLayout
 	local unitIDattribID

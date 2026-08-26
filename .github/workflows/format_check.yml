@@ -49,14 +49,6 @@ jobs:
             exit 0
           fi
 
-          # .stylua.toml asks for CRLF, so the input has to be CRLF or every line
-          # reports as a mismatch. .gitattributes already checks *.lua out that
-          # way; normalising anyway keeps the check from depending on the runner
-          # reproducing it.
-          while IFS= read -r -d '' file; do
-            perl -pi -e 's/\r?\n/\r\n/' "$file"
-          done < changed.txt
-
           echo "Checking:"
           tr '\0' '\n' < changed.txt
 

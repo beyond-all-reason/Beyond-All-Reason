@@ -140,26 +140,41 @@ local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
-local pointDistortionVBO = {} -- an instanceVBOTable
-local coneDistortionVBO = {} -- an instanceVBOTable
-local beamDistortionVBO = {} -- an instanceVBOTable
-local distortionVBOMap -- a table of the above 3, keyed by distortion type, {point = pointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local pointDistortionVBO
+---@type InstanceVBOTable?
+local coneDistortionVBO
+---@type InstanceVBOTable?
+local beamDistortionVBO
+---Table of the above 3, keyed by distortion shape, {point = pointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local distortionVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based distortions
-local unitPointDistortionVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeDistortionVBO = {} -- an instanceVBOTable
-local unitBeamDistortionVBO = {} -- an instanceVBOTable
-local unitDistortionVBOMap -- a table of the above 3, keyed by distortion type,  {point = unitPointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local unitPointDistortionVBO
+---@type InstanceVBOTable?
+local unitConeDistortionVBO
+---@type InstanceVBOTable?
+local unitBeamDistortionVBO
+---Table of the above 3, keyed by distortion shape,  {point = unitPointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local unitDistortionVBOMap
 
 local unitAttachedDistortions = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptdistortions to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointDistortionVBO = {} -- for plasma balls
-local projectileBeamDistortionVBO = {} -- for lasers
-local projectileConeDistortionVBO = {} -- for rockets
-local projectileDistortionVBOMap -- a table of the above 3, keyed by distortion type
+---@type InstanceVBOTable?
+local projectilePointDistortionVBO -- for plasma balls
+---@type InstanceVBOTable?
+local projectileBeamDistortionVBO -- for lasers
+---@type InstanceVBOTable?
+local projectileConeDistortionVBO -- for rockets
+---Keyed by distortion shape: `point`, `beam`, `cone`.
+---@type table<lightVBOType, InstanceVBOTable?>
+local projectileDistortionVBOMap
 
 local distortionRemoveQueue = {} -- stores distortions that have expired life {gameframe = {distortionIDs ... }}
 
@@ -318,6 +333,8 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one distortion instance buffer and attaches its VAO.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetDistortionVBO == nil then

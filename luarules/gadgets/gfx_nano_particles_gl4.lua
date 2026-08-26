@@ -637,6 +637,7 @@ applyRenderMode(RENDER_MODE)
 -- State
 --------------------------------------------------------------------------------
 
+---@type InstanceVBOTable?
 local nanoVBO
 local nanoShader
 local lastLosUniform = -1 -- cache to skip redundant SetUniform calls
