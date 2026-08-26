@@ -13,7 +13,11 @@ in DataVS {
 	vec3 localPos;       // position on the unit cube
 	vec4 fx;             // coverage, glow, beam, spawn
 	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
+	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
+	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
 };
+
+uniform vec4 modeParams; // x = 1: background pass
 
 // Occlusion is tested against the deferred g-buffer depths instead of the regular depth buffer, so
 // terrain (and units) hide the cubes but things drawn into the depth buffer by widgets, like grass, don't.
@@ -34,6 +38,11 @@ const vec3 baseColor = BASE_COLOR;
 const vec3 highlightColor = HIGHLIGHT_COLOR;
 const vec3 alliedColor = ALLIED_COLOR;
 const float alliedAlpha = float(ALLIED_ALPHA);
+const vec3 backgroundColor = BACKGROUND_COLOR;
+const float backgroundAlpha = float(BACKGROUND_ALPHA);
+const vec3 outlineColor = OUTLINE_COLOR;
+const float outlineAlpha = float(OUTLINE_ALPHA);
+const float outlineWidth = float(OUTLINE_WIDTH); // pixels at 1080p, scaled with the vertical resolution
 const float baseAlpha = float(BASE_ALPHA);
 const float lineAlpha = float(LINE_ALPHA);
 const float depthBias = 1e-6; // window-space depth tolerance (a few elmo far away, sub-elmo up close)
@@ -49,6 +58,20 @@ void main() {
 		discard;
 	}
 #endif
+
+	if (modeParams.x > 0.5) {
+		// background sheet: flat fill, plus an outline on the sides that border uncovered radar cells
+		vec2 edgeDist = 0.5 - abs(localPos.xz);
+		float outlinePixels = outlineWidth * viewGeometry.y / 1080.0;
+		vec2 px = max(fwidth(localPos.xz), vec2(1e-5)) * outlinePixels;
+		vec2 nearSide = step(vec2(0.0), localPos.xz);
+		vec2 side = max(mix(outlineSides.xz, outlineSides.yw, nearSide), mix(unionOutlineSides.xz, unionOutlineSides.yw, nearSide));
+		vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
+		float outline = max(lineAmount.x, lineAmount.y);
+		float fade = fx.w * smoothstep(0.0, 0.5, fx.x) * mix(alliedAlpha, 1.0, previewWeight);
+		fragColor = vec4(mix(backgroundColor, outlineColor, outline), mix(backgroundAlpha, outlineAlpha, outline) * fade);
+		return;
+	}
 
 	// which face are we on? the largest |coordinate| of the centered cube decides
 	vec3 centered = vec3(localPos.x, localPos.y - 0.5, localPos.z);
