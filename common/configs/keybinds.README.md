@@ -134,7 +134,7 @@ read one can read the other.
 ## i18n
 
 The catalog carries i18n *keys*, not resolved strings. The ones it names live in
-`language/en/keybinds.json`, in three namespaces: `commands` for things that also appear on
+`language/en/commands.json`, in three namespaces: `commands` for things that also appear on
 the command card (names and tooltips), `actions` for everything else a player can bind, and
 `categories` for the group titles. The loader globs every json in `language/<lang>/`, so the
 namespaces merge into one lookup and Transifex picks the file up from the directory filter.
