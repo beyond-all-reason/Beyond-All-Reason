@@ -359,7 +359,7 @@ local keyCodeWords = {
 }
 
 local function sanitizeKey(key, layout)
-	if not (type(key) == "string") then
+	if type(key) ~= "string" then
 		return ""
 	end
 
