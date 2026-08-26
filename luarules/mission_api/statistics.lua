@@ -14,7 +14,7 @@ local processTriggersOfType, activateTrigger
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
-	activateTrigger       = dependencies.activateTrigger
+	activateTrigger = dependencies.activateTrigger
 end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
@@ -47,8 +47,15 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	end)
 
 	-- Update managed objectives:
-	for _, managedObjective in ipairs(GG['MissionAPI'].ManagedObjectives[triggerType] or {}) do
-		GG['MissionAPI'].Modules.Objectives.UpdateObjectiveProgress(managedObjective.objectiveID, teamID, unitDefName, unitNames, direction, managedObjective)
+	for _, managedObjective in ipairs(GG["MissionAPI"].ManagedObjectives[triggerType] or {}) do
+		GG["MissionAPI"].Modules.Objectives.UpdateObjectiveProgress(
+			managedObjective.objectiveID,
+			teamID,
+			unitDefName,
+			unitNames,
+			direction,
+			managedObjective
+		)
 	end
 end
 
