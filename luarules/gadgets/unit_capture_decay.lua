@@ -57,6 +57,9 @@ function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, 
 	return true
 end
 
+---Starts tracking a unit so its partial capture progress decays over time.
+---Does nothing if the unit is already tracked.
+---@param unitID UnitID
 function addUnitToCaptureDecay(unitID)
 	if not unitsWithCaptureProgress[unitID] then
 		unitsWithCaptureProgress[unitID] = { previousCaptureProgress = 0, ticksFromLastCapture = 999 }

@@ -433,6 +433,18 @@ end
 local DECAY_FACTOR = 0.2
 local MIN_DAMAGE = 3
 
+---A single recent impact on a unit's shield.
+---@class ShieldHit
+---@field hitFrame integer Game frame the damage was last accumulated.
+---@field dmg number Decaying damage value driving the effect's brightness.
+---@field aoe number Radius of the visual ripple.
+---@field x number
+---@field y number
+---@field z number
+
+---Returns the decaying list of recent impacts on a unit's shield.
+---@param unitID UnitID
+---@return ShieldHit[]? hits `nil` when the unit has no shield or has not been hit.
 local function GetShieldHitPositions(unitID)
 	local unitData = IterableMap.Get(shieldUnits, unitID)
 	return (((unitData and unitData.hitData) and unitData.hitData) or nil)
