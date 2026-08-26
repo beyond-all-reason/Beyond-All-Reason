@@ -1007,29 +1007,39 @@ local function validateTriggers(triggers, rawActions)
 	end
 end
 
-local function getAllActionIDsReferencedByTriggers()
-	local allActionIDsReferencedByTriggers = {}
+--- An action is reachable from a trigger's `actions` or from an objective's
+--- `onComplete.actions`. Objectives contribute condition records carrying
+--- `onActivate` rather than `actions`, so scanning triggers alone would report
+--- an action used only by an objective as unreferenced.
+local function getAllReferencedActionIDs()
+	local referencedActionIDs = {}
 	for _, trigger in pairs(GG["MissionAPI"].Triggers) do
 		for _, actionID in pairs(trigger.actions or {}) do
-			allActionIDsReferencedByTriggers[actionID] = true
+			referencedActionIDs[actionID] = true
 		end
 	end
-	return allActionIDsReferencedByTriggers
+	for _, objective in pairs(GG["MissionAPI"].Objectives or {}) do
+		local onComplete = type(objective) == "table" and objective.onComplete
+		for _, actionID in pairs(type(onComplete) == "table" and onComplete.actions or {}) do
+			referencedActionIDs[actionID] = true
+		end
+	end
+	return referencedActionIDs
 end
 
 local function validateActions(actions)
-	local allActionIDsReferencedByTriggers = getAllActionIDsReferencedByTriggers()
+	local referencedActionIDs = getAllReferencedActionIDs()
 
 	local unreferencedActionIDs = {}
 	for actionID, action in pairs(actions) do
-		if not allActionIDsReferencedByTriggers[actionID] then
+		if not referencedActionIDs[actionID] then
 			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
 		end
 		validate(actionsSchemaParameters, action.type, action.parameters, "Action", actionID)
 	end
 	if not table.isEmpty(unreferencedActionIDs) then
 		table.sort(unreferencedActionIDs)
-		logError("Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", "))
+		logError("Actions not referenced by any trigger or objective: " .. table.concat(unreferencedActionIDs, ", "))
 	end
 end
 

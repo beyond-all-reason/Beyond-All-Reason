@@ -175,7 +175,22 @@ describe("mission_api.validation", function()
 
 			assert.is_true(hasError("Action missing type. Action: noType"))
 			assert.is_true(hasError("Action missing required parameter. Action: missingParam, Parameter: triggerID"))
-			assert.is_true(hasError("Actions not referenced by any trigger: unused"))
+			assert.is_true(hasError("Actions not referenced by any trigger or objective: unused"))
+		end)
+
+		-- Objectives contribute condition records carrying onActivate rather than
+		-- actions, so an action used only by onComplete looked unreferenced.
+		it("counts an action referenced only by an objective onComplete", function()
+			GG["MissionAPI"].Triggers = {}
+			GG["MissionAPI"].Objectives = {
+				obj = { onComplete = { actions = { "onlyFromObjective" } } },
+			}
+
+			validation.ValidateActions({
+				onlyFromObjective = { type = actionTypes.SendMessage, parameters = { message = "hi" } },
+			})
+
+			assert.are.same({}, logged)
 		end)
 
 		it("logs unreferenced actions in sorted order", function()
@@ -193,7 +208,7 @@ describe("mission_api.validation", function()
 				aaa = { type = actionTypes.SendMessage, parameters = { message = "aaa" } },
 			})
 
-			assert.is_true(hasError("Actions not referenced by any trigger: aaa, zzz"))
+			assert.is_true(hasError("Actions not referenced by any trigger or objective: aaa, zzz"))
 		end)
 	end)
 
