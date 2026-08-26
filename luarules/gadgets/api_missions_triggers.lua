@@ -377,6 +377,22 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
+
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
+
+	-- Don't count units spawned by SpawnUnits action
+	if GG['MissionAPI'].spawningUnit then return end
+	-- Don't count starting commanders, initial loadout, wildlife, etc.
+	if Spring.GetGameFrame() <= 0 then return end
+
+	local unitDefName = UnitDefs[unitDefID].name
+	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+end
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	dispatchTriggerCallin('UnitCommand', unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 end
@@ -433,22 +449,6 @@ end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
-
-	buildFrameOwners[unitID] = nil
-	constructionStarts[unitID] = nil
-	underConstruction[unitID] = nil
-
-	-- Don't count units spawned by SpawnUnits action
-	if GG['MissionAPI'].spawningUnit then return end
-	-- Don't count starting commanders, initial loadout, wildlife, etc.
-	if Spring.GetGameFrame() <= 0 then return end
-
-	local unitDefName = UnitDefs[unitDefID].name
-	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:TeamDied(teamID)
