@@ -22,15 +22,16 @@ end
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
-local seismicContacts
-local SEISMIC_INTERVAL_FRAMES
-local detectionLevels
 local statistics
 
 local watchIdleStates = false
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
+
+local SEISMIC_INTERVAL_FRAMES
+local seismicContacts
+local detectionLevels
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
