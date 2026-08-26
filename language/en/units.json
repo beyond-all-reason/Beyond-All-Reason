@@ -1723,7 +1723,7 @@
 			"leglts": "Light Air Transport",
 			"leglupara": "Bomb-Resistant Medium-Range Anti-Air Flak Battery",
 			"legmed": "Heavy Long-Range Salvo Rocket Tank",
-			"legmex": "Extracts Slightly Reduced Metal and Produces 7 Energy",
+			"legmex": "Extracts Metal from Metalspots",
 			"legmext15": "Extracts Extra Metal at a High Energy Cost",
 			"legmg": "Heavy Land/Air Gatling Gun Turret",
 			"legmh": "Hovercraft Rocket Launcher",
