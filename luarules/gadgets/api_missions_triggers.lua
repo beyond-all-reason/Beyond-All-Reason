@@ -22,10 +22,10 @@ end
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
+local statistics
 local seismicContacts
 local SEISMIC_INTERVAL_FRAMES
 local detectionLevels
-local statistics
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet

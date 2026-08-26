@@ -18,7 +18,7 @@ local triggers = {
 			maxRepeats = 77,
 		},
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamID = 0,
 			unitDefName = 'armpw',
 			duration = 60,
@@ -35,7 +35,7 @@ local triggers = {
 			prerequisites = { 'unitRessed' },
 		},
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamID = 0,
 			unitDefName = 'armpw',
 			duration = 60,
@@ -71,7 +71,7 @@ local triggers = {
 	botEnteredLocation = {
 		type = triggerTypes.UnitEnteredLocation,
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamID = 0,
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
@@ -82,13 +82,13 @@ local triggers = {
 	botLeftLocation = {
 		type = triggerTypes.UnitLeftLocation,
 		parameters = {
-			nameRequired = 'bots',
+			unitName = 'bots',
 			teamID = 0,
 			unitDefName = 'armpw',
 			area = { x1 = 1700, z1 = 2300, x2 = 1900, z2 = 2600 },
 		},
 		-- for some reason, CMD.CAPTURE doesn't work in the same frame as either acting unit or its target is spawned
-		actions = { 'messageBotLeftLocation', 'orderDecoysCaptureAndBuild', 'spawnEngineer', 'orderEngineerMove' },
+		actions = { 'messageBotLeftLocation', 'orderDecoysCaptureAndBuild' },
 	},
 
 	unitCaptured = {
@@ -198,6 +198,47 @@ local triggers = {
 		actions = { 'messageConstructionStartedByAssister' },
 	},
 
+	spawnProductionDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 45,
+		},
+		actions = { 'spawnFactories', 'orderBotLabBuilds', 'orderVehiclePlantBuilds' },
+	},
+
+	-- Fires once per buildee, so twice over the bot lab's two pawns.
+	productionStartedPawn = {
+		type = triggerTypes.ProductionStarted,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			unitDefName = 'armpw',
+			teamID = 0,
+		},
+		actions = { 'messageProductionStartedPawn' },
+	},
+
+	productionStartedByBotLab = {
+		type = triggerTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armck',
+			teamID = 0,
+			factoryName = 'botlab',
+		},
+		actions = { 'messageProductionStartedByBotLab' },
+	},
+
+	productionStartedByVehiclePlant = {
+		type = triggerTypes.ProductionStarted,
+		parameters = {
+			unitDefName = 'armfav',
+			teamID = 0,
+			factoryDefName = 'armvp',
+		},
+		actions = { 'messageProductionStartedByVehiclePlant' },
+	},
+
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
@@ -207,76 +248,6 @@ local triggers = {
 		actions = { 'messageRessed' },
 	},
 
-	engineerSpotted = {
-		type = triggerTypes.UnitDetected,
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorTypes = { 'vision' },
-		},
-		actions = { 'messageEngineerSpotted' },
-	},
-
-	engineerUnspotted = {
-		type = triggerTypes.UnitUndetected,
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorAllyTeamID = 0,
-			sensorTypes = { 'vision' },
-		},
-		actions = { 'messageEngineerUnspotted' },
-	},
-
-	engineerDetectedByRadar = {
-		type = triggerTypes.UnitDetected,
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorTypes = { 'radar' },
-		},
-		actions = { 'messageEngineerDetectedByRadar' },
-	},
-
-	engineerUndetectedByRadar = {
-		type = triggerTypes.UnitUndetected,
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorAllyTeam = 0,
-			sensorTypes = { 'radar' },
-		},
-		actions = { 'messageEngineerUndetectedByRadar' },
-	},
-
-	engineerDetectedBySeismic = {
-		type = triggerTypes.UnitDetected,
-		settings = {
-			repeating = true,
-		},
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorTypes = { 'seismic' },
-		},
-		actions = { 'messageEngineerDetectedBySeismic' },
-	},
-
-	engineerUndetectedBySeismic = {
-		type = triggerTypes.UnitUndetected,
-		parameters = {
-			unitName = 'engineers',
-			unitDefName = 'corfast',
-			owningTeamID = 1,
-			sensorTypes = { 'seismic' },
-		},
-		actions = { 'messageEngineerUndetectedBySeismic' },
-	},
 }
 
 local actions = {
@@ -520,6 +491,60 @@ local actions = {
 		},
 	},
 
+	messageProductionStartedPawn = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A pawn went onto a build pad (production started)!",
+		},
+	},
+
+	messageProductionStartedByBotLab = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The named bot lab started a construction bot!",
+		},
+	},
+
+	messageProductionStartedByVehiclePlant = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A vehicle plant, whichever one, started a fast assault vehicle!",
+		},
+	},
+
+	spawnFactories = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armlab', x = 2400, z = 3000, team = 0, unitName = 'botlab' },
+				{ unitDefName = 'armvp', x = 2750, z = 3000, team = 0, unitName = 'vehicleplant' },
+			},
+		},
+	},
+
+	-- Factory build orders carry no position, so their parameters are empty.
+	orderBotLabBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'botlab',
+			orders = {
+				{ 'armpw', {} },
+				{ 'armck', {}, { 'shift' } },
+				{ 'armpw', {}, { 'shift' } },
+			},
+		},
+	},
+
+	orderVehiclePlantBuilds = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'vehicleplant',
+			orders = {
+				{ 'armfav', {} },
+			},
+		},
+	},
+
 	spawnResBots = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -546,67 +571,6 @@ local actions = {
 		},
 	},
 
-	spawnEngineer = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitLoadout = {
-				{ unitDefName = 'corfast', x = 1500, z = 3400, team = 1, unitName = 'engineers' },
-			},
-		},
-	},
-
-	orderEngineerMove = {
-		type = actionTypes.IssueOrders,
-		parameters = {
-			unitName = 'engineers',
-			orders = {
-				{ CMD.MOVE, { 1600, 0, 2900 }, { 'shift' } },
-				{ CMD.MOVE, { 2000, 0, 3400 }, { 'shift' } },
-			},
-		},
-	},
-
-	messageEngineerSpotted = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer spotted!",
-		},
-	},
-
-	messageEngineerUnspotted = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer unspotted!",
-		},
-	},
-
-	messageEngineerDetectedByRadar = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer detected by radar!",
-		},
-	},
-
-	messageEngineerUndetectedByRadar = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer undetected by radar!",
-		},
-	},
-
-	messageEngineerDetectedBySeismic = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer detected by seismic!",
-		},
-	},
-
-	messageEngineerUndetectedBySeismic = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer undetected by seismic!",
-		},
-	},
 }
 
 return {
