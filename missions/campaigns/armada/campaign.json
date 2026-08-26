@@ -30,7 +30,8 @@
 		"loadout_test",
 		"stages_and_objectives_test",
 		"unit_mover_test",
-		"unit_detection_test"
+		"unit_detection_test",
+		"unit_received_order_test"
 	],
 
 	"unlocks": {

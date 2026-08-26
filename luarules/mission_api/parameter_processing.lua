@@ -31,13 +31,26 @@ local function processDirection(position)
 end
 
 local function processOrders(orders)
-	for i, order in ipairs(orders) do
-		local commandID = order[1]
+	for _, order in ipairs(orders) do
+		local commandIndex = order[1] == CMD.INSERT and 3 or 1
+		local commandID = order[commandIndex]
 		if type(commandID) == "string" then
 			local unitDef = UnitDefNames[commandID]
 			if unitDef then
-				orders[i] = { -unitDef.id, order[2], order[3] }
+				order[commandIndex] = -unitDef.id
 			end
+		end
+	end
+end
+
+local function processCommand(command)
+	if command == CMD.ANY or command == CMD.BUILD then
+		return
+	end
+	if type(command) == "string" then
+		local unitDef = UnitDefNames[command]
+		if unitDef then
+			return -unitDef.id
 		end
 	end
 end
@@ -58,11 +71,11 @@ local function processEnumSet(values)
 end
 
 local processors = {
-
 	[ParameterTypes.Position] = processPosition,
 	[ParameterTypes.Positions] = processPositions,
 	[ParameterTypes.Direction] = processDirection,
 	[ParameterTypes.Orders] = processOrders,
+	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
 }
 for enumSetType in pairs(enumSets) do

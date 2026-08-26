@@ -109,7 +109,10 @@ local function spawnUnitLoadout(unitLoadout)
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in pairs(positions) do
 			local unitID = spawnUnit(unit, pos)
+			-- Fence around mission-issued orders for UnitOrdered triggers using `fromMission`.
+			GG["MissionAPI"].issuingOrders = true
 			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
+			GG["MissionAPI"].issuingOrders = nil
 		end
 	end
 end

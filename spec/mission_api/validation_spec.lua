@@ -10,7 +10,30 @@ RegisterMissionApiModules() -- handles some load order
 GG["MissionAPI"].ActionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
 GG["MissionAPI"].TriggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
 
-local validation = VFS.Include("luarules/mission_api/validation.lua")
+-- Reinstall the same command IDs per-test (see Command) so we
+-- can run multiple tests without interfering with other specs.
+local function withCommandIDs(names, firstID)
+	local commands = {}
+	for offset, name in ipairs(names) do
+		local id = firstID + offset
+		commands[name] = id
+		commands[id] = name
+	end
+	return commands
+end
+
+local function installCommandTables()
+	_G.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK", "RECLAIM", "GUARD", "REPAIR", "FIGHT", "CLOAK" }, 0)
+	_G.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
+	_G.CMD.ANY, _G.CMD.BUILD = "a", "b" -- filter sentinels (see common/constants.lua)
+end
+
+local savedCMD, savedGameCMD = _G.CMD, _G.GameCMD
+installCommandTables()
+local validation = VFS.Include("luarules/mission_api/validation.lua") -- Wrap in safety code and restore.
+_G.CMD, _G.GameCMD = savedCMD, savedGameCMD
+savedCMD, savedGameCMD = nil, nil
+
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions
 
@@ -932,6 +955,89 @@ describe("mission_api.validation", function()
 				})
 				assert.is_true(
 					hasError("Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[1][2]")
+				)
+			end)
+		end)
+
+		describe("Command", function()
+			before_each(function()
+				installCommandTables()
+				_G.UnitDefNames = { armwar = { id = 1 }, armsolar = { id = 42 } }
+			end)
+
+			after_each(function()
+				_G.CMD = nil
+				_G.GameCMD = nil
+			end)
+
+			-- Validation errors land in `logged` which is itself reset by the outer before_each.
+			local function validateCommand(command)
+				triggerErrors({
+					type = triggerTypes.UnitOrdered,
+					parameters = { command = command, unitDefName = "armwar" },
+					actions = { "ok" },
+				})
+			end
+
+			it("accepts a known command id", function()
+				validateCommand(CMD.MOVE)
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts a build order authored as a unitDefName", function()
+				validateCommand("armsolar")
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts the ANY qualifier", function()
+				validateCommand(CMD.ANY)
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts the BUILD qualifier", function()
+				validateCommand(CMD.BUILD)
+				assert.are.same({}, logged)
+			end)
+
+			it("warns (without erroring) for a command consumed in AllowCommand", function()
+				validateCommand(CMD.CLOAK)
+				assert.is_true(
+					hasError(
+						"Command " .. "CLOAK" .. " may fail to trigger in UnitOrdered. Trigger: t, Parameter: command"
+					)
+				)
+				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
+			end)
+
+			it("rejects an unknown command id", function()
+				validateCommand(4242)
+				assert.is_true(hasError("Unknown command ID: 4242. Trigger: t, Parameter: command"))
+			end)
+
+			it("rejects a build order with an unknown unitDefName", function()
+				validateCommand("notAUnit")
+				assert.is_true(hasError("Invalid unitDefName: notAUnit. Trigger: t, Parameter: command"))
+			end)
+
+			it("rejects a command that is neither a number nor a string", function()
+				validateCommand(true)
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number or string, got boolean. Trigger: t, Parameter: command"
+					)
+				)
+			end)
+
+			it("requires a unit scope (unitName or unitDefName) alongside command", function()
+				triggerErrors({
+					type = triggerTypes.UnitOrdered,
+					parameters = { command = CMD.MOVE },
+					actions = { "ok" },
+				})
+				assert.is_true(
+					hasError(
+						[[Trigger 't' is missing required parameter. At least one of {"unitName","unitDefName"} is required.]]
+					)
 				)
 			end)
 		end)
