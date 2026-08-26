@@ -122,8 +122,8 @@ end
 -- Export ----------------------------------------------------------------------
 
 return {
-	IsContact      = isContact,
-	RecordPing     = recordPing,
+	IsContact = isContact,
+	RecordPing = recordPing,
 	UpdateContacts = updateContacts,
 	UpdateInterval = SEISMIC_INTERVAL_FRAMES,
 }
