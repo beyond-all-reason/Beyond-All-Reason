@@ -76,15 +76,16 @@ local objectives = {
 	},
 
 	buildBots = {
-		textKey = "build_3_bots",
+		textKey = "build_6_bots",
 
-		-- Event type with a count: completes on the third matching occurrence.
+		-- Event type with a count: completes on the sixth matching occurrence, which
+		-- is the last bot spawnBots produces.
 		type = eventTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
 			teamID = 0,
 		},
-		count = 3,
+		count = 6,
 
 		-- onComplete carries both the stage transition and any actions to run.
 		-- In the current format this needed a separate trigger + ChangeStage action.
@@ -121,7 +122,10 @@ local triggers = {
 		},
 		settings = {
 			repeating = true,
-			stages = { 'secondStage', 'thirdStage' },
+			-- secondStage only: the turrets arrive with thirdStage and kill far faster
+			-- than one bot per two seconds, so spawning past that point would have bots
+			-- appearing after destroyBots had already reported them all destroyed.
+			stages = { 'secondStage' },
 			maxRepeats = 5,
 		},
 		actions = { 'spawnBot' },
