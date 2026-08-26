@@ -153,7 +153,11 @@ local function evaluateMetric(trigger, value)
 
 	if not satisfied then
 		trigger.metricSatisfied = false
-		if trigger.onProgress then
+		-- Progress is user-facing, so it is gated the same way activation is: an
+		-- objective outside the current stage, or behind an unmet prerequisite,
+		-- has nothing to report yet. The edge bookkeeping above stays
+		-- unconditional so a blocked condition still fires once it unblocks.
+		if trigger.onProgress and isTriggerValid(trigger) then
 			trigger.onProgress(value)
 		end
 		return false
