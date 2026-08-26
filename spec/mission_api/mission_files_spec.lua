@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
 --- Loads the real mission test files and checks each condition uses the
 --- threshold belonging to its type family. This catches a mission picking a type
 --- from the wrong table, which validation would report at load time in-engine
@@ -22,9 +24,10 @@ local function identityTable()
 	return setmetatable({}, { __index = function(_, key) return key end })
 end
 
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+-- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
+-- through the shared helper keeps this in step as descriptors take on new
+-- module dependencies (detection levels, seismic contacts, and so on).
+RegisterMissionApiModules()
 
 --- The real condition descriptors, keyed by type name, so mission parameters can
 --- be checked against the schemas they will actually be validated against

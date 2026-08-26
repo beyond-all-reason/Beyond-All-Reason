@@ -12,7 +12,6 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field markerNames table
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
----@field ManagedObjectives table
 ---@field Objectives table
 ---@field Stages table
 ---@field Triggers table
@@ -21,7 +20,7 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
----@field TriggerDefinitions table
+---@field ConditionDefinitions table
 ---@field Modules table
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
@@ -35,8 +34,11 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field enqueueSound table
 ---@field processSoundQueue table
 ---@field changeStage table
+---@field announceStage table
 ---@field tryAdvanceStage table
----@field updateObjectiveProgress table
+---@field completeObjective table
+---@field updateObjective table
+---@field reportProgress table
 ---@field echoObjectiveUpdate table
 
 ---@class MissionApiBuilder
@@ -65,7 +67,6 @@ function MB.new()
         markerNames = {},
         soundFiles = {},
         soundQueue = {},
-        managedObjectives = {},
         objectives = {},
         stages = {},
         triggers = {},
@@ -73,7 +74,7 @@ function MB.new()
         unitLoadout = {},
         featureLoadout = {},
         actionDefinitions = {},
-        triggerDefinitions = {},
+        conditionDefinitions = {},
         currentStageID = nil,
         moduleOverrides = {},
         realParameterTypes = true,
@@ -161,15 +162,6 @@ function MB:WithAction(actionID, action)
 end
 
 ---@param self MissionApiBuilder
----@param objectiveID string
----@param metadata table
----@return MissionApiBuilder
-function MB:WithManagedObjective(objectiveID, metadata)
-    self.managedObjectives[objectiveID] = metadata or {}
-    return self
-end
-
----@param self MissionApiBuilder
 ---@param soundfile string
 ---@param duration number
 ---@return MissionApiBuilder
@@ -205,8 +197,8 @@ end
 ---@param self MissionApiBuilder
 ---@param definitions table
 ---@return MissionApiBuilder
-function MB:WithTriggerDefinitions(definitions)
-    self.triggerDefinitions = definitions or {}
+function MB:WithConditionDefinitions(definitions)
+    self.conditionDefinitions = definitions or {}
     return self
 end
 
@@ -286,8 +278,11 @@ function MB:Build()
     local enqueueSoundCalls     = {}
     local processSoundQueueCalls = {}
     local changeStageCalls      = {}
+    local announceStageCalls    = {}
     local tryAdvanceCalls       = {}
-    local updateProgressCalls   = {}
+    local completeCalls         = {}
+    local updateCalls           = {}
+    local reportProgressCalls   = {}
     local echoCalls             = {}
 
     local tracking = {
@@ -355,21 +350,51 @@ function MB:Build()
         end,
     }
 
-    local objectives = {
+    -- Stage state is kept per-mock rather than on the global table, so a mock
+    -- built with Build() behaves the same as one installed with Install().
+    local currentStageID = instance.currentStageID
+
+    local stages = {
+        Announce = function(stageID)
+            announceStageCalls[#announceStageCalls + 1] = { stageID = stageID }
+        end,
+        GetCurrentStageID = function()
+            return currentStageID
+        end,
         ChangeStage = function(stageID)
             changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
+            currentStageID = stageID
         end,
+        SetInitialStage = function(stageID)
+            currentStageID = stageID
+        end,
+        GetStage = function(stageID)
+            return instance.stages[stageID]
+        end,
+        GetObjectiveIDs = function(stageID)
+            local stage = instance.stages[stageID]
+            return stage and stage.objectives or {}
+        end,
+    }
+
+    local objectives = {
         TryAdvanceStage = function(objective)
             tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
         end,
-        UpdateObjectiveProgress = function(objectiveID, eventTeamID, eventUnitDefName, eventUnitNames, direction, managedObjMetadata)
-            updateProgressCalls[#updateProgressCalls + 1] = {
+        Complete = function(objectiveID)
+            completeCalls[#completeCalls + 1] = { objectiveID = objectiveID }
+        end,
+        Update = function(objectiveID, completed, textKey)
+            updateCalls[#updateCalls + 1] = {
                 objectiveID = objectiveID,
-                teamID = eventTeamID,
-                unitDefName = eventUnitDefName,
-                unitNames = eventUnitNames,
-                direction = direction,
-                metadata = managedObjMetadata,
+                completed = completed,
+                textKey = textKey,
+            }
+        end,
+        ReportProgress = function(objectiveID, progress)
+            reportProgressCalls[#reportProgressCalls + 1] = {
+                objectiveID = objectiveID,
+                progress = progress,
             }
         end,
         EchoObjectiveUpdate = function(objectiveID, objective)
@@ -381,6 +406,7 @@ function MB:Build()
         Tracking   = tracking,
         Loadout    = loadout,
         Sounds     = sounds,
+        Stages     = stages,
         Objectives = objectives,
     }
 
@@ -405,7 +431,6 @@ function MB:Build()
         markerNames         = instance.markerNames,
         soundFiles          = instance.soundFiles,
         soundQueue          = instance.soundQueue,
-        ManagedObjectives   = instance.managedObjectives,
         Objectives          = instance.objectives,
         Stages              = instance.stages,
         Triggers            = instance.triggers,
@@ -414,7 +439,7 @@ function MB:Build()
         UnitLoadout         = instance.unitLoadout,
         FeatureLoadout      = instance.featureLoadout,
         ActionDefinitions   = instance.actionDefinitions,
-        TriggerDefinitions  = instance.triggerDefinitions,
+        ConditionDefinitions = instance.conditionDefinitions,
         Modules             = modules,
 
         --- Recorded module calls, keyed by the stub they came from:
@@ -427,8 +452,11 @@ function MB:Build()
             enqueueSound                = enqueueSoundCalls,
             processSoundQueue           = processSoundQueueCalls,
             changeStage                 = changeStageCalls,
+            announceStage               = announceStageCalls,
             tryAdvanceStage             = tryAdvanceCalls,
-            updateObjectiveProgress     = updateProgressCalls,
+            completeObjective           = completeCalls,
+            updateObjective             = updateCalls,
+            reportProgress              = reportProgressCalls,
             echoObjectiveUpdate         = echoCalls,
         },
     }
@@ -437,7 +465,8 @@ function MB:Build()
         local tracked = {
             spawnUnitCalls, spawnFeatureCalls, convertOrdersCalls,
             playSoundCalls, enqueueSoundCalls, processSoundQueueCalls,
-            changeStageCalls, tryAdvanceCalls, updateProgressCalls, echoCalls,
+            changeStageCalls, announceStageCalls, tryAdvanceCalls,
+            completeCalls, updateCalls, reportProgressCalls, echoCalls,
         }
         for i = 1, #tracked do
             local list = tracked[i]

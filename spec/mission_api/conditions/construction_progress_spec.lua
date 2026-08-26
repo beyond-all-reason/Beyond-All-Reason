@@ -8,11 +8,11 @@ GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/para
 
 _G.UnitDefs = { { name = "armsolar" }, { name = "armwar" } }
 
-local constructionProgress = VFS.Include("luarules/mission_api/triggers/construction_progress.lua")
+local constructionProgress = VFS.Include("luarules/mission_api/conditions/construction_progress.lua")
 local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
 local onMetaUnitRemoved = constructionProgress.callins.MetaUnitRemoved
 
-describe("mission_api.triggers.construction_progress", function()
+describe("mission_api.conditions.construction_progress", function()
 	local world -- The trigger tracks units so that decay and reclaim do not rearm them.
 
 	before_each(function()

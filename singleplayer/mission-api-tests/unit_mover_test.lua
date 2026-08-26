@@ -1,9 +1,9 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local eventTypes = GG['MissionAPI'].ConditionDefinitions.EventTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
     spawnTanks = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 3,
 		},
@@ -11,7 +11,7 @@ local triggers = {
 	},
 
     teleportTanksWithoutSetDirection = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 5,
 		},
@@ -19,7 +19,7 @@ local triggers = {
 	},
 
     teleportTanksWithSetDirection1 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 10,
 		},
@@ -27,7 +27,7 @@ local triggers = {
 	},
 
     teleportTanksWithSetDirection2 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 15,
 		},
@@ -35,7 +35,7 @@ local triggers = {
 	},
 
     teleportTanksWithoutSetDirection2 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 20,
 		},
@@ -43,7 +43,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle1 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 25,
 		},
@@ -51,7 +51,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle2 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 27,
 		},
@@ -59,7 +59,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle3 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 29,
 		},
@@ -67,7 +67,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle4 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 31,
 		},
@@ -75,7 +75,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle5 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 33,
 		},
@@ -83,7 +83,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle6 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 35,
 		},
@@ -91,7 +91,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle7 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 37,
 		},
@@ -99,7 +99,7 @@ local triggers = {
 	},
 
 	teleportTanksWithSetAngle8 = {
-		type = triggerTypes.TimeElapsed,
+		type = eventTypes.TimeElapsed,
 		parameters = {
 			seconds = 39,
 		},
@@ -108,7 +108,7 @@ local triggers = {
 
 	-- [validation.lua] Error: [Mission API] Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.. Action: rotateTanksWithBoth, Parameter: direction
 	-- rotateTanksWithBoth = {
-		-- type = triggerTypes.TimeElapsed,
+		-- type = eventTypes.TimeElapsed,
 		-- parameters = {
 			-- seconds = 40,
 		-- },

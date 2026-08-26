@@ -41,12 +41,25 @@ end
 
 describe("mission_api module load order", function()
 
+	-- These engine globals are shared across the whole busted run, so they are
+	-- restored afterwards; leaving them replaced changes what later specs see.
+	local savedGetGaiaTeamID, savedUnitDefs, savedFeatureDefs
+
 	before_each(function()
 		GG['MissionAPI'] = baseState()
 		-- Engine globals loadout reads while loading.
+		savedGetGaiaTeamID = Spring.GetGaiaTeamID
+		savedUnitDefs = _G.UnitDefs
+		savedFeatureDefs = _G.FeatureDefs
 		Spring.GetGaiaTeamID = function() return 99 end
 		_G.UnitDefs = {}
 		_G.FeatureDefs = {}
+	end)
+
+	after_each(function()
+		Spring.GetGaiaTeamID = savedGetGaiaTeamID
+		_G.UnitDefs = savedUnitDefs
+		_G.FeatureDefs = savedFeatureDefs
 	end)
 
 	it("loads the gadget's Initialize sequence without error", function()

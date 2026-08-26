@@ -19,7 +19,7 @@ _G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
 GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 
-local unitDetected = VFS.Include("luarules/mission_api/triggers/unit_detected.lua")
+local unitDetected = VFS.Include("luarules/mission_api/conditions/unit_detected.lua")
 local onDetectionUpdate = unitDetected.callins.DetectionUpdate -- an artificial callin
 local onDestroyed = unitDetected.callins.UnitDestroyed
 
@@ -30,7 +30,7 @@ local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 -- spec_helper's stubs: two playing allyTeams and Gaia. These names address that layout.
 local SENSOR_ALLY, OTHER_ALLY, GAIA_ALLY = 0, 1, 2
 
-describe("mission_api.triggers.unit_detected", function()
+describe("mission_api.conditions.unit_detected", function()
 	-- The latch lives in detection_levels, keyed by triggerID, and the spec harness caches
 	-- includes, so each test takes fresh IDs rather than sharing state with the one before it.
 	local losStatus

@@ -12,7 +12,7 @@ _G.Game.gameSpeed = 30
 local timeElapsed = VFS.Include('luarules/mission_api/conditions/time_elapsed.lua')
 local onGameFrame = timeElapsed.callins.GameFrame
 
-describe("mission_api.triggers.time_elapsed", function()
+describe("mission_api.conditions.time_elapsed", function()
 	local function trigger(parameters, settings)
 		return { parameters = parameters, settings = settings or {} }
 	end

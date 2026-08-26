@@ -1,9 +1,11 @@
 require("spec_helper")
 
--- Condition descriptors read GG['MissionAPI'].Modules.ParameterTypes at load time.
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
+-- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
+-- through the shared helper keeps this in step as descriptors take on new
+-- module dependencies (detection levels, seismic contacts, and so on).
+RegisterMissionApiModules()
 
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
