@@ -10,22 +10,22 @@ local function announce(stageID)
 end
 
 local function getCurrentStageID()
-	return GG['MissionAPI'].CurrentStageID
+	return GG["MissionAPI"].CurrentStageID
 end
 
 local function changeStage(stageID)
-	GG['MissionAPI'].CurrentStageID = stageID
+	GG["MissionAPI"].CurrentStageID = stageID
 	announce(stageID)
 end
 
 --- Sets the opening stage without re-announcing it; api_missions announces once
 --- everything is loaded.
 local function setInitialStage(stageID)
-	GG['MissionAPI'].CurrentStageID = stageID
+	GG["MissionAPI"].CurrentStageID = stageID
 end
 
 local function getStage(stageID)
-	return GG['MissionAPI'].Stages[stageID]
+	return GG["MissionAPI"].Stages[stageID]
 end
 
 --- Objective IDs active in the given stage (defaults to the current stage).
@@ -35,10 +35,10 @@ local function getObjectiveIDs(stageID)
 end
 
 return {
-	Announce         = announce,
+	Announce = announce,
 	GetCurrentStageID = getCurrentStageID,
-	ChangeStage      = changeStage,
-	SetInitialStage  = setInitialStage,
-	GetStage         = getStage,
-	GetObjectiveIDs  = getObjectiveIDs,
+	ChangeStage = changeStage,
+	SetInitialStage = setInitialStage,
+	GetStage = getStage,
+	GetObjectiveIDs = getObjectiveIDs,
 }

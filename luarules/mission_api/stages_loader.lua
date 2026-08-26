@@ -16,7 +16,7 @@ local function indexStagesByObjective(stages)
 	local stagesByObjective = {}
 
 	for stageID, stageData in pairs(stages or {}) do
-		if type(stageData) == 'table' and type(stageData.objectives) == 'table' then
+		if type(stageData) == "table" and type(stageData.objectives) == "table" then
 			for _, objectiveID in ipairs(stageData.objectives) do
 				local ofObjective = stagesByObjective[objectiveID]
 				if not ofObjective then

@@ -19,15 +19,15 @@ local processTriggersOfType, activateTrigger, evaluateMetric, conditionKinds
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
-	activateTrigger       = dependencies.activateTrigger
-	evaluateMetric        = dependencies.evaluateMetric
-	conditionKinds        = dependencies.conditionKinds
+	activateTrigger = dependencies.activateTrigger
+	evaluateMetric = dependencies.evaluateMetric
+	conditionKinds = dependencies.conditionKinds
 end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
 	unitNames = unitNames or {}
 
-	local isMetric = conditionKinds[triggerType] == 'metric'
+	local isMetric = conditionKinds[triggerType] == "metric"
 
 	processTriggersOfType(triggerType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamID then

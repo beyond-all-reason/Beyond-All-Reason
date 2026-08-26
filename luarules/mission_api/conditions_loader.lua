@@ -1,5 +1,5 @@
-local CONDITIONS_DIR = 'luarules/mission_api/conditions/'
-local CONDITION_FILES_PATTERN = '*.lua'
+local CONDITIONS_DIR = "luarules/mission_api/conditions/"
+local CONDITION_FILES_PATTERN = "*.lua"
 
 local KINDS = { event = true, metric = true }
 
@@ -10,7 +10,7 @@ local KINDS = { event = true, metric = true }
 -- Statistics conditions (TotalUnits*, UnitsOwned) declare no callins; their
 -- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
 local function loadConditionDefinitions()
-	local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 	local triggerFiles = VFS.DirList(CONDITIONS_DIR, CONDITION_FILES_PATTERN)
 
@@ -27,9 +27,15 @@ local function loadConditionDefinitions()
 		local kind = triggerDefinition.kind
 
 		if not KINDS[kind] then
-			Spring.Log('triggers_loader', LOG.ERROR,
-				"[Mission API] Condition '" .. tostring(triggerType) .. "' has invalid kind: " .. tostring(kind)
-				.. ". Must be 'event' or 'metric'.")
+			Spring.Log(
+				"triggers_loader",
+				LOG.ERROR,
+				"[Mission API] Condition '"
+					.. tostring(triggerType)
+					.. "' has invalid kind: "
+					.. tostring(kind)
+					.. ". Must be 'event' or 'metric'."
+			)
 		end
 
 		types[triggerType] = typeID
@@ -38,7 +44,7 @@ local function loadConditionDefinitions()
 
 		-- Author-facing views over the same registry, so a mission picking from
 		-- metricTypes already knows to write atLeast/atMost rather than count.
-		if kind == 'metric' then
+		if kind == "metric" then
 			metricTypes[triggerType] = typeID
 		else
 			eventTypes[triggerType] = typeID
@@ -53,22 +59,22 @@ local function loadConditionDefinitions()
 	-- Shared trigger settings schema (global, not per-trigger).
 	local settings = {
 		prerequisites = ParameterTypes.Table,
-		repeating     = ParameterTypes.Boolean,
-		maxRepeats    = ParameterTypes.Number,
-		difficulties  = ParameterTypes.Table,
-		coop          = ParameterTypes.Boolean,
-		active        = ParameterTypes.Boolean,
-		stages        = ParameterTypes.Table,
+		repeating = ParameterTypes.Boolean,
+		maxRepeats = ParameterTypes.Number,
+		difficulties = ParameterTypes.Table,
+		coop = ParameterTypes.Boolean,
+		active = ParameterTypes.Boolean,
+		stages = ParameterTypes.Table,
 	}
 
 	return {
-		Types       = types,
-		EventTypes  = eventTypes,
+		Types = types,
+		EventTypes = eventTypes,
 		MetricTypes = metricTypes,
-		Kinds       = kinds,
-		Settings    = settings,
-		Parameters  = parameters,
-		Callins     = callins,
+		Kinds = kinds,
+		Settings = settings,
+		Parameters = parameters,
+		Callins = callins,
 	}
 end
 

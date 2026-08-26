@@ -1,4 +1,4 @@
-local stagesLoader = VFS.Include('luarules/mission_api/stages_loader.lua')
+local stagesLoader = VFS.Include("luarules/mission_api/stages_loader.lua")
 
 --[[
 	objectiveID = {
@@ -17,7 +17,7 @@ local stagesLoader = VFS.Include('luarules/mission_api/stages_loader.lua')
 	},
 ]]
 
-local OBJECTIVE_CONDITION_PREFIX = '__objective_'
+local OBJECTIVE_CONDITION_PREFIX = "__objective_"
 
 --- Each objective contributes a condition record to the same space the triggers
 --- gadget dispatches over, so objectives reuse all 27 condition handlers rather
@@ -28,19 +28,19 @@ local OBJECTIVE_CONDITION_PREFIX = '__objective_'
 --- repeating, which is what makes completion latched.
 local function buildConditionRecord(objectiveID, objective, objectiveStages)
 	return {
-		type       = objective.type,
+		type = objective.type,
 		parameters = objective.parameters or {},
-		count      = objective.count,
-		atLeast    = objective.atLeast,
-		atMost     = objective.atMost,
-		settings   = {
+		count = objective.count,
+		atLeast = objective.atLeast,
+		atMost = objective.atMost,
+		settings = {
 			stages = objectiveStages,
 		},
 		onActivate = function()
-			GG['MissionAPI'].Modules.Objectives.Complete(objectiveID)
+			GG["MissionAPI"].Modules.Objectives.Complete(objectiveID)
 		end,
 		onProgress = function(progress)
-			GG['MissionAPI'].Modules.Objectives.ReportProgress(objectiveID, progress)
+			GG["MissionAPI"].Modules.Objectives.ReportProgress(objectiveID, progress)
 		end,
 	}
 end
@@ -63,7 +63,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	local stagesByObjective = stagesLoader.IndexStagesByObjective(stages)
 
 	for objectiveID, objective in pairs(objectives) do
-		if type(objectiveID) == 'string' and type(objective) == 'table' and objective.type ~= nil then
+		if type(objectiveID) == "string" and type(objective) == "table" and objective.type ~= nil then
 			objective.completed = false
 			objective.progress = 0
 			objective.target = targetOf(objective)

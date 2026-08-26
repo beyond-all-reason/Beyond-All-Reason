@@ -9,9 +9,9 @@ local RegisterMissionApiModules = require("mission_api.spec_helper")
 
 local METRIC_TYPES = {
 	ResourceIncome = true,
-	ResourcePull   = true,
+	ResourcePull = true,
 	ResourceStored = true,
-	UnitsOwned     = true,
+	UnitsOwned = true,
 }
 
 -- validation_test.lua exists to be invalid, so its fixtures are expected to
@@ -21,7 +21,11 @@ local INTENTIONALLY_INVALID = { validation_test = true }
 -- Identity tables: a mission reading eventTypes.Foo gets back "Foo", so the
 -- loaded data can be inspected without engine definitions.
 local function identityTable()
-	return setmetatable({}, { __index = function(_, key) return key end })
+	return setmetatable({}, {
+		__index = function(_, key)
+			return key
+		end,
+	})
 end
 
 -- Condition descriptors read GG['MissionAPI'].Modules at load time. Registering
@@ -34,7 +38,7 @@ RegisterMissionApiModules()
 --- in-engine. Loaded before the identity tables below replace
 --- ConditionDefinitions.
 local declaredParameters = {}
-for _, filePath in ipairs(VFS.DirList('luarules/mission_api/conditions/', '*.lua')) do
+for _, filePath in ipairs(VFS.DirList("luarules/mission_api/conditions/", "*.lua")) do
 	local descriptor = VFS.Include(filePath)
 	local declared = {}
 	for _, parameter in ipairs(descriptor.parameters or {}) do
@@ -43,18 +47,18 @@ for _, filePath in ipairs(VFS.DirList('luarules/mission_api/conditions/', '*.lua
 	declaredParameters[descriptor.type] = declared
 end
 
-GG['MissionAPI'].ConditionDefinitions = {
-	Types       = identityTable(),
-	EventTypes  = identityTable(),
+GG["MissionAPI"].ConditionDefinitions = {
+	Types = identityTable(),
+	EventTypes = identityTable(),
 	MetricTypes = identityTable(),
 }
-GG['MissionAPI'].ActionDefinitions = { Types = identityTable() }
+GG["MissionAPI"].ActionDefinitions = { Types = identityTable() }
 _G.CMD = identityTable()
 _G.GameCMD = identityTable()
 
 local missions = {}
-for _, filePath in ipairs(VFS.DirList('singleplayer/mission-api-tests/', '*.lua')) do
-	local missionName = filePath:match('([^/]+)%.lua$')
+for _, filePath in ipairs(VFS.DirList("singleplayer/mission-api-tests/", "*.lua")) do
+	local missionName = filePath:match("([^/]+)%.lua$")
 	if not INTENTIONALLY_INVALID[missionName] then
 		missions[missionName] = VFS.Include(filePath)
 	end
@@ -64,11 +68,11 @@ end
 local function allConditions()
 	local conditions = {}
 	for missionName, mission in pairs(missions) do
-		for _, group in ipairs({ { 'trigger', mission.Triggers }, { 'objective', mission.Objectives } }) do
+		for _, group in ipairs({ { "trigger", mission.Triggers }, { "objective", mission.Objectives } }) do
 			for id, entry in pairs(group[2] or {}) do
-				if type(entry) == 'table' and type(entry.type) == 'string' then
+				if type(entry) == "table" and type(entry.type) == "string" then
 					conditions[#conditions + 1] = {
-						where = missionName .. ' ' .. group[1] .. ' ' .. id .. ' (' .. entry.type .. ')',
+						where = missionName .. " " .. group[1] .. " " .. id .. " (" .. entry.type .. ")",
 						entry = entry,
 						isMetric = METRIC_TYPES[entry.type] or false,
 					}
@@ -117,8 +121,7 @@ describe("mission test files", function()
 	it("never gives an event condition a bound", function()
 		local problems = {}
 		for _, condition in ipairs(allConditions()) do
-			if not condition.isMetric
-				and (condition.entry.atLeast ~= nil or condition.entry.atMost ~= nil) then
+			if not condition.isMetric and (condition.entry.atLeast ~= nil or condition.entry.atMost ~= nil) then
 				problems[#problems + 1] = condition.where
 			end
 		end
@@ -130,7 +133,7 @@ describe("mission test files", function()
 		local problems = {}
 		for _, condition in ipairs(allConditions()) do
 			local count = condition.entry.count
-			if count ~= nil and (type(count) ~= 'number' or count < 1) then
+			if count ~= nil and (type(count) ~= "number" or count < 1) then
 				problems[#problems + 1] = condition.where
 			end
 		end
@@ -142,10 +145,10 @@ describe("mission test files", function()
 		local problems = {}
 		for _, condition in ipairs(allConditions()) do
 			if condition.entry.quantity ~= nil then
-				problems[#problems + 1] = condition.where .. ': quantity'
+				problems[#problems + 1] = condition.where .. ": quantity"
 			end
 			if condition.entry.amount ~= nil then
-				problems[#problems + 1] = condition.where .. ': amount'
+				problems[#problems + 1] = condition.where .. ": amount"
 			end
 		end
 		table.sort(problems)
@@ -161,8 +164,8 @@ describe("mission test files", function()
 			local declared = declaredParameters[condition.entry.type]
 			if declared then
 				for parameterName in pairs(condition.entry.parameters or {}) do
-					if type(parameterName) == 'string' and not declared[parameterName] then
-						problems[#problems + 1] = condition.where .. ': ' .. parameterName
+					if type(parameterName) == "string" and not declared[parameterName] then
+						problems[#problems + 1] = condition.where .. ": " .. parameterName
 					end
 				end
 			end
@@ -192,31 +195,35 @@ describe("mission test files", function()
 		-- trigger silently checking only energy.
 		local problems = {}
 
-		for _, filePath in ipairs(VFS.DirList('singleplayer/mission-api-tests/', '*.lua')) do
-			local missionName = filePath:match('([^/]+)%.lua$')
+		for _, filePath in ipairs(VFS.DirList("singleplayer/mission-api-tests/", "*.lua")) do
+			local missionName = filePath:match("([^/]+)%.lua$")
 			local depth, seen = 0, {}
 
-			local handle = io.open(filePath, 'r')
+			local handle = io.open(filePath, "r")
 			local lineNumber = 0
 			for line in handle:lines() do
 				lineNumber = lineNumber + 1
-				if not line:match('^%s*%-%-') then
-					local code = line:gsub('%-%-.*$', '')
-					local key = code:match('^%s*([A-Za-z_][A-Za-z0-9_]*)%s*=')
+				if not line:match("^%s*%-%-") then
+					local code = line:gsub("%-%-.*$", "")
+					local key = code:match("^%s*([A-Za-z_][A-Za-z0-9_]*)%s*=")
 					if key then
 						seen[depth] = seen[depth] or {}
 						if seen[depth][key] then
-							problems[#problems + 1] = missionName .. ':' .. lineNumber
-								.. ": duplicate key '" .. key .. "'"
+							problems[#problems + 1] = missionName
+								.. ":"
+								.. lineNumber
+								.. ": duplicate key '"
+								.. key
+								.. "'"
 						else
 							seen[depth][key] = lineNumber
 						end
 					end
-					for _ in code:gmatch('{') do
+					for _ in code:gmatch("{") do
 						depth = depth + 1
 						seen[depth] = {}
 					end
-					for _ in code:gmatch('}') do
+					for _ in code:gmatch("}") do
 						seen[depth] = nil
 						depth = math.max(0, depth - 1)
 					end
@@ -233,12 +240,12 @@ describe("mission test files", function()
 		local problems = {}
 		for missionName, mission in pairs(missions) do
 			for id, objective in pairs(mission.Objectives or {}) do
-				if type(objective) == 'table' then
+				if type(objective) == "table" then
 					if objective.nextStage ~= nil then
-						problems[#problems + 1] = missionName .. ' ' .. id .. ': bare nextStage'
+						problems[#problems + 1] = missionName .. " " .. id .. ": bare nextStage"
 					end
 					if objective.trigger ~= nil then
-						problems[#problems + 1] = missionName .. ' ' .. id .. ': nested trigger'
+						problems[#problems + 1] = missionName .. " " .. id .. ": nested trigger"
 					end
 				end
 			end

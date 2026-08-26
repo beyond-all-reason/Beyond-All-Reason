@@ -1,6 +1,6 @@
 require("spec_helper")
 
-local statistics = VFS.Include('luarules/mission_api/statistics.lua')
+local statistics = VFS.Include("luarules/mission_api/statistics.lua")
 
 describe("mission_api.statistics", function()
 	-- TotalUnits* are cumulative tallies, so they are events; UnitsOwned is a
@@ -9,11 +9,11 @@ describe("mission_api.statistics", function()
 	local EVENT_TYPE = 1
 	local METRIC_TYPE = 2
 
-	local conditionKinds = { [EVENT_TYPE] = 'event', [METRIC_TYPE] = 'metric' }
+	local conditionKinds = { [EVENT_TYPE] = "event", [METRIC_TYPE] = "metric" }
 
-	local triggers   -- triggerID -> trigger
-	local activated  -- ordered list of activated triggers
-	local measured   -- ordered list of { trigger, value } handed to EvaluateMetric
+	local triggers -- triggerID -> trigger
+	local activated -- ordered list of activated triggers
+	local measured -- ordered list of { trigger, value } handed to EvaluateMetric
 
 	-- Fakes injected in place of the gadget's trigger core:
 	local function processTriggersOfType(triggerType, func)
@@ -41,15 +41,15 @@ describe("mission_api.statistics", function()
 	end
 
 	before_each(function()
-		triggers  = {}
+		triggers = {}
 		activated = {}
-		measured  = {}
-		GG['MissionAPI'] = {}
+		measured = {}
+		GG["MissionAPI"] = {}
 		statistics.Init({
 			processTriggersOfType = processTriggersOfType,
-			activateTrigger       = activateTrigger,
-			evaluateMetric        = evaluateMetric,
-			conditionKinds        = conditionKinds,
+			activateTrigger = activateTrigger,
+			evaluateMetric = evaluateMetric,
+			conditionKinds = conditionKinds,
 		})
 	end)
 
@@ -61,9 +61,9 @@ describe("mission_api.statistics", function()
 		it("reports every matching occurrence, leaving `count` to the caller", function()
 			triggers.eventEach = makeTrigger(EVENT_TYPE, { teamID = 0 })
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
 
 			assert.are.equal(3, #activated)
 		end)
@@ -71,7 +71,7 @@ describe("mission_api.statistics", function()
 		it("does not report decrements, since a tally only rises", function()
 			triggers.eventDown = makeTrigger(EVENT_TYPE, { teamID = 0 })
 
-			statistics.Decrement(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Decrement(EVENT_TYPE, 0, "armwar", {})
 
 			assert.are.equal(0, #activated)
 		end)
@@ -79,7 +79,7 @@ describe("mission_api.statistics", function()
 		it("never routes an event through EvaluateMetric", function()
 			triggers.eventNotMetric = makeTrigger(EVENT_TYPE, { teamID = 0 })
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
 
 			assert.are.equal(0, #measured)
 		end)
@@ -90,8 +90,8 @@ describe("mission_api.statistics", function()
 		it("reports the running value on increment", function()
 			triggers.metricUp = makeTrigger(METRIC_TYPE, { teamID = 0 })
 
-			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
-			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
 
 			assert.are.equal(2, #measured)
 			assert.are.equal(1, measured[1].value)
@@ -101,8 +101,8 @@ describe("mission_api.statistics", function()
 		it("reports the running value on decrement, because a level moves both ways", function()
 			triggers.metricDown = makeTrigger(METRIC_TYPE, { teamID = 0 })
 
-			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
-			statistics.Decrement(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
+			statistics.Decrement(METRIC_TYPE, 0, "armwar", {})
 
 			assert.are.equal(2, #measured)
 			assert.are.equal(1, measured[1].value)
@@ -112,8 +112,8 @@ describe("mission_api.statistics", function()
 		it("never routes a metric through ActivateTrigger directly", function()
 			triggers.metricNotEvent = makeTrigger(METRIC_TYPE, { teamID = 0 })
 
-			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
-			statistics.Decrement(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
+			statistics.Decrement(METRIC_TYPE, 0, "armwar", {})
 
 			assert.are.equal(0, #activated)
 		end)
@@ -124,40 +124,40 @@ describe("mission_api.statistics", function()
 		it("filters by teamID", function()
 			triggers.filterTeam = makeTrigger(EVENT_TYPE, { teamID = 0 })
 
-			statistics.Increment(EVENT_TYPE, 1, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 1, "armwar", {})
 			assert.are.equal(0, #activated)
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
 			assert.are.equal(1, #activated)
 		end)
 
 		it("filters by unitDefName", function()
-			triggers.filterDef = makeTrigger(EVENT_TYPE, { teamID = 0, unitDefName = 'armwar' })
+			triggers.filterDef = makeTrigger(EVENT_TYPE, { teamID = 0, unitDefName = "armwar" })
 
-			statistics.Increment(EVENT_TYPE, 0, 'corak', {})
+			statistics.Increment(EVENT_TYPE, 0, "corak", {})
 			assert.are.equal(0, #activated)
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', {})
+			statistics.Increment(EVENT_TYPE, 0, "armwar", {})
 			assert.are.equal(1, #activated)
 		end)
 
 		it("filters by unitName", function()
-			triggers.filterName = makeTrigger(EVENT_TYPE, { teamID = 0, unitName = 'bots' })
+			triggers.filterName = makeTrigger(EVENT_TYPE, { teamID = 0, unitName = "bots" })
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', { others = true })
+			statistics.Increment(EVENT_TYPE, 0, "armwar", { others = true })
 			assert.are.equal(0, #activated)
 
-			statistics.Increment(EVENT_TYPE, 0, 'armwar', { bots = true })
+			statistics.Increment(EVENT_TYPE, 0, "armwar", { bots = true })
 			assert.are.equal(1, #activated)
 		end)
 
 		it("applies filters to metrics too", function()
-			triggers.filterMetric = makeTrigger(METRIC_TYPE, { teamID = 0, unitDefName = 'armwar' })
+			triggers.filterMetric = makeTrigger(METRIC_TYPE, { teamID = 0, unitDefName = "armwar" })
 
-			statistics.Increment(METRIC_TYPE, 0, 'corak', {})
+			statistics.Increment(METRIC_TYPE, 0, "corak", {})
 			assert.are.equal(0, #measured)
 
-			statistics.Increment(METRIC_TYPE, 0, 'armwar', {})
+			statistics.Increment(METRIC_TYPE, 0, "armwar", {})
 			assert.are.equal(1, #measured)
 		end)
 	end)
