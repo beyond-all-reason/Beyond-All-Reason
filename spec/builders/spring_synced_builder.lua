@@ -339,7 +339,6 @@ function SB:BuildSpring()
 	local destroyFeatureCalls = {}
 	local destroyUnitCalls = {}
 
-
 	---@type SpringSyncedMock
 	local mock = {
 		CMD = Spring and Spring.CMD or {
@@ -976,8 +975,6 @@ function SB:WithGlobalsDefined(fn, persist)
 	end
 
 	_G.LOG = _G.LOG or { DEBUG = "DEBUG", INFO = "INFO", WARNING = "WARNING", ERROR = "ERROR" }
-	_G.Game = _G.Game or {}
-	_G.Game.gameSpeed = _G.Game.gameSpeed or 30
 	-- Make sure these are available in the environment
 	_G.pairs = pairs
 	_G.ipairs = ipairs

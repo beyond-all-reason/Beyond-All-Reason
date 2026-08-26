@@ -477,6 +477,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
 local nextParticleID = 0

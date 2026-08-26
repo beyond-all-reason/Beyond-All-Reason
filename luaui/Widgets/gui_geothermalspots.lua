@@ -99,6 +99,7 @@ end
 --
 
 local spotVBO = nil
+---@type InstanceVBOTable?
 local spotInstanceVBO = nil
 local spotShader = nil
 

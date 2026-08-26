@@ -226,8 +226,12 @@ local udefID = UnitDefNames.armcom.id
 local corcomUnitDefID = UnitDefNames.corcom.id
 local armcomUnitDefID = UnitDefNames.armcom.id
 
+---@type InstanceVBOTable?
 local corDrawUnitVBOTable
+---@type InstanceVBOTable?
 local armDrawUnitVBOTable
+---Both of the above, so the shared setup can iterate them.
+---@type table<integer, InstanceVBOTable?>
 local VBOTables = {}
 
 local corUnitDefIDs = {}
