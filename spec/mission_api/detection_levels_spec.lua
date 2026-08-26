@@ -2,11 +2,11 @@ require("spec_helper")
 require("mission_api.spec_helper")
 
 -- detection_levels reads the shared SeismicContacts module at load, so it is stubbed first.
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
+GG["MissionAPI"] = GG["MissionAPI"] or {}
+GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 
 local seismicContacts = {}
-GG['MissionAPI'].Modules.SeismicContacts = {
+GG["MissionAPI"].Modules.SeismicContacts = {
 	IsContact = function(unitID, allyTeamID)
 		return seismicContacts[allyTeamID] ~= nil and seismicContacts[allyTeamID][unitID] == true
 	end,
@@ -21,7 +21,7 @@ local UNSEEN, SEISMIC, RADAR, IDENTIFIED, VISION = 1, 2, 4, 8, 16
 describe("mission_api.detection_levels", function()
 	local DetectionLevels
 	local losStatusByAllyTeam
-	local triggerID = 'detected'
+	local triggerID = "detected"
 
 	before_each(function()
 		losStatusByAllyTeam = {}
@@ -30,15 +30,23 @@ describe("mission_api.detection_levels", function()
 			return losStatusByAllyTeam[allyTeamID] or 0
 		end
 		-- Two playing allyTeams and Gaia, which mission_api's spec_helper also assumes.
-		Spring.GetAllyTeamList = function() return { 0, 1, 2 } end
-		Spring.GetGaiaTeamID = function() return 2 end
-		Spring.GetTeamAllyTeamID = function(teamID) return teamID end
+		Spring.GetAllyTeamList = function()
+			return { 0, 1, 2 }
+		end
+		Spring.GetGaiaTeamID = function()
+			return 2
+		end
+		Spring.GetTeamAllyTeamID = function(teamID)
+			return teamID
+		end
 		-- Tests drive LOS per allyTeam directly, so units are owned by Gaia, which never
 		-- senses. Tests about the owner's own vision override this.
-		Spring.GetUnitAllyTeam = function(_unitID) return 2 end
+		Spring.GetUnitAllyTeam = function(_unitID)
+			return 2
+		end
 		-- The module resolves the allyTeam layout at load, so each test reloads it after
 		-- the stubs above are in place. The reload also leaves the latch table empty.
-		DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
+		DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 	end)
 
 	describe("detection levels derive from losStatus", function()
@@ -140,11 +148,19 @@ describe("mission_api.detection_levels", function()
 			-- Fresh per test: the compiled level mask caches onto the trigger it belongs to.
 			trigger = { parameters = {}, _settings = {} }
 			context = {
-				ActivateTrigger = function() fired = fired + 1 end,
-				DoesUnitHaveName = function() return true end,
+				ActivateTrigger = function()
+					fired = fired + 1
+				end,
+				DoesUnitHaveName = function()
+					return true
+				end,
 			}
-			Spring.GetUnitIsDead = function() return false end
-			Spring.GetUnitDefID = function() return 1 end
+			Spring.GetUnitIsDead = function()
+				return false
+			end
+			Spring.GetUnitDefID = function()
+				return 1
+			end
 		end)
 
 		local function sweep(handler, ...)
@@ -152,7 +168,9 @@ describe("mission_api.detection_levels", function()
 			handler(trigger, triggerID, context, ...)
 		end
 
-		local function matchesAnything() return true end
+		local function matchesAnything()
+			return true
+		end
 
 		it("reports a rise once, however many updates repeat it", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
@@ -197,14 +215,18 @@ describe("mission_api.detection_levels", function()
 
 		it("does not report a unit that was dead when its level changed", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
-			Spring.GetUnitIsDead = function() return true end
+			Spring.GetUnitIsDead = function()
+				return true
+			end
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onDetected, { [100] = true })
 			assert.are.equal(0, fired)
 		end)
 
 		it("does not report a unit its own filters reject", function()
-			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, function() return false end)
+			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, function()
+				return false
+			end)
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onDetected, { [100] = true })
 			assert.are.equal(0, fired)
@@ -232,10 +254,16 @@ describe("mission_api.detection_levels", function()
 		before_each(function()
 			context = {
 				ActivateTrigger = function() end,
-				DoesUnitHaveName = function() return true end,
+				DoesUnitHaveName = function()
+					return true
+				end,
 			}
-			Spring.GetUnitIsDead = function() return false end
-			Spring.GetUnitDefID = function() return 1 end
+			Spring.GetUnitIsDead = function()
+				return false
+			end
+			Spring.GetUnitDefID = function()
+				return 1
+			end
 
 			losStateReads = 0
 			local getUnitLosState = Spring.GetUnitLosState
@@ -245,7 +273,9 @@ describe("mission_api.detection_levels", function()
 			end
 		end)
 
-		local function matchesAnything() return true end
+		local function matchesAnything()
+			return true
+		end
 
 		local function newTrigger(parameters)
 			return { parameters = parameters or {}, settings = {} }
@@ -257,8 +287,8 @@ describe("mission_api.detection_levels", function()
 			local onUndetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger(), 'detected', context, { [100] = true })
-			onUndetected(newTrigger(), 'undetected', context, { [100] = true })
+			onDetected(newTrigger(), "detected", context, { [100] = true })
+			onUndetected(newTrigger(), "undetected", context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)
 		end)
@@ -267,9 +297,9 @@ describe("mission_api.detection_levels", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger(), 'detected', context, { [100] = true })
+			onDetected(newTrigger(), "detected", context, { [100] = true })
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger(), 'detected', context, { [100] = true })
+			onDetected(newTrigger(), "detected", context, { [100] = true })
 
 			assert.are.equal(4, losStateReads)
 		end)
@@ -279,8 +309,8 @@ describe("mission_api.detection_levels", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger({ sensorAllyTeam = 0 }), 'named', context, { [100] = true })
-			onDetected(newTrigger(), 'unnamed', context, { [100] = true })
+			onDetected(newTrigger({ sensorAllyTeam = 0 }), "named", context, { [100] = true })
+			onDetected(newTrigger(), "unnamed", context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)
 		end)
@@ -290,7 +320,7 @@ describe("mission_api.detection_levels", function()
 			losStatusByAllyTeam[0] = INLOS
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger(), 'detected', context, { [100] = true })
+			onDetected(newTrigger(), "detected", context, { [100] = true })
 
 			assert.are.equal(1, losStateReads)
 		end)

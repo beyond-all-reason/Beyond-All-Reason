@@ -4,19 +4,22 @@ require("mission_api.spec_helper")
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
 -- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
 -- reads UnitDefs and Spring's unit and LOS state.
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-GG['MissionAPI'].Modules.SeismicContacts = GG['MissionAPI'].Modules.SeismicContacts or {
-	IsContact = function() return false end,
-}
+GG["MissionAPI"] = GG["MissionAPI"] or {}
+GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Modules.SeismicContacts = GG["MissionAPI"].Modules.SeismicContacts
+	or {
+		IsContact = function()
+			return false
+		end,
+	}
 
-_G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
+_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
 
-GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
-local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
+GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
 
-local unitDetected = VFS.Include('luarules/mission_api/triggers/unit_detected.lua')
+local unitDetected = VFS.Include("luarules/mission_api/triggers/unit_detected.lua")
 local onDetectionUpdate = unitDetected.callins.DetectionUpdate -- an artificial callin
 local onDestroyed = unitDetected.callins.UnitDestroyed
 
@@ -39,18 +42,26 @@ describe("mission_api.triggers.unit_detected", function()
 		Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
 			return losStatus[unitID] and losStatus[unitID][allyTeamID] or 0
 		end
-		Spring.GetUnitIsDead = function(_unitID) return false end
-		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
-		Spring.GetUnitTeam = function(_unitID) return 3 end
+		Spring.GetUnitIsDead = function(_unitID)
+			return false
+		end
+		Spring.GetUnitDefID = function(_unitID)
+			return 1
+		end -- 'armpw', read back on an edge
+		Spring.GetUnitTeam = function(_unitID)
+			return 3
+		end
 		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
 		-- never senses, so ownership does not mask those setups; tests about the owner's own
 		-- vision override this.
-		Spring.GetUnitAllyTeam = function(_unitID) return GAIA_ALLY end
+		Spring.GetUnitAllyTeam = function(_unitID)
+			return GAIA_ALLY
+		end
 	end)
 
 	local function freshTriggerID()
 		nextTriggerID = nextTriggerID + 1
-		return 'detected-' .. nextTriggerID
+		return "detected-" .. nextTriggerID
 	end
 
 	local function freshUnitID()
@@ -65,10 +76,16 @@ describe("mission_api.triggers.unit_detected", function()
 	local function newContext()
 		local fired = 0
 		local context = {
-			DoesUnitHaveName = function() return true end,
-			ActivateTrigger = function() fired = fired + 1 end,
+			DoesUnitHaveName = function()
+				return true
+			end,
+			ActivateTrigger = function()
+				fired = fired + 1
+			end,
 		}
-		return context, function() return fired end
+		return context, function()
+			return fired
+		end
 	end
 
 	---Runs one detection sweep over the given units, which is what the gadget raises per frame.
@@ -102,7 +119,7 @@ describe("mission_api.triggers.unit_detected", function()
 
 	describe("its definition", function()
 		it("declares its type and parameters", function()
-			assert.are.equal('UnitDetected', unitDetected.type)
+			assert.are.equal("UnitDetected", unitDetected.type)
 
 			local names = {}
 			for _, parameter in ipairs(unitDetected.parameters) do
@@ -113,15 +130,17 @@ describe("mission_api.triggers.unit_detected", function()
 			assert.is_true(names.owningTeamID)
 			assert.is_true(names.sensorAllyTeam)
 			assert.is_true(names.sensorTypes)
-			assert.are.same({ 'unitName', 'unitDefName' }, unitDetected.parameters.requiresOneOf)
+			assert.are.same({ "unitName", "unitDefName" }, unitDetected.parameters.requiresOneOf)
 		end)
 
 		it("filters on unitName", function()
 			local context, fired = newContext()
-			context.DoesUnitHaveName = function() return false end
+			context.DoesUnitHaveName = function()
+				return false
+			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitName = 'engineers' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitName = "engineers" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -129,16 +148,18 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'corfast' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "corfast" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
 		it("filters on owningTeamID", function()
 			local context, fired = newContext()
-			Spring.GetUnitTeam = function(_unitID) return 5 end
+			Spring.GetUnitTeam = function(_unitID)
+				return 5
+			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'armpw', owningTeamID = 3 }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw", owningTeamID = 3 }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -146,7 +167,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ unitDefName = 'armpw', sensorAllyTeam = SENSOR_ALLY })
+			local t = trigger({ unitDefName = "armpw", sensorAllyTeam = SENSOR_ALLY })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -155,7 +176,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			radarUnit(unitID)
-			local t = trigger({ unitDefName = 'armpw', sensorTypes = { vision = true } })
+			local t = trigger({ unitDefName = "armpw", sensorTypes = { vision = true } })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -169,7 +190,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
@@ -177,7 +198,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
@@ -186,18 +207,27 @@ describe("mission_api.triggers.unit_detected", function()
 		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeam", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			Spring.GetUnitAllyTeam = function(_unitID)
+				return OTHER_ALLY
+			end
 			seeUnit(unitID, OTHER_ALLY)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
 		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeam", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			Spring.GetUnitAllyTeam = function(_unitID)
+				return OTHER_ALLY
+			end
 			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
-			update(trigger({ unitDefName = 'armpw', sensorTypes = { radar = true } }), freshTriggerID(), context, { unitID })
+			update(
+				trigger({ unitDefName = "armpw", sensorTypes = { radar = true } }),
+				freshTriggerID(),
+				context,
+				{ unitID }
+			)
 			assert.are.equal(1, fired())
 		end)
 	end)
@@ -206,7 +236,7 @@ describe("mission_api.triggers.unit_detected", function()
 		it("ignores a unit that is never detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			update(t, triggerID, context, { unitID })
 			update(t, triggerID, context, { unitID })
 			assert.are.equal(0, fired())
@@ -214,10 +244,12 @@ describe("mission_api.triggers.unit_detected", function()
 
 		it("ignores a unit that was dead when its level changed", function()
 			local context, fired = newContext()
-			Spring.GetUnitIsDead = function(_unitID) return true end
+			Spring.GetUnitIsDead = function(_unitID)
+				return true
+			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -225,7 +257,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, GAIA_ALLY)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 	end)
@@ -233,7 +265,7 @@ describe("mission_api.triggers.unit_detected", function()
 	describe("rising and falling", function()
 		it("activates on the rise", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			update(t, triggerID, context, { unitID })
@@ -247,7 +279,7 @@ describe("mission_api.triggers.unit_detected", function()
 		-- The fall belongs to UnitUndetected. This trigger must stay silent through it.
 		it("does not activate on the fall", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
@@ -265,7 +297,7 @@ describe("mission_api.triggers.unit_detected", function()
 	describe("activation counts", function()
 		it("adds nothing for updates that change no level", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
 
@@ -281,7 +313,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local first, second = freshUnitID(), freshUnitID()
 			seeUnit(first)
 			seeUnit(second)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { first, second })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { first, second })
 			assert.are.equal(2, fired())
 		end)
 
@@ -290,10 +322,12 @@ describe("mission_api.triggers.unit_detected", function()
 		it("adds one only for the unit that passes its filters", function()
 			local context, fired = newContext()
 			local matching, other = freshUnitID(), freshUnitID()
-			Spring.GetUnitDefID = function(unitID) return unitID == matching and 1 or 2 end
+			Spring.GetUnitDefID = function(unitID)
+				return unitID == matching and 1 or 2
+			end
 			seeUnit(matching)
 			seeUnit(other)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { matching, other })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { matching, other })
 			assert.are.equal(1, fired())
 		end)
 	end)
@@ -306,9 +340,9 @@ describe("mission_api.triggers.unit_detected", function()
 	describe("sensorTypes", function()
 		-- Seismic is left to detection_levels_spec, which owns the contact it reads.
 		local LEVELS = {
-			{ name = 'radar',      reach = radarUnit },
-			{ name = 'identified', reach = identifyUnit },
-			{ name = 'vision',     reach = seeUnit },
+			{ name = "radar", reach = radarUnit },
+			{ name = "identified", reach = identifyUnit },
+			{ name = "vision", reach = seeUnit },
 		}
 
 		local function activatingLevels(sensorTypes)
@@ -317,7 +351,7 @@ describe("mission_api.triggers.unit_detected", function()
 				local context, fired = newContext()
 				local unitID = freshUnitID()
 				level.reach(unitID)
-				local t = trigger({ unitDefName = 'armpw', sensorTypes = sensorTypes })
+				local t = trigger({ unitDefName = "armpw", sensorTypes = sensorTypes })
 				update(t, freshTriggerID(), context, { unitID })
 				if fired() > 0 then
 					activating[#activating + 1] = level.name
@@ -327,15 +361,15 @@ describe("mission_api.triggers.unit_detected", function()
 		end
 
 		it("accepts every level but unseen when omitted", function()
-			assert.are.same({ 'radar', 'identified', 'vision' }, activatingLevels(nil))
+			assert.are.same({ "radar", "identified", "vision" }, activatingLevels(nil))
 		end)
 
 		it("accepts only vision for a vision set", function()
-			assert.are.same({ 'vision' }, activatingLevels({ vision = true }))
+			assert.are.same({ "vision" }, activatingLevels({ vision = true }))
 		end)
 
 		it("accepts both radar levels for a radar set", function()
-			assert.are.same({ 'radar', 'identified' }, activatingLevels({ radar = true }))
+			assert.are.same({ "radar", "identified" }, activatingLevels({ radar = true }))
 		end)
 
 		it("accepts no engine level for a seismic set", function()
@@ -343,25 +377,24 @@ describe("mission_api.triggers.unit_detected", function()
 		end)
 
 		it("accepts radar and vision together", function()
-			assert.are.same({ 'radar', 'identified', 'vision' },
-				activatingLevels({ radar = true, vision = true }))
+			assert.are.same({ "radar", "identified", "vision" }, activatingLevels({ radar = true, vision = true }))
 		end)
 
 		it("accepts seismic and radar together", function()
-			assert.are.same({ 'radar', 'identified' },
-				activatingLevels({ seismic = true, radar = true }))
+			assert.are.same({ "radar", "identified" }, activatingLevels({ seismic = true, radar = true }))
 		end)
 
 		-- Skipping radar in this set leaves a gap in the detection level, so this tests
 		-- what it looks like to fall into a level-gap when crossing outside of the set.
 		it("accepts seismic and vision without the radar levels between them", function()
-			assert.are.same({ 'vision' },
-				activatingLevels({ seismic = true, vision = true }))
+			assert.are.same({ "vision" }, activatingLevels({ seismic = true, vision = true }))
 		end)
 
 		it("accepts every level for all three sensors", function()
-			assert.are.same({ 'radar', 'identified', 'vision' },
-				activatingLevels({ seismic = true, radar = true, vision = true }))
+			assert.are.same(
+				{ "radar", "identified", "vision" },
+				activatingLevels({ seismic = true, radar = true, vision = true })
+			)
 		end)
 	end)
 
@@ -374,13 +407,13 @@ describe("mission_api.triggers.unit_detected", function()
 			local unitID = freshUnitID()
 			radarUnit(unitID)
 			seeUnit(unitID) -- radar and vision reporting in the same frame
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 
 		it("activates once for a unit that stays detected across updates", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 			seeUnit(unitID)
 
@@ -392,7 +425,7 @@ describe("mission_api.triggers.unit_detected", function()
 
 		it("activates once for a unit climbing from radar into vision", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			radarUnit(unitID)
@@ -410,7 +443,7 @@ describe("mission_api.triggers.unit_detected", function()
 	describe("a repeating trigger", function()
 		it("activates again for each new rise", function()
 			local context, fired = newContext()
-			local t = trigger({ unitDefName = 'armpw' }, { repeating = true })
+			local t = trigger({ unitDefName = "armpw" }, { repeating = true })
 			local triggerID = freshTriggerID()
 			local unitID = freshUnitID()
 
@@ -428,7 +461,7 @@ describe("mission_api.triggers.unit_detected", function()
 	describe("a destroyed unit", function()
 		it("drops its latch without activating, and can be detected again", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = 'armpw' }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw" }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			seeUnit(unitID)
