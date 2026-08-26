@@ -217,15 +217,15 @@ local labelPlacesArg = {}
 local function prefixRowLabel(key, arg, row, col)
 	local places = labelPlacesArg[key]
 	if places == nil then
-		places = Spring.I18N(key, { n = "", row = "", col = "" }):find("", 1, true) ~= nil
+		places = BAR.I18N(key, { n = "", row = "", col = "" }):find("", 1, true) ~= nil
 		labelPlacesArg[key] = places
 	end
 
 	if places then
-		return Spring.I18N(key, { n = arg, row = row, col = col })
+		return BAR.I18N(key, { n = arg, row = row, col = col })
 	end
 
-	return Spring.I18N(key) .. " " .. arg
+	return BAR.I18N(key) .. " " .. arg
 end
 
 -- Resolve i18n labels once (search rebuilds rows per keystroke); redone on refresh.
@@ -237,7 +237,7 @@ local function buildResolvedCatalog()
 		if group.hidden then
 			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
 		else
-			local title = Spring.I18N(group.category)
+			local title = BAR.I18N(group.category)
 			local g = {
 				category = group.category,
 				layout = group.layout,
@@ -260,7 +260,7 @@ local function buildResolvedCatalog()
 							catalogShiftPair[item.action] = true
 						end
 					end
-					local label = Spring.I18N(item.label)
+					local label = BAR.I18N(item.label)
 					g.items[#g.items + 1] = {
 						action = item.action,
 						actionLower = item.action and item.action:lower(),
@@ -276,12 +276,12 @@ local function buildResolvedCatalog()
 				for _, it in ipairs(group.items) do
 					local n = it.action and it.action:match("^gridmenu_category%s+(%d+)$")
 					if n then
-						g.categoryLabels[tonumber(n)] = Spring.I18N(it.label)
+						g.categoryLabels[tonumber(n)] = BAR.I18N(it.label)
 					end
 					if it.prefix == "gridmenu_key" and it.label then
 						local key = it.label
 						g.cellLabel = function(row, col)
-							return Spring.I18N(key, { n = row .. " " .. col, row = row, col = col })
+							return BAR.I18N(key, { n = row .. " " .. col, row = row, col = col })
 						end
 					end
 				end
@@ -290,7 +290,7 @@ local function buildResolvedCatalog()
 				end
 				for _, it in ipairs(group.items) do
 					if it.action == "gridmenu_cycle_builder" and it.label then
-						g.cycleLabel = Spring.I18N(it.label)
+						g.cycleLabel = BAR.I18N(it.label)
 					end
 				end
 				g.cycleLabel = g.cycleLabel or "gridmenu_cycle_builder"
@@ -299,15 +299,15 @@ local function buildResolvedCatalog()
 		end
 	end
 
-	L.other = Spring.I18N("categories.other")
+	L.other = BAR.I18N("categories.other")
 	L.otherLower = L.other:lower()
-	L.title = Spring.I18N("ui.keybinds.title")
-	L.allCategories = Spring.I18N("ui.keybinds.editor.allCategories")
-	L.gridNextPage = Spring.I18N("actions.gridMenu.nextPage")
+	L.title = BAR.I18N("ui.keybinds.title")
+	L.allCategories = BAR.I18N("ui.keybinds.editor.allCategories")
+	L.gridNextPage = BAR.I18N("actions.gridMenu.nextPage")
 	-- gui_gridmenu hardcodes both the caption and the key on this button, so it is not
 	-- bindable and there is no i18n key to read.
 	-- Shared with gui_gridmenu, which draws the button this mirrors.
-	L.gridBack = Spring.I18N("ui.buildMenu.back")
+	L.gridBack = BAR.I18N("ui.buildMenu.back")
 
 	categories = { { label = L.allCategories } }
 	otherCategoryKey = generatedOtherKey
@@ -328,23 +328,23 @@ local function buildResolvedCatalog()
 	if otherCategoryKey == generatedOtherKey then
 		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
 	end
-	L.pressKey = Spring.I18N("ui.keybinds.editor.pressKey")
-	L.newProfile = Spring.I18N("ui.keybinds.editor.newProfile")
-	L.duplicate = Spring.I18N("ui.keybinds.editor.duplicate")
-	L.edit = Spring.I18N("ui.keybinds.editor.edit")
-	L.editTitle = Spring.I18N("ui.keybinds.editor.editTitle")
-	L.delete = Spring.I18N("ui.keybinds.editor.delete")
-	L.duplicateTitle = Spring.I18N("ui.keybinds.editor.duplicateTitle")
-	L.save = Spring.I18N("ui.keybinds.editor.save")
-	L.reset = Spring.I18N("ui.keybinds.editor.reset")
-	L.resetConfirm = Spring.I18N("ui.keybinds.editor.resetConfirm")
-	L.saveTitle = Spring.I18N("ui.keybinds.editor.saveTitle")
-	L.discard = Spring.I18N("ui.keybinds.editor.discard")
-	L.unsavedTitle = Spring.I18N("ui.keybinds.editor.unsavedTitle")
-	L.unsavedMessage = Spring.I18N("ui.keybinds.editor.unsavedMessage")
-	L.applyFailedTitle = Spring.I18N("ui.keybinds.editor.applyFailedTitle")
-	L.accept = Spring.I18N("ui.keybinds.editor.accept")
-	L.cancel = Spring.I18N("ui.keybinds.editor.cancel")
+	L.pressKey = BAR.I18N("ui.keybinds.editor.pressKey")
+	L.newProfile = BAR.I18N("ui.keybinds.editor.newProfile")
+	L.duplicate = BAR.I18N("ui.keybinds.editor.duplicate")
+	L.edit = BAR.I18N("ui.keybinds.editor.edit")
+	L.editTitle = BAR.I18N("ui.keybinds.editor.editTitle")
+	L.delete = BAR.I18N("ui.keybinds.editor.delete")
+	L.duplicateTitle = BAR.I18N("ui.keybinds.editor.duplicateTitle")
+	L.save = BAR.I18N("ui.keybinds.editor.save")
+	L.reset = BAR.I18N("ui.keybinds.editor.reset")
+	L.resetConfirm = BAR.I18N("ui.keybinds.editor.resetConfirm")
+	L.saveTitle = BAR.I18N("ui.keybinds.editor.saveTitle")
+	L.discard = BAR.I18N("ui.keybinds.editor.discard")
+	L.unsavedTitle = BAR.I18N("ui.keybinds.editor.unsavedTitle")
+	L.unsavedMessage = BAR.I18N("ui.keybinds.editor.unsavedMessage")
+	L.applyFailedTitle = BAR.I18N("ui.keybinds.editor.applyFailedTitle")
+	L.accept = BAR.I18N("ui.keybinds.editor.accept")
+	L.cancel = BAR.I18N("ui.keybinds.editor.cancel")
 end
 
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
@@ -432,7 +432,7 @@ local function rebuildRows()
 							-- Factions gated behind modoptions (Legion, scavengers) aren't in
 							-- UnitDefNames, but their names live in the units i18n regardless.
 							local key = "units.names." .. arg
-							local name = Spring.I18N(key)
+							local name = BAR.I18N(key)
 							if name ~= key then
 								arg = name
 							end
@@ -710,7 +710,7 @@ local function selectProfile(name, fromName)
 	if not profiles.materialize(name) then
 		openDialog({
 			title = L.applyFailedTitle,
-			message = Spring.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
+			message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
 			accept = function() end,
 		})
 
@@ -861,7 +861,7 @@ local function startEdit()
 			action = function()
 				openDialog({
 					title = L.delete,
-					message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
+					message = BAR.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
 					acceptLabel = L.delete,
 					danger = true,
 					accept = function()
@@ -891,7 +891,7 @@ local function ensureControls()
 		return
 	end
 
-	searchBox = Editbox.new({ placeholder = Spring.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
+	searchBox = Editbox.new({ placeholder = BAR.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
 	nameBox = Editbox.new({ maxChars = 40 })
 end
