@@ -563,6 +563,8 @@ local actions = {
 			unitName = 'reclaimer',
 			orders = {
 				{ CMD.RECLAIM, { unitName = 'doomedRadar' } },
+			}
+		},
 	},
 
 	messageProductionStartedPawn = {
