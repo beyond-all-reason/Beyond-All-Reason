@@ -8,7 +8,7 @@ return {
 		metalcost = 2300,
 		buildpic = "LEGACLUSTER.DDS",
 		buildtime = 25700,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
@@ -29,6 +29,8 @@ return {
 		sightdistance = 455,
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legacluster_aoplane.dds",
 			buildinggrounddecalsizey = 8,

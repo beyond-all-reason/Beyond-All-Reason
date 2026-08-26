@@ -4,7 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORPUN.DDS",
 		buildtime = 17400,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
 		collisionvolumetype = "CylY",
@@ -27,6 +27,8 @@ return {
 		sightdistance = 455,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 5.7,
 			buildinggrounddecalsizey = 5.7,
