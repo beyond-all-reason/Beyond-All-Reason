@@ -79,9 +79,6 @@ local objectives = {
 		textKey = "build_3_bots",
 
 		-- Event type with a count: completes on the third matching occurrence.
-		-- UnitExists rather than ConstructionFinished because these bots are
-		-- spawned by SpawnUnits, and a spawned unit is created complete, so it
-		-- never was under construction.
 		type = eventTypes.UnitExists,
 		parameters = {
 			unitDefName = 'corak',
@@ -165,7 +162,11 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'bots' },
+				{ unitDefName = 'corak',x = 1800,z = 1800,team = 0,unitName = 'bots',
+					orders = {
+						{ CMD.MOVE_STATE, 0, {} },
+					},
+				},
 			},
 		},
 	},
@@ -174,7 +175,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2100, team = 1, quantity = 3 },
+				{ unitDefName = 'armllt', x = 1800, z = 2100, team = 1, quantity = 3, spacing = 60 },
 			},
 		},
 	},
