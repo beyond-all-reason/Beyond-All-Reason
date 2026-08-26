@@ -3550,6 +3550,27 @@ function state.insertInputTextAtCursor(text)
 	end
 end
 
+function state.acceptAutocomplete()
+	if inputMode == "label" or not autocompleteText or not autocompleteWords[1] then
+		return false
+	end
+	if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+		return false
+	end
+	if inputTextPosition ~= utf8.len(inputText) then
+		return false
+	end
+
+	inputText = inputText .. autocompleteText
+	inputTextPosition = utf8.len(inputText)
+	inputHistory[#inputHistory] = inputText
+	inputSelectionStart = nil
+	autocompleteText = nil
+	autocompleteWords = {}
+
+	return true
+end
+
 function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if
@@ -3860,6 +3881,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 				inputTextPosition = 0
 			end
 			cursorBlinkTimer = 0
+		elseif key == 275 and not shift and state.acceptAutocomplete() then -- RIGHT, accept autocomplete
+			cursorBlinkTimer = 0
 		elseif key == 275 then -- RIGHT
 			if shift then
 				-- Start or extend selection
@@ -3924,17 +3947,6 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			cursorBlinkTimer = 0
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
-		elseif key == 9 and inputMode ~= "label" then -- TAB
-			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
-				inputText = utf8.sub(inputText, 1, inputTextPosition)
-					.. autocompleteText
-					.. utf8.sub(inputText, inputTextPosition + 1)
-				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
-				inputHistory[#inputHistory] = inputText
-				autocompleteText = nil
-				autocompleteWords = {}
-			end
 		else
 			-- regular chars/keys handled in widget:TextInput
 		end
