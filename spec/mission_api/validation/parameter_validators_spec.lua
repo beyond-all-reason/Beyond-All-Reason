@@ -581,6 +581,59 @@ describe("mission_api.validation.parameter_validators", function()
 			"Unknown command ID: 99999. Action: a, Parameter: orders[1][1]")
 	end)
 
+	--- Validates the command parameter of a Command-typed trigger.
+	local function validateCommand(command)
+		return V.validateTrigger(V.trigger(V.triggerTypes.UnitOrdered, { command = command, unitName = 'x' }))
+	end
+
+	describe("Command", function()
+		before_each(function()
+			_G.CMD = { MOVE = 1, [1] = 'MOVE', CLOAK = 17, [17] = 'CLOAK', ANY = 'a', BUILD = 'b' }
+			_G.GameCMD = {}
+		end)
+
+		after_each(function()
+			_G.CMD     = {}
+			_G.GameCMD = {}
+		end)
+
+		it("accepts a known command id", function()
+			V.assertNoMessageContaining(validateCommand(CMD.MOVE), "command")
+		end)
+
+		it("accepts a build order authored as a unitDefName", function()
+			V.assertNoMessageContaining(validateCommand('armwar'), "command")
+		end)
+
+		it("accepts the ANY qualifier", function()
+			V.assertNoMessageContaining(validateCommand(CMD.ANY), "command")
+		end)
+
+		it("accepts the BUILD qualifier", function()
+			V.assertNoMessageContaining(validateCommand(CMD.BUILD), "command")
+		end)
+
+		it("warns, but does not error, for a command consumed in AllowCommand", function()
+			local result = validateCommand(CMD.CLOAK)
+
+			V.assertMessage(result, "Command CLOAK may fail to trigger in UnitOrdered. Trigger: t, Parameter: command")
+			assert.is_true(result.ok)
+		end)
+
+		it("rejects an unknown command id", function()
+			V.assertMessage(validateCommand(4242), "Unknown command ID: 4242. Trigger: t, Parameter: command")
+		end)
+
+		it("rejects a command that is not a known unitDefName", function()
+			V.assertMessage(validateCommand('notAUnit'), "Invalid unitDefName: notAUnit. Trigger: t, Parameter: command")
+		end)
+
+		it("rejects a command that is neither a number nor a string", function()
+			V.assertMessage(validateCommand(true),
+				"Unexpected parameter type, expected number or string, got boolean. Trigger: t, Parameter: command")
+		end)
+	end)
+
 	--- Validates the unitLoadout parameter of the action under test.
 	local function validateUnitLoadout(unitLoadout)
 		return V.validateAction({ type = V.actionTypes.SpawnUnits, parameters = { unitLoadout = unitLoadout } })

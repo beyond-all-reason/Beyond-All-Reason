@@ -30,6 +30,11 @@ local function mockCommands()
 		_G.CMD[name]  = index
 		_G.CMD[index] = name
 	end
+	-- The ANY/BUILD qualifiers used by the Command parameter type, per common/constants.lua.
+	_G.CMD.ANY   = "a"
+	_G.CMD.a     = "ANY"
+	_G.CMD.BUILD = "b"
+	_G.CMD.b     = "BUILD"
 	_G.GameCMD = { AREA_ATTACK_GROUND = 100, [100] = 'AREA_ATTACK_GROUND' }
 end
 

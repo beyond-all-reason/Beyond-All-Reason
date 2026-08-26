@@ -473,6 +473,55 @@ local function registerOrderValidators(parameterValidators, context)
 		knownCMDs[cmdID] = true
 	end
 
+	-- These commands use an allow-consume pattern that causes them never to reach :UnitCommand.
+	-- Rather, the :AllowCommand callin catches them, executes their behavior and returns false.
+	local consumedInAllowCommand = {}
+	for _, entry in ipairs({
+		{ command = CMD.CLOAK, reason = "unit_cloak (replaced by WANT_CLOAK)" },
+		{ command = GameCMD.UNIT_SET_TARGET, reason = "unit_target_on_the_move" },
+		{ command = GameCMD.UNIT_SET_TARGET_NO_GROUND, reason = "unit_target_on_the_move" },
+		{ command = GameCMD.UNIT_SET_TARGET_RECTANGLE, reason = "unit_target_on_the_move" },
+		{ command = GameCMD.UNIT_CANCEL_TARGET, reason = "unit_target_on_the_move" },
+		{ command = GameCMD.PRIORITY, reason = "unit_builder_priority" },
+		{ command = GameCMD.FACTORY_GUARD, reason = "unit_factory_guard" },
+		{ command = GameCMD.STOP_PRODUCTION, reason = "cmd_factory_stop_production" },
+		{ command = GameCMD.QUOTA_BUILD_TOGGLE, reason = "unit_factory_quota" },
+		{ command = GameCMD.LAND_AT, reason = "unit_air_plants" },
+		{ command = GameCMD.SMART_TOGGLE, reason = "unit_weapon_smart_select_helper" },
+		{ command = GameCMD.CARRIER_SPAWN_ONOFF, reason = "unit_carrier_spawner" },
+		{ command = GameCMD.MANUAL_LAUNCH, reason = "cmd_manual_launch (reissued as CMD.MANUALFIRE)" },
+	}) do
+		if entry.command then
+			consumedInAllowCommand[entry.command] = entry.reason
+		end
+	end
+
+	parameterValidators[Types.Command] = function(command)
+		if command == CMD.ANY or command == CMD.BUILD then
+			return
+		end
+		if type(command) == 'number' then
+			local results = {}
+			if not knownCMDs[command] then
+				addResult(results, "Unknown command ID: " .. tostring(command))
+				return results
+			end
+			if consumedInAllowCommand[command] then
+				addResult(
+					results,
+					"Command " .. tostring(CMD[command] or GameCMD[command] or command) .. " may fail to trigger in UnitOrdered",
+					nil, true)
+				return results
+			end
+		elseif type(command) == 'string' then
+			if not UnitDefNames[command] then
+				return { { message = "Invalid unitDefName: " .. command } }
+			end
+		else
+			return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+		end
+	end
+
 	-- Validators by command ID, skipping any command this engine version does not define.
 	local commandValidators = {}
 	for commandName, commandValidator in pairs(validatorsByCommandName) do
