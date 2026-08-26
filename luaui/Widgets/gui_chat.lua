@@ -3108,7 +3108,9 @@ function widget:DrawScreen()
 							),
 							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
-						if not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+						if
+							not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4])
+						then
 							UiSelectHighlight(
 								lineArea[1] - translatedX,
 								lineArea[2] - translatedY - (lineHeight * checkedLines),
@@ -3550,6 +3552,27 @@ function state.insertInputTextAtCursor(text)
 	end
 end
 
+function state.acceptAutocomplete()
+	if inputMode == "label" or not autocompleteText or not autocompleteWords[1] then
+		return false
+	end
+	if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+		return false
+	end
+	if inputTextPosition ~= utf8.len(inputText) then
+		return false
+	end
+
+	inputText = inputText .. autocompleteText
+	inputTextPosition = utf8.len(inputText)
+	inputHistory[#inputHistory] = inputText
+	inputSelectionStart = nil
+	autocompleteText = nil
+	autocompleteWords = {}
+
+	return true
+end
+
 function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if
@@ -3869,6 +3892,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			if inputTextPosition < 0 then
 				inputTextPosition = 0
 			end
+			cursorBlinkTimer = 0
+		elseif key == 275 and not shift and state.acceptAutocomplete() then -- RIGHT, accept autocomplete
 			cursorBlinkTimer = 0
 		elseif key == 275 then -- RIGHT
 			if shift then
