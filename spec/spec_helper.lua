@@ -40,30 +40,35 @@ end
 
 _G.Game = _G.Game or {}
 
-_G.Game.envDamageTypes = _G.Game.envDamageTypes or {
-    Debris            =  -1,
-    GroundCollision   =  -2,
-    ObjectCollision   =  -3,
-    Fire              =  -4,
-    Water             =  -5,
-    Killed            =  -6,
-    Crushed           =  -7,
-    AircraftCrashed   =  -8,
-    SetNegativeHealth =  -9,
-    SelfD             = -10,
-    KilledByCheat     = -11,
-    Reclaimed         = -12,
-    OutOfBounds       = -13,
-    TransportKilled   = -14,
-    FactoryKilled     = -15,
-    FactoryCancel     = -16,
-    UnitScript        = -17,
-    Kamikaze          = -18,
-    ConstructionDecay = -19,
-    TurnedIntoFeature = -20,
-    KilledByLua       = -21,
-	-- More are added via code for our lua-scripted damages.
-}
+-- alldefs_post divides by this to work out the collision speed threshold, so leaving it
+-- nil takes down the whole def post pass and every def arrives raw.
+_G.Game.gameSpeed = _G.Game.gameSpeed or 30
+
+_G.Game.envDamageTypes = _G.Game.envDamageTypes
+	or {
+		Debris = -1,
+		GroundCollision = -2,
+		ObjectCollision = -3,
+		Fire = -4,
+		Water = -5,
+		Killed = -6,
+		Crushed = -7,
+		AircraftCrashed = -8,
+		SetNegativeHealth = -9,
+		SelfD = -10,
+		KilledByCheat = -11,
+		Reclaimed = -12,
+		OutOfBounds = -13,
+		TransportKilled = -14,
+		FactoryKilled = -15,
+		FactoryCancel = -16,
+		UnitScript = -17,
+		Kamikaze = -18,
+		ConstructionDecay = -19,
+		TurnedIntoFeature = -20,
+		KilledByLua = -21,
+		-- More are added via code for our lua-scripted damages.
+	}
 
 _G.CMD = _G.CMD or {}
 _G.GameCMD = _G.GameCMD or {}

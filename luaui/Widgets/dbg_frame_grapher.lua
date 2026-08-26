@@ -57,6 +57,7 @@ local uiScale = 1
 local graphHeightScale = 16
 local pixelsPerMs = 8
 
+---@type InstanceVBOTable?
 local rectInstanceTable = nil
 local rectInstancePtr = 0
 

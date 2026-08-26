@@ -2,8 +2,8 @@ return {
 	leggob = {
 		maxacc = 0.36,
 		maxdec = 0.72,
-		energycost = 500,
-		metalcost = 25,
+		energycost = 420,
+		metalcost = 30,
 		buildpic = "LEGGOB.DDS",
 		buildtime = 900,
 		canmove = true,

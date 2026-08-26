@@ -371,6 +371,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 	local resolution = 32
 	local gameFrame = -1
 
+	---@type InstanceVBOTable?
 	local scumVBO = nil
 	local scumShader = nil
 	local debugmode = false

@@ -138,6 +138,7 @@ local myTeamID = spGetMyTeamID()
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 local disableInput = disableInputWhenSpec and isSpec
+---@type ScreenRect
 local backgroundRect = { 0, 0, 0, 0 }
 local colls = 5
 local rows = 5

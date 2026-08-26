@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 6500,
+		health = 6000,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
