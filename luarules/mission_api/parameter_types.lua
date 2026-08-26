@@ -44,7 +44,7 @@ local types = {
 	Function = "Function",
 
 	-- Number-or-String Validators:
-	Command = 'Command',
+	Command = "Command",
 
 }
 
