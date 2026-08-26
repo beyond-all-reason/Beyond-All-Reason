@@ -42,6 +42,10 @@ describe("mission_api.triggers.unit_undetected", function()
 		Spring.GetUnitIsDead = function(_unitID) return false end
 		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
 		Spring.GetUnitTeam = function(_unitID) return 3 end
+		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
+		-- never senses, so ownership does not mask those setups; tests about the owner's own
+		-- vision override this.
+		Spring.GetUnitAllyTeam = function(_unitID) return GAIA_ALLY end
 	end)
 
 	local function freshTriggerID()

@@ -42,6 +42,10 @@ describe("mission_api.triggers.unit_detected", function()
 		Spring.GetUnitIsDead = function(_unitID) return false end
 		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
 		Spring.GetUnitTeam = function(_unitID) return 3 end
+		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
+		-- never senses, so ownership does not mask those setups; tests about the owner's own
+		-- vision override this.
+		Spring.GetUnitAllyTeam = function(_unitID) return GAIA_ALLY end
 	end)
 
 	local function freshTriggerID()
@@ -174,6 +178,26 @@ describe("mission_api.triggers.unit_detected", function()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
 			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			assert.are.equal(1, fired())
+		end)
+
+		-- An allyTeam always has vision of its own units. Counting that would report every unit
+		-- as seen by every sensor, which silently disables sensorTypes and UnitUndetected.
+		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeam", function()
+			local context, fired = newContext()
+			local unitID = freshUnitID()
+			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			seeUnit(unitID, OTHER_ALLY)
+			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			assert.are.equal(0, fired())
+		end)
+
+		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeam", function()
+			local context, fired = newContext()
+			local unitID = freshUnitID()
+			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
+			update(trigger({ unitDefName = 'armpw', sensorTypes = { radar = true } }), freshTriggerID(), context, { unitID })
 			assert.are.equal(1, fired())
 		end)
 	end)
