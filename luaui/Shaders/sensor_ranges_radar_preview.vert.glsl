@@ -16,16 +16,14 @@ layout (location = 0) in vec4 cubeVertex; // unit cube corner: x,z in [-0.5, 0.5
 
 uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
 uniform vec4 gridParams;        // radar cell size (elmo), coverage texels per side, cube spacing (elmo), cubes per radar cell edge
-uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, unused
+uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, allied coverage on (1) / off (0)
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
 uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
-#if ALLIED_COVERAGE
-uniform sampler2D radarInfoTex; // $info:radar, R = 1 where any allied radar covers the radar cell
-#endif
+uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when lookupParams.w = 1)
 
 out DataVS {
 	vec3 localPos;       // position on the unit cube, for per-face shading and edge lines
@@ -101,21 +99,20 @@ void main() {
 	}
 	float coverage = coverageState.r;
 
-#if ALLIED_COVERAGE
-	// union of all allied radars from the engine's radar map; cubes covered only by those stay static
-	float allied = 0.0;
-	if (all(greaterThanEqual(worldCell, ivec2(0))) && all(lessThan(worldCell, textureSize(radarInfoTex, 0)))) {
-		allied = step(0.5, texelFetch(radarInfoTex, worldCell, 0).r);
-	}
-	float weight = smoothstep(0.0, 0.5, coverage); // how much of the previewed radar's animation applies here
-	coverage = max(coverage, allied);
-#else
-	if (!inPreviewDisc) {
+	// with allied coverage enabled (lookupParams.w), cubes covered only by other allied radars are drawn too but
+	// stay static; the previewed radar's animation applies in proportion to its own coverage
+	float weight = 1.0;
+	if (lookupParams.w > 0.5) {
+		float allied = 0.0;
+		if (all(greaterThanEqual(worldCell, ivec2(0))) && all(lessThan(worldCell, textureSize(radarInfoTex, 0)))) {
+			allied = step(0.5, texelFetch(radarInfoTex, worldCell, 0).r);
+		}
+		weight = smoothstep(0.0, 0.5, coverage);
+		coverage = max(coverage, allied);
+	} else if (!inPreviewDisc) {
 		cullInstance();
 		return;
 	}
-	float weight = 1.0;
-#endif
 
 	float distN = dist / range;
 	float time = animParams.x;
