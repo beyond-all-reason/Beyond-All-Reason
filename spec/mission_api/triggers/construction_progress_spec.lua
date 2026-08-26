@@ -235,7 +235,7 @@ describe("mission_api.triggers.construction_progress", function()
 		assert.are.equal(0, fired())
 	end)
 
-	-- These describe the removed UnitBuildStepTotal callin, which was handed the frame's net
+	-- These describe the removed UnitBuildStepPost callin, which was handed the frame's net
 	-- build step. UnitBuildStepPost receives only a unitID, so the trigger cannot currently
 	-- tell building from reclaiming: a nanoframe reclaimed down past the threshold still
 	-- fires. Pending until the gadget passes the step delta again.
