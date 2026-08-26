@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
--- springsettings RadarPreviewAlliedCoverage (0/1, default off): also draw the coverage of all allied radars (from the engine's radar map)
+-- springsettings RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
 
 ------------------------------------------------------------------------------------------------
 -- How it works
@@ -40,14 +40,14 @@ local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime w
 local CUBE_SHAPES = {
 	-- height at full coverage as a multiple of the cube width, lift of the top face above ground (elmo),
 	-- conform = top face tilts with the terrain
-	cube = { height = 2.0, lift = 0, conform = 0 },
-	slab = { height = 1.0, lift = 0, conform = 0 },
-	tile = { height = 0.5, lift = 0, conform = 0 },
+	cube = { height = 0.8, lift = 0, conform = 0 },
+	tile = { height = 0.2, lift = 0, conform = 0 },
 	flat = { height = 0, lift = 1.5, conform = 1 }, -- flat square
 }
 local LIFT_PER_DISTANCE = 0.001 -- extra lift per elmo of camera distance, keeps flat shapes above the terrain LOD mesh
 local COVERAGE_SMOOTH = false -- true: blend coverage between radar cells (prettier), false: exact engine cells (blocky)
-local ALLIED_COVERAGE_POLL_SECONDS = 2
+local ALLIED_COVERAGE_POLL_SECONDS = 2 -- how often the RadarPreviewAlliedCoverage / RadarPreviewBackground settings are re-read
+local BACKGROUND_LIFT = 2.0 -- elmos the background sheet (RadarPreviewBackground configint, default on) floats above the terrain
 local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so terraforming shows up
 local SMOOTH_RATE = 14 -- 1/s, how fast the cubes follow coverage changes (higher = snappier)
 local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so cubes keep up with the cursor
@@ -65,7 +65,12 @@ local shaderConfig = {
 	TERRAIN_DEPTH_TEST = hasMapDepth and 1 or 0,
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cubes covered only by other allied radars
-	ALLIED_ALPHA = 0.7, -- their opacity relative to the previewed radar's cubes
+	ALLIED_ALPHA = 0.45, -- their opacity relative to the previewed radar's cubes
+	BACKGROUND_COLOR = "vec3(0.10, 0.45, 0.28)", -- background sheet under the cubes (RadarPreviewBackground setting)
+	BACKGROUND_ALPHA = 0.14,
+	OUTLINE_COLOR = "vec3(0.45, 1.00, 0.57)", -- outline along the border with uncovered radar cells
+	OUTLINE_ALPHA = 0.24,
+	OUTLINE_WIDTH = 2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution (0.8 = 2 px on a 2721 px tall screen)
 	MIN_COVERAGE = 0.04, -- cubes below this (smoothed) coverage are not drawn
 	SWEEP_SPEED = 0.11, -- radar sweep revolutions per second
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
@@ -74,9 +79,9 @@ local shaderConfig = {
 	SPAWN_SPEED = 2.5, -- radar ranges per second the spawn ripple travels outward
 	SPAWN_BUMP = 0.25, -- width of the overshoot behind the ripple front, in radar ranges
 	PULSE_SPACING = 180.0, -- elmos between the outward travelling wave rings
-	PULSE_SPEED = 90.0, -- elmos per second the rings travel
+	PULSE_SPEED = 100.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
-	PULSE_STRENGTH = 1.0, -- how much the rings raise/brighten cubes
+	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
 	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
 	RIM_STRENGTH = 0.22, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
@@ -188,6 +193,7 @@ local alliedUpdatedAt = -mathHuge
 local alliedRadars = {} -- reused scratch list of { bx, bz, radius, losHeight }
 local alliedRadarCount = 0
 local showAllied = false -- live value of the RadarPreviewAlliedCoverage configint setting
+local showBackground = true -- live value of the RadarPreviewBackground configint setting
 local alliedConfigCheckedAt = -mathHuge
 local sets = {} -- radius in cells -> coverage/state textures and grid dimensions
 local mousepos = { 0, 0, 0 }
@@ -263,6 +269,7 @@ local cubeShaderCache = {
 		shapeParams = { CUBE_WIDTH, 6, CUBE_SINK, 0 },
 		animParams = { 0, 0, 0, 0 },
 		windowParams = { 0, 0, 1, 1 },
+		modeParams = { 0, 0, 0, 0 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -619,15 +626,16 @@ local function setShape(name)
 	return true
 end
 
-local function readAlliedConfig()
-	showAllied = Spring.GetConfigInt("RadarPreviewAlliedCoverage", 0) ~= 0
+local function readConfig()
+	showAllied = Spring.GetConfigInt("RadarPreviewAlliedCoverage", 1) ~= 0
+	showBackground = Spring.GetConfigInt("RadarPreviewBackground", 1) ~= 0
 end
 
 function widget:Update()
 	local now = osClock()
 	if now - alliedConfigCheckedAt > ALLIED_COVERAGE_POLL_SECONDS then
 		alliedConfigCheckedAt = now
-		readAlliedConfig()
+		readConfig()
 	end
 end
 
@@ -639,7 +647,7 @@ function widget:Initialize()
 	if not initgl4() then
 		return
 	end
-	readAlliedConfig()
+	readConfig()
 	WG.radarPreview = {
 		setShape = setShape,
 		getShape = function()
@@ -975,9 +983,16 @@ function widget:DrawWorld()
 		cubeShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
 		cubeShader:SetUniform("gridParams", RADAR_CELL, set.N, CUBE_SPACING, CUBES_PER_CELL_EDGE)
 		cubeShader:SetUniform("lookupParams", bx, bz, radius, showAllied and 1 or 0)
-		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
 		cubeShader:SetUniform("animParams", now, now - spawnStart, lodBlend, shape.conform)
 		cubeShader:SetUniform("windowParams", x0, z0, cellsX, stride)
+		if showBackground then
+			-- background sheet under the cubes, outlined along the border with uncovered cells
+			cubeShader:SetUniform("modeParams", 1, 0, 0, 0)
+			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, 0, CUBE_SINK, BACKGROUND_LIFT + camDist * LIFT_PER_DISTANCE)
+			tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
+			cubeShader:SetUniform("modeParams", 0, 0, 0, 0)
+		end
+		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
 		if shape.height > 0 then
 			cubeVAO:DrawElements(GL.TRIANGLES, CUBE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
 		else
