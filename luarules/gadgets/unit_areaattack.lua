@@ -30,18 +30,24 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_ATTACK = CMD.ATTACK
 	local reissueOrder = Game.Commands.ReissueOrder
+	local giveInsertOrderToUnit = Game.Commands.GiveInsertOrderToUnit
 
 	local canAreaAttack = {}
 	local areaAttackWeapons = {}
 	local areaAttackWeaponByUnitDef = {}
+	local groundAttackAfterSalvos = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
+		local advanceAfterSalvos = math.max(tonumber(unitDef.customParams.groundattackaftersalvos) or 0, 0)
+		if #unitDef.weapons > 0 and (unitDef.customParams.canareaattack or advanceAfterSalvos > 0) then
 			local weaponDefID = unitDef.weapons[1].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
 			if weaponDef then
-				canAreaAttack[unitDefID] = weaponDef.range
 				areaAttackWeapons[weaponDefID] = weaponDef.salvoSize
 				areaAttackWeaponByUnitDef[unitDefID] = weaponDefID
+				groundAttackAfterSalvos[unitDefID] = advanceAfterSalvos
+				if unitDef.customParams.canareaattack then
+					canAreaAttack[unitDefID] = weaponDef.range
+				end
 			end
 		end
 	end
@@ -69,6 +75,10 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				-- A command can be inserted ahead of the attack before this deferred
 				-- callback runs. Remove only the completed attack in that case.
+				local states = Spring.GetUnitStates(unitID)
+				if states and states["repeat"] and not attack.options.internal then
+					giveInsertOrderToUnit(unitID, CMD_ATTACK, attack.params, attack.options, -1, CMD.OPT_ALT)
+				end
 				Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { attack.commandTag }, 0)
 			end
 		end
@@ -157,8 +167,13 @@ if gadgetHandler:IsSyncedCode() then
 			or not currentCommand.params
 			or #currentCommand.params < 3
 			or not currentCommand.options
-			or not currentCommand.options.internal
 		then
+			return
+		end
+
+		local advanceAfterSalvos = groundAttackAfterSalvos[unitDefID]
+		local internalAreaAttack = currentCommand.options.internal and canAreaAttack[unitDefID]
+		if not internalAreaAttack and advanceAfterSalvos <= 0 then
 			return
 		end
 
@@ -171,6 +186,9 @@ if gadgetHandler:IsSyncedCode() then
 				commandTag = currentCommand.tag,
 				weaponDefID = weaponDefID,
 				projectilesLeft = salvoSize,
+				salvosLeft = math.max(advanceAfterSalvos, 1),
+				params = currentCommand.params,
+				options = currentCommand.options,
 			}
 			activeAttacks[ownerID] = attack
 		elseif attack.weaponDefID ~= weaponDefID then
@@ -182,9 +200,15 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
+		attack.salvosLeft = attack.salvosLeft - 1
+		if attack.salvosLeft > 0 then
+			attack.projectilesLeft = salvoSize
+			return
+		end
+
 		activeAttacks[ownerID] = nil
-		-- Generated ground attacks are persistent, so finish this shot after one
-		-- complete salvo and let the area command choose another random position.
+		-- Ground attacks are persistent when they are the last command. If
+		-- another command follows, advance after the configured number of salvos.
 		if commands[2] then
 			finishedAttacks[ownerID] = attack
 		end
