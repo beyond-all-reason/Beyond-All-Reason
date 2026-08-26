@@ -89,6 +89,14 @@
 			"type": "string",
 			"description": "Name of the difficulty selected by default; must match one entry in 'difficulties'."
 		},
+		"missions": {
+			"type": "array",
+			"description": "Mission IDs in presentation order. Missions found in this campaign's folder but absent here are appended, sorted by ID. IDs must match the 'missionId' of a mission.json in this campaign.",
+			"uniqueItems": true,
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		},
 		"unlocks": {
 			"type": "object",
 			"description": "Map of mission IDs to their unlock requirements. Missions not listed here have no prerequisites and are unlocked from the start. IDs must match the 'missionId' of a mission.json in this campaign.",

@@ -1,0 +1,37 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "manifest.schema.json",
+	"title": "Mission Manifest",
+	"description": "Schema for the root mission manifest. Lives at missions/manifest.json and sets the order campaigns and standalone missions are presented in. Entries are IDs, not folder names. Anything found on disk but absent here is appended, sorted by ID. An archive loaded at higher VFS priority may replace this file to reorder or insert content.",
+	"type": "object",
+	"additionalProperties": false,
+	"definitions": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+$",
+			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
+		}
+	},
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "Path or URL to the JSON Schema for this file."
+		},
+		"campaigns": {
+			"type": "array",
+			"description": "Campaign IDs in presentation order. Must match the 'campaignId' of a campaign.json under missions/campaigns/.",
+			"uniqueItems": true,
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		},
+		"standalone": {
+			"type": "array",
+			"description": "Mission IDs in presentation order, for missions under missions/standalone/ that belong to no campaign. Must match the 'missionId' of a mission.json there.",
+			"uniqueItems": true,
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		}
+	}
+}

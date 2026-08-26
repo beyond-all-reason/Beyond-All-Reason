@@ -6,17 +6,19 @@ Campaign and mission definitions for the Mission API.
 
 ```
 missions/
+├── manifest.json                 order of campaigns and standalone missions
 ├── campaigns/
-│   └── <NN_campaign>/            NN_ prefix sets display order
+│   └── <campaign>/
 │       ├── campaign.json
 │       ├── <asset>.jpg|png       campaign art (background, logo)
-│       └── <NN_mission>/         any subfolder is a mission
+│       └── <mission>/            any subfolder is a mission
 │           ├── mission.json      lobby data: title, briefing, start script
 │           ├── <mission>.lua     in-game logic
 │           └── <asset>.jpg
 ├── standalone/                   missions with no campaign
-│   └── <NN_mission>/             same contract as a campaign mission
+│   └── <mission>/                same contract as a campaign mission
 └── schemata/
+    ├── manifest.schema.json
     ├── campaign.schema.json
     └── mission.schema.json
 ```
@@ -26,6 +28,18 @@ Everything a mission owns lives in its own folder, so it can be added, moved or 
 `mission.json` is read by the lobby before launch. The Lua is read by the engine and returns `Stages`, `Objectives`,
 `Triggers`, `Actions`, `UnitLoadout`, `FeatureLoadout`. Set `$schema` in `mission.json` for editor completion —
 `../../../schemata/…` in a campaign, `../../schemata/…` in `standalone/`.
+
+## Presentation order
+
+Order is declared, and always by ID rather than by path:
+
+| List                      | Lives in             | Orders                            |
+|---------------------------|----------------------|-----------------------------------|
+| `campaigns`, `standalone` | `manifest.json`      | campaigns, campaign-less missions |
+| `missions`                | each `campaign.json` | missions within that campaign     |
+
+The lists are optional. The lobby should display the items in listed order, and unlisted items
+on disk should be appended, sorted by ID or name.
 
 ## Several files per mission
 
@@ -53,10 +67,10 @@ standalone mission must set the first three itself. `authors` is optional everyw
 ## Validating
 
 ```sh
-lua tools/validate_mission.lua missions/campaigns/01_armada/03_sound_test
+lua tools/validate_mission.lua missions/campaigns/armada/sound_test
 ```
 
 Runs the same loader and validation as `luarules/gadgets/api_missions.lua` and exits non-zero on errors.
 `--permissive-defs` skips weapon and feature def checks, `--verbose` adds informational output.
 
-`01_armada/05_validation_test` fails on purpose: it exercises every error path.
+`armada/validation_test` fails on purpose: it exercises every error path.
