@@ -250,6 +250,7 @@ local instanceScratch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 -- death-frame buckets for cheap O(1) cull
 local deathBuckets = {}
 
+---@type InstanceVBOTable?
 local particleVBO
 local particleShader
 

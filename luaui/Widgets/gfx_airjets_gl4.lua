@@ -170,6 +170,7 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- draw in refract/reflect too?
 -- GL4 Variables:
 
+---@type InstanceVBOTable?
 local jetInstanceVBO = nil
 local jetShader = nil
 
