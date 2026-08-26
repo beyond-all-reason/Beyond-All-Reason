@@ -1,9 +1,16 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local DAMAGETYPE_RECLAIMED = Game.envDamageTypes.Reclaimed
+local DAMAGETYPE_RECLAIMED     = Game.envDamageTypes.Reclaimed
+local DAMAGETYPE_KILLED_BY_LUA = Game.envDamageTypes.KilledByLua
 
 -- Unit reclaims end in `KillUnit(builder, ..., -DAMAGE_RECLAIMED)` in both methods in the engine.
--- However, the `ReclaimUnits` action does not take this path, but goes through `KilledByLua`.
+-- The `ReclaimUnits` action cannot take that path: `Spring.DestroyUnit` hardcodes `KilledByLua`.
+
+---Pending an engine action for destroying a unit with a specific weaponDefID + matching behaviors.
+local function isReclaim(weaponDefID, fromMission)
+	return weaponDefID == DAMAGETYPE_RECLAIMED
+		or (fromMission and weaponDefID == DAMAGETYPE_KILLED_BY_LUA and GG['MissionAPI'].reclaimingUnits)
+end
 
 return {
 	type = 'UnitReclaimed',
@@ -11,16 +18,17 @@ return {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'fromMission', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,
 		                         attackerID, attackerDefID, attackerTeam, weaponDefID)
-			if weaponDefID ~= DAMAGETYPE_RECLAIMED then
+			local parameters = trigger.parameters
+			if not isReclaim(weaponDefID, parameters.fromMission) then
 				return
 			end
 
-			local parameters = trigger.parameters
 			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
 				return
 			end

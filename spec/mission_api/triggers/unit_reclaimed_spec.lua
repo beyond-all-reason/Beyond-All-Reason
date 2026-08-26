@@ -34,9 +34,12 @@ describe("mission_api.triggers.unit_reclaimed", function()
 	local triggerID = "t"
 
 	-- unitID 100 is the reclaimee, builderID 50 the reclaimer the engine passes as the attacker
-	local function destroyed(trigger, context, unitDefID, unitTeam, weaponDefID)
+	local function destroyed(trigger, context, unitDefID, unitTeam, weaponDefID, opts)
+		opts = opts or {}
 		weaponDefID = weaponDefID or Game.envDamageTypes.Reclaimed
+		GG["MissionAPI"].reclaimingUnits = opts.reclaimingUnits
 		onUnitDestroyed(trigger, triggerID, context, 100, unitDefID, unitTeam, 50, 10, 0, weaponDefID)
+		GG["MissionAPI"].reclaimingUnits = nil
 	end
 
 	it("declares its type and parameters", function()
@@ -48,6 +51,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamID)
+		assert.is_true(names.fromMission)
 		assert.are.same({ "unitName", "unitDefName" }, unitReclaimed.parameters.requiresOneOf)
 	end)
 
@@ -81,6 +85,45 @@ describe("mission_api.triggers.unit_reclaimed", function()
 	it("does not fire for a unit that was shot down", function()
 		local context, fired = newContext()
 		destroyed(trigger({ unitDefName = "armrad" }), context, 1, 0, 42) -- a real weaponDefID
+		assert.are.equal(0, fired())
+	end)
+
+	it("fires on a mission reclaim when fromMission is true", function()
+		local context, fired = newContext()
+		destroyed(
+			trigger({ unitDefName = "armrad", fromMission = true }),
+			context,
+			1,
+			0,
+			Game.envDamageTypes.KilledByLua,
+			{ reclaimingUnits = true }
+		)
+		assert.are.equal(1, fired())
+	end)
+
+	it("filters mission reclaims by default", function()
+		local context, fired = newContext()
+		destroyed(
+			trigger({ unitDefName = "armrad" }),
+			context,
+			1,
+			0,
+			Game.envDamageTypes.KilledByLua,
+			{ reclaimingUnits = true }
+		)
+		assert.are.equal(0, fired())
+	end)
+
+	-- DespawnUnits calls Spring.DestroyUnit exactly as ReclaimUnits does, minus the fence.
+	it("does not fire for an unfenced Lua kill, such as DespawnUnits", function()
+		local context, fired = newContext()
+		destroyed(
+			trigger({ unitDefName = "armrad", fromMission = true }),
+			context,
+			1,
+			0,
+			Game.envDamageTypes.KilledByLua
+		)
 		assert.are.equal(0, fired())
 	end)
 

@@ -230,7 +230,17 @@ local triggers = {
 			unitName = 'doomedRadar',
 		},
 		actions = { 'messageUnitReclaimedByName' },
-  },
+	},
+
+	unitReclaimedByMission = {
+		type = triggerTypes.UnitReclaimed,
+		parameters = {
+			unitName = 'doomedSolar',
+			fromMission = true,
+		},
+		actions = { 'messageUnitReclaimedByMission' },
+	},
+
 	spawnProductionDemo = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -535,6 +545,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "The doomed radar, by name, was reclaimed!",
+		},
+	},
+
+	messageUnitReclaimedByMission = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The doomed solar was reclaimed by the mission itself!",
 		},
 	},
 
