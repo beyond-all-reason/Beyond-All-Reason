@@ -10,8 +10,9 @@
 //__DEFINES__
 
 in DataVS {
-	vec3 localPos; // position on the unit cube
-	vec4 fx;       // coverage, glow, beam, spawn
+	vec3 localPos;       // position on the unit cube
+	vec4 fx;             // coverage, glow, beam, spawn
+	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
 };
 
 // Occlusion is tested against the deferred g-buffer depths instead of the regular depth buffer, so
@@ -31,6 +32,8 @@ out vec4 fragColor;
 
 const vec3 baseColor = BASE_COLOR;
 const vec3 highlightColor = HIGHLIGHT_COLOR;
+const vec3 alliedColor = ALLIED_COLOR;
+const float alliedAlpha = float(ALLIED_ALPHA);
 const float baseAlpha = float(BASE_ALPHA);
 const float lineAlpha = float(LINE_ALPHA);
 const float depthBias = 1e-6; // window-space depth tolerance (a few elmo far away, sub-elmo up close)
@@ -80,11 +83,13 @@ void main() {
 	float beam = fx.z;
 	float spawn = fx.w;
 
-	vec3 color = mix(baseColor * shade, highlightColor, glow * 0.55);
+	// cubes covered only by other allied radars use the muted allied look
+	vec3 tint = mix(alliedColor, baseColor, previewWeight);
+	vec3 color = mix(tint * shade, highlightColor, glow * 0.55);
 	color = mix(color, highlightColor, line * 0.6);
 	color += highlightColor * beam * 0.25;
 
 	float alpha = (baseAlpha + 0.3 * glow) * (0.8 + 0.2 * coverage);
-	alpha = max(alpha, line * lineAlpha);
+	alpha = max(alpha, line * lineAlpha) * mix(alliedAlpha, 1.0, previewWeight);
 	fragColor = vec4(color, alpha * spawn);
 }

@@ -23,10 +23,14 @@ uniform vec4 windowParams;      // first cube index x, first cube index z, cubes
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
+#if ALLIED_COVERAGE
+uniform sampler2D radarInfoTex; // $info:radar, R = 1 where any allied radar covers the radar cell
+#endif
 
 out DataVS {
-	vec3 localPos; // position on the unit cube, for per-face shading and edge lines
-	vec4 fx;       // coverage, glow, beam, spawn
+	vec3 localPos;       // position on the unit cube, for per-face shading and edge lines
+	vec4 fx;             // coverage, glow, beam, spawn
+	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -61,6 +65,7 @@ void cullInstance() {
 	gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 	localPos = vec3(0.0);
 	fx = vec4(0.0);
+	previewWeight = 0.0;
 }
 
 void main() {
@@ -85,23 +90,41 @@ void main() {
 	int radius = int(lookupParams.z);
 	ivec2 worldCell = ivec2(floor(cellXZ / radarCell));
 	ivec2 off = worldCell - ivec2(lookupParams.xy);
-	if (any(greaterThan(abs(off), ivec2(radius)))) {
+	bool inPreviewDisc = all(lessThanEqual(abs(off), ivec2(radius)));
+
+	// coverage of the previewed radar: R = smoothed coverage, G = boundary factor (covered cell next to an
+	// uncovered one); texel center = radar cell center, nearest or bilinear depending on the texture's filter
+	vec2 coverageState = vec2(0.0);
+	if (inPreviewDisc) {
+		vec2 coverageUV = (cellXZ / radarCell - lookupParams.xy + float(radius)) / gridParams.y;
+		coverageState = texture(coverageTex, coverageUV).rg;
+	}
+	float coverage = coverageState.r;
+
+#if ALLIED_COVERAGE
+	// union of all allied radars from the engine's radar map; cubes covered only by those stay static
+	float allied = 0.0;
+	if (all(greaterThanEqual(worldCell, ivec2(0))) && all(lessThan(worldCell, textureSize(radarInfoTex, 0)))) {
+		allied = step(0.5, texelFetch(radarInfoTex, worldCell, 0).r);
+	}
+	float weight = smoothstep(0.0, 0.5, coverage); // how much of the previewed radar's animation applies here
+	coverage = max(coverage, allied);
+#else
+	if (!inPreviewDisc) {
 		cullInstance();
 		return;
 	}
-	// texel center = radar cell center; nearest or bilinear depending on the texture's filter
-	// R = smoothed coverage, G = boundary factor (covered cell next to an uncovered one)
-	vec2 coverageUV = (cellXZ / radarCell - lookupParams.xy + float(radius)) / gridParams.y;
-	vec2 coverageState = texture(coverageTex, coverageUV).rg;
-	float coverage = coverageState.r;
+	float weight = 1.0;
+#endif
 
 	float distN = dist / range;
 	float time = animParams.x;
 
-	// spawn ripple: an expanding ring raises the cubes when the preview appears; they overshoot, then settle
+	// spawn ripple: an expanding ring raises the cubes when the preview appears; they overshoot, then settle.
+	// Cubes of other allied radars simply fade in.
 	float front = animParams.y * spawnSpeed;
-	float spawn = smoothstep(distN - 0.10, distN + 0.02, front);
-	float bump = sin(clamp((front - distN) / spawnBump, 0.0, 1.0) * PI);
+	float spawn = mix(min(animParams.y * 4.0, 1.0), smoothstep(distN - 0.10, distN + 0.02, front), weight);
+	float bump = sin(clamp((front - distN) / spawnBump, 0.0, 1.0) * PI) * weight;
 
 	if (coverage < minCoverage || lodScale < 0.02 || spawn < 0.01) {
 		cullInstance();
@@ -113,15 +136,15 @@ void main() {
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = trail * trail * sweepStrength;
-	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength;
+	float sweep = trail * trail * sweepStrength * weight;
+	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight;
 
 	// the main animation: rings travelling outward from the radar
-	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower);
+	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight;
 
 	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;
-	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist);
+	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist) * weight;
 
 	float glow = clamp(sweep + beam + edge * edgeStrength + rim * rimStrength + ring * 0.6 * pulseStrength + bump * 0.7, 0.0, 1.5);
 
@@ -155,5 +178,6 @@ void main() {
 
 	localPos = cubeVertex.xyz;
 	fx = vec4(coverage, glow, beam, spawn);
+	previewWeight = weight;
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 }
