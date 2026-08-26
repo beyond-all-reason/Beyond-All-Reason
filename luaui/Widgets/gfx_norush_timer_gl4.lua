@@ -119,10 +119,7 @@ local function ColourTeamOf(allyTeamID)
 	return (teams and teams[1]) or 0
 end
 
--- Spring.GetAllyTeamStartBox only ever reports the bounding box of a polygon startbox, so
--- drawing from it marked out a larger area than game_no_rush_mode actually enforces. The
--- gadget's own parser is included here instead, the way map_startbox.lua does it, so the
--- overlay and the enforcement cannot describe different shapes.
+-- Must match map_startbox.lua
 local function BuildStartPolygons()
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then
