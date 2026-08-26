@@ -63,6 +63,7 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetBuildFacing = Spring.GetBuildFacing
 local spTestBuildOrder = Spring.TestBuildOrder
+local spGetActiveCommand = Spring.GetActiveCommand
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -93,6 +94,7 @@ local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
 local EXTENDED_CELLS = 0
 local COMBINE_FOUR_CELLS = true
 local COMBINE_VALID_FOOTPRINT_CELLS = true -- merge same-styled cells of a placeable footprint into blocks with a single outline
+local FOLLOW_EXTRACTOR_SNAP = true -- draw the preview at the spot the extractor snap widget targets instead of at the cursor
 local EXTENDED_ALPHA_NEAR = 0.1
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = true
@@ -204,7 +206,7 @@ local statusChecksEnabled = true
 local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
 local pregameStatuses = {}
-local pregameStatusCount = 0
+local snapStatuses = {}
 local queuedBuildFootprints = {}
 local queuedBuildFootprintCount = 0
 local queuedBuildFootprintsGameFrame = -1
@@ -1414,12 +1416,74 @@ local function buildMergedFootprintRects(rectData, statuses, footprint, queuedFo
 	return rectCount
 end
 
+-- Per-cell statuses for a placement the engine did not evaluate for us (pregame, extractor snap target).
+local function fillPredictedStatuses(statusList, unitDef, x, buildHeight, z, footprint, placementValid)
+	local statusIndex = 0
+	for zi = 0, footprint.zsize - 1 do
+		for xi = 0, footprint.xsize - 1 do
+			statusIndex = statusIndex + 1
+			local status = STATUS_BLOCKED
+			if placementValid then
+				status = getPredictedCellStatus(
+					unitDef,
+					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
+					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
+					buildHeight
+				)
+				-- The engine accepted the order, so a cell the prediction calls blocked is really placeable
+				-- (e.g. an extractor upgrade over stackable / build-only yardmap squares).
+				if status == STATUS_BLOCKED then
+					status = STATUS_OPEN
+				end
+			end
+			statusList[statusIndex] = status
+		end
+	end
+	for index = statusIndex + 1, #statusList do
+		statusList[index] = nil
+	end
+end
+
+-- When the extractor snap widget targets a resource spot for the active build command, the preview belongs at
+-- that spot rather than at the cursor. Returns the snapped x, z and predicted statuses, or nil.
+local function getExtractorSnapPlacement(unitDefID, facing, footprint)
+	if not FOLLOW_EXTRACTOR_SNAP then
+		return nil
+	end
+	local extractorSnap = WG.ExtractorSnap
+	local snapPosition = extractorSnap and extractorSnap.position
+	if not snapPosition then
+		return nil
+	end
+	if spGetGameFrame() > 0 then
+		local _, activeCmdID = spGetActiveCommand()
+		if not activeCmdID or -activeCmdID ~= unitDefID then
+			return nil
+		end
+	end
+	local x, buildHeight, z = spPos2BuildPos(unitDefID, snapPosition.x, snapPosition.y, snapPosition.z, facing)
+	if not x or not buildHeight or not z then
+		return nil
+	end
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return nil
+	end
+	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
+	fillPredictedStatuses(snapStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
+	return x, z, snapStatuses
+end
+
 function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	--Spring.Echo("DrawBuildSquare called with unitDefID:", unitDefID, "x:", x, "z:", z, "facing:", facing, "statuses length:", #statuses)
 	local extendedCells, gameFrame, footprintStatusCheckPeriod, sequenceIndex, simplified = getEffectiveExtendedCells()
 	local footprint = getFootprintData(unitDefID, facing)
 	if not footprint then
 		return
+	end
+	local snapX, snapZ, snapCellStatuses = getExtractorSnapPlacement(unitDefID, facing, footprint)
+	if snapX then
+		x, z, statuses = snapX, snapZ, snapCellStatuses
 	end
 	local footprintCellCount = footprint.cellCount
 	local footprintIsValid = true
@@ -1818,26 +1882,7 @@ local function collectPregameBuildSquare()
 	end
 
 	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
-	local statusIndex = 0
-	for zi = 0, footprint.zsize - 1 do
-		for xi = 0, footprint.xsize - 1 do
-			statusIndex = statusIndex + 1
-			if placementValid then
-				pregameStatuses[statusIndex] = getPredictedCellStatus(
-					unitDef,
-					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
-					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
-					buildHeight
-				)
-			else
-				pregameStatuses[statusIndex] = STATUS_BLOCKED
-			end
-		end
-	end
-	for index = statusIndex + 1, pregameStatusCount do
-		pregameStatuses[index] = nil
-	end
-	pregameStatusCount = statusIndex
+	fillPredictedStatuses(pregameStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
 
 	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
 end
