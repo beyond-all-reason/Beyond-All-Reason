@@ -23,7 +23,7 @@ local function withCommandIDs(names, firstID)
 end
 
 local function installCommandTables()
-	_G.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK", "RECLAIM", "GUARD", "REPAIR", "FIGHT", "STOCKPILE" }, 0)
+	_G.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK", "RECLAIM", "GUARD", "REPAIR", "FIGHT", "CLOAK" }, 0)
 	_G.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
 	_G.CMD.ANY, _G.CMD.BUILD = "a", "b" -- filter sentinels (see common/constants.lua)
 end
@@ -1021,13 +1021,10 @@ describe("mission_api.validation", function()
 			end)
 
 			it("warns (without erroring) for a command consumed in AllowCommand", function()
-				validateCommand(CMD.STOCKPILE)
+				validateCommand(CMD.CLOAK)
 				assert.is_true(
 					hasError(
-						"Command "
-							.. CMD.STOCKPILE
-							.. " is consumed in :AllowCommand by unit_stockpile_limit "
-							.. "(stockpile-capped units); UnitOrdered will not observe it. Trigger: t, Parameter: command"
+						"Command " .. "CLOAK" .. " may fail to trigger in UnitOrdered. Trigger: t, Parameter: command"
 					)
 				)
 				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
