@@ -181,6 +181,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.displayinfo = {}
+	---Where the game info panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.displayinfo.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

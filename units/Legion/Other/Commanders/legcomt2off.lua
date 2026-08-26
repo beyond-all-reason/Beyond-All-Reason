@@ -94,9 +94,8 @@ return {
 			[35] = "legbal",
 			[36] = "leggat",
 			[37] = "armnanotc",
-			[38] = "legmext15",
-			[39] = "armadvsol",
-			[40] = "armgeo",
+			[38] = "armadvsol",
+			[39] = "armgeo",
 		},
 		customparams = {
 			unitgroup = "builder",

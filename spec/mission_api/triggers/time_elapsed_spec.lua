@@ -1,13 +1,10 @@
 require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time,
--- and Game.gameSpeed inside its GameFrame handler.
+-- and Game.gameSpeed (30, from the root spec_helper) inside its GameFrame handler.
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-
-_G.Game = _G.Game or {}
-_G.Game.gameSpeed = 30
 
 local timeElapsed = VFS.Include("luarules/mission_api/triggers/time_elapsed.lua")
 local onGameFrame = timeElapsed.callins.GameFrame
