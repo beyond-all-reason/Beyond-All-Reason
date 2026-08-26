@@ -1,5 +1,5 @@
-local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
+local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 
 --[[
 	objectiveID = {
@@ -38,8 +38,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 
 			if triggerTypesWithQuantity[triggerType] then
 				-- Managed objective: register metadata for lookaside lookup; no trigger or action synthesis.
-				table.ensureTable(GG['MissionAPI'].ManagedObjectives, triggerType)
-				table.insert(GG['MissionAPI'].ManagedObjectives[triggerType], {
+				table.ensureTable(GG["MissionAPI"].ManagedObjectives, triggerType)
+				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
 					objectiveID = objectiveID,
 					amount = amount,
 					nextStage = objective.nextStage,
@@ -54,18 +54,18 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 				local actionID  = '__updateObjective_' .. objectiveID
 
 				rawTriggers[triggerID] = {
-					type       = triggerType,
+					type = triggerType,
 					parameters = triggerParameters,
-					settings   = {
-						stages     = objectiveStages,
-						repeating  = isRepeating,
+					settings = {
+						stages = objectiveStages,
+						repeating = isRepeating,
 						maxRepeats = maxRepeats,
 					},
 					actions = { actionID },
 				}
 
 				rawActions[actionID] = {
-					type       = actionTypes.UpdateObjective,
+					type = actionTypes.UpdateObjective,
 					parameters = {
 						objectiveID = objectiveID,
 					},

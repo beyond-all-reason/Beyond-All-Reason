@@ -1,5 +1,5 @@
-local TRIGGERS_DIR = 'luarules/mission_api/triggers/'
-local TRIGGER_FILES_PATTERN = '*.lua'
+local TRIGGERS_DIR = "luarules/mission_api/triggers/"
+local TRIGGER_FILES_PATTERN = "*.lua"
 
 -- Statistics triggers (TotalUnits*, UnitsOwned) declare no callins; their
 -- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
@@ -26,7 +26,7 @@ local function loadTriggerDefinitions()
 	return {
 		Types      = types,
 		Parameters = parameters,
-		Callins    = callins,
+		Callins = callins,
 	}
 end
 

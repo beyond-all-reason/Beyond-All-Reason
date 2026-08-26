@@ -2,13 +2,13 @@
 --- Post-validation parameter processing for Mission API actions and triggers.
 ---
 
-VFS.Include('common/wav.lua')
+VFS.Include("common/wav.lua")
 
-local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local enumSets = GG['MissionAPI'].Modules.ParameterTypes.EnumSets
-local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
+local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
+local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local triggersSchemaParameters = GG['MissionAPI'].TriggerDefinitions.Parameters
+local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -54,14 +54,14 @@ end
 
 local processors = {
 
-	[ParameterTypes.Position]      = processPosition,
-	[ParameterTypes.Positions]     = processPositions,
-	[ParameterTypes.Direction]     = processDirection,
-	[ParameterTypes.Orders]        = processOrders,
-	[ParameterTypes.SoundFile]     = processSoundFile,
+	[ParameterTypes.Position] = processPosition,
+	[ParameterTypes.Positions] = processPositions,
+	[ParameterTypes.Direction] = processDirection,
+	[ParameterTypes.Orders] = processOrders,
+	[ParameterTypes.SoundFile] = processSoundFile,
 }
 for enumSetType in pairs(enumSets) do
-	processors[enumSetType]        = processEnumSet
+	processors[enumSetType] = processEnumSet
 end
 
 ----------------------------------------------------------------
@@ -93,6 +93,6 @@ local function processTriggerParameters(triggers)
 end
 
 return {
-	ProcessActionParameters  = processActionParameters,
+	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
 }
