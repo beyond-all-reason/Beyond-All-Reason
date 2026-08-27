@@ -350,7 +350,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
-	-- Used to auto-blur when game chat is opened, so Tab autocomplete isn't stolen by RmlUI.
+	-- Used to auto-blur when game chat is opened, so chat keys aren't stolen by RmlUI.
 	focusedRmlInput = nil,
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
@@ -15086,7 +15086,7 @@ function widget:Update()
 		end
 
 		-- When game chat input is open, auto-blur any focused RmlUI text input so
-		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
+		-- keystrokes reach the chat widget instead of navigating RmlUI fields.
 		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil

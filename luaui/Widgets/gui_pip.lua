@@ -2405,8 +2405,11 @@ do
 		voidWater = voidWater,
 	}
 	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
+	-- Void takes precedence over the waterislava modoption (matches modules/lava.lua,
+	-- which never enables lava on voidwater maps): void must stay void, not become lava.
 	local waterIsLava = Spring.GetModOptions().map_waterislava
-	mapInfo.isLava = BAR.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+	mapInfo.isLava = BAR.Lava.isLavaMap
+		or (not voidWater and waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil -- current water/lava level (nil = static sea level = 0)
@@ -19049,16 +19052,18 @@ function UpdateLOSTexture(currentTime)
 	end
 
 	local myAllyTeam = Spring.GetLocalAllyTeamID()
-	-- Can only use engine LOS if:
-	-- 1. Same allyteam as us
-	-- 2. If tracking a player, must have fullview enabled (engine LOS requires fullview for enemy teams)
+	-- Engine LOS texture selection: our own allyteam can always use "$info:los";
+	-- other allyteams work when the engine supports per-allyteam info textures
+	-- ("$info:los:N", spectators/full-read only). gl.TextureInfo returns nil on
+	-- engines without support (or when access is denied) -> manual generation.
 	local useEngineLOS = (losAllyTeam == myAllyTeam)
-	if interactionState.trackingPlayerID and losAllyTeam ~= myAllyTeam then
-		-- Tracking an enemy player - must have fullview to use engine LOS
-		local _, fullview = Spring.GetSpectatingState()
-		if not fullview then
-			-- Without fullview, must manually generate enemy LOS
-			useEngineLOS = false
+	local engineLosTex, engineRadarTex = "$info:los", "$info:radar"
+	if not useEngineLOS then
+		local texInfo = gl.TextureInfo("$info:los:" .. losAllyTeam)
+		if texInfo and texInfo.xsize and texInfo.xsize > 0 then
+			useEngineLOS = true
+			engineLosTex = "$info:los:" .. losAllyTeam
+			engineRadarTex = "$info:radar:" .. losAllyTeam
 		end
 	end
 
@@ -19101,9 +19106,9 @@ function UpdateLOSTexture(currentTime)
 		return
 	end
 
-	-- Check if we can actually query this allyTeam's LOS
-	-- Without fullview, we can only query our own allyTeam
-	if losAllyTeam ~= myAllyTeam then
+	-- Manual generation can only query enemy LOS with fullview
+	-- (the engine per-allyteam textures carry their own access check)
+	if not actualUseEngineLOS and losAllyTeam ~= myAllyTeam then
 		local _, fullview = Spring.GetSpectatingState()
 		if not fullview then
 			-- Can't query enemy LOS without fullview - skip update
@@ -19126,8 +19131,8 @@ function UpdateLOSTexture(currentTime)
 				tracy.ZoneEnd()
 				return
 			end
-			glFunc.Texture(0, "$info:los")
-			glFunc.Texture(1, "$info:radar")
+			glFunc.Texture(0, engineLosTex)
+			glFunc.Texture(1, engineRadarTex)
 
 			-- Activate shader to convert red channel to greyscale
 			gl.UseShader(shaders.los)

@@ -23,10 +23,12 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetTeamList = Spring.GetTeamList
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitPaletteIndex = Spring.GetUnitPaletteIndex
+local spGetTeamColor = Spring.GetTeamColor
+local spGetCustomPaletteColor = Spring.GetCustomPaletteColor
 
 -- TODO:
 -- reflections
@@ -70,6 +72,10 @@ local autoUpdate = false
 
 local enableLights = true
 local lightMult = 1.4
+
+-- 0 = never teamcolored, 1 = teamcolored only for effectdefs with teamcolored = true, 2 = force teamcolor on all airjets
+-- changeable ingame via /set AirjetsTeamColored <0|1|2>
+local teamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
 
 local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
 local texture2 = ":c:bitmaps/gpl/jet2.bmp" -- shape
@@ -164,6 +170,7 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- draw in refract/reflect too?
 -- GL4 Variables:
 
+---@type InstanceVBOTable?
 local jetInstanceVBO = nil
 local jetShader = nil
 
@@ -547,10 +554,26 @@ local function Activate(unitID, unitDefID, who, when)
 		return
 	end
 	local unitEffects = effectDefs[unitDefID]
+
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
+		if teamColorMode == 2 or (teamColorMode == 1 and effectDef.teamcolored) then
+			local r, g, b
+			local unitCustomPaletteIndex = spGetUnitPaletteIndex(unitID)
+			if unitCustomPaletteIndex then
+				r, g, b = spGetCustomPaletteColor(unitCustomPaletteIndex)
+			else
+				r, g, b = spGetTeamColor(spGetUnitTeam(unitID))
+			end
+			if effectDef.teamcolorDesaturation then
+				r = r + ((1 - r) * effectDef.teamcolorDesaturation)
+				g = g + ((1 - g) * effectDef.teamcolorDesaturation)
+				b = b + ((1 - b) * effectDef.teamcolorDesaturation)
+			end
+			color = { r, g, b } -- don't write into effectDef.color: it's shared by all units of this unitDef
+		end
 		local effectdata = {
 			effectDef.width * 0.4,
 			effectDef.length,
@@ -735,10 +758,6 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:Update(dt)
-	--spec, fullview = spGetSpectatingState()
-end
-
 function widget:DrawWorld()
 	DrawParticles(false)
 end
@@ -761,6 +780,20 @@ local function reInitialize()
 				local unitDefID = spGetUnitDefID(unitID)
 				AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 			end
+		end
+	end
+end
+
+local configCheckTimer = 0
+function widget:Update(dt)
+	--spec, fullview = spGetSpectatingState()
+	configCheckTimer = configCheckTimer + dt
+	if configCheckTimer > 0.5 then
+		configCheckTimer = 0
+		local newTeamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
+		if newTeamColorMode ~= teamColorMode then
+			teamColorMode = newTeamColorMode
+			reInitialize()
 		end
 	end
 end
@@ -811,9 +844,9 @@ function widget:Initialize()
 				emitVector[1],
 				emitVector[2],
 				emitVector[3],
-				color[1],
-				color[2],
-				color[3],
+				color3[1],
+				color3[2],
+				color3[3],
 				piecenum,
 				0,
 				0,

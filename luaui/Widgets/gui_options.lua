@@ -75,6 +75,8 @@ elseif Platform.glHaveAMD then
 		isPotatoGpu = true
 		gpuMem = 0 -- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
 	end
+elseif string.find(glRendererLower, "apple m") then
+	-- Apple Silicon via zink reports vendor Mesa: "zink Vulkan 1.3(Apple M3 Max (MESA_KOSMICKRISP))"
 else
 	-- Unknown/Mesa vendor without specific detection — assume low-end
 	isPotatoGpu = true

@@ -142,7 +142,7 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy6",
 				stockpile = true,
-				stockpiletime = 50,
+				stockpiletime = 40,
 				texture1 = "null",
 				texture2 = "railguntrail",
 				tolerance = 9000,

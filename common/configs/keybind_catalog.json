@@ -662,6 +662,14 @@
 				"label": "actions.cameraModes.mapmarks"
 			},
 			{
+				"action": "cycleselected next",
+				"label": "actions.camera.cycleSelectedNext"
+			},
+			{
+				"action": "cycleselected prev",
+				"label": "actions.camera.cycleSelectedPrev"
+			},
+			{
 				"action": "pip1_switch",
 				"label": "actions.camera.pipSwitch"
 			},

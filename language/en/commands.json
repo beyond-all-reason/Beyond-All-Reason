@@ -215,7 +215,9 @@
 			"pipCopy": "Copy camera to picture-in-picture",
 			"pipTrack": "Track selection in picture-in-picture",
 			"fovIncrease": "Increase field of view",
-			"fovDecrease": "Decrease field of view"
+			"fovDecrease": "Decrease field of view",
+			"cycleSelectedNext": "Cycle camera to next selected unit",
+			"cycleSelectedPrev": "Cycle camera to previous selected unit"
 		},
 		"cameraModes": {
 			"mapmarks": "Cycle through map marks",

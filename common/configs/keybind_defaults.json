@@ -326,6 +326,14 @@
 					"action": "gridmenu_cycle_builder"
 				},
 				{
+					"keyset": "sc_.",
+					"action": "cycleselected next"
+				},
+				{
+					"keyset": "sc_comma",
+					"action": "cycleselected prev"
+				},
+				{
 					"keyset": "1",
 					"action": "specteam 0"
 				},
@@ -1649,6 +1657,14 @@
 				{
 					"keyset": "sc_.",
 					"action": "gridmenu_cycle_builder"
+				},
+				{
+					"keyset": "sc_.",
+					"action": "cycleselected next"
+				},
+				{
+					"keyset": "sc_comma",
+					"action": "cycleselected prev"
 				},
 				{
 					"keyset": "1",
@@ -4338,6 +4354,14 @@
 				{
 					"keyset": "Alt+sc_g",
 					"action": "factoryqueuemode"
+				},
+				{
+					"keyset": "sc_.",
+					"action": "cycleselected next"
+				},
+				{
+					"keyset": "sc_comma",
+					"action": "cycleselected prev"
 				}
 			]
 		},
@@ -6015,6 +6039,14 @@
 				{
 					"keyset": "f11",
 					"action": "luaui selector"
+				},
+				{
+					"keyset": "sc_.",
+					"action": "cycleselected next"
+				},
+				{
+					"keyset": "sc_comma",
+					"action": "cycleselected prev"
 				}
 			]
 		}
