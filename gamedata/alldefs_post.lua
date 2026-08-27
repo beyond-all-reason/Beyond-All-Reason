@@ -77,10 +77,12 @@ local transporterDefs        = _tractorbeamDefs.transporters
 local transporterDefaults    = _tractorbeamDefs.transporterDefaults
 local passengerSizes         = _tractorbeamDefs.passengerSizes
 local labBuildoptions        = _tractorbeamDefs.labBuildoptions
-
--- Set of all transport names managed by transporter_defs (used to scrub factory buildoptions).
 local knownTransporters = {}
-for k in pairs(transporterDefs) do knownTransporters[k] = true end
+
+if transporterDefs then
+	-- Set of all transport names managed by transporter_defs (used to scrub factory buildoptions).
+	for k in pairs(transporterDefs) do knownTransporters[k] = true end
+end
 
 -- Convert a raw passengersize float to (nseats, oversized) where nseats is the nearest
 -- lower power-of-2 and oversized is "1" (1.5× weight) or "-1" (0.5× weight) when needed.
