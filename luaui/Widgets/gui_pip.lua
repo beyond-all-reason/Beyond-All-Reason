@@ -15280,8 +15280,12 @@ end
 shaders.SetWaterDynamicUniforms = function()
 	local locs = shaders.waterLocs
 	gl.UniformFloat(locs.waterLevel, GetWaterLevel())
-	gl.UniformFloat(locs.gameFrames, Spring.GetGameFrame())
-	gl.UniformFloat(locs.sunDirY, select(2, gl.GetSun("pos")))
+	-- parens truncate multi-returns to one value: GetGameFrame returns a second
+	-- number and GetSun("pos") three — extra args turn this into glUniform2,
+	-- which is GL_INVALID_OPERATION on a float uniform (the set silently fails;
+	-- Mesa's debug output additionally spams the infolog every frame)
+	gl.UniformFloat(locs.gameFrames, (Spring.GetGameFrame()))
+	gl.UniformFloat(locs.sunDirY, (select(2, gl.GetSun("pos"))))
 	local lavaHdx, lavaHdz = GetLavaHeatDistort()
 	gl.UniformFloat(locs.heatDistortX, lavaHdx)
 	gl.UniformFloat(locs.heatDistortZ, lavaHdz)
