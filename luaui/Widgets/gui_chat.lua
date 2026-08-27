@@ -3566,7 +3566,7 @@ function widget:TextInput(char) -- if it isn't working: chobby probably hijacked
 end
 
 function widget:cycleInputMode(reverse)
-	local inputModeOrder = mySpec and {'', 's:'} or {'', 's:', 'a:'}
+	local inputModeOrder = mySpec and { "", "s:" } or { "", "s:", "a:" }
 	local modeIndex = table.getKeyOf(inputModeOrder, inputMode) or 1
 	local direction = reverse and -1 or 1
 
@@ -3938,7 +3938,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= "label" then -- TAB
 			inputSelectionStart = nil
-			if inputText == '' and not isRepeat then
+			if inputText == "" and not isRepeat then
 				self:cycleInputMode(shift)
 			elseif autocompleteText and autocompleteWords[1] then
 				inputText = utf8.sub(inputText, 1, inputTextPosition)
