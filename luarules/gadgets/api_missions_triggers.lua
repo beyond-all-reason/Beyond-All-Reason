@@ -508,9 +508,11 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featu
 	return true
 end
 
-local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy
-local RECLAIM_UNIT_IS_BAR_STYLE = Game.reclaimUnitMethod == 1 -- From SSkirmishAICallback.h: 0 = Revert to wireframe, gradual reclaim, 1 = Subtract HP, give full metal at end, default 1
-	and Game.reclaimUnitDrainHealth -- default true in engine
+local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy.
+local RECLAIM_UNIT_IS_BAR_STYLE = true
+	and Game.reclaimUnitMethod == 1 -- ModInfo.h: 0 = Revert to wireframe and gradual reclaim, 1 = Subtract HP and give full metal at end, default 1
+	and Game.reclaimUnitDrainHealth -- ModInfo.h: Does wireframe reclaim drain health? default true
+
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
 	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
 		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
