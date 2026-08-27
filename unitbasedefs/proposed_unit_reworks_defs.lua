@@ -23,7 +23,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "corthud" then
 		uDef.health = 1200
-		uDef.buildtime = 2400
+		uDef.buildtime = 2300
 		uDef.weapondefs.arm_ham.areaofeffect = 48
 		uDef.weapondefs.arm_ham.reloadtime = 1.8
 	end
