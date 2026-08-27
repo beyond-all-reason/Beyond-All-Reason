@@ -131,6 +131,40 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
+	-- FLIP: per-texture normal G toggle, straight through to the tileset shader
+	-- (asset-keyed there, so re-picking the same texture into another slot keeps
+	-- the flag). Base chip included — its texture is every empty slot's fallback.
+	local function hookNormalFlip(el, resolveAsset)
+		if not el then
+			return
+		end
+		el:AddEventListener("mousedown", function(event)
+			local T = WG.TilesetTerrain
+			local asset = (T and T.setNormalFlip) and resolveAsset() or nil
+			if asset then
+				local on = not T.getNormalFlip(asset)
+				T.setNormalFlip(asset, on)
+				el:SetClass("active", on)
+				ctx.playSound(on and "toggleOn" or "toggleOff")
+			end
+			event:StopPropagation()
+		end, false)
+	end
+	widgetState.surfSlotFlipEls = { base = doc:GetElementById("surf-slot-base-flip") }
+	hookNormalFlip(widgetState.surfSlotFlipEls.base, function()
+		local T = WG.TilesetTerrain
+		local list = T.getSurfaceVariants and T.getSurfaceVariants()
+		return list and list[1] and list[1].asset
+	end)
+	for slot = 1, MAX_SLOTS do
+		local el = doc:GetElementById("surf-slot-" .. slot .. "-flip")
+		widgetState.surfSlotFlipEls[slot] = el
+		hookNormalFlip(el, function()
+			local sp = WG.SurfacePainter
+			local st = sp and sp.getState and sp.getState()
+			return st and st["slot" .. slot]
+		end)
+	end
 	local closeBtn = doc:GetElementById("surf-picker-close")
 	if closeBtn then
 		closeBtn:AddEventListener("mousedown", function(event)
@@ -634,15 +668,31 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
 	-- channel is both assigned and switched on.
 	local canFill = false
+	local flipEls = widgetState.surfSlotFlipEls or {}
 	for i = 1, MAX_SLOTS do
 		local asset = surfState["slot" .. i]
 		local fill = surfState["fillV" .. i]
 		setDm("surfSlot" .. i .. "Name", shortAsset(asset))
 		setDm("surfSlot" .. i .. "Assigned", asset ~= nil)
 		setDm("surfFillV" .. i, fill and true or false)
+		if flipEls[i] then
+			local fl = false
+			if asset and T and T.getNormalFlip then
+				fl = T.getNormalFlip(asset)
+			end
+			flipEls[i]:SetClass("active", fl)
+		end
 		if asset and fill then
 			canFill = true
 		end
+	end
+	if flipEls.base then
+		local baseAsset = list and list[1] and list[1].asset
+		local fl = false
+		if baseAsset and T and T.getNormalFlip then
+			fl = T.getNormalFlip(baseAsset)
+		end
+		flipEls.base:SetClass("active", fl)
 	end
 	setDm("surfCanFill", canFill)
 	setDm("surfPickSlot", pickSlot or 0)
