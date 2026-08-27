@@ -54,6 +54,8 @@ jobs:
       - name: Run emmylua_check
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # The slice ci_results.yml allots one report. Keep the two in step.
+          REPORT_LIMIT: 6000
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             MODE=pr
@@ -138,13 +140,13 @@ jobs:
           # rather than letting the report order decide what a reviewer sees.
           if [ "$MODE" = "pr" ]; then
             jq -r '
-              def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
-              def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+              def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+              def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
               def pool($sev; $kind):
                 [ .[] | select(.severity == $sev) ]
                 | sort_by(.path, .line, .col)
                 | .[0:10][]
-                | "::\($kind) file=\(.path | prop),line=\(.line),col=\(.col),title=\(.code | prop)::\(.message | esc)";
+                | "::\($kind) file=\(prop(.path)),line=\(.line),col=\(.col),title=\(prop(.code))::\(esc(.message))";
               pool(1; "error"), pool(2; "warning")
             ' filtered.json
 
@@ -157,13 +159,13 @@ jobs:
           # is uncapped in here -- on a whole-tree run that is tens of thousands
           # of lines, which is readable folded and unreadable flat.
           jq -r '
-            def sevname: if . == 1 then "error" elif . == 2 then "warning"
-                         elif . == 3 then "info" else "hint" end;
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
             def plural($n): if $n == 1 then "" else "s" end;
             group_by(.code)
             | sort_by(.[0].severity, -length)
             | .[]
-            | ("::group::\(.[0].code) - \(length) \(.[0].severity | sevname)\(plural(length))"),
+            | ("::group::\(.[0].code) - \(length) \(sevname(.[0].severity))\(plural(length))"),
               (sort_by(.path, .line, .col)[] | "\(.path):\(.line):\(.col): \(.message)"),
               "::endgroup::"
           ' filtered.json
@@ -177,17 +179,25 @@ jobs:
           # Annotations cannot be bucketed the same way -- GitHub has only the
           # error, warning and notice pools -- but each bubble already carries
           # its code as the title, so the two views agree.
-          jq -r --arg mode "$MODE" --arg where "$WHERE" '
-            def cell: gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
-            def sevname: if . == 1 then "error" elif . == 2 then "warning"
-                         elif . == 3 then "info" else "hint" end;
+          # One program, rendered twice: in full for this job's own summary
+          # page, and compact for the CI Results comment, which is capped at
+          # 65536 characters and which a full report can exceed on its own.
+          SUMMARY_JQ='
+            def cell($s): $s | gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
+            # emmylua messages can carry a whole union type. The comment has a
+            # byte budget the summary page does not, so they are clipped there.
+            def msg($s): cell($s) as $t
+              | if $detail == "full" or ($t | length) <= 120 then $t
+                else $t[0:119] + "…" end;
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
             def plural($n): if $n == 1 then "" else "s" end;
 
             # Fifty rows per code is where a table stops being readable. The
             # log above is uncapped, so nothing is actually lost.
             def rows($f):
               ( $f | sort_by(.path, .line, .col) | .[0:50][]
-                | "| `\(.path):\(.line)` | \(.message | cell) |" ),
+                | "| `\(.path):\(.line)` | \(msg(.message)) |" ),
               ( if ($f | length) > 50
                 then "", "_Showing 50 of \($f | length); the workflow log lists every one._"
                 else empty end );
@@ -210,30 +220,51 @@ jobs:
 
               ( if ($all | length) > 0
                 then "", "| Code | Severity | Count |", "| --- | --- | --- |",
-                     ( $codes[] | "| `\(.code)` | \(.severity | sevname) | \(.n) |" )
+                     ( $codes[] | "| `\(.code)` | \(sevname(.severity)) | \(.n) |" )
                 else empty end ),
 
               # Errors are not collapsed and keep a Code column, since one run
               # can fail on several different ones at once.
-              ( if ($errors | length) > 0
+              ( (if $detail == "full" then 50 else 10 end) as $cap
+                | if ($errors | length) > 0
                 then "", "#### Errors", "",
                      "| Location | Code | Message |", "| --- | --- | --- |",
-                     ( $errors | sort_by(.path, .line, .col) | .[0:50][]
-                       | "| `\(.path):\(.line)` | `\(.code)` | \(.message | cell) |" ),
-                     ( if ($errors | length) > 50
-                       then "", "_Showing 50 of \($errors | length); the workflow log lists every one._"
+                     ( $errors | sort_by(.path, .line, .col) | .[0:$cap][]
+                       | "| `\(.path):\(.line)` | `\(.code)` | \(msg(.message)) |" ),
+                     ( if ($errors | length) > $cap
+                       then "", "_Showing \($cap) of \($errors | length); the workflow log lists every one._"
                        else empty end )
                 else empty end ),
 
-              ( [ $codes[] | select(.severity != 1) ][]
+              # The comment gets the headline, the counts and the errors.
+              # The per-code detail would swamp it many times over, so it stays
+              # on the summary page of the job that produced it.
+              ( if $detail != "full" then empty else
+                [ $codes[] | select(.severity != 1) ][]
                 | . as $c
                 | [ $all[] | select(.code == $c.code) ] as $f
                 | "",
-                  "<details><summary><code>\($c.code)</code> - \($c.n) \($c.severity | sevname)\(plural($c.n))</summary>",
+                  "<details><summary><code>\($c.code)</code> - \($c.n) \(sevname($c.severity))\(plural($c.n))</summary>",
                   "", "| Location | Message |", "| --- | --- |",
                   rows($f),
-                  "", "</details>" )
-          ' filtered.json >> "$GITHUB_STEP_SUMMARY"
+                  "", "</details>" end )
+          '
+
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail full \
+            "$SUMMARY_JQ" filtered.json >> "$GITHUB_STEP_SUMMARY"
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail compact \
+            "$SUMMARY_JQ" filtered.json > ci-report.md
+
+          # The compact report is bounded by construction: at most one row per
+          # diagnostic code plus twenty errors. If it is over its slice of the
+          # CI Results comment anyway, the rendering has regressed and the
+          # comment would be cut mid-table, so say so rather than ship it.
+          report_bytes=$(wc -c < ci-report.md)
+          if [ "$report_bytes" -gt "$REPORT_LIMIT" ]; then
+            echo "::error title=Type check report is oversized::The compact report is $report_bytes bytes, past the $REPORT_LIMIT the CI Results comment allots it, so it would be truncated mid-table. This is a CI defect, not a problem with this PR; fix the compact rendering in type_check.yml."
+            exit 1
+          fi
+          echo "Compact report: $report_bytes bytes (limit $REPORT_LIMIT)."
 
           # Errors fail a pull request. A manual run is an analytics view, so it
           # reports and stays green -- a red X on a report nobody asked to gate
@@ -241,3 +272,13 @@ jobs:
           if [ "$MODE" = "pr" ] && [ "$errors" -ne 0 ]; then
             exit 1
           fi
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

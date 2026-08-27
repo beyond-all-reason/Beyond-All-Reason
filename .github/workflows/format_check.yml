@@ -130,8 +130,8 @@ jobs:
           # GH keeps up to 10 annotation bubbles and discards the rest (kept in logs)
           # so these are sorted by the worst offenders, determined by total diff size.
           jq -s -r --arg ver "$ver" '
-            def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
-            def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
+            def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+            def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
             map(
               . as $f
               | ([ .mismatches[]?.original_start_line ] | min) as $first
@@ -144,7 +144,7 @@ jobs:
             )
             | sort_by(-.lines)
             | .[0:10][]
-            | "::error file=\(.file | prop),line=\(.line),title=Not formatted::\(.lines) line(s) would change. Run \($ver) on this file and commit the result."
+            | "::error file=\(prop(.file)),line=\(.line),title=Not formatted::\(.lines) line(s) would change. Run \($ver) on this file and commit the result."
           ' mismatches.json
 
           # GH annotation cap of 10 is per-category, so folder rollups use warnings.
@@ -185,6 +185,16 @@ jobs:
               echo
               sed 's/^/- /' errlines.txt
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee ci-report.md >> "$GITHUB_STEP_SUMMARY"
 
           exit 1
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore
