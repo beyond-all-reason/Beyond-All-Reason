@@ -36,6 +36,12 @@ local function setAreaMexType(uDefID)
 end
 
 function widget:Initialize()
+	if not WG.resource_spot_builder or not WG.resource_spot_finder then
+		Spring.Echo("Area Mex: the mex/geo resource spot API is missing, disabling")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	metalSpots = WG.resource_spot_finder.metalSpotsList
 	metalMap = WG.resource_spot_finder.isMetalMap
 	mexBuildings = WG.resource_spot_builder.GetMexBuildings()
