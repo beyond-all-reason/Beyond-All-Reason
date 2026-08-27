@@ -383,8 +383,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		end
 		if needsBuildOwnerMap and builderID then
 			local builderDefID = Spring.GetUnitDefID(builderID)
-			buildFrameOwners[unitID] =
-				{ id = builderID, defID = builderDefID, isFactory = UnitDefs[builderDefID].isFactory }
+			buildFrameOwners[unitID] = {
+				id = builderID,
+				defID = builderDefID,
+				isFactory = UnitDefs[builderDefID].isFactory,
+			}
 		end
 	end
 end
