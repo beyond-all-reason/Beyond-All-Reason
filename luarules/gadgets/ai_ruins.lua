@@ -57,26 +57,21 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
 local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
--- All ruins spawn during loading (GamePreload), like scenario unit loadouts: the whole
--- cost is absorbed into the loading screen and ruins are never seen appearing.
 -- spawnAmountBudget scales ruin amounts with map area.
 local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
 local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
 
--- Ruins overlapping a start position are erased right after commanders are placed: the
--- cleared area is just commander size plus a small margin, so ruins stand right outside.
-local startClearMargin = 8
-local maxCommanderRadius = 0
-local maxUnitRadius = 0
-for _, unitDef in pairs(UnitDefs) do
-	if unitDef.radius > maxUnitRadius then
-		maxUnitRadius = unitDef.radius
-	end
-	if unitDef.customParams.iscommander and unitDef.radius > maxCommanderRadius then
-		maxCommanderRadius = unitDef.radius
+local unitHalfFootprint = {}
+local maxUnitHalfFootprint = 0
+for unitDefID, unitDef in pairs(UnitDefs) do
+	-- xsize/zsize are footprint sizes in map squares
+	local halfFootprint = math.max(unitDef.xsize, unitDef.zsize) * Game.squareSize / 2
+	unitHalfFootprint[unitDefID] = halfFootprint
+
+	if halfFootprint > maxUnitHalfFootprint then
+		maxUnitHalfFootprint = halfFootprint
 	end
 end
-local startClearRadius = maxCommanderRadius + startClearMargin
 
 -- TODO: Add weights to this crap.
 local landMexesList = {
@@ -725,7 +720,6 @@ function gadget:GamePreload()
 		return -- savegames and mid-game reloads already have their ruins
 	end
 
-	-- geos first, mexes halfway through the blueprint ruins, defence batches last:
 	-- spawn order affects placement success rates near resource spots
 	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
 	if geoSpots and #geoSpots >= 1 then
@@ -750,20 +744,26 @@ function gadget:GamePreload()
 	SpawnRandomStructures()
 end
 
-function gadget:GameFrame(n)
-	if n == 1 then
-		-- commanders were placed in GameStart; erase the ruins they physically overlap,
-		-- counting each unit's own radius so large buildings poking into the area go too
+function gadget:GameFramePost(n)
+	if n == 0 then
+		-- commanders were placed in GameStart: clear each one's build range, the ring shown during start placement
 		for _, teamID in ipairs(Spring.GetTeamList()) do
 			if teamID ~= GaiaTeamID then
-				local x, _, z = Spring.GetTeamStartPosition(teamID)
-				if x > 0 then
-					local nearbyRuins = Spring.GetUnitsInCylinder(x, z, startClearRadius + maxUnitRadius, GaiaTeamID)
-					for i = 1, #nearbyRuins do
-						local unitID = nearbyRuins[i]
-						local ux, _, uz = Spring.GetUnitPosition(unitID)
-						if math.distance2d(ux, uz, x, z) - Spring.GetUnitRadius(unitID) < startClearRadius then
-							Spring.DestroyUnit(unitID, false, true)
+				local teamUnits = Spring.GetTeamUnits(teamID)
+				for i = 1, #teamUnits do
+					local commanderID = teamUnits[i]
+					local commanderDef = UnitDefs[Spring.GetUnitDefID(commanderID)]
+					if commanderDef.customParams.iscommander then
+						local clearRadius = commanderDef.buildDistance
+						local x, _, z = Spring.GetUnitPosition(commanderID)
+						local nearbyRuins =
+							Spring.GetUnitsInCylinder(x, z, clearRadius + maxUnitHalfFootprint, GaiaTeamID)
+						for j = 1, #nearbyRuins do
+							local unitID = nearbyRuins[j]
+							local ux, _, uz = Spring.GetUnitPosition(unitID)
+							if math.distance2d(ux, uz, x, z) < clearRadius + unitHalfFootprint[Spring.GetUnitDefID(unitID)] then
+								Spring.DestroyUnit(unitID, false, true)
+							end
 						end
 					end
 				end
