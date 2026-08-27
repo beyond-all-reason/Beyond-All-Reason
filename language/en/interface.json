@@ -1796,6 +1796,8 @@
 				"smartselect_includebuilders_descr": "When rectangle-drag-selecting an area, exclude builder units (hold Shift to override)",
 				"smartselect_includeresurrectors": "include resurrectors (if above is off)",
 				"smartselect_includeresurrectors_descr": "When rectangle-drag-selecting an area, exclude resurrection units (hold Shift to override)",
+				"smartselect_includescouts": "include scouts (if above is off)",
+				"smartselect_includescouts_descr": "When rectangle-drag-selecting an area, exclude scout units (hold Shift to override)",
 				"smartselect_includeantinuke": "include antinuke units (if above is off)",
 				"smartselect_includeantinuke_descr": "When rectangle-drag-selecting an area, exclude antinuke units (hold Shift to override)",
 				"smartselect_includeradar": "include radar units (if above is off)",
