@@ -7,25 +7,29 @@ local DAMAGETYPE_KILLED_BY_LUA = Game.envDamageTypes.KilledByLua
 -- The `ReclaimUnits` action cannot take that path: `Spring.DestroyUnit` hardcodes `KilledByLua`.
 
 ---Pending an engine action for destroying a unit with a specific weaponDefID + matching behaviors.
-local function isReclaim(weaponDefID, fromMission)
+local function isReclaim(weaponDefID, ignoreMissionActions)
 	return weaponDefID == DAMAGETYPE_RECLAIMED
-		or (fromMission and weaponDefID == DAMAGETYPE_KILLED_BY_LUA and GG['MissionAPI'].reclaimingUnits)
+		or (
+			ignoreMissionActions == false
+			and weaponDefID == DAMAGETYPE_KILLED_BY_LUA
+			and GG["MissionAPI"].reclaimingUnits
+		)
 end
 
 return {
 	type = 'UnitReclaimed',
 	parameters = {
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
-		{ name = 'fromMission', required = false, type = ParameterTypes.Boolean },
+		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',               required = false, type = ParameterTypes.TeamID },
+		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam,
 		                         attackerID, attackerDefID, attackerTeam, weaponDefID)
 			local parameters = trigger.parameters
-			if not isReclaim(weaponDefID, parameters.fromMission) then
+			if not isReclaim(weaponDefID, parameters.ignoreMissionActions) then
 				return
 			end
 

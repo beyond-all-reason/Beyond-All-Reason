@@ -236,7 +236,7 @@ local triggers = {
 		type = triggerTypes.UnitReclaimed,
 		parameters = {
 			unitName = 'doomedSolar',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageUnitReclaimedByMission' },
 	},

@@ -51,7 +51,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
 		assert.is_true(names.teamID)
-		assert.is_true(names.fromMission)
+		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ "unitName", "unitDefName" }, unitReclaimed.parameters.requiresOneOf)
 	end)
 
@@ -88,10 +88,10 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("fires on a mission reclaim when fromMission is true", function()
+	it("fires on a mission reclaim when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		destroyed(
-			trigger({ unitDefName = "armrad", fromMission = true }),
+			trigger({ unitDefName = "armrad", ignoreMissionActions = false }),
 			context,
 			1,
 			0,
@@ -118,7 +118,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 	it("does not fire for an unfenced Lua kill, such as DespawnUnits", function()
 		local context, fired = newContext()
 		destroyed(
-			trigger({ unitDefName = "armrad", fromMission = true }),
+			trigger({ unitDefName = "armrad", ignoreMissionActions = false }),
 			context,
 			1,
 			0,
