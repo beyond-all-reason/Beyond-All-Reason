@@ -38,6 +38,10 @@ local function setup(addResources)
 	local startEnergyStorage = Spring.GetModOptions().startenergystorage
 	local startMetal = Spring.GetModOptions().startmetal
 	local startEnergy = Spring.GetModOptions().startenergy
+	if Spring.GetModOptions().proposed_unit_reworks == true then
+	    startMetal = startMetal - 100
+    	startEnergy = startEnergy - 100
+	end
 	local bonusMultiplierEnabled = Spring.GetModOptions().bonusstartresourcemultiplier
 
 	local commanderMinMetal, commanderMinEnergy = 0, 0
