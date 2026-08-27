@@ -244,6 +244,10 @@ local objectDefToUniformBin = {} -- maps unitDefID/featuredefID to a uniform bin
 -- objectDefs are negative for features
 -- objectIDs are negative for features too
 
+---Maps an object definition to the uniform bin its draw call belongs to.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@param reason string? Label used in debug output when no bin is found.
+---@return string uniformBinID Falls back to `'otherunit'` for unmapped definitions.
 local function GetUniformBinID(objectDefID, reason)
 	if objectDefID and objectDefToUniformBin[objectDefID] then
 		return objectDefToUniformBin[objectDefID]
@@ -478,7 +482,9 @@ local unitDrawBins = nil -- this also controls whether cusgl4 is on at all!
 
 local objectIDtoDefID = {}
 
-local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
+---Compiled shaders, keyed by draw flag and then by material name.
+---@type table<integer, table<string, LuaShader>>
+local shaders = {}
 
 local modelsVertexVBO = nil
 local modelsIndexVBO = nil
@@ -550,6 +556,10 @@ end
 local featuresDefsWithAlpha = {}
 local unitDefsUseSkinning = {}
 
+---Returns the compiled shader used to draw an object in a given draw pass.
+---@param drawPass integer Draw flag of the current pass.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@return LuaShader|false shader `false` when `objectDefID` is `nil`.
 local function GetShader(drawPass, objectDefID)
 	if objectDefID == nil then
 		return false
@@ -569,6 +579,10 @@ local function GetShader(drawPass, objectDefID)
 	end
 end
 
+---Returns the name of the shader used to draw an object in a given draw pass.
+---@param drawPass integer Draw flag of the current pass.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@return "unit"|"unitskinning"|"tree"|"feature"|false shaderName `false` when `objectDefID` is `nil`.
 local function GetShaderName(drawPass, objectDefID)
 	-- this function does 2 table lookups, could get away with just one.
 	if objectDefID == nil then
@@ -603,6 +617,10 @@ local function SetFixedStatePost(drawPass, shaderID)
 	end
 end
 
+---Uploads the draw pass, clip plane, and uniform bin values to the active shader.
+---@param drawPass integer Draw flag of the current pass.
+---@param shaderID integer GL program id of the currently bound shader.
+---@param uniformBinID string Key into `uniformBins`, as returned by `GetUniformBinID`.
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	-- Cache uniform locations per-shader to avoid repeated gl.GetUniformLocation calls every frame
 	local locCache = uniformLocCache[shaderID]
