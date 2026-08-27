@@ -59,33 +59,29 @@ local function processTriggersOfType(triggerType, func)
 end
 
 local function isTriggerValid(trigger)
-	if not trigger.settings.active then
+	local settings = trigger.settings
+
+	if not settings.active then
 		return false
 	end
 
-	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
+	for _, prerequisiteTriggerID in pairs(settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID].triggered then
 			return false
 		end
 	end
 
-	if
-		next(trigger.settings.stages) and not table.contains(trigger.settings.stages, GG["MissionAPI"].CurrentStageID)
-	then
+	if next(settings.stages) and not table.contains(settings.stages, GG["MissionAPI"].CurrentStageID) then
 		return false
 	end
 
-	if trigger.triggered and not trigger.settings.repeating then
+	if trigger.triggered and not settings.repeating then
 		return false
 	end
-	if
-		trigger.settings.repeating
-		and trigger.settings.maxRepeats ~= nil
-		and trigger.repeatCount > trigger.settings.maxRepeats
-	then
+	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
 		return false
 	end
-	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG["MissionAPI"].Difficulty] then
+	if settings.difficulties ~= nil and not settings.difficulties[GG["MissionAPI"].Difficulty] then
 		return false
 	end
 
@@ -511,7 +507,6 @@ end
 
 local RECLAIM_UNIT_EFFICIENCY = Game.reclaimUnitEfficiency -- Engine default is 1.0 metal and 0.0 energy
 local RECLAIM_UNIT_IS_BAR_STYLE = Game.reclaimUnitMethod == 1 -- From SSkirmishAICallback.h: 0 = Revert to wireframe, gradual reclaim, 1 = Subtract HP, give full metal at end, default 1
-
 	and Game.reclaimUnitDrainHealth -- default true in engine
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, buildStep)
 	if buildStep < 0 and RECLAIM_UNIT_IS_BAR_STYLE then
