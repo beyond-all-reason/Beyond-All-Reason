@@ -203,6 +203,10 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
+	if not cmdRadius or cmdRadius <= 0 then
+		return true
+	end
+
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
 	if WG.skip_allied_upgrade then
 		spots = WG.skip_allied_upgrade.filterOutAlliedSpots(spots, mexBuildings)
