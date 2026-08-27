@@ -23,12 +23,14 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
-local seismicContacts
-local SEISMIC_INTERVAL_FRAMES
-local detectionLevels
+
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
+
+local SEISMIC_INTERVAL_FRAMES
+local seismicContacts
+local detectionLevels
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
@@ -375,8 +377,28 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
+
+	buildFrameOwners[unitID] = nil
+	constructionStarts[unitID] = nil
+	underConstruction[unitID] = nil
+
+	-- Don't count units spawned by SpawnUnits action
+	if GG['MissionAPI'].spawningUnit then return end
+	-- Don't count starting commanders, initial loadout, wildlife, etc.
+	if Spring.GetGameFrame() <= 0 then return end
+
+	local unitDefName = UnitDefs[unitDefID].name
+	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
+end
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 	dispatchTriggerCallin('UnitCommand', unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+end
+
+function gadget:UnitIdlePost(unitID, idled)
+	dispatchTriggerCallin('UnitIdlePost', unitID, idled)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
@@ -408,9 +430,6 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
--- Sensor callins are relatively hot and require complicated routing.
--- They are replaced with one mark-and-sweep and an update per frame.
-
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
@@ -430,22 +449,6 @@ end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
-
-	buildFrameOwners[unitID] = nil
-	constructionStarts[unitID] = nil
-	underConstruction[unitID] = nil
-
-	-- Don't count units spawned by SpawnUnits action
-	if GG['MissionAPI'].spawningUnit then return end
-	-- Don't count starting commanders, initial loadout, wildlife, etc.
-	if Spring.GetGameFrame() <= 0 then return end
-
-	local unitDefName = UnitDefs[unitDefID].name
-	statistics.Increment(triggerTypes.TotalUnitsBuilt, unitTeam, unitDefName)
 end
 
 function gadget:TeamDied(teamID)
