@@ -34,7 +34,7 @@ end
 -- Cubes are laid out as an NxN block centered inside every radar cell (cell size = 8 << radarMipLevel elmo);
 -- N by radarMipLevel, so the look stays consistent when the game's radar resolution changes.
 local CUBES_PER_CELL = { [1] = 1, [2] = 1, [3] = 2, [4] = 3 }
-local CUBE_FILL = 0.22 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
+local CUBE_FILL = 0.18 -- cube width as a fraction of the cube spacing (spacing = radar cell size / N)
 local CUBE_SINK = 2 -- elmos the cube base is pushed below ground, so cubes never float on slopes
 local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime with WG.radarPreview.setShape(name)
 local CUBE_SHAPES = {
@@ -89,8 +89,8 @@ local shaderConfig = {
 	TILE_CLIFF_END = 55.0, -- degrees: terrain steeper than this gets flat tiles (cliffs)
 	BASE_COLOR = "vec3(0.22, 0.85, 0.50)",
 	HIGHLIGHT_COLOR = "vec3(0.65, 1.00, 0.80)",
-	BASE_ALPHA = 0.55,
-	LINE_ALPHA = 0.55, -- opacity of the cube edge lines
+	BASE_ALPHA = 0.5,
+	LINE_ALPHA = 0.5, -- opacity of the cube edge lines
 }
 
 -- Engine radar model (rts/Sim/Misc/LosHandler.cpp, LosMap.cpp)

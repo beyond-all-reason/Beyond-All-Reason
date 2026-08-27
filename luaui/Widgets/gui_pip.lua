@@ -2405,8 +2405,11 @@ do
 		voidWater = voidWater,
 	}
 	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
+	-- Void takes precedence over the waterislava modoption (matches modules/lava.lua,
+	-- which never enables lava on voidwater maps): void must stay void, not become lava.
 	local waterIsLava = Spring.GetModOptions().map_waterislava
-	mapInfo.isLava = BAR.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+	mapInfo.isLava = BAR.Lava.isLavaMap
+		or (not voidWater and waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil -- current water/lava level (nil = static sea level = 0)
