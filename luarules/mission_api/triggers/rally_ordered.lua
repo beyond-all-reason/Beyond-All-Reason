@@ -27,11 +27,11 @@ end
 return {
 	type = 'RallyOrdered',
 	parameters = {
-		{ name = 'command',     required = true,  type = ParameterTypes.Command },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'command',              required = true,  type = ParameterTypes.Command },
+		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
-		{ name = 'fromMission', required = false, type = ParameterTypes.Boolean },
+		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -54,7 +54,7 @@ return {
 			if not orderedCommandID or orderedCommandID < 0 or factoryExecutes(unitID, orderedCommandID) then
 				return
 			end
-			if trigger.parameters.fromMission ~= true and GG['MissionAPI'].issuingOrders then
+			if trigger.parameters.ignoreMissionActions ~= false and GG['MissionAPI'].issuingOrders then
 				return
 			end
 

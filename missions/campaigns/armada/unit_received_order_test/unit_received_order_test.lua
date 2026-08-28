@@ -11,7 +11,7 @@ local triggers = {
 		actions = { 'spawnActors', 'messageIntro' },
 	},
 
-	-- Without fromMission, orders issued by the mission itself are not visible.
+	-- Orders issued by the mission itself are not visible, by default.
 	botsOrdered = {
 		type = triggerTypes.UnitOrdered,
 		settings = {
@@ -25,7 +25,7 @@ local triggers = {
 		actions = { 'messageBotsOrdered' },
 	},
 
-	-- Sometimes, though, we don't care who gave the order. See fromMission below.
+	-- Sometimes, though, we don't care who gave the order. See ignoreMissionActions below.
 	botsMoved = {
 		type = triggerTypes.UnitOrdered,
 		settings = {
@@ -35,7 +35,7 @@ local triggers = {
 		parameters = {
 			command = CMD.MOVE,
 			unitName = 'bots',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageBotsMoved' },
 	},
@@ -57,7 +57,7 @@ local triggers = {
 		parameters = {
 			command = CMD.BUILD,
 			unitName = 'cons',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageConBuildOrdered' },
 	},
@@ -71,7 +71,7 @@ local triggers = {
 		parameters = {
 			command = 'armsolar',
 			unitName = 'cons',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageConSolarOrdered' },
 	},
@@ -93,7 +93,7 @@ local triggers = {
 		parameters = {
 			command = CMD.MOVE,
 			unitName = 'lab',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabRallied' },
 	},
@@ -107,7 +107,7 @@ local triggers = {
 		parameters = {
 			command = CMD.ANY,
 			unitName = 'lab',
-			fromMission = true,
+			ignoreMissionActions = false,
 		},
 		actions = { 'messageLabExecuted' },
 	},

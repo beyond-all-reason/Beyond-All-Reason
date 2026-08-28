@@ -16,7 +16,9 @@ local function reclaimUnits(unitName, reclaimerTeamName)
             Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost)
             -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
             -- Spring.AddTeamResource(reclaimerTeam, "energy", unitDef.energyCost)
+            GG['MissionAPI'].reclaimingUnits = true
             Spring.DestroyUnit(unitID, false, true)
+            GG['MissionAPI'].reclaimingUnits = nil
         end
 	end
 end
