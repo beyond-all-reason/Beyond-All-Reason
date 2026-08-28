@@ -154,27 +154,19 @@ describe("mission_api.validation.references", function()
 	end)
 
 	it("warns about names that are only created, or only referenced", function()
-		local result = V.validate(
-			V.mission()
-				:WithAction("spawnUnused", spawnUnits("unusedUnit"))
-				:WithAction(
-					"useUnknown",
-					{ type = V.actionTypes.DespawnUnits, parameters = { unitName = "unknownUnit" } }
-				)
-				:WithAction("createUnused", createFeatures("unusedRock"))
-				:WithAction(
-					"deleteUnknown",
-					{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } }
-				)
-				:WithAction(
-					"addUnused",
-					{
-						type = V.actionTypes.AddMarker,
-						parameters = { position = { x = 0, z = 0 }, name = "unusedFlag" },
-					}
-				)
-				:WithAction("eraseUnknown", { type = V.actionTypes.EraseMarker, parameters = { name = "unknownFlag" } })
-		)
+		local result = V.validate(V.mission()
+			:WithAction("spawnUnused", spawnUnits("unusedUnit"))
+			:WithAction("useUnknown", { type = V.actionTypes.DespawnUnits, parameters = { unitName = "unknownUnit" } })
+			:WithAction("createUnused", createFeatures("unusedRock"))
+			:WithAction(
+				"deleteUnknown",
+				{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } }
+			)
+			:WithAction("addUnused", {
+				type = V.actionTypes.AddMarker,
+				parameters = { position = { x = 0, z = 0 }, name = "unusedFlag" },
+			})
+			:WithAction("eraseUnknown", { type = V.actionTypes.EraseMarker, parameters = { name = "unknownFlag" } }))
 
 		V.assertMessage(
 			result,
