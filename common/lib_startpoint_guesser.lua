@@ -46,27 +46,63 @@ local function IsInStartbox(allyID, x, z, xmin, zmin, xmax, zmax)
 	return (xmin < x) and (x < xmax) and (zmin < z) and (z < zmax)
 end
 
-local function MiddleOfStartbox(allyID, xmin, zmin, xmax, zmax)
-	local midX, midZ = (xmin + xmax) / 2, (zmin + zmax) / 2
-	local entry = GetStartboxEntry(allyID)
-	if not entry or PolygonLib.PointInStartbox(midX, midZ, entry) then
-		return midX, midZ
+local samplesByAllyID = {}
+
+-- A grid of points that are actually in the box, so the callers below can ask for a nearest
+-- point or a middle without falling back on the bounding box, which for a box shaped like a
+-- ring or a wedge is largely outside it.
+local function StartboxSamples(allyID, xmin, zmin, xmax, zmax)
+	local cached = samplesByAllyID[allyID]
+	if cached ~= nil then
+		return cached
 	end
 
-	local steps = 16
-	local bestX, bestZ, bestDist = midX, midZ, math.huge
+	local entry = GetStartboxEntry(allyID)
+	if not entry then
+		samplesByAllyID[allyID] = false
+		return false
+	end
+
+	local samples = {}
+	local steps = 32
 	for i = 0, steps do
 		for j = 0, steps do
 			local x = xmin + (xmax - xmin) * i / steps
 			local z = zmin + (zmax - zmin) * j / steps
-			local dist = (x - midX) * (x - midX) + (z - midZ) * (z - midZ)
-			if dist < bestDist and PolygonLib.PointInStartbox(x, z, entry) then
-				bestX, bestZ, bestDist = x, z, dist
+			if PolygonLib.PointInStartbox(x, z, entry) then
+				samples[#samples + 1] = { x, z }
 			end
 		end
 	end
 
+	samplesByAllyID[allyID] = samples
+	return samples
+end
+
+local function NearestInStartbox(allyID, x, z, xmin, zmin, xmax, zmax)
+	local samples = StartboxSamples(allyID, xmin, zmin, xmax, zmax)
+	if not samples or #samples == 0 then
+		return mathClamp(x, xmin, xmax), mathClamp(z, zmin, zmax)
+	end
+
+	if IsInStartbox(allyID, x, z, xmin, zmin, xmax, zmax) then
+		return x, z
+	end
+
+	local bestX, bestZ, bestDist = samples[1][1], samples[1][2], math.huge
+	for i = 1, #samples do
+		local sx, sz = samples[i][1], samples[i][2]
+		local dist = (sx - x) * (sx - x) + (sz - z) * (sz - z)
+		if dist < bestDist then
+			bestX, bestZ, bestDist = sx, sz, dist
+		end
+	end
+
 	return bestX, bestZ
+end
+
+function MiddleOfStartbox(allyID, xmin, zmin, xmax, zmax)
+	return NearestInStartbox(allyID, (xmin + xmax) / 2, (zmin + zmax) / 2, xmin, zmin, xmax, zmax)
 end
 
 local mtta = mathAcos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
@@ -120,10 +156,9 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local mx, mz = spot.x, spot.z
 		local my = spGetGroundHeight(mx, mz)
 		local isWithinStartBox = IsInStartbox(allyID, mx, mz, xmin, zmin, xmax, zmax)
-		local isWithinWalkRadius = (mx >= xmin - walkRadius)
-			and (mx <= xmax + walkRadius)
-			and (mz >= zmin - walkRadius)
-			and (mz <= zmax + walkRadius)
+		local nearX, nearZ = NearestInStartbox(allyID, mx, mz, xmin, zmin, xmax, zmax)
+		local isWithinWalkRadius = ((mx - nearX) * (mx - nearX) + (mz - nearZ) * (mz - nearZ))
+			<= walkRadius * walkRadius
 
 		local isFree = true
 		for _, startpoint in pairs(startPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
@@ -158,8 +193,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local bestDist = 2 * walkRadius
 		for i = 1, #walkableMetalSpots do
 			local mx, mz = walkableMetalSpots[i][1], walkableMetalSpots[i][2]
-			local nx = mathClamp(mx, xmin, xmax)
-			local nz = mathClamp(mz, zmin, zmax)
+			local nx, nz = NearestInStartbox(allyID, mx, mz, xmin, zmin, xmax, zmax)
 			local dist = mathSqrt((mx - nx) ^ 2 + (mz - nz) ^ 2)
 
 			if not IsSteep(nx, nz) and dist < bestDist then
