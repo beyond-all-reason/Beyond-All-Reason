@@ -1,8 +1,9 @@
 local TRIGGERS_DIR = "luarules/mission_api/triggers/"
 local TRIGGER_FILES_PATTERN = "*.lua"
 
--- Statistics triggers (TotalUnits*, UnitsOwned) declare no callins; their
--- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
+-- Some triggers declare no callins. They are managed via centralized monitors:
+-- - statistics triggers (TotalUnits*, UnitsOwned) use statistics.lua
+-- - objective observers (Objective[Completed|Failed]) use objectives.lua
 local function loadTriggerDefinitions()
 	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 

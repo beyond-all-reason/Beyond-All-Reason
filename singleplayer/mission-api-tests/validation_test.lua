@@ -58,9 +58,13 @@ local objectives = {
 		},
 	},
 
-	objectiveWithInvalidNextStage = {
-		textKey = "invalid_next_stage",
-		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
+	objectiveWithZeroAmountEventTrigger = {
+		textKey = "zero_amount_event_trigger",
+		amount = 0,  -- error: amount of 0 requires a statistics trigger type
+		trigger = {
+			type = triggerTypes.TimeElapsed, -- not a statistics trigger type
+			parameters = { seconds = 100000000 },
+		},
 	},
 
 	objectiveWithTriggerHavingActions = {

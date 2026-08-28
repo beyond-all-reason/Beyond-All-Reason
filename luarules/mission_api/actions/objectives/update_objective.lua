@@ -9,25 +9,23 @@ local function updateObjective(objectiveID, completed, textKey)
 		objective.textKey = textKey
 	end
 
+	local objectives = GG["MissionAPI"].Modules.Objectives
 	if completed ~= nil then
-		objective.completed = completed
+		objectives.SetObjectiveCompleted(objectiveID, completed)
 	elseif textKey == nil then
-		objective.progress = (objective.progress or 0) + 1
-		objective.completed = objective.amount == nil or objective.progress >= objective.amount
+		objectives.IncrementObjectiveProgress(objectiveID)
+	else
+		objectives.EchoObjectiveUpdate(objectiveID, objective)
 	end
-
-	local objectives = GG['MissionAPI'].Modules.Objectives
-	objectives.TryAdvanceStage(objective)
-	objectives.EchoObjectiveUpdate(objectiveID, objective)
 end
 
 return {
 	{
 		type = 'UpdateObjective',
 		parameters = {
-			{ name = 'objectiveID', required = true, type = ParameterTypes.ObjectiveID },
-			{ name = 'completed', required = false, type = ParameterTypes.Boolean },
-			{ name = 'textKey', required = false, type = ParameterTypes.String },
+			{ name = 'objectiveID', required = true,  type = ParameterTypes.ObjectiveID },
+			{ name = 'completed',   required = false, type = ParameterTypes.Boolean },
+			{ name = 'textKey',     required = false, type = ParameterTypes.String },
 		},
 		actionFunction = updateObjective,
 	}

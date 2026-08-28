@@ -116,6 +116,19 @@ describe("mission_api.validation", function()
 			assert.are.same({}, logged)
 		end)
 
+		it("logs an error for an observer trigger naming an unknown objectiveID", function()
+			GG["MissionAPI"].Objectives = { known = { textKey = "ok" } }
+			validation.ValidateTriggers({
+				observer = normalizeTrigger({
+					type = triggerTypes.ObjectiveCompleted,
+					parameters = { objectiveID = "missing" },
+					actions = { "ok" },
+				}),
+			}, rawActions)
+
+			assert.is_true(hasError("Invalid objectiveID: missing. Trigger: observer, Parameter: objectiveID"))
+		end)
+
 		it(
 			"logs errors for missing type, invalid type, missing required parameter, invalid action ID, and invalid prerequisite",
 			function()
@@ -331,6 +344,34 @@ describe("mission_api.validation", function()
 					"Objective trigger missing required parameter. Objective trigger: missingParam, Parameter: seconds"
 				)
 			)
+		end)
+
+		it("logs an error for amount = 0 on a non-statistics trigger type", function()
+			validation.ValidateObjectives({
+				zeroEvent = {
+					textKey = "ok",
+					amount = 0,
+					trigger = {
+						type = triggerTypes.TimeElapsed,
+						parameters = { seconds = 1 },
+					},
+				},
+			})
+			assert.is_true(hasError("Objective amount of 0 requires a statistics trigger type. Objective: zeroEvent"))
+		end)
+
+		it("passes for amount = 0 on a statistics trigger type", function()
+			validation.ValidateObjectives({
+				zeroOwned = {
+					textKey = "ok",
+					amount = 0,
+					trigger = {
+						type = triggerTypes.UnitsOwned,
+						parameters = { teamID = 0, unitDefName = "armwar" },
+					},
+				},
+			})
+			assert.are.same({}, logged)
 		end)
 	end)
 
@@ -1223,26 +1264,33 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Stage refers to non-existent objective. Stage: badStage, Objective: nonExistent"))
 		end)
 
-		it("logs an error when nextStage references a non-existent stage", function()
+		it("warns when a stage is neither the initial stage nor targeted by a ChangeStage action", function()
 			GG["MissionAPI"].Objectives = {
-				badNext = { nextStage = "nonExistentStage" },
+				obj1 = { textKey = "ok" },
 			}
-			GG["MissionAPI"].Stages = { validStage = { objectives = { "badNext" } } }
-			validation.ValidateReferences()
-			assert.is_true(
-				hasError("Objective references non-existent nextStage. Objective: badNext, Stage: nonExistentStage")
-			)
-		end)
-
-		it("logs a nextStage type error for non-string nextStage", function()
-			GG["MissionAPI"].Objectives = {
-				badNextType = { nextStage = 123 },
+			GG["MissionAPI"].Stages = {
+				startStage = { objectives = { "obj1" } },
+				reachedStage = { objectives = { "obj1" } },
+				orphanedStage = { objectives = { "obj1" } },
 			}
-			GG["MissionAPI"].Stages = { validStage = { objectives = { "badNextType" } } }
+			GG["MissionAPI"].CurrentStageID = "startStage"
+			GG["MissionAPI"].Actions = {
+				advance = { type = actionTypes.ChangeStage, parameters = { stageID = "reachedStage" } },
+			}
 			validation.ValidateReferences()
 			assert.is_true(
 				hasError(
-					"Unexpected parameter type, expected string, got number. Objective: badNextType, Field: nextStage"
+					"Stage is unreachable: not the initial stage, and no ChangeStage action targets it. Stage: orphanedStage"
+				)
+			)
+			assert.is_false(
+				hasError(
+					"Stage is unreachable: not the initial stage, and no ChangeStage action targets it. Stage: startStage"
+				)
+			)
+			assert.is_false(
+				hasError(
+					"Stage is unreachable: not the initial stage, and no ChangeStage action targets it. Stage: reachedStage"
 				)
 			)
 		end)
