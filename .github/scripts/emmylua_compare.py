@@ -365,7 +365,7 @@ def main():
     warnings = [f for f in new if f["severity"] == WARNING]
     others = [f for f in new if f["severity"] > WARNING]
 
-    allowance = max(
+    allowance = min(
         args.warn_floor, round(args.warn_per_kloc * args.added_lines / 1000.0)
     )
 
