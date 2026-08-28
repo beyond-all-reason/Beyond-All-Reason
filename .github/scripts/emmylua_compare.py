@@ -17,10 +17,10 @@ Findings are keyed on (severity, code, path, message) rather than on position,
 so that inserting a line above a finding does not present it as new, and base
 paths are moved through the pull request's renames for the same reason.
 
-New errors block. New warnings are allowed up to a budget that is the larger of
-a flat floor and a rate per thousand changed lines: the floor keeps a one-line
-fix from being judged on a ratio, and the rate stops a large pull request from
-spending that floor over and over.
+New errors block.
+
+New warnings are allowed up to a budget that is the smaller of a flat floor and
+a rate per thousand changed lines. Small changes are judged at high scrictness.
 """
 
 import argparse
