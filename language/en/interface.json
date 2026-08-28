@@ -339,7 +339,7 @@
 		"changelog": {
 			"title": "Changelog"
 		},
-		"missioninfo": {
+		"briefings": {
 			"title": "Mission Info",
 			"difficulty": "Difficulty",
 			"objectives": "Objectives",
@@ -347,6 +347,13 @@
 			"defeat": "Defeat condition",
 			"summary": "Summary",
 			"briefing": "Briefing"
+		},
+		"mission": {
+			"objectives": "Objectives",
+			"completed": "Completed",
+			"failed": "Failed",
+			"optional": "Optional",
+			"noObjectives": "No objectives yet."
 		},
 		"keybinds": {
 			"title": "Keybinds",
