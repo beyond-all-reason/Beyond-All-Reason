@@ -1,0 +1,284 @@
+name: Type Check
+
+on:
+  pull_request:
+    paths: ['**.lua']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  emmylua_check:
+    name: emmylua_check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          # Pull down only the PR's changed files and the checkers's own config files
+          filter: blob:none
+          # Cone mode cannot filter correctly for our repo, picks up asset files, etc.
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.emmyrc.json
+            /.gitmodules
+            /recoil-lua-library
+            *.lua
+
+      - name: Install emmylua_check
+        env:
+          # This file owns the version. BAR-Devtools' dev image tracks it, so
+          # update it there too when you bump.
+          EMMYLUA_VERSION: 0.24.0
+        run: |
+          set -euo pipefail
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
+            aarch64) ASSET=emmylua_check-linux-aarch64-glibc.2.17.tar.gz ;;
+            *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
+          esac
+          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
+          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/emmylua_check
+          /usr/local/bin/emmylua_check --version
+
+      # emmylua_check has no scoped mode: it analyses the whole workspace
+      # whatever you ask it for. So it runs once here, for both events, and the
+      # pull request scope is applied to its report afterwards. A manual run
+      # reports the same data unfiltered rather than re-deriving it from a
+      # second pass.
+      - name: Run emmylua_check
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # The slice ci_results.yml allots one report. Keep the two in step.
+          REPORT_LIMIT: 6000
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            MODE=pr
+            WHERE="changed files"
+
+            # Fetch the base revision to diff against it.
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+
+            # Lua paths may contain spaces, so the list uses NUL separators.
+            git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' > changed.txt
+            if [ ! -s changed.txt ]; then
+              echo "No Lua files changed."
+              exit 0
+            fi
+            echo "Reporting on:"
+            tr '\0' '\n' < changed.txt
+            jq -R -s 'split("\u0000") | map(select(. != ""))' changed.txt > changed.json
+          else
+            MODE=tree
+            WHERE="the whole tree"
+            echo "[]" > changed.json
+            echo "Manual run: reporting on the whole tree."
+          fi
+
+          set +e
+          emmylua_check -c .emmyrc.json -f json --output diagnostics.json . 2> emmylua.log
+          emmylua_status=$?
+          set -e
+          cat emmylua.log >&2
+
+          # Error and exit on missing config. This action is obsolete or broken.
+          if grep -Eq 'Failed to (read|parse) (lua )?config file' emmylua.log; then
+            echo "::error title=Type check ran without its config::emmylua_check could not load .emmyrc.json (missing or unparseable) and analyzed the tree unconfigured, so every finding is garbage. This is a CI defect, not a problem with this PR. Restore .emmyrc.json or fix type_check.yml."
+            exit 1
+          fi
+
+          # Error for nonreporting, not for nonzero exit codes, as the failure case.
+          # Emmylua exits nonzero for any type errors it finds, which is never none.
+          if [ ! -s diagnostics.json ] || ! jq -e . diagnostics.json > /dev/null; then
+            echo "emmylua_check produced no readable report (exit $emmylua_status)"
+            exit 1
+          fi
+
+          # The report filter works only on absolute paths under $PWD.
+          if ! jq -e --arg cwd "$PWD/" 'length == 0 or any(.[]; .file | startswith($cwd))' diagnostics.json > /dev/null; then
+            echo "::error title=Type check filter is broken::No path in diagnostics.json starts with $PWD, so the changed-file filter can never match and the check would pass while checking nothing. The emmylua report shape changed; update type_check.yml."
+            exit 1
+          fi
+
+          # Severity is the LSP numbering: 1 error, 2 warning, 3 information,
+          # 4 hint. Paths are made relative so they match the annotation API.
+          jq --slurpfile changed changed.json --arg cwd "$PWD/" --arg mode "$MODE" '
+            ($changed[0] | map({(.): true}) | add // {}) as $want
+            | [ .[]
+                | (.file | ltrimstr($cwd) | ltrimstr("./")) as $path
+                | select($mode == "tree" or $want[$path])
+                | .diagnostics[]
+                | { path: $path,
+                    line: (.range.start.line + 1),
+                    col: (.range.start.character + 1),
+                    severity: (.severity // 1),
+                    code: ((.code // "unknown") | tostring),
+                    message: .message } ]
+          ' diagnostics.json > filtered.json
+
+          errors=$(jq '[ .[] | select(.severity == 1) ] | length' filtered.json)
+          warnings=$(jq '[ .[] | select(.severity == 2) ] | length' filtered.json)
+          hints=$(jq '[ .[] | select(.severity >= 3) ] | length' filtered.json)
+          echo "$(jq length filtered.json) finding(s) in $WHERE: $errors error(s), $warnings warning(s), $hints hint(s)."
+
+          # Annotations only make sense against a diff. A manual run has no pull
+          # request to hang them on, and the whole tree would blow the cap many
+          # times over, so it gets the log and the summary instead.
+          #
+          # Errors and warnings are annotated; hints are not. Hints are style
+          # nudges (`unused` is the bulk of them) and every changed file carries
+          # a few, so annotating them buries the type errors that this check
+          # exists to surface. They stay in the counts and in the job summary.
+          #
+          # GitHub renders at most 10 annotations per severity and silently
+          # drops the rest, so each pool is sorted and sliced deliberately
+          # rather than letting the report order decide what a reviewer sees.
+          if [ "$MODE" = "pr" ]; then
+            jq -r '
+              def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
+              def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
+              def pool($sev; $kind):
+                [ .[] | select(.severity == $sev) ]
+                | sort_by(.path, .line, .col)
+                | .[0:10][]
+                | "::\($kind) file=\(prop(.path)),line=\(.line),col=\(.col),title=\(prop(.code))::\(esc(.message))";
+              pool(1; "error"), pool(2; "warning")
+            ' filtered.json
+
+            if [ "$errors" -gt 10 ] || [ "$warnings" -gt 10 ]; then
+              echo "::notice title=Type check::Only the first 10 findings per severity are annotated; the job summary and the log below list every one."
+            fi
+          fi
+
+          # ::group:: is what makes the log collapsible, one fold per code. It
+          # is uncapped in here -- on a whole-tree run that is tens of thousands
+          # of lines, which is readable folded and unreadable flat.
+          jq -r '
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
+            def plural($n): if $n == 1 then "" else "s" end;
+            group_by(.code)
+            | sort_by(.[0].severity, -length)
+            | .[]
+            | ("::group::\(.[0].code) - \(length) \(sevname(.[0].severity))\(plural(length))"),
+              (sort_by(.path, .line, .col)[] | "\(.path):\(.line):\(.col): \(.message)"),
+              "::endgroup::"
+          ' filtered.json
+
+          # The whole summary is one jq program. Findings are grouped by code
+          # rather than lumped under a severity, because "1354 unnecessary-if"
+          # and "1 undefined-global" are two different conversations and a flat
+          # list buries that. Errors stay open because they block; everything
+          # else is a collapsed section per code, ordered by severity then size.
+          #
+          # Annotations cannot be bucketed the same way -- GitHub has only the
+          # error, warning and notice pools -- but each bubble already carries
+          # its code as the title, so the two views agree.
+          # One program, rendered twice: in full for this job's own summary
+          # page, and compact for the CI Results comment, which is capped at
+          # 65536 characters and which a full report can exceed on its own.
+          SUMMARY_JQ='
+            def cell($s): $s | gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ");
+            # emmylua messages can carry a whole union type. The comment has a
+            # byte budget the summary page does not, so they are clipped there.
+            def msg($s): cell($s) as $t
+              | if $detail == "full" or ($t | length) <= 120 then $t
+                else $t[0:119] + "…" end;
+            def sevname($s): if $s == 1 then "error" elif $s == 2 then "warning"
+                             elif $s == 3 then "info" else "hint" end;
+            def plural($n): if $n == 1 then "" else "s" end;
+
+            # Fifty rows per code is where a table stops being readable. The
+            # log above is uncapped, so nothing is actually lost.
+            def rows($f):
+              ( $f | sort_by(.path, .line, .col) | .[0:50][]
+                | "| `\(.path):\(.line)` | \(msg(.message)) |" ),
+              ( if ($f | length) > 50
+                then "", "_Showing 50 of \($f | length); the workflow log lists every one._"
+                else empty end );
+
+            . as $all
+            | ([ $all[] | select(.severity == 1) ]) as $errors
+            | ($all | group_by(.code)
+                    | map({ code: .[0].code, severity: (map(.severity) | min), n: length })
+                    | sort_by(.severity, -.n)) as $codes
+
+            | ( if ($errors | length) > 0
+                then "### Type check: \($errors | length) error\(plural($errors | length)) in \($where)"
+                else "### Type check: no errors in \($where)"
+                end ),
+              "",
+              ( if $mode == "tree"
+                then "Manual whole-tree run. Reporting only -- this does not gate anything."
+                else "Warnings and hints do not block."
+                end ),
+
+              ( if ($all | length) > 0
+                then "", "| Code | Severity | Count |", "| --- | --- | --- |",
+                     ( $codes[] | "| `\(.code)` | \(sevname(.severity)) | \(.n) |" )
+                else empty end ),
+
+              # Errors are not collapsed and keep a Code column, since one run
+              # can fail on several different ones at once.
+              ( (if $detail == "full" then 50 else 10 end) as $cap
+                | if ($errors | length) > 0
+                then "", "#### Errors", "",
+                     "| Location | Code | Message |", "| --- | --- | --- |",
+                     ( $errors | sort_by(.path, .line, .col) | .[0:$cap][]
+                       | "| `\(.path):\(.line)` | `\(.code)` | \(msg(.message)) |" ),
+                     ( if ($errors | length) > $cap
+                       then "", "_Showing \($cap) of \($errors | length); the workflow log lists every one._"
+                       else empty end )
+                else empty end ),
+
+              # The comment gets the headline, the counts and the errors.
+              # The per-code detail would swamp it many times over, so it stays
+              # on the summary page of the job that produced it.
+              ( if $detail != "full" then empty else
+                [ $codes[] | select(.severity != 1) ][]
+                | . as $c
+                | [ $all[] | select(.code == $c.code) ] as $f
+                | "",
+                  "<details><summary><code>\($c.code)</code> - \($c.n) \(sevname($c.severity))\(plural($c.n))</summary>",
+                  "", "| Location | Message |", "| --- | --- |",
+                  rows($f),
+                  "", "</details>" end )
+          '
+
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail full \
+            "$SUMMARY_JQ" filtered.json >> "$GITHUB_STEP_SUMMARY"
+          jq -r --arg mode "$MODE" --arg where "$WHERE" --arg detail compact \
+            "$SUMMARY_JQ" filtered.json > ci-report.md
+
+          # The compact report is bounded by construction: at most one row per
+          # diagnostic code plus twenty errors. If it is over its slice of the
+          # CI Results comment anyway, the rendering has regressed and the
+          # comment would be cut mid-table, so say so rather than ship it.
+          report_bytes=$(wc -c < ci-report.md)
+          if [ "$report_bytes" -gt "$REPORT_LIMIT" ]; then
+            echo "::error title=Type check report is oversized::The compact report is $report_bytes bytes, past the $REPORT_LIMIT the CI Results comment allots it, so it would be truncated mid-table. This is a CI defect, not a problem with this PR; fix the compact rendering in type_check.yml."
+            exit 1
+          fi
+          echo "Compact report: $report_bytes bytes (limit $REPORT_LIMIT)."
+
+          # Errors fail a pull request. A manual run is an analytics view, so it
+          # reports and stays green -- a red X on a report nobody asked to gate
+          # only teaches people to ignore the colour.
+          if [ "$MODE" = "pr" ] && [ "$errors" -ne 0 ]; then
+            exit 1
+          fi
+
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

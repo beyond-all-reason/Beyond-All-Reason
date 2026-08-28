@@ -82,7 +82,7 @@ return {
 			leg_t2_microflak = {
 				accuracy = 1000,
 				areaofeffect = 44,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,
@@ -99,7 +99,7 @@ return {
 				impulsefactor = 0,
 				name = "Dual Rotary Microflak Cannons",
 				noselfdamage = true,
-				range = 800,
+				range = 875,
 				reloadtime = 0.166,
 				size = 0,
 				sizedecay = 0.08,

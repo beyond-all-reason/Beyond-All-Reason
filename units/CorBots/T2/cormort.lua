@@ -25,11 +25,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 380,
-		speed = 50.4,
+		speed = 50,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1352,
-		turnrate = 1263.84998,
+		turnrate = 1263,
 		upright = true,
 		customparams = {
 			model_author = "FireStorm, Flaka",

@@ -1,7 +1,7 @@
 return {
 	legkeres = {
-		acceleration = 0.02,
-		brakerate = 0.04,
+		maxacc = 0.02,
+		maxdec = 0.04,
 		energycost = 57000,
 		metalcost = 2600,
 		buildpic = "LEGKERES.DDS",
@@ -11,6 +11,7 @@ return {
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "52 34 64",
 		collisionvolumetype = "Box",
+		usePieceCollisionVolumes = true,
 		corpse = "DEAD",
 		explodeas = "explosiont3",
 		footprintx = 5,
@@ -130,9 +131,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
-					bombers = 50,
 					default = 400,
-					fighters = 50,
 					subs = 150,
 					vtol = 50,
 				},

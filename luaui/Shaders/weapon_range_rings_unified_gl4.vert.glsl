@@ -242,7 +242,7 @@ void main() {
 		//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 		//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
 		
-		// rotate the circle into unit space, wierd that it has to be rotated on other direction
+		// rotate the circle into unit space, weird that it has to be rotated on other direction
 		if (MAXANGLEDIF > 0.0) {
 			maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
 			mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
@@ -348,7 +348,7 @@ void main() {
 
 	
 	// -- HANDLE MAXANGLEDIFF
-	// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
+	// If the unit can't fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
 	// Also, dont 
 	// convert current circleprogress to relative heading:
 	float relheadingradians = abs(((circleprogress.w - 0.5)) * 2);
@@ -380,7 +380,7 @@ void main() {
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
 	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0) * MOUSEOVERALPHAMULTIPLIER;
-	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
+	// Note that this doesn't really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
 

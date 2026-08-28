@@ -12,14 +12,14 @@ function gadget:GetInfo()
 	}
 end
 
- -- these will not be removed with "all" reason key from console commands.
- -- they must be removed explicitly with the reason key.
+-- these will not be removed with "all" reason key from console commands.
+-- they must be removed explicitly with the reason key.
 local allExemptReasonKeys = {
-terrain_wind = true,
-terrain_water = true,
-terrain_geothermal = true,
-max_this_unit = true,
-modoption_blocked = true,
+	terrain_wind = true,
+	terrain_water = true,
+	terrain_geothermal = true,
+	max_this_unit = true,
+	modoption_blocked = true,
 }
 
 if gadgetHandler:IsSyncedCode() then
@@ -27,14 +27,15 @@ if gadgetHandler:IsSyncedCode() then
 		local reasonsStr = ""
 		local count = 0
 		for r, _ in pairs(reasons) do
-			if count > 0 then reasonsStr = reasonsStr .. "," end
+			if count > 0 then
+				reasonsStr = reasonsStr .. ","
+			end
 			reasonsStr = reasonsStr .. r
 			count = count + 1
 		end
 
 		SendToUnsynced("BuildBlocked_" .. teamID, unitDefID, reasonsStr)
 	end
-
 
 	local windDisabled = false
 	local waterAvailable = true
@@ -46,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamsList = Spring.GetTeamList()
 
 	local ignoredTeams = {}
-	local scavTeamID, raptorTeamID = Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
+	local scavTeamID, raptorTeamID = BAR.Utilities.GetScavTeamID(), BAR.Utilities.GetRaptorTeamID()
 	if scavTeamID then
 		ignoredTeams[scavTeamID] = true
 	end
@@ -75,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.IsCheatingEnabled() then
 			return true
 		else
-			local accountID = Spring.Utilities.GetAccountID(playerID)
+			local accountID = BAR.Utilities.GetAccountID(playerID)
 			if _G.permissions.cmd[accountID] and not _G.isSinglePlayer then
 				return true
 			end
@@ -97,10 +98,13 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local targetTeamID = tonumber(teamParam)
 			if not targetTeamID or not Spring.GetTeamInfo(targetTeamID) then
-				Spring.SendMessageToPlayer(playerID, "Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number.")
+				Spring.SendMessageToPlayer(
+					playerID,
+					"Invalid teamID: " .. tostring(teamParam) .. ". Use 'all' or a valid team number."
+				)
 				return nil
 			end
-			return {targetTeamID}
+			return { targetTeamID }
 		end
 	end
 
@@ -146,7 +150,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
+			Spring.SendMessageToPlayer(
+				playerID,
+				"Usage: /luarules buildblock <teamID|'all'> <reason_key> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'"
+			)
 			return
 		end
 
@@ -180,7 +187,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
-		Spring.SendMessageToPlayer(playerID, "Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+		Spring.SendMessageToPlayer(
+			playerID,
+			"Blocked " .. blockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg
+		)
 	end
 
 	local function commandBuildUnblock(cmd, line, words, playerID)
@@ -194,7 +204,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if #words < 3 then
-			Spring.SendMessageToPlayer(playerID, "Usage: /luarules buildunblock <teamID|'all'> <reason_key|'all'> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'")
+			Spring.SendMessageToPlayer(
+				playerID,
+				"Usage: /luarules buildunblock <teamID|'all'> <reason_key|'all'> <unitDefID/unitDefName 1> <unitDefID/unitDefName 2> ... or 'all'"
+			)
 			return
 		end
 
@@ -238,7 +251,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local teamMsg = (teamParam == "all") and "all teams" or ("team " .. teamParam)
-		Spring.SendMessageToPlayer(playerID, "Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg)
+		Spring.SendMessageToPlayer(
+			playerID,
+			"Unblocked " .. unblockedCount .. " unit(s) with reason '" .. reasonKey .. "' for " .. teamMsg
+		)
 	end
 
 	function gadget:Initialize()
@@ -269,17 +285,22 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		gadgetHandler:AddChatAction('buildblock', commandBuildBlock, "Block units from being built by reason")
-		gadgetHandler:AddChatAction('buildunblock', commandBuildUnblock, "Unblock units from being built by reason")
+		gadgetHandler:AddChatAction("buildblock", commandBuildBlock, "Block units from being built by reason")
+		gadgetHandler:AddChatAction("buildunblock", commandBuildUnblock, "Unblock units from being built by reason")
 
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('buildblock')
-		gadgetHandler:RemoveChatAction('buildunblock')
+		gadgetHandler:RemoveChatAction("buildblock")
+		gadgetHandler:RemoveChatAction("buildunblock")
 	end
 
+	---Marks a unit definition as unbuildable by a team for the given reason.
+	---Reasons stack: the unit stays blocked until every reason is removed.
+	---@param unitDefID UnitDefID
+	---@param teamID TeamID
+	---@param reasonKey string Identifier for why the unit is blocked, e.g. "terrain_water".
 	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
@@ -292,6 +313,11 @@ if gadgetHandler:IsSyncedCode() then
 		notifyUnitBlocked(unitDefID, teamID, unitReasons)
 	end
 
+	---Removes one block reason from a unit definition for a team.
+	---@param unitDefID UnitDefID
+	---@param teamID TeamID
+	---@param reasonKey string Identifier previously passed to `AddBlockedUnit`.
+	---@return boolean removed `true` if that reason was set and has been cleared.
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
@@ -348,9 +374,8 @@ if gadgetHandler:IsSyncedCode() then
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	local function HandleBuildBlocked(_, unitDefID, reasonsStr)
 		if Script.LuaUI.UnitBlocked then
@@ -363,10 +388,12 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 	end
 
 	local function UpdateSyncActions()
-		if myTeamID then gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID) end
+		if myTeamID then
+			gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID)
+		end
 
-		myPlayerID = Spring.GetMyPlayerID()
-		myTeamID = Spring.GetMyTeamID()
+		myPlayerID = Spring.GetLocalPlayerID()
+		myTeamID = Spring.GetLocalTeamID()
 
 		if myTeamID then
 			gadgetHandler:AddSyncAction("BuildBlocked_" .. myTeamID, HandleBuildBlocked)
@@ -384,6 +411,8 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 	end
 
 	function gadget:Shutdown()
-		if myTeamID then gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID) end
+		if myTeamID then
+			gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID)
+		end
 	end
 end
