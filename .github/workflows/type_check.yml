@@ -30,10 +30,6 @@ env:
   # "changed" | "tree"
   WARN_SCOPE: changed
 
-  # Leave this on until the summaries on PRs state the lines containing blockers.
-  # Right now, we are giving diagnostic summaries that state "better, or worse?".
-  REPORT_ONLY: "true"
-
   # The slice ci_results.yml allots one report. Keep the two in step.
   REPORT_LIMIT: 6000
 
@@ -129,6 +125,23 @@ jobs:
           echo "CHANGED_LINES=$changed" >> "$GITHUB_ENV"
           echo "$changed changed line(s) across $(tr -cd '\0' < changed.txt | wc -c) file(s)."
 
+          # Warnings are ranked by nearness to the change scope: hunk > file > tree.
+          # A deletion has no head-side line so is matched against adjoining lines.
+          # Paths are tab-separated, like renames.txt above; separators could use work.
+          : > hunks.txt
+          while IFS= read -r -d '' file; do
+            git -C head diff --unified=0 "$BASE_SHA" HEAD -- "$file" \
+            | awk -v file="$file" '
+                /^@@/ {
+                  split(substr($3, 2), new, ",")
+                  start = new[1] + 0
+                  count = (new[2] == "" ? 1 : new[2] + 0)
+                  if (count == 0) printf "%s\t%d\t%d\n", file, start, start + 1
+                  else            printf "%s\t%d\t%d\n", file, start, start + count - 1
+                }' >> hunks.txt
+          done < changed.txt
+          echo "$(wc -l < hunks.txt) hunk(s) written."
+
       - name: Run emmylua_check
         if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
@@ -178,19 +191,15 @@ jobs:
             exit 0
           fi
 
-          report_only=""
-          if [ "$REPORT_ONLY" = "true" ]; then
-            report_only="--report-only"
-          fi
-
           set +e
-          python3 head/.github/scripts/emmylua_compare.py $report_only \
+          python3 head/.github/scripts/emmylua_compare.py \
             --base base-*.json \
             --head head-*.json \
             --base-root "$GITHUB_WORKSPACE/base" \
             --head-root "$GITHUB_WORKSPACE/head" \
             --renames renames.txt \
             --changed-files changed.txt \
+            --changed-hunks hunks.txt \
             --changed-lines "${CHANGED_LINES:-0}" \
             --warn-max "$WARN_MAX" --warn-per-kloc "$WARN_PER_KLOC" \
             --warn-scope "$WARN_SCOPE" \

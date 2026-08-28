@@ -17,10 +17,14 @@ Findings are keyed on (severity, code, path, message) rather than on position,
 so that inserting a line above a finding does not present it as new, and base
 paths are moved through the pull request's renames for the same reason.
 
-New errors block.
+New errors block, anywhere in the repo.
 
 New warnings are allowed up to a budget that is the smaller of a flat cap and a
 rate per thousand changed lines. Small changes receive a very strict allowance.
+
+Warnings are ranked by how near they are to the change. The lines changed, then
+the rest of the files it touched, then everywhere else. The annotation budget
+spends itself down that order. In scope always sorts ahead of out of scope.
 
 A line rewritten in place is one changed line, not one added and one removed.
 """
@@ -35,6 +39,9 @@ ERROR, WARNING = 1, 2
 SEVERITY_NAME = {1: "error", 2: "warning", 3: "info", 4: "hint"}
 ANNOTATION_CAP = 10
 TABLE_CAP = 50
+
+# How near a finding sits to the change.
+HUNK, FILE, TREE = 0, 1, 2
 
 # The CI Results comment trims anything past its slice, cutting a table mid-row.
 # So the report renders twice, and the compact one carries only what blocked.
@@ -80,6 +87,30 @@ def read_renames(path):
                 if old and new:
                     pairs[old] = new
     return pairs
+
+
+def read_hunks(path):
+    """The head-side line ranges the pull request wrote, per file."""
+    ranges = collections.defaultdict(list)
+    if path and os.path.exists(path):
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                file, _, span = line.rstrip("\n").partition("\t")
+                start, _, end = span.partition("\t")
+                if file and start and end:
+                    ranges[file].append((int(start), int(end)))
+    return ranges
+
+
+def scope_of(path, line, changed, hunks):
+    """Which ring a finding sits in: the lines written, the file, or elsewhere."""
+    if path not in changed:
+        return TREE
+    # With no ranges supplied nothing resolves to HUNK and every finding in a
+    # changed file lands on FILE, which is the scope this check had before.
+    if any(start <= line <= end for start, end in hunks.get(path, ())):
+        return HUNK
+    return FILE
 
 
 def apply_renames(counts, renames):
@@ -142,8 +173,6 @@ def write_summary(
             new_total,
             plural(new_total),
         )
-    elif reasons and args.report_only:
-        headline = "Type check: would have failed on " + ", ".join(reasons)
     elif reasons:
         headline = "Type check: " + ", ".join(reasons)
     elif new_total:
@@ -161,8 +190,8 @@ def write_summary(
         if compact:
             if args.compared:
                 out.write(
-                    "%d changed line%s, allowance %d new warning%s, %d run%s per side."
-                    "%s The full report is on the check's own page.\n"
+                    "%d changed line%s, allowance %d new warning%s, %d run%s per "
+                    "side. The full report is on the check's own page.\n"
                     % (
                         args.changed_lines,
                         plural(args.changed_lines),
@@ -170,14 +199,13 @@ def write_summary(
                         plural(allowance),
                         args.runs,
                         plural(args.runs),
-                        " Reporting only, not gating." if args.report_only else "",
                     )
                 )
         elif args.compared:
             out.write(
                 "Compared against the base over %d run%s per side. %d changed line%s "
-                "have an allowance of %d new warning%s. Any new error blocks. Info and "
-                "hints never block.\n\n"
+                "have an allowance of %d new warning%s. Any new error blocks, "
+                "wherever in the tree it landed. Info and hints never block.\n\n"
                 % (
                     args.runs,
                     plural(args.runs),
@@ -187,18 +215,13 @@ def write_summary(
                     plural(allowance),
                 )
             )
-            if args.report_only:
-                out.write(
-                    "This check is reporting only and does not gate anything yet, so "
-                    "the thresholds can be read off real pull requests before they "
-                    "start turning anyone red.\n\n"
-                )
             if args.warn_scope == "changed" and ripple:
                 out.write(
                     "A further %d new warning%s landed in files this pull request did "
                     "not touch. Those are reported below but not budgeted: emmylua "
                     "re-infers its way through unrelated files when anything moves, "
-                    "and holding an author to that is not useful.\n\n"
+                    "and holding an author to that is not useful. Errors are not "
+                    "treated this way and never have been.\n\n"
                     % (ripple, plural(ripple))
                 )
             out.write(
@@ -262,12 +285,19 @@ def write_summary(
                 message = finding["message"].replace("|", "\\|")
                 if compact and len(message) > COMPACT_MESSAGE_CAP:
                     message = message[: COMPACT_MESSAGE_CAP - 1] + "…"
+                # Errors are in scope wherever they are, so they are never
+                # marked as though their address excused them.
+                marked = (
+                    finding["severity"] != ERROR
+                    and not finding["changed"]
+                    and not compact
+                )
                 out.write(
                     "| `%s:%d`%s | `%s` | %s |\n"
                     % (
                         finding["path"],
                         finding["line"],
-                        "" if finding["changed"] or compact else " *",
+                        " *" if marked else "",
                         finding["code"],
                         message,
                     )
@@ -296,26 +326,30 @@ def main():
     parser.add_argument("--head-root", required=True)
     parser.add_argument("--renames")
     parser.add_argument("--changed-files")
+    # path<TAB>start<TAB>end, one head-side hunk per line. Without it the near
+    # ring is empty and warnings are scoped to whole files, as they were before.
+    parser.add_argument("--changed-hunks")
     parser.add_argument("--changed-lines", type=int, default=0)
     parser.add_argument("--warn-max", type=int, required=True)
     parser.add_argument("--warn-per-kloc", type=float, required=True)
-    # Errors are always judged over the whole tree: there are almost none left,
-    # and they do not move between runs. Warnings are a different animal. A
-    # change to one widget can shift how emmylua infers its way through an
-    # unrelated one, and it does so reproducibly, so repeat runs do not catch
-    # it -- budgeting that against its author is not useful, so by default
-    # only warnings in the files they touched count against the allowance, and
-    # the rest are reported as ripple effects for the reviewer to decide.
+    # Errors are always judged over the whole tree, and blocked on there: there
+    # are almost none left, and they do not move between runs. Warnings are a
+    # different animal. A change to one widget can shift how emmylua infers its
+    # way through an unrelated one, and it does so reproducibly, so repeat runs
+    # do not catch it -- budgeting that against its author is not useful, so by
+    # default only warnings in the files they touched count against the
+    # allowance, and the rest are reported as ripple for the reviewer to decide.
+    # Ripple is a warning idea only. An error is never excused by its address.
     parser.add_argument("--warn-scope", choices=("changed", "tree"), default="changed")
-    parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--summary")
     # The compact rendering the CI Results comment pulls in as an artifact.
     parser.add_argument("--ci-report")
     args = parser.parse_args()
     args.runs = len(args.head)
     args.compared = bool(args.base)
-    if not args.compared:
-        args.report_only = True
+    # A manual run has no base, so there is nothing it can have made worse and
+    # nothing for it to gate. A pull request is compared, and a comparison gates.
+    args.report_only = not args.compared
 
     renames = read_renames(args.renames)
     base_runs = [
@@ -339,6 +373,7 @@ def main():
     if args.changed_files and os.path.exists(args.changed_files):
         with open(args.changed_files, encoding="utf-8", errors="replace") as handle:
             changed = {p for p in handle.read().split("\0") if p}
+    hunks = read_hunks(args.changed_hunks)
 
     new = []
     for key, count in head_min.items():
@@ -347,6 +382,7 @@ def main():
             continue
         severity, code, path, message = key
         for line, col in sorted(head_places.get(key, []))[-extra:] or [(1, 1)]:
+            scope = scope_of(path, line, changed, hunks)
             new.append(
                 {
                     "severity": severity,
@@ -355,14 +391,16 @@ def main():
                     "message": message,
                     "line": line,
                     "col": col,
-                    "changed": path in changed,
+                    "scope": scope,
+                    "changed": scope <= FILE,
                 }
             )
 
-    # Findings in the files this pull request touched come first, everywhere they
-    # are listed: those are the ones its author can act on without going hunting.
+    # Nearest first, everywhere a finding is listed: the lines this pull request
+    # wrote, then the rest of the files it touched, then the ones it did not.
+    # Those are the ones its author can act on without going hunting.
     new.sort(
-        key=lambda f: (not f["changed"], f["severity"], f["path"], f["line"], f["col"])
+        key=lambda f: (f["scope"], f["severity"], f["path"], f["line"], f["col"])
     )
     errors = [f for f in new if f["severity"] == ERROR]
     warnings = [f for f in new if f["severity"] == WARNING]
@@ -388,25 +426,31 @@ def main():
             % (len(budgeted), plural(len(budgeted)), allowance)
         )
 
+    on_lines = sum(1 for f in warnings if f["scope"] == HUNK)
     print(
-        "%d new finding(s): %d error(s), %d warning(s) of which %d in changed files "
-        "against an allowance of %d, %d ripple, %d info/hint. "
-        "%d changed line(s), %d run(s) per side."
+        "%d new finding(s): %d error(s), %d warning(s) -- %d on changed lines, %d "
+        "elsewhere in changed files, %d ripple -- %d budgeted against an allowance "
+        "of %d, %d info/hint. %d changed line(s), %d run(s) per side."
         % (
             len(new),
             len(errors),
             len(warnings),
+            on_lines,
+            len(warnings) - on_lines - ripple,
+            ripple,
             len(budgeted),
             allowance,
-            ripple,
             len(others),
             args.changed_lines,
             args.runs,
         )
     )
 
-    # Warnings outside the scope are not budgeted, so they are not annotated.
-    for pool, kind in ((errors, "error"), (budgeted, "warning")):
+    # Both pools are already sorted nearest first, so the cap spends itself on
+    # the changed lines, then the changed files, then the ripple. Every error is
+    # a candidate wherever it sits; a warning out of scope is still worth a
+    # bubble once the ones in scope have taken what they need.
+    for pool, kind in ((errors, "error"), (warnings, "warning")):
         for finding in pool[:ANNOTATION_CAP]:
             print(
                 "::%s file=%s,line=%d,col=%d,title=%s::%s"
@@ -456,7 +500,8 @@ def main():
             allowance,
             reasons,
             unstable,
-            args.compared and any(not f["changed"] for f in new),
+            args.compared
+            and any(f["severity"] != ERROR and not f["changed"] for f in new),
             len(budgeted),
             ripple,
             detail,
