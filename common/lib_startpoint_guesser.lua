@@ -58,7 +58,7 @@ local function StartboxSamples(allyID, xmin, zmin, xmax, zmax)
 	end
 
 	local entry = GetStartboxEntry(allyID)
-	if not entry then
+	if not entry or not entry.boxes then
 		samplesByAllyID[allyID] = false
 		return false
 	end
@@ -71,6 +71,16 @@ local function StartboxSamples(allyID, xmin, zmin, xmax, zmax)
 			local z = zmin + (zmax - zmin) * j / steps
 			if PolygonLib.PointInStartbox(x, z, entry) then
 				samples[#samples + 1] = { x, z }
+			end
+		end
+	end
+
+	-- A shape too thin to catch a grid line still has its own corners to offer.
+	if #samples == 0 then
+		for i = 1, #entry.boxes do
+			local poly = entry.boxes[i]
+			for j = 1, #poly do
+				samples[#samples + 1] = { poly[j][1], poly[j][2] }
 			end
 		end
 	end
