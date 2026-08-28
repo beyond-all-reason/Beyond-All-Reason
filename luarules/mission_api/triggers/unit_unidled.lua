@@ -11,7 +11,7 @@ return {
 	parameters = {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -33,7 +33,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= Spring.GetUnitTeam(unitID) then
+			if parameters.teamName and GG['MissionAPI'].Teams[parameters.teamName] ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
 			context.ActivateTrigger(trigger)
