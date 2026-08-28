@@ -168,7 +168,10 @@ describe("mission_api.validation.references", function()
 				)
 				:WithAction(
 					"addUnused",
-					{ type = V.actionTypes.AddMarker, parameters = { position = { x = 0, z = 0 }, name = "unusedFlag" } }
+					{
+						type = V.actionTypes.AddMarker,
+						parameters = { position = { x = 0, z = 0 }, name = "unusedFlag" },
+					}
 				)
 				:WithAction("eraseUnknown", { type = V.actionTypes.EraseMarker, parameters = { name = "unknownFlag" } })
 		)
