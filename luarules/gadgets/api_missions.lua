@@ -10,8 +10,20 @@ function gadget:GetInfo()
 	}
 end
 
+-- The unsynced half exists only to relay moments to LuaUI. State does not come
+-- through here: it is published as rules params, which survive a /luaui reload.
 if not gadgetHandler:IsSyncedCode() then
-	return false
+	local function forwardMissionMessage(_, textKey)
+		if Script.LuaUI("MissionMessage") then
+			Script.LuaUI.MissionMessage(textKey)
+		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("MissionMessage", forwardMissionMessage)
+	end
+
+	return
 end
 
 local objectivesController, stagesController, triggersController, actionsController
@@ -76,6 +88,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.Presentation = VFS.Include("luarules/mission_api/presentation.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
@@ -103,6 +116,25 @@ end
 
 function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+end
+
+---Replies from unsynced, ending an interaction. Anyone can send anything here, so the
+---sender is checked against the interaction's audience before it settles.
+function gadget:RecvLuaMsg(msg, playerID)
+	local interactionID, choice = msg:match("^mission:choose:(%d+):(%d+)$")
+	if not interactionID then
+		interactionID = msg:match("^mission:ack:(%d+)$")
+	end
+	if not interactionID then
+		return
+	end
+
+	local missionAPI = GG["MissionAPI"]
+	if not missionAPI or not missionAPI.Modules.Presentation then
+		return
+	end
+
+	missionAPI.Modules.Presentation.EndInteraction(tonumber(interactionID), playerID, tonumber(choice))
 end
 
 function gadget:Shutdown()

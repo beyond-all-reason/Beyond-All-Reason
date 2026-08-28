@@ -239,7 +239,11 @@ function gadget:Initialize()
 	}
 
 	-- The objectives module dispatches its own triggers on objectives:
-	GG['MissionAPI'].Modules.Objectives.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+	GG['MissionAPI'].Modules.Objectives.Init({
+		processTriggersOfType = processTriggersOfType,
+		activateTrigger = activateTrigger,
+		presentation = GG['MissionAPI'].Modules.Presentation,
+	})
 
 	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
 	-- reclaim step (among the hottest call-ins in the game), so only stay subscribed

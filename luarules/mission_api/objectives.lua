@@ -2,17 +2,22 @@
 --- Shared helpers for objective progress/completion and stage changes.
 ---
 
--- Activating and iterating triggers is handled through the triggers gadget.
-local processTriggersOfType, activateTrigger
+local processTriggersOfType, activateTrigger, presentation
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
 	activateTrigger = dependencies.activateTrigger
+	presentation = dependencies.presentation
 end
 
 local function changeStage(stageID)
 	GG["MissionAPI"].CurrentStageID = stageID
 	Spring.Echo("Stage set to: " .. stageID)
+
+	if presentation then
+		presentation.PublishStage(stageID)
+		presentation.PublishObjectives()
+	end
 end
 
 -- placeholder until UI widget exists
@@ -30,6 +35,10 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.completed)
 			.. (objective.failed and " (failed)" or "")
 	)
+
+	if presentation then
+		presentation.PublishObjectives()
+	end
 end
 
 ---@param amount integer? `nil` completes on any progress, `0` only on exactly zero
