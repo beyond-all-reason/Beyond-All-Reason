@@ -17,8 +17,11 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 ]]
 
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
-	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
-	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(GG['MissionAPI'].TriggerDefinitions.Parameters, parameterTypes.Types.Quantity)
+	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
+	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
+		GG["MissionAPI"].TriggerDefinitions.Parameters,
+		parameterTypes.Types.Quantity
+	)
 
 	-- Build objective-to-stages mapping from stages structure
 	local objectiveToStages = {}
@@ -30,7 +33,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 
 	for objectiveID, objective in pairs(rawObjectives) do
 		-- An objective without a trigger is completed by an UpdateObjective action instead.
-		if type(objective.trigger) == 'table' then
+		if type(objective.trigger) == "table" then
 			local objectiveStages = objectiveToStages[objectiveID] or {}
 			local amount = objective.amount
 			local triggerType = objective.trigger.type
@@ -50,8 +53,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 				-- Non-managed objective: synthesize trigger + action as usual.
 				local isRepeating = amount ~= nil
 				local maxRepeats = amount and amount > 1 and (amount - 1) or nil
-				local triggerID = '__objective_' .. objectiveID
-				local actionID  = '__updateObjective_' .. objectiveID
+				local triggerID = "__objective_" .. objectiveID
+				local actionID = "__updateObjective_" .. objectiveID
 
 				rawTriggers[triggerID] = {
 					type = triggerType,

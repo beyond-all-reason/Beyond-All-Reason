@@ -4,7 +4,7 @@
 
 local V = require("mission_api.validation.validation_spec_helper")
 
-local validation = VFS.Include('luarules/mission_api/validation.lua')
+local validation = VFS.Include("luarules/mission_api/validation.lua")
 
 describe("mission_api.validation", function()
 	before_each(V.mockEngineGlobals)
@@ -20,9 +20,9 @@ describe("mission_api.validation", function()
 
 		-- Every mission table is normalised by the validation context, so a misdeclared
 		-- one is reported instead of breaking the validators that walk it.
-		for _, field in ipairs({ 'Stages', 'Objectives', 'Triggers', 'Actions', 'UnitLoadout', 'FeatureLoadout' }) do
+		for _, field in ipairs({ "Stages", "Objectives", "Triggers", "Actions", "UnitLoadout", "FeatureLoadout" }) do
 			it("reports a non-table " .. field, function()
-				local result = V.validate(V.mission():WithField(field, 'notATable'))
+				local result = V.validate(V.mission():WithField(field, "notATable"))
 
 				V.assertMessage(result, field .. " must be a table, got string")
 				V.assertNoMessageContaining(result, "Validation failed unexpectedly")
@@ -33,9 +33,12 @@ describe("mission_api.validation", function()
 
 	describe("result", function()
 		it("is ok when the mission only produces warnings", function()
-			local result = V.validate(V.mission()
-				:WithTrigger('t', V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-				:WithAction('ok', { type = V.actionTypes.NameUnits, parameters = { unitName = 'unreferenced', teamID = 0 } }))
+			local result = V.validate(
+				V.mission():WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })):WithAction(
+					"ok",
+					{ type = V.actionTypes.NameUnits, parameters = { unitName = "unreferenced", teamID = 0 } }
+				)
+			)
 
 			assert.is_true(result.ok)
 			assert.are.same({}, result.errors)
@@ -51,11 +54,14 @@ describe("mission_api.validation", function()
 		end)
 	end)
 
-	describe("message grouping", function()		it("sorts messages alphabetically by entity ID within a section", function()
-			local result = V.validate(V.mission()
-				:WithTrigger('zTrigger', { type = 'invalidType', actions = { 'ok' } })
-				:WithTrigger('aTrigger', { type = 'invalidType', actions = { 'ok' } })
-				:WithAction('ok', { type = V.actionTypes.SendMessage, parameters = { message = 'ok' } }))
+	describe("message grouping", function()
+		it("sorts messages alphabetically by entity ID within a section", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("zTrigger", { type = "invalidType", actions = { "ok" } })
+					:WithTrigger("aTrigger", { type = "invalidType", actions = { "ok" } })
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+			)
 
 			assert.are.same({
 				"Trigger has invalid type. Trigger: aTrigger",
@@ -65,13 +71,15 @@ describe("mission_api.validation", function()
 
 		it("emits one group per validated part of the mission, in a fixed order", function()
 			-- One error per section, so the section order itself is asserted.
-			local result = V.validate(V.mission()
-				:WithInitialStageDefinition('s', 'notATable')
-				:WithObjective('o1', {})
-				:WithObjective('o2', { textKey = "ok", nextStage = 'nope' })
-				:WithTrigger('t', { type = 'invalidType', actions = { 'a' } })
-				:WithAction('a', { type = V.actionTypes.SendMessage, parameters = {} })
-				:WithUnitLoadout({ { unitDefName = 'noSuch', x = 0, z = 0, team = 0 } }))
+			local result = V.validate(
+				V.mission()
+					:WithInitialStageDefinition("s", "notATable")
+					:WithObjective("o1", {})
+					:WithObjective("o2", { textKey = "ok", nextStage = "nope" })
+					:WithTrigger("t", { type = "invalidType", actions = { "a" } })
+					:WithAction("a", { type = V.actionTypes.SendMessage, parameters = {} })
+					:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
+			)
 
 			assert.are.same({
 				"Stage data must be a table, got string. Stage: s",
@@ -104,8 +112,8 @@ describe("mission_api.validation", function()
 			validation.LogResult({ errors = { "an error" }, warnings = { "a warning" } })
 
 			assert.are.same({
-				{ tag = 'MissionAPI', level = LOG.ERROR,   message = "[Mission API] an error" },
-				{ tag = 'MissionAPI', level = LOG.WARNING, message = "[Mission API] a warning" },
+				{ tag = "MissionAPI", level = LOG.ERROR, message = "[Mission API] an error" },
+				{ tag = "MissionAPI", level = LOG.WARNING, message = "[Mission API] a warning" },
 			}, logged)
 		end)
 

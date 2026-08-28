@@ -6,7 +6,7 @@
 --- parameter the message is about, e.g. "[2].unitDefName", if any.
 ---
 
-VFS.Include('common/wav.lua')
+VFS.Include("common/wav.lua")
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -25,7 +25,10 @@ local function validateField(value, fieldName, expectedType)
 		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName }
 	end
 	if type(value) ~= expectedType then
-		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName }
+		return {
+			message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value),
+			parameterNameSuffix = "." .. fieldName,
+		}
 	end
 end
 
@@ -35,7 +38,7 @@ local function appendResults(results, addedResults, parameterNamePrefix)
 	for _, addedResult in ipairs(addedResults or {}) do
 		results[#results + 1] = {
 			message = addedResult.message,
-			parameterNameSuffix = (parameterNamePrefix or '') .. (addedResult.parameterNameSuffix or ''),
+			parameterNameSuffix = (parameterNamePrefix or "") .. (addedResult.parameterNameSuffix or ""),
 			isWarning = addedResult.isWarning,
 		}
 	end
@@ -50,7 +53,7 @@ local function getLuaTypeValidator(expectedType)
 	end
 end
 
-local validateTableType = getLuaTypeValidator('table')
+local validateTableType = getLuaTypeValidator("table")
 
 --- Validates that a value of a valid type also exists, e.g. a stage ID or a unit def name.
 --- The lookup is a function, so engine def tables are read when the value is validated.
@@ -109,7 +112,12 @@ local function getEnumSetValidator(enums, enumSetName, enumSetList)
 		for index, value in ipairs(values) do
 			if not valueSet[value] then
 				results[#results + 1] = {
-					message = "Invalid " .. enumSetName .. ": '" .. tostring(value) .. "'. Must be one of: " .. allowedList,
+					message = "Invalid "
+						.. enumSetName
+						.. ": '"
+						.. tostring(value)
+						.. "'. Must be one of: "
+						.. allowedList,
 					parameterNameSuffix = "[" .. index .. "]",
 				}
 			end
@@ -126,10 +134,10 @@ local function registerValueValidators(parameterValidators, context)
 
 	--- Lua type validators:
 	parameterValidators[Types.Table] = validateTableType
-	parameterValidators[Types.String] = getLuaTypeValidator('string')
-	parameterValidators[Types.Number] = getLuaTypeValidator('number')
-	parameterValidators[Types.Boolean] = getLuaTypeValidator('boolean')
-	parameterValidators[Types.Function] = getLuaTypeValidator('function')
+	parameterValidators[Types.String] = getLuaTypeValidator("string")
+	parameterValidators[Types.Number] = getLuaTypeValidator("number")
+	parameterValidators[Types.Boolean] = getLuaTypeValidator("boolean")
+	parameterValidators[Types.Function] = getLuaTypeValidator("function")
 
 	--- Enum set validators:
 	for enumSetName, valuesList in pairs(context.EnumSets) do
@@ -139,19 +147,33 @@ local function registerValueValidators(parameterValidators, context)
 	--- String validators:
 	local validateString = parameterValidators[Types.String]
 
-	parameterValidators[Types.StageID] = getLookupValidator(validateString, 'stageID',
-		function(stageID) return context.Stages[stageID] end)
-	parameterValidators[Types.ObjectiveID] = getLookupValidator(validateString, 'objectiveID',
-		function(objectiveID) return context.Objectives[objectiveID] end)
-	parameterValidators[Types.TriggerID] = getLookupValidator(validateString, 'triggerID',
-		function(triggerID) return context.Triggers[triggerID] end)
+	parameterValidators[Types.StageID] = getLookupValidator(validateString, "stageID", function(stageID)
+		return context.Stages[stageID]
+	end)
+	parameterValidators[Types.ObjectiveID] = getLookupValidator(validateString, "objectiveID", function(objectiveID)
+		return context.Objectives[objectiveID]
+	end)
+	parameterValidators[Types.TriggerID] = getLookupValidator(validateString, "triggerID", function(triggerID)
+		return context.Triggers[triggerID]
+	end)
 
-	parameterValidators[Types.UnitDefName] = getLookupValidator(validateString, 'unitDefName',
-		function(unitDefName) return UnitDefNames[unitDefName] end)
-	parameterValidators[Types.WeaponDefName] = getLookupValidator(validateString, 'weaponDefName',
-		function(weaponDefName) return WeaponDefNames[weaponDefName] end)
-	parameterValidators[Types.FeatureDefName] = getLookupValidator(validateString, 'featureDefName',
-		function(featureDefName) return FeatureDefNames[featureDefName] end)
+	parameterValidators[Types.UnitDefName] = getLookupValidator(validateString, "unitDefName", function(unitDefName)
+		return UnitDefNames[unitDefName]
+	end)
+	parameterValidators[Types.WeaponDefName] = getLookupValidator(
+		validateString,
+		"weaponDefName",
+		function(weaponDefName)
+			return WeaponDefNames[weaponDefName]
+		end
+	)
+	parameterValidators[Types.FeatureDefName] = getLookupValidator(
+		validateString,
+		"featureDefName",
+		function(featureDefName)
+			return FeatureDefNames[featureDefName]
+		end
+	)
 
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
@@ -168,7 +190,13 @@ local function registerValueValidators(parameterValidators, context)
 		end
 
 		if not enums[Types.Facing][facing] then
-			return { { message = "Invalid facing: " .. facing .. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'" } }
+			return {
+				{
+					message = "Invalid facing: "
+						.. facing
+						.. ". Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'",
+				},
+			}
 		end
 	end
 
@@ -231,7 +259,7 @@ local function registerSpatialValidators(parameterValidators, context)
 		local result = {}
 		local fields = position.y ~= nil and positionFieldsWithHeight or positionFields
 		for _, field in ipairs(fields) do
-			local fieldResult = validateField(position[field], field, 'number')
+			local fieldResult = validateField(position[field], field, "number")
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			end
@@ -246,7 +274,7 @@ local function registerSpatialValidators(parameterValidators, context)
 		local result = validatePositionList(positions)
 
 		-- Counting only makes sense once the list validator has confirmed a table
-		if type(positions) == 'table' and #positions < 2 then
+		if type(positions) == "table" and #positions < 2 then
 			table.insert(result, 1, { message = "Positions table needs at least two positions" })
 		end
 
@@ -262,13 +290,17 @@ local function registerSpatialValidators(parameterValidators, context)
 		local isRectangle = area.x1 and area.z1 and area.x2 and area.z2
 		local isCircle = area.x and area.z and area.radius
 		if not isRectangle and not isCircle then
-			return { { message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }" } }
+			return {
+				{
+					message = "Invalid area parameter, must be either rectangle { x1, z1, x2, z2 } with x1 < x2 and z1 < z2, or circle { x, z, radius }",
+				},
+			}
 		end
 
 		-- Every field of an area is a number, whether it is a rectangle or a circle.
 		local result = {}
 		for key, value in pairs(area) do
-			local fieldResult = validateField(value, key, 'number')
+			local fieldResult = validateField(value, key, "number")
 			if fieldResult then
 				result[#result + 1] = fieldResult
 			end
@@ -300,17 +332,25 @@ local function registerSpatialValidators(parameterValidators, context)
 		local isAngle = direction.angle ~= nil
 		local isVector = direction.x ~= nil and direction.z ~= nil
 		if not isAngle and not isVector then
-			return { { message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }" } }
+			return {
+				{
+					message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }",
+				},
+			}
 		end
 		if isAngle and isVector then
-			return { { message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both" } }
+			return {
+				{
+					message = "Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both",
+				},
+			}
 		end
 
 		if isVector then
 			return parameterValidators[Types.Position](direction)
 		end
 
-		local angleResult = validateField(direction.angle, 'angle', 'number')
+		local angleResult = validateField(direction.angle, "angle", "number")
 		return angleResult and { angleResult } or nil
 	end
 end
@@ -323,13 +363,16 @@ local function registerTeamValidators(parameterValidators, context)
 	local Types = context.Types
 	local validateNumber = parameterValidators[Types.Number]
 
-	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, 'teamID',
-		function(teamID) return Spring.GetTeamAllyTeamID(teamID) end)
+	parameterValidators[Types.TeamID] = getLookupValidator(validateNumber, "teamID", function(teamID)
+		return Spring.GetTeamAllyTeamID(teamID)
+	end)
 
-	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, 'allyTeamID',
-		function(allyTeamID) return table.contains(Spring.GetAllyTeamList(), allyTeamID) end)
+	parameterValidators[Types.AllyTeamID] = getLookupValidator(validateNumber, "allyTeamID", function(allyTeamID)
+		return table.contains(Spring.GetAllyTeamList(), allyTeamID)
+	end)
 
-	parameterValidators[Types.AllyTeamIDs] = getListValidator(parameterValidators[Types.AllyTeamID], "allyTeamIDs table is empty")
+	parameterValidators[Types.AllyTeamIDs] =
+		getListValidator(parameterValidators[Types.AllyTeamID], "allyTeamIDs table is empty")
 end
 
 --------------------------------------------------------------------------------
@@ -353,25 +396,27 @@ end
 --- Command parameter validators take (params, results), so they can be built once.
 local function getNumberArrayValidator(sizes, message, nameKeys)
 	return function(params, results)
-		local luaTypeResult = validateLuaType(params, 'table')
+		local luaTypeResult = validateLuaType(params, "table")
 		if luaTypeResult then
-			return addResult(results, luaTypeResult, '[2]')
+			return addResult(results, luaTypeResult, "[2]")
 		end
 		params = params or {}
 
-		if nameKeys and table.any(nameKeys, function(nameKey) return params[nameKey] ~= nil end) then
+		if nameKeys and table.any(nameKeys, function(nameKey)
+			return params[nameKey] ~= nil
+		end) then
 			-- params names a unit or feature instead of giving coordinates
 			return
 		end
 
 		if not table.contains(sizes, #params) then
-			return addResult(results, "Parameter must be an array of " .. message, '[2]')
+			return addResult(results, "Parameter must be an array of " .. message, "[2]")
 		end
 
 		for index, param in ipairs(params) do
-			local paramTypeResult = validateLuaType(param, 'number')
+			local paramTypeResult = validateLuaType(param, "number")
 			if paramTypeResult then
-				return addResult(results, paramTypeResult, '[2][' .. index .. ']')
+				return addResult(results, paramTypeResult, "[2][" .. index .. "]")
 			end
 		end
 	end
@@ -380,33 +425,46 @@ end
 --- Commands like GUARD take the name of a unit or feature instead of coordinates.
 local function getNameValidator(nameKey, message)
 	return function(params, results)
-		local luaTypeResult = validateLuaType(params, 'table')
+		local luaTypeResult = validateLuaType(params, "table")
 		if luaTypeResult then
-			addResult(results, luaTypeResult, '[2]')
+			addResult(results, luaTypeResult, "[2]")
 		elseif params == nil or params[nameKey] == nil then
-			addResult(results, "Parameter must be " .. message, '[2]')
+			addResult(results, "Parameter must be " .. message, "[2]")
 		end
 	end
 end
 
 local function validateNumberParam(params, results)
-	local luaTypeResult = validateLuaType(params, 'number')
+	local luaTypeResult = validateLuaType(params, "number")
 	if luaTypeResult then
-		addResult(results, luaTypeResult, '[2]')
+		addResult(results, luaTypeResult, "[2]")
 	end
 end
 
-local validateUnitNameParam = getNameValidator('unitName', "{ unitName = 'aUnitName' }")
+local validateUnitNameParam = getNameValidator("unitName", "{ unitName = 'aUnitName' }")
 local validate3 = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}")
-local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { 'unitName' })
+local validate3orUnitName = getNumberArrayValidator({ 3 }, "3 numbers {x, y, z}, or a unit name", { "unitName" })
 local validate3or4 = getNumberArrayValidator({ 3, 4 }, "3 or 4 numbers {x, y, z, optional radius}")
 local validate4 = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}")
-local validate4orUnitName = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}, or a unit name", { 'unitName' })
-local validate4orFeatureName = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}, or a feature name", { 'featureName' })
-local validate4orEitherName = getNumberArrayValidator({ 4 }, "4 numbers {x, y, z, radius}, or a unit/feature name", { 'unitName', 'featureName' })
+local validate4orUnitName = getNumberArrayValidator(
+	{ 4 },
+	"4 numbers {x, y, z, radius}, or a unit name",
+	{ "unitName" }
+)
+local validate4orFeatureName = getNumberArrayValidator(
+	{ 4 },
+	"4 numbers {x, y, z, radius}, or a feature name",
+	{ "featureName" }
+)
+local validate4orEitherName = getNumberArrayValidator(
+	{ 4 },
+	"4 numbers {x, y, z, radius}, or a unit/feature name",
+	{ "unitName", "featureName" }
+)
 
 -- Build commands are unitDefName strings, see https://springrts.com/wiki/Lua_CMDs#CMD.INTERNAL
-local validateBuildOrder = getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
+local validateBuildOrder =
+	getNumberArrayValidator({ 0, 3, 4 }, "3 or 4 numbers {x, y, z, optional facing}, or no parameters for factories")
 
 --- Parameter validator per command name. false means the command takes no parameters.
 local validatorsByCommandName = {
@@ -448,14 +506,14 @@ local function validateOrderOptions(options, results)
 		return
 	end
 
-	local luaTypeResult = validateLuaType(options, 'table')
+	local luaTypeResult = validateLuaType(options, "table")
 	if luaTypeResult then
-		return addResult(results, luaTypeResult, '[3]')
+		return addResult(results, luaTypeResult, "[3]")
 	end
 
 	for _, optionName in pairs(options) do
 		if not validOrderOptions[optionName] then
-			addResult(results, "Invalid order option: " .. optionName, '[3]')
+			addResult(results, "Invalid order option: " .. optionName, "[3]")
 		end
 	end
 end
@@ -500,7 +558,7 @@ local function registerOrderValidators(parameterValidators, context)
 		if command == CMD.ANY or command == CMD.BUILD then
 			return
 		end
-		if type(command) == 'number' then
+		if type(command) == "number" then
 			local results = {}
 			if not knownCMDs[command] then
 				addResult(results, "Unknown command ID: " .. tostring(command))
@@ -509,11 +567,15 @@ local function registerOrderValidators(parameterValidators, context)
 			if consumedInAllowCommand[command] then
 				addResult(
 					results,
-					"Command " .. tostring(CMD[command] or GameCMD[command] or command) .. " may fail to trigger in UnitOrdered",
-					nil, true)
+					"Command "
+						.. tostring(CMD[command] or GameCMD[command] or command)
+						.. " may fail to trigger in UnitOrdered",
+					nil,
+					true
+				)
 				return results
 			end
-		elseif type(command) == 'string' then
+		elseif type(command) == "string" then
 			if not UnitDefNames[command] then
 				return { { message = "Invalid unitDefName: " .. command } }
 			end
@@ -543,21 +605,30 @@ local function registerOrderValidators(parameterValidators, context)
 			if commandValidator then
 				commandValidator(params, results)
 			end
-		elseif type(commandID) == 'string' then
+		elseif type(commandID) == "string" then
 			-- Build order: the command ID is a unitDefName.
 			if not UnitDefNames[commandID] then
-				addResult(results, "Invalid build order unitDefName: " .. commandID, '[1]')
+				addResult(results, "Invalid build order unitDefName: " .. commandID, "[1]")
 			end
 
 			validateBuildOrder(params, results)
 			if #(params or {}) == 4 and not facingEnum[params[4]] then
-				addResult(results, "Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3", '[2][4]')
+				addResult(
+					results,
+					"Invalid build order facing: " .. params[4] .. ". Must be one of 0, 1, 2, 3",
+					"[2][4]"
+				)
 			end
 		elseif not knownCMDs[commandID] then
-			addResult(results, "Unknown command ID: " .. tostring(commandID), '[1]')
+			addResult(results, "Unknown command ID: " .. tostring(commandID), "[1]")
 		else
 			-- A command the engine knows, but this module does not check yet
-			addResult(results, "No validator implemented for orders with command ID: " .. tostring(commandID), '[1]', true)
+			addResult(
+				results,
+				"No validator implemented for orders with command ID: " .. tostring(commandID),
+				"[1]",
+				true
+			)
 		end
 	end
 
@@ -586,21 +657,21 @@ local function registerLoadoutValidators(parameterValidators, context)
 	--- Named fields of a loadout entry, in the order they are reported. The position of an
 	--- entry is not among them, since its x, y and z sit directly on the entry.
 	local unitEntryFields = {
-		{ name = 'unitDefName',  type = Types.UnitDefName, required = true },
-		{ name = 'team',         type = Types.TeamID, required = true },
-		{ name = 'facing',       type = Types.Facing },
-		{ name = 'unitName',     type = Types.String },
-		{ name = 'construction', type = Types.Boolean },
-		{ name = 'quantity',     type = Types.Number },
-		{ name = 'spacing',      type = Types.Number },
-		{ name = 'neutral',      type = Types.Boolean },
-		{ name = 'orders',       type = Types.Orders },
+		{ name = "unitDefName", type = Types.UnitDefName, required = true },
+		{ name = "team", type = Types.TeamID, required = true },
+		{ name = "facing", type = Types.Facing },
+		{ name = "unitName", type = Types.String },
+		{ name = "construction", type = Types.Boolean },
+		{ name = "quantity", type = Types.Number },
+		{ name = "spacing", type = Types.Number },
+		{ name = "neutral", type = Types.Boolean },
+		{ name = "orders", type = Types.Orders },
 	}
 
 	local featureEntryFields = {
-		{ name = 'featureDefName', type = Types.FeatureDefName, required = true },
-		{ name = 'facing',         type = Types.Facing },
-		{ name = 'featureName',    type = Types.String },
+		{ name = "featureDefName", type = Types.FeatureDefName, required = true },
+		{ name = "facing", type = Types.Facing },
+		{ name = "featureName", type = Types.String },
 	}
 
 	local function getEntryValidator(fields)
@@ -617,7 +688,8 @@ local function registerLoadoutValidators(parameterValidators, context)
 				local value = entry[field.name]
 				if value == nil then
 					if field.required then
-						results[#results + 1] = { message = "Missing required parameter", parameterNameSuffix = "." .. field.name }
+						results[#results + 1] =
+							{ message = "Missing required parameter", parameterNameSuffix = "." .. field.name }
 					end
 				else
 					appendResults(results, parameterValidators[field.type](value), "." .. field.name)

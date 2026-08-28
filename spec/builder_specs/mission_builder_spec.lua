@@ -16,7 +16,8 @@ describe("MissionBuilder", function()
 	end)
 
 	it("builds the mission sections", function()
-		local mission = Builders.Mission.new()
+		local mission = Builders.Mission
+			.new()
 			:WithObjective("obj1", { textKey = "kill" })
 			:WithStage("stage1", { objectives = { "obj1" } })
 			:WithInitialStage("stage1")
@@ -38,16 +39,15 @@ describe("MissionBuilder", function()
 	end)
 
 	it("sets the stage and makes it the initial one", function()
-		local mission = Builders.Mission.new()
-			:WithInitialStageDefinition("stage1", { objectives = { "obj1" } })
-			:Build()
+		local mission = Builders.Mission.new():WithInitialStageDefinition("stage1", { objectives = { "obj1" } }):Build()
 
 		assert.are.equal("stage1", mission.InitialStage)
 		assert.are.same({ objectives = { "obj1" } }, mission.Stages.stage1)
 	end)
 
 	it("builds the loadouts", function()
-		local mission = Builders.Mission.new()
+		local mission = Builders.Mission
+			.new()
 			:WithUnitLoadout({ { unitDefName = "armcom" } })
 			:WithFeatureLoadout({ { featureDefName = "tree" } })
 			:Build()

@@ -7,7 +7,7 @@ local V = require("mission_api.validation.validation_spec_helper")
 
 --- Validates objective 'o', the one under test.
 local function validateObjective(objective)
-	return V.validate(V.mission():WithObjective('o', objective))
+	return V.validate(V.mission():WithObjective("o", objective))
 end
 
 --- Validates objective 'o' with the inline trigger under test.
@@ -20,51 +20,59 @@ describe("mission_api.validation.sections", function()
 
 	describe("stages", function()
 		it("passes for well-formed stages", function()
-			V.assertValid(V.validate(V.mission()
-				:WithStage('stageA', { objectives = { 'obj1' } })
-				:WithStage('stageB', { objectives = { 'obj1', 'obj2' } })
-				:WithObjective('obj1', { textKey = "ok" })
-				:WithObjective('obj2', { textKey = "ok" })
-				:WithInitialStage('stageA')))
+			V.assertValid(
+				V.validate(
+					V.mission()
+						:WithStage("stageA", { objectives = { "obj1" } })
+						:WithStage("stageB", { objectives = { "obj1", "obj2" } })
+						:WithObjective("obj1", { textKey = "ok" })
+						:WithObjective("obj2", { textKey = "ok" })
+						:WithInitialStage("stageA")
+				)
+			)
 		end)
 
 		it("reports a stage ID that is not a string", function()
-			local result = V.validate(V.mission()
-				:WithInitialStageDefinition(123, { objectives = { 'obj1' } })
-				:WithObjective('obj1', { textKey = "ok" }))
+			local result = V.validate(
+				V.mission()
+					:WithInitialStageDefinition(123, { objectives = { "obj1" } })
+					:WithObjective("obj1", { textKey = "ok" })
+			)
 
 			V.assertMessage(result, "Stage ID must be a string, got number. Stage: 123")
 		end)
 
 		it("reports stage data that is not a table", function()
-			local result = V.validate(V.mission():WithInitialStageDefinition('badStage', 'notATable'))
+			local result = V.validate(V.mission():WithInitialStageDefinition("badStage", "notATable"))
 
 			V.assertMessage(result, "Stage data must be a table, got string. Stage: badStage")
 		end)
 
 		it("reports a stage missing the 'objectives' field", function()
-			local result = V.validate(V.mission():WithInitialStageDefinition('noObjectives', {}))
+			local result = V.validate(V.mission():WithInitialStageDefinition("noObjectives", {}))
 
 			V.assertMessage(result, "Stage missing 'objectives' field. Stage: noObjectives")
 		end)
 
 		it("reports an 'objectives' field that is not a table", function()
-			local result = V.validate(V.mission()
-				:WithInitialStageDefinition('badObjectives', { objectives = 'notATable' }))
+			local result =
+				V.validate(V.mission():WithInitialStageDefinition("badObjectives", { objectives = "notATable" }))
 
 			V.assertMessage(result, "Stage 'objectives' field must be a table, got string. Stage: badObjectives")
 		end)
 
 		it("reports an objective ID that is not a string", function()
-			local result = V.validate(V.mission()
-				:WithInitialStageDefinition('badEntry', { objectives = { 'obj1', 123 } })
-				:WithObjective('obj1', { textKey = "ok" }))
+			local result = V.validate(
+				V.mission()
+					:WithInitialStageDefinition("badEntry", { objectives = { "obj1", 123 } })
+					:WithObjective("obj1", { textKey = "ok" })
+			)
 
 			V.assertMessage(result, "Stage 'objectives' entry must be a string, got number. Stage: badEntry, Entry: 2")
 		end)
 
 		it("warns about an empty 'objectives' table", function()
-			local result = V.validate(V.mission():WithInitialStageDefinition('empty', { objectives = {} }))
+			local result = V.validate(V.mission():WithInitialStageDefinition("empty", { objectives = {} }))
 
 			V.assertMessage(result, "Stage has empty 'objectives' table. Stage: empty")
 		end)
@@ -72,9 +80,13 @@ describe("mission_api.validation.sections", function()
 
 	describe("initial stage", function()
 		it("passes when stages are defined and initialStage matches", function()
-			V.assertValid(V.validate(V.mission()
-				:WithInitialStageDefinition('stageA', { objectives = { 'obj' } })
-				:WithObjective('obj', { textKey = "ok" })))
+			V.assertValid(
+				V.validate(
+					V.mission()
+						:WithInitialStageDefinition("stageA", { objectives = { "obj" } })
+						:WithObjective("obj", { textKey = "ok" })
+				)
+			)
 		end)
 
 		it("passes when no stages are defined and no initialStage is set", function()
@@ -82,24 +94,26 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("reports stages defined without an initialStage", function()
-			local result = V.validate(V.mission()
-				:WithStage('stageA', { objectives = { 'obj' } })
-				:WithObjective('obj', { textKey = "ok" }))
+			local result = V.validate(
+				V.mission():WithStage("stageA", { objectives = { "obj" } }):WithObjective("obj", { textKey = "ok" })
+			)
 
 			V.assertMessage(result, "Stages are defined, but initialStage is not provided")
 		end)
 
 		it("reports an initialStage that does not exist", function()
-			local result = V.validate(V.mission()
-				:WithStage('stageA', { objectives = { 'obj' } })
-				:WithObjective('obj', { textKey = "ok" })
-				:WithInitialStage('stageB'))
+			local result = V.validate(
+				V.mission()
+					:WithStage("stageA", { objectives = { "obj" } })
+					:WithObjective("obj", { textKey = "ok" })
+					:WithInitialStage("stageB")
+			)
 
 			V.assertMessage(result, "Initial stage does not exist in stages. Stage: stageB")
 		end)
 
 		it("warns when initialStage is set but no stages are defined", function()
-			local result = V.validate(V.mission():WithInitialStage('stageA'))
+			local result = V.validate(V.mission():WithInitialStage("stageA"))
 
 			V.assertMessage(result, "initialStage is set, but no stages are defined. Stage: stageA")
 		end)
@@ -121,27 +135,33 @@ describe("mission_api.validation.sections", function()
 		it("reports incorrect field types", function()
 			local result = validateObjective({
 				textKey = "ok",
-				amount  = 'notANumber',
-				coop    = 'notABoolean',
+				amount = "notANumber",
+				coop = "notABoolean",
 			})
 
-			V.assertMessage(result, "Unexpected parameter type, expected number, got string. Objective: o, Field: amount")
-			V.assertMessage(result, "Unexpected parameter type, expected boolean, got string. Objective: o, Field: coop")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount"
+			)
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected boolean, got string. Objective: o, Field: coop"
+			)
 		end)
 	end)
 
 	describe("inline trigger", function()
 		it("passes for a valid inline trigger", function()
 			V.assertValid(validateObjectiveTrigger({
-				type       = V.triggerTypes.TimeElapsed,
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 90 },
 			}))
 		end)
 
 		it("reports a 'settings' field", function()
 			local result = validateObjectiveTrigger({
-				settings   = { repeating = true },
-				type       = V.triggerTypes.TimeElapsed,
+				settings = { repeating = true },
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 1 },
 			})
 
@@ -150,9 +170,9 @@ describe("mission_api.validation.sections", function()
 
 		it("reports an 'actions' field", function()
 			local result = validateObjectiveTrigger({
-				type       = V.triggerTypes.TimeElapsed,
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 1 },
-				actions    = { 'someAction' },
+				actions = { "someAction" },
 			})
 
 			V.assertMessage(result, "Objective trigger must not have an 'actions' field. Objective: o")
@@ -165,14 +185,14 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("reports an invalid type", function()
-			local result = validateObjectiveTrigger({ type = 'notAType' })
+			local result = validateObjectiveTrigger({ type = "notAType" })
 
 			V.assertMessage(result, "Objective trigger has invalid type. Objective: o")
 		end)
 
 		it("reports a missing required parameter", function()
 			local result = validateObjectiveTrigger({
-				type       = V.triggerTypes.TimeElapsed,
+				type = V.triggerTypes.TimeElapsed,
 				parameters = {},
 			})
 
@@ -182,8 +202,8 @@ describe("mission_api.validation.sections", function()
 		-- Objective triggers take their quantity from the objective's own amount.
 		it("warns when a statistics trigger specifies quantity", function()
 			local result = validateObjectiveTrigger({
-				type       = V.triggerTypes.UnitsOwned,
-				parameters = { teamID = 0, quantity = 5, unitDefName = 'armwar' },
+				type = V.triggerTypes.UnitsOwned,
+				parameters = { teamID = 0, quantity = 5, unitDefName = "armwar" },
 			})
 
 			V.assertMessage(result, "Objective trigger 'quantity' is not supported and will be ignored. Objective: o")
@@ -193,13 +213,13 @@ describe("mission_api.validation.sections", function()
 	--- Validates trigger 't' with the settings under test.
 	local function validateSettings(settings)
 		return V.validate(V.mission()
-			:WithTrigger('t', {
-				type       = V.triggerTypes.TimeElapsed,
+			:WithTrigger("t", {
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 1 },
-				settings   = settings,
-				actions    = { 'ok' },
+				settings = settings,
+				actions = { "ok" },
 			})
-			:WithAction('ok', { type = V.actionTypes.SendMessage, parameters = { message = 'ok' } }))
+			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } }))
 	end
 
 	describe("trigger shape", function()
@@ -208,19 +228,19 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("reports a missing type", function()
-			local result = V.validateTrigger({ actions = { 'ok' } })
+			local result = V.validateTrigger({ actions = { "ok" } })
 
 			V.assertMessage(result, "Trigger missing type. Trigger: t")
 		end)
 
 		it("reports an invalid type", function()
-			local result = V.validateTrigger({ type = 'notAType', actions = { 'ok' } })
+			local result = V.validateTrigger({ type = "notAType", actions = { "ok" } })
 
 			V.assertMessage(result, "Trigger has invalid type. Trigger: t")
 		end)
 
 		it("reports trigger data that is not a table", function()
-			local result = V.validate(V.mission():WithTrigger('t', 'notATable'))
+			local result = V.validate(V.mission():WithTrigger("t", "notATable"))
 
 			V.assertMessage(result, "Trigger data must be a table, got string. Trigger: t")
 		end)
@@ -228,17 +248,18 @@ describe("mission_api.validation.sections", function()
 
 	describe("actions", function()
 		it("reports a trigger without actions", function()
-			local result = V.validate(V.mission()
-				:WithTrigger('t', { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 } }))
+			local result = V.validate(
+				V.mission():WithTrigger("t", { type = V.triggerTypes.TimeElapsed, parameters = { seconds = 1 } })
+			)
 
 			V.assertMessage(result, "Trigger has no actions. Trigger: t")
 		end)
 
 		it("reports an 'actions' field that is not a table", function()
 			local result = V.validateTrigger({
-				type       = V.triggerTypes.TimeElapsed,
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 1 },
-				actions    = 'notATable',
+				actions = "notATable",
 			})
 
 			V.assertMessage(result, "Trigger 'actions' field must be a table, got string. Trigger: t")
@@ -246,9 +267,9 @@ describe("mission_api.validation.sections", function()
 
 		it("reports an action ID that does not exist", function()
 			local result = V.validateTrigger({
-				type       = V.triggerTypes.TimeElapsed,
+				type = V.triggerTypes.TimeElapsed,
 				parameters = { seconds = 1 },
-				actions    = { 'doesNotExist' },
+				actions = { "doesNotExist" },
 			})
 
 			V.assertMessage(result, "Trigger has invalid action ID. Trigger: t, Action: doesNotExist")
@@ -262,15 +283,21 @@ describe("mission_api.validation.sections", function()
 		end)
 
 		it("reports settings that are not a table", function()
-			local result = validateSettings('notATable')
+			local result = validateSettings("notATable")
 
-			V.assertMessage(result, "Unexpected parameter type, expected table, got string. Trigger: t, Setting: settings")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected table, got string. Trigger: t, Setting: settings"
+			)
 		end)
 
 		it("reports a setting of the wrong type", function()
-			local result = validateSettings({ repeating = 'notABoolean' })
+			local result = validateSettings({ repeating = "notABoolean" })
 
-			V.assertMessage(result, "Unexpected parameter type, expected boolean, got string. Trigger: t, Setting: repeating")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected boolean, got string. Trigger: t, Setting: repeating"
+			)
 		end)
 
 		it("reports maxRepeats without repeating", function()
@@ -287,7 +314,7 @@ describe("mission_api.validation.sections", function()
 
 		describe("prerequisites", function()
 			it("reports a prerequisite trigger that does not exist", function()
-				local result = validateSettings({ prerequisites = { 'noSuchTrigger' } })
+				local result = validateSettings({ prerequisites = { "noSuchTrigger" } })
 
 				V.assertMessage(result, "Invalid triggerID: noSuchTrigger. Trigger: t, Setting: prerequisites[1]")
 			end)
@@ -295,13 +322,16 @@ describe("mission_api.validation.sections", function()
 			it("reports a prerequisite of the wrong type", function()
 				local result = validateSettings({ prerequisites = { {} } })
 
-				V.assertMessage(result, "Unexpected parameter type, expected string, got table. Trigger: t, Setting: prerequisites[1]")
+				V.assertMessage(
+					result,
+					"Unexpected parameter type, expected string, got table. Trigger: t, Setting: prerequisites[1]"
+				)
 			end)
 		end)
 
 		describe("stages", function()
 			it("reports a stage that does not exist", function()
-				local result = validateSettings({ stages = { 'noSuchStage' } })
+				local result = validateSettings({ stages = { "noSuchStage" } })
 
 				V.assertMessage(result, "Invalid stageID: noSuchStage. Trigger: t, Setting: stages[1]")
 			end)
@@ -309,7 +339,10 @@ describe("mission_api.validation.sections", function()
 			it("reports a stage of the wrong type", function()
 				local result = validateSettings({ stages = { 123 } })
 
-				V.assertMessage(result, "Unexpected parameter type, expected string, got number. Trigger: t, Setting: stages[1]")
+				V.assertMessage(
+					result,
+					"Unexpected parameter type, expected string, got number. Trigger: t, Setting: stages[1]"
+				)
 			end)
 		end)
 	end)
@@ -323,33 +356,39 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	it("reports an invalid type", function()
-		V.assertMessage(V.validateAction({ type = 'notAType' }), "Action has invalid type. Action: a")
+		V.assertMessage(V.validateAction({ type = "notAType" }), "Action has invalid type. Action: a")
 	end)
 
 	it("reports action data that is not a table", function()
-		local result = V.validate(V.mission()
-			:WithTrigger('t', V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-			:WithAction('ok', 'notATable'))
+		local result = V.validate(
+			V.mission()
+				:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+				:WithAction("ok", "notATable")
+		)
 
 		V.assertMessage(result, "Action data must be a table, got string. Action: ok")
 	end)
 
 	describe("trigger references", function()
 		it("reports actions that no trigger references", function()
-			local result = V.validate(V.mission()
-				:WithTrigger('t', V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-				:WithAction('ok', { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-				:WithAction('unused', { type = V.actionTypes.SendMessage, parameters = { message = "unused" } }))
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { message = "unused" } })
+			)
 
 			V.assertMessage(result, "Actions not referenced by any trigger: unused")
 		end)
 
 		it("lists unreferenced actions in sorted order", function()
-			local result = V.validate(V.mission()
-				:WithTrigger('t', V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-				:WithAction('ok', { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-				:WithAction('zzz', { type = V.actionTypes.SendMessage, parameters = { message = "zzz" } })
-				:WithAction('aaa', { type = V.actionTypes.SendMessage, parameters = { message = "aaa" } }))
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { message = "zzz" } })
+					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { message = "aaa" } })
+			)
 
 			V.assertMessage(result, "Actions not referenced by any trigger: aaa, zzz")
 		end)
@@ -360,18 +399,18 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	it("validates loadout entries", function()
-		local result = V.validate(V.mission()
-			:WithUnitLoadout({ { unitDefName = 'noSuch', x = 0, z = 0, team = 0 } })
-			:WithFeatureLoadout({ { featureDefName = 'rockdef', z = 0 } }))
+		local result = V.validate(
+			V.mission()
+				:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
+				:WithFeatureLoadout({ { featureDefName = "rockdef", z = 0 } })
+		)
 
 		V.assertMessage(result, "Invalid unitDefName: noSuch. Loadout: UnitLoadout[1].unitDefName")
 		V.assertMessage(result, "Missing required parameter. Loadout: FeatureLoadout[1].x")
 	end)
 
 	it("reports loadouts that are not tables", function()
-		local result = V.validate(V.mission()
-			:WithUnitLoadout('notATable')
-			:WithFeatureLoadout(42))
+		local result = V.validate(V.mission():WithUnitLoadout("notATable"):WithFeatureLoadout(42))
 
 		V.assertMessage(result, "UnitLoadout must be a table, got string")
 		V.assertMessage(result, "FeatureLoadout must be a table, got number")
@@ -390,9 +429,12 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	it("reports parameters that are not a table", function()
-		local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = 'notATable' })
+		local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = "notATable" })
 
-		V.assertMessage(result, "Unexpected parameter type, expected table, got string. Action: a, Parameter: parameters")
+		V.assertMessage(
+			result,
+			"Unexpected parameter type, expected table, got string. Action: a, Parameter: parameters"
+		)
 	end)
 
 	it("passes for an action whose parameters are all optional and omitted", function()
@@ -410,12 +452,14 @@ describe("mission_api.validation.sections", function()
 		it("reports when none of the alternatives is present", function()
 			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, {}))
 
-			V.assertMessage(result,
-				[[Trigger is missing required parameter, at least one of {"unitName","unitDefName"} is required. Trigger: t]])
+			V.assertMessage(
+				result,
+				[[Trigger is missing required parameter, at least one of {"unitName","unitDefName"} is required. Trigger: t]]
+			)
 		end)
 
 		it("passes when one of the alternatives is present", function()
-			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = 'armwar' }))
+			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
 		end)

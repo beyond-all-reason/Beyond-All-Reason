@@ -4,11 +4,11 @@
 
 -- The order in the log:
 local sections = {
-	Stages     = 1,
+	Stages = 1,
 	Objectives = 2,
-	Triggers   = 3,
-	Actions    = 4,
-	Loadouts   = 5,
+	Triggers = 3,
+	Actions = 4,
+	Loadouts = 5,
 	References = 6,
 }
 
@@ -24,7 +24,7 @@ local function isBefore(a, b)
 end
 
 local function formatMessage(entry)
-	if entry.id == '' then
+	if entry.id == "" then
 		-- A mission wide message, e.g. one about the mission's stages as a whole.
 		return entry.details and (entry.message .. ". " .. entry.details) or entry.message
 	end
@@ -50,12 +50,12 @@ local function createReport()
 	local function add(entries, section, label, id, message, details)
 		sequence = sequence + 1
 		entries[#entries + 1] = {
-			section  = section or math.huge, -- an unknown section sorts last
-			label    = label,
-			id       = label and tostring(id or '') or '',
+			section = section or math.huge, -- an unknown section sorts last
+			label = label,
+			id = label and tostring(id or "") or "",
 			sequence = sequence,
-			message  = message,
-			details  = details,
+			message = message,
+			details = details,
 		}
 	end
 
@@ -69,8 +69,8 @@ local function createReport()
 
 		GetResult = function()
 			return {
-				ok       = #errors == 0,
-				errors   = toMessages(errors),
+				ok = #errors == 0,
+				errors = toMessages(errors),
 				warnings = toMessages(warnings),
 			}
 		end,
@@ -78,6 +78,6 @@ local function createReport()
 end
 
 return {
-	Create   = createReport,
+	Create = createReport,
 	Sections = sections,
 }

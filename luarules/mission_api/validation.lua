@@ -4,13 +4,14 @@
 --- LogResult writes the messages.
 ---
 
-local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
-local validationReport = VFS.Include('luarules/mission_api/validation/report.lua')
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
 local createReport = validationReport.Create
 local sections = validationReport.Sections
-local createParameterValidators = VFS.Include('luarules/mission_api/validation/parameter_validators.lua').CreateParameterValidators
-local sectionsValidation = VFS.Include('luarules/mission_api/validation/sections.lua')
-local referencesValidation = VFS.Include('luarules/mission_api/validation/references.lua')
+local createParameterValidators =
+	VFS.Include("luarules/mission_api/validation/parameter_validators.lua").CreateParameterValidators
+local sectionsValidation = VFS.Include("luarules/mission_api/validation/sections.lua")
+local referencesValidation = VFS.Include("luarules/mission_api/validation/references.lua")
 
 --- Mission tables are normalised here so no validator has to handle a missing or
 --- misdeclared one. A wrong type is reported once, in the section it belongs to.
@@ -18,7 +19,7 @@ local function missionTable(value, fieldName, section, report)
 	if value == nil then
 		return {}
 	end
-	if type(value) ~= 'table' then
+	if type(value) ~= "table" then
 		report.Error(section, nil, nil, fieldName .. " must be a table, got " .. type(value))
 		return {}
 	end
@@ -35,25 +36,28 @@ local function createValidationContext(mission, definitions, report)
 
 	return {
 		-- Raw mission data:
-		InitialStage   = mission.InitialStage,
-		Stages         = missionTable(mission.Stages, 'Stages', sections.Stages, report),
-		Objectives     = missionTable(mission.Objectives, 'Objectives', sections.Objectives, report),
-		Triggers       = missionTable(mission.Triggers, 'Triggers', sections.Triggers, report),
-		Actions        = missionTable(mission.Actions, 'Actions', sections.Actions, report),
-		UnitLoadout    = missionTable(mission.UnitLoadout, 'UnitLoadout', sections.Loadouts, report),
-		FeatureLoadout = missionTable(mission.FeatureLoadout, 'FeatureLoadout', sections.Loadouts, report),
+		InitialStage = mission.InitialStage,
+		Stages = missionTable(mission.Stages, "Stages", sections.Stages, report),
+		Objectives = missionTable(mission.Objectives, "Objectives", sections.Objectives, report),
+		Triggers = missionTable(mission.Triggers, "Triggers", sections.Triggers, report),
+		Actions = missionTable(mission.Actions, "Actions", sections.Actions, report),
+		UnitLoadout = missionTable(mission.UnitLoadout, "UnitLoadout", sections.Loadouts, report),
+		FeatureLoadout = missionTable(mission.FeatureLoadout, "FeatureLoadout", sections.Loadouts, report),
 
 		-- Parameter types:
-		Types    = parameterTypes.Types,
-		Enums    = parameterTypes.Enums,
+		Types = parameterTypes.Types,
+		Enums = parameterTypes.Enums,
 		EnumSets = parameterTypes.EnumSets,
 
 		-- Trigger definitions:
-		TriggerParameters        = triggerDefinitions.Parameters,
-		TriggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity),
+		TriggerParameters = triggerDefinitions.Parameters,
+		TriggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
+			triggerDefinitions.Parameters,
+			parameterTypes.Types.Quantity
+		),
 
 		-- Action definitions:
-		ActionTypes      = actionDefinitions.Types,
+		ActionTypes = actionDefinitions.Types,
 		ActionParameters = actionDefinitions.Parameters,
 	}
 end
@@ -87,14 +91,14 @@ end
 --- @param result table as returned by ValidateMission
 local function logResult(result)
 	for _, message in ipairs(result.errors) do
-		Spring.Log('MissionAPI', LOG.ERROR, "[Mission API] " .. message)
+		Spring.Log("MissionAPI", LOG.ERROR, "[Mission API] " .. message)
 	end
 	for _, message in ipairs(result.warnings) do
-		Spring.Log('MissionAPI', LOG.WARNING, "[Mission API] " .. message)
+		Spring.Log("MissionAPI", LOG.WARNING, "[Mission API] " .. message)
 	end
 end
 
 return {
 	ValidateMission = validateMission,
-	LogResult       = logResult,
+	LogResult = logResult,
 }

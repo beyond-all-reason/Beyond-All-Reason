@@ -24,7 +24,7 @@ local function loadTriggerDefinitions()
 	end
 
 	return {
-		Types      = types,
+		Types = types,
 		Parameters = parameters,
 		Callins = callins,
 	}

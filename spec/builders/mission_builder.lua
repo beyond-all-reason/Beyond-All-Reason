@@ -9,24 +9,24 @@ MB.__index = MB
 
 ---@return MissionBuilder
 function MB.new()
-    return setmetatable({
-        fields = {
-            Stages         = {},
-            Objectives     = {},
-            Triggers       = {},
-            Actions        = {},
-            UnitLoadout    = {},
-            FeatureLoadout = {},
-        },
-    }, MB)
+	return setmetatable({
+		fields = {
+			Stages = {},
+			Objectives = {},
+			Triggers = {},
+			Actions = {},
+			UnitLoadout = {},
+			FeatureLoadout = {},
+		},
+	}, MB)
 end
 
 ---@param self MissionBuilder
 ---@param stageID string
 ---@return MissionBuilder
 function MB:WithInitialStage(stageID)
-    self.fields.InitialStage = stageID
-    return self
+	self.fields.InitialStage = stageID
+	return self
 end
 
 ---@param self MissionBuilder
@@ -34,8 +34,8 @@ end
 ---@param stage table objectives table, or the whole stage
 ---@return MissionBuilder
 function MB:WithStage(stageID, stage)
-    self.fields.Stages[stageID] = stage or { objectives = {} }
-    return self
+	self.fields.Stages[stageID] = stage or { objectives = {} }
+	return self
 end
 
 ---Sets the stage and makes it the initial one, for missions with a single stage.
@@ -44,7 +44,7 @@ end
 ---@param stage table
 ---@return MissionBuilder
 function MB:WithInitialStageDefinition(stageID, stage)
-    return self:WithStage(stageID, stage):WithInitialStage(stageID)
+	return self:WithStage(stageID, stage):WithInitialStage(stageID)
 end
 
 ---@param self MissionBuilder
@@ -52,8 +52,8 @@ end
 ---@param objective table
 ---@return MissionBuilder
 function MB:WithObjective(objectiveID, objective)
-    self.fields.Objectives[objectiveID] = objective or {}
-    return self
+	self.fields.Objectives[objectiveID] = objective or {}
+	return self
 end
 
 ---@param self MissionBuilder
@@ -61,8 +61,8 @@ end
 ---@param trigger table
 ---@return MissionBuilder
 function MB:WithTrigger(triggerID, trigger)
-    self.fields.Triggers[triggerID] = trigger or {}
-    return self
+	self.fields.Triggers[triggerID] = trigger or {}
+	return self
 end
 
 ---@param self MissionBuilder
@@ -70,24 +70,24 @@ end
 ---@param action table
 ---@return MissionBuilder
 function MB:WithAction(actionID, action)
-    self.fields.Actions[actionID] = action or {}
-    return self
+	self.fields.Actions[actionID] = action or {}
+	return self
 end
 
 ---@param self MissionBuilder
 ---@param loadout table
 ---@return MissionBuilder
 function MB:WithUnitLoadout(loadout)
-    self.fields.UnitLoadout = loadout
-    return self
+	self.fields.UnitLoadout = loadout
+	return self
 end
 
 ---@param self MissionBuilder
 ---@param loadout table
 ---@return MissionBuilder
 function MB:WithFeatureLoadout(loadout)
-    self.fields.FeatureLoadout = loadout
-    return self
+	self.fields.FeatureLoadout = loadout
+	return self
 end
 
 ---Sets a top level field directly, for missions that declare one incorrectly.
@@ -96,8 +96,8 @@ end
 ---@param value any
 ---@return MissionBuilder
 function MB:WithField(field, value)
-    self.fields[field] = value
-    return self
+	self.fields[field] = value
+	return self
 end
 
 ---Each call returns an independent mission, so a built mission is a snapshot of the
@@ -105,19 +105,19 @@ end
 ---@param self MissionBuilder
 ---@return table raw mission table
 function MB:Build()
-    local mission = {}
-    for field, value in pairs(self.fields) do
-        if type(value) == 'table' then
-            local section = {}
-            for key, entry in pairs(value) do
-                section[key] = entry
-            end
-            mission[field] = section
-        else
-            mission[field] = value
-        end
-    end
-    return mission
+	local mission = {}
+	for field, value in pairs(self.fields) do
+		if type(value) == "table" then
+			local section = {}
+			for key, entry in pairs(value) do
+				section[key] = entry
+			end
+			mission[field] = section
+		else
+			mission[field] = value
+		end
+	end
+	return mission
 end
 
 return MB

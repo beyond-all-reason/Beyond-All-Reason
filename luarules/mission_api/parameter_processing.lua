@@ -34,7 +34,7 @@ local function processOrders(orders)
 	for _, order in ipairs(orders) do
 		local commandIndex = order[1] == CMD.INSERT and 3 or 1
 		local commandID = order[commandIndex]
-		if type(commandID) == 'string' then
+		if type(commandID) == "string" then
 			-- A build order names the unit to build, which the engine takes as a negative ID.
 			order[commandIndex] = -UnitDefNames[commandID].id
 		end
@@ -54,7 +54,7 @@ local function processCommand(command)
 end
 
 local function processSoundFile(soundfile)
-	GG['MissionAPI'].soundFiles[soundfile] = ReadWAV(soundfile).Length
+	GG["MissionAPI"].soundFiles[soundfile] = ReadWAV(soundfile).Length
 end
 
 local function processEnumSet(values)

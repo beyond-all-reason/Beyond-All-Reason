@@ -29,14 +29,14 @@ local function eprint(message)
 	io.stderr:write(message .. "\n")
 end
 
-local EXIT_OK      = 0
+local EXIT_OK = 0
 local EXIT_INVALID = 1
-local EXIT_ERROR   = 2
+local EXIT_ERROR = 2
 
-local missionPath    = nil
-local strictDefs     = false
-local verbose        = false
-local teamCount      = 2
+local missionPath = nil
+local strictDefs = false
+local verbose = false
+local teamCount = 2
 
 local argIndex = 1
 while argIndex <= #args do
@@ -97,16 +97,16 @@ tableFunctions()
 --------------------------------------------------------------------------------
 
 _G.LOG = {
-	ERROR      = "ERROR",
-	WARNING    = "WARNING",
-	INFO       = "INFO",
-	DEBUG      = "DEBUG",
+	ERROR = "ERROR",
+	WARNING = "WARNING",
+	INFO = "INFO",
+	DEBUG = "DEBUG",
 	DEPRECATED = "DEPRECATED",
 }
 
 -- Validation returns its messages, so nothing needs to be captured from these.
 _G.Spring = {
-	Log  = function() end,
+	Log = function() end,
 	Echo = function() end,
 }
 
@@ -131,9 +131,9 @@ end
 
 --- Engine constants that Mission API modules read when they are included.
 _G.Game = {
-	gameSpeed      = 30,
-	maxUnits       = 32000,
-	squareSize     = 8,
+	gameSpeed = 30,
+	maxUnits = 32000,
+	squareSize = 8,
 	envDamageTypes = {},
 }
 
@@ -245,14 +245,48 @@ end
 -- the known-command lookup in the order validators relies on.
 _G.CMD = {}
 for index, name in ipairs({
-	"ANY", "BUILD", "STOP", "INSERT", "REMOVE", "WAIT", "TIMEWAIT", "DEATHWAIT", "SQUADWAIT", "GATHERWAIT",
-	"MOVE", "PATROL", "FIGHT", "ATTACK", "AREA_ATTACK", "GUARD", "AISELECT", "GROUPSELECT",
-	"GROUPADD", "GROUPCLEAR", "REPAIR", "FIRE_STATE", "MOVE_STATE", "SETBASE", "INTERNAL",
-	"SELFD", "LOAD_UNITS", "UNLOAD_UNITS", "UNLOAD_UNIT", "ONOFF", "RECLAIM", "CLOAK",
-	"STOCKPILE", "DGUN", "RESTORE", "RESURRECT", "CAPTURE", "AUTOREPAIRLEVEL",
-	"LOOPBACKATTACK", "DO_SEISMICPING",
+	"ANY",
+	"BUILD",
+	"STOP",
+	"INSERT",
+	"REMOVE",
+	"WAIT",
+	"TIMEWAIT",
+	"DEATHWAIT",
+	"SQUADWAIT",
+	"GATHERWAIT",
+	"MOVE",
+	"PATROL",
+	"FIGHT",
+	"ATTACK",
+	"AREA_ATTACK",
+	"GUARD",
+	"AISELECT",
+	"GROUPSELECT",
+	"GROUPADD",
+	"GROUPCLEAR",
+	"REPAIR",
+	"FIRE_STATE",
+	"MOVE_STATE",
+	"SETBASE",
+	"INTERNAL",
+	"SELFD",
+	"LOAD_UNITS",
+	"UNLOAD_UNITS",
+	"UNLOAD_UNIT",
+	"ONOFF",
+	"RECLAIM",
+	"CLOAK",
+	"STOCKPILE",
+	"DGUN",
+	"RESTORE",
+	"RESURRECT",
+	"CAPTURE",
+	"AUTOREPAIRLEVEL",
+	"LOOPBACKATTACK",
+	"DO_SEISMICPING",
 }) do
-	_G.CMD[name]  = index
+	_G.CMD[name] = index
 	_G.CMD[index] = name
 end
 
@@ -278,21 +312,30 @@ local function scanDefsFromDir(directory)
 end
 
 local function anyDefName()
-	return setmetatable({}, { __index = function() return { id = 0 } end })
+	return setmetatable({}, {
+		__index = function()
+			return { id = 0 }
+		end,
+	})
 end
 
 -- Unit defs are files in units/, so they can always be checked. Weapon and feature
 -- defs are generated at runtime from those unit defs, so unless strictness is asked
 -- for they are accepted as-is rather than reported as invalid.
-_G.UnitDefNames    = scanDefsFromDir("units")
-_G.WeaponDefNames  = strictDefs and scanDefsFromDir("weapons") or anyDefName()
+_G.UnitDefNames = scanDefsFromDir("units")
+_G.WeaponDefNames = strictDefs and scanDefsFromDir("weapons") or anyDefName()
 _G.FeatureDefNames = strictDefs and scanDefsFromDir("features") or anyDefName()
 
 if verbose then
 	print(string.format("[validate_mission] Scanned %d unit def names", table.count(_G.UnitDefNames)))
 	if strictDefs then
-		print(string.format("[validate_mission] Scanned %d weapon and %d feature def names",
-			table.count(_G.WeaponDefNames), table.count(_G.FeatureDefNames)))
+		print(
+			string.format(
+				"[validate_mission] Scanned %d weapon and %d feature def names",
+				table.count(_G.WeaponDefNames),
+				table.count(_G.FeatureDefNames)
+			)
+		)
 	end
 end
 
@@ -307,12 +350,12 @@ _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
-local actionDefinitions  = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
+local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
 local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
 
-_G.GG["MissionAPI"].ActionDefinitions  = actionDefinitions
+_G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
-_G.GG["MissionAPI"].Difficulty         = 0
+_G.GG["MissionAPI"].Difficulty = 0
 
 --------------------------------------------------------------------------------
 -- Load the mission
@@ -342,8 +385,8 @@ end
 local validation = VFS.Include("luarules/mission_api/validation.lua")
 
 local result = validation.ValidateMission(mission, {
-	ParameterTypes     = parameterTypes,
-	ActionDefinitions  = actionDefinitions,
+	ParameterTypes = parameterTypes,
+	ActionDefinitions = actionDefinitions,
 	TriggerDefinitions = triggerDefinitions,
 })
 
