@@ -163,8 +163,6 @@ jobs:
             report_only="--report-only"
           fi
 
-          # ! Adding a python dependency so need to evaluate the universe from scratch again.
-          # Hold the verdict so the report is sized up before we exit on it.
           set +e
           python3 head/.github/scripts/emmylua_compare.py $report_only \
             --base base-*.json \
@@ -178,7 +176,7 @@ jobs:
             --warn-scope "$WARN_SCOPE" \
             --summary "$GITHUB_STEP_SUMMARY" \
             --ci-report ci-report.md
-          verdict=$?
+          exit_code=$?
           set -e
 
           # The compact report is bounded by construction. Over its slice anyway
@@ -192,7 +190,7 @@ jobs:
             echo "Compact report: $report_bytes bytes (limit $REPORT_LIMIT)."
           fi
 
-          exit $verdict
+          exit $exit_code
 
       # Picked up by the CI Results comment. Named the same in every check, so
       # that job can fetch it by name from whichever run it is looking at.
