@@ -1951,10 +1951,10 @@ local options = {
 		key = "air_rework",
 		name = "Air Rework",
 		desc = "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-		hidden = true,
+		--hidden = true,
 		type = "bool",
 		section = "options_experimental",
-		def = false,
+		def = true,
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
