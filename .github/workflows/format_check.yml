@@ -2,7 +2,10 @@ name: Format Check
 
 on:
   pull_request:
-    paths: ['**.lua']
+    paths:
+      - "**.lua"
+      # So that a change to the check runs the check.
+      - ".github/workflows/format_check.yml"
 
 permissions:
   contents: read

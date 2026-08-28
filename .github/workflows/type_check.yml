@@ -2,7 +2,11 @@ name: Type Check
 
 on:
   pull_request:
-    paths: ["**.lua"]
+    paths:
+      - "**.lua"
+      # So that a change to the check runs the check.
+      - ".github/workflows/type_check.yml"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 permissions:
@@ -126,6 +130,7 @@ jobs:
           echo "$changed changed line(s) across $(tr -cd '\0' < changed.txt | wc -c) file(s)."
 
       - name: Run emmylua_check
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
           # A manual run has nothing to compare against (yet) so it runs once.
           sides="head"
@@ -161,6 +166,7 @@ jobs:
       # Info and hints are only ever reported.
       # Manual runs always report green and are presumed informational/analytical.
       - name: Compare against the base
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
           if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
             python3 head/.github/scripts/emmylua_compare.py \
