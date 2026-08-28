@@ -1,5 +1,7 @@
 local STARTUP_CAMERA_INITIAL_ZOOM_DISTANCE = 5000
 
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -40,7 +42,7 @@ function widget:Initialize()
 		xMax = Game.mapSizeX
 		zMax = Game.mapSizeZ
 	else
-		xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(Spring.GetLocalAllyTeamID())
+		xMin, zMin, xMax, zMax = StartboxLib.GetBounds(Spring.GetLocalAllyTeamID())
 	end
 
 	if not xMin or not zMin or not xMax or not zMax then
