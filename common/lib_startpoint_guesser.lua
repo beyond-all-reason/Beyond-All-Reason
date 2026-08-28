@@ -47,19 +47,22 @@ local function IsInStartbox(allyID, x, z, xmin, zmin, xmax, zmax)
 end
 
 local samplesByAllyID = {}
+local sampleBoundsByAllyID = {}
 
 -- A grid of points that are actually in the box, so the callers below can ask for a nearest
 -- point or a middle without falling back on the bounding box, which for a box shaped like a
 -- ring or a wedge is largely outside it.
 local function StartboxSamples(allyID, xmin, zmin, xmax, zmax)
+	local boundsKey = xmin .. "," .. zmin .. "," .. xmax .. "," .. zmax
 	local cached = samplesByAllyID[allyID]
-	if cached ~= nil then
+	if cached ~= nil and sampleBoundsByAllyID[allyID] == boundsKey then
 		return cached
 	end
 
 	local entry = GetStartboxEntry(allyID)
 	if not entry or not entry.boxes then
 		samplesByAllyID[allyID] = false
+		sampleBoundsByAllyID[allyID] = boundsKey
 		return false
 	end
 
@@ -86,6 +89,7 @@ local function StartboxSamples(allyID, xmin, zmin, xmax, zmax)
 	end
 
 	samplesByAllyID[allyID] = samples
+	sampleBoundsByAllyID[allyID] = boundsKey
 	return samples
 end
 
