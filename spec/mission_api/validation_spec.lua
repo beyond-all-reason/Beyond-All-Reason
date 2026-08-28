@@ -82,12 +82,12 @@ describe("mission_api.validation", function()
 			TriggerDefinitions = triggerDefinitions,
 			Modules = {},
 			ActionDefinitions = actionDefinitions,
-			Objectives        = {},
-			Stages            = {},
-			Triggers          = {},
-			Actions           = {},
-			Teams             = { teamA = 0 },
-			AllyTeams         = { allyA = 0 },
+			Objectives = {},
+			Stages = {},
+			Triggers = {},
+			Actions = {},
+			Teams = { teamA = 0 },
+			AllyTeams = { allyA = 0 },
 		}
 	end)
 
@@ -535,8 +535,8 @@ describe("mission_api.validation", function()
 		describe("UnitDefName", function()
 			it("rejects wrong type", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 123, teamName = 'teamA', x = 0, z = 0 } } },
+					type = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 123, teamName = "teamA", x = 0, z = 0 } } },
 				})
 				assert.is_true(
 					hasError(
@@ -547,8 +547,8 @@ describe("mission_api.validation", function()
 
 			it("rejects unknown unit def name", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'noSuch', teamName = 'teamA', x = 0, z = 0 } } },
+					type = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = "noSuch", teamName = "teamA", x = 0, z = 0 } } },
 				})
 				assert.is_true(
 					hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Invalid unitDefName: noSuch")
@@ -593,8 +593,8 @@ describe("mission_api.validation", function()
 
 			it("reports a missing required field in a unitLoadout entry", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0 } } }, -- missing teamName
+					type = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = "armwar", x = 0, z = 0 } } }, -- missing teamName
 				})
 				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'teamName'"))
 			end)
@@ -633,8 +633,10 @@ describe("mission_api.validation", function()
 		describe("Facing", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', teamName = 'teamA', x = 0, z = 0, facing = {} } } },
+					type = actionTypes.SpawnUnits,
+					parameters = {
+						unitLoadout = { { unitDefName = "armwar", teamName = "teamA", x = 0, z = 0, facing = {} } },
+					},
 				})
 				assert.is_true(
 					hasError(
@@ -645,8 +647,12 @@ describe("mission_api.validation", function()
 
 			it("rejects invalid facing value", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', teamName = 'teamA', x = 0, z = 0, facing = 'diagonal' } } },
+					type = actionTypes.SpawnUnits,
+					parameters = {
+						unitLoadout = {
+							{ unitDefName = "armwar", teamName = "teamA", x = 0, z = 0, facing = "diagonal" },
+						},
+					},
 				})
 				assert.is_true(
 					hasError(
@@ -698,16 +704,18 @@ describe("mission_api.validation", function()
 		describe("TeamName", function()
 			it("rejects wrong type", function()
 				actionErrors({
-					type       = actionTypes.AddResources,
+					type = actionTypes.AddResources,
 					parameters = { teamName = 123, metal = 1 },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: teamName"))
+				assert.is_true(
+					hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: teamName")
+				)
 			end)
 
 			it("rejects invalid team name", function()
 				actionErrors({
-					type       = actionTypes.AddResources,
-					parameters = { teamName = 'noSuchTeam', metal = 1 },
+					type = actionTypes.AddResources,
+					parameters = { teamName = "noSuchTeam", metal = 1 },
 				})
 				assert.is_true(hasError("Invalid teamName: noSuchTeam. Action: a, Parameter: teamName"))
 			end)
@@ -716,18 +724,22 @@ describe("mission_api.validation", function()
 		describe("AllyTeamName", function()
 			it("rejects wrong type", function()
 				triggerErrors({
-					type       = triggerTypes.UnitDetected,
-					parameters = { unitName = 'x', sensorAllyTeamName = 123 },
-					actions    = { 'ok' },
+					type = triggerTypes.UnitDetected,
+					parameters = { unitName = "x", sensorAllyTeamName = 123 },
+					actions = { "ok" },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: sensorAllyTeamName"))
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected string, got number. Trigger: t, Parameter: sensorAllyTeamName"
+					)
+				)
 			end)
 
 			it("rejects invalid ally team name", function()
 				triggerErrors({
-					type       = triggerTypes.UnitDetected,
-					parameters = { unitName = 'x', sensorAllyTeamName = 'noSuchAllyTeam' },
-					actions    = { 'ok' },
+					type = triggerTypes.UnitDetected,
+					parameters = { unitName = "x", sensorAllyTeamName = "noSuchAllyTeam" },
+					actions = { "ok" },
 				})
 				assert.is_true(hasError("Invalid allyTeamName: noSuchAllyTeam. Trigger: t, Parameter: sensorAllyName"))
 			end)
@@ -735,8 +747,12 @@ describe("mission_api.validation", function()
 
 		describe("AllyTeamNames", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = 'bad' } })
-				assert.is_true(hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: allyTeamNames"))
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = "bad" } })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected table, got string. Action: a, Parameter: allyTeamNames"
+					)
+				)
 			end)
 
 			it("rejects empty table", function()
@@ -746,11 +762,15 @@ describe("mission_api.validation", function()
 
 			it("rejects non-string element", function()
 				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = { 123 } } })
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: allyTeamNames.allyTeamName #1"))
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected string, got number. Action: a, Parameter: allyTeamNames.allyTeamName #1"
+					)
+				)
 			end)
 
 			it("rejects invalid ally team name element", function()
-				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = { 'noSuchAllyTeam' } } })
+				actionErrors({ type = actionTypes.Victory, parameters = { allyTeamNames = { "noSuchAllyTeam" } } })
 				assert.is_true(hasError("Invalid allyTeamName: noSuchAllyTeam. Action: a, Parameter: allyTeamNames"))
 			end)
 		end)
@@ -1064,16 +1084,26 @@ describe("mission_api.validation", function()
 		it("passes for valid unit, feature, and marker references", function()
 			GG["MissionAPI"].Triggers = {
 				statsKill = {
-				type       = triggerTypes.TotalUnitsKilled,
-				parameters = { teamName = 'teamA', quantity = 1, unitName = 'bot' },
-			},
+					type = triggerTypes.TotalUnitsKilled,
+					parameters = { teamName = "teamA", quantity = 1, unitName = "bot" },
+				},
 			}
-			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'bot' } } } },
-				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
-				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'rock' } },
-				add    = { type = actionTypes.AddMarker, parameters = { name = 'flag' } },
-				erase  = { type = actionTypes.EraseMarker, parameters = { name = 'flag' } },
+			GG["MissionAPI"].Actions = {
+				spawn = {
+					type = actionTypes.SpawnUnits,
+					parameters = {
+						unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, teamName = "teamA", unitName = "bot" } },
+					},
+				},
+				create = {
+					type = actionTypes.CreateFeatures,
+					parameters = {
+						featureLoadout = { { featureDefName = "rockdef", x = 0, z = 0, featureName = "rock" } },
+					},
+				},
+				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = "rock" } },
+				add = { type = actionTypes.AddMarker, parameters = { name = "flag" } },
+				erase = { type = actionTypes.EraseMarker, parameters = { name = "flag" } },
 			}
 
 			validation.ValidateReferences()
@@ -1087,7 +1117,7 @@ describe("mission_api.validation", function()
 					textKey = "watch bot",
 					trigger = {
 						type = triggerTypes.UnitsOwned,
-						parameters = { teamName = 'teamA', unitName = 'bot' },
+						parameters = { teamName = "teamA", unitName = "bot" },
 					},
 				},
 				watchRock = {
@@ -1098,9 +1128,19 @@ describe("mission_api.validation", function()
 					},
 				},
 			}
-			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'bot' } } } },
-				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'rock' } } } },
+			GG["MissionAPI"].Actions = {
+				spawn = {
+					type = actionTypes.SpawnUnits,
+					parameters = {
+						unitLoadout = { { unitDefName = "armwar", x = 0, z = 0, teamName = "teamA", unitName = "bot" } },
+					},
+				},
+				create = {
+					type = actionTypes.CreateFeatures,
+					parameters = {
+						featureLoadout = { { featureDefName = "rockdef", x = 0, z = 0, featureName = "rock" } },
+					},
+				},
 			}
 
 			validation.ValidateReferences()
@@ -1111,14 +1151,28 @@ describe("mission_api.validation", function()
 		it(
 			"logs errors for unit, feature, and marker names that are created-but-not-referenced or referenced-but-not-created",
 			function()
-			GG['MissionAPI'].Actions = {
-				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, teamName = 'teamA', unitName = 'unusedUnit' } } } },
-				useUnknown   = { type = actionTypes.DespawnUnits, parameters = { unitName = 'unknownUnit' } },
-				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'unusedRock' } } } },
-				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },
-				addUnused    = { type = actionTypes.AddMarker, parameters = { name = 'unusedFlag' } },
-				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = 'unknownFlag' } },
-			}
+				GG["MissionAPI"].Actions = {
+					spawnUnused = {
+						type = actionTypes.SpawnUnits,
+						parameters = {
+							unitLoadout = {
+								{ unitDefName = "armwar", x = 0, z = 0, teamName = "teamA", unitName = "unusedUnit" },
+							},
+						},
+					},
+					useUnknown = { type = actionTypes.DespawnUnits, parameters = { unitName = "unknownUnit" } },
+					createUnused = {
+						type = actionTypes.CreateFeatures,
+						parameters = {
+							featureLoadout = {
+								{ featureDefName = "rockdef", x = 0, z = 0, featureName = "unusedRock" },
+							},
+						},
+					},
+					deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } },
+					addUnused = { type = actionTypes.AddMarker, parameters = { name = "unusedFlag" } },
+					eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = "unknownFlag" } },
+				}
 
 				validation.ValidateReferences()
 

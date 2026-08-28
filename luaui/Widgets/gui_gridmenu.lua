@@ -1391,7 +1391,10 @@ function widget:Initialize()
 		local options = modOptions.scenariooptions or modOptions.missionoptions
 		if options then
 			local optionsDecoded = Json.decode(string.base64Decode(options))
-			if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+			if
+				optionsDecoded
+				and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout))
+			then
 				isPregame = false
 			end
 		end

@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -10,7 +10,7 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'spawnFriendlyBot', 'spawnEnemyBot', 'nameFriendlyBotAlias', 'nameEnemyBotAlias' },
+		actions = { "spawnFriendlyBot", "spawnEnemyBot", "nameFriendlyBotAlias", "nameEnemyBotAlias" },
 	},
 
 	killFriendlyBot = {
@@ -18,7 +18,7 @@ local triggers = {
 		parameters = {
 			seconds = 6,
 		},
-		actions = { 'killFriendlyBot' },
+		actions = { "killFriendlyBot" },
 	},
 
 	spawnCapture = {
@@ -26,7 +26,7 @@ local triggers = {
 		parameters = {
 			seconds = 8,
 		},
-		actions = { 'spawnCapturable', 'spawnCapturer', 'nameCaptureTargetAlias' },
+		actions = { "spawnCapturable", "spawnCapturer", "nameCaptureTargetAlias" },
 	},
 
 	orderCapture = {
@@ -34,7 +34,7 @@ local triggers = {
 		parameters = {
 			seconds = 9,
 		},
-		actions = { 'orderCapture' },
+		actions = { "orderCapture" },
 	},
 
 	spawnBuilders = {
@@ -42,7 +42,7 @@ local triggers = {
 		parameters = {
 			seconds = 17,
 		},
-		actions = { 'spawnConstructor', 'orderBuild' },
+		actions = { "spawnConstructor", "orderBuild" },
 	},
 
 	-- ── Statistics triggers ───────────────────────────────────────────────────
@@ -50,98 +50,98 @@ local triggers = {
 	totalUnitsKilledReached = {
 		type = triggerTypes.TotalUnitsKilled,
 		parameters = {
-			teamName = 'thePlayerTeam',
+			teamName = "thePlayerTeam",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsKilled' },
+		actions = { "messageTotalUnitsKilled" },
 	},
 
 	totalUnitsKilledNamedReached = {
 		type = triggerTypes.TotalUnitsKilled,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'enemyBot',
+			teamName = "thePlayerTeam",
+			unitName = "enemyBot",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsKilledNamed' },
+		actions = { "messageTotalUnitsKilledNamed" },
 	},
 
 	totalUnitsKilledAliasReached = {
 		type = triggerTypes.TotalUnitsKilled,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'enemyScout',
+			teamName = "thePlayerTeam",
+			unitName = "enemyScout",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsKilledAlias' },
+		actions = { "messageTotalUnitsKilledAlias" },
 	},
 
 	totalUnitsLostReached = {
 		type = triggerTypes.TotalUnitsLost,
 		parameters = {
-			teamName = 'thePlayerTeam',
+			teamName = "thePlayerTeam",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsLost' },
+		actions = { "messageTotalUnitsLost" },
 	},
 
 	totalUnitsLostNamedReached = {
 		type = triggerTypes.TotalUnitsLost,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'friendlyBot',
+			teamName = "thePlayerTeam",
+			unitName = "friendlyBot",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsLostNamed' },
+		actions = { "messageTotalUnitsLostNamed" },
 	},
 
 	totalUnitsLostAliasReached = {
 		type = triggerTypes.TotalUnitsLost,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'friendlyAce',
+			teamName = "thePlayerTeam",
+			unitName = "friendlyAce",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsLostAlias' },
+		actions = { "messageTotalUnitsLostAlias" },
 	},
 
 	totalUnitsCapturedReached = {
 		type = triggerTypes.TotalUnitsCaptured,
 		parameters = {
-			teamName = 'thePlayerTeam',
+			teamName = "thePlayerTeam",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsCaptured' },
+		actions = { "messageTotalUnitsCaptured" },
 	},
 
 	totalUnitsCapturedNamedReached = {
 		type = triggerTypes.TotalUnitsCaptured,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'capturableSolar',
+			teamName = "thePlayerTeam",
+			unitName = "capturableSolar",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsCapturedNamed' },
+		actions = { "messageTotalUnitsCapturedNamed" },
 	},
 
 	totalUnitsCapturedNamedByDefReached = {
 		type = triggerTypes.TotalUnitsCaptured,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitDefName = 'armsolar',
-			unitName = 'capturePrize',
+			teamName = "thePlayerTeam",
+			unitDefName = "armsolar",
+			unitName = "capturePrize",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsCapturedNamedByDef' },
+		actions = { "messageTotalUnitsCapturedNamedByDef" },
 	},
 
 	totalUnitsBuiltReached = {
 		type = triggerTypes.TotalUnitsBuilt,
 		parameters = {
-			teamName = 'thePlayerTeam',
+			teamName = "thePlayerTeam",
 			quantity = 1,
 		},
-		actions = { 'messageTotalUnitsBuilt' },
+		actions = { "messageTotalUnitsBuilt" },
 	},
 
 	-- ── UnitsOwned triggers ───────────────────────────────────────────────────
@@ -149,30 +149,30 @@ local triggers = {
 	unitsOwnedReached = {
 		type = triggerTypes.UnitsOwned,
 		parameters = {
-			teamName = 'thePlayerTeam',
+			teamName = "thePlayerTeam",
 			quantity = 1,
 		},
-		actions = { 'messageUnitsOwned' },
+		actions = { "messageUnitsOwned" },
 	},
 
 	unitsOwnedByNameReached = {
 		type = triggerTypes.UnitsOwned,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'friendlyBot',
+			teamName = "thePlayerTeam",
+			unitName = "friendlyBot",
 			quantity = 1,
 		},
-		actions = { 'messageUnitsOwnedByName' },
+		actions = { "messageUnitsOwnedByName" },
 	},
 
 	unitsOwnedByDefReached = {
 		type = triggerTypes.UnitsOwned,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitDefName = 'armck',
+			teamName = "thePlayerTeam",
+			unitDefName = "armck",
 			quantity = 4,
 		},
-		actions = { 'messageUnitsOwnedByDef' },
+		actions = { "messageUnitsOwnedByDef" },
 	},
 
 	-- Repeating: fires at 2 armck owned, then again at 4 armck owned.
@@ -184,22 +184,22 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitDefName = 'armck',
+			teamName = "thePlayerTeam",
+			unitDefName = "armck",
 			quantity = 2,
 		},
-		actions = { 'messageUnitsOwnedByDefRepeating' },
+		actions = { "messageUnitsOwnedByDefRepeating" },
 	},
 
 	unitsOwnedByNameAndDefReached = {
 		type = triggerTypes.UnitsOwned,
 		parameters = {
-			teamName = 'thePlayerTeam',
-			unitName = 'friendlyBot',
-			unitDefName = 'armwar',
+			teamName = "thePlayerTeam",
+			unitName = "friendlyBot",
+			unitDefName = "armwar",
 			quantity = 1,
 		},
-		actions = { 'messageUnitsOwnedByNameAndDef' },
+		actions = { "messageUnitsOwnedByNameAndDef" },
 	},
 }
 
@@ -211,7 +211,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armwar', x = 1800, z = 1800, teamName = 'thePlayerTeam', unitName = 'friendlyBot' },
+				{ unitDefName = "armwar", x = 1800, z = 1800, teamName = "thePlayerTeam", unitName = "friendlyBot" },
 			},
 		},
 	},
@@ -220,7 +220,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1880, z = 1800, teamName = 'theEnemyTeam', unitName = 'enemyBot' },
+				{ unitDefName = "armpw", x = 1880, z = 1800, teamName = "theEnemyTeam", unitName = "enemyBot" },
 			},
 		},
 	},
@@ -228,9 +228,9 @@ local actions = {
 	nameFriendlyBotAlias = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitName = 'friendlyAce',
-			teamName = 'thePlayerTeam',
-			unitDefName = 'armwar',
+			unitName = "friendlyAce",
+			teamName = "thePlayerTeam",
+			unitDefName = "armwar",
 			area = { x = 1800, z = 1800, radius = 120 },
 		},
 	},
@@ -238,9 +238,9 @@ local actions = {
 	nameEnemyBotAlias = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitName = 'enemyScout',
-			teamName = 'theEnemyTeam',
-			unitDefName = 'armpw',
+			unitName = "enemyScout",
+			teamName = "theEnemyTeam",
+			unitDefName = "armpw",
 			area = { x = 1880, z = 1800, radius = 120 },
 		},
 	},
@@ -249,7 +249,13 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsolar', x = 1800, z = 1950, teamName = 'theEnemyTeam', unitName = 'capturableSolar' },
+				{
+					unitDefName = "armsolar",
+					x = 1800,
+					z = 1950,
+					teamName = "theEnemyTeam",
+					unitName = "capturableSolar",
+				},
 			},
 		},
 	},
@@ -257,9 +263,9 @@ local actions = {
 	nameCaptureTargetAlias = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitName = 'capturePrize',
-			teamName = 'theEnemyTeam',
-			unitDefName = 'armsolar',
+			unitName = "capturePrize",
+			teamName = "theEnemyTeam",
+			unitDefName = "armsolar",
 			area = { x = 1800, z = 1950, radius = 120 },
 		},
 	},
@@ -268,7 +274,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armdecom', x = 1900, z = 2000, teamName = 'thePlayerTeam', unitName = 'capturer' },
+				{ unitDefName = "armdecom", x = 1900, z = 2000, teamName = "thePlayerTeam", unitName = "capturer" },
 			},
 		},
 	},
@@ -277,7 +283,14 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck', x = 1850, z = 2100, teamName = 'thePlayerTeam', unitName = 'constructor', quantity = 4 },
+				{
+					unitDefName = "armck",
+					x = 1850,
+					z = 2100,
+					teamName = "thePlayerTeam",
+					unitName = "constructor",
+					quantity = 4,
+				},
 			},
 		},
 	},
@@ -287,7 +300,7 @@ local actions = {
 	orderCapture = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'capturer',
+			unitName = "capturer",
 			orders = {
 				{ CMD.FIRE_STATE, CMD.FIRESTATE_HOLDFIRE },
 				{ CMD.CAPTURE, { 1800, 0, 1900, 200 } },
@@ -298,9 +311,9 @@ local actions = {
 	orderBuild = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'constructor',
+			unitName = "constructor",
 			orders = {
-				{ 'armwin', { 1950, 0, 2100 } },
+				{ "armwin", { 1950, 0, 2100 } },
 			},
 		},
 	},
@@ -308,7 +321,7 @@ local actions = {
 	killFriendlyBot = {
 		type = actionTypes.DestroyUnits,
 		parameters = {
-			unitName = 'friendlyBot',
+			unitName = "friendlyBot",
 		},
 	},
 

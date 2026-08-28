@@ -291,7 +291,10 @@ function widget:Initialize()
 		-- Spring.GetModOptions() lowercases the outer modoption key ("missionoptions"),
 		-- but the decoded JSON retains original casing, so use "disableInitialCommanderSpawn" here.
 		local optionsDecoded = Json.decode(string.base64Decode(options))
-		if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+		if
+			optionsDecoded
+			and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout))
+		then
 			widgetHandler:RemoveWidget()
 			return
 		end

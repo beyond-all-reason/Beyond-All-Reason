@@ -75,9 +75,22 @@ local function isTriggerValid(trigger)
 		return false
 	end
 
-	if trigger.triggered and not trigger.settings.repeating then return false end
-	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
-	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then return false end
+	if trigger.triggered and not trigger.settings.repeating then
+		return false
+	end
+	if
+		trigger.settings.repeating
+		and trigger.settings.maxRepeats ~= nil
+		and trigger.repeatCount > trigger.settings.maxRepeats
+	then
+		return false
+	end
+	if
+		trigger.settings.difficulties ~= nil
+		and not table.contains(trigger.settings.difficulties, GG["MissionAPI"].Difficulty)
+	then
+		return false
+	end
 
 	--[[
 	--TODO: co-op check
@@ -104,7 +117,7 @@ end
 
 local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
-	local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+	local teamID = GG["MissionAPI"].Teams[trigger.parameters.teamName]
 	local unitsInArea = {}
 
 	if area.x1 and area.z1 and area.x2 and area.z2 then

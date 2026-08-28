@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 --- Covers UnitDetected and UnitUndetected across every sensor level and filter.
 ---
@@ -34,14 +34,14 @@ local triggers = {
 	placeSensors = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 1 },
-		actions = { 'spawnSensors', 'spawnEnergy' },
+		actions = { "spawnSensors", "spawnEnergy" },
 	},
 
 	-- Targets start outside every sensor, so each one produces a real unseen -> detected edge.
 	placeTargets = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 3 },
-		actions = { 'spawnTargets' },
+		actions = { "spawnTargets" },
 	},
 
 	-- Each target drives in and straight back out on one queued pair of moves, so the
@@ -49,7 +49,7 @@ local triggers = {
 	sendTargets = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 6 },
-		actions = { 'moveSpy', 'moveRadarTarget', 'moveVisionTarget' },
+		actions = { "moveSpy", "moveRadarTarget", "moveVisionTarget" },
 	},
 
 	-- Late enough that deathTarget has certainly been detected, early enough that it dies
@@ -57,7 +57,7 @@ local triggers = {
 	killDeathTarget = {
 		type = triggerTypes.TimeElapsed,
 		parameters = { seconds = 25 },
-		actions = { 'destroyDeathTarget' },
+		actions = { "destroyDeathTarget" },
 	},
 
 	----------------------------------------------------------------
@@ -67,19 +67,19 @@ local triggers = {
 	anyDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageAnyDetected' },
+		actions = { "messageAnyDetected" },
 	},
 
 	anyUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageAnyUndetected' },
+		actions = { "messageAnyUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -88,11 +88,11 @@ local triggers = {
 	radarDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'radar' },
+			unitName = "radarTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "radar" },
 		},
-		actions = { 'messageRadarDetected' },
+		actions = { "messageRadarDetected" },
 	},
 
 	-- The target never enters armrad's sight, so this is a genuine loss of contact and
@@ -100,11 +100,11 @@ local triggers = {
 	radarUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'radar' },
+			unitName = "radarTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "radar" },
 		},
-		actions = { 'messageRadarUndetected' },
+		actions = { "messageRadarUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -113,11 +113,11 @@ local triggers = {
 	visionDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "vision" },
 		},
-		actions = { 'messageVisionDetected' },
+		actions = { "messageVisionDetected" },
 	},
 
 	-- Fires as the target leaves armrad's sight, while it is still on radar. "Undetected by
@@ -125,11 +125,11 @@ local triggers = {
 	visionUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "vision" },
 		},
-		actions = { 'messageVisionUndetected' },
+		actions = { "messageVisionUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -141,21 +141,21 @@ local triggers = {
 	seismicDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'spy',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'seismic' },
+			unitName = "spy",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "seismic" },
 		},
-		actions = { 'messageSeismicDetected' },
+		actions = { "messageSeismicDetected" },
 	},
 
 	seismicUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'spy',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'seismic' },
+			unitName = "spy",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "seismic" },
 		},
-		actions = { 'messageSeismicUndetected' },
+		actions = { "messageSeismicUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -167,21 +167,21 @@ local triggers = {
 	radarOrVisionDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'radar', 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "radar", "vision" },
 		},
-		actions = { 'messageRadarOrVisionDetected' },
+		actions = { "messageRadarOrVisionDetected" },
 	},
 
 	radarOrVisionUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'radar', 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "radar", "vision" },
 		},
-		actions = { 'messageRadarOrVisionUndetected' },
+		actions = { "messageRadarOrVisionUndetected" },
 	},
 
 	-- A mask with a hole in it. The target passes through radar on its way to vision and
@@ -191,21 +191,21 @@ local triggers = {
 	seismicOrVisionDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'seismic', 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "seismic", "vision" },
 		},
-		actions = { 'messageSeismicOrVisionDetected' },
+		actions = { "messageSeismicOrVisionDetected" },
 	},
 
 	seismicOrVisionUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'seismic', 'vision' },
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "seismic", "vision" },
 		},
-		actions = { 'messageSeismicOrVisionUndetected' },
+		actions = { "messageSeismicOrVisionUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -219,19 +219,19 @@ local triggers = {
 	anyLevelDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageAnyLevelDetected' },
+		actions = { "messageAnyLevelDetected" },
 	},
 
 	anyLevelUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'visionTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "visionTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageAnyLevelUndetected' },
+		actions = { "messageAnyLevelUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -241,10 +241,10 @@ local triggers = {
 	deathDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'deathTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "deathTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageDeathDetected' },
+		actions = { "messageDeathDetected" },
 	},
 
 	-- Canary: the unit is destroyed while still detected. The engine treats death as death,
@@ -254,10 +254,10 @@ local triggers = {
 	deathUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'deathTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "deathTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageDeathUndetected' },
+		actions = { "messageDeathUndetected" },
 	},
 
 	----------------------------------------------------------------
@@ -269,60 +269,60 @@ local triggers = {
 	unscopedDetected = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
+			unitName = "radarTarget",
 		},
-		actions = { 'messageUnscopedDetected' },
+		actions = { "messageUnscopedDetected" },
 	},
 
 	unscopedUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
+			unitName = "radarTarget",
 		},
-		actions = { 'messageUnscopedUndetected' },
+		actions = { "messageUnscopedUndetected" },
 	},
 
 	owningTeamMatches = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'theEnemyTeam',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			owningTeamName = "theEnemyTeam",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageOwningTeamMatches' },
+		actions = { "messageOwningTeamMatches" },
 	},
 
 	-- The filters apply to UnitUndetected exactly as they do to UnitDetected.
 	owningTeamUndetected = {
 		type = triggerTypes.UnitUndetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'theEnemyTeam',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			owningTeamName = "theEnemyTeam",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageOwningTeamUndetected' },
+		actions = { "messageOwningTeamUndetected" },
 	},
 
 	-- Canary: the target belongs to theEnemyTeam, so filtering on thePlayerTeam must never fire.
 	owningTeamExcludes = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			owningTeamName = 'thePlayerTeam',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			owningTeamName = "thePlayerTeam",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageOwningTeamExcludes' },
+		actions = { "messageOwningTeamExcludes" },
 	},
 
 	-- Both name filters at once: they must agree on the same unit.
 	bothNameFilters = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			unitDefName = 'corfast',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitName = "radarTarget",
+			unitDefName = "corfast",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageBothNameFilters' },
+		actions = { "messageBothNameFilters" },
 	},
 
 	-- requiresOneOf is satisfied by unitDefName alone. Both corfast targets match, so this
@@ -330,20 +330,20 @@ local triggers = {
 	unitDefNameOnly = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitDefName = 'corfast',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitDefName = "corfast",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageUnitDefNameOnly' },
+		actions = { "messageUnitDefNameOnly" },
 	},
 
 	-- Canary: no armpw is ever spawned, so a unitDefName filter on one must never match.
 	unitDefNameExcludes = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitDefName = 'armpw',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
+			unitDefName = "armpw",
+			sensorAllyTeamName = "thePlayerAllyTeam",
 		},
-		actions = { 'messageUnitDefNameExcludes' },
+		actions = { "messageUnitDefNameExcludes" },
 	},
 
 	-- Canary: the radar target never comes within 3300 of armsd, whose ring is 2000, and it
@@ -352,11 +352,11 @@ local triggers = {
 	wrongSensorExcludes = {
 		type = triggerTypes.UnitDetected,
 		parameters = {
-			unitName = 'radarTarget',
-			sensorAllyTeamName = 'thePlayerAllyTeam',
-			sensorTypes = { 'seismic' },
+			unitName = "radarTarget",
+			sensorAllyTeamName = "thePlayerAllyTeam",
+			sensorTypes = { "seismic" },
 		},
-		actions = { 'messageWrongSensorExcludes' },
+		actions = { "messageWrongSensorExcludes" },
 	},
 }
 
@@ -369,8 +369,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsd', x = 1800, z = 1800, teamName = 'thePlayerTeam' },
-				{ unitDefName = 'armrad', x = 4700, z = 2000, teamName = 'thePlayerTeam' },
+				{ unitDefName = "armsd", x = 1800, z = 1800, teamName = "thePlayerTeam" },
+				{ unitDefName = "armrad", x = 4700, z = 2000, teamName = "thePlayerTeam" },
 			},
 		},
 	},
@@ -379,8 +379,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1800, z = 1600, teamName = 'thePlayerTeam' },
-				{ unitDefName = 'armfus', x = 3900, z = 6000, teamName = 'theEnemyTeam' },
+				{ unitDefName = "armfus", x = 1800, z = 1600, teamName = "thePlayerTeam" },
+				{ unitDefName = "armfus", x = 3900, z = 6000, teamName = "theEnemyTeam" },
 			},
 		},
 	},
@@ -389,19 +389,19 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armspy', x = 1800, z = 4600, teamName = 'theEnemyTeam', unitName = 'spy' },
-				{ unitDefName = 'corfast', x = 4500, z = 4900, teamName = 'theEnemyTeam', unitName = 'radarTarget' },
-				{ unitDefName = 'corfast', x = 4900, z = 4900, teamName = 'theEnemyTeam', unitName = 'visionTarget' },
+				{ unitDefName = "armspy", x = 1800, z = 4600, teamName = "theEnemyTeam", unitName = "spy" },
+				{ unitDefName = "corfast", x = 4500, z = 4900, teamName = "theEnemyTeam", unitName = "radarTarget" },
+				{ unitDefName = "corfast", x = 4900, z = 4900, teamName = "theEnemyTeam", unitName = "visionTarget" },
 				-- 1600 from armrad: inside radar 2100, outside sight 680, and 3400 from
 				-- armsd so it is out of seismic. Detected where it stands, then destroyed.
-				{ unitDefName = 'corak', x = 4700, z = 3600, teamName = 'theEnemyTeam', unitName = 'deathTarget' },
+				{ unitDefName = "corak", x = 4700, z = 3600, teamName = "theEnemyTeam", unitName = "deathTarget" },
 			},
 		},
 	},
 
 	destroyDeathTarget = {
 		type = actionTypes.DestroyUnits,
-		parameters = { unitName = 'deathTarget' },
+		parameters = { unitName = "deathTarget" },
 	},
 
 	----------------------------------------------------------------
@@ -412,11 +412,11 @@ local actions = {
 	moveSpy = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'spy',
+			unitName = "spy",
 			orders = {
 				{ CMD.CLOAK, 1 },
 				{ CMD.MOVE, { 1800, 0, 3300 } },
-				{ CMD.MOVE, { 1800, 0, 4600 }, { 'shift' } },
+				{ CMD.MOVE, { 1800, 0, 4600 }, { "shift" } },
 			},
 		},
 	},
@@ -426,10 +426,10 @@ local actions = {
 	moveRadarTarget = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'radarTarget',
+			unitName = "radarTarget",
 			orders = {
 				{ CMD.MOVE, { 4700, 0, 3400 } },
-				{ CMD.MOVE, { 4500, 0, 4900 }, { 'shift' } },
+				{ CMD.MOVE, { 4500, 0, 4900 }, { "shift" } },
 			},
 		},
 	},
@@ -439,10 +439,10 @@ local actions = {
 	moveVisionTarget = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'visionTarget',
+			unitName = "visionTarget",
 			orders = {
 				{ CMD.MOVE, { 4700, 0, 2500 } },
-				{ CMD.MOVE, { 4900, 0, 4900 }, { 'shift' } },
+				{ CMD.MOVE, { 4900, 0, 4900 }, { "shift" } },
 			},
 		},
 	},

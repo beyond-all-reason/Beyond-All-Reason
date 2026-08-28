@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 	addMarkerBeginner = {
@@ -10,7 +10,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerBeginner' },
+		actions = { "addMarkerBeginner" },
 	},
 
 	addMarkerNormal = {
@@ -21,7 +21,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerNormal' },
+		actions = { "addMarkerNormal" },
 	},
 
 	addMarkerHard = {
@@ -32,7 +32,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerHard' },
+		actions = { "addMarkerHard" },
 	},
 }
 
@@ -41,7 +41,7 @@ local actions = {
 		type = actionTypes.AddMarker,
 		parameters = {
 			position = { x = 700, z = 900 },
-			label = 'Difficulty: Beginner',
+			label = "Difficulty: Beginner",
 		},
 	},
 
@@ -49,7 +49,7 @@ local actions = {
 		type = actionTypes.AddMarker,
 		parameters = {
 			position = { x = 800, z = 900 },
-			label = 'Difficulty: Normal',
+			label = "Difficulty: Normal",
 		},
 	},
 
@@ -57,7 +57,7 @@ local actions = {
 		type = actionTypes.AddMarker,
 		parameters = {
 			position = { x = 900, z = 900 },
-			label = 'Difficulty: Hard',
+			label = "Difficulty: Hard",
 		},
 	},
 }

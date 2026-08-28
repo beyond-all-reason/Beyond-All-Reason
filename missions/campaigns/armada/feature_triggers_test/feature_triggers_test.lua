@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -8,7 +8,15 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'createRockToReclaim', 'createRockToDestroy', 'createWreckToResurrect', 'createWreckToAttack', 'spawnReclaimer', 'spawnAttacker', 'orderAttackerDestroyWreck' },
+		actions = {
+			"createRockToReclaim",
+			"createRockToDestroy",
+			"createWreckToResurrect",
+			"createWreckToAttack",
+			"spawnReclaimer",
+			"spawnAttacker",
+			"orderAttackerDestroyWreck",
+		},
 	},
 
 	orderReclaimerReclaimAndRes = {
@@ -17,7 +25,7 @@ local triggers = {
 			seconds = 2,
 		},
 		-- for some reason, CMD.RESURRECT doesn't work in the same frame as its target is spawned
-		actions = { 'orderReclaimerReclaimAndRes' },
+		actions = { "orderReclaimerReclaimAndRes" },
 	},
 
 	destroyRocks = {
@@ -25,59 +33,59 @@ local triggers = {
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'destroyRocks' },
+		actions = { "destroyRocks" },
 	},
 
 	rockCreated = {
 		type = triggerTypes.FeatureCreated,
 		parameters = {
-			featureDefName = 'rocks30_def_01',
+			featureDefName = "rocks30_def_01",
 			area = { x1 = 1600, z1 = 1500, x2 = 2200, z2 = 2100 },
 		},
-		actions = { 'messageRocksCreated' },
+		actions = { "messageRocksCreated" },
 	},
 
 	rockReclaimed = {
 		type = triggerTypes.FeatureReclaimed,
 		parameters = {
-			featureName = 'theRocks',
-			teamName = 'thePlayerTeam',
+			featureName = "theRocks",
+			teamName = "thePlayerTeam",
 		},
-		actions = { 'messageRockReclaimed' },
+		actions = { "messageRockReclaimed" },
 	},
 
 	rockDestroyed = {
 		type = triggerTypes.FeatureDestroyed,
 		parameters = {
-			featureName = 'theRocks',
+			featureName = "theRocks",
 		},
-		actions = { 'messageRockDestroyed' },
+		actions = { "messageRockDestroyed" },
 	},
 
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
-			featureName = 'wreck-to-resurrect',
-			teamName    = 'thePlayerTeam',
+			featureName = "wreck-to-resurrect",
+			teamName = "thePlayerTeam",
 		},
-		actions = { 'messageWreckResurrected' },
+		actions = { "messageWreckResurrected" },
 	},
 
 	wreckDestroyed = {
 		type = triggerTypes.FeatureDestroyed,
 		parameters = {
-			featureName = 'wreck-to-destroy',
+			featureName = "wreck-to-destroy",
 		},
-		actions = { 'messageWreckDestroyed' },
+		actions = { "messageWreckDestroyed" },
 	},
 
 	wreckDestroyedInZone = {
 		type = triggerTypes.FeatureDestroyed,
 		parameters = {
-			featureDefName = 'armllt_dead',
+			featureDefName = "armllt_dead",
 			area = { x = 2000, z = 2100, radius = 200 },
 		},
-		actions = { 'messageWreckDestroyedInZone' },
+		actions = { "messageWreckDestroyedInZone" },
 	},
 }
 
@@ -87,7 +95,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1800, z = 1800, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = "rocks30_def_01", x = 1800, z = 1800, facing = "s", featureName = "theRocks" },
 			},
 		},
 	},
@@ -96,7 +104,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'rocks30_def_01', x = 1900, z = 1900, facing = 's', featureName = 'theRocks' },
+				{ featureDefName = "rocks30_def_01", x = 1900, z = 1900, facing = "s", featureName = "theRocks" },
 			},
 		},
 	},
@@ -105,7 +113,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armllt_dead', x = 2000, z = 2100, facing = 'w', featureName = 'wreck-to-destroy' },
+				{ featureDefName = "armllt_dead", x = 2000, z = 2100, facing = "w", featureName = "wreck-to-destroy" },
 			},
 		},
 	},
@@ -114,7 +122,7 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'armpw_dead', x = 1900, z = 2000, facing = 'w', featureName = 'wreck-to-resurrect' },
+				{ featureDefName = "armpw_dead", x = 1900, z = 2000, facing = "w", featureName = "wreck-to-resurrect" },
 			},
 		},
 	},
@@ -123,7 +131,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armrectr', x = 1800, z = 1900, teamName = 'thePlayerTeam', unitName = 'reclaimer' },
+				{ unitDefName = "armrectr", x = 1800, z = 1900, teamName = "thePlayerTeam", unitName = "reclaimer" },
 			},
 		},
 	},
@@ -132,7 +140,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armham', x = 1800, z = 2100, teamName = 'thePlayerTeam', unitName = 'attacker' },
+				{ unitDefName = "armham", x = 1800, z = 2100, teamName = "thePlayerTeam", unitName = "attacker" },
 			},
 		},
 	},
@@ -140,10 +148,10 @@ local actions = {
 	orderReclaimerReclaimAndRes = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'reclaimer',
+			unitName = "reclaimer",
 			orders = {
-				{ CMD.RECLAIM,   { 1800, 0, 1800, 80 } },
-				{ CMD.RESURRECT, { 1900, 0, 2000, 80 }, { 'shift' } },
+				{ CMD.RECLAIM, { 1800, 0, 1800, 80 } },
+				{ CMD.RESURRECT, { 1900, 0, 2000, 80 }, { "shift" } },
 			},
 		},
 	},
@@ -151,7 +159,7 @@ local actions = {
 	orderAttackerDestroyWreck = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'attacker',
+			unitName = "attacker",
 			orders = {
 				{ CMD.ATTACK, { 2000, 0, 2100 } },
 			},
@@ -161,7 +169,7 @@ local actions = {
 	destroyRocks = {
 		type = actionTypes.DestroyFeatures,
 		parameters = {
-			featureName = 'theRocks',
+			featureName = "theRocks",
 		},
 	},
 
@@ -209,6 +217,6 @@ local actions = {
 }
 
 return {
-	Triggers    = triggers,
-	Actions     = actions,
+	Triggers = triggers,
+	Actions = actions,
 }

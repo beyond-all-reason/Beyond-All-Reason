@@ -1,17 +1,17 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
-local initialStage = 'firstStage'
+local initialStage = "firstStage"
 local stages = {
 	firstStage = {
-		objectives = { 'wait3secs' }
+		objectives = { "wait3secs" },
 	},
 	secondStage = {
-		objectives = { 'buildBots' }
+		objectives = { "buildBots" },
 	},
 	thirdStage = {
-		objectives = { 'buildBots', 'destroyBots' }
-	}
+		objectives = { "buildBots", "destroyBots" },
+	},
 }
 
 local objectives = {
@@ -24,7 +24,7 @@ local objectives = {
 				seconds = 3,
 			},
 		},
-		nextStage = 'secondStage',
+		nextStage = "secondStage",
 	},
 
 	buildBots = {
@@ -33,8 +33,8 @@ local objectives = {
 		trigger = {
 			type = triggerTypes.ConstructionFinished,
 			parameters = {
-				unitDefName = 'corak',
-				teamName = 'thePlayerTeam',
+				unitDefName = "corak",
+				teamName = "thePlayerTeam",
 			},
 		},
 	},
@@ -45,8 +45,8 @@ local objectives = {
 		trigger = {
 			type = triggerTypes.UnitsOwned,
 			parameters = {
-				unitName = 'bots',
-				teamName = 'thePlayerTeam',
+				unitName = "bots",
+				teamName = "thePlayerTeam",
 			},
 		},
 	},
@@ -58,14 +58,14 @@ local triggers = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
 			repeating = true,
-			stages = { 'secondStage', 'thirdStage' },
+			stages = { "secondStage", "thirdStage" },
 			maxRepeats = 5,
 		},
 		parameters = {
 			seconds = 0,
 			interval = 2,
 		},
-		actions = { 'spawnBot' },
+		actions = { "spawnBot" },
 	},
 
 	changeStage3 = {
@@ -73,7 +73,7 @@ local triggers = {
 		parameters = {
 			seconds = 7,
 		},
-		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
+		actions = { "changeToThirdStage", "spawnBotDestroyer" },
 	},
 }
 
@@ -83,7 +83,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, teamName = 'thePlayerTeam', unitName = 'bots' },
+				{ unitDefName = "corak", x = 1800, z = 1800, teamName = "thePlayerTeam", unitName = "bots" },
 			},
 		},
 	},
@@ -91,7 +91,7 @@ local actions = {
 	changeToThirdStage = {
 		type = actionTypes.ChangeStage,
 		parameters = {
-			stageID = 'thirdStage',
+			stageID = "thirdStage",
 		},
 	},
 
@@ -99,7 +99,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam', quantity = 2 },
+				{ unitDefName = "armllt", x = 1800, z = 2200, teamName = "theEnemyTeam", quantity = 2 },
 			},
 		},
 	},

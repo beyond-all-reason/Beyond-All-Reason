@@ -542,7 +542,7 @@ validators[Types.TeamName] = function(teamName)
 		return luaTypeResult
 	end
 
-	if not GG['MissionAPI'].Teams[teamName] then
+	if not GG["MissionAPI"].Teams[teamName] then
 		return { { message = "Invalid teamName: " .. teamName } }
 	end
 end
@@ -553,7 +553,7 @@ validators[Types.AllyTeamName] = function(allyTeamName)
 		return luaTypeResult
 	end
 
-	if not GG['MissionAPI'].AllyTeams[allyTeamName] then
+	if not GG["MissionAPI"].AllyTeams[allyTeamName] then
 		return { { message = "Invalid teamName: " .. allyTeamName } }
 	end
 end

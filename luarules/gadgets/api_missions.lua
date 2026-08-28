@@ -57,7 +57,7 @@ end
 
 local function setAiNames(ais)
 	for i, name in pairs(ais) do
-		Spring.SetGameRulesParam('ainame_' .. i, name)
+		Spring.SetGameRulesParam("ainame_" .. i, name)
 	end
 end
 
@@ -71,34 +71,34 @@ function gadget:Initialize()
 
 	setAiNames(missionOptions.ais)
 
-	GG['MissionAPI'] = {}
-	GG['MissionAPI'].Difficulty = missionOptions.difficulty or 0
-	GG['MissionAPI'].AllyTeams  = missionOptions.allyTeams or {}
-	GG['MissionAPI'].Teams      = missionOptions.teams or {}
-	GG['MissionAPI'].AIs        = missionOptions.ais or {}
-	GG['MissionAPI'].Players    = missionOptions.players or {}
+	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Difficulty = missionOptions.difficulty or 0
+	GG["MissionAPI"].AllyTeams = missionOptions.allyTeams or {}
+	GG["MissionAPI"].Teams = missionOptions.teams or {}
+	GG["MissionAPI"].AIs = missionOptions.ais or {}
+	GG["MissionAPI"].Players = missionOptions.players or {}
 
-	GG['MissionAPI'].trackedUnitIDs                 = {}
-	GG['MissionAPI'].trackedUnitNames               = {}
-	GG['MissionAPI'].trackedFeatureIDs              = {}
-	GG['MissionAPI'].trackedFeatureNames            = {}
-	GG['MissionAPI'].markerNames                    = {}
-	GG['MissionAPI'].soundFiles                     = {}
-	GG['MissionAPI'].soundQueue                     = {}
-	GG['MissionAPI'].ManagedObjectives              = {}
+	GG["MissionAPI"].trackedUnitIDs = {}
+	GG["MissionAPI"].trackedUnitNames = {}
+	GG["MissionAPI"].trackedFeatureIDs = {}
+	GG["MissionAPI"].trackedFeatureNames = {}
+	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].soundFiles = {}
+	GG["MissionAPI"].soundQueue = {}
+	GG["MissionAPI"].ManagedObjectives = {}
 
-	GG['MissionAPI'].Modules                = {}
-	GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-	GG['MissionAPI'].Modules.Tracking       = VFS.Include('luarules/mission_api/tracking.lua')
-	GG['MissionAPI'].Modules.Loadout        = VFS.Include('luarules/mission_api/loadout.lua')
-	GG['MissionAPI'].Modules.Sounds         = VFS.Include('luarules/mission_api/sounds.lua')
-	GG['MissionAPI'].Modules.Objectives     = VFS.Include('luarules/mission_api/objectives.lua')
-	GG['MissionAPI'].Modules.SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
-	GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
+	GG["MissionAPI"].Modules = {}
+	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
+	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
+	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
+	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
-	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
-	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
-	missionLoader = VFS.Include('luarules/mission_api/mission_loader.lua')
+	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
+	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+	missionLoader = VFS.Include("luarules/mission_api/mission_loader.lua")
 
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
@@ -107,12 +107,12 @@ function gadget:Initialize()
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	if not missionOptions.missionFolder then
-		Spring.Log('api_missions.lua', LOG.ERROR, "[Mission API] missionoptions has no 'missionFolder'")
+		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] missionoptions has no 'missionFolder'")
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
-	loadMission(missionOptions.missionFolder);
+	loadMission(missionOptions.missionFolder)
 end
 
 function gadget:GamePreload()

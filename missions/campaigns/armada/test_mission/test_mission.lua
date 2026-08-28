@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -13,7 +13,7 @@ local triggers = {
 			seconds = 0,
 			interval = 9,
 		},
-		actions = { 'spawnCons1' },
+		actions = { "spawnCons1" },
 	},
 
 	spawnEnergyGrid1 = {
@@ -21,7 +21,7 @@ local triggers = {
 		parameters = {
 			seconds = 40,
 		},
-		actions = { 'spawnEnergyGrid1', 'nameEnergyGrid1' },
+		actions = { "spawnEnergyGrid1", "nameEnergyGrid1" },
 	},
 
 	killCons = {
@@ -29,7 +29,7 @@ local triggers = {
 		parameters = {
 			seconds = 7,
 		},
-		actions = { 'killCons1', 'messageConsKilled' },
+		actions = { "killCons1", "messageConsKilled" },
 	},
 
 	selfDestructCons = {
@@ -37,7 +37,7 @@ local triggers = {
 		parameters = {
 			seconds = 16,
 		},
-		actions = { 'selfDestructCons1', 'messageSelfDestructCons1' },
+		actions = { "selfDestructCons1", "messageSelfDestructCons1" },
 	},
 
 	reclaimCons = {
@@ -45,7 +45,7 @@ local triggers = {
 		parameters = {
 			seconds = 25,
 		},
-		actions = { 'despawnCons1', 'messageConsReclaimed' },
+		actions = { "despawnCons1", "messageConsReclaimed" },
 	},
 
 	transferCons1 = {
@@ -53,7 +53,7 @@ local triggers = {
 		parameters = {
 			seconds = 30,
 		},
-		actions = { 'transferCons1', 'messageTransferCons1' },
+		actions = { "transferCons1", "messageTransferCons1" },
 	},
 
 	transferCons2 = {
@@ -61,7 +61,7 @@ local triggers = {
 		parameters = {
 			seconds = 37,
 		},
-		actions = { 'transferCons2', 'messageTransferCons2' },
+		actions = { "transferCons2", "messageTransferCons2" },
 	},
 
 	despawnEnergyGrid1 = {
@@ -69,7 +69,7 @@ local triggers = {
 		parameters = {
 			seconds = 43,
 		},
-		actions = { 'despawnEnergyGrid1', 'messageEnergyGrid1Reclaimed' },
+		actions = { "despawnEnergyGrid1", "messageEnergyGrid1Reclaimed" },
 	},
 
 	doNotKillCons = {
@@ -77,7 +77,7 @@ local triggers = {
 		parameters = {
 			seconds = 47,
 		},
-		actions = { 'unnameCons', 'killCons1', 'messageConsNotKilled' },
+		actions = { "unnameCons", "killCons1", "messageConsNotKilled" },
 	},
 
 	explosionOnFusions = {
@@ -85,7 +85,7 @@ local triggers = {
 		parameters = {
 			seconds = 50,
 		},
-		actions = { 'spawnExplosion' },
+		actions = { "spawnExplosion" },
 	},
 
 	gameEnd = {
@@ -93,7 +93,7 @@ local triggers = {
 		parameters = {
 			seconds = 57,
 		},
-		actions = { 'gameEnd' },
+		actions = { "gameEnd" },
 	},
 }
 
@@ -102,7 +102,16 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corck', x = 1800, z = 1600, facing = 'n', teamName = 'thePlayerTeam', unitName = 'con-bots', quantity = 9, spacing = 32 },
+				{
+					unitDefName = "corck",
+					x = 1800,
+					z = 1600,
+					facing = "n",
+					teamName = "thePlayerTeam",
+					unitName = "con-bots",
+					quantity = 9,
+					spacing = 32,
+				},
 			},
 		},
 	},
@@ -111,7 +120,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armfus', x = 1900, z = 2200, facing = 'e', teamName = 'thePlayerTeam', quantity = 18 },
+				{ unitDefName = "armfus", x = 1900, z = 2200, facing = "e", teamName = "thePlayerTeam", quantity = 18 },
 			},
 		},
 	},
@@ -119,9 +128,9 @@ local actions = {
 	nameEnergyGrid1 = {
 		type = actionTypes.NameUnits,
 		parameters = {
-			unitName = 'fusions',
-			teamName = 'thePlayerTeam',
-			unitDefName = 'armfus',
+			unitName = "fusions",
+			teamName = "thePlayerTeam",
+			unitDefName = "armfus",
 			area = { x1 = 0, z1 = 0, x2 = 999999, z2 = 2200 },
 		},
 	},
@@ -129,7 +138,7 @@ local actions = {
 	killCons1 = {
 		type = actionTypes.DestroyUnits,
 		parameters = {
-			unitName = 'con-bots',
+			unitName = "con-bots",
 		},
 	},
 
@@ -143,7 +152,7 @@ local actions = {
 	selfDestructCons1 = {
 		type = actionTypes.SelfDestructUnits,
 		parameters = {
-			unitName = 'con-bots',
+			unitName = "con-bots",
 		},
 	},
 
@@ -157,7 +166,7 @@ local actions = {
 	despawnCons1 = {
 		type = actionTypes.ReclaimUnits,
 		parameters = {
-			unitName = 'con-bots',
+			unitName = "con-bots",
 		},
 	},
 
@@ -171,7 +180,7 @@ local actions = {
 	despawnEnergyGrid1 = {
 		type = actionTypes.ReclaimUnits,
 		parameters = {
-			unitName = 'fusions',
+			unitName = "fusions",
 		},
 	},
 
@@ -185,8 +194,8 @@ local actions = {
 	transferCons1 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
-			unitName = 'con-bots',
-			newTeamName = 'theEnemyTeam',
+			unitName = "con-bots",
+			newTeamName = "theEnemyTeam",
 		},
 	},
 
@@ -200,8 +209,8 @@ local actions = {
 	transferCons2 = {
 		type = actionTypes.TransferUnits,
 		parameters = {
-			unitName = 'con-bots',
-			newTeamName = 'thePlayerTeam',
+			unitName = "con-bots",
+			newTeamName = "thePlayerTeam",
 		},
 	},
 
@@ -215,7 +224,7 @@ local actions = {
 	unnameCons = {
 		type = actionTypes.UnnameUnits,
 		parameters = {
-			unitName = 'con-bots',
+			unitName = "con-bots",
 		},
 	},
 
@@ -229,7 +238,7 @@ local actions = {
 	spawnExplosion = {
 		type = actionTypes.SpawnExplosion,
 		parameters = {
-			weaponDefName = 'armsilo_nuclear_missile',
+			weaponDefName = "armsilo_nuclear_missile",
 			position = { x = 1500, z = 2200 },
 		},
 	},
@@ -237,7 +246,7 @@ local actions = {
 	gameEnd = {
 		type = actionTypes.Defeat,
 		parameters = {
-			allyTeamNames = { 'thePlayerAllyTeam' },
+			allyTeamNames = { "thePlayerAllyTeam" },
 		},
 	},
 }

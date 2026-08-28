@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 	spawnTanks = {
@@ -7,7 +7,7 @@ local triggers = {
 		parameters = {
 			seconds = 3,
 		},
-		actions = { 'spawnTanks' },
+		actions = { "spawnTanks" },
 	},
 
 	teleportTanksWithoutSetDirection = {
@@ -15,7 +15,7 @@ local triggers = {
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'teleportTanksWithoutSetDirection1' },
+		actions = { "teleportTanksWithoutSetDirection1" },
 	},
 
 	teleportTanksWithSetDirection1 = {
@@ -23,7 +23,7 @@ local triggers = {
 		parameters = {
 			seconds = 10,
 		},
-		actions = { 'teleportTanksWithSetDirection1' },
+		actions = { "teleportTanksWithSetDirection1" },
 	},
 
 	teleportTanksWithSetDirection2 = {
@@ -31,7 +31,7 @@ local triggers = {
 		parameters = {
 			seconds = 15,
 		},
-		actions = { 'teleportTanksWithSetDirection2' },
+		actions = { "teleportTanksWithSetDirection2" },
 	},
 
 	teleportTanksWithoutSetDirection2 = {
@@ -39,7 +39,7 @@ local triggers = {
 		parameters = {
 			seconds = 20,
 		},
-		actions = { 'teleportTanksWithoutSetDirection1' },
+		actions = { "teleportTanksWithoutSetDirection1" },
 	},
 
 	teleportTanksWithSetAngle1 = {
@@ -47,7 +47,7 @@ local triggers = {
 		parameters = {
 			seconds = 25,
 		},
-		actions = { 'teleportTanksWithSetAngle1' },
+		actions = { "teleportTanksWithSetAngle1" },
 	},
 
 	teleportTanksWithSetAngle2 = {
@@ -55,7 +55,7 @@ local triggers = {
 		parameters = {
 			seconds = 27,
 		},
-		actions = { 'teleportTanksWithSetAngle2' },
+		actions = { "teleportTanksWithSetAngle2" },
 	},
 
 	teleportTanksWithSetAngle3 = {
@@ -63,7 +63,7 @@ local triggers = {
 		parameters = {
 			seconds = 29,
 		},
-		actions = { 'teleportTanksWithSetAngle3' },
+		actions = { "teleportTanksWithSetAngle3" },
 	},
 
 	teleportTanksWithSetAngle4 = {
@@ -71,7 +71,7 @@ local triggers = {
 		parameters = {
 			seconds = 31,
 		},
-		actions = { 'teleportTanksWithSetAngle4' },
+		actions = { "teleportTanksWithSetAngle4" },
 	},
 
 	teleportTanksWithSetAngle5 = {
@@ -79,7 +79,7 @@ local triggers = {
 		parameters = {
 			seconds = 33,
 		},
-		actions = { 'teleportTanksWithSetAngle5' },
+		actions = { "teleportTanksWithSetAngle5" },
 	},
 
 	teleportTanksWithSetAngle6 = {
@@ -87,7 +87,7 @@ local triggers = {
 		parameters = {
 			seconds = 35,
 		},
-		actions = { 'teleportTanksWithSetAngle6' },
+		actions = { "teleportTanksWithSetAngle6" },
 	},
 
 	teleportTanksWithSetAngle7 = {
@@ -95,7 +95,7 @@ local triggers = {
 		parameters = {
 			seconds = 37,
 		},
-		actions = { 'teleportTanksWithSetAngle7' },
+		actions = { "teleportTanksWithSetAngle7" },
 	},
 
 	teleportTanksWithSetAngle8 = {
@@ -103,7 +103,7 @@ local triggers = {
 		parameters = {
 			seconds = 39,
 		},
-		actions = { 'teleportTanksWithSetAngle8' },
+		actions = { "teleportTanksWithSetAngle8" },
 	},
 }
 
@@ -114,12 +114,12 @@ local actions = {
 		parameters = {
 			unitLoadout = {
 				{
-					unitDefName = 'armstump',
+					unitDefName = "armstump",
 					x = 2300,
 					z = 1900,
-					teamName = 'thePlayerTeam',
-					unitName = 'tanks',
-					quantity = 1
+					teamName = "thePlayerTeam",
+					unitName = "tanks",
+					quantity = 1,
 				},
 			},
 		},

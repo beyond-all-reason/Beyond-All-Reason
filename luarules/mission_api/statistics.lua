@@ -21,7 +21,7 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 	unitNames = unitNames or {}
 
 	processTriggersOfType(triggerType, function(trigger, triggerID)
-		if teamID ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
+		if teamID ~= GG["MissionAPI"].Teams[trigger.parameters.teamName] then
 			return
 		end
 		if trigger.parameters.unitDefName and unitDefName ~= trigger.parameters.unitDefName then

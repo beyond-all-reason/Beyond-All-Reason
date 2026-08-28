@@ -34,7 +34,8 @@ do
 
 	local missionOptions = Json.decode(string.base64Decode(raw)) or {}
 	--- True when a mission/scenario handles its own unit spawning.
-	missionSpawnDisabled = missionOptions.disableInitialCommanderSpawn == true or not table.isNilOrEmpty(missionOptions.unitloadout)
+	missionSpawnDisabled = missionOptions.disableInitialCommanderSpawn == true
+		or not table.isNilOrEmpty(missionOptions.unitloadout)
 end
 
 ----------------------------------------------------------------
@@ -616,7 +617,7 @@ if gadgetHandler:IsSyncedCode() then
 		local scenarioSpawnsUnits = false
 		if missionSpawnDisabled then
 			Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
-		  scenarioSpawnsUnits = false
+			scenarioSpawnsUnits = false
 		elseif Spring.GetModOptions().scenariooptions then
 			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then

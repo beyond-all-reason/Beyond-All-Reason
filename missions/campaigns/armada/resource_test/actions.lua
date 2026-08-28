@@ -1,4 +1,4 @@
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 return {
 	Actions = {
@@ -9,7 +9,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armmstor', x = 1900, z = 1800, teamName = 'thePlayerTeam' },
+					{ unitDefName = "armmstor", x = 1900, z = 1800, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -18,7 +18,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armestor', x = 1900, z = 1900, teamName = 'thePlayerTeam' },
+					{ unitDefName = "armestor", x = 1900, z = 1900, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -27,7 +27,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armmex', x = 2220, z = 2210, teamName = 'thePlayerTeam' },
+					{ unitDefName = "armmex", x = 2220, z = 2210, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -36,7 +36,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armfus', x = 1800, z = 1900, teamName = 'thePlayerTeam' },
+					{ unitDefName = "armfus", x = 1800, z = 1900, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -45,7 +45,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armmmkr', x = 1800, z = 2000, teamName = 'thePlayerTeam' },
+					{ unitDefName = "armmmkr", x = 1800, z = 2000, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -54,7 +54,7 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'corsilo', x = 2000, z = 2110, teamName = 'thePlayerTeam' },
+					{ unitDefName = "corsilo", x = 2000, z = 2110, teamName = "thePlayerTeam" },
 				},
 			},
 		},
@@ -63,7 +63,7 @@ return {
 			type = actionTypes.CreateFeatures,
 			parameters = {
 				featureLoadout = {
-					{ featureDefName = 'armllt_dead', x = 2100, z = 2000, facing = 's' },
+					{ featureDefName = "armllt_dead", x = 2100, z = 2000, facing = "s" },
 				},
 			},
 		},
@@ -72,7 +72,13 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armrectr', x = 2100, z = 2100, teamName = 'thePlayerTeam', unitName = 'incomeReclaimer' },
+					{
+						unitDefName = "armrectr",
+						x = 2100,
+						z = 2100,
+						teamName = "thePlayerTeam",
+						unitName = "incomeReclaimer",
+					},
 				},
 			},
 		},
@@ -81,7 +87,13 @@ return {
 			type = actionTypes.SpawnUnits,
 			parameters = {
 				unitLoadout = {
-					{ unitDefName = 'armllt', x = 2200, z = 2100, teamName = 'thePlayerTeam', unitName = 'unitReclaimTarget' },
+					{
+						unitDefName = "armllt",
+						x = 2200,
+						z = 2100,
+						teamName = "thePlayerTeam",
+						unitName = "unitReclaimTarget",
+					},
 				},
 			},
 		},
@@ -89,7 +101,7 @@ return {
 		orderIncomeReclaimerReclaim = {
 			type = actionTypes.IssueOrders,
 			parameters = {
-				unitName = 'incomeReclaimer',
+				unitName = "incomeReclaimer",
 				orders = {
 					{ CMD.RECLAIM, { 2100, 0, 2000, 80 } },
 				},
@@ -99,9 +111,9 @@ return {
 		orderUnitIncomeReclaimerReclaim = {
 			type = actionTypes.IssueOrders,
 			parameters = {
-				unitName = 'incomeReclaimer',
+				unitName = "incomeReclaimer",
 				orders = {
-					{ CMD.RECLAIM, { unitName = 'unitReclaimTarget' } },
+					{ CMD.RECLAIM, { unitName = "unitReclaimTarget" } },
 				},
 			},
 		},
@@ -111,7 +123,7 @@ return {
 		addMetalAndEnergy = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 500,
 				energy = 1000,
 			},
@@ -122,7 +134,7 @@ return {
 		addMetalOnly = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 250,
 			},
 		},
@@ -132,7 +144,7 @@ return {
 		addEnergyOnly = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = 500,
 			},
 		},
@@ -142,7 +154,7 @@ return {
 		removeMetalAndEnergy = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = -500,
 				energy = -1000,
 			},
@@ -153,7 +165,7 @@ return {
 		removeMetalOnly = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = -250,
 			},
 		},
@@ -163,7 +175,7 @@ return {
 		removeEnergyOnly = {
 			type = actionTypes.AddResources,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = -500,
 			},
 		},
@@ -173,7 +185,7 @@ return {
 		addMetalAndEnergyPerSecond = {
 			type = actionTypes.AddResourcesPerSecond,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 50,
 				energy = 2000,
 			},
@@ -184,7 +196,7 @@ return {
 		removeMetalAndEnergyPerSecond = {
 			type = actionTypes.AddResourcesPerSecond,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = -75,
 				energy = -2500,
 			},

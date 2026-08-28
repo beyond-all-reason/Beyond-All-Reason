@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
 
 return {
 	Triggers = {
@@ -10,7 +10,7 @@ return {
 			parameters = {
 				seconds = 0,
 			},
-			actions = { 'spawnMetalStorage', 'spawnEnergyStorage' },
+			actions = { "spawnMetalStorage", "spawnEnergyStorage" },
 		},
 
 		waveMetalAndEnergy = {
@@ -18,7 +18,7 @@ return {
 			parameters = {
 				seconds = 4,
 			},
-			actions = { 'addMetalAndEnergy', 'messageWaveMetalAndEnergy' },
+			actions = { "addMetalAndEnergy", "messageWaveMetalAndEnergy" },
 		},
 
 		waveMetalAndEnergyRemove = {
@@ -26,7 +26,7 @@ return {
 			parameters = {
 				seconds = 6,
 			},
-			actions = { 'removeMetalAndEnergy', 'messageWaveMetalAndEnergyRemove' },
+			actions = { "removeMetalAndEnergy", "messageWaveMetalAndEnergyRemove" },
 		},
 
 		waveMetalOnly = {
@@ -34,7 +34,7 @@ return {
 			parameters = {
 				seconds = 8,
 			},
-			actions = { 'addMetalOnly', 'messageWaveMetalOnly' },
+			actions = { "addMetalOnly", "messageWaveMetalOnly" },
 		},
 
 		waveMetalOnlyRemove = {
@@ -42,7 +42,7 @@ return {
 			parameters = {
 				seconds = 10,
 			},
-			actions = { 'removeMetalOnly', 'messageWaveMetalOnlyRemove' },
+			actions = { "removeMetalOnly", "messageWaveMetalOnlyRemove" },
 		},
 
 		waveEnergyOnly = {
@@ -50,7 +50,7 @@ return {
 			parameters = {
 				seconds = 12,
 			},
-			actions = { 'addEnergyOnly', 'messageWaveEnergyOnly' },
+			actions = { "addEnergyOnly", "messageWaveEnergyOnly" },
 		},
 
 		waveEnergyOnlyRemove = {
@@ -58,7 +58,7 @@ return {
 			parameters = {
 				seconds = 14,
 			},
-			actions = { 'removeEnergyOnly', 'messageWaveEnergyOnlyRemove' },
+			actions = { "removeEnergyOnly", "messageWaveEnergyOnlyRemove" },
 		},
 
 		waveMex = {
@@ -66,7 +66,7 @@ return {
 			parameters = {
 				seconds = 16,
 			},
-			actions = { 'spawnMex', 'messageWaveMex' },
+			actions = { "spawnMex", "messageWaveMex" },
 		},
 
 		waveFusion = {
@@ -74,7 +74,7 @@ return {
 			parameters = {
 				seconds = 20,
 			},
-			actions = { 'spawnFusion', 'messageWaveFusion' },
+			actions = { "spawnFusion", "messageWaveFusion" },
 		},
 
 		waveMetalMaker = {
@@ -82,7 +82,7 @@ return {
 			parameters = {
 				seconds = 24,
 			},
-			actions = { 'spawnMetalMaker', 'messageWaveMetalMaker' },
+			actions = { "spawnMetalMaker", "messageWaveMetalMaker" },
 		},
 
 		waveNuke = {
@@ -90,7 +90,7 @@ return {
 			parameters = {
 				seconds = 30,
 			},
-			actions = { 'spawnNuke', 'messageWaveNuke' },
+			actions = { "spawnNuke", "messageWaveNuke" },
 		},
 
 		waveReclaim = {
@@ -98,7 +98,7 @@ return {
 			parameters = {
 				seconds = 32,
 			},
-			actions = { 'createWreckToReclaimIncome', 'spawnIncomeReclaimer', 'messageWaveReclaim' },
+			actions = { "createWreckToReclaimIncome", "spawnIncomeReclaimer", "messageWaveReclaim" },
 		},
 
 		orderIncomeReclaimer = {
@@ -106,7 +106,7 @@ return {
 			parameters = {
 				seconds = 33,
 			},
-			actions = { 'orderIncomeReclaimerReclaim' },
+			actions = { "orderIncomeReclaimerReclaim" },
 		},
 
 		waveUnitReclaim = {
@@ -114,7 +114,7 @@ return {
 			parameters = {
 				seconds = 36,
 			},
-			actions = { 'spawnUnitReclaimTarget', 'messageWaveUnitReclaim' },
+			actions = { "spawnUnitReclaimTarget", "messageWaveUnitReclaim" },
 		},
 
 		orderUnitIncomeReclaimer = {
@@ -122,7 +122,7 @@ return {
 			parameters = {
 				seconds = 37,
 			},
-			actions = { 'orderUnitIncomeReclaimerReclaim' },
+			actions = { "orderUnitIncomeReclaimerReclaim" },
 		},
 
 		waveMetalAndEnergyPerSecond = {
@@ -130,7 +130,7 @@ return {
 			parameters = {
 				seconds = 40,
 			},
-			actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
+			actions = { "addMetalAndEnergyPerSecond", "messageWaveMetalAndEnergyPerSecond" },
 		},
 
 		waveMetalAndEnergyPerSecondRemove = {
@@ -138,7 +138,7 @@ return {
 			parameters = {
 				seconds = 47,
 			},
-			actions = { 'removeMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecondRemove'},
+			actions = { "removeMetalAndEnergyPerSecond", "messageWaveMetalAndEnergyPerSecondRemove" },
 		},
 
 		waveMetalAndEnergyPerSecond2 = {
@@ -146,7 +146,7 @@ return {
 			parameters = {
 				seconds = 54,
 			},
-			actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
+			actions = { "addMetalAndEnergyPerSecond", "messageWaveMetalAndEnergyPerSecond" },
 		},
 
 		-- ── ResourceStored ────────────────────────────────────────────────────────
@@ -154,29 +154,29 @@ return {
 		enoughMetalStored = {
 			type = triggerTypes.ResourceStored,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 1500,
 			},
-			actions = { 'messageMetalStored' },
+			actions = { "messageMetalStored" },
 		},
 
 		enoughEnergyStored = {
 			type = triggerTypes.ResourceStored,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = 3000,
 			},
-			actions = { 'messageEnergyStored' },
+			actions = { "messageEnergyStored" },
 		},
 
 		bothResourcesStored = {
 			type = triggerTypes.ResourceStored,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 1800,
 				energy = 3500,
 			},
-			actions = { 'messageBothStored' },
+			actions = { "messageBothStored" },
 		},
 
 		-- ── ResourceIncome ────────────────────────────────────────────────────────
@@ -184,19 +184,19 @@ return {
 		metalIncomeReached = {
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 5,
 			},
-			actions = { 'messageMetalIncome' },
+			actions = { "messageMetalIncome" },
 		},
 
 		energyIncomeReached = {
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = 500,
 			},
-			actions = { 'messageEnergyIncome' },
+			actions = { "messageEnergyIncome" },
 		},
 
 		-- ── ResourceIncome (sources) ──────────────────────────────────────────────
@@ -204,64 +204,64 @@ return {
 		extractorMetalIncomeReached = {
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 1,
-				sources = { 'extractor' },
+				sources = { "extractor" },
 			},
-			actions = { 'messageExtractorMetalIncome' },
+			actions = { "messageExtractorMetalIncome" },
 		},
 
 		productionEnergyIncomeReached = {
 			-- Triggered once armfus (second 20) is generating production energy income.
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = 200,
-				sources = { 'production' },
+				sources = { "production" },
 			},
-			actions = { 'messageProductionEnergyIncome' },
+			actions = { "messageProductionEnergyIncome" },
 		},
 
 		productionMetalIncomeReached = {
 			-- Triggered once armmmkr (second 24) is producing metal from energy.
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 0.5,
-				sources = { 'production' },
+				sources = { "production" },
 			},
-			actions = { 'messageProductionMetalIncome' },
+			actions = { "messageProductionMetalIncome" },
 		},
 
 		multipleSourcesMetalIncomeReached = {
 			-- Combined extractor + production metal income.
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 2,
-				sources = { 'extractor', 'production' },
+				sources = { "extractor", "production" },
 			},
-			actions = { 'messageMultipleSourcesMetalIncome' },
+			actions = { "messageMultipleSourcesMetalIncome" },
 		},
 
 		reclaimMetalIncomeReached = {
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 0.1,
-				sources = { 'reclaim' },
+				sources = { "reclaim" },
 			},
-			actions = { 'messageFeatureReclaimMetalIncome' },
+			actions = { "messageFeatureReclaimMetalIncome" },
 		},
 
 		unitReclaimMetalIncomeReached = {
 			type = triggerTypes.ResourceIncome,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 70,
-				sources = { 'reclaim' },
+				sources = { "reclaim" },
 			},
-			actions = { 'messageUnitReclaimMetalIncome' },
+			actions = { "messageUnitReclaimMetalIncome" },
 		},
 
 		-- ── ResourcePull ──────────────────────────────────────────────────────────
@@ -269,19 +269,19 @@ return {
 		metalPullReached = {
 			type = triggerTypes.ResourcePull,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				metal = 1,
 			},
-			actions = { 'messageMetalPull' },
+			actions = { "messageMetalPull" },
 		},
 
 		energyPullReached = {
 			type = triggerTypes.ResourcePull,
 			parameters = {
-				teamName = 'thePlayerTeam',
+				teamName = "thePlayerTeam",
 				energy = 100,
 			},
-			actions = { 'messageEnergyPull' },
+			actions = { "messageEnergyPull" },
 		},
 	},
 }

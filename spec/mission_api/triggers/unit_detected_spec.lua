@@ -14,9 +14,9 @@ GG["MissionAPI"].Modules.SeismicContacts = GG["MissionAPI"].Modules.SeismicConta
 		end,
 	}
 
-_G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
-GG['MissionAPI'].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
-GG['MissionAPI'].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
+_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
+GG["MissionAPI"].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
 
 GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
@@ -44,13 +44,21 @@ describe("mission_api.triggers.unit_detected", function()
 		Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
 			return losStatus[unitID] and losStatus[unitID][allyTeamID] or 0
 		end
-		Spring.GetUnitIsDead = function(_unitID) return false end
-		Spring.GetUnitDefID = function(_unitID) return 1 end -- 'armpw', read back on an edge
-		Spring.GetUnitTeam = function(_unitID) return 3 end
+		Spring.GetUnitIsDead = function(_unitID)
+			return false
+		end
+		Spring.GetUnitDefID = function(_unitID)
+			return 1
+		end -- 'armpw', read back on an edge
+		Spring.GetUnitTeam = function(_unitID)
+			return 3
+		end
 		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
 		-- never senses, so ownership does not mask those setups; tests about the owner's own
 		-- vision override this.
-		Spring.GetUnitAllyTeam = function(_unitID) return GAIA_ALLY end
+		Spring.GetUnitAllyTeam = function(_unitID)
+			return GAIA_ALLY
+		end
 	end)
 
 	local function freshTriggerID()
@@ -153,7 +161,12 @@ describe("mission_api.triggers.unit_detected", function()
 			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(trigger({ unitDefName = 'armpw', owningTeamName = 'theEnemyTeam' }), freshTriggerID(), context, { unitID })
+			update(
+				trigger({ unitDefName = "armpw", owningTeamName = "theEnemyTeam" }),
+				freshTriggerID(),
+				context,
+				{ unitID }
+			)
 			assert.are.equal(0, fired())
 		end)
 
@@ -161,7 +174,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ unitDefName = 'armpw', sensorAllyTeamName = 'sensorAlly' })
+			local t = trigger({ unitDefName = "armpw", sensorAllyTeamName = "sensorAlly" })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
@@ -230,18 +243,27 @@ describe("mission_api.triggers.unit_detected", function()
 		it("ignores the owning allyTeam's own vision, absent a sensorAllyTeamName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			Spring.GetUnitAllyTeam = function(_unitID)
+				return OTHER_ALLY
+			end
 			seeUnit(unitID, OTHER_ALLY)
-			update(trigger({ unitDefName = 'armpw' }), freshTriggerID(), context, { unitID })
+			update(trigger({ unitDefName = "armpw" }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
 		it("still reports a radar contact the owner cannot mask, absent a sensorAllyTeamName", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
-			Spring.GetUnitAllyTeam = function(_unitID) return OTHER_ALLY end
+			Spring.GetUnitAllyTeam = function(_unitID)
+				return OTHER_ALLY
+			end
 			losStatus[unitID] = { [OTHER_ALLY] = INLOS, [SENSOR_ALLY] = INRADAR }
-			update(trigger({ unitDefName = 'armpw', sensorTypes = { radar = true } }), freshTriggerID(), context, { unitID })
+			update(
+				trigger({ unitDefName = "armpw", sensorTypes = { radar = true } }),
+				freshTriggerID(),
+				context,
+				{ unitID }
+			)
 			assert.are.equal(1, fired())
 		end)
 	end)

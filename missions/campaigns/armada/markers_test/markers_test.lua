@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 	addMarkers = {
@@ -7,7 +7,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerWithLabel', 'addMarkerWithoutLabel' },
+		actions = { "addMarkerWithLabel", "addMarkerWithoutLabel" },
 	},
 
 	drawLines = {
@@ -15,7 +15,7 @@ local triggers = {
 		parameters = {
 			seconds = 6,
 		},
-		actions = { 'drawLines', 'messageDrawLines' },
+		actions = { "drawLines", "messageDrawLines" },
 	},
 
 	eraseMarker = {
@@ -23,7 +23,7 @@ local triggers = {
 		parameters = {
 			seconds = 9,
 		},
-		actions = { 'eraseMarker', 'messageEraseMarker' },
+		actions = { "eraseMarker", "messageEraseMarker" },
 	},
 
 	clearAll = {
@@ -31,7 +31,7 @@ local triggers = {
 		parameters = {
 			seconds = 12,
 		},
-		actions = { 'clearAll', 'messageClearAll' },
+		actions = { "clearAll", "messageClearAll" },
 	},
 }
 
@@ -40,8 +40,8 @@ local actions = {
 		type = actionTypes.AddMarker,
 		parameters = {
 			position = { x = 1900, z = 2200 },
-			label = 'This marker will be erased soon.',
-			name = 'markerWithLabel',
+			label = "This marker will be erased soon.",
+			name = "markerWithLabel",
 		},
 	},
 
@@ -75,7 +75,7 @@ local actions = {
 	eraseMarker = {
 		type = actionTypes.EraseMarker,
 		parameters = {
-			name = 'markerWithLabel',
+			name = "markerWithLabel",
 		},
 	},
 

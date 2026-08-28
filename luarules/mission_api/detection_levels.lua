@@ -166,7 +166,7 @@ local function newDetectionUpdate(fireOnDetection, matchesUnit)
 		-- by any allyTeam.
 		local sensorAllyTeam = trigger.sensorAllyTeam
 		if sensorAllyTeam == nil and parameters.sensorAllyTeamName then
-			sensorAllyTeam = GG['MissionAPI'].AllyTeams[parameters.sensorAllyTeamName]
+			sensorAllyTeam = GG["MissionAPI"].AllyTeams[parameters.sensorAllyTeamName]
 			trigger.sensorAllyTeam = sensorAllyTeam
 		end
 

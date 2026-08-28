@@ -2,10 +2,10 @@ require("spec_helper")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
-GG['MissionAPI'] = GG['MissionAPI'] or {}
-GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
-GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
-GG['MissionAPI'].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
+GG["MissionAPI"] = GG["MissionAPI"] or {}
+GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 _G.UnitDefs = { [1] = { name = "armsolar" }, [2] = { name = "armwin" } }
 
@@ -75,13 +75,13 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 9)
+		finished(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires for a matching completed unit", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 0)
+		finished(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -94,13 +94,13 @@ describe("mission_api.triggers.construction_finished", function()
 
 	it("does not fire when finished on a team allied with the watched team", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 2) -- team 2 allied with 0
+		finished(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
 	it("does not fire when finished on a team hostile to the watched team", function()
 		local context, fired = newContext()
-		finished(trigger({ unitDefName = 'armsolar', teamName = 'thePlayerTeam' }), context, 1, 3)
+		finished(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 3)
 		assert.are.equal(0, fired())
 	end)
 end)

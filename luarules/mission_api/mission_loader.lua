@@ -12,13 +12,13 @@
 --- Files are sorted by name first, so the result never depends on the order the filesystem happens to return.
 ---
 
-local MISSION_FILES_PATTERN = '*.lua'
+local MISSION_FILES_PATTERN = "*.lua"
 
-local MAP_KEYS    = { Stages = true, Objectives = true, Triggers = true, Actions = true }
-local ARRAY_KEYS  = { UnitLoadout = true, FeatureLoadout = true }
+local MAP_KEYS = { Stages = true, Objectives = true, Triggers = true, Actions = true }
+local ARRAY_KEYS = { UnitLoadout = true, FeatureLoadout = true }
 local SCALAR_KEYS = { InitialStage = true }
 
-local KNOWN_KEYS_TEXT = 'InitialStage, Stages, Objectives, Triggers, Actions, UnitLoadout, FeatureLoadout'
+local KNOWN_KEYS_TEXT = "InitialStage, Stages, Objectives, Triggers, Actions, UnitLoadout, FeatureLoadout"
 
 local function mergePart(mission, part, fileName, definedIn)
 	for key, value in pairs(part) do
@@ -28,7 +28,15 @@ local function mergePart(mission, part, fileName, definedIn)
 
 			for id, entry in pairs(value) do
 				if sources[id] then
-					error(("[Mission API] %s '%s' is defined twice, in %s and %s"):format(key, tostring(id), sources[id], fileName), 0)
+					error(
+						("[Mission API] %s '%s' is defined twice, in %s and %s"):format(
+							key,
+							tostring(id),
+							sources[id],
+							fileName
+						),
+						0
+					)
 				end
 				sources[id] = fileName
 				entries[id] = entry
@@ -45,9 +53,13 @@ local function mergePart(mission, part, fileName, definedIn)
 			mission[key] = value
 
 		else
-			error(("[Mission API] %s returns unknown key '%s'. Mission files may only return: %s. " ..
-				"Keep shared helpers in a subfolder, which is not scanned.")
-				:format(fileName, tostring(key), KNOWN_KEYS_TEXT), 0)
+			error(
+				(
+					"[Mission API] %s returns unknown key '%s'. Mission files may only return: %s. "
+					.. "Keep shared helpers in a subfolder, which is not scanned."
+				):format(fileName, tostring(key), KNOWN_KEYS_TEXT),
+				0
+			)
 		end
 	end
 end
@@ -66,9 +78,9 @@ local function loadMissionFiles(missionDir)
 	local definedIn = {}
 
 	for _, filePath in ipairs(files) do
-		local fileName = filePath:match('[^/]+$') or filePath
+		local fileName = filePath:match("[^/]+$") or filePath
 		local part = VFS.Include(filePath)
-		if type(part) ~= 'table' then
+		if type(part) ~= "table" then
 			error(("[Mission API] %s must return a table, got %s"):format(fileName, type(part)), 0)
 		end
 		mergePart(mission, part, fileName, definedIn)

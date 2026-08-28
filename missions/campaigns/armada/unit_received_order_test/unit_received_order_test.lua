@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -8,7 +8,7 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'spawnActors', 'messageIntro' },
+		actions = { "spawnActors", "messageIntro" },
 	},
 
 	-- Orders issued by the mission itself are not visible, by default.
@@ -20,9 +20,9 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'bots',
+			unitName = "bots",
 		},
-		actions = { 'messageBotsOrdered' },
+		actions = { "messageBotsOrdered" },
 	},
 
 	-- Sometimes, though, we don't care who gave the order. See ignoreMissionActions below.
@@ -34,10 +34,10 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'bots',
+			unitName = "bots",
 			ignoreMissionActions = false,
 		},
-		actions = { 'messageBotsMoved' },
+		actions = { "messageBotsMoved" },
 	},
 
 	missionMovesBots = {
@@ -45,7 +45,7 @@ local triggers = {
 		parameters = {
 			seconds = 8,
 		},
-		actions = { 'moveBots', 'messageMissionMovesBots' },
+		actions = { "moveBots", "messageMissionMovesBots" },
 	},
 
 	conBuildOrdered = {
@@ -56,10 +56,10 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.BUILD,
-			unitName = 'cons',
+			unitName = "cons",
 			ignoreMissionActions = false,
 		},
-		actions = { 'messageConBuildOrdered' },
+		actions = { "messageConBuildOrdered" },
 	},
 
 	conSolarOrdered = {
@@ -69,11 +69,11 @@ local triggers = {
 			maxRepeats = 77,
 		},
 		parameters = {
-			command = 'armsolar',
-			unitName = 'cons',
+			command = "armsolar",
+			unitName = "cons",
 			ignoreMissionActions = false,
 		},
-		actions = { 'messageConSolarOrdered' },
+		actions = { "messageConSolarOrdered" },
 	},
 
 	missionOrdersSolar = {
@@ -81,7 +81,7 @@ local triggers = {
 		parameters = {
 			seconds = 15,
 		},
-		actions = { 'orderSolar', 'messageMissionOrdersSolar' },
+		actions = { "orderSolar", "messageMissionOrdersSolar" },
 	},
 
 	labRallied = {
@@ -92,10 +92,10 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.MOVE,
-			unitName = 'lab',
+			unitName = "lab",
 			ignoreMissionActions = false,
 		},
-		actions = { 'messageLabRallied' },
+		actions = { "messageLabRallied" },
 	},
 
 	labExecuted = {
@@ -106,10 +106,10 @@ local triggers = {
 		},
 		parameters = {
 			command = CMD.ANY,
-			unitName = 'lab',
+			unitName = "lab",
 			ignoreMissionActions = false,
 		},
-		actions = { 'messageLabExecuted' },
+		actions = { "messageLabExecuted" },
 	},
 
 	missionRalliesLab = {
@@ -117,7 +117,7 @@ local triggers = {
 		parameters = {
 			seconds = 22,
 		},
-		actions = { 'rallyLab', 'messageMissionRalliesLab' },
+		actions = { "rallyLab", "messageMissionRalliesLab" },
 	},
 
 	missionTogglesLab = {
@@ -125,7 +125,7 @@ local triggers = {
 		parameters = {
 			seconds = 29,
 		},
-		actions = { 'toggleLab', 'messageMissionTogglesLab' },
+		actions = { "toggleLab", "messageMissionTogglesLab" },
 	},
 
 	missionQueuesPawn = {
@@ -133,7 +133,7 @@ local triggers = {
 		parameters = {
 			seconds = 36,
 		},
-		actions = { 'queuePawn', 'messageMissionQueuesPawn' },
+		actions = { "queuePawn", "messageMissionQueuesPawn" },
 	},
 }
 
@@ -143,9 +143,23 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armpw', x = 1800, z = 1600, teamName = 'thePlayerTeam', unitName = 'bots', quantity = 2 },
-				{ unitDefName = 'armck', x = 1700, z = 2000, teamName = 'thePlayerTeam', unitName = 'cons' },
-				{ unitDefName = 'armlab', x = 2100, z = 2000, facing = 's', teamName = 'thePlayerTeam', unitName = 'lab' },
+				{
+					unitDefName = "armpw",
+					x = 1800,
+					z = 1600,
+					teamName = "thePlayerTeam",
+					unitName = "bots",
+					quantity = 2,
+				},
+				{ unitDefName = "armck", x = 1700, z = 2000, teamName = "thePlayerTeam", unitName = "cons" },
+				{
+					unitDefName = "armlab",
+					x = 2100,
+					z = 2000,
+					facing = "s",
+					teamName = "thePlayerTeam",
+					unitName = "lab",
+				},
 			},
 		},
 	},
@@ -174,7 +188,7 @@ local actions = {
 	moveBots = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'bots',
+			unitName = "bots",
 			orders = {
 				{ CMD.MOVE, { 1800, 0, 2400 } },
 			},
@@ -205,9 +219,9 @@ local actions = {
 	orderSolar = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'cons',
+			unitName = "cons",
 			orders = {
-				{ 'armsolar', { 1600, 0, 2100, 1 } },
+				{ "armsolar", { 1600, 0, 2100, 1 } },
 			},
 		},
 	},
@@ -236,7 +250,7 @@ local actions = {
 	rallyLab = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'lab',
+			unitName = "lab",
 			orders = {
 				{ CMD.MOVE, { 2200, 0, 2400 } },
 			},
@@ -253,7 +267,7 @@ local actions = {
 	toggleLab = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'lab',
+			unitName = "lab",
 			orders = {
 				{ CMD.MOVE_STATE, 1 },
 			},
@@ -270,9 +284,9 @@ local actions = {
 	queuePawn = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'lab',
+			unitName = "lab",
 			orders = {
-				{ 'armpw', {} },
+				{ "armpw", {} },
 			},
 		},
 	},

@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -8,7 +8,7 @@ local triggers = {
 		parameters = {
 			seconds = 0,
 		},
-		actions = { 'spawnEye' },
+		actions = { "spawnEye" },
 	},
 
 	soundPosition = {
@@ -20,7 +20,7 @@ local triggers = {
 			seconds = 1,
 			interval = 7,
 		},
-		actions = { 'playSoundPosition', 'messageSoundPosition' },
+		actions = { "playSoundPosition", "messageSoundPosition" },
 	},
 
 	soundsQueued = {
@@ -32,7 +32,7 @@ local triggers = {
 			seconds = 3,
 			interval = 7,
 		},
-		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
+		actions = { "playVoiceQueued1", "playVoiceQueued2", "messageSoundsQueued" },
 	},
 
 	soundNotification = {
@@ -44,7 +44,7 @@ local triggers = {
 			seconds = 3,
 			interval = 7,
 		},
-		actions = { 'playSoundNotificationFromUnitDetection', 'messageSoundNotification' },
+		actions = { "playSoundNotificationFromUnitDetection", "messageSoundNotification" },
 	},
 
 	playMusic = {
@@ -52,7 +52,7 @@ local triggers = {
 		parameters = {
 			seconds = 5,
 		},
-		actions = { 'playMusic', 'messageMusicNotification' },
+		actions = { "playMusic", "messageMusicNotification" },
 	},
 }
 
@@ -62,7 +62,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armeyes', x = 1800, z = 1600, teamName = 'thePlayerTeam' },
+				{ unitDefName = "armeyes", x = 1800, z = 1600, teamName = "thePlayerTeam" },
 			},
 		},
 	},
@@ -70,7 +70,7 @@ local actions = {
 	playSoundPosition = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/weapons-mult/mgun12.wav',
+			soundfile = "sounds/weapons-mult/mgun12.wav",
 			volume = 3.5,
 			position = { x = 1800, z = 1600 },
 		},
@@ -86,7 +86,7 @@ local actions = {
 	playVoiceQueued1 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav',
+			soundfile = "sounds/voice/en/cephis/UnitReady/BehemothIsReady2.wav",
 			enqueue = true,
 		},
 	},
@@ -94,7 +94,7 @@ local actions = {
 	playVoiceQueued2 = {
 		type = actionTypes.PlaySound,
 		parameters = {
-			soundfile = 'sounds/voice/en/winter/EnemyCommanderDied.wav',
+			soundfile = "sounds/voice/en/winter/EnemyCommanderDied.wav",
 			enqueue = true,
 		},
 	},
@@ -102,10 +102,9 @@ local actions = {
 	playMusic = {
 		type = actionTypes.PlayMusic,
 		parameters = {
-			soundfile = 'music/original/events/aprilfools/menu/Ryan Krause - Friend or Foe ( Bassfahrer Metal Cover).ogg',
+			soundfile = "music/original/events/aprilfools/menu/Ryan Krause - Friend or Foe ( Bassfahrer Metal Cover).ogg",
 		},
 	},
-
 
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
@@ -118,7 +117,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armsilo', x = 1900, z = 1800, teamName = 'theEnemyTeam' },
+				{ unitDefName = "armsilo", x = 1900, z = 1800, teamName = "theEnemyTeam" },
 			},
 		},
 	},

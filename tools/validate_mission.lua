@@ -24,15 +24,17 @@
 
 local args = { ... }
 
-local function eprint(msg) io.stderr:write(msg .. "\n") end
+local function eprint(msg)
+	io.stderr:write(msg .. "\n")
+end
 
-local EXIT_OK      = 0
+local EXIT_OK = 0
 local EXIT_INVALID = 1
-local EXIT_ERROR   = 2
+local EXIT_ERROR = 2
 
-local missionPath    = nil
+local missionPath = nil
 local permissiveDefs = false
-local verbose        = false
+local verbose = false
 
 for _, a in ipairs(args) do
 	if a == "--help" then
@@ -68,7 +70,7 @@ end
 
 -- Only a mission folder is accepted; tolerate a trailing slash from tab completion.
 local missionDir = missionPath:gsub("/+$", "")
-local missionDataPath   = missionDir .. "/mission.json"
+local missionDataPath = missionDir .. "/mission.json"
 
 ------------------------------------------------------------------------------------------------------------------------
 -- Bootstrap: load common/tablefunctions.lua so table.* helpers are available before any other file is touched.
@@ -111,10 +113,10 @@ tfOk()
 ------------------------------------------------------------------------------------------------------------------------
 
 _G.LOG = {
-	ERROR      = "ERROR",
-	WARNING    = "WARNING",
-	INFO       = "INFO",
-	DEBUG      = "DEBUG",
+	ERROR = "ERROR",
+	WARNING = "WARNING",
+	INFO = "INFO",
+	DEBUG = "DEBUG",
 	DEPRECATED = "DEPRECATED",
 }
 
@@ -124,18 +126,30 @@ local logs = {}
 --- Spring ---
 _G.Spring = {
 	Log = function(tag, level, message)
-		if message == nil then message = level; level = LOG.INFO end
+		if message == nil then
+			message = level
+			level = LOG.INFO
+		end
 		local bucket = logs[level]
-		if not bucket then bucket = {}; logs[level] = bucket end
+		if not bucket then
+			bucket = {}
+			logs[level] = bucket
+		end
 		bucket[#bucket + 1] = message
 	end,
 	Echo = function() end,
 
 	-- detection_levels reads the allyTeam layout as it loads. Validation is static and
 	-- never evaluates detection, so an empty layout is enough to get the module loaded.
-	GetGaiaTeamID = function() return nil end,
-	GetTeamAllyTeamID = function() return nil end,
-	GetAllyTeamList = function() return {} end,
+	GetGaiaTeamID = function()
+		return nil
+	end,
+	GetTeamAllyTeamID = function()
+		return nil
+	end,
+	GetAllyTeamList = function()
+		return {}
+	end,
 }
 
 --- GG (Gadget Globals shared table) ---
@@ -163,7 +177,10 @@ _G.VFS = {}
 
 _G.VFS.FileExists = function(path)
 	local f = io.open(path, "r")
-	if f then f:close(); return true end
+	if f then
+		f:close()
+		return true
+	end
 	return false
 end
 
@@ -179,14 +196,18 @@ _G.VFS.Include = function(path)
 		os.exit(EXIT_ERROR)
 	end
 	-- _loadFile already stores in cache
-	if result == nil then result = {} end
+	if result == nil then
+		result = {}
+	end
 	_vfsCache[path] = result
 	return result
 end
 
 _G.VFS.LoadFile = function(path)
 	local f = io.open(path, "rb")
-	if not f then return nil end
+	if not f then
+		return nil
+	end
 	local data = f:read("*a")
 	f:close()
 	return data
@@ -233,9 +254,11 @@ end
 -- We stub it here in case common/wav.lua is not loadable.
 _G.ReadWAV = function(fname)
 	local data = VFS.LoadFile(fname)
-	if not data or #data < 12 then return nil end
+	if not data or #data < 12 then
+		return nil
+	end
 	local chunkID = data:sub(1, 4)
-	local format  = data:sub(9, 12)
+	local format = data:sub(9, 12)
 	if chunkID == "RIFF" and format == "WAVE" then
 		return { valid = true }
 	end
@@ -244,44 +267,44 @@ end
 
 --- CMD (standard Spring engine commands, subset used by validation) ---
 _G.CMD = {
-	STOP         = 0,
-	INSERT       = 1,
-	REMOVE       = 2,
-	WAIT         = 5,
-	TIMEWAIT     = 6,
-	DEATHWAIT    = 7,
-	SQUADWAIT    = 8,
-	GATHERWAIT   = 9,
-	MOVE         = 10,
-	PATROL       = 15,
-	FIGHT        = 16,
-	ATTACK       = 20,
-	AREA_ATTACK  = 21,
-	GUARD        = 25,
-	AISELECT     = 30,
-	GROUPSELECT  = 35,
-	GROUPADD     = 36,
-	GROUPCLEAR   = 37,
-	REPAIR       = 40,
-	FIRE_STATE   = 45,
-	MOVE_STATE   = 50,
-	SETBASE      = 55,
-	INTERNAL     = 60,
-	SELFD        = 65,
-	LOAD_UNITS   = 75,
+	STOP = 0,
+	INSERT = 1,
+	REMOVE = 2,
+	WAIT = 5,
+	TIMEWAIT = 6,
+	DEATHWAIT = 7,
+	SQUADWAIT = 8,
+	GATHERWAIT = 9,
+	MOVE = 10,
+	PATROL = 15,
+	FIGHT = 16,
+	ATTACK = 20,
+	AREA_ATTACK = 21,
+	GUARD = 25,
+	AISELECT = 30,
+	GROUPSELECT = 35,
+	GROUPADD = 36,
+	GROUPCLEAR = 37,
+	REPAIR = 40,
+	FIRE_STATE = 45,
+	MOVE_STATE = 50,
+	SETBASE = 55,
+	INTERNAL = 60,
+	SELFD = 65,
+	LOAD_UNITS = 75,
 	UNLOAD_UNITS = 80,
-	UNLOAD_UNIT  = 81,
-	ONOFF        = 85,
-	RECLAIM      = 90,
-	CLOAK        = 95,
-	STOCKPILE    = 100,
-	DGUN         = 105,
-	RESTORE      = 110,
-	RESURRECT    = 115,
-	CAPTURE      = 120,
+	UNLOAD_UNIT = 81,
+	ONOFF = 85,
+	RECLAIM = 90,
+	CLOAK = 95,
+	STOCKPILE = 100,
+	DGUN = 105,
+	RESTORE = 110,
+	RESURRECT = 115,
+	CAPTURE = 120,
 	AUTOREPAIRLEVEL = 125,
-	LOOPBACKATTACK  = 130,
-	DO_SEISMICPING  = 135,
+	LOOPBACKATTACK = 130,
+	DO_SEISMICPING = 135,
 }
 -- The engine's CMD table maps both ways (name -> id and id -> name), and validation.lua builds its set of known command
 -- IDs from the table's keys. Without the reverse entries every numeric command ID looks unknown.
@@ -296,7 +319,7 @@ do
 end
 
 --- GameCMD (BAR-specific custom commands, loaded from modules/customcommands.lua) ---
-local customCommandsModule = VFS.Include('modules/customcommands.lua')
+local customCommandsModule = VFS.Include("modules/customcommands.lua")
 _G.GameCMD = customCommandsModule.GameCMD
 
 --------------------------------------------------------------------------------
@@ -306,10 +329,8 @@ _G.GameCMD = customCommandsModule.GameCMD
 local function scanDefsFromDir(dir)
 	local defs = {}
 	-- Portable recursive scan: use 'find' on Unix, 'dir' on Windows.
-	local isWindows = package.config:sub(1, 1) == '\\'
-	local cmd = isWindows
-		and 'dir /b /s "' .. dir .. '\\*.lua" 2>nul'
-		or  'find ' .. dir .. ' -type f -name "*.lua"'
+	local isWindows = package.config:sub(1, 1) == "\\"
+	local cmd = isWindows and 'dir /b /s "' .. dir .. '\\*.lua" 2>nul' or "find " .. dir .. ' -type f -name "*.lua"'
 	local handle = io.popen(cmd)
 	if handle then
 		for line in handle:lines() do
@@ -323,21 +344,31 @@ local function scanDefsFromDir(dir)
 	return defs
 end
 
-_G.UnitDefNames    = scanDefsFromDir("units")
-_G.WeaponDefNames  = permissiveDefs
-	and setmetatable({}, { __index = function() return { id = 0 } end })
-	or  scanDefsFromDir("weapons")
-_G.FeatureDefNames = permissiveDefs
-	and setmetatable({}, { __index = function() return { id = 0 } end })
-	or  scanDefsFromDir("features")
+_G.UnitDefNames = scanDefsFromDir("units")
+_G.WeaponDefNames = permissiveDefs and setmetatable({}, {
+	__index = function()
+		return { id = 0 }
+	end,
+}) or scanDefsFromDir("weapons")
+_G.FeatureDefNames = permissiveDefs and setmetatable({}, {
+	__index = function()
+		return { id = 0 }
+	end,
+}) or scanDefsFromDir("features")
 
 if not permissiveDefs then
-	local unitCount    = table.count(_G.UnitDefNames)
-	local weaponCount  = table.count(_G.WeaponDefNames)
+	local unitCount = table.count(_G.UnitDefNames)
+	local weaponCount = table.count(_G.WeaponDefNames)
 	local featureCount = table.count(_G.FeatureDefNames)
 	if verbose then
-		print(string.format("[validate_mission] Loaded %d UnitDefNames, %d WeaponDefNames, %d FeatureDefNames",
-			unitCount, weaponCount, featureCount))
+		print(
+			string.format(
+				"[validate_mission] Loaded %d UnitDefNames, %d WeaponDefNames, %d FeatureDefNames",
+				unitCount,
+				weaponCount,
+				featureCount
+			)
+		)
 	end
 	if weaponCount == 0 then
 		eprint("WARNING: No WeaponDefNames found in weapons/. Consider --permissive-defs.")
@@ -353,38 +384,37 @@ end
 
 -- Missions reference GG['MissionAPI'].TriggerDefinitions / ActionDefinitions at
 -- load time, so the definitions have to exist before the mission file runs.
-_G.GG['MissionAPI'] = {
-	Triggers          = {},
-	Actions           = {},
-	Stages            = {},
-	Objectives        = {},
+_G.GG["MissionAPI"] = {
+	Triggers = {},
+	Actions = {},
+	Stages = {},
+	Objectives = {},
 	ManagedObjectives = {},
-	AllyTeams         = {},
-	Teams             = {},
-	AIs               = {},
-	Players           = {},
-	Difficulty        = 0,
-	Modules           = {
-		ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua'),
+	AllyTeams = {},
+	Teams = {},
+	AIs = {},
+	Players = {},
+	Difficulty = 0,
+	Modules = {
+		ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua"),
 	},
 }
 
 -- The detection triggers read these two at their own load time, in the order the
 -- gadget sets them up: detection_levels reads SeismicContacts as it loads.
-_G.GG['MissionAPI'].Modules.SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
-_G.GG['MissionAPI'].Modules.DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
+_G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+_G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
-local stagesController     = VFS.Include('luarules/mission_api/stages_loader.lua')
-local objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
-local triggersController   = VFS.Include('luarules/mission_api/triggers_loader.lua')
-local actionsController    = VFS.Include('luarules/mission_api/actions_loader.lua')
+local stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+local objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
+local triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
+local actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 
-_G.GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
-_G.GG['MissionAPI'].ActionDefinitions  = actionsController.LoadActionDefinitions()
-
+_G.GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
+_G.GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
 
 -- Same loader the gadget uses: every *.lua in the mission folder is a part.
-local missionLoader = VFS.Include('luarules/mission_api/mission_loader.lua')
+local missionLoader = VFS.Include("luarules/mission_api/mission_loader.lua")
 
 local missionOk, mission = pcall(missionLoader.LoadMissionFiles, missionDir)
 if not missionOk then
@@ -398,18 +428,21 @@ if type(mission) ~= "table" then
 end
 
 if verbose then
-	print(string.format("[validate_mission] Loaded %d trigger types, %d action types",
-		table.count(_G.GG['MissionAPI'].TriggerDefinitions.Types),
-		table.count(_G.GG['MissionAPI'].ActionDefinitions.Types)))
+	print(
+		string.format(
+			"[validate_mission] Loaded %d trigger types, %d action types",
+			table.count(_G.GG["MissionAPI"].TriggerDefinitions.Types),
+			table.count(_G.GG["MissionAPI"].ActionDefinitions.Types)
+		)
+	)
 end
 
-
-local initialStage   = mission.InitialStage
-local rawStages      = mission.Stages or {}
-local rawObjectives  = mission.Objectives or {}
-local rawTriggers    = mission.Triggers or {}
-local rawActions     = mission.Actions or {}
-local unitLoadout    = mission.UnitLoadout
+local initialStage = mission.InitialStage
+local rawStages = mission.Stages or {}
+local rawObjectives = mission.Objectives or {}
+local rawTriggers = mission.Triggers or {}
+local rawActions = mission.Actions or {}
+local unitLoadout = mission.UnitLoadout
 local featureLoadout = mission.FeatureLoadout
 
 if type(rawTriggers) ~= "table" then
@@ -431,7 +464,7 @@ end
 
 -- Team and ally team names live in mission.json (the lobby facing half of the
 -- mission); the validators for TeamName / AllyTeamName parameters need them.
-local json = VFS.Include('common/luaUtilities/json.lua')
+local json = VFS.Include("common/luaUtilities/json.lua")
 
 local missionDataText = VFS.LoadFile(missionDataPath)
 if not missionDataText then
@@ -471,25 +504,29 @@ local function extractTeams(ss)
 	return teams
 end
 
-_G.GG['MissionAPI'].AllyTeams = extractAllyTeams(startScript)
-_G.GG['MissionAPI'].Teams     = extractTeams(startScript)
+_G.GG["MissionAPI"].AllyTeams = extractAllyTeams(startScript)
+_G.GG["MissionAPI"].Teams = extractTeams(startScript)
 
 if verbose then
 	local at = {}
-	for k in pairs(_G.GG['MissionAPI'].AllyTeams) do at[#at+1] = k end
+	for k in pairs(_G.GG["MissionAPI"].AllyTeams) do
+		at[#at + 1] = k
+	end
 	local tm = {}
-	for k in pairs(_G.GG['MissionAPI'].Teams) do tm[#tm+1] = k end
+	for k in pairs(_G.GG["MissionAPI"].Teams) do
+		tm[#tm + 1] = k
+	end
 	table.sort(at)
 	table.sort(tm)
 	print("[validate_mission] AllyTeams: " .. table.concat(at, ", "))
-	print("[validate_mission] Teams: "     .. table.concat(tm, ", "))
+	print("[validate_mission] Teams: " .. table.concat(tm, ", "))
 end
 
 --------------------------------------------------------------------------------
 -- Run the validation pipeline (mirrors api_missions.lua:loadMission)
 --------------------------------------------------------------------------------
 
-local validation = VFS.Include('luarules/mission_api/validation.lua')
+local validation = VFS.Include("luarules/mission_api/validation.lua")
 
 -- Run a single pipeline step, aborting with a clear message if it errors.
 local function runStep(label, fn)
@@ -503,31 +540,43 @@ end
 -- Processing order mirrors api_missions.lua:loadMission. ProcessRawObjectives
 -- mutates rawTriggers/rawActions (it synthesizes a trigger and action for each
 -- non-managed objective), so it must run before the trigger/action processors.
-_G.GG['MissionAPI'].CurrentStageID = initialStage
+_G.GG["MissionAPI"].CurrentStageID = initialStage
 
 runStep("ProcessRawStages", function()
-	_G.GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages)
+	_G.GG["MissionAPI"].Stages = stagesController.ProcessRawStages(rawStages)
 end)
 runStep("ProcessRawObjectives", function()
-	_G.GG['MissionAPI'].Objectives =
+	_G.GG["MissionAPI"].Objectives =
 		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, rawStages)
 end)
 runStep("ProcessRawTriggers", function()
-	_G.GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+	_G.GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
 end)
 runStep("ProcessRawActions", function()
-	_G.GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
+	_G.GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
 end)
-_G.GG['MissionAPI'].UnitLoadout    = unitLoadout
-_G.GG['MissionAPI'].FeatureLoadout = featureLoadout
+_G.GG["MissionAPI"].UnitLoadout = unitLoadout
+_G.GG["MissionAPI"].FeatureLoadout = featureLoadout
 
 -- Run the full validation suite (mirrors api_missions.lua:loadMission).
-runStep("ValidateStages",       function() validation.ValidateStages(_G.GG['MissionAPI'].Stages) end)
-runStep("ValidateObjectives",   function() validation.ValidateObjectives(_G.GG['MissionAPI'].Objectives) end)
-runStep("ValidateInitialStage", function() validation.ValidateInitialStage(initialStage) end)
-runStep("ValidateTriggers",     function() validation.ValidateTriggers(_G.GG['MissionAPI'].Triggers, rawActions) end)
-runStep("ValidateActions",      function() validation.ValidateActions(_G.GG['MissionAPI'].Actions) end)
-runStep("ValidateReferences",   function() validation.ValidateReferences() end)
+runStep("ValidateStages", function()
+	validation.ValidateStages(_G.GG["MissionAPI"].Stages)
+end)
+runStep("ValidateObjectives", function()
+	validation.ValidateObjectives(_G.GG["MissionAPI"].Objectives)
+end)
+runStep("ValidateInitialStage", function()
+	validation.ValidateInitialStage(initialStage)
+end)
+runStep("ValidateTriggers", function()
+	validation.ValidateTriggers(_G.GG["MissionAPI"].Triggers, rawActions)
+end)
+runStep("ValidateActions", function()
+	validation.ValidateActions(_G.GG["MissionAPI"].Actions)
+end)
+runStep("ValidateReferences", function()
+	validation.ValidateReferences()
+end)
 
 --------------------------------------------------------------------------------
 -- Output

@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG["MissionAPI"].TriggerDefinitions.Types
+local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
 
 local triggers = {
 
@@ -8,7 +8,7 @@ local triggers = {
 		parameters = {
 			seconds = 0,
 		},
-		actions = { 'messageIntro' },
+		actions = { "messageIntro" },
 	},
 
 	movePlayerCon = {
@@ -16,7 +16,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'movePlayerCon' },
+		actions = { "movePlayerCon" },
 	},
 
 	destroyWreck = {
@@ -24,7 +24,7 @@ local triggers = {
 		parameters = {
 			seconds = 4,
 		},
-		actions = { 'destroyWreck', 'messageWreckDestroyed' },
+		actions = { "destroyWreck", "messageWreckDestroyed" },
 	},
 
 	spawnReinforcements = {
@@ -32,7 +32,7 @@ local triggers = {
 		parameters = {
 			seconds = 7,
 		},
-		actions = { 'spawnReinforcements', 'createFeatures', 'messageReinforcementsArrived' },
+		actions = { "spawnReinforcements", "createFeatures", "messageReinforcementsArrived" },
 	},
 
 	actOnReinforcements = {
@@ -40,7 +40,7 @@ local triggers = {
 		parameters = {
 			seconds = 10,
 		},
-		actions = { 'moveReinforcements', 'destroyReinforcementWreck', 'messageReinforcementsActedOn' },
+		actions = { "moveReinforcements", "destroyReinforcementWreck", "messageReinforcementsActedOn" },
 	},
 
 	victory = {
@@ -48,7 +48,7 @@ local triggers = {
 		parameters = {
 			seconds = 20,
 		},
-		actions = { 'messageEnd', 'victory' },
+		actions = { "messageEnd", "victory" },
 	},
 }
 
@@ -57,16 +57,16 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Loadout test: pre-spawned units and features are live. ' ..
-			          'Player con has an initial patrol order from loadout. ' ..
-			          'The wreck (featureName="the-wreck") will be destroyed.',
+			message = "Loadout test: pre-spawned units and features are live. "
+				.. "Player con has an initial patrol order from loadout. "
+				.. 'The wreck (featureName="the-wreck") will be destroyed.',
 		},
 	},
 
 	movePlayerCon = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'player-con',
+			unitName = "player-con",
 			orders = {
 				{ CMD.MOVE, { 2200, 0, 3000 }, {} },
 			},
@@ -76,14 +76,14 @@ local actions = {
 	destroyWreck = {
 		type = actionTypes.DestroyFeatures,
 		parameters = {
-			featureName = 'the-wreck',
+			featureName = "the-wreck",
 		},
 	},
 
 	messageWreckDestroyed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Wreck destroyed via featureName tracking.',
+			message = "Wreck destroyed via featureName tracking.",
 		},
 	},
 
@@ -91,11 +91,23 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armck',   x = 1900, z = 1700, facing = 'e', teamName = 'thePlayerTeam', unitName = 'reinforcement-con' },
-				{ unitDefName = 'armflea', x = 1900, z = 1820, facing = 'e', teamName = 'thePlayerTeam',
-				  orders = {
-				    { CMD.MOVE, { 2100, 0, 2220 }, {} },
-				  },
+				{
+					unitDefName = "armck",
+					x = 1900,
+					z = 1700,
+					facing = "e",
+					teamName = "thePlayerTeam",
+					unitName = "reinforcement-con",
+				},
+				{
+					unitDefName = "armflea",
+					x = 1900,
+					z = 1820,
+					facing = "e",
+					teamName = "thePlayerTeam",
+					orders = {
+						{ CMD.MOVE, { 2100, 0, 2220 }, {} },
+					},
 				},
 			},
 		},
@@ -105,7 +117,13 @@ local actions = {
 		type = actionTypes.CreateFeatures,
 		parameters = {
 			featureLoadout = {
-				{ featureDefName = 'corak_dead', x = 1800, z = 1750, facing = 's', featureName = 'reinforcement-wreck' },
+				{
+					featureDefName = "corak_dead",
+					x = 1800,
+					z = 1750,
+					facing = "s",
+					featureName = "reinforcement-wreck",
+				},
 			},
 		},
 	},
@@ -120,7 +138,7 @@ local actions = {
 	moveReinforcements = {
 		type = actionTypes.IssueOrders,
 		parameters = {
-			unitName = 'reinforcement-con',
+			unitName = "reinforcement-con",
 			orders = {
 				{ CMD.MOVE, { 2200, 0, 3000 }, {} },
 			},
@@ -130,52 +148,57 @@ local actions = {
 	destroyReinforcementWreck = {
 		type = actionTypes.DestroyFeatures,
 		parameters = {
-			featureName = 'reinforcement-wreck',
+			featureName = "reinforcement-wreck",
 		},
 	},
 
 	messageReinforcementsActedOn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Reinforcement con moved and wreck destroyed via names registered by SpawnUnits + CreateFeatures.',
+			message = "Reinforcement con moved and wreck destroyed via names registered by SpawnUnits + CreateFeatures.",
 		},
 	},
 
 	messageEnd = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Loadout test complete.',
+			message = "Loadout test complete.",
 		},
 	},
 
 	victory = {
 		type = actionTypes.Victory,
 		parameters = {
-			allyTeamNames = { 'thePlayerAllyTeam' },
+			allyTeamNames = { "thePlayerAllyTeam" },
 		},
 	},
 }
 
-local unitLoadout    = {
-	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'thePlayerTeam', unitName = 'player-con' },
-	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', teamName = 'thePlayerTeam',
-	  orders = {
-	    { CMD.PATROL, { 1780, 0, 1950 }, {} },
-	  },
+local unitLoadout = {
+	{ unitDefName = "armck", x = 1780, z = 1850, facing = "e", teamName = "thePlayerTeam", unitName = "player-con" },
+	{
+		unitDefName = "corck",
+		x = 1780,
+		z = 1800,
+		facing = "e",
+		teamName = "thePlayerTeam",
+		orders = {
+			{ CMD.PATROL, { 1780, 0, 1950 }, {} },
+		},
 	},
 
-	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'theEnemyTeam' },
-	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'theEnemyTeam' },
+	{ unitDefName = "corsolar", x = 1700, z = 2150, facing = "w", teamName = "theEnemyTeam" },
+	{ unitDefName = "corsolar", x = 1800, z = 2150, facing = "s", teamName = "theEnemyTeam" },
 }
 
 local featureLoadout = {
-	{ featureDefName = 'corak_dead',  x = 1900, z = 1800, facing = 's', featureName = 'the-wreck' },
-	{ featureDefName = 'armfus_dead', x = 1900, z = 2000, facing = 'e' },
+	{ featureDefName = "corak_dead", x = 1900, z = 1800, facing = "s", featureName = "the-wreck" },
+	{ featureDefName = "armfus_dead", x = 1900, z = 2000, facing = "e" },
 }
 
 return {
-	Triggers       = triggers,
-	Actions        = actions,
-	UnitLoadout    = unitLoadout,
+	Triggers = triggers,
+	Actions = actions,
+	UnitLoadout = unitLoadout,
 	FeatureLoadout = featureLoadout,
 }
