@@ -294,7 +294,7 @@ def main():
     parser.add_argument("--renames")
     parser.add_argument("--changed-files")
     parser.add_argument("--added-lines", type=int, default=0)
-    parser.add_argument("--warn-floor", type=int, required=True)
+    parser.add_argument("--warn-max", type=int, required=True)
     parser.add_argument("--warn-per-kloc", type=float, required=True)
     # Errors are always judged over the whole tree: there are almost none left,
     # and they do not move between runs. Warnings are a different animal. A
@@ -366,7 +366,7 @@ def main():
     others = [f for f in new if f["severity"] > WARNING]
 
     allowance = min(
-        args.warn_floor, round(args.warn_per_kloc * args.added_lines / 1000.0)
+        args.warn_max, round(args.warn_per_kloc * args.added_lines / 1000.0)
     )
 
     budgeted = warnings

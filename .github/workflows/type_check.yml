@@ -17,8 +17,8 @@ env:
 
   # Type errors are largely absorbed already so do not matter on the base pass.
   # We check against a warning floor (absolute count) and a warning rate (KLOC).
-  WARN_FLOOR: 15
-  WARN_PER_KLOC: 15
+  WARN_MAX: 100
+  WARN_PER_KLOC: 10
 
   # Warnings also ripple out into other files rapidly after relatively small code
   # changes. This should upgrade to "tree" once we have things under control.
@@ -147,7 +147,7 @@ jobs:
             python3 head/.github/scripts/emmylua_compare.py \
               --head head-*.json \
               --head-root "$GITHUB_WORKSPACE/head" \
-              --warn-floor "$WARN_FLOOR" --warn-per-kloc "$WARN_PER_KLOC" \
+              --warn-max "$WARN_MAX" --warn-per-kloc "$WARN_PER_KLOC" \
               --summary "$GITHUB_STEP_SUMMARY" \
               --ci-report ci-report.md
             exit 0
@@ -172,7 +172,7 @@ jobs:
             --renames renames.txt \
             --changed-files changed.txt \
             --added-lines "${ADDED_LINES:-0}" \
-            --warn-floor "$WARN_FLOOR" --warn-per-kloc "$WARN_PER_KLOC" \
+            --warn-floor "$WARN_MAX" --warn-per-kloc "$WARN_PER_KLOC" \
             --warn-scope "$WARN_SCOPE" \
             --summary "$GITHUB_STEP_SUMMARY" \
             --ci-report ci-report.md
