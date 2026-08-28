@@ -95,13 +95,13 @@ jobs:
             | map(
                 . as $file
                 | ($lines[$file.file] // []) as $ranges
-                | $file + { mismatches: [ $file.mismatches[] | select(overlaps($ranges)) ] }
+                | $file + { mismatches: [ ($file.mismatches // [])[] | select(overlaps($ranges)) ] }
               )
             | map(select(.mismatches | length > 0))
           ' mismatches.json > blocking.json
 
-          raw_hunks=$(jq -s '[ .[].mismatches[] ] | length' mismatches.json)
-          bad_hunks=$(jq '[ .[].mismatches[] ] | length' blocking.json)
+          raw_hunks=$(jq -s '[ .[] | .mismatches // [] | .[] ] | length' mismatches.json)
+          bad_hunks=$(jq '[ .[] | .mismatches // [] | .[] ] | length' blocking.json)
           preexisting_hunks=$((raw_hunks - bad_hunks))
           jq -r '.[].file' blocking.json | sort -u > misformatted.txt
 
