@@ -7,20 +7,32 @@ off one shared analysis and the inference-dependent diagnostics come out
 order-dependent (EmmyLuaLs/emmylua-analyzer-rust#1091).
 
 So "worse" cannot be read off one run against one run. Each side is analysed
-several times and the two are compared as multisets of findings, taking the
-generous reading of the base and the conservative one of the head:
+several times and the two are compared as multisets of findings. Each direction
+is read at the smallest figure the runs will support:
 
-    base  ->  the most times a finding appeared in any one base run
-    head  ->  the fewest times it appeared across every head run
+    added     ->  fewest head appearances  minus  most base appearances
+    resolved  ->  fewest base appearances  minus  most head appearances
+
+Read any other way round, the wobble becomes harvestable -- as a charge against
+an author who wrote nothing, or as credit for the same. A pull request that
+changed nothing nets exactly zero.
 
 Findings are keyed on (severity, code, path, message) rather than on position,
 so that inserting a line above a finding does not present it as new, and base
 paths are moved through the pull request's renames for the same reason.
 
-New errors block, anywhere in the repo.
+Three rules decide a pull request, and any one of them fails it:
 
-New warnings are allowed up to a budget that is the smaller of a flat cap and a
-rate per thousand changed lines. Small changes receive a very strict allowance.
+    errors    any new error, anywhere in the repo
+    added     net new warnings on the lines it wrote, per thousand changed
+              lines. Net: warnings it resolved pay for warnings it introduced.
+    total     every warning left in the files it touched, per thousand lines of
+              those files. This one never looks at the base. It is the state the
+              pull request leaves behind, so touching a file that is already
+              over the line means bringing it under.
+
+Small changes receive a very strict allowance on the added rule, and under about
+seventy changed lines that allowance is zero.
 
 Warnings are ranked by how near they are to the change. The lines changed, then
 the rest of the files it touched, then everywhere else. The annotation budget
@@ -155,12 +167,12 @@ def write_summary(
     path,
     args,
     pools,
-    allowance,
+    budget,
     reasons,
     unstable,
     any_untouched,
-    budgeted=0,
     ripple=0,
+    standing=(),
     detail="full",
 ):
     errors, warnings, others = pools
@@ -175,14 +187,17 @@ def write_summary(
         )
     elif reasons:
         headline = "Type check: " + ", ".join(reasons)
-    elif new_total:
-        headline = "Type check: %d new warning%s within an allowance of %d" % (
-            budgeted,
-            plural(budgeted),
-            allowance,
-        )
     else:
-        headline = "Type check: nothing new"
+        headline = (
+            "Type check: %d net new on the changed lines within %d, %d left in the "
+            "changed files within %d"
+            % (
+                budget["net"],
+                budget["added_allowance"],
+                budget["total"],
+                budget["total_allowance"],
+            )
+        )
 
     # The summary page is appended to, the comment's report is a file of its own.
     with open(path, "w" if compact else "a", encoding="utf-8") as out:
@@ -190,32 +205,58 @@ def write_summary(
         if compact:
             if args.compared:
                 out.write(
-                    "%d changed line%s, allowance %d new warning%s, %d run%s per "
-                    "side. The full report is on the check's own page.\n"
+                    "Added: %d new minus %d resolved is %d net on %d changed line%s, "
+                    "against an allowance of %d. Total: %d warning%s left in the "
+                    "changed files across %d line%s, against a ceiling of %d. "
+                    "%d run%s per side. The full report is on the check's own page.\n"
                     % (
+                        budget["added"],
+                        budget["resolved"],
+                        budget["net"],
                         args.changed_lines,
                         plural(args.changed_lines),
-                        allowance,
-                        plural(allowance),
+                        budget["added_allowance"],
+                        budget["total"],
+                        plural(budget["total"]),
+                        args.changed_file_lines,
+                        plural(args.changed_file_lines),
+                        budget["total_allowance"],
                         args.runs,
                         plural(args.runs),
                     )
                 )
         elif args.compared:
             out.write(
-                "Compared against the base over %d run%s per side. %d changed line%s "
-                "have an allowance of %d new warning%s. Any new error blocks, "
-                "wherever in the tree it landed. Info and hints never block.\n\n"
+                "Compared against the base over %d run%s per side. Any new error "
+                "blocks, wherever in the tree it landed. Info and hints never "
+                "block. Warnings are judged twice:\n\n"
+                "- **Added.** %d new warning%s on the lines this pull request wrote, "
+                "less %d it resolved in the files it touched, is %d net against an "
+                "allowance of %d -- %g per thousand of its %d changed line%s.\n"
+                "- **Total.** %d warning%s remain in the files it touched, against a "
+                "ceiling of %d -- %g per thousand of their %d line%s. This one does "
+                "not read the base: it is the state left behind, so a file already "
+                "over the line has to come under it.\n\n"
                 % (
                     args.runs,
                     plural(args.runs),
+                    budget["added"],
+                    plural(budget["added"]),
+                    budget["resolved"],
+                    budget["net"],
+                    budget["added_allowance"],
+                    args.warn_added_per_kloc,
                     args.changed_lines,
                     plural(args.changed_lines),
-                    allowance,
-                    plural(allowance),
+                    budget["total"],
+                    plural(budget["total"]),
+                    budget["total_allowance"],
+                    args.warn_total_per_kloc,
+                    args.changed_file_lines,
+                    plural(args.changed_file_lines),
                 )
             )
-            if args.warn_scope == "changed" and ripple:
+            if ripple:
                 out.write(
                     "A further %d new warning%s landed in files this pull request did "
                     "not touch. Those are reported below but not budgeted: emmylua "
@@ -226,9 +267,9 @@ def write_summary(
                 )
             out.write(
                 "emmylua disagreed with itself about %d finding%s on this branch and %d "
-                "on the base. The base is read at its highest count and this branch "
-                "at its lowest, so that disagreement is absorbed instead of charged to "
-                "the author, which is why the check runs more than once per side.\n"
+                "on the base. Both directions are read at the smallest figure the runs "
+                "will support, so that disagreement can be turned into neither a charge "
+                "nor a credit, which is why the check runs more than once per side.\n"
                 % (unstable["head"], plural(unstable["head"]), unstable["base"])
             )
         else:
@@ -265,16 +306,25 @@ def write_summary(
         if not args.compared:
             return
 
+        # The total rule can fail a pull request that introduced nothing, so the
+        # standing warnings are listed whenever it is the thing that failed --
+        # otherwise its author is handed a number and nowhere to go. They are
+        # not listed when it passes: they are not news, and there are thousands.
+        over_total = budget["total"] > budget["total_allowance"]
+        standing_section = (list(standing), "Warnings in the changed files")
+
         sections = [
             (errors, "New errors"),
             (warnings, "New warnings"),
             (others, "New info and hints"),
         ]
         if compact:
-            # The warnings table earns its bytes only when the budget was spent.
+            # A table earns its bytes only when its own rule failed.
             sections = [(errors, "New errors")]
-            if budgeted > allowance:
+            if budget["net"] > budget["added_allowance"]:
                 sections.append((warnings, "New warnings"))
+        if over_total:
+            sections.append(standing_section)
 
         for pool, title in sections:
             if not pool:
@@ -308,6 +358,14 @@ def write_summary(
                     % (table_cap, len(pool))
                 )
 
+        if over_total and not compact:
+            out.write(
+                "\n_The warnings in the changed files are listed whether or not this "
+                "pull request wrote them. The rule is on the state it leaves behind, "
+                "so clearing enough of them -- or splitting the already-noisy file out "
+                "of this change -- is what brings it under the ceiling._\n"
+            )
+
         if any_untouched and not compact:
             out.write(
                 "\n_Rows marked `*` are in files this pull request did not touch. The "
@@ -329,18 +387,20 @@ def main():
     # path<TAB>start<TAB>end, one head-side hunk per line. Without it the near
     # ring is empty and warnings are scoped to whole files, as they were before.
     parser.add_argument("--changed-hunks")
+    # The denominator of each rule is the size of its own scope: the added rule
+    # divides by the lines the diff touched, the total rule by the size of the
+    # files it touched.
     parser.add_argument("--changed-lines", type=int, default=0)
-    parser.add_argument("--warn-max", type=int, required=True)
-    parser.add_argument("--warn-per-kloc", type=float, required=True)
-    # Errors are always judged over the whole tree, and blocked on there: there
-    # are almost none left, and they do not move between runs. Warnings are a
+    parser.add_argument("--changed-file-lines", type=int, default=0)
+    parser.add_argument("--warn-added-per-kloc", type=float, required=True)
+    parser.add_argument("--warn-total-per-kloc", type=float, required=True)
+    # Errors are judged over the whole tree and blocked on there: there are
+    # almost none left, and they do not move between runs. Warnings are a
     # different animal. A change to one widget can shift how emmylua infers its
     # way through an unrelated one, and it does so reproducibly, so repeat runs
-    # do not catch it -- budgeting that against its author is not useful, so by
-    # default only warnings in the files they touched count against the
-    # allowance, and the rest are reported as ripple for the reviewer to decide.
+    # do not catch it. Neither warning rule reaches outside the files the pull
+    # request touched, so those land as ripple: reported, never charged.
     # Ripple is a warning idea only. An error is never excused by its address.
-    parser.add_argument("--warn-scope", choices=("changed", "tree"), default="changed")
     parser.add_argument("--summary")
     # The compact rendering the CI Results comment pulls in as an artifact.
     parser.add_argument("--ci-report")
@@ -362,12 +422,15 @@ def main():
         head_runs.append(counts)
         head_places = places  # positions are quoted from whichever run came last
 
-    base_max = (
-        {k: max(r[k] for r in base_runs) for k in set().union(*base_runs)}
-        if base_runs
-        else {}
-    )
-    head_min = {k: min(r[k] for r in head_runs) for k in set().union(*head_runs)}
+    # Four readings, not two: added is charged at its lowest and resolved is
+    # credited at its lowest, so emmylua's disagreement with itself cannot be
+    # turned into either a charge or a credit. See the module docstring.
+    base_keys = set().union(*base_runs) if base_runs else set()
+    head_keys = set().union(*head_runs)
+    base_max = {k: max(r[k] for r in base_runs) for k in base_keys}
+    base_min = {k: min(r[k] for r in base_runs) for k in base_keys}
+    head_min = {k: min(r[k] for r in head_runs) for k in head_keys}
+    head_max = {k: max(r[k] for r in head_runs) for k in head_keys}
 
     changed = set()
     if args.changed_files and os.path.exists(args.changed_files):
@@ -406,42 +469,96 @@ def main():
     warnings = [f for f in new if f["severity"] == WARNING]
     others = [f for f in new if f["severity"] > WARNING]
 
-    allowance = min(
-        args.warn_max, int(args.warn_per_kloc * args.changed_lines / 1000.0)
-    )
+    # Scope is a pull request idea. A manual run has no changed set, so every
+    # finding reads as ripple and neither warning rule has anything to say.
+    added = sum(1 for f in warnings if f["scope"] == HUNK)
+    in_files = sum(1 for f in warnings if f["scope"] == FILE)
+    ripple = len(warnings) - added - in_files
 
-    # Scope is a pull request idea. A manual run has no changed set, so narrowing
-    # to it would report every finding as out of scope and then budget none of them.
-    budgeted = warnings
-    if args.compared and args.warn_scope == "changed":
-        budgeted = [f for f in warnings if f["changed"]]
-    ripple = len(warnings) - len(budgeted)
+    # A resolved warning has no head position to place in a hunk, so credit is
+    # scoped to the file. In practice a warning only leaves a file the pull
+    # request touched because one of its hunks removed it.
+    resolved = 0
+    for key, count in base_min.items():
+        severity, _, path, _ = key
+        if severity != WARNING or path not in changed:
+            continue
+        gone = count - head_max.get(key, 0)
+        if gone > 0:
+            resolved += gone
+
+    # Every warning the pull request leaves behind in the files it touched,
+    # whether or not it put them there. This rule does not read the base at all.
+    # They are listed as well as counted: this rule can fail a pull request that
+    # introduced nothing, and a number on its own gives its author nowhere to go.
+    standing = []
+    for key, count in head_min.items():
+        severity, code, path, message = key
+        if severity != WARNING or path not in changed:
+            continue
+        for line, col in sorted(head_places.get(key, []))[:count] or [(1, 1)]:
+            standing.append(
+                {
+                    "severity": severity,
+                    "code": code,
+                    "path": path,
+                    "message": message,
+                    "line": line,
+                    "col": col,
+                    "scope": scope_of(path, line, changed, hunks),
+                    "changed": True,
+                }
+            )
+    standing.sort(key=lambda f: (f["scope"], f["path"], f["line"], f["col"]))
+    total = len(standing)
+
+    budget = {
+        "added": added,
+        "resolved": resolved,
+        "net": added - resolved,
+        "added_allowance": int(args.warn_added_per_kloc * args.changed_lines / 1000.0),
+        "total": total,
+        "total_allowance": int(
+            args.warn_total_per_kloc * args.changed_file_lines / 1000.0
+        ),
+    }
 
     reasons = []
     if errors:
         reasons.append("%d new type error%s" % (len(errors), plural(len(errors))))
-    if len(budgeted) > allowance:
+    if args.compared and budget["net"] > budget["added_allowance"]:
         reasons.append(
-            "%d new warning%s over an allowance of %d"
-            % (len(budgeted), plural(len(budgeted)), allowance)
+            "%d net new warning%s on the changed lines over an allowance of %d"
+            % (budget["net"], plural(budget["net"]), budget["added_allowance"])
+        )
+    if args.compared and budget["total"] > budget["total_allowance"]:
+        reasons.append(
+            "%d warning%s left in the changed files over a ceiling of %d"
+            % (budget["total"], plural(budget["total"]), budget["total_allowance"])
         )
 
-    on_lines = sum(1 for f in warnings if f["scope"] == HUNK)
     print(
         "%d new finding(s): %d error(s), %d warning(s) -- %d on changed lines, %d "
-        "elsewhere in changed files, %d ripple -- %d budgeted against an allowance "
-        "of %d, %d info/hint. %d changed line(s), %d run(s) per side."
+        "elsewhere in changed files, %d ripple -- %d info/hint. "
+        "Added: %d - %d resolved = %d net, allowance %d over %d changed line(s). "
+        "Total: %d warning(s) left in the changed files, ceiling %d over %d line(s). "
+        "%d run(s) per side."
         % (
             len(new),
             len(errors),
             len(warnings),
-            on_lines,
-            len(warnings) - on_lines - ripple,
+            added,
+            in_files,
             ripple,
-            len(budgeted),
-            allowance,
             len(others),
+            budget["added"],
+            budget["resolved"],
+            budget["net"],
+            budget["added_allowance"],
             args.changed_lines,
+            budget["total"],
+            budget["total_allowance"],
+            args.changed_file_lines,
             args.runs,
         )
     )
@@ -489,6 +606,26 @@ def main():
             )
         print("::endgroup::")
 
+    # The whole standing set, when it is the thing that failed. Uncapped here,
+    # the way the new findings are: the summary tables are the ones with a cap.
+    if standing and budget["total"] > budget["total_allowance"]:
+        print(
+            "::group::warnings in the changed files - %d finding%s"
+            % (len(standing), plural(len(standing)))
+        )
+        for finding in standing:
+            print(
+                "%s:%d:%d: %s: %s"
+                % (
+                    finding["path"],
+                    finding["line"],
+                    finding["col"],
+                    finding["code"],
+                    finding["message"],
+                )
+            )
+        print("::endgroup::")
+
     # The same report, rendered for the job's own page and for the comment.
     for path, detail in ((args.summary, "full"), (args.ci_report, "compact")):
         if not path:
@@ -497,13 +634,13 @@ def main():
             path,
             args,
             (errors, warnings, others),
-            allowance,
+            budget,
             reasons,
             unstable,
             args.compared
             and any(f["severity"] != ERROR and not f["changed"] for f in new),
-            len(budgeted),
             ripple,
+            standing,
             detail,
         )
 

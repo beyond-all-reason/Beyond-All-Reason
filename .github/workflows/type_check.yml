@@ -20,15 +20,12 @@ env:
   RUNS: 3
 
   # Type errors are largely absorbed already so do not matter on the base pass.
-  # New warnings are budgeted at a rate per thousand changed lines, capped at an
-  # absolute maximum. The smaller applies, so either one on its own can fail a PR.
-  WARN_MAX: 100
-  WARN_PER_KLOC: 15
+  # Net new warnings on the lines the PR wrote, per thousand changed lines.
+  # Reduced by the warnings resolved in the same files as the changed hunk.
+  WARN_ADDED_PER_KLOC: 15
 
-  # Warnings also ripple out into other files rapidly after relatively small code
-  # changes. This should upgrade to "tree" once we have things under control.
-  # "changed" | "tree"
-  WARN_SCOPE: changed
+  # Every warning left in the files touched, per thousand lines of those files.
+  WARN_TOTAL_PER_KLOC: 30
 
   # The slice ci_results.yml allots one report. Keep the two in step.
   REPORT_LIMIT: 6000
@@ -142,6 +139,17 @@ jobs:
           done < changed.txt
           echo "$(wc -l < hunks.txt) hunk(s) written."
 
+          # The total rule divides by the size of the file, not the diff.
+          # This has to check for files deleted by the change.
+          file_lines=0
+          while IFS= read -r -d '' file; do
+            if [ -f "head/$file" ]; then
+              file_lines=$((file_lines + $(wc -l < "head/$file")))
+            fi
+          done < changed.txt
+          echo "CHANGED_FILE_LINES=$file_lines" >> "$GITHUB_ENV"
+          echo "$file_lines line(s) in the changed files."
+
       - name: Run emmylua_check
         if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
@@ -185,7 +193,8 @@ jobs:
             python3 head/.github/scripts/emmylua_compare.py \
               --head head-*.json \
               --head-root "$GITHUB_WORKSPACE/head" \
-              --warn-max "$WARN_MAX" --warn-per-kloc "$WARN_PER_KLOC" \
+              --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
+              --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
               --summary "$GITHUB_STEP_SUMMARY" \
               --ci-report ci-report.md
             exit 0
@@ -201,8 +210,9 @@ jobs:
             --changed-files changed.txt \
             --changed-hunks hunks.txt \
             --changed-lines "${CHANGED_LINES:-0}" \
-            --warn-max "$WARN_MAX" --warn-per-kloc "$WARN_PER_KLOC" \
-            --warn-scope "$WARN_SCOPE" \
+            --changed-file-lines "${CHANGED_FILE_LINES:-0}" \
+            --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
+            --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
             --summary "$GITHUB_STEP_SUMMARY" \
             --ci-report ci-report.md
           exit_code=$?
