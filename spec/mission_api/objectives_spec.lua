@@ -61,6 +61,27 @@ describe("mission_api.objectives", function()
 		end)
 	end)
 
+	describe("SetObjectiveFailed", function()
+		it("completes the objective and marks it failed", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			Objectives.SetObjectiveFailed("obj1")
+			assert.is_true(missionApi.Objectives["obj1"].completed)
+			assert.is_true(missionApi.Objectives["obj1"].failed)
+		end)
+
+		it("is a no-op on a completed objective, so the first outcome wins", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = true }))
+			Objectives.SetObjectiveFailed("obj1")
+			assert.is_nil(missionApi.Objectives["obj1"].failed)
+		end)
+
+		it("leaves a successfully completed objective unfailed", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			Objectives.SetObjectiveCompleted("obj1", true)
+			assert.is_nil(missionApi.Objectives["obj1"].failed)
+		end)
+	end)
+
 	describe("IncrementObjectiveProgress", function()
 		it("adds one occurrence to the count", function()
 			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, amount = 5 }))
@@ -211,13 +232,19 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("activates the ObjectiveFailed trigger naming the failed objective", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }):WithTrigger("observer", {
-				type = TRIGGER_TYPES.ObjectiveFailed,
-				parameters = { objectiveID = "obj1" },
-			}))
-			Objectives.NotifyObjectiveFailed("obj2")
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false })
+					:WithObjective("obj2", { completed = false })
+					:WithTrigger("observer", {
+						type = TRIGGER_TYPES.ObjectiveFailed,
+						parameters = { objectiveID = "obj1" },
+					})
+			)
+			Objectives.SetObjectiveFailed("obj2")
 			assert.are.equal(0, #activatedTriggers)
-			Objectives.NotifyObjectiveFailed("obj1")
+			Objectives.SetObjectiveFailed("obj1")
 			assert.are.equal(1, #activatedTriggers)
 		end)
 	end)
