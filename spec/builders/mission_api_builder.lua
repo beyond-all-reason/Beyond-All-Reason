@@ -288,6 +288,7 @@ function MB:Build()
     local processSoundQueueCalls = {}
     local changeStageCalls       = {}
     local setCompletedCalls      = {}
+    local setFailedCalls         = {}
     local incrementProgressCalls = {}
     local updateProgressCalls    = {}
     local echoCalls              = {}
@@ -364,6 +365,9 @@ function MB:Build()
         SetObjectiveCompleted = function(objectiveID, completed)
             setCompletedCalls[#setCompletedCalls + 1] = { objectiveID = objectiveID, completed = completed }
         end,
+        SetObjectiveFailed = function(objectiveID)
+            setFailedCalls[#setFailedCalls + 1] = { objectiveID = objectiveID }
+        end,
         IncrementObjectiveProgress = function(objectiveID)
             incrementProgressCalls[#incrementProgressCalls + 1] = { objectiveID = objectiveID }
         end,
@@ -433,6 +437,7 @@ function MB:Build()
             processSoundQueue           = processSoundQueueCalls,
             changeStage                 = changeStageCalls,
             setObjectiveCompleted       = setCompletedCalls,
+            setObjectiveFailed          = setFailedCalls,
             incrementObjectiveProgress  = incrementProgressCalls,
             updateObjectiveProgress     = updateProgressCalls,
             echoObjectiveUpdate         = echoCalls,
@@ -443,7 +448,7 @@ function MB:Build()
         local tracked = {
             spawnUnitCalls, spawnFeatureCalls, convertOrdersCalls,
             playSoundCalls, enqueueSoundCalls, processSoundQueueCalls,
-            changeStageCalls, setCompletedCalls, incrementProgressCalls,
+            changeStageCalls, setCompletedCalls, setFailedCalls, incrementProgressCalls,
             updateProgressCalls, echoCalls,
         }
         for i = 1, #tracked do

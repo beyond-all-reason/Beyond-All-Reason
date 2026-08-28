@@ -28,6 +28,7 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.amount)
 			.. " | completed: "
 			.. tostring(objective.completed)
+			.. (objective.failed and " (failed)" or "")
 	)
 end
 
@@ -108,6 +109,18 @@ local function completeObjective(objectiveID, completed)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
+local function failObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.completed = true
+	objective.failed = true
+	notifyObjectiveFailed(objectiveID)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
 ---Update objective progress for a managed (statistics-based) objective.
 ---Called when the trigger's event fires with updated counts. The count
 ---accrues in any stage but completion requires the objective's stages.
@@ -152,8 +165,8 @@ return {
 	Init = init,
 	ChangeStage = changeStage,
 	SetObjectiveCompleted = completeObjective,
+	SetObjectiveFailed = failObjective,
 	IncrementObjectiveProgress = incrementObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
-	NotifyObjectiveFailed = notifyObjectiveFailed,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }
