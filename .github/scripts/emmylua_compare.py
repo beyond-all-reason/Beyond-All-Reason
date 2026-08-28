@@ -62,55 +62,138 @@ COMPACT_CODE_CAP = 10
 COMPACT_MESSAGE_CAP = 100
 
 
+def broken(detail):
+    """A report we cannot read is a CI defect, not a finding. Say which."""
+    print(
+        "::error title=Type check is broken::%s This is a CI defect, not a problem "
+        "with this PR; fix emmylua_compare.py or its pinned emmylua_check." % detail
+    )
+    sys.exit(1)
+
+
 def load(path, root):
-    """Reduce one report to {finding: count} and {finding: [positions]}."""
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        report = json.load(handle)
+    """Reduce one report to {finding: count} and {finding: [positions]}.
+
+    Nothing here trusts the report's shape. emmylua_check writing something
+    unexpected has to arrive as a defect annotation, the way every other
+    breakage in this workflow does, and not as a traceback that reads to the
+    author like their own pull request broke.
+    """
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            report = json.load(handle)
+    except (OSError, ValueError) as err:
+        broken("%s could not be read as Json (%s)." % (path, err))
+
+    if not isinstance(report, list):
+        broken(
+            "%s holds a Json %s where the report should be a list of files."
+            % (path, type(report).__name__)
+        )
 
     root = root.replace("\\", "/").rstrip("/") + "/"
     counts = collections.Counter()
     places = collections.defaultdict(list)
 
     for entry in report:
-        rel = entry.get("file", "").replace("\\", "/")
+        if not isinstance(entry, dict):
+            broken(
+                "%s lists a %s where a file object belongs."
+                % (path, type(entry).__name__)
+            )
+        rel = entry.get("file")
+        if not isinstance(rel, str):
+            broken("A file in %s carries no string path (got %r)." % (path, rel))
+        rel = rel.replace("\\", "/")
         rel = rel[len(root) :] if rel.startswith(root) else rel.lstrip("./")
-        for finding in entry.get("diagnostics", []):
+
+        # A file with nothing wrong may carry null rather than an empty list.
+        found = entry.get("diagnostics") or []
+        if not isinstance(found, list):
+            broken(
+                "The diagnostics for %s in %s are a %s, not a list."
+                % (rel, path, type(found).__name__)
+            )
+
+        for finding in found:
+            if not isinstance(finding, dict):
+                broken(
+                    "A diagnostic for %s in %s is a %s, not an object."
+                    % (rel, path, type(finding).__name__)
+                )
+            try:
+                severity = int(finding.get("severity", ERROR))
+            except (TypeError, ValueError):
+                broken(
+                    "A diagnostic for %s in %s has a non-numeric severity (%r), so "
+                    "there is no telling what blocks."
+                    % (rel, path, finding.get("severity"))
+                )
             key = (
-                int(finding.get("severity", ERROR)),
+                severity,
                 str(finding.get("code", "unknown")),
                 rel,
                 " ".join(str(finding.get("message", "")).split()),
             )
-            start = finding.get("range", {}).get("start", {})
+            # A position we cannot read is not worth failing over: it costs the
+            # finding its line number and nothing else, so it lands at the top
+            # of the file rather than taking the whole check down with it.
+            where = finding.get("range")
+            start = where.get("start") if isinstance(where, dict) else None
+            start = start if isinstance(start, dict) else {}
+            line, col = start.get("line", 0), start.get("character", 0)
             counts[key] += 1
             places[key].append(
-                (start.get("line", 0) + 1, start.get("character", 0) + 1)
+                (
+                    line + 1 if isinstance(line, int) else 1,
+                    col + 1 if isinstance(col, int) else 1,
+                )
             )
 
     return counts, places
 
 
+def read_records(path, width):
+    """Fixed-width records of NUL-separated fields.
+
+    A contributor can add a Lua file whose path holds a tab or a newline, so
+    every sidecar this script reads is NUL-separated, the way changed.txt is.
+    NUL is the one byte a path cannot contain, which is what makes it the only
+    safe separator here. Anything else silently splits a path in two and hands
+    its hunks to whatever file shares the prefix.
+    """
+    if not path or not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        fields = handle.read().split("\0")
+    if fields and fields[-1] == "":
+        fields.pop()
+    if len(fields) % width:
+        broken(
+            "%s holds %d NUL-separated field(s), which is not a whole number of "
+            "%d-field records." % (path, len(fields), width)
+        )
+    return [tuple(fields[i : i + width]) for i in range(0, len(fields), width)]
+
+
 def read_renames(path):
-    pairs = {}
-    if path and os.path.exists(path):
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            for line in handle:
-                old, _, new = line.rstrip("\n").partition("\t")
-                if old and new:
-                    pairs[old] = new
-    return pairs
+    """git diff --name-status -z writes status, old path, new path."""
+    return {old: new for _, old, new in read_records(path, 3) if old and new}
 
 
 def read_hunks(path):
     """The head-side line ranges the pull request wrote, per file."""
     ranges = collections.defaultdict(list)
-    if path and os.path.exists(path):
-        with open(path, encoding="utf-8", errors="replace") as handle:
-            for line in handle:
-                file, _, span = line.rstrip("\n").partition("\t")
-                start, _, end = span.partition("\t")
-                if file and start and end:
-                    ranges[file].append((int(start), int(end)))
+    for file, start, end in read_records(path, 3):
+        if not file:
+            continue
+        try:
+            ranges[file].append((int(start), int(end)))
+        except ValueError:
+            broken(
+                "%s carries a hunk range for %s that is not a pair of numbers "
+                "(%r, %r)." % (path, file, start, end)
+            )
     return ranges
 
 
@@ -187,6 +270,14 @@ def write_summary(
         )
     elif reasons:
         headline = "Type check: " + ", ".join(reasons)
+    elif not budget["total_judged"]:
+        # No lines in the changed files, so the total rule has no denominator
+        # and did not run. Saying "within 0" would read as a ceiling it met.
+        headline = (
+            "Type check: %d net new on the changed lines within %d; the changed "
+            "files have no lines to measure a rate against"
+            % (budget["net"], budget["added_allowance"])
+        )
     else:
         headline = (
             "Type check: %d net new on the changed lines within %d, %d left in the "
@@ -233,10 +324,6 @@ def write_summary(
                 "- **Added.** %d new warning%s on the lines this pull request wrote, "
                 "less %d it resolved in the files it touched, is %d net against an "
                 "allowance of %d -- %g per thousand of its %d changed line%s.\n"
-                "- **Total.** %d warning%s remain in the files it touched, against a "
-                "ceiling of %d -- %g per thousand of their %d line%s. This one does "
-                "not read the base: it is the state left behind, so a file already "
-                "over the line has to come under it.\n\n"
                 % (
                     args.runs,
                     plural(args.runs),
@@ -248,14 +335,30 @@ def write_summary(
                     args.warn_added_per_kloc,
                     args.changed_lines,
                     plural(args.changed_lines),
-                    budget["total"],
-                    plural(budget["total"]),
-                    budget["total_allowance"],
-                    args.warn_total_per_kloc,
-                    args.changed_file_lines,
-                    plural(args.changed_file_lines),
                 )
             )
+            if budget["total_judged"]:
+                out.write(
+                    "- **Total.** %d warning%s remain in the files it touched, "
+                    "against a ceiling of %d -- %g per thousand of their %d line%s. "
+                    "This one does not read the base: it is the state left behind, "
+                    "so a file already over the line has to come under it.\n\n"
+                    % (
+                        budget["total"],
+                        plural(budget["total"]),
+                        budget["total_allowance"],
+                        args.warn_total_per_kloc,
+                        args.changed_file_lines,
+                        plural(args.changed_file_lines),
+                    )
+                )
+            else:
+                out.write(
+                    "- **Total.** Not measured. The changed files hold no lines to "
+                    "divide by, so there is no rate to compare against %g per "
+                    "thousand, and this rule did not run.\n\n"
+                    % args.warn_total_per_kloc
+                )
             if ripple:
                 out.write(
                     "A further %d new warning%s landed in files this pull request did "
@@ -310,7 +413,10 @@ def write_summary(
         # standing warnings are listed whenever it is the thing that failed --
         # otherwise its author is handed a number and nowhere to go. They are
         # not listed when it passes: they are not news, and there are thousands.
-        over_total = budget["total"] > budget["total_allowance"]
+        over_total = (
+            budget["total_judged"]
+            and budget["total"] > budget["total_allowance"]
+        )
         standing_section = (list(standing), "Warnings in the changed files")
 
         sections = [
@@ -496,6 +602,12 @@ def main():
         severity, code, path, message = key
         if severity != WARNING or path not in changed:
             continue
+        # A key present in some head runs and absent from the last one reads as
+        # zero here. Falling through to the no-position default would invent a
+        # warning at line 1 and charge the total rule for the wobble that the
+        # four readings above exist to keep out of the numbers.
+        if count <= 0:
+            continue
         for line, col in sorted(head_places.get(key, []))[:count] or [(1, 1)]:
             standing.append(
                 {
@@ -512,6 +624,9 @@ def main():
     standing.sort(key=lambda f: (f["scope"], f["path"], f["line"], f["col"]))
     total = len(standing)
 
+    # A rate needs a denominator. Changed files with no lines to measure -- an
+    # empty file added on its own -- would otherwise get a ceiling of zero and
+    # fail on a warning they cannot be carrying, so the rule sits that one out.
     budget = {
         "added": added,
         "resolved": resolved,
@@ -521,6 +636,7 @@ def main():
         "total_allowance": int(
             args.warn_total_per_kloc * args.changed_file_lines / 1000.0
         ),
+        "total_judged": args.compared and args.changed_file_lines > 0,
     }
 
     reasons = []
@@ -531,7 +647,7 @@ def main():
             "%d net new warning%s on the changed lines over an allowance of %d"
             % (budget["net"], plural(budget["net"]), budget["added_allowance"])
         )
-    if args.compared and budget["total"] > budget["total_allowance"]:
+    if budget["total_judged"] and budget["total"] > budget["total_allowance"]:
         reasons.append(
             "%d warning%s left in the changed files over a ceiling of %d"
             % (budget["total"], plural(budget["total"]), budget["total_allowance"])
@@ -608,7 +724,11 @@ def main():
 
     # The whole standing set, when it is the thing that failed. Uncapped here,
     # the way the new findings are: the summary tables are the ones with a cap.
-    if standing and budget["total"] > budget["total_allowance"]:
+    if (
+        standing
+        and budget["total_judged"]
+        and budget["total"] > budget["total_allowance"]
+    ):
         print(
             "::group::warnings in the changed files - %d finding%s"
             % (len(standing), plural(len(standing)))

@@ -71,6 +71,16 @@ jobs:
             | jq -s -c --arg file "$file" '{file: $file, ranges: .}' >> ranges.json
           done < changed.txt
 
+          # One record per changed file. Short of that, the overlap test below
+          # finds no ranges for the missing ones, reads their mismatches as
+          # lines this PR did not write, and passes them. Silence, not failure.
+          changed_files=$(tr -cd '\0' < changed.txt | wc -c)
+          range_records=$(wc -l < ranges.json)
+          if [ "$range_records" -ne "$changed_files" ]; then
+            echo "::error title=Formatting check is broken::ranges.json holds $range_records record(s) for $changed_files changed file(s), so the overlap test would wave through every file it failed to scope. This is a CI defect, not a problem with this PR; fix format_check.yml."
+            exit 1
+          fi
+
           # No human being fixes their formatting by reading a diff from a linter
           # so we prevent the logging of any diff. The JSON check output reports
           # formatting mismatches per file on stdout and parse errs on stderr, so
@@ -82,9 +92,29 @@ jobs:
           stylua_status=$?
           set -e
 
-          if ! jq -e -s 'type == "array"' mismatches.json > /dev/null 2>&1; then
+          # -s always yields an array, so testing for one tests only that the
+          # report parsed. What matters is that the records are file objects.
+          if ! jq -e -s '
+                type == "array"
+                and all(type == "object" and (.file | type == "string"))
+              ' mismatches.json > /dev/null 2>&1; then
             echo "::error title=Formatting check is broken::stylua wrote an unreadable Json report (exit $stylua_status). This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
             cat mismatches.json errors.json
+            exit 1
+          fi
+
+          raw_hunks=$(jq -s '[ .[] | .mismatches // [] | .[] ] | length' mismatches.json)
+
+          # jq reads a missing field as null and null + 1 as 1, so renaming the
+          # line fields would not fail the overlap test below: it would scope
+          # every mismatch to line 1 and then block or ignore by whether the PR
+          # happened to touch the top of the file. Assert rather than trust.
+          if [ "$raw_hunks" -gt 0 ] && ! jq -e -s '
+                [ .[] | .mismatches // [] | .[] ]
+                | all((.original_start_line | type == "number")
+                      and (.original_end_line | type == "number"))
+              ' mismatches.json > /dev/null 2>&1; then
+            echo "::error title=Formatting check is broken::stylua's mismatches no longer carry numeric original_start_line and original_end_line, so the overlap test would scope every one of them to line 1. This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
             exit 1
           fi
 
@@ -103,7 +133,6 @@ jobs:
             | map(select(.mismatches | length > 0))
           ' mismatches.json > blocking.json
 
-          raw_hunks=$(jq -s '[ .[] | .mismatches // [] | .[] ] | length' mismatches.json)
           bad_hunks=$(jq '[ .[] | .mismatches // [] | .[] ] | length' blocking.json)
           preexisting_hunks=$((raw_hunks - bad_hunks))
           jq -r '.[].file' blocking.json | sort -u > misformatted.txt

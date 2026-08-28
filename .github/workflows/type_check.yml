@@ -103,8 +103,11 @@ jobs:
 
           # The base findings get moved onto the head's previous paths, first.
           # A rename would otherwise present every finding in the file as new.
-          git -C head diff --name-status -M --diff-filter=R "$BASE_SHA" HEAD -- '*.lua' \
-          | cut -f2,3 > renames.txt
+          # -z keeps the paths raw and NUL-separated: without it git quotes any
+          # path holding a tab or a newline, and the quoted form would no longer
+          # match the raw one in changed.txt. Records are status, old, new.
+          git -C head diff --name-status -z -M --diff-filter=R "$BASE_SHA" HEAD -- '*.lua' \
+          > renames.txt
 
           # A hunk header carries both sides: @@ -old,removed +new,added @@, with
           # a count of 1 where it is omitted. Rewriting 3 lines in place is 3
@@ -124,20 +127,26 @@ jobs:
 
           # Warnings are ranked by nearness to the change scope: hunk > file > tree.
           # A deletion has no head-side line so is matched against adjoining lines.
-          # Paths are tab-separated, like renames.txt above; separators could use work.
-          : > hunks.txt
+          #
+          # Records are NUL-separated path, start, end. A contributor can add a
+          # file whose path holds a tab or a newline, so awk is given no path to
+          # print -- it emits the two numbers and the shell writes the path,
+          # which is the only part of this that can carry an arbitrary byte.
           while IFS= read -r -d '' file; do
             git -C head diff --unified=0 "$BASE_SHA" HEAD -- "$file" \
-            | awk -v file="$file" '
+            | awk '
                 /^@@/ {
                   split(substr($3, 2), new, ",")
                   start = new[1] + 0
                   count = (new[2] == "" ? 1 : new[2] + 0)
-                  if (count == 0) printf "%s\t%d\t%d\n", file, start, start + 1
-                  else            printf "%s\t%d\t%d\n", file, start, start + count - 1
-                }' >> hunks.txt
-          done < changed.txt
-          echo "$(wc -l < hunks.txt) hunk(s) written."
+                  if (count == 0) print start, start + 1
+                  else            print start, start + count - 1
+                }' \
+            | while read -r start end; do
+                printf '%s\0%s\0%s\0' "$file" "$start" "$end"
+              done
+          done < changed.txt > hunks.txt
+          echo "$(tr -cd '\0' < hunks.txt | wc -c) hunk field(s) written."
 
           # The total rule divides by the size of the file, not the diff.
           # This has to check for files deleted by the change.
