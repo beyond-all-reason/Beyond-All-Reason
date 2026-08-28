@@ -1,5 +1,5 @@
 ---
---- Validation of a mission's top level sections: stages, objectives, triggers, actions and loadouts.
+--- Validation of a mission's top level sections: stages, objectives, triggers, actions, and loadouts.
 ---
 
 local SECTIONS = VFS.Include('luarules/mission_api/validation/report.lua').Sections
