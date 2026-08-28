@@ -1,3 +1,5 @@
+---@diagnostic disable: assign-type-mismatch, need-check-nil, unnecessary-assert
+
 function skip()
 	return GameCMD.UNIT_SET_TARGET == nil or select(1, Spring.GetTeamInfo(1, false)) == nil
 end

@@ -1,3 +1,5 @@
+---@diagnostic disable: unnecessary-assert
+
 function skip()
 	return select(1, Spring.GetTeamInfo(1, false)) == nil
 end
