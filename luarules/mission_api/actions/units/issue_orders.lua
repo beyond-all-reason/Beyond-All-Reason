@@ -6,7 +6,7 @@ local function issueOrders(unitName, orders)
 
 	local convertedOrders = GG['MissionAPI'].Modules.Loadout.ConvertOrdersTargetingNames(orders)
 
-	-- Fence around mission-issued orders for UnitOrdered triggers using `fromMission`.
+	-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 	GG['MissionAPI'].issuingOrders = true
 	Spring.GiveOrderArrayToUnitMap(GG['MissionAPI'].trackedUnitIDs[unitName], convertedOrders)
 	GG['MissionAPI'].issuingOrders = nil
