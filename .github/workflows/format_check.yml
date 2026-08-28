@@ -145,7 +145,7 @@ jobs:
 
           ver=$(./stylua --version)
           if [ "$bad_files" -gt 0 ]; then
-            echo "$bad_hunks hunk(s) written by this pull request are not formatted with $ver, in:"
+            echo "$bad_hunks hunk(s) overlapping lines this pull request wrote are not formatted with $ver, in:"
             cat misformatted.txt
           fi
           if [ -s errlines.txt ]; then
@@ -205,7 +205,7 @@ jobs:
             echo "### Formatting check failed"
             echo
             if [ "$bad_files" -gt 0 ]; then
-              echo "$bad_hunks hunk(s) written by this pull request, across $bad_files file(s), are not formatted. Run $ver on them and commit the result."
+              echo "$bad_hunks hunk(s) overlapping lines this pull request wrote, across $bad_files file(s), are not formatted. Run $ver on them and commit the result."
               echo
               if [ "$bad_files" -le 10 ]; then
                 sed -e 's/^/- `/' -e 's/$/`/' misformatted.txt
@@ -219,7 +219,7 @@ jobs:
             fi
             if [ "$preexisting_hunks" -gt 0 ]; then
               echo
-              echo "_A further $preexisting_hunks hunk(s) in these files are not formatted either, but this pull request did not write those lines and is not being failed for them._"
+              echo "_A further $preexisting_hunks hunk(s) in the changed files are not formatted either, but this pull request did not write those lines and is not being failed for them._"
             fi
             if [ -s errlines.txt ]; then
               echo

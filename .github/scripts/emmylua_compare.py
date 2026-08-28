@@ -19,8 +19,10 @@ paths are moved through the pull request's renames for the same reason.
 
 New errors block.
 
-New warnings are allowed up to a budget that is the smaller of a flat floor and
-a rate per thousand changed lines. Small changes are judged at high scrictness.
+New warnings are allowed up to a budget that is the smaller of a flat cap and a
+rate per thousand changed lines. Small changes receive a very strict allowance.
+
+A line rewritten in place is one changed line, not one added and one removed.
 """
 
 import argparse
@@ -162,8 +164,8 @@ def write_summary(
                     "%d changed line%s, allowance %d new warning%s, %d run%s per side."
                     "%s The full report is on the check's own page.\n"
                     % (
-                        args.added_lines,
-                        plural(args.added_lines),
+                        args.changed_lines,
+                        plural(args.changed_lines),
                         allowance,
                         plural(allowance),
                         args.runs,
@@ -179,8 +181,8 @@ def write_summary(
                 % (
                     args.runs,
                     plural(args.runs),
-                    args.added_lines,
-                    plural(args.added_lines),
+                    args.changed_lines,
+                    plural(args.changed_lines),
                     allowance,
                     plural(allowance),
                 )
@@ -201,8 +203,9 @@ def write_summary(
                 )
             out.write(
                 "emmylua disagreed with itself about %d finding%s on this branch and %d "
-                "on the base. Those are excluded rather than counted, which is the whole "
-                "reason the check runs more than once per side.\n"
+                "on the base. The base is read at its highest count and this branch "
+                "at its lowest, so that disagreement is absorbed instead of charged to "
+                "the author, which is why the check runs more than once per side.\n"
                 % (unstable["head"], plural(unstable["head"]), unstable["base"])
             )
         else:
@@ -293,7 +296,7 @@ def main():
     parser.add_argument("--head-root", required=True)
     parser.add_argument("--renames")
     parser.add_argument("--changed-files")
-    parser.add_argument("--added-lines", type=int, default=0)
+    parser.add_argument("--changed-lines", type=int, default=0)
     parser.add_argument("--warn-max", type=int, required=True)
     parser.add_argument("--warn-per-kloc", type=float, required=True)
     # Errors are always judged over the whole tree: there are almost none left,
@@ -366,11 +369,13 @@ def main():
     others = [f for f in new if f["severity"] > WARNING]
 
     allowance = min(
-        args.warn_max, round(args.warn_per_kloc * args.added_lines / 1000.0)
+        args.warn_max, int(args.warn_per_kloc * args.changed_lines / 1000.0)
     )
 
+    # Scope is a pull request idea. A manual run has no changed set, so narrowing
+    # to it would report every finding as out of scope and then budget none of them.
     budgeted = warnings
-    if args.warn_scope == "changed":
+    if args.compared and args.warn_scope == "changed":
         budgeted = [f for f in warnings if f["changed"]]
     ripple = len(warnings) - len(budgeted)
 
@@ -395,12 +400,13 @@ def main():
             allowance,
             ripple,
             len(others),
-            args.added_lines,
+            args.changed_lines,
             args.runs,
         )
     )
 
-    for pool, kind in ((errors, "error"), (warnings, "warning")):
+    # Warnings outside the scope are not budgeted, so they are not annotated.
+    for pool, kind in ((errors, "error"), (budgeted, "warning")):
         for finding in pool[:ANNOTATION_CAP]:
             print(
                 "::%s file=%s,line=%d,col=%d,title=%s::%s"
@@ -450,7 +456,7 @@ def main():
             allowance,
             reasons,
             unstable,
-            any(not f["changed"] for f in new),
+            args.compared and any(not f["changed"] for f in new),
             len(budgeted),
             ripple,
             detail,
