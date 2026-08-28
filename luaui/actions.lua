@@ -17,7 +17,8 @@ local actionHandler = {
 	keyRepeatActions = {},
 	keyReleaseActions = {},
 	syncActions = {},
-	-- actions triggered by currently held physical key (keyed by scancode) captured at press time so their release can be dispatched reliably
+	-- Actions triggered by a currently held physical key, keyed by scancode and captured at press time.
+	-- The engine rebuilds the action list from the live modifier state at release time, so a modified bind (e.g. Shift+n) gets no matching release dispatch once the modifier is let go first. Capturing the press list is makes modified binds releasable.
 	pressedKeyActions = {},
 }
 
@@ -223,14 +224,16 @@ local function TryActionList(actionMap, actionsToTry, isRepeat, release, trigger
 end
 
 function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
+	local hasActions = actions ~= nil and next(actions) ~= nil
+
 	if press then
-		if not (actions and next(actions)) then
-			return false
+		-- Remember which actions this physical key triggered, so their release can still be dispatched even when the modifier state no longer matches the bind at release time. Always written (nil included) so a press whose release never arrives cannot leave a stale list behind for the next press of the same key.
+		if scanCode and not isRepeat then
+			self.pressedKeyActions[scanCode] = hasActions and actions or nil
 		end
 
-		-- Remember which actions this physical key triggered, so their release can still be dispatched even when the modifier state no longer matches the bind at release time.
-		if scanCode and not isRepeat then
-			self.pressedKeyActions[scanCode] = actions
+		if not hasActions then
+			return false
 		end
 
 		local actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
