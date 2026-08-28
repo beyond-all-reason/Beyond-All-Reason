@@ -18,7 +18,7 @@ env:
   # Type errors are largely absorbed already so do not matter on the base pass.
   # We check against a warning floor (absolute count) and a warning rate (KLOC).
   WARN_FLOOR: 15
-  WARN_PER_KLOC: 150
+  WARN_PER_KLOC: 15
 
   # Warnings also ripple out into other files rapidly after relatively small code
   # changes. This should upgrade to "tree" once we have things under control.
