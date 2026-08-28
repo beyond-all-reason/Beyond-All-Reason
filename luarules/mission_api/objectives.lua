@@ -2,28 +2,25 @@
 --- Shared helpers for objective progress/completion and stage changes.
 ---
 
--- Activating and iterating triggers is handled through the triggers gadget.
-local processTriggersOfType, activateTrigger
+-- Activating and iterating triggers is handled through the triggers gadget, and
+-- publishing by the presentation module. Injected via Init so the publish path is
+-- an upvalue rather than three table lookups on every objective change.
+local processTriggersOfType, activateTrigger, presentation
 
 local function init(dependencies)
 	processTriggersOfType = dependencies.processTriggersOfType
 	activateTrigger = dependencies.activateTrigger
-end
-
----Presentation is looked up per call: the module is installed after this one.
-local function presentation()
-	return GG["MissionAPI"].Modules.Presentation
+	presentation = dependencies.presentation
 end
 
 local function changeStage(stageID)
 	GG["MissionAPI"].CurrentStageID = stageID
 	Spring.Echo("Stage set to: " .. stageID)
 
-	local present = presentation()
-	if present then
-		present.PublishStage(stageID)
+	if presentation then
+		presentation.PublishStage(stageID)
 		-- The stage decides display order, so the list is republished with it.
-		present.PublishObjectives()
+		presentation.PublishObjectives()
 	end
 end
 
@@ -44,9 +41,8 @@ local function echoObjectiveUpdate(objectiveID, objective)
 	)
 
 	-- Every state change funnels through here, so this is the one publish point.
-	local present = presentation()
-	if present then
-		present.PublishObjectives()
+	if presentation then
+		presentation.PublishObjectives()
 	end
 end
 

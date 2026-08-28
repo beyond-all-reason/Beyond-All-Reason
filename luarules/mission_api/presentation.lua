@@ -69,9 +69,9 @@ end
 
 ---Display order is the current stage's objective list, which is the only order the
 ---author wrote down. Anything not listed there follows, sorted, so the order is stable.
-local function orderedObjectiveIDs()
-	local objectives = GG["MissionAPI"].Objectives or {}
-	local stage = (GG["MissionAPI"].Stages or {})[GG["MissionAPI"].CurrentStageID]
+---Takes the mission table rather than reaching for the global again: the caller has it.
+local function orderedObjectiveIDs(missionAPI, objectives)
+	local stage = (missionAPI.Stages or {})[missionAPI.CurrentStageID]
 
 	local ordered, listed = {}, {}
 	for _, objectiveID in ipairs((stage or {}).objectives or {}) do
@@ -98,9 +98,10 @@ end
 ---Hidden objectives are filtered here, in synced, and never in the widget: widgets are
 ---replaceable by design, so unsynced must not hold what the player should not see.
 local function publishObjectives(audience)
-	local objectives = GG["MissionAPI"].Objectives or {}
+	local missionAPI = GG["MissionAPI"]
+	local objectives = missionAPI.Objectives or {}
 	local rows = {}
-	for _, objectiveID in ipairs(orderedObjectiveIDs()) do
+	for _, objectiveID in ipairs(orderedObjectiveIDs(missionAPI, objectives)) do
 		local objective = objectives[objectiveID]
 		if not objective.hidden then
 			rows[#rows + 1] = objectiveRow(objectiveID, objective)
