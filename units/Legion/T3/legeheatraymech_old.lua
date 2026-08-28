@@ -160,7 +160,7 @@ return {
 				predictboost = 0,
 				--proximitypriority = -1,
 				range = 800,
-				reloadtime = .033,
+				reloadtime = 0.033,
 				rgbcolor = "1 0.3 0",
 				rgbcolor2 = "1 0.8 0.5",
 				soundhitdry = "flamhit1",
@@ -180,7 +180,6 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			ultraheavyriotcannon = {
@@ -214,15 +213,12 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 750,
 				damage = {
-					bombers = 52,
 					default = 420,
-					fighters = 52,
 					subs = 160,
 					vtol = 52,
 				},
 				customparams = {
 					exclude_preaim = true,
-					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
 			bigfootstep = {
@@ -278,7 +274,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 700,
-				reloadtime = 0.9,--1.8,
+				reloadtime = 0.9, --1.8,
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",

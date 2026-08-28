@@ -1,7 +1,7 @@
 return {
 	legapollyon = {
-		acceleration = 0.02,
-		brakerate = 0.04,
+		maxacc = 0.02,
+		maxdec = 0.04,
 		energycost = 300000,
 		metalcost = 15000,
 		buildpic = "LEGAPOLLYON.DDS",
@@ -185,7 +185,7 @@ return {
 			legapollyon_gatling_aa = {
 				accuracy = 1000,
 				areaofeffect = 44,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,

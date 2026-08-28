@@ -1,31 +1,34 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "Self-Destruct Icons",
-      desc      = "Show an icon and countdown (if active) for units that have a self-destruct command",
-      author    = "Floris",
-      date      = "06.05.2014",
-      license   = "GNU GPL, v2 or later",
-      layer     = -50,
-      enabled   = true
-   }
+	return {
+		name = "Self-Destruct Icons",
+		desc = "Show an icon and countdown (if active) for units that have a self-destruct command",
+		author = "Floris",
+		date = "06.05.2014",
+		license = "GNU GPL, v2 or later",
+		layer = -50,
+		enabled = true,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local ignoreUnitDefs = {}
 local unitConf = {}
+local isTransportDef = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = 6*( xsize*xsize + zsize*zsize )^0.5
-	unitConf[udid] = 7 +(scale/2.5)
-	if string.find(unitDef.name, 'droppod') then
+	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
+	unitConf[udid] = 7 + (scale / 2.5)
+	if string.find(unitDef.name, "droppod") then
 		ignoreUnitDefs[udid] = true
+	end
+	if unitDef.isTransport then
+		isTransportDef[udid] = true
 	end
 end
 
@@ -39,36 +42,34 @@ local queuedSelfD = {}
 
 local drawLists = {}
 
-local glDrawListAtUnit			= gl.DrawListAtUnit
-local glDepthTest				= gl.DepthTest
-local spGetUnitDefID			= spGetUnitDefID
-local spIsUnitInView 			= Spring.IsUnitInView
-local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
-local spGetAllUnits				= Spring.GetAllUnits
-local spGetUnitCommands			= Spring.GetUnitCommands
-local spIsUnitAllied			= Spring.IsUnitAllied
-local spGetCameraDirection		= Spring.GetCameraDirection
-local spIsGUIHidden				= Spring.IsGUIHidden
-local spGetUnitTransporter		= Spring.GetUnitTransporter
+local glDrawListAtUnit = gl.DrawListAtUnit
+local glDepthTest = gl.DepthTest
+local spGetUnitDefID = spGetUnitDefID
+local spIsUnitInView = Spring.IsUnitInView
+local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitCommands = Spring.GetUnitCommands
+local spIsUnitAllied = Spring.IsUnitAllied
+local spGetCameraDirection = Spring.GetCameraDirection
+local spIsGUIHidden = Spring.IsGUIHidden
+local spGetUnitTransporter = Spring.GetUnitTransporter
 
 local myPlayerID = spGetMyPlayerID()
 local spec, fullView = spGetSpectatingState()
-
-
 
 local function DrawIcon(text)
 	local iconSize = 0.9
 	gl.PushMatrix()
 
 	gl.Color(0.9, 0.9, 0.9, 1)
-	gl.Texture(':n:LuaUI/Images/skull.dds')
+	gl.Texture(":n:LuaUI/Images/skull.dds")
 	gl.Billboard()
 	gl.Translate(0, -1.2, 0)
-	gl.TexRect(-iconSize/2, -iconSize/2, iconSize/2, iconSize/2)
+	gl.TexRect(-iconSize / 2, -iconSize / 2, iconSize / 2, iconSize / 2)
 	gl.Texture(false)
 
 	if text ~= 0 then
-		gl.Translate(iconSize/2, -iconSize/2, 0)
+		gl.Translate(iconSize / 2, -iconSize / 2, 0)
 		font:Begin()
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0, 0, 0, 1)
@@ -115,18 +116,18 @@ local function updateUnit(unitID)
 end
 
 local function init()
-	for k,_ in pairs(drawLists) do
+	for k, _ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end
 	drawLists = {}
-	font = WG['fonts'].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 
 	spec, fullView = spGetSpectatingState()
 
 	activeSelfD = {}
 	queuedSelfD = {}
 	local allUnits = spGetAllUnits()
-	for i=1,#allUnits do
+	for i = 1, #allUnits do
 		updateUnit(allUnits[i])
 	end
 end
@@ -138,7 +139,7 @@ function widget:PlayerChanged(playerID)
 		init()
 	end
 end
-function widget:ViewResize(vsx,vsy)
+function widget:ViewResize(vsx, vsy)
 	init()
 end
 
@@ -146,33 +147,33 @@ function widget:Initialize()
 	init()
 end
 
-
 function widget:Shutdown()
-	for k,_ in pairs(drawLists) do
+	for k, _ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end
 end
 
-
 local sec = 0
-local prevCam = {spGetCameraDirection()}
+local prevCam = { spGetCameraDirection() }
 function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.15 then
 		sec = 0
 		local camX, camY, camZ = spGetCameraDirection()
-		if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
-			for k,_ in pairs(drawLists) do
+		if camX ~= prevCam[1] or camY ~= prevCam[2] or camZ ~= prevCam[3] then
+			for k, _ in pairs(drawLists) do
 				gl.DeleteList(drawLists[k])
 				drawLists[k] = nil
 			end
 		end
-		prevCam = {camX,camY,camZ}
+		prevCam = { camX, camY, camZ }
 	end
 end
 
 function widget:DrawWorld()
-	if spIsGUIHidden() then return end
+	if spIsGUIHidden() then
+		return
+	end
 
 	glDepthTest(false)
 
@@ -181,7 +182,8 @@ function widget:DrawWorld()
 	-- draw icon + countodown if there is an active self-d countdown going
 	for unitID, unitDefID in pairs(activeSelfD) do
 		if (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if spGetUnitTransporter(unitID) == nil then
+			local transporterID = spGetUnitTransporter(unitID)
+			if transporterID == nil or not isTransportDef[spGetUnitDefID(transporterID)] then
 				unitScale = unitConf[unitDefID]
 				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
 				if not drawLists[countdown] then
@@ -196,7 +198,8 @@ function widget:DrawWorld()
 	for unitID, unitDefID in pairs(queuedSelfD) do
 		-- don't draw this if it also has an active countdown
 		if activeSelfD[unitID] == nil and (spIsUnitAllied(unitID) or spec) and spIsUnitInView(unitID) then
-			if spGetUnitTransporter(unitID) == nil then
+			local transporterID = spGetUnitTransporter(unitID)
+			if transporterID == nil or not isTransportDef[spGetUnitDefID(transporterID)] then
 				unitScale = unitConf[unitDefID]
 				if not drawLists[0] then
 					drawLists[0] = gl.CreateList(DrawIcon, 0)
@@ -288,7 +291,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	activeSelfD[unitID] = nil
 	queuedSelfD[unitID] = nil
 end
-
 
 function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	activeSelfD[unitID] = nil

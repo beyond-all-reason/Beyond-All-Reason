@@ -1,7 +1,7 @@
 return {
 	legerailtank = {
-		acceleration = 0.035,
-		brakerate = 0.055,
+		maxacc = 0.035,
+		maxdec = 0.055,
 		energycost = 165000,
 		metalcost = 6500,
 		buildpic = "LEGERAILTANK.DDS",
@@ -108,7 +108,7 @@ return {
 				areaofeffect = 80,
 				avoidfeature = false,
 				burst = 1,
-				burstrate = 0.33,	-- this is controlled in the animation script
+				burstrate = 0.33, -- this is controlled in the animation script
 				burnblow = false,
 				cegtag = "railgun",
 				collisionSize = 0.667,

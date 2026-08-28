@@ -1,8 +1,8 @@
 return {
 	armuwgeo = {
-		acceleration = 0,
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 2048,
 		energycost = 13000,
 		metalcost = 560,

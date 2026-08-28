@@ -214,7 +214,14 @@ local function airReworkUnitTweaks(name, uDef)
 			vtol = 1000,
 		}
 	end
-	if name == "armca" or name == "armaca" or name == "corca" or name == "corcsa" or name == "armcsa" or name == "coraca" then
+	if
+		name == "armca"
+		or name == "armaca"
+		or name == "corca"
+		or name == "corcsa"
+		or name == "armcsa"
+		or name == "coraca"
+	then
 		uDef.health = uDef.health * 1.5
 		uDef.speed = uDef.speed * 0.75
 		uDef.turnrate = uDef.turnrate * 1.5
@@ -222,7 +229,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.metalcost = uDef.metalcost * 7 / 6 - (uDef.metalcost * 7 / 6) % 1
 	end
 	if name == "armawac" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.015
 		uDef.maxbank = 0.66
@@ -232,7 +241,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.cruisealtitude = 270
 	end
 	if name == "armpeep" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.health = 133
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.017
@@ -242,7 +253,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.sightdistance = uDef.sightdistance * 1.2
 	end
 	if name == "corawac" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.015
 		uDef.maxbank = 0.66
@@ -252,7 +265,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.cruisealtitude = 270
 	end
 	if name == "corfink" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.health = 150
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.017
@@ -262,7 +277,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.sightdistance = uDef.sightdistance * 1.2
 	end
 	if name == "corhunt" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.015
 		uDef.maxbank = 0.66
@@ -271,7 +288,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.cruisealtitude = 240
 	end
 	if name == "armsehak" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.speed = uDef.speed * 0.76
 		uDef.maxrudder = 0.015
 		uDef.maxbank = 0.66
@@ -302,14 +321,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.health = uDef.health * 1.4
 		uDef.turnrate = uDef.turnrate * 1.5
 	end
-	if name == "armkam" then
-		uDef.weapondefs.med_emg.burstrate = 0.08
-		uDef.weapondefs.med_emg.reloadtime = 1.15
-		uDef.weapondefs.med_emg.areaofeffect = 24
-	end
 	if name == "armbrawl" then
 		uDef.weapondefs.vtol_emg.damage = {
-		default = 20,
+			default = 20,
 		}
 	end
 	if name == "corcrwh" then
@@ -382,8 +396,17 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.vtol_rocket.weaponacceleration = 260
 		uDef.weapondefs.vtol_rocket.damage.default = 153
 	end
-	if name == "cortitan" or name == "corshad" or name == "armthund" or name == "armliche" or name == "armstil" or name == "armlance" then
-		uDef.metalcost = uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15 - (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
+	if
+		name == "cortitan"
+		or name == "corshad"
+		or name == "armthund"
+		or name == "armliche"
+		or name == "armstil"
+		or name == "armlance"
+	then
+		uDef.metalcost = uDef.metalcost * 1.15
+			+ uDef.energycost / 70 * 0.15
+			- (uDef.metalcost * 1.15 + uDef.energycost / 70 * 0.15) % 1
 		uDef.energycost = uDef.energycost * 1.2
 		uDef.metalcost = uDef.metalcost * 1.2 - (uDef.metalcost * 1.2) % 1
 		uDef.speed = uDef.speed * 0.73
@@ -409,7 +432,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.cruisealtitude = 240
 		uDef.weapondefs.coradvbomb.burstrate = 0.26
 		uDef.weapondefs.coradvbomb.damage = {
-			default = 500
+			default = 500,
 		}
 	end
 	if name == "armpnix" then
@@ -428,7 +451,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armadvbomb.areaofeffect = 220
 	end
 	if name == "corsb" or name == "armsb" then
-		uDef.metalcost = uDef.metalcost * 1.25 + uDef.energycost / 70 * 0.25 - (uDef.metalcost * 1.25 + uDef.energycost / 70 * 0.25) % 1
+		uDef.metalcost = uDef.metalcost * 1.25
+			+ uDef.energycost / 70 * 0.25
+			- (uDef.metalcost * 1.25 + uDef.energycost / 70 * 0.25) % 1
 		uDef.energycost = uDef.energycost * 1.2
 		uDef.metalcost = uDef.metalcost * 1.2 - (uDef.metalcost * 1.2) % 1
 		uDef.speed = uDef.speed * 0.85
@@ -472,9 +497,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armrl_missile.weaponacceleration = 200
 	end
 	if name == "corfrt" then
-		uDef.weapondefs.armrl_missile.startvelocity = 111
-		uDef.weapondefs.armrl_missile.flighttime = 2.6
-		uDef.weapondefs.armrl_missile.weaponacceleration = 200
+		uDef.weapondefs.corrl_missile.startvelocity = 111
+		uDef.weapondefs.corrl_missile.flighttime = 2.6
+		uDef.weapondefs.corrl_missile.weaponacceleration = 200
 	end
 	if name == "corrl" then
 		uDef.weapondefs.corrl_missile.startvelocity = 111
@@ -536,39 +561,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.corbot_missile.weaponacceleration = 230
 		uDef.weapondefs.corbot_missile.flighttime = 2.4
 	end
-	if name == "armaak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.armaabot_missile1.range = 1300
-		uDef.weapondefs.armaabot_missile1.reloadtime = 1.5
-		uDef.weapondefs.armaabot_missile1.startvelocity = 130
-		uDef.weapondefs.armaabot_missile1.weaponacceleration = 320
-		uDef.weapondefs.armaabot_missile1.flighttime = 2.55
-		uDef.weapondefs.armaabot_missile2.startvelocity = 110
-		uDef.weapondefs.armaabot_missile2.weaponacceleration = 300
-		uDef.weapondefs.armaabot_missile2.flighttime = 2.4
-		uDef.weapondefs.armaabot_missile2.reloadtime = 1.4
-		uDef.weapondefs.armaabot_missile2.range = 880
-		uDef.weapons[5].def = ""
-	end
-	if name == "coraak" then
-		uDef.health = uDef.health * 2
-		uDef.weapondefs.coraabot_missile4.range = 1400
-		uDef.weapondefs.coraabot_missile4.reloadtime = 1.6
-		uDef.weapondefs.coraabot_missile4.startvelocity = 130
-		uDef.weapondefs.coraabot_missile4.weaponacceleration = 320
-		uDef.weapondefs.coraabot_missile4.flighttime = 2.55
-		uDef.weapondefs.coraabot_missile3.range = 970
-		uDef.weapondefs.coraabot_missile3.reloadtime = 1.2
-		uDef.weapondefs.coraabot_missile3.startvelocity = 110
-		uDef.weapondefs.coraabot_missile3.weaponacceleration = 300
-		uDef.weapondefs.coraabot_missile3.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.range = 870
-		uDef.weapondefs.coraabot_missile2.startvelocity = 100
-		uDef.weapondefs.coraabot_missile2.weaponacceleration = 290
-		uDef.weapondefs.coraabot_missile2.flighttime = 2.4
-		uDef.weapondefs.coraabot_missile2.reloadtime = 1
-		uDef.weapons[6].def = ""
-	end
+
 	if name == "armyork" then
 		uDef.weapondefs.mobileflak.weaponvelocity = 1000
 	end

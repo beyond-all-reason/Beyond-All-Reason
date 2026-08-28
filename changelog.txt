@@ -1,3 +1,28 @@
+# August
+• [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
+• [T1, Seaplane Air Constructors] -35% energycost, -35% buildtime, -35% speed 
+• [LRPCs] 1100 -> 900 weaponvelocity
+• [Nukes] 1.3x base damage, 0.45 -> 0 edgeeffectiveness -> More damage dealt at the center of explosion, less damage on the edges of the explosion
+• [Sumo] 6500 -> 6000 health
+• [Mammoth] 22.5 -> 23 speed
+• [Sheldon] 50.4 -> 50 speed
+• [Floating AA turrets] Stats made to match their land counterparts
+• [Legion changes]
+	- Basic mex now similar stats as other T1 mexes, T1.5 mex removed
+	- Wind generator 45m -> 43m cost
+	- Solar 155m -> 150m cost
+	- Goblin 25m, 500e -> 30m, 420e cost
+	- Satyr 400e -> 500e cost, 1100 -> 1220 buildtime, can no longer fire vertically
+	- Phalanx 50 -> 44 speed
+	- Alaris weapon switched from gauss to a shotgun with the same range and a 10% higher dps.  Unit should feel more responsive overall with a slightly higher acceleration, turnrate, turret turnrate, and weapon projectile speed.  Unit speed reduced 102->99.  
+	- Helios 69 -> 75 speed, 330 -> 320 range, 400 -> 370 turnrate
+	- Lance 3800e -> 3600e cost
+	- Prometheus friendly fire significantly reduced
+	- Inferno firing pattern changed to sector fire so its shots will have much less vertical spread, 1100 -> 1200 range
+	- Perdition stockpile time 50s -> 40s 
+	- Rhapsis (T1 Medium AA Tower) 156 -> 180 DPS, 840 -> 950 range
+	- Pluto (T2 Microflak Tower) and Fulmen (Naval Microflak Tower) 800 -> 875 range
+
 # July
 • [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
 • [Rover] 1000 -> 1100 buildtime
@@ -365,7 +390,7 @@
     - [Persecutor] (T2 Plasma Popup Artillery)
     - [Vanguard] (T3 Mobile All-Terrain Artillery)
 • [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe
-• [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
+• [Serpent] The Arm T2 battlesub now fires 2 medium torpedoes at once instead of 1 large one, overall dps unchanged but some aoe is added
 • [Kraken] The Cor T2 battlesub's torpedo aoe increased
 
 # December 2024
@@ -406,7 +431,7 @@
 
 # July 2024
 • [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
-• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
+• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Converters, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
 • [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.
 • [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
 • [Centurion] Unit script improved so the unit should keep firing while turning
@@ -603,7 +628,7 @@ Bugfixes
 
 # August 2022
 
- • [Torpedo gunships] weapon changed to match up with other torpedos (damage and speed), accuracy and targeting improved.
+ • [Torpedo gunships] weapon changed to match up with other torpedoes (damage and speed), accuracy and targeting improved.
 
 
 # May 2022
@@ -685,7 +710,7 @@ Air
  • T1 construction plane E cost -30%
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters
  • Torpedo bombers: Added 800 range radar+sonar, +10% los, -13% max velocity, reduced flight altitude 25%, split main weapon into 3-round burst (500 damage each instead of 1500), Increased cost by 21%
- • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
+ • Torpedo gunships: Targeting/tracking improvements, +17% los, added 535 range sonar
  • EMP bomber: 20% slower (still slightly faster than t1 fighters)
 
 Sea

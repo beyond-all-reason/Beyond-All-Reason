@@ -1,6 +1,5 @@
 return {
 	legfig = {
-		acceleration = 0.35,
 		airsightdistance = 950,
 		blocking = false,
 		maxdec = 0.075,
@@ -39,7 +38,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air",

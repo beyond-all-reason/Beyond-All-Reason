@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Startbox Config',
-		desc = 'Loads polygon startbox configurations and provides containment checks via GG',
-		author = 'Harkenn',
-		date = '2026',
-		license = 'GNU GPL, v2 or later',
+		name = "Startbox Config",
+		desc = "Loads polygon startbox configurations and provides containment checks via GG",
+		author = "Harkenn",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
 		layer = -999, -- after FFA start setup (-1000), before initial spawn (0) and no-rush (-100)
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -30,7 +30,7 @@ function gadget:Initialize()
 		configSource = source
 		isExplicitConfig = isExplicit
 	else
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Failed to parse startbox config: ' .. tostring(config))
+		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Failed to parse startbox config: " .. tostring(config))
 	end
 
 	-- Expand the engine AABB for each active allyTeam to cover the polygon bounds.
@@ -51,6 +51,12 @@ function gadget:Initialize()
 	GG.startBoxConfig = startBoxConfig
 	GG.startBoxConfigSource = configSource
 
+	---Tests a map position against an allyteam's polygonal start box.
+	---@param x number
+	---@param z number
+	---@param allyTeamID AllyTeamID
+	---@return boolean? inside `nil` when no polygon config exists; the caller should
+	---fall back to the engine's axis-aligned start box.
 	GG.IsInsideStartbox = function(x, z, allyTeamID)
 		if not isExplicitConfig then
 			return nil -- caller should fall back to engine AABB
@@ -64,6 +70,13 @@ function gadget:Initialize()
 		return PolygonLib.PointInStartbox(x, z, entry)
 	end
 
+	---Returns the axis-aligned bounding box of an allyteam's start box polygons.
+	---@param allyTeamID AllyTeamID
+	---@return number? xmin `nil` when no polygon config exists; the caller should
+	---fall back to the engine's axis-aligned start box.
+	---@return number? zmin
+	---@return number? xmax
+	---@return number? zmax
 	GG.GetStartboxBounds = function(allyTeamID)
 		if not isExplicitConfig then
 			return nil -- caller should fall back to engine AABB
@@ -77,6 +90,10 @@ function gadget:Initialize()
 		return PolygonLib.GetStartboxBounds(entry)
 	end
 
+	---Returns the raw start box polygons configured for an allyteam.
+	---@param allyTeamID AllyTeamID
+	---@return Position2D[][]? boxes Array of polygons, each an array of `{x, z}` vertex
+	---pairs. `nil` when no polygon config exists.
 	GG.GetStartboxPolygons = function(allyTeamID)
 		if not isExplicitConfig then
 			return nil
