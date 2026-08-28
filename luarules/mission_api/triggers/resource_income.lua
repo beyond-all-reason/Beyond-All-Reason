@@ -60,13 +60,13 @@ return {
 
 			local sources = trigger.parameters.sources
 
-			local teamId = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+			local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
 			if sources == nil then
 				-- Unfiltered: use the engine's total income (index 4).
-				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamId, "metal")) < trigger.parameters.metal then
+				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then
 					return
 				end
-				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamId, "energy")) < trigger.parameters.energy then
+				if trigger.parameters.energy and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamID, "energy")) < trigger.parameters.energy then
 					return
 				end
 				context.ActivateTrigger(trigger)
@@ -74,10 +74,10 @@ return {
 			end
 
 			-- Source-filtered income check.
-			if trigger.parameters.metal and getTeamResourceIncomeForSources(teamId, "metal", sources, context) < trigger.parameters.metal then
+			if trigger.parameters.metal and getTeamResourceIncomeForSources(teamID, "metal", sources, context) < trigger.parameters.metal then
 				return
 			end
-			if trigger.parameters.energy and getTeamResourceIncomeForSources(teamId, "energy", sources, context) < trigger.parameters.energy then
+			if trigger.parameters.energy and getTeamResourceIncomeForSources(teamID, "energy", sources, context) < trigger.parameters.energy then
 				return
 			end
 			context.ActivateTrigger(trigger)
