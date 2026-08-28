@@ -39,11 +39,11 @@ end
 return {
 	type = 'UnitOrdered',
 	parameters = {
-		{ name = 'command',     required = true,  type = ParameterTypes.Command },
-		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
-		{ name = 'fromMission', required = false, type = ParameterTypes.Boolean },
+		{ name = 'command',              required = true,  type = ParameterTypes.Command },
+		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',               required = false, type = ParameterTypes.TeamID },
+		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -66,7 +66,7 @@ return {
 					return
 				end
 			end
-			if trigger.parameters.fromMission ~= true and GG['MissionAPI'].issuingOrders then
+			if trigger.parameters.ignoreMissionActions ~= false and GG['MissionAPI'].issuingOrders then
 				return
 			end
 

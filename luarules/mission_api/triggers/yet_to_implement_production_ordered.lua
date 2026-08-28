@@ -11,11 +11,11 @@ local CMD_INSERT = CMD.INSERT
 return {
 	type = 'ProductionOrdered',
 	parameters = {
-		{ name = 'buildDefName', required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'unitName',     required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',  required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',       required = false, type = ParameterTypes.TeamID },
-		{ name = 'fromMission',  required = false, type = ParameterTypes.Boolean },
+		{ name = 'buildDefName',         required = true,  type = ParameterTypes.UnitDefName },
+		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'teamID',               required = false, type = ParameterTypes.TeamID },
+		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 	},
 	callins = {
 		UnitCommand = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, cmdID, cmdParams)
@@ -35,7 +35,7 @@ return {
 			if not buildDef then
 				return
 			end
-			if trigger.parameters.fromMission ~= true and GG['MissionAPI'].issuingOrders then
+			if trigger.parameters.ignoreMissionActions ~= false and GG['MissionAPI'].issuingOrders then
 				return
 			end
 
