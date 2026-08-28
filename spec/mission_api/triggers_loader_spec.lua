@@ -194,6 +194,8 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.UnitsOwned], callinName)
 				assert.is_nil(handlers[T.Victory], callinName)
 				assert.is_nil(handlers[T.Defeat], callinName)
+				assert.is_nil(handlers[T.ObjectiveCompleted], callinName)
+				assert.is_nil(handlers[T.ObjectiveFailed], callinName)
 			end
 		end)
 	end)

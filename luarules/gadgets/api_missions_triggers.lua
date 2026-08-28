@@ -238,6 +238,9 @@ function gadget:Initialize()
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
 
+	-- The objectives module dispatches its own triggers on objectives:
+	GG['MissionAPI'].Modules.Objectives.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
+
 	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
 	-- reclaim step (among the hottest call-ins in the game), so only stay subscribed
 	-- to them when the loaded mission actually needs the reclaim bookkeeping they do:

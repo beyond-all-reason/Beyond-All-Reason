@@ -35,7 +35,8 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field enqueueSound table
 ---@field processSoundQueue table
 ---@field changeStage table
----@field tryAdvanceStage table
+---@field setObjectiveCompleted table
+---@field incrementObjectiveProgress table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
 
@@ -285,10 +286,11 @@ function MB:Build()
     local playSoundCalls        = {}
     local enqueueSoundCalls     = {}
     local processSoundQueueCalls = {}
-    local changeStageCalls      = {}
-    local tryAdvanceCalls       = {}
-    local updateProgressCalls   = {}
-    local echoCalls             = {}
+    local changeStageCalls       = {}
+    local setCompletedCalls      = {}
+    local incrementProgressCalls = {}
+    local updateProgressCalls    = {}
+    local echoCalls              = {}
 
     local tracking = {
         TrackUnit = function(name, unitID)
@@ -359,8 +361,11 @@ function MB:Build()
         ChangeStage = function(stageID)
             changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
         end,
-        TryAdvanceStage = function(objective)
-            tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
+        SetObjectiveCompleted = function(objectiveID, completed)
+            setCompletedCalls[#setCompletedCalls + 1] = { objectiveID = objectiveID, completed = completed }
+        end,
+        IncrementObjectiveProgress = function(objectiveID)
+            incrementProgressCalls[#incrementProgressCalls + 1] = { objectiveID = objectiveID }
         end,
         UpdateObjectiveProgress = function(objectiveID, eventTeamID, eventUnitDefName, eventUnitNames, direction, managedObjMetadata)
             updateProgressCalls[#updateProgressCalls + 1] = {
@@ -427,7 +432,8 @@ function MB:Build()
             enqueueSound                = enqueueSoundCalls,
             processSoundQueue           = processSoundQueueCalls,
             changeStage                 = changeStageCalls,
-            tryAdvanceStage             = tryAdvanceCalls,
+            setObjectiveCompleted       = setCompletedCalls,
+            incrementObjectiveProgress  = incrementProgressCalls,
             updateObjectiveProgress     = updateProgressCalls,
             echoObjectiveUpdate         = echoCalls,
         },
@@ -437,7 +443,8 @@ function MB:Build()
         local tracked = {
             spawnUnitCalls, spawnFeatureCalls, convertOrdersCalls,
             playSoundCalls, enqueueSoundCalls, processSoundQueueCalls,
-            changeStageCalls, tryAdvanceCalls, updateProgressCalls, echoCalls,
+            changeStageCalls, setCompletedCalls, incrementProgressCalls,
+            updateProgressCalls, echoCalls,
         }
         for i = 1, #tracked do
             local list = tracked[i]

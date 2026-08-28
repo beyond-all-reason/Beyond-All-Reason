@@ -11,7 +11,6 @@ local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 				seconds = 3,
 			},
 		},
-		nextStage = 'secondStage',
 		coop = true,
 	},
 ]]
@@ -52,15 +51,12 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 				table.ensureTable(GG["MissionAPI"].ManagedObjectives, triggerType)
 				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
 					objectiveID = objectiveID,
-					amount = amount,
-					nextStage = objective.nextStage,
 					stages = objectiveStages,
 					parameters = triggerParameters,
 				})
 			else
 				-- Non-managed objective: synthesize trigger + action as usual.
 				local isRepeating = amount ~= nil
-				local maxRepeats = type(amount) == "number" and amount > 1 and (amount - 1) or nil
 				local triggerID = "__objective_" .. objectiveID
 				local actionID = "__updateObjective_" .. objectiveID
 
@@ -70,7 +66,6 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 					settings = {
 						stages = objectiveStages,
 						repeating = isRepeating,
-						maxRepeats = maxRepeats,
 					},
 					actions = { actionID },
 				}

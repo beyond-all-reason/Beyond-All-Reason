@@ -777,7 +777,7 @@ end
 
 local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
-		if fieldName ~= "nextStage" and objective[fieldName] ~= nil then
+		if objective[fieldName] ~= nil then
 			local validator = validators[fieldType]
 			local results = validator(objective[fieldName]) or {}
 			if #results > 0 then
@@ -817,6 +817,9 @@ local function validateObjectiveInlineTrigger(objective, objectiveIDText)
 		end
 		triggerParams = table.copy(triggerParams or {})
 		triggerParams.quantity = 1
+	elseif objective.amount == 0 and triggersSchemaParameters[objective.trigger.type] then
+		-- Only statistics counts can decrease; an occurrence count never returns to zero.
+		logError("Objective amount of 0 requires a statistics trigger type. Objective: " .. objectiveIDText)
 	end
 	validate(triggersSchemaParameters, objective.trigger.type, triggerParams, "Objective trigger", objectiveIDText)
 end
@@ -967,26 +970,29 @@ local function validateStages(stages)
 	end
 end
 
-local function validateObjectiveNextStageReferences(objectives)
-	for objectiveID, objective in pairs(objectives) do
-		if type(objective) == "table" and objective.nextStage ~= nil then
-			local objectiveIDText = tostring(objectiveID)
-			if type(objective.nextStage) ~= "string" then
-				logError(
-					"Unexpected parameter type, expected string, got "
-						.. type(objective.nextStage)
-						.. ". Objective: "
-						.. objectiveIDText
-						.. ", Field: nextStage"
-				)
-			elseif GG["MissionAPI"].Stages[objective.nextStage] == nil then
-				logError(
-					"Objective references non-existent nextStage. Objective: "
-						.. objectiveIDText
-						.. ", Stage: "
-						.. objective.nextStage
-				)
-			end
+---Stage changes happen only via the `ChangeStage` action, ever. Any stage that is
+---not the initial stage and is targeted by no `ChangeStage` actions can never be
+---entered. Trigger firing is dynamic, however, so this stays a warning:
+local function validateStageReachability(actionTypes, stages, actions)
+	if table.isEmpty(stages) then
+		return
+	end
+
+	local targetedStageIDs = {}
+	for _, action in pairs(actions) do
+		if action.type == actionTypes.ChangeStage and action.parameters and action.parameters.stageID ~= nil then
+			targetedStageIDs[action.parameters.stageID] = true
+		end
+	end
+
+	-- CurrentStageID is the initial stage while validation runs. See loadMission.
+	local initialStage = GG["MissionAPI"].CurrentStageID
+	for stageID in pairs(stages) do
+		if stageID ~= initialStage and not targetedStageIDs[stageID] then
+			logWarn(
+				"Stage is unreachable: not the initial stage, and no ChangeStage action targets it. Stage: "
+					.. tostring(stageID)
+			)
 		end
 	end
 end
@@ -1450,7 +1456,7 @@ local function validateReferences()
 	local featureLoadout = GG["MissionAPI"].FeatureLoadout
 
 	validateStagesReferences(stages, objectives)
-	validateObjectiveNextStageReferences(objectives)
+	validateStageReachability(actionTypes, stages, actions)
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)

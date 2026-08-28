@@ -24,7 +24,6 @@ local objectives = {
 				seconds = 3,
 			},
 		},
-		nextStage = 'secondStage',
 	},
 
 	buildBots = {
@@ -54,6 +53,14 @@ local objectives = {
 
 local triggers = {
 
+	advanceOnWait = {
+		type = triggerTypes.ObjectiveCompleted,
+		parameters = {
+			objectiveID = 'wait3secs',
+		},
+		actions = { 'changeToSecondStage' },
+	},
+
 	spawnBots = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
@@ -78,6 +85,13 @@ local triggers = {
 }
 
 local actions = {
+
+	changeToSecondStage = {
+		type = actionTypes.ChangeStage,
+		parameters = {
+			stageID = 'secondStage',
+		},
+	},
 
 	spawnBot = {
 		type = actionTypes.SpawnUnits,
