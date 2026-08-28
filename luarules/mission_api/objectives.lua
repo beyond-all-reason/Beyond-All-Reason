@@ -10,9 +10,21 @@ local function init(dependencies)
 	activateTrigger = dependencies.activateTrigger
 end
 
+---Presentation is looked up per call: the module is installed after this one.
+local function presentation()
+	return GG["MissionAPI"].Modules.Presentation
+end
+
 local function changeStage(stageID)
 	GG["MissionAPI"].CurrentStageID = stageID
 	Spring.Echo("Stage set to: " .. stageID)
+
+	local present = presentation()
+	if present then
+		present.PublishStage(stageID)
+		-- The stage decides display order, so the list is republished with it.
+		present.PublishObjectives()
+	end
 end
 
 -- placeholder until UI widget exists
@@ -30,6 +42,12 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.completed)
 			.. (objective.failed and " (failed)" or "")
 	)
+
+	-- Every state change funnels through here, so this is the one publish point.
+	local present = presentation()
+	if present then
+		present.PublishObjectives()
+	end
 end
 
 ---@param amount integer? `nil` completes on any progress, `0` only on exactly zero

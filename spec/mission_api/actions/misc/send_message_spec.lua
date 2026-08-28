@@ -14,18 +14,31 @@ describe("mission_api.actions.send_message", function()
 		assert.are.same({
 			type = "SendMessage",
 			message = "String!",
+			audience = "Table",
 		}, summarizeSchema(action))
 	end)
 
 	describe("actionFunction", function()
-		it("is Spring.Echo", function()
-			assert.are.equal(Spring.Echo, action.actionFunction)
+		local sent
+
+		before_each(function()
+			sent = {}
+			GG["MissionAPI"].Modules.Presentation = {
+				SendMessage = function(message, audience)
+					sent[#sent + 1] = { message = message, audience = audience }
+				end,
+			}
 		end)
 
-		it("can be called without error", function()
-			assert.has_no.errors(function()
-				action.actionFunction("hello mission")
-			end)
+		it("delegates to the presentation module", function()
+			action.actionFunction("hello mission")
+			assert.are.equal(1, #sent)
+			assert.are.equal("hello mission", sent[1].message)
+		end)
+
+		it("passes the audience through", function()
+			action.actionFunction("hello mission", { playerIDs = { 3 } })
+			assert.are.same({ playerIDs = { 3 } }, sent[1].audience)
 		end)
 	end)
 

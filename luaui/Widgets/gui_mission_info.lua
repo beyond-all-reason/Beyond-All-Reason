@@ -117,12 +117,12 @@ local function buildTextLines(data)
 	end
 
 	-- Scenario title as the main heading
-	addTitle(data.title or BAR.I18N("ui.missioninfo.title"))
+	addTitle(data.title or BAR.I18N("ui.briefings.title"))
 	addLine("")
 
 	-- Difficulty
 	if data.defaultdifficulty then
-		local diffStr = BAR.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
+		local diffStr = BAR.I18N("ui.briefings.difficulty") .. ": " .. data.defaultdifficulty
 		if data.difficulty then
 			diffStr = diffStr .. "  (" .. data.difficulty .. "/10)"
 		end
@@ -133,20 +133,20 @@ local function buildTextLines(data)
 
 	-- Objectives
 	if data.victorycondition or data.losscondition then
-		addHeader(BAR.I18N("ui.missioninfo.objectives"))
+		addHeader(BAR.I18N("ui.briefings.objectives"))
 		addLine("")
 		if data.victorycondition then
-			addLine(BAR.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
+			addLine(BAR.I18N("ui.briefings.victory") .. ":  " .. data.victorycondition)
 		end
 		if data.losscondition then
-			addLine(BAR.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
+			addLine(BAR.I18N("ui.briefings.defeat") .. ":  " .. data.losscondition)
 		end
 		addLine("")
 	end
 
 	-- Summary
 	if data.summary and data.summary ~= "" then
-		addHeader(BAR.I18N("ui.missioninfo.summary"))
+		addHeader(BAR.I18N("ui.briefings.summary"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.summary)) do
 			addLine(l)
@@ -156,7 +156,7 @@ local function buildTextLines(data)
 
 	-- Briefing
 	if data.briefing and data.briefing ~= "" then
-		addHeader(BAR.I18N("ui.missioninfo.briefing"))
+		addHeader(BAR.I18N("ui.briefings.briefing"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.briefing)) do
 			addLine(l)
@@ -453,7 +453,7 @@ function widget:Initialize()
 	else
 		-- Fallback: show what we can from the scenarioid alone
 		textLines = {
-			{ kind = "title", text = BAR.I18N("ui.missioninfo.title") },
+			{ kind = "title", text = BAR.I18N("ui.briefings.title") },
 			{ kind = "body", text = "" },
 			{ kind = "body", text = "Mission ID: " .. (scenarioid or "unknown") },
 			{ kind = "body", text = "" },
@@ -463,8 +463,8 @@ function widget:Initialize()
 
 	totalTextLines = #textLines
 
-	WG.missioninfo = {}
-	WG.missioninfo.toggle = function(state)
+	WG.briefings = {}
+	WG.briefings.toggle = function(state)
 		local wasVisible = show
 		if state ~= nil then
 			show = state
@@ -484,7 +484,7 @@ function widget:Initialize()
 			textList = gl.CreateList(DrawWindow)
 		end
 	end
-	WG.missioninfo.isvisible = function()
+	WG.briefings.isvisible = function()
 		-- Report true while justClosedFromPress so toggleWindow treats us as
 		-- "was open" and doesn't immediately re-open after our mouseEvent close.
 		return show or justClosedFromPress
@@ -513,7 +513,7 @@ function widget:Shutdown()
 	if WG.guishader then
 		WG.guishader.DeleteDlist("missiontext")
 	end
-	WG.missioninfo = nil
+	WG.briefings = nil
 end
 
 function widget:LanguageChanged()
