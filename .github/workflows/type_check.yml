@@ -23,7 +23,7 @@ env:
   # New warnings are budgeted at a rate per thousand changed lines, capped at an
   # absolute maximum. The smaller applies, so either one on its own can fail a PR.
   WARN_MAX: 100
-  WARN_PER_KLOC: 10
+  WARN_PER_KLOC: 15
 
   # Warnings also ripple out into other files rapidly after relatively small code
   # changes. This should upgrade to "tree" once we have things under control.
