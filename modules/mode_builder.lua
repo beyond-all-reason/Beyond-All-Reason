@@ -169,6 +169,14 @@ function ModeBuilder.Grammar(grammar)
 			end
 		end
 
+		for verbName, apply in pairs(grammar.chainVerbs or {}) do
+			assert(chain[verbName] == nil, "ModeBuilder.Grammar: chain verb collides with a chain field: " .. verbName)
+			chain[verbName] = function(...)
+				apply(chain, name, ...)
+				return chain
+			end
+		end
+
 		return chain
 	end
 end

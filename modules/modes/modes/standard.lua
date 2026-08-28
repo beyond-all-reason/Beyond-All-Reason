@@ -3,7 +3,7 @@ local Mode = ModeDSL.Mode
 
 -- stylua: ignore
 return Mode("Standard")
-	.Desc("An ordinary game: no scripted mission, no PvE swarm.")
+	.Desc("An ordinary game.")
 	.Ranked()
 	.End("com")
 	.MaxUnits(2000)
