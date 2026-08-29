@@ -18,7 +18,7 @@ in DataVS {
 	vec2 worldXZ;        // world x/z, for the sheet-only style's per-pixel rings and sweep
 };
 
-uniform vec4 modeParams;        // x = 1: background pass, y = 1: sheet-only style (RadarPreviewStyle 1)
+uniform vec4 modeParams;        // x = 1: background pass, y = 1: sheet-only style (RadarPreviewStyle 1), z = 1: sweep and pulse animations on, w = 1: sweep on
 uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend, conform
 
@@ -74,7 +74,7 @@ float sheetGlow(vec2 fromCenter, float time) {
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the sweep's leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = (trail * trail + (1.0 - smoothstep(0.0, sweepBeam, behind))) * sweepStrength;
+	float sweep = (trail * trail + (1.0 - smoothstep(0.0, sweepBeam, behind))) * sweepStrength * modeParams.w; // RadarPreviewSweep
 	return clamp(ring * sheetRingStrength + sweep, 0.0, 1.0);
 }
 
@@ -106,7 +106,7 @@ void main() {
 		if (modeParams.y > 0.5) {
 			// sheet-only style: more opaque, and animated by the rings and the sweep. Like the cubes, only the
 			// previewed radar's own coverage animates (previewWeight), cells of other allied radars stay still.
-			float glow = sheetGlow(worldXZ - radarcenter_range.xz, animParams.x) * previewWeight;
+			float glow = sheetGlow(worldXZ - radarcenter_range.xz, animParams.x) * previewWeight * modeParams.z;
 			// the cubes' vivid tint (allied-only cells muted like allied cubes), the rings blend it all the way to the pulse color
 			vec3 tint = mix(alliedColor, sheetColor, previewWeight);
 			fillColor = mix(tint, sheetPulseColor, glow);
