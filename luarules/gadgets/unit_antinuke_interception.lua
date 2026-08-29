@@ -73,13 +73,13 @@ local sinAtLevel = 0.02
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
-local interceptors = {} -- weaponDefID -> interceptor weapon
-local interceptables = {} -- weaponDefID -> warhead weapon
-local weaponNumDefs = {} -- hash of unitDefID/weaponNum -> weaponDefID
+local interceptors = {} ---@type table<integer, table?>
+local interceptables = {} ---@type table<integer, table?>
+local weaponNumDefs = {} ---@type table<integer, integer?>
 
-local warheads = {} -- projectileID -> tracked warhead
-local missiles = {} -- projectileID -> launched interceptor
-local scheduled = {} -- frame -> list of missileIDs
+local warheads = {} ---@type table<integer, table?>
+local missiles = {} ---@type table<integer, table?>
+local scheduled = {} ---@type table<integer, integer[]?>
 
 local gameFrame = 0
 
@@ -576,7 +576,7 @@ local function registerWarhead(projectileID, weaponDefID)
 		return
 	end
 
-	local warhead = interceptables[weaponDefID] ---@type table
+	local warhead = interceptables[weaponDefID] ---@cast warhead table
 
 	warheads[projectileID] = {
 		projectileID = projectileID,
@@ -596,7 +596,7 @@ local function registerMissile(projectileID, weaponDefID)
 		return
 	end
 
-	local weapon = interceptors[weaponDefID] ---@type table
+	local weapon = interceptors[weaponDefID]
 	local missile = {
 		weapon = weapon,
 		warheadID = target,
@@ -608,12 +608,14 @@ local function registerMissile(projectileID, weaponDefID)
 
 	-- Dropping the object now also stops UpdateInterception firing while the missile
 	-- is still climbing through the warhead's altitude, which would detonate it here.
+	---@diagnostic disable: need-check-nil, param-type-mismatch
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	if px then
 		-- The launch point is the second thing the standoff has to protect.
 		missile.originX, missile.originY, missile.originZ = px, py, pz
 		spSetProjectileTarget(projectileID, px, py + weapon.speedMax * sweepInterval, pz)
 	end
+	---@diagnostic enable: need-check-nil, param-type-mismatch
 
 	scheduleAt(projectileID, gameFrame + math_max(1, weapon.upTimeFrames - solveLeadFrames))
 end
@@ -629,7 +631,7 @@ function gadget:GameFrame(frame)
 		scheduled[frame] = nil
 		for i = 1, #checkList do
 			local projectileID = checkList[i]
-			local missile = missiles[projectileID]
+			local missile = missiles[projectileID] ---@type table?
 			if missile then
 				if missile.aimX then
 					armInterception(projectileID, missile)
@@ -656,7 +658,7 @@ function gadget:AllowWeaponInterceptTarget(unitID, weaponNum, projectileID)
 	end
 
 	local unitDefID = spGetUnitDefID(unitID)
-	local weapon = unitDefID and interceptors[weaponNumDefs[100000 * weaponNum + unitDefID]]
+	local weapon = unitDefID and interceptors[weaponNumDefs[100000 * weaponNum + unitDefID]] ---@diagnostic disable-line: undefined-field
 	if not weapon then
 		return true -- why are you in my house
 	end
