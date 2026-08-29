@@ -32,6 +32,7 @@
 ---@field FogOfWar fun(enabled: boolean): GameModeChain Whether the map has fog of war. Stated in the player's terms; writes disable_fogofwar inverted.
 ---@field NoRush fun(minutes: number, middleFree: boolean?): GameModeChain Minutes players must stay in their start boxes, 0 for none: writes norushtimer and norushmiddlefree, both dials.
 ---@field SlowComTransport fun(enabled: boolean): GameModeChain Whether carrying your own commander slows a transport: writes comm_trans_slow.
+---@field EnemyTransporting fun(which: "notcoms"|"none"): GameModeChain Which enemy units transports may pick up: writes transportenemy.
 ---@field UnitRestrictions fun(): GameModeChain Claims every unit_restrictions_* toggle at off, so the panel shows them as dials the host may flip. Sealed() pins them all off; Locked() does not, they are dials.
 
 ---The category is not a parameter: the grammar binds every chain from this
