@@ -314,6 +314,41 @@ describe("cmd_blueprint blueprints.json", function()
 			assert.are.same({ 1, 2 }, result.shutdown().saved())
 		end)
 
+		it("closes a gap left by a null, keeping what is past it", function()
+			local result = loadWith('{"savedBlueprints":[{"name":"a","units":[]},null,{"name":"c","units":[]}]}')
+
+			assert.is_true(result.ok, result.err)
+
+			local saved = result.shutdown().saved()
+
+			assert.are.equal(2, #saved)
+			assert.are.equal("a", saved[1].name)
+			assert.are.equal("c", saved[2].name)
+		end)
+
+		it("keeps blueprints in the order the file had them", function()
+			local result = loadWith(
+				fileWith(
+					blueprintEntry("first", "armmex"),
+					blueprintEntry("second", "armsolar"),
+					blueprintEntry("third", "armmex")
+				)
+			)
+
+			local saved = result.shutdown().saved()
+
+			assert.are.equal("first", saved[1].name)
+			assert.are.equal("second", saved[2].name)
+			assert.are.equal("third", saved[3].name)
+		end)
+
+		it("accepts a null at the end of the list, which holds nothing", function()
+			local result = loadWith('{"savedBlueprints":[{"name":"a","units":[]},null]}')
+
+			assert.is_true(result.ok, result.err)
+			assert.are.equal(1, #result.shutdown().saved())
+		end)
+
 		it("keeps an escaped forward slash in a name (regression, #8666)", function()
 			local result = loadWith([[{"savedBlueprints":[{"name":"eco\/lab","units":[]}]}]])
 

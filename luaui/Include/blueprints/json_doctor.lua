@@ -19,10 +19,11 @@
 
 ---@class BlueprintsJsonReading
 ---@field outcome string one of the outcomes below
----@field entries table[] blueprint-shaped entries, in file order
+---@field entries table[] blueprint-shaped entries, in file order and without gaps
 ---@field entryIndices number[] where each of those sat in the file, for naming it
 ---@field setAside any[] entries that are not blueprints at all, kept verbatim
 ---@field messages BlueprintsJsonMessage[] what to tell the player, in order
+---@field repairs string[] what had to be put right to read the file
 
 local Doctor = {}
 
@@ -34,6 +35,9 @@ Doctor.LOADED = "loaded"
 
 ---The file holds blueprints we could not read. Writing is refused.
 Doctor.DAMAGED = "damaged"
+
+---A null in the list left a gap, and the entries past it were closed back up.
+Doctor.REPAIR_GAP = "gap"
 
 Doctor.PENDING_SUFFIX = ".pending"
 Doctor.BACKUP_SUFFIX = ".backup"
@@ -49,7 +53,8 @@ end
 ---@return BlueprintsJsonReading
 function Doctor.read(path)
 	---@type BlueprintsJsonReading
-	local reading = { outcome = Doctor.ABSENT, entries = {}, entryIndices = {}, setAside = {}, messages = {} }
+	local reading =
+		{ outcome = Doctor.ABSENT, entries = {}, entryIndices = {}, setAside = {}, messages = {}, repairs = {} }
 
 	local content = VFS.LoadFile(path)
 
@@ -84,17 +89,35 @@ function Doctor.read(path)
 		savedBlueprints = {}
 	end
 
-	-- A table we cannot walk with ipairs holds blueprints that would be read as
-	-- none and then saved as none, which is how a full library turns into an
-	-- empty one.
-	if type(savedBlueprints) ~= "table" or (#savedBlueprints == 0 and next(savedBlueprints) ~= nil) then
+	if type(savedBlueprints) ~= "table" then
 		reading.outcome = Doctor.DAMAGED
 		addMessage(reading.messages, "ui.blueprint.file_damaged", { file = path })
 		return reading
 	end
 
-	for i, entry in ipairs(savedBlueprints) do
-		if type(entry) == "table" then
+	local count, highestIndex = 0, 0
+	for key in pairs(savedBlueprints) do
+		count = count + 1
+		if type(key) == "number" and key > highestIndex then
+			highestIndex = key
+		end
+	end
+
+	if count > highestIndex then
+		reading.outcome = Doctor.DAMAGED
+		addMessage(reading.messages, "ui.blueprint.file_damaged", { file = path })
+		return reading
+	end
+
+	if count < highestIndex then
+		reading.repairs[#reading.repairs + 1] = Doctor.REPAIR_GAP
+	end
+
+	for i = 1, highestIndex do
+		local entry = savedBlueprints[i]
+		if entry == nil then
+			--Nothing was stored here, so there is nothing to keep.
+		elseif type(entry) == "table" then
 			reading.entries[#reading.entries + 1] = entry
 			reading.entryIndices[#reading.entryIndices + 1] = i
 		else
