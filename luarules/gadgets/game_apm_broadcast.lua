@@ -31,6 +31,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	---Excludes the unit's next order from the team's APM count for one game frame.
+	---@param unitID UnitID
 	local function addSkipOrder(unitID)
 		ignoreUnits[unitID] = gameFrame + 1
 	end
@@ -46,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		ignoreUnits[unitID] = gameFrame + 1
 	end
 
-	-- be aware that these arent exclusively user actioned commands
+	-- be aware that these aren't exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		-- limit to 1 action per gameframe
 		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then

@@ -25,7 +25,7 @@ function widget:Initialize()
 	WG.autoeraser.setEraseTime = function(value)
 		eraseTime = value
 	end
-	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and wont activate on auto erasing
+	WG.autoeraser.getRecentlyErased = function(value) -- so mapmarks fx widget can call this and won't activate on auto erasing
 		return recentlyErased
 	end
 end

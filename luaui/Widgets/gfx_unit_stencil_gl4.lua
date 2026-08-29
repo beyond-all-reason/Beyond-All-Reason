@@ -21,7 +21,9 @@ local spEcho = Spring.Echo
 -- Make this shared the same way screencopy texture is shared, via an api
 -- bind and sample this texture if needed for any other method :)
 
+---@type InstanceVBOTable?
 local unitStencilVBO = nil
+---@type InstanceVBOTable?
 local featureStencilVBO = nil -- TODO
 local unitStencilShader = nil
 
@@ -105,7 +107,7 @@ void main()
     if (isSphereVisibleXY(vec4(uni[instData.y].drawPos.xyz, 1.0), addRadius + unitModelMaxXYZ.x + unitModelMaxXYZ.z)) 
     v_unitModelMaxXYZ.w = 0.0; 
 
-    // this checks the drawFlag of wether the unit is actually being drawn 
+    // this checks the drawFlag of whether the unit is actually being drawn 
     // (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
     if ((uni[instData.y].composite & 0x00000003u) < 1u ) 
     v_unitModelMaxXYZ.w = 0.0; 

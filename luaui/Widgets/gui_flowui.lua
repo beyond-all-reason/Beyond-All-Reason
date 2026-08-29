@@ -40,6 +40,15 @@ WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 -- Guishader display list lifecycle helpers
+
+---Creates the guishader display list for a UI element if it does not exist yet,
+---and registers it for background blurring. Deletes it when the guishader widget
+---is not loaded.
+---@param currentDlist integer? The list this element already owns, if any
+---@param name string Key the list is registered under
+---@param drawFn fun() Draws the element's blur area
+---@param force boolean? Rebuild the list even if one already exists
+---@return integer? dlist The list to keep, or `nil` when blurring is unavailable.
 WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
 	if WG.guishader then
 		if force and currentDlist then
@@ -56,6 +65,9 @@ WG.FlowUI.guishaderCheckDlist = function(currentDlist, name, drawFn, force)
 	return nil
 end
 
+---Unregisters a guishader display list and deletes it.
+---@param currentDlist integer?
+---@param name string
 WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
 	if WG.guishader then
 		WG.guishader.RemoveDlist(name)
@@ -66,6 +78,9 @@ WG.FlowUI.guishaderRemoveDlist = function(currentDlist, name)
 	return nil
 end
 
+---Unregisters a guishader display list by name and asks the guishader widget to
+---delete it.
+---@param name string
 WG.FlowUI.guishaderDeleteDlist = function(name)
 	if WG.guishader then
 		WG.guishader.DeleteDlist(name)
@@ -131,6 +146,9 @@ end
 
 WG.FlowUI.Callin = {}
 
+---Recomputes the shared FlowUI metrics for a new viewport size.
+---@param vsx integer
+---@param vsy integer
 WG.FlowUI.Callin.ViewResize1 = function(vsx, vsy)
 	ViewResize(vsx, vsy)
 end
@@ -141,16 +159,18 @@ end
 
 WG.FlowUI.Draw = {}
 
---[[
-	RectRound
-		draw rectangle with chopped off corners
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		cs = corner size
-		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
-		c1, c2 = top color, bottom color
-]]
+---Draws a rectangle with chopped off corners.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param c1 rgba? Top color
+---@param c2 rgba? Bottom color
 WG.FlowUI.Draw.RectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	if sx <= px or sy <= py or px ~= px or py ~= py or sx ~= sx or sy ~= sy or cs ~= cs then
 		return
@@ -285,20 +305,36 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
---[[
-	RectRoundQuad
-		draw a (possibly trapezoidal/skewed) quadrilateral with chamfered corners
-		generalization of RectRound supporting per-corner x/y offsets
-	params
-		px, py, sx, sy = left, bottom, right, top (base rectangle)
-		cs = corner chamfer size
-		tl, tr, br, bl = enable corner chamfer (1 = chamfered, 0 = square)
-		c1, c2 = bottom color, top color (gradient)
-		skew = table of per-corner pixel offsets from base rectangle corners:
-		       {tlx, tly, trx, try, brx, bry, blx, bly} (all default to 0)
-		       positive x = shift right, positive y = shift up
-		       example: skew = {tlx = -20}  makes top-left 20 px wider to the left
-]]
+---Per-corner pixel offsets from the base rectangle.
+---Positive x shifts right, positive y shifts up.
+---Examples:
+--- `{tlx = -20}` makes the top-left 20px wider to the left.
+--- `{tlx = -20, blx = -20}` slants the whole left side outward by 20px;
+---All default to `0`
+---@class SkewParams
+---@field tlx number? Top Left X
+---@field tly number? Top Left Y
+---@field trx number? Top Right X
+---@field try number? Top Right Y
+---@field brx number? Bottom Right X
+---@field bry number? Bottom Right Y
+---@field blx number? Bottom Left X
+---@field bly number? Bottom Left Y
+
+---Draws a possibly trapezoidal quadrilateral with chamfered corners, generalizing
+---`RectRound` with per-corner offsets.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner chamfer size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param c1 rgba? Bottom color
+---@param c2 rgba? Top color
+---@param skew SkewParams
 WG.FlowUI.Draw.RectRoundQuad = function(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2, skew)
 	local function DrawRectRoundQuad(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2, skew)
 		cs = mathMax(cs, 1)
@@ -487,16 +523,14 @@ WG.FlowUI.Draw.RectRoundQuad = function(px, py, sx, sy, cs, tl, tr, br, bl, c1, 
 	gl.BeginEnd(GL.QUADS, DrawRectRoundQuad, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2, skew)
 end
 
---[[
-	RectRoundProgress
-		draw rectangle pie (TODO: not with actual chopped off corners yet)
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		cs = corner size
-		progress
-		color
-]]
+---Draws a rectangular progress pie. TODO: corners are not chopped off yet.
+---@param left number
+---@param bottom number
+---@param right number
+---@param top number
+---@param cs number? Corner size
+---@param progress number `0`-`1`
+---@param color rgba?
 WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
 	gl.PushMatrix()
 	gl.Translate(left, bottom, 0)
@@ -562,17 +596,20 @@ WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progre
 	gl.PopMatrix()
 end
 
---[[
-	TexturedRectRound
-		draw rectangle with chopped off corners and a textured background tile
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
-		size = texture tile size
-		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
-		texture = file location
-]]
+---Draws a rectangle with chopped off corners and a tiled texture background.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param size number? Texture tile size
+---@param offset number? Texture offset
+---@param offsetY number? Vertical texture offset. Defaults to `offset`
+---@param texture string? Texture file location
 WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY, texture)
 	if
 		sx <= px
@@ -681,17 +718,21 @@ WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, 
 	end
 end
 
---[[
-	TexturedRectRoundQuad
-		same as TexturedRectRound but supports a skew table for trapezoidal shapes
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		tl, tr, br, bl = enable/disable corners
-		size, offset, offsetY = texture tiling params
-		texture = file location
-		skew = table with optional tlx, tly, trx, try, brx, bry, blx, bly corner offsets
-]]
+---As `TexturedRectRound`, but supports a skew table for trapezoidal shapes.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param size number? Texture tile size
+---@param offset number? Texture offset
+---@param offsetY number? Vertical texture offset. Defaults to `offset`
+---@param texture string? Texture file location
+---@param skew SkewParams
 WG.FlowUI.Draw.TexturedRectRoundQuad = function(
 	px,
 	py,
@@ -864,14 +905,14 @@ WG.FlowUI.Draw.TexturedRectRoundQuad = function(
 	end
 end
 
---[[
-	RectRoundCircle
-		draw a square with border edge/fade
-	params
-		x,y,z, radius
-	optional
-
-]]
+---Draws a square with a rounded border edge that fades outward.
+---@param x number
+---@param y number
+---@param radius number
+---@param cs number? Corner size
+---@param centerOffset number? Shifts the fade's center
+---@param color1 rgba? Center color
+---@param color2 rgba? Edge color
 WG.FlowUI.Draw.RectRoundCircle = function(x, y, radius, cs, centerOffset, color1, color2)
 	local function DrawRectRoundCircle(x, y, radius, cs, centerOffset, color1, color2)
 		if not color2 then
@@ -922,16 +963,13 @@ WG.FlowUI.Draw.RectRoundCircle = function(x, y, radius, cs, centerOffset, color1
 	gl.BeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, radius, cs, centerOffset, color1, color2)
 end
 
---[[
-	Circle
-		draw a circle
-	params
-		x,z, radius
-		sides = number outside vertexes
-		color1 = (center) color
-	optional
-		color2 = edge color
-]]
+---Draws a filled circle.
+---@param x number
+---@param z number
+---@param radius number
+---@param sides integer Number of outside vertices
+---@param color1 rgba Center color
+---@param color2 rgba? Edge color
 WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 	local function DrawCircle(x, z, radius, sides, color1, color2)
 		if not color2 then
@@ -958,22 +996,27 @@ WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 	gl.BeginEnd(GL.TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
 end
 
---[[
-	Element
-		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
-		ptl, ptr, pbr, pbl = inner border padding/size multiplier (default: 1) (set to 0 when you want to attach this ui element to another element so there is only padding done by one of the 2 elements)
-		opacity = (default: ui_opacity springsetting)
-		color1, color2 = (color1[4 value overrides the opacity param defined above)
-		bgpadding = custom border size
-		skew = optional table of per-corner pixel offsets {tlx, tly, trx, try, brx, bry, blx, bly}
-		       shifts each corner of the element independently from the base rectangle
-		       example: skew = {tlx = -20, blx = -20}  slants the entire left side outward by 20px
-		                skew = {tlx = -20}  makes only the top-left corner 20px wider
-]]
+---Draws a complete standardized UI element: border, tiled background, and gloss on
+---the top and bottom.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param ptl number? Inner padding multiplier for the top-left corner. Defaults to `1`;
+---set to `0` when attaching this element to another so only one of the two pads.
+---@param ptr number? Inner padding multiplier for the top-right corner
+---@param pbr number? Inner padding multiplier for the bottom-right corner
+---@param pbl number? Inner padding multiplier for the bottom-left corner
+---@param opacity number? Defaults to the `ui_opacity` setting
+---@param color1 rgba? Alpha overrides `opacity`
+---@param color2 rgba?
+---@param bgpadding number? Custom border size
+---@param opaque boolean? Draw without transparency
+---@param skew SkewParams? Omit for a plain rectangle; supplied, the element is drawn trapezoidal
 WG.FlowUI.Draw.Element = function(
 	px,
 	py,
@@ -1615,6 +1658,26 @@ DeleteButtonDisplayListCache = function()
 	cache.lists = {}
 end
 
+---Draws a standardized button: border, tiled background, and gloss on the top and
+---bottom. Repeated identical draws are served from a display list cache.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param ptl number? Inner padding multiplier for the top-left corner. Defaults to `1`;
+---set to `0` when attaching this button to another element so only one of the two pads.
+---@param ptr number? Inner padding multiplier for the top-right corner
+---@param pbr number? Inner padding multiplier for the bottom-right corner
+---@param pbl number? Inner padding multiplier for the bottom-left corner
+---@param opacity number? Defaults to `1`
+---@param color1 rgba? Alpha overrides `opacity`
+---@param color2 rgba?
+---@param bgpadding number? Custom border size
+---@param glossMult number? Scales the gloss brightness. Defaults to `1`
 WG.FlowUI.Draw.Button = function(
 	px,
 	py,
@@ -1700,7 +1763,18 @@ WG.FlowUI.Draw.Button = function(
 	end
 end
 
--- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
+---Draws a textured rectangle with chopped off corners, using the currently bound
+---texture. Broken out of `Unit` so the same icon style can be drawn elsewhere.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param offset number? Texture inset, to zoom the image inside the rectangle
 WG.FlowUI.Draw.TexRectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, offset)
 	if sx <= px or sy <= py or px ~= px or py ~= py or sx ~= sx or sy ~= sy or cs ~= cs or offset ~= offset then
 		return
@@ -1779,17 +1853,19 @@ WG.FlowUI.Draw.TexRectRound = function(px, py, sx, sy, cs, tl, tr, br, bl, offse
 	drawTexCoordVertex(sx, sy - cs)
 end
 
---[[
-	RectRoundOutline
-		draw a rectangular outline with feathered edges and proper corner cutoffs
-	params
-		px, py, sx, sy = left, bottom, right, top
-		cs = corner size
-		outlineWidth = width of the outline/feather
-		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
-		outerColor = color for the outside edge
-		innerColor = color for the inside edge (for feathering)
-]]
+---Draws a rectangular outline with feathered edges and chopped off corners.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number Corner size
+---@param outlineWidth number Width of the outline and its feather
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param outerColor rgba Color at the outside edge
+---@param innerColor rgba Color at the inside edge
 WG.FlowUI.Draw.RectRoundOutline = function(px, py, sx, sy, cs, outlineWidth, tl, tr, br, bl, outerColor, innerColor)
 	local function DrawRectRoundOutline(px, py, sx, sy, cs, outlineWidth, tl, tr, br, bl, outerColor, innerColor)
 		local tl = tl or 1
@@ -1934,18 +2010,20 @@ WG.FlowUI.Draw.RectRoundOutline = function(px, py, sx, sy, cs, outlineWidth, tl,
 	)
 end
 
---[[
-	RectRoundOutlineQuad
-		same as RectRoundOutline but supports a skew table for trapezoidal (non-rectangular) shapes
-	params
-		px, py, sx, sy = left, bottom, right, top
-		cs = corner size
-		outlineWidth = width of the outline/feather
-		tl, tr, br, bl = enable/disable corners
-		outerColor = color for the outside edge
-		innerColor = color for the inside edge
-		skew = table with optional tlx, tly, trx, try, brx, bry, blx, bly corner offsets
-]]
+---As `RectRoundOutline`, but supports a skew table for trapezoidal shapes.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number Corner size
+---@param outlineWidth number Width of the outline and its feather
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param outerColor rgba Color at the outside edge
+---@param innerColor rgba Color at the inside edge
+---@param skew SkewParams
 WG.FlowUI.Draw.RectRoundOutlineQuad = function(
 	px,
 	py,
@@ -2656,6 +2734,25 @@ DeleteUnitDisplayListCache = function()
 	cache.lists = {}
 end
 
+---Draws a unit icon tile, optionally overlaid with its radar icon, group icon,
+---price and queued count.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param zoom number? Zooms the unit picture inside the tile
+---@param borderSize number? Defaults to a size derived from the tile width
+---@param borderOpacity number?
+---@param texture string? Unit picture
+---@param radarTexture string? Radar icon drawn in a corner
+---@param groupTexture string? Group icon drawn in a corner
+---@param price number|string|nil Cost label
+---@param queueCount number|string|nil Queued count label
 WG.FlowUI.Draw.Unit = function(
 	px,
 	py,
@@ -2738,15 +2835,13 @@ WG.FlowUI.Draw.Unit = function(
 	gl.PopMatrix()
 end
 
---[[
-	Scroller
-		draw a slider (vertical)
-	params
-		px, py, sx, sy = left, bottom, right, top
-		contentHeight = content height px
-	optional
-		position = (default: 0) current content height position
-]]
+---Draws a vertical scrollbar.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param contentHeight number Height of the scrolled content, in pixels
+---@param position number? Current scroll position. Defaults to `0`
 WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 	local width = sx - px
 	local height = sy - py
@@ -2782,14 +2877,12 @@ WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 	end
 end
 
---[[
-	Toggle
-		draw a toggle
-	params
-		px, py, sx, sy = left, bottom, right, top
-	optional
-		state = (default: 0) 0 / 0.5 / 1
-]]
+---Draws a toggle switch.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param state number? `0`, `0.5` or `1`. Defaults to `0`
 WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	local height = sy - py
 	local width = sx - px
@@ -2878,14 +2971,11 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	end
 end
 
---[[
-	Slider
-		draw a slider knob
-	params
-		x, y, radius
-	optional
-		color
-]]
+---Draws a slider knob.
+---@param x number
+---@param y number
+---@param radius number
+---@param color rgba?
 WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or { 0.95, 0.95, 0.95, 1 }
 	local color1 = { color[1] * 0.55, color[2] * 0.55, color[3] * 0.55, color[4] }
@@ -2943,14 +3033,14 @@ WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
---[[
-	Slider
-		draw a slider
-	params
-		px, py, sx, sy = left, bottom, right, top
-		steps = either a table of values or a number of smallest step size
-		min, max = when steps is number: min/max scope of steps
-]]
+---Draws a slider track, with tick marks when steps are given.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param steps number|number[]? Either the smallest step size, or a table of values
+---@param min number? Lowest value, when `steps` is a number
+---@param max number? Highest value, when `steps` is a number
 WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	local height = sy - py
 	local width = sx - px
@@ -3028,12 +3118,11 @@ WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	WG.FlowUI.Draw.RectRound(px, py, sx, py + edgeWidth2, edgeWidth, 1, 1, 1, 1, { 1, 1, 1, 0 }, { 1, 1, 1, 0.045 })
 end
 
---[[
-	Selector
-		draw a selector (drop-down menu)
-	params
-		px, py, sx, sy = left, bottom, right, top
-]]
+---Draws a selector, as used for drop-down menus.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
 WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	local height = sy - py
 	local cs = height * 0.1
@@ -3092,16 +3181,15 @@ WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	--WG.FlowUI.Draw.Button(sx-(sy-py), py, sx, sy, 1, 1, 1, 1, 1,1,1,1, nil, { 1, 1, 1, 0.1 }, nil, cs)
 end
 
---[[
-	SelectHighlight
-		draw a highlighted area in a selector (drop-down menu)
-		(also usable to highlight some other generic area)
-	params
-		px, py, sx, sy = left, bottom, right, top
-		cs = corner size
-		opacity
-		color = {1,1,1}
-]]
+---Draws a highlighted area inside a selector. Also usable to highlight any other
+---generic area.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number Corner size
+---@param opacity number?
+---@param color rgb?
 WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
 	local height = sy - py
 	cs = cs or (height * 0.08)

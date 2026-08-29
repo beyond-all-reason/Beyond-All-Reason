@@ -1,6 +1,5 @@
 return {
 	raptor_air_fighter_basic_t2_v1 = {
-		acceleration = 2,
 		airsightdistance = 600,
 		amphibious = true,
 		bankscale = "1",

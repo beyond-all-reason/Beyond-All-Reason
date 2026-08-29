@@ -1,11 +1,12 @@
 ---@meta
 
----@class Gadget : Addon, RulesSyncedCallins
+---@class Gadget : Addon, RulesSyncedCallins, SyntheticCallins
 ---@field [string] any
 ---@field ghInfo FullGadgetInfo
 ---@see Callins
 ---@see SyncedCallins
 ---@see UnsyncedCallins
+---@see SyntheticCallins
 ---@see Spring.IsSyncedCode
 
 ---@class FullGadgetInfo : AddonInfo

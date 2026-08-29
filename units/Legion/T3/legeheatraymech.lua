@@ -216,9 +216,7 @@ return {
 					exclude_preaim = true,
 				},
 				damage = {
-					bombers = 52,
 					default = 420,
-					fighters = 52,
 					subs = 160,
 					vtol = 52,
 				},

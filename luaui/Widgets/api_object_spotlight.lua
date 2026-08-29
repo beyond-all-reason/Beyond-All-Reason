@@ -256,6 +256,8 @@ local function makeCylinderVBO(sections)
 	return vbo, numVertices
 end
 
+---Wraps a vertex buffer in an instance buffer for one spotlight shape.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
 	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, name, 6)
 	vbo.vertexVBO = vertexVBO

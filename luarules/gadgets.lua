@@ -26,7 +26,7 @@ VFS.Include("init.lua", nil, VFSMODE)
 
 local SAFEWRAP = 0
 -- 0: disabled
--- 1: enabled, but can be overriden by gadget.GetInfo().unsafe
+-- 1: enabled, but can be overridden by gadget.GetInfo().unsafe
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
@@ -285,9 +285,6 @@ local callInLists = {
 	"UnitCloaked",
 	"UnitDecloaked",
 
-	"MetaUnitAdded",
-	"MetaUnitRemoved",
-
 	-- optional
 	-- "UnitUnitCollision",
 	-- "UnitFeatureCollision",
@@ -345,7 +342,7 @@ local callInLists = {
 	"AllowWeaponTargetCheck",
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
-	"UnitAutoTargetRange",
+
 	-- unsynced
 	"DrawProjectile",
 	"RecvSkirmishAIMessage",
@@ -458,7 +455,40 @@ local function ShouldSkipHeadlessUnsyncedGadget(gadget, basename)
 	return true
 end
 
--- initialize the call-in lists
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Synthetic callins
+--
+--  The game injects some of its own callins into the engine-driven event system:
+local synthetic = VFS.Include(SCRIPT_DIR .. "callins/synthetic_callins.lua", nil, VFSMODE) ---@type SyntheticCallinsAPI
+
+-- stylua: ignore start
+local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks("UnitBuildStep")
+local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks("FeatureBuildStep")
+local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks("UnitIdle")
+-- stylua: ignore end
+
+local function markIdle(unitID)
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Initialize the call-in lists.
+--
+
+for _, name in ipairs(synthetic.callinNames) do
+	callInLists[#callInLists + 1] = name
+end
+
 do
 	for _, listname in ipairs(callInLists) do
 		gadgetHandler[listname .. "List"] = {}
@@ -885,7 +915,7 @@ local callinDepth = 0
 
 function gadgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
-	-- It will also create the gadgetHandler usual api queing the calls.
+	-- It will also create the gadgetHandler usual api queueing the calls.
 	local reorderFuncNames = {
 		"InsertGadget",
 		"RemoveGadget",
@@ -1029,7 +1059,7 @@ function gadgetHandler:UpdateCallIn(name)
 		return
 	end
 
-	if forceUpdate or #self[listName] > 0 then
+	if forceUpdate or #self[listName] > 0 or self:HoldsCallIn(listName) then
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
@@ -1660,20 +1690,6 @@ end
 --  LuaRules Game call-ins
 --
 
-function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.MetaUnitAddedList) do
-		g:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	end
-	return
-end
-
-function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.MetaUnitRemovedList) do
-		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	end
-	return
-end
-
 function gadgetHandler:DrawProjectile(projectileID, drawMode)
 	for _, g in ipairs(self.DrawProjectileList) do
 		if g:DrawProjectile(projectileID, drawMode) then
@@ -1875,14 +1891,33 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 	return true
 end
 
+
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
+
 	for _, g in ipairs(self.AllowUnitBuildStepList) do
 		if not g:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part) then
 			tracy.ZoneEnd()
 			return false
 		end
 	end
+
+	-- Disallowed requests record no marks and no totals.
+	local marks = unitStepCount[1]
+	if marks then
+		if not unitStepMarked[unitID] then
+			unitStepMarked[unitID] = true
+			marks = marks + 1
+			unitStepCount[1] = marks
+			unitStepList[marks] = unitID
+			if unitStepActive[1] then
+				unitStepTotals[unitID] = part
+			end
+		elseif unitStepActive[1] then
+			unitStepTotals[unitID] = (unitStepTotals[unitID] or 0) + part
+		end
+	end
+
 	tracy.ZoneEnd()
 	return true
 end
@@ -1914,12 +1949,34 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	return true
 end
 
+
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
+
 	for _, g in ipairs(self.AllowFeatureBuildStepList) do
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
+			tracy.ZoneEnd()
 			return false
 		end
 	end
+
+	-- Disallowed requests record no marks and no totals.
+	local marks = featureStepCount[1]
+	if marks then
+		if not featureStepMarked[featureID] then
+			featureStepMarked[featureID] = true
+			marks = marks + 1
+			featureStepCount[1] = marks
+			featureStepList[marks] = featureID
+			if featureStepActive[1] then
+				featureStepTotals[featureID] = part
+			end
+		elseif featureStepActive[1] then
+			featureStepTotals[featureID] = (featureStepTotals[featureID] or 0) + part
+		end
+	end
+
+	tracy.ZoneEnd()
 	return true
 end
 
@@ -2040,11 +2097,6 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 	return allowed, result
 end
 
-function gadgetHandler:UnitAutoTargetRange(attackerID, autoTargetRange)
-	-- Implementation stub for g:UnitAutoTargetRange. See g:AllowWeaponTarget, above.
-	-- This is needed for gadgetHandler to "see" this callin and build its call list.
-end
-
 function gadgetHandler:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID)
 	for _, g in ipairs(self.AllowWeaponInterceptTargetList) do
 		if not g:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID) then
@@ -2062,7 +2114,7 @@ end
 
 function gadgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	tracy.ZoneBeginN("G:UnitCreated")
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitCreatedList) do
 		g:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -2107,11 +2159,11 @@ end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	tracy.ZoneBeginN("G:UnitDestroyed")
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
+	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2137,6 +2189,7 @@ function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2227,16 +2280,16 @@ function gadgetHandler:UnitDamaged(
 end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
+	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
+	markIdle(unitID)
 	return
 end
 
 function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	self:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
 	for _, g in ipairs(self.UnitGivenList) do
 		g:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
@@ -2260,6 +2313,7 @@ function gadgetHandler:UnitCommand(
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2906,5 +2960,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+synthetic.install(gadgetHandler)
 
 gadgetHandler:Initialize()

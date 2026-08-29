@@ -51,6 +51,8 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 		end
 	end
 
+	---Plays the scavenger spawn explosion at a unit, sized from its unit definition.
+	---@param unitID UnitID
 	function ScavengersSpawnEffectUnitID(unitID)
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -59,12 +61,19 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	end
 	GG.ScavengersSpawnEffectUnitID = ScavengersSpawnEffectUnitID
 
+	---Plays the scavenger spawn explosion at a position, sized from a unit definition.
+	---@param unitDefID UnitDefID
+	---@param posx number
+	---@param posy number
+	---@param posz number
 	function ScavengersSpawnEffectUnitDefID(unitDefID, posx, posy, posz)
 		local size = getUnitSize(unitDefID)
 		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)
 	end
 	GG.ScavengersSpawnEffectUnitDefID = ScavengersSpawnEffectUnitDefID
 
+	---Plays the scavenger spawn explosion at a feature, sized from its feature definition.
+	---@param featureID FeatureID
 	function ScavengersSpawnEffectFeatureID(featureID)
 		local posx, posy, posz = Spring.GetFeaturePosition(featureID)
 		local featureDefID = Spring.GetFeatureDefID(featureID)
@@ -73,6 +82,11 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	end
 	GG.ScavengersSpawnEffectFeatureID = ScavengersSpawnEffectFeatureID
 
+	---Plays the scavenger spawn explosion at a position, sized from a feature definition.
+	---@param featureDefID FeatureDefID
+	---@param posx number
+	---@param posy number
+	---@param posz number
 	function ScavengersSpawnEffectFeatureDefID(featureDefID, posx, posy, posz)
 		local size = getFeatureSize(featureDefID)
 		Spring.SpawnCEG("scav-spawnexplo-" .. size, posx, posy, posz, 0, 0, 0)

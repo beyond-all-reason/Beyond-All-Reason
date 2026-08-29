@@ -25,7 +25,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- these are used in poschecks.lua so arent localized here
+-- these are used in poschecks.lua so aren't localized here
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 local GaiaTeamID = Spring.GetGaiaTeamID()
@@ -254,6 +254,12 @@ function getNearestBlocker(x, z)
 	return math.sqrt(lowestDist)
 end
 
+-- CreateUnit does not snap; Pos2BuildPos uses even vs odd grid from footprint parity.
+local function createSnappedUnit(defID, x, y, z, facing, teamID)
+	x, y, z = Spring.Pos2BuildPos(defID, x, y, z, facing)
+	return Spring.CreateUnit(defID, x, y, z, facing, teamID)
+end
+
 local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 	local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
 	local mirrored, mirroredDirection, xOffset, zOffset
@@ -285,16 +291,11 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 			local nonscavname = string.gsub(name, "_scav", "")
 			local r = math.random(1, 100)
 			if r < 40 and UnitDefNames[nonscavname] then
-				local posy =
-					Spring.GetGroundHeight(posx + (xOffset * flipX * mirrorX), posz + (zOffset * flipZ * mirrorZ))
-				local unit = Spring.CreateUnit(
-					UnitDefNames[nonscavname].id,
-					posx + (xOffset * flipX * mirrorX),
-					posy,
-					posz + (zOffset * flipZ * mirrorZ),
-					(building.direction + rotation + mirrorRotation) % 4,
-					GaiaTeamID
-				)
+				local facing = (building.direction + rotation + mirrorRotation) % 4
+				local bx = posx + (xOffset * flipX * mirrorX)
+				local bz = posz + (zOffset * flipZ * mirrorZ)
+				local posy = Spring.GetGroundHeight(bx, bz)
+				local unit = createSnappedUnit(UnitDefNames[nonscavname].id, bx, posy, bz, facing, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
@@ -371,7 +372,8 @@ local function SpawnMexes(mexSpots)
 
 			if canBuildHere then
 				local mex = mexesList[math.random(1, #mexesList)]
-				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local facing = math.random(0, 3)
+				local unit = createSnappedUnit(UnitDefNames[mex].id, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -398,6 +400,11 @@ local function SpawnGeos(geoSpots)
 				geosList = seaGeosList
 			end
 
+			local geo = geosList[math.random(1, #geosList)]
+			local defID = UnitDefNames[geo].id
+			local facing = math.random(0, 3)
+			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
+
 			local radius = 32
 			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
@@ -422,8 +429,7 @@ local function SpawnGeos(geoSpots)
 			end
 
 			if canBuildHere then
-				local geo = geosList[math.random(1, #geosList)]
-				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local unit = createSnappedUnit(defID, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -482,14 +488,9 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1, #defencesList)]
-						local unit = Spring.CreateUnit(
-							UnitDefNames[defence].id,
-							posx2,
-							posy2,
-							posz2,
-							math.random(0, 3),
-							GaiaTeamID
-						)
+						local facing = math.random(0, 3)
+						local unit =
+							createSnappedUnit(UnitDefNames[defence].id, posx2, posy2, posz2, facing, GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -547,14 +548,9 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1, #defencesList)]
-						local unit = Spring.CreateUnit(
-							UnitDefNames[defence].id,
-							posx2,
-							posy2,
-							posz2,
-							math.random(0, 3),
-							GaiaTeamID
-						)
+						local facing = math.random(0, 3)
+						local unit =
+							createSnappedUnit(UnitDefNames[defence].id, posx2, posy2, posz2, facing, GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -609,8 +605,8 @@ local function SpawnRandomStructures()
 
 			if canBuildHere then
 				local defence = defencesList[math.random(1, #defencesList)]
-				local unit =
-					Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local facing = math.random(0, 3)
+				local unit = createSnappedUnit(UnitDefNames[defence].id, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)

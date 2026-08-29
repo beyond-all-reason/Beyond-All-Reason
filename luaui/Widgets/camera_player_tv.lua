@@ -759,7 +759,7 @@ function widget:Update(dt)
 	end
 
 	if scheduledSpecFullView ~= nil then
-		-- this is needed else the minimap/world doesnt update properly
+		-- this is needed else the minimap/world doesn't update properly
 		Spring.SendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then
@@ -768,7 +768,7 @@ function widget:Update(dt)
 	end
 	if desiredLosmodeChanged + 0.3 > os.clock() then
 		if desiredLosmode ~= Spring.GetMapDrawMode() then
-			-- this is needed else the minimap/world doesnt update properly
+			-- this is needed else the minimap/world doesn't update properly
 			Spring.SendCommands("togglelos")
 		end
 	end
@@ -1069,7 +1069,7 @@ local function togglePlayerView(state)
 	else
 		-- player viewpoint
 		if fullview then
-			scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
+			scheduledSpecFullView = 2 -- this is needed else the minimap/world doesn't update properly
 			Spring.SendCommands("specfullview")
 		end
 		if WG.lockcamera and WG.lockcamera.SetLosMode then
@@ -1145,6 +1145,8 @@ function widget:Initialize()
 
 	updatePosition()
 	WG.playertv = {}
+	---Where the PlayerTV panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.playertv.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

@@ -17,10 +17,10 @@
 --  items:    array of item strings for list options
 --  section:  so lobbies can order options in categories/panels
 --  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
---  collumn:  moves the option 1 row up if value is greater than the preivous row's one, default: 1
+--  column:  moves the option 1 row up if value is greater than the previous row's one, default: 1
 --         |  negative value forces new row, absolute value is used
 --         |  zero moves to the left, 1 is default, 2 is half way to the right
---         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
+--         |  recommended values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
 --
 --  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide separators >>>
 --      |     if type is list: add under each item what it should SHOW when set to
@@ -279,7 +279,7 @@ local options = {
 			},
 			{
 				key = "disco",
-				name = "Shuffle Locally (Continiously)",
+				name = "Shuffle Locally (Continuously)",
 				desc = "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness.",
 			},
 			{
@@ -938,7 +938,7 @@ local options = {
 
 	{
 		key = "sub_header",
-		name = "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		name = "To Play Add a Scavengers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
 		desc = "",
 		section = "scav_defense_options",
 		type = "subheader",
@@ -1669,7 +1669,7 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "assistdronesenabled", -- TODO, turn this into booleam modoption
+		key = "assistdronesenabled", -- TODO, turn this into boolean modoption
 		name = "Commander Drones",
 		type = "list",
 		def = "disabled",
@@ -1852,146 +1852,9 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "community_balance_patch",
-		name = "Community Balance Patch 5-6/26",
-		desc = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
-		type = "list",
-		def = "disabled",
-		section = "options_experimental",
-		items = {
-			{
-				key = "disabled",
-				name = "Disabled",
-				desc = "No community balance changes",
-				lock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-
-			{
-				key = "enabled",
-				name = "Enabled",
-				desc = "Enable all community balance changes\nSpectre\nGunslinger\nSumo\nKarganeth\nBanshee\nHornet",
-				lock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-
-			{
-				key = "custom",
-				name = "Custom",
-				desc = "Customize individual community balance changes",
-				unlock = {
-					"community_balance_corspy",
-					"community_balance_armmav",
-					"community_balance_corcan",
-					"community_balance_corkarg",
-					"community_balance_armkam",
-					"community_balance_armblade",
-				},
-			},
-		},
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_patch_changelog_link",
-		name = "Changelog/Feedback",
-		desc = "Community Balance Patch discussion",
-		section = "options_experimental",
-		type = "link",
-		link = "https://discord.com/channels/549281623154229250/1512596823070740550",
-		width = 235,
-		column = 2.025,
-		linkheight = 325,
-		linkwidth = 350,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corspy",
-		name = "(CBP) Spectre",
-		desc = "(From February)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armmav",
-		name = "(CBP) Gunslinger",
-		desc = "(From April)\nMetal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corcan",
-		name = "(CBP) Sumo",
-		desc = "(From April)\nMain laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_corkarg",
-		name = "(CBP) Karganeth",
-		desc = "(New)\nSight distance: 515 (from 455)\nMax acceleration: 0.18 (from 0.1104)\nTurn rate: 515 (from 400)\nTurn-in-place speed limit: 1.25 (from 0.99)\nStrafe to attack: true (from false)\nMissile trajectory height: 0.25 (from none)\nMetal cost: 2650 (from 2500)\nBuild time: 100000 (from 94000)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armkam",
-		name = "(CBP) Banshee",
-		desc = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 400 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 141 single shot (from 9 x 3 burst)\nArea of effect: 32 (from 40)\nEdge effectiveness: 0.40 (from 0.5)\nProjectile velocity: 1090 (from 1000)\nWeapon accuracy: 0 (from 13), spray angle removed (from 1024)\nCylindrical targeting: 0 (from 1)\nWeapon timer: 0 (from 0.1)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.14 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)\nTurret: true (from false)\nFiring arc: 45° forward, hidden attack range arc (from unrestricted/fixed)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "community_balance_armblade",
-		name = "(CBP) Hornet",
-		desc = "(New)\nMax acceleration: 0.28 (from 0.6)\nMax deceleration: 0.55 (from 0.35)\nHealth: 3350 (from 3000)\nSpeed: 125 (from 204)\nTurn angle limit: 120 (from 360)\nTurn rate: 420 (from 720)\nSight distance: 720 (from 624)\nWeapon range: 1100 (from 420)\nWeapon reload: 4.0 (from 2.26667)\nWeapon damage: 425 x 2 burst (from 190 x 2 burst)\nCommander damage: 200 x 2 burst\nBurst rate: 0.15 (from 0.23333)\nArea of effect: 64 (from 32)\nEdge effectiveness: 0.40 (from 0.15)\nProjectile type: Cannon (from MissileLauncher)\nProjectile velocity: 1090 (from 1000)\nImpulse factor: 1.5 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-medium-bomb (from missiletrailsmall-simple / genericshellexplosion-medium)\nWeapon sound: mavgun5 / xplomed2 (from SabotFire / SabotHit)\nTurret: true (from false)\nFiring arc: 45° forward (from unrestricted)",
-		type = "bool",
-		def = false,
-		section = "options_experimental",
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
 		key = "experimentallegionfaction",
 		name = "Legion Faction",
 		desc = "3rd experimental faction",
-		type = "bool",
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "legionsimplifiedmexes",
-		name = "Legion Simplified Mexes",
-		desc = "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
 		type = "bool",
 		section = "options_experimental",
 		def = false,
@@ -2289,6 +2152,15 @@ local options = {
 	},
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
+		key = "mapeditor",
+		name = "Map Editor Session",
+		desc = "Launch as a map editor: the combat UI is left out and the terraformer opens on load.",
+		section = "dev",
+		type = "bool",
+		def = false,
+	},
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
 		key = "pushresistant",
 		name = "Pushresistance",
 		desc = "Enable to do desync test by the use of pushresistance",
@@ -2303,7 +2175,7 @@ local options = {
 		desc = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
 		section = "dev",
 		type = "bool",
-		-- This doesn't have a default on purpse, do not add one
+		-- This doesn't have a default on purpose, do not add one
 		unlock = { "dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour" },
 	},
 	-- NOTE: update language/en/interface.json when you change name or desc
@@ -2379,7 +2251,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	--
 	-- The modoptions below are intended to be set automatically by lobby/spads based on the selected
-	-- map name. They are used for a dynamic map configuration where the configruation values are not
+	-- map name. They are used for a dynamic map configuration where the configuration values are not
 	-- tied to either game version or reside inside of the map file, allowing for independent distribution
 	-- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
 	-- NOTE: update language/en/interface.json when you change name or desc

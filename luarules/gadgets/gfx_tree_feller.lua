@@ -168,11 +168,22 @@ if gadgetHandler:IsSyncedCode() then
 	local treeMass = {}
 	local treeScaleY = {}
 	local treeRadius = {}
-	local geothermals = {}
+	-- FeatureDefs that can never be trees, regardless of their resource values.
+	-- The runtime tree test is "no metal, some energy" (vegetation), but several
+	-- maps ship energy-only crystal defs (e.g. Thermal Shock overrides
+	-- pilha_crystal_* with metal = 0), and those must neither topple nor burn.
+	-- Feature categories are map-author customParams; these are the
+	-- non-vegetation ones seen in the wild.
+	local nonTreeCategories = { crystals = true, rocks = true, corpses = true, heaps = true }
+	local isTreeDef = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
-		if featureDef.geoThermal then
-			geothermals[featureDefID] = featureDefID
+		local category = featureDef.customParams and featureDef.customParams.category
+		if category then
+			category = string.lower(tostring(category))
 		end
+		isTreeDef[featureDefID] = not featureDef.geoThermal
+			and not (category and nonTreeCategories[category])
+			and not featureDef.name:find("pilha_crystal", nil, true)
 
 		--if featureDef.name:find('treetype') == nil then
 		treeMass[featureDefID] = math_max(1, featureDef.mass)
@@ -283,53 +294,55 @@ if gadgetHandler:IsSyncedCode() then
 		return height, radius, canopyFrac
 	end
 
-	local IsLikelyTreeFeature
-	local function NormalizeZeroHealthTrees()
-		local allFeatures = GetAllFeatures()
-		local fixedCount = 0
-		for i = 1, #allFeatures do
-			local featureID = allFeatures[i]
-			local featureDefID = GetFeatureDefID(featureID)
-			if featureDefID and not geothermals[featureDefID] then
-				local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
-				if maxMetal == 0 and maxEnergy > 0 then
-					local health, maxHealth = GetFeatureHealth(featureID)
-					if health and maxHealth and maxHealth > 0 and health <= 0 then
-						-- Some maps place trees with health=0. Tree shader reads healthFraction
-						-- directly for charring, so those trees render fully burnt at game start.
-						-- Normalize only pathological zero-health trees back to max health.
-						-- This does NOT replace the feature, it only updates health values.
-						SetFeatureMaxHealth(featureID, maxHealth)
-						SetFeatureHealth(featureID, maxHealth, false)
-						fixedCount = fixedCount + 1
-					end
-				end
-			end
-		end
-		return fixedCount
-	end
-
-	IsLikelyTreeFeature = function(featureID, featureDefID)
-		if geothermals[featureDefID] then
+	-- The single tree test used throughout this gadget: a def that is not
+	-- explicitly non-vegetation (see isTreeDef) and that carries no metal but
+	-- some energy. Map-placed vegetation has no reliable tag, so the resource
+	-- heuristic stays the positive signal.
+	local function IsLikelyTreeFeature(featureID, featureDefID)
+		if not isTreeDef[featureDefID] then
 			return false
 		end
 		local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
 		return maxMetal == 0 and maxEnergy > 0
 	end
 
+	local function NormalizeZeroHealthTrees()
+		local allFeatures = GetAllFeatures()
+		local fixedCount = 0
+		for i = 1, #allFeatures do
+			local featureID = allFeatures[i]
+			local featureDefID = GetFeatureDefID(featureID)
+			if featureDefID and IsLikelyTreeFeature(featureID, featureDefID) then
+				local health, maxHealth = GetFeatureHealth(featureID)
+				if health and maxHealth and maxHealth > 0 and health <= 0 then
+					-- Some maps place trees with health=0. Tree shader reads healthFraction
+					-- directly for charring, so those trees render fully burnt at game start.
+					-- Normalize only pathological zero-health trees back to max health.
+					-- This does NOT replace the feature, it only updates health values.
+					SetFeatureMaxHealth(featureID, maxHealth)
+					SetFeatureHealth(featureID, maxHealth, false)
+					fixedCount = fixedCount + 1
+				end
+			end
+		end
+		return fixedCount
+	end
+
+	---Fells every tree within 125 elmos of a position, as used by the commander spawn blast.
+	---@param spawnx number
+	---@param spawny number
+	---@param spawnz number
+	---@return integer? aborted Returns `0` and stops early if a geothermal feature is in range.
 	local function ComSpawnDefoliate(spawnx, spawny, spawnz)
 		local blasted_trees = Spring.GetFeaturesInCylinder(spawnx, spawnz, 125)
 
 		for i, tree in pairs(blasted_trees) do
 			local featureDefID = Spring.GetFeatureDefID(tree)
 
-			if geothermals[featureDefID] then
-				return 0
-			end
-
 			local fx, fy, fz = GetFeaturePosition(tree)
 			local dx, dy, dz = GetFeatureDirection(tree)
-			if true and fx ~= nil then
+			-- Only topple vegetation defs; crystals/rocks/wrecks near a spawn stay put.
+			if isTreeDef[featureDefID] and fx ~= nil then
 				local dissapearSpeed = 1.7
 				local size = "medium"
 				if treeScaleY[featureDefID] then
@@ -346,7 +359,7 @@ if gadgetHandler:IsSyncedCode() then
 				local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
 
 				local dmg = treeMass[featureDefID] * 2
-				Spring.SetFeatureResources(0, 0, 0, 0)
+				spSetFeatureResources(tree, 0, 0)
 				Spring.SetFeatureNoSelect(tree, true)
 				Spring.PlaySoundFile("treefall", 2, fx, fy, fz, "sfx")
 				treesdying[tree] = {
@@ -387,13 +400,10 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #allFeatures do
 			local featureID = allFeatures[i]
 			local featureDefID = Spring.GetFeatureDefID(featureID)
-			if treeMass[featureDefID] and not geothermals[featureDefID] then
-				local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
-				if maxMetal == 0 and maxEnergy > 0 then
-					local fx, fy, fz = GetFeaturePosition(featureID)
-					if fx and fy <= lavaLevel then
-						DestroyFeature(featureID)
-					end
+			if IsLikelyTreeFeature(featureID, featureDefID) then
+				local fx, fy, fz = GetFeaturePosition(featureID)
+				if fx and fy <= lavaLevel then
+					DestroyFeature(featureID)
 				end
 			end
 		end
@@ -410,48 +420,45 @@ if gadgetHandler:IsSyncedCode() then
 			local featureID = allFeatures[i]
 			if not treesdying[featureID] then
 				local featureDefID = Spring.GetFeatureDefID(featureID)
-				if treeMass[featureDefID] and not geothermals[featureDefID] then
-					local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
-					if maxMetal == 0 and maxEnergy > 0 then
-						local fx, fy, fz = GetFeaturePosition(featureID)
-						if fx and fy <= lavaLevel then
-							local dx, dy, dz = GetFeatureDirection(featureID)
-							local dissapearSpeed = 1.7
-							local size = "medium"
-							if treeScaleY[featureDefID] then
-								if treeScaleY[featureDefID] < 40 then
-									size = "tiny"
-								elseif treeScaleY[featureDefID] < 50 then
-									size = "small"
-								elseif treeScaleY[featureDefID] > 65 then
-									size = "large"
-								end
-								dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
+				if IsLikelyTreeFeature(featureID, featureDefID) then
+					local fx, fy, fz = GetFeaturePosition(featureID)
+					if fx and fy <= lavaLevel then
+						local dx, dy, dz = GetFeatureDirection(featureID)
+						local dissapearSpeed = 1.7
+						local size = "medium"
+						if treeScaleY[featureDefID] then
+							if treeScaleY[featureDefID] < 40 then
+								size = "tiny"
+							elseif treeScaleY[featureDefID] < 50 then
+								size = "small"
+							elseif treeScaleY[featureDefID] > 65 then
+								size = "large"
 							end
-							local destroyFrame = gf + falltime + 150 + (dissapearSpeed * 4000)
-							SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
-							spSetFeatureResources(0, 0, 0, 0)
-							Spring.SetFeatureNoSelect(featureID, true)
-							treesdying[featureID] = {
-								frame = gf,
-								posx = fx,
-								posy = fy,
-								posz = fz,
-								fDefID = featureDefID,
-								dirx = dx,
-								diry = dy,
-								dirz = dz,
-								px = fx + math_random(-10, 10),
-								py = fy,
-								pz = fz + math_random(-10, 10),
-								strength = 1,
-								fire = true,
-								size = size,
-								treeburnCEG = "treeburn-" .. size,
-								dissapearSpeed = dissapearSpeed,
-								destroyFrame = destroyFrame,
-							}
+							dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
 						end
+						local destroyFrame = gf + falltime + 150 + (dissapearSpeed * 4000)
+						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
+						spSetFeatureResources(featureID, 0, 0)
+						Spring.SetFeatureNoSelect(featureID, true)
+						treesdying[featureID] = {
+							frame = gf,
+							posx = fx,
+							posy = fy,
+							posz = fz,
+							fDefID = featureDefID,
+							dirx = dx,
+							diry = dy,
+							dirz = dz,
+							px = fx + math_random(-10, 10),
+							py = fy,
+							pz = fz + math_random(-10, 10),
+							strength = 1,
+							fire = true,
+							size = size,
+							treeburnCEG = "treeburn-" .. size,
+							dissapearSpeed = dissapearSpeed,
+							destroyFrame = destroyFrame,
+						}
 					end
 				end
 			end
@@ -496,7 +503,7 @@ if gadgetHandler:IsSyncedCode() then
 		attackerDefID,
 		attackerTeam
 	)
-		if not treeMass[featureDefID] then
+		if not isTreeDef[featureDefID] then
 			return Damage, 0
 		end
 		local dmg = Damage
@@ -571,7 +578,7 @@ if gadgetHandler:IsSyncedCode() then
 						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 						--Echo('tree created... ',featureID)
 					else
-						Damage = 0 -- so it doesnt take multiple frames for tree to get killed.
+						Damage = 0 -- so it doesn't take multiple frames for tree to get killed.
 						-- Map-placed tree features are treated as STATIC geometry by the GL4
 						-- renderer: their draw matrix is baked once and never refreshed, so
 						-- the per-frame Spring.SetFeatureDirection spin that topples the trunk
@@ -623,7 +630,7 @@ if gadgetHandler:IsSyncedCode() then
 							fire = true
 						end
 					end
-					spSetFeatureResources(0, 0, 0, 0)
+					spSetFeatureResources(featureID, 0, 0)
 					Spring.SetFeatureNoSelect(featureID, true)
 					Spring.PlaySoundFile("treefall", 2, fx, fy, fz, "sfx")
 					treesdying[featureID] = {
@@ -692,7 +699,6 @@ if gadgetHandler:IsSyncedCode() then
 				removeFeatures[removeCount] = featureID
 				DestroyFeature(featureID)
 			else
-				spSetFeatureResources(0, 0, 0, 0)
 				-- Resolve a SINGLE, stable fall direction once and cache it. Recomputing
 				-- this every frame (and having separate fallbacks in the fire-send vs the
 				-- trunk tilt) is what let the trunk and the line of fire point different

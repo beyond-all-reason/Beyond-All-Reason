@@ -94,6 +94,7 @@ end
 -- additional smartness for global stall/unstall
 
 -- GL4 Backend stuff:
+---@type InstanceVBOTable?
 local energyIconVBO = nil
 local energyIconShader = nil
 
@@ -210,7 +211,7 @@ local function updateStalling()
 									0,
 									1,
 									0,
-									1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+									1, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 									0,
 									0,
 									0,

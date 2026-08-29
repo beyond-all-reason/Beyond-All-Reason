@@ -364,10 +364,8 @@ if (Spring) then
 	end
 
 	-- Blank-map skybox: a non-empty atmosphere.skyBox makes the engine build a
-	-- cubemap sky (CSkyBox) instead of the procedural sky. Without this the
-	-- runtime Spring.SetSkyBoxTexture is a complete silent no-op (verified at
-	-- Recoil 2026.06.12: ISky::SetLuaTexture is an empty virtual that only
-	-- CSkyBox overrides), so a real skybox never appears on generated maps.
+	-- cubemap sky (CSkyBox) instead of the procedural sky, so a generated map
+	-- boots with a real skybox rather than the cloud dome.
 	-- NOTE: like the DNTS splat block above, this template is not executed by the
 	-- engine's CBlankMapGenerator path; kept for forward compatibility if a future
 	-- engine build parses the game mapinfo template for InitBlank maps.

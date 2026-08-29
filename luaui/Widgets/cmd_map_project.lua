@@ -63,6 +63,15 @@ local job = nil -- active save job, nil when idle
 local loadJob = nil -- active load job, nil when idle (never both at once)
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
 
+-- The project this session IS: set when a load starts (the session exists to
+-- replay that project) and when a save completes. FILE > Save targets it.
+local currentSlug = nil
+
+-- Outcome of the most recent save ({ok, slug}), for the UI's transient
+-- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
+-- running save disappears.
+local lastSaveInfo = nil
+
 ----------------------------------------------------------------
 -- Small helpers
 ----------------------------------------------------------------
@@ -387,6 +396,59 @@ local function stepSplat()
 	else
 		sectionSkip("splat", "painter reported done but file missing")
 	end
+	return true
+end
+
+-- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
+-- mask PNG like the splat, plus a small surface.lua carrying biome + slot
+-- assignment — the mask channels are meaningless without knowing WHICH top
+-- variants they weight. Same request/poll shape as the splat step.
+local function stepSurface()
+	local sp = WG.SurfacePainter
+	local c = job.cursor
+	if not c.requested then
+		if not (sp and sp.hasMaskState and sp.hasMaskState()) then
+			sectionSkip("surface", "no surface paint state (painter inactive or never used)")
+			return true
+		end
+		sp.saveMask(job.dir .. "surface.png")
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if sp.isSavePending() then
+		if c.ticks > SPLAT_TIMEOUT_TICKS then
+			warn("surface mask save timed out (painter draw pump never ran)")
+			sectionSkip("surface", "timeout")
+			return true
+		end
+		return false
+	end
+	local bytes = fileSize(job.dir .. "surface.png")
+	if not bytes then
+		sectionSkip("surface", "painter reported done but file missing")
+		return true
+	end
+	local meta = (sp.getPersist and sp.getPersist()) or {}
+	local lines = {
+		"return {",
+		string.format("\tbiome = %q,", tostring(meta.biome or "")),
+		string.format("\tslot1 = %q,", tostring(meta.slot1 or "")),
+		string.format("\tslot2 = %q,", tostring(meta.slot2 or "")),
+		"}",
+		"",
+	}
+	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
+		warn("surface.lua write failed — the mask will load without slot assignments")
+	end
+	sectionOk(
+		"surface",
+		"surface.png",
+		bytes,
+		(meta.slot1 or meta.slot2) and ("slots " .. tostring(meta.slot1 or "-") .. " / " .. tostring(meta.slot2 or "-"))
+			or "no slots assigned"
+	)
 	return true
 end
 
@@ -1346,6 +1408,7 @@ local function stepManifest()
 	local order = {
 		"heightmap",
 		"splat",
+		"surface",
 		"diffuse",
 		"metal",
 		"features",
@@ -1383,6 +1446,9 @@ local function stepManifest()
 				local extraFields = ""
 				if name == "units" and job.unitsCount then
 					extraFields = string.format(" count = %d,", job.unitsCount)
+				end
+				if name == "surface" then
+					extraFields = ' meta = "surface.lua",'
 				end
 				if name == "grass" then
 					if job.grassPatchResolution then
@@ -1433,6 +1499,7 @@ local STEPS = {
 	{ name = "prepare", run = stepPrepare },
 	{ name = "heightmap", run = stepHeightmap },
 	{ name = "splat", run = stepSplat },
+	{ name = "surface", run = stepSurface },
 	{ name = "diffuse", run = stepDiffuse },
 	{ name = "metal", run = stepMetal },
 	{ name = "features", run = stepFeatures },
@@ -1456,10 +1523,13 @@ local STEPS = {
 local function finishSave()
 	if job.failed then
 		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
+		lastSaveInfo = { ok = false, slug = job.slug }
 		job = nil
 		return
 	end
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
+	currentSlug = job.slug
+	lastSaveInfo = { ok = true, slug = job.slug }
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1503,6 +1573,15 @@ local function startSave(slug, opts)
 	}
 	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
 	return true
+end
+
+-- Does a project folder with a readable manifest exist? (UI overwrite guard:
+-- Save As over an existing project asks for a second click first.)
+local function projectExists(slug)
+	if not validateSlug(slug) then
+		return false
+	end
+	return readPrevManifest(PROJECTS_DIR .. slug .. "/") ~= nil
 end
 
 -- Does a saved project include a units section? (UI confirm guard: warns
@@ -1631,6 +1710,10 @@ local function deleteProject(slug)
 	else
 		echoP(string.format("deleted project '%s' (%d files)", slug, removed))
 	end
+	-- The session's Save target is gone; the next Save must ask for a name.
+	if currentSlug == slug then
+		currentSlug = nil
+	end
 	return true
 end
 
@@ -1651,6 +1734,14 @@ local function writePointer(t)
 		t.phases or 0
 	)
 	return writeFile(POINTER_PATH, content) ~= nil
+end
+
+-- Counts clients rather than team-attached players: a map editor session runs with no teams
+-- at all, so its lone spectator counts as zero. api_permissions gates the same way.
+local function isLocalSession()
+	local count = BAR.Utilities and BAR.Utilities.GetPlayerCount and BAR.Utilities.GetPlayerCount()
+
+	return count == nil or count <= 1
 end
 
 local function readPointer()
@@ -1825,6 +1916,17 @@ local function phaseHeightmap(c)
 	end
 	local ack = Spring.GetGameRulesParam(ACK_PARAM) or 0
 	if ack > c.ackBase then
+		-- the tileset shader anchors gravel/plateau placement to the ground
+		-- extremes; the import just replaced them wholesale, so re-snapshot
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+			WG.TilesetTerrain.refreshHeightRef()
+		end
+		-- same story for the custom heightmap-export range: it was seeded from
+		-- the blank canvas, so re-seed it from the project terrain (no-op if
+		-- the user hand-typed a range)
+		if WG.TerraformBrush and WG.TerraformBrush.reseedExportRange then
+			WG.TerraformBrush.reseedExportRange(5)
+		end
 		loadOk("heightmap", "sim-acknowledged")
 		return true
 	end
@@ -1917,6 +2019,67 @@ local function phaseDntsSplat(c)
 		loadOk("splat", nil)
 	else
 		loadSkip("splat", tostring(result or "no result reported"))
+	end
+	return true
+end
+
+-- Phase 2b: SURFACE variant mask. Restores the tileset biome + variant slot
+-- assignment from surface.lua first (the mask channels only mean something
+-- against those), then blits surface.png into the painter's mask — same
+-- request/poll shape as the splat phase. Soft-skips when the write-dir
+-- widgets (dev_tileset_terrain / dev_surface_painter) are not loaded.
+local function phaseSurface(c)
+	local maskPath = sectionFile("surface")
+	if not maskPath then
+		return true
+	end
+	local sp = WG.SurfacePainter
+	if not (sp and sp.loadMask) then
+		loadSkip("surface", "surface painter widget not loaded")
+		return true
+	end
+	if not c.surfMetaDone then
+		c.surfMetaDone = true
+		local meta = readLuaFile(loadJob.dir .. "surface.lua")
+		local T = WG.TilesetTerrain
+		if meta and T then
+			if meta.biome and meta.biome ~= "" and T.setBiome then
+				T.setBiome(meta.biome)
+			end
+			if sp.applySlots then
+				sp.applySlots(
+					(meta.slot1 and meta.slot1 ~= "") and meta.slot1 or nil,
+					(meta.slot2 and meta.slot2 ~= "") and meta.slot2 or nil
+				)
+			end
+		elseif not T then
+			echoP(
+				"WARNING: surface.png present but the tileset widget is not loaded — the mask loads with no variants bound"
+			)
+		end
+	end
+	if not c.surfRequested then
+		if not sp.loadMask(maskPath) then
+			loadSkip("surface", "load request rejected")
+			return true
+		end
+		c.surfRequested = true
+		c.surfTicks = 0
+		return false
+	end
+	if sp.isLoadPending() then
+		c.surfTicks = c.surfTicks + 1
+		if c.surfTicks > SPLAT_LOAD_TIMEOUT then
+			loadSkip("surface", "timed out waiting for the painter draw pump")
+			return true
+		end
+		return false
+	end
+	local result = sp.getLoadResult and sp.getLoadResult()
+	if result == "ok" then
+		loadOk("surface", nil)
+	else
+		loadSkip("surface", tostring(result or "no result reported"))
 	end
 	return true
 end
@@ -2356,6 +2519,7 @@ end
 local LOAD_PHASES = {
 	{ name = "heightmap", run = phaseHeightmap },
 	{ name = "dnts+splat", run = phaseDntsSplat },
+	{ name = "surface", run = phaseSurface },
 	{ name = "diffuse", run = phaseDiffuse },
 	{ name = "metal", run = phaseMetal },
 	{ name = "features", run = phaseFeatures },
@@ -2509,8 +2673,7 @@ local function maybeStartLoad()
 	if Spring.IsReplay() then
 		reasons[#reasons + 1] = "this is a replay"
 	end
-	local gt = BAR.Utilities and BAR.Utilities.Gametype
-	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
+	if not isLocalSession() then
 		reasons[#reasons + 1] = "not a local singleplayer session"
 	end
 	if #reasons > 0 then
@@ -2555,6 +2718,7 @@ local function maybeStartLoad()
 		byteWarned = {},
 		missingWarned = {},
 	}
+	currentSlug = loadJob.slug
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
 	else
@@ -2580,8 +2744,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
-	local gt = BAR.Utilities and BAR.Utilities.Gametype
-	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
+	if not isLocalSession() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false
 	end
@@ -2716,6 +2879,25 @@ function widget:Initialize()
 		listDetailed = listProjectsDetailed,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
+		exists = projectExists,
+		-- Slug of the project this session was loaded from or last saved to
+		-- (nil until one of those happens) — the FILE > Save target.
+		current = function()
+			return currentSlug
+		end,
+		-- (step, total, stepName) of the running save, nil when idle — drives
+		-- the status-strip segment bar in the terraform UI.
+		saveProgress = function()
+			if not job then
+				return nil
+			end
+			local step = math.min(job.step, #STEPS)
+			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
+		end,
+		-- {ok, slug} of the most recent save (nil until one finishes).
+		lastSave = function()
+			return lastSaveInfo
+		end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
 		isBusy = function()

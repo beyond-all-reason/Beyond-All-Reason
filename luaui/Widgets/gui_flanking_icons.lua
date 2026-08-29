@@ -26,6 +26,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable?
 local flankingVBO = nil
 local flankingShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -59,7 +60,7 @@ local instanceCache = {
 	0,
 	1,
 	0,
-	1, -- These are our default UV atlas tranformations
+	1, -- These are our default UV atlas transformations
 	0,
 	0,
 	0,

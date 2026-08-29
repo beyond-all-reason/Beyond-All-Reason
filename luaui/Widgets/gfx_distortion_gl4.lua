@@ -79,7 +79,7 @@ do
 	-- Perform a compression pass on distortionParams, culling idents
 end
 
------------------------------ Localize for optmization ------------------------------------
+----------------------------- Localize for optimization ------------------------------------
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -140,26 +140,41 @@ local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
-local pointDistortionVBO = {} -- an instanceVBOTable
-local coneDistortionVBO = {} -- an instanceVBOTable
-local beamDistortionVBO = {} -- an instanceVBOTable
-local distortionVBOMap -- a table of the above 3, keyed by distortion type, {point = pointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local pointDistortionVBO
+---@type InstanceVBOTable?
+local coneDistortionVBO
+---@type InstanceVBOTable?
+local beamDistortionVBO
+---Table of the above 3, keyed by distortion shape, {point = pointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local distortionVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based distortions
-local unitPointDistortionVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeDistortionVBO = {} -- an instanceVBOTable
-local unitBeamDistortionVBO = {} -- an instanceVBOTable
-local unitDistortionVBOMap -- a table of the above 3, keyed by distortion type,  {point = unitPointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local unitPointDistortionVBO
+---@type InstanceVBOTable?
+local unitConeDistortionVBO
+---@type InstanceVBOTable?
+local unitBeamDistortionVBO
+---Table of the above 3, keyed by distortion shape,  {point = unitPointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local unitDistortionVBOMap
 
 local unitAttachedDistortions = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptdistortions to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointDistortionVBO = {} -- for plasma balls
-local projectileBeamDistortionVBO = {} -- for lasers
-local projectileConeDistortionVBO = {} -- for rockets
-local projectileDistortionVBOMap -- a table of the above 3, keyed by distortion type
+---@type InstanceVBOTable?
+local projectilePointDistortionVBO -- for plasma balls
+---@type InstanceVBOTable?
+local projectileBeamDistortionVBO -- for lasers
+---@type InstanceVBOTable?
+local projectileConeDistortionVBO -- for rockets
+---Keyed by distortion shape: `point`, `beam`, `cone`.
+---@type table<lightVBOType, InstanceVBOTable?>
+local projectileDistortionVBOMap
 
 local distortionRemoveQueue = {} -- stores distortions that have expired life {gameframe = {distortionIDs ... }}
 
@@ -318,6 +333,8 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one distortion instance buffer and attaches its VAO.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetDistortionVBO == nil then
@@ -444,12 +461,12 @@ local function initGL4()
 end
 
 ---InitializeDistortion(distortionTable, unitID)
----Takes a distortion definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
 ---@param unitID number
 local function InitializeDistortion(distortionTable, unitID)
 	if not distortionTable.initComplete then -- late init
-		-- do the table to flattable conversion, if it doesnt exist yet
+		-- do the table to flattable conversion, if it doesn't exist yet
 		if not distortionTable.distortionParamTable then -- perform correct init
 			local distortionparams = {}
 			for i = 1, distortionParamTableSize do
@@ -549,13 +566,13 @@ end
 ---AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesn't have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
 ---@param targetVBO table specify which one you want it to
 ---@param distortionparams table a valid table of distortion parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
+---@param noUpload bool true if it shouldn't be uploaded to gpu yet
 ---@return instanceID for future reuse
 local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 	if instanceID == nil then
@@ -1092,7 +1109,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedDistortions(unitID)
 end
 
--- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+-- THIS ONE DOESN'T WORK, some shit is being pulled and i can't get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
 --eventDistortionSpawner("UnitTaken", unitID, unitDefID, teamID)
 --end
@@ -1421,7 +1438,7 @@ local function updateProjectileDistortions(newgameframe)
 			end
 		end
 	end
-	-- remove the ones that werent updated
+	-- remove the ones that weren't updated
 	local numremoved = 0
 	if newgameframe then
 		-- Any tracked projectile whose timestamp wasn't refreshed this frame is

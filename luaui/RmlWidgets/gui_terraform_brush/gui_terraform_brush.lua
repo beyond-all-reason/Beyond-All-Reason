@@ -249,6 +249,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	spMinimapSampleTex = nil,
 	spTerrainColor = nil,
 	spTerrainColorTime = nil,
+	spTerrainSampleTick = 0,
 	-- Lobby visibility tracking (document:Hide() does not set hidden class)
 	lobbyHidden = false,
 	-- Decal section elements
@@ -298,6 +299,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envMapRootEl = nil,
 	envWaterRootEl = nil,
 	envDimensionsRootEl = nil,
+	envTilesetRootEl = nil,
 	splatTexRootEl = nil,
 	grassCfgRootEl = nil,
 	captureOpen = false,
@@ -308,6 +310,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envMapOpen = false,
 	envWaterOpen = false,
 	envDimensionsOpen = false,
+	envTilesetOpen = false,
 	splatTexOpen = false,
 	grassCfgOpen = false,
 	-- Map defaults captured at init for resets
@@ -347,7 +350,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
-	-- Used to auto-blur when game chat is opened, so Tab autocomplete isn't stolen by RmlUI.
+	-- Used to auto-blur when game chat is opened, so chat keys aren't stolen by RmlUI.
 	focusedRmlInput = nil,
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
@@ -906,21 +909,6 @@ local function applySkybox(texturePath)
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
-	-- Engine limitation (verified at Recoil 2026.06.12): SetSkyBoxTexture routes
-	-- to ISky::SetLuaTexture, which only the CSkyBox sky class overrides. A map
-	-- that booted without a mapinfo skybox runs the procedural sky, where the
-	-- call is a complete silent no-op. Warn once so users know why nothing
-	-- changes; still apply, since newer engines may honour the swap.
-	if not widgetState._skyboxSwapProbed then
-		widgetState._skyboxSwapProbed = true
-		local mOk, mi = pcall(VFS.Include, "mapinfo.lua")
-		local baked = mOk and type(mi) == "table" and mi.atmosphere and mi.atmosphere.skyBox
-		if type(baked) ~= "string" or baked == "" then
-			Spring.Echo(
-				"[Terraform Brush] This map booted without a skybox, so the engine runs the procedural sky. Current engines ignore runtime skybox swaps on such maps (waiting on queued Recoil changes)."
-			)
-		end
-	end
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
@@ -1372,7 +1360,13 @@ local function _deactivateAllTools()
 	if WG.DecalPlacer then
 		WG.DecalPlacer.deactivate()
 	end
-	widgetState.tilesetActive = false
+	if WG.SurfacePainter then
+		WG.SurfacePainter.deactivate()
+	end
+	-- SURFACE hard submode drives WG.SplatPainter (deactivated above); the pin
+	-- that keeps the SURFACE panel open over it must drop with the engine.
+	widgetState.surfHardActive = false
+	widgetState.surfPickerSlot = nil -- leaving the tool closes the variant picker
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
@@ -1490,6 +1484,13 @@ local function _mapHasUsableSplatTexture()
 end
 
 local function _splatToolUnavailable()
+	-- While the tileset shader owns the ground, $ssmf_splat_distr is repurposed
+	-- as its override mask (R=auto, G=intermediate, B=cliff, A=plateau) — the legacy
+	-- DNTS panel would paint nonsense. Hard-surface painting lives in the
+	-- SURFACE tool (HARD submode) instead, which reuses the same engine.
+	if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+		return true
+	end
 	if _newMapSplatUnavailable() then
 		return true
 	end
@@ -1908,7 +1909,27 @@ do
 	end
 	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
 end
-widgetState.newMapEnvIdx = 0 -- 0 = Default (keep engine defaults); 1..N = preset
+-- Environment a fresh map starts with. 0 = Default (keep engine defaults), 1..N
+-- = preset. This USED to default to 0, but "engine defaults" is placeholder
+-- lighting: ground ambient and diffuse both a flat 0.5, against ~0.99 diffuse on
+-- a real BAR daylight map, so a new map receives roughly 60% of the light one
+-- should. A baked map texture carries the mapper's own brightness and hides that;
+-- the tileset shader draws raw PBR albedo and cannot, so new maps read as though
+-- the SHADER were broken (diagnosed 2026-08-12 — /tileset probe reported
+-- flat-lit 0.596 against ~0.91 for the preset below). Start from a real harvested
+-- mood instead; Default stays selectable in the wizard.
+-- Resolved by NAME, not index: a regenerated env_presets.lua replaces this list
+-- wholesale and can reorder it, and silently defaulting to whatever landed in
+-- slot 1 would be worse than the engine defaults we are replacing.
+widgetState.newMapEnvIdx = 0
+do
+	for i, p in ipairs(widgetState.newMapEnvPresets) do
+		if p.name == "Clear Daylight" then
+			widgetState.newMapEnvIdx = i
+			break
+		end
+	end
+end
 
 -- Push the selected environment name into the data-model label.
 widgetState._nmRefreshEnvLabel = function()
@@ -2390,8 +2411,8 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 
 	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
 	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
-	-- of the procedural cloud dome; runtime skybox swapping only works once the sky
-	-- is a CSkyBox. Read back in mapgenerator/mapinfo_template.lua.
+	-- of the procedural cloud dome, so the map boots with the chosen sky already up.
+	-- Read back in mapgenerator/mapinfo_template.lua.
 	if skyboxPath and skyboxPath ~= "" then
 		opt[#opt + 1] = "blank_map_skybox=" .. skyboxPath .. ";"
 	end
@@ -2500,7 +2521,7 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	end
 
 	-- The manifest records the skybox basename; find it in the library so the
-	-- engine bakes a real cubemap sky (runtime swaps need a CSkyBox).
+	-- engine bakes a real cubemap sky and the project reopens with its own sky.
 	local skyboxPath = nil
 	if type(m.skybox) == "string" and m.skybox ~= "" then
 		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -2757,6 +2778,104 @@ function capUI.set(key, value)
 	capUI.sync()
 end
 
+-- Opens the Save Project As dialog: prefills the name (current project >
+-- last-typed > slugified map name) and rebuilds the existing-projects list,
+-- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
+-- As semantics). Shared by FILE > Save As... and by FILE > Save when the
+-- session has no current project yet. On widgetState, not a chunk local:
+-- the main chunk is near the Lua 5.1 200-local ceiling.
+widgetState.openProjectSaveDialog = function()
+	local d = widgetState.dmHandle
+	if d then
+		d.fileMenuOpen = false
+		d.projectSaveOpen = true
+		d.projectSaveHint = ""
+		d.projectSaveUnits = widgetState.projectSaveUnits and true or false
+	end
+	widgetState.projectUnitsDropArmed = nil
+	widgetState.projectOverwriteArmed = nil
+	local doc = widgetState.document
+	local mp = WG.MapProject
+	local inp = doc and doc:GetElementById("input-project-name")
+	if inp then
+		local name = (mp and mp.current and mp.current()) or widgetState.projectNameStr
+		if not name or name == "" then
+			name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
+		end
+		widgetState.projectNameStr = name
+		inp:SetAttribute("value", name)
+	end
+	local listEl = doc and doc:GetElementById("tf-project-save-list")
+	if not listEl then
+		return
+	end
+	listEl.inner_rml = ""
+	if not (mp and mp.listDetailed) then
+		listEl.inner_rml = '<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
+		return
+	end
+	local projects = mp.listDetailed()
+	if #projects == 0 then
+		listEl.inner_rml = '<div class="tf-hm-empty">No projects yet — this save will create the first one.</div>'
+		return
+	end
+	-- Same imperative row build and tf-hm-* styling as the Open Project list
+	-- (see onFileOpenProject for why the rows are not data-model driven).
+	local function esc(s)
+		return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+	end
+	local parts = {}
+	for i, p in ipairs(projects) do
+		local stamp = tostring(p.modified or "")
+		local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
+		local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi) or (stamp ~= "" and stamp or "(no date)")
+		parts[#parts + 1] = string.format(
+			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
+				.. '<div class="tf-hm-date">%s</div>'
+				.. '<div class="tf-hm-mapname">%s</div>'
+				.. '<div class="tf-hm-badge">%sx%s</div>'
+				.. "</div></div>",
+			i,
+			esc(when),
+			esc(p.name or p.slug),
+			esc(p.size_x or "?"),
+			esc(p.size_z or "?")
+		)
+	end
+	listEl.inner_rml = table.concat(parts)
+	for i, p in ipairs(projects) do
+		local row = doc:GetElementById("tf-psave-r" .. i)
+		if row then
+			local slug = p.slug
+			row:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				playSound("click")
+				-- The row fills the NAME field; SAVE still commits (and still
+				-- asks its overwrite/units questions). A new target voids any
+				-- armed second-click confirm.
+				widgetState.projectNameStr = slug
+				widgetState.projectOverwriteArmed = nil
+				widgetState.projectUnitsDropArmed = nil
+				local doc2 = widgetState.document
+				local inp2 = doc2 and doc2:GetElementById("input-project-name")
+				if inp2 then
+					inp2:SetAttribute("value", slug)
+				end
+				local d2 = widgetState.dmHandle
+				if d2 then
+					d2.projectSaveHint = ""
+				end
+				for j = 1, #projects do
+					local r = doc2 and doc2:GetElementById("tf-psave-r" .. j)
+					if r then
+						r:SetClass("selected", j == i)
+					end
+				end
+			end, false)
+		end
+	end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -2806,10 +2925,11 @@ local initialModel = {
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
 	newMapOpen = false,
-	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
+	-- Save Project dialog (FILE > Save As, backed by WG.MapProject)
 	projectSaveOpen = false,
 	projectSaveHint = "",
 	projectSaveUnits = false, -- "save units loadout" toggle (position/team of every unit)
+	projectCurrentName = "", -- FILE > Save target ("" = none yet → Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
@@ -2820,7 +2940,6 @@ local initialModel = {
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
 	newMapEnvStr = "Default",
-	newMapEngineSkyboxNotice = false,
 	newMapEngineSplatNotice = false,
 	newMapSplatNeedsDnts = false,
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
@@ -2838,11 +2957,67 @@ local initialModel = {
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
+	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
+	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
+	tsShaderOn = false,
+	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off —
+	-- a button rather than a 0/1 slider); synced from WG.TilesetTerrain.
+	tsCliffProtectOn = true,
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
 	tsBiome = "",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
+	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
+	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
+	surfPreset = "dot",
+	surfErase = false,
+	surfHasVariants = false,
+	surfHasSculpted = false,
+	surfShaderOff = false,
+	surfCoverageStr = "\226\128\148",
+	surfCoverageAmber = false,
+	surfSlot1Name = "\226\128\148",
+	surfSlot2Name = "\226\128\148",
+	surfFillV1 = true,
+	surfFillV2 = true,
+	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
+	-- (the fill shader preserves channels it is not allowed to write), so the
+	-- button grays out rather than looking broken.
+	surfCanFill = false,
+	-- NOW PAINTING strip + slot rail (persistent selection readout)
+	surfNowName = "base (erase)",
+	surfNowDetail = "",
+	surfNowMode = "PAINT",
+	surfSelSlot = 0, -- 0 = base/erase, 1/2 = variant slots
+	surfSlot1Assigned = false,
+	surfSlot2Assigned = false,
+	surfSlot1Share = "",
+	surfSlot2Share = "",
+	surfBaseShare = "",
+	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
+	surfPickerTitle = "",
+	surfPickerHasPaint = false,
+	surfClearArm = false, -- CLEAR VARIANT armed, waiting for the confirm click
+	surfClearAllArm = false, -- CLEAR ALL armed
+	-- SURFACE/LAYERS mode. "soft" = variant mask (WG.SurfacePainter, SURFACE
+	-- tool); "hard" = splat override channels of the tileset shader
+	-- (WG.SplatPainter reused headless, LAYERS tool). Both map to
+	-- activeTool == 'surf'; the shared panel picks its sections off this field.
+	surfMode = "soft",
+	-- Tool-button highlights for the SURFACE/LAYERS pair (activeTool alone
+	-- cannot tell them apart — both run as 'surf').
+	surfSoftOn = false,
+	surfHardOn = false,
+	surfBiomeName = "\226\128\148", -- active tileset biome, shown under the submode row
+	surfHardCh = 1, -- active splat channel: 1 AUTO / 2 INTERMEDIATE / 3 CLIFF / 4 PLATEAU
+	surfHardNowName = "AUTO",
+	surfHardNowDetail = "",
+	surfHardAvoidWater = false,
+	surfHardAvoidCliffs = false,
+	surfHardAltMin = false,
+	surfHardAltMax = false,
+	surfHardExportFmt = "PNG",
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -3275,6 +3450,7 @@ local initialModel = {
 	envMapVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
+	envTilesetVisible = false,
 	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
 	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
@@ -6399,6 +6575,17 @@ local initialModel = {
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = not d.fileMenuOpen
+			-- Refresh the Save item's target label on every open (the current
+			-- project changes when a save finishes or a project is deleted).
+			if d.fileMenuOpen then
+				local mp = WG.MapProject
+				local cur = (mp and mp.current and mp.current()) or ""
+				-- Slugs go up to 64 chars; don't let one stretch the menu.
+				if #cur > 24 then
+					cur = cur:sub(1, 23) .. "\226\128\166"
+				end
+				d.projectCurrentName = cur
+			end
 		end
 	end,
 	onFileNewMap = function(_event)
@@ -6453,28 +6640,36 @@ local initialModel = {
 			d.newMapOpen = false
 		end
 	end,
-	-- ===== Save Project dialog handlers (backed by WG.MapProject) =====
-	onFileSaveProject = function(_event)
+	-- ===== Save / Save As dialog handlers (backed by WG.MapProject) =====
+	-- FILE > Save: one-click save to the session's current project (the one
+	-- last opened or saved). No current project yet → act as Save As.
+	onFileSave = function(_event)
 		playSound("click")
+		local mp = WG.MapProject
+		local current = mp and mp.current and mp.current() or nil
+		if not (current and mp.save) then
+			widgetState.openProjectSaveDialog()
+			return
+		end
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = false
-			d.projectSaveOpen = true
-			d.projectSaveHint = ""
-			d.projectSaveUnits = widgetState.projectSaveUnits and true or false
 		end
-		widgetState.projectUnitsDropArmed = nil
-		-- Prefill: last used name, else the slugified map name.
-		local doc = widgetState.document
-		local inp = doc and doc:GetElementById("input-project-name")
-		if inp then
-			local name = widgetState.projectNameStr
-			if not name or name == "" then
-				name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
-			end
-			widgetState.projectNameStr = name
-			inp:SetAttribute("value", name)
+		if mp.isBusy and mp.isBusy() then
+			Spring.Echo("[Terraform Brush] cannot save: a save or load is already running")
+			return
 		end
+		-- Keep the project's units loadout as it is on disk: re-record it when
+		-- the project has one, never silently add or drop one. Changing that is
+		-- what the Save As dialog's toggle is for.
+		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
+		if mp.save(current, { saveUnits = keepUnits }) then
+			playSound("save")
+		end
+	end,
+	onFileSaveProject = function(_event)
+		playSound("click")
+		widgetState.openProjectSaveDialog()
 	end,
 	onProjectSaveClose = function(_event)
 		playSound("click")
@@ -6482,11 +6677,15 @@ local initialModel = {
 		if d then
 			d.projectSaveOpen = false
 		end
+		-- Never leave a second-click confirm armed for the next open.
+		widgetState.projectOverwriteArmed = nil
+		widgetState.projectUnitsDropArmed = nil
 	end,
 	onProjectSaveUnitsToggle = function(_event)
 		playSound("click")
 		widgetState.projectSaveUnits = not widgetState.projectSaveUnits
 		widgetState.projectUnitsDropArmed = nil
+		widgetState.projectOverwriteArmed = nil
 		local d = widgetState.dmHandle
 		if d then
 			d.projectSaveUnits = widgetState.projectSaveUnits
@@ -6526,6 +6725,19 @@ local initialModel = {
 			return
 		end
 		widgetState.projectNameStr = name
+		-- Save As over an existing project that is NOT the session's current
+		-- one: overwrite is allowed (modern Save As), but never silently —
+		-- first SAVE arms, second commits.
+		local mp = WG.MapProject
+		local current = mp.current and mp.current() or nil
+		if name ~= current and widgetState.projectOverwriteArmed ~= name and mp.exists and mp.exists(name) then
+			widgetState.projectOverwriteArmed = name
+			if d then
+				d.projectSaveHint = "'" .. name .. "' already exists — press SAVE PROJECT again to overwrite it."
+			end
+			return
+		end
+		widgetState.projectOverwriteArmed = nil
 		-- Toggle-off re-save of a project that HAS a units loadout would silently
 		-- drop it (stale-section cleanup). Require a second SAVE click to confirm.
 		if
@@ -6545,8 +6757,9 @@ local initialModel = {
 		widgetState.projectUnitsDropArmed = nil
 		if WG.MapProject.save(name, { saveUnits = widgetState.projectSaveUnits and true or false }) then
 			playSound("save")
+			-- Modern Save As: commit closes the dialog; progress is in console.
 			if d then
-				d.projectSaveHint = "Saving to MapProjects/" .. name .. "/ — progress in console."
+				d.projectSaveOpen = false
 			end
 		else
 			if d then
@@ -8709,9 +8922,10 @@ local initialModel = {
 		end
 	end,
 
-	-- data-event-click="onTfCapMaxUp()" etc.
+	-- data-event-click="onTfCapMaxUp()" etc. Bounds follow the dynamic
+	-- height-band envelope (updateHeightBandSliderBounds), not a fixed ±500.
 	onTfCapMaxUp = function(_event)
-		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
+		capMaxValue = math.min(widgetState.heightBandHi or 500, capMaxValue + HEIGHT_CAP_STEP)
 		if capMinValue > capMaxValue then
 			capMinValue = capMaxValue
 			applyCap("min", capMinValue)
@@ -8719,7 +8933,7 @@ local initialModel = {
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMaxDown = function(_event)
-		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
+		capMaxValue = math.max(widgetState.heightBandLo or -500, capMaxValue - HEIGHT_CAP_STEP)
 		if capMinValue > capMaxValue then
 			capMinValue = capMaxValue
 			applyCap("min", capMinValue)
@@ -8727,7 +8941,7 @@ local initialModel = {
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMinUp = function(_event)
-		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
+		capMinValue = math.min(widgetState.heightBandHi or 500, capMinValue + HEIGHT_CAP_STEP)
 		if capMaxValue < capMinValue then
 			capMaxValue = capMinValue
 			applyCap("max", capMaxValue)
@@ -8735,7 +8949,7 @@ local initialModel = {
 		applyCap("min", capMinValue)
 	end,
 	onTfCapMinDown = function(_event)
-		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
+		capMinValue = math.max(widgetState.heightBandLo or -500, capMinValue - HEIGHT_CAP_STEP)
 		if capMaxValue < capMinValue then
 			capMaxValue = capMinValue
 			applyCap("max", capMaxValue)
@@ -8766,6 +8980,12 @@ local initialModel = {
 		playSound("toolSwitch")
 		clearPassthrough()
 		if not WG.SplatPainter then
+			return
+		end
+		if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+			Spring.Echo(
+				"[Terraform Brush] Tileset shader active \226\128\148 soft variants live in SURFACE, hard overrides in LAYERS. DNTS splat applies to legacy maps only."
+			)
 			return
 		end
 		if _splatToolUnavailable() then
@@ -8874,26 +9094,354 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2))
 		end
 	end,
-	onTfSwitchTileset = function(_event)
+	-- SURFACE tool: paints the soft-top variant mask of the tileset shader.
+	-- Active state lives in the painter widget (splat pattern). The old SOFT
+	-- submode of the combined panel — the SOFT|HARD switcher is gone, this
+	-- button IS soft now (LAYERS below is hard).
+	onTfSwitchSurface = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.TilesetTerrain then
+		if not WG.SurfacePainter then
 			return
 		end
-		if widgetState.tilesetActive then
-			widgetState.tilesetActive = false
+		local st = WG.SurfacePainter.getState and WG.SurfacePainter.getState()
+		if st and st.active then
+			-- Toggle off back to the terraform brush.
+			_deactivateAllTools()
 			if WG.TerraformBrush then
-				local st = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setMode(st and st.mode or "raise")
+				local ts = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
 			end
 		else
+			_deactivateAllTools() -- clears a running LAYERS session too
+			local dm = widgetState.dmHandle
+			if dm and dm.surfMode ~= "soft" then
+				dm.surfMode = "soft"
+			end
+			WG.SurfacePainter.activate()
+		end
+	end,
+	-- LAYERS tool: paints the tileset shader's splat-override channels
+	-- (R=auto, G=intermediate, B=cliff, A=plateau) through the Splat Painter engine,
+	-- reused headless. The splat engine keeps full ownership of mouse/keys/draw
+	-- while active; widgetState.surfHardActive pins the shared panel to 'surf'
+	-- (surfMode == 'hard' sections) so the legacy SPLAT panel never opens.
+	onTfSwitchLayers = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.SplatPainter then
+			return
+		end
+		if widgetState.surfHardActive then
+			-- Toggle off back to the terraform brush.
 			_deactivateAllTools()
-			widgetState.tilesetActive = true
+			if WG.TerraformBrush then
+				local ts = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
+			end
+			return
+		end
+		local ti = gl.TextureInfo and gl.TextureInfo("$ssmf_splat_distr")
+		if not (ti and (ti.xsize or 0) > 0) then
+			Spring.Echo("[Terraform Brush] LAYERS needs a splat distribution texture; this map exposes none.")
+			return
+		end
+		_deactivateAllTools()
+		local dm = widgetState.dmHandle
+		if dm and dm.surfMode ~= "hard" then
+			dm.surfMode = "hard"
+		end
+		WG.SplatPainter.activate()
+		widgetState.surfHardActive = true
+		-- Strokes must be visible: the shader gates the override mask on
+		-- splatInfluence, so a zeroed knob would make painting look broken.
+		local T = WG.TilesetTerrain
+		if T and T.getKnobs and T.setKnob then
+			local k = T.getKnobs()
+			if k and (k.splatInfluence or 0) <= 0 then
+				T.setKnob("splatInfluence", 1)
+				Spring.Echo(
+					"[Terraform Brush] splat influence was 0 \226\128\148 enabled so hard-surface strokes show."
+				)
+			end
+		end
+	end,
+	-- SURFACE brush + fill sliders (ids surf-slider-<key>). The BRUSH section
+	-- serves both submodes: in HARD the size/strength/falloff sliders drive the
+	-- splat engine instead (same slider-unit mappings as the legacy panel).
+	onSurfSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SurfacePainter then
+			return
+		end
+		-- RmlUi delivers change events a few frames after the value is stamped,
+		-- by which time updatingFromCode is false again. SOFT and HARD share
+		-- these three sliders, so an echo from the mode we just LEFT would
+		-- otherwise write one engine's value into the other (onTilesetKnob
+		-- carries the same guard).
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local dm = widgetState.dmHandle
+		if dm and dm.surfMode == "hard" then
+			local hsp = WG.SplatPainter
+			if not hsp then
+				return
+			end
+			if key == "size" then
+				hsp.setRadius(_elemSliderVal("surf-slider-size", 72))
+			elseif key == "strength" then
+				hsp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+			elseif key == "falloff" then
+				hsp.setCurve(_elemSliderVal("surf-slider-falloff", 10) / 10)
+			end
+			return
+		end
+		local sp = WG.SurfacePainter
+		if key == "size" then
+			sp.setRadius(_elemSliderVal("surf-slider-size", 72))
+		elseif key == "strength" then
+			sp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+		elseif key == "falloff" then
+			sp.setCurve(_elemSliderVal("surf-slider-falloff", 5) / 10)
+		elseif key == "spacing" then
+			sp.setSpacing(_elemSliderVal("surf-slider-spacing", 0))
+		elseif key == "fill-scale" then
+			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
+		elseif key == "fill-seed" then
+			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
+		end
+	end,
+	onSurfPreset = function(_event, name)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setPreset) then
+			return
+		end
+		if WG.SurfacePainter.setPreset(name) then
+			playSound("click")
+		end
+	end,
+	onSurfEraseToggle = function(_event)
+		if not WG.SurfacePainter then
+			return
+		end
+		local st = WG.SurfacePainter.getState() or {}
+		WG.SurfacePainter.setEraseMode(not st.eraseMode)
+		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
+	-- slot's variant (no-op when the slot is empty — the palette assigns).
+	onSurfSelectBase = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setVariant) then
+			return
+		end
+		WG.SurfacePainter.setVariant("")
+		playSound("click")
+	end,
+	-- The whole chip is the button: it opens that slot's palette, and if the slot
+	-- already holds a variant it also arms the brush with it, so one click both
+	-- switches which slot you are painting and offers the library to change it.
+	-- Clicking the open chip again closes the palette. There used to be a small
+	-- caret for this, which rendered as a missing-glyph box in the panel font.
+	onSurfSlotSelect = function(_event, n)
+		if not WG.SurfacePainter then
+			return
+		end
+		local slot = tonumber(n)
+		local st = WG.SurfacePainter.getState() or {}
+		local asset = (slot == 1) and st.slot1 or st.slot2
+		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
+			WG.SurfacePainter.setVariant(asset)
+		end
+		local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
+		widgetState.surfPickerSlot = open
+		widgetState.surfPaletteSig = nil -- rebuild for the new target
+		playSound(open and "dropdown" or "click")
+	end,
+	onSurfNoiseFill = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then
+			return
+		end
+		-- The fill shader only writes a channel whose slot carries a variant
+		-- AND whose V1/V2 chip is on; with neither eligible it preserves the
+		-- mask verbatim, so the button silently did nothing. The RML grays it
+		-- in that state (dm.surfCanFill) — this is the backstop that explains.
+		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
+		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2)) then
+			Spring.Echo(
+				"[Terraform Brush] SURFACE fill did nothing \226\128\148 "
+					.. (
+						(not st.slot1 and not st.slot2)
+							and "assign a variant to slot 1 or 2 first (the caret on a slot chip)."
+						or "enable V1 or V2 below."
+					)
+			)
+			return
+		end
+		WG.SurfacePainter.noiseFill()
+		playSound("click")
+	end,
+	onSurfFillToggle = function(_event, n)
+		if not WG.SurfacePainter then
+			return
+		end
+		local st = WG.SurfacePainter.getState() or {}
+		local dm = widgetState.dmHandle
+		if tonumber(n) == 1 then
+			WG.SurfacePainter.setFillV1(not st.fillV1)
+			if dm then
+				dm.surfFillV1 = not st.fillV1
+			end
+		else
+			WG.SurfacePainter.setFillV2(not st.fillV2)
+			if dm then
+				dm.surfFillV2 = not st.fillV2
+			end
+		end
+		playSound("tick")
+	end,
+	-- CLEAR buttons arm on the first click and execute on the second (the
+	-- spec's "with confirm"; projectDeleteConfirming precedent).
+	onSurfClearVariant = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then
+			return
+		end
+		if dm.surfClearArm then
+			dm.surfClearArm = false
+			if WG.SurfacePainter.clearVariant() then
+				playSound("reset")
+			else
+				-- Base/erase selected: nothing to clear — say so instead of a
+				-- silent no-op the user reads as "cleared".
+				Spring.Echo("[Surface] select a variant tile first, then CLEAR VARIANT")
+			end
+		else
+			dm.surfClearArm = true
+			dm.surfClearAllArm = false
+			playSound("click")
+		end
+	end,
+	onSurfClearAll = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then
+			return
+		end
+		if dm.surfClearAllArm then
+			dm.surfClearAllArm = false
+			if WG.SurfacePainter.clearAll() then
+				playSound("reset")
+			end
+		else
+			dm.surfClearAllArm = true
+			dm.surfClearArm = false
+			playSound("click")
+		end
+	end,
+	-- GRADING group tints are shader knobs; ids surf-slider-<knobKey>
+	onSurfKnob = function(_event, key)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then
+			return
+		end
+		-- No fallback default here: tint knobs default to 1.0, desat to 0, so a
+		-- failed element lookup writing 0 would black the whole group out.
+		local v = _elemSliderVal("surf-slider-" .. key, nil)
+		if v ~= nil and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob(key, v)
+		end
+	end,
+	-- ── SURFACE HARD submode (splat overrides via WG.SplatPainter) ──────────
+	-- All onSurfHard* handlers talk to the splat ENGINE only; the legacy
+	-- SPLAT panel keeps its own onSpl*/sp-* namespace untouched.
+	onSurfHardChannel = function(_event, n)
+		if not WG.SplatPainter then
+			return
+		end
+		playSound("modeSwitch")
+		WG.SplatPainter.setChannel(tonumber(n) or 1)
+	end,
+	onSurfHardFilter = function(_event, key)
+		if not WG.SplatPainter then
+			return
+		end
+		local sp = WG.SplatPainter
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
+	end,
+	onSurfHardSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local sp = WG.SplatPainter
+		if key == "slope-max" then
+			sp.setSmartFilter("slopeMax", _elemSliderVal("surf-hard-slider-slope-max", 45))
+		elseif key == "alt-min" then
+			local v = _elemSliderVal("surf-hard-slider-alt-min", 0)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMaxEnable and v > (sf.altMax or 0) then
+				sp.setSmartFilter("altMax", v)
+			end
+			sp.setSmartFilter("altMin", v)
+		elseif key == "alt-max" then
+			local v = _elemSliderVal("surf-hard-slider-alt-max", 200)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMinEnable and v < (sf.altMin or 0) then
+				sp.setSmartFilter("altMin", v)
+			end
+			sp.setSmartFilter("altMax", v)
+		end
+	end,
+	onSurfHardUndo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then
+			WG.SplatPainter.undo()
+		end
+	end,
+	onSurfHardRedo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then
+			WG.SplatPainter.redo()
+		end
+	end,
+	onSurfHardCycleFormat = function(_event)
+		playSound("click")
+		if WG.SplatPainter then
+			WG.SplatPainter.cycleExportFormat()
+		end
+	end,
+	onSurfHardSave = function(_event)
+		playSound("save")
+		if WG.SplatPainter then
+			WG.SplatPainter.saveSplats()
 		end
 	end,
 	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
 	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
 	-- look without having to reset the three sliders.
+	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The
+	-- guard is one-way — soft strokes sweep around cliff bodies, painted CLIFF
+	-- always lands — so this only ever governs intermediate/plateau paint.
+	onTsToggleCliffProtect = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then
+			return
+		end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and (knobs.cliffProtect or 0) >= 1)
+		WG.TilesetTerrain.setKnob("cliffProtect", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		local d = widgetState.dmHandle
+		if d then
+			d.tsCliffProtectOn = on
+		end
+	end,
 	onTsToggleAlbDecouple = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setKnob and WG.TilesetTerrain.getKnobs) then
 			return
@@ -8916,7 +9464,16 @@ local initialModel = {
 		if uiState.updatingFromCode or not WG.TilesetTerrain then
 			return
 		end
-		local v = _elemSliderVal("ts-slider-" .. key, 0)
+		-- Drop the deferred echo of programmatic slider stamps: tf_tileset.M.sync
+		-- raises change events via SetAttribute that RmlUi delivers frames later,
+		-- after updatingFromCode is back to false, and GetAttribute can then read
+		-- clamped/stale values back into the knobs (per-swap config drift).
+		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then
+			return
+		end
+		-- nil fallback, not 0: a failed element lookup must not zero the knob
+		-- (same hazard onSurfKnob already guards against).
+		local v = _elemSliderVal("ts-slider-" .. key, nil)
 		if v ~= nil and WG.TilesetTerrain.setKnob then
 			WG.TilesetTerrain.setKnob(key, v)
 		end
@@ -8937,6 +9494,25 @@ local initialModel = {
 			dm.tsDebugView = n
 		end
 		playSound("click")
+	end,
+	-- Per-section RESET on the TILESET headers, matching the env windows'
+	-- convention. Restores only that section's knobs, to the same values the
+	-- panel-wide Restore Defaults would give them (global defaults overlaid with
+	-- the active biome's own recipe). The section->knobs map lives in
+	-- dev_tileset_terrain.lua next to the knob table it references.
+	onTilesetSectionReset = function(_event, section)
+		-- Belt and braces with the target check in envSectionToggle: this button
+		-- lives inside the header row that toggles the section, so the click must
+		-- not travel any further than here.
+		if _event and _event.StopPropagation then
+			_event:StopPropagation()
+		end
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.resetSection) then
+			return
+		end
+		if WG.TilesetTerrain.resetSection(section) then
+			playSound("reset")
+		end
 	end,
 	-- TILESET CONFIG & PRESETS
 	onTilesetReset = function(_event)
@@ -9033,13 +9609,11 @@ local initialModel = {
 		local was = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()
 		local on = WG.TilesetTerrain.setActive(not was)
 		playSound(on and "toggleOn" or "toggleOff")
-		local doc = widgetState.document
-		local el = doc and doc:GetElementById("btn-ts-shader")
-		if el then
-			el:SetAttribute(
-				"src",
-				on and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
-			)
+		-- Immediate highlight; tf_tileset.sync keeps it honest afterwards (and
+		-- handles the section gray-out via tsShaderLast).
+		local d = widgetState.dmHandle
+		if d then
+			d.tsShaderOn = on and true or false
 		end
 	end,
 	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
@@ -9474,6 +10048,10 @@ local initialModel = {
 		end
 		playSound("click")
 	end,
+	-- NB: the custom range never goes into uiPrefs. These change events also
+	-- fire (deferred) for every programmatic stamp of the input, so persisting
+	-- here is what used to burn the canvas seed (-75..696) into the prefs and
+	-- resurrect it on every map.
 	onTfExportCustomMinChange = function(_event)
 		if not WG.TerraformBrush then
 			return
@@ -9483,10 +10061,6 @@ local initialModel = {
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then
-				widgetState.saveUiPrefs()
-			end
 		end
 	end,
 	onTfExportCustomMaxChange = function(_event)
@@ -9498,10 +10072,17 @@ local initialModel = {
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then
-				widgetState.saveUiPrefs()
-			end
+		end
+	end,
+	-- FIT: snap the custom range to the terrain's exact extremes (vertex scan).
+	onTfExportFit = function(_event)
+		if not (WG.TerraformBrush and WG.TerraformBrush.fitExportRangeToTerrain) then
+			return
+		end
+		local mn, mx = WG.TerraformBrush.fitExportRangeToTerrain()
+		if mn then
+			playSound("click")
+			Spring.Echo(string.format("[Terraform Brush] Export range fit to terrain: %.2f .. %.2f", mn, mx))
 		end
 	end,
 
@@ -10463,27 +11044,35 @@ local function trackSliderDrag(element, id)
 end
 
 -- Helper: sync slider value from state and flash green if it changed externally
+-- Returns true when it actually issued a SetAttribute. Callers that arm an
+-- echo-suppression window (the deferred change event a stamp raises) must key
+-- that window off this, NOT off "sync ran" — sync runs every frame, so an
+-- unconditional stamp timestamp suppresses the user's own slider input
+-- forever. See tf_surface / tf_tileset.
 local function syncAndFlash(el, id, newValStr)
 	if not el or not newValStr then
-		return
+		return false
 	end
 	if uiState.draggingSlider == id then
-		return
+		return false
 	end
 	local prev = widgetState.prevSyncValues[id]
 	-- Dirty-check: skip SetAttribute if value unchanged since last write.
 	-- Avoids triggering RmlUI slider re-layout on no-op syncs.
+	local wrote = false
 	if prev ~= newValStr then
 		el:SetAttribute("value", newValStr)
 		-- Keep lastAttrValue cache coherent so setAttrValueIfChanged users
 		-- don't re-issue the same write if they target the same element.
 		widgetState.lastAttrValue[id] = newValStr
+		wrote = true
 	end
 	widgetState.prevSyncValues[id] = newValStr
 	if prev and prev ~= newValStr and not widgetState.lockedSliders[id] then
 		widgetState.sliderFlashes[id] = { el = el, timer = 1.0 }
 		el:SetClass("slider-flash", true)
 	end
+	return wrote
 end
 
 -- ============ Guide Mode ============
@@ -10496,7 +11085,7 @@ local guideHints = {
 	["btn-ramp"] = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
 	["btn-restore"] = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
 	["btn-noise"] = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
-	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural talus aprons.",
+	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
 	["btn-passthrough"] = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"] = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
@@ -10509,9 +11098,38 @@ local guideHints = {
 	["btn-env-unit-lighting"] = "Open the Unit Lighting panel to adjust unit ambient, diffuse, and specular colors.",
 	["btn-env-map-render"] = "Open the Map Rendering panel to adjust splat textures, void settings, and detail normals.",
 	["btn-env-water"] = "Open the Water panel to adjust surface, fresnel, perlin noise, blur, wave, and caustics properties.",
+	["btn-env-tileset"] = "Open the Tileset window: shader switch, biome library, metal-spot styles and every tuning knob. Stays open while you work in any tool.",
 	["btn-env-save"] = "Export all current environment settings to a Lua file in the Terraform Brush/Lightmaps/ folder for use by mappers.",
 	["btn-env-load"] = "Load the most recent saved environment config for this map from the Terraform Brush/Lightmaps/ folder.",
 	["btn-lights"] = "Place deferred GL4 lights on the map. Supports point, cone, and beam lights with scatter, single, and remove modes.",
+	["btn-units"] = "Coming soon: place and arrange units on the map (ubdev-style unit placer panel).",
+	-- SURFACE tool (tileset variant paint)
+	["btn-surface"] = "Paint soft-surface VARIANTS of the active tileset biome over the automatic base. Hard surfaces (cliffs and the intermediary) belong to LAYERS — this brush never touches them.",
+	["btn-layers"] = "Paint the tileset shader's hard-surface override channels — force intermediate, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
+	["btn-surf-preset-dot"] = "DOT: small brush, low strength, soft falloff — the ZBrush-2% workflow. Dot variants in lightly so the base stays dominant.",
+	["btn-surf-preset-wash"] = "WASH: large brush at very low strength for broad, subtle variant drift.",
+	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
+	["btn-surf-erase"] = "Erase mode: strokes withdraw the painted claim so the ground returns to the shader's automatic choice. Right-click always erases. To force plain base instead, pick the BASE tile and paint.",
+	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
+	["btn-ts-cliff-protect"] = "Keep soft strokes (intermediate, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
+	["ts-slider-exposure"] = "Final gain on the lit ground. The shader takes all its light from the map ENVIRONMENT (sun and ground ambient), never from the skybox, and it draws raw albedo where the engine draws a pre-brightened baked texture — so a dark set on a dimly lit map can go nearly black. This lifts it. Run /tileset probe to see whether the map is actually dark before reaching for it; relighting the environment is the honest fix.",
+	["ts-slider-lumaTops"] = "Whether the brightness bias above also applies to the soft tops. 0 keeps it off them, so how much ground a top takes is authored rather than decided by which top is paler; 1 is the old behaviour. Expect a slightly wider intermediary at 0, since a pale sand no longer gets a free boost against it.",
+	["ts-slider-surfClaim"] = "How strongly a SURFACE stroke decides WHICH TOP belongs somewhere. At 1 a painted top (base or variant) out-votes the automatic plateau band; at 0 the SURFACE brush only re-skins ground the sorter already gave to soil, which is what made high flats unpaintable. Cliffs and the intermediary are never affected.",
+	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
+	-- HARD SURFACES section (LAYERS tool)
+	["btn-surf-hard-ch1"] = "AUTO: painting removes any override so the shader's slope-driven surface returns.",
+	["btn-surf-hard-ch2"] = "INTERMEDIATE: force the intermediate (scree) material where painted, regardless of slope.",
+	["btn-surf-hard-ch3"] = "CLIFF: force cliff rock where painted, regardless of slope.",
+	["btn-surf-hard-ch4"] = "PLATEAU: force the plateau cap material where painted, regardless of height.",
+	["btn-surf-hard-water"] = "Skip pixels below water level while painting hard overrides.",
+	["btn-surf-hard-cliffs"] = "Skip pixels steeper than the max-slope threshold while painting hard overrides.",
+	["btn-surf-hard-altmin"] = "Only paint above a minimum altitude.",
+	["btn-surf-hard-altmax"] = "Only paint below a maximum altitude.",
+	["btn-surf-hard-undo"] = "Undo the last hard-override stroke. Keyboard shortcut: Ctrl+Z.",
+	["btn-surf-hard-redo"] = "Redo a hard-override stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
+	["btn-surf-hard-save"] = "Export the splat distribution texture (override mask) to Terraform Brush/Splats/.",
+	["btn-ts-shader"] = "Master switch: render the ground with the tileset shader. Off hands the ground back to the engine, so old maps keep their own textures.",
+	["btn-ts-paint-surfaces"] = "Switch to the SURFACE tool: paint soft-top variants on the tileset ground. Needs the shader on. Hard intermediate/cliff/plateau overrides live in the LAYERS tool.",
 	-- SHAPE buttons
 	["btn-circle"] = "Round brush with smooth radial falloff. The most natural-looking shape for hills and depressions.",
 	["btn-square"] = "Square brush with hard corners. Great for angular structures, walls and grid-aligned terrain edits.",
@@ -10613,6 +11231,7 @@ local guideHints = {
 	["btn-ts-preset-toggle"] = "Open or close the tileset preset list to load or delete a saved config.",
 	-- Export / Import
 	["btn-export"] = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
+	["btn-export-fit"] = "Snap the custom export range to the terrain's exact current extremes (full heightmap scan).",
 	["btn-import"] = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
 	["newmap-name-input"] = "Optional name for the new map. Leave blank for automatic naming (Editor Flat <size>). Saved heightmaps group under this name across sessions.",
 	-- Feature Placer sub-modes
@@ -11667,6 +12286,25 @@ local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
 local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
 local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
 local tfTileset = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_tileset.lua")
+-- Guarded include: tf_surface.lua was added mid-development, and a file the
+-- VFS can't see (added after game start — the .sdd archive is scanned at
+-- launch, /luaui reload does not rescan) must degrade to "no SURFACE tool",
+-- not kill the whole panel.
+local tfSurface
+do
+	-- Env must be passed explicitly: under pcall, VFS.Include no longer sees
+	-- the widget environment, so the module's `local WG = WG` captures nil.
+	local ok, mod = pcall(VFS.Include, "luaui/RmlWidgets/gui_terraform_brush/tf_surface.lua", getfenv(1))
+	if ok and type(mod) == "table" then
+		tfSurface = mod
+	else
+		Spring.Echo(
+			"[TFBrush] tf_surface.lua unavailable ("
+				.. tostring(mod)
+				.. ") — SURFACE tool disabled; restart the game if the file was just added"
+		)
+	end
+end
 local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
 
 -- Shared context passed to all extracted tool modules
@@ -12365,6 +13003,35 @@ local function attachEventListeners()
 		-- click handled declaratively via onclick="widget:tfSwitchGrass()"
 	end
 
+	-- Splat launch button: hover explains the contextual disable while the
+	-- tileset shader owns the splat texture (grass no-data precedent).
+	do
+		local splatBtn = getCachedEl(doc, "btn-splat")
+		if splatBtn then
+			splatBtn:AddEventListener("mouseover", function(event)
+				local T = WG.TilesetTerrain
+				widgetState.splatHoverTilesetOn = (T and T.isActive and T.isActive()) and true or false
+			end, false)
+			splatBtn:AddEventListener("mouseout", function(event)
+				widgetState.splatHoverTilesetOn = false
+			end, false)
+		end
+	end
+
+	-- UNITS placeholder button: no tool behind it yet, so hovering explains
+	-- itself in the status readout (same override pattern as grass/splat).
+	do
+		local unitsBtn = getCachedEl(doc, "btn-units")
+		if unitsBtn then
+			unitsBtn:AddEventListener("mouseover", function(event)
+				widgetState.unitsHoverSoon = true
+			end, false)
+			unitsBtn:AddEventListener("mouseout", function(event)
+				widgetState.unitsHoverSoon = false
+			end, false)
+		end
+	end
+
 	-- Decals launch button
 	local decalsBtn = getCachedEl(doc, "btn-decals")
 	-- (click handled declaratively via onclick="widget:tfSwitchDecals()")
@@ -12484,6 +13151,9 @@ local function attachEventListeners()
 		end, false)
 		projectNameInput:AddEventListener("change", function(event)
 			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+			-- Editing the name retargets the save: any armed overwrite confirm
+			-- was for the previous text.
+			widgetState.projectOverwriteArmed = nil
 		end, false)
 	end
 
@@ -12758,6 +13428,9 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	tfTileset.attach(doc, ctx)
+	if tfSurface then
+		tfSurface.attach(doc, ctx)
+	end
 	tfLights.attach(doc, ctx)
 	tfNoise.attach(doc, ctx)
 
@@ -12782,10 +13455,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then
-				widgetState.saveUiPrefs()
-			end
 		end
 	end)
 	wireExportRangeInput(exportMaxInput, function()
@@ -12793,10 +13462,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then
-				widgetState.saveUiPrefs()
-			end
 		end
 	end)
 
@@ -12882,6 +13547,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-env-map-handle", widgetState.envMapRootEl)
 		makeWindowDraggable("tf-env-water-handle", widgetState.envWaterRootEl)
 		makeWindowDraggable("tf-env-dimensions-handle", widgetState.envDimensionsRootEl)
+		makeWindowDraggable("tf-env-tileset-handle", widgetState.envTilesetRootEl)
 		makeWindowDraggable("tf-splattex-handle", widgetState.splatTexRootEl)
 		makeWindowDraggable("tf-grasscfg-handle", widgetState.grassCfgRootEl)
 		makeWindowDraggable("tf-light-library-handle", widgetState.lightLibraryRootEl)
@@ -12911,6 +13577,100 @@ local function attachEventListeners()
 	end
 end
 
+-- Tools whose engine widget can raise the panel from cold. The remaining panel
+-- modes (environment, lights, startpos, clone, decals) are driven by widgetState
+-- flags the panel itself sets, so they cannot be live before the document exists.
+local PANEL_TOOL_APIS = {
+	"TerraformBrush",
+	"FeaturePlacer",
+	"WeatherBrush",
+	"SplatPainter",
+	"MetalBrush",
+	"GrassBrush",
+	"SurfacePainter",
+}
+
+-- Cheap probe for "is the editor being used", safe to call with no document.
+local function editorWantsPanel()
+	if widgetState.passthroughMode then
+		return true
+	end
+	for i = 1, #PANEL_TOOL_APIS do
+		local api = WG[PANEL_TOOL_APIS[i]]
+		if api and api.getState then
+			local st = api.getState()
+			if st and st.active then
+				return true
+			end
+		end
+	end
+	if WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() then
+		return true
+	end
+	return false
+end
+
+-- Build the panel document on first use.
+--
+-- The RML is ~6200 elements and ~1800 data bindings, and RmlUi carries that in
+-- its context update for as long as the document is loaded — Hide() only stops
+-- it drawing. The Terraformer is an opt-in editor tool (enabled = false), so a
+-- player who leaves the widget on must not pay for a panel they never open.
+--
+-- Built once and kept for the session rather than torn down on close: the tf_*
+-- modules cache ~50 element handles into widgetState, and a closed document
+-- would leave every one of them dangling.
+local function ensureDocument()
+	if widgetState.document then
+		return true
+	end
+	local rmlCtx = widgetState.rmlContext
+	if not rmlCtx or widgetState.documentLoadFailed then
+		return false
+	end
+
+	local document = rmlCtx:LoadDocument(RML_PATH, widget)
+	if not document then
+		-- Latch: Update calls this every frame while a tool is active, and a
+		-- failing load would otherwise echo once per frame forever.
+		widgetState.documentLoadFailed = true
+		Spring.Echo("[Terraform Brush] Failed to load the panel document.")
+		return false
+	end
+	widgetState.document = document
+	-- RecvLuaMsg only toggles an existing document, so a document born while the
+	-- lobby overlay is up has to start hidden or it paints over the lobby.
+	if widgetState.lobbyHidden then
+		document:Hide()
+	else
+		document:Show()
+	end
+
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("terraform_brush", document)
+	end
+
+	widgetState.rootElement = getCachedEl(document, "tf-root")
+	if widgetState.rootElement then
+		widgetState.rootElement:SetClass("hidden", true)
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+		-- Pen pressure: suppress brush modulation when cursor is over the UI panel
+		widgetState.rootElement:AddEventListener("mouseover", function()
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setPenOverUI(true)
+			end
+		end, false)
+		widgetState.rootElement:AddEventListener("mouseout", function()
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setPenOverUI(false)
+			end
+		end, false)
+	end
+
+	attachEventListeners()
+	return true
+end
+
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then
@@ -12938,19 +13698,16 @@ function widget:Initialize()
 
 	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
 	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
-	widgetState._pendingFogOff = 15
-
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
-	if not document then
-		widget:Shutdown()
-		return false
+	-- Generated blank canvases only: on real maps the fog is the mapper's design and
+	-- killing it darkened every normal game this widget was enabled in.
+	if _isGeneratedBlankMap() then
+		widgetState._pendingFogOff = 15
 	end
-	widgetState.document = document
-	document:Show()
 
-	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
-		WG.TerraformerShared.registerDocument("terraform_brush", document)
-	end
+	-- The document itself is deferred to ensureDocument(), called from Update the
+	-- first time a tool engages. Everything below is document-independent and has
+	-- to run at boot: prefs, the panel action, and the pending New Map preset all
+	-- apply to sessions where the panel is never opened.
 
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then
@@ -12965,26 +13722,16 @@ function widget:Initialize()
 			else
 				WG.TerraformBrush.setHeightmapExportRangeMode("auto")
 			end
-			WG.TerraformBrush.setHeightmapExportCustomMin(
-				(type(up.heightmapExportCustomMin) == "number" and up.heightmapExportCustomMin)
-					or state.exportInitMin
-					or 0
-			)
-			WG.TerraformBrush.setHeightmapExportCustomMax(
-				(type(up.heightmapExportCustomMax) == "number" and up.heightmapExportCustomMax)
-					or state.exportInitMax
-					or 1
-			)
+			-- The custom min/max are deliberately NOT restored from prefs: the
+			-- range is map-specific, and re-applying another map's numbers (or
+			-- the stale canvas seed) is exactly what clipped project exports.
+			-- The brush widget seeds fresh values from the real terrain.
 		end
 	end
-
-	widgetState.rootElement = getCachedEl(document, "tf-root")
-	widgetState.rootElement:SetClass("hidden", true)
 
 	lastVsx, lastVsy = GetViewGeometry()
 	currentLeftVw = INITIAL_LEFT_VW
 	currentTopVh = INITIAL_TOP_VH
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	widgetState.panelHidden = false
 	widgetHandler:AddAction("terraformpanel", function()
@@ -12995,60 +13742,46 @@ function widget:Initialize()
 		return true
 	end, nil, "t")
 
-	attachEventListeners()
-
 	-- New Map environment preset: if the last Create wrote a pending preset, resolve
 	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
-	-- the fresh map has fully settled. The file is blanked on read so a plain /reload
-	-- never re-applies. Default (no preset) leaves the engine's blank-map lighting.
+	-- the fresh map has fully settled. The file is DELETED on read: it used to be
+	-- blanked instead, and an existing-but-empty file read as "New Map with Default
+	-- environment" on ANY later map, stomping real maps' skyboxes with the first
+	-- library one every game. Consuming it is additionally gated on the map actually
+	-- being a generated blank canvas; elsewhere the stale file is just cleaned up
+	-- (cmd_map_project.lua deletes it for the same reason before opening a project).
 	do
 		local rf = io.open("Terraform Brush/pending_newmap_env.lua", "r")
 		if rf then
 			local raw = rf:read("*a")
 			rf:close()
-			local wf = io.open("Terraform Brush/pending_newmap_env.lua", "w")
-			if wf then
-				wf:write("")
-				wf:close()
-			end
-			if raw and raw ~= "" then
-				local ok, t = pcall(function()
-					return loadstring(raw)()
-				end)
-				if ok and type(t) == "table" and t.preset then
-					for _, p in ipairs(widgetState.newMapEnvPresets) do
-						if p.name == t.preset then
-							widgetState._pendingEnvApply = p
-							widgetState._pendingEnvCountdown = 15
-							break
+			os.remove("Terraform Brush/pending_newmap_env.lua")
+			if _isGeneratedBlankMap() then
+				if raw and raw ~= "" then
+					local ok, t = pcall(function()
+						return loadstring(raw)()
+					end)
+					if ok and type(t) == "table" and t.preset then
+						for _, p in ipairs(widgetState.newMapEnvPresets) do
+							if p.name == t.preset then
+								widgetState._pendingEnvApply = p
+								widgetState._pendingEnvCountdown = 15
+								break
+							end
 						end
 					end
-				end
-			else
-				-- New Map with Default environment selected: blank maps often have no
-				-- map-defined skybox, so apply the first available library skybox.
-				local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
-				if first and first.path then
-					widgetState._pendingSkyboxPath = first.path
-					widgetState.envCurrentSkybox = first.path
-					Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+				else
+					-- New Map with Default environment selected: blank maps often have no
+					-- map-defined skybox, so apply the first available library skybox.
+					local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
+					if first and first.path then
+						widgetState._pendingSkyboxPath = first.path
+						widgetState.envCurrentSkybox = first.path
+						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+					end
 				end
 			end
 		end
-	end
-
-	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
-	if widgetState.rootElement then
-		widgetState.rootElement:AddEventListener("mouseover", function()
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setPenOverUI(true)
-			end
-		end, false)
-		widgetState.rootElement:AddEventListener("mouseout", function()
-			if WG.TerraformBrush then
-				WG.TerraformBrush.setPenOverUI(false)
-			end
-		end, false)
 	end
 
 	-- Expose UI-side API for key capture and badge refresh
@@ -13093,6 +13826,12 @@ function widget:Initialize()
 			if ctrl and ctrl.expand then
 				ctrl.expand()
 			end
+		end,
+		-- True while the editor is actually in use (a tool or passthrough has
+		-- the panel up). Gates tool-switch hotkeys in cmd_terraform_brush so an
+		-- enabled-but-dormant Terraformer never swallows engine keybinds.
+		isEngaged = function()
+			return widgetState.panelEngaged == true
 		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
@@ -13288,7 +14027,26 @@ function widget:DrawScreen()
 	end
 
 	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex for splat preview tinting.
-	do
+	-- gl.ReadPixels below blocks until the GPU drains, so an ungated sample costs several
+	-- ms every frame — including with the panel hidden, where nothing reads the result.
+	-- Gate on the same condition the swatch draw uses (see DrawScreenPost) and only pay
+	-- the stall every Nth frame; the blend is dt-based, so a stride just coarsens its steps.
+	-- panelEngaged, not dm.activeTool alone: Update returns before writing activeTool
+	-- when the panel is down, so that field holds the last tool used and would keep
+	-- the sample alive after the splat tool closed.
+	local sampleDm = widgetState.dmHandle
+	local sampleSec = widgetState.spChannelSectionEl
+	local wantTerrainSample = widgetState.panelEngaged
+		and sampleDm ~= nil
+		and sampleDm.activeTool == "sp"
+		and not widgetState.lobbyHidden
+		and not (sampleSec and sampleSec:IsClassSet("hidden"))
+	local sampleTick = wantTerrainSample and ((widgetState.spTerrainSampleTick or 0) + 1) or 0
+	if sampleTick >= 3 then
+		sampleTick = 0
+	end
+	widgetState.spTerrainSampleTick = sampleTick
+	if wantTerrainSample and sampleTick == 0 then
 		local mx, my = GetMouseState()
 		if mx and my then
 			local _, coords = TraceScreenRay(mx, my, true)
@@ -13444,13 +14202,88 @@ local function drawSkyboxThumbnailPreviews()
 	gl.Blending(false)
 end
 
+-- GL albedo thumbnails for the SURFACE palette tiles (called from
+-- DrawScreenPost). Same approach as the splat channel previews below: the RML
+-- tile holds an empty .tf-surf-thumb rect and we overdraw it with gl.TexRect.
+-- The 4K albedos are already resident (the terrain shader binds these same
+-- textures), while an RmlUi <img> would decode the full uncompressed bitmap
+-- into the TexMemPool — the skybox-library bad_alloc lesson.
+local function drawSurfPaletteThumbs()
+	local dm = widgetState.dmHandle
+	if not dm or dm.activeTool ~= "surf" then
+		return
+	end
+	if widgetState.lobbyHidden then
+		return
+	end
+	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
+	-- not laid out can still report a stale non-zero box (the splat-preview
+	-- lesson), so every container that can hide these thumbs must be tested
+	-- explicitly: the whole palette frame is data-if'd away in HARD, and the
+	-- section itself collapses.
+	if dm.surfMode ~= "soft" then
+		return
+	end
+	local sec = widgetState.surfPaletteSectionEl
+	if sec and sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.surfPaletteEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		-- Entries tag their owning section (sculpt grid, picker); a collapsed or
+		-- closed owner must not paint its thumbs over whatever took its place.
+		local owner = els[i].sec
+		if owner and owner:IsClassSet("hidden") then
+			div = nil
+		end
+		if div and tex then
+			-- collapsed sections / hidden panels report zero size, which is the
+			-- same guard the splat previews rely on
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if gl.Texture(0, tex) then
+					-- centered crop: a full 4K tile at 52dp reads as noise,
+					-- a quarter-window shows the material's actual character
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawScreenPost()
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
 
+	-- SURFACE palette tile thumbnails (early-outs on its own tool check).
+	drawSurfPaletteThumbs()
+
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
 	local dm = widgetState.dmHandle
+	-- panelEngaged first: activeTool goes stale when the panel closes (Update returns
+	-- before writing it), so the tool check alone keeps this drawing into a dead panel.
+	if not widgetState.panelEngaged then
+		return
+	end
 	if not dm or dm.activeTool ~= "sp" then
 		return
 	end
@@ -14004,8 +14837,69 @@ function widget:DrawWorldReflection()
 	drawSkyFadeOverlay()
 end
 
+-- Sliders whose useful range is the map's height band. All ship with a
+-- hardcoded ±500 in the RML, which walls off the height cap (and altitude
+-- filters) on tall maps: CM03 tops out well past 500 and even TYPED values
+-- clamp to the slider attributes (wireSliderNumbox reads min/max from them).
+local HEIGHT_BAND_SLIDERS = {
+	"slider-cap-max",
+	"slider-cap-min",
+	"slider-cl-height",
+	"slider-gb-alt-min",
+	"slider-gb-alt-max",
+	"fp-slider-alt-min",
+	"fp-slider-alt-max",
+	"sp-slider-alt-min",
+	"sp-slider-alt-max",
+	"surf-hard-slider-alt-min",
+	"surf-hard-slider-alt-max",
+}
+
+-- Widen those sliders to a padded envelope of the map's real height range,
+-- never narrower than the legacy ±500. Uses the union of init and current
+-- ground extremes, so it covers real maps at boot and grows as project loads
+-- or imports replace the canvas terrain (current extremes only ever widen —
+-- fine here, an envelope is exactly what a bound wants). Cheap early-out:
+-- only touches elements when the rounded band actually changes.
+local function updateHeightBandSliderBounds(doc)
+	local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+	local bandMin = math.min(initMin or 0, currMin or 0)
+	local bandMax = math.max(initMax or 0, currMax or 0)
+	local lo = math.min(-500, math.floor((bandMin - 100) / 100) * 100)
+	local hi = math.max(500, math.ceil((bandMax + 200) / 100) * 100)
+	if widgetState.heightBandLo == lo and widgetState.heightBandHi == hi then
+		return
+	end
+	widgetState.heightBandLo = lo
+	widgetState.heightBandHi = hi
+	for i = 1, #HEIGHT_BAND_SLIDERS do
+		local el = getCachedEl(doc, HEIGHT_BAND_SLIDERS[i])
+		if el then
+			el:SetAttribute("min", tostring(lo))
+			el:SetAttribute("max", tostring(hi))
+		end
+	end
+end
+
 function widget:Update()
 	local ok, err = pcall(function()
+		-- Lazy panel. While no tool is engaged there is no document, and nothing below
+		-- this point has anything to drive — the pumps and mirrors all feed panel state.
+		-- First engage builds the document (see ensureDocument) and the rest of the
+		-- session proceeds normally.
+		--
+		-- The skybox fade is the one exception: a New Map boots straight into one (the
+		-- default-skybox apply in Initialize, with envFadeEnabled on) and its driver is
+		-- below, so bailing out here would strand the screen mid-fade on black.
+		if not widgetState.document and not skyFade.active then
+			if not editorWantsPanel() then
+				return
+			end
+			if not ensureDocument() then
+				return
+			end
+		end
+
 		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
 		-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
 		-- off, with a resend gap and an attempt cap (same rule as the project load
@@ -14192,7 +15086,7 @@ function widget:Update()
 		end
 
 		-- When game chat input is open, auto-blur any focused RmlUI text input so
-		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
+		-- keystrokes reach the chat widget instead of navigating RmlUI fields.
 		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil
@@ -14274,10 +15168,53 @@ function widget:Update()
 		local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 		local gbState = WG.GrassBrush and WG.GrassBrush.getState()
 		local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
+		-- SURFACE painter active flag on widgetState, NOT a local: this function
+		-- has flirted with Lua 5.1's 200-local ceiling before (see the wbSync note).
+		widgetState.surfActive = (
+			WG.SurfacePainter
+			and WG.SurfacePainter.getState
+			and (WG.SurfacePainter.getState() or {}).active
+		)
+				and true
+			or false
 		local tfActive = tfState and tfState.active
 		local fpActive = fpState and fpState.active
 		local wbActive = wbState and wbState.active
 		local spActive = spState and spState.active
+		-- SURFACE hard submode pin is only meaningful while its engine (the splat
+		-- painter) runs; anything that kills the engine (hotkey off, reload) must
+		-- also drop the pin or the panel would sit on a dead tool.
+		if widgetState.surfHardActive and not spActive then
+			widgetState.surfHardActive = false
+		end
+		-- Self-healing invariant: under the tileset shader the legacy splat panel
+		-- is never legitimate ($ssmf_splat_distr is the override mask), so any
+		-- splat-engine activation that arrives without the pin (/splatpaint
+		-- action, GUI widget reload over a live engine) is adopted by the SURFACE
+		-- tool's HARD submode instead of opening the legacy panel.
+		-- Only adopt when the SURFACE UI can actually take over (its module and
+		-- engine both loaded); otherwise the panel would show an unwired section
+		-- while the splat engine paints unlabelled.
+		if
+			spActive
+			and not widgetState.surfHardActive
+			and tfSurface
+			and WG.SurfacePainter
+			and WG.TilesetTerrain
+			and WG.TilesetTerrain.isActive
+			and WG.TilesetTerrain.isActive()
+		then
+			widgetState.surfHardActive = true
+			if widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "hard" then
+				widgetState.dmHandle.surfMode = "hard"
+			end
+		end
+		-- Mirror invariant: the SOFT engine being live means the panel must read
+		-- SOFT, or HARD's chips and the shared brush sliders would drive an engine
+		-- that is not painting (/surfacepaint while the panel was left in HARD).
+		if widgetState.surfActive and widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "soft" then
+			widgetState.dmHandle.surfMode = "soft"
+		end
 		local mbActive = mbState and mbState.active
 		local gbActive = gbState and gbState.active
 		local envActive = widgetState.envActive
@@ -14393,6 +15330,7 @@ function widget:Update()
 				or stpActive
 				or clActive
 				or dfpActive
+				or widgetState.surfActive
 			)
 		then
 			widgetState.decalsActive = false
@@ -14401,11 +15339,10 @@ function widget:Update()
 			end
 			decalsActive = false
 		end
-		-- Deactivate tileset mode when any other tool becomes active. The terraform
-		-- brush has no *Active branch in the tool derivation below (it maps to ""),
-		-- so without this the tileset panel would linger when you switch to it.
+		-- Deactivate the SURFACE painter when any other tool becomes active (its
+		-- active flag lives in the painter widget, like the splat painter's).
 		if
-			widgetState.tilesetActive
+			widgetState.surfActive
 			and (
 				tfActive
 				or fpActive
@@ -14421,7 +15358,10 @@ function widget:Update()
 				or dfpActive
 			)
 		then
-			widgetState.tilesetActive = false
+			if WG.SurfacePainter then
+				WG.SurfacePainter.deactivate()
+			end
+			widgetState.surfActive = false
 		end
 
 		-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
@@ -14438,9 +15378,14 @@ function widget:Update()
 			or clActive
 			or decalsActive
 			or dfpActive
-			or widgetState.tilesetActive
+			or widgetState.surfActive
 			or widgetState.passthroughMode
 		) and not widgetState.panelHidden
+		-- "Editor engaged" flag for hotkey gating: some tool (or passthrough) has
+		-- the panel up. Merely having the widget enabled must not swallow keys —
+		-- cmd_terraform_brush checks isEngaged() before tool-switch handling, so a
+		-- dormant Terraformer leaves f/m/g/etc. to the engine's own keybinds.
+		widgetState.panelEngaged = panelVisible and true or false
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("hidden", not panelVisible)
 		end
@@ -14474,8 +15419,10 @@ function widget:Update()
 					tool = "fp"
 				elseif wbActive then
 					tool = "wb"
+				-- Hard-submode pin: the splat ENGINE is active but the SURFACE panel
+				-- owns it — the legacy splat panel must not open.
 				elseif spActive then
-					tool = "sp"
+					tool = widgetState.surfHardActive and "surf" or "sp"
 				elseif mbActive then
 					tool = "mb"
 				elseif gbActive then
@@ -14490,12 +15437,33 @@ function widget:Update()
 					tool = "cl"
 				elseif dfpActive then
 					tool = "diff"
-				elseif widgetState.tilesetActive then
-					tool = "ts"
+				elseif widgetState.surfActive then
+					tool = "surf"
 				end
 				if widgetState.dmHandle then
 					if widgetState.dmHandle.activeTool ~= tool then
 						widgetState.dmHandle.activeTool = tool
+					end
+					-- SURFACE/LAYERS pair highlight: both run as 'surf'; surfMode says which.
+					do
+						local dmh = widgetState.dmHandle
+						local softOn = (tool == "surf") and dmh.surfMode ~= "hard"
+						local hardOn = (tool == "surf") and dmh.surfMode == "hard"
+						if dmh.surfSoftOn ~= softOn then
+							dmh.surfSoftOn = softOn
+						end
+						if dmh.surfHardOn ~= hardOn then
+							dmh.surfHardOn = hardOn
+						end
+					end
+					-- SURFACE clear-confirm arms don't survive leaving the tool
+					if tool ~= "surf" then
+						if widgetState.dmHandle.surfClearArm then
+							widgetState.dmHandle.surfClearArm = false
+						end
+						if widgetState.dmHandle.surfClearAllArm then
+							widgetState.dmHandle.surfClearAllArm = false
+						end
 					end
 					-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
 					-- .active visual; only one button across both rows should highlight. When a non-tf
@@ -14511,9 +15479,6 @@ function widget:Update()
 			if not gbActive then
 				widgetState.grassCfgOpen = false
 			end
-			if not envActive then
-				widgetState.skyboxLibraryOpen = false
-			end
 			do
 				local dm = widgetState.dmHandle
 				if dm then
@@ -14525,15 +15490,28 @@ function widget:Update()
 					local generatedBlankMap = _isGeneratedBlankMap()
 					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
-					setDm("newMapEngineSkyboxNotice", generatedBlankMap)
 					setDm("newMapEngineSplatNotice", generatedBlankMap)
 					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
 					setDm("spToolDisabled", _splatToolUnavailable())
+					-- Contextual SPLAT-button hint: while the tileset shader owns
+					-- the splat texture, hovering the disabled button must explain
+					-- where the workflow moved (tf_guide reads guideHints live).
+					do
+						local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
+								and true
+							or false
+						if widgetState.splatHintTsLast ~= tsOn then
+							widgetState.splatHintTsLast = tsOn
+							guideHints["btn-splat"] = tsOn
+									and "Tileset shader active \226\128\148 soft variants live in SURFACE, hard overrides in LAYERS. DNTS splat applies to legacy maps only."
+								or "Paint the splatmap distribution texture that controls which ground detail texture is visible in each area of the map."
+						end
+					end
 					local showTransforms = clActive
 						and clState
 						and (clState.state == "paste_preview" or clState.state == "copied")
 					setDm("clonePasteTransformsVisible", showTransforms and true or false)
-					setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
+					setDm("skyboxLibraryVisible", widgetState.skyboxLibraryOpen or false)
 
 					-- Capture window: the readout has to track things the window does not
 					-- own (viewport size, another widget cancelling the job), so it is
@@ -14560,29 +15538,25 @@ function widget:Update()
 						end
 					end
 
-					-- env sub-windows
-					if not envActive then
-						widgetState.envSunOpen = false
-						widgetState.envFogOpen = false
-						widgetState.envGroundLightingOpen = false
-						widgetState.envUnitLightingOpen = false
-						widgetState.envMapOpen = false
-						widgetState.envWaterOpen = false
-						widgetState.envDimensionsOpen = false
-					end
-					setDm("envSunVisible", envActive and (widgetState.envSunOpen or false))
-					setDm("envFogVisible", envActive and (widgetState.envFogOpen or false))
-					setDm("envGroundLightingVisible", envActive and (widgetState.envGroundLightingOpen or false))
-					setDm("envUnitLightingVisible", envActive and (widgetState.envUnitLightingOpen or false))
-					setDm("envMapVisible", envActive and (widgetState.envMapOpen or false))
-					setDm("envWaterVisible", envActive and (widgetState.envWaterOpen or false))
-					setDm("envDimensionsVisible", envActive and (widgetState.envDimensionsOpen or false))
+					-- env sub-windows: deliberately NOT gated on envActive — SCENE windows
+					-- (and the TILESET window) stay up while you work in any other tool,
+					-- so you can tweak the scene or shader while painting. Only their
+					-- open/close buttons and the window X control them.
+					setDm("envSunVisible", widgetState.envSunOpen or false)
+					setDm("envFogVisible", widgetState.envFogOpen or false)
+					setDm("envGroundLightingVisible", widgetState.envGroundLightingOpen or false)
+					setDm("envUnitLightingVisible", widgetState.envUnitLightingOpen or false)
+					setDm("envMapVisible", widgetState.envMapOpen or false)
+					setDm("envWaterVisible", widgetState.envWaterOpen or false)
+					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
+					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
 					-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
 					if not lpActive and widgetState.lightLibraryOpen then
 						widgetState.lightLibraryOpen = false
 						dm.lpLibraryOpen = false
 					end
 					-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
+					-- and for SURFACE (v1 brush is circle-only)
 					local hideShape = envActive
 						or clActive
 						or stpActive
@@ -14590,6 +15564,8 @@ function widget:Update()
 						or widgetState.cloneActive
 						or widgetState.startposActive
 						or widgetState.envActive
+						or widgetState.surfActive
+						or widgetState.surfHardActive
 					setDm("tfShapeRowVisible", not hideShape)
 					-- smooth submodes: visible only in smooth/level terraform mode
 					local otherToolActive = fpActive
@@ -14602,6 +15578,7 @@ function widget:Update()
 						or stpActive
 						or clActive
 						or decalsActive
+						or widgetState.surfActive
 					local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
 					setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
 					-- erode controls: visible only in erode terraform mode
@@ -14699,6 +15676,11 @@ function widget:Update()
 			clayBtn:SetClass("disabled", mbActive or lpActive or false)
 		end
 
+		-- Keep height-band slider bounds in step with the map's real height range
+		if doc then
+			updateHeightBandSliderBounds(doc)
+		end
+
 		-- Blue-dot hint gating: hide dots already seen or when tips disabled,
 		-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
 		do
@@ -14785,6 +15767,8 @@ function widget:Update()
 					or widgetState.cloneActive
 					or widgetState.startposActive
 					or widgetState.envActive
+					or widgetState.surfActive
+					or widgetState.surfHardActive
 				if widgetState.dmHandle then
 					if widgetState.dmHandle.tfRampMode ~= false then
 						widgetState.dmHandle.tfRampMode = false
@@ -14812,30 +15796,52 @@ function widget:Update()
 				widgetState.grassNoDataThisMap = not hasGrass
 			end
 
-			-- Reveal the diffuse painter button only when its widget is loaded
-			-- (the RML default-hides it so the grid has no dead button otherwise).
+			-- Front tool pair: the tileset shader decides which surface-painting set
+			-- leads the TOOLS grid. Shader ON = SURFACE (soft variants) + LAYERS
+			-- (hard overrides); shader OFF = the legacy DIFFUSE + SPLAT pair. The
+			-- two sets replace each other in the same two leading slots.
+			-- Availability still gates each button so a missing write-dir widget
+			-- never leaves a dead button (diffuse/surface reveal pattern).
 			do
-				local dfpAvail = WG.DiffusePainter ~= nil
-				if widgetState.dfpBtnShown ~= dfpAvail then
-					widgetState.dfpBtnShown = dfpAvail
-					local dfpBtnEl = getCachedEl(doc, "btn-diffuse")
-					if dfpBtnEl then
-						dfpBtnEl:SetClass("hidden", not dfpAvail)
+				local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
+						and true
+					or false
+				local surfShow = tsOn and (WG.SurfacePainter ~= nil) and (tfSurface ~= nil)
+				local layersShow = tsOn and (WG.SplatPainter ~= nil) and (tfSurface ~= nil)
+				local dfpShow = (not tsOn) and (WG.DiffusePainter ~= nil)
+				local splatShow = not tsOn
+				local sig = (surfShow and 1 or 0)
+					+ (layersShow and 2 or 0)
+					+ (dfpShow and 4 or 0)
+					+ (splatShow and 8 or 0)
+				if widgetState.toolPairSig ~= sig then
+					widgetState.toolPairSig = sig
+					local el
+					el = getCachedEl(doc, "btn-surface")
+					if el then
+						el:SetClass("hidden", not surfShow)
 					end
-				end
-			end
-			do
-				-- TILESET tool button: shown only when the tileset widget is loaded.
-				local tsAvail = WG.TilesetTerrain ~= nil
-				if widgetState.tsBtnShown ~= tsAvail then
-					widgetState.tsBtnShown = tsAvail
-					local tsBtnEl = getCachedEl(doc, "btn-tileset")
-					if tsBtnEl then
-						tsBtnEl:SetClass("hidden", not tsAvail)
+					el = getCachedEl(doc, "btn-layers")
+					if el then
+						el:SetClass("hidden", not layersShow)
+					end
+					el = getCachedEl(doc, "btn-diffuse")
+					if el then
+						el:SetClass("hidden", not dfpShow)
+					end
+					el = getCachedEl(doc, "btn-splat")
+					if el then
+						el:SetClass("hidden", not splatShow)
 					end
 				end
 			end
 		end
+
+		-- TILESET floating window (opened from SCENE): synced whenever open, no
+		-- matter which tool is active — that is the point of it being a window.
+		-- The module early-outs on dm.envTilesetVisible, so this is cheap when
+		-- closed. No setSummary: the status strip belongs to the active tool.
+		tfTileset.sync(doc, ctx, nil)
 
 		if mbActive then
 			-- Metal Brush sync (extracted to tf_metal.lua)
@@ -14844,7 +15850,18 @@ function widget:Update()
 			-- Grass Brush sync (extracted to tf_grass.lua)
 			tfGrass.sync(doc, ctx, gbState, setSummary, sumEl)
 		elseif spActive then
-			tfSplat.sync(doc, ctx, spState, setSummary)
+			-- Hard-submode pin: SURFACE panel drives the splat engine, so it gets
+			-- the surf sync (surfMode == 'hard' branch), not the legacy splat one.
+			if widgetState.surfHardActive and tfSurface then
+				tfSurface.sync(
+					doc,
+					ctx,
+					WG.SurfacePainter and WG.SurfacePainter.getState and WG.SurfacePainter.getState(),
+					setSummary
+				)
+			else
+				tfSplat.sync(doc, ctx, spState, setSummary)
+			end
 		elseif dfpActive then
 			local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
 			tfDiffuse.sync(doc, ctx, dfpState, setSummary)
@@ -14860,8 +15877,10 @@ function widget:Update()
 			tfClone.sync(doc, ctx, clState, setSummary)
 		elseif decalsActive then
 			tfDecals.sync(doc, ctx, setSummary)
-		elseif widgetState.tilesetActive then
-			tfTileset.sync(doc, ctx, setSummary)
+		elseif widgetState.surfActive then
+			if tfSurface then
+				tfSurface.sync(doc, ctx, WG.SurfacePainter and WG.SurfacePainter.getState(), setSummary)
+			end
 		elseif wbState and wbState.active then
 			-- Weather Brush has no M.sync; drive mirror chips directly here.
 			do
@@ -14872,6 +15891,29 @@ function widget:Update()
 			end
 			if ctx.syncTBMirrorControls then
 				ctx.syncTBMirrorControls(doc, "wb")
+			end
+
+			-- Weather readout (without one the strip keeps the previous tool's
+			-- line). Six groups like the other tools — see tf_decals for why.
+			do
+				local f = wbState.frequency or 0
+				local fStr = f >= 10 and string.format("%.0fs", f)
+					or f >= 1 and string.format("%.1fs", f)
+					or string.format("%.2fs", f)
+				setSummary(
+					"WEATHER",
+					"#fdc04c",
+					"",
+					(wbState.mode or "scatter"):upper(),
+					"R ",
+					tostring(math.floor(wbState.radius or 0)),
+					"Cnt ",
+					tostring(wbState.spawnCount or 0),
+					"Freq ",
+					fStr,
+					"Fx ",
+					tostring(wbState.persistentCount or 0)
+				)
 			end
 
 			-- Sync weather brush slider/label values from state.
@@ -15024,6 +16066,48 @@ function widget:Update()
 					stampBadge:SetClass("hidden", not isStamp)
 				end
 
+				-- Adopt cap changes made brush-side (Alt+Shift scroll lives in
+				-- cmd_terraform_brush and writes heightCapMax directly): mirror them
+				-- into the panel's cap state and slider, unless the user is mid-drag
+				-- on that slider or typing in its numbox. Without this the scroll
+				-- combo moved the real cap while the panel sat on the stale value —
+				-- and the next panel interaction stomped the cap right back.
+				do
+					local scrollCap = state.heightCapMax
+					if
+						scrollCap
+						and scrollCap ~= 0
+						and scrollCap ~= capMaxValue
+						and uiState.draggingSlider ~= "capmax"
+					then
+						local nb = doc and getCachedEl(doc, "slider-cap-max-numbox")
+						if not (nb and widgetState.focusedRmlInput == nb) then
+							capMaxValue = scrollCap
+							-- The scroll combo explicitly asked for a cap: flip the
+							-- master toggle on so what the user sees matches what clamps.
+							if not capEnabled then
+								capEnabled = true
+								dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png"
+							end
+							if capMinValue > capMaxValue then
+								capMinValue = capMaxValue
+								applyCap("min", capMinValue)
+								local elMin = doc and getCachedEl(doc, "slider-cap-min")
+								if elMin then
+									local vs = tostring(capMinValue)
+									elMin:SetAttribute("value", vs)
+									widgetState.lastAttrValue["slider-cap-min"] = vs
+								end
+							end
+							local el = doc and getCachedEl(doc, "slider-cap-max")
+							if el then
+								local vs = tostring(capMaxValue)
+								el:SetAttribute("value", vs)
+								widgetState.lastAttrValue["slider-cap-max"] = vs
+							end
+						end
+					end
+				end
 				local lengthStr = string.format("%.1f", state.lengthScale)
 				local capMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
 				local capMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
@@ -15574,9 +16658,13 @@ function widget:Update()
 						lv("R ", tostring(state.radius)),
 						sep,
 						lv("Int ", string.format("%.1f", state.intensity)),
-						sep,
-						lv("Crv ", string.format("%.1f", state.curve)),
 					}
+					-- Restore appends Str below and Crv barely matters there — drop
+					-- it so the line fits the strip.
+					if state.mode ~= "restore" then
+						parts[#parts + 1] = sep
+						parts[#parts + 1] = lv("Crv ", string.format("%.1f", state.curve))
+					end
 					if state.velocityIntensity and state.dragVelocityFactor then
 						parts[#parts + 1] = sep
 						parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fdc04c;">'
@@ -15856,6 +16944,155 @@ function widget:Update()
 				)
 			end
 		end
+		-- Same treatment for the SPLAT button while the tileset shader disables it:
+		-- hovering must say where hard-surface painting moved.
+		if widgetState.splatHoverTilesetOn then
+			local sumEl4 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			if sumEl4 then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				setInnerRmlIfChanged(
+					sumEl4,
+					"status-summary",
+					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">SPLAT</span>'
+						.. sep
+						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Tileset shader active - hard surfaces moved to LAYERS</span>'
+				)
+			end
+		end
+		-- UNITS placeholder: hovering says the unit placer is not here yet.
+		if widgetState.unitsHoverSoon then
+			local sumEl5 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			if sumEl5 then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				setInnerRmlIfChanged(
+					sumEl5,
+					"status-summary",
+					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">UNITS</span>'
+						.. sep
+						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Coming soon...</span>'
+				)
+			end
+		end
+		-- Project save takes over the status summary strip (last override = top
+		-- priority): green SAVING with one segment per saver step while running,
+		-- then SAVED: <name> held 4 s, faded out, and the tool's own readout
+		-- faded back in. Timers use os.clock — the readout must run while paused.
+		do
+			local mp = WG.MapProject
+			local sumEl3 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			local step, total, stepName
+			if mp and mp.saveProgress then
+				step, total, stepName = mp.saveProgress()
+			end
+			if step then
+				widgetState.saveWasRunning = true
+				widgetState.saveDoneUntil = nil
+				widgetState.saveDoneInfo = nil
+				widgetState.saveFadeInStart = nil
+				if sumEl3 then
+					sumEl3.style.opacity = "1"
+					local buf = {
+						'<span class="tf-ss-mode" style="color: #35d07f;">SAVING</span>',
+						'<span class="tf-ss-sep">|</span>',
+						'<div class="tf-ss-segwrap">',
+					}
+					for i = 1, total do
+						buf[#buf + 1] = (i < step) and '<div class="tf-ss-seg done"></div>'
+							or (i == step) and '<div class="tf-ss-seg cur"></div>'
+							or '<div class="tf-ss-seg"></div>'
+					end
+					buf[#buf + 1] = "</div>"
+					buf[#buf + 1] = '<span class="tf-ss-label">' .. tostring(stepName or "") .. "</span>"
+					setInnerRmlIfChanged(sumEl3, "status-summary", table.concat(buf))
+				end
+			elseif widgetState.saveWasRunning then
+				-- The save just ended: latch its outcome and start the 4 s hold.
+				widgetState.saveWasRunning = false
+				local last = mp and mp.lastSave and mp.lastSave()
+				if last and last.slug then
+					widgetState.saveDoneInfo = last
+					widgetState.saveDoneUntil = os.clock() + 4
+				end
+			end
+			if sumEl3 and not step and widgetState.saveDoneUntil then
+				local now = os.clock()
+				local FADE = 0.6
+				local info = widgetState.saveDoneInfo
+				if not info or now >= widgetState.saveDoneUntil + FADE then
+					-- Hand the strip back; the tool readout fades in below.
+					widgetState.saveDoneUntil = nil
+					widgetState.saveDoneInfo = nil
+					widgetState.saveFadeInStart = now
+				else
+					local rml
+					if info.ok then
+						rml = '<span class="tf-ss-mode" style="color: #35d07f;">SAVED:</span>'
+							.. '<span class="tf-ss-val"> '
+							.. info.slug
+							.. "</span>"
+					else
+						rml = '<span class="tf-ss-mode" style="color: #e05252;">SAVE FAILED:</span>'
+							.. '<span class="tf-ss-val"> '
+							.. info.slug
+							.. " (see console)</span>"
+					end
+					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					local o = 1
+					if now > widgetState.saveDoneUntil then
+						o = 1 - (now - widgetState.saveDoneUntil) / FADE
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
+				end
+			end
+			-- Ease the normal tool output back in after the SAVED text faded out.
+			if sumEl3 and widgetState.saveFadeInStart then
+				local t = (os.clock() - widgetState.saveFadeInStart) / 0.4
+				if t >= 1 then
+					widgetState.saveFadeInStart = nil
+					sumEl3.style.opacity = "1"
+				else
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, t))
+				end
+			end
+			-- Snappier version of the same fade for normal tool/mode switches:
+			-- hold the OLD readout while fading out (the new tool already rewrote
+			-- the strip this frame, so replay last frame's snapshot), then let the
+			-- new readout fade in. Suppressed while the save display owns the strip.
+			local saveOwnsStrip = (step ~= nil) or widgetState.saveDoneUntil or widgetState.saveFadeInStart
+			do
+				local dmT = widgetState.dmHandle
+				local toolKey = dmT and (tostring(dmT.activeTool or "") .. "/" .. tostring(dmT.activeMode or "")) or ""
+				if toolKey ~= widgetState.ssToolKey then
+					local hadPrev = widgetState.ssToolKey ~= nil
+					widgetState.ssToolKey = toolKey
+					if sumEl3 and hadPrev and not saveOwnsStrip then
+						widgetState.ssSwitchStart = os.clock()
+						widgetState.ssSwitchOldRml = widgetState.ssPrevFrameRml
+					end
+				end
+			end
+			if saveOwnsStrip then
+				widgetState.ssSwitchStart = nil
+				widgetState.ssSwitchOldRml = nil
+			elseif sumEl3 and widgetState.ssSwitchStart then
+				local OUT, IN = 0.09, 0.12
+				local e = os.clock() - widgetState.ssSwitchStart
+				if e < OUT then
+					if widgetState.ssSwitchOldRml then
+						setInnerRmlIfChanged(sumEl3, "status-summary", widgetState.ssSwitchOldRml)
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, 1 - e / OUT))
+				elseif e < OUT + IN then
+					sumEl3.style.opacity = string.format("%.2f", math.min(1, (e - OUT) / IN))
+				else
+					widgetState.ssSwitchStart = nil
+					widgetState.ssSwitchOldRml = nil
+					sumEl3.style.opacity = "1"
+				end
+			end
+			-- Snapshot this frame's final readout; the next switch fades it out.
+			widgetState.ssPrevFrameRml = widgetState.lastInnerRml["status-summary"]
+		end
 		-- Reactive refresh of section warn chips after state sync
 		if widgetState.warnRefreshFuncs then
 			for i = 1, #widgetState.warnRefreshFuncs do
@@ -16077,6 +17314,7 @@ function widget:Shutdown()
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false
 	widgetState.spTerrainColor = nil
+	widgetState.spTerrainSampleTick = 0
 	if widgetState.spMinimapSampleTex then
 		gl.DeleteTexture(widgetState.spMinimapSampleTex)
 		widgetState.spMinimapSampleTex = nil

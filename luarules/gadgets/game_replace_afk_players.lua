@@ -2,8 +2,8 @@
 disabled because of these problems:
  * the original afk player can still return
  * openskill value will still change for the afk player and not for the replacement player
- * replacement player cant resign
- * replacement player cant give units/resources
+ * replacement player can't resign
+ * replacement player can't give units/resources
 ]]
 
 local gadget = gadget ---@type Gadget

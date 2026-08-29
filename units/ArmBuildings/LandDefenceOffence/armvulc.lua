@@ -122,7 +122,7 @@ return {
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
-				weaponvelocity = 1100,
+				weaponvelocity = 900,
 				damage = {
 					default = 1625,
 					shields = 812,

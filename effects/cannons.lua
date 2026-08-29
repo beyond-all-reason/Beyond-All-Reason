@@ -507,6 +507,28 @@ local definitions = {
 			},
 		},
 	},
+	["railgun-epic"] = {
+		shockwaves = {
+			air = true,
+			class = [[CBitmapMuzzleFlame]],
+			count = 1,
+			ground = true,
+			underwater = true,
+			water = true,
+			properties = {
+				colormap = [[0.67 0.48 1 0.01   0.27 0.58 0.89 0.03   0.15 0.19 0.35 0.01   0 0 0 0.01]],
+				dir = [[dir]],
+				frontoffset = [[0.4 r0.2]],
+				fronttexture = [[bubbletexture]],
+				length = [[0.9 r0.6]],
+				sidetexture = [[longshot]],
+				size = [[10 r8]],
+				sizegrowth = 0.65,
+				ttl = [[39 r6]],
+				useairlos = true,
+			},
+		},
+	},
 	["railgun-old"] = {
 		lightningtrail = {
 			air = true,

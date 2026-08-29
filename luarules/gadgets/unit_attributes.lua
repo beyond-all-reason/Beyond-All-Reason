@@ -378,7 +378,7 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 				local accRate = state.origMaxAcc * maxAccelerationFactor
 				if isSlowed and accRate > speedFactor then
 					-- Clamp acceleration to mitigate prevent brief speedup when executing new order
-					-- 1 is here as an arbitary factor, there is no nice conversion which means that 1 is a good value.
+					-- 1 is here as an arbitrary factor, there is no nice conversion which means that 1 is a good value.
 					accRate = speedFactor
 				end
 				local attribute = {
@@ -444,6 +444,11 @@ end
 
 --Spring.Echo("Hornet debug UpdateUnitAttributes defined")
 
+---Recomputes a unit's speed, turn rate, acceleration, reload, economy and build
+---multipliers from the `GG.att_*` tables and applies them to the engine.
+---Call after changing any `GG.att_*` entry for the unit.
+---@param unitID UnitID
+---@param frame integer? Game frame to attribute the change to. Defaults to the current frame.
 function UpdateUnitAttributes(unitID, frame)
 	if not spValidUnitID(unitID) then
 		removeUnit(unitID)
@@ -648,7 +653,11 @@ function UpdateUnitAttributes(unitID, frame)
 	end
 end
 
--- Whatever sets this should call UpdateUnitAttributes frames afterwards too
+---Controls whether the engine may coast this unit rather than braking it,
+---which the attribute system otherwise overrides.
+---Whatever sets this should call UpdateUnitAttributes frames afterwards too.
+---@param unitID UnitID
+---@param allowed boolean?
 local function SetAllowUnitCoast(unitID, allowed)
 	allowUnitCoast[unitID] = allowed
 end

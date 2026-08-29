@@ -592,6 +592,7 @@ void main() {
 local fireTexture = "bitmaps/projectiletextures/BARFlame02.tga"
 local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
+---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
 local nextParticleID = 0
@@ -1068,7 +1069,7 @@ local function removeExpiredParticles(gameFrame)
 			end
 			q.n = 0
 			particleRemoveQueue[f] = nil
-			-- Return the now-empty table to the pool for re-use instead of
+			-- Return the now-empty table to the pool for reuse instead of
 			-- letting it become garbage. Bounded to keep memory predictable.
 			if removeQueuePoolN < REMOVE_QUEUE_POOL_MAX then
 				removeQueuePoolN = removeQueuePoolN + 1
@@ -2059,15 +2060,21 @@ function gadget:Initialize()
 	end
 
 	GG.Flamethrower = {
+		---@return integer count Particles currently alive.
 		GetParticleCount = function()
 			return particleVBO and particleVBO.usedElements or 0
 		end,
+		---@return integer count Particle budget for the whole system.
 		GetMaxParticles = function()
 			return CONFIG.maxParticles
 		end,
+		---@return table<string, any> config The live tuning table, including nested colour tables; treat as read-only.
 		GetConfig = function()
 			return CONFIG
 		end,
+		---Reports whether this gadget draws the flame effect for a weapon.
+		---@param weaponDefID WeaponDefID
+		---@return boolean
 		IsTracked = function(weaponDefID)
 			return weaponConfigs[weaponDefID] ~= nil
 		end,

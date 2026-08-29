@@ -34,7 +34,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 -- Add a vertex type field to indicate outer circle, inner circle, billboard
 -- Add UV coordinates field to instances
 -- Add options to control the display of all of these.
--- Add income multiplier gating for individual players (well thats a doozy!)
+-- Add income multiplier gating for individual players (well that's a doozy!)
 -- GL4 stuff
 -- Notes:
 -- 1. Could a prerendered texture be better at conveying metal spot value?
@@ -49,7 +49,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 -- Fix height changing on noox
 -- totally nuke the fucking F4 view, its terrible!
 -- move font init into initialize instead of load
--- untie from os.clock thats stupid too
+-- untie from os.clock that's stupid too
 
 if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
@@ -111,6 +111,7 @@ end
 local teamIncomeMultipliers = {} -- {key teamID value Multiplier number}
 
 local spotVBO = nil
+---@type InstanceVBOTable?
 local spotInstanceVBO = nil
 local spotShader = nil
 
@@ -345,7 +346,7 @@ local function spotKey(posx, posz)
 	return posx * 65536 + posz
 end
 
--- Returns wether is occupied (Should also be allied, enemy , free), and wether that changed
+-- Returns whether is occupied (Should also be allied, enemy , free), and whether that changed
 local function IsSpotOccupied(spot)
 	spot.y = spGetGroundHeight(spot.x, spot.z)
 	local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, extractorRadius * spot.scale)
@@ -434,7 +435,7 @@ local function InitializeAtlas(mSpots)
 		end
 	end
 
-	-- Whats the size of one of these? I would say width 128, height 64
+	-- What's the size of one of these? I would say width 128, height 64
 	local textheight = 96
 	textheight = mathCeil(fontfileSize * fontfileScale + fontfileOutlineSize * fontfileScale * 0.5)
 	--spEcho(textheight)

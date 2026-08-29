@@ -250,6 +250,7 @@ local instanceScratch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 -- death-frame buckets for cheap O(1) cull
 local deathBuckets = {}
 
+---@type InstanceVBOTable?
 local particleVBO
 local particleShader
 
@@ -699,7 +700,7 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
-local useGeometryShader = true -- cant set it here, will be overwritten in initGL4()
+local useGeometryShader = true -- can't set it here, will be overwritten in initGL4()
 
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
@@ -781,19 +782,9 @@ local function initGL4()
 		forceupdate = true,
 	}
 
-	-- AMD GPUs have no native geometry-shader stage. Mesa emulates this GS by translating it
-	-- onto the hardware's real shader stages, emitting every vertex through memory buffers.
-	-- This is slow both to compile (a multi-second GS compile that stalls on the first draw,
-	-- and isn't kept in the disk cache so it recurs) and to run (those memory round-trips
-	-- cost bandwidth every frame). The no-GS path draws the same particles with none of that.
-	-- AMD-on-Linux is always Mesa.
-	local preferNoGS = (Platform ~= nil and Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux")
+	useGeometryShader = LuaShader.isGeometryShaderSupported
 
-	-- Try the geometry-shader path first (unless we already know to skip it); only
-	-- fall back if compile actually fails. LuaShader.isGeometryShaderSupported can
-	-- report false negatives on some drivers (e.g. AMD/Mesa), so we don't trust it
-	-- alone.
-	useGeometryShader = not preferNoGS
+	-- a driver can still fail to compile one, and the path that needs none is right here
 	particleShader = useGeometryShader and LuaShader.CheckShaderUpdates(shaderCacheGS) or nil
 	if not particleShader then
 		if useGeometryShader then

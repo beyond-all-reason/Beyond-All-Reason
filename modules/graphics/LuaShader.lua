@@ -13,6 +13,14 @@ local glUniformArray = gl.UniformArray
 
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 
+-- OpenGL 3.2 took the geometry shader stage into the standard, and came with this shading language
+-- version. Drivers newer than that mostly no longer name the extensions the stage arrived through.
+local GLSL_VERSION_WITH_GEOMETRY_SHADERS = 150
+
+-- [Some] Mesa versions prior to this stalled for several seconds the first time a geometry shader
+-- was drawn due to emulation involving memory buffers.
+local OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS = 2601 -- major * 100 + minor, so Mesa 26.1
+
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
 	if type(logEntries) == "number" then
@@ -34,11 +42,37 @@ local function new(class, shaderParams, shaderName, logEntries)
 	}, class)
 end
 
-local function IsGeometryShaderSupported()
-	local hasGeometryShaderExtension = gl.HasExtension("GL_ARB_geometry_shader4")
+local function HasGeometryShaderStage()
+	local glslVersion = Platform and Platform.glslVersionNum or 0
+	local hasStage = glslVersion >= GLSL_VERSION_WITH_GEOMETRY_SHADERS
+		or gl.HasExtension("GL_ARB_geometry_shader4")
 		or gl.HasExtension("GL_EXT_geometry_shader4")
 		or gl.HasExtension("GL_OES_geometry_shader")
-	return hasGeometryShaderExtension and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+
+	-- an engine that can build a shader with a geometry stage lets a widget set that stage up
+	return hasStage and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
+end
+
+--- Which Mesa this is, as major * 100 + minor, or nil on a driver that is not Mesa. Mesa names
+--- itself in the version string it answers with, as in "4.6 (Compatibility Profile) Mesa 26.1.7".
+local function MesaVersion()
+	local glVersion = Platform and Platform.glVersion
+	if not glVersion then
+		return nil
+	end
+
+	local major, minor = glVersion:match("Mesa (%d+)%.(%d+)")
+	---@diagnostic disable-next-line: need-check-nil
+	return major and (tonumber(major) * 100 + tonumber(minor)) or nil
+end
+
+--- Whether to take a geometry shader where there is a path with one and a path without.
+--- Older Mesa is left out although it has the stage, since it incurs long delays for
+--- shader compilation.
+local function IsGeometryShaderSupported()
+	local mesaVersion = MesaVersion()
+	local mesaExpensive = mesaVersion ~= nil and mesaVersion < OLDEST_MESA_WITH_CHEAP_GEOMETRY_SHADERS
+	return HasGeometryShaderStage() and not mesaExpensive
 end
 
 local function IsTesselationShaderSupported()
@@ -131,7 +165,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 teamColor[255]; //all team colors
 };
 
-// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
+// glsl rotate convenience funcs: https://github.com/dmnsgn/glsl-rotate
 
 mat3 rotation3dX(float angle) {
 	float s = sin(angle);
@@ -216,7 +250,7 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 //  Returns:
 //      < 0  – sphere at least partially inside the X-Y clip box
 //      = 0  – sphere exactly touches at least one edge
-//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+//      > 0  – sphere is more distance from the edge of frustum by that many NDC units
 //
 float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 {
@@ -247,7 +281,7 @@ float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 
 
 
-// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either.
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isn't needed either.
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
 	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
@@ -420,7 +454,7 @@ vec4 SLerp(vec4 qa, vec4 qb, float t) {
 	// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
 	// does not require special handling, however this usually represents
 	// "physically impossible" 180 degree turns with infinite speed so perhaps
-	// it can be handled in the following (cuurently disabled) special way
+	// it can be handled in the following (currently disabled) special way
 	#if 0
 	if (cosHalfTheta <= 0.005)
 		return mix(qa, qb, step(0.5, t));
@@ -574,7 +608,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
-					-- Figure out wether the glsl variable is a float, vec2-4
+					-- Figure out whether the glsl variable is a float, vec2-4
 					local glslvarcount = 1 -- default is 1
 					local dotposition = string.find(glslvariable, "%.")
 					local swizzle = "x"

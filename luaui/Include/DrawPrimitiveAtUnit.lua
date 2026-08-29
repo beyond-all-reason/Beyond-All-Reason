@@ -14,7 +14,7 @@ local shaderConfig = {
 	BREATHERATE = 30.0, -- how fast it periodicly grows
 	BREATHESIZE = 0.05, -- how much it periodicly grows
 	TEAMCOLORIZATION = 1.0, -- not used yet
-	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
+	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	USETEXTURE = 1, -- 1 if you want to use textures (atlasses too!) , 0 if not
 	BILLBOARD = 0, -- 1 if you want camera facing billboards, 0 is flat on ground
 	POST_ANIM = " ", -- what you want to do in the animation post function (glsl snippet, see shader source)
@@ -35,6 +35,7 @@ local shaderConfig = {
 }
 
 ---- GL4 Backend Stuff----
+---@type InstanceVBOTable?
 local DrawPrimitiveAtUnitVBO = nil
 local DrawPrimitiveAtUnitShader = nil
 
@@ -192,22 +193,46 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		DrawPrimitiveAtUnitVBO.nogsTemplateVBO = templateVBO
 		DrawPrimitiveAtUnitVBO.nogsIndexVBO = indexVBO
 
+		-- The instance table doubles its buffer as soon as it fills up, and rebuilds its VAO from
+		-- the vertex and index buffers it finds on itself. Without these it would rebuild the VAO
+		-- of the geometry shader path instead, which draws this template mesh as bare points.
+		DrawPrimitiveAtUnitVBO.vertexVBO = templateVBO
+		DrawPrimitiveAtUnitVBO.indexVBO = indexVBO
+
 		-- Wrap the real VAO so existing consumers can keep calling
 		-- VBO.VAO:DrawArrays(GL.POINTS, usedElements); under the hood we draw the
-		-- template mesh instanced once per element.
-		local indexCount = #indexData
-		DrawPrimitiveAtUnitVBO.VAO = {
+		-- template mesh instanced once per element. That rebuild on resize puts a plain VAO in the
+		-- field, so the wrapper is kept behind the field rather than in it, and takes over whatever
+		-- lands there.
+		local vaoWrapper = {
 			realVAO = realVAO,
-			indexCount = indexCount,
+			indexCount = #indexData,
 			DrawArrays = function(self, _primitiveType, instanceCount)
 				if instanceCount and instanceCount > 0 then
 					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
 				end
 			end,
+			DrawElements = function(self, primitiveType, count, indexOffset, instanceCount, baseVertex)
+				self.realVAO:DrawElements(primitiveType, count, indexOffset, instanceCount, baseVertex)
+			end,
 			Delete = function(self)
 				self.realVAO:Delete()
 			end,
 		}
+		setmetatable(DrawPrimitiveAtUnitVBO, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 	return DrawPrimitiveAtUnitVBO, DrawPrimitiveAtUnitShader
 end

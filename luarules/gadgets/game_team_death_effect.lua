@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
--- this gadget wont do: Spring.KillTeam(...)
+-- this gadget won't do: Spring.KillTeam(...)
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -44,6 +44,12 @@ local function getSqrDistance(x1, z1, x2, z2)
 	return (dx * dx) + (dz * dz)
 end
 
+---Neutralizes a team's units and queues them to explode
+---@param teamID TeamID
+---@param originX number? Wave epicentre; when omitted the death frames are randomized.
+---@param originZ number? Wave epicentre; when omitted the death frames are randomized.
+---@param attackerUnitID UnitID? Credited as the killer of the destroyed units.
+---@param periodMult number? Scales how long the wave takes. Defaults to `1`.
 local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult) -- only teamID is required
 	wipedoutTeams[teamID] = Spring.GetGameFrame()
 	periodMult = periodMult or 1
@@ -101,6 +107,12 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
 end
 
+---Wipes out every team in an allyteam, shortening the wave when few units remain.
+---@param allyTeamID AllyTeamID
+---@param attackerUnitID UnitID? Credited as the killer of the destroyed units.
+---@param originX number? Wave epicentre; when omitted the death frames are randomized.
+---@param originZ number? Wave epicentre; when omitted the death frames are randomized.
+---@param periodMult number? Scales how long the wave takes. Defaults to `1`.
 local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, periodMult) -- only allyTeamID is required
 	-- xmas gadget uses this (to prevent creating xmasballs)
 	if not _G.destroyingTeam then

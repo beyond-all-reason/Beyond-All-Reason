@@ -49,10 +49,10 @@ local tracy = tracy ---@type any
 -- 5x featuresets
 -- scavengers?
 -- Objects (the VAO)
--- 8x 8x 16x -> 8192 different VAOs? damn thats horrible
--- Note that Units and Features cant share a VAO!
+-- 8x 8x 16x -> 8192 different VAOs? damn that's horrible
+-- Note that Units and Features can't share a VAO!
 
--- Can we assume that all BAR units wont have transparency?
+-- Can we assume that all BAR units won't have transparency?
 -- if yes then we can say that forward and deferred can share!
 -- https://stackoverflow.com/questions/8923174/opengl-vao-best-practices
 -- Some shader optimization info: https://community.khronos.org/t/profiling-optimizing-a-fragment-shader-in-linux/105144/3
@@ -85,9 +85,9 @@ local tracy = tracy ---@type any
 -- get the number of changed drawFlags
 -- if the number of changed drawflags > log(numdrawflags) then do a full rebuild instead of push-popping
 -- e.g if there are 100 units of a bin in view, then a change of ~ 8 units will trigger a full rebuild?
--- cant know ahead of time how many per-bin changes this will trigger though
+-- can't know ahead of time how many per-bin changes this will trigger though
 
--- DONE: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
+-- DONE: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whose drawflags have changed!
 -- reset this 'hashmap' when reading it
 -- also a problem is handling units that died, what 'drawflag' should they get?
 -- probably 0
@@ -110,11 +110,11 @@ local tracy = tracy ---@type any
 
 -- NOTE: in general, a function call is about 10x faster than a table lookup....
 
--- DONE: how to handle units under construction? They cant be their own completely separate shit, cause of textures...
+-- DONE: how to handle units under construction? They can't be their own completely separate shit, cause of textures...
 -- might still make sense to do so
 -- they are handled by completely ignoring them
 
--- DONE: fully blank normal map for non-normal mapped units (or else risk having to write a shader for that bin, which wont even get used
+-- DONE: fully blank normal map for non-normal mapped units (or else risk having to write a shader for that bin, which won't even get used
 
 -- DONE: alpha cloaked unitses :/
 -- also handled by completely leaving them out
@@ -136,7 +136,7 @@ local tracy = tracy ---@type any
 -- only ever use discard in deferred pass, dont use it in forward refl or shadow though
 -- DEFERRED FEATURE TREE DRAW IS WRONG
 
--- DONE: investigate why/how refraction pass doesnt ever seem to get called
+-- DONE: investigate why/how refraction pass doesn't ever seem to get called
 -- killed: refraction bins removed from unitDrawBins (they were never populated;
 -- drawBinKeys never includes the refraction flag)
 
@@ -179,7 +179,7 @@ local tracy = tracy ---@type any
 
 -- TODO: WE ARE DRAWING ALL IN THE UNITS PASS INSTEAD OF BOTH FEATURE AND UNITS PASS! (can that bite us in the ass?)
 
--- DONE: Reimplement featureFade, as it can kill perf on heavily forested maps and potatos
+-- DONE: Reimplement featureFade, as it can kill perf on heavily forested maps and potatoes
 -- implemented via VS distance-based fade (shrink-to-nothing between FeatureFadeDistance and FeatureDrawDistance)
 
 -- DONE: GetTexturesKey is probably slow too!
@@ -212,7 +212,7 @@ local tracy = tracy ---@type any
 -- DONE:
 -- unit uniforms
 -- KNOWN BUGS:
--- Unitdestroyed doesnt trigger removal?
+-- Unitdestroyed doesn't trigger removal?
 
 -- Export important things
 
@@ -224,7 +224,7 @@ local tracy = tracy ---@type any
 -- Set autoReload.enabled = true to enable on-the-fly editing of shaders.
 local autoReload = { enabled = false, vssrc = "", fssrc = "", lastUpdate = Spring.GetTimer(), updateRate = 0.5 }
 
--- Indicates wether the first round of getting units should grab all instead of delta
+-- Indicates whether the first round of getting units should grab all instead of delta
 local manualReload = autoReload.enabled or false
 local debugmode = false
 local perfdebug = false
@@ -244,6 +244,10 @@ local objectDefToUniformBin = {} -- maps unitDefID/featuredefID to a uniform bin
 -- objectDefs are negative for features
 -- objectIDs are negative for features too
 
+---Maps an object definition to the uniform bin its draw call belongs to.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@param reason string? Label used in debug output when no bin is found.
+---@return string uniformBinID Falls back to `'otherunit'` for unmapped definitions.
 local function GetUniformBinID(objectDefID, reason)
 	if objectDefID and objectDefToUniformBin[objectDefID] then
 		return objectDefToUniformBin[objectDefID]
@@ -474,11 +478,13 @@ local cusFeatureIDtoDrawFlag = {} -- {featureID = drawFlag,...}, this remains po
 -- numobjects = 0,  -- a 'pointer to the end'
 -- }
 
-local unitDrawBins = nil -- this also controls wether cusgl4 is on at all!
+local unitDrawBins = nil -- this also controls whether cusgl4 is on at all!
 
 local objectIDtoDefID = {}
 
-local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
+---Compiled shaders, keyed by draw flag and then by material name.
+---@type table<integer, table<string, LuaShader>>
+local shaders = {}
 
 local modelsVertexVBO = nil
 local modelsIndexVBO = nil
@@ -550,6 +556,10 @@ end
 local featuresDefsWithAlpha = {}
 local unitDefsUseSkinning = {}
 
+---Returns the compiled shader used to draw an object in a given draw pass.
+---@param drawPass integer Draw flag of the current pass.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@return LuaShader|false shader `false` when `objectDefID` is `nil`.
 local function GetShader(drawPass, objectDefID)
 	if objectDefID == nil then
 		return false
@@ -569,6 +579,10 @@ local function GetShader(drawPass, objectDefID)
 	end
 end
 
+---Returns the name of the shader used to draw an object in a given draw pass.
+---@param drawPass integer Draw flag of the current pass.
+---@param objectDefID (UnitDefID|-FeatureDefID)? Positive for unitDefIDs, negative for featureDefIDs.
+---@return "unit"|"unitskinning"|"tree"|"feature"|false shaderName `false` when `objectDefID` is `nil`.
 local function GetShaderName(drawPass, objectDefID)
 	-- this function does 2 table lookups, could get away with just one.
 	if objectDefID == nil then
@@ -603,6 +617,10 @@ local function SetFixedStatePost(drawPass, shaderID)
 	end
 end
 
+---Uploads the draw pass, clip plane, and uniform bin values to the active shader.
+---@param drawPass integer Draw flag of the current pass.
+---@param shaderID integer GL program id of the currently bound shader.
+---@param uniformBinID string Key into `uniformBins`, as returned by `GetUniformBinID`.
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	-- Cache uniform locations per-shader to avoid repeated gl.GetUniformLocation calls every frame
 	local locCache = uniformLocCache[shaderID]
@@ -2028,7 +2046,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 								Spring.Echo("Tried to remove invalid unitID", objectIDatEnd, "while removing", objectID)
 							end
 						end
-					else -- feauture
+					else -- feature
 						if Spring.ValidFeatureID(-objectIDatEnd) == true then
 							unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromFeatureIDs(
 								-1 * objectIDatEnd,
@@ -2156,7 +2174,7 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 
 	--if debugmode then Spring.Debug.TraceEcho("RemoveObject", objectID) end
 
-	-- RemoveObject forces removal from ALL bins, even if it is not in the bin, or that bin straight up doesnt exist (like reflection and shadows)
+	-- RemoveObject forces removal from ALL bins, even if it is not in the bin, or that bin straight up doesn't exist (like reflection and shadows)
 	local oldFlag
 	if objectID >= 0 then
 		oldFlag = cusUnitIDtoDrawFlag[objectID]

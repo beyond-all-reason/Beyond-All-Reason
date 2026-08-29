@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Clean Builder Queue",
-		desc = "Removes completed buildings from all builders unit queue in case they werent there completing it (unless they have repeat enabled)",
+		desc = "Removes completed buildings from all builders unit queue in case they weren't there completing it (unless they have repeat enabled)",
 		author = "Floris",
 		date = "May 2025",
 		license = "GNU GPL v2",

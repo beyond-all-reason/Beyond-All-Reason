@@ -14,6 +14,7 @@ end
 
 local filename = "unitlist.csv"
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
+local weaponInfo = VFS.Include("common/weapons.lua")
 
 local function round(num, numDecimalPlaces)
 	local mult = 10 ^ (numDecimalPlaces or 0)
@@ -46,7 +47,7 @@ function widget:Initialize()
 
 	local columnSeparator = ";"
 	local columnSubSeparator = ", "
-	-- see https://springrts.com/wiki/Lua_UnitDefs for what is availible
+	-- see https://springrts.com/wiki/Lua_UnitDefs for what is available
 	file:write(
 		"id"
 			.. columnSeparator
@@ -262,28 +263,12 @@ function widget:Initialize()
 									weapName = "EMP-StarburstLauncher"
 								end
 							else
-								if
-									weaponDef.damages[Game.armorTypes.vtol]
-									> weaponDef.damages[Game.armorTypes.default or 0]
-								then
-									dps = dps
-										+ (
-											(
-												(weaponDef.damages[Game.armorTypes.vtol] * (1 / weaponDef.reload))
-												* weaponDef.salvoSize
-											) * weaponDef.projectiles
-										)
-								else
-									dps = dps
-										+ (
-											(
-												(
-													weaponDef.damages[Game.armorTypes.default or 0]
-													* (1 / weaponDef.reload)
-												) * weaponDef.salvoSize
-											) * weaponDef.projectiles
-										)
-								end
+								local damage = math.max(
+									weaponDef.damages[Game.armorTypes.vtol],
+									weaponDef.damages[Game.armorTypes.default or 0]
+								)
+								local _, maxDps = weaponInfo.GetDamagePerSecond(weaponDef, damage)
+								dps = dps + maxDps
 							end
 							if weaponTable[weapName] then
 								weaponTable[weapName] = weaponTable[weapName] + 1

@@ -65,6 +65,7 @@ local uploadAllElements = InstanceVBOTable.uploadAllElements
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 
+---@type InstanceVBOTable?
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -148,7 +149,7 @@ local function updateIcons()
 								1,
 								0,
 								1,
-								0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+								0, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 								0,
 								0,
 								0,

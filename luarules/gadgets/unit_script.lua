@@ -810,7 +810,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	Wrap_AimShield(unitID, callins)
 	Wrap_Killed(unitID, callins)
 
-	-- Wrap everything so activeUnit get's set properly.
+	-- Wrap everything so activeUnit gets set properly.
 	for k, v in pairs(callins) do
 		local fun = v
 
