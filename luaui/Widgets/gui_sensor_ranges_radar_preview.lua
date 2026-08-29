@@ -918,15 +918,22 @@ function widget:DrawWorld()
 				end
 			end
 		end
+		local px, py, pz
 		if wx and wz then
-			mousepos = { wx, spGetGroundHeight(wx, wz), wz }
+			px, py, pz = wx, spGetGroundHeight(wx, wz), wz
 		else
 			-- useMiniMap=true: over the engine minimap, trace through it instead of the world behind it
 			local _, coords = spTraceScreenRay(mx, my, true, true)
 			if coords then
-				mousepos = { coords[1], coords[2], coords[3] }
+				px, py, pz = coords[1], coords[2], coords[3]
 			end
 		end
+		-- nothing under the cursor (sky) or a spot outside the map: nothing can be built there, so no preview
+		-- (checked before snapping, as Pos2BuildPos can pull an off-map position back onto the edge)
+		if not px or px < 0 or pz < 0 or px > Game.mapSizeX or pz > Game.mapSizeZ then
+			return
+		end
+		mousepos = { px, py, pz }
 		-- snap to the build grid the way the placement itself is snapped (build facing included), so the
 		-- preview is computed for the spot the radar will actually stand on, not the raw cursor position
 		-- (globals on purpose: DrawWorld is at Lua 5.1's 60 upvalue limit)
