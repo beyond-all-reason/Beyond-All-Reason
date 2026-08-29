@@ -15,9 +15,12 @@ in DataVS {
 	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
 	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
 	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
+	vec2 worldXZ;        // world x/z, for the sheet-only style's per-pixel rings and sweep
 };
 
-uniform vec4 modeParams; // x = 1: background pass
+uniform vec4 modeParams;        // x = 1: background pass, y = 1: sheet-only style (RadarPreviewStyle 1)
+uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
+uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend, conform
 
 // Occlusion is tested against the deferred g-buffer depths instead of the regular depth buffer, so
 // terrain (and units) hide the cubes but things drawn into the depth buffer by widgets, like grass, don't.
@@ -47,6 +50,34 @@ const float baseAlpha = float(BASE_ALPHA);
 const float lineAlpha = float(LINE_ALPHA);
 const float depthBias = 1e-6; // window-space depth tolerance (a few elmo far away, sub-elmo up close)
 
+// sheet-only style: the sheet carries the animation itself, as smooth per-pixel gradients
+const float PI = 3.1415927;
+const vec3 sheetColor = SHEET_COLOR;
+const vec3 sheetPulseColor = SHEET_PULSE_COLOR;
+const float sheetBackgroundAlpha = float(SHEET_BACKGROUND_ALPHA);
+const float sheetOutlineAlpha = float(SHEET_OUTLINE_ALPHA);
+const float sheetRingStrength = float(SHEET_RING_STRENGTH);
+const float pulseSpacing = float(PULSE_SPACING); // elmos between rings
+const float pulseSpeed = float(PULSE_SPEED);     // elmos per second the rings travel outward
+const float pulsePower = float(PULSE_POWER);     // higher = shorter tail behind a ring's leading edge
+const float sweepSpeed = float(SWEEP_SPEED);
+const float sweepTrail = max(float(SWEEP_TRAIL), 0.01); // degrees
+const float sweepBeam = max(float(SWEEP_BEAM), 0.01);   // degrees
+const float sweepStrength = float(SWEEP_STRENGTH);
+
+// rings travelling outward from the radar (a bright leading edge with a tail fading inward) plus the rotating
+// sweep, evaluated per pixel so the sheet shows them as continuous gradients rather than per-cell steps
+float sheetGlow(vec2 fromCenter, float time) {
+	float dist = length(fromCenter);
+	float phase = fract((dist - time * pulseSpeed) / pulseSpacing); // 0 at a ring's leading edge, 1 just inside the next ring
+	float ring = pow(1.0 - phase, pulsePower);
+	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
+	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the sweep's leading edge
+	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
+	float sweep = (trail * trail + (1.0 - smoothstep(0.0, sweepBeam, behind))) * sweepStrength;
+	return clamp(ring * sheetRingStrength + sweep, 0.0, 1.0);
+}
+
 void main() {
 #if TERRAIN_DEPTH_TEST
 	vec2 screenUV = (gl_FragCoord.xy - viewGeometry.zw) / viewGeometry.xy;
@@ -69,7 +100,20 @@ void main() {
 		vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
 		float outline = max(lineAmount.x, lineAmount.y);
 		float fade = fx.w * smoothstep(0.0, 0.5, fx.x) * mix(alliedAlpha, 1.0, previewWeight);
-		fragColor = vec4(mix(backgroundColor, outlineColor, outline), mix(backgroundAlpha, outlineAlpha, outline) * fade);
+		vec3 fillColor = backgroundColor;
+		float fillAlpha = backgroundAlpha;
+		float borderAlpha = outlineAlpha;
+		if (modeParams.y > 0.5) {
+			// sheet-only style: more opaque, and animated by the rings and the sweep. Like the cubes, only the
+			// previewed radar's own coverage animates (previewWeight), cells of other allied radars stay still.
+			float glow = sheetGlow(worldXZ - radarcenter_range.xz, animParams.x) * previewWeight;
+			// the cubes' vivid tint (allied-only cells muted like allied cubes), the rings blend it all the way to the pulse color
+			vec3 tint = mix(alliedColor, sheetColor, previewWeight);
+			fillColor = mix(tint, sheetPulseColor, glow);
+			fillAlpha = min(sheetBackgroundAlpha * (1.0 + glow), 1.0);
+			borderAlpha = sheetOutlineAlpha;
+		}
+		fragColor = vec4(mix(fillColor, outlineColor, outline), mix(fillAlpha, borderAlpha, outline) * fade);
 		return;
 	}
 

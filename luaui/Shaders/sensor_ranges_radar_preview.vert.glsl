@@ -20,7 +20,7 @@ uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cel
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
 uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
-uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders)
+uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders), y = 1: sheet-only style (the fragment shader animates the sheet)
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
@@ -32,6 +32,7 @@ out DataVS {
 	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
 	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
 	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
+	vec2 worldXZ;        // world x/z of the vertex, for the sheet-only style's per-pixel rings and sweep
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -83,6 +84,7 @@ void cullInstance() {
 	previewWeight = 0.0;
 	outlineSides = vec4(0.0);
 	unionOutlineSides = vec4(0.0);
+	worldXZ = vec2(0.0);
 }
 
 void main() {
@@ -241,5 +243,6 @@ void main() {
 	localPos = cubeVertex.xyz;
 	fx = vec4(coverage, glow, beam, spawn);
 	previewWeight = weight;
+	worldXZ = vertexXZ;
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 }
