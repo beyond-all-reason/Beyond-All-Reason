@@ -293,6 +293,7 @@ local callInLists = {
 	-- "UnitFeatureCollision",
 	-- "UnitMoveFailed",
 	"StockpileChanged",
+	"UnitWeaponBurstEnd",
 
 	"ActiveCommandChanged",
 	"CameraRotationChanged",
@@ -2379,6 +2380,13 @@ end
 function gadgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	for _, g in ipairs(self.StockpileChangedList) do
 		g:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	end
+	return
+end
+
+function gadgetHandler:UnitWeaponBurstEnd(unitID, unitDefID, unitTeam, weaponNum)
+	for _, g in ipairs(self.UnitWeaponBurstEndList) do
+		g:UnitWeaponBurstEnd(unitID, unitDefID, unitTeam, weaponNum)
 	end
 	return
 end
