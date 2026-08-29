@@ -2874,7 +2874,7 @@
 		},
 		"transportenemy": {
 			"name": "Enemy Transporting",
-			"desc": "Toggle which enemy units you can kidnap with an air transport",
+			"desc": "Which enemy units an air transport may pick up; your own units are always allowed",
 			"items": {
 				"notcoms": {
 					"name": "All But Commanders",
@@ -2911,8 +2911,8 @@
 			"desc": "Allows units to leave startboxes but disallows commands issued in enemy startboxes.\nDoes not prevent commands onto the other side of startboxes so recommend East/West or North/South startboxes."
 		},
 		"comm_trans_slow": {
-			"name": "Slow Commander Transport",
-			"desc": "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished."
+			"name": "Own Commander Slows Transport",
+			"desc": "A T2 transport carrying your own Commander flies at speed 120. Enemy commanders are governed by Enemy Transporting."
 		},
 		"tax_resource_sharing_amount": {
 			"name": "Resource Sharing Tax",

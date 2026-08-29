@@ -50,6 +50,11 @@ describe("the game axis", function()
 			assert.are.same({ value = false, locked = false }, standard.modOptions.unit_restrictions_noair)
 		end)
 
+		it("claims the transport rules, or the lobby would never show them", function()
+			assert.are.same({ value = false, locked = false }, standard.modOptions.comm_trans_slow)
+			assert.are.same({ value = "notcoms", locked = false }, standard.modOptions.transportenemy)
+		end)
+
 		it("does not show what it does not speak: no TD config, no FFA manners", function()
 			assert.is_nil(standard.modOptions.territorial_domination_config)
 			assert.is_nil(standard.modOptions.ffa_wreckage)
