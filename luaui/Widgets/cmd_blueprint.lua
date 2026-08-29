@@ -136,6 +136,11 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 local actionHotkeys
 
+local Doctor = VFS.Include("luaui/Include/blueprints/json_doctor.lua")
+---Doctor loading state
+---@type string|nil
+local loadOutcome = nil
+
 ---maximum number of units in a saved blueprint
 local BLUEPRINT_UNIT_LIMIT = 100
 
@@ -1130,53 +1135,73 @@ end
 
 ---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint|nil
-local function deserializeBlueprint(serializedBlueprint, index)
+local function buildBlueprint(serializedBlueprint)
 	local blueprint = WG.api_blueprint.createBlueprintFromSerialized(serializedBlueprint)
 
-	if not blueprint or not table.any(blueprint.units, function(u)
+	if blueprint then
+		postProcessBlueprint(blueprint)
+	end
+
+	return blueprint
+end
+
+---Prints one line to the console under the section the strings belong to, so the
+---prefix is translated with them rather than baked into each one.
+---@param key string
+---@param params table|nil
+local function notify(key, params)
+	FeedbackForUser("[" .. BAR.I18N("ui.blueprint.section") .. "] " .. BAR.I18N(key, params))
+end
+
+---@param serializedBlueprint SerializedBlueprint
+---@return Blueprint|nil
+local function deserializeBlueprint(serializedBlueprint, index)
+	-- The file is written by hand as often as by us, so a blueprint can be any
+	-- shape at all. Building one is allowed to fail; the entry is set aside and
+	-- written back untouched, which is the only copy the player has of it.
+	local built, blueprint = pcall(buildBlueprint, serializedBlueprint)
+
+	if not built or not blueprint or not table.any(blueprint.units, function(u)
 		return u.unitDefID ~= nil
 	end) then
 		local name = serializedBlueprint.name
 		if not name or name == "" then
 			name = "#" .. tostring(index)
 		end
-		FeedbackForUser(
-			string.format(
-				"[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.",
-				name
-			)
-		)
+		notify("ui.blueprint.entry_kept", { name = name })
 		return nil
 	end
 
-	postProcessBlueprint(blueprint)
 	return blueprint
 end
 
+---@param messages BlueprintsJsonMessage[]
+local function reportToUser(messages)
+	for _, entry in ipairs(messages) do
+		notify(entry.key, entry.params)
+	end
+end
+
+---Reads the blueprints file through the doctor and remembers what it found, which
+---is what decides whether the save on shutdown is allowed to write over it.
 local function loadBlueprintsFromFile()
-	local content = VFS.LoadFile(BLUEPRINT_FILE_PATH)
-
-	if not content then
-		FeedbackForUser("Failed to read blueprints file: " .. BLUEPRINT_FILE_PATH)
-		return
-	end
-
-	local decoded = Json.decode(content)
-	---@cast decoded table?
-
-	if decoded == nil then
-		FeedbackForUser("Failed to decode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
-		return
-	end
-
-	if type(decoded.savedBlueprints) ~= "table" then
-		decoded.savedBlueprints = {}
-	end
-
 	blueprints = {}
 	filteredOutSerializedBlueprints = {}
-	for i, serializedBlueprint in ipairs(decoded.savedBlueprints) do
-		local blueprint = deserializeBlueprint(serializedBlueprint, i)
+	setSelectedBlueprintIndex(nil)
+
+	local reading = Doctor.read(BLUEPRINT_FILE_PATH)
+
+	loadOutcome = reading.outcome
+	reportToUser(reading.messages)
+
+	-- Entries the doctor could make nothing of are written back untouched, so
+	-- they travel with the ones we fail to build below.
+	table.append(filteredOutSerializedBlueprints, reading.setAside)
+
+	for i, serializedBlueprint in ipairs(reading.entries) do
+		-- Numbered by where it sits in the file, matching what the doctor calls
+		-- the entries it set aside itself.
+		local blueprint = deserializeBlueprint(serializedBlueprint, reading.entryIndices[i])
 		if blueprint then
 			tableInsert(blueprints, blueprint)
 		else
@@ -1184,45 +1209,18 @@ local function loadBlueprintsFromFile()
 		end
 	end
 
-	if #blueprints == 0 then
-		setSelectedBlueprintIndex(nil)
-	elseif not selectedBlueprintIndex or selectedBlueprintIndex > #blueprints then
+	if #blueprints > 0 and (not selectedBlueprintIndex or selectedBlueprintIndex > #blueprints) then
 		setSelectedBlueprintIndex(1)
 	end
 end
 
 local function saveBlueprintsToFile()
-	local file = io.open(BLUEPRINT_FILE_PATH, "w")
-
-	if not file then
-		FeedbackForUser("Failed to open blueprints file for writing: " .. BLUEPRINT_FILE_PATH)
-		return
-	end
-
-	local activeSerializedBps = table.map(blueprints, serializeBlueprint)
 	local allSerializedBpsToSave = {}
-	table.append(allSerializedBpsToSave, activeSerializedBps)
+	table.append(allSerializedBpsToSave, table.map(blueprints, serializeBlueprint))
 	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
 
-	if #allSerializedBpsToSave == 0 then
-		allSerializedBpsToSave = {}
-	end
-
-	local encoded = Json.encode({
-		savedBlueprints = allSerializedBpsToSave,
-	})
-
-	if encoded == nil then
-		FeedbackForUser("Failed to encode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
-		return
-	end
-
-	file:write(encoded)
-
-	file:close()
+	reportToUser(Doctor.write(BLUEPRINT_FILE_PATH, allSerializedBpsToSave, loadOutcome))
 end
-
-local loadedBlueprints = false
 
 function widget:Initialize()
 	if Spring.GetModOptions().scenariooptions then
@@ -1243,7 +1241,6 @@ function widget:Initialize()
 	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 
 	loadBlueprintsFromFile()
-	loadedBlueprints = true
 
 	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleBlueprintCreateAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "p")
@@ -1267,7 +1264,7 @@ function widget:Shutdown()
 
 	updateBuildingGridState(false)
 
-	if loadedBlueprints then
+	if loadOutcome then
 		saveBlueprintsToFile()
 	end
 
