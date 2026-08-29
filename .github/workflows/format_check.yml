@@ -41,6 +41,22 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          # GitHub rebuilds refs/pull/N/merge against master as it stands now,
+          # while the event's base.sha is master as it stood then. Diffing one
+          # against the other hands this pull request every commit that landed
+          # in between and blames their lines on its author. Parent 1 of the
+          # merge commit is the base it was really built on.
+          #
+          # cat-file and not HEAD^1: the checkout is shallow, and the graft
+          # hides the parents from rev-parse, which fails outright.
+          parents=$(git cat-file commit HEAD | awk '/^parent /{print $2}')
+          if [ "$(printf '%s\n' "$parents" | grep -c .)" -eq 2 ]; then
+            BASE_SHA=$(printf '%s\n' "$parents" | head -1)
+            echo "Base is $BASE_SHA, parent 1 of the merge commit."
+          else
+            echo "HEAD is not a merge commit, so the event's base sha stands."
+          fi
+
           # The pull request checkout only holds the merge commit, so the base
           # revision has to be fetched before anything can be diffed against it.
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
