@@ -5,7 +5,11 @@ local function missionItems()
 	local names = {}
 	for _, dir in ipairs(VFS.SubDirs("modules/missions/", "*") or {}) do
 		if #VFS.DirList(dir .. "triggers/", "*.lua") > 0 then
-			names[#names + 1] = dir:gsub("^modules/missions/", ""):gsub("[/\\]+$", "")
+			local name = dir:gsub("^modules/missions/", ""):gsub("[/\\]+$", "")
+			-- smoke_* are the headless scenario suite's fixtures, not player content
+			if not name:find("^smoke_") then
+				names[#names + 1] = name
+			end
 		end
 	end
 	table.sort(names)

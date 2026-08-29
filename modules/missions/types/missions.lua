@@ -6,6 +6,8 @@
 --- Alias names are LOAD-BEARING beyond the checker: the mission kit derives its
 --- semantic model from them (alias -> slot semantic, literal unions -> editor enums).
 ---@alias UnitDefName string unit def name, e.g. "armpw"
+---@alias MissionUnitName string roster unit name, declared by units.lua Named(...)
+---@alias MissionUnitGroup string roster group name, declared by units.lua Grouped(...)
 ---@alias ObjectiveName string
 ---@alias MissionTeamRole "player"|"enemy"|"gaia" spawn-time team role, resolved at arm
 --- Wall-clock seconds, never frames. An alias so an editor can name the unit the
@@ -16,15 +18,13 @@
 ---@field evaluate fun(ctx: MissionContext): boolean
 ---@field inputs string[]|nil events that can change this answer, each a member of a module's Events enum (missions/lib/events.lua, waves/lib/events.lua) or a forwarded callin; the loader refuses a name nothing raises. nil = poll every cadence
 
---- A
---- required module extends this class from its own types (`---@class
---- (partial) MissionContext`) with the functions its contribution's Context
---- supplies.
 ---@class (partial) MissionContext
 ---@field GetUnitDefCount fun(teamID: integer, unitDefName: string): integer count of finished units of that def
 ---@field IsObjectiveComplete fun(name: string): boolean
 ---@field GetVariable fun(name: string): number|boolean|string|nil
 ---@field SetVariable fun(name: string, value: number|boolean|string)
+---@field IsUnitDestroyed fun(name: string): boolean
+---@field IsUnitSpotted fun(name: string, allyTeamID: integer): boolean
 ---@field frame integer current game frame
 
 ---@class MissionEffect
@@ -59,8 +59,40 @@
 ---@field revealAtArm boolean|nil marked by the loader: no declared moment, no completable predecessor
 ---@field foreshadow boolean
 
---- Identity = source filename + declaration order: the unregister-by-identity
---- key for hot reload.
+---@class MissionUnitRef
+---@field name MissionUnitName
+---@field IsDestroyed fun(): MissionCondition
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+
+--- Positions are map fractions until real maps pin real coordinates; a chain
+--- without At fails the load.
+---@class MissionSpawnChain
+---@field At fun(fx: number, fz: number): MissionSpawnChain
+---@field Named fun(name: MissionUnitName): MissionSpawnChain
+---@field Grouped fun(group: MissionUnitGroup|MissionGroupRef): MissionSpawnChain
+---@field Neutral fun(): MissionSpawnChain starts inert: neither shoots nor is shot at, until handed over
+---@field IsSpotted fun(team: MissionTeam): MissionCondition the handle is also the reference
+---@field IsDestroyed fun(): MissionCondition
+---@field name MissionUnitName? set once the file is loaded: Named, or the export key
+
+---@class MissionClaimChain
+---@field Named fun(name: MissionUnitName): MissionClaimChain
+---@field Grouped fun(group: MissionUnitGroup|MissionGroupRef): MissionClaimChain
+---@field OrSpawnAt fun(fx: number, fz: number): MissionClaimChain
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+---@field IsDestroyed fun(): MissionCondition
+---@field name MissionUnitName? set once the file is loaded: Named, or the export key
+
+---@class MissionRosterEntry
+---@field def UnitDefName
+---@field team MissionTeamRole
+---@field fx number map-fraction position, resolved against map size at spawn
+---@field fz number
+---@field name MissionUnitName|nil declared by Named
+---@field group MissionUnitGroup|nil declared by Grouped
+---@field claim boolean|nil written by Claim: bind to an existing unit if the team has one
+---@field neutral boolean|nil written by Neutral: spawn inert, cleared when the unit changes hands
+
 ---@class TriggerDescriptor
 ---@field id string "<filename>:<order>"
 ---@field filename string mission-relative trigger file path
@@ -96,12 +128,17 @@
 ---@class MissionDslFile
 ---@field filename string mission-relative trigger file path
 ---@field Register fun(descriptor: TriggerDescriptor)
+---@field names table<string, boolean> roster unit names, for load-time validation
+---@field groups table<string, boolean> roster group names, for load-time validation
 
 ---@class MissionProtectionLedger this mission's protect refcounts, persisted across a reload
 ---@field Get fun(unitID: integer): integer
 ---@field Set fun(unitID: integer, count: integer) zero forgets the unit
 
 ---@class MissionRuntime
+---@field UnitOf fun(name: string): integer|nil the living unit a roster name binds to
+---@field GroupUnits fun(groupName: string): integer[]|nil
+---@field ReleaseHoldFire fun(unitID: integer) a spawned-Neutral unit holds fire until whoever moves it says otherwise
 ---@field Protections MissionProtectionLedger
 ---@field Log fun(level: integer, message: string)
 
@@ -110,8 +147,9 @@
 ---@field Context fun(runtime: MissionRuntime): table<string, function>|nil
 ---@field Events table<string, string>|nil an enum of the bus events this module raises
 
---- The declaration chain in variables.lua: a typed slot with a default. The
---- value lives in the pile; the handle is both sides of it.
+---@class MissionGroupRef
+---@field group MissionUnitGroup
+
 ---@class MissionVariableChain
 ---@field Number fun(default: number): MissionVariableChain
 ---@field Boolean fun(default: boolean): MissionVariableChain

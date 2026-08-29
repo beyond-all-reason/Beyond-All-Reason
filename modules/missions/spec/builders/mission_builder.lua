@@ -470,6 +470,21 @@ function MissionBuilder:Load()
 				end,
 			}, { __index = lib })
 		end,
+		["modules/missions/lib/roster.lua"] = function(lib)
+			return setmetatable({
+				ForFile = function(...)
+					local file = lib.ForFile(...)
+					local finalize = file.Finalize
+					file.Finalize = function(exports, ...)
+						local entries, exportNames, declaredGroups = finalize(exports, ...)
+						self_.rosters[#self_.rosters + 1] = entries
+						self_.includes.units = exports
+						return entries, exportNames, declaredGroups
+					end
+					return file
+				end,
+			}, { __index = lib })
+		end,
 		["modules/missions/lib/variables.lua"] = function(lib)
 			return setmetatable({
 				ForFile = function(...)
