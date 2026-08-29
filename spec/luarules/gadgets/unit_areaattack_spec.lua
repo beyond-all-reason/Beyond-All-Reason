@@ -12,7 +12,14 @@ local WEAPON_DEF_ID = 5
 local UNIT_DEF_ID = 1
 local UNIT_ID = 7
 
-local function loadGadget(commands, repeatOrders, salvoSize, groundAttackAfterSalvos, canAreaAttack)
+local function loadGadget(
+	commands,
+	repeatOrders,
+	salvoSize,
+	groundAttackAfterSalvos,
+	canAreaAttack,
+	hasWeaponBurstWatch
+)
 	local orders = {}
 	local insertedOrders = {}
 	local finishedUnits = {}
@@ -54,7 +61,7 @@ local function loadGadget(commands, repeatOrders, salvoSize, groundAttackAfterSa
 		WeaponDefs = {
 			[WEAPON_DEF_ID] = { range = 1000, salvoSize = salvoSize or 1 },
 		},
-		Script = { SetWatchProjectile = function() end },
+		Script = hasWeaponBurstWatch == false and {} or { SetWatchWeaponBurst = function() end },
 		Spring = {
 			GetUnitCommands = function()
 				return commands
@@ -118,18 +125,25 @@ local function generatedAreaCommands()
 end
 
 describe("unit_areaattack", function()
+	it("loads on engines without weapon burst watching", function()
+		local gadget = loadGadget({}, false, 1, 0, true, false)
+
+		assert.has_no.errors(function()
+			gadget:Initialize()
+		end)
+	end)
+
 	it("advances an opted-in player attack after the configured complete salvos", function()
 		local commands = queuedGroundAttacks()
 		local gadget, _, _, finishedUnits = loadGadget(commands, false, 2, 2, false)
 
-		for projectileID = 1, 3 do
-			gadget:ProjectileCreated(projectileID, UNIT_ID, WEAPON_DEF_ID)
-			gadget:GameFrame(projectileID)
-			assert.equals(0, #finishedUnits)
-		end
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		gadget:GameFrame(1)
+		assert.equals(0, #finishedUnits)
 
-		gadget:ProjectileCreated(4, UNIT_ID, WEAPON_DEF_ID)
-		gadget:GameFrame(4)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		assert.equals(0, #finishedUnits, "command mutation must be deferred")
+		gadget:GameFrame(2)
 		assert.same({ UNIT_ID }, finishedUnits)
 	end)
 
@@ -137,7 +151,7 @@ describe("unit_areaattack", function()
 		local commands = queuedGroundAttacks()
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, true, 1, 0)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
 		gadget:GameFrame(1)
 
 		assert.equals(0, #finishedUnits)
@@ -149,7 +163,8 @@ describe("unit_areaattack", function()
 		local commands = queuedGroundAttacks()
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, true, 1, 1)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		assert.equals(0, #finishedUnits, "command mutation must be deferred")
 		gadget:GameFrame(1)
 
 		assert.same({ UNIT_ID }, finishedUnits)
@@ -157,11 +172,22 @@ describe("unit_areaattack", function()
 		assert.equals(0, #orders)
 	end)
 
-	it("ignores unrelated weapon projectiles", function()
+	it("treats a multi-projectile burst as one completed salvo", function()
+		local commands = queuedGroundAttacks()
+		local gadget, _, _, finishedUnits = loadGadget(commands, false, 3, 1)
+
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		assert.equals(0, #finishedUnits, "command mutation must be deferred")
+		gadget:GameFrame(1)
+
+		assert.same({ UNIT_ID }, finishedUnits)
+	end)
+
+	it("ignores unrelated weapons", function()
 		local commands = queuedGroundAttacks()
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, false, 1, 1)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID + 1)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 2)
 		gadget:GameFrame(1)
 
 		assert.equals(0, #finishedUnits)
@@ -173,7 +199,7 @@ describe("unit_areaattack", function()
 		local commands = { queuedGroundAttacks()[1] }
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, false, 1, 1)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
 		gadget:GameFrame(1)
 
 		assert.equals(0, #finishedUnits)
@@ -186,7 +212,7 @@ describe("unit_areaattack", function()
 		local completedAttack = commands[1]
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, true, 1, 1)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
 		commands[1] = { id = 10, tag = 99, params = { 0, 0, 0 }, options = { coded = 0 } }
 		gadget:GameFrame(1)
 
@@ -202,14 +228,12 @@ describe("unit_areaattack", function()
 		local commands = generatedAreaCommands()
 		local gadget, _, _, finishedUnits = loadGadget(commands, false, 2, 2)
 
-		for projectileID = 1, 3 do
-			gadget:ProjectileCreated(projectileID, UNIT_ID, WEAPON_DEF_ID)
-			gadget:GameFrame(projectileID)
-			assert.equals(0, #finishedUnits)
-		end
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		gadget:GameFrame(1)
+		assert.equals(0, #finishedUnits)
 
-		gadget:ProjectileCreated(4, UNIT_ID, WEAPON_DEF_ID)
-		gadget:GameFrame(4)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
+		gadget:GameFrame(2)
 		assert.same({ UNIT_ID }, finishedUnits)
 	end)
 
@@ -217,7 +241,7 @@ describe("unit_areaattack", function()
 		local commands = generatedAreaCommands()
 		local gadget, _, _, finishedUnits = loadGadget(commands, false, 1, 0)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
 		gadget:GameFrame(1)
 
 		assert.same({ UNIT_ID }, finishedUnits)
@@ -239,7 +263,7 @@ describe("unit_areaattack", function()
 		local generatedAttack = commands[1]
 		local gadget, orders, insertedOrders, finishedUnits = loadGadget(commands, true, 1, 1)
 
-		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:UnitWeaponBurstEnd(UNIT_ID, UNIT_DEF_ID, 0, 1)
 		commands[1] = { id = 10, tag = 99, params = { 0, 0, 0 }, options = { coded = 0 } }
 		gadget:GameFrame(1)
 

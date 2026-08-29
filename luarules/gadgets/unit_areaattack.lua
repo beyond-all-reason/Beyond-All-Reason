@@ -42,7 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 			local weaponDefID = unitDef.weapons[1].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
 			if weaponDef then
-				areaAttackWeapons[weaponDefID] = weaponDef.salvoSize
+				areaAttackWeapons[weaponDefID] = true
 				areaAttackWeaponByUnitDef[unitDefID] = weaponDefID
 				groundAttackAfterSalvos[unitDefID] = advanceAfterSalvos
 				if unitDef.customParams.canareaattack then
@@ -63,8 +63,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	function gadget:GameFrame(f)
-		-- Removing a command from ProjectileCreated can invalidate the engine's
-		-- active weapon-command state, so defer it until the next game frame.
+		-- UnitWeaponBurstEnd runs during weapon simulation. Defer command-queue
+		-- mutations so they cannot re-enter weapon or command-AI update code.
 		for unitID, attack in pairs(finishedAttacks) do
 			finishedAttacks[unitID] = nil
 			local commandID, _, commandTag = Spring.GetUnitCurrentCommand(unitID)
@@ -73,8 +73,8 @@ if gadgetHandler:IsSyncedCode() then
 				-- area-attack shots are internal, so the engine will not repeat them.
 				Spring.UnitFinishCommand(unitID)
 			else
-				-- A command can be inserted ahead of the attack before this deferred
-				-- callback runs. Remove only the completed attack in that case.
+				-- A command can be inserted ahead of the completed attack before the
+				-- deferred mutation runs. Remove only that attack in this case.
 				local states = Spring.GetUnitStates(unitID)
 				if states and states["repeat"] and not attack.options.internal then
 					giveInsertOrderToUnit(unitID, CMD_ATTACK, attack.params, attack.options, -1, CMD.OPT_ALT)
@@ -152,66 +152,63 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-		local salvoSize = areaAttackWeapons[weaponDefID]
-		local unitDefID = Spring.GetUnitDefID(ownerID)
-		if not salvoSize or areaAttackWeaponByUnitDef[unitDefID] ~= weaponDefID then
+	function gadget:UnitWeaponBurstEnd(unitID, unitDefID, unitTeam, weaponNum)
+		local unitDefWeapon = UnitDefs[unitDefID].weapons[weaponNum]
+		local weaponDefID = unitDefWeapon and unitDefWeapon.weaponDef
+		if areaAttackWeaponByUnitDef[unitDefID] ~= weaponDefID then
 			return
 		end
 
-		local commands = Spring.GetUnitCommands(ownerID, 2)
-		local currentCommand = commands and commands[1]
-		if
-			not currentCommand
-			or currentCommand.id ~= CMD_ATTACK
-			or not currentCommand.params
-			or #currentCommand.params < 3
-			or not currentCommand.options
-		then
+		local commands = Spring.GetUnitCommands(unitID, -1)
+		local attackCommand = commands and commands[1]
+		if not attackCommand or not attackCommand.params or #attackCommand.params < 3 or not attackCommand.options then
+			return
+		end
+		local commandTag = attackCommand.tag
+		if attackCommand.id ~= CMD_ATTACK or not commandTag then
+			return
+		end
+
+		local pendingAttack = finishedAttacks[unitID]
+		if pendingAttack and pendingAttack.commandTag == commandTag then
 			return
 		end
 
 		local advanceAfterSalvos = groundAttackAfterSalvos[unitDefID]
-		local internalAreaAttack = currentCommand.options.internal and canAreaAttack[unitDefID]
+		local internalAreaAttack = attackCommand.options.internal and canAreaAttack[unitDefID]
 		if not internalAreaAttack and advanceAfterSalvos <= 0 then
 			return
 		end
 
-		local attack = activeAttacks[ownerID]
-		if not attack or attack.commandTag ~= currentCommand.tag then
+		local attack = activeAttacks[unitID]
+		if not attack or attack.commandTag ~= commandTag then
 			if not commands[2] then
 				return
 			end
 			attack = {
-				commandTag = currentCommand.tag,
+				commandTag = commandTag,
 				weaponDefID = weaponDefID,
-				projectilesLeft = salvoSize,
 				salvosLeft = math.max(advanceAfterSalvos, 1),
-				params = currentCommand.params,
-				options = currentCommand.options,
+				params = attackCommand.params,
+				options = attackCommand.options,
 			}
-			activeAttacks[ownerID] = attack
+			activeAttacks[unitID] = attack
 		elseif attack.weaponDefID ~= weaponDefID then
-			return
-		end
-
-		attack.projectilesLeft = attack.projectilesLeft - 1
-		if attack.projectilesLeft > 0 then
 			return
 		end
 
 		attack.salvosLeft = attack.salvosLeft - 1
 		if attack.salvosLeft > 0 then
-			attack.projectilesLeft = salvoSize
 			return
 		end
 
-		activeAttacks[ownerID] = nil
+		activeAttacks[unitID] = nil
 		-- Ground attacks are persistent when they are the last command. If
 		-- another command follows, advance after the configured number of salvos.
-		if commands[2] then
-			finishedAttacks[ownerID] = attack
+		if not commands[2] then
+			return
 		end
+		finishedAttacks[unitID] = attack
 	end
 
 	function gadget:UnitCreated(u, ud, team)
@@ -228,8 +225,10 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_AREA_ATTACK_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_AREA_ATTACK_GROUND)
-		for weaponDefID in pairs(areaAttackWeapons) do
-			Script.SetWatchProjectile(weaponDefID, true)
+		if Script.SetWatchWeaponBurst then
+			for weaponDefID in pairs(areaAttackWeapons) do
+				Script.SetWatchWeaponBurst(weaponDefID, true)
+			end
 		end
 	end
 else -- UNSYNCED
