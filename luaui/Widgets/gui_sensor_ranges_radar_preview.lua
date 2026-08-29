@@ -12,11 +12,14 @@ function widget:GetInfo()
 	}
 end
 
--- springsettings RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
--- springsettings RadarPreviewBackground (0/1, default on): draw a background sheet under the cubes
--- springsettings RadarPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
--- springsettings RadarPreviewStyle (default 1): 1 = cubes on a faint background sheet, 1 = sheet only: no cubes, a more
---   opaque sheet and outline, with the pulses and the sweep drawn on it as smooth gradient rings (SHEET_* tunables)
+-- Springsettings
+-- RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
+-- RadarPreviewBackground (0/1, default on): draw a background sheet under the cubes
+-- RadarPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
+-- RadarPreviewStyle (default 1): 1 = cubes on a faint background sheet, 1 = sheet only: no cubes, a more
+--   opaque sheet and outline, with the spulses and the sweep drawn on it as smooth gradient rings (SHEET_* tunables)
+-- RadarPreviewAnimations (0/1, default on): enable/disable animations
+-- RadarPreviewSweep (0/1, default on): draw the rotating sweep (only when animations are on)
 
 ------------------------------------------------------------------------------------------------
 -- How it works
@@ -69,12 +72,12 @@ local shaderConfig = {
 	TERRAIN_DEPTH_TEST = hasMapDepth and 1 or 0,
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cubes covered only by other allied radars
-	ALLIED_ALPHA = 0.45, -- their opacity relative to the previewed radar's cubes
+	ALLIED_ALPHA = 0.55, -- their opacity relative to the previewed radar's cubes
 	BACKGROUND_COLOR = "vec3(0.10, 0.45, 0.28)", -- background sheet under the cubes (RadarPreviewBackground setting)
 	BACKGROUND_ALPHA = 0.14,
 	SHEET_COLOR = "vec3(0.22, 0.85, 0.50)", -- RadarPreviewStyle 1 (sheet only): color of the sheet (the cubes' BASE_COLOR)
-	SHEET_PULSE_COLOR = "vec3(0.63, 1.00, 0.83)", -- RadarPreviewStyle 1: color the rings and the sweep blend the sheet towards
-	SHEET_BACKGROUND_ALPHA = 0.22, -- RadarPreviewStyle 1 (sheet only): opacity of the sheet (doubles inside the rings/sweep)
+	SHEET_PULSE_COLOR = "vec3(0.55, 1.00, 0.7)", -- RadarPreviewStyle 1: color the rings and the sweep blend the sheet towards
+	SHEET_BACKGROUND_ALPHA = 0.2, -- RadarPreviewStyle 1 (sheet only): opacity of the sheet (doubles inside the rings/sweep)
 	SHEET_OUTLINE_ALPHA = 0.4, -- RadarPreviewStyle 1: opacity of the OUTLINE_COLOR border of the sheet
 	SHEET_RING_STRENGTH = 0.8, -- RadarPreviewStyle 1: how much the gradient rings brighten the sheet (PULSE_SPACING/SPEED/POWER shape them)
 	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap (RadarPreviewMinimap setting), BASE_COLOR / ALLIED_COLOR
@@ -89,10 +92,10 @@ local shaderConfig = {
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
 	SWEEP_BEAM = 9.0, -- degrees: width of the bright leading edge
 	SWEEP_STRENGTH = 0.55, -- how much the sweep brightens/raises cubes
-	SPAWN_SPEED = 2.5, -- radar ranges per second the spawn ripple travels outward
+	SPAWN_SPEED = 5.0, -- radar ranges per second the spawn ripple travels outward
 	SPAWN_BUMP = 0.25, -- width of the overshoot behind the ripple front, in radar ranges
 	PULSE_SPACING = 180.0, -- elmos between the outward travelling wave rings
-	PULSE_SPEED = 100.0, -- elmos per second the rings travel
+	PULSE_SPEED = 85.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
 	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
 	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
@@ -213,6 +216,8 @@ local settings = {
 	background = true, -- RadarPreviewBackground
 	minimap = true, -- RadarPreviewMinimap
 	style = 0, -- RadarPreviewStyle: 0 = cubes, 1 = sheet only
+	animations = true, -- RadarPreviewAnimations: sweep and pulse rings
+	sweep = true, -- RadarPreviewSweep: the rotating sweep (only when animations are on)
 }
 local alliedConfigCheckedAt = -mathHuge
 local sets = {} -- radius in cells -> coverage/state textures and grid dimensions
@@ -673,6 +678,8 @@ local function readConfig()
 	settings.background = Spring.GetConfigInt("RadarPreviewBackground", 1) ~= 0
 	settings.minimap = Spring.GetConfigInt("RadarPreviewMinimap", 1) ~= 0
 	settings.style = Spring.GetConfigInt("RadarPreviewStyle", 1)
+	settings.animations = Spring.GetConfigInt("RadarPreviewAnimations", 1) ~= 0
+	settings.sweep = Spring.GetConfigInt("RadarPreviewSweep", 0) ~= 0
 end
 
 function widget:Update()
@@ -864,8 +871,9 @@ end
 function widget:DrawWorld()
 	local cmdID
 	if selectedRadarUnitID then
+		-- verify every frame, not just on SelectionChanged: the unit may be gone or no longer selected
 		local unitDefID = spGetUnitDefID(selectedRadarUnitID)
-		if not unitDefID then
+		if not unitDefID or not Spring.IsUnitSelected(selectedRadarUnitID) then
 			selectedRadarUnitID = false
 			return
 		end
@@ -873,7 +881,12 @@ function widget:DrawWorld()
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then
-			-- before game start builds are queued through the pregame build widget, not via an active command
+			-- before game start builds are queued through the pregame build widget, not via an active command.
+			-- Only while the game hasn't started: that widget keeps its picked unit after GameStart, which would
+			-- otherwise leave the preview stuck to the cursor with nothing selected.
+			if Spring.GetGameFrame() > 0 then
+				return
+			end
 			local pregameBuild = WG["pregame-build"]
 			local pregameDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
 			if not pregameDefID then
@@ -1064,13 +1077,16 @@ function widget:DrawWorld()
 		cubeShader:SetUniform("animParams", now, now - spawnStart, lodBlend, shape.conform)
 		cubeShader:SetUniform("windowParams", x0, z0, cellsX, stride)
 		local sheetOnly = settings.style == 1
+		local animations = settings.animations and 1 or 0
+		local sweep = settings.sweep and 1 or 0
+		cubeShader:SetUniform("modeParams", 0, 0, animations, sweep)
 		if settings.background or sheetOnly then
 			-- background sheet under the cubes, outlined along the border with uncovered cells. In the sheet-only
 			-- style it is the whole preview: no cubes, and the fragment shader draws the rings and the sweep on it
-			cubeShader:SetUniform("modeParams", 1, sheetOnly and 1 or 0, 0, 0)
+			cubeShader:SetUniform("modeParams", 1, sheetOnly and 1 or 0, animations, sweep)
 			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, 0, CUBE_SINK, BACKGROUND_LIFT + camDist * LIFT_PER_DISTANCE)
 			tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
-			cubeShader:SetUniform("modeParams", 0, 0, 0, 0)
+			cubeShader:SetUniform("modeParams", 0, 0, animations, sweep)
 		end
 		if not sheetOnly then
 			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)

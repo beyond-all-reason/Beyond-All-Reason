@@ -20,7 +20,7 @@ uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cel
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
 uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
-uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders), y = 1: sheet-only style (the fragment shader animates the sheet)
+uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders), y = 1: sheet-only style (the fragment shader animates the sheet), z = 1: sweep and pulse animations on, w = 1: sweep on
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
@@ -190,11 +190,13 @@ void main() {
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = trail * trail * sweepStrength * weight;
-	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight;
+	float animations = modeParams.z; // RadarPreviewAnimations setting
+	float sweepOn = animations * modeParams.w; // RadarPreviewSweep setting
+	float sweep = trail * trail * sweepStrength * weight * sweepOn;
+	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight * sweepOn;
 
 	// the main animation: rings travelling outward from the radar
-	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight;
+	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight * animations;
 
 	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;
