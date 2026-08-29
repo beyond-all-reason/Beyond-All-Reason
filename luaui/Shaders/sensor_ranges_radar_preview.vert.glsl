@@ -47,9 +47,8 @@ const float sweepBeam = max(float(SWEEP_BEAM), 0.01);   // degrees
 const float sweepStrength = float(SWEEP_STRENGTH);
 const float spawnSpeed = float(SPAWN_SPEED);
 const float spawnBump = float(SPAWN_BUMP);
-const float pulseFreq = 2.0 * PI / float(PULSE_SPACING);
-const float pulseSpeed = 2.0 * PI * float(PULSE_SPEED) / float(PULSE_SPACING);
 const float pulsePower = float(PULSE_POWER);
+const float pulseSymmetric = float(PULSE_SYMMETRIC); // ring profile: 1 = bell (fade in/out), 0 = sharp front, fade out
 const float pulseStrength = float(PULSE_STRENGTH);
 const float edgeStrength = float(EDGE_STRENGTH); // glow of cubes at the coverage boundary (0 = off)
 const float rimStrength = float(RIM_STRENGTH);   // glow of the outermost ring of cubes (0 = off)
@@ -196,7 +195,10 @@ void main() {
 	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight * sweepOn;
 
 	// the main animation: rings travelling outward from the radar
-	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight * animations;
+	// PULSE_SYMMETRIC: smooth bell that fades in and out around the ring, or a sharp front fading out behind it
+	float ringPhase = fract((dist - time * float(PULSE_SPEED)) / float(PULSE_SPACING)); // 0 at a ring's center, 1 at the next
+	float ringShape = (pulseSymmetric > 0.5) ? pow(0.5 + 0.5 * cos(ringPhase * 2.0 * PI), pulsePower) : pow(1.0 - ringPhase, pulsePower);
+	float ring = ringShape * weight * animations;
 
 	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;

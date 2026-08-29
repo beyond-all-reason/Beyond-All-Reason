@@ -52,6 +52,7 @@ const float depthBias = 1e-6; // window-space depth tolerance (a few elmo far aw
 
 // sheet-only style: the sheet carries the animation itself, as smooth per-pixel gradients
 const float PI = 3.1415927;
+const float pulseSymmetric = float(PULSE_SYMMETRIC); // ring profile: 1 = bell (fade in/out), 0 = sharp front, fade out
 const vec3 sheetColor = SHEET_COLOR;
 const vec3 sheetPulseColor = SHEET_PULSE_COLOR;
 const float sheetBackgroundAlpha = float(SHEET_BACKGROUND_ALPHA);
@@ -69,8 +70,9 @@ const float sweepStrength = float(SWEEP_STRENGTH);
 // sweep, evaluated per pixel so the sheet shows them as continuous gradients rather than per-cell steps
 float sheetGlow(vec2 fromCenter, float time) {
 	float dist = length(fromCenter);
-	float phase = fract((dist - time * pulseSpeed) / pulseSpacing); // 0 at a ring's leading edge, 1 just inside the next ring
-	float ring = pow(1.0 - phase, pulsePower);
+	float phase = fract((dist - time * pulseSpeed) / pulseSpacing); // 0 at a ring's center, 1 at the next ring
+	// PULSE_SYMMETRIC: smooth bell that fades in and out around the ring, or a sharp front fading out behind it
+	float ring = (pulseSymmetric > 0.5) ? pow(0.5 + 0.5 * cos(phase * 2.0 * PI), pulsePower) : pow(1.0 - phase, pulsePower);
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the sweep's leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
