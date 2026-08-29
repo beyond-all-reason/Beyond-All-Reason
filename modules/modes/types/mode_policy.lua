@@ -22,6 +22,7 @@
 ---@field FogOfWar fun(enabled: boolean): GameModeChain
 ---@field NoRush fun(minutes: number, middleFree: boolean?): GameModeChain
 ---@field SlowComTransport fun(enabled: boolean): GameModeChain
+---@field EnemyTransporting fun(which: "notcoms"|"none"): GameModeChain
 ---@field Restrictions fun(): GameModeChain
 
 ---The category is not a parameter: the grammar binds every chain from this

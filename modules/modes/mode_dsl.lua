@@ -1,6 +1,7 @@
 
 local ModeBuilder = VFS.Include("modules/mode_builder.lua")
 local ModeEnums = VFS.Include("modules/modes/enums.lua")
+local TransportEnums = VFS.Include("modules/transport/enums.lua")
 
 ---@class GameModeDSL
 ---@field Mode fun(name: string): GameModeChain Start a preset. The category is not a parameter: the grammar binds every chain from this module to "game" — the name only names it.
@@ -78,7 +79,10 @@ local Serializers = {
 		}
 	end,
 	["game.slowcomtransport"] = function(p, lock)
-		return option("comm_trans_slow", p.enabled, lock.structure)
+		return option(TransportEnums.ModOptions.CommanderTransportSlow, p.enabled, lock.structure)
+	end,
+	["game.enemytransporting"] = function(p, lock)
+		return option(TransportEnums.ModOptions.TransportEnemy, p.which, lock.structure)
 	end,
 	["game.restrictions"] = function(_p, lock)
 		local options = {}
@@ -168,6 +172,14 @@ M.Mode = ModeBuilder.Grammar({
 		SlowComTransport = function(modeName, enabled)
 			checkBoolean(modeName, "SlowComTransport", enabled)
 			return { "game.slowcomtransport", enabled = enabled }
+		end,
+
+		EnemyTransporting = function(modeName, which)
+			assert(
+				which == TransportEnums.TransportEnemy.NotCommanders or which == TransportEnums.TransportEnemy.None,
+				modeName .. ': .EnemyTransporting expects "notcoms" or "none"'
+			)
+			return { "game.enemytransporting", which = which }
 		end,
 
 		Restrictions = function(_modeName)
