@@ -78,7 +78,10 @@ local Serializers = {
 		}
 	end,
 	["game.slowcomtransport"] = function(p, lock)
-		return option("comm_trans_slow", p.enabled, lock.structure)
+		return option(ModeEnums.ModOptions.CommanderTransportSlow, p.enabled, lock.structure)
+	end,
+	["game.enemytransporting"] = function(p, lock)
+		return option(ModeEnums.ModOptions.TransportEnemy, p.which, lock.structure)
 	end,
 	["game.restrictions"] = function(_p, lock)
 		local options = {}
@@ -168,6 +171,14 @@ M.Mode = ModeBuilder.Grammar({
 		SlowComTransport = function(modeName, enabled)
 			checkBoolean(modeName, "SlowComTransport", enabled)
 			return { "game.slowcomtransport", enabled = enabled }
+		end,
+
+		EnemyTransporting = function(modeName, which)
+			assert(
+				which == ModeEnums.TransportEnemy.NotCommanders or which == ModeEnums.TransportEnemy.None,
+				modeName .. ': .EnemyTransporting expects "notcoms" or "none"'
+			)
+			return { "game.enemytransporting", which = which }
 		end,
 
 		Restrictions = function(_modeName)
