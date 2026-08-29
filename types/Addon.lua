@@ -14,7 +14,7 @@ function Addon:GetInfo() end
 ---@field author string?
 ---@field date string?
 ---@field license string?
----@field layer number?
+---@field layer integer?
 ---@field enabled boolean?
 
 ---@type Addon
