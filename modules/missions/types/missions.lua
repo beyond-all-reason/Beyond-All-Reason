@@ -23,6 +23,8 @@
 ---@class (partial) MissionContext
 ---@field GetUnitDefCount fun(teamID: integer, unitDefName: string): integer count of finished units of that def
 ---@field IsObjectiveComplete fun(name: string): boolean
+---@field GetVariable fun(name: string): number|boolean|string|nil
+---@field SetVariable fun(name: string, value: number|boolean|string)
 ---@field frame integer current game frame
 
 ---@class MissionEffect
@@ -107,3 +109,20 @@
 ---@field ForFile fun(file: MissionDslFile): { env: table<string, any>, Finalize: fun()|nil }
 ---@field Context fun(runtime: MissionRuntime): table<string, function>|nil
 ---@field Events table<string, string>|nil an enum of the bus events this module raises
+
+--- The declaration chain in variables.lua: a typed slot with a default. The
+--- value lives in the pile; the handle is both sides of it.
+---@class MissionVariableChain
+---@field Number fun(default: number): MissionVariableChain
+---@field Boolean fun(default: boolean): MissionVariableChain
+---@field String fun(default: string): MissionVariableChain
+---@field Is fun(value: number|boolean|string): MissionCondition
+---@field AtLeast fun(n: number): MissionCondition
+---@field AtMost fun(n: number): MissionCondition
+---@field Set fun(value: number|boolean|string): MissionEffect
+---@field Add fun(n: number): MissionEffect
+
+---@class MissionVariableEntry
+---@field name string
+---@field kind "number"|"boolean"|"string"
+---@field default number|boolean|string
