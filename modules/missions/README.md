@@ -25,3 +25,14 @@ flowchart TB
     ENGINE -->|"Objective(...).Complete() emits<br/>'mission.objective_changed'"| BUS
     MF --> VG
 ```
+
+`objectives.lua` declares every `Objective(...)` id the triggers may reference —
+a typo is a load error, not a silently-never-true condition. An objective
+declaration carries its wording (`.Title`), its completion (`.CompletedWhen`,
+`.When` to AND), and the tracker's cadence: declaration order is the display
+order, the first line is revealed at arm and each next when its predecessor
+completes (`.RevealedWhen` overrides, `.Foreshadow` draws a line greyed-out
+early). The declarations compile into ordinary triggers through the same DSL;
+the loader publishes the board to rulesparams (`objective_display_order`,
+`objective_title_*`, `objective_revealed_*`), and the `mission_objectives`
+widget just draws what the params say.

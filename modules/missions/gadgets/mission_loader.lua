@@ -23,6 +23,7 @@ local ChatGuard = VFS.Include("modules/missions/lib/chat_guard.lua")
 local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
+local Objectives = VFS.Include("modules/missions/lib/objectives.lua")
 local Events = VFS.Include("modules/missions/lib/events.lua")
 
 local MISSIONS_DIR = "modules/missions/"
@@ -222,6 +223,26 @@ local function resetObjectives()
 	end
 end
 
+---Everything under the objective_ prefix, so presentation sweeps with progress.
+---@param declarations MissionObjectiveDeclarationEntry[]|nil nil when the mission has no objectives.lua
+local function publishObjectives(declarations)
+	if declarations == nil then
+		return
+	end
+	local order = {}
+	for _, decl in ipairs(declarations) do
+		order[#order + 1] = decl.id
+		Spring.SetGameRulesParam("objective_title_" .. decl.id, decl.title)
+		Spring.SetGameRulesParam("objective_foreshadow_" .. decl.id, decl.foreshadow and 1 or nil)
+	end
+	Spring.SetGameRulesParam("objective_display_order", table.concat(order, ","))
+	for _, decl in ipairs(declarations) do
+		if decl.revealAtArm then
+			Spring.SetGameRulesParam("objective_revealed_" .. decl.id, 1)
+		end
+	end
+end
+
 ---VFS.Include wraps a Lua error in engine bookkeeping (include mode, pcall
 ---depth, environment flag) and buries the one line an author needs.
 ---@param err any
@@ -290,6 +311,28 @@ local function loadMission(missionName, preserve)
 		end
 	end
 
+	-- The mission's own module system: its files link with VFS.Include, and a
+	-- definition file's return table is what an include yields — once per load,
+	-- the same table to every importer, so objectives.lua never registers twice.
+	local missionDir = MISSIONS_DIR .. missionName .. "/"
+	local included = {} ---@type table<string, table|false>
+	local sandboxVFS = {}
+	sandboxVFS.Include = function(path)
+		assert(type(path) == "string", "VFS.Include expects a path")
+		local normalized = path:gsub("\\", "/"):gsub("^%./", "")
+		if normalized:sub(1, #missionDir) ~= missionDir then
+			error("a mission may only include its own files, not " .. tostring(path))
+		end
+		local exports = included[normalized]
+		if exports == nil then
+			error(normalized .. " is not a definition file loaded before this one — include objectives.lua")
+		end
+		if exports == false then
+			error(normalized .. " returned nothing to include — return the handles the other files need")
+		end
+		return exports
+	end
+
 	local contributions = loadContributions()
 
 	for key in pairs(contributedContext) do
@@ -346,6 +389,8 @@ local function loadMission(missionName, preserve)
 			end
 		end
 	end
+	local objectiveDecls = nil ---@type MissionObjectiveDeclarationEntry[]|nil
+	local declaredObjectives = nil ---@type table<string, boolean>|nil
 	local parsed, err = pcall(function()
 		local function checkInputs()
 			for _, trigger in ipairs(staging.Triggers()) do
@@ -363,15 +408,86 @@ local function loadMission(missionName, preserve)
 				end
 			end
 		end
+		-- The definition site parses first: objectives.lua declares the ids the
+		-- trigger files may speak.
+		local objectivesPath = MISSIONS_DIR .. missionName .. "/objectives.lua"
+		if VFS.FileExists(objectivesPath) then
+			local filename = missionName .. "/objectives.lua"
+			local file = Objectives.ForFile(filename, function(id, verb)
+				return Objective(id)[verb]()
+			end)
+			local env = {
+				Objective = file.Objective,
+				Team = { Player = playerTeam },
+				UnitDef = Verbs.UnitDef,
+				VFS = sandboxVFS,
+			}
+			local finalizeContributions = contribute(filename, env)
+			local exports = VFS.Include(objectivesPath, env)
+			objectiveDecls = file.Finalize(exports)
+			included[objectivesPath] = exports or false
+			finalizeContributions()
+			declaredObjectives = {}
+			for _, decl in ipairs(objectiveDecls) do
+				declaredObjectives[decl.id] = true
+			end
+
+			local derived = DSL.ForFile(filename, staging.Register)
+			-- standing objectives (no completion) are transparent to the cadence:
+			-- a line that never completes must not dam it
+			local prevCompletable = nil
+			for _, decl in ipairs(objectiveDecls) do
+				-- one trigger per disjunct; Complete is idempotent, so a second way firing later is a no-op
+				for _, group in ipairs(decl.completions) do
+					local chain = derived.When(group[1])
+					for i = 2, #group do
+						chain = chain.When(group[i])
+					end
+					for _, gate in ipairs(decl.gates or {}) do
+						chain = chain.When(gate)
+					end
+					chain.Do(Objective(decl.id).Complete())
+				end
+				local revealedWhen = decl.revealedWhen
+				if revealedWhen == nil and prevCompletable ~= nil then
+					revealedWhen = Objective(prevCompletable.id).IsComplete()
+				end
+				if revealedWhen ~= nil then
+					derived.When(revealedWhen).Do(Objective(decl.id).Reveal())
+				else
+					decl.revealAtArm = true
+				end
+				if #decl.completions > 0 then
+					prevCompletable = decl
+				end
+			end
+			derived.Finalize()
+		end
+
 		for _, filePath in ipairs(files) do
 			-- mission-relative so ids survive install-path differences
 			local filename = filePath:sub(#MISSIONS_DIR + 1)
 			local file = DSL.ForFile(filename, staging.Register)
+			local ObjectiveVerb = Objective
+			if declaredObjectives ~= nil then
+				ObjectiveVerb = function(name)
+					if not declaredObjectives[name] then
+						error(
+							filename
+								.. ': Objective("'
+								.. tostring(name)
+								.. '") — objectives.lua declares no such objective'
+						)
+					end
+					return Objective(name)
+				end
+			end
 			local env = {
 				When = file.When,
 				Team = { Player = playerTeam },
 				UnitDef = Verbs.UnitDef,
-				Objective = Objective,
+				Objective = ObjectiveVerb,
+				VFS = sandboxVFS,
 			}
 			local finalizeContributions = contribute(filename, env)
 			VFS.Include(filePath, env)
@@ -412,6 +528,7 @@ local function loadMission(missionName, preserve)
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
 	Spring.SetGameRulesParam("mission_name", missionName)
+	publishObjectives(objectiveDecls)
 	Spring.Echo(
 		"["
 			.. LOG_TAG
