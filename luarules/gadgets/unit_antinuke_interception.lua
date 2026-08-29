@@ -139,7 +139,7 @@ end
 
 local function getDistanceOver(warhead, speed, frames)
 	local acceleration = warhead.acceleration
-	local accelFrames = 0
+	local accelFrames = 0.0
 	if acceleration > 0 then
 		accelFrames = math_clamp((warhead.speedMax - speed) / acceleration, 0, frames)
 	end
@@ -150,6 +150,7 @@ end
 ---Get all information needed to predict future position, ignoring LOS and common sense.
 ---If the interceptor needs it for a firing solution, it gets it, some* questions asked.
 local function getWarheadState(projectileID, tracked)
+	---@diagnostic disable: param-type-mismatch, need-check-nil --- each var reads as `number?`
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	if not px then
 		return
@@ -166,9 +167,9 @@ local function getWarheadState(projectileID, tracked)
 
 	local horizontal = math_diag(vx, vz)
 	local ascending = horizontal <= 0 or sinCurrent < -sinAtLevel
-	local hx, hz = 0, 0
+	local hx, hz = 0.0, 0.0
 
-	local leadFrames = 0
+	local leadFrames = 0.0
 	if not ascending then
 		hx, hz = vx / horizontal, vz / horizontal
 	else
@@ -181,7 +182,7 @@ local function getWarheadState(projectileID, tracked)
 		end
 		hx, hz = dx / bearing, dz / bearing
 
-		local climb = math_max(0, tracked.cruiseY - py)
+		local climb = math_max(0.0, tracked.cruiseY - py)
 		leadFrames = getFramesOver(warhead, speed, climb) + (math_pi * 0.5 / warhead.turnRate)
 
 		speed = getSpeedAfter(warhead, speed, climb)
@@ -218,13 +219,14 @@ local function getWarheadState(projectileID, tracked)
 		ascending = ascending,
 		leadFrames = leadFrames,
 	}
+	---@diagnostic enable: param-type-mismatch
 end
 
 local function predictWarhead(warhead, state, frames)
 	local distance = getDistanceOver(warhead, state.speed, frames)
 	local radius = state.diveRadius
 	local angle = math_asin(math_clamp(state.sinDive, 0, 1))
-	local cruise = math_max(0, state.groundDistance - radius)
+	local cruise = math_max(0.0, state.groundDistance - radius)
 
 	if distance <= cruise then
 		return state.px + state.hx * distance, state.py, state.pz + state.hz * distance
@@ -259,7 +261,7 @@ local function getStandoffFrames(warhead, tracked, state, ux, uy, uz)
 		return 0 -- near
 	end
 
-	local lo, hi = 0, 8
+	local lo, hi = 0.0, 8.0
 	for _ = 1, 10 do
 		px, py, pz = predictWarhead(warhead, state, hi)
 		if isInsideBlast(tracked, px, py, pz, ux, uy, uz) then
@@ -303,7 +305,7 @@ local function getFlightFrames(weapon, lx, ly, lz, tx, ty, tz)
 
 	local angleRise = math_atan2(dy, ground)
 	local turnFrames = math_max(0, math_pi * 0.5 - angleRise) / weapon.turnRate
-	local turned = math_max(0, slant - speed / weapon.turnRate * math_cos(angleRise))
+	local turned = math_max(0.0, slant - speed / weapon.turnRate * math_cos(angleRise))
 	local runFrames = (math_sqrt(speed * speed + 2 * weapon.acceleration * turned) - speed) / weapon.acceleration
 
 	return upFrames + turnFrames + runFrames -- gross
@@ -458,6 +460,7 @@ local function planInterception(projectileID, missile)
 		return false
 	end
 
+	---@diagnostic disable: need-check-nil --- too many vars to assert, all `number?`
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local vx, vy, vz, speed = spGetProjectileVelocity(projectileID)
 	local state = getWarheadState(missile.warheadID, tracked)
@@ -498,6 +501,7 @@ local function planInterception(projectileID, missile)
 	missile.aimX, missile.aimY, missile.aimZ = ax, ay, az
 	scheduleAt(projectileID, gameFrame + claimFrame)
 	return true
+	---@diagnostic enable: need-check-nil
 end
 
 local function armInterception(projectileID, missile)
@@ -572,7 +576,7 @@ local function registerWarhead(projectileID, weaponDefID)
 		return
 	end
 
-	local warhead = interceptables[weaponDefID]
+	local warhead = interceptables[weaponDefID] ---@type table
 
 	warheads[projectileID] = {
 		projectileID = projectileID,
@@ -592,7 +596,7 @@ local function registerMissile(projectileID, weaponDefID)
 		return
 	end
 
-	local weapon = interceptors[weaponDefID]
+	local weapon = interceptors[weaponDefID] ---@type table
 	local missile = {
 		weapon = weapon,
 		warheadID = target,
