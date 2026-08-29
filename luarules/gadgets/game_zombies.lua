@@ -344,6 +344,26 @@ local function initializeZombieAI(unitID, unitDefID)
 	end
 end
 
+local function applyZombieBuildRangeBonus(unitID, unitDefID)
+	local unitDef = unitDefs[unitDefID]
+	local originalBuildDistance = unitDef and unitDef.buildDistance
+	if not originalBuildDistance or originalBuildDistance <= 0 then
+		return
+	end
+	local losRadius = unitDef.losRadius or unitDef.sightDistance or 0
+	local boostedBuildDistance = math.max(originalBuildDistance, losRadius)
+	spring.SetUnitBuildParams(unitID, "buildDistance", boostedBuildDistance)
+end
+
+local function restoreOriginalBuildRange(unitID, unitDefID)
+	local unitDef = unitDefs[unitDefID]
+	local originalBuildDistance = unitDef and unitDef.buildDistance
+	if not originalBuildDistance or originalBuildDistance <= 0 then
+		return
+	end
+	spring.SetUnitBuildParams(unitID, "buildDistance", originalBuildDistance)
+end
+
 local function rollSpawnCount()
 	return random(currentZombieConfig.countMin, currentZombieConfig.countMax)
 end
@@ -432,6 +452,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 				spring.TransferUnit(unitID, scavTeamID)
 			else
 				initializeZombieAI(unitID, unitDefToCreate)
+				applyZombieBuildRangeBonus(unitID, unitDefToCreate)
 			end
 		end
 	end
@@ -472,6 +493,9 @@ local function setZombie(unitID)
 
 	spring.SetUnitRulesParam(unitID, "zombie", 1)
 	initializeZombieAI(unitID, unitDefID)
+	if spring.GetUnitTeam(unitID) == gaiaTeamID then
+		applyZombieBuildRangeBonus(unitID, unitDefID)
+	end
 end
 
 function gadget:FeatureBuildStepPost(featureID)
@@ -667,6 +691,9 @@ function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, 
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if oldTeam == gaiaTeamID and newTeam ~= gaiaTeamID and isZombie(unitID) then
+		restoreOriginalBuildRange(unitID, unitDefID)
+	end
 	if pendingZombieCaptures[unitID] then
 		pendingZombieCaptures[unitID] = nil
 		if not isZombie(unitID) then

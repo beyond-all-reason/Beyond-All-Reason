@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "August 2026",
 		license = "GNU GPL, v2 or later",
-		layer = 3,
+		layer = 3, -- after game_zombies.lua
 		enabled = true,
 	}
 end
@@ -16,35 +16,44 @@ end
 
 local spring = Spring
 local modOptions = spring.GetModOptions()
+local random = math.random
+local distance2dSquared = math.distance2dSquared
+local TAU = 2 * math.pi
+local cos = math.cos
+local sin = math.sin
+local atan2 = math.atan2
+local DEGREES_TO_RADIANS = math.pi / 180
 
-local ZOMBIE_MAX_ORDER_ATTEMPTS = 10
-local ZOMBIE_FACTORY_BUILD_COUNT = 20
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3
 local STUCK_CHECK_INTERVAL = Game.gameSpeed * 12
+local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
+local AGGRO_DURATION = Game.gameSpeed * 60
+local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
+
 local STUCK_DISTANCE = 50
-local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE * STUCK_DISTANCE
-local MAX_NOGO_ZONES = 10
+local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
 local NOGO_ZONE_RADIUS = 600
-local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS
+local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
 local ORDER_DISTANCE = 1600
 local OBJECTIVE_REACHED_DISTANCE = 200
-local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE * OBJECTIVE_REACHED_DISTANCE
-local AGGRO_DURATION = Game.gameSpeed * 60
-local AGGRO_MIN_START_FRAME = Game.gameSpeed * 60 * 15
-local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1
-local AGGRO_CHECK_INTERVAL = Game.gameSpeed * 30
-local CLOSER_VARIANCE = 0.5
-local COMBAT_SECONDARY_ANGLE_OFFSET = math.pi / 4
-local COMBAT_SECONDARY_ANGLE_COS = math.cos(COMBAT_SECONDARY_ANGLE_OFFSET)
-local COMBAT_SECONDARY_ANGLE_SIN = math.sin(COMBAT_SECONDARY_ANGLE_OFFSET)
+local OBJECTIVE_REACHED_DISTANCE_SQUARED = OBJECTIVE_REACHED_DISTANCE ^ 2
 local COMBAT_TARGET_MOVE_REFRESH_DISTANCE = 100
-local COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED =
-	COMBAT_TARGET_MOVE_REFRESH_DISTANCE * COMBAT_TARGET_MOVE_REFRESH_DISTANCE
-local NORMAL_OBJECTIVE_ANGLE_VARIANCE = math.pi / 2
-local AGGRO_OBJECTIVE_ANGLE_VARIANCE = math.pi / 8
+local COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED = COMBAT_TARGET_MOVE_REFRESH_DISTANCE ^ 2
 local POSITION_VARIANCE = 50
 local BLOCK_CHECK_STEP = 15
+
+local ZOMBIE_MAX_ORDER_ATTEMPTS = 10
+local ZOMBIE_FACTORY_BUILD_COUNT = 20
+local MAX_NOGO_ZONES = 10
+local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1
+local COMBAT_ENGAGE_RANGE_RATIO = 0.5
+
+local NORMAL_OBJECTIVE_ANGLE_VARIANCE = 90 * DEGREES_TO_RADIANS
+local AGGRO_OBJECTIVE_ANGLE_VARIANCE = 22.5 * DEGREES_TO_RADIANS
+local COMBAT_SECONDARY_ANGLE_OFFSET = 45 * DEGREES_TO_RADIANS
+local COMBAT_SECONDARY_ANGLE_COS = cos(COMBAT_SECONDARY_ANGLE_OFFSET)
+local COMBAT_SECONDARY_ANGLE_SIN = sin(COMBAT_SECONDARY_ANGLE_OFFSET)
 
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
@@ -60,6 +69,7 @@ local MOVE_STATE_HOLD_POSITION = 0
 local ENABLE_REPEAT = 1
 local NULL_ATTACKER = -1
 local ENVIRONMENTAL_DAMAGE_ID = Game.envDamageTypes.GroundCollision
+
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 local MAP_PERIMETER = 2 * (MAP_SIZE_X + MAP_SIZE_Z)
@@ -83,14 +93,7 @@ local spGetUnitHeight = spring.GetUnitHeight
 local spGetUnitTeam = spring.GetUnitTeam
 local spGetUnitsInCylinder = spring.GetUnitsInCylinder
 local spAreTeamsAllied = spring.AreTeamsAllied
-local random = math.random
-local distance2dSquared = math.distance2dSquared
-local TAU = 2 * math.pi
-local cos = math.cos
-local sin = math.sin
-local atan2 = math.atan2
 
-local unitDefs = UnitDefs
 local gaiaTeamID = spring.GetGaiaTeamID()
 local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
 local scavTeamID
@@ -102,12 +105,27 @@ for _, teamID in ipairs(spring.GetTeamList()) do
 	end
 end
 
+local ordersEnabled = true
+local isPacified = false
+local autoOrdersSuspended = false
+local gameFrame = 0
+local totalZombiePower = 0
+local aggroExpirationTimestamp = 0
+
 local mobileUnitDefs = {}
 local factoriesWithCombatOptions = {}
 local unitDefWeaponRanges = {}
 local capturingUnits = {}
+local zombieAggros = {}
+local allyTeamUnits = {}
+local unitAllyTeamIDs = {}
+local unitAllyTeamIndices = {}
+local zombieWatch = {}
+local flyingUnits = {}
+local zombieOrderBuckets = {}
+local zombieStuckBuckets = {}
 
-for unitDefID, unitDef in pairs(unitDefs) do
+for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canCapture then
 		capturingUnits[unitDefID] = true
 	end
@@ -162,7 +180,7 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	end
 end
 
-for unitDefID, unitDef in pairs(unitDefs) do
+for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.speed > 0 then
 		mobileUnitDefs[unitDefID] = true
 	elseif #unitDef.buildOptions > 0 then
@@ -178,21 +196,6 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		end
 	end
 end
-
-local ordersEnabled = true
-local isPacified = false
-local autoOrdersSuspended = false
-local gameFrame = 0
-local totalZombiePower = 0
-local aggroExpirationTimestamp = 0
-local zombieAggros = {}
-local allyTeamUnits = {}
-local unitAllyTeamIDs = {}
-local unitAllyTeamIndices = {}
-local zombieWatch = {}
-local flyingUnits = {}
-local zombieOrderBuckets = {}
-local zombieStuckBuckets = {}
 
 for bucketIndex = 1, ZOMBIE_ORDER_CHECK_INTERVAL do
 	zombieOrderBuckets[bucketIndex] = {}
@@ -218,26 +221,13 @@ local function unwatchZombie(unitID)
 		return
 	end
 	totalZombiePower = totalZombiePower - zombieData.power
-	removeZombieFromBucket(
-		unitID,
-		zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1],
-		zombieData.orderBucketIndex,
-		"orderBucketIndex"
-	)
-	removeZombieFromBucket(
-		unitID,
-		zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1],
-		zombieData.stuckBucketIndex,
-		"stuckBucketIndex"
-	)
+	removeZombieFromBucket(unitID, zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1], zombieData.orderBucketIndex, "orderBucketIndex")
+	removeZombieFromBucket(unitID, zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1], zombieData.stuckBucketIndex, "stuckBucketIndex")
 	zombieWatch[unitID] = nil
 	zombieAggros[unitID] = nil
 end
 
-local function refreshAggroExpiration()
-	if gameFrame >= aggroExpirationTimestamp then
-		spring.Echo("Zombies aggro")
-	end
+local function setAggroExpiration()
 	aggroExpirationTimestamp = gameFrame + AGGRO_DURATION
 end
 
@@ -255,10 +245,6 @@ local function getActiveZombieAggro(unitID)
 		return nil
 	end
 	return zombieAggros[unitID]
-end
-
-local function compareZombiePowerDescending(firstZombie, secondZombie)
-	return firstZombie.power > secondZombie.power
 end
 
 local function assignZombieAggroEvenly()
@@ -332,7 +318,9 @@ local function assignZombieAggroEvenly()
 		return
 	end
 
-	table.sort(sortedZombies, compareZombiePowerDescending)
+	table.sort(sortedZombies, function(firstZombie, secondZombie)
+		return firstZombie.power > secondZombie.power
+	end)
 
 	local eligibleIndex = 1
 	for zombieIndex = 1, #sortedZombies do
@@ -411,7 +399,7 @@ local function getWeaponRangeForTarget(attackerDefID, targetID, targetYPosition)
 		return
 	end
 	local targetDefID = spGetUnitDefID(targetID)
-	local targetDef = targetDefID and unitDefs[targetDefID]
+	local targetDef = targetDefID and UnitDefs[targetDefID]
 	local weaponRange
 	if flyingUnits[targetID] or (targetDef and targetDef.canFly) then
 		weaponRange = weaponRanges.air
@@ -440,7 +428,7 @@ local function getCombatTargetData(unitDefID, targetID)
 	local targetDefID = spGetUnitDefID(targetID)
 	local shouldCapture = capturingUnits[unitDefID]
 		and targetDefID
-		and unitDefs[targetDefID].capturable ~= false
+		and UnitDefs[targetDefID].capturable ~= false
 		or false
 	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetY)
 	if shouldCapture or weaponRange then
@@ -650,9 +638,7 @@ local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX,
 	local deltaZ = objective.z - originZ
 	local objectiveDistance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
 	local objectiveAngle = atan2(deltaZ, deltaX)
-	local angleVariance = objective.type == OBJECTIVE_TYPE_AGGRO
-		and AGGRO_OBJECTIVE_ANGLE_VARIANCE
-		or NORMAL_OBJECTIVE_ANGLE_VARIANCE
+	local angleVariance = objective.type == OBJECTIVE_TYPE_AGGRO and AGGRO_OBJECTIVE_ANGLE_VARIANCE or NORMAL_OBJECTIVE_ANGLE_VARIANCE	
 
 	for attemptIndex = 1, ZOMBIE_MAX_ORDER_ATTEMPTS do
 		local movementAngle
@@ -737,7 +723,7 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		clearUnitOrders(unitID)
 		return
 	end
-	local desiredRange = weaponRange * CLOSER_VARIANCE
+	local desiredRange = weaponRange * COMBAT_ENGAGE_RANGE_RATIO
 	local targetMoveX = targetX + deltaX / distance * desiredRange
 	local targetMoveZ = targetZ + deltaZ / distance * desiredRange
 	if targetMoveX < 0 or targetMoveX > MAP_SIZE_X or targetMoveZ < 0 or targetMoveZ > MAP_SIZE_Z then
@@ -785,8 +771,8 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		rotationDirection = -rotationDirection
 	end
 	if not issuedSecondaryMove then
-		local secondaryTargetX = targetX + radialX * CLOSER_VARIANCE
-		local secondaryTargetZ = targetZ + radialZ * CLOSER_VARIANCE
+		local secondaryTargetX = targetX + radialX * COMBAT_ENGAGE_RANGE_RATIO
+		local secondaryTargetZ = targetZ + radialZ * COMBAT_ENGAGE_RANGE_RATIO
 		local secondaryTargetY = spGetGroundHeight(secondaryTargetX, secondaryTargetZ)
 		if spTestMoveOrder(unitDefID, secondaryTargetX, secondaryTargetY, secondaryTargetZ) then
 			spGiveOrderToUnit(
@@ -896,7 +882,7 @@ local function initializeZombie(unitID, unitDefID)
 	if not unitX then
 		return
 	end
-	local unitDef = unitDefs[unitDefID]
+	local unitDef = UnitDefs[unitDefID]
 	local unitPower = unitDef and unitDef.power or 0
 	zombieWatch[unitID] = {
 		unitDefID = unitDefID,
@@ -942,6 +928,38 @@ local function pacifyZombies(enabled)
 	end
 end
 
+local function hasGameEndExplosionStarted()
+	if not GG.maxDeathFrame then
+		return false
+	end
+	local livingAllyTeams = 0
+	local allyTeamList = spring.GetAllyTeamList()
+	for allyIndex = 1, #allyTeamList do
+		local teamList = spring.GetTeamList(allyTeamList[allyIndex])
+		local allyTeamIsAlive = false
+		for teamIndex = 1, #teamList do
+			local teamID = teamList[teamIndex]
+			if teamID ~= gaiaTeamID then
+				local teamLuaAI = spring.GetTeamLuaAI(teamID)
+				if not (teamLuaAI and (string.find(teamLuaAI, "Scavengers", 1, true) or string.find(teamLuaAI, "Raptors", 1, true))) then
+					local _, _, isDead = spring.GetTeamInfo(teamID)
+					if not isDead then
+						allyTeamIsAlive = true
+						break
+					end
+				end
+			end
+		end
+		if allyTeamIsAlive then
+			livingAllyTeams = livingAllyTeams + 1
+			if livingAllyTeams > 1 then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 local function suspendAutoOrders(enabled)
 	autoOrdersSuspended = enabled
 	ordersEnabled = not isPacified and not autoOrdersSuspended
@@ -961,7 +979,7 @@ local function aggroAllZombiesToAllyTeam(allyTeamID)
 	end
 
 	if markedAny then
-		refreshAggroExpiration()
+		setAggroExpiration()
 	end
 	return markedAny
 end
@@ -1001,7 +1019,7 @@ local function updateAggro()
 	local powerCheckSucceeded = totalZombiePower > totalPlayerPower * AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO
 	if powerCheckSucceeded then
 		assignZombieAggroEvenly()
-		refreshAggroExpiration()
+		setAggroExpiration()
 	else
 		zombieAggros = {}
 		aggroExpirationTimestamp = 0
@@ -1136,6 +1154,9 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+	if not isPacified and hasGameEndExplosionStarted() then
+		pacifyZombies(true)
+	end
 	updateAggro()
 	updateZombieOrders()
 	updateStuckZombies()
