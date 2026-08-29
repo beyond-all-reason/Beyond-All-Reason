@@ -57,59 +57,59 @@ local isEncodable
 --- The null function allows one to specify a null value in an associative array (which is otherwise
 -- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
 local function null()
-  return null -- so json.null() will also return null ;-)
+	return null -- so json.null() will also return null ;-)
 end
 
 --- Encodes an arbitrary Lua object / variable.
 -- @param v The Lua object / variable to be JSON encoded.
 -- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
 local function encode (v)
-  -- Handle nil values
-  if v==nil then
-    return "null"
-  end
-  
-  local vtype = base.type(v)  
+	-- Handle nil values
+	if v==nil then
+	return "null"
+	end
+	
+	local vtype = base.type(v)  
 
-  -- Handle strings
-  if vtype=='string' then    
-    return '"' .. encodeString(v) .. '"'	    -- Need to handle encoding in string
-  end
-  
-  -- Handle booleans
-  if vtype=='number' or vtype=='boolean' then
-    return base.tostring(v)
-  end
-  
-  -- Handle tables
-  if vtype=='table' then
-    local rval = {}
-    -- Consider arrays separately
-    local bArray, maxCount = isArray(v)
-    if bArray then
-      for i = 1,maxCount do
-        table.insert(rval, encode(v[i]))
-      end
-    else	-- An object, not an array
-      for i,j in base.pairs(v) do
-        if isEncodable(i) and isEncodable(j) then
-          table.insert(rval, '"' .. encodeString(i) .. '":' .. encode(j))
-        end
-      end
-    end
-    if bArray then
-      return '[' .. table.concat(rval,',') ..']'
-    else
-      return '{' .. table.concat(rval,',') .. '}'
-    end
-  end
-  
-  -- Handle null values
-  if vtype=='function' and v==null then
-    return 'null'
-  end
-  
-  base.assert(false,'encode attempt to encode unsupported type ' .. vtype .. ':' .. base.tostring(v))
+	-- Handle strings
+	if vtype=='string' then    
+	return '"' .. encodeString(v) .. '"'	    -- Need to handle encoding in string
+	end
+	
+	-- Handle booleans
+	if vtype=='number' or vtype=='boolean' then
+	return base.tostring(v)
+	end
+	
+	-- Handle tables
+	if vtype=='table' then
+	local rval = {}
+	-- Consider arrays separately
+	local bArray, maxCount = isArray(v)
+	if bArray then
+		for i = 1,maxCount do
+		table.insert(rval, encode(v[i]))
+		end
+	else	-- An object, not an array
+		for i,j in base.pairs(v) do
+		if isEncodable(i) and isEncodable(j) then
+			table.insert(rval, '"' .. encodeString(i) .. '":' .. encode(j))
+		end
+		end
+	end
+	if bArray then
+		return '[' .. table.concat(rval,',') ..']'
+	else
+		return '{' .. table.concat(rval,',') .. '}'
+	end
+	end
+	
+	-- Handle null values
+	if vtype=='function' and v==null then
+	return 'null'
+	end
+	
+	base.assert(false,'encode attempt to encode unsupported type ' .. vtype .. ':' .. base.tostring(v))
 end
 
 
@@ -210,9 +210,19 @@ end
 -- This just involves back-quoting inverted commas, back-quotes and newlines, I think ;-)
 -- @param s The string to return as a JSON encoded (i.e. backquoted string)
 -- @return The string appropriately escaped.
-local qrep = {["\\"]="\\\\", ['"']='\\"',['\n']='\\n',['\t']='\\t'}
+local qrep = {["\\"]="\\\\", ['"']='\\"',['\b']='\\b',['\f']='\\f',['\n']='\\n',['\r']='\\r',['\t']='\\t'}
+
+-- Writing control characters produces a broken file unless properly escaped.
+-- All shorthand escapes are listed above; the rest must encode into \uXXXX,
+-- which we also decode on the way in to keep a single properly copied json.
+for byte=0,0x1f do
+	local char = string.char(byte)
+	if not qrep[char] then
+	qrep[char] = string.format("\\u%04x", byte)
+	end
+end
 function encodeString(s)
-  return tostring(s):gsub('["\\\n\t]',qrep)
+	return (tostring(s):gsub('[%z\1-\31"\\]',qrep))
 end
 
 -- Determines whether the given Lua type is an array or a table / dictionary.
@@ -224,22 +234,22 @@ end
 -- the second returned value is the maximum
 -- number of indexed elements in the array. 
 function isArray(t)
-  -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
-  -- (with the possible exception of 'n')
-  local maxIndex = 0
-  for k,v in base.pairs(t) do
-    if (base.type(k)=='number' and math.floor(k)==k and 1<=k) then	-- k,v is an indexed pair
-      if (not isEncodable(v)) then return false end	-- All array elements must be encodable
-      maxIndex = math.max(maxIndex,k)
-    else
-      if (k=='n') then
-        if v ~= table.getn(t) then return false end  -- False if n does not hold the number of elements
-      else -- Else of (k=='n')
-        if isEncodable(v) then return false end
-      end  -- End of (k~='n')
-    end -- End of k,v not an indexed pair
-  end  -- End of loop across all pairs
-  return true, maxIndex
+	-- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
+	-- (with the possible exception of 'n')
+	local maxIndex = 0
+	for k,v in base.pairs(t) do
+	if (base.type(k)=='number' and math.floor(k)==k and 1<=k) then	-- k,v is an indexed pair
+		if (not isEncodable(v)) then return false end	-- All array elements must be encodable
+		maxIndex = math.max(maxIndex,k)
+	else
+		if (k=='n') then
+		if v ~= table.getn(t) then return false end  -- False if n does not hold the number of elements
+		else -- Else of (k=='n')
+		if isEncodable(v) then return false end
+		end  -- End of (k~='n')
+	end -- End of k,v not an indexed pair
+	end  -- End of loop across all pairs
+	return true, maxIndex
 end
 
 --- Determines whether the given Lua object / table / variable can be JSON encoded. The only
@@ -248,8 +258,8 @@ end
 -- @param o The object to examine.
 -- @return boolean True if the object should be JSON encoded, false if it should be ignored.
 function isEncodable(o)
-  local t = base.type(o)
-  return (t=='string' or t=='boolean' or t=='number' or t=='nil' or t=='table') or (t=='function' and o==null) 
+	local t = base.type(o)
+	return (t=='string' or t=='boolean' or t=='number' or t=='nil' or t=='table') or (t=='function' and o==null) 
 end
 
 local instrumentedDecode
@@ -531,8 +541,7 @@ do
 		function read_value (t,fromt)
 			if t == tt_object_key         then return read_object_key({}) end
 			if t == tt_array_separator    then return read_array({}) end
-			if t == tt_singlequote_string or 
-			   t == tt_doublequote_string then return read_string(t) end
+			if t == tt_singlequote_string or t == tt_doublequote_string then return read_string(t) end
 			if t == tt_numeric            then return read_num() end
 			if t == tt_boolean            then return read_bool() end	
 			if t == tt_null               then return read_null() end
