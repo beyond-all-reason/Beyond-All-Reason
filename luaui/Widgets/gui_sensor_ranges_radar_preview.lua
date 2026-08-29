@@ -98,6 +98,7 @@ local shaderConfig = {
 	PULSE_SPEED = 85.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
 	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
+	PULSE_SYMMETRIC = 1, -- 1: rings fade in and out (smooth bell), 0: sharp leading edge that fades out behind it
 	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
 	RIM_STRENGTH = 0.22, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
