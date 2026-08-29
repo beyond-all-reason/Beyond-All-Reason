@@ -19,7 +19,6 @@ env:
   # so we check our findings against a number of initial diagnostic runs' state
   RUNS: 3
 
-  # Type errors are largely absorbed already so do not matter on the base pass.
   # Net new warnings on the lines the PR wrote, per thousand changed lines.
   # Reduced by the warnings resolved in the same files as the changed hunk.
   WARN_ADDED_PER_KLOC: 15
