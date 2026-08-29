@@ -45,44 +45,15 @@ jobs:
           filter: blob:none
           # Cone mode cannot filter correctly for our repo, picks up asset files, etc.
           sparse-checkout-cone-mode: false
+          # type_check.yml is pulled so the base cache key can hash it.
           sparse-checkout: |
             /.emmyrc.json
             /.gitmodules
             /.github/scripts
+            /.github/workflows/type_check.yml
             /recoil-lua-library
             *.lua
 
-      - name: Checkout base
-        if: github.event_name == 'pull_request'
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: base
-          submodules: recursive
-          filter: blob:none
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            /.emmyrc.json
-            /.gitmodules
-            /recoil-lua-library
-            *.lua
-
-      - name: Install emmylua_check
-        run: |
-          set -euo pipefail
-          ARCH=$(uname -m)
-          case "$ARCH" in
-            x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
-            aarch64) ASSET=emmylua_check-linux-aarch64-glibc.2.17.tar.gz ;;
-            *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
-          esac
-          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
-          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
-          sudo chmod +x /usr/local/bin/emmylua_check
-          /usr/local/bin/emmylua_check --version
-
-      # This runs is shared for both workspace and pull request scopes.
-      # We write the same basic report out since emmylua has no scoped mode.
       - name: Describe the change
         id: describe
         if: github.event_name == 'pull_request'
@@ -104,6 +75,7 @@ jobs:
           else
             echo "HEAD is not a merge commit, so the event's base sha stands."
           fi
+          echo "base-sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
           git -C head fetch --no-tags --depth=1 origin "$BASE_SHA"
 
@@ -174,22 +146,84 @@ jobs:
           echo "CHANGED_FILE_LINES=$file_lines" >> "$GITHUB_ENV"
           echo "$file_lines line(s) in the changed files."
 
+      # Either we need a new base checkout and analysis, or we restore from cache.
+      # Missing is preferable, since it only costs time, so only exact matches hit.
+      # Finally, reports use absolute paths, so require a constant GITHUB_WORKSPACE.
+      - name: Restore base diagnostics
+        id: base-cache
+        if: github.event_name == 'pull_request' && steps.describe.outputs.lua == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: base-reports
+          key: emmylua-base-${{ env.EMMYLUA_VERSION }}-${{ steps.describe.outputs.base-sha }}-${{ hashFiles('head/.github/workflows/type_check.yml') }}
+
+      - name: Checkout base
+        if: >-
+          github.event_name == 'pull_request'
+          && steps.describe.outputs.lua == 'true'
+          && steps.base-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v5
+        with:
+          # The exact SHA the diff was taken against.
+          ref: ${{ steps.describe.outputs.base-sha }}
+          path: base
+          submodules: recursive
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.emmyrc.json
+            /.gitmodules
+            /recoil-lua-library
+            *.lua
+
+      - name: Install emmylua_check
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
+        run: |
+          set -euo pipefail
+          ARCH=$(uname -m)
+          case "$ARCH" in
+            x86_64)  ASSET=emmylua_check-linux-x64.tar.gz ;;
+            aarch64) ASSET=emmylua_check-linux-aarch64-glibc.2.17.tar.gz ;;
+            *) echo "unsupported arch for emmylua_check: $ARCH" >&2; exit 1 ;;
+          esac
+          URL="https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_VERSION}/${ASSET}"
+          curl -fsSL "$URL" | sudo tar xz -C /usr/local/bin
+          sudo chmod +x /usr/local/bin/emmylua_check
+          /usr/local/bin/emmylua_check --version
+
+      # These runs are shared for both workspace and pull request scopes.
+      # We write the same basic report out since emmylua has no scoped mode.
       - name: Run emmylua_check
         if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
+        env:
+          BASE_CACHED: ${{ steps.base-cache.outputs.cache-hit }}
         run: |
           # A manual run has nothing to compare against (yet) so it runs once.
           sides="head"
           runs=1
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            sides="base head"
             runs="$RUNS"
+            sides="base head"
+
+            # A restored base was written by an earlier run of this same job.
+            if [ "$BASE_CACHED" = "true" ]; then
+              for run in $(seq 1 "$runs"); do
+                if [ ! -s "base-reports/$run.json" ] || ! jq -e . "base-reports/$run.json" > /dev/null 2>&1; then
+                  echo "::error title=Type check cache is broken::The restored base diagnostics are missing or unreadable at run $run. This is a CI defect, not a problem with this PR; bump the cache key in type_check.yml or drop the entry."
+                  exit 1
+                fi
+              done
+              echo "Base diagnostics restored from cache, skipping $runs base run(s)."
+              sides="head"
+            fi
           fi
 
           for side in $sides; do
+            mkdir -p "$side-reports"
             for run in $(seq 1 "$runs"); do
               # A nonzero exit only means findings exist, which is always true.
               ( cd "$side" && emmylua_check -c .emmyrc.json -f json \
-                  --output "$GITHUB_WORKSPACE/$side-$run.json" . ) \
+                  --output "$GITHUB_WORKSPACE/$side-reports/$run.json" . ) \
                 > "$side-$run.log" 2>&1 || true
 
               # Without its config emmylua analyses the tree unconfigured and
@@ -198,13 +232,23 @@ jobs:
                 echo "::error title=Type check ran without its config::emmylua_check could not load $side/.emmyrc.json (missing or unparseable) and analyzed the tree unconfigured, so every finding is garbage. This is a CI defect, not a problem with this PR. Restore .emmyrc.json or fix type_check.yml."
                 exit 1
               fi
-              if [ ! -s "$side-$run.json" ] || ! jq -e . "$side-$run.json" > /dev/null 2>&1; then
+              if [ ! -s "$side-reports/$run.json" ] || ! jq -e . "$side-reports/$run.json" > /dev/null 2>&1; then
                 echo "::error title=Type check is broken::emmylua_check produced no readable report for $side run $run. This is a CI defect, not a problem with this PR; fix type_check.yml or its pinned emmylua_check."
                 cat "$side-$run.log"
                 exit 1
               fi
             done
           done
+
+      - name: Save base diagnostics
+        if: >-
+          github.event_name == 'pull_request'
+          && steps.describe.outputs.lua == 'true'
+          && steps.base-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: base-reports
+          key: ${{ steps.base-cache.outputs.cache-primary-key }}
 
       # Errors block outright.
       # Warnings are compared against a budget.
@@ -215,7 +259,7 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
             python3 head/.github/scripts/emmylua_compare.py \
-              --head head-*.json \
+              --head head-reports/*.json \
               --head-root "$GITHUB_WORKSPACE/head" \
               --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
               --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
@@ -226,8 +270,8 @@ jobs:
 
           set +e
           python3 head/.github/scripts/emmylua_compare.py \
-            --base base-*.json \
-            --head head-*.json \
+            --base base-reports/*.json \
+            --head head-reports/*.json \
             --base-root "$GITHUB_WORKSPACE/base" \
             --head-root "$GITHUB_WORKSPACE/head" \
             --renames renames.txt \
