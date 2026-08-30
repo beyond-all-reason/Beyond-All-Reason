@@ -34,18 +34,4 @@ EnemyLib.GetAdjustedStartBox = function(enemyAllyTeamID, spread)
 	return startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax
 end
 
--- The bounds above are only a sampling window for a shape that may not fill them, so
--- spawners pick through here rather than randomising between the bounds themselves.
-EnemyLib.GetRandomPosInStartBox = function(enemyAllyTeamID, inset, tries)
-	return StartboxLib.GetRandomPos(enemyAllyTeamID, inset, tries)
-end
-
-EnemyLib.HasStartBox = function(enemyAllyTeamID)
-	return StartboxLib.HasStartbox(enemyAllyTeamID)
-end
-
-EnemyLib.IsInStartBox = function(enemyAllyTeamID, x, z)
-	return StartboxLib.IsInside(enemyAllyTeamID, x, z)
-end
-
 return EnemyLib

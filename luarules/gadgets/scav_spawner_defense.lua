@@ -22,6 +22,7 @@ Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
 local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 local EnemyLib = VFS.Include("LuaRules/Gadgets/Include/SpawnerEnemyLib.lua")
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1149,7 +1150,7 @@ if gadgetHandler:IsSyncedCode() then
 						and ScavStartboxZMin + spread < ScavStartboxZMax - spread
 					then
 						for _ = 1, 100 do
-							spawnPosX, spawnPosZ = EnemyLib.GetRandomPosInStartBox(scavAllyTeamID, spread, 1)
+							spawnPosX, spawnPosZ = StartboxLib.GetRandomPos(scavAllyTeamID, spread, 1)
 							if not spawnPosX then
 								break
 							end
@@ -1481,7 +1482,7 @@ if gadgetHandler:IsSyncedCode() then
 		local tries = 0
 		local canSpawnBoss = false
 		repeat
-			x, z = EnemyLib.GetRandomPosInStartBox(scavAllyTeamID, 0, 1)
+			x, z = StartboxLib.GetRandomPos(scavAllyTeamID, 0, 1)
 			if not x then
 				break
 			end
@@ -1529,7 +1530,7 @@ if gadgetHandler:IsSyncedCode() then
 			return CreateUnit(config.bossName, x, y, z, mRandom(0, 3), scavTeamID)
 		else
 			for i = 1, 100 do
-				x, z = EnemyLib.GetRandomPosInStartBox(scavAllyTeamID, 0, 1)
+				x, z = StartboxLib.GetRandomPos(scavAllyTeamID, 0, 1)
 				if not x then
 					break
 				end
@@ -2541,7 +2542,7 @@ if gadgetHandler:IsSyncedCode() then
 						"No Scav start box available, Burrow Placement set to 'Avoid Players'"
 					)
 					noScavStartbox = true
-				elseif not EnemyLib.HasStartBox(scavAllyTeamID) then
+				elseif not StartboxLib.HasStartbox(scavAllyTeamID) then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(
 						gadget:GetInfo().name,
