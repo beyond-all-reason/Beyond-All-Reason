@@ -604,6 +604,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local name = widget.whInfo.name
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
+	elseif widget.whInfo.hidden then
+		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
 	err = self:ValidateWidget(widget)
@@ -626,6 +628,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
+		knownInfo.hidden = widget.whInfo.hidden
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -801,6 +804,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.author = info.author or ""
 		wi.license = info.license or ""
 		wi.enabled = info.enabled or false
+		wi.hidden = info.hidden or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -1224,6 +1228,9 @@ function widgetHandler:DisableWidgetRaw(name)
 	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
 		return false
+	end
+	if ki.hidden then
+		return false -- hidden widgets back other widgets; disabling one breaks them with no way back
 	end
 	if ki.active then
 		local w = self:FindWidget(name)
