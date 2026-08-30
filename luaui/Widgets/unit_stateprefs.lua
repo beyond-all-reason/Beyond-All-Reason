@@ -15,7 +15,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -34,7 +33,8 @@ bind alt 	stateprefs_clear
 bind ctrl 	stateprefs_record
 bind sc_\ 	stateprefs_clearunit
 
---]]------------------------------------------------------------------------------
+--]]
+------------------------------------------------------------------------------
 
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -57,7 +57,7 @@ local function pruneAllUnitPrefs()
 	end
 end
 
--- The config was previously using a seperate file, but after a bug with this file
+-- The config was previously using a separate file, but after a bug with this file
 -- it was decided to simply use the widgetHandler shared config instead.
 local function migrateOldConfig()
 	local oldConfigPath = "LuaUI/config/StatesPrefs.lua"
@@ -87,13 +87,16 @@ function widget:SetConfigData(data)
 	pruneAllUnitPrefs()
 end
 
-local clearSound = 'LuaUI/Sounds/switchoff.wav'
+local clearSound = "LuaUI/Sounds/switchoff.wav"
 local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local isRecordPressed = false
 local isClearPressed = false
 local spawnInitialFrame = Game.spawnInitialFrame
 local spawnWarpInFrame = Game.spawnWarpInFrame
 local spectatingState = select(1, Spring.GetSpectatingState())
+local priorUserFirestateFunction = nil
+
+VFS.Include("luaui/Include/user_firestate_commands.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -121,6 +124,33 @@ local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	return opts
 end
 
+local function recordUserFirestateChanged(unitID, userState)
+	if priorUserFirestateFunction then
+		priorUserFirestateFunction(unitID, userState)
+	end
+	if not isRecordPressed and not isClearPressed then
+		return
+	end
+	local selectedUnits = spGetSelectedUnits()
+	for index = 1, #selectedUnits do
+		local unitDefID = spGetUnitDefID(selectedUnits[index])
+		local name = unitName[unitDefID]
+		local prefs = unitSet[name]
+		if isClearPressed then
+			if prefs and prefs[CMD.FIRE_STATE] ~= nil then
+				prefs[CMD.FIRE_STATE] = nil
+				pruneUnitPrefs(name)
+				spEcho("State pref removed: " .. name .. ", Fire state")
+			end
+		elseif not prefs or prefs[CMD.FIRE_STATE] ~= userState then
+			prefs = prefs or {}
+			prefs[CMD.FIRE_STATE] = userState
+			unitSet[name] = prefs
+			spEcho("State pref changed:  " .. name .. ",  Fire state " .. userState)
+		end
+	end
+end
+
 function widget:PlayerChanged(playerID)
 	if Spring.GetSpectatingState() then
 		widget:GameOver()
@@ -138,25 +168,26 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_clear", onClearPress, nil, "p")
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
-	
+
+	priorUserFirestateFunction = WG.firestate.userFirestateChanged
+	WG.firestate.userFirestateChanged = recordUserFirestateChanged
 end
 
 function onRecordPress()
-  isRecordPressed = true
+	isRecordPressed = true
 end
 
 function onRecordRelease()
-  isRecordPressed = false
+	isRecordPressed = false
 end
 
 function onClearPress()
-  isClearPressed = true
+	isClearPressed = true
 end
 
 function onClearRelease()
-  isClearPressed = false
+	isClearPressed = false
 end
-
 
 function doClearUnit()
 	local selectedUnits = spGetSelectedUnits()
@@ -167,12 +198,12 @@ function doClearUnit()
 		unitSet[name] = nil
 		spEcho("All state prefs removed for unit: " .. name)
 	end
-	Spring.PlaySoundFile(clearSound , 0.6, 'ui')
+	Spring.PlaySoundFile(clearSound, 0.6, "ui")
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if not isRecordPressed and not isClearPressed then 
-		return false 
+	if not isRecordPressed and not isClearPressed then
+		return false
 	end
 
 	local index = Spring.GetCmdDescIndex(cmdID)
@@ -188,7 +219,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitDefID = spGetUnitDefID(unitID)
 		local name = unitName[unitDefID]
 		local prefs = unitSet[name]
-		
+
 		if #cmdParams == 1 and isClearPressed then
 			if prefs and prefs[cmdID] ~= nil then
 				prefs[cmdID] = nil
@@ -211,18 +242,22 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	local name = unitName[unitDefID]
 	local prefs = unitSet[name]
-	if unitTeam == Spring.GetMyTeamID() then
+	if unitTeam == Spring.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(prefs or {}) do
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
-			Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
+			if cmdID == CMD.FIRE_STATE then
+				WG.firestate.setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
+			else
+				Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
+			end
 		end
 	end
 end
 
 local function ApplyUnitStates()
-	local teamID = (not spectatingState) and Spring.GetMyTeamID()
+	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
 	if units then
 		for i = 1, #units do
@@ -251,6 +286,7 @@ function widget:GameOver()
 end
 
 function widget:Shutdown()
+	WG.firestate.userFirestateChanged = priorUserFirestateFunction
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
 	widgetHandler:RemoveAction("stateprefs_clearunit")

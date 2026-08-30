@@ -9,10 +9,9 @@ function widget:GetInfo()
 		license = "GNU GPL v3 (or later)",
 		layer = 2, -- after eco stats widget which is on layer 1; see Initialize()
 		handler = true,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathSin = math.sin
@@ -206,7 +205,7 @@ local settings = {
 	useMovingAverage = false,
 	movingAverageWindowSize = 16,
 
-	statsUpdateFrequency = 2,		 -- every 2nd frame
+	statsUpdateFrequency = 2, -- every 2nd frame
 
 	widgetScale = 0.8,
 	widgetConfig = constants.configLevel.basic,
@@ -235,28 +234,28 @@ local metricKeys = {
 }
 
 local metricsAvailable = {
-	{ key="metalIncome", configLevel=constants.configLevel.basic, text="M/s" },
-	{ key="reclaimMetalIncome", configLevel=constants.configLevel.unavailable, text="MR" },
-	{ key="energyConversionMetalIncome", configLevel=constants.configLevel.unavailable, text="EC" },
-	{ key="energyIncome", configLevel=constants.configLevel.basic, text="E/s" },
-	{ key="reclaimEnergyIncome", configLevel=constants.configLevel.unavailable, text="ER" },
-	{ key="buildPower", configLevel=constants.configLevel.expert, text="BP" },
-	{ key="metalProduced", configLevel=constants.configLevel.basic, text="MP" },
-	{ key="energyProduced", configLevel=constants.configLevel.basic, text="EP" },
-	{ key="metalExcess", configLevel=constants.configLevel.expert, text="ME" },
-	{ key="energyExcess", configLevel=constants.configLevel.expert, text="EE" },
-	{ key="armyValue", configLevel=constants.configLevel.basic, text="AV" },
-	{ key="defenseValue", configLevel=constants.configLevel.advanced, text="DV" },
-	{ key="utilityValue", configLevel=constants.configLevel.unavailable, text="UV" },
-	{ key="economyValue", configLevel=constants.configLevel.expert, text="EV" },
-	{ key="damageDealt", configLevel=constants.configLevel.advanced, text="Dmg" },
-	{ key="damageReceived", configLevel=constants.configLevel.unavailable, text="DR" },
-	{ key="damageEfficiency", configLevel=constants.configLevel.unavailable, text="D%" },
+	{ key = "metalIncome", configLevel = constants.configLevel.basic, text = "M/s" },
+	{ key = "reclaimMetalIncome", configLevel = constants.configLevel.unavailable, text = "MR" },
+	{ key = "energyConversionMetalIncome", configLevel = constants.configLevel.unavailable, text = "EC" },
+	{ key = "energyIncome", configLevel = constants.configLevel.basic, text = "E/s" },
+	{ key = "reclaimEnergyIncome", configLevel = constants.configLevel.unavailable, text = "ER" },
+	{ key = "buildPower", configLevel = constants.configLevel.expert, text = "BP" },
+	{ key = "metalProduced", configLevel = constants.configLevel.basic, text = "MP" },
+	{ key = "energyProduced", configLevel = constants.configLevel.basic, text = "EP" },
+	{ key = "metalExcess", configLevel = constants.configLevel.expert, text = "ME" },
+	{ key = "energyExcess", configLevel = constants.configLevel.expert, text = "EE" },
+	{ key = "armyValue", configLevel = constants.configLevel.basic, text = "AV" },
+	{ key = "defenseValue", configLevel = constants.configLevel.advanced, text = "DV" },
+	{ key = "utilityValue", configLevel = constants.configLevel.unavailable, text = "UV" },
+	{ key = "economyValue", configLevel = constants.configLevel.expert, text = "EV" },
+	{ key = "damageDealt", configLevel = constants.configLevel.advanced, text = "Dmg" },
+	{ key = "damageReceived", configLevel = constants.configLevel.unavailable, text = "DR" },
+	{ key = "damageEfficiency", configLevel = constants.configLevel.unavailable, text = "D%" },
 }
 local metricsEnabled = {}
 
 -- set defaults before loading values from config
-for _,metric in ipairs(metricsAvailable) do
+for _, metric in ipairs(metricsAvailable) do
 	settings.metricsEnabled[metric.key] = metric.configLevel == constants.configLevel.basic
 end
 
@@ -296,7 +295,7 @@ local function buildUnitDefs()
 
 	local function isArmyUnit(unitDefID, unitDef)
 		local isArmyUnit = #unitDef.weapons > 0 and unitDef.speed > 0
-		return isArmyUnit and not isCommander(unitDefId, unitDef)
+		return isArmyUnit and not isCommander(unitDefID, unitDef)
 	end
 
 	local function isDefenseUnit(unitDefID, unitDef)
@@ -304,13 +303,17 @@ local function buildUnitDefs()
 	end
 
 	local function isEconomyBuilding(unitDefID, unitDef)
-		return (unitDef.customParams.unitgroup == 'metal') or (unitDef.customParams.unitgroup == 'energy')
+		return (unitDef.customParams.unitgroup == "metal") or (unitDef.customParams.unitgroup == "energy")
 	end
 
 	local function isUtilityUnit(unitDefID, unitDef)
 		-- anything that is not economy, army, or defense is considered utility
 		-- thus, utility serves as a catch-all for unit value that does not fall into the other categories
-		return not (isEconomyBuilding(unitDefID, unitDef) or isArmyUnit(unitDefID, unitDef) or isDefenseUnit(unitDefID, unitDef))
+		return not (
+			isEconomyBuilding(unitDefID, unitDef)
+			or isArmyUnit(unitDefID, unitDef)
+			or isDefenseUnit(unitDefID, unitDef)
+		)
 	end
 
 	unitDefsToTrack = {}
@@ -372,32 +375,25 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 	end
 
 	if unitDefsToTrack.reclaimerUnitDefs[unitDefID] then
-		addToUnitCacheInternal("reclaimerUnits", teamID, unitID,
-					   unitDefsToTrack.reclaimerUnitDefs[unitDefID])
+		addToUnitCacheInternal("reclaimerUnits", teamID, unitID, unitDefsToTrack.reclaimerUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.energyConverterDefs[unitDefID] then
-		addToUnitCacheInternal("energyConverters", teamID, unitID,
-					   unitDefsToTrack.energyConverterDefs[unitDefID])
+		addToUnitCacheInternal("energyConverters", teamID, unitID, unitDefsToTrack.energyConverterDefs[unitDefID])
 	end
 	if unitDefsToTrack.buildPowerDefs[unitDefID] then
-		addToUnitCacheInternal("buildPower", teamID, unitID,
-					   unitDefsToTrack.buildPowerDefs[unitDefID])
+		addToUnitCacheInternal("buildPower", teamID, unitID, unitDefsToTrack.buildPowerDefs[unitDefID])
 	end
 	if unitDefsToTrack.armyUnitDefs[unitDefID] then
-		addToUnitCacheInternal("armyUnits", teamID, unitID,
-					   unitDefsToTrack.armyUnitDefs[unitDefID])
+		addToUnitCacheInternal("armyUnits", teamID, unitID, unitDefsToTrack.armyUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.defenseUnitDefs[unitDefID] then
-		addToUnitCacheInternal("defenseUnits", teamID, unitID,
-					   unitDefsToTrack.defenseUnitDefs[unitDefID])
+		addToUnitCacheInternal("defenseUnits", teamID, unitID, unitDefsToTrack.defenseUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.utilityUnitDefs[unitDefID] then
-		addToUnitCacheInternal("utilityUnits", teamID, unitID,
-					   unitDefsToTrack.utilityUnitDefs[unitDefID])
+		addToUnitCacheInternal("utilityUnits", teamID, unitID, unitDefsToTrack.utilityUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.economyBuildingDefs[unitDefID] then
-		addToUnitCacheInternal("economyBuildings", teamID, unitID,
-					   unitDefsToTrack.economyBuildingDefs[unitDefID])
+		addToUnitCacheInternal("economyBuildings", teamID, unitID, unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
 end
 
@@ -422,32 +418,25 @@ local function removeFromUnitCache(teamID, unitID, unitDefID)
 	end
 
 	if unitDefsToTrack.reclaimerUnitDefs[unitDefID] then
-		removeFromUnitCacheInternal("reclaimerUnits", teamID, unitID,
-					   unitDefsToTrack.reclaimerUnitDefs[unitDefID])
+		removeFromUnitCacheInternal("reclaimerUnits", teamID, unitID, unitDefsToTrack.reclaimerUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.energyConverterDefs[unitDefID] then
-		removeFromUnitCacheInternal("energyConverters", teamID, unitID,
-					   unitDefsToTrack.energyConverterDefs[unitDefID])
+		removeFromUnitCacheInternal("energyConverters", teamID, unitID, unitDefsToTrack.energyConverterDefs[unitDefID])
 	end
 	if unitDefsToTrack.buildPowerDefs[unitDefID] then
-		removeFromUnitCacheInternal("buildPower", teamID, unitID,
-					   unitDefsToTrack.buildPowerDefs[unitDefID])
+		removeFromUnitCacheInternal("buildPower", teamID, unitID, unitDefsToTrack.buildPowerDefs[unitDefID])
 	end
 	if unitDefsToTrack.armyUnitDefs[unitDefID] then
-		removeFromUnitCacheInternal("armyUnits", teamID, unitID,
-					   unitDefsToTrack.armyUnitDefs[unitDefID])
+		removeFromUnitCacheInternal("armyUnits", teamID, unitID, unitDefsToTrack.armyUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.defenseUnitDefs[unitDefID] then
-		removeFromUnitCacheInternal("defenseUnits", teamID, unitID,
-					   unitDefsToTrack.defenseUnitDefs[unitDefID])
+		removeFromUnitCacheInternal("defenseUnits", teamID, unitID, unitDefsToTrack.defenseUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.utilityUnitDefs[unitDefID] then
-		removeFromUnitCacheInternal("utilityUnits", teamID, unitID,
-					   unitDefsToTrack.utilityUnitDefs[unitDefID])
+		removeFromUnitCacheInternal("utilityUnits", teamID, unitID, unitDefsToTrack.utilityUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.economyBuildingDefs[unitDefID] then
-		removeFromUnitCacheInternal("economyBuildings", teamID, unitID,
-					   unitDefsToTrack.economyBuildingDefs[unitDefID])
+		removeFromUnitCacheInternal("economyBuildings", teamID, unitID, unitDefsToTrack.economyBuildingDefs[unitDefID])
 	end
 end
 
@@ -539,7 +528,7 @@ local function buildUnitCache()
 				unitCache[teamID].economyBuildings = {}
 				cachedTotals[teamID].economyBuildings = 0
 				local unitIDs = Spring.GetTeamUnits(teamID)
-				for i=1,#unitIDs do
+				for i = 1, #unitIDs do
 					local unitID = unitIDs[i]
 					if not Spring.GetUnitIsBeingBuilt(unitID) then
 						local unitDefID = Spring.GetUnitDefID(unitID)
@@ -556,13 +545,15 @@ local function buildPlayerData()
 	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
 			local teamList = Spring.GetTeamList(allyID)
-			for _,teamID in ipairs(teamList) do
+			for _, teamID in ipairs(teamList) do
 				local playerName = nil
 				local playerID = Spring.GetPlayerList(teamID, false)
 				if playerID and playerID[1] then
 					-- it's a player
 					playerName = select(1, Spring.GetPlayerInfo(playerID[1], false))
-					playerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])) or playerName
+					playerName = (
+						(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID[1])
+					) or playerName
 				else
 					local aiName = Spring.GetGameRulesParam("ainame_" .. teamID)
 					if aiName then
@@ -655,24 +646,27 @@ local function buildAllyTeamTable()
 	allyTeamTable = {}
 
 	local allyTeamIndex = 1
-	for _,allyID in ipairs(Spring.GetAllyTeamList()) do
+	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
 			allyTeamTable[allyTeamIndex] = {}
 
 			local teamList = Spring.GetTeamList(allyID)
 			if teamList and teamList[1] then
-				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color) or { Spring.GetTeamColor(teamList[1]) }
+				local colorCaptain = (playerData[teamList[1]] and playerData[teamList[1]].color)
+					or { Spring.GetTeamColor(teamList[1]) }
 				allyTeamTable[allyTeamIndex].color = colorCaptain
 				allyTeamTable[allyTeamIndex].colorBar = makeDarkerColor(colorCaptain, constants.darkerBarsFactor)
 				allyTeamTable[allyTeamIndex].colorLine = makeDarkerColor(colorCaptain, constants.darkerLinesFactor)
-				allyTeamTable[allyTeamIndex].colorKnobSide = makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
-				allyTeamTable[allyTeamIndex].colorKnobMiddle = makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
+				allyTeamTable[allyTeamIndex].colorKnobSide =
+					makeDarkerColor(colorCaptain, constants.darkerSideKnobsFactor)
+				allyTeamTable[allyTeamIndex].colorKnobMiddle =
+					makeDarkerColor(colorCaptain, constants.darkerMiddleKnobFactor)
 				allyTeamTable[allyTeamIndex].name = string.format("Team %d", allyID)
 
 				allyTeamTable[allyTeamIndex].teams = {}
 
 				local teamIndex = 1
-				for _,teamID in ipairs(teamList) do
+				for _, teamID in ipairs(teamList) do
 					allyTeamTable[allyTeamIndex].teams[teamIndex] = teamID
 					teamIndex = teamIndex + 1
 				end
@@ -696,7 +690,7 @@ end
 local function buildMetricsEnabled()
 	metricsEnabled = {}
 	local index = 1
-	for _,metric in ipairs(metricsAvailable) do
+	for _, metric in ipairs(metricsAvailable) do
 		local addMetric = false
 		if settings.widgetConfig == constants.configLevel.custom then
 			if settings.metricsEnabled[metric.key] then
@@ -711,9 +705,9 @@ local function buildMetricsEnabled()
 			metricEnabled.id = index
 			metricsEnabled[index] = metricEnabled
 			local i18nTitleKey = "ui.spectator_hud." .. metricEnabled.key .. "_title"
-			metricEnabled.title = Spring.I18N(i18nTitleKey)
+			metricEnabled.title = BAR.I18N(i18nTitleKey)
 			local i18nTooltipKey = "ui.spectator_hud." .. metricEnabled.key .. "_tooltip"
-			metricEnabled.tooltip = Spring.I18N(i18nTooltipKey)
+			metricEnabled.tooltip = BAR.I18N(i18nTooltipKey)
 			index = index + 1
 		end
 	end
@@ -729,9 +723,8 @@ local function calculateWidgetDimensions()
 	scaleMultiplier = ui_scale * settings.widgetScale * viewScreenWidth / 3840
 
 	-- widget is not allowed to be too tall
-	widgetDimensions.height = math.min(
-		math.floor(defaults.metricDimensions.height * #metricsEnabled * scaleMultiplier),
-		getWidgetHeightMax())
+	widgetDimensions.height =
+		math.min(math.floor(defaults.metricDimensions.height * #metricsEnabled * scaleMultiplier), getWidgetHeightMax())
 
 	-- every metric gets same amount of pixels
 	metricDimensions.height = math.floor(widgetDimensions.height / #metricsEnabled)
@@ -750,8 +743,8 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG['topbar'] and WG['topbar'].getShowButtons() then
-		local topBarPosition = WG['topbar'].GetPosition()
+	if WG.topbar and WG.topbar.getShowButtons() then
+		local topBarPosition = WG.topbar.GetPosition()
 		widgetDimensions.top = (topBarPosition[6] or topBarPosition[2]) -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
@@ -848,15 +841,15 @@ local function deleteTextures()
 end
 
 local function updateMetricTextTooltips()
-	if WG['tooltip'] then
-		for metricIndex,metric in ipairs(metricsEnabled) do
+	if WG.tooltip then
+		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 			local top = bottom + metricDimensions.height
 
 			local left = titleDimensions.left
 			local right = titleDimensions.right
 
-			WG['tooltip'].AddTooltip(
+			WG.tooltip.AddTooltip(
 				string.format("spectator_hud_vsmode_%d", metric.id),
 				{ left, bottom, right, top },
 				metric.tooltip,
@@ -876,7 +869,7 @@ local function initMovingAverage(movingAverage)
 	movingAverage.average = 0
 	movingAverage.index = 0
 	movingAverage.data = {}
-	for i=1,settings.movingAverageWindowSize do
+	for i = 1, settings.movingAverageWindowSize do
 		movingAverage.data[i] = 0
 	end
 end
@@ -888,7 +881,7 @@ local function updateMovingAverage(movingAverage, newValue)
 	end
 
 	if movingAverage.index == 0 then
-		for i=1,settings.movingAverageWindowSize do
+		for i = 1, settings.movingAverageWindowSize do
 			movingAverage.data[i] = newValue
 		end
 		movingAverage.average = newValue
@@ -919,7 +912,7 @@ local function getOneStat(statKey, teamID)
 	if statKey == metricKeys.metalIncome then
 		result = select(4, Spring.GetTeamResources(teamID, "metal")) or 0
 	elseif statKey == metricKeys.energyConversionMetalIncome then
-		for unitID,_ in pairs(unitCache[teamID].energyConverters) do
+		for unitID, _ in pairs(unitCache[teamID].energyConverters) do
 			result = result + unitCache.energyConverters.update(unitID, 0)
 		end
 	elseif statKey == metricKeys.energyIncome then
@@ -1008,14 +1001,14 @@ local function createTeamStats()
 
 	teamStats = {}
 
-	for metricIndex,_ in ipairs(metricsEnabled) do
+	for metricIndex, _ in ipairs(metricsEnabled) do
 		teamStats[metricIndex] = {}
 		teamStats[metricIndex].aggregates = {}
 		teamStats[metricIndex].allyTeams = {}
-		for allyIndex,allyTeam in ipairs(allyTeamTable) do
+		for allyIndex, allyTeam in ipairs(allyTeamTable) do
 			teamStats[metricIndex].aggregates[allyIndex] = 0
 			teamStats[metricIndex].allyTeams[allyIndex] = {}
-			for teamIndex,teamID in ipairs(allyTeam.teams) do
+			for teamIndex, teamID in ipairs(allyTeam.teams) do
 				teamStats[metricIndex].allyTeams[allyIndex][teamIndex] = {}
 				initMovingAverage(teamStats[metricIndex].allyTeams[allyIndex][teamIndex])
 			end
@@ -1024,10 +1017,10 @@ local function createTeamStats()
 end
 
 local function updateStats()
-	for metricIndex,metric in ipairs(metricsEnabled) do
-		for allyIndex,allyTeam in ipairs(allyTeamTable) do
+	for metricIndex, metric in ipairs(metricsEnabled) do
+		for allyIndex, allyTeam in ipairs(allyTeamTable) do
 			local teamAggregate = 0
-			for teamIndex,teamID in ipairs(allyTeam.teams) do
+			for teamIndex, teamID in ipairs(allyTeam.teams) do
 				local valueTeam = getOneStat(metric.key, teamID)
 				updateMovingAverage(teamStats[metricIndex].allyTeams[allyIndex][teamIndex], valueTeam)
 				teamAggregate = teamAggregate + teamStats[metricIndex].allyTeams[allyIndex][teamIndex].average
@@ -1060,46 +1053,26 @@ local function drawMetricBar(left, bottom, right, top, indexLeft, indexRight, me
 
 	if (not mouseOver) or ((valueLeft == 0) and (valueRight == 0)) then
 		glColor(allyTeamTable[indexLeft].colorBar)
-		glRect(
-			left,
-			barBottom,
-			left + leftBarWidth,
-			barTop
-		)
+		glRect(left, barBottom, left + leftBarWidth, barTop)
 
 		glColor(allyTeamTable[indexRight].colorBar)
-		glRect(
-			right - rightBarWidth,
-			barBottom,
-			right,
-			barTop
-		)
+		glRect(right - rightBarWidth, barBottom, right, barTop)
 
 		local lineBottom = barBottom + barDimensions.lineMiddleOffset
 		local lineTop = barTop - barDimensions.lineMiddleOffset
 
 		glColor(allyTeamTable[indexLeft].colorLine)
-		glRect(
-			left,
-			lineBottom,
-			left + leftBarWidth,
-			lineTop
-		)
+		glRect(left, lineBottom, left + leftBarWidth, lineTop)
 
 		glColor(allyTeamTable[indexRight].colorLine)
-		glRect(
-			right - rightBarWidth,
-			lineBottom,
-			right,
-			lineTop
-		)
+		glRect(right - rightBarWidth, lineBottom, right, lineTop)
 	else
 		-- do "rainbow" colors
 		local scalingFactor = barLength / (valueLeft + valueRight)
 
 		local lineStart
 		local lineEnd = left
-		for teamIndex,teamID in ipairs(allyTeamTable[indexLeft].teams) do
+		for teamIndex, teamID in ipairs(allyTeamTable[indexLeft].teams) do
 			local teamValue = teamStats[metricIndex].allyTeams[indexLeft][teamIndex].average
 			local teamColor = playerData[teamID].color
 
@@ -1107,17 +1080,12 @@ local function drawMetricBar(left, bottom, right, top, indexLeft, indexRight, me
 			lineEnd = lineStart + mathfloor(scalingFactor * teamValue)
 
 			glColor(teamColor)
-			glRect(
-				lineStart,
-				barBottom,
-				lineEnd,
-				barTop
-			)
+			glRect(lineStart, barBottom, lineEnd, barTop)
 		end
 
 		local lineStart
 		local lineEnd = right - rightBarWidth
-		for teamIndex,teamID in ipairs(allyTeamTable[indexRight].teams) do
+		for teamIndex, teamID in ipairs(allyTeamTable[indexRight].teams) do
 			local teamValue = teamStats[metricIndex].allyTeams[indexRight][teamIndex].average
 			local teamColor = playerData[teamID].color
 
@@ -1125,12 +1093,7 @@ local function drawMetricBar(left, bottom, right, top, indexLeft, indexRight, me
 			lineEnd = lineStart + mathfloor(scalingFactor * teamValue)
 
 			glColor(teamColor)
-			glRect(
-				lineStart,
-				barBottom,
-				lineEnd,
-				barTop
-			)
+			glRect(lineStart, barBottom, lineEnd, barTop)
 		end
 	end
 end
@@ -1140,13 +1103,17 @@ local function drawBars()
 	local indexRight = teamOrder and teamOrder[2] or 2
 
 	local mouseX, mouseY = Spring.GetMouseState()
-	local mouseOnBar= false
-	if (mouseX > barDimensions.left) and (mouseX < barDimensions.right) and
-		(mouseY > widgetDimensions.bottom) and (mouseY < widgetDimensions.top) then
+	local mouseOnBar = false
+	if
+		(mouseX > barDimensions.left)
+		and (mouseX < barDimensions.right)
+		and (mouseY > widgetDimensions.bottom)
+		and (mouseY < widgetDimensions.top)
+	then
 		mouseOnBar = true
 	end
 
-	for metricIndex,metric in ipairs(metricsEnabled) do
+	for metricIndex, metric in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height
 
@@ -1171,40 +1138,44 @@ local function drawBars()
 end
 
 local function drawText()
-	gl.R2tHelper.BlendTexRect(titleTexture, titleDimensions.left, widgetDimensions.bottom, titleDimensions.right, widgetDimensions.top, true)
-	gl.R2tHelper.BlendTexRect(statsTexture, knobDimensions.leftKnobLeft, widgetDimensions.bottom, knobDimensions.rightKnobRight, widgetDimensions.top, true)
+	gl.R2tHelper.BlendTexRect(
+		titleTexture,
+		titleDimensions.left,
+		widgetDimensions.bottom,
+		titleDimensions.right,
+		widgetDimensions.top,
+		true
+	)
+	gl.R2tHelper.BlendTexRect(
+		statsTexture,
+		knobDimensions.leftKnobLeft,
+		widgetDimensions.bottom,
+		knobDimensions.rightKnobRight,
+		widgetDimensions.top,
+		true
+	)
 end
 
 local function doTitleTexture()
 	local function drawTitlesToTexture()
 		gl.Translate(-1, -1, 0)
-		gl.Scale(
-			2 / titleDimensions.width,
-			2 / widgetDimensions.height,
-			0
-		)
+		gl.Scale(2 / titleDimensions.width, 2 / widgetDimensions.height, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
 
-		for metricIndex,metric in ipairs(metricsEnabled) do
+		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 
 			local textHCenter = titleDimensions.widthHalf
 			local textVCenter = bottom + titleDimensions.verticalCenterOffset
 			local textText = metricsEnabled[metricIndex].text
 
-			font:Print(
-				textText,
-				textHCenter,
-				textVCenter,
-				titleDimensions.fontSize,
-				'cvo'
-			)
+			font:Print(textText, textHCenter, textVCenter, titleDimensions.fontSize, "cvo")
 		end
 		font:End()
 	end
 
-	gl.R2tHelper.RenderToTexture(titleTexture, drawTitlesToTexture,	true)
+	gl.R2tHelper.RenderToTexture(titleTexture, drawTitlesToTexture, true)
 end
 
 local function updateStatsTexture()
@@ -1217,98 +1188,77 @@ local function updateStatsTexture()
 				fontSizeSmaller = fontSizeSmaller - 1
 			end
 
-			font:Print(
-				text,
-				mathfloor((right + left) / 2),
-				mathfloor((top + bottom) / 2),
-				fontSizeSmaller,
-				'cvO'
-			)
+			font:Print(text, mathfloor((right + left) / 2), mathfloor((top + bottom) / 2), fontSizeSmaller, "cvO")
 		end
 
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
 		gl.Translate(-1, -1, 0)
-		gl.Scale(
-			2 / statsTextureWidth,
-			2 / statsTextureHeight,
-			0
-		)
+		gl.Scale(2 / statsTextureWidth, 2 / statsTextureHeight, 0)
 		font:Begin(true)
-			font:SetTextColor(textColorWhite)
+		font:SetTextColor(textColorWhite)
 
-			local indexLeft = teamOrder and teamOrder[1] or 1
-			local indexRight = teamOrder and teamOrder[2] or 2
-			for metricIndex,metric in ipairs(metricsEnabled) do
-				local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
-				local top = bottom + metricDimensions.height
+		local indexLeft = teamOrder and teamOrder[1] or 1
+		local indexRight = teamOrder and teamOrder[2] or 2
+		for metricIndex, metric in ipairs(metricsEnabled) do
+			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
+			local top = bottom + metricDimensions.height
 
-				local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
-				local valueRight = teamStats[metricIndex].aggregates[indexRight]
+			local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
+			local valueRight = teamStats[metricIndex].aggregates[indexRight]
 
-				-- draw left knob text
-				drawMetricKnobText(
-					0,
-					bottom,
-					knobDimensions.width,
-					top,
-					formatResources(valueLeft, true)
-				)
+			-- draw left knob text
+			drawMetricKnobText(0, bottom, knobDimensions.width, top, formatResources(valueLeft, true))
 
-				-- draw right knob text
-				drawMetricKnobText(
-					knobDimensions.rightKnobLeft - knobDimensions.leftKnobLeft,
-					bottom,
-					knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft,
-					top,
-					formatResources(valueRight, true)
-				)
+			-- draw right knob text
+			drawMetricKnobText(
+				knobDimensions.rightKnobLeft - knobDimensions.leftKnobLeft,
+				bottom,
+				knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft,
+				top,
+				formatResources(valueRight, true)
+			)
 
-				-- draw middle knob text
-				local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
-				local leftBarWidth
-				if valueLeft > 0 or valueRight > 0 then
-					leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
-				else
-					leftBarWidth = mathfloor(barLength / 2)
-				end
-				local rightBarWidth = barLength - leftBarWidth -- TODO: remove unused variable
-
-				local relativeLead = 0
-				local relativeLeadMax = 999
-				local relativeLeadString = nil
-				if valueLeft > valueRight then
-					if valueRight > 0 then
-						relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
-					else
-						relativeLeadString = "∞"
-					end
-				elseif valueRight > valueLeft then
-					if valueLeft > 0 then
-						relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
-					else
-						relativeLeadString = "∞"
-					end
-				end
-				if relativeLead > relativeLeadMax then
-					relativeLeadString = string.format("%d+%%", relativeLeadMax)
-				elseif not relativeLeadString then
-					relativeLeadString = string.format("%d%%", relativeLead)
-				end
-
-				local middleKnobLeft = knobDimensions.width + leftBarWidth + 1
-				drawMetricKnobText(
-					middleKnobLeft,
-					bottom,
-					middleKnobLeft + knobDimensions.width,
-					top,
-					relativeLeadString
-				)
+			-- draw middle knob text
+			local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
+			local leftBarWidth
+			if valueLeft > 0 or valueRight > 0 then
+				leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
+			else
+				leftBarWidth = mathfloor(barLength / 2)
 			end
+			local rightBarWidth = barLength - leftBarWidth -- TODO: remove unused variable
+
+			local relativeLead = 0
+			local relativeLeadMax = 999
+			local relativeLeadString = nil
+			if valueLeft > valueRight then
+				if valueRight > 0 then
+					relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
+				else
+					relativeLeadString = "∞"
+				end
+			elseif valueRight > valueLeft then
+				if valueLeft > 0 then
+					relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
+				else
+					relativeLeadString = "∞"
+				end
+			end
+			if relativeLead > relativeLeadMax then
+				relativeLeadString = string.format("%d+%%", relativeLeadMax)
+			elseif not relativeLeadString then
+				relativeLeadString = string.format("%d%%", relativeLead)
+			end
+
+			local middleKnobLeft = knobDimensions.width + leftBarWidth + 1
+			drawMetricKnobText(middleKnobLeft, bottom, middleKnobLeft + knobDimensions.width, top, relativeLeadString)
+		end
 		font:End()
 	end
 
+	gl.Blending(true)
 	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
@@ -1322,7 +1272,7 @@ local function updateTextTextures()
 end
 
 local function deleteMetricDisplayLists()
-	for _,metricDisplayList in ipairs(metricDisplayLists) do
+	for _, metricDisplayList in ipairs(metricDisplayLists) do
 		gl.DeleteList(metricDisplayList)
 	end
 	metricDisplayLists = {}
@@ -1334,19 +1284,12 @@ local function createMetricDisplayLists()
 
 	local left = widgetDimensions.left
 	local right = widgetDimensions.right
-	for metricIndex,_ in ipairs(metricsEnabled) do
+	for metricIndex, _ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local top = bottom + metricDimensions.height
 
-		local newDisplayList = gl.CreateList(function ()
-			WG.FlowUI.Draw.Element(
-				left,
-				bottom,
-				right,
-				top,
-				metricIndex == 1 and 0 or 1, 0, 0, 1,
-				0 or 1, 1, 1, 1
-			)
+		local newDisplayList = gl.CreateList(function()
+			WG.FlowUI.Draw.Element(left, bottom, right, top, metricIndex == 1 and 0 or 1, 0, 0, 1, 0 or 1, 1, 1, 1)
 		end)
 		tableInsert(metricDisplayLists, newDisplayList)
 	end
@@ -1354,47 +1297,55 @@ local function createMetricDisplayLists()
 end
 
 local function createKnobVertices(vertexMatrix, left, bottom, right, top, cornerRadius, cornerTriangleAmount)
-	local function addCornerVertices(vertexMatrix, startIndex, startAngle, originX, originY, cornerRadiusX, cornerRadiusY)
+	local function addCornerVertices(
+		vertexMatrix,
+		startIndex,
+		startAngle,
+		originX,
+		originY,
+		cornerRadiusX,
+		cornerRadiusY
+	)
 		-- first, add the corner vertex
 		vertexMatrix[startIndex] = originX --rectRight
-		vertexMatrix[startIndex+1] = originY -- rectBottom
-		vertexMatrix[startIndex+2] = 0
-		vertexMatrix[startIndex+3] = 1
+		vertexMatrix[startIndex + 1] = originY -- rectBottom
+		vertexMatrix[startIndex + 2] = 0
+		vertexMatrix[startIndex + 3] = 1
 
 		local alpha = mathPi / 2 / cornerTriangleAmount
-		for sliceIndex=0,cornerTriangleAmount do
+		for sliceIndex = 0, cornerTriangleAmount do
 			local x = originX + cornerRadiusX * (mathCos(startAngle + alpha * sliceIndex))
 			local y = originY + cornerRadiusY * (mathSin(startAngle + alpha * sliceIndex))
 
-			local vertexIndex = startIndex + (sliceIndex+1)*4
+			local vertexIndex = startIndex + (sliceIndex + 1) * 4
 
 			vertexMatrix[vertexIndex] = x
-			vertexMatrix[vertexIndex+1] = y
-			vertexMatrix[vertexIndex+2] = 0
-			vertexMatrix[vertexIndex+3] = 1
+			vertexMatrix[vertexIndex + 1] = y
+			vertexMatrix[vertexIndex + 2] = 0
+			vertexMatrix[vertexIndex + 3] = 1
 		end
 	end
 
 	local function addRectangleVertices(vertexMatrix, startIndex, rectLeft, rectBottom, rectRight, rectTop)
 		vertexMatrix[startIndex] = rectLeft
-		vertexMatrix[startIndex+1] = rectTop
-		vertexMatrix[startIndex+2] = 0
-		vertexMatrix[startIndex+3] = 1
+		vertexMatrix[startIndex + 1] = rectTop
+		vertexMatrix[startIndex + 2] = 0
+		vertexMatrix[startIndex + 3] = 1
 
-		vertexMatrix[startIndex+4] = rectRight
-		vertexMatrix[startIndex+5] = rectTop
-		vertexMatrix[startIndex+6] = 0
-		vertexMatrix[startIndex+7] = 1
+		vertexMatrix[startIndex + 4] = rectRight
+		vertexMatrix[startIndex + 5] = rectTop
+		vertexMatrix[startIndex + 6] = 0
+		vertexMatrix[startIndex + 7] = 1
 
-		vertexMatrix[startIndex+8] = rectLeft
-		vertexMatrix[startIndex+9] = rectBottom
-		vertexMatrix[startIndex+10] = 0
-		vertexMatrix[startIndex+11] = 1
+		vertexMatrix[startIndex + 8] = rectLeft
+		vertexMatrix[startIndex + 9] = rectBottom
+		vertexMatrix[startIndex + 10] = 0
+		vertexMatrix[startIndex + 11] = 1
 
-		vertexMatrix[startIndex+12] = rectRight
-		vertexMatrix[startIndex+13] = rectBottom
-		vertexMatrix[startIndex+14] = 0
-		vertexMatrix[startIndex+15] = 1
+		vertexMatrix[startIndex + 12] = rectRight
+		vertexMatrix[startIndex + 13] = rectBottom
+		vertexMatrix[startIndex + 14] = 0
+		vertexMatrix[startIndex + 15] = 1
 	end
 
 	local vertexIndex = 1
@@ -1411,13 +1362,13 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		mathPi/2,
+		mathPi / 2,
 		leftOpenGL + cornerRadiusX,
 		topOpenGL - cornerRadiusY,
 		cornerRadiusX,
 		cornerRadiusY
 	)
-	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount+1)*4
+	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount + 1) * 4
 
 	-- 2. create top-mid rectangle triangles
 	addRectangleVertices(
@@ -1440,7 +1391,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 		cornerRadiusX,
 		cornerRadiusY
 	)
-	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount+1)*4
+	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount + 1) * 4
 
 	-- 4. create mid-left rectangle triangles
 	addRectangleVertices(
@@ -1485,7 +1436,7 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 		cornerRadiusX,
 		cornerRadiusY
 	)
-	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount+1)*4
+	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount + 1) * 4
 
 	-- 8. create bottom-mid rectangle triangles
 	addRectangleVertices(
@@ -1502,34 +1453,34 @@ local function createKnobVertices(vertexMatrix, left, bottom, right, top, corner
 	addCornerVertices(
 		vertexMatrix,
 		vertexIndex,
-		-mathPi/2,
+		-mathPi / 2,
 		rightOpenGL - cornerRadiusX,
 		bottomOpenGL + cornerRadiusY,
 		cornerRadiusX,
 		cornerRadiusY
 	)
-	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount+1)*4
+	vertexIndex = vertexIndex + 4 + (cornerTriangleAmount + 1) * 4
 
 	return vertexIndex
 end
 
 local function insertKnobIndices(indexData, vertexStartIndex, cornerTriangleAmount)
 	local function insertCornerIndices(currentVertexOffset)
-		for i=1,cornerTriangleAmount do
+		for i = 1, cornerTriangleAmount do
 			tableInsert(indexData, currentVertexOffset + 0)
 			tableInsert(indexData, currentVertexOffset + i)
-			tableInsert(indexData, currentVertexOffset + i+1)
+			tableInsert(indexData, currentVertexOffset + i + 1)
 		end
 		return currentVertexOffset + cornerTriangleAmount + 2
 	end
 
 	local function insertRectangleIndices(currentVertexOffset)
 		tableInsert(indexData, currentVertexOffset)
-		tableInsert(indexData, currentVertexOffset+1)
-		tableInsert(indexData, currentVertexOffset+2)
-		tableInsert(indexData, currentVertexOffset+1)
-		tableInsert(indexData, currentVertexOffset+2)
-		tableInsert(indexData, currentVertexOffset+3)
+		tableInsert(indexData, currentVertexOffset + 1)
+		tableInsert(indexData, currentVertexOffset + 2)
+		tableInsert(indexData, currentVertexOffset + 1)
+		tableInsert(indexData, currentVertexOffset + 2)
+		tableInsert(indexData, currentVertexOffset + 3)
 		return currentVertexOffset + 4
 	end
 
@@ -1585,15 +1536,7 @@ local function createKnobVAO()
 
 	-- build vertexVBO
 	local vertexDataOutline = {}
-	createKnobVertices(
-		vertexDataOutline,
-		0,
-		0,
-		width,
-		height,
-		cornerRadius,
-		cornerTriangleAmount
-	)
+	createKnobVertices(vertexDataOutline, 0, 0, width, height, cornerRadius, cornerTriangleAmount)
 	local vertexDataInner = {}
 	createKnobVertices(
 		vertexDataInner,
@@ -1606,13 +1549,13 @@ local function createKnobVAO()
 	)
 
 	local vertexVBOInner = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	vertexVBOInner:Define(#vertexDataInner/4, {
+	vertexVBOInner:Define(#vertexDataInner / 4, {
 		{ id = 0, name = "aPos", size = 4 },
 	})
 	vertexVBOInner:Upload(vertexDataInner)
 
 	local vertexVBOOutline = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	vertexVBOOutline:Define(#vertexDataOutline/4, {
+	vertexVBOOutline:Define(#vertexDataOutline / 4, {
 		{ id = 0, name = "aPos", size = 4 },
 	})
 	vertexVBOOutline:Upload(vertexDataOutline)
@@ -1631,14 +1574,14 @@ local function createKnobVAO()
 	-- create and attach instanceVBO (note: the data is populated separately)
 	knobVAO.instanceVBOInner = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	knobVAO.instanceVBOInner:Define(instanceCount, {
-		{ id = 1, name = "posBias", size=4 },
-		{ id = 2, name = "aKnobColor", size=4 },
+		{ id = 1, name = "posBias", size = 4 },
+		{ id = 2, name = "aKnobColor", size = 4 },
 	})
 
 	knobVAO.instanceVBOOutline = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	knobVAO.instanceVBOOutline:Define(instanceCount, {
-		{ id = 1, name = "posBias", size=4 },
-		{ id = 2, name = "aKnobColor", size=4 },
+		{ id = 1, name = "posBias", size = 4 },
+		{ id = 2, name = "aKnobColor", size = 4 },
 	})
 
 	knobVAO.instances = 0
@@ -1658,8 +1601,8 @@ local function addKnob(knobVAO, left, bottom, color)
 	local instanceData = {}
 
 	-- posBias
-	tableInsert(instanceData, coordinateScreenXToOpenGL(left)+1.0)
-	tableInsert(instanceData, coordinateScreenYToOpenGL(bottom)+1.0)
+	tableInsert(instanceData, coordinateScreenXToOpenGL(left) + 1.0)
+	tableInsert(instanceData, coordinateScreenYToOpenGL(bottom) + 1.0)
 	tableInsert(instanceData, 0.0)
 	tableInsert(instanceData, 0.0)
 
@@ -1691,7 +1634,7 @@ local function addSideKnobs()
 		return
 	end
 
-	for metricIndex,_ in ipairs(metricsEnabled) do
+	for metricIndex, _ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 		local knobBottom = bottom + knobDimensions.padding
 
@@ -1704,11 +1647,12 @@ local function addSideKnobs()
 end
 
 local function addMiddleKnobs()
-	for metricIndex,_ in ipairs(metricsEnabled) do
+	for metricIndex, _ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height + 1.0
 		local textBottom = bottom + titleDimensions.padding
 
-		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2 - knobDimensions.width / 2
+		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2
+			- knobDimensions.width / 2
 		local middleKnobBottom = textBottom
 
 		local middleKnobColor = colorKnobMiddleGrey
@@ -1717,7 +1661,7 @@ local function addMiddleKnobs()
 	end
 end
 
-local modifyKnobInstanceData = {0, 0, 0, 0, 0, 0, 0, 0}
+local modifyKnobInstanceData = { 0, 0, 0, 0, 0, 0, 0, 0 }
 local function modifyKnob(knobVAO, instance, left, bottom, color)
 	-- note: instead of using a local variable instanceData that rebuild a table every time this function is called,
 	-- we use the global variable modifyKnobInstanceData to avoid recreating a table and instead reusing the table.
@@ -1734,14 +1678,14 @@ local function modifyKnob(knobVAO, instance, left, bottom, color)
 	modifyKnobInstanceData[6] = color[2]
 	modifyKnobInstanceData[7] = color[3]
 	modifyKnobInstanceData[8] = color[4]
-	knobVAO.instanceVBOInner:Upload(modifyKnobInstanceData, -1, instance-1)
+	knobVAO.instanceVBOInner:Upload(modifyKnobInstanceData, -1, instance - 1)
 
 	local greyFactor = 0.5
 	modifyKnobInstanceData[5] = color[1] * greyFactor
 	modifyKnobInstanceData[6] = color[2] * greyFactor
 	modifyKnobInstanceData[7] = color[3] * greyFactor
 	modifyKnobInstanceData[8] = color[4] * greyFactor
-	knobVAO.instanceVBOOutline:Upload(modifyKnobInstanceData, -1, instance-1)
+	knobVAO.instanceVBOOutline:Upload(modifyKnobInstanceData, -1, instance - 1)
 end
 
 local function moveMiddleKnobs()
@@ -1749,7 +1693,7 @@ local function moveMiddleKnobs()
 	local indexRight = teamOrder and teamOrder[2] or 2
 
 	local instanceOffset = 2 * #metricsEnabled
-	for metricIndex,_ in ipairs(metricsEnabled) do
+	for metricIndex, _ in ipairs(metricsEnabled) do
 		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
 
 		local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
@@ -1795,9 +1739,9 @@ end
 local function drawKnobVAO()
 	shader:Activate()
 
-	local amountOfTriangles = 5*2 + 4*knobVAO.cornerTriangleAmount
-	knobVAO.vaoOutline:DrawElements(GL.TRIANGLES, amountOfTriangles*3, 0, knobVAO.instances)
-	knobVAO.vaoInner:DrawElements(GL.TRIANGLES, amountOfTriangles*3, 0, knobVAO.instances)
+	local amountOfTriangles = 5 * 2 + 4 * knobVAO.cornerTriangleAmount
+	knobVAO.vaoOutline:DrawElements(GL.TRIANGLES, amountOfTriangles * 3, 0, knobVAO.instances)
+	knobVAO.vaoInner:DrawElements(GL.TRIANGLES, amountOfTriangles * 3, 0, knobVAO.instances)
 
 	shader:Deactivate()
 end
@@ -1806,13 +1750,10 @@ local function initGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	knobVertexShaderSource = knobVertexShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	knobFragmentShaderSource = knobFragmentShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	shader = LuaShader(
-		{
-			vertex = knobVertexShaderSource,
-			fragment = knobFragmentShaderSource,
-		},
-		"spectator_hud"
-	)
+	shader = LuaShader({
+		vertex = knobVertexShaderSource,
+		fragment = knobFragmentShaderSource,
+	}, "spectator_hud")
 	local shaderCompiled = shader:Initialize()
 	return shaderCompiled
 end
@@ -1820,7 +1761,9 @@ end
 local function hideEcostats()
 	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
 		local ecostatsWidget = widgetHandler:FindWidget("Ecostats")
-		if (not ecostatsWidget) then return end
+		if not ecostatsWidget then
+			return
+		end
 		ecostatsHidden = true
 		widgetHandler:RemoveWidget(ecostatsWidget)
 	end
@@ -1834,23 +1777,23 @@ local function showEcostats()
 end
 
 local function init()
-	font = WG['fonts'].getFont()
+	font = WG.fonts.getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
 
 	buildMetricsEnabled()
 
 	if settings.widgetConfig == constants.configLevel.basic then
-		settings.statsUpdateFrequency = 30	-- once a second
+		settings.statsUpdateFrequency = 30 -- once a second
 		settings.useMovingAverage = false
 	elseif settings.widgetConfig == constants.configLevel.advanced then
-		settings.statsUpdateFrequency = 6  -- 5 times a second
+		settings.statsUpdateFrequency = 6 -- 5 times a second
 		settings.useMovingAverage = true
-		settings.movingAverageWindowSize = 4  -- approx 1 sec
+		settings.movingAverageWindowSize = 4 -- approx 1 sec
 	elseif settings.widgetConfig == constants.configLevel.expert then
-		settings.statsUpdateFrequency = 2  -- 15 times a second, same as engine slowUpdate
+		settings.statsUpdateFrequency = 2 -- 15 times a second, same as engine slowUpdate
 		settings.useMovingAverage = true
-		settings.movingAverageWindowSize = 16  -- approx 1 sec
+		settings.movingAverageWindowSize = 16 -- approx 1 sec
 	elseif settings.widgetConfig == constants.configLevel.custom then
 		settings.statsUpdateFrequency = 2
 		settings.useMovingAverage = true
@@ -1908,30 +1851,32 @@ function widget:Initialize()
 	-- If yes, we will hide ecostats (hide at init() and show at deInit())
 	-- If no, we will do nothing since user might or might not be using ecostats
 	widgetEnabled = getAmountOfAllyTeams() == 2
-	if not widgetEnabled then return end
+	if not widgetEnabled then
+		return
+	end
 
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 
-	WG["spectator_hud"].getWidgetSize = function()
+	WG.spectator_hud.getWidgetSize = function()
 		return settings.widgetScale
 	end
-	WG["spectator_hud"].setWidgetSize = function(value)
+	WG.spectator_hud.setWidgetSize = function(value)
 		settings.widgetScale = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getConfig = function()
+	WG.spectator_hud.getConfig = function()
 		return settings.widgetConfig
 	end
-	WG["spectator_hud"].setConfig = function(value)
+	WG.spectator_hud.setConfig = function(value)
 		settings.widgetConfig = value
 		reInit()
 	end
 
-	WG["spectator_hud"].getMetricEnabled = function(metric)
+	WG.spectator_hud.getMetricEnabled = function(metric)
 		return settings.metricsEnabled[metric]
 	end
-	WG["spectator_hud"].setMetricEnabled = function(args)
+	WG.spectator_hud.setMetricEnabled = function(args)
 		settings.metricsEnabled[args[1]] = args[2]
 		reInit()
 	end
@@ -1955,15 +1900,15 @@ end
 
 function widget:Shutdown()
 	deInit()
-	WG["spectator_hud"] = {}
+	WG.spectator_hud = {}
 	showEcostats()
 
 	if shader then
 		shader:Finalize()
 	end
 	if guishaderDlist then
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('spechud')
+		if WG.guishader then
+			WG.guishader.DeleteDlist("spechud")
 		else
 			gl.DeleteList(guishaderDlist)
 		end
@@ -2015,7 +1960,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
-
 function widget:ViewResize()
 	reInit()
 end
@@ -2037,33 +1981,35 @@ function widget:GameFrame(frameNum)
 		return
 	end
 
-	if (frameNum > 0) and (not teamOrder) then
+	if (frameNum > 0) and not teamOrder then
 		-- collect player start positions
 		local teamStartAverages = {}
 		for _, allyID in ipairs(Spring.GetAllyTeamList()) do
 			if allyID ~= gaiaAllyID then
 				local accumulator = { x = 0, z = 0 }
 				local teamList = Spring.GetTeamList(allyID)
-				for _,teamID in ipairs(teamList) do
+				for _, teamID in ipairs(teamList) do
 					local x, _, z = Spring.GetTeamStartPosition(teamID)
 					accumulator.x = accumulator.x + x
 					accumulator.z = accumulator.z + z
 				end
-				local startAverage= { x = accumulator.x / #teamList, z = accumulator.z / #teamList }
+				local startAverage = { x = accumulator.x / #teamList, z = accumulator.z / #teamList }
 				tableInsert(teamStartAverages, { allyID, startAverage })
 			end
 		end
 
-		local _,rotY,_ = Spring.GetCameraRotation()
+		local _, rotY, _ = Spring.GetCameraRotation()
 
 		-- sort averages and create team order (from left to right)
-		table.sort(teamStartAverages, function (left, right)
-			return ((left[2].x * mathCos(rotY) + left[2].z * mathSin(rotY)) <
-					(right[2].x * mathCos(rotY) + right[2].z * mathSin(rotY)))
+		table.sort(teamStartAverages, function(left, right)
+			return (
+				(left[2].x * mathCos(rotY) + left[2].z * mathSin(rotY))
+				< (right[2].x * mathCos(rotY) + right[2].z * mathSin(rotY))
+			)
 		end)
 		teamOrder = {}
-		for i,teamStart in ipairs(teamStartAverages) do
-			teamOrder[i] = teamStart[1] + 1    -- note: allyTeam ID's start from 0
+		for i, teamStart in ipairs(teamStartAverages) do
+			teamOrder[i] = teamStart[1] + 1 -- note: allyTeam ID's start from 0
 		end
 
 		-- update knob colors by overwriting all knobs
@@ -2088,10 +2034,10 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.05 then
 		sec = 0
-		if WG['topbar'] then
+		if WG.topbar then
 			local prevShowButtons = topbarShowButtons
-			if WG['topbar'].getShowButtons() ~= prevShowButtons then
-				topbarShowButtons = WG['topbar'].getShowButtons()
+			if WG.topbar.getShowButtons() ~= prevShowButtons then
+				topbarShowButtons = WG.topbar.getShowButtons()
 				if haveFullView then
 					init()
 				else
@@ -2121,27 +2067,28 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
+	gl.Blending(true)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then
-		if WG['guishader'] and guishaderDlist then
-			WG['guishader'].DeleteDlist('spechud')
+		if WG.guishader and guishaderDlist then
+			WG.guishader.DeleteDlist("spechud")
 			guishaderDlist = nil
 		end
 		return
 	end
 
-	if WG['guishader'] and (displayListsChanged or not guishaderDlist) then
+	if WG.guishader and (displayListsChanged or not guishaderDlist) then
 		if guishaderDlist then
 			gl.DeleteList(guishaderDlist)
 			guishaderDlist = nil
 		end
-		guishaderDlist = gl.CreateList(function ()
+		guishaderDlist = gl.CreateList(function()
 			for _, metricDisplayList in ipairs(metricDisplayLists) do
 				gl.CallList(metricDisplayList)
 			end
 		end)
-		WG['guishader'].InsertDlist(guishaderDlist, 'spechud')
+		WG.guishader.InsertDlist(guishaderDlist, "spechud")
 		displayListsChanged = nil
 	end
 
@@ -2164,7 +2111,7 @@ function widget:GetConfigData()
 	}
 
 	result.metricsEnabled = {}
-	for _,metric in pairs(metricKeys) do
+	for _, metric in pairs(metricKeys) do
 		result.metricsEnabled[metric] = settings.metricsEnabled[metric]
 	end
 
@@ -2182,10 +2129,10 @@ function widget:SetConfigData(data)
 		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
 	end
 
-	if data["metricsEnabled"] then
-		for _,metric in pairs(metricKeys) do
-			if data["metricsEnabled"][metric] then
-				settings.metricsEnabled[metric] = data["metricsEnabled"][metric]
+	if data.metricsEnabled then
+		for _, metric in pairs(metricKeys) do
+			if data.metricsEnabled[metric] then
+				settings.metricsEnabled[metric] = data.metricsEnabled[metric]
 			end
 		end
 	end

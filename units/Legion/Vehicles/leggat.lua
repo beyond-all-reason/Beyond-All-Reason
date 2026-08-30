@@ -1,5 +1,5 @@
 return {
-	leggat	= {
+	leggat = {
 		maxacc = 0.02,
 		maxdec = 0.1,
 		energycost = 3600,
@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 1.952,
 		turnrate = 300,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-small",
 			kickback = "-2.4",
@@ -45,8 +45,6 @@ return {
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -133,7 +131,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6",
-				soundstartvolume = 3,
 				soundtrigger = true,
 				sprayangle = 1600,
 				texture1 = "shot",
@@ -144,6 +141,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 900,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 				damage = {
 					default = 12,
 					vtol = 3,

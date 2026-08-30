@@ -9,7 +9,9 @@
 --   - Public GG.FireSmoke API for other gadgets
 --------------------------------------------------------------------------------
 
-if gadgetHandler:IsSyncedCode() then return end
+if gadgetHandler:IsSyncedCode() then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -28,10 +30,10 @@ local debugEcho = false
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spEcho                  = Spring.Echo
-local spGetTimer              = Spring.GetTimer
-local spDiffTimers            = Spring.DiffTimers
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
@@ -39,200 +41,201 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local dispatchHandle = nil
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spIsSphereInView        = Spring.IsSphereInView
-local spGetCameraPosition     = Spring.GetCameraPosition
-local spGetProjectileOwnerID  = Spring.GetProjectileOwnerID
-local spGetFPS                = Spring.GetFPS
-local spGetUnitPosition       = Spring.GetUnitPosition
-local spGetUnitVelocity       = Spring.GetUnitVelocity
-local spValidUnitID           = Spring.ValidUnitID
-local spGetWind               = Spring.GetWind
-local spGetConfigInt          = Spring.GetConfigInt
-local spGetGameSpeed          = Spring.GetGameSpeed
+local spIsSphereInView = Spring.IsSphereInView
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
+local spGetFPS = Spring.GetFPS
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spValidUnitID = Spring.ValidUnitID
+local spGetWind = Spring.GetWind
+local spGetConfigInt = Spring.GetConfigInt
+local spGetGameSpeed = Spring.GetGameSpeed
+local spIsPosInAirLos = Spring.IsPosInAirLos
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
+local glBlending = gl.Blending
+local glTexture = gl.Texture
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
+local glCulling = gl.Culling
 
-local GL_ONE                  = GL.ONE
-local GL_ONE_MINUS_SRC_ALPHA  = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA            = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA = GL.SRC_ALPHA
 
 local mathRandom = math.random
-local mathMin    = math.min
-local mathMax    = math.max
-local mathFloor  = math.floor
-local mathCeil   = math.ceil
-local mathSqrt   = math.sqrt
-local mathPi     = math.pi
+local mathMin = math.min
+local mathMax = math.max
+local mathFloor = math.floor
+local mathCeil = math.ceil
+local mathSqrt = math.sqrt
+local mathPi = math.pi
 
 local LuaShader = gl.LuaShader
-local pushElementInstance  = gl.InstanceVBOTable.pushElementInstance
-local popElementInstance   = gl.InstanceVBOTable.popElementInstance
+local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
+local popElementInstance = gl.InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- Priority levels for particle budgeting
 --------------------------------------------------------------------------------
-local PRIORITY_ESSENTIAL = 1   -- always emit: crash trails, wreck fires (gameplay-relevant)
-local PRIORITY_NORMAL    = 2   -- standard: piece debris trails
-local PRIORITY_COSMETIC  = 3   -- reduced first: ambient fluff, extra detail
+local PRIORITY_ESSENTIAL = 1 -- always emit: crash trails, wreck fires (gameplay-relevant)
+local PRIORITY_NORMAL = 2 -- standard: piece debris trails
+local PRIORITY_COSMETIC = 3 -- reduced first: ambient fluff, extra detail
 
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
 
 -- Textures
-local fireTexture  = "bitmaps/projectiletextures/BARFlame02.tga"
+local fireTexture = "bitmaps/projectiletextures/BARFlame02.tga"
 local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 
 -- General (MAX_PARTICLES read from configint so the options widget can expose a slider)
-local minFireSmokeParticles  = 10000	-- before MaxParticles is added
-local MAX_PARTICLES          = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles	-- NOTE: actual calc is in func updateMaxParticles
+local minFireSmokeParticles = 10000 -- before MaxParticles is added
+local MAX_PARTICLES = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles -- NOTE: actual calc is in func updateMaxParticles
 
-local VBO_CAPACITY           = MAX_PARTICLES  -- fixed at init; VBO cannot be resized
-local PARTICLE_SIZE_MIN      = 1
-local PARTICLE_SIZE_MAX      = 4
+local VBO_CAPACITY = MAX_PARTICLES -- fixed at init; VBO cannot be resized
+local PARTICLE_SIZE_MIN = 1
+local PARTICLE_SIZE_MAX = 4
 
 -- Priority-based budget: each priority level can fill the VBO up to this fraction
-local BUDGET_ESSENTIAL       = 1.0    -- essential emitters can use 100% of VBO
-local BUDGET_NORMAL          = 0.85   -- normal emitters can use up to 85%
-local BUDGET_COSMETIC        = 0.60   -- cosmetic emitters can use up to 60%
+local BUDGET_ESSENTIAL = 1.0 -- essential emitters can use 100% of VBO
+local BUDGET_NORMAL = 0.85 -- normal emitters can use up to 85%
+local BUDGET_COSMETIC = 0.60 -- cosmetic emitters can use up to 60%
 
 -- Shared smoke physics (used by all emitter types)
-local SMOKE_VEL_UP_MIN         = 0.04  -- minimum upward velocity for smoke
-local SMOKE_VEL_UP_MAX         = 0.20  -- maximum upward velocity
-local SMOKE_VEL_RANDOM         = 0.1   -- random velocity offset per axis
+local SMOKE_VEL_UP_MIN = 0.04 -- minimum upward velocity for smoke
+local SMOKE_VEL_UP_MAX = 0.20 -- maximum upward velocity
+local SMOKE_VEL_RANDOM = 0.1 -- random velocity offset per axis
 
 -- Smoke highlight: lighter particle layered above each smoke particle (simulates sunlit top)
-local SMOKE_HIGHLIGHT_OFFSET_Y = 2.2   -- vertical offset above base smoke (elmos)
-local SMOKE_HIGHLIGHT_BRIGHT   = 2.8   -- brightness multiplier for highlight (via colorTint.rgb)
-local SMOKE_HIGHLIGHT_SIZE     = 0.85  -- size relative to base smoke particle
-local SMOKE_HIGHLIGHT_LIFE     = 0.7   -- lifetime relative to base smoke particle
+local SMOKE_HIGHLIGHT_OFFSET_Y = 2.2 -- vertical offset above base smoke (elmos)
+local SMOKE_HIGHLIGHT_BRIGHT = 2.8 -- brightness multiplier for highlight (via colorTint.rgb)
+local SMOKE_HIGHLIGHT_SIZE = 0.85 -- size relative to base smoke particle
+local SMOKE_HIGHLIGHT_LIFE = 0.7 -- lifetime relative to base smoke particle
 
 -- Wind influence (WIND_SMOKE_MULT=0.0012, WIND_FIRE_MULT=0.2 defined in shaderConfig)
 
 -- Frustum culling margin (elmos beyond visible sphere to still spawn)
-local CULLING_MARGIN           = 200
+local CULLING_MARGIN = 200
 
 -- Fire particle settings (shared base, each trail type can scale)
-local FIRE_LIFETIME_MIN        = 20    -- min fire particle lifetime in frames
-local FIRE_LIFETIME_RANGE      = 100    -- fire lifetime variation
-local FIRE_SIZE_MULT           = 7.5     -- fire particles relative to smoke
-local FIRE_ALPHA_MIN           = 0.55   -- fire particles base alpha
+local FIRE_LIFETIME_MIN = 20 -- min fire particle lifetime in frames
+local FIRE_LIFETIME_RANGE = 100 -- fire lifetime variation
+local FIRE_SIZE_MULT = 7.5 -- fire particles relative to smoke
+local FIRE_ALPHA_MIN = 0.55 -- fire particles base alpha
 
 -- Piece projectile trails (smoke and fire on flying debris)
-local PIECE_SPAWN_COUNT_MAX    = 3
-local PIECE_SPAWN_TAPER        = 2
-local PIECE_SKIP_CHANCE        = 0.4
-local PIECE_VEL_SCALE          = 6.0
-local PIECE_LIFETIME_MIN       = 35
-local PIECE_LIFETIME_MAX       = 85
-local PIECE_SIZE_SCALE_MIN     = 0.18
-local PIECE_SIZE_SCALE_MAX     = 0.5
-local PIECE_SIZE_SCALE_REF     = 25.0
-local PIECE_LIFE_BASE          = 200
-local PIECE_LIFE_PER_RADIUS    = 1.5
-local PIECE_ALPHA_FADE         = 0.66
-local PIECE_ALPHA_MIN          = 0.25
+local PIECE_SPAWN_COUNT_MAX = 3
+local PIECE_SPAWN_TAPER = 2
+local PIECE_SKIP_CHANCE = 0.4
+local PIECE_VEL_SCALE = 6.0
+local PIECE_LIFETIME_MIN = 35
+local PIECE_LIFETIME_MAX = 85
+local PIECE_SIZE_SCALE_MIN = 0.18
+local PIECE_SIZE_SCALE_MAX = 0.5
+local PIECE_SIZE_SCALE_REF = 25.0
+local PIECE_LIFE_BASE = 200
+local PIECE_LIFE_PER_RADIUS = 1.5
+local PIECE_ALPHA_FADE = 0.66
+local PIECE_ALPHA_MIN = 0.25
 local PIECE_GROUND_SKIP_HEIGHT = 5
-local PIECE_FIRE_CHANCE        = 0.3
+local PIECE_FIRE_CHANCE = 0.3
 
 -- Distance LOD: reduce spawn count when camera is far away (piece trails)
-local LOD_DIST_NEAR            = 4000
-local LOD_DIST_FAR             = 10000
-local LOD_MIN_MULT             = 0.33
-local LOD_DIST_RANGE_INV       = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
-local LOD_MULT_RANGE           = 1.0 - LOD_MIN_MULT
-local LOD_DIST_NEAR_SQ         = LOD_DIST_NEAR * LOD_DIST_NEAR
+local LOD_DIST_NEAR = 4000
+local LOD_DIST_FAR = 10000
+local LOD_MIN_MULT = 0.33
+local LOD_DIST_RANGE_INV = 1.0 / (LOD_DIST_FAR - LOD_DIST_NEAR)
+local LOD_MULT_RANGE = 1.0 - LOD_MIN_MULT
+local LOD_DIST_NEAR_SQ = LOD_DIST_NEAR * LOD_DIST_NEAR
 
 -- Crashing aircraft trails
-local CRASH_SPAWN_COUNT        = 2
-local CRASH_VEL_INHERIT        = 0.6
-local CRASH_ALPHA_FADE         = 0.66
-local CRASH_ALPHA_MIN          = 0.25
-local CRASH_SKIP_CHANCE        = 0.05
+local CRASH_SPAWN_COUNT = 2
+local CRASH_VEL_INHERIT = 0.6
+local CRASH_ALPHA_FADE = 0.66
+local CRASH_ALPHA_MIN = 0.25
+local CRASH_SKIP_CHANCE = 0.05
 local CRASH_FIRE_LIFETIME_MULT = 1.6
-local CRASH_FIRE_SIZE_MULT     = 1
-local CRASH_CULLING_RADIUS     = 200
-local CRASH_MAX_DURATION       = 450
-local CRASH_LIFETIME_MIN       = 120
-local CRASH_LIFETIME_RANGE     = 90
+local CRASH_FIRE_SIZE_MULT = 1
+local CRASH_CULLING_RADIUS = 200
+local CRASH_MAX_DURATION = 450
+local CRASH_LIFETIME_MIN = 120
+local CRASH_LIFETIME_RANGE = 90
 
 -- Unit-based crash trail scaling (+ fire chance/intensity thresholds)
 local crashScale = {
-	RADIUS_REF      = 30,
-	COST_REF        = 250,
-	RADIUS_WEIGHT   = 0.4,
-	COST_WEIGHT     = 0.7,
-	MIN             = 0.77,
-	MAX             = 1.3,
-	SIZE_EXP        = 0.8,
-	LIFE_EXP        = 0.5,
-	SPAWN_EXP       = 0.6,
-	FIRE_CHANCE     = 0.66,
-	FIRE_INT_MIN    = 0.66,
+	RADIUS_REF = 30,
+	COST_REF = 250,
+	RADIUS_WEIGHT = 0.4,
+	COST_WEIGHT = 0.7,
+	MIN = 0.77,
+	MAX = 1.3,
+	SIZE_EXP = 0.8,
+	LIFE_EXP = 0.5,
+	SPAWN_EXP = 0.6,
+	FIRE_CHANCE = 0.66,
+	FIRE_INT_MIN = 0.66,
 }
 
 -- Distance LOD for crashing aircraft (stored in crashScale to reduce top-level local count)
-crashScale.LOD_DIST_NEAR_SQ   = 6000 * 6000
+crashScale.LOD_DIST_NEAR_SQ = 6000 * 6000
 crashScale.LOD_DIST_RANGE_INV = 1.0 / (15000 - 6000)
-crashScale.LOD_MIN_MULT       = 0.45
-crashScale.LOD_MULT_RANGE     = 1.0 - 0.45
+crashScale.LOD_MIN_MULT = 0.45
+crashScale.LOD_MULT_RANGE = 1.0 - 0.45
 
 -- Point emitter defaults (for generic fire/smoke sources)
-local POINT_SPAWN_INTERVAL     = 2     -- frames between spawns
-local POINT_SPAWN_COUNT        = 2     -- particles per interval
-local POINT_SMOKE_LIFE_MIN     = 60    -- min smoke particle lifetime
-local POINT_SMOKE_LIFE_RANGE   = 60    -- lifetime variation
-local POINT_POS_SPREAD         = 2.0   -- random position offset (elmos)
-local POINT_CULLING_RADIUS     = 100   -- view frustum check radius
+local POINT_SPAWN_INTERVAL = 2 -- frames between spawns
+local POINT_SPAWN_COUNT = 2 -- particles per interval
+local POINT_SMOKE_LIFE_MIN = 60 -- min smoke particle lifetime
+local POINT_SMOKE_LIFE_RANGE = 60 -- lifetime variation
+local POINT_POS_SPREAD = 2.0 -- random position offset (elmos)
+local POINT_CULLING_RADIUS = 100 -- view frustum check radius
 
 -- Pre-computed constants (avoid repeated arithmetic in hot loops)
-local SMOKE_VEL_UP_RANGE       = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
-local SMOKE_VEL_RANDOM_2       = SMOKE_VEL_RANDOM * 2
-local PIECE_VEL_COMBINED       = PIECE_VEL_SCALE * 0.05
-local PARTICLE_SIZE_RANGE      = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
-local PIECE_ALPHA_RANGE        = 1.0 - PIECE_ALPHA_MIN
-local PIECE_LIFETIME_RANGE     = PIECE_LIFETIME_MAX - PIECE_LIFETIME_MIN
-local PARTICLE_SIZE_INV_RANGE  = 1.0 / PARTICLE_SIZE_RANGE
-local CRASH_ALPHA_RANGE        = 1.0 - CRASH_ALPHA_MIN
-local CRASH_CULLING_TOTAL      = CRASH_CULLING_RADIUS + CULLING_MARGIN
-local POINT_CULLING_TOTAL      = POINT_CULLING_RADIUS + CULLING_MARGIN
+local SMOKE_VEL_UP_RANGE = SMOKE_VEL_UP_MAX - SMOKE_VEL_UP_MIN
+local SMOKE_VEL_RANDOM_2 = SMOKE_VEL_RANDOM * 2
+local PIECE_VEL_COMBINED = PIECE_VEL_SCALE * 0.05
+local PARTICLE_SIZE_RANGE = PARTICLE_SIZE_MAX - PARTICLE_SIZE_MIN
+local PIECE_ALPHA_RANGE = 1.0 - PIECE_ALPHA_MIN
+local PIECE_LIFETIME_RANGE = PIECE_LIFETIME_MAX - PIECE_LIFETIME_MIN
+local PARTICLE_SIZE_INV_RANGE = 1.0 / PARTICLE_SIZE_RANGE
+local CRASH_ALPHA_RANGE = 1.0 - CRASH_ALPHA_MIN
+local CRASH_CULLING_TOTAL = CRASH_CULLING_RADIUS + CULLING_MARGIN
+local POINT_CULLING_TOTAL = POINT_CULLING_RADIUS + CULLING_MARGIN
 
 -- Priority budget limits (computed from MAX_PARTICLES)
 local budgetLimits = {
 	[PRIORITY_ESSENTIAL] = mathFloor(MAX_PARTICLES * BUDGET_ESSENTIAL),
-	[PRIORITY_NORMAL]    = mathFloor(MAX_PARTICLES * BUDGET_NORMAL),
-	[PRIORITY_COSMETIC]  = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC),
+	[PRIORITY_NORMAL] = mathFloor(MAX_PARTICLES * BUDGET_NORMAL),
+	[PRIORITY_COSMETIC] = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC),
 }
 
 -- Quality presets: auto-switch based on average particle count
 local QUALITY_PRESETS = {
 	[1] = {
-		name            = "Low",
-		spawnMult       = 0.35,
-		pieceCountMult  = 0.5,
-		lifetimeMult    = 0.25,
-		maxPct          = 1.0,
+		name = "Low",
+		spawnMult = 0.35,
+		pieceCountMult = 0.5,
+		lifetimeMult = 0.25,
+		maxPct = 1.0,
 	},
 	[2] = {
-		name            = "Medium",
-		spawnMult       = 0.65,
-		pieceCountMult  = 0.75,
-		lifetimeMult    = 0.33,
-		maxPct          = 0.75,
+		name = "Medium",
+		spawnMult = 0.65,
+		pieceCountMult = 0.75,
+		lifetimeMult = 0.33,
+		maxPct = 0.75,
 	},
 	[3] = {
-		name            = "High",
-		spawnMult       = 1.0,
-		pieceCountMult  = 1.0,
-		lifetimeMult    = 0.4,
-		maxPct          = 0.45,
+		name = "High",
+		spawnMult = 1.0,
+		pieceCountMult = 1.0,
+		lifetimeMult = 0.4,
+		maxPct = 0.45,
 	},
 }
 
@@ -474,7 +477,9 @@ void main(void)
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
-local particleVBO    = nil
+
+---@type InstanceVBOTable?
+local particleVBO = nil
 local particleShader = nil
 local nextParticleID = 0
 
@@ -495,9 +500,12 @@ local particleRemoveQueue = {}
 --------------------------------------------------------------------------------
 -- Consolidated into one table to stay under Lua 5.1's 200-local-per-chunk cap.
 local pools = {
-	tracker = {}, trackerN = 0,
-	queue   = {}, queueN   = 0,
-	buffer  = {}, bufferN  = 0,
+	tracker = {},
+	trackerN = 0,
+	queue = {},
+	queueN = 0,
+	buffer = {},
+	bufferN = 0,
 }
 
 function pools.acquireTracker()
@@ -505,7 +513,7 @@ function pools.acquireTracker()
 	if n > 0 then
 		local t = pools.tracker[n]
 		pools.tracker[n] = nil
-		pools.trackerN   = n - 1
+		pools.trackerN = n - 1
 		return t
 	end
 	return {}
@@ -514,18 +522,18 @@ end
 function pools.releaseTracker(t)
 	-- Clear every field we ever set; leftover entries would survive into the
 	-- next user via `if tracked.x` checks and corrupt state.
-	t.gen             = nil
-	t.excluded        = nil
-	t.sizeScale       = nil
-	t.birthFrame      = nil
-	t.lifeFrames      = nil
-	t.fireIntensity   = nil
-	t.lifeBias        = nil
-	t.offscreenSkip   = nil
+	t.gen = nil
+	t.excluded = nil
+	t.sizeScale = nil
+	t.birthFrame = nil
+	t.lifeFrames = nil
+	t.fireIntensity = nil
+	t.lifeBias = nil
+	t.offscreenSkip = nil
 	t.offscreenBuffer = nil
-	t.bufferLen       = nil
+	t.bufferLen = nil
 	local n = pools.trackerN + 1
-	pools.trackerN   = n
+	pools.trackerN = n
 	pools.tracker[n] = t
 end
 
@@ -534,7 +542,7 @@ function pools.acquireQueue()
 	if n > 0 then
 		local q = pools.queue[n]
 		pools.queue[n] = nil
-		pools.queueN   = n - 1
+		pools.queueN = n - 1
 		return q
 	end
 	return {}
@@ -542,9 +550,11 @@ end
 
 function pools.releaseQueue(q)
 	-- Truncate without holding references to the popped particleIDs.
-	for i = 1, #q do q[i] = nil end
+	for i = 1, #q do
+		q[i] = nil
+	end
 	local n = pools.queueN + 1
-	pools.queueN   = n
+	pools.queueN = n
 	pools.queue[n] = q
 end
 
@@ -553,25 +563,29 @@ function pools.acquireBuffer()
 	if n > 0 then
 		local b = pools.buffer[n]
 		pools.buffer[n] = nil
-		pools.bufferN   = n - 1
+		pools.bufferN = n - 1
 		return b
 	end
 	return {}
 end
 
 function pools.releaseBuffer(b)
-	for i = 1, #b do b[i] = nil end
+	for i = 1, #b do
+		b[i] = nil
+	end
 	local n = pools.bufferN + 1
-	pools.bufferN   = n
+	pools.bufferN = n
 	pools.buffer[n] = b
 end
 
 -- Cache of unit death effect sizes
-local unitDeathSizeCache = {}  -- [unitDefID] = radius
+local unitDeathSizeCache = {} -- [unitDefID] = radius
 
 -- Quality preset state
 local currentPreset = spGetConfigInt("GfxFireSmokeQuality", 3)
-if not QUALITY_PRESETS[currentPreset] then currentPreset = 3 end
+if not QUALITY_PRESETS[currentPreset] then
+	currentPreset = 3
+end
 local particleCountSamples = {}
 local sampleIndex = 0
 local sampleCount = 0
@@ -608,7 +622,11 @@ local cachedCamX, cachedCamY, cachedCamZ = 0, 0, 0
 local cachedPreset = QUALITY_PRESETS[currentPreset]
 local cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 local cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
-local fastForward = false  -- true when gamespeed > 1.5 or catching up (rejoining)
+local fastForward = false -- true when gamespeed > 1.5 or catching up (rejoining)
+local visibilityState = {
+	allyTeamID = Spring.GetLocalAllyTeamID(),
+	fullView = select(2, Spring.GetSpectatingState()) or false,
+}
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -622,22 +640,33 @@ for i = 1, #QUALITY_PRESETS do
 	presetThresholds[i] = QUALITY_PRESETS[i].maxPct * MAX_PARTICLES
 end
 
-local maxSamples = mathCeil(15 / 4)  -- AVG_WINDOW_FRAMES / AVG_SAMPLE_INTERVAL
+local maxSamples = mathCeil(15 / 4) -- AVG_WINDOW_FRAMES / AVG_SAMPLE_INTERVAL
+
+local function isEffectVisible(x, y, z)
+	return visibilityState.fullView or spIsPosInAirLos(x, y, z, visibilityState.allyTeamID)
+end
 
 local function updateQualityPreset(gameFrame)
-	if not particleVBO then return end
+	if not particleVBO then
+		return
+	end
 
-	if gameFrame % 4 == 0 then  -- AVG_SAMPLE_INTERVAL
+	if gameFrame >= (visibilityState.nextQualitySampleFrame or 0) then -- AVG_SAMPLE_INTERVAL
+		visibilityState.nextQualitySampleFrame = gameFrame + 4
 		sampleIndex = (sampleIndex % maxSamples) + 1
 		local oldVal = particleCountSamples[sampleIndex] or 0
 		local newVal = particleVBO.usedElements
 		particleCountSamples[sampleIndex] = newVal
 		runningSum = runningSum - oldVal + newVal
-		if sampleCount < maxSamples then sampleCount = sampleCount + 1 end
+		if sampleCount < maxSamples then
+			sampleCount = sampleCount + 1
+		end
 		avgParticleCount = runningSum / sampleCount
 	end
 
-	if gameFrame - lastPresetSwitchFrame < 15 then return end  -- PRESET_SWITCH_COOLDOWN
+	if gameFrame - lastPresetSwitchFrame < 15 then
+		return
+	end -- PRESET_SWITCH_COOLDOWN
 
 	local newPreset = 1
 	for i = #QUALITY_PRESETS, 1, -1 do
@@ -654,16 +683,23 @@ local function updateQualityPreset(gameFrame)
 end
 
 local function updateMaxParticles(gameFrame)
-	if gameFrame % 90 ~= 0 then return end  -- re-read configint every ~3 seconds
-	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles
+	if gameFrame < (visibilityState.nextMaxParticlesFrame or 0) then
+		return
+	end -- re-read configint every ~3 seconds
+	visibilityState.nextMaxParticlesFrame = gameFrame + 90
+	local newMax = ((spGetConfigInt("MaxParticles", 10000) - 7000) * 2) + minFireSmokeParticles
 
-	if newMax == MAX_PARTICLES then return end
+	if newMax == MAX_PARTICLES then
+		return
+	end
 	newMax = mathMin(newMax, VBO_CAPACITY)
-	if newMax < 1 then newMax = 1 end
+	if newMax < 1 then
+		newMax = 1
+	end
 	MAX_PARTICLES = newMax
 	budgetLimits[PRIORITY_ESSENTIAL] = mathFloor(MAX_PARTICLES * BUDGET_ESSENTIAL)
-	budgetLimits[PRIORITY_NORMAL]    = mathFloor(MAX_PARTICLES * BUDGET_NORMAL)
-	budgetLimits[PRIORITY_COSMETIC]  = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC)
+	budgetLimits[PRIORITY_NORMAL] = mathFloor(MAX_PARTICLES * BUDGET_NORMAL)
+	budgetLimits[PRIORITY_COSMETIC] = mathFloor(MAX_PARTICLES * BUDGET_COSMETIC)
 	cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 	cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
 	for i = 1, #QUALITY_PRESETS do
@@ -672,7 +708,10 @@ local function updateMaxParticles(gameFrame)
 end
 
 local function updateWind(gameFrame)
-	if gameFrame % 10 ~= 0 then return end  -- WIND_UPDATE_INTERVAL
+	if gameFrame < (visibilityState.nextWindFrame or 0) then
+		return
+	end -- WIND_UPDATE_INTERVAL
+	visibilityState.nextWindFrame = gameFrame + 10
 	local _, _, _, strength, wx, _, wz = spGetWind()
 	windX = wx or 0
 	windZ = wz or 0
@@ -698,14 +737,18 @@ end
 -- Particle spawning
 --------------------------------------------------------------------------------
 
-local particleData = {0,0,0,0, 0,0,0,0, 0,0,0,0, 1,1,1,0}
+local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 }
 
 local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime, alphaMult, tintBrightness, birthFrame)
-	if particleVBO.usedElements >= currentBudgetLimit then return end
+	if particleVBO.usedElements >= currentBudgetLimit then
+		return
+	end
 
 	local bf = birthFrame or cachedGameFrame
 	local deathFrame = bf + mathCeil(lifetime) + 2
-	if deathFrame <= cachedGameFrame then return end  -- already expired (retroactive particle)
+	if deathFrame <= cachedGameFrame then
+		return
+	end -- already expired (retroactive particle)
 
 	local seed = mathRandom()
 
@@ -729,7 +772,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 
 	nextParticleID = nextParticleID + 1
 	local particleID = nextParticleID
-	pushElementInstance(particleVBO, particleData, particleID, true, false)
+	pushElementInstance(particleVBO, particleData, particleID, true, visibilityState.deferParticleUploads or false)
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
@@ -752,19 +795,19 @@ local shaderSourceCache = {
 	fsSrc = fsSrc,
 	shaderName = "FireSmokeGL4",
 	uniformInt = {
-		fireTex  = 0,
+		fireTex = 0,
 		smokeTex = 1,
 	},
 	uniformFloat = {},
 	shaderConfig = {
-		SMOKE_GROWTH_MULT  = 1.05,   -- growth over lifetime
-		SMOKE_GROWTH_RATE  = 0.11,   -- time-based growth per frame (elmos)
-		SMOKE_WOBBLE_START = 0.6,      -- initial turbulence amplitude (elmos)
-		SMOKE_WOBBLE_RAMP  = 0.4,    -- wobble ramp over lifetime, scaled by particle size
-		SMOKE_WOBBLE_RATE  = 0.1,   -- time-based wobble growth per frame (elmos)
-		WIND_SMOKE_MULT    = 0.0012, -- wind push on smoke (per frame * wind speed)
-		WIND_FIRE_MULT     = 0.2,    -- fire wind resistance (fraction of smoke)
-		HIGHLIGHT_BRIGHT   = SMOKE_HIGHLIGHT_BRIGHT, -- highlight brightness multiplier
+		SMOKE_GROWTH_MULT = 1.05, -- growth over lifetime
+		SMOKE_GROWTH_RATE = 0.11, -- time-based growth per frame (elmos)
+		SMOKE_WOBBLE_START = 0.6, -- initial turbulence amplitude (elmos)
+		SMOKE_WOBBLE_RAMP = 0.4, -- wobble ramp over lifetime, scaled by particle size
+		SMOKE_WOBBLE_RATE = 0.1, -- time-based wobble growth per frame (elmos)
+		WIND_SMOKE_MULT = 0.0012, -- wind push on smoke (per frame * wind speed)
+		WIND_FIRE_MULT = 0.2, -- fire wind resistance (fraction of smoke)
+		HIGHLIGHT_BRIGHT = SMOKE_HIGHLIGHT_BRIGHT, -- highlight brightness multiplier
 	},
 	forceupdate = true,
 }
@@ -776,22 +819,16 @@ local function initGL4()
 		return false
 	end
 
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"fireSmokeQuadVBO"
-	)
+	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "fireSmokeQuadVBO")
 
 	local particleLayout = {
-		{id = 1, name = 'worldPos',    size = 4},
-		{id = 2, name = 'velocity',    size = 4},
-		{id = 3, name = 'sizeAndType', size = 4},
-		{id = 4, name = 'colorTint',   size = 4},
+		{ id = 1, name = "worldPos", size = 4 },
+		{ id = 2, name = "velocity", size = 4 },
+		{ id = 3, name = "sizeAndType", size = 4 },
+		{ id = 4, name = "colorTint", size = 4 },
 	}
 
-	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(
-		particleLayout, MAX_PARTICLES, "fireSmokeVBO"
-	)
+	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(particleLayout, MAX_PARTICLES, "fireSmokeVBO")
 	if not particleVBO then
 		goodbye("Failed to create particle VBO")
 		return false
@@ -820,11 +857,15 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 -- Pre-computed highlight pass uniform values
-local HIGHLIGHT_LIFE_INV = 1.0 / SMOKE_HIGHLIGHT_LIFE  -- = 1/0.7 ≈ 1.4286
+local HIGHLIGHT_LIFE_INV = 1.0 / SMOKE_HIGHLIGHT_LIFE -- = 1/0.7 ≈ 1.4286
 
 local function DrawParticles()
-	if not particleVBO or particleVBO.usedElements == 0 then return end
-	if not particleShader then return end
+	if not particleVBO or particleVBO.usedElements == 0 then
+		return
+	end
+	if not particleShader then
+		return
+	end
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -845,7 +886,13 @@ local function DrawParticles()
 	particleVBO:Draw()
 
 	-- Pass 2: Smoke highlight (fire particles killed in VS, smoke gets offset/brighter/smaller/shorter)
-	particleShader:SetUniformFloat("highlightPass", 1, SMOKE_HIGHLIGHT_SIZE, SMOKE_HIGHLIGHT_OFFSET_Y, HIGHLIGHT_LIFE_INV)
+	particleShader:SetUniformFloat(
+		"highlightPass",
+		1,
+		SMOKE_HIGHLIGHT_SIZE,
+		SMOKE_HIGHLIGHT_OFFSET_Y,
+		HIGHLIGHT_LIFE_INV
+	)
 	particleVBO:Draw()
 
 	particleShader:Deactivate()
@@ -894,7 +941,7 @@ end
 -- Other gadgets create them via GG.FireSmoke.AddPointEmitter().
 -- Used for: wreck fires, burning trees, burning buildings, etc.
 --------------------------------------------------------------------------------
-local pointEmitters = {}     -- [emitterID] = emitter data
+local pointEmitters = {} -- [emitterID] = emitter data
 local nextEmitterID = 0
 local pointEmitterCount = 0
 
@@ -902,20 +949,29 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	local age = gameFrame - emitter.birthFrame
 
 	-- Check duration (0 = permanent until removed)
-	if emitter.duration > 0 and age > emitter.duration then return false end
+	if emitter.duration > 0 and age > emitter.duration then
+		return false
+	end
 
 	emitter.spawnTimer = emitter.spawnTimer + 1
-	if emitter.spawnTimer < emitter.spawnInterval then return true end
+	if emitter.spawnTimer < emitter.spawnInterval then
+		return true
+	end
 	emitter.spawnTimer = 0
 
 	local px, py, pz = emitter.x, emitter.y, emitter.z
+	if not isEffectVisible(px, py, pz) then
+		return true
+	end
 
 	-- View frustum culling
-	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then return true end
+	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then
+		return true
+	end
 
 	-- Distance LOD
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local lodMult = 1.0
 	if distSq > LOD_DIST_NEAR_SQ then
 		local t = (mathSqrt(distSq) - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
@@ -924,7 +980,7 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 
 	-- Age-based decay: intensity reduces over lifetime
 	local ageFrac = emitter.duration > 0 and (age / emitter.duration) or 0
-	local decayMult = 1.0 - ageFrac * 0.5  -- 50% reduction at end of life
+	local decayMult = 1.0 - ageFrac * 0.5 -- 50% reduction at end of life
 
 	local presetLifeMult = preset.lifetimeMult * lodMult
 	local spawnCount = mathMax(1, mathFloor(emitter.spawnCount * preset.spawnMult * lodMult * decayMult + 0.5))
@@ -948,7 +1004,9 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 		local svx = (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale
 		local svy = (mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN) * emitter.velocityScale
 		local svz = (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale
-		local smokeLife = (POINT_SMOKE_LIFE_MIN + mathRandom() * POINT_SMOKE_LIFE_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
+		local smokeLife = (POINT_SMOKE_LIFE_MIN + mathRandom() * POINT_SMOKE_LIFE_RANGE)
+			* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+			* smokeLifeBase
 		local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 		spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
 	end
@@ -964,23 +1022,28 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 			(mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale,
 			(mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN) * emitter.velocityScale,
 			(mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM) * emitter.velocityScale,
-			particleSize, 1,
+			particleSize,
+			1,
 			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * emitter.fireLifeMult * fi,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi) * decayMult
 		)
 	end
 
-	return true  -- emitter still alive
+	return true -- emitter still alive
 end
 
-local function updatePointEmitters(gameFrame)
-	if pointEmitterCount == 0 then return end
+local function updatePointEmitters(gameFrame, phase, phaseCount)
+	if pointEmitterCount == 0 then
+		return
+	end
 
 	for emitterID, emitter in pairs(pointEmitters) do
-		local alive = spawnPointEmitterParticles(emitter, gameFrame, cachedPreset)
-		if not alive then
-			pointEmitters[emitterID] = nil
-			pointEmitterCount = pointEmitterCount - 1
+		if emitterID % phaseCount == phase - 1 then
+			local alive = spawnPointEmitterParticles(emitter, gameFrame, cachedPreset)
+			if not alive then
+				pointEmitters[emitterID] = nil
+				pointEmitterCount = pointEmitterCount - 1
+			end
 		end
 	end
 end
@@ -994,8 +1057,8 @@ local excludedDeathUnits = {}
 local pieceGeneration = 0
 
 -- Buffer stride: each entry is 7 values (frame, px, py, pz, vx, vy, vz)
-local PIECE_BUFFER_MAX = 350   -- 50 entries * 7 stride
-local CRASH_BUFFER_MAX = 1050  -- 150 entries * 7 stride
+local PIECE_BUFFER_MAX = 350 -- 50 entries * 7 stride
+local CRASH_BUFFER_MAX = 1050 -- 150 entries * 7 stride
 
 -- Count of entities with active off-screen buffers (skip DrawWorld flush when 0)
 local offscreenBufferCount = 0
@@ -1024,15 +1087,17 @@ local function replayPieceBuffer(tracked, gameFrame)
 	local startIdx = bufLen - 6
 	while startIdx > 1 do
 		local prevStart = startIdx - 7
-		if gameFrame - buf[prevStart] > maxReplayAge then break end
+		if gameFrame - buf[prevStart] > maxReplayAge then
+			break
+		end
 		startIdx = prevStart
 	end
 
 	local replayedCount = 0
 	for i = startIdx, bufLen, 7 do
 		local frame = buf[i]
-		local bpx, bpy, bpz = buf[i+1], buf[i+2], buf[i+3]
-		local bvx, bvy, bvz = buf[i+4], buf[i+5], buf[i+6]
+		local bpx, bpy, bpz = buf[i + 1], buf[i + 2], buf[i + 3]
+		local bvx, bvy, bvz = buf[i + 4], buf[i + 5], buf[i + 6]
 
 		local pieceAge = frame - tracked.birthFrame
 		local ageFrac = pieceAge / tracked.lifeFrames
@@ -1042,21 +1107,32 @@ local function replayPieceBuffer(tracked, gameFrame)
 
 		local smokeLifeBase = presetLifeMult
 		local smokeAlphaBase = (1.0 - ageFrac * PIECE_ALPHA_FADE) * (fi > 0 and 1.0 or 0.6)
-		local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult))
+		local spawnCount = mathMax(
+			1,
+			mathFloor(
+				(PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult
+			)
+		)
 
 		for p = 1, spawnCount do
 			if mathRandom() > PIECE_SKIP_CHANCE then
 				local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 				local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
 				spawnParticle(
-					bpx + mathRandom() - 0.5, bpy + mathRandom(), bpz + mathRandom() - 0.5,
+					bpx + mathRandom() - 0.5,
+					bpy + mathRandom(),
+					bpz + mathRandom() - 0.5,
 					vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 					vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 					vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-					particleSize, 0,
-					(PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase,
+					particleSize,
+					0,
+					(PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE)
+						* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+						* smokeLifeBase,
 					(PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase,
-					nil, frame  -- birthFrame override
+					nil,
+					frame -- birthFrame override
 				)
 				replayedCount = replayedCount + 1
 			end
@@ -1066,14 +1142,18 @@ local function replayPieceBuffer(tracked, gameFrame)
 			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
 			spawnParticle(
-				bpx + mathRandom() * 0.6 - 0.3, bpy + mathRandom() * 0.5, bpz + mathRandom() * 0.6 - 0.3,
+				bpx + mathRandom() * 0.6 - 0.3,
+				bpy + mathRandom() * 0.5,
+				bpz + mathRandom() * 0.6 - 0.3,
 				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				particleSize, 1,
+				particleSize,
+				1,
 				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
 				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
-				nil, frame  -- birthFrame override
+				nil,
+				frame -- birthFrame override
 			)
 			replayedCount = replayedCount + 1
 		end
@@ -1090,22 +1170,41 @@ local debugPiece = { spawn = 0, call = 0, skipGround = 0, skipOffscreen = 0, ski
 
 local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	local pieceAge = gameFrame - tracked.birthFrame
-	if pieceAge > tracked.lifeFrames then debugPiece.skipExpired = debugPiece.skipExpired + 1 return end
+	if pieceAge > tracked.lifeFrames then
+		debugPiece.skipExpired = debugPiece.skipExpired + 1
+		return
+	end
 
 	local px, py, pz = spGetProjectilePosition(proID)
-	if not px then debugPiece.skipNoPos = debugPiece.skipNoPos + 1 return end
+	if not px then
+		debugPiece.skipNoPos = debugPiece.skipNoPos + 1
+		return
+	end
 
 	local aboveGround = py > PIECE_GROUND_SKIP_HEIGHT
 	if not aboveGround then
 		local groundY = spGetGroundHeight(px, pz) or 0
 		aboveGround = py > groundY + 1
 	end
-	if not aboveGround then debugPiece.skipGround = debugPiece.skipGround + 1 return end
+	if not aboveGround then
+		debugPiece.skipGround = debugPiece.skipGround + 1
+		return
+	end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			pools.releaseBuffer(tracked.offscreenBuffer)
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		tracked.offscreenSkip = nil
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
 		debugPiece.skipOffscreen = debugPiece.skipOffscreen + 1
-		tracked.offscreenSkip = 2  -- skip next 2 frames without re-querying position
+		tracked.offscreenSkip = 2 -- skip next 2 frames without re-querying position
 		-- Buffer position/velocity every 3rd frame for retroactive spawning
 		if not fastForward and gameFrame % 3 == 0 then
 			local pvx, pvy, pvz = spGetProjectileVelocity(proID)
@@ -1118,13 +1217,13 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 				n = 0
 			end
 			if n < PIECE_BUFFER_MAX then
-				buf[n+1] = gameFrame
-				buf[n+2] = px
-				buf[n+3] = py
-				buf[n+4] = pz
-				buf[n+5] = pvx or 0
-				buf[n+6] = pvy or 0
-				buf[n+7] = pvz or 0
+				buf[n + 1] = gameFrame
+				buf[n + 2] = px
+				buf[n + 3] = py
+				buf[n + 4] = pz
+				buf[n + 5] = pvx or 0
+				buf[n + 6] = pvy or 0
+				buf[n + 7] = pvz or 0
 				tracked.bufferLen = n + 7
 			end
 		end
@@ -1140,7 +1239,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	debugPiece.call = debugPiece.call + 1
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local lodMult = 1.0
 	if distSq > LOD_DIST_NEAR_SQ then
 		local t = (mathSqrt(distSq) - LOD_DIST_NEAR) * LOD_DIST_RANGE_INV
@@ -1158,7 +1257,15 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 
 	local preset = cachedPreset
 	local presetLifeMult = preset.lifetimeMult * lodMult
-	local spawnCount = mathMax(1, mathFloor((PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5) * preset.spawnMult * preset.pieceCountMult * lodMult))
+	local spawnCount = mathMax(
+		1,
+		mathFloor(
+			(PIECE_SPAWN_COUNT_MAX - ageFrac * PIECE_SPAWN_TAPER + 0.5)
+				* preset.spawnMult
+				* preset.pieceCountMult
+				* lodMult
+		)
+	)
 	local skipChance = PIECE_SKIP_CHANCE + (1.0 - lodMult) * 0.3
 
 	local smokeLifeBase = presetLifeMult
@@ -1178,7 +1285,9 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 			local svx = vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM)
 			local svy = vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN
 			local svz = vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM)
-			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
+			local smokeLife = (PIECE_LIFETIME_MIN + (tracked.lifeBias + mathRandom() * 0.3) * PIECE_LIFETIME_RANGE)
+				* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+				* smokeLifeBase
 			local smokeAlpha = (PIECE_ALPHA_MIN + mathRandom() * PIECE_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
 			debugPiece.spawn = debugPiece.spawn + 1
@@ -1189,11 +1298,14 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 		local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * fi
 		spawnParticle(
-			px + mathRandom() * 0.6 - 0.3, py + mathRandom() * 0.5, pz + mathRandom() * 0.6 - 0.3,
+			px + mathRandom() * 0.6 - 0.3,
+			py + mathRandom() * 0.5,
+			pz + mathRandom() * 0.6 - 0.3,
 			vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 			vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 			vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-			particleSize, 1,
+			particleSize,
+			1,
 			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * fi,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
 		)
@@ -1201,74 +1313,91 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	end
 end
 
-local function updatePieceProjectiles(gameFrame)
-	-- Prefer the shared dispatcher (map-wide piece scan, cached once per tick).
-	-- We subscribed without a defIDSet so GetMatches returns every piece
-	-- projectile, matching the original engine call's behaviour.
+local function updatePieceProjectiles(gameFrame, phase, phaseCount)
 	local projectiles, numProjectiles
-	local PS = GG.ProjectileScan
-	if PS and dispatchHandle then
-		projectiles, numProjectiles = PS.GetMatches(dispatchHandle)
+	local gen
+	if phase == 1 then
+		-- Scan once per cycle, then spread the cached list over its frames.
+		local PS = GG.ProjectileScan
+		if PS and dispatchHandle then
+			projectiles, numProjectiles = PS.GetMatches(dispatchHandle)
+		else
+			projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
+			numProjectiles = projectiles and #projectiles or 0
+		end
+		visibilityState.pieceProjectiles = projectiles
+		visibilityState.pieceProjectileCount = numProjectiles or 0
+		pieceGeneration = pieceGeneration + 1
+		gen = pieceGeneration
+		visibilityState.pieceGeneration = gen
 	else
-		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
-		numProjectiles = projectiles and #projectiles or 0
+		projectiles = visibilityState.pieceProjectiles
+		numProjectiles = visibilityState.pieceProjectileCount or 0
+		gen = visibilityState.pieceGeneration
 	end
-	if not projectiles then return end
 
 	local _, ownerRadius = next(pendingDeathUnitRadii)
 
-	pieceGeneration = pieceGeneration + 1
-	local gen = pieceGeneration
-	for i = 1, numProjectiles do
-		local proID = projectiles[i]
-		local tracked = trackedPieceProjectiles[proID]
-		if not tracked then
-			local ownerID = spGetProjectileOwnerID(proID)
-			if ownerID and excludedDeathUnits[ownerID] then
-				local t = pools.acquireTracker()
-				t.gen      = gen
-				t.excluded = true
-				trackedPieceProjectiles[proID] = t
-			else
-				local px, py, pz = spGetProjectilePosition(proID)
-				if px then
-					local pieceRadius = ownerRadius or 10
-					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
-					local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
-					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
+	if projectiles and gen then
+		for i = phase, numProjectiles, phaseCount do
+			local proID = projectiles[i]
+			local tracked = trackedPieceProjectiles[proID]
+			if not tracked then
+				local ownerID = spGetProjectileOwnerID(proID)
+				if ownerID and excludedDeathUnits[ownerID] then
 					local t = pools.acquireTracker()
-					t.sizeScale     = sizeScale
-					t.birthFrame    = gameFrame
-					t.lifeFrames    = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
-					t.gen           = gen
-					t.fireIntensity = fi
-					t.lifeBias      = mathRandom() * 0.7
+					t.gen = gen
+					t.excluded = true
 					trackedPieceProjectiles[proID] = t
-				end
-			end
-		else
-			tracked.gen = gen
-			if not tracked.excluded then
-				-- Skip off-screen pieces for a few frames without re-querying position
-				local skip = tracked.offscreenSkip
-				if skip and skip > 0 then
-					tracked.offscreenSkip = skip - 1
 				else
-					spawnPieceTrailParticles(tracked, proID, gameFrame)
+					local px = spGetProjectilePosition(proID)
+					if px then
+						local pieceRadius = ownerRadius or 10
+						local sizeScale = mathMax(
+							PIECE_SIZE_SCALE_MIN,
+							mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF)
+						)
+						local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
+						local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
+						local t = pools.acquireTracker()
+						t.sizeScale = sizeScale
+						t.birthFrame = gameFrame
+						t.lifeFrames = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
+						t.gen = gen
+						t.fireIntensity = fi
+						t.lifeBias = mathRandom() * 0.7
+						trackedPieceProjectiles[proID] = t
+					end
+				end
+			else
+				tracked.gen = gen
+				if not tracked.excluded then
+					-- Skip off-screen pieces for a few frames without re-querying position
+					local skip = tracked.offscreenSkip
+					if skip and skip > 0 then
+						tracked.offscreenSkip = skip - 1
+					else
+						spawnPieceTrailParticles(tracked, proID, gameFrame)
+					end
 				end
 			end
 		end
 	end
 
-	for proID, tracked in pairs(trackedPieceProjectiles) do
-		if tracked.gen ~= gen then
-			if tracked.offscreenBuffer then
-				pools.releaseBuffer(tracked.offscreenBuffer)
-				offscreenBufferCount = offscreenBufferCount - 1
+	if phase == phaseCount and gen then
+		for proID, tracked in pairs(trackedPieceProjectiles) do
+			if tracked.gen ~= gen then
+				if tracked.offscreenBuffer then
+					pools.releaseBuffer(tracked.offscreenBuffer)
+					offscreenBufferCount = offscreenBufferCount - 1
+				end
+				trackedPieceProjectiles[proID] = nil
+				pools.releaseTracker(tracked)
 			end
-			trackedPieceProjectiles[proID] = nil
-			pools.releaseTracker(tracked)
 		end
+		visibilityState.pieceProjectiles = nil
+		visibilityState.pieceProjectileCount = nil
+		visibilityState.pieceGeneration = nil
 	end
 end
 
@@ -1306,7 +1435,9 @@ end
 local function replayCrashBuffer(tracked, gameFrame)
 	local buf = tracked.offscreenBuffer
 	local bufLen = tracked.bufferLen
-	if not buf or bufLen == 0 then return end
+	if not buf or bufLen == 0 then
+		return
+	end
 
 	local preset = cachedPreset
 	local sc = tracked.sizeScale
@@ -1322,8 +1453,8 @@ local function replayCrashBuffer(tracked, gameFrame)
 	local replayedCount = 0
 	for i = 1, bufLen, 7 do
 		local frame = buf[i]
-		local bpx, bpy, bpz = buf[i+1], buf[i+2], buf[i+3]
-		local bvx, bvy, bvz = buf[i+4], buf[i+5], buf[i+6]
+		local bpx, bpy, bpz = buf[i + 1], buf[i + 2], buf[i + 3]
+		local bvx, bvy, bvz = buf[i + 4], buf[i + 5], buf[i + 6]
 
 		local crashAge = frame - tracked.birthFrame
 		local ageFrac = crashAge / CRASH_MAX_DURATION
@@ -1338,14 +1469,20 @@ local function replayCrashBuffer(tracked, gameFrame)
 			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * smokeSizeSc
 			spawnParticle(
-				bpx + mathRandom() * 4 - 2, bpy + mathRandom() * 2, bpz + mathRandom() * 4 - 2,
+				bpx + mathRandom() * 4 - 2,
+				bpy + mathRandom() * 2,
+				bpz + mathRandom() * 4 - 2,
 				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				particleSize, 0,
-				(CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase,
+				particleSize,
+				0,
+				(CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE)
+					* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+					* smokeLifeBase,
 				(CRASH_ALPHA_MIN + mathRandom() * CRASH_ALPHA_RANGE) * smokeAlphaBase,
-				nil, frame  -- birthFrame override
+				nil,
+				frame -- birthFrame override
 			)
 			replayedCount = replayedCount + 1
 		end
@@ -1354,14 +1491,22 @@ local function replayCrashBuffer(tracked, gameFrame)
 			local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 			local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * CRASH_FIRE_SIZE_MULT * fi
 			spawnParticle(
-				bpx + mathRandom() * 2 - 1, bpy + mathRandom(), bpz + mathRandom() * 2 - 1,
+				bpx + mathRandom() * 2 - 1,
+				bpy + mathRandom(),
+				bpz + mathRandom() * 2 - 1,
 				vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 				vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 				vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-				particleSize, 1,
-				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * CRASH_FIRE_LIFETIME_MULT * fi * unitLifeMult,
+				particleSize,
+				1,
+				(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE)
+					* presetLifeMult
+					* CRASH_FIRE_LIFETIME_MULT
+					* fi
+					* unitLifeMult,
 				(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi),
-				nil, frame  -- birthFrame override
+				nil,
+				frame -- birthFrame override
 			)
 			replayedCount = replayedCount + 1
 		end
@@ -1374,10 +1519,22 @@ end
 
 local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	local crashAge = gameFrame - tracked.birthFrame
-	if crashAge > CRASH_MAX_DURATION then return end
+	if crashAge > CRASH_MAX_DURATION then
+		return
+	end
 
 	local px, py, pz = spGetUnitPosition(unitID)
-	if not px then return end
+	if not px then
+		return
+	end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
@@ -1393,13 +1550,13 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 				n = 0
 			end
 			if n < CRASH_BUFFER_MAX then
-				buf[n+1] = gameFrame
-				buf[n+2] = px
-				buf[n+3] = py
-				buf[n+4] = pz
-				buf[n+5] = uvx or 0
-				buf[n+6] = uvy or 0
-				buf[n+7] = uvz or 0
+				buf[n + 1] = gameFrame
+				buf[n + 2] = px
+				buf[n + 3] = py
+				buf[n + 4] = pz
+				buf[n + 5] = uvx or 0
+				buf[n + 6] = uvy or 0
+				buf[n + 7] = uvz or 0
 				tracked.bufferLen = n + 7
 			end
 		end
@@ -1412,7 +1569,7 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	end
 
 	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local lodMult = 1.0
 	if distSq > crashScale.LOD_DIST_NEAR_SQ then
 		local t = (mathSqrt(distSq) - 6000) * crashScale.LOD_DIST_RANGE_INV
@@ -1453,7 +1610,9 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 			local svx = vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM)
 			local svy = vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN
 			local svz = vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM)
-			local smokeLife = (CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE) * (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE) * smokeLifeBase
+			local smokeLife = (CRASH_LIFETIME_MIN + mathRandom() * CRASH_LIFETIME_RANGE)
+				* (1.0 + sizeRand * PARTICLE_SIZE_INV_RANGE)
+				* smokeLifeBase
 			local smokeAlpha = (CRASH_ALPHA_MIN + mathRandom() * CRASH_ALPHA_RANGE) * smokeAlphaBase
 			spawnParticle(spx, spy, spz, svx, svy, svz, particleSize, 0, smokeLife, smokeAlpha)
 		end
@@ -1463,31 +1622,46 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 		local sizeRand = mathRandom() * PARTICLE_SIZE_RANGE
 		local particleSize = (PARTICLE_SIZE_MIN + sizeRand) * sc * FIRE_SIZE_MULT * CRASH_FIRE_SIZE_MULT * fi
 		spawnParticle(
-			px + mathRandom() * 2 - 1, py + mathRandom(), pz + mathRandom() * 2 - 1,
+			px + mathRandom() * 2 - 1,
+			py + mathRandom(),
+			pz + mathRandom() * 2 - 1,
 			vxs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
 			vys + mathRandom() * SMOKE_VEL_UP_RANGE + SMOKE_VEL_UP_MIN,
 			vzs + (mathRandom() * SMOKE_VEL_RANDOM_2 - SMOKE_VEL_RANDOM),
-			particleSize, 1,
-			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE) * presetLifeMult * CRASH_FIRE_LIFETIME_MULT * fi * unitLifeMult,
+			particleSize,
+			1,
+			(FIRE_LIFETIME_MIN + mathRandom() * FIRE_LIFETIME_RANGE)
+				* presetLifeMult
+				* CRASH_FIRE_LIFETIME_MULT
+				* fi
+				* unitLifeMult,
 			(FIRE_ALPHA_MIN + mathRandom() * 0.2) * (0.5 + 0.5 * fi)
 		)
 	end
 end
 
-local function updateCrashingAircraft(gameFrame)
-	if crashingAircraftCount == 0 then return end
+local function updateCrashingAircraft(gameFrame, phase, phaseCount)
+	if crashingAircraftCount == 0 then
+		return
+	end
 
 	for unitID, tracked in pairs(trackedCrashingAircraft) do
-		if not spValidUnitID(unitID) then
-			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
-			trackedCrashingAircraft[unitID] = nil
-			crashingAircraftCount = crashingAircraftCount - 1
-		elseif gameFrame - tracked.birthFrame > CRASH_MAX_DURATION then
-			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
-			trackedCrashingAircraft[unitID] = nil
-			crashingAircraftCount = crashingAircraftCount - 1
-		else
-			spawnCrashTrailParticles(tracked, unitID, gameFrame)
+		if unitID % phaseCount == phase - 1 then
+			if not spValidUnitID(unitID) then
+				if tracked.offscreenBuffer then
+					offscreenBufferCount = offscreenBufferCount - 1
+				end
+				trackedCrashingAircraft[unitID] = nil
+				crashingAircraftCount = crashingAircraftCount - 1
+			elseif gameFrame - tracked.birthFrame > CRASH_MAX_DURATION then
+				if tracked.offscreenBuffer then
+					offscreenBufferCount = offscreenBufferCount - 1
+				end
+				trackedCrashingAircraft[unitID] = nil
+				crashingAircraftCount = crashingAircraftCount - 1
+			else
+				spawnCrashTrailParticles(tracked, unitID, gameFrame)
+			end
 		end
 	end
 end
@@ -1497,9 +1671,18 @@ end
 -- Other gadgets can call these to spawn fire/smoke effects
 --------------------------------------------------------------------------------
 
+---Starts the trailing fire/smoke effect for an aircraft that has begun crashing.
+---Does nothing if the effect system is unavailable or the unit is already tracked.
+---@param unitID UnitID
+---@param unitDefID UnitDefID
+---@param teamID TeamID
 local function apiCrashingAircraft(unitID, unitDefID, teamID)
-	if not particleVBO then return end
-	if trackedCrashingAircraft[unitID] then return end
+	if not particleVBO then
+		return
+	end
+	if trackedCrashingAircraft[unitID] then
+		return
+	end
 
 	local data = aircraftDataCache[unitDefID]
 	local unitScale = data and data.unitScale or 1.0
@@ -1509,7 +1692,12 @@ local function apiCrashingAircraft(unitID, unitDefID, teamID)
 	local spawnMult = unitScale ^ crashScale.SPAWN_EXP
 
 	local fireChance = mathMin(1.0, crashScale.FIRE_CHANCE * (0.5 + 0.5 * unitScale))
-	local fi = mathRandom() < fireChance and (crashScale.FIRE_INT_MIN + mathRandom() * (1.0 - crashScale.FIRE_INT_MIN)) * mathMin(1.0, 0.6 + 0.4 * unitScale) or 0
+	local fi = mathRandom() < fireChance
+			and (crashScale.FIRE_INT_MIN + mathRandom() * (1.0 - crashScale.FIRE_INT_MIN)) * mathMin(
+				1.0,
+				0.6 + 0.4 * unitScale
+			)
+		or 0
 
 	trackedCrashingAircraft[unitID] = {
 		sizeScale = sizeScale,
@@ -1521,57 +1709,68 @@ local function apiCrashingAircraft(unitID, unitDefID, teamID)
 	crashingAircraftCount = crashingAircraftCount + 1
 end
 
--- Add a generic point emitter at a fixed position.
+---Parameters accepted by `GG.FireSmoke.AddPointEmitter`.
+---@class GG.FireSmoke.EmitterParams
+---@field x number World position X coordinate.
+---@field y number? World position Y coordinate. Defaults to the ground height at `x`, `z`.
+---@field z number? World position Z coordinate. Defaults to `0`.
+---@field duration integer? Frames the emitter lives for. `0` = permanent. Defaults to `300`.
+---@field sizeScale number? Particle size multiplier. Defaults to `1.0`.
+---@field fireIntensity number? `0` emits smoke only. `[0,1)` range of fire chance/brightness. Defaults to `0`.
+---@field spawnCount integer? Particles emitted per interval. Defaults to `POINT_SPAWN_COUNT``.
+---@field spawnInterval integer? Frames between spawns. Defaults to `POINT_SPAWN_INTERVAL``.
+---@field priority integer? One of the `PRIORITY_ESSENTIAL` `_NORMAL` `_COSMETIC` constants. Defaults to `PRIORITY_NORMAL`.
+---@field smokeSizeMult number? Multiplier on spoke particle size. Defaults to `1.0`.
+---@field smokeLifeMult number? Multiplier on smoke particle lifetime. Defaults to `1.0`.
+---@field smokeAlpha number? Base smoke alpha (opacity). Defaults to `1.0`.
+---@field fireSizeMult number? Multiplier on fire particle size. Defaults to `1.0`.
+---@field fireLifeMult number? Multiplier on fire particle lifetime. Defaults to `1.0`.
+---@field posSpread number? Random position jitter applied per particle in elmos. Defaults to `POINT_POS_SPREAD`
+---@field velocityScale number? Multiplier on particle velocity. Defaults to `1.0`.
+
+---Registers a long-lived point emitter that keeps spawning particles.
 -- Returns emitterID (use to remove later) or nil if VBO not ready.
---
--- params table fields (all optional except x,y,z):
---   x, y, z            - world position (required)
---   duration            - emit for this many frames, 0 = permanent (default: 300)
---   sizeScale           - particle size multiplier (default: 1.0)
---   fireIntensity       - 0 = smoke only, 0-1 = fire chance/brightness (default: 0)
---   spawnCount          - smoke particles per interval (default: POINT_SPAWN_COUNT)
---   spawnInterval       - frames between spawns (default: POINT_SPAWN_INTERVAL)
---   priority            - PRIORITY_ESSENTIAL/NORMAL/COSMETIC (default: NORMAL)
---   smokeSizeMult       - multiplier on smoke particle size (default: 1.0)
---   smokeLifeMult       - multiplier on smoke lifetime (default: 1.0)
---   smokeAlpha          - base smoke alpha (default: 1.0)
---   fireSizeMult        - multiplier on fire particle size (default: 1.0)
---   fireLifeMult        - multiplier on fire particle lifetime (default: 1.0)
---   posSpread           - random position offset radius in elmos (default: POINT_POS_SPREAD)
---   velocityScale       - multiplier on particle velocity (default: 1.0)
+---@param params GG.FireSmoke.EmitterParams
+---@return integer? emitterID `nil` when the effect system is unavailable or `params` or `params.x` is missing.
 local function apiAddPointEmitter(params)
-	if not particleVBO then return nil end
-	if not params or not params.x then return nil end
+	if not particleVBO then
+		return nil
+	end
+	if not params or not params.x then
+		return nil
+	end
 
 	nextEmitterID = nextEmitterID + 1
 	local id = nextEmitterID
 
 	pointEmitters[id] = {
-		x             = params.x,
-		y             = params.y or (spGetGroundHeight(params.x, params.z or 0) or 0),
-		z             = params.z or 0,
-		birthFrame    = cachedGameFrame,
-		duration      = params.duration or 300,
-		sizeScale     = params.sizeScale or 1.0,
+		x = params.x,
+		y = params.y or (spGetGroundHeight(params.x, params.z or 0) or 0),
+		z = params.z or 0,
+		birthFrame = cachedGameFrame,
+		duration = params.duration or 300,
+		sizeScale = params.sizeScale or 1.0,
 		fireIntensity = params.fireIntensity or 0,
-		spawnCount    = params.spawnCount or POINT_SPAWN_COUNT,
+		spawnCount = params.spawnCount or POINT_SPAWN_COUNT,
 		spawnInterval = params.spawnInterval or POINT_SPAWN_INTERVAL,
-		priority      = params.priority or PRIORITY_NORMAL,
+		priority = params.priority or PRIORITY_NORMAL,
 		smokeSizeMult = params.smokeSizeMult or 1.0,
 		smokeLifeMult = params.smokeLifeMult or 1.0,
-		smokeAlpha    = params.smokeAlpha or 1.0,
-		fireSizeMult  = params.fireSizeMult or 1.0,
-		fireLifeMult  = params.fireLifeMult or 1.0,
-		posSpread     = params.posSpread or POINT_POS_SPREAD,
+		smokeAlpha = params.smokeAlpha or 1.0,
+		fireSizeMult = params.fireSizeMult or 1.0,
+		fireLifeMult = params.fireLifeMult or 1.0,
+		posSpread = params.posSpread or POINT_POS_SPREAD,
 		velocityScale = params.velocityScale or 1.0,
-		spawnTimer    = 0,
+		spawnTimer = 0,
 	}
 	pointEmitterCount = pointEmitterCount + 1
 
 	return id
 end
 
--- Remove a point emitter by ID (returned from AddPointEmitter)
+---Removes a point emitter.
+---@param emitterID integer? As returned by `AddPointEmitter`.
+---@return boolean removed `false` if no such emitter exists.
 local function apiRemoveEmitter(emitterID)
 	if emitterID and pointEmitters[emitterID] then
 		pointEmitters[emitterID] = nil
@@ -1582,32 +1781,57 @@ local function apiRemoveEmitter(emitterID)
 end
 
 -- Update emitter position (for moving sources)
+---@param emitterID integer As returned by `AddPointEmitter`.
+---@param x number
+---@param y number
+---@param z number
+---@return boolean updated `false` if no such emitter exists.
 local function apiUpdateEmitterPos(emitterID, x, y, z)
 	local emitter = pointEmitters[emitterID]
-	if not emitter then return false end
+	if not emitter then
+		return false
+	end
 	emitter.x = x
 	emitter.y = y
 	emitter.z = z
 	return true
 end
 
--- Spawn a single particle directly (one-shot, no emitter tracking)
--- priority: PRIORITY_ESSENTIAL/NORMAL/COSMETIC (default: NORMAL)
+---Spawns a single one-shot particle with no emitter tracking.
+---@param px number
+---@param py number
+---@param pz number
+---@param vx number? Defaults to `0`.
+---@param vy number? Defaults to `0`.
+---@param vz number? Defaults to `0`.
+---@param size number? Defaults to `2`.
+---@param isFireType boolean? Spawn a flame particle instead of smoke.
+---@param lifetime integer? Frames the particle lives for. Defaults to `60`.
+---@param alpha number? Defaults to `1.0`.
+---@param priority integer? One of the `PRIORITY_*` constants. Defaults to `PRIORITY_NORMAL`.
 local function apiSpawnParticle(px, py, pz, vx, vy, vz, size, isFireType, lifetime, alpha, priority)
-	if not particleVBO then return end
+	if not particleVBO then
+		return
+	end
 	currentBudgetLimit = budgetLimits[priority or PRIORITY_NORMAL]
 	spawnParticle(px, py, pz, vx or 0, vy or 0, vz or 0, size or 2, isFireType and 1 or 0, lifetime or 60, alpha or 1.0)
 end
 
 -- Query current state
+---@return integer count Particles currently alive.
 local function apiGetParticleCount()
 	return particleVBO and particleVBO.usedElements or 0
 end
 
+---@return number count Particle budget for the whole system.
 local function apiGetMaxParticles()
 	return MAX_PARTICLES
 end
 
+---Returns the wind vector the particle simulation is currently using.
+---@return number windX
+---@return number windZ
+---@return number windStrength
 local function apiGetWindState()
 	return windX, windZ, windStrength
 end
@@ -1639,26 +1863,34 @@ function gadget:Initialize()
 	-- Expose public API for other gadgets
 	GG.FireSmoke = {
 		-- Emitter management
-		AddPointEmitter    = apiAddPointEmitter,
-		RemoveEmitter      = apiRemoveEmitter,
-		UpdateEmitterPos   = apiUpdateEmitterPos,
+		AddPointEmitter = apiAddPointEmitter,
+		RemoveEmitter = apiRemoveEmitter,
+		UpdateEmitterPos = apiUpdateEmitterPos,
 
 		-- Direct particle spawn
-		SpawnParticle      = apiSpawnParticle,
+		SpawnParticle = apiSpawnParticle,
 
 		-- Crashing aircraft integration (called from unit_crashing_aircraft.lua)
-		CrashingAircraft   = apiCrashingAircraft,
+		CrashingAircraft = apiCrashingAircraft,
 
 		-- Query
-		GetParticleCount   = apiGetParticleCount,
-		GetMaxParticles    = apiGetMaxParticles,
-		GetWindState       = apiGetWindState,
+		GetParticleCount = apiGetParticleCount,
+		GetMaxParticles = apiGetMaxParticles,
+		GetWindState = apiGetWindState,
 
 		-- Priority constants (for callers to reference)
 		PRIORITY_ESSENTIAL = PRIORITY_ESSENTIAL,
-		PRIORITY_NORMAL    = PRIORITY_NORMAL,
-		PRIORITY_COSMETIC  = PRIORITY_COSMETIC,
+		PRIORITY_NORMAL = PRIORITY_NORMAL,
+		PRIORITY_COSMETIC = PRIORITY_COSMETIC,
 	}
+end
+
+function gadget:PlayerChanged(playerID)
+	if playerID ~= Spring.GetLocalPlayerID() then
+		return
+	end
+	visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
 end
 
 function gadget:Shutdown()
@@ -1667,11 +1899,15 @@ function gadget:Shutdown()
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if not particleVBO then return end
+	if not particleVBO then
+		return
+	end
 
 	-- Stop tracking crashing aircraft on death
 	if trackedCrashingAircraft[unitID] then
-		if trackedCrashingAircraft[unitID].offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
+		if trackedCrashingAircraft[unitID].offscreenBuffer then
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
 		trackedCrashingAircraft[unitID] = nil
 		crashingAircraftCount = crashingAircraftCount - 1
 	end
@@ -1684,43 +1920,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:GameFrame(n)
-	if not particleVBO then return end
+local function runFireSmokeFrame(n)
+	local pVBO = particleVBO
+	if not pVBO then
+		return
+	end
+	cachedGameFrame = n
 
-	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
+	local t0, t1, tStart -- debug timer locals (only used when debugEcho is true)
 	if debugEcho then
 		tStart = spGetTimer()
 		t0 = tStart
-	end
-
-	cachedGameFrame = n
-	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
-
-	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
-	local userSpeed, internalSpeed = spGetGameSpeed()
-	fastForward = (internalSpeed or userSpeed) > 1.5
-
-	-- Periodic housekeeping (staggered across frames)
-	local nMod = n % 90
-	if nMod == 0 then updateMaxParticles(n) end
-	if n % 10 == 0 then updateWind(n) end
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
-		t0 = t1
-	end
-
-	-- Quality auto-scaling
-	updateQualityPreset(n)
-
-	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
-	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
-		t0 = t1
 	end
 
 	-- Remove expired particles
@@ -1740,62 +1950,95 @@ function gadget:GameFrame(n)
 		updateInterval = 2
 	end
 	-- FPS-based throttling (refresh cached value every 15 frames)
-	if n % 15 == 0 then
+	if n >= (visibilityState.nextFpsFrame or 0) then
+		visibilityState.nextFpsFrame = n + 15
 		local fps = spGetFPS()
 		if fps > 0 then
-			cachedFpsInterval = mathCeil(30 / fps)
+			cachedFpsInterval = mathMax(1, mathFloor(30 / fps + 0.5))
 		end
 	end
 	if cachedFpsInterval > updateInterval then
 		updateInterval = cachedFpsInterval
 	end
 
-	if n % updateInterval == 0 then
-		updatePieceProjectiles(n)
+	local phase = visibilityState.emitterPhase
+	local phaseCount = visibilityState.emitterPhaseCount
+	if phase then
+		phase = phase + 1
+	else
+		phase = 1
+		phaseCount = updateInterval
+		visibilityState.emitterPhaseCount = phaseCount
+	end
+	visibilityState.emitterPhase = phase
 
-		-- Debug output every 30 frames
-		if debugEcho then
-			if n % 30 == 0 then
-				local trackedCount = 0
-				for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
-				spEcho(string.format(
-					"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
-					debugPiece.spawn, debugPiece.call, trackedCount,
-					debugPiece.skipGround, debugPiece.skipOffscreen, debugPiece.skipExpired, debugPiece.skipNoPos,
-					cachedPreset.name, updateInterval
-				))
-				debugPiece.spawn = 0
-				debugPiece.call = 0
-				debugPiece.skipGround = 0
-				debugPiece.skipOffscreen = 0
-				debugPiece.skipExpired = 0
-				debugPiece.skipNoPos = 0
+	local uploadStart = pVBO.usedElements
+	visibilityState.deferParticleUploads = true
+	updatePieceProjectiles(n, phase, phaseCount)
+
+	-- Debug output every 30 frames
+	if debugEcho then
+		if n >= (visibilityState.nextPieceDebugFrame or 0) then
+			visibilityState.nextPieceDebugFrame = n + 30
+			local trackedCount = 0
+			for _ in pairs(trackedPieceProjectiles) do
+				trackedCount = trackedCount + 1
 			end
-
-			t1 = spGetTimer()
-			debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
-			t0 = t1
+			spEcho(
+				string.format(
+					"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
+					debugPiece.spawn,
+					debugPiece.call,
+					trackedCount,
+					debugPiece.skipGround,
+					debugPiece.skipOffscreen,
+					debugPiece.skipExpired,
+					debugPiece.skipNoPos,
+					cachedPreset.name,
+					phaseCount
+				)
+			)
+			debugPiece.spawn = 0
+			debugPiece.call = 0
+			debugPiece.skipGround = 0
+			debugPiece.skipOffscreen = 0
+			debugPiece.skipExpired = 0
+			debugPiece.skipNoPos = 0
 		end
 
-		updateCrashingAircraft(n)
+		t1 = spGetTimer()
+		debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
 
-		if debugEcho then
-			t1 = spGetTimer()
-			debugTimings.crashingAircraft = debugTimings.crashingAircraft + spDiffTimers(t1, t0, true)
-			t0 = t1
-		end
+	updateCrashingAircraft(n, phase, phaseCount)
 
-		updatePointEmitters(n)
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.crashingAircraft = debugTimings.crashingAircraft + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
 
-		if debugEcho then
-			t1 = spGetTimer()
-			debugTimings.pointEmitters = debugTimings.pointEmitters + spDiffTimers(t1, t0, true)
-			t0 = t1
-		end
+	updatePointEmitters(n, phase, phaseCount)
+	visibilityState.deferParticleUploads = nil
+	local uploadEnd = pVBO.usedElements
+	if uploadEnd > uploadStart then
+		gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
+	end
+	if phase >= phaseCount then
+		visibilityState.emitterPhase = nil
+		visibilityState.emitterPhaseCount = nil
+	end
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.pointEmitters = debugTimings.pointEmitters + spDiffTimers(t1, t0, true)
+		t0 = t1
 	end
 
 	-- Clean up pending death data periodically
-	if nMod == 30 then
+	if not visibilityState.emitterPhase and n >= (visibilityState.nextDeathCleanupFrame or 30) then
+		visibilityState.nextDeathCleanupFrame = n + 90
 		local k = next(pendingDeathUnitRadii)
 		if k then
 			for uid in pairs(pendingDeathUnitRadii) do
@@ -1816,55 +2059,146 @@ function gadget:GameFrame(n)
 		debugTimings.totalFrame = debugTimings.totalFrame + spDiffTimers(t1, tStart, true)
 		debugTimingSamples = debugTimingSamples + 1
 
-		if n % 30 == 0 and debugTimingSamples > 0 then
-			local inv = 1000 / debugTimingSamples  -- convert to microseconds per frame
+		if n >= (visibilityState.nextTimingDebugFrame or 0) and debugTimingSamples > 0 then
+			visibilityState.nextTimingDebugFrame = n + 30
+			local inv = 1000 / debugTimingSamples -- convert to microseconds per frame
 			local trackedPieceCount = 0
-			for _ in pairs(trackedPieceProjectiles) do trackedPieceCount = trackedPieceCount + 1 end
-			spEcho(string.format(
-				"Fire Smoke GL4 timing (us/frame avg over %d frames): TOTAL=%.1f  housekeep=%.1f  quality=%.1f  removeExp=%.1f  pieces=%.1f  crash=%.1f  pointEm=%.1f  cleanup=%.1f  | particles=%d  pieces=%d  crashes=%d  emitters=%d  preset=%s  wind=%d",
-				debugTimingSamples,
-				debugTimings.totalFrame * inv,
-				debugTimings.housekeeping * inv,
-				debugTimings.qualityPreset * inv,
-				debugTimings.removeExpired * inv,
-				debugTimings.pieceProjectiles * inv,
-				debugTimings.crashingAircraft * inv,
-				debugTimings.pointEmitters * inv,
-				debugTimings.cleanup * inv,
-				mathFloor(avgParticleCount),
-				trackedPieceCount,
-				crashingAircraftCount,
-				pointEmitterCount,
-				cachedPreset.name,
-				mathFloor(windStrength)
-			))
+			for _ in pairs(trackedPieceProjectiles) do
+				trackedPieceCount = trackedPieceCount + 1
+			end
+			spEcho(
+				string.format(
+					"Fire Smoke GL4 timing (us/frame avg over %d frames): TOTAL=%.1f  housekeep=%.1f  quality=%.1f  removeExp=%.1f  pieces=%.1f  crash=%.1f  pointEm=%.1f  cleanup=%.1f  | particles=%d  pieces=%d  crashes=%d  emitters=%d  preset=%s  wind=%d",
+					debugTimingSamples,
+					debugTimings.totalFrame * inv,
+					debugTimings.housekeeping * inv,
+					debugTimings.qualityPreset * inv,
+					debugTimings.removeExpired * inv,
+					debugTimings.pieceProjectiles * inv,
+					debugTimings.crashingAircraft * inv,
+					debugTimings.pointEmitters * inv,
+					debugTimings.cleanup * inv,
+					mathFloor(avgParticleCount),
+					trackedPieceCount,
+					crashingAircraftCount,
+					pointEmitterCount,
+					cachedPreset.name,
+					mathFloor(windStrength)
+				)
+			)
 			-- Reset accumulators
-			for k in pairs(debugTimings) do debugTimings[k] = 0 end
+			for k in pairs(debugTimings) do
+				debugTimings[k] = 0
+			end
 			debugTimingSamples = 0
 		end
 	end
 end
 
+function gadget:Update()
+	if not particleVBO then
+		return
+	end
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= (visibilityState.lastUpdateFrame or -1) then
+		return
+	end
+	visibilityState.lastUpdateFrame = n
+
+	local t0, t1 -- debug timer locals (only used when debugEcho is true)
+	if debugEcho then
+		t0 = spGetTimer()
+	end
+
+	cachedGameFrame = n
+	visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
+
+	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
+	local userSpeed, internalSpeed = spGetGameSpeed()
+	fastForward = (internalSpeed or userSpeed) > 1.5
+
+	-- Periodic housekeeping (staggered across frames)
+	updateMaxParticles(n)
+	updateWind(n)
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	-- Quality auto-scaling
+	updateQualityPreset(n)
+
+	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
+	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			visibilityState.pendingFireSmokeFrame = nil
+			runFireSmokeFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		visibilityState.pendingFireSmokeFrame = n
+		visibilityState.pendingFireSmokeDrawFrame = visibilityState.fireSmokeDrawFrame or 0
+	end
+end
+
 function gadget:DrawWorld()
+	visibilityState.fireSmokeDrawFrame = (visibilityState.fireSmokeDrawFrame or 0) + 1
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame then
+			local queuedAt = visibilityState.pendingFireSmokeDrawFrame or 0
+			if visibilityState.fireSmokeDrawFrame > queuedAt + 1 then
+				visibilityState.pendingFireSmokeFrame = nil
+				runFireSmokeFrame(pendingFrame)
+			end
+		end
+	end
+
 	-- Flush off-screen buffers that are now in view (works while paused too)
 	if offscreenBufferCount > 0 then
-		if crashingAircraftCount > 0 then
-			for unitID, tracked in pairs(trackedCrashingAircraft) do
-				if tracked.offscreenBuffer then
-					local px, py, pz = spGetUnitPosition(unitID)
-					if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
-						replayCrashBuffer(tracked, cachedGameFrame)
+		local pVBO = particleVBO
+		if pVBO then
+			local uploadStart = pVBO.usedElements
+			-- Replays can create hundreds of retroactive particles. Defer their VBO
+			-- writes so a visibility transition produces one upload instead of one per particle.
+			visibilityState.deferParticleUploads = true
+			if crashingAircraftCount > 0 then
+				for unitID, tracked in pairs(trackedCrashingAircraft) do
+					if tracked.offscreenBuffer then
+						local px, py, pz = spGetUnitPosition(unitID)
+						if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+							replayCrashBuffer(tracked, cachedGameFrame)
+						end
 					end
 				end
 			end
-		end
 
-		for proID, tracked in pairs(trackedPieceProjectiles) do
-			if tracked.offscreenBuffer then
-				local px, py, pz = spGetProjectilePosition(proID)
-				if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-					replayPieceBuffer(tracked, cachedGameFrame)
+			for proID, tracked in pairs(trackedPieceProjectiles) do
+				if tracked.offscreenBuffer then
+					local px, py, pz = spGetProjectilePosition(proID)
+					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+						replayPieceBuffer(tracked, cachedGameFrame)
+					end
 				end
+			end
+			visibilityState.deferParticleUploads = nil
+			local uploadEnd = pVBO.usedElements
+			if uploadEnd > uploadStart then
+				gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
 			end
 		end
 	end

@@ -25,7 +25,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 10000,
 		health = 6700,
@@ -41,7 +41,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcomt2com.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -88,10 +88,9 @@ return {
 			[30] = "legmg",
 			[31] = "armferret",
 			[32] = "armnanotc",
-			[33] = "legmext15",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -195,7 +194,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 4.5,
 				sprayangle = 1200,
 				thickness = 0.91,
 				tolerance = 6000,
@@ -389,7 +387,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

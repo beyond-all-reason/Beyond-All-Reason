@@ -1,10 +1,10 @@
 return {
 	corsiegebreaker = {
-		acceleration = 0.0206,
+		maxacc = 0.0206,
 		activatewhenbuilt = false,
-		brakerate = 0.05321,
-		buildcostenergy = 15000,
-		buildcostmetal = 1100,
+		maxdec = 0.05321,
+		energycost = 15000,
+		metalcost = 1100,
 		buildpic = "CORSIEGEBREAKER.DDS",
 		buildtime = 20000,
 		canmove = true,
@@ -17,16 +17,16 @@ return {
 		footprintz = 5,
 		usepiececollisionvolumes = 1,
 		leavetracks = true,
-		maxdamage = 3000,
+		health = 3000,
 		maxslope = 12,
-		maxvelocity = 1.8,
+		speed = 54,
 		movementclass = "HTANK4",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/CORSIEGEBREAKER.s3o",
 		script = "Units/corsiegebreaker.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 500,--500
+		sightdistance = 500, --500
 		trackoffset = -6,
 		trackstrength = 10,
 		tracktype = "corparrowtracks",
@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.21,
 		turnrate = 250,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			cannon1name = "gun",
 			driftratio = "0.25",
@@ -164,15 +164,11 @@ return {
 				weaponvelocity = 1250,
 				damage = {
 					commanders = 1500,
-					default = 4000,--76
+					default = 4000, --76
 				},
-				--customparams = {
-					--sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				--}
 			},
 
-
-			dreadshot = {--silent version
+			dreadshot = { --silent version
 				areaofeffect = 60,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -216,9 +212,7 @@ return {
 					commanders = 25,
 					default = 76,
 				},
-
 			},
-
 		},
 		weapons = {
 			[1] = {
@@ -232,14 +226,14 @@ return {
 				weaponAimAdjustPriority = 125,
 			},
 			--[2] = {--not used directly, silent version for animation reasons
-				--badtargetcategory = "VTOL GROUNDSCOUT",
-				--def = "dreadshot",
-				--maindir = "0 0 1",
-				--maxangledif = 50,
-				--onlytargetcategory = "SURFACE",
-				--fastautoretargeting = true,
-				--burstControlWhenOutOfArc = 2,
-				--weaponAimAdjustPriority = 125,
+			--badtargetcategory = "VTOL GROUNDSCOUT",
+			--def = "dreadshot",
+			--maindir = "0 0 1",
+			--maxangledif = 50,
+			--onlytargetcategory = "SURFACE",
+			--fastautoretargeting = true,
+			--burstControlWhenOutOfArc = 2,
+			--weaponAimAdjustPriority = 125,
 			--},
 		},
 	},

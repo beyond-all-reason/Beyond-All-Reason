@@ -32,13 +32,11 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 3,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -194,11 +192,13 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundstart = "KroGun1",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 200,
 				},

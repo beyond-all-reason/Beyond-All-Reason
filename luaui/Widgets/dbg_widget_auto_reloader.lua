@@ -1,4 +1,4 @@
-if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+if not BAR.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
 	return
 end
 
@@ -16,7 +16,6 @@ function widget:GetInfo()
 		handler = true, -- so it can remove and add widgets
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
@@ -56,7 +55,7 @@ local function CheckForChanges(widgetName, fileName)
 		widgetContents[widgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if not mouseOffscreen and chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			return nil
 		end
 		ReloadWidget(widgetName)
@@ -75,12 +74,22 @@ end
 
 local lastUpdate = Spring.GetTimer()
 local updateQueue = {}
+local lastQueueRun = lastUpdate
+local gameFrameHappened = false
+local minimumQueueRate = 1 / 30
+
+function widget:GameFrame()
+	gameFrameHappened = true
+end
+
 function widget:Update()
 	local widgetName, fileName = next(updateQueue)
-	if widgetName then
-		local startTime = Spring.GetTimer()
+	local now = Spring.GetTimer()
+	if widgetName and (not gameFrameHappened or Spring.DiffTimers(now, lastQueueRun) >= minimumQueueRate) then
+		lastQueueRun = now
+		local startTime = now
 		-- 2 ms budget per frame
-		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 2.0) do
 			tracy.ZoneBeginN("Widget Auto Reloader:" .. widgetName)
 			CheckForChanges(widgetName, fileName)
 			updateQueue[widgetName] = nil
@@ -88,11 +97,12 @@ function widget:Update()
 			tracy.ZoneEnd()
 		end
 	end
+	gameFrameHappened = false
 
-	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < 1 then
+	if Spring.DiffTimers(now, lastUpdate) < 1 then
 		return
 	end
-	lastUpdate = Spring.GetTimer()
+	lastUpdate = now
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())

@@ -39,8 +39,6 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -129,7 +127,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun12",
-				soundstartvolume = 6.0,
 				soundtrigger = true,
 				sprayangle = 1024,
 				texture1 = "shot",
@@ -139,6 +136,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 964,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 12,
 				},
@@ -173,7 +174,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 3,
 				sprayangle = 900,
 				texture1 = "shot",
 				texture2 = "empty",

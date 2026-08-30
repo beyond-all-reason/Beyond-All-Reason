@@ -8,7 +8,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACA.DDS",
-		buildtime = 17500,
+		buildtime = 20000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -66,7 +66,7 @@ return {
 			"leggant",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Constructors",

@@ -1,7 +1,7 @@
 return {
 	corraid = {
 		buildpic = "CORRAID.DDS",
-		buildtime = 3500,
+		buildtime = 3900,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 16 32",
@@ -24,7 +24,7 @@ return {
 		script = "Units/CORRAID.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 330,
+		sightdistance = 350,
 		speed = 72,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -43,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -118,14 +116,17 @@ return {
 				name = "LightCannon",
 				noselfdamage = true,
 				range = 350,
-				reloadtime = 1.16667,
+				reloadtime = 1.2,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
 				soundstart = "corraid",
-				soundstartvolume = 10.5,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 225,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 				damage = {
 					default = 97,
 					vtol = 18,

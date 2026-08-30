@@ -1,4 +1,4 @@
-local widget = widget ---@type Widget
+local widget = widget --[[@as Widget]]
 
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
@@ -113,8 +113,8 @@ local function subtractPoints(a, b)
 	return result
 end
 
----@return number
 local currentBlueprintUnitID = 0
+---@return number
 local function nextBlueprintUnitID()
 	currentBlueprintUnitID = currentBlueprintUnitID + 1
 	return currentBlueprintUnitID
@@ -180,7 +180,7 @@ local state = {
 	---non-nil implies that we are dragging
 	startPosition = nil,
 
-	---@type Point
+	---@type Point|nil
 	---end of drag motion (basically current mouse position)
 	endPosition = nil,
 
@@ -235,7 +235,7 @@ local function setSelectedBlueprintIndex(index)
 	selectedBlueprintIndex = index
 
 	if not selectedBlueprintIndex then
-		WG["api_blueprint"].setActiveBlueprint(nil)
+		WG.api_blueprint.setActiveBlueprint(nil)
 	end
 
 	if blueprintPlacementActive and index ~= nil and index > 0 then
@@ -286,7 +286,9 @@ end
 local function getMouseWorldPosition(blueprint, x, y)
 	local _, pos = SpringTraceScreenRay(x, y, true, true, false, not blueprint.floatOnWater)
 	if pos then
-		pos = WG["api_blueprint"].snapBlueprint(blueprint, pos, blueprint.facing)
+		local posArr = pos
+		---@cast posArr number[]
+		pos = WG.api_blueprint.snapBlueprint(blueprint, posArr, blueprint.facing)
 	end
 
 	return pos
@@ -298,28 +300,28 @@ local function determineBuildMode(modKeys, targetID)
 	local mode = nil
 
 	if shift and ctrl and targetID then
-		mode = WG["api_blueprint"].BUILD_MODES.AROUND
+		mode = WG.api_blueprint.BUILD_MODES.AROUND
 	elseif shift and state.startPosition then
 		if alt and ctrl then
-			mode = WG["api_blueprint"].BUILD_MODES.BOX
+			mode = WG.api_blueprint.BUILD_MODES.BOX
 		elseif alt and not ctrl then
-			mode = WG["api_blueprint"].BUILD_MODES.GRID
+			mode = WG.api_blueprint.BUILD_MODES.GRID
 		elseif not alt and ctrl then
-			mode = WG["api_blueprint"].BUILD_MODES.SNAPLINE
+			mode = WG.api_blueprint.BUILD_MODES.SNAPLINE
 		elseif not alt and not ctrl then
-			mode = WG["api_blueprint"].BUILD_MODES.LINE
+			mode = WG.api_blueprint.BUILD_MODES.LINE
 		end
 	else
-		mode = WG["api_blueprint"].BUILD_MODES.SINGLE
+		mode = WG.api_blueprint.BUILD_MODES.SINGLE
 	end
 
 	return mode
 end
 
 local function determineBuildModeArgs(mode, startPosition, endPosition, targetID, spacing)
-	if mode == WG["api_blueprint"].BUILD_MODES.AROUND then
+	if mode == WG.api_blueprint.BUILD_MODES.AROUND then
 		return { targetID }
-	elseif mode == WG["api_blueprint"].BUILD_MODES.SINGLE then
+	elseif mode == WG.api_blueprint.BUILD_MODES.SINGLE then
 		return { endPosition }
 	else
 		return { startPosition, endPosition, spacing }
@@ -328,7 +330,7 @@ end
 
 local function postProcessBlueprint(bp)
 	-- precompute some useful information
-	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
+	bp.dimensions = pack(WG.api_blueprint.getBlueprintDimensions(bp))
 	bp.floatOnWater = table.any(bp.units, function(u)
 		return u.unitDefID and UnitDefs[u.unitDefID] and UnitDefs[u.unitDefID].floatOnWater
 	end)
@@ -336,7 +338,7 @@ local function postProcessBlueprint(bp)
 		if not u.unitDefID then
 			return acc
 		end
-		local w, h = WG["api_blueprint"].getBuildingDimensions(u.unitDefID, 0)
+		local w, h = WG.api_blueprint.getBuildingDimensions(u.unitDefID, 0)
 		if acc then
 			return mathMin(w, h, acc)
 		else
@@ -347,7 +349,9 @@ end
 
 local function createBlueprint(unitIDs, ordered)
 	if #unitIDs > BLUEPRINT_UNIT_LIMIT then
-		FeedbackForUser(string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs))
+		FeedbackForUser(
+			string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs)
+		)
 		return true
 	end
 
@@ -378,7 +382,8 @@ local function createBlueprint(unitIDs, ordered)
 				position = { x, y, z },
 				facing = Spring.GetUnitBuildFacing(unitID),
 				originalName = unitName,
-			}
+			},
+				nil
 		end),
 	}
 
@@ -387,7 +392,7 @@ local function createBlueprint(unitIDs, ordered)
 		return
 	end
 
-	local xMin, xMax, zMin, zMax = WG["api_blueprint"].getUnitsBounds(blueprint.units)
+	local xMin, xMax, zMin, zMax = WG.api_blueprint.getUnitsBounds(blueprint.units)
 	local center = { (xMin + xMax) / 2, 0, (zMin + zMax) / 2 }
 
 	-- Adjust positions relative to center
@@ -454,36 +459,37 @@ local function setBlueprintSpacing(spacing)
 end
 
 local function updateBuildingGridState(active, blueprint)
-	if WG["buildinggrid"] == nil then
+	if WG.buildinggrid == nil then
 		return
 	end
 
 	if active then
-		local unitDefID = UnitDefNames["armuwms"].id
+		local unitDefID = UnitDefNames.armuwms.id
 		if blueprint and blueprint.floatOnWater then
 			-- if we have any floating units, pass a generic floating unit to buildinggrid
-			unitDefID = UnitDefNames["armfmkr"].id
+			unitDefID = UnitDefNames.armfmkr.id
 		end
-		WG["buildinggrid"].setForceShow(widget:GetInfo().name, active and blueprint ~= nil, unitDefID)
+		WG.buildinggrid.setForceShow(widget:GetInfo().name, active and blueprint ~= nil, unitDefID)
 	else
-		WG["buildinggrid"].setForceShow(widget:GetInfo().name, false)
+		WG.buildinggrid.setForceShow(widget:GetInfo().name, false)
 	end
 end
 
 local function setBlueprintPlacementActive(active)
-	if blueprintPlacementActive ~= active then
-		state = {}
+	if blueprintPlacementActive == active then
+		return
 	end
 
+	state = {}
 	blueprintPlacementActive = active
 
 	if active then
 		widget:SelectionChanged(spGetSelectedUnits())
 
-		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 	else
-		WG["api_blueprint"].setActiveBlueprint(nil)
-		WG["api_blueprint"].setBlueprintPositions({})
+		WG.api_blueprint.setActiveBlueprint(nil)
+		WG.api_blueprint.setBlueprintPositions({})
 	end
 
 	updateBuildingGridState(active, getSelectedBlueprint())
@@ -492,42 +498,54 @@ end
 -- callins
 -- =======
 
-local function set(tbl)
-	local result = {}
-	for _, v in ipairs(tbl) do
-		result[v] = true
-	end
-	return result
-end
-
 local selectedUnitsOrder = {}
 local selectedUnitsSet = {}
+local selectedUnitsBuildable = {}
+local selectedUnitsPresent = {}
 local pendingBoxSelect = false
 
-local function updateSelectedUnits(selection)
-	-- filter all by buildable
-	local buildable = table.filterArray(selection, function(unitID)
-		return blueprintBuildableUnitDefs[spGetUnitDefID(unitID)]
-	end)
-	tableSort(buildable)
-	local buildableSet = set(buildable)
+local function clearArray(tbl)
+	for i = #tbl, 1, -1 do
+		tbl[i] = nil
+	end
+end
 
-	-- remove from selectionOrder and selectedUnitsSet anything not present here
-	local toRemove = {}
-	for unitID in pairs(selectedUnitsSet) do
-		if not buildableSet[unitID] then
-			toRemove[unitID] = true
+local function clearTable(tbl)
+	for k in pairs(tbl) do
+		tbl[k] = nil
+	end
+end
+
+local function updateSelectedUnits(selection)
+	clearArray(selectedUnitsBuildable)
+	clearTable(selectedUnitsPresent)
+
+	for i = 1, #selection do
+		local unitID = selection[i]
+		if blueprintBuildableUnitDefs[spGetUnitDefID(unitID)] then
+			selectedUnitsBuildable[#selectedUnitsBuildable + 1] = unitID
+			selectedUnitsPresent[unitID] = true
 		end
 	end
-	selectedUnitsOrder = table.filterArray(selectedUnitsOrder, function(unitID)
-		return toRemove[unitID] == nil
-	end)
-	selectedUnitsSet = table.filterTable(selectedUnitsSet, function(_, unitID)
-		return toRemove[unitID] == nil
-	end)
+	tableSort(selectedUnitsBuildable)
+
+	local writeIndex = 1
+	for readIndex = 1, #selectedUnitsOrder do
+		local unitID = selectedUnitsOrder[readIndex]
+		if selectedUnitsPresent[unitID] then
+			selectedUnitsOrder[writeIndex] = unitID
+			writeIndex = writeIndex + 1
+		else
+			selectedUnitsSet[unitID] = nil
+		end
+	end
+	for i = #selectedUnitsOrder, writeIndex, -1 do
+		selectedUnitsOrder[i] = nil
+	end
 
 	-- add all units that aren't in selectedUnitsSet to selectionOrder and selectedUnitsSet
-	for _, unitID in ipairs(buildable) do
+	for i = 1, #selectedUnitsBuildable do
+		local unitID = selectedUnitsBuildable[i]
 		if not selectedUnitsSet[unitID] then
 			tableInsert(selectedUnitsOrder, unitID)
 			selectedUnitsSet[unitID] = true
@@ -578,7 +596,7 @@ function widget:Update(dt)
 		state.blueprint = blueprint
 		state.blueprint.dirty = false
 
-		WG["api_blueprint"].setActiveBlueprint(blueprint)
+		WG.api_blueprint.setActiveBlueprint(blueprint)
 		updateBuildingGridState(true, blueprint)
 	end
 
@@ -617,14 +635,27 @@ function widget:Update(dt)
 	if endPosition then
 		endPosition[2] = 0
 	end
+	---@diagnostic disable-next-line: param-type-mismatch
 	if not tablesEqual(state.endPosition, endPosition) then
 		endPositionChanged = true
 		state.endPosition = endPosition
 	end
 
 	if endPositionChanged or modeChanged or targetIDChanged or blueprintChanged then
-		state.buildPositions = WG["api_blueprint"].calculateBuildPositions(blueprint, state.mode, unpack(determineBuildModeArgs(state.mode, state.startPosition, state.endPosition, state.targetID, blueprint.spacing)))
-		WG["api_blueprint"].setBlueprintPositions(state.buildPositions)
+		state.buildPositions = WG.api_blueprint.calculateBuildPositions(
+			blueprint,
+			state.mode,
+			unpack(
+				determineBuildModeArgs(
+					state.mode,
+					state.startPosition,
+					state.endPosition,
+					state.targetID,
+					blueprint.spacing
+				)
+			)
+		)
+		WG.api_blueprint.setBlueprintPositions(state.buildPositions)
 	end
 end
 
@@ -640,16 +671,16 @@ local function buildHotkeyText()
 
 	local hotkeys = {
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_next"),
-			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_next"], currentLayout),
+			name = BAR.I18N("ui.blueprint.hotkey_next"),
+			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_next, currentLayout),
 		},
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_prev"),
-			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_prev"], currentLayout),
+			name = BAR.I18N("ui.blueprint.hotkey_prev"),
+			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_prev, currentLayout),
 		},
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_delete"),
-			key = keyConfig.sanitizeKey(actionHotkeys["blueprint_delete"], currentLayout),
+			name = BAR.I18N("ui.blueprint.hotkey_delete"),
+			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_delete, currentLayout),
 		},
 	}
 
@@ -657,7 +688,7 @@ local function buildHotkeyText()
 	for _, hk in ipairs(hotkeys) do
 		local name, key = hk.name, hk.key
 		if not key or string.len(key) == 0 then
-			key = Spring.I18N("ui.blueprint.hotkey_none")
+			key = BAR.I18N("ui.blueprint.hotkey_none")
 		end
 		hotkeyText = hotkeyText .. string.format("\255\255\215\100%s\255\240\240\240 - %s\n", key, name)
 	end
@@ -669,9 +700,9 @@ end
 local function drawCursorTextImpl(index)
 	local text
 	if index then
-		text = "\255\220\220\240" .. Spring.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
+		text = "\255\220\220\240" .. BAR.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
 	else
-		text = "\255\240\220\220" .. Spring.I18N("ui.blueprint.cursor_none")
+		text = "\255\240\220\220" .. BAR.I18N("ui.blueprint.cursor_none")
 	end
 
 	local scale = cursorTextScale
@@ -732,7 +763,7 @@ function widget:SelectionChanged(selection)
 			return blueprintCommandableUnitDefs[spGetUnitDefID(unitID)]
 		end)
 
-		WG["api_blueprint"].setActiveBuilders(builders)
+		WG.api_blueprint.setActiveBuilders(builders)
 	end
 
 	-- track selection order (skip if we're still box selecting)
@@ -785,7 +816,7 @@ local function handleBlueprintNextAction()
 	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -803,7 +834,7 @@ local function handleBlueprintPrevAction()
 	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -814,7 +845,7 @@ local function handleBlueprintCreateAction()
 	createBlueprint(unitIDs, true)
 	setSelectedBlueprintIndex(#blueprints)
 
-	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -836,7 +867,7 @@ local function handleBlueprintDeleteAction()
 
 	deleteBlueprint(selectedBlueprintIndex)
 
-	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -860,7 +891,7 @@ local function handleFacingAction(_, _, args)
 	if newFacing then
 		setBlueprintFacing(newFacing)
 
-		Spring.PlaySoundFile(sounds.facing, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.facing, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 		return true
 	end
@@ -872,7 +903,9 @@ local function handleSpacingAction(_, _, args)
 		return
 	end
 
-	local minSpacing = math.floor(-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension) / WG["api_blueprint"].BUILD_SQUARE_SIZE)
+	local minSpacing = math.floor(
+		-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension) / WG.api_blueprint.BUILD_SQUARE_SIZE
+	)
 
 	local newSpacing = nil
 	if args and args[1] == "inc" then
@@ -886,7 +919,7 @@ local function handleSpacingAction(_, _, args)
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
 
-		Spring.PlaySoundFile(sounds.spacing, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.spacing, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 		return true
 	end
@@ -921,7 +954,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
-		return
+		return false
 	end
 
 	local blueprint = getSelectedBlueprint()
@@ -977,7 +1010,7 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
-		handleBlueprintCreateAction()
+		return handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
 		local selectedBlueprint = getSelectedBlueprint()
 
@@ -1022,7 +1055,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 			local facing = pos[4] or 0
 			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(selectedBlueprint, selectedBlueprint.facing + facing)
+				blueprintRotations[facing] =
+					WG.api_blueprint.rotateBlueprint(selectedBlueprint, selectedBlueprint.facing + facing)
 				if not selectedBlueprint.ordered then
 					tableSort(blueprintRotations[facing].units, buildingComparator)
 				end
@@ -1042,7 +1076,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 						unitDefID = bpu.unitDefID,
 						position = { sx, sy, sz },
 						facing = bpu.facing,
-					}
+					},
+						nil
 				end)
 			)
 		end
@@ -1052,10 +1087,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			return false
 		end
 
-		local activeModifier = WG["build_split"] and WG["build_split"].isActive()
+		local activeModifier = WG.build_split and WG.build_split.isActive()
 		local isBuildSplit = cmdOpts.shift and activeModifier
 
-		WG["api_blueprint"].placeBlueprint(selectedBlueprint, state.buildPositions, builders, isBuildSplit, cmdOpts)
+		WG.api_blueprint.placeBlueprint(selectedBlueprint, state.buildPositions, builders, isBuildSplit, cmdOpts)
 
 		if not cmdOpts.shift then
 			setBlueprintPlacementActive(false)
@@ -1063,6 +1098,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 		return true
 	end
+	return false
 end
 
 -- saving/loading
@@ -1086,15 +1122,16 @@ local function serializeBlueprint(blueprint)
 				unitName = unitName,
 				position = blueprintUnit.position,
 				facing = blueprintUnit.facing,
-			}
+			},
+				nil
 		end),
 	}
 end
 
 ---@param serializedBlueprint SerializedBlueprint
----@return Blueprint
+---@return Blueprint|nil
 local function deserializeBlueprint(serializedBlueprint, index)
-	local blueprint = WG["api_blueprint"].createBlueprintFromSerialized(serializedBlueprint)
+	local blueprint = WG.api_blueprint.createBlueprintFromSerialized(serializedBlueprint)
 
 	if not blueprint or not table.any(blueprint.units, function(u)
 		return u.unitDefID ~= nil
@@ -1103,7 +1140,12 @@ local function deserializeBlueprint(serializedBlueprint, index)
 		if not name or name == "" then
 			name = "#" .. tostring(index)
 		end
-		FeedbackForUser(string.format("[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.", name))
+		FeedbackForUser(
+			string.format(
+				"[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.",
+				name
+			)
+		)
 		return nil
 	end
 
@@ -1120,6 +1162,7 @@ local function loadBlueprintsFromFile()
 	end
 
 	local decoded = Json.decode(content)
+	---@cast decoded table?
 
 	if decoded == nil then
 		FeedbackForUser("Failed to decode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
@@ -1162,7 +1205,7 @@ local function saveBlueprintsToFile()
 	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
 
 	if #allSerializedBpsToSave == 0 then
-		allSerializedBpsToSave = 0
+		allSerializedBpsToSave = {}
 	end
 
 	local encoded = Json.encode({
@@ -1187,17 +1230,17 @@ function widget:Initialize()
 		return
 	end
 
-	if not WG["api_blueprint"] then
+	if not WG.api_blueprint then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
 
 	reloadBindings()
 
-	WG["cmd_blueprint"] = {
+	WG.cmd_blueprint = {
 		reloadBindings = reloadBindings,
 	}
-	WG["cmd_blueprint"].nextBlueprintUnitID = nextBlueprintUnitID
+	WG.cmd_blueprint.nextBlueprintUnitID = nextBlueprintUnitID
 
 	loadBlueprintsFromFile()
 	loadedBlueprints = true
@@ -1213,12 +1256,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG["api_blueprint"] then
-		WG["api_blueprint"].setActiveBlueprint(nil)
-		WG["api_blueprint"].setBlueprintPositions({})
+	if WG.api_blueprint then
+		WG.api_blueprint.setActiveBlueprint(nil)
+		WG.api_blueprint.setBlueprintPositions({})
 	end
 
-	WG["cmd_blueprint"] = nil
+	WG.cmd_blueprint = nil
 
 	drawCursorText.invalidate()
 

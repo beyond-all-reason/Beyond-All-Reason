@@ -20,7 +20,7 @@ local function splitPhrases(input)
 	local currentPhrase = ""
 
 	local function appendPhrase(phrase)
-		table.insert(result, phrase:match("^%s*(.-)%s*$"))  -- Trim whitespace
+		table.insert(result, phrase:match("^%s*(.-)%s*$")) -- Trim whitespace
 		currentPhrase = ""
 	end
 
@@ -32,7 +32,7 @@ local function splitPhrases(input)
 
 		if char == " " and currentPhrase ~= "" then
 			appendPhrase(currentPhrase)
-		elseif char == "\"" then
+		elseif char == '"' then
 			local quoteStart = i
 			repeat
 				i = i + 1
@@ -40,7 +40,7 @@ local function splitPhrases(input)
 				if char == "\\" then
 					i = i + 1 -- Skip escaped character
 				end
-			until char == "\"" or i > len
+			until char == '"' or i > len
 
 			local quoteEnd = i
 			appendPhrase(string.sub(input, quoteStart + 1, quoteEnd - 1))

@@ -401,7 +401,7 @@ float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2)
     float a2 = l2 - rr*rr;
     float il2 = 1.0/l2;
     
-    // sampling dependant computations
+    // sampling dependent computations
     vec3 pa = p - a;
     float y = dot(pa,ba);
     float z = y - l2;
@@ -556,12 +556,12 @@ void main(void)
 	//-------------------------- BEGIN SHARED SECTION ---------------------
 	int effectType = int(round(EFFECTTYPE));
 	
-	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
+	// TODO: Get the view vector before fetching texels for speedups, we can't really bail on all that many fragments...
 	float mapdepth = texture(mapDepths, v_screenUV).x;
 	float modeldepth = texture(modelDepths, v_screenUV).x;
 
 	float worlddepth = min(mapdepth, modeldepth);
-	// TODO: isnt modeldepth 0 where there is no model fucking up everything later on?
+	// TODO: isn't modeldepth 0 where there is no model fucking up everything later on?
 
 	float ismodel = 0;
 	// Only query the textures if the backface of the volume is further than the world fragment

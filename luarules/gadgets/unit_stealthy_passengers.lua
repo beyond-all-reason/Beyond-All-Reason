@@ -1,15 +1,14 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Stealthy Passengers",
-		desc      = "Makes passengers of stealthy transports stealthy themselves",
-		author    = "Niobium",
-		date      = "Jul 24, 2007",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Stealthy Passengers",
+		desc = "Makes passengers of stealthy transports stealthy themselves",
+		author = "Niobium",
+		date = "Jul 24, 2007",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
