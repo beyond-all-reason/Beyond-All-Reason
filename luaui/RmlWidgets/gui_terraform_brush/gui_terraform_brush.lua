@@ -1379,7 +1379,8 @@ local NEWMAP_MIN_UNITS = 4
 local NEWMAP_MAX_UNITS = 32
 local NEWMAP_DEFAULT_UNIT = 12
 local NEWMAP_BASE_HEIGHT = 100 -- starting ground height (elmos)
-local NEWMAP_COLOR = { 110, 130, 90 } -- base diffuse colour (0..255), muted grass
+---@type ColorRGBi
+local NEWMAP_COLOR = { 110, 130, 90 } -- base diffuse colour, muted grass
 
 -- ---- DNTS splat-set catalog (harvested from BAR maps) ----
 -- Each entry: { name, textures = {4 files}, scales = {4}, mults = {4}, diffuseAlpha }.
@@ -1959,6 +1960,9 @@ end
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
+---@param d table<string, any>? An environment snapshot as produced by
+---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
+---@return nil
 widgetState.applyEnvConfig = function(d)
 	if type(d) ~= "table" then
 		return
@@ -2067,11 +2071,15 @@ widgetState.applyEnvConfig = function(d)
 	end
 end
 
+---@class EnvConfigOpts
+---@field nodate boolean? Suppress the "generated on" date comment so that
+---repeated saves of unchanged state will serialize/hash identically
+
 -- Serialize the live environment state into the env-config Lua format (the same
 -- format onEnvSave writes and applyEnvConfig consumes). Shared by the env editor's
 -- SAVE button and the map-project orchestrator (cmd_map_project.lua).
--- opts.nodate suppresses the date comment: repeated project saves of unchanged
--- state must serialize identically (project files live in git).
+---@param opts EnvConfigOpts?
+---@return string content
 widgetState.buildEnvConfigContent = function(opts)
 	local sX, sY, sZ = gl.GetSun("pos")
 	local grA = { gl.GetSun("ambient") }
@@ -2286,17 +2294,35 @@ local function _nmSetAxis(axis, units)
 	_nmRefreshLabels()
 end
 
+---@class DntsSet
+---@field set string?
+---@field textures table<1|2|3|4,string>?
+---@field scales table<1|2|3|4,number>?
+---@field mults table<1|2|3|4,number>?
+---@field detail string?
+---@field diffuseAlpha number? created from `diffuse_alpha` on load
+---@field diffuse_alpha number? loaded as `diffuseAlpha`
+---@field rawPaths boolean? texture entries are full VFS paths already (project-local
+---assets/) instead of names under the library DNTS_DIR.
+
+-- Blank map start script options
+-- Defaults preserve the New Map behavior
+---@class BaseMapOpts
+---@field baseHeight number? blank_map_height (project manifests record theirs)
+---@field baseColor ColorRGBi? blank_map_color
+---@field customName string? user map name from the wizard; sanitized, still gets
+---the " s<time>" uniquifier. Default: "Editor Flat WxH"
+
 -- Build a start script for a blank/flat map of the given size by cloning the
 -- current session's _script.txt (preserving players/teams/modoptions) and
--- injecting the engine blank-map-generator keys. Returns (scriptText) or
--- (nil, errorMessage).
--- opts (all optional; defaults preserve the New Map behavior):
---   baseHeight   number  blank_map_height (project manifests record theirs)
---   baseColor    {r,g,b} 0..255 blank_map_color
---   customName   string  user map name from the wizard; sanitized, still gets
---                        the " s<time>" uniquifier. Blank/absent = "Editor Flat WxH"
--- dntsSet.rawPaths: texture entries are full VFS paths already (project-local
--- assets/) instead of names under the library DNTS_DIR.
+-- injecting the engine blank-map-generator keys.
+---@param widthUnits integer
+---@param heightUnits integer
+---@param dntsSet DntsSet
+---@param skyboxPath string?
+---@param opts BaseMapOpts?
+---@return string scriptText?
+---@return string errorMessage? with `nil` scriptText
 local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath, opts)
 	local base = VFS.LoadFile("_script.txt")
 	if not base or base == "" then
@@ -2478,6 +2504,12 @@ end
 -- DNTS keys pointing at the project's own assets/dnts/ copies (self-contained —
 -- the library may have mutated since the save), skybox resolved from the
 -- library by basename. Returns (scriptText) or (nil, errorMessage).
+-- Start script for opening a map project (blank map at the manifest's
+-- size with project-local DNTS assets); called by WG.MapProject.open.
+---@param manifest MapProjectManifest
+---@param slug string Project folder name under `MapProjects/`.
+---@return string? scriptText `nil` on failure.
+---@return string? errorMessage Set when `scriptText` is `nil`.
 widgetState.buildProjectStartScript = function(manifest, slug)
 	if type(manifest) ~= "table" or type(manifest.map) ~= "table" then
 		return nil, "invalid manifest"
@@ -13788,30 +13820,63 @@ function widget:Initialize()
 	WG.TerraformBrushUI = {
 		-- Environment snapshot/apply, for the map-project orchestrator
 		-- (cmd_map_project.lua). Indirect so it tracks widgetState assignments.
+
+		---Pixel bounds of a brush panel, in Spring screen coordinates (Y=0 at the bottom).
+		---@class TerraformBrushPanelBounds
+		---@field left number
+		---@field right number
+		---@field topY number
+		---@field bottomY number
+
+		---Serializes the current sun, fog and water settings as a loadable Lua config.
+		---@param opts EnvConfigOpts?
+		---@return string content
 		buildEnvConfigContent = function(opts)
 			return widgetState.buildEnvConfigContent(opts)
 		end,
+		-- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
+		-- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
+		-- Map preset path drive the engine identically. Every field is optional.
+		---@param d table<string, any>? An environment snapshot as produced by
+		---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
+		---@return nil
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
 		end,
 		-- Start script for opening a map project (blank map at the manifest's
 		-- size with project-local DNTS assets); called by WG.MapProject.open.
+		---@param manifest MapProjectManifest
+		---@param slug string Project folder name under `MapProjects/`.
+		---@return string? scriptText `nil` on failure.
+		---@return string? errorMessage Set when `scriptText` is `nil`.
 		buildProjectStartScript = function(manifest, slug)
 			return widgetState.buildProjectStartScript(manifest, slug)
 		end,
+		---@return boolean capturing Whether the settings panel is waiting for a keypress to bind.
 		isCapturingKey = function()
 			return widgetState.settingsCapturing ~= nil
 		end,
+		---Feeds a keypress to the settings panel's key-capture flow.
+		---@param keyCode integer
+		---@return boolean consumed `false` when no capture is in progress.
 		captureKey = function(keyCode)
 			return handleSettingsKeyCapture(keyCode)
 		end,
+		---Redraws every keybind badge in the settings panel.
 		refreshBadges = function()
 			updateAllKeybindBadges()
 		end,
+		---Activates the brush tool bound to a key, if any.
+		---@param keyCode integer
+		---@return boolean consumed `false` when no tool is bound to that key.
 		handleToolKey = function(keyCode)
 			return handleToolKey(keyCode)
 		end,
 		-- Called by cmd_terraform_brush when the user clicks a height in sampling mode
+		---Records a height picked by the user in sampling mode, so the state sync loop
+		---reflects it.
+		---@param target "max"|"min" Which height cap was sampled.
+		---@param value number? Defaults to `0`.
 		onHeightSampled = function(target, value)
 			-- Update the local cap variables so the state sync loop reflects them
 			if target == "max" then
@@ -13835,6 +13900,7 @@ function widget:Initialize()
 		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
+		---@return TerraformBrushPanelBounds? bounds
 		getPanelBounds = function()
 			local vsx, vsy = Spring.GetViewGeometry()
 			if vsx <= 0 then
@@ -13863,6 +13929,7 @@ function widget:Initialize()
 			}
 		end,
 		-- Returns bounds of the light library floating window, or nil if not visible.
+		---@return TerraformBrushPanelBounds? bounds
 		getLightLibraryBounds = function()
 			if not widgetState.lightLibraryOpen then
 				return nil
