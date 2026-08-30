@@ -171,8 +171,8 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local my = spGetGroundHeight(mx, mz)
 		local isWithinStartBox = IsInStartbox(allyID, mx, mz, xmin, zmin, xmax, zmax)
 		local nearX, nearZ = NearestInStartbox(allyID, mx, mz, xmin, zmin, xmax, zmax)
-		local isWithinWalkRadius = ((mx - nearX) * (mx - nearX) + (mz - nearZ) * (mz - nearZ))
-			<= walkRadius * walkRadius
+		local isWithinWalkRadius = walkRadius * walkRadius =>
+			((mx - nearX) * (mx - nearX) + (mz - nearZ) * (mz - nearZ))
 
 		local isFree = true
 		for _, startpoint in pairs(startPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
