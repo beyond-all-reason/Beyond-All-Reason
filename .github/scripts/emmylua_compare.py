@@ -684,7 +684,11 @@ def main():
     # a candidate wherever it sits; a warning out of scope is still worth a
     # bubble once the ones in scope have taken what they need.
     for pool, kind in ((errors, "error"), (warnings, "warning")):
-        for finding in pool[:ANNOTATION_CAP]:
+        shown = sorted(
+            # github annotations are barely sorted; so we apply line and column:
+            pool[:ANNOTATION_CAP], key=lambda f: (f["path"], f["line"], f["col"])
+        )
+        for finding in shown:
             print(
                 "::%s file=%s,line=%d,col=%d,title=%s::%s"
                 % (
