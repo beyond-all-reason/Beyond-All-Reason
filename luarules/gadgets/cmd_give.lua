@@ -13,6 +13,7 @@ function gadget:GetInfo()
 end
 
 -- usage: /luarules give 1 armcom 0
+--        /luarules give 1 armada-commander 0
 
 local cmdname = "give"
 local PACKET_HEADER = "$g$"
@@ -140,6 +141,41 @@ else -- UNSYNCED
 		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
 	end
 
+	-- BAR unitdefs carry no humanName, so a unit's proper name exists only in the
+	-- language files. Those are per-language, so resolve here and send the unitdef
+	-- name onwards rather than leaving synced code to disagree between clients.
+	local unitDefNameByProperName = {}
+	do
+		local unitNames = Json.decode(VFS.LoadFile("language/en/units.json")).units.names
+		for unitDefName, properName in pairs(unitNames) do
+			if UnitDefNames[unitDefName] then
+				-- spaces would break the one-word-per-argument syntax, so the name is
+				-- written with hyphens instead: "Armada Commander" -> armada-commander
+				local key = string.gsub(string.lower(properName), "[%s%-]+", "-")
+				local claimed = unitDefNameByProperName[key]
+				if claimed == nil then
+					unitDefNameByProperName[key] = unitDefName
+				elseif type(claimed) == "string" then
+					unitDefNameByProperName[key] = { claimed, unitDefName }
+				else
+					claimed[#claimed + 1] = unitDefName
+				end
+			end
+		end
+	end
+
+	-- returns the unitdef name, or nil plus every unitdef sharing that proper name
+	local function resolveUnitName(name)
+		if UnitDefNames[name] or name == "metal" or name == "energy" then
+			return name
+		end
+		local claimed = unitDefNameByProperName[string.lower(name)]
+		if type(claimed) == "string" then
+			return claimed
+		end
+		return nil, claimed
+	end
+
 	local function RequestGive(cmd, line, words, playerID)
 		if isAuthorized() and playerID == myPlayerID then
 			local mx, my = Spring.GetMouseState()
@@ -149,14 +185,23 @@ else -- UNSYNCED
 			elseif targettype == "feature" then
 				pos = { Spring.GetFeaturePosition(pos) }
 			end
-			if
+			local unitDefName, sharedBy = resolveUnitName(words[2] or "")
+			if sharedBy then
+				Spring.SendMessageToPlayer(
+					playerID,
+					"'" .. words[2] .. "' is the name of " .. #sharedBy .. " units, give one of: " .. table.concat(
+						sharedBy,
+						", "
+					)
+				)
+			elseif
 				type(pos) == "table"
 				and pos[1] ~= nil
 				and pos[3] ~= nil
 				and pos[1] > 0
 				and pos[3] > 0
 				and words[1] ~= nil
-				and words[2] ~= nil
+				and unitDefName ~= nil
 				and words[3] ~= nil
 			then
 				Spring.SendLuaRulesMsg(
@@ -164,7 +209,7 @@ else -- UNSYNCED
 						.. ":"
 						.. words[1]
 						.. ":"
-						.. words[2]
+						.. unitDefName
 						.. ":"
 						.. words[3]
 						.. ":"
