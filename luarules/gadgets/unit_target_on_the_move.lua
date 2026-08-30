@@ -260,6 +260,22 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
+	local function releaseTargetOverride(unitID)
+		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
+		if inCommand == CMD_ATTACK then
+			local userTarget = not hasAutoTarget(options)
+			if param2 then
+				spSetUnitTarget(unitID, param1, param2, param3, false, userTarget)
+			elseif spValidUnitID(param1) then
+				spSetUnitTarget(unitID, param1, false, userTarget)
+			else
+				spSetUnitTarget(unitID, nil)
+			end
+		elseif not inCommand or not isAttackCommand[inCommand] then
+			spSetUnitTarget(unitID, nil)
+		end
+	end
+
 	local function hasUserTarget(unitID, unitData)
 		for weaponNum, check in pairs(unitData.weapons) do
 			if check then
@@ -361,7 +377,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not inAttackCommand(unitID) then
+		if not keeptrack and setTargetData[unitID] then
+			releaseTargetOverride(unitID)
+		elseif activeTargets[unitID] and not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
 		activeTargets[unitID] = nil
