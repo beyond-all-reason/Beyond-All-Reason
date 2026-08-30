@@ -4,7 +4,7 @@
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
-piece  base, turret, tracks, beamhinge, beamcase, flare, mineflare;
+piece  base, turret, tracks, beamhinge, beamcase, flare, mineflare, link;
 
 static-var  notBuilding, isMoving, readyToBuild;
 
@@ -31,6 +31,20 @@ Create()
 	readyToBuild = FALSE;
 	animSpeed = 4;
 	call-script TB_Init();
+}
+
+TransportPickup(unitid)
+{
+	set BUSY to 1;
+	attach-unit unitid to link;
+	set BUSY to 0;
+}
+
+TransportDrop(unitid, position)
+{
+	set BUSY to 1;
+	drop-unit unitid;
+	set BUSY to 0;
 }
 	
 StartMoving(reversing)
