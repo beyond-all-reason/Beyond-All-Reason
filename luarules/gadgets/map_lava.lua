@@ -95,12 +95,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local geoThermal = {}
 	local featureHasMetal = {}
+	local isDecorationFeature = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		if featureDef.geoThermal then
 			geoThermal[featureDefID] = true
 		end
 		if featureDef.metal and featureDef.metal > 0 then
 			featureHasMetal[featureDefID] = true
+		end
+		if featureDef.customParams and featureDef.customParams.decoration then
+			isDecorationFeature[featureDefID] = true
 		end
 	end
 
@@ -254,7 +258,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function trackFeature(featureID)
 		local featureDefID = spGetFeatureDefID(featureID)
 		-- always damage non-metal features (trees, foliage); metal features only if lavaDamageFeatures is set
-		if not geoThermal[featureDefID] and (lavaDamageFeatures or not featureHasMetal[featureDefID]) then
+		-- decoration features (e.g. commander tombstones) are never damaged
+		if
+			not geoThermal[featureDefID]
+			and not isDecorationFeature[featureDefID]
+			and (lavaDamageFeatures or not featureHasMetal[featureDefID])
+		then
 			featureX[featureID], featureY[featureID], featureZ[featureID] = spGetFeaturePosition(featureID)
 		end
 	end
