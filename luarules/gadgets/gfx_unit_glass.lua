@@ -112,7 +112,7 @@ else -- Unsynced
 	-- Shader sources
 	-----------------------------------------------------------------
 
-	vertGlass = [[
+	local vertGlass = [[
 #version 150 compatibility
 #line 100054
 
@@ -151,7 +151,7 @@ void main() {
 }
 ]]
 
-	fragGlass = [[
+	local fragGlass = [[
 #version 150 compatibility
 #line 200094
 

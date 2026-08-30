@@ -20,7 +20,7 @@ local DEBUG = false
 
 function gadget:GameID(gameID)
 	-- make sure gameID is a string because i'm not actually sure
-	cachedGameID = tostring(gameID)
+	local cachedGameID = tostring(gameID)
 	-- Initialise this madness
 	local FakeRandomSeed = ""
 	-- because yes

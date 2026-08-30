@@ -192,7 +192,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 				thismaxtime = weaponParalyzeDamageTime[weaponID] * ((ohm == 1 and 0.85) or ohm)
 
 				if ohm > 0 then
-					bufferdamage = hp / 200
+					local bufferdamage = hp / 200
 					--rootdamage = (damage / 50) * hp^0.5
 					--Spring.Echo('h damage rootdamage',hp,damage, rootdamage)
 					damage = damage + bufferdamage --overcome relative effects drain (eg stunned unit with 90000 hp loses 900 emp damage a tick, whereas unit with 900 hp loses 9 a tick. impossible to balance low damage emp weapons to overcome this without making them OP vs low HP units)
@@ -211,7 +211,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			--thanks to sprung for this arcane spell
 			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
 
-			newdamage = math_max(0, math_min(damage, maxEmpDamage - currentEmp))
+			local newdamage = math_max(0, math_min(damage, maxEmpDamage - currentEmp))
 			--Spring.Echo('h mh ph wpt old new',hp,maxHP, currentEmp, thismaxtime, damage, newdamage)
 
 			damage = newdamage

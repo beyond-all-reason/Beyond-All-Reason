@@ -8,6 +8,15 @@ end
 
 local gadget = gadget ---@type Gadget
 
+---@type table<string, true>
+local startPlayers
+---@type number
+local uiScale
+---@type integer
+local vsx
+---@type integer
+local vsy
+
 function gadget:GetInfo()
 	return {
 		name = "Dev Helper Cmds",
@@ -1031,6 +1040,10 @@ if gadgetHandler:IsSyncedCode() then
 	function ExecuteRemoveUnitDefName(unitdefname)
 		local unitDefID = UnitDefNames[unitdefname].id
 		if unitDefID then
+			---@type FeatureDefID?
+			local wreckFeatureDefID
+			---@type FeatureDefID?
+			local heapFeatureDefID
 			if FeatureDefNames[unitdefname .. "_dead"] then
 				wreckFeatureDefID = FeatureDefNames[unitdefname .. "_dead"].id
 			end
@@ -1842,7 +1855,6 @@ else -- UNSYNCED
 			sd = alpha * sd + (1 - alpha) * drawTime
 
 			lastFrameType = "draw"
-			dt = drawTime
 		end
 	end
 
@@ -1874,7 +1886,6 @@ else -- UNSYNCED
 				if elapsed > MODBROADCAST_HOLD then
 					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
 				end
-				local vsx, vsy = Spring.GetViewGeometry()
 				local c = modbroadcastActive
 				gl.Color(c.r, c.g, c.b, alpha)
 				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
@@ -2070,7 +2081,7 @@ else -- UNSYNCED
 			return
 		end
 		if not words[1] then
-			units = Spring.GetSelectedUnits()
+			local units = Spring.GetSelectedUnits()
 			if #units > 0 then
 				words[1] = Spring.GetUnitTeam(units[1])
 			else
