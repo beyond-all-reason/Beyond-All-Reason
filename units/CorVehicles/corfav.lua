@@ -44,6 +44,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
+			has_surfing_colvol = true,
 		},
 		featuredefs = {
 			dead = {

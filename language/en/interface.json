@@ -3606,6 +3606,10 @@
 			"name": "Default Decals",
 			"desc": "Use the default explosion decals instead of Decals GL4"
 		},
+		"experimental_unit_surfboxes": {
+			"name": "Shallow water test",
+			"desc": "Scouts submerged in very shallow water can be shot and killed"
+		},
 		"dev": {
 			"name": "_DEV",
 			"desc": "tab that should be hidden by chobby"

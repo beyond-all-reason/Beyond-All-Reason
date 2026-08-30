@@ -45,6 +45,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion",
+			has_surfing_colvol = true,
 		},
 		featuredefs = {
 			dead = {
