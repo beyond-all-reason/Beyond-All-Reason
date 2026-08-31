@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = "1.5"
+local versionNumber = "1.6"
 
 local widget = widget ---@type Widget
 
@@ -26,6 +26,16 @@ local spGetGameFrame = Spring.GetGameFrame
 local updateInt = 1 -- seconds for the ::update loop
 local sens = 40 -- rotate mouse sensitivity - length of mouse movement vector
 local drawForAll = false -- draw facing direction also for other buildings than labs
+
+-- Arrow style (matches the buildsquare footprint look: soft fill, pale outline, rounded corners)
+local ARROW_FILL_COLOR = { 0.05, 1.0, 0.35, 0.42 }
+local ARROW_OUTLINE_COLOR = { 0.72, 1.0, 0.72, 0.62 }
+local ARROW_CORNER_RADIUS = 2.6 -- elmos
+local ARROW_OUTLINE_WIDTH = 1.0 -- elmos
+local ARROW_CHEVRON_DEPTH = 0.45 -- inner chevron position, 0 = at the tip edges, 1 = at the base centre
+local ARROW_CHEVRON_WIDTH = 1.5 -- elmos
+local ARROW_CHEVRON_BASE_GAP = 5 -- elmos the chevron legs stop short of the flat side
+local ARROW_GAP = 2 -- elmos between the building footprint and the arrow's flat side
 
 --------------------------------------------------------------------------------
 
@@ -60,6 +70,13 @@ local spWarpMouse = Spring.WarpMouse
 local spGetBuildFacing = Spring.GetBuildFacing
 local spSetBuildFacing = Spring.SetBuildFacing
 local spPos2BuildPos = Spring.Pos2BuildPos
+local spSetActiveCommand = Spring.SetActiveCommand
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spTestBuildOrder = Spring.TestBuildOrder
+local spGiveOrder = Spring.GiveOrder
+local spGetInvertQueueKey = Spring.GetInvertQueueKey
+
+local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 
 local floor = math.floor
 local atan2 = math.atan2
@@ -75,7 +92,148 @@ local glVertex = gl.Vertex
 local glRotate = gl.Rotate
 local glBeginEnd = gl.BeginEnd
 local glScale = gl.Scale
+local glUseShader = gl.UseShader
+local glUniform = gl.Uniform
 local GL_TRIANGLES = GL.TRIANGLES
+local GL_QUADS = GL.QUADS
+
+-- Arrow geometry in local units (before the per-building scale): base along x = 0 from z = -32 to 32, tip at x = 24.
+local ARROW_BASE_HALF = 32
+local ARROW_TIP = 24
+local ARROW_QUAD_PADDING = 6 -- keeps the antialiased edge inside the quad
+
+local arrowShader
+local arrowUniforms = {}
+
+local arrowVertexShader = [[
+#version 150 compatibility
+varying vec2 vLocal;
+void main() {
+	vLocal = gl_Vertex.xz;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}
+]]
+
+local arrowFragmentShader = [[
+#version 150 compatibility
+uniform float worldScale; // local units -> elmos
+uniform float cornerRadius; // elmos
+uniform float outlineWidth; // elmos
+uniform float chevronDepth; // 0..1 along the leading-edge distance
+uniform float chevronWidth; // elmos
+uniform float chevronBaseGap; // elmos the chevron legs stop short of the base
+uniform vec4 fillColor;
+uniform vec4 outlineColor;
+varying vec2 vLocal;
+
+const vec2 A = vec2(0.0, -32.0);
+const vec2 B = vec2(0.0, 32.0);
+const vec2 C = vec2(24.0, 0.0);
+// Incenter and inradius of the triangle; the incircle touches the base so the incenter is at (inradius, 0).
+const float INRADIUS = 32.0 / 3.0;
+const vec2 INCENTER = vec2(INRADIUS, 0.0);
+// Inward normals of the two leading edges (A->C and B->C).
+const vec2 N_AC = vec2(-0.8, 0.6);
+const vec2 N_BC = vec2(-0.8, -0.6);
+
+float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2) {
+	vec2 e0 = p1 - p0, e1 = p2 - p1, e2 = p0 - p2;
+	vec2 v0 = p - p0, v1 = p - p1, v2 = p - p2;
+	vec2 pq0 = v0 - e0 * clamp(dot(v0, e0) / dot(e0, e0), 0.0, 1.0);
+	vec2 pq1 = v1 - e1 * clamp(dot(v1, e1) / dot(e1, e1), 0.0, 1.0);
+	vec2 pq2 = v2 - e2 * clamp(dot(v2, e2) / dot(e2, e2), 0.0, 1.0);
+	float s = sign(e0.x * e2.y - e0.y * e2.x);
+	vec2 d = min(min(vec2(dot(pq0, pq0), s * (v0.x * e0.y - v0.y * e0.x)),
+	                 vec2(dot(pq1, pq1), s * (v1.x * e1.y - v1.y * e1.x))),
+	                 vec2(dot(pq2, pq2), s * (v2.x * e2.y - v2.y * e2.x)));
+	return -sqrt(d.x) * sign(d.y);
+}
+
+void main() {
+	vec2 p = vLocal;
+	// Round the corners without changing the outer extent: shrink the triangle towards its incenter by the
+	// radius, then grow the distance field back out by the same amount.
+	float radiusLocal = min(cornerRadius / worldScale, INRADIUS * 0.9);
+	float shrink = 1.0 - radiusLocal / INRADIUS;
+	vec2 a = INCENTER + (A - INCENTER) * shrink;
+	vec2 b = INCENTER + (B - INCENTER) * shrink;
+	vec2 c = INCENTER + (C - INCENTER) * shrink;
+	float edgeDistance = (sdTriangle(p, a, b, c) - radiusLocal) * worldScale; // elmos, negative inside
+	float antialias = fwidth(edgeDistance);
+	float coverage = 1.0 - smoothstep(0.0, antialias, edgeDistance);
+	float outline = smoothstep(-outlineWidth - antialias, -outlineWidth + antialias, edgeDistance);
+
+	// Inner chevron: a band parallel to the two leading edges, measured in local units so it scales with the arrow.
+	float leadingDistance = min(dot(p - A, N_AC), dot(p - B, N_BC));
+	float maxLeadingDistance = dot(-A, N_AC); // at the base centre
+	float chevronCentre = chevronDepth * maxLeadingDistance;
+	float chevronDistance = abs(leadingDistance - chevronCentre) * worldScale;
+	float chevronAntialias = fwidth(chevronDistance);
+	float chevron = 1.0 - smoothstep(chevronWidth * 0.5 - chevronAntialias, chevronWidth * 0.5 + chevronAntialias, chevronDistance);
+	// Keep the chevron clear of the outline band so they don't merge into a blob at the base corners.
+	chevron *= 1.0 - smoothstep(-outlineWidth * 2.0 - antialias, -outlineWidth * 2.0 + antialias, edgeDistance);
+	// ...and stop its legs short of the flat side so the arrow keeps a clean base.
+	float baseDistance = p.x * worldScale;
+	float baseAntialias = fwidth(baseDistance);
+	chevron *= smoothstep(chevronBaseGap - baseAntialias, chevronBaseGap + baseAntialias, baseDistance);
+
+	// The fill gets a touch denser towards the tip so the direction reads even without the outline.
+	float tipMix = clamp(p.x / C.x, 0.0, 1.0);
+	float fillAlpha = fillColor.a * mix(0.85, 1.15, tipMix);
+
+	float detail = max(outline, chevron * 0.85);
+	vec3 color = mix(fillColor.rgb, outlineColor.rgb, detail);
+	float alpha = mix(fillAlpha, outlineColor.a, detail);
+	gl_FragColor = vec4(color, alpha * coverage);
+}
+]]
+
+local function initArrowShader()
+	if not gl.CreateShader then
+		return
+	end
+	arrowShader = gl.CreateShader({
+		vertex = arrowVertexShader,
+		fragment = arrowFragmentShader,
+		uniformFloat = {
+			worldScale = 1.0,
+			cornerRadius = ARROW_CORNER_RADIUS,
+			outlineWidth = ARROW_OUTLINE_WIDTH,
+			chevronDepth = ARROW_CHEVRON_DEPTH,
+			chevronWidth = ARROW_CHEVRON_WIDTH,
+			chevronBaseGap = ARROW_CHEVRON_BASE_GAP,
+			fillColor = ARROW_FILL_COLOR,
+			outlineColor = ARROW_OUTLINE_COLOR,
+		},
+	})
+	if not arrowShader then
+		Spring.Echo("Easy Facing: arrow shader failed to compile, using the plain triangle: " .. tostring(gl.GetShaderLog()))
+		return
+	end
+	arrowUniforms.worldScale = gl.GetUniformLocation(arrowShader, "worldScale")
+end
+
+local function deleteArrowShader()
+	if arrowShader then
+		gl.DeleteShader(arrowShader)
+		arrowShader = nil
+	end
+end
+
+local function drawArrowTriangle()
+	glVertex(0, 0, -ARROW_BASE_HALF)
+	glVertex(0, 0, ARROW_BASE_HALF)
+	glVertex(ARROW_TIP, 0, 0)
+end
+
+local function drawArrowQuad()
+	local x0, x1 = -ARROW_QUAD_PADDING, ARROW_TIP + ARROW_QUAD_PADDING
+	local z0, z1 = -ARROW_BASE_HALF - ARROW_QUAD_PADDING, ARROW_BASE_HALF + ARROW_QUAD_PADDING
+	glVertex(x0, 0, z0)
+	glVertex(x0, 0, z1)
+	glVertex(x1, 0, z1)
+	glVertex(x1, 0, z0)
+end
 
 local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
@@ -168,6 +326,93 @@ local function getFacingByMouseDelta(mouseDeltaX, mouseDeltaY)
 	return newFacing
 end
 
+--------------------------------------------------------------------------------
+-- Left+right chord placement
+--
+-- With the left button held on a build command the engine's GuiHandler owns the mouse, so it also receives the
+-- right button press/release used to rotate the facing. Releasing the right button while the left one is still
+-- held makes the engine cancel the build command and drop its pending left click, so the eventual left release
+-- places nothing. We can't intercept those events (the engine never asks Lua), so watch the button state instead:
+-- restore the build command when the right button comes up mid-chord and issue the placement ourselves when the
+-- left button is finally released.
+
+local chordCmdID -- build command active while both buttons were held
+local pendingCmdID -- build command to place when the left button is released
+local prevLmb = false
+
+local function placePendingBuild(mx, my)
+	local _, cmdID, cmdType = spGetActiveCommand()
+	if cmdID ~= pendingCmdID or cmdType ~= CMDTYPE_ICON_BUILDING then
+		return -- the player switched command in the meantime
+	end
+
+	local _, coords = spTraceScreenRay(mx, my, true, true)
+	if not coords then
+		return
+	end
+
+	local unitDefID = -cmdID
+	local facing = spGetBuildFacing()
+	local bx, by, bz = spPos2BuildPos(unitDefID, coords[1], coords[2], coords[3], facing)
+	if spTestBuildOrder(unitDefID, bx, by, bz, facing) == 0 then
+		return -- blocked: keep the command active, like the engine does on a failed click
+	end
+
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	local opts = {}
+	if alt then
+		opts[#opts + 1] = "alt"
+	end
+	if ctrl then
+		opts[#opts + 1] = "ctrl"
+	end
+	if meta then
+		opts[#opts + 1] = "meta"
+	end
+	if shift then
+		opts[#opts + 1] = "shift"
+	end
+	spGiveOrder(cmdID, { bx, by, bz, facing }, opts)
+
+	-- mirror the engine: the command stays active only while queueing
+	if not shift and not spGetInvertQueueKey() then
+		spSetActiveCommand(nil)
+	end
+end
+
+local function trackChordPlacement()
+	local mx, my, lmb, _, rmb = spGetMouseState()
+	local _, cmdID, cmdType = spGetActiveCommand()
+	local buildCmdActive = (cmdType == CMDTYPE_ICON_BUILDING)
+
+	if lmb and rmb then
+		if buildCmdActive then
+			chordCmdID = cmdID
+		end
+		-- a right press re-arms the engine's pending click, so it handles a left release during this chord itself
+		pendingCmdID = nil
+	elseif lmb then
+		if chordCmdID then
+			-- right button released mid-chord: the engine just cancelled the build command
+			if not buildCmdActive then
+				local cmdIndex = spGetCmdDescIndex(chordCmdID)
+				if cmdIndex and cmdIndex >= 0 then
+					spSetActiveCommand(cmdIndex)
+				end
+			end
+			pendingCmdID = chordCmdID
+			chordCmdID = nil
+		end
+	else
+		if pendingCmdID and prevLmb and not rmb then
+			placePendingBuild(mx, my)
+		end
+		pendingCmdID = nil
+		chordCmdID = nil
+	end
+	prevLmb = lmb
+end
+
 local function manipulateFacing()
 	ineffect = false
 
@@ -251,26 +496,19 @@ local function drawOrientation()
 	local facing = spGetBuildFacing()
 	local centerX, centerY, centerZ = spPos2BuildPos(unitDefID, coords[1], coords[2], coords[3], facing)
 	local transSpace = unitZsize[unitDefID] * 4 --should be ysize but its not there?!?
-	local transX, transZ
+	local transDistance = transSpace + ARROW_GAP -- footprint edge plus a gap so the arrow doesn't touch the building
+	local transX, transZ = 0, 0
 	if facing == 0 then
-		transX = 0
-		transZ = transSpace
+		transZ = transDistance
 	elseif facing == 1 then
-		transX = transSpace
-		transZ = 0
+		transX = transDistance
 	elseif facing == 2 then
-		transX = 0
-		transZ = -transSpace
+		transZ = -transDistance
 	elseif facing == 3 then
-		transX = -transSpace
-		transZ = 0
+		transX = -transDistance
 	end
 
-	local function drawFunc()
-		glVertex(0, 0, -32)
-		glVertex(0, 0, 32)
-		glVertex(24, 0, 0)
-	end
+	local worldScale = (transSpace or 70) / 70
 
 	glLineWidth(1)
 	glColor(0.0, 1.0, 0.0, 0.45)
@@ -279,9 +517,15 @@ local function drawOrientation()
 	gl.DepthTest(false)
 	glTranslate(centerX + transX, centerY, centerZ + transZ)
 	glRotate((3 + facing) * 90, 0, 1, 0)
-	glScale((transSpace or 70) / 70, 1.0, (transSpace or 70) / 70)
-	glBeginEnd(GL_TRIANGLES, drawFunc)
-	glScale(1.0, 1.0, 1.0)
+	glScale(worldScale, 1.0, worldScale)
+	if arrowShader then
+		glUseShader(arrowShader)
+		glUniform(arrowUniforms.worldScale, worldScale)
+		glBeginEnd(GL_QUADS, drawArrowQuad)
+		glUseShader(0)
+	else
+		glBeginEnd(GL_TRIANGLES, drawArrowTriangle)
+	end
 	gl.DepthTest(true)
 	glPopMatrix()
 	glColor(1.0, 1.0, 1.0, 1.0)
@@ -301,6 +545,8 @@ function widget:Initialize()
 		maybeRemoveSelf()
 	end
 
+	initArrowShader()
+
 	WG.easyfacing = {}
 	WG.easyfacing.setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
@@ -312,10 +558,13 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	deleteArrowShader()
 	WG.easyfacing = nil
 end
 
 function widget:Update()
+	trackChordPlacement()
+
 	local time = floor(spGetGameSeconds())
 
 	-- update timers once every <updateInt> seconds
