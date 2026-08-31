@@ -187,12 +187,21 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 1 then
 			local targetID = cmdParams[1]
-			if Spring.ValidUnitID(targetID) and isNano[Spring.GetUnitDefID(targetID)] then
-				local ownTeam = Spring.GetUnitTeam(targetID) == teamID
-				local enemy = Spring.GetUnitAllyTeam(targetID) ~= Spring.GetUnitAllyTeam(unitID)
-				if not ownTeam and not enemy then
-					return false
-				end
+			if Spring.ValidUnitID(targetID) then
+				local targetTeam = Spring.GetUnitTeam(targetID)
+				local targetDefID = Spring.GetUnitDefID(targetID)
+				local _, y = Spring.GetUnitPosition(targetID)
+				return decideLoad({
+					goalY = y,
+					height = Spring.GetUnitHeight(targetID),
+					carrierDef = UnitDefs[unitDefID],
+					passengerDef = UnitDefs[targetDefID],
+					allied = Spring.AreTeamsAllied(teamID, targetTeam),
+					ownTeam = targetTeam == teamID,
+					nano = isNano[targetDefID] == true,
+					distance = 0,
+					passengerSpeed = 0,
+				})
 			end
 		end
 	elseif cmdParams[1] and cmdParams[3] then
