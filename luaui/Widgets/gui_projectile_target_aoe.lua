@@ -798,7 +798,7 @@ local function UpdateTrackedProjectiles()
 
 					if existingData.weaponInfo.tracks then
 						local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ =
-							GetProjectileTargetPos(proID)
+							GetProjectileTargetPos(proID, existingData.weaponInfo.isMoveCtrl)
 						if tx then
 							existingData.impactX = tx
 							existingData.impactY = ty
@@ -846,7 +846,7 @@ local function UpdateTrackedProjectiles()
 
 				if isSpectator or isOwnTeam then
 					local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ, isUnitTarget =
-						GetProjectileTargetPos(proID)
+						GetProjectileTargetPos(proID, weaponInfo.isMoveCtrl)
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then
