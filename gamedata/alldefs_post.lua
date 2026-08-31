@@ -844,8 +844,8 @@ local function unitDef_Post(name, uDef)
 				customparams.smart_weapon_cmddesc = "default"
 			end
 
-			weapondefs[weapons[  priorityWeapon].def:lower()].customparams.smart_priority = true
-			weapondefs[weapons[    backupWeapon].def:lower()].customparams.smart_backup = true
+			weapondefs[weapons[priorityWeapon].def:lower()].customparams.smart_priority = true
+			weapondefs[weapons[backupWeapon].def:lower()].customparams.smart_backup = true
 			weapondefs[weapons[trajectoryWeapon].def:lower()].customparams.smart_trajectory_checker = true
 		else
 			customparams.weapons_smart_select = nil
