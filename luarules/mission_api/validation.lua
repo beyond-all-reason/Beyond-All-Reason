@@ -489,17 +489,6 @@ validators[Types.ObjectiveID] = function(objectiveID)
 	end
 end
 
-validators[Types.CountdownID] = function(countdownID)
-	local luaTypeResult = validators[Types.String](countdownID)
-	if luaTypeResult then
-		return luaTypeResult
-	end
-
-	if not GG["MissionAPI"].Countdowns[countdownID] then
-		return { { message = "Invalid countdownID: " .. countdownID } }
-	end
-end
-
 validators[Types.TriggerID] = function(triggerID)
 	local luaTypeResult = validators[Types.String](triggerID)
 	if luaTypeResult then
@@ -511,8 +500,11 @@ validators[Types.TriggerID] = function(triggerID)
 	end
 end
 
+-- Names of runtime-created entities: existence can't be checked at load time,
+-- only cross-referenced (see validateReferences) and guarded at runtime.
 validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
+validators[Types.CountdownID] = validators[Types.String]
 
 validators[Types.UnitDefName] = function(unitDefName)
 	local luaTypeResult = validators[Types.String](unitDefName)

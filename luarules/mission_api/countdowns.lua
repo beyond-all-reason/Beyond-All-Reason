@@ -15,16 +15,26 @@
 --- triggering any triggers.
 ---
 
+local function logWarning(operation, message)
+	Spring.Log("countdowns.lua", LOG.WARNING, "[Mission API] " .. operation .. ": " .. message)
+end
+
 local function getCountdown(operation, countdownID)
 	local countdown = GG["MissionAPI"].Countdowns[countdownID]
 	if not countdown then
-		Spring.Log(
-			"countdowns.lua",
-			LOG.WARNING,
-			"[Mission API] " .. operation .. ": no countdown with ID: " .. tostring(countdownID)
-		)
+		logWarning(operation, "no countdown with ID: " .. tostring(countdownID))
 	end
 	return countdown
+end
+
+-- These functions are also called directly (Custom actions, other gadgets),
+-- bypassing mission validation, so bad arguments must not raise synced errors.
+local function validSeconds(operation, seconds)
+	if type(seconds) ~= "number" then
+		logWarning(operation, "seconds must be a number, got " .. type(seconds))
+		return false
+	end
+	return true
 end
 
 -- timeRemaining stays a whole number of seconds and never goes negative.
@@ -33,6 +43,17 @@ local function sanitizeSeconds(seconds)
 end
 
 local function addCountdown(countdownID, seconds)
+	if type(countdownID) ~= "string" then
+		logWarning("AddCountdown", "countdownID must be a string, got " .. type(countdownID))
+		return
+	end
+	if not validSeconds("AddCountdown", seconds) then
+		return
+	end
+	if GG["MissionAPI"].Countdowns[countdownID] then
+		logWarning("AddCountdown", "replacing existing countdown: " .. countdownID)
+	end
+
 	GG["MissionAPI"].Countdowns[countdownID] = {
 		id = countdownID,
 		timeRemaining = sanitizeSeconds(seconds),
@@ -63,21 +84,21 @@ end
 
 local function setTime(countdownID, seconds)
 	local countdown = getCountdown("SetTime", countdownID)
-	if countdown then
+	if countdown and validSeconds("SetTime", seconds) then
 		countdown.timeRemaining = sanitizeSeconds(seconds)
 	end
 end
 
 local function addTime(countdownID, seconds)
 	local countdown = getCountdown("AddTime", countdownID)
-	if countdown then
+	if countdown and validSeconds("AddTime", seconds) then
 		countdown.timeRemaining = sanitizeSeconds(countdown.timeRemaining + seconds)
 	end
 end
 
 local function removeTime(countdownID, seconds)
 	local countdown = getCountdown("RemoveTime", countdownID)
-	if countdown then
+	if countdown and validSeconds("RemoveTime", seconds) then
 		countdown.timeRemaining = sanitizeSeconds(countdown.timeRemaining - seconds)
 	end
 end

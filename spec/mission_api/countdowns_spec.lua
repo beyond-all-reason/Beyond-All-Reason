@@ -36,6 +36,18 @@ describe("mission_api.countdowns", function()
 			assert.are.equal(10, get("fractional").timeRemaining)
 			assert.are.equal(0, get("negative").timeRemaining)
 		end)
+
+		it("replaces an existing countdown with the same ID, held again", function()
+			addTicking("timer", 10)
+			countdowns.Decrement()
+			assert.are.equal(9, get("timer").timeRemaining)
+
+			countdowns.AddCountdown("timer", 30)
+
+			assert.are.equal(30, get("timer").timeRemaining)
+			countdowns.Decrement() -- consumed as the hold-back tick
+			assert.are.equal(30, get("timer").timeRemaining)
+		end)
 	end)
 
 	describe("Decrement", function()
@@ -175,6 +187,32 @@ describe("mission_api.countdowns", function()
 				countdowns.RemoveTime("missing", 10)
 			end)
 			assert.is_nil(get("missing"))
+		end)
+	end)
+
+	describe("invalid arguments", function()
+		it("ignores AddCountdown with a non-string ID or non-number seconds", function()
+			assert.has_no.errors(function()
+				countdowns.AddCountdown(nil, 10)
+				countdowns.AddCountdown(42, 10)
+				countdowns.AddCountdown("timer", "soon")
+				countdowns.AddCountdown("timer", nil)
+			end)
+
+			assert.is_nil(get(42))
+			assert.is_nil(get("timer"))
+		end)
+
+		it("ignores time adjustments with non-number seconds", function()
+			addTicking("timer", 10)
+
+			assert.has_no.errors(function()
+				countdowns.SetTime("timer", "60")
+				countdowns.AddTime("timer", nil)
+				countdowns.RemoveTime("timer", {})
+			end)
+
+			assert.are.equal(10, get("timer").timeRemaining)
 		end)
 	end)
 end)
