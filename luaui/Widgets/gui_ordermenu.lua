@@ -69,9 +69,12 @@ local playSounds = true
 local stickToBottom = true
 local alwaysShow = false
 
+---@type number
 local posX = 0
 local posY = 0.8
+---@type number
 local width = 0
+---@type number
 local height = 0
 local cellMarginOriginal = 0.055
 local cellMargin = cellMarginOriginal
@@ -104,6 +107,7 @@ local isStateCommand = {}
 
 local disabledCommand = {}
 
+---@type number, number
 local vsx, vsy = spGetViewGeometry()
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
@@ -114,11 +118,28 @@ local soundButton = "LuaUI/Sounds/buildbar_waypoint.wav"
 local uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local uiScale = Spring.GetConfigFloat("ui_scale", 1)
 
-local backgroundRect = {}
-local activeRect = {}
+---@alias OrderMenuRect [number, number, number, number]
+
+---@type OrderMenuRect
+local backgroundRect = { 0, 0, 0, 0 }
+---@type OrderMenuRect
+local activeRect = { 0, 0, 0, 0 }
+---@type OrderMenuRect[]
 local cellRects = {}
 local cellMarginPx = 0
 local cellMarginPx2 = 0
+---@class OrderMenuCommand : CommandDescription
+---@field id integer
+---@field action string
+---@field name string
+---@field cursor string
+---@field params string[]
+---@field cachedText string?
+---@field virtualIndex integer?
+---@field pipFillMin integer?
+---@field pipFillMax integer?
+
+---@type OrderMenuCommand[]
 local commands = {}
 local rows = 0
 local cols = 0
@@ -129,10 +150,15 @@ local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 local math_isInRect = math.isInRect
 local clickCountDown = 2
 
+---@type LuaFont, number, number, integer?, integer?
 local font, backgroundPadding, widgetSpaceMargin, displayListOrders, displayListGuiShader
+---@type integer?, number?, integer?, number, number
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
+---@type number
+local minimapHeight = 0
+local ordermenuTex, ordermenuBgTex
 local ordermenuShows = false
 local stateLightDisplayLists = {}
 
@@ -150,10 +176,12 @@ local function getCachedTranslation(key, params)
 end
 
 -- Throttling for command refresh
+---@type number
 local lastCommandRefreshTime = 0
 local commandRefreshDelay = 0.05 -- 50ms delay
 
 -- Cache for hotkey strings
+---@type table<string, string>
 local hotkeyCache = {}
 
 -- Reusable tables to reduce allocations in hot paths
@@ -169,6 +197,7 @@ local hasWaitCommand = false
 local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
 
 -- Cancel target button visibility tracking
+---@type number
 local cancelTargetPollSec = 0
 local cancelTargetLastState = false
 
@@ -190,7 +219,9 @@ local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
 -- Font metrics cache (cleared on ViewResize when font changes)
+---@type table<string, number>
 local fontWidthCache = {} -- text -> GetTextWidth result (with padding)
+---@type table<string, number>
 local fontHeightCache = {} -- text -> GetTextHeight result
 
 -- Colorized text color cache (cleared when colorize changes)
@@ -244,10 +275,12 @@ local math_clamp = math.clamp
 local math_ceil = mathCeil
 local math_floor = mathFloor
 
+---@type fun(...: any), fun(...: any), fun(...: any), number
 local RectRound, UiElement, UiButton, elementCorner
 
 local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
+---@type table<string, string>
 local actionHotkeys
 
 local function clearStateLightDisplayLists()
@@ -341,7 +374,9 @@ local function setupCellGrid(force)
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
+		---@type number
 		local addedWidth = 0
+		---@type number
 		local addedHeight = 0
 		local addedWidthFloat = 0
 		local addedHeightFloat = 0
@@ -519,14 +554,14 @@ local function refreshCommands()
 	if cmdCount ~= prevCmdCount or activeCommand ~= prevActiveCmd then
 		commandsVisuallyChanged = true
 	else
-		for i = 1, cmdCount do
-			local cmd = commands[i]
+		for i, cmd in ipairs(commands) do
 			if cmd.id ~= prevCmdIDs[i] then
 				commandsVisuallyChanged = true
 				break
 			end
 			if isStateCommand[cmd.id] then
-				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1) or (tonumber(cmd.params[1]) + 1)
+				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1)
+					or ((tonumber(cmd.params[1]) or 0) + 1)
 				if cmd.cachedText ~= prevCmdStates[i] or mode ~= prevCmdModes[i] then
 					commandsVisuallyChanged = true
 					break
@@ -545,17 +580,17 @@ local function refreshCommands()
 	if commandsVisuallyChanged then
 		prevCmdCount = cmdCount
 		prevActiveCmd = activeCommand
-		for i = 1, cmdCount do
-			prevCmdIDs[i] = commands[i].id
-			if isStateCommand[commands[i].id] then
-				prevCmdStates[i] = commands[i].cachedText
-				prevCmdModes[i] = (commands[i].id == CMD.FIRE_STATE) and (commands[i].virtualIndex or 1)
-					or (tonumber(commands[i].params[1]) + 1)
-			elseif commands[i].id == CMD.WAIT then
+		for i, cmd in ipairs(commands) do
+			prevCmdIDs[i] = cmd.id
+			if isStateCommand[cmd.id] then
+				prevCmdStates[i] = cmd.cachedText
+				prevCmdModes[i] = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1)
+					or ((tonumber(cmd.params[1]) or 0) + 1)
+			elseif cmd.id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
 				prevCmdModes[i] = nil
-			elseif commands[i].action == "stockpile" then
-				prevCmdStates[i] = commands[i].cachedText
+			elseif cmd.action == "stockpile" then
+				prevCmdStates[i] = cmd.cachedText
 				prevCmdModes[i] = nil
 			else
 				prevCmdStates[i] = nil
@@ -796,6 +831,7 @@ function widget:Shutdown()
 end
 
 local buildmenuBottomPos = false
+---@type number
 local sec = 0
 function widget:Update(dt)
 	tracy.ZoneBeginN("W:OrderMenu:Update")
@@ -982,6 +1018,7 @@ local function drawStateLights(
 	local stateHeight = math_floor(cellInnerHeight * 0.14)
 	local stateMargin = math_floor((stateWidth * 0.075) + 0.5) + padding2 + padding2
 	local glowSize = math_floor(stateHeight * 8)
+	---@type number, number, number, number
 	local r, g, b, a = 0, 0, 0, 0
 	for i = 1, statecount do
 		if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
@@ -1079,7 +1116,8 @@ local function drawCell(cell, zoom)
 
 		local isActiveCmd = (activeCommand == cmd.name)
 		-- order button background
-		local color1, color2
+		---@type rgba, rgba
+		local color1, color2 = { 0, 0, 0, 0 }, { 0, 0, 0, 0 }
 		if isActiveCmd then
 			zoom = cellClickedZoom
 			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) } -- bottom
@@ -1267,7 +1305,7 @@ local function drawCell(cell, zoom)
 				fillMin, fillMax = OrderMenuFirestate.pipFill(curstate)
 			elseif isStateCommand[cmd.id] then
 				statecount = #cmd.params - 1
-				curstate = tonumber(cmd.params[1]) + 1
+				curstate = (tonumber(cmd.params[1]) or 0) + 1
 				fillMin = cmd.pipFillMin or curstate
 				fillMax = cmd.pipFillMax or curstate
 			else
@@ -1656,15 +1694,16 @@ function widget:DrawScreen()
 			end
 
 			-- clicked cell effect
-			if clickedCellTime and commands[clickedCell] then
+			local cell = clickedCell
+			local clickedCommand = cell and commands[cell]
+			if clickedCellTime and cell and clickedCommand then
 				tracy.ZoneBeginN("W:OrderMenu:DrawScreen:ClickedCell")
-				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
-					local isActiveCmd = (commands[cell].name == activeCommand)
+					local isActiveCmd = (clickedCommand.name == activeCommand)
 					local duration = 0.33
 					if isActiveCmd then
 						duration = 0.45
-					elseif isStateCommand[commands[clickedCell].id] then
+					elseif isStateCommand[clickedCommand.id] then
 						duration = 0.6
 					end
 					local alpha = 0.33 - ((now - clickedCellTime) / duration)
@@ -1718,7 +1757,7 @@ end
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
-		return
+		return false
 	end
 	if
 		ordermenuShows
@@ -1790,6 +1829,7 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 	end
+	return false
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
