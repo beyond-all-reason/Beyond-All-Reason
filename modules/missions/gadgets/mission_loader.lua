@@ -23,6 +23,7 @@ local ChatGuard = VFS.Include("modules/missions/lib/chat_guard.lua")
 local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
+local Roster = VFS.Include("modules/missions/lib/roster.lua")
 local Objectives = VFS.Include("modules/missions/lib/objectives.lua")
 local Variables = VFS.Include("modules/missions/lib/variables.lua")
 local Events = VFS.Include("modules/missions/lib/events.lua")
@@ -35,9 +36,12 @@ local activeMission = nil ---@type string|nil
 local variableKinds = {} ---@type table<string, string> variable name -> declared kind
 local contributedContext = {} ---@type table<string, boolean> ctx keys the required modules supplied
 
--- Protections THIS mission holds, by unit: combat's guard is a refcount, so
--- every arm that fires Protect again leans another count on it — the mission
--- must unwind its own on a fresh run or the hub stays invulnerable forever.
+local namedUnits = {} ---@type table<string, integer> name -> unitID
+local unitNames = {} ---@type table<integer, string> unitID -> name
+local groupUnits = {} ---@type table<string, integer[]>
+local spawnedUnits = {} ---@type integer[] everything the roster spawned, for reload cleanup
+-- combat's guard is a refcount: every arm that fires Protect leans another count
+-- on it, so the mission must unwind its own or the hub stays invulnerable forever.
 local protectCounts = {} ---@type table<integer, integer>
 
 local function persistProtectLedger()
@@ -47,9 +51,22 @@ local function persistProtectLedger()
 	end
 	Spring.SetGameRulesParam("mission_protect_ledger", table.concat(parts, ","))
 end
+local silencedUnits = {} ---@type table<integer, boolean> spawned Neutral: holding fire until handed over
 
 ---@type MissionRuntime
 local runtime = {
+	UnitOf = function(name)
+		return namedUnits[name]
+	end,
+	GroupUnits = function(groupName)
+		return groupUnits[groupName]
+	end,
+	ReleaseHoldFire = function(unitID)
+		if silencedUnits[unitID] and Spring.ValidUnitID(unitID) then
+			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 2 }, 0)
+			silencedUnits[unitID] = nil
+		end
+	end,
 	Protections = {
 		Get = function(unitID)
 			return protectCounts[unitID] or 0
@@ -100,6 +117,23 @@ local ctx = {
 		end
 		Spring.SetGameRulesParam("mission_var_" .. name, value)
 		engine.OnEvent(Events.VariableChanged)
+	end,
+	IsUnitDestroyed = function(name)
+		return Spring.GetGameRulesParam("mission_unit_dead_" .. name) == 1
+	end,
+	IsUnitSpotted = function(name, allyTeamID)
+		if Spring.GetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeamID) == 1 then
+			return true
+		end
+		-- The latch only catches the LOS edge. Vision granted with no edge to
+		-- catch (/globallos mid-game) still answers yes, and latches so the
+		-- answer survives the unit dying.
+		local unitID = namedUnits[name]
+		if unitID ~= nil and Spring.IsUnitInLos(unitID, allyTeamID) then
+			Spring.SetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeamID, 1)
+			return true
+		end
+		return false
 	end,
 }
 
@@ -160,9 +194,33 @@ end
 
 local FORWARDABLE_CALLINS = { "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken", "UnitEnteredLos" }
 
--- Callins forward as bare bus events; a module that latches state on one
--- (the roster) supplies its own forwarder here.
-local forwarders = {}
+-- these latch roster-unit state first: conditions read "has been", not "is right now"
+local forwarders = {
+	UnitDestroyed = function(_, unitID, _, _, attackerID, _, attackerTeam)
+		local name = unitNames[unitID]
+		if name ~= nil then
+			Spring.SetGameRulesParam("mission_unit_dead_" .. name, 1)
+			Spring.Log(
+				LOG_TAG,
+				LOG.INFO,
+				"roster unit destroyed: "
+					.. name
+					.. (
+						attackerTeam ~= nil and (" (attacker team " .. tostring(attackerTeam) .. ")")
+						or " (no attacker)"
+					)
+			)
+		end
+		engine.OnEvent("UnitDestroyed")
+	end,
+	UnitEnteredLos = function(_, unitID, _, allyTeam)
+		local name = unitNames[unitID]
+		if name ~= nil then
+			Spring.SetGameRulesParam("mission_unit_spotted_" .. name .. "_" .. allyTeam, 1)
+		end
+		engine.OnEvent("UnitEnteredLos")
+	end,
+}
 
 ---@param addOnly boolean|nil a trigger armed mid-run (Protect ... Until) can only add a
 ---watch, and removing a callin from inside a callin is the handler crash combat documents
@@ -205,9 +263,108 @@ local function loadContributions()
 	return contributions
 end
 
--- Which trigger ids have been published as fired. Derived, not progress: the
--- engine's own state is the truth, this only avoids re-writing a param that
--- has not changed.
+---@param playerTeamID integer
+---@return integer|nil
+local function resolveEnemyTeam(playerTeamID)
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if teamID ~= gaiaTeamID and teamID ~= playerTeamID then
+			return teamID
+		end
+	end
+	return nil
+end
+
+---The in-memory ledger dies with a /luarules reload, so the sweep also reads
+---the persisted copy; otherwise a re-arm after a reload spawns the roster
+---twice and the orphans keep shooting.
+local function despawnRoster()
+	-- combat's refcount survives a mission reload, so an unwound arm must
+	-- give back exactly what it took or the next arm stacks on top
+	for unitID, count in pairs(protectCounts) do
+		if Spring.ValidUnitID(unitID) then
+			local combat = ModuleHandler.Get("combat")
+			for _ = 1, count do
+				combat.Unprotect(unitID)
+			end
+		end
+	end
+	protectCounts = {}
+	persistProtectLedger()
+	for _, unitID in ipairs(spawnedUnits) do
+		if Spring.ValidUnitID(unitID) then
+			Spring.DestroyUnit(unitID, false, true)
+		end
+	end
+	local persisted = Spring.GetGameRulesParam("mission_spawned_units")
+	if type(persisted) == "string" and persisted ~= "" then
+		for idText in persisted:gmatch("[^,]+") do
+			local unitID = tonumber(idText)
+			if unitID ~= nil and Spring.ValidUnitID(unitID) then
+				Spring.DestroyUnit(unitID, false, true)
+			end
+		end
+	end
+	Spring.SetGameRulesParam("mission_spawned_units", "")
+	for name in pairs(Spring.GetGameRulesParams()) do
+		if name:find("^mission_group_") then
+			Spring.SetGameRulesParam(name, nil)
+		end
+	end
+	namedUnits, unitNames, groupUnits, spawnedUnits = {}, {}, {}, {}
+	silencedUnits = {}
+end
+
+---@param entries table[]
+local function rebindRoster(entries)
+	namedUnits, unitNames, groupUnits, spawnedUnits = {}, {}, {}, {}
+	silencedUnits = {}
+	protectCounts = {}
+	local heldLedger = Spring.GetGameRulesParam("mission_protect_ledger")
+	if type(heldLedger) == "string" then
+		for unitText, countText in heldLedger:gmatch("(%d+):(%d+)") do
+			local unitID, count = tonumber(unitText), tonumber(countText)
+			if unitID ~= nil and count ~= nil and Spring.ValidUnitID(unitID) then
+				protectCounts[unitID] = count
+			end
+		end
+	end
+	local persisted = Spring.GetGameRulesParam("mission_spawned_units")
+	if type(persisted) == "string" then
+		for idText in persisted:gmatch("[^,]+") do
+			local unitID = tonumber(idText)
+			if unitID ~= nil and Spring.ValidUnitID(unitID) then
+				spawnedUnits[#spawnedUnits + 1] = unitID
+				if Spring.GetUnitNeutral ~= nil and Spring.GetUnitNeutral(unitID) then
+					silencedUnits[unitID] = true
+				end
+			end
+		end
+	end
+	for _, entry in ipairs(entries) do
+		if entry.name ~= nil then
+			local unitID = Spring.GetGameRulesParam("mission_unit_" .. entry.name)
+			if type(unitID) == "number" and Spring.ValidUnitID(unitID) then
+				namedUnits[entry.name] = unitID
+				unitNames[unitID] = entry.name
+			end
+		end
+	end
+	for name in pairs(Spring.GetGameRulesParams()) do
+		local group = name:match("^mission_group_(.+)$")
+		if group ~= nil then
+			groupUnits[group] = {}
+			for idText in tostring(Spring.GetGameRulesParam(name) or ""):gmatch("[^,]+") do
+				local unitID = tonumber(idText)
+				if unitID ~= nil and Spring.ValidUnitID(unitID) then
+					groupUnits[group][#groupUnits[group] + 1] = unitID
+				end
+			end
+		end
+	end
+	return true
+end
+
 local publishedFired = {} ---@type table<string, boolean>
 
 ---Publishes what has FIRED, deliberately not "is the condition true": a
@@ -281,8 +438,125 @@ local function readableLoadError(err)
 	return inner
 end
 
----One transaction: the incoming mission arms into a staging engine swapped in
----whole, so a file that fails to parse leaves the running mission untouched.
+---@param missionName string
+---@return MissionRosterEntry[]|nil entries nil on a load error; {} when the mission has no roster
+---@param sandboxVFS table the mission's own VFS: Include of its definition files
+---@return MissionRosterEntry[]|nil entries
+---@return table|nil exports what units.lua returned, for the files that include it
+local function parseRoster(missionName, sandboxVFS)
+	local rosterPath = MISSIONS_DIR .. missionName .. "/units.lua"
+	if not VFS.FileExists(rosterPath) then
+		return {}
+	end
+	local ok, result = pcall(function()
+		local file = Roster.ForFile(missionName .. "/units.lua")
+		local exports = VFS.Include(rosterPath, {
+			Spawn = file.Spawn,
+			Claim = file.Claim,
+			Group = file.Group,
+			UnitDef = Verbs.UnitDef,
+			VFS = sandboxVFS,
+		})
+		local entries, _, declaredGroups = file.Finalize(exports)
+		return { entries, exports, declaredGroups }
+	end)
+	if not ok then
+		Spring.Log(LOG_TAG, LOG.ERROR, readableLoadError(result))
+		return nil
+	end
+	return result[1], result[2], result[3]
+end
+
+---Runs AFTER syncWatchedCallins so spawn-time callins (a unit born inside LOS)
+---reach the latches.
+---@param entries MissionRosterEntry[]
+---@param playerTeam MissionTeam
+---@return boolean ok
+---Lowest unit id so two clients agree: GetTeamUnits order is not promised, and
+---a per-client binding would desync the moment a trigger asked about it.
+---@param teamID integer
+---@param defName string
+---@return integer|nil
+local function existingUnitOf(teamID, defName)
+	local wanted = UnitDefNames[defName]
+	if wanted == nil then
+		return nil
+	end
+	local found = nil
+	for _, unitID in ipairs(Spring.GetTeamUnits(teamID) or {}) do
+		if Spring.GetUnitDefID(unitID) == wanted.id and (found == nil or unitID < found) then
+			found = unitID
+		end
+	end
+	return found
+end
+
+local function spawnRoster(entries, playerTeam)
+	despawnRoster()
+	local teamFor = {
+		player = playerTeam.teamID,
+		gaia = Spring.GetGaiaTeamID(),
+		enemy = resolveEnemyTeam(playerTeam.teamID),
+	}
+	local allyTeams = Spring.GetAllyTeamList()
+	for _, entry in ipairs(entries) do
+		local teamID = teamFor[entry.team]
+		if teamID == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, 'roster needs an "' .. entry.team .. '" team but none exists')
+			despawnRoster()
+			return false
+		end
+		-- CreateUnit RAISES on an unknown def name; nil is the unit limit.
+		if UnitDefNames[entry.def] == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, "roster unit " .. entry.def .. ": no such unit def")
+			despawnRoster()
+			return false
+		end
+		local unitID = entry.claim and existingUnitOf(teamID, entry.def) or nil
+		local claimed = unitID ~= nil
+		if unitID == nil then
+			local x, z = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
+			unitID = Spring.CreateUnit(entry.def, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+			if unitID == nil then
+				Spring.Log(LOG_TAG, LOG.ERROR, "could not spawn roster unit " .. entry.def .. " (unit limit)")
+				despawnRoster()
+				return false
+			end
+		end
+		if not claimed then
+			spawnedUnits[#spawnedUnits + 1] = unitID
+		end
+		-- a claimed unit belongs to a team that is presumably using it
+		if entry.neutral and not claimed then
+			-- Neutral only stops the unit being SHOT AT; hold fire is what stops it
+			-- shooting (the pairing ai_ruins uses)
+			Spring.SetUnitNeutral(unitID, true)
+			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+			silencedUnits[unitID] = true
+		end
+		if entry.name ~= nil then
+			namedUnits[entry.name] = unitID
+			unitNames[unitID] = entry.name
+			Spring.SetGameRulesParam("mission_unit_" .. entry.name, unitID)
+			Spring.SetGameRulesParam("mission_unit_dead_" .. entry.name, 0)
+			-- seeded from current LOS, not 0: UnitEnteredLos is an edge, and a unit
+			-- that spawns already visible (/globallos, friendly vision) never crosses it
+			for _, allyTeamID in ipairs(allyTeams) do
+				local visible = Spring.IsUnitInLos(unitID, allyTeamID)
+				Spring.SetGameRulesParam("mission_unit_spotted_" .. entry.name .. "_" .. allyTeamID, visible and 1 or 0)
+			end
+		end
+		if entry.group ~= nil then
+			groupUnits[entry.group] = groupUnits[entry.group] or {}
+			local group = groupUnits[entry.group]
+			group[#group + 1] = unitID
+		end
+	end
+	return true
+end
+
+---Arms into a staging engine swapped in whole, so a file that fails to parse
+---leaves the running mission untouched.
 ---@param missionName string
 ---@return boolean loaded
 ---@param missionName string
@@ -329,9 +603,7 @@ local function loadMission(missionName, preserve)
 		end
 	end
 
-	-- The mission's own module system: its files link with VFS.Include, and a
-	-- definition file's return table is what an include yields — once per load,
-	-- the same table to every importer, so objectives.lua never registers twice.
+	-- an include yields the same table to every importer, so units.lua never registers twice
 	local missionDir = MISSIONS_DIR .. missionName .. "/"
 	local included = {} ---@type table<string, table|false>
 	local sandboxVFS = {}
@@ -343,7 +615,9 @@ local function loadMission(missionName, preserve)
 		end
 		local exports = included[normalized]
 		if exports == nil then
-			error(normalized .. " is not a definition file loaded before this one — include objectives.lua")
+			error(
+				normalized .. " is not a definition file loaded before this one — include units.lua or objectives.lua"
+			)
 		end
 		if exports == false then
 			error(normalized .. " returned nothing to include — return the handles the other files need")
@@ -351,7 +625,29 @@ local function loadMission(missionName, preserve)
 		return exports
 	end
 
+	-- roster parses before trigger files so a typo in a Unit name is a load
+	-- error, not a silent never-true condition
+	local rosterEntries, rosterExports, declaredGroups = parseRoster(missionName, sandboxVFS)
+	if rosterEntries == nil then
+		return false
+	end
+	included[missionDir .. "units.lua"] = rosterExports or false
+	local rosterNames = {} ---@type table<string, boolean>
+	local rosterGroups = {} ---@type table<string, boolean>
+	for _, entry in ipairs(rosterEntries) do
+		if entry.name ~= nil then
+			rosterNames[entry.name] = true
+		end
+		if entry.group ~= nil then
+			rosterGroups[entry.group] = true
+		end
+	end
+	for name in pairs(declaredGroups or {}) do
+		rosterGroups[name] = true
+	end
+
 	local contributions = loadContributions()
+	local Unit = Verbs.MakeUnit(rosterNames)
 
 	for key in pairs(contributedContext) do
 		ctx[key] = nil
@@ -390,6 +686,8 @@ local function loadMission(missionName, preserve)
 			local forFile = contribution.ForFile({
 				filename = filename,
 				Register = staging.Register,
+				names = rosterNames,
+				groups = rosterGroups,
 			})
 			for key, value in pairs(forFile.env) do
 				if env[key] ~= nil then
@@ -446,6 +744,7 @@ local function loadMission(missionName, preserve)
 				Objective = file.Objective,
 				Team = { Player = playerTeam },
 				UnitDef = Verbs.UnitDef,
+				Unit = Unit,
 				VFS = sandboxVFS,
 			}
 			local finalizeContributions = contribute(filename, env)
@@ -512,6 +811,7 @@ local function loadMission(missionName, preserve)
 				When = file.When,
 				Team = { Player = playerTeam },
 				UnitDef = Verbs.UnitDef,
+				Unit = Unit,
 				Objective = ObjectiveVerb,
 				VFS = sandboxVFS,
 			}
@@ -569,10 +869,32 @@ local function loadMission(missionName, preserve)
 		end
 	end
 	syncWatchedCallins()
+	-- CreateUnit raises; pcall keeps a bad roster from being a stack trace out of the chat action
+	local ran, spawned
+	if preserve then
+		ran, spawned = pcall(rebindRoster, rosterEntries)
+	else
+		ran, spawned = pcall(spawnRoster, rosterEntries, playerTeam)
+	end
+	if not ran then
+		Spring.Log(LOG_TAG, LOG.ERROR, tostring(spawned))
+		despawnRoster()
+	end
+	if not ran or not spawned then
+		activeMission = nil
+		Spring.SetGameRulesParam("mission_active", 0)
+		return false
+	end
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
 	Spring.SetGameRulesParam("mission_name", missionName)
 	publishObjectives(objectiveDecls)
+	-- a /luarules reload wipes every local; the re-arm in Initialize needs to
+	-- know what the previous life spawned
+	Spring.SetGameRulesParam("mission_spawned_units", table.concat(spawnedUnits, ","))
+	for groupName, units in pairs(groupUnits) do
+		Spring.SetGameRulesParam("mission_group_" .. groupName, table.concat(units, ","))
+	end
 	Spring.Echo(
 		"["
 			.. LOG_TAG
