@@ -2243,8 +2243,6 @@ function widget:Initialize()
 
 							local posx = vboEntry[13]
 							local posz = vboEntry[15]
-							local rotation = vboEntry[3]
-							local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
 							AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
 							restoredCount = restoredCount + 1
 						end

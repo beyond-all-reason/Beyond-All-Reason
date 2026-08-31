@@ -233,7 +233,6 @@ local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil,
 local scrolling, playSound, sndChatFile, sndChatFileVolume =
 	false, config.playSound, config.sndChatFile, config.sndChatFileVolume
 local myName, mySpec = state.myName, state.mySpec
-local lastDrawUiUpdate = state.lastDrawUiUpdate
 local displayedChatLines = state.displayedChatLines
 local currentChatLine, currentConsoleLine = state.currentChatLine, state.currentConsoleLine
 local historyMode = state.historyMode
@@ -2322,7 +2321,6 @@ drawChatInput = function()
 			-- background
 			local r, g, b, a
 			local inputAlpha = mathMin(0.36, ui_opacity * 0.66)
-			local hintText = autocompleteText or ""
 			if showEmojiButton then
 				state.emojiButtonRect =
 					{ x2 - elementPadding - emojiButtonSize, emojiButtonY1, x2 - elementPadding, emojiButtonY2 }

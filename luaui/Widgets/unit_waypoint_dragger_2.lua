@@ -175,7 +175,6 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 			local cmdFacRad = wpData[4]
 			local cmdLink = wpData[5]
 			local cmdID = wpData[6].id
-			local cmdPars = wpData[6].params
 			local cmdTag = wpData[6].tag
 			local cmdUnitID = wpData[7]
 

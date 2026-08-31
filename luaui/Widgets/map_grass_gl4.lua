@@ -759,7 +759,6 @@ local function clearGeothermalGrass()
 	if WG.resource_spot_finder then
 		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
-			local maxValue = 15
 			for i = 1, #spots do
 				local spot = spots[i]
 				adjustGrass(

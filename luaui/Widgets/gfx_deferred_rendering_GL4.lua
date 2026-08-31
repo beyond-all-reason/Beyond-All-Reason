@@ -57,12 +57,7 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spDiffTimers = Spring.DiffTimers
 local spGetTimer = Spring.GetTimer
 local spGetTimerMicros = Spring.GetTimerMicros
-local spGetDrawFrame = Spring.GetDrawFrame
-local spGetFPS = Spring.GetFPS
 local spGetConfigString = Spring.GetConfigString
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamList = Spring.GetTeamList
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -1447,7 +1442,6 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 end
 
 function AddRandomLight(which)
-	local gf = gameFrame
 	local radius = mathRandom() * 150 + 50
 	local posx = Game.mapSizeX * mathRandom() * 1.0
 	local posz = Game.mapSizeZ * mathRandom() * 1.0

@@ -16090,8 +16090,6 @@ function widget:Update()
 			end
 		end -- if panelVisible
 
-		local dcActive = widgetState.decalsActive
-
 		-- Toggle noise floating window
 		local noiseActive = tfActive and tfState.mode == "noise"
 		if noiseActive and not widgetState.lastNoiseActive then
