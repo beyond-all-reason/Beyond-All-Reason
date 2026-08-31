@@ -69,7 +69,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local CMD_REMOVE = CMD.REMOVE
 
 local function getCachedUnitDef(unitID)
-	return Transport.DefFacts(spGetUnitDefID(unitID))
+	return Transport.UnitFacts(unitID)
 end
 
 local function isFactory(unitID)
@@ -300,16 +300,7 @@ local function canTransport(transportID, unitID)
 		return false
 	end
 
-	local cargo = Spring.GetUnitIsTransporting(transportID) or {}
-	local carriedMass = 0
-	for _, carriedID in ipairs(cargo) do
-		local carriedDefID = Spring.GetUnitDefID(carriedID)
-		local carried = Transport.DefFacts(carriedDefID)
-		if carried then
-			carriedMass = carriedMass + carried.mass
-		end
-	end
-	if not Transport.CanCarry(tdef, udef, carriedMass, #cargo) then
+	if not Transport.CanLoad(transportID, unitID) then
 		return false
 	end
 

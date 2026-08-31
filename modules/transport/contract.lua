@@ -1,4 +1,5 @@
 local PolicyBuilder = VFS.Include("modules/policy_builder.lua")
+local Modules = VFS.Include("modules/enums.lua").Modules
 
 ---@class TransportApproachContext where a carrier meets the ground: shared by load and unload
 ---@field goalY number
@@ -10,6 +11,8 @@ local PolicyBuilder = VFS.Include("modules/policy_builder.lua")
 ---@field carrierDef table|nil
 ---@field passengerDef table|nil
 ---@field allied boolean|nil
+---@field ownTeam boolean|nil the passenger is the carrier's own team's
+---@field nano boolean|nil the passenger is a nano turret
 ---@field passengerSpeed number|nil
 
 ---@class TransportUnloadContext: TransportApproachContext
@@ -26,6 +29,7 @@ local PolicyBuilder = VFS.Include("modules/policy_builder.lua")
 ---@field Submerged string
 ---@field WithinReach string
 ---@field MovingEnemy string
+---@field AlliedNano string
 ---@field Allowed string
 
 ---@type TransportLoadStages
@@ -33,6 +37,7 @@ local Load = {
 	Submerged = "Submerged",
 	WithinReach = "WithinReach",
 	MovingEnemy = "MovingEnemy",
+	AlliedNano = "AlliedNano",
 	Allowed = "Allowed",
 }
 
@@ -63,13 +68,13 @@ local LoadedSpeed = {
 ---@field unload AssembledPipeline<TransportUnloadContext, boolean>
 ---@field loaded_speed AssembledPipeline<TransportLoadedSpeedContext, number>
 
----@class TransportPolicyStages
----@field load TransportLoadStages
----@field unload TransportUnloadStages
----@field loaded_speed TransportLoadedSpeedStages
+---@class TransportContract
+---@field Load TransportLoadStages
+---@field Unload TransportUnloadStages
+---@field LoadedSpeed TransportLoadedSpeedStages
 
-return PolicyBuilder.Stages("transport", {
-	load = PolicyBuilder.Single(Load),
-	unload = PolicyBuilder.Single(Unload),
-	loaded_speed = PolicyBuilder.Product(LoadedSpeed),
+return PolicyBuilder.Contract(Modules.Transport, {
+	Load = PolicyBuilder.Single(Load),
+	Unload = PolicyBuilder.Single(Unload),
+	LoadedSpeed = PolicyBuilder.Product(LoadedSpeed),
 })
