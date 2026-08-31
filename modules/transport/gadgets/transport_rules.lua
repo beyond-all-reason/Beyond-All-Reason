@@ -19,6 +19,7 @@ end
 local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 local ModeEnums = VFS.Include("modules/context/mode_enums.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Events = VFS.Include("modules/transport/lib/events.lua")
 
 local pipelines = ModuleHandler.LoadPolicies("transport") ---@type TransportPipelines
 
@@ -217,6 +218,10 @@ function gadget:UnitLoaded(unitID, unitDefID, _, transportID)
 		-- The old ghost persists until the position re-enters LOS.
 		Spring.SetUnitLeavesGhost(unitID, false, true)
 	end
+	-- The mission bus is optional: a multiplayer game has no missions gadget.
+	if GG.Missions ~= nil and GG.Missions.OnEvent ~= nil then
+		GG.Missions.OnEvent(Events.UnitLoaded)
+	end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
@@ -237,6 +242,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 	end
 	if leavesGhost[unitDefID] then
 		Spring.SetUnitLeavesGhost(unitID, true)
+	end
+	if GG.Missions ~= nil and GG.Missions.OnEvent ~= nil then
+		GG.Missions.OnEvent(Events.UnitUnloaded)
 	end
 
 	if isParatrooper[unitDefID] then
