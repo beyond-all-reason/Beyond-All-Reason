@@ -9,7 +9,7 @@ Rules.PARATROOPER_MAX_VELOCITY = 10
 Rules.PARATROOPER_GROUND_MARGIN = 5
 
 -- The engine compares footprints at twice the def's size.
-local FOOTPRINT_SCALE = 2
+Rules.FOOTPRINT_SCALE = 2
 
 ---@param unitDef table
 ---@return number|nil reach nil for anything that is not an air transport
@@ -61,10 +61,10 @@ function Rules.CanCarry(transportDef, unitDef, carriedMass, carriedCount)
 	if carriedCount and transportDef.transportCapacity and carriedCount >= transportDef.transportCapacity then
 		return false
 	end
-	if unitDef.xsize > (transportDef.transportSize or 0) * FOOTPRINT_SCALE then
+	if unitDef.xsize > (transportDef.transportSize or 0) * Rules.FOOTPRINT_SCALE then
 		return false
 	end
-	if unitDef.xsize < (transportDef.minTransportSize or 0) * FOOTPRINT_SCALE then
+	if unitDef.xsize < (transportDef.minTransportSize or 0) * Rules.FOOTPRINT_SCALE then
 		return false
 	end
 	if unitDef.mass < (transportDef.minTransportMass or 0) then
