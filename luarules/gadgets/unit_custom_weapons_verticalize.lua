@@ -358,8 +358,11 @@ local function register(projectileID, weaponDefID)
 	local upTimeFrames =
 		math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
 
-	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 and respawn(weapon, projectileID, projectile, upTimeFrames) then
-		return
+	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 then
+		if respawn(weapon, projectileID, projectile, upTimeFrames) then
+			return
+		end
+		upTimeFrames = weapon.upTimeMinFrames
 	end
 
 	if cruiseDistance <= -weapon.rangeMinimum * 0.5 then
