@@ -1,7 +1,7 @@
 local function airReworkUnitTweaks(name, uDef)
 
 	if uDef.fronttospeed == nil then
-		uDef.fronttospeed = 0.05
+		uDef.fronttospeed = 0.046
 	end
 
 	if uDef.mygravity == nil then
@@ -12,12 +12,12 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.metalcost = 250
 		uDef.energycost = 7600
 		uDef.buildtime = 12000
-		uDef.maxaileron = 0.02
-		uDef.maxacc = 0.21
-		uDef.maxdec = 0.1
+		--uDef.maxaileron = 0.02
+		uDef.maxacc = 0.25
+		uDef.maxdec = 0.12
 		uDef.speed = 320
-		uDef.maxrudder = 0.011
-		uDef.maxbank = 0.65
+		uDef.maxrudder = 0.0088
+		uDef.maxbank = 0.7
 		uDef.health = 740
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 240
@@ -49,8 +49,8 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.energycost = 4500
 		uDef.buildtime = 5000
 		uDef.speed = 270
-		uDef.maxacc = 0.15
-		uDef.maxdec = 0.1
+		uDef.maxacc = 0.14
+		uDef.maxdec = 0.12
 		uDef.maxrudder = 0.01
 		uDef.maxbank = 0.65
 		uDef.health = 460
@@ -84,19 +84,28 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.metalcost = 450
 		uDef.energycost = 6500
 		uDef.buildtime = 14000
-		uDef.speed = 200
-		uDef.maxacc = 0.13
-		uDef.maxrudder = 0.016
+		uDef.speed = 180
+		uDef.health = 2700
+		--[[uDef.maxacc = 0.13
+		uDef.maxrudder = 0.011
+		uDef.maxaileron = 0.007
 		uDef.maxbank = 0.5
 		--uDef.maxpitch = 0.02
 		--uDef.maxelevator = 0.02
 		uDef.health = 2700
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 160
-		--uDef.turnradius = 128
+		--uDef.turnradius = 128]]--
+		uDef.maxacc = 0.09
+		uDef.hoverattack = true
+		uDef.turnrate = 500
+		uDef.maxdec = 0.17
+		uDef.turninplaceanglelimit = 360
+		uDef.airstrafe = false
+
 		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
-		uDef.weapondefs.armsfig_weapon.flighttime = 1.4
-		uDef.weapondefs.armsfig_weapon.range = 650
+		uDef.weapondefs.armsfig_weapon.flighttime = 4
+		uDef.weapondefs.armsfig_weapon.range = 1100
 		uDef.weapondefs.armsfig_weapon.burst = 2
 		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
 		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
@@ -104,33 +113,33 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.weapondefs.armsfig_weapon.smoketime = 48
 		uDef.weapondefs.armsfig_weapon.smokesize = 10
 		uDef.weapondefs.armsfig_weapon.smoketrail = true
-		uDef.weapondefs.armsfig_weapon.areaofeffect = 245
-		uDef.weapondefs.armsfig_weapon.reloadtime = 1.5
+		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
+		uDef.weapondefs.armsfig_weapon.reloadtime = 2
 		uDef.weapondefs.armsfig_weapon.startvelocity = 100
 		uDef.weapondefs.armsfig_weapon.tolerance = 1000
-		uDef.weapondefs.armsfig_weapon.turnrate = 8000
+		uDef.weapondefs.armsfig_weapon.turnrate = 15000
 		uDef.weapondefs.armsfig_weapon.weaponacceleration = 300
 		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
 		uDef.weapondefs.armsfig_weapon.wobble = 3
 		uDef.weapondefs.armsfig_weapon.dance = 20
 		uDef.weapondefs.armsfig_weapon.damage = {
 			default = 1,
-			vtol = 180,
+			vtol = 250,
 		}
 	end
 	if name == "corvamp" then
-		uDef.metalcost = 240
-		uDef.energycost = 7300
-		uDef.buildtime = uDef.buildtime * 1.35
-		uDef.maxaileron = 0.02
-		uDef.maxacc = 0.21
-		uDef.maxdec = 0.1
-		uDef.speed = 340
-		uDef.maxrudder = 0.014
-		uDef.maxbank = 0.65
-		uDef.health = 580
+		uDef.metalcost = 250
+		uDef.energycost = 7600
+		uDef.buildtime = 12000
+		uDef.maxacc = 0.25
+		uDef.maxdec = 0.12
+		uDef.speed = 320
+		uDef.maxrudder = 0.0088
+		uDef.maxbank = 0.7
+		uDef.health = 740
 		uDef.sightdistance = 550
 		uDef.cruisealtitude = 240
+
 		uDef.weapondefs.corvtol_advmissile.impactonly = 0
 		uDef.weapondefs.corvtol_advmissile.proximitypriority = 0
 		uDef.weapondefs.corvtol_advmissile.areaofeffect = 32
@@ -157,9 +166,9 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.energycost = 4500
 		uDef.buildtime = 5000
 		uDef.speed = 270
-		uDef.maxacc = 0.15
-		uDef.maxdec = 0.1
-		uDef.maxrudder = 0.012
+		uDef.maxacc = 0.14
+		uDef.maxdec = 0.12
+		uDef.maxrudder = 0.01
 		uDef.maxbank = 0.65
 		uDef.health = 460
 		uDef.sightdistance = 460
@@ -193,15 +202,24 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.energycost = 8000
 		uDef.buildtime = 11000
 		uDef.speed = 200
-		uDef.maxacc = 0.12
-		uDef.maxrudder = 0.016
+		uDef.health = 3000
+
+		--[[uDef.maxacc = 0.13
+		uDef.maxrudder = 0.011
+		uDef.maxaileron = 0.007
 		uDef.maxbank = 0.5
 		--uDef.maxpitch = 0.02
 		--uDef.maxelevator = 0.02
-		uDef.health = 3000
 		uDef.sightdistance = 460
 		uDef.cruisealtitude = 160
-		uDef.turnradius = 128
+		--uDef.turnradius = 128]]--
+		uDef.maxacc = 0.1
+		uDef.hoverattack = true
+		uDef.turnrate = 700
+		uDef.maxdec = 0.2
+		uDef.turninplaceanglelimit = 360
+
+
 		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
 		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
 		uDef.weapondefs.corsfig_weapon.range = 680
