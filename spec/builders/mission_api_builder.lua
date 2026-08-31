@@ -13,6 +13,7 @@ local PARAMETER_TYPES_PATH = 'luarules/mission_api/parameter_types.lua'
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
 ---@field ManagedObjectives table
+---@field Countdowns table
 ---@field Objectives table
 ---@field Stages table
 ---@field Triggers table
@@ -66,6 +67,7 @@ function MB.new()
         soundFiles = {},
         soundQueue = {},
         managedObjectives = {},
+        countdowns = {},
         objectives = {},
         stages = {},
         triggers = {},
@@ -166,6 +168,17 @@ end
 ---@return MissionApiBuilder
 function MB:WithManagedObjective(objectiveID, metadata)
     self.managedObjectives[objectiveID] = metadata or {}
+    return self
+end
+
+---Seed a countdown, shaped as countdowns.lua AddCountdown() creates them.
+---@param self MissionApiBuilder
+---@param countdownID string
+---@param countdown table?
+---@return MissionApiBuilder
+function MB:WithCountdown(countdownID, countdown)
+    self.countdowns[countdownID] = countdown
+        or { id = countdownID, timeRemaining = 0, paused = false }
     return self
 end
 
@@ -406,6 +419,7 @@ function MB:Build()
         soundFiles          = instance.soundFiles,
         soundQueue          = instance.soundQueue,
         ManagedObjectives   = instance.managedObjectives,
+        Countdowns          = instance.countdowns,
         Objectives          = instance.objectives,
         Stages              = instance.stages,
         Triggers            = instance.triggers,

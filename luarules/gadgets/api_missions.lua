@@ -70,12 +70,14 @@ function gadget:Initialize()
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].ManagedObjectives = {}
+	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
+	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 

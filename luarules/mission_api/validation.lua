@@ -489,6 +489,17 @@ validators[Types.ObjectiveID] = function(objectiveID)
 	end
 end
 
+validators[Types.CountdownID] = function(countdownID)
+	local luaTypeResult = validators[Types.String](countdownID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG["MissionAPI"].Countdowns[countdownID] then
+		return { { message = "Invalid countdownID: " .. countdownID } }
+	end
+end
+
 validators[Types.TriggerID] = function(triggerID)
 	local luaTypeResult = validators[Types.String](triggerID)
 	if luaTypeResult then
