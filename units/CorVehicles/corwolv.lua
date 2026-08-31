@@ -3,6 +3,7 @@ return {
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3550,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 22 38",
 		collisionvolumetype = "Box",
@@ -39,6 +40,7 @@ return {
 		customparams = {
 			basename = "base",
 			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			cobkickbackrestorespeed = "10",
 			firingceg = "barrelshot-tiny",
 			kickback = "-2",

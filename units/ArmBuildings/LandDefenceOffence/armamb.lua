@@ -4,7 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "ARMAMB.DDS",
 		buildtime = 27000,
-		canrepeat = false,
+		canrepeat = true,
 		cloakcost = 24,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 30 60",
@@ -31,6 +31,8 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,

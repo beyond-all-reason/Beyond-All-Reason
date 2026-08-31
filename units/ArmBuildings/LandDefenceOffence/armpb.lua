@@ -2,7 +2,7 @@ return {
 	armpb = {
 		buildpic = "ARMPB.DDS",
 		buildtime = 15000,
-		canrepeat = false,
+		canrepeat = true,
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -25,6 +25,7 @@ return {
 		sightdistance = 598,
 		yardmap = "ooooooooo",
 		customparams = {
+			groundattackaftersalvos = 1,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
