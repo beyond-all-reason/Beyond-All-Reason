@@ -1,3 +1,4 @@
+---@class TransportRules
 local Rules = {}
 
 local REACH_BASIC = 20
@@ -51,9 +52,13 @@ end
 ---@param transportDef table
 ---@param unitDef table
 ---@param carriedMass number|nil mass already aboard
+---@param carriedCount integer|nil units already aboard
 ---@return boolean
-function Rules.CanCarry(transportDef, unitDef, carriedMass)
+function Rules.CanCarry(transportDef, unitDef, carriedMass, carriedCount)
 	if not transportDef.isTransport or unitDef.cantBeTransported then
+		return false
+	end
+	if carriedCount and transportDef.transportCapacity and carriedCount >= transportDef.transportCapacity then
 		return false
 	end
 	if unitDef.xsize > (transportDef.transportSize or 0) * FOOTPRINT_SCALE then
