@@ -16,8 +16,11 @@ end
 ---@field CarrierOf fun(unitID: integer): integer|nil
 ---@field Cargo fun(transportID: integer): integer[]
 ---@field CanCarry fun(transportDefID: integer, unitDefID: integer, carriedMass: number|nil, carriedCount: integer|nil): boolean
+---@field CanEverCarry fun(transportDefID: integer, unitDefID: integer): boolean
 ---@field MayLoad fun(ctx: TransportLoadContext): boolean
 ---@field DefFacts fun(unitDefID: integer|nil): TransportDefFacts|nil
+
+local canEverCarry = {} ---@type table<integer, table<integer, boolean>>
 
 ---@type TransportApi
 return {
@@ -54,6 +57,26 @@ return {
 	end,
 
 	DefFacts = Defs.Of,
+
+	---Def-pair verdict, memoized: could this carrier ever lift this def,
+	---empty and unburdened?
+	---@param transportDefID integer
+	---@param unitDefID integer
+	---@return boolean
+	CanEverCarry = function(transportDefID, unitDefID)
+		local perCarrier = canEverCarry[transportDefID]
+		if perCarrier == nil then
+			perCarrier = {}
+			canEverCarry[transportDefID] = perCarrier
+		end
+		local verdict = perCarrier[unitDefID]
+		if verdict == nil then
+			local transportDef, unitDef = UnitDefs[transportDefID], UnitDefs[unitDefID]
+			verdict = transportDef ~= nil and unitDef ~= nil and Rules.CanCarry(transportDef, unitDef)
+			perCarrier[unitDefID] = verdict
+		end
+		return verdict
+	end,
 
 	---@param ctx TransportLoadContext
 	---@return boolean
