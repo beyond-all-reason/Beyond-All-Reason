@@ -351,7 +351,7 @@ end
 
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
-	name = Spring.I18N("ui.buildMenu.back"),
+	name = BAR.I18N("ui.buildMenu.back"),
 	keyText = keyConfig.sanitizeKey("shift", currentLayout),
 })
 local nextPageRect = Rect:new(0, 0, 0, 0)
@@ -1860,7 +1860,7 @@ end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
-	backRect.opts.name = Spring.I18N("ui.buildMenu.back")
+	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
 	refreshUnitDefs()
 	redraw = true
 end
