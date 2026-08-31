@@ -172,6 +172,15 @@ local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() 
 local cancelTargetPollSec = 0
 local cancelTargetLastState = false
 
+local function selectionHasPriorityTarget(selected)
+	for i = 1, #selected do
+		if Spring.GetUnitRulesParam(selected[i], "hasPriorityTarget") then
+			return true
+		end
+	end
+	return false
+end
+
 -- Command fingerprint to skip redundant R2T redraws
 local prevCmdCount = 0
 local prevCmdIDs = {}
@@ -829,21 +838,8 @@ function widget:Update(dt)
 	if cancelTargetPollSec > 0.1 then
 		cancelTargetPollSec = 0
 		if #commands > 0 or alwaysShow then
-			local hasTarget = false
 			local selected = Spring.GetSelectedUnits()
-			for i = 1, #selected do
-				local uid = selected[i]
-				local targetID = Spring.GetUnitRulesParam(uid, "targetID")
-				if targetID and targetID > 0 then
-					hasTarget = true
-					break
-				end
-				local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
-				if targetX and targetX >= 0 then
-					hasTarget = true
-					break
-				end
-			end
+			local hasTarget = selectionHasPriorityTarget(selected)
 			if hasTarget ~= cancelTargetLastState then
 				cancelTargetLastState = hasTarget
 				doUpdate = true
@@ -1823,20 +1819,7 @@ function widget:SelectionChanged(sel)
 	cachedFirstUnit = sel[1] or nil
 
 	-- Update cancel target state using the selection already provided here
-	cancelTargetLastState = false
-	for i = 1, #sel do
-		local uid = sel[i]
-		local targetID = Spring.GetUnitRulesParam(uid, "targetID")
-		if targetID and targetID > 0 then
-			cancelTargetLastState = true
-			break
-		end
-		local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
-		if targetX and targetX >= 0 then
-			cancelTargetLastState = true
-			break
-		end
-	end
+	cancelTargetLastState = selectionHasPriorityTarget(sel)
 
 	-- Adaptive throttling: increase delay based on selection size
 	local selCount = #sel
