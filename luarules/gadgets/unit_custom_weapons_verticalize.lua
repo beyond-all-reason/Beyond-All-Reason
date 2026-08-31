@@ -515,8 +515,8 @@ local function verticalize(projectileID, projectile)
 		end
 	end
 
-	local speedNew = speed + projectile.acceleration
-	local ratio = speedNew < projectile.speedMax and speedNew / speed or 1.0
+	local speedNew = math_min(speed + projectile.acceleration, projectile.speedMax)
+	local ratio = speedNew / speed
 	vx, vy, vz = vx * ratio, vy * ratio, vz * ratio
 	px, py, pz = px + vx, py + vy, pz + vz
 
