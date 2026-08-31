@@ -111,7 +111,7 @@ return {
 				proximitypriority = -1,
 				range = 300,
 				reloadtime = 0.5,
-				rgbcolor = "0.85,0.3,0.2",
+				rgbcolor = "0.85 0.3 0.2",
 				soundhit = "xplosml5",
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir5",

@@ -36,6 +36,12 @@ local function setAreaMexType(uDefID)
 end
 
 function widget:Initialize()
+	if not WG.resource_spot_builder or not WG.resource_spot_finder then
+		Spring.Echo("Area Mex: the mex/geo resource spot API is missing, disabling")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	metalSpots = WG.resource_spot_finder.metalSpotsList
 	metalMap = WG.resource_spot_finder.isMetalMap
 	mexBuildings = WG.resource_spot_builder.GetMexBuildings()
@@ -203,6 +209,10 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
+	if not cmdRadius or cmdRadius <= 0 then
+		return true
+	end
+
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
 	if WG.skip_allied_upgrade then
 		spots = WG.skip_allied_upgrade.filterOutAlliedSpots(spots, mexBuildings)

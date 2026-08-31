@@ -687,8 +687,8 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "Overwhelm your foes with rapid assault tactics",
-				"random": "Picks a Random out of the available options"
+				"leg": "Swarm your foes with overwhelming numbers",
+				"random": "Picks a random faction out of the available options"
 			}
 		},
 		"widgetselector": {
