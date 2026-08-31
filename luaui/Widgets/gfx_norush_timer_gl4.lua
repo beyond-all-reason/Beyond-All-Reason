@@ -17,6 +17,8 @@ local spEcho = Spring.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+
 local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
@@ -127,20 +129,18 @@ local function BuildStartPolygons()
 	end
 
 	local polygons = {}
-	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
-	if ok and ParseBoxes then
-		-- isExplicit is false for the hardcoded fallback, which the gadget does not enforce
-		-- either; the engine rectangles stay authoritative in that case.
-		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
-		if pok and startBoxConfig and isExplicit then
-			-- Walked in allyteam order rather than with pairs(): the buffer order decides which
-			-- colour each zone gets, and pairs() would let two clients disagree about it.
-			for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-				local entry = startBoxConfig[allyTeamID]
-				if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
-					for _, polygon in ipairs(entry.boxes) do
-						polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
-					end
+
+	-- isExplicit is false for the hardcoded fallback, which the gadget does not enforce
+	-- either; the engine rectangles stay authoritative in that case.
+	local startBoxConfig, _, isExplicit = StartboxLib.GetConfig()
+	if startBoxConfig and isExplicit then
+		-- Walked in allyteam order rather than with pairs(): the buffer order decides which
+		-- colour each zone gets, and pairs() would let two clients disagree about it.
+		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+			local entry = startBoxConfig[allyTeamID]
+			if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
+				for _, polygon in ipairs(entry.boxes) do
+					polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
 				end
 			end
 		end

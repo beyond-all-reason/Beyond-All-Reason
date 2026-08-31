@@ -525,8 +525,7 @@ local function ClosestPos(allyTeamID, x, z)
 	return bestX, bestZ
 end
 
--- Callable as well as indexable: some callers include this file and call the result as the parser.
-return setmetatable({
+return {
 	ParseBoxes = ParseBoxes,
 	GetConfig = GetConfig,
 	GetBounds = GetBounds,
@@ -535,8 +534,4 @@ return setmetatable({
 	IsInside = IsInside,
 	GetRandomPos = GetRandomPos,
 	ClosestPos = ClosestPos,
-}, {
-	__call = function(_, ...)
-		return ParseBoxes(...)
-	end,
-})
+}
