@@ -1307,6 +1307,7 @@ end
 -- One key can drive several actions (e.g. backspace = mutesound + edit_backspace),
 -- so add the binding without disturbing others on the same keyset.
 local function commitCapture(keyset)
+	---@type table
 	local c = capturing
 
 	-- Left open rather than closed on a key the action already carries. Closing with nothing

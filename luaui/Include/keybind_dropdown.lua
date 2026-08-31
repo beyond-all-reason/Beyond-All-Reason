@@ -139,6 +139,7 @@ function Dropdown:draw()
 		R(x1, bottom, x2, top, cs, 1, 1, 1, 1, { 0.09, 0.09, 0.09, 0.96 })
 
 		for i in ipairs(self.options) do
+			---@type table
 			local r = self.optRects[i]
 			if mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2 then
 				Highlight(r.x1, r.y1, r.x2, r.y2, cs, hoverOpacity, { 1, 1, 1 })
