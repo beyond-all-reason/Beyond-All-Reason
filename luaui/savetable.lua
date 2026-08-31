@@ -15,6 +15,13 @@ if table.save then
 	return
 end
 
+local UserFile = VFS.Include("common/user_files.lua")
+
+if not UserFile then
+	Spring.Log("savetable", LOG.ERROR, "No file access; table.save is unavailable.")
+	return
+end
+
 local indentString = "\t"
 
 local savedTables = {}
@@ -166,19 +173,39 @@ local function SaveTable(t, file, indent)
 	end
 end
 
+---@return boolean written
 function table.save(t, filename, header)
-	local file = io.open(filename, "w")
-	if file == nil then
-		return
+	-- SaveTable raises on a recursive table, so a widget storing a cyclic table
+	-- is capable of taking the entire config file down with it for all widgets.
+	-- The writer keeps everything in a pending file until it closes out clean.
+	local writer = UserFile.Open(filename)
+	if not writer then
+		return false
 	end
+
 	if header then
-		file:write(header .. "\n")
+		writer:write(header .. "\n")
 	end
-	file:write("return ")
-	SaveTable(t, file, "")
-	file:write("}\n")
-	file:close()
-	for k, v in pairs(savedTables) do
+	writer:write("return ")
+
+	local saved, err = pcall(SaveTable, t, writer, "")
+
+	for k in pairs(savedTables) do
 		savedTables[k] = nil
 	end
+
+	if not saved then
+		writer:abort()
+		error(err, 0)
+	end
+
+	writer:write("}\n")
+
+	local written = writer:close()
+
+	if not written then
+		Spring.Log("savetable", LOG.ERROR, "Could not write " .. tostring(filename) .. "; it is unchanged.")
+	end
+
+	return written
 end
