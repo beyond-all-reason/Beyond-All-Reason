@@ -242,6 +242,14 @@ if gadgetHandler:IsSyncedCode() then
 		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
 	end
 
+	local function getTargetState(targetID, allyTeam)
+		local los = spGetUnitLosState(targetID, allyTeam, true)
+		if not los then
+			return false, false
+		end
+		return los % 4 ~= 0, true
+	end
+
 	local function inAttackCommand(unitID)
 		local inCommand = spGetUnitCurrentCommand(unitID)
 		return inCommand and isAttackCommand[inCommand]
@@ -323,20 +331,6 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitTarget(unitID, nil)
 		end
 		SendToUnsynced("targetIndex", unitID, 1, false)
-	end
-
-	local function wasTargetLost(target, alwaysSeen, allyTeam)
-		if type(target) ~= "number" then
-			return false, false
-		elseif alwaysSeen then
-			local isDead = spGetUnitIsDead(target) ~= false
-			return isDead, isDead
-		end
-		local los = spGetUnitLosState(target, allyTeam, true)
-		if not los then
-			return true, true
-		end
-		return los % 4 == 0, false
 	end
 
 	--------------------------------------------------------------------------------
@@ -861,16 +855,30 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function processSlowListUpdates()
 		for unitID, unitData in pairsNext, setTargetData do
+			local unitAllyTeam = unitData.allyTeam
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
 				local targetData = targets[index]
-				local isLost, isDead = wasTargetLost(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
-				if not isLost then
-					targetData.unseen = unseenGracePasses
-				elseif not isDead and targetData.unseen > 0 then
-					targetData.unseen = targetData.unseen - 1
+				local target = targetData.target
+				if type(target) ~= "number" then
+					-- Keep all ground targets.
 				else
-					removeTarget(unitID, unitData, index)
+					local isTracked, isValid = getTargetState(target, unitAllyTeam)
+					if isTracked then
+						targetData.unseen = unseenGracePasses
+					elseif isValid then
+						if targetData.alwaysSeen then
+							-- This target cannot be lost.
+						elseif targetData.unseen >= 1 then
+							targetData.unseen = targetData.unseen - 1
+						else
+							removeTarget(unitID, unitData, index)
+						end
+					elseif targetData.alwaysSeen and targetData.unseen >= 1 then
+						targetData.unseen = targetData.unseen - 1
+					else
+						removeTarget(unitID, unitData, index)
+					end
 				end
 			end
 			if not targets[1] then
