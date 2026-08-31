@@ -528,6 +528,19 @@ function gadgetHandler:Initialize()
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
 
+	-- Game-side shim until the engine loads module subdirectories natively.
+	if Script.GetName():gsub("US$", "") == "LuaRules" then
+		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+		-- Manifests, apis, actions and policies are memoised; a file added since the last
+		-- load is invisible until they are dropped.
+		ModuleHandler.ResetCaches()
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
+
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
@@ -1891,7 +1904,6 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 	return true
 end
 
-
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 
@@ -1948,7 +1960,6 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	end
 	return true
 end
-
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
