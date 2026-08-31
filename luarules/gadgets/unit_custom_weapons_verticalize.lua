@@ -332,7 +332,7 @@ local function register(projectileID, weaponDefID)
 		return
 	end
 
-	local weapon = weapons[weaponDefID]
+	local weapon = weapons[weaponDefID] ---@type table
 	local turnRadius = weapon.turnRadius
 	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
 	local ascentAboveTarget = target[2] + weapon.cruiseHeight - turnRadius
