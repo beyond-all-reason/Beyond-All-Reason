@@ -355,7 +355,7 @@ local cachedConfig, cachedSource, cachedExplicit
 local haveParsed = false
 
 -- Modoptions and the allyteam list are both fixed for the life of the game, so the parse
--- happens once however many callers ask for it.
+-- happens once per file that includes this one.
 local function GetConfig()
 	if not haveParsed then
 		haveParsed = true

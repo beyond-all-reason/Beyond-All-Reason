@@ -25,14 +25,12 @@ uniform sampler2D mapDepths;
 
 out vec4 fragColor;
 
-// Signed distance to a polygon ring, negative inside. Lifted from
-// map_startpolygon_gl4.frag.glsl so both overlays measure startboxes the same way.
+// Signed distance to a polygon ring, negative inside.
 float sdPolygon2( in vec2 p, in int startOffset, in int numVertices)
 {
-	const int num = numVertices;
 	float d = dot(p - polyVerts[startOffset].zw, p - polyVerts[startOffset].zw);
 	float s = 1.0;
-	for( int i=0, j=num-1; i<num; j=i, i++ )
+	for( int i=0, j=numVertices-1; i<numVertices; j=i, i++ )
 	{
 		int newj = startOffset + j;
 		int newi = startOffset + i;
