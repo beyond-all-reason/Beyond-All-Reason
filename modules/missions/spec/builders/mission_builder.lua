@@ -455,6 +455,21 @@ function MissionBuilder:Load()
 				end,
 			}, { __index = lib })
 		end,
+		["modules/missions/lib/objectives.lua"] = function(lib)
+			return setmetatable({
+				ForFile = function(...)
+					local file = lib.ForFile(...)
+					local finalize = file.Finalize
+					file.Finalize = function(exports, ...)
+						local decls = finalize(exports, ...)
+						self_.objectiveDecls[#self_.objectiveDecls + 1] = decls
+						self_.includes.objectives = exports
+						return decls
+					end
+					return file
+				end,
+			}, { __index = lib })
+		end,
 		["modules/placement/api.lua"] = function()
 			return {
 				NearestValid = function(x, z)

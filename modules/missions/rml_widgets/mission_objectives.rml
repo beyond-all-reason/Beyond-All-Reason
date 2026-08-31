@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<rml>
+<head>
+	<title>Mission Objectives</title>
+	<link type="text/rcss" href="mission_objectives.rcss" />
+</head>
+<body>
+	<div id="mo-root" class="mo-root">
+		<div class="mo-header">Objectives</div>
+		<div id="mo-list" class="mo-list"></div>
+	</div>
+</body>
+</rml>
