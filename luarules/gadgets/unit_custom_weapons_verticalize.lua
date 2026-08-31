@@ -167,7 +167,7 @@ local function getVerticalizeWeapon(weaponDef)
 	end
 
 	local turnSpeedMin = speedMin + accelerationFrames * acceleration
-	local turnHeightMin = turnSpeedMin * (upTimeMinFrames - accelerationFrames * 0.5)
+	local turnHeightMin = turnSpeedMin * upTimeMinFrames - accelerationFrames * (turnSpeedMin - speedMin) * 0.5
 	local turnRadiusMax = (speedMax / turnRate / math_pi) * (1 + chaseFactor * 0.25) -- approx.
 
 	if cruiseHeight == "auto" then
