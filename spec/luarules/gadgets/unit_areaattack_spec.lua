@@ -11,9 +11,11 @@ local WEAPON_DEF_ID = 5
 local UNIT_DEF_ID = 1
 local UNIT_ID = 7
 
-local function loadGadget(commands, salvoSize)
+local function loadGadget(commands, weaponState)
 	local orders = {}
 	local finishedUnits = {}
+	local currentFrame = 1
+	local unitDefLookups = 0
 	local env = {
 		gadget = {},
 		gadgetHandler = {
@@ -38,22 +40,29 @@ local function loadGadget(commands, salvoSize)
 				customParams = { canareaattack = true },
 			},
 		},
-		WeaponDefs = {
-			[WEAPON_DEF_ID] = { range = 1000, salvoSize = salvoSize or 1 },
-		},
+		WeaponDefs = { [WEAPON_DEF_ID] = { range = 1000 } },
+		math = setmetatable({
+			bit_and = function(a, b)
+				return a % (b * 2) >= b and b or 0
+			end,
+		}, { __index = math }),
 		Script = { SetWatchProjectile = function() end },
 		Spring = {
-			GetUnitCommands = function()
-				return commands
+			GetGameFrame = function()
+				return currentFrame
 			end,
-			GetUnitCurrentCommand = function()
-				local command = commands[1]
+			GetUnitCurrentCommand = function(_, index)
+				local command = commands[index or 1]
 				if command then
-					return command.id, command.options.coded, command.tag
+					return command.id, command.options.coded, command.tag, unpack(command.params)
 				end
 			end,
 			GetUnitDefID = function()
+				unitDefLookups = unitDefLookups + 1
 				return UNIT_DEF_ID
+			end,
+			GetUnitWeaponState = function(_, _, stateName)
+				return weaponState[stateName]
 			end,
 			GetUnitPosition = function()
 				return 0, 0, 0
@@ -74,7 +83,15 @@ local function loadGadget(commands, salvoSize)
 	setfenv(chunk, env)
 	chunk()
 
-	return env.gadget, orders, finishedUnits
+	return env.gadget,
+		orders,
+		finishedUnits,
+		function(frame)
+			currentFrame = frame
+		end,
+		function()
+			return unitDefLookups
+		end
 end
 
 local function generatedAreaCommands()
@@ -92,23 +109,92 @@ end
 describe("unit_areaattack", function()
 	it("changes area target after one complete salvo", function()
 		local commands = generatedAreaCommands()
-		local gadget, _, finishedUnits = loadGadget(commands, 2)
+		local weaponState = { salvoLeft = 1, nextSalvo = 2 }
+		local gadget, _, finishedUnits, setFrame = loadGadget(commands, weaponState)
 
 		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
-		gadget:GameFrame(1)
+		gadget:GameFramePost(1)
 		assert.equals(0, #finishedUnits)
 
+		weaponState.salvoLeft = 0
+		setFrame(2)
+		gadget:GameFramePost(2)
+		assert.same({ UNIT_ID }, finishedUnits)
+	end)
+
+	it("does not process every projectile in a burst", function()
+		local commands = generatedAreaCommands()
+		local weaponState = { salvoLeft = 2, nextSalvo = 2 }
+		local gadget, _, _, _, getUnitDefLookups = loadGadget(commands, weaponState)
+
+		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
 		gadget:ProjectileCreated(2, UNIT_ID, WEAPON_DEF_ID)
-		gadget:GameFrame(2)
+		gadget:ProjectileCreated(3, UNIT_ID, WEAPON_DEF_ID)
+
+		assert.equals(1, getUnitDefLookups())
+	end)
+
+	it("finishes after a canceled final shot without another projectile", function()
+		local commands = generatedAreaCommands()
+		local weaponState = { salvoLeft = 1, nextSalvo = 2 }
+		local gadget, _, finishedUnits = loadGadget(commands, weaponState)
+
+		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:GameFramePost(1)
+		weaponState.salvoLeft = 0
+		gadget:GameFramePost(2)
+
+		assert.same({ UNIT_ID }, finishedUnits)
+	end)
+
+	it("follows a delayed next-salvo frame", function()
+		local commands = generatedAreaCommands()
+		local weaponState = { salvoLeft = 1, nextSalvo = 2 }
+		local gadget, _, finishedUnits = loadGadget(commands, weaponState)
+
+		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:GameFramePost(1)
+		weaponState.nextSalvo = 4
+		gadget:GameFramePost(2)
+		weaponState.salvoLeft = 0
+		gadget:GameFramePost(3)
+		assert.equals(0, #finishedUnits)
+		gadget:GameFramePost(4)
+
 		assert.same({ UNIT_ID }, finishedUnits)
 	end)
 
 	it("ignores unrelated weapon projectiles", function()
 		local commands = generatedAreaCommands()
-		local gadget, orders, finishedUnits = loadGadget(commands)
+		local gadget, orders, finishedUnits = loadGadget(commands, {})
 
 		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID + 1)
-		gadget:GameFrame(1)
+		gadget:GameFramePost(1)
+
+		assert.equals(0, #finishedUnits)
+		assert.equals(0, #orders)
+	end)
+
+	it("ignores player-issued ground attacks", function()
+		local commands = generatedAreaCommands()
+		commands[1].options = { coded = 0, internal = false }
+		local weaponState = { salvoLeft = 0, nextSalvo = 1 }
+		local gadget, orders, finishedUnits = loadGadget(commands, weaponState)
+
+		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:GameFramePost(1)
+
+		assert.equals(0, #finishedUnits)
+		assert.equals(0, #orders)
+	end)
+
+	it("keeps a generated attack persistent without its area command", function()
+		local commands = { generatedAreaCommands()[1] }
+		local weaponState = { salvoLeft = 0, nextSalvo = 1 }
+		local gadget, orders, finishedUnits = loadGadget(commands, weaponState)
+
+		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+		gadget:GameFramePost(1)
 
 		assert.equals(0, #finishedUnits)
 		assert.equals(0, #orders)
@@ -116,7 +202,7 @@ describe("unit_areaattack", function()
 
 	it("marks generated area shots internal so repeat does not retain them", function()
 		local commands = {}
-		local gadget, orders = loadGadget(commands)
+		local gadget, orders = loadGadget(commands, {})
 
 		gadget:CommandFallback(UNIT_ID, UNIT_DEF_ID, 0, CMD_AREA_ATTACK_GROUND, { 0, 0, 0, 10 }, {})
 		gadget:GameFrame(1)
@@ -128,11 +214,12 @@ describe("unit_areaattack", function()
 	it("removes only the generated shot if another command moves ahead of it", function()
 		local commands = generatedAreaCommands()
 		local generatedAttack = commands[1]
-		local gadget, orders, finishedUnits = loadGadget(commands)
+		local weaponState = { salvoLeft = 0, nextSalvo = 1 }
+		local gadget, orders, finishedUnits = loadGadget(commands, weaponState)
 
 		gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
 		commands[1] = { id = 10, tag = 99, params = { 0, 0, 0 }, options = { coded = 0 } }
-		gadget:GameFrame(1)
+		gadget:GameFramePost(1)
 
 		assert.equals(0, #finishedUnits)
 		assert.same({ UNIT_ID, CMD_REMOVE, { generatedAttack.tag }, 0 }, orders[1])
