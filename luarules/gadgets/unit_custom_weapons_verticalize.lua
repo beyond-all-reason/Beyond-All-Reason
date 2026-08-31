@@ -91,10 +91,10 @@ local targetedUnit = string.byte("u")
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
-local weapons = {}
-local projectiles = {}
-local moveControl = {}
-local scheduled = {}
+local weapons = {} ---@type table<integer, table?>
+local projectiles = {} ---@type table<integer, table?>
+local moveControl = {} ---@type table<integer, table?>
+local scheduled = {} ---@type table<integer, integer[]?>
 
 local gameFrame = 0
 local inSpawnProjectile = false
@@ -115,8 +115,8 @@ local function isInCylinder(vector, origin, radius)
 	return radius * radius >= (v1 - o1) * (v1 - o1) + (v3 - o3) * (v3 - o3)
 end
 
-local positionGuidance = { 0, 0, 0, isInCylinder = isInCylinder }
-local velocityGuidance = { 0, 0, 0, 0 }
+local positionGuidance = table.new(3, 1) ---@type xyz
+local velocityGuidance = table.new(4, 0) ---@type xyzw
 
 local function getPosition(projectileID)
 	local position = positionGuidance
@@ -231,7 +231,7 @@ local function getTargetPosition(projectileID)
 		xyz = target
 	elseif targetType == targetedUnit then
 		xyz = { getUnitPositionWithError(target, Spring.GetProjectileTeamID(projectileID)) }
-		xyz[2] = math_max(Spring.GetGroundHeight(xyz[1], xyz[3]), 0)
+		xyz[2] = math_max(Spring.GetGroundHeight(xyz[1], xyz[3]), 0) ---@diagnostic disable-line
 	end
 	return xyz
 end
@@ -274,7 +274,7 @@ local function getUptime(projectile, height)
 	return (t1 >= 0 and t2 >= 0) and math_min(t1, t2) or (t1 >= 0 and t1 or t2)
 end
 
----@class ProjectileParams
+---@class StarburstParams : ProjectileParams
 ---@field cegtag number
 ---@field maxRange number
 ---@field tracking number
@@ -331,14 +331,18 @@ local function register(projectileID, weaponDefID)
 		return
 	end
 
-	local position = getPosition(projectileID)
 	local target = getTargetPosition(projectileID)
 	if not target then
 		return
 	end
 
-	local weapon = weapons[weaponDefID] ---@type table
-	local ascentRadius = weapon.ascentRadius
+	local weapon = weapons[weaponDefID]
+	if not weapon then
+		return
+	end
+
+	local position = getPosition(projectileID)
+	local ascentRadius = weapon.ascentRadius ---@type number
 	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
 	local ascentAboveTarget = target[2] + weapon.cruiseHeight - ascentRadius
 	local ascendHeight = math_max(ascentAboveLauncher, ascentAboveTarget)
@@ -367,7 +371,7 @@ local function register(projectileID, weaponDefID)
 		if respawn(weapon, projectileID, projectile, upTimeFrames) then
 			return
 		end
-		upTimeFrames = weapon.upTimeMinFrames
+		upTimeFrames = weapon.upTimeMinFrames ---@type number
 	end
 
 	if targetDistance <= ascentRadius * 0.5 then
@@ -456,7 +460,7 @@ local function cruise(projectileID, projectile, frame)
 	-- Most vertical-launch missiles accelerate slowly so are still gaining speed here.
 	local target = projectile.target
 	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
-	if not position:isInCylinder(target, cruiseEndRadius) then
+	if not isInCylinder(position, target, cruiseEndRadius) then
 		return frame + 1
 	end
 
@@ -490,7 +494,7 @@ local function verticalize(projectileID, projectile)
 	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
 
 	-- Unit vector towards target
-	local tx, ty, tz = 0, -sinPitch, 0
+	local tx, ty, tz = 0.0, -sinPitch, 0.0
 	if distance > 0 then
 		local distInverse = cosPitch / distance
 		tx = dx * distInverse
@@ -585,7 +589,7 @@ end
 
 function gadget:Initialize()
 	for weaponDefID = 0, #WeaponDefs do
-		local weaponDef = WeaponDefs[weaponDefID]
+		local weaponDef = WeaponDefs[weaponDefID] ---@type table
 		if weaponDef.customParams.cruise_and_verticalize then
 			local weapon = getVerticalizeWeapon(weaponDef)
 			if weapon then
