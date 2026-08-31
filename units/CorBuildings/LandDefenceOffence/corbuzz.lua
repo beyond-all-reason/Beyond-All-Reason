@@ -3,7 +3,7 @@ return {
 		buildangle = 29096,
 		buildpic = "CORBUZZ.DDS",
 		buildtime = 1400000,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 160 80",
 		collisionvolumetype = "CylY",
@@ -26,6 +26,8 @@ return {
 		sightdistance = 700,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 6,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecalsizey = 11,
