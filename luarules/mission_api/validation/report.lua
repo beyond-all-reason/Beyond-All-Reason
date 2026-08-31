@@ -12,17 +12,6 @@ local sections = {
 	References = 6,
 }
 
-local function isBefore(a, b)
-	if a.section ~= b.section then
-		return a.section < b.section
-	end
-	if a.id ~= b.id then
-		return a.id < b.id
-	end
-	-- table.sort is not stable, so keep insertion order within an entity
-	return a.sequence < b.sequence
-end
-
 local function formatMessage(entry)
 	if entry.id == "" then
 		-- A mission wide message, e.g. one about the mission's stages as a whole.
@@ -34,7 +23,7 @@ local function formatMessage(entry)
 end
 
 local function toMessages(entries)
-	table.sort(entries, isBefore)
+	table.sortStable(entries)
 
 	local messages = {}
 	for i, entry in ipairs(entries) do

@@ -67,20 +67,7 @@ local function loadMission(scriptPath)
 end
 
 function gadget:Initialize()
-	local scriptPath = "mission-api-tests/validation_test.lua"
-	--local scriptPath = 'mission-api-tests/test_mission.lua'
-	--local scriptPath = 'mission-api-tests/markers_test.lua'
-	--local scriptPath = 'mission-api-tests/sound_test.lua'
-	--local scriptPath = 'mission-api-tests/issue_orders_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_received_order_test.lua'
-	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
-	--local scriptPath = 'mission-api-tests/resource_test.lua'
-	--local scriptPath = 'mission-api-tests/loadout_test.lua'
-	--local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_mover_test.lua'
-	--local scriptPath = 'mission-api-tests/unit_detection_test.lua'
+	local scriptPath = nil
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -135,7 +122,7 @@ end
 function gadget:GameFrame(frameNumber)
 	-- Invalid mission ends the game
 	if missionValidationFailure then
-		Spring.GameOver({}) -- logs 2 lines and UI shows only 2, so we Echo after
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
 		Spring.Echo(missionValidationFailure)
 		gadgetHandler:RemoveGadget()
 		return
