@@ -98,6 +98,7 @@ local shaderConfig = {
 	PULSE_SPEED = 85.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
 	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
+	PULSE_SYMMETRIC = 1, -- 1: rings fade in and out (smooth bell), 0: sharp leading edge that fades out behind it
 	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
 	RIM_STRENGTH = 0.22, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
@@ -868,14 +869,16 @@ local function drawAlliedUnion()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
-function widget:DrawWorld()
+-- The radar being previewed right now (its radarDefs entry and cmdID), or nil. Evaluated live by every draw
+-- callin (world and minimap) rather than cached, so nothing can outlive the command / selection it came from.
+local function previewedRadarDef()
 	local cmdID
 	if selectedRadarUnitID then
 		-- verify every frame, not just on SelectionChanged: the unit may be gone or no longer selected
 		local unitDefID = spGetUnitDefID(selectedRadarUnitID)
 		if not unitDefID or not Spring.IsUnitSelected(selectedRadarUnitID) then
 			selectedRadarUnitID = false
-			return
+			return nil
 		end
 		cmdID = -unitDefID
 	else
@@ -885,12 +888,12 @@ function widget:DrawWorld()
 			-- Only while the game hasn't started: that widget keeps its picked unit after GameStart, which would
 			-- otherwise leave the preview stuck to the cursor with nothing selected.
 			if Spring.GetGameFrame() > 0 then
-				return
+				return nil
 			end
 			local pregameBuild = WG["pregame-build"]
 			local pregameDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
 			if not pregameDefID then
-				return
+				return nil
 			end
 			cmdID = -pregameDefID
 		end
@@ -898,9 +901,17 @@ function widget:DrawWorld()
 
 	local def = radarDefs[cmdID]
 	if not def then
-		return
+		return nil
 	end
 	if Spring.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
+		return nil
+	end
+	return def, cmdID
+end
+
+function widget:DrawWorld()
+	local def, cmdID = previewedRadarDef()
+	if not def then
 		return
 	end
 	local set = sets[def.radiusCells]
@@ -1113,7 +1124,9 @@ end
 -- DrawWorld is drawing: the engine renders its minimap texture from Game::Update, before DrawWorld and at its
 -- own refresh rate, so the previous draw frame has to count as current here.
 function widget:DrawInMiniMap()
-	if not settings.minimap or spGetDrawFrame() - lastDrawFrame > 1 then
+	-- the live check keeps the minimap from outliving the preview; the frame gate ensures DrawWorld has
+	-- prepared the coverage of the current radar (the engine refreshes its minimap texture before DrawWorld)
+	if not settings.minimap or spGetDrawFrame() - lastDrawFrame > 1 or not previewedRadarDef() then
 		return
 	end
 	local set = sets[lastRadius]

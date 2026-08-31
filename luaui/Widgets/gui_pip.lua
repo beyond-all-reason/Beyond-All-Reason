@@ -2728,6 +2728,7 @@ local buttons = {
 				-- Stop tracking player
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
+				ZoomOutToFullMapView()
 			else
 				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 
@@ -5606,6 +5607,7 @@ local function UpdatePlayerTracking()
 		interactionState.trackingPlayerID = nextPlayerID
 		pipR2T.frameNeedsUpdate = true
 		if not nextPlayerID then
+			ZoomOutToFullMapView()
 			return
 		end
 		-- Continue tracking the new player
@@ -5615,6 +5617,7 @@ local function UpdatePlayerTracking()
 		interactionState.trackingPlayerID = nextPlayerID
 		pipR2T.frameNeedsUpdate = true
 		if not nextPlayerID then
+			ZoomOutToFullMapView()
 			return
 		end
 		-- Continue tracking the new player
@@ -8891,12 +8894,16 @@ function TrackPlayerApi(playerID, transitionTime)
 end
 
 function ClearTrackingApi()
+	local hadPlayerTracking = interactionState.trackingPlayerID ~= nil
 	local hadTracking = interactionState.trackingPlayerID or interactionState.areTracking
 	interactionState.trackingPlayerID = nil
 	interactionState.areTracking = nil
 	cameraState.zoomToCursorActive = false
 	pipR2T.frameNeedsUpdate = true
 	pipR2T.losNeedsUpdate = true
+	if hadPlayerTracking then
+		ZoomOutToFullMapView()
+	end
 	return hadTracking and true or false
 end
 
@@ -8973,6 +8980,23 @@ function ZoomOutFullApi(transitionTime)
 	local centerX = mapInfo.mapSizeX / 2
 	local centerZ = mapInfo.mapSizeZ / 2
 	return ApplyApiCameraTarget(centerX, centerZ, zoomMin, transitionTime, true)
+end
+
+-- Minimap mode: return to the full-map overview after exiting player camera tracking,
+-- so the pip always goes back to showing the whole map. Sets camera targets and lets
+-- the regular smoothing animate the pull-back. Returns true when applied; false in
+-- normal PIP mode (camera is left where tracking ended).
+function ZoomOutToFullMapView()
+	if not (isMinimapMode and minimapModeMinZoom) then
+		return false
+	end
+	cameraState.targetZoom = GetEffectiveZoomMin()
+	cameraState.targetWcx = mapInfo.mapSizeX / 2
+	cameraState.targetWcz = mapInfo.mapSizeZ / 2
+	cameraState.zoomToCursorActive = false
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
+	return true
 end
 
 function StartDebugCameraSequenceApi()
@@ -9732,6 +9756,7 @@ function widget:Initialize()
 			interactionState.trackingPlayerID = nil
 			pipR2T.frameNeedsUpdate = true
 			pipR2T.losNeedsUpdate = true
+			ZoomOutToFullMapView()
 			return true
 		end
 		return false
@@ -24606,6 +24631,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			if interactionState.trackingPlayerID then
 				if config.cancelPlayerTrackingOnPan then
 					interactionState.trackingPlayerID = nil
+					if ZoomOutToFullMapView() then
+						return -- Minimap mode: return to full-map overview instead of panning
+					end
 				else
 					return -- Don't pan when tracking player camera
 				end
@@ -24635,6 +24663,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			if interactionState.trackingPlayerID then
 				if config.cancelPlayerTrackingOnPan then
 					interactionState.trackingPlayerID = nil
+					if ZoomOutToFullMapView() then
+						return -- Minimap mode: return to full-map overview instead of panning
+					end
 				else
 					return -- Don't pan when tracking player camera
 				end
@@ -24699,6 +24730,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			if interactionState.trackingPlayerID then
 				if config.cancelPlayerTrackingOnPan then
 					interactionState.trackingPlayerID = nil
+					if ZoomOutToFullMapView() then
+						return -- Minimap mode: return to full-map overview instead of panning
+					end
 				else
 					return -- Don't pan when tracking player camera
 				end

@@ -214,7 +214,8 @@ jobs:
           # Leaving line=off annotates against the zeroth line, which does not exist.
           # Stylua indexes from zero while github indexes from one, in this case.
           # GH keeps up to 10 annotation bubbles and discards the rest (kept in logs)
-          # so these are sorted by the worst offenders, determined by total diff size.
+          # so these are sorted by the worst offenders, determined by total diff size,
+          # then by line and column position, because github autosorts only by path.
           jq -r --arg ver "$ver" '
             def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
             def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
@@ -229,7 +230,9 @@ jobs:
               | { file: $f.file, line: $line, lines: $lines }
             )
             | sort_by(-.lines)
-            | .[0:10][]
+            | .[0:10]
+            | sort_by(.file, .line)
+            | .[]
             | "::error file=\(prop(.file)),line=\(.line),title=Not formatted::\(.lines) line(s) would change. Run \($ver) on this file and commit the result."
           ' blocking.json
 
