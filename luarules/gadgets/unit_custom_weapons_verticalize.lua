@@ -161,27 +161,32 @@ local function getVerticalizeWeapon(weaponDef)
 	local upTimeMinFrames = upTimeMin * Game.gameSpeed
 	local upTimeMaxFrames = upTimeMax * Game.gameSpeed
 
-	local accelerationFrames = 0
-	if acceleration and acceleration ~= 0 then
+	local accelerationFrames = 0.0
+	if acceleration and acceleration ~= 0.0 then
 		accelerationFrames = math_min((speedMax - speedMin) / acceleration, upTimeMinFrames)
 	end
 
 	local turnSpeedMin = speedMin + accelerationFrames * acceleration
 	local turnHeightMin = turnSpeedMin * upTimeMinFrames - accelerationFrames * (turnSpeedMin - speedMin) * 0.5
-	local turnRadiusMax = (speedMax / turnRate / math_pi) * (1 + chaseFactor * 0.25) -- approx.
+
+	-- The initial turn uses the engine's rotation and acceleration during the entire arc.
+	-- A quarter-turn raises its entry radius by (1 - 2/pi) of the radius gained via accel.
+	local turnSpeedTop = math_min(turnSpeedMin + acceleration * math_pi * 0.5 / turnRate, speedMax)
+	local ascentRadius = (turnSpeedMin + (turnSpeedTop - turnSpeedMin) * (1 - 2 / math_pi)) / turnRate
+
+	-- The final turn uses MoveControl and widened by the chase factor, at up to speedMax.
+	local diveRadiusMax = (1 + chaseFactor) * speedMax / turnRate
 
 	if cruiseHeight == "auto" then
-		cruiseHeight = turnHeightMin + turnRadiusMax
+		cruiseHeight = turnHeightMin + ascentRadius
 	end
 
 	cruiseHeight = math_clamp(cruiseHeight, cruiseHeightMin, cruiseHeightMax)
 
-	if speedMax / turnRate > cruiseHeight then
-		local message = weaponDef.name .. " has turn curvature at max speed in excess of cruise height so can miss."
+	if diveRadiusMax > cruiseHeight then
+		local message = weaponDef.name .. " drops on a turn wider than its cruise height so impacts on a curve."
 		Spring.Log(gadget:GetInfo().name, LOG.NOTICE, message)
 	end
-
-	local rangeMinimum = 2 * (turnSpeedMin / turnRate / math_pi)
 
 	return {
 		acceleration = acceleration,
@@ -190,13 +195,13 @@ local function getVerticalizeWeapon(weaponDef)
 		turnRate = turnRate,
 
 		heightIntoTurn = turnHeightMin,
-		rangeMinimum = rangeMinimum,
 		rangeMaximum = weaponDef.range,
 		upTimeMaxFrames = upTimeMaxFrames,
 		upTimeMinFrames = upTimeMinFrames,
 
 		cruiseHeight = cruiseHeight,
-		turnRadius = turnRadiusMax,
+		ascentRadius = ascentRadius,
+		diveRadiusMax = diveRadiusMax,
 		chaseFactor = chaseFactor,
 		diveSpeedGain = math_pi * acceleration * (1 + chaseFactor) / turnRate,
 
@@ -315,7 +320,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	Spring.SetProjectileTarget(
 		respawnID,
 		projectile.target[1],
-		projectile.ascendHeight + weapon.turnRadius,
+		projectile.ascendHeight + weapon.ascentRadius,
 		projectile.target[3]
 	)
 	return true
@@ -333,9 +338,9 @@ local function register(projectileID, weaponDefID)
 	end
 
 	local weapon = weapons[weaponDefID] ---@type table
-	local turnRadius = weapon.turnRadius
+	local ascentRadius = weapon.ascentRadius
 	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
-	local ascentAboveTarget = target[2] + weapon.cruiseHeight - turnRadius
+	local ascentAboveTarget = target[2] + weapon.cruiseHeight - ascentRadius
 	local ascendHeight = math_max(ascentAboveLauncher, ascentAboveTarget)
 
 	local projectile = {
@@ -347,14 +352,14 @@ local function register(projectileID, weaponDefID)
 		diveSpeedGain = weapon.diveSpeedGain,
 		target = target,
 		ascendHeight = ascendHeight,
-		turnRadius = turnRadius,
+		diveRadiusMax = weapon.diveRadiusMax,
 
 		phase = 1,
 		pitch = 2,
 		cruiseEndInverse = 0,
 	}
 
-	local cruiseDistance = distanceXZ(position, target) - weapon.rangeMinimum
+	local targetDistance = distanceXZ(position, target)
 	local upTimeFrames =
 		math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
 
@@ -365,14 +370,14 @@ local function register(projectileID, weaponDefID)
 		upTimeFrames = weapon.upTimeMinFrames
 	end
 
-	if cruiseDistance <= -weapon.rangeMinimum * 0.5 then
-		return -- Nothing to do.
+	if targetDistance <= ascentRadius * 0.5 then
+		return -- Nothing to guide, with the target this far inside the ascent turn.
 	end
 
 	projectiles[projectileID] = projectile
 	scheduleAt(projectileID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
 
-	local targetHeight = ascendHeight + weapon.turnRadius
+	local targetHeight = ascendHeight + ascentRadius
 	Spring.SetProjectileTarget(projectileID, target[1], targetHeight, target[3])
 end
 
@@ -396,8 +401,7 @@ local function ascend(projectileID, projectile, frame)
 	local turnFrames = pitchAngle / projectile.turnRate
 
 	local speedMax = projectile.speedMax
-	local dropRadiusMax = (projectile.turnRadius + 4 * speedMax) * 4
-	local dropRadiusFrames = (distanceXZ(position, projectile.target) - dropRadiusMax) / speedMax
+	local dropRadiusFrames = (distanceXZ(position, projectile.target) - projectile.diveRadiusMax) / speedMax
 
 	return frame + math_floor(math_min(turnFrames, dropRadiusFrames)) - checkWindowFrames
 end
