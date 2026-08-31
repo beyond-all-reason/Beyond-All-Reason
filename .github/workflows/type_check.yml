@@ -146,6 +146,13 @@ jobs:
           echo "CHANGED_FILE_LINES=$file_lines" >> "$GITHUB_ENV"
           echo "$file_lines line(s) in the changed files."
 
+          # How much a file grew or shrank, on net, and ignoring deleted files.
+          delta=$(git -C head diff --numstat --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' \
+                  | awk '$1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ { add += $1; del += $2 }
+                         END { print add - del }')
+          echo "CHANGED_FILE_LINES_DELTA=$delta" >> "$GITHUB_ENV"
+          echo "$delta line(s) of net growth in the changed files."
+
       # Either we need a new base checkout and analysis, or we restore from cache.
       # Missing is preferable, since it only costs time, so only exact matches hit.
       # Finally, reports use absolute paths, so require a constant GITHUB_WORKSPACE.
@@ -279,6 +286,7 @@ jobs:
             --changed-hunks hunks.txt \
             --changed-lines "${CHANGED_LINES:-0}" \
             --changed-file-lines "${CHANGED_FILE_LINES:-0}" \
+            --changed-file-lines-delta "${CHANGED_FILE_LINES_DELTA:-0}" \
             --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
             --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
             --summary "$GITHUB_STEP_SUMMARY" \
