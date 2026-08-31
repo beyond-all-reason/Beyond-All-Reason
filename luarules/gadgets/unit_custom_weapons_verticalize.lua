@@ -593,11 +593,4 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
-
-	if BAR.Utilities.IsDevMode() then
-		local deleteAll = { -1e9, -1e9, 1e9, 1e9, false, false }
-		for _, projectileID in ipairs(Spring.GetProjectilesInRectangle(unpack(deleteAll))) do
-			Spring.DeleteProjectile(projectileID)
-		end
-	end
 end
