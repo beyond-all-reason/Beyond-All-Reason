@@ -64,11 +64,13 @@ local specialEffectFunction = {}
 local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 
 local weaponDefEffect = {}
+---@type table<number, true?>
 local torpedoStayUnderwaterDefs = {}
 
 local projectiles = {}
 local projectilesData = {}
 
+---@type number
 local gameFrame = 0
 
 --------------------------------------------------------------------------------
@@ -130,7 +132,7 @@ end
 
 local function isProjectileInWater(projectileID)
 	local _, positionY = spGetProjectilePosition(projectileID)
-	return positionY <= 0
+	return positionY ~= nil and positionY <= 0
 end
 
 local function equalTargets(target1, target2)
@@ -624,9 +626,20 @@ local maxUnderwaterSurfaceRiseSpeed = 1.25
 local surfaceArrivalLeadFrames = 20
 local defaultTrackingTurnRadius = 180
 local terrainAvoidanceClearance = 6
+---@type table<integer, true?>
 local shoreTorpedoEnteredWater = {}
 local shoreTorpedoBreachCeiling = 2
 
+---@param projectileID integer
+---@param positionX number
+---@param positionY number
+---@param positionZ number
+---@param velocityX number
+---@param velocityY number
+---@param velocityZ number
+---@param speed number
+---@param desiredVelocityY number
+---@param smooth number
 local function setTorpedoPitchVelocity(
 	projectileID,
 	positionX,
@@ -679,7 +692,18 @@ local function torpedoWaterPen(params, projectileID)
 	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
-	if not (positionX and targetX) then
+	if
+		velocityX == nil
+		or velocityY == nil
+		or velocityZ == nil
+		or speed == nil
+		or positionX == nil
+		or positionY == nil
+		or positionZ == nil
+		or targetX == nil
+		or targetY == nil
+		or targetZ == nil
+	then
 		return true
 	end
 
@@ -719,7 +743,8 @@ local function torpedoWaterPen(params, projectileID)
 end
 
 local function torpedoSurfaceTrack(projectileID)
-	local stayUnderwater = torpedoStayUnderwaterDefs[spGetProjectileDefID(projectileID)]
+	local projectileDefID = spGetProjectileDefID(projectileID)
+	local stayUnderwater = projectileDefID and torpedoStayUnderwaterDefs[projectileDefID]
 	local inWater = isProjectileInWater(projectileID)
 
 	if stayUnderwater and inWater then
@@ -728,6 +753,9 @@ local function torpedoSurfaceTrack(projectileID)
 		if shoreTorpedoEnteredWater[projectileID] then
 			local _, positionY = spGetProjectilePosition(projectileID)
 			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+			if positionY == nil or velocityX == nil or velocityY == nil or velocityZ == nil then
+				return false
+			end
 			local returnSpeed = -positionY
 
 			if velocityY > returnSpeed then
@@ -744,14 +772,26 @@ local function torpedoSurfaceTrack(projectileID)
 	end
 
 	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
-	if not targetY or targetY < -10 then
+	if targetX == nil or targetY == nil or targetZ == nil or targetY < -10 then
 		return true
 	end
 
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
+	if
+		positionX == nil
+		or positionY == nil
+		or positionZ == nil
+		or velocityX == nil
+		or velocityY == nil
+		or velocityZ == nil
+		or speed == nil
+	then
+		return false
+	end
 	local horizontalDistance = math_diag(targetX - positionX, targetZ - positionZ)
 	local horizontalSpeed = math_diag(velocityX, velocityZ)
+	---@type number
 	local correctionFrames = 1
 
 	if horizontalSpeed > 0.01 then
@@ -783,6 +823,17 @@ local function torpedoSurfaceTrack(projectileID)
 	if stayUnderwater then
 		local currentPositionX, currentPositionY, currentPositionZ = spGetProjectilePosition(projectileID)
 		local currentVelocityX, currentVelocityY, currentVelocityZ, currentSpeed = spGetProjectileVelocity(projectileID)
+		if
+			currentPositionX == nil
+			or currentPositionY == nil
+			or currentPositionZ == nil
+			or currentVelocityX == nil
+			or currentVelocityY == nil
+			or currentVelocityZ == nil
+			or currentSpeed == nil
+		then
+			return false
+		end
 		local maxRiseSpeed = shoreTorpedoBreachCeiling - currentPositionY
 
 		if currentVelocityY > maxRiseSpeed then
