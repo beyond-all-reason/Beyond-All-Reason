@@ -216,19 +216,19 @@ return {
 			return getSettings().isHoliday
 		end,
 	},
-	---@return integer? scavTeamID Team ID for the scavenger team.
+	---@return TeamID? scavTeamID
 	GetScavTeamID = function()
 		return getSettings().scavTeamID
 	end,
-	---@return integer? scavAllyTeamID Team ID for the scavenger ally team.
+	---@return AllyTeamID? scavAllyTeamID
 	GetScavAllyTeamID = function()
 		return getSettings().scavAllyTeamID
 	end,
-	---@return integer? raptorTeamID Team ID for the raptor team.
+	---@return TeamID? raptorTeamID
 	GetRaptorTeamID = function()
 		return getSettings().raptorTeamID
 	end,
-	---@return integer? raptorAllyTeamID Team ID for the raptor ally team.
+	---@return AllyTeamID? raptorAllyTeamID
 	GetRaptorAllyTeamID = function()
 		return getSettings().raptorAllyTeamID
 	end,
