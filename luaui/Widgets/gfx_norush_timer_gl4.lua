@@ -194,6 +194,12 @@ function widget:Initialize()
 	end
 
 	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false)
+	if not startPolygonBuffer then
+		spEcho("Error: Norush Timer GL4 could not allocate its start polygon buffer")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	startPolygonBuffer:Define(numVertices, { { id = 0, name = "startpolygons", size = 4 } })
 	startPolygonBuffer:Upload(bufferdata)
 
