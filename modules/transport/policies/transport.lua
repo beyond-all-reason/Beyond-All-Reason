@@ -1,4 +1,7 @@
-local Stages = VFS.Include("modules/transport/policy_stages.lua") ---@type TransportPolicyStages
+local Contract = VFS.Include("modules/transport/contract.lua") ---@type TransportContract
+local load = Contract.Load
+local unload = Contract.Unload
+local loadedSpeed = Contract.LoadedSpeed
 
 local NAP_MAX_SPEED = 0.5
 local COMMANDER_DRAG_SPEED = 120
@@ -15,27 +18,30 @@ local function withinReach(ctx)
 	return ctx.reach == nil or (ctx.distance or 0) <= ctx.reach
 end
 
-Policies.Pipeline(Stages.load)
-	.Unless(Stages.load.Submerged, submerged)
-	.If(Stages.load.WithinReach, withinReach)
-	.Unless(Stages.load.MovingEnemy, function(ctx)
+Policies.Pipeline(load)
+	.Unless(load.Submerged, submerged)
+	.If(load.WithinReach, withinReach)
+	.Unless(load.MovingEnemy, function(ctx)
 		return ctx.allied == false and (ctx.passengerSpeed or 0) >= NAP_MAX_SPEED
 	end)
-	.Select(Stages.load.Allowed, function()
+	.Unless(load.AlliedNano, function(ctx)
+		return ctx.nano == true and ctx.allied == true and ctx.ownTeam ~= true
+	end)
+	.Select(load.Allowed, function()
 		return true
 	end)
 
-Policies.Pipeline(Stages.unload)
-	.Unless(Stages.unload.Submerged, submerged)
-	.If(Stages.unload.WithinReach, withinReach)
-	.Unless(Stages.unload.NanoOnSlope, function(ctx)
+Policies.Pipeline(unload)
+	.Unless(unload.Submerged, submerged)
+	.If(unload.WithinReach, withinReach)
+	.Unless(unload.NanoOnSlope, function(ctx)
 		return ctx.nano and (ctx.goalY < 0 or (ctx.groundNormalY or 1) < 0.9)
 	end)
-	.Select(Stages.unload.Allowed, function(ctx)
+	.Select(unload.Allowed, function(ctx)
 		return true
 	end)
 
-Policies.Pipeline(Stages.loaded_speed).Select(Stages.loaded_speed.CommanderDrag, function(ctx)
+Policies.Pipeline(loadedSpeed).Select(loadedSpeed.CommanderDrag, function(ctx)
 	if ctx.dragEnabled and ctx.carriesCommander then
 		return COMMANDER_DRAG_SPEED / ctx.framesPerSecond
 	end
