@@ -2,7 +2,7 @@
 
 --Skeleton pieces
 --local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, cagelight, cagelight_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "cagelight", "cagelight_emit")
-local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl, crown, medalsilver, medalbronze, medalgold, armhexl, armhexl2, armhexl_emit, armhexl2_emit, hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint =
+local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl, crown, medalsilver, medalbronze, medalgold, armhexl, armhexl2, armhexl_emit, armhexl2_emit, antiairfirepoint, hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint =
 	piece(
 		"head",
 		"torso",
@@ -34,6 +34,7 @@ local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pel
 		"armhexl2",
 		"armhexl_emit",
 		"armhexl2_emit",
+		"antiairfirepoint",
 		"hatcosmeticpoint",
 		"rightshouldercosmeticpoint",
 		"leftshouldercosmeticpoint",
@@ -45,7 +46,7 @@ local weapons = {
 	[1] = "laser",
 	[2] = "uwlaser",
 	[3] = "dgun",
-	[4] = "dgun",
+	[4] = "antiair",
 	[5] = "dgun",
 	[6] = "dgun",
 	[7] = "dgun",
@@ -1146,6 +1147,8 @@ function script.AimFromWeapon(weapon)
 		return ruparm
 	elseif weapons[weapon] == "dgun" then
 		return 0 -- this is somehow the best way to ensuse dgun hits whatever target its aimed at
+	elseif weapons[weapon] == "antiair" then
+		return antiairfirepoint
 	end
 end
 
@@ -1208,6 +1211,8 @@ function script.AimWeapon(weapon, heading, pitch)
 		Turn(luparm, 1, rad(15) - pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 		WaitForTurn(aimy1, 2)
 		return true
+	elseif weapons[weapon] == "antiair" then
+		return true
 	end
 end
 
@@ -1237,6 +1242,8 @@ function script.QueryWeapon(weapon)
 		return laserflare
 	elseif weapons[weapon] == "dgun" then
 		return lflare
+	elseif weapons[weapon] == "antiair" then
+		return antiairfirepoint
 	end
 end
 

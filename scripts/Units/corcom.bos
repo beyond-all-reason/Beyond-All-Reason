@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, crown, medalsilver, medalbronze, medalgold,
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, crown, medalsilver, medalbronze, medalgold, antiairfirepoint,
 	hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
@@ -1052,14 +1052,19 @@ FireSecondary()
 	return (0);
 }
 
+AimWeapon4(piecenum)
+{
+	return 1;
+}
+
 AimFromWeapon4(piecenum)
 {
-	piecenum = torso;
+	piecenum = antiairfirepoint;
 }
 
 QueryWeapon4(piecenum)
 {
-	piecenum = torso;
+	piecenum = antiairfirepoint;
 }
 
 StartBuilding(heading, pitch)
