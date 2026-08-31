@@ -3,6 +3,10 @@
 ---@field isFactory boolean
 ---@field mass number
 ---@field speed number
+---@field transportCapacity integer|nil
+---@field footprintX number the engine-scaled xsize
+
+local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 
 ---@class TransportDefs
 local Defs = {}
@@ -26,6 +30,8 @@ function Defs.Of(unitDefID)
 			isFactory = def.isFactory,
 			mass = def.mass,
 			speed = def.speed,
+			transportCapacity = def.transportCapacity,
+			footprintX = def.xsize / Rules.FOOTPRINT_SCALE,
 		}
 		cache[unitDefID] = facts
 	end
