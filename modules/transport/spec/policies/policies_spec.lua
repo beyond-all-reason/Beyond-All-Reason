@@ -1,6 +1,7 @@
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local Modules = VFS.Include("modules/enums.lua").Modules
-local Stages = VFS.Include("modules/transport/policy_stages.lua")
+local PolicyBuilder = VFS.Include("modules/policy_builder.lua")
+local Contract = VFS.Include("modules/transport/contract.lua")
 
 local pipelines = ModuleHandler.LoadPolicies(Modules.Transport) ---@type TransportPipelines
 
@@ -10,13 +11,14 @@ end
 
 describe("transport policies", function()
 	it("publishes every stage name, keyed as its pipelines are, for the owner and for whoever contributes", function()
-		for category, stages in pairs(Stages) do
+		for _, stages in pairs(Contract) do
+			local category = PolicyBuilder.IdentityOf(stages).category
 			local named = {}
 			for _, stage in ipairs(ModuleHandler.LoadPolicies(Modules.Transport)[category]) do
 				named[stage.name] = true
 			end
 			for key, name in pairs(stages) do
-				assert.is_true(named[name], category .. " has no stage " .. name .. " (Stages." .. key .. ")")
+				assert.is_true(named[name], category .. " has no stage " .. name .. " (Contract." .. key .. ")")
 			end
 		end
 	end)
@@ -46,6 +48,18 @@ describe("transport policies", function()
 					pipelines.load,
 					{ goalY = 10, height = 20, distance = 5, reach = 20, allied = false, passengerSpeed = 0.1 }
 				)
+			)
+		end)
+
+		it("an ally's nano stays put; your own or an enemy's may be lifted", function()
+			assert.is_false(
+				decide(pipelines.load, { goalY = 10, height = 20, nano = true, allied = true, ownTeam = false })
+			)
+			assert.is_true(
+				decide(pipelines.load, { goalY = 10, height = 20, nano = true, allied = true, ownTeam = true })
+			)
+			assert.is_true(
+				decide(pipelines.load, { goalY = 10, height = 20, nano = true, allied = false, ownTeam = false })
 			)
 		end)
 
