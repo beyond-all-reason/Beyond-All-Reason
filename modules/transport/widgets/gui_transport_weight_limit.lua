@@ -40,34 +40,14 @@ local alphaFalloffDistance = 750
 local maxAlpha = 0.55
 local indicatorSizeMultiplier = 6
 
--- Multiplier to convert footprints sizes
--- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
--- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
-local springFootprintScale = 2
+local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local unitsToDraw = {}
 local activeTransportDefs = {}
-
-local validTrans = {}
 local math_sqrt = math.sqrt
 
-local transDefs = {}
-local cantBeTransported = {}
-local unitMass = {}
-local unitXSize = {}
-
 local circleList, chobbyInterface
-
-for defID, def in pairs(UnitDefs) do
-	if def.transportSize and def.transportSize > 0 then
-		validTrans[defID] = true
-		transDefs[defID] = { def.transportMass, def.transportCapacity, def.transportSize }
-	end
-	unitMass[defID] = def.mass
-	unitXSize[defID] = def.xsize
-	cantBeTransported[defID] = def.cantBeTransported
-end
 
 local function DrawCircleLine()
 	gl.BeginEnd(GL.QUADS, function()
@@ -135,9 +115,10 @@ function widget:GameFrame(n)
 		local transID = selectedUnits[i]
 		local transDefID = spGetUnitDefID(transID)
 
-		if validTrans[transDefID] then
+		local facts = Transport.DefFacts(transDefID)
+		if facts and facts.isTransport then
 			local transportedUnits = Spring.GetUnitIsTransporting(transID)
-			local transCapacity = transDefs[transDefID][2]
+			local transCapacity = facts.transportCapacity or math.huge
 			if not transportedUnits or #transportedUnits < transCapacity then
 				activeTransportDefs[transDefID] = true
 			end
@@ -160,15 +141,11 @@ function widget:GameFrame(n)
 
 	for _, unitID in ipairs(visibleUnits) do
 		local passengerDefID = spGetUnitDefID(unitID)
-		if not cantBeTransported[passengerDefID] and not Spring.IsUnitIcon(unitID) then
-			local passengerFootprintX = unitXSize[passengerDefID] / springFootprintScale
+		local passengerFacts = Transport.DefFacts(passengerDefID)
+		if passengerFacts and not Spring.IsUnitIcon(unitID) then
 			local canBePickedUp = false
 			for transDefID, _ in pairs(activeTransportDefs) do
-				local transDef = transDefs[transDefID]
-				local transMassLimit = transDef[1]
-				local transportSizeLimit = transDef[3]
-
-				if unitMass[passengerDefID] <= transMassLimit and passengerFootprintX <= transportSizeLimit then
+				if Transport.CanEverCarry(transDefID, passengerDefID) then
 					canBePickedUp = true
 					break
 				end
@@ -177,8 +154,11 @@ function widget:GameFrame(n)
 			if canBePickedUp then
 				local x, y, z = Spring.GetUnitBasePosition(unitID)
 				if x then
-					-- we have to scale up passengerFootprintX otherwise indicator would be under the unit instead of around it
-					unitsToDraw[unitID] = { pos = { x, y, z }, size = (passengerFootprintX * indicatorSizeMultiplier) }
+					-- scaled up so the indicator lands around the unit instead of under it
+					unitsToDraw[unitID] = {
+						pos = { x, y, z },
+						size = (passengerFacts.footprintX * indicatorSizeMultiplier),
+					}
 				end
 			end
 		end
