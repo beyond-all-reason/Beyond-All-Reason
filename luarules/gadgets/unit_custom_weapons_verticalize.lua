@@ -282,6 +282,7 @@ end
 local projectileParams = {
 	pos = positionGuidance,
 	speed = velocityGuidance,
+	["end"] = table.new(3, 0),
 }
 
 local function respawn(weapon, projectileID, projectile, upTimeFrames)
@@ -296,7 +297,6 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.owner = Spring.GetProjectileOwnerID(projectileID) or -1
 	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
-	spawnParams["end"] = projectile.target
 	spawnParams.gravity = weapon.gravity
 	spawnParams.cegtag = weapon.cegTag -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
@@ -304,6 +304,11 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.upTime = upTimeFrames
 	getVelocity(projectileID) -- populates spawnParams.speed
 	spawnParams.speed[4] = nil -- engine needs `xyz`
+
+	local aim = spawnParams["end"] -- must be known at spawn time for interceptors
+	aim[1] = projectile.target[1]
+	aim[1] = projectile.ascendHeight + weapon.ascentRadius
+	aim[3] = projectile.target[3]
 
 	Spring.DeleteProjectile(projectileID)
 
@@ -317,12 +322,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 
 	projectiles[respawnID] = projectile
 	scheduleAt(respawnID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
-	Spring.SetProjectileTarget(
-		respawnID,
-		projectile.target[1],
-		projectile.ascendHeight + weapon.ascentRadius,
-		projectile.target[3]
-	)
+
 	return true
 end
 
