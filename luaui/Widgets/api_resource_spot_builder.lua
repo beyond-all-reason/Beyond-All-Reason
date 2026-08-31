@@ -10,6 +10,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- load before all widgets that need these mex/geo building tools
 		enabled = true,
+		hidden = true, -- other widgets need this one, so it is not the player's to toggle
 	}
 end
 
@@ -534,4 +535,8 @@ function widget:Initialize()
 	WG.resource_spot_builder.GetGeoBuildings = function()
 		return geoBuildings
 	end
+end
+
+function widget:Shutdown()
+	WG.resource_spot_builder = nil
 end

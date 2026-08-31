@@ -607,7 +607,7 @@ function UpdateList(force)
 	end
 	local scoredList = lowerInput and {} or nil
 	for name, data in pairs(widgetHandler.knownWidgets) do
-		if name ~= myName and name ~= "Write customparam.__def to files" then
+		if name ~= myName and name ~= "Write customparam.__def to files" and not data.hidden then
 			if not lowerInput then
 				fullWidgetsList[#fullWidgetsList + 1] = { name, data }
 				local width = fontSize * font:GetTextWidth(name)

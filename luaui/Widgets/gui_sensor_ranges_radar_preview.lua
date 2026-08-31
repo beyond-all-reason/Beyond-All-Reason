@@ -12,7 +12,14 @@ function widget:GetInfo()
 	}
 end
 
--- springsettings RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
+-- Springsettings
+-- RadarPreviewAlliedCoverage (0/1, default on): also draw the coverage of all allied radars (from the engine's radar map)
+-- RadarPreviewBackground (0/1, default on): draw a background sheet under the cubes
+-- RadarPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
+-- RadarPreviewStyle (default 1): 1 = cubes on a faint background sheet, 1 = sheet only: no cubes, a more
+--   opaque sheet and outline, with the spulses and the sweep drawn on it as smooth gradient rings (SHEET_* tunables)
+-- RadarPreviewAnimations (0/1, default on): enable/disable animations
+-- RadarPreviewSweep (0/1, default on): draw the rotating sweep (only when animations are on)
 
 ------------------------------------------------------------------------------------------------
 -- How it works
@@ -22,7 +29,8 @@ end
 --     engine's radar LOS (LosMap.cpp: midpoint-circle disk, rays, CastLos angle test) per radar cell.
 --  2. Smoothing pass (every frame, a few thousand texels): a ping-ponged state texture eases towards
 --     the coverage, so cubes rise/sink smoothly instead of popping while dragging.
---  3. Cube pass: one instanced draw of a unit cube per cube of the NxN block inside each radar cell
+--  3. Minimap pass (DrawInMiniMap, RadarPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
+--  4. Cube pass: one instanced draw of a unit cube per cube of the NxN block inside each radar cell
 --     (CUBES_PER_CELL by radarMipLevel, cube size as a fraction of the spacing). The vertex shader looks up
 --     the radar cell the cube is in, samples the heightmap and animates the cube; the fragment shader
 --     does per-face shading and zoom-independent edge lines. Only cells under the screen's ground
@@ -40,7 +48,6 @@ local CUBE_SHAPE = "tile" -- default shape, see CUBE_SHAPES; switch at runtime w
 local CUBE_SHAPES = {
 	-- height at full coverage as a multiple of the cube width, lift of the top face above ground (elmo),
 	-- conform = top face tilts with the terrain
-	cube = { height = 0.8, lift = 0, conform = 0 },
 	tile = { height = 0.2, lift = 0, conform = 0 },
 	flat = { height = 0, lift = 1.5, conform = 1 }, -- flat square
 }
@@ -65,9 +72,18 @@ local shaderConfig = {
 	TERRAIN_DEPTH_TEST = hasMapDepth and 1 or 0,
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cubes covered only by other allied radars
-	ALLIED_ALPHA = 0.45, -- their opacity relative to the previewed radar's cubes
+	ALLIED_ALPHA = 0.55, -- their opacity relative to the previewed radar's cubes
 	BACKGROUND_COLOR = "vec3(0.10, 0.45, 0.28)", -- background sheet under the cubes (RadarPreviewBackground setting)
 	BACKGROUND_ALPHA = 0.14,
+	SHEET_COLOR = "vec3(0.22, 0.85, 0.50)", -- RadarPreviewStyle 1 (sheet only): color of the sheet (the cubes' BASE_COLOR)
+	SHEET_PULSE_COLOR = "vec3(0.55, 1.00, 0.7)", -- RadarPreviewStyle 1: color the rings and the sweep blend the sheet towards
+	SHEET_BACKGROUND_ALPHA = 0.2, -- RadarPreviewStyle 1 (sheet only): opacity of the sheet (doubles inside the rings/sweep)
+	SHEET_OUTLINE_ALPHA = 0.4, -- RadarPreviewStyle 1: opacity of the OUTLINE_COLOR border of the sheet
+	SHEET_RING_STRENGTH = 0.8, -- RadarPreviewStyle 1: how much the gradient rings brighten the sheet (PULSE_SPACING/SPEED/POWER shape them)
+	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap (RadarPreviewMinimap setting), BASE_COLOR / ALLIED_COLOR
+	MINIMAP_OUTLINE_ALPHA = 0.4, -- opacity of the OUTLINE_COLOR border on the minimap around the previewed radar's coverage
+	MINIMAP_ALLIED_OUTLINE_ALPHA = 0.25, -- opacity of that border around cells covered only by other allied radars
+	MINIMAP_OUTLINE_WIDTH = 2, -- minimap outline width in pixels at 1080p, scaled with the screen's vertical resolution
 	OUTLINE_COLOR = "vec3(0.45, 1.00, 0.57)", -- outline along the border with uncovered radar cells
 	OUTLINE_ALPHA = 0.24,
 	OUTLINE_WIDTH = 2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution (0.8 = 2 px on a 2721 px tall screen)
@@ -76,12 +92,13 @@ local shaderConfig = {
 	SWEEP_TRAIL = 30.0, -- degrees: the trail fades out this far behind the sweep's leading edge
 	SWEEP_BEAM = 9.0, -- degrees: width of the bright leading edge
 	SWEEP_STRENGTH = 0.55, -- how much the sweep brightens/raises cubes
-	SPAWN_SPEED = 2.5, -- radar ranges per second the spawn ripple travels outward
+	SPAWN_SPEED = 5.0, -- radar ranges per second the spawn ripple travels outward
 	SPAWN_BUMP = 0.25, -- width of the overshoot behind the ripple front, in radar ranges
 	PULSE_SPACING = 180.0, -- elmos between the outward travelling wave rings
-	PULSE_SPEED = 100.0, -- elmos per second the rings travel
+	PULSE_SPEED = 85.0, -- elmos per second the rings travel
 	PULSE_POWER = 4.5, -- higher = narrower rings
 	PULSE_STRENGTH = 1.5, -- how much the rings raise/brighten cubes
+	PULSE_SYMMETRIC = 1, -- 1: rings fade in and out (smooth bell), 0: sharp leading edge that fades out behind it
 	EDGE_STRENGTH = 0.12, -- how much cubes at the coverage boundary (next to an uncovered radar cell) brighten; 0 disables
 	RIM_STRENGTH = 0.22, -- how much the outermost ring of cubes brightens; 0 disables
 	TILE_MAX_TILT = 20.0, -- degrees: flat tiles follow the terrain slope up to this angle
@@ -146,6 +163,7 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -180,6 +198,7 @@ local mipShader = nil
 local coverageShader = nil
 local smoothShader = nil
 local cubeShader = nil
+local minimapShader = nil
 local passVAO = nil
 local cubeVAO = nil
 local tileVAO = nil -- just the top face, for flat shapes (6x fewer triangles, 2x fewer vertices)
@@ -192,8 +211,15 @@ local alliedTex = nil -- map-wide union of the allied radars' coverage, only use
 local alliedUpdatedAt = -mathHuge
 local alliedRadars = {} -- reused scratch list of { bx, bz, radius, losHeight }
 local alliedRadarCount = 0
-local showAllied = false -- live value of the RadarPreviewAlliedCoverage configint setting
-local showBackground = true -- live value of the RadarPreviewBackground configint setting
+-- live values of the RadarPreview* configint settings (one table: DrawWorld is at Lua 5.1's 60 upvalue limit)
+local settings = {
+	allied = false, -- RadarPreviewAlliedCoverage
+	background = true, -- RadarPreviewBackground
+	minimap = true, -- RadarPreviewMinimap
+	style = 0, -- RadarPreviewStyle: 0 = cubes, 1 = sheet only
+	animations = true, -- RadarPreviewAnimations: sweep and pulse rings
+	sweep = true, -- RadarPreviewSweep: the rotating sweep (only when animations are on)
+}
 local alliedConfigCheckedAt = -mathHuge
 local sets = {} -- radius in cells -> coverage/state textures and grid dimensions
 local mousepos = { 0, 0, 0 }
@@ -270,6 +296,22 @@ local cubeShaderCache = {
 		animParams = { 0, 0, 0, 0 },
 		windowParams = { 0, 0, 1, 1 },
 		modeParams = { 0, 0, 0, 0 },
+	},
+	shaderConfig = shaderConfig,
+}
+
+local minimapShaderCache = {
+	vssrcpath = "LuaUI/Shaders/sensor_ranges_radar_preview_minimap.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/sensor_ranges_radar_preview_minimap.frag.glsl",
+	shaderName = "radarPreviewMinimap GL4",
+	uniformInt = {
+		coverageTex = 0,
+		radarInfoTex = 1,
+		targetTex = 2,
+	},
+	uniformFloat = {
+		discParams = { 0, 0, 1, 0 },
+		mapParams = { MAP_CELLS_X, MAP_CELLS_Z, 0, 0 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -490,6 +532,7 @@ local function makeSet(radiusCells)
 		bz = nil,
 		losHeight = nil,
 		computedAt = -mathHuge,
+		minimapAlliedTex = nil, -- set by DrawWorld for DrawInMiniMap: allied radar map to blend in (alliedTex / "$info:radar"), nil = off
 	}
 	if not (set.target and set.state[1] and set.state[2]) then
 		return nil
@@ -547,7 +590,7 @@ end
 local function initgl4()
 	-- Files added to the game archive while a game is running are invisible to the VFS (the .sdd file
 	-- list is indexed at game start), and CheckShaderUpdates silently returns nil for missing sources.
-	local caches = { mipShaderCache, coverageShaderCache, smoothShaderCache, cubeShaderCache }
+	local caches = { mipShaderCache, coverageShaderCache, smoothShaderCache, cubeShaderCache, minimapShaderCache }
 	for _, cache in ipairs(caches) do
 		for _, path in ipairs({ cache.vssrcpath, cache.fssrcpath }) do
 			if not VFS.FileExists(path) then
@@ -575,6 +618,11 @@ local function initgl4()
 	cubeShader = LuaShader.CheckShaderUpdates(cubeShaderCache)
 	if not cubeShader then
 		goodbye("Failed to compile " .. cubeShaderCache.shaderName)
+		return false
+	end
+	minimapShader = LuaShader.CheckShaderUpdates(minimapShaderCache)
+	if not minimapShader then
+		goodbye("Failed to compile " .. minimapShaderCache.shaderName)
 		return false
 	end
 
@@ -627,8 +675,12 @@ local function setShape(name)
 end
 
 local function readConfig()
-	showAllied = Spring.GetConfigInt("RadarPreviewAlliedCoverage", 1) ~= 0
-	showBackground = Spring.GetConfigInt("RadarPreviewBackground", 1) ~= 0
+	settings.allied = Spring.GetConfigInt("RadarPreviewAlliedCoverage", 1) ~= 0
+	settings.background = Spring.GetConfigInt("RadarPreviewBackground", 1) ~= 0
+	settings.minimap = Spring.GetConfigInt("RadarPreviewMinimap", 1) ~= 0
+	settings.style = Spring.GetConfigInt("RadarPreviewStyle", 1)
+	settings.animations = Spring.GetConfigInt("RadarPreviewAnimations", 1) ~= 0
+	settings.sweep = Spring.GetConfigInt("RadarPreviewSweep", 0) ~= 0
 end
 
 function widget:Update()
@@ -659,7 +711,7 @@ end
 function widget:Shutdown()
 	WG.radarPreview = nil
 	deleteTextures()
-	for _, shader in ipairs({ mipShader, coverageShader, smoothShader, cubeShader }) do
+	for _, shader in ipairs({ mipShader, coverageShader, smoothShader, cubeShader, minimapShader }) do
 		shader:Delete()
 	end
 end
@@ -719,7 +771,7 @@ local function getCubeWindow(set, bx, bz, camX, camY, camZ)
 	local radius = set.radius
 	local x0, x1 = (bx - radius) * n, (bx + radius + 1) * n - 1
 	local z0, z1 = (bz - radius) * n, (bz + radius + 1) * n - 1
-	if showAllied then -- allied coverage can be anywhere on the map; uncovered cubes exit the vertex shader early
+	if settings.allied then -- allied coverage can be anywhere on the map; uncovered cubes exit the vertex shader early
 		x0, x1, z0, z1 = 0, MAP_CUBES_X - 1, 0, MAP_CUBES_Z - 1
 	end
 	local minX, maxX, minZ, maxZ = getScreenFootprint(camX, camY, camZ)
@@ -817,23 +869,31 @@ local function drawAlliedUnion()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
-function widget:DrawWorld()
+-- The radar being previewed right now (its radarDefs entry and cmdID), or nil. Evaluated live by every draw
+-- callin (world and minimap) rather than cached, so nothing can outlive the command / selection it came from.
+local function previewedRadarDef()
 	local cmdID
 	if selectedRadarUnitID then
+		-- verify every frame, not just on SelectionChanged: the unit may be gone or no longer selected
 		local unitDefID = spGetUnitDefID(selectedRadarUnitID)
-		if not unitDefID then
+		if not unitDefID or not Spring.IsUnitSelected(selectedRadarUnitID) then
 			selectedRadarUnitID = false
-			return
+			return nil
 		end
 		cmdID = -unitDefID
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then
-			-- before game start builds are queued through the pregame build widget, not via an active command
+			-- before game start builds are queued through the pregame build widget, not via an active command.
+			-- Only while the game hasn't started: that widget keeps its picked unit after GameStart, which would
+			-- otherwise leave the preview stuck to the cursor with nothing selected.
+			if Spring.GetGameFrame() > 0 then
+				return nil
+			end
 			local pregameBuild = WG["pregame-build"]
 			local pregameDefID = pregameBuild and pregameBuild.getPreGameDefID and pregameBuild.getPreGameDefID()
 			if not pregameDefID then
-				return
+				return nil
 			end
 			cmdID = -pregameDefID
 		end
@@ -841,9 +901,17 @@ function widget:DrawWorld()
 
 	local def = radarDefs[cmdID]
 	if not def then
-		return
+		return nil
 	end
 	if Spring.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
+		return nil
+	end
+	return def, cmdID
+end
+
+function widget:DrawWorld()
+	local def, cmdID = previewedRadarDef()
+	if not def then
 		return
 	end
 	local set = sets[def.radiusCells]
@@ -862,9 +930,40 @@ function widget:DrawWorld()
 		midY = my or (y + def.midY)
 	else
 		local mx, my = spGetMouseState()
-		local _, coords = spTraceScreenRay(mx, my, true)
-		if coords then
-			mousepos = { coords[1], coords[2], coords[3] }
+		-- Hovering a PIP (or the PIP-minimap: WG.pip_minimap is the same object as WG.pipN)
+		-- maps to the world position under the cursor in that view, not the ground behind it
+		local wx, wz
+		for pipNumber = 0, 4 do
+			local pipApi = WG["pip" .. pipNumber]
+			if pipApi and pipApi.ScreenToWorld then
+				wx, wz = pipApi.ScreenToWorld(mx, my)
+				if wx and wz then
+					break
+				end
+			end
+		end
+		local px, py, pz
+		if wx and wz then
+			px, py, pz = wx, spGetGroundHeight(wx, wz), wz
+		else
+			-- useMiniMap=true: over the engine minimap, trace through it instead of the world behind it
+			local _, coords = spTraceScreenRay(mx, my, true, true)
+			if coords then
+				px, py, pz = coords[1], coords[2], coords[3]
+			end
+		end
+		-- nothing under the cursor (sky) or a spot outside the map: nothing can be built there, so no preview
+		-- (checked before snapping, as Pos2BuildPos can pull an off-map position back onto the edge)
+		if not px or px < 0 or pz < 0 or px > Game.mapSizeX or pz > Game.mapSizeZ then
+			return
+		end
+		mousepos = { px, py, pz }
+		-- snap to the build grid the way the placement itself is snapped (build facing included), so the
+		-- preview is computed for the spot the radar will actually stand on, not the raw cursor position
+		-- (globals on purpose: DrawWorld is at Lua 5.1's 60 upvalue limit)
+		local sx, sy, sz = Spring.Pos2BuildPos(-cmdID, mousepos[1], mousepos[2], mousepos[3], Spring.GetBuildFacing())
+		if sx then
+			mousepos = { sx, sy, sz }
 		end
 		midY = mathMax(0, spGetGroundHeight(mousepos[1], mousepos[3])) + def.midY
 	end
@@ -944,7 +1043,7 @@ function widget:DrawWorld()
 	-- 2b. under global LOS or spectator full view the engine's radar map covers everything, so union the
 	-- coverage of the allied radar units ourselves instead (exact, refreshed once a second)
 	local manualAllied = false
-	if showAllied then
+	if settings.allied then
 		local _, fullView = spGetSpectatingState()
 		manualAllied = fullView or spGetGlobalLos() or false
 		if manualAllied and (now - alliedUpdatedAt) > COVERAGE_REFRESH_SECONDS then
@@ -954,6 +1053,9 @@ function widget:DrawWorld()
 			alliedUpdatedAt = now
 		end
 	end
+	-- for DrawInMiniMap, which draws this set (sets[lastRadius], coverage in set.state[set.cur]) in the same frame
+	-- (kept on the set: DrawWorld is at Lua 5.1's 60 upvalue limit, so no new file locals may be referenced here)
+	set.minimapAlliedTex = settings.allied and (manualAllied and alliedTex or "$info:radar") or nil
 
 	-- 3. the cubes
 	local camX, camY, camZ = spGetCameraPosition()
@@ -963,7 +1065,7 @@ function widget:DrawWorld()
 	if cellsX > 0 and cellsZ > 0 then
 		gl.Texture(0, "$heightmap")
 		gl.Texture(1, nextTex)
-		if showAllied then
+		if settings.allied then
 			-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
 			-- allied radars when the engine map is all-covering (global LOS / spectator full view)
 			gl.Texture(4, manualAllied and alliedTex or "$info:radar")
@@ -982,21 +1084,28 @@ function widget:DrawWorld()
 		cubeShader:Activate()
 		cubeShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
 		cubeShader:SetUniform("gridParams", RADAR_CELL, set.N, CUBE_SPACING, CUBES_PER_CELL_EDGE)
-		cubeShader:SetUniform("lookupParams", bx, bz, radius, showAllied and 1 or 0)
+		cubeShader:SetUniform("lookupParams", bx, bz, radius, settings.allied and 1 or 0)
 		cubeShader:SetUniform("animParams", now, now - spawnStart, lodBlend, shape.conform)
 		cubeShader:SetUniform("windowParams", x0, z0, cellsX, stride)
-		if showBackground then
-			-- background sheet under the cubes, outlined along the border with uncovered cells
-			cubeShader:SetUniform("modeParams", 1, 0, 0, 0)
+		local sheetOnly = settings.style == 1
+		local animations = settings.animations and 1 or 0
+		local sweep = settings.sweep and 1 or 0
+		cubeShader:SetUniform("modeParams", 0, 0, animations, sweep)
+		if settings.background or sheetOnly then
+			-- background sheet under the cubes, outlined along the border with uncovered cells. In the sheet-only
+			-- style it is the whole preview: no cubes, and the fragment shader draws the rings and the sweep on it
+			cubeShader:SetUniform("modeParams", 1, sheetOnly and 1 or 0, animations, sweep)
 			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, 0, CUBE_SINK, BACKGROUND_LIFT + camDist * LIFT_PER_DISTANCE)
 			tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
-			cubeShader:SetUniform("modeParams", 0, 0, 0, 0)
+			cubeShader:SetUniform("modeParams", 0, 0, animations, sweep)
 		end
-		cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
-		if shape.height > 0 then
-			cubeVAO:DrawElements(GL.TRIANGLES, CUBE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
-		else
-			tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
+		if not sheetOnly then
+			cubeShader:SetUniform("shapeParams", CUBE_WIDTH, shape.height * CUBE_WIDTH, CUBE_SINK, shape.lift + camDist * LIFT_PER_DISTANCE)
+			if shape.height > 0 then
+				cubeVAO:DrawElements(GL.TRIANGLES, CUBE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
+			else
+				tileVAO:DrawElements(GL.TRIANGLES, TILE_INDEX_COUNT, 0, cellsX * cellsZ, 0)
+			end
 		end
 		cubeShader:Deactivate()
 		gl.Culling(false)
@@ -1008,4 +1117,44 @@ function widget:DrawWorld()
 
 	gl.Texture(0, false)
 	gl.Texture(1, false)
+end
+
+-- Flat fill of the previewed (and allied) radar coverage on the minimap, outlined at uncovered cells. Also
+-- reached through the PIP minimap, which forwards this callin with its viewport remapped. Only draws while
+-- DrawWorld is drawing: the engine renders its minimap texture from Game::Update, before DrawWorld and at its
+-- own refresh rate, so the previous draw frame has to count as current here.
+function widget:DrawInMiniMap()
+	-- the live check keeps the minimap from outliving the preview; the frame gate ensures DrawWorld has
+	-- prepared the coverage of the current radar (the engine refreshes its minimap texture before DrawWorld)
+	if not settings.minimap or spGetDrawFrame() - lastDrawFrame > 1 or not previewedRadarDef() then
+		return
+	end
+	local set = sets[lastRadius]
+	if not set then
+		return
+	end
+
+	gl.DepthTest(false)
+	gl.Culling(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Texture(0, set.state[set.cur]) -- smoothed coverage: the fill
+	if set.minimapAlliedTex then
+		gl.Texture(1, set.minimapAlliedTex)
+	end
+	gl.Texture(2, set.target) -- exact engine coverage: the outline
+	minimapShader:Activate()
+	minimapShader:SetUniform("discParams", set.bx, set.bz, set.radius, set.minimapAlliedTex and 1 or 0)
+	local _, vsy = spGetViewGeometry()
+	minimapShader:SetUniform(
+		"mapParams",
+		Game.mapSizeX / RADAR_CELL,
+		Game.mapSizeZ / RADAR_CELL,
+		getCurrentMiniMapRotationOption() or 0,
+		shaderConfig.MINIMAP_OUTLINE_WIDTH * (vsy or 1080) / 1080 -- outline width in pixels
+	)
+	passVAO:DrawArrays(GL.TRIANGLES)
+	minimapShader:Deactivate()
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+	gl.Texture(2, false)
 end
