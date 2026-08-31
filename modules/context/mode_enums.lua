@@ -38,6 +38,8 @@ M.ModOptions = {
 	ResourceSharingEnabled = "resource_sharing_enabled",
 	AllowPartialResurrection = "allow_partial_resurrection",
 	TransferMode = "transfer_mode",
+	TransportEnemy = "transportenemy",
+	CommanderTransportSlow = "comm_trans_slow",
 	TakeMode = "take_mode",
 	TakeDelaySeconds = "take_delay_seconds",
 	TakeDelayCategory = "take_delay_category",
@@ -66,6 +68,16 @@ M.Modes = {
 	EasyTax = "easy_tax",
 	Customize = "customize",
 	TechCore = "tech_core",
+}
+
+---@class TransportEnemyFields
+---@field NotCommanders "notcoms"
+---@field None "none"
+
+---@type TransportEnemyFields
+M.TransportEnemy = {
+	NotCommanders = "notcoms",
+	None = "none",
 }
 
 ---@type AlliedAssistModeFields

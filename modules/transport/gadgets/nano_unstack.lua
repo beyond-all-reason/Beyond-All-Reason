@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Anti Stacking Hax",
-		desc = "123",
+		name = "Nano Unstack",
+		desc = "A set-down nano turret is nudged off any immobile ally it was stacked onto",
 		author = "Damgam",
 		date = "2021",
 		license = "GNU GPL, v2 or later",
