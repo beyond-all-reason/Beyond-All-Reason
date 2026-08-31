@@ -251,7 +251,7 @@ local function getUptime(projectile, height)
 
 	if accelDistance <= height then
 		local flatTime = (height - accelDistance) / speedMax
-		local speedAvg = (flatTime * speedMax + accelTime * (speedMax - speedMin) * 0.5) / (flatTime + accelTime)
+		local speedAvg = (flatTime * speedMax + accelTime * (speedMax + speedMin) * 0.5) / (flatTime + accelTime)
 		return height / speedAvg
 	end
 
