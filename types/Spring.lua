@@ -35,7 +35,7 @@
 
 -- TODO: delete when recoil-lua-library publishes TeamData types
 ---@class TeamData
----@field id number
+---@field id TeamID
 ---@field name string
 ---@field leader number
 ---@field isDead boolean
@@ -44,7 +44,7 @@
 ---@field allyTeam number
 
 ---@class PlayerData
----@field id number
+---@field id PlayerID
 ---@field name string
 ---@field active boolean
 ---@field spectator boolean
