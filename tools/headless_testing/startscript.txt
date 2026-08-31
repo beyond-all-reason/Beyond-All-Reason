@@ -15,6 +15,9 @@
 		tech_blocking=1;
 		t2_tech_threshold=1;
 		t3_tech_threshold=2;
+		unit_sharing_mode=all;
+		resource_sharing_enabled=1;
+		take_mode=enabled;
   }
   [ALLYTEAM0]
   {

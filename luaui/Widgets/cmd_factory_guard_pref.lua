@@ -36,3 +36,11 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
 	end
 end
+
+-- without this a factory that changes hands keeps whatever guard state it had
+-- under its previous owner and quietly ignores the new owner's preference
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end

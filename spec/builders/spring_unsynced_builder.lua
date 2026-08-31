@@ -31,7 +31,7 @@ end
 
 ---Register a unit definition. Delegates to the underlying UnitDefsBuilder.
 ---@overload fun(self: SpringUnsyncedBuilder, udb: UnitDefBuilder): SpringUnsyncedBuilder
----@param defID number
+---@param defID integer
 ---@param def table
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnitDef(defID, def)
@@ -40,8 +40,8 @@ function SUB:WithUnitDef(defID, def)
 end
 
 ---Place a live unit instance on the map. Errors if the def is not registered.
----@param unitID number
----@param defIDOrName number|string
+---@param unitID integer
+---@param defIDOrName integer|string
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnit(unitID, defIDOrName)
 	self.unitDefs:WithUnit(unitID, defIDOrName)
@@ -86,7 +86,7 @@ local function makeEnv(self)
 	---@diagnostic disable-next-line: missing-fields
 	env.widget = {}
 	env.GL = {}
-	env.Platform = { gl = not self.headless }
+	env.Platform = { gl = not self.headless, isHeadless = self.headless }
 	env.WG = {}
 	env.Game = {
 		footprintScale = 2,
@@ -145,8 +145,10 @@ local function makeEnv(self)
 		springTable[k] = v
 	end
 	env.Spring = setmetatable(springTable, { __index = _G.Spring })
+	-- every Engine bucket is the same mock table so all resolve to the per-test overrides
+	env.Engine = { Synced = env.Spring, Unsynced = env.Spring, Shared = env.Spring }
 
-	local realInclude = _G.VFS and _G.VFS.Include
+	local realInclude = (_G.VFS and _G.VFS.Include) --[[@as function?]]
 	local includeOverrides = self.vfsIncludeOverrides
 	env.VFS = setmetatable({
 		Include = function(path, ...)
@@ -184,7 +186,7 @@ function SUB:LoadWidget(widgetPath)
 
 	function mock.captureArrayOrders()
 		local calls = {}
-		env.Spring.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
+		env.Engine.Shared.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
 			table.insert(calls, { unitIDs = unitIDs, orders = orders })
 		end
 		return calls
@@ -192,7 +194,7 @@ function SUB:LoadWidget(widgetPath)
 
 	function mock.captureUnitOrders()
 		local calls = {}
-		env.Spring.GiveOrderToUnit = function(unitID, cmdID, params, _)
+		env.Engine.Shared.GiveOrderToUnit = function(unitID, cmdID, params, _)
 			table.insert(calls, { unitID = unitID, cmdID = cmdID, params = params })
 		end
 		return calls
