@@ -24,6 +24,7 @@ local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
 local Objectives = VFS.Include("modules/missions/lib/objectives.lua")
+local Variables = VFS.Include("modules/missions/lib/variables.lua")
 local Events = VFS.Include("modules/missions/lib/events.lua")
 
 local MISSIONS_DIR = "modules/missions/"
@@ -31,6 +32,7 @@ local EVALUATE_PERIOD = 15 -- frames
 
 local engine = TriggerEngine.New()
 local activeMission = nil ---@type string|nil
+local variableKinds = {} ---@type table<string, string> variable name -> declared kind
 local contributedContext = {} ---@type table<string, boolean> ctx keys the required modules supplied
 
 -- Protections THIS mission holds, by unit: combat's guard is a refcount, so
@@ -82,6 +84,22 @@ local ctx = {
 	end,
 	IsObjectiveComplete = function(name)
 		return Spring.GetGameRulesParam("objective_" .. name) == 1
+	end,
+	-- A variable's value is a rules param: booleans travel as 0/1 (rules
+	-- params hold numbers and strings), so the declared kind decodes it.
+	GetVariable = function(name)
+		local raw = Spring.GetGameRulesParam("mission_var_" .. name)
+		if variableKinds[name] == "boolean" then
+			return raw == 1
+		end
+		return raw
+	end,
+	SetVariable = function(name, value)
+		if type(value) == "boolean" then
+			value = value and 1 or 0
+		end
+		Spring.SetGameRulesParam("mission_var_" .. name, value)
+		engine.OnEvent(Events.VariableChanged)
 	end,
 }
 
@@ -391,6 +409,7 @@ local function loadMission(missionName, preserve)
 	end
 	local objectiveDecls = nil ---@type MissionObjectiveDeclarationEntry[]|nil
 	local declaredObjectives = nil ---@type table<string, boolean>|nil
+	local variableDecls = nil ---@type MissionVariableEntry[]|nil
 	local parsed, err = pcall(function()
 		local function checkInputs()
 			for _, trigger in ipairs(staging.Triggers()) do
@@ -408,8 +427,15 @@ local function loadMission(missionName, preserve)
 				end
 			end
 		end
-		-- The definition site parses first: objectives.lua declares the ids the
-		-- trigger files may speak.
+		-- objectives may gate on variables, so they load first
+		local variablesPath = MISSIONS_DIR .. missionName .. "/variables.lua"
+		if VFS.FileExists(variablesPath) then
+			local file = Variables.ForFile(missionName .. "/variables.lua")
+			local exports = VFS.Include(variablesPath, { Variable = file.Variable, VFS = sandboxVFS })
+			variableDecls = file.Finalize(exports)
+			included[variablesPath] = exports or false
+		end
+
 		local objectivesPath = MISSIONS_DIR .. missionName .. "/objectives.lua"
 		if VFS.FileExists(objectivesPath) then
 			local filename = missionName .. "/objectives.lua"
@@ -523,6 +549,24 @@ local function loadMission(missionName, preserve)
 	else
 		resetObjectives()
 		resetFired()
+	end
+	variableKinds = {}
+	for _, decl in ipairs(variableDecls or {}) do
+		variableKinds[decl.name] = decl.kind
+	end
+	if not preserve then
+		for name in pairs(Spring.GetGameRulesParams()) do
+			if name:find("^mission_var_") then
+				Spring.SetGameRulesParam(name, nil)
+			end
+		end
+		for _, decl in ipairs(variableDecls or {}) do
+			local value = decl.default
+			if type(value) == "boolean" then
+				value = value and 1 or 0
+			end
+			Spring.SetGameRulesParam("mission_var_" .. decl.name, value)
+		end
 	end
 	syncWatchedCallins()
 	activeMission = missionName
