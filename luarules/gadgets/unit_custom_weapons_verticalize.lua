@@ -378,7 +378,12 @@ end
 local function ascend(projectileID, projectile, frame)
 	local position, velocity = getPositionAndVelocity(projectileID)
 
-	if projectile.ascendHeight - position[2] >= velocity[2] or velocity[4] <= 0 then
+	if velocity[4] <= 0 then
+		return frame + 1
+	end
+
+	-- Hand off at the ascend height or, on a climb cut short, once it stops climbing.
+	if velocity[2] > 0 and projectile.ascendHeight - position[2] >= velocity[2] then
 		return frame + 1
 	end
 
