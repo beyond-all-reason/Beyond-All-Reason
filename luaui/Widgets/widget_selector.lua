@@ -392,6 +392,12 @@ local function widgetselectorCmd(_, _, params)
 	end
 end
 
+local function widgetresetCmd(_, _, params)
+	spEcho("Resetting which widgets are loaded, reloading...")
+	widgetHandler.__blankOutOrder = true
+	Spring.SendCommands("luarules reloadluaui")
+end
+
 local function factoryresetCmd(_, _, params)
 	widgetHandler.__blankOutConfig = true
 	--widgetHandler.__allowUserWidgets = false
@@ -460,6 +466,7 @@ function widget:Initialize()
 	UpdateList()
 
 	widgetHandler.actionHandler:AddAction(self, "widgetselector", widgetselectorCmd, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "widgetreset", widgetresetCmd, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "factoryreset", factoryresetCmd, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "userwidgets", userwidgetsCmd, nil, "t")
 end
@@ -1520,6 +1527,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font2)
 
 	widgetHandler.actionHandler:RemoveAction(self, "widgetselector")
+	widgetHandler.actionHandler:RemoveAction(self, "reset")
 	widgetHandler.actionHandler:RemoveAction(self, "factoryreset")
 	widgetHandler.actionHandler:RemoveAction(self, "userwidgets")
 end
