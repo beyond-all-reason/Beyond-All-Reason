@@ -1,4 +1,5 @@
 local gadget = gadget ---@type Gadget
+local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 
 function gadget:GetInfo()
 	return {
@@ -82,7 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
-			airPriorityMultiplier[unitDefID] = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
+			local facts = Transport.DefFacts(unitDefID)
+			airPriorityMultiplier[unitDefID] = ((facts and facts.isTransport) or unitDef.isBuilder) and PRIORITY_VTOLS
 				or table.any(weapons, isBomberWeapon) and PRIORITY_BOMBERS
 				or table.any(weapons, isFighterWeapon) and PRIORITY_FIGHTERS
 				or table.any(weapons, isNotFakeWeapon) and PRIORITY_VTOLS -- doubles as the PRIORITY_GUNSHIP
