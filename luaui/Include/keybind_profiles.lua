@@ -44,6 +44,7 @@ local presetFiles = {
 	["luaui/configs/hotkeys/legacy_keys_60pct.txt"] = "Legacy (60% Keyboard)",
 }
 
+---@type table
 local store
 
 -- Shape a fresh store file takes.

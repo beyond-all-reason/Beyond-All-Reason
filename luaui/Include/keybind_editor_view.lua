@@ -47,17 +47,21 @@ local sidebarW = 0
 local categories = {}
 -- Selection is held as the catalog's i18n key, never its translated title, so a language
 -- change cannot strand it against titles that have all moved.
+---@type string?
 local selectedCategory
 -- Stands in for the generated Other bucket when no catalog category is titled the same.
 -- A table cannot collide with a catalog key, which is always a string.
 local generatedOtherKey = {}
 local otherCategoryKey = generatedOtherKey
 -- Set while a category asks to be drawn as the grid menu instead of a row list.
+---@type table?
 local gridGroup
 local listRight = 0
 local keyAreaX1 = 0
 
+---@type table
 local working
+---@type table
 local resolvedCatalog
 -- Grouped chips per action. Derived purely from working.byAction, and every path that
 -- changes that rebuilds the rows, so rebuildRows is where it gets dropped.
@@ -68,10 +72,19 @@ local rows = {}
 local scroll = 0
 local dragging = false
 local dirty = false
+---@type table?
 local capturing
 
+---@type table
 local font
-local RectRound, Scroller, UiElement, Highlight
+---@type function
+local RectRound
+---@type table
+local Scroller
+---@type function
+local UiElement
+---@type function
+local Highlight
 
 local colorAction = "\255\210\210\205"
 local colorKey = "\255\235\185\070"
@@ -96,9 +109,17 @@ local sheenNone = { 1, 1, 1, 0 }
 local hoverWash = { 1, 1, 1, 0.08 }
 local rowWash = { 1, 1, 1, 0.06 }
 
-local searchBox, presetDropdown, nameBox, menuToggle
+---@type table
+local searchBox
+---@type table
+local presetDropdown
+---@type table
+local nameBox
+---@type function?
+local menuToggle
 local switchToPreset, scrollFromY
 
+---@type table?
 local dialog
 
 local headerButtons = {

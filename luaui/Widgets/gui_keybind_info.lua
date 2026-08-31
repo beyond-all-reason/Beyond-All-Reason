@@ -33,7 +33,11 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
+---@type function
+local RectRound
+---@type function
+local UiElement
+local elementCorner = WG.FlowUI.elementCorner
 
 local showOnceMore = false
 
