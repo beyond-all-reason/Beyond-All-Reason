@@ -31,6 +31,11 @@ return {
 				name = "Territorial Domination",
 				desc = "Teams earn points by capturing territory to stay in the game.",
 			},
+			{
+				key = "mission",
+				name = "Mission",
+				desc = "Run the chosen mission. The mission decides when it is won or lost, and every unit is loaded.",
+			},
 		},
 	},
 }

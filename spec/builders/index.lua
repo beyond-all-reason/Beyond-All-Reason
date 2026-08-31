@@ -7,10 +7,13 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 
 ---@class Builders
 ---@field Team TeamBuilder
----@field Spring SpringBuilder
+---@field Spring SpringSyncedBuilder
 ---@field SpringUnsynced SpringUnsyncedBuilder
+---@field ResourceData ResourceDataBuilder
 ---@field UnitDef UnitDefBuilder
 ---@field UnitDefs UnitDefsBuilder
+---@field Mode table
+---@field Mission table
 local Builders = {
 	Team = TeamBuilder,
 	Spring = SpringSyncedBuilder,
@@ -20,4 +23,17 @@ local Builders = {
 	UnitDefs = UnitDefsBuilder,
 }
 
-return Builders
+return setmetatable(Builders, {
+	__index = function(t, k)
+		if k == "Mode" then
+			local mod = VFS.Include("spec/builders/mode_test_helpers.lua")
+			rawset(t, "Mode", mod)
+			return mod
+		end
+		if k == "Mission" then
+			local mod = VFS.Include("modules/missions/spec/builders/mission_builder.lua")
+			rawset(t, "Mission", mod)
+			return mod
+		end
+	end,
+})
