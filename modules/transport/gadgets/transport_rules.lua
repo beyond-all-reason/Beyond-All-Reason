@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local Rules = VFS.Include("modules/transport/lib/rules.lua")
+local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 local TransportEnums = VFS.Include("modules/transport/enums.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local Modules = VFS.Include("modules/enums.lua").Modules
@@ -318,10 +318,13 @@ function gadget:Initialize()
 		---@param transportDefID integer
 		---@param unitDefID integer
 		---@param carriedMass number|nil
+		---@param carriedCount integer|nil
 		---@return boolean
-		CanCarry = function(transportDefID, unitDefID, carriedMass)
+		CanCarry = function(transportDefID, unitDefID, carriedMass, carriedCount)
 			local transportDef, unitDef = UnitDefs[transportDefID], UnitDefs[unitDefID]
-			return transportDef ~= nil and unitDef ~= nil and Rules.CanCarry(transportDef, unitDef, carriedMass)
+			return transportDef ~= nil
+				and unitDef ~= nil
+				and Rules.CanCarry(transportDef, unitDef, carriedMass, carriedCount)
 		end,
 	}
 end

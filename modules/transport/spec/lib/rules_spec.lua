@@ -57,6 +57,20 @@ describe("transport rules", function()
 			assert.is_false(Rules.CanCarry(carrier, def({ xsize = 4, mass = 1000 }), 1501))
 		end)
 
+		it("a full transport takes no more, when its def declares a capacity", function()
+			local oneSeat = def({
+				isTransport = true,
+				transportSize = 3,
+				minTransportSize = 0,
+				transportMass = 2500,
+				minTransportMass = 0,
+				transportCapacity = 1,
+			})
+			assert.is_true(Rules.CanCarry(oneSeat, def({ xsize = 4, mass = 1000 }), 0, 0))
+			assert.is_false(Rules.CanCarry(oneSeat, def({ xsize = 4, mass = 1000 }), 0, 1))
+			assert.is_true(Rules.CanCarry(carrier, def({ xsize = 4, mass = 1000 }), 0, 5))
+		end)
+
 		it("a thing that is not a transport carries nothing", function()
 			assert.is_false(Rules.CanCarry(def({ isTransport = false }), def({ xsize = 1, mass = 1 })))
 		end)
