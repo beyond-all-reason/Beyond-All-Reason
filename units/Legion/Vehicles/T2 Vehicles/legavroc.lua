@@ -141,7 +141,6 @@ return {
 					cruise_and_verticalize = true,
 					cruise_chase_factor = 0.5,
 					uptime_max = 7,
-					projectile_destruction_method = "descend",
 					overrange_distance = 1495,
 				},
 			},

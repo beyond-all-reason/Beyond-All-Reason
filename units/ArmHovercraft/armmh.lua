@@ -138,7 +138,6 @@ return {
 					cruise_chase_factor = 0.5,
 					uptime_max = 5,
 					overrange_distance = 817,
-					projectile_destruction_method = "descend",
 				},
 				damage = {
 					default = 300,

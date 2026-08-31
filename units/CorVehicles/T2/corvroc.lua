@@ -136,7 +136,6 @@ return {
 					cruise_chase_factor = 0.5,
 					uptime_max = 7,
 					overrange_distance = 1507,
-					projectile_destruction_method = "descend",
 				},
 				damage = {
 					commanders = 810,
