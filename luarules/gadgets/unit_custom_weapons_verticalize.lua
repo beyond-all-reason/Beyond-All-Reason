@@ -422,6 +422,12 @@ local function turnToLevel(projectileID, projectile, frame)
 
 	local pitch = math_asin(math_clamp(velocity[2] / velocity[4], -1, 1))
 
+	-- Pitch is constant while still climbing, too, so wait out an early hand-off.
+	if pitch >= math_pi * 0.5 - projectile.turnRate then
+		projectile.pitch = pitch
+		return frame + 1
+	end
+
 	-- StarburstProjectile disables turning at 8.1 degrees to target, then keeps constant pitch.
 	if projectile.pitch - pitch > projectile.turnRate * 0.5 then
 		projectile.pitch = pitch
