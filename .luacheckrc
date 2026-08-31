@@ -10,6 +10,7 @@ codes = true
 exclude_files = {
     "common/luaUtilities/**",
     ".lux/**",
+    "mapgenerator/**", -- ${PLACEHOLDER} templates, not parseable as Lua
     "recoil-lua-library/**",
 }
 

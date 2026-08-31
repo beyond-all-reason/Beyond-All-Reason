@@ -16,8 +16,36 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
+-- Used in GameFrame.
+local missionValidationFailure
+
+-- Runs on the raw mission data
+local function validateMission(mission)
+	local validation = VFS.Include("luarules/mission_api/validation.lua")
+	local result = validation.ValidateMission(mission, {
+		ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes,
+		TriggerDefinitions = GG["MissionAPI"].TriggerDefinitions,
+		ActionDefinitions = GG["MissionAPI"].ActionDefinitions,
+	})
+	validation.LogResult(result)
+
+	return result
+end
+
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
+	local validationResult = validateMission(mission)
+
+	if not validationResult.ok then
+		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
+		missionValidationFailure = "[Mission API] Mission not loaded: "
+			.. #validationResult.errors
+			.. " validation errors in "
+			.. scriptPath
+			.. " (see infolog)"
+		return
+	end
+
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -33,28 +61,14 @@ local function loadMission(scriptPath)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
 
-	local validation = VFS.Include("luarules/mission_api/validation.lua")
-	validation.ValidateStages(GG["MissionAPI"].Stages)
-	validation.ValidateObjectives(GG["MissionAPI"].Objectives)
-	validation.ValidateInitialStage(initialStage)
-	validation.ValidateTriggers(GG["MissionAPI"].Triggers, rawActions)
-	validation.ValidateActions(GG["MissionAPI"].Actions)
-	validation.ValidateReferences()
-
-	if GG["MissionAPI"].HasValidationErrors then
-		GG["MissionAPI"] = nil -- stops gadget api_missions_triggers from loading
-		gadgetHandler:RemoveGadget()
-		return
-	end
-
-	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
 end
 
 function gadget:Initialize()
-	local scriptPath = nil -- relative to `singleplayer`, e.g.: 'mission-api-tests/filename.lua'.
+	local scriptPath = nil
+
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
 		return
@@ -92,6 +106,10 @@ function gadget:Initialize()
 end
 
 function gadget:GamePreload()
+	if missionValidationFailure then
+		return
+	end
+
 	local loadoutModule = GG["MissionAPI"].Modules.Loadout
 	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
@@ -102,6 +120,14 @@ function gadget:GamePreload()
 end
 
 function gadget:GameFrame(frameNumber)
+	-- Invalid mission ends the game
+	if missionValidationFailure then
+		Spring.GameOver({}) -- This logs 2 lines and UI shows only 2 lines, so we Echo missionValidationFailure after this
+		Spring.Echo(missionValidationFailure)
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
 end
 
