@@ -615,6 +615,15 @@ function M.sync(doc, ctx, surfState, setSummary)
 		list, bkey = T.getSurfaceVariants()
 	end
 	local pickSlot = widgetState.surfPickerSlot
+	-- The painter's coverage histogram is a gl.ReadPixels (a GPU sync) and its
+	-- only reader here is the picker's "already carries paint" warning, so the
+	-- painter computes it only while a picker is open (gated readback).
+	do
+		local sp = WG.SurfacePainter
+		if sp.setCoverageWanted then
+			sp.setCoverageWanted(pickSlot ~= nil)
+		end
+	end
 	if list then
 		local sig = paletteSig(list, bkey, surfState, pickSlot)
 		if sig ~= widgetState.surfPaletteSig then
