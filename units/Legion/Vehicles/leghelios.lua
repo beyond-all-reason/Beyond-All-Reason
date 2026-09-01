@@ -45,6 +45,7 @@ return {
 			kickback = "-2.0",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			restoretime = "3000",
 			rockstrength = "0",
 			sleevename = "turret",

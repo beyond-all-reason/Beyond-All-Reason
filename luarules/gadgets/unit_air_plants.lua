@@ -24,31 +24,10 @@ local SetUnitNeutral = Spring.SetUnitNeutral
 local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_LAND_AT = GameCMD.LAND_AT
 
-local isAirplantNames = {
-	corap = true,
-	coraap = true,
-	corplat = true,
-	corapt3 = true,
-
-	armap = true,
-	armaap = true,
-	armplat = true,
-	armapt3 = true,
-
-	legap = true,
-	legaap = true,
-	legapt3 = true,
-	legsplab = true,
-}
-local isAirplantNamesCopy = table.copy(isAirplantNames)
-for name, v in pairs(isAirplantNamesCopy) do
-	isAirplantNames[name .. "_scav"] = true
-end
--- convert unitname -> unitDefID
 local isAirplant = {}
-for unitName, params in pairs(isAirplantNames) do
-	if UnitDefNames[unitName] then
-		isAirplant[UnitDefNames[unitName].id] = params
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.airfactory then
+		isAirplant[unitDefID] = true
 	end
 end
 

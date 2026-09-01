@@ -92,6 +92,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 700,
 				},
@@ -131,6 +132,9 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					land_damage_mult = 0.2,
+				},
 				damage = {
 					default = 215,
 				},

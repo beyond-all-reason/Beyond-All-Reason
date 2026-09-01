@@ -21,18 +21,14 @@ Findings are keyed on (severity, code, path, message) rather than on position,
 so that inserting a line above a finding does not present it as new, and base
 paths are moved through the pull request's renames for the same reason.
 
-Three rules decide a pull request, and any one of them fails it:
+Three rules all must be passing:
 
     errors    any new error, anywhere in the repo
     added     net new warnings on the lines it wrote, per thousand changed
               lines. Net: warnings it resolved pay for warnings it introduced.
-    total     every warning left in the files it touched, per thousand lines of
-              those files. This one never looks at the base. It is the state the
-              pull request leaves behind, so touching a file that is already
-              over the line means bringing it under.
-
-Small changes receive a very strict allowance on the added rule, and under about
-seventy changed lines that allowance is zero.
+    total     every warning remaining in the files that were changed, reduced by
+              the target warning rate on lines removed, and increased by it on
+              lines added so files that come with warning debt are maintainable.
 
 Warnings are ranked by how near they are to the change. The lines changed, then
 the rest of the files it touched, then everywhere else. The annotation budget
@@ -274,14 +270,14 @@ def write_summary(
         # No lines in the changed files, so the total rule has no denominator
         # and did not run. Saying "within 0" would read as a ceiling it met.
         headline = (
-            "Type check: %d net new on the changed lines within %d; the changed "
-            "files have no lines to measure a rate against"
+            "Type check: %d net new on changed lines, max %d; the changed files "
+            "have no lines to measure a rate against"
             % (budget["net"], budget["added_allowance"])
         )
     else:
         headline = (
-            "Type check: %d net new on the changed lines within %d, %d left in the "
-            "changed files within %d"
+            "Type check: %d net new on changed lines, max %d; %d left in changed "
+            "files, max %d"
             % (
                 budget["net"],
                 budget["added_allowance"],
@@ -296,68 +292,48 @@ def write_summary(
         if compact:
             if args.compared:
                 out.write(
-                    "Added: %d new minus %d resolved is %d net on %d changed line%s, "
-                    "against an allowance of %d. Total: %d warning%s left in the "
-                    "changed files across %d line%s, against a ceiling of %d. "
-                    "%d run%s per side. The full report is on the check's own page.\n"
+                    "New warnings on changed lines: %d added, %d resolved, %d net. "
+                    "The max is %d.\n\n"
+                    "Warnings left in changed files: %d remain, %d before this "
+                    "change. The max is %d.\n\n"
                     % (
                         budget["added"],
                         budget["resolved"],
                         budget["net"],
-                        args.changed_lines,
-                        plural(args.changed_lines),
                         budget["added_allowance"],
                         budget["total"],
-                        plural(budget["total"]),
-                        args.changed_file_lines,
-                        plural(args.changed_file_lines),
+                        budget["base_total"],
                         budget["total_allowance"],
-                        args.runs,
-                        plural(args.runs),
                     )
                 )
         elif args.compared:
             out.write(
-                "Compared against the base over %d run%s per side. Any new error "
-                "blocks, wherever in the tree it landed. Info and hints never "
-                "block. Warnings are judged twice:\n\n"
-                "- **Added.** %d new warning%s on the lines this pull request wrote, "
-                "less %d it resolved in the files it touched, is %d net against an "
-                "allowance of %d -- %g per thousand of its %d changed line%s.\n"
+                "New errors are blocking; existing errors are not (usually) blocking. "
+                "Warnings on changed lines are judged using the entire file, "
+                "against a maximum rate per thousand lines of code: "
+                "%d added, %d resolved, for %d net. The max is %d.\n"
                 % (
-                    args.runs,
-                    plural(args.runs),
                     budget["added"],
-                    plural(budget["added"]),
                     budget["resolved"],
                     budget["net"],
                     budget["added_allowance"],
-                    args.warn_added_per_kloc,
-                    args.changed_lines,
-                    plural(args.changed_lines),
                 )
             )
             if budget["total_judged"]:
                 out.write(
-                    "- **Total.** %d warning%s remain in the files it touched, "
-                    "against a ceiling of %d -- %g per thousand of their %d line%s. "
-                    "This one does not read the base: it is the state left behind, "
-                    "so a file already over the line has to come under it.\n\n"
+                    "Warnings remaining in those files are judged the same way, "
+                    "moved by the lines this change added and removed: "
+                    "%d remain, %d before this change. The max is %d.\n\n"
                     % (
                         budget["total"],
-                        plural(budget["total"]),
+                        budget["base_total"],
                         budget["total_allowance"],
-                        args.warn_total_per_kloc,
-                        args.changed_file_lines,
-                        plural(args.changed_file_lines),
                     )
                 )
             else:
                 out.write(
-                    "- **Total.** Not measured. The changed files hold no lines to "
-                    "divide by, so there is no rate to compare against %g per "
-                    "thousand, and this rule did not run.\n\n"
-                    % args.warn_total_per_kloc
+                    "Warnings remaining in those files are not judged: they hold no "
+                    "lines to divide a rate by.\n\n"
                 )
             if ripple:
                 out.write(
@@ -466,10 +442,9 @@ def write_summary(
 
         if over_total and not compact:
             out.write(
-                "\n_The warnings in the changed files are listed whether or not this "
-                "pull request wrote them. The rule is on the state it leaves behind, "
-                "so clearing enough of them -- or splitting the already-noisy file out "
-                "of this change -- is what brings it under the ceiling._\n"
+                "\n_Listed whether or not this pull request wrote them. The max "
+                "already allows what was here before, so what is over it came from "
+                "this change._\n"
             )
 
         if any_untouched and not compact:
@@ -498,6 +473,7 @@ def main():
     # files it touched.
     parser.add_argument("--changed-lines", type=int, default=0)
     parser.add_argument("--changed-file-lines", type=int, default=0)
+    parser.add_argument("--changed-file-lines-delta", type=int, default=0)
     parser.add_argument("--warn-added-per-kloc", type=float, required=True)
     parser.add_argument("--warn-total-per-kloc", type=float, required=True)
     # Errors are judged over the whole tree and blocked on there: there are
@@ -624,18 +600,31 @@ def main():
     standing.sort(key=lambda f: (f["scope"], f["path"], f["line"], f["col"]))
     total = len(standing)
 
+	# emmylua's "warning wobble" moves our counts in untouched files, which we
+    # require to compare equal to themselves; there is no base to compare with,
+    # so we keep them within the defect rate ceiling, same as a brand-new file.
+    base_total = 0
+    for key, count in base_min.items():
+        severity, _, path, _ = key
+        if severity == WARNING and path in changed and count > 0:
+            base_total += count
+
     # A rate needs a denominator. Changed files with no lines to measure -- an
     # empty file added on its own -- would otherwise get a ceiling of zero and
     # fail on a warning they cannot be carrying, so the rule sits that one out.
+    rate_ceiling = int(args.warn_total_per_kloc * args.changed_file_lines / 1000.0)
+    delta_ceiling = int(
+        args.warn_total_per_kloc * args.changed_file_lines_delta / 1000.0
+    )
     budget = {
         "added": added,
         "resolved": resolved,
         "net": added - resolved,
         "added_allowance": int(args.warn_added_per_kloc * args.changed_lines / 1000.0),
         "total": total,
-        "total_allowance": int(
-            args.warn_total_per_kloc * args.changed_file_lines / 1000.0
-        ),
+        "base_total": base_total,
+        # NB: Here is the final statement of the blocking rule:
+        "total_allowance": max(rate_ceiling, base_total + delta_ceiling),
         "total_judged": args.compared and args.changed_file_lines > 0,
     }
 
@@ -644,12 +633,12 @@ def main():
         reasons.append("%d new type error%s" % (len(errors), plural(len(errors))))
     if args.compared and budget["net"] > budget["added_allowance"]:
         reasons.append(
-            "%d net new warning%s on the changed lines over an allowance of %d"
+            "%d net new warning%s on changed lines, max %d"
             % (budget["net"], plural(budget["net"]), budget["added_allowance"])
         )
     if budget["total_judged"] and budget["total"] > budget["total_allowance"]:
         reasons.append(
-            "%d warning%s left in the changed files over a ceiling of %d"
+            "%d warning%s left in changed files, max %d"
             % (budget["total"], plural(budget["total"]), budget["total_allowance"])
         )
 
@@ -657,7 +646,8 @@ def main():
         "%d new finding(s): %d error(s), %d warning(s) -- %d on changed lines, %d "
         "elsewhere in changed files, %d ripple -- %d info/hint. "
         "Added: %d - %d resolved = %d net, allowance %d over %d changed line(s). "
-        "Total: %d warning(s) left in the changed files, ceiling %d over %d line(s). "
+        "Total: %d warning(s) left in the changed files, %d before this change, "
+        "max %d over %d line(s), net growth %d. "
         "%d run(s) per side."
         % (
             len(new),
@@ -673,8 +663,10 @@ def main():
             budget["added_allowance"],
             args.changed_lines,
             budget["total"],
+            budget["base_total"],
             budget["total_allowance"],
             args.changed_file_lines,
+            args.changed_file_lines_delta,
             args.runs,
         )
     )

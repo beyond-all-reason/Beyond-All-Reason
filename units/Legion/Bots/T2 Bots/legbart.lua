@@ -34,6 +34,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies (Model), Phill-Art (Concept)",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 		},

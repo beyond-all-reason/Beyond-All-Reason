@@ -142,10 +142,18 @@ local config = VFS.Include("LuaRules/Configs/quick_start_build_defs.lua")
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
 local overlapLines = VFS.Include("common/overlap_lines.lua")
 local commanderNonLabOptions = config.commanderNonLabOptions
-local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
+
+-- factories carrying customparams.quickstart_discountable earn the quick-start factory
+-- discount; scav copies are excluded so their altered costs can't lower FACTORY_DISCOUNT
+local discountableFactories = {}
+for unitDefID, unitDef in pairs(unitDefs) do
+	if unitDef.isFactory and unitDef.customParams.quickstart_discountable and not unitDef.customParams.isscavenger then
+		discountableFactories[unitDefID] = true
+	end
+end
 
 local gameFrameTryCount = 0
 local initialized = false
@@ -274,11 +282,9 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		boostableCommanders[unitDefID] = true
 	end
 end
-for name, _ in pairs(discountableFactories) do
-	if unitDefNames[name] then
-		local labBudget = defMetergies[unitDefNames[name].id]
-		FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
-	end
+for unitDefID, _ in pairs(discountableFactories) do
+	local labBudget = defMetergies[unitDefID]
+	FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
 	if unitDefNames[commanderName] then
@@ -908,7 +914,7 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 	local projectedBuildProgress = queueBuildForProgression(unitID, unitDef, affordableCost, cost)
 	comData.budget = comData.budget - affordableCost
 
-	if unitDef.isFactory and discountableFactories[unitDef.name] and discount > 0 then
+	if discountableFactories[unitDefID] and discount > 0 then
 		commanderFactoryDiscounts[commanderID] = true
 	end
 

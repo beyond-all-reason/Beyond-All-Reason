@@ -31,8 +31,12 @@ return {
 		turnrate = 1200,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaim_spam = true,
+			reaimtime = 2,
+			stompable = true,
 			subfolder = "CorBots",
 			unitgroup = "weapon",
 		},

@@ -41,6 +41,7 @@ return {
 			unitgroup = "builder",
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
 			techlevel = 1.5,
 		},

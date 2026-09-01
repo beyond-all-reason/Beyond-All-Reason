@@ -42,6 +42,7 @@ return {
 		},
 		customparams = {
 			unitgroup = "weapon",
+			guards_own_builder = true,
 			model_author = "Zath (model), Tuerk (animation)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
