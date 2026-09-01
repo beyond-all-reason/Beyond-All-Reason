@@ -23,8 +23,7 @@ local configSource
 local isExplicitConfig = false
 
 function gadget:Initialize()
-	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-	local ParseBoxes = StartboxLib.ParseBoxes
+	local ParseBoxes = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 	local ok, config, source, isExplicit = pcall(ParseBoxes)
 	if ok then
 		startBoxConfig = config

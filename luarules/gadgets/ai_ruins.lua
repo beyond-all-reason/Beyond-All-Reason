@@ -57,21 +57,7 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
 local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
--- spawnAmountBudget scales ruin amounts with map area.
-local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
-local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
-
-local unitHalfFootprint = {}
-local maxUnitHalfFootprint = 0
-for unitDefID, unitDef in pairs(UnitDefs) do
-	-- xsize/zsize are footprint sizes in map squares
-	local halfFootprint = math.max(unitDef.xsize, unitDef.zsize) * Game.squareSize / 2
-	unitHalfFootprint[unitDefID] = halfFootprint
-
-	if halfFootprint > maxUnitHalfFootprint then
-		maxUnitHalfFootprint = halfFootprint
-	end
-end
+local spawnCutoffFrame = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
 
 -- TODO: Add weights to this crap.
 local landMexesList = {
@@ -578,7 +564,7 @@ local function SpawnMexGeoRandomStructures()
 end
 
 local function SpawnRandomStructures()
-	for i = 1, math.ceil(spawnAmountBudget / 10) do
+	for i = 1, math.ceil(spawnCutoffFrame / 10) do
 		for j = 1, math.ceil(10 * ruinDensityMultiplier) do
 			local posx = math.ceil(math.random(196, Game.mapSizeX - 196) / 16) * 16
 			local posz = math.ceil(math.random(196, Game.mapSizeZ - 196) / 16) * 16
@@ -632,7 +618,37 @@ local function SpawnRandomStructures()
 	end
 end
 
-local function SpawnBlueprintRuin()
+function gadget:GameFrame(n)
+	if n == math.ceil(spawnCutoffFrame * 0.5) then
+		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
+		if mexSpots and #mexSpots > 5 then
+			SpawnMexes(mexSpots)
+		end
+	end
+
+	if n == 30 then
+		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
+		if geoSpots and #geoSpots >= 1 then
+			SpawnGeos(geoSpots)
+		end
+	end
+
+	if n == spawnCutoffFrame + 30 then
+		SpawnMexGeoRandomStructures()
+	end
+
+	if n == spawnCutoffFrame + 60 then
+		SpawnRandomStructures()
+	end
+
+	if
+		n < (5 / ruinDensityMultiplier)
+		or n % math.ceil((5 / ruinDensityMultiplier)) ~= 0
+		or n > spawnCutoffFrame + 5
+	then
+		return
+	end
+
 	local landRuin, seaRuin, posx, posy, posz, seaRuinChance, radius, canBuildHere, r, blueprintTierLevel
 	for i = 1, 100 do
 		local ruin
@@ -709,63 +725,4 @@ local function SpawnBlueprintRuin()
 			end
 		end
 	end
-end
-
-function gadget:GamePreload()
-	if Spring.GetGameRulesParam("loadedGame") == 1 or Spring.GetGameFrame() >= 1 then
-		return -- savegames and mid-game reloads already have their ruins
-	end
-
-	-- spawn order affects placement success rates near resource spots
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots and #geoSpots >= 1 then
-		SpawnGeos(geoSpots)
-	end
-
-	local firstHalfTicks = math.floor(blueprintTicksTotal * 0.5)
-	for _ = 1, firstHalfTicks do
-		SpawnBlueprintRuin()
-	end
-
-	local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
-	if mexSpots and #mexSpots > 5 then
-		SpawnMexes(mexSpots)
-	end
-
-	for _ = 1, blueprintTicksTotal - firstHalfTicks do
-		SpawnBlueprintRuin()
-	end
-
-	SpawnMexGeoRandomStructures()
-	SpawnRandomStructures()
-end
-
-function gadget:GameFramePost(n)
-	if n == 0 then
-		-- commanders were placed in GameStart: clear each one's build range, the ring shown during start placement
-		for _, teamID in ipairs(Spring.GetTeamList()) do
-			if teamID ~= GaiaTeamID then
-				local teamUnits = Spring.GetTeamUnits(teamID)
-				for i = 1, #teamUnits do
-					local commanderID = teamUnits[i]
-					local commanderDef = UnitDefs[Spring.GetUnitDefID(commanderID)]
-					if commanderDef.customParams.iscommander then
-						local clearRadius = commanderDef.buildDistance
-						local x, _, z = Spring.GetUnitPosition(commanderID)
-						local nearbyRuins =
-							Spring.GetUnitsInCylinder(x, z, clearRadius + maxUnitHalfFootprint, GaiaTeamID)
-						for j = 1, #nearbyRuins do
-							local unitID = nearbyRuins[j]
-							local ux, _, uz = Spring.GetUnitPosition(unitID)
-							if math.distance2d(ux, uz, x, z) < clearRadius + unitHalfFootprint[Spring.GetUnitDefID(unitID)] then
-								Spring.DestroyUnit(unitID, false, true)
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	gadgetHandler:RemoveGadget(self)
 end

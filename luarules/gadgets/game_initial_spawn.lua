@@ -667,7 +667,8 @@ if gadgetHandler:IsSyncedCode() then
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
 				if x <= 0 or z <= 0 then
-					x, z = MiddleOfStartbox(allyTeamID, xmin, zmin, xmax, zmax)
+					x = (xmin + xmax) / 2
+					z = (zmin + zmax) / 2
 				end
 			end
 		end

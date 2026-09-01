@@ -158,7 +158,7 @@ function widget:Initialize()
 	shaderConfig.POST_SHADING = "fragColor.a = fragColor.a * g_color.a;" -- alpha blend
 	shaderConfig.ANIMATION = nil
 	shaderConfig.USE_CIRCLES = nil
-	shaderConfig.MAXVERTICES = 4
+	shaderConfig.MAX_VERTICES = 4
 	shaderConfig.USE_CORNERRECT = nil
 	flankingVBO, flankingShader = InitDrawPrimitiveAtUnit(shaderConfig, "FlankingIcons")
 	if flankingVBO == nil then

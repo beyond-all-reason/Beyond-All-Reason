@@ -6,6 +6,18 @@ local scavengerAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 
 if BAR.Utilities.Gametype.IsScavengers() then
 	scavengersAIEnabled = true
+	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax =
+		Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
+	if
+		ScavengerStartboxXMin == 0
+		and ScavengerStartboxZMin == 0
+		and ScavengerStartboxXMax == mapsizeX
+		and ScavengerStartboxZMax == mapsizeZ
+	then
+		ScavengerStartboxExists = false
+	else
+		ScavengerStartboxExists = true
+	end
 end
 
 if

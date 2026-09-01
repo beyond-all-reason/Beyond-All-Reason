@@ -17,8 +17,6 @@ function widget:GetInfo()
 	}
 end
 
-local removeWhenSpec = false -- remove the widget when spectating (or when the game has started and the player is a spectator)
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 
@@ -58,19 +56,6 @@ local unitZsize = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.isFactory == false or #def.buildOptions == 0 then
 		isntFactory[udefID] = true
-	else
-		-- factories that only build flying units (air labs) have no fixed exit point, so facing is meaningless
-		local buildsGroundUnit = false
-		for i = 1, #def.buildOptions do
-			local buildDef = UnitDefs[def.buildOptions[i]]
-			if buildDef and not buildDef.canFly then
-				buildsGroundUnit = true
-				break
-			end
-		end
-		if not buildsGroundUnit then
-			isntFactory[udefID] = true
-		end
 	end
 	unitZsize[udefID] = def.zsize
 end
@@ -251,7 +236,7 @@ local function drawArrowQuad()
 end
 
 local function maybeRemoveSelf()
-	if removeWhenSpec and Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -590,6 +575,6 @@ function widget:Update()
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	drawOrientation()
 end

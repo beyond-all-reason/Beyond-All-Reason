@@ -602,8 +602,6 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 		newVBOTable.VAO = newVAO
 	else
 		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
-		-- so the resize can find the quad when it rebuilds the VAO
-		newVBOTable.vertexVBO = unitQuadVBO
 	end
 	if usesFeatures then
 		newVBOTable.featureIDs = true

@@ -75,6 +75,9 @@ local aliveSpawners = {}
 local aliveSpawnersCount = 0
 local lastTransportSentFrame = 0
 local handledLootboxesList = {}
+local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax =
+	Spring.GetAllyTeamStartBox(scavAllyTeamID)
+
 local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)

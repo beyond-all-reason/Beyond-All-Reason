@@ -21,7 +21,6 @@ end
 
 local config = VFS.Include("LuaRules/Configs/raptor_spawn_defs.lua")
 local EnemyLib = VFS.Include("LuaRules/Gadgets/Include/SpawnerEnemyLib.lua")
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -873,10 +872,8 @@ if gadgetHandler:IsSyncedCode() then
 					0.5 * math.min(RaptorStartboxXMax - RaptorStartboxXMin, RaptorStartboxZMax - RaptorStartboxZMin)
 				)
 				for _ = 1, 100 do
-					spawnPosX, spawnPosZ = StartboxLib.GetRandomPos(raptorAllyTeamID, spreadStartBox, 1)
-					if not spawnPosX then
-						break
-					end
+					spawnPosX = mRandom(RaptorStartboxXMin + spreadStartBox, RaptorStartboxXMax - spreadStartBox)
+					spawnPosZ = mRandom(RaptorStartboxZMin + spreadStartBox, RaptorStartboxZMax - spreadStartBox)
 					spawnPosY = GetGroundHeight(spawnPosX, spawnPosZ)
 					canSpawnBurrow =
 						positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spreadStartBox, 30, true)
@@ -1216,10 +1213,8 @@ if gadgetHandler:IsSyncedCode() then
 		local tries = 0
 		local canSpawnQueen = false
 		repeat
-			x, z = StartboxLib.GetRandomPos(raptorAllyTeamID, 0, 1)
-			if not x then
-				break
-			end
+			x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+			z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
 			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, true)
@@ -1264,10 +1259,8 @@ if gadgetHandler:IsSyncedCode() then
 			return CreateUnit(config.queenName, x, y, z, mRandom(0, 3), raptorTeamID)
 		else
 			for i = 1, 100 do
-				x, z = StartboxLib.GetRandomPos(raptorAllyTeamID, 0, 1)
-				if not x then
-					break
-				end
+				x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+				z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 				y = GetGroundHeight(x, z)
 
 				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, raptorAllyTeamID)
@@ -2128,7 +2121,7 @@ if gadgetHandler:IsSyncedCode() then
 						"No Raptor start box available, Burrow Placement set to 'Avoid Players'"
 					)
 					noRaptorStartbox = true
-				elseif not StartboxLib.HasStartbox(raptorAllyTeamID) then
+				elseif lsx1 == 0 and lsz1 == 0 and lsx2 == Game.mapSizeX and lsz2 == Game.mapSizeX then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(
 						gadget:GetInfo().name,

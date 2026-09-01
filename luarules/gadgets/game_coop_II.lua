@@ -21,8 +21,6 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Synced Var
 	----------------------------------------------------------------
-	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-
 	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
 	GG.coopStartPoints = coopStartPoints -- Share to other gadgets
 
@@ -83,7 +81,9 @@ if gadgetHandler:IsSyncedCode() then
 			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID, false)
 			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
-				x, z = StartboxLib.ClosestPos(allyID, x, z)
+				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+				x = math.clamp(x, xmin, xmax)
+				z = math.clamp(z, zmin, zmax)
 
 				SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
 				return false
@@ -140,19 +140,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if x <= 0 or z <= 0 then --TODO: improve this
+			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
 			local tx, tz
 			if GG.teamStartPoints then
 				tx = GG.teamStartPoints[teamID][1]
 				tz = GG.teamStartPoints[teamID][3]
 			else
-				tx, tz = StartboxLib.GetCenter(allyID)
+				tx = (xmin + xmax) / 2
+				tz = (zmin + zmax) / 2
 			end
 			local thetaStart = math.random(15) - 1
 			for theta = thetaStart, 15 + thetaStart do
 				local sx = tx + 45 * math.cos((math.pi / 8) * theta)
 				local sz = tz + 45 * math.sin((math.pi / 8) * theta)
 				if not IsSteep(sx, sz) then
-					x, z = StartboxLib.ClosestPos(allyID, sx, sz)
+					x = math.clamp(sx, xmin, xmax)
+					x = math.clamp(sz, zmin, zmax)
 					break
 				else -- fallback
 					x = tx
