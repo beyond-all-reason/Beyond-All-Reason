@@ -282,6 +282,13 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
+
+	-- skip if scenario or mission options disable initial commander spawn
+	if VFS.Include("luaui/Include/mission_options.lua").IsInitialCommanderSpawnDisabled() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
