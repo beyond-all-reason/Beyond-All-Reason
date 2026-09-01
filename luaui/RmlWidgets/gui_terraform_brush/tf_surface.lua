@@ -133,37 +133,39 @@ function M.attach(doc, ctx)
 	end
 	-- FLIP: per-texture normal G toggle, straight through to the tileset shader
 	-- (asset-keyed there, so re-picking the same texture into another slot keeps
-	-- the flag). Base chip included — its texture is every empty slot's fallback.
-	local function hookNormalFlip(el, resolveAsset)
-		if not el then
-			return
+	-- the flag). ONE button acting on the SELECTED slot (BASE = slot 0, whose
+	-- texture is every empty slot's fallback): a FLIP on every tile left
+	-- PICK / FLIP / X too cramped to hit.
+	local function selectedSurfAsset()
+		local sp = WG.SurfacePainter
+		local st = sp and sp.getState and sp.getState()
+		if not st then
+			return nil
 		end
-		el:AddEventListener("mousedown", function(event)
+		local sel = st.selSlot or 0
+		if sel == 0 then
 			local T = WG.TilesetTerrain
-			local asset = (T and T.setNormalFlip) and resolveAsset() or nil
+			local list = T and T.getSurfaceVariants and T.getSurfaceVariants()
+			return list and list[1] and list[1].asset
+		end
+		return st["slot" .. sel]
+	end
+	widgetState.surfSelectedAsset = selectedSurfAsset
+	widgetState.surfFlipSelEl = doc:GetElementById("surf-flip-sel")
+	if widgetState.surfFlipSelEl then
+		widgetState.surfFlipSelEl:AddEventListener("mousedown", function(event)
+			local T = WG.TilesetTerrain
+			local asset = (T and T.setNormalFlip) and selectedSurfAsset() or nil
 			if asset then
 				local on = not T.getNormalFlip(asset)
 				T.setNormalFlip(asset, on)
-				el:SetClass("active", on)
+				widgetState.surfFlipSelEl:SetClass("active", on)
 				ctx.playSound(on and "toggleOn" or "toggleOff")
+			else
+				ctx.playSound("click") -- selected slot has no texture to flip
 			end
 			event:StopPropagation()
 		end, false)
-	end
-	widgetState.surfSlotFlipEls = { base = doc:GetElementById("surf-slot-base-flip") }
-	hookNormalFlip(widgetState.surfSlotFlipEls.base, function()
-		local T = WG.TilesetTerrain
-		local list = T.getSurfaceVariants and T.getSurfaceVariants()
-		return list and list[1] and list[1].asset
-	end)
-	for slot = 1, MAX_SLOTS do
-		local el = doc:GetElementById("surf-slot-" .. slot .. "-flip")
-		widgetState.surfSlotFlipEls[slot] = el
-		hookNormalFlip(el, function()
-			local sp = WG.SurfacePainter
-			local st = sp and sp.getState and sp.getState()
-			return st and st["slot" .. slot]
-		end)
 	end
 	local closeBtn = doc:GetElementById("surf-picker-close")
 	if closeBtn then
@@ -668,31 +670,25 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
 	-- channel is both assigned and switched on.
 	local canFill = false
-	local flipEls = widgetState.surfSlotFlipEls or {}
 	for i = 1, MAX_SLOTS do
 		local asset = surfState["slot" .. i]
 		local fill = surfState["fillV" .. i]
 		setDm("surfSlot" .. i .. "Name", shortAsset(asset))
 		setDm("surfSlot" .. i .. "Assigned", asset ~= nil)
 		setDm("surfFillV" .. i, fill and true or false)
-		if flipEls[i] then
-			local fl = false
-			if asset and T and T.getNormalFlip then
-				fl = T.getNormalFlip(asset)
-			end
-			flipEls[i]:SetClass("active", fl)
-		end
 		if asset and fill then
 			canFill = true
 		end
 	end
-	if flipEls.base then
-		local baseAsset = list and list[1] and list[1].asset
+	-- The single FLIP button mirrors the SELECTED slot's flag (BASE included)
+	if widgetState.surfFlipSelEl then
+		local selAsset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
 		local fl = false
-		if baseAsset and T and T.getNormalFlip then
-			fl = T.getNormalFlip(baseAsset)
+		if selAsset and T and T.getNormalFlip then
+			fl = T.getNormalFlip(selAsset)
 		end
-		flipEls.base:SetClass("active", fl)
+		widgetState.surfFlipSelEl:SetClass("active", fl)
+		widgetState.surfFlipSelEl:SetClass("unavailable", selAsset == nil)
 	end
 	setDm("surfCanFill", canFill)
 	setDm("surfPickSlot", pickSlot or 0)

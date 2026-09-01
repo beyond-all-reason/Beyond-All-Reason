@@ -5488,6 +5488,12 @@
 							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
 								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
 							</div>
+							<!-- FLIP acts on the SELECTED slot (BASE included): one always-present
+							     button instead of a per-tile one, which left PICK / FLIP / X too
+							     cramped to hit. -->
+							<div id="surf-flip-sel" class="tf-overlay-chip" style="margin-left: 4dp;">
+								<div class="tf-overlay-chip-label">FLIP</div>
+							</div>
 						</div>
 						<!-- SLOT RAIL. One tile per slot, thumbnail first: the texture is what
 						     the artist picks by, so it gets the space. ONE CLICK, ONE ACTION —
@@ -5501,7 +5507,6 @@
 								<div class="surf-slot-cap text-light">BASE</div>
 								<div class="surf-slot-actions">
 									<div class="surf-slot-btn surf-slot-btn-mute">PAINT</div>
-									<div id="surf-slot-base-flip" class="surf-slot-btn">FLIP</div>
 								</div>
 							</div>
 							<div id="surf-slot-1" class="surf-slot-chip surf-slot-c1" data-class-active="surfSelSlot == 1" data-class-surf-slot-empty="!surfSlot1Assigned" data-event-mousedown="onSurfSlotSelect(1)">
@@ -5509,7 +5514,6 @@
 								<div class="surf-slot-cap surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-1-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 1">PICK</div>
-									<div id="surf-slot-1-flip" class="surf-slot-btn" data-if="surfSlot1Assigned">FLIP</div>
 									<div id="surf-slot-1-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot1Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5518,7 +5522,6 @@
 								<div class="surf-slot-cap surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-2-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 2">PICK</div>
-									<div id="surf-slot-2-flip" class="surf-slot-btn" data-if="surfSlot2Assigned">FLIP</div>
 									<div id="surf-slot-2-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot2Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5527,7 +5530,6 @@
 								<div class="surf-slot-cap surf-text-c3">3 &#183; {{surfSlot3Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-3-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 3">PICK</div>
-									<div id="surf-slot-3-flip" class="surf-slot-btn" data-if="surfSlot3Assigned">FLIP</div>
 									<div id="surf-slot-3-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot3Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5538,7 +5540,6 @@
 								<div class="surf-slot-cap surf-text-c4">4 &#183; {{surfSlot4Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-4-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 4">PICK</div>
-									<div id="surf-slot-4-flip" class="surf-slot-btn" data-if="surfSlot4Assigned">FLIP</div>
 									<div id="surf-slot-4-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot4Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5547,7 +5548,6 @@
 								<div class="surf-slot-cap surf-text-c5">5 &#183; {{surfSlot5Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-5-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 5">PICK</div>
-									<div id="surf-slot-5-flip" class="surf-slot-btn" data-if="surfSlot5Assigned">FLIP</div>
 									<div id="surf-slot-5-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot5Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5556,7 +5556,6 @@
 								<div class="surf-slot-cap surf-text-c6">6 &#183; {{surfSlot6Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-6-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 6">PICK</div>
-									<div id="surf-slot-6-flip" class="surf-slot-btn" data-if="surfSlot6Assigned">FLIP</div>
 									<div id="surf-slot-6-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot6Assigned">&#215;</div>
 								</div>
 							</div>
@@ -5565,7 +5564,6 @@
 								<div class="surf-slot-cap surf-text-c7">7 &#183; {{surfSlot7Name}}</div>
 								<div class="surf-slot-actions">
 									<div id="surf-slot-7-pick" class="surf-slot-btn" data-class-active="surfPickSlot == 7">PICK</div>
-									<div id="surf-slot-7-flip" class="surf-slot-btn" data-if="surfSlot7Assigned">FLIP</div>
 									<div id="surf-slot-7-free" class="surf-slot-btn surf-slot-x" data-if="surfSlot7Assigned">&#215;</div>
 								</div>
 							</div>
