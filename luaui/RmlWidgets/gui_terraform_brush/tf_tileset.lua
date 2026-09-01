@@ -230,6 +230,66 @@ local function rebuildS4Palette(doc, ctx, list, current)
 	end
 end
 
+-- BIOME LIBRARY tiles: built from WG.TilesetTerrain.getBiomes(), one manifest
+-- per biome in tileset_dev/tilesets/, so a biome added on disk shows up without
+-- an RML edit. Thumbnails are GL overdraws (gui_terraform_brush.lua's
+-- drawTsBiomeThumbs), like the EXTRA LAYER material tiles above.
+local function rebuildBiomePalette(doc, ctx, rows, activeKey)
+	local widgetState = ctx.widgetState
+	local grid = doc:GetElementById("ts-biome-grid")
+	widgetState.tsBiomeSectionEl = doc:GetElementById("section-ts-library")
+	if not grid then
+		return
+	end
+	grid.inner_rml = ""
+	widgetState.tsBiomeTileEls = {}
+	local row
+	for i = 1, #rows do
+		local b = rows[i]
+		if not row or ((i - 1) % 3) == 0 then
+			row = doc:CreateElement("div")
+			row:SetClass("tf-biome-grid", true)
+			row:SetClass("flex", true)
+			row:SetClass("flex-row", true)
+			row:SetClass("gap-1", true)
+			row:SetClass("mb-1", true)
+			grid:AppendChild(row)
+		end
+		local tile = doc:CreateElement("div")
+		tile:SetClass("tf-biome-tile", true)
+		if b.key == activeKey then
+			tile:SetClass("active", true)
+		end
+		if b.file then
+			tile:SetAttribute("title", b.file)
+		end
+		local thumb = doc:CreateElement("div")
+		thumb:SetClass("tf-biome-thumb", true)
+		tile:AppendChild(thumb)
+		local name = doc:CreateElement("div")
+		name:SetClass("tf-biome-name", true)
+		name.inner_rml = b.name or b.key
+		tile:AppendChild(name)
+		tile:AddEventListener("mousedown", function(_event)
+			if widgetState.pickBiome then
+				widgetState.pickBiome(b.key)
+			end
+		end, false)
+		row:AppendChild(tile)
+		widgetState.tsBiomeTileEls[#widgetState.tsBiomeTileEls + 1] = { el = thumb, tex = b.thumb, crop = b.thumbCrop }
+	end
+	-- invisible pads keep a short last row at tile width (flex: 1 1 0)
+	local rem = #rows % 3
+	if row and rem > 0 then
+		for _ = 1, 3 - rem do
+			local pad = doc:CreateElement("div")
+			pad:SetClass("tf-biome-tile", true)
+			pad:SetClass("tf-biome-pad", true)
+			row:AppendChild(pad)
+		end
+	end
+end
+
 function M.sync(doc, ctx, setSummary)
 	if not doc or not WG.TilesetTerrain then
 		return
@@ -332,6 +392,21 @@ function M.sync(doc, ctx, setSummary)
 			end
 		end
 	end
+	-- BIOME LIBRARY tiles: rebuild when the manifest list, a thumbnail or the
+	-- active biome changes (covers startup, /tileset biomes reload, console picks).
+	if WG.TilesetTerrain.getBiomes then
+		local rows = WG.TilesetTerrain.getBiomes()
+		local sigParts = { tostring(dm.tsBiome) }
+		for i = 1, #rows do
+			sigParts[#sigParts + 1] = rows[i].key .. "=" .. tostring(rows[i].thumb)
+		end
+		local sig = table.concat(sigParts, "|")
+		if widgetState.tsBiomeSig ~= sig then
+			widgetState.tsBiomeSig = sig
+			rebuildBiomePalette(doc, ctx, rows, dm.tsBiome)
+		end
+	end
+
 	-- Material picker tiles: rebuild when the biome catalog or the pick changes
 	-- (covers startup, biome swaps and console /tileset s4).
 	if WG.TilesetTerrain.getSlot4Materials then

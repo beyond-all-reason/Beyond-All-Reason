@@ -350,7 +350,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
-	-- Used to auto-blur when game chat is opened, so chat keys aren't stolen by RmlUI.
+	-- Used to auto-blur when game chat is opened, so Tab autocomplete isn't stolen by RmlUI.
 	focusedRmlInput = nil,
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
@@ -923,23 +923,26 @@ widgetState.applySkybox = applySkybox
 -- vary (SpaceSkybox1/2/3, EarthSkybox1/2/3, ...). namaqualand -> red desert planet
 -- is our pick (user specified only bismuth/teizer/enborelde).
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
-local BIOME_SKYBOX_MATCH = {
-	bismuth = "spaceskybox", -- starry sky
-	teizer = "goldsunrise", -- sunset (bespoke desert kept the old pick)
-	protodesert = "goldsunrise", -- the renamed original Teizer stand-in set
-	enborelde = "earthskybox", -- sunny blue sky with clouds (bespoke earthlike kept the old pick)
-	prototemperate = "earthskybox", -- the renamed original Enborelde stand-in set
-	namaqualand = "redplanet", -- red desert planet
-	palehang = "allthatglitters", -- crystal-desert sky (Theta Crystals family)
-}
+-- The fragment per biome comes from its manifest (tileset_dev/tilesets/<key>.lua,
+-- field `skybox`), read through WG.TilesetTerrain.getBiomes(); nothing is
+-- hardcoded here any more, so a new biome brings its own sky.
 
 -- Resolve a biome key to a full DDS path in the skybox library, or nil if unmapped /
 -- the matching file is absent. Deterministic: lowest-sorted name wins (so *1 variants).
 local function resolveBiomeSkybox(biomeKey)
-	local frag = BIOME_SKYBOX_MATCH[biomeKey]
-	if not frag then
+	local frag
+	local T = WG.TilesetTerrain
+	local rows = T and T.getBiomes and T.getBiomes()
+	for _, b in ipairs(rows or {}) do
+		if b.key == biomeKey then
+			frag = b.skybox
+			break
+		end
+	end
+	if not frag or frag == "" then
 		return nil
 	end
+	frag = tostring(frag):lower()
 	local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
 	table.sort(files)
 	for _, fp in ipairs(files) do
@@ -965,6 +968,27 @@ local function syncSkyboxToBiome(biomeKey)
 	for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
 		t.element:SetClass("active", t.path == sky)
 	end
+end
+
+-- Pick a biome: shared by the data-model onPickBiome and the BIOME LIBRARY
+-- tiles tf_tileset.lua builds at runtime from the manifests. On widgetState,
+-- not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
+widgetState.pickBiome = function(key)
+	if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
+		return false
+	end
+	local ok = WG.TilesetTerrain.setBiome(key)
+	if ok then
+		playSound("click")
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsBiome = key
+		end
+		-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
+		-- toggle on, or when the manifest names no sky).
+		syncSkyboxToBiome(key)
+	end
+	return ok
 end
 
 local function tickSkyboxFade(dt)
@@ -9922,20 +9946,7 @@ local initialModel = {
 		end
 	end,
 	onPickBiome = function(_event, key)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
-			return
-		end
-		local ok = WG.TilesetTerrain.setBiome(key)
-		if ok then
-			playSound("click")
-			local dm = widgetState.dmHandle
-			if dm then
-				dm.tsBiome = key
-			end
-			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
-			-- toggle on; also no-op on maps that booted without a real cubemap sky).
-			syncSkyboxToBiome(key)
-		end
+		widgetState.pickBiome(key)
 	end,
 	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
 	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
@@ -14778,6 +14789,62 @@ widgetState.drawTs4PaletteThumbs = function()
 	gl.Color(1, 1, 1, 1)
 end
 
+-- GL thumbnails for the BIOME LIBRARY tiles (tf_tileset.lua's rebuildBiomePalette):
+-- the shipped biome_<key>.png or a manifest `thumb` drawn whole, or the base
+-- layer's albedo as a centered crop when a biome has neither. Same mechanism and
+-- gates as drawTs4PaletteThumbs above.
+widgetState.drawTsBiomeThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.tsBiomeSectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.tsBiomeTileEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if gl.Texture(0, tex) then
+					if els[i].crop then
+						-- a 4K albedo at 60dp reads as noise: centered quarter crop
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					else
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0, 1, 1, 0)
+					end
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawScreenPost()
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
@@ -14787,6 +14854,9 @@ function widget:DrawScreenPost()
 
 	-- EXTRA LAYER material tile thumbnails (early-outs on its own window check).
 	widgetState.drawTs4PaletteThumbs()
+
+	-- BIOME LIBRARY tile thumbnails (same gates).
+	widgetState.drawTsBiomeThumbs()
 
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
@@ -15603,7 +15673,7 @@ function widget:Update()
 		end
 
 		-- When game chat input is open, auto-blur any focused RmlUI text input so
-		-- keystrokes reach the chat widget instead of navigating RmlUI fields.
+		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
 		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil

@@ -3654,6 +3654,13 @@ margin-top: 3dp;
 	width: 60dp;
 	height: 60dp;
 	border-radius: 3dp;
+	/* an empty rect the widget overdraws with the thumbnail via gl.TexRect
+	   (DrawScreenPost); the tint shows until the texture is resident */
+	background-color: #26263699;
+}
+/* invisible filler so a short last row keeps the tile width */
+.tf-biome-tile.tf-biome-pad {
+	visibility: hidden;
 }
 .tf-biome-name {
 	margin-top: 2dp;

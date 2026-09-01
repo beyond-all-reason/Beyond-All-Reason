@@ -5887,34 +5887,10 @@
 							<div class="tf-collapsible-title">BIOME LIBRARY</div>
 						</div>
 						<div id="section-ts-library">
-							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'namaqualand'" data-event-mousedown="onPickBiome('namaqualand')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_namaqualand.png" />
-									<div class="tf-biome-name">Namaqualand</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'teizer'" data-event-mousedown="onPickBiome('teizer')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_teizer.png" />
-									<div class="tf-biome-name">Teizer-5</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'enborelde'" data-event-mousedown="onPickBiome('enborelde')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_enborelde.png" />
-									<div class="tf-biome-name">Enborelde</div>
-								</div>
-							</div>
-							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'protodesert'" data-event-mousedown="onPickBiome('protodesert')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
-									<div class="tf-biome-name">Protodesert</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
-									<div class="tf-biome-name">Prototemperate</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'palehang'" data-event-mousedown="onPickBiome('palehang')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_palehang.png" />
-									<div class="tf-biome-name">Pale Hang</div>
-								</div>
-							</div>
+							<!-- Biome tiles are built at sync from WG.TilesetTerrain.getBiomes() (one
+							     manifest per biome in tileset_dev/tilesets/); thumbnails are GL overdraws
+							     like the EXTRA LAYER material tiles (tf_tileset.lua rebuildBiomePalette). -->
+							<div id="ts-biome-grid"></div>
 							<div class="text-base text-light" style="opacity: 0.7;">Swaps all four terrain layers live.</div>
 							<div class="flex flex-row gap-1 items-center mb-1" style="margin-top: 4dp;">
 								<img id="btn-ts-skybox-sync" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleSkyboxSync()" />
