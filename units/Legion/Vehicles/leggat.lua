@@ -44,6 +44,7 @@ return {
 			lumamult = "1.2",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {

@@ -32,6 +32,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/arm_normal.dds",
+			reaimtime = 4,
 			removewait = true,
 			techlevel = 2,
 			subfolder = "CorBuildings/SeaDefence",
