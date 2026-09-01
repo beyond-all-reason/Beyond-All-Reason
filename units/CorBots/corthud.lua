@@ -32,8 +32,10 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "jjackVII",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "CorBots",
 			unitgroup = "weapon",
 		},

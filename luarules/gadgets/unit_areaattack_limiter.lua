@@ -31,13 +31,13 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	end
 end
 
+-- customparams.areaattack_unlimited: must classify identically in
+-- cmd_exclude_walls_area_attacks.lua and cmd_bomber_attack_building_ground.lua
 local isBomberUnitDef = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if
 		(unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
-		or string.find(unitDef.name, "armlance")
-		or string.find(unitDef.name, "cortitan")
-		or string.find(unitDef.name, "legatorpbomber")
+		or unitDef.customParams.areaattack_unlimited
 	then
 		isBomberUnitDef[unitDefID] = true
 	end

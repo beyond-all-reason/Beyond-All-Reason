@@ -17,8 +17,11 @@ function widget:GetInfo()
 	}
 end
 
+local removeWhenSpec = false -- remove the widget when spectating (or when the game has started and the player is a spectator)
+
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local spGetDrawFrame = Spring.GetDrawFrame
 
 -- 1.1 Tweaks by Pako, big thx!
 
@@ -36,6 +39,9 @@ local ARROW_CHEVRON_DEPTH = 0.45 -- inner chevron position, 0 = at the tip edges
 local ARROW_CHEVRON_WIDTH = 1.5 -- elmos
 local ARROW_CHEVRON_BASE_GAP = 5 -- elmos the chevron legs stop short of the flat side
 local ARROW_GAP = 2 -- elmos between the building footprint and the arrow's flat side
+local PREUNIT_PASS_ALPHA = 0.8 -- opacity multiplier of the base DrawWorldPreUnit pass
+local OVERLAY_PASS_ENABLED = true -- redraw the arrow in DrawWorld (on top of units) so it stays faintly visible when covered
+local OVERLAY_PASS_ALPHA = 0.3 -- opacity multiplier of the DrawWorld overlay pass
 
 --------------------------------------------------------------------------------
 
@@ -56,6 +62,19 @@ local unitZsize = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.isFactory == false or #def.buildOptions == 0 then
 		isntFactory[udefID] = true
+	else
+		-- factories that only build flying units (air labs) have no fixed exit point, so facing is meaningless
+		local buildsGroundUnit = false
+		for i = 1, #def.buildOptions do
+			local buildDef = UnitDefs[def.buildOptions[i]]
+			if buildDef and not buildDef.canFly then
+				buildsGroundUnit = true
+				break
+			end
+		end
+		if not buildsGroundUnit then
+			isntFactory[udefID] = true
+		end
 	end
 	unitZsize[udefID] = def.zsize
 end
@@ -122,6 +141,7 @@ uniform float outlineWidth; // elmos
 uniform float chevronDepth; // 0..1 along the leading-edge distance
 uniform float chevronWidth; // elmos
 uniform float chevronBaseGap; // elmos the chevron legs stop short of the base
+uniform float alphaMultiplier;
 uniform vec4 fillColor;
 uniform vec4 outlineColor;
 varying vec2 vLocal;
@@ -184,7 +204,7 @@ void main() {
 	float detail = max(outline, chevron * 0.85);
 	vec3 color = mix(fillColor.rgb, outlineColor.rgb, detail);
 	float alpha = mix(fillAlpha, outlineColor.a, detail);
-	gl_FragColor = vec4(color, alpha * coverage);
+	gl_FragColor = vec4(color, alpha * coverage * alphaMultiplier);
 }
 ]]
 
@@ -202,6 +222,7 @@ local function initArrowShader()
 			chevronDepth = ARROW_CHEVRON_DEPTH,
 			chevronWidth = ARROW_CHEVRON_WIDTH,
 			chevronBaseGap = ARROW_CHEVRON_BASE_GAP,
+			alphaMultiplier = 1.0,
 			fillColor = ARROW_FILL_COLOR,
 			outlineColor = ARROW_OUTLINE_COLOR,
 		},
@@ -211,6 +232,7 @@ local function initArrowShader()
 		return
 	end
 	arrowUniforms.worldScale = gl.GetUniformLocation(arrowShader, "worldScale")
+	arrowUniforms.alphaMultiplier = gl.GetUniformLocation(arrowShader, "alphaMultiplier")
 end
 
 local function deleteArrowShader()
@@ -236,7 +258,7 @@ local function drawArrowQuad()
 end
 
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+	if removeWhenSpec and Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -465,20 +487,26 @@ local function manipulateFacing()
 	ineffect = true
 end
 
-local function drawOrientation()
+-- Placement computed once per draw frame in DrawWorldPreUnit; the DrawWorld overlay pass reuses it.
+local arrowDrawFrame = -1
+local arrowX, arrowY, arrowZ = 0, 0, 0
+local arrowFacing = 0
+local arrowWorldScale = 1
+
+local function computeArrowPlacement()
 	local forceShowUnitDefID = getForceShowUnitDefID()
 	if not ineffect and not forceShowUnitDefID then
-		return
+		return false
 	end
 
 	local _, cmd_id, cmd_type = spGetActiveCommand()
 	if cmd_type ~= 20 and not forceShowUnitDefID then
-		return -- quit here if not a build command
+		return false -- quit here if not a build command
 	end
 
 	local unitDefID = forceShowUnitDefID or -cmd_id
 	if drawForAll == false and isntFactory[unitDefID] then
-		return
+		return false
 	end
 
 	local mx, my = spGetMouseState()
@@ -490,7 +518,7 @@ local function drawOrientation()
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
 	if not coords then
-		return
+		return false
 	end
 
 	local facing = spGetBuildFacing()
@@ -508,19 +536,27 @@ local function drawOrientation()
 		transX = -transDistance
 	end
 
-	local worldScale = (transSpace or 70) / 70
+	arrowX = centerX + transX
+	arrowY = centerY
+	arrowZ = centerZ + transZ
+	arrowFacing = facing
+	arrowWorldScale = (transSpace or 70) / 70
+	return true
+end
 
+local function drawOrientation(alphaMultiplier)
 	glLineWidth(1)
-	glColor(0.0, 1.0, 0.0, 0.45)
+	glColor(0.0, 1.0, 0.0, 0.45 * alphaMultiplier)
 
 	glPushMatrix()
 	gl.DepthTest(false)
-	glTranslate(centerX + transX, centerY, centerZ + transZ)
-	glRotate((3 + facing) * 90, 0, 1, 0)
-	glScale(worldScale, 1.0, worldScale)
+	glTranslate(arrowX, arrowY, arrowZ)
+	glRotate((3 + arrowFacing) * 90, 0, 1, 0)
+	glScale(arrowWorldScale, 1.0, arrowWorldScale)
 	if arrowShader then
 		glUseShader(arrowShader)
-		glUniform(arrowUniforms.worldScale, worldScale)
+		glUniform(arrowUniforms.worldScale, arrowWorldScale)
+		glUniform(arrowUniforms.alphaMultiplier, alphaMultiplier)
 		glBeginEnd(GL_QUADS, drawArrowQuad)
 		glUseShader(0)
 	else
@@ -575,6 +611,24 @@ function widget:Update()
 	end
 end
 
+function widget:DrawWorldPreUnit()
+	if computeArrowPlacement() then
+		arrowDrawFrame = spGetDrawFrame()
+		if PREUNIT_PASS_ALPHA > 0 then
+			drawOrientation(PREUNIT_PASS_ALPHA)
+		end
+	end
+end
+
+-- Overlay pass: redraws the arrow that DrawWorldPreUnit just drew, on top of units, at reduced opacity so it stays
+-- visible when covered. Reuses the placement computed by the pre-unit pass; only the alpha multiplier differs.
 function widget:DrawWorld()
-	drawOrientation()
+	if
+		not OVERLAY_PASS_ENABLED
+		or OVERLAY_PASS_ALPHA <= 0
+		or arrowDrawFrame ~= spGetDrawFrame()
+	then
+		return
+	end
+	drawOrientation(OVERLAY_PASS_ALPHA)
 end

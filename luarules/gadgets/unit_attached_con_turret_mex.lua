@@ -21,16 +21,19 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
 
--- TODO: do not use hardcoded unit names
-local unitDefData = {
-	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
-}
-for unitName, unitPair in pairs(unitDefData) do
-	if not unitName:find("_scav") then
-		unitDefData[unitName .. "_scav"] = {
-			mex = unitPair.mex .. "_scav",
-			con = unitPair.con .. "_scav",
-		}
+-- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
+-- mark builds that split into a mex plus an attached con turret; scav copies inherit the
+-- params and get the _scav variants of both spawned defs
+local unitDefData = {}
+for udid, ud in pairs(UnitDefs) do
+	local con = ud.customParams.attached_con_turret
+	local mex = ud.customParams.attached_con_turret_mex
+	if con and mex then
+		if ud.customParams.isscavenger then
+			con = con .. "_scav"
+			mex = mex .. "_scav"
+		end
+		unitDefData[ud.name] = { mex = mex, con = con }
 	end
 end
 
