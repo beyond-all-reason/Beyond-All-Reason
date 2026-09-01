@@ -5,7 +5,7 @@
 	    lua tools/validate_mission.lua <missionFolder> [options]
 
 	<missionFolder> is a mission folder, e.g.
-	    missions/campaigns/armada/sound_test
+	    data/singleplayer/campaigns/armada/sound_test
 
 	The mission.json inside it is read to resolve team and ally team names.
 

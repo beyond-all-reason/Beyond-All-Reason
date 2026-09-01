@@ -1,7 +1,0 @@
-{
-	"$schema": "schemata/manifest.schema.json",
-
-	"campaigns": ["armada-main", "cortex-main"],
-
-	"scenarios": []
-}

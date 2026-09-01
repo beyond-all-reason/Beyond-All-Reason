@@ -1,0 +1,33 @@
+{
+	"$schema": "../../../schemas/mission.schema.json",
+	"missionId": "stages_and_objectives_test",
+	"title": "Stages and Objectives Test",
+	"description": "Tests stages and objectives.",
+	"startScript": {
+		"mapName": "Quicksilver Remake 1.24",
+		"startPosType": "chooseBeforeGame",
+		"allyTeams": {
+			"thePlayerAllyTeam": {
+				"teams": {
+					"thePlayerTeam": {
+						"name": "TestPlayer",
+						"side": "Cortex",
+						"startPosX": 2200,
+						"startPosZ": 1500
+					}
+				}
+			},
+			"theEnemyAllyTeam": {
+				"teams": {
+					"theEnemyTeam": {
+						"name": "Mission Bots",
+						"side": "Armada",
+						"startPosX": 3000,
+						"startPosZ": 2400,
+						"ai": "NullAI"
+					}
+				}
+			}
+		}
+	}
+}
