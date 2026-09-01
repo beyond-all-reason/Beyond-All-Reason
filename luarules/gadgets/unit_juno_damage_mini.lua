@@ -24,113 +24,17 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
-	local tokillUnitsNames = {
-		armarad = true,
-		armaser = true,
-		armason = true,
-		armeyes = true,
-		armfrad = true,
-		armjam = true,
-		armjamt = true,
-		armmark = true,
-		armrad = true,
-		armseer = true,
-		armsjam = true,
-		armsonar = true,
-		armveil = true,
-		corarad = true,
-		corason = true,
-		coreter = true,
-		coreyes = true,
-		corfrad = true,
-		corjamt = true,
-		corrad = true,
-		legjam = true,
-		legrad = true,
-		corshroud = true,
-		corsjam = true,
-		corsonar = true,
-		corspec = true,
-		corvoyr = true,
-		corvrad = true,
-		legarad = true,
-		legajam = true,
-		legavrad = true,
-		legavjam = true,
-		legaradk = true,
-		legajamk = true,
-		legfrad = true,
-
-		armmine1 = true,
-		armmine2 = true,
-		armmine3 = true,
-		armfmine3 = true,
-		cormine1 = true,
-		cormine2 = true,
-		cormine3 = true,
-		cormine4 = true,
-		corfmine3 = true,
-		legmine1 = true,
-		legmine2 = true,
-		legmine3 = true,
-
-		corfav = true,
-		armfav = true,
-		armflea = true,
-		legscout = true,
-		raptor_land_swarmer_brood_t2_v1 = true,
-		raptor_land_kamikaze_basic_t2_v1 = true,
-		raptor_land_kamikaze_emp_t2_v1 = true,
-		raptor_land_kamikaze_basic_t4_v1 = true,
-		raptor_land_kamikaze_emp_t4_v1 = true,
-		scavmist = true,
-		scavmistxl = true,
-		scavmistxxl = true,
-	}
-	-- convert unitname -> unitDefID
+	-- customparams.juno_kill (or customparams.mine) marks units destroyed by the juno pulse;
+	-- customparams.juno_deny marks units also destroyed by the lingering denial ring
 	local tokillUnits = {}
-	for name, params in pairs(tokillUnitsNames) do
-		if UnitDefNames[name] then
-			tokillUnits[UnitDefNames[name].id] = params
-		end
-	end
-	tokillUnitsNames = nil
-
-	local todenyUnitsNames = {
-		corfav = true,
-		armfav = true,
-		armflea = true,
-		legscout = true,
-		raptor_land_swarmer_brood_t2_v1 = true,
-		raptor_land_kamikaze_basic_t2_v1 = true,
-		raptor_land_kamikaze_emp_t2_v1 = true,
-		raptor_land_kamikaze_basic_t4_v1 = true,
-		raptor_land_kamikaze_emp_t4_v1 = true,
-		scavmist = true,
-		scavmistxl = true,
-		scavmistxxl = true,
-	}
-	-- convert unitname -> unitDefID
 	local todenyUnits = {}
-	for name, params in pairs(todenyUnitsNames) do
-		if UnitDefNames[name] then
-			todenyUnits[UnitDefNames[name].id] = params
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local cp = unitDef.customParams
+		if cp.juno_kill or cp.mine then
+			tokillUnits[unitDefID] = true
 		end
-	end
-	todenyUnitsNames = nil
-
-	for udid, ud in pairs(UnitDefs) do
-		for id, v in pairs(tokillUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-				--if string.find(ud.name, UnitDefs[id].name) then
-				tokillUnits[udid] = v
-			end
-		end
-		for id, v in pairs(todenyUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-				--if string.find(ud.name, UnitDefs[id].name) then
-				todenyUnits[udid] = v
-			end
+		if cp.juno_deny then
+			todenyUnits[unitDefID] = true
 		end
 	end
 
@@ -192,6 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 	local counter = 1 --index each explosion of juno missile with this counter
 
 	function gadget:Initialize()
+		Spring.SetGameRulesParam("juno_mini_area_denial_radius", radius)
 		if WeaponDefNames.legcib_juno_pulse_mini then
 			Script.SetWatchExplosion(WeaponDefNames.legcib_juno_pulse_mini.id, true)
 		end

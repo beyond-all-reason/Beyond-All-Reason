@@ -47,6 +47,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorVehicles/T2",
 		},
 		featuredefs = {

@@ -7,7 +7,17 @@ then
 	spawnpadSpawnEnabled = true
 end
 
-if not UnitDefNames.armrespawn then
+-- commanders carrying customparams.spawnpad_unit get a builder pad spawned next to them;
+-- scav copies inherit the param but never spawn via this path, so they are excluded outright
+local spawnpads = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local pad = unitDef.customParams.spawnpad_unit
+	if pad and UnitDefNames[pad] and not unitDef.customParams.isscavenger then
+		spawnpads[unitDefID] = pad
+	end
+end
+
+if not next(spawnpads) then
 	spawnpadSpawnEnabled = false
 end
 
@@ -29,21 +39,11 @@ function gadget:GetInfo()
 	}
 end
 
-local UDN = UnitDefNames
-
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-
-local spawnpads = {
-	[UDN.armcom.id] = "armrespawn",
-	[UDN.corcom.id] = "correspawn",
-}
-if Spring.GetModOptions().experimentallegionfaction then
-	spawnpads[UDN.legcom.id] = "legnanotcbase"
-end
 
 local spawnFrame = Game.spawnWarpInFrame + Game.gameSpeed * 2 -- add time to deconflict initial build orders
 

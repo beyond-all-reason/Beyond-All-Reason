@@ -93,7 +93,7 @@ function gadget:GamePreload()
 										+ (UnitDefNames[unit.name].energyStorage or 0)
 								end
 							end
-							if string.find(unit.name, "nanotc") then
+							if UnitDefNames[unit.name].customParams.isnanoturret then
 								nanoturretunitIDs[unitID] = true
 							end
 							if unit.neutral == true or unit.neutral == "true" then

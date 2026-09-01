@@ -88,6 +88,7 @@ return {
 		},
 		customparams = {
 			unitgroup = "builder",
+			canwearcosmetics = true,
 			combatradius = 600,
 			firestateoncloak = 0,
 			maxrange = 300,
@@ -95,7 +96,10 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
+			spawnpad_unit = "legnanotcbase",
 			subfolder = "",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {

@@ -38,6 +38,7 @@ return {
 			customrange = 400,
 			model_author = "Kremenchuk",
 			normaltex = "unittextures/leegmech_normal.dds",
+			reaimtime = 5,
 			subfolder = "leggantry",
 			techlevel = 3,
 		},

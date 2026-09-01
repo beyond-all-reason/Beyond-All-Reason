@@ -22,7 +22,7 @@ local isCommander = {}
 local isFlyingCritter = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if string.sub(unitDef.name, 1, 7) == "critter" then
+	if unitDef.customParams.iscritter then
 		isCritter[unitDefID] = true
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true

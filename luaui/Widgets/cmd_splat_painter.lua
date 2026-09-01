@@ -103,6 +103,7 @@ local activeCurve = DEFAULT_CURVE
 local activeFractalAmount = DEFAULT_FRACTAL
 local activeFractalFreq = DEFAULT_FRACTAL_FREQ
 local eraseMode = false
+local edgeFade = 1 -- cursor alpha factor when hovering past the map edge (TerraformBrush extended resolver)
 
 -- Export format state
 local EXPORT_FORMATS = { "png", "tga", "bmp" }
@@ -164,6 +165,12 @@ local overlayShader = nil
 -- Overlay state
 local showSplatOverlay = false
 
+-- Ctrl sneak-peek gate (Terraform Brush DISPLAY chip). While on and the
+-- tileset shader is live, holding Ctrl renders the selected override channel's
+-- material inside the brush ring before any stroke lands (LAYERS tool; also
+-- works from the legacy splat panel since the engine is shared).
+local tilesetPreviewOn = true
+
 -- Drawing
 local drawCacheList = nil
 local leftMouseHeld = false
@@ -203,9 +210,21 @@ local function invalidateDrawCache()
 end
 
 local function getWorldMousePosition()
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local wx, wz, fade = tb.getWorldPositionExtended(activeRadius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		-- Reset so a stale fade doesn't dim the unmouse-target cursor
+		edgeFade = 1
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then
+		edgeFade = 1
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -1027,11 +1046,16 @@ local function getState()
 		undoCount = #undoStack,
 		redoCount = #redoStack,
 		showSplatOverlay = showSplatOverlay,
+		previewEnabled = tilesetPreviewOn,
 	}
 end
 
 local function setSplatOverlay(enabled)
 	showSplatOverlay = enabled and true or false
+end
+
+local function setTilesetPreviewEnabled(enabled)
+	tilesetPreviewOn = enabled and true or false
 end
 
 local function activateSplat()
@@ -1200,6 +1224,7 @@ function widget:Initialize()
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
 		setSplatOverlay = setSplatOverlay,
+		setTilesetPreviewEnabled = setTilesetPreviewEnabled,
 		setGeoDecalSize = setGeoDecalSize,
 		placeGeoDecal = placeGeoDecal,
 		undoGeoDecal = undoGeoDecal,
@@ -1466,9 +1491,9 @@ local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg)
 					local valid = isPointValid(wx, wz)
 
 					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08)
+						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
 					else
-						glColor(0.9, 0.15, 0.15, 0.14)
+						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
 					end
 
 					local x0 = wx - halfStep
@@ -1548,7 +1573,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	glLineWidth(1.5)
 
 	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55)
+		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
@@ -1557,7 +1582,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	end
 
 	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55)
+		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
@@ -1568,7 +1593,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	local stride = max(1, floor(#corners / 8))
 	local strutBot = botY or (topY and topY - 100) or 0
 	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2)
+	glColor(1, 1, 1, 0.2 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		for i = 1, #corners, stride do
 			local wx = cx + corners[i][1]
@@ -1604,7 +1629,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 		col = { 1.0, 0.5, 0.0, 0.9 } -- orange for erase
 	end
 
-	glColor(col[1], col[2], col[3], col[4])
+	glColor(col[1], col[2], col[3], col[4] * edgeFade)
 	glLineWidth(2.0)
 
 	if shape == "circle" then
@@ -1647,7 +1672,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 	end
 
 	-- Draw inner crosshair
-	glColor(col[1], col[2], col[3], 0.5)
+	glColor(col[1], col[2], col[3], 0.5 * edgeFade)
 	glLineWidth(1.0)
 	local crossSize = min(r * 0.1, 16)
 	glBeginEnd(GL.LINES, function()
@@ -1660,7 +1685,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 	-- Draw falloff ring at 50% strength
 	if shape == "circle" and activeCurve > 0.1 then
 		local halfR = r * (0.5 ^ (1 / activeCurve))
-		glColor(col[1], col[2], col[3], 0.3)
+		glColor(col[1], col[2], col[3], 0.3 * edgeFade)
 		glLineWidth(1.0)
 		glDrawGroundCircle(centerX, groundY, centerZ, halfR, segments)
 	end
@@ -1865,18 +1890,36 @@ function widget:DrawWorld()
 			return
 		end
 	end
+	-- CTRL SNEAK PEEK (tileset override channels): while Ctrl is held the
+	-- tileset shader renders the selected channel's material inside the brush
+	-- ring as if the stroke had landed. Channel R (auto) has nothing to force.
+	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
+	-- inert with the tileset shader off (the uniform simply never renders).
+	do
+		local T = WG.TilesetTerrain
+		if T and T.setSurfacePreview then
+			local mode = 0
+			if tilesetPreviewOn and not geoDecalMode and activeChannel >= 2 then
+				local _, pkCtrl = Spring.GetModKeyState()
+				if pkCtrl then
+					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
+				end
+			end
+			T.setSurfacePreview(mode, worldX, worldZ, activeRadius, activeCurve)
+		end
+	end
 	local groundY = GetGroundHeight(worldX, worldZ)
 
 	glPolygonOffset(1, 1)
 	if geoDecalMode then
 		-- Draw geo decal preview: magenta circle at decal size
 		local halfSize = GEO_DECAL_SIZE * 0.5
-		glColor(0.9, 0.3, 0.9, 0.8)
+		glColor(0.9, 0.3, 0.9, 0.8 * edgeFade)
 		glLineWidth(2.0)
 		glDrawGroundCircle(worldX, groundY, worldZ, halfSize, CIRCLE_SEGMENTS)
 		-- Inner crosshair
 		local crossSize = min(halfSize * 0.15, 16)
-		glColor(0.9, 0.3, 0.9, 0.5)
+		glColor(0.9, 0.3, 0.9, 0.5 * edgeFade)
 		glLineWidth(1.0)
 		glBeginEnd(GL.LINES, function()
 			glVertex(worldX - crossSize, groundY + 3, worldZ)

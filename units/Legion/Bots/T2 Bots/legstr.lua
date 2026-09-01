@@ -34,6 +34,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmGantry",
 			techlevel = 2,
 		},

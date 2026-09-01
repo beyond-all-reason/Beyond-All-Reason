@@ -76,8 +76,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local WATERWEAPON = 0
 	do
-		local allowNonAttackerUnit = { legpede = true } -- Fastpass for units that don't have an attack command for other reasons.
-
 		local function hasTargeting(weapon, canManualFire)
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			return weapon.slavedTo == 0
@@ -87,7 +85,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local function canSetTarget(unitDef)
-			if (unitDef.canAttack or allowNonAttackerUnit[unitDef.name]) and unitDef.maxWeaponRange > 0 then
+			-- customparams.allow_set_target: fastpass for units that don't have an attack command for other reasons
+			if (unitDef.canAttack or unitDef.customParams.allow_set_target) and unitDef.maxWeaponRange > 0 then
 				local canManualFire = unitDef.canManualFire
 				for _, weapon in pairs(unitDef.weapons) do
 					if hasTargeting(weapon, canManualFire) then

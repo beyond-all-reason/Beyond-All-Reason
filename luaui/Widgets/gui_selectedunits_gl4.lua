@@ -24,6 +24,7 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetMouseState = Spring.GetMouseState
+local spGetActiveCommand = Spring.GetActiveCommand
 local spTraceScreenRay = Spring.TraceScreenRay
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
@@ -547,7 +548,9 @@ function widget:Update(dt)
 	-- +2 means its mouseovered
 	if mouseoverHighlight then
 		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
-		if mouseOffScreen or cameraPanMode or mmb or p1 then
+		local _, activeCmdID = spGetActiveCommand()
+		-- negative activeCmdID = placing a building: no mouseover highlight then
+		if mouseOffScreen or cameraPanMode or mmb or p1 or (activeCmdID and activeCmdID < 0) then
 			ClearLastMouseOver()
 		else
 			local shouldTraceMouse = true

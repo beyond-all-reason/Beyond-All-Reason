@@ -22,7 +22,7 @@ local mapsizeZ = Game.mapSizeZ
 local isAffectedUnit = {}
 local canMove = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.id, "nanotc") then
+	if ud.customParams.isnanoturret then
 		isAffectedUnit[udid] = {
 			math.floor(((ud.xsize + ud.zsize) * 0.5) * 6),
 			ud.minWaterDepth,
@@ -44,9 +44,10 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if isAffectedUnit[unitDefID] then
-		for i = 1, #affectedUnits do
-			if affectedUnits[i][1] and affectedUnits[i][1] == unitID then
+		for i = #affectedUnits, 1, -1 do
+			if affectedUnits[i][1] == unitID then
 				table.remove(affectedUnits, i)
+				break
 			end
 		end
 	end

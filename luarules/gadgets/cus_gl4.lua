@@ -1225,7 +1225,7 @@ local function initBinsAndTextures()
 				or (lowercasenormaltex:find("leg_normal") and "unittextures/leg_wreck_normal.dds")
 				or false
 
-			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
+			if unitDef.customParams.isscavenger then
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
@@ -1236,7 +1236,7 @@ local function initBinsAndTextures()
 				elseif factionBinTag == "leg" then
 					objectDefToUniformBin[unitDefID] = "legscavenger"
 				end
-			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+			elseif unitDef.customParams.israptor then
 				textureTable[5] = wreckAtlases.raptor[1]
 				objectDefToUniformBin[unitDefID] = "raptor"
 				--Spring.Echo("Raptorwreck", textureTable[5])

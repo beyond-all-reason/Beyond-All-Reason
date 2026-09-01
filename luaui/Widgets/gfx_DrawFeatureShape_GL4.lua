@@ -41,7 +41,7 @@ local INSTANCE_STEP = 20
 
 local VBO_LAYOUT = {
 	{ id = 6, name = "worldposyaw", size = 4 }, -- xyz = world position, w = yaw (radians)
-	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, zw reserved
+	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, z = uniform scale, w reserved
 	{ id = 8, name = "parameters", size = 4 }, -- x = alpha, y = tint amount, z = highlight, w reserved
 	{ id = 9, name = "tintcolor", size = 4 }, -- rgb = tint target, a reserved
 	{ id = 10, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
@@ -104,6 +104,13 @@ void main() {
 		Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex);
 		vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
 	#endif
+
+	// Uniform scale, applied after the piece matrix so piece offsets scale along
+	// with the geometry -- the same thing the gadget's root-piece-matrix scale
+	// does to the real feature. Instances written before this attribute existed
+	// carry 0 there; treat that as unscaled.
+	float ghostScale = (pitchroll.z > 0.0) ? pitchroll.z : 1.0;
+	localModelPos.xyz *= ghostScale;
 
 	// Match Spring.SetFeatureRotation exactly, or the ghost does not line up with
 	// the feature it previews.
@@ -269,6 +276,7 @@ end
 ---@param tintG number optional tint target colour
 ---@param tintB number optional tint target colour
 ---@param tintAmount number optional how much to blend the tint in [0-1], default 0
+---@param scale number optional uniform model scale, default 1 (matches the root-piece-matrix scale the feature placer applies)
 ---@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
 ---@param ownerID any optional tag so a widget can batch-remove everything it submitted
 ---@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
@@ -285,6 +293,7 @@ local function DrawFeatureShapeGL4(
 	tintG,
 	tintB,
 	tintAmount,
+	scale,
 	updateID,
 	ownerID
 )
@@ -313,7 +322,7 @@ local function DrawFeatureShapeGL4(
 	end
 
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, yaw or 0
-	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, 0, 0
+	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, scale or 1, 0
 	instanceCache[9], instanceCache[10], instanceCache[11], instanceCache[12] = alpha or 0.55, tintAmount or 0, 0, 0
 	instanceCache[13], instanceCache[14], instanceCache[15], instanceCache[16] = tintR or 1, tintG or 1, tintB or 1, 1
 
@@ -386,6 +395,26 @@ end
 -- silhouette, or every ghost collapsing onto one spot.
 local testHandles = {}
 
+-- The uniform scale the feature placer's gadget baked into the root piece
+-- matrix, read back as the length of the first basis vector. 1 for anything
+-- never scaled.
+local sqrt = math.sqrt
+local function readFeatureVisualScale(featureID)
+	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
+		return 1
+	end
+	local root = Spring.GetFeatureRootPiece(featureID) or 1
+	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
+	if not m11 then
+		return 1
+	end
+	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
+	if s < 0.01 then
+		return 1
+	end
+	return s
+end
+
 local function clearTest()
 	for i = 1, #testHandles do
 		StopDrawFeatureShapeGL4(testHandles[i])
@@ -447,6 +476,7 @@ local function drawFeatureShapeTest(_cmd, _line, args)
 				1.0,
 				0.4,
 				0.5,
+				readFeatureVisualScale(featureID),
 				nil,
 				"test"
 			)
