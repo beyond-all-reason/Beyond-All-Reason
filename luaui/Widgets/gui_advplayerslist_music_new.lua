@@ -644,10 +644,6 @@ local function updateFade()
 	end
 end
 
-local function getSliderWidth()
-	return mathFloor((4.5 * widgetScale) + 0.5)
-end
-
 local function capitalize(text)
 	local str = ""
 	local upperNext = true

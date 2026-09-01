@@ -554,31 +554,6 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function setPermutedSpawns(nSpawns, idsToSpawn)
-		-- this function assumes that idsToSpawn is a hash table with nSpawns elements
-		-- returns a bijective random map from key values of idsToSpawn to [1,...,nSpawns]
-
-		-- first, construct a random permutation of [1,...,nSpawns] using a Knuth shuffle
-		local perm = {}
-		for i = 1, nSpawns do
-			perm[i] = i
-		end
-		for i = 1, nSpawns - 1 do
-			local j = math.random(i, nSpawns)
-			local temp = perm[i]
-			perm[i] = perm[j]
-			perm[j] = temp
-		end
-
-		local permutedSpawns = {}
-		local slot = 1
-		for id, _ in pairs(idsToSpawn) do
-			permutedSpawns[id] = perm[slot]
-			slot = slot + 1
-		end
-		return permutedSpawns
-	end
-
 	local startUnitList = {}
 	local startUnitBlocking = {}
 	-- Shared with gadget:GameFrame below, which gates the commander spawn-in

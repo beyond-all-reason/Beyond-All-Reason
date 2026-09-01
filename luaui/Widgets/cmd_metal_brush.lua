@@ -794,13 +794,6 @@ local function commitCurrentLasso()
 	lassoPoints = {}
 end
 
--- Refresh every committed lasso's total (call after the spot cache changes).
-local function recomputeAllLassoTotals()
-	for i = 1, #lassos do
-		lassos[i].total = computePointsSum(lassos[i].points)
-	end
-end
-
 local function buildOverlayList()
 	ensureSpotCache()
 	if spotsCacheDirty then
@@ -1089,10 +1082,6 @@ local function recomputeBalanceAxisSums()
 	balanceAxisSumA = a * 0.001
 	balanceAxisSumB = b * 0.001
 	balanceAxisSumsDirty = false
-end
-
-local function invalidateBalanceAxisSums()
-	balanceAxisSumsDirty = true
 end
 
 -- Extend cache invalidator so map-edits refresh axis sums too.

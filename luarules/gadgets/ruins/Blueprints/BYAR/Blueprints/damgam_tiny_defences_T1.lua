@@ -275,7 +275,7 @@ local function tinyDefences18()
 		},
 	}
 end
-
+--[[
 local function tinyDefences19()
 	return {
 		type = types.Land,
@@ -289,7 +289,9 @@ local function tinyDefences19()
 		},
 	}
 end
+]]
 
+--[[
 local function tinyDefences20()
 	return {
 		type = types.Land,
@@ -303,6 +305,7 @@ local function tinyDefences20()
 		},
 	}
 end
+]]
 
 local function tinyDefences21()
 	return {

@@ -572,6 +572,7 @@ local function Power_fort_2()
 	}
 end
 
+--[[
 local function T1_short_def()
 	return {
 		type = types.Land,
@@ -588,6 +589,7 @@ local function T1_short_def()
 		},
 	}
 end
+]]
 
 local function Punisher_wall()
 	return {

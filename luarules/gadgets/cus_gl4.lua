@@ -495,10 +495,6 @@ local objectTypeAttribID = 6 -- this is the attribute index for instancedata in 
 
 local initiated = false
 
-local function Bit(p)
-	return 2 ^ (p - 1) -- 1-based indexing
-end
-
 -- Typical call:  if hasbit(x, bit(3)) then ...
 local function HasBit(x, p)
 	return x % (p + p) >= p
@@ -507,14 +503,6 @@ end
 local math_bit_and = math.bit_and
 local function HasAllBits(x, p)
 	return math_bit_and(x, p) == p
-end
-
-local function SetBit(x, p)
-	return HasBit(x, p) and x or x + p
-end
-
-local function ClearBit(x, p)
-	return HasBit(x, p) and x - p or x
 end
 
 -- Precomputed bin membership for every possible drawFlag below 128 (the icon threshold).
@@ -843,12 +831,6 @@ local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_shader_storage_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
 	]]
-
-local function dumpShaderCodeToFile(defs, src, filename) -- no IO in unsynced gadgets :/
-	local vsfile = io.open("cus_" .. filename .. ".glsl", "w+")
-	vsfile:write(defs .. src)
-	vsfile:close()
-end
 
 local function dumpShaderCodeToInfolog(defs, src, filename) -- no IO in unsynced gadgets :/
 	Spring.Echo(filename)
@@ -2884,28 +2866,6 @@ function gadget:Shutdown()
 end
 
 local updateframe = 0
-
-local function countbintypes(flagarray)
-	local fwcnt = 0
-	local defcnt = 0
-	local reflcnt = 0
-	local shadcnt = 0
-
-	for i = 1, #flagarray do
-		local flag = flagarray[i]
-		if HasBit(flag, 1) then
-			fwcnt = fwcnt + 1
-			defcnt = defcnt + 1
-		end
-		if HasBit(flag, 4) then
-			reflcnt = reflcnt + 1
-		end
-		if HasBit(flag, 16) then
-			shadcnt = shadcnt + 1
-		end
-	end
-	return fwcnt, defcnt, reflcnt, shadcnt
-end
 
 local destroyedUnitIDs = {} -- maps unitID to drawflag
 local destroyedUnitDrawFlags = {}
