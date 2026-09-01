@@ -20,7 +20,7 @@ uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cel
 uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
 uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
 uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
-uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders)
+uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders), y = 1: sheet-only style (the fragment shader animates the sheet), z = 1: sweep and pulse animations on, w = 1: sweep on
 
 uniform sampler2D heightmapTex;
 uniform sampler2D coverageTex;
@@ -32,6 +32,7 @@ out DataVS {
 	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
 	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
 	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
+	vec2 worldXZ;        // world x/z of the vertex, for the sheet-only style's per-pixel rings and sweep
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -46,9 +47,8 @@ const float sweepBeam = max(float(SWEEP_BEAM), 0.01);   // degrees
 const float sweepStrength = float(SWEEP_STRENGTH);
 const float spawnSpeed = float(SPAWN_SPEED);
 const float spawnBump = float(SPAWN_BUMP);
-const float pulseFreq = 2.0 * PI / float(PULSE_SPACING);
-const float pulseSpeed = 2.0 * PI * float(PULSE_SPEED) / float(PULSE_SPACING);
 const float pulsePower = float(PULSE_POWER);
+const float pulseSymmetric = float(PULSE_SYMMETRIC); // ring profile: 1 = bell (fade in/out), 0 = sharp front, fade out
 const float pulseStrength = float(PULSE_STRENGTH);
 const float edgeStrength = float(EDGE_STRENGTH); // glow of cubes at the coverage boundary (0 = off)
 const float rimStrength = float(RIM_STRENGTH);   // glow of the outermost ring of cubes (0 = off)
@@ -83,6 +83,7 @@ void cullInstance() {
 	previewWeight = 0.0;
 	outlineSides = vec4(0.0);
 	unionOutlineSides = vec4(0.0);
+	worldXZ = vec2(0.0);
 }
 
 void main() {
@@ -188,11 +189,16 @@ void main() {
 	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
 	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the leading edge
 	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = trail * trail * sweepStrength * weight;
-	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight;
+	float animations = modeParams.z; // RadarPreviewAnimations setting
+	float sweepOn = animations * modeParams.w; // RadarPreviewSweep setting
+	float sweep = trail * trail * sweepStrength * weight * sweepOn;
+	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight * sweepOn;
 
 	// the main animation: rings travelling outward from the radar
-	float ring = pow(0.5 + 0.5 * sin(dist * pulseFreq - time * pulseSpeed), pulsePower) * weight;
+	// PULSE_SYMMETRIC: smooth bell that fades in and out around the ring, or a sharp front fading out behind it
+	float ringPhase = fract((dist - time * float(PULSE_SPEED)) / float(PULSE_SPACING)); // 0 at a ring's center, 1 at the next
+	float ringShape = (pulseSymmetric > 0.5) ? pow(0.5 + 0.5 * cos(ringPhase * 2.0 * PI), pulsePower) : pow(1.0 - ringPhase, pulsePower);
+	float ring = ringShape * weight * animations;
 
 	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
 	float edge = coverageState.g;
@@ -241,5 +247,6 @@ void main() {
 	localPos = cubeVertex.xyz;
 	fx = vec4(coverage, glow, beam, spawn);
 	previewWeight = weight;
+	worldXZ = vertexXZ;
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 }

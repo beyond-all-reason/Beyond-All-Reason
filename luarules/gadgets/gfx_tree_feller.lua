@@ -512,8 +512,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- dying trees dont take more damage, and will be removed later
 		if treesdying[featureID] then
 			if weaponDefID >= 0 and not noFireWeapons[weaponDefID] then
-				-- UNITEXPLOSION
-				if fy and fy >= 0 then
+				-- UNITEXPLOSION; a burnt-out (extinguished) tree cannot reignite
+				if fy and fy >= 0 and not treesdying[featureID].extinguished then
 					treesdying[featureID].fire = true
 				end
 			end
@@ -755,6 +755,11 @@ if gadgetHandler:IsSyncedCode() then
 					-- -falldir. The line of fire must lie down that same way.
 					local fdx = -featureinfo.falldirx
 					local fdz = -featureinfo.falldirz
+					-- A tree can ignite AFTER it started (or finished) falling — e.g. a
+					-- commander explosion hitting an already-toppled tree. Send only the
+					-- REMAINING visual fall time so the flame column starts at the tree's
+					-- actual tilt instead of replaying a full upright-to-prone topple.
+					local visualFallRemaining = math_max(2, fallVisualFrames - (gf - featureinfo.frame))
 					spSendToUnsynced(
 						"treefire_start",
 						featureID,
@@ -766,7 +771,7 @@ if gadgetHandler:IsSyncedCode() then
 						canopyFrac,
 						fdx,
 						fdz,
-						fallVisualFrames,
+						visualFallRemaining,
 						burnFrames
 					)
 					featureinfo.fireSent = true
@@ -874,6 +879,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						if featureinfo.fire and gf >= extinguishFrame then
 							featureinfo.fire = false
+							featureinfo.extinguished = true
 							if featureinfo.fireSent then
 								spSendToUnsynced("treefire_stop", featureID)
 								featureinfo.fireSent = false
@@ -884,7 +890,6 @@ if gadgetHandler:IsSyncedCode() then
 							if not featureinfo.sinkStartedFrame then
 								featureinfo.sinkStartedFrame = gf
 							end
-							local dx, dy, dz = GetFeatureDirection(featureID)
 							if featureinfo.fire then
 								SetFeaturePosition(
 									featureID,
@@ -902,12 +907,21 @@ if gadgetHandler:IsSyncedCode() then
 									false
 								)
 							end
-
-							-- NOTE: this can create twitchy tree movement
-							-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
-							-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
-							SetFeatureDirection(featureID, dx, dy, dz) -- gets reset so we re-apply
 						end
+
+						-- Re-apply the final fallen orientation EVERY frame. The engine
+						-- resets a feature's direction to the ground normal (i.e. stands
+						-- the tree back upright) whenever the feature is put through
+						-- UpdateTransformAndPhysState: terrain deformation near the tree
+						-- (FeatureHandler::TerrainChanged re-queues every feature in the
+						-- blast area — e.g. a commander explosion cratering the ground),
+						-- and our own SetFeaturePosition sink above (its ForcedMove does
+						-- the same reset; this is also the "gets reset" twitch noted in
+						-- older revisions). The FALLING branch already re-applies per
+						-- frame; without this the FALLEN state had no defense and any
+						-- nearby crater left the dead tree standing upright for good.
+						-- 6.1 = 0.1 + 6.0, the end-of-fall fallY from the FALLING branch.
+						SetFeatureDirection(featureID, featureinfo.falldirx, 6.1, featureinfo.falldirz)
 
 						local gh = spGetGroundHeight(fx, fz)
 						local sinkStartedFrame = featureinfo.sinkStartedFrame or sinkStartFrame
