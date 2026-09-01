@@ -282,7 +282,6 @@ local function UpdatePassiveBuilders(
 	-- Clear previous team's build target owners (reuse table to avoid GC)
 	clearTable(teamBuildTargetOwners)
 
-	-- First pass: check passive builders that are building, track their expense inline
 	clearTable(_passiveMetal)
 	clearTable(_passiveEnergy)
 
@@ -313,7 +312,6 @@ local function UpdatePassiveBuilders(
 		teamsWithOwners[teamID] = nil
 	end
 
-	-- Second pass: total high-priority builder expense over the update interval
 	local teamBuilders = canBuild[teamID]
 	for builderID in pairs(teamBuilders) do
 		if not passiveTeamCons[builderID] then
@@ -334,7 +332,6 @@ local function UpdatePassiveBuilders(
 	end
 
 	-- calculate how much expense passive cons will be allowed (using pre-fetched resource data)
-	-- Income/sent/received from GetTeamResources are per-second; builder expense is per-frame.
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
