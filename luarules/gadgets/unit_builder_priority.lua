@@ -283,7 +283,6 @@ local function UpdatePassiveBuilders(
 	clearTable(teamBuildTargetOwners)
 
 	-- First pass: check passive builders that are building, track their expense inline
-	local anyPassiveBuilding = false
 	clearTable(_passiveMetal)
 	clearTable(_passiveEnergy)
 
@@ -299,7 +298,6 @@ local function UpdatePassiveBuilders(
 				local ecost = targetCosts[2] * rate
 				_passiveMetal[builderID] = mcost
 				_passiveEnergy[builderID] = ecost
-				anyPassiveBuilding = true
 				if not buildTargets[builtUnit] then
 					buildTargets[builtUnit] = true
 					teamBuildTargetOwners[builderID] = builtUnit
@@ -315,42 +313,43 @@ local function UpdatePassiveBuilders(
 		teamsWithOwners[teamID] = nil
 	end
 
-	-- Second pass: check non-passive builders ONLY if we have passive builders building
-	if anyPassiveBuilding then
-		local teamBuilders = canBuild[teamID]
-		for builderID in pairs(teamBuilders) do
-			if not passiveTeamCons[builderID] then
-				local builtUnit = spGetUnitIsBuilding(builderID)
-				if builtUnit then
-					local targetCosts = costID[builtUnit]
-					local buildSpeed = realBuildSpeed[builderID]
-					if targetCosts and buildSpeed then
-						local rate = buildSpeed / targetCosts[3]
-						local mcost = targetCosts[1]
-						mcost = mcost <= 1 and 0 or mcost * rate
-						local ecost = targetCosts[2] * rate
-						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
-						nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
-					end
+	-- Second pass: total high-priority builder expense over the update interval
+	local teamBuilders = canBuild[teamID]
+	for builderID in pairs(teamBuilders) do
+		if not passiveTeamCons[builderID] then
+			local builtUnit = spGetUnitIsBuilding(builderID)
+			if builtUnit then
+				local targetCosts = costID[builtUnit]
+				local buildSpeed = realBuildSpeed[builderID]
+				if targetCosts and buildSpeed then
+					local rate = buildSpeed / targetCosts[3]
+					local mcost = targetCosts[1]
+					mcost = mcost <= 1 and 0 or mcost * rate
+					local ecost = targetCosts[2] * rate
+					nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
+					nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
 				end
 			end
 		end
 	end
 
 	-- calculate how much expense passive cons will be allowed (using pre-fetched resource data)
+	-- Income/sent/received from GetTeamResources are per-second; builder expense is per-frame.
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
 	local teamStallingMetal = mCur
 		- mathMax(mInc * stallMarginInc, mStorEff * stallMarginSto)
 		- 1
-		+ interval * (nonPassiveConsTotalExpenseMetal + mInc + mRec - mSent) / simSpeed
+		+ intervalOverSpeed * (mInc + mRec - mSent)
+		- nonPassiveConsTotalExpenseMetal * interval
 
 	local eStorEff = eStor * eShare
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
-		+ interval * (nonPassiveConsTotalExpenseEnergy + eInc + eRec - eSent) / simSpeed
+		+ intervalOverSpeed * (eInc + eRec - eSent)
+		- nonPassiveConsTotalExpenseEnergy * interval
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -358,8 +357,8 @@ local function UpdatePassiveBuilders(
 
 		local pMetal = _passiveMetal[builderID]
 		if pMetal then
-			local passivePullMetal = pMetal * intervalOverSpeed
-			local passivePullEnergy = _passiveEnergy[builderID] * intervalOverSpeed
+			local passivePullMetal = pMetal * interval
+			local passivePullEnergy = _passiveEnergy[builderID] * interval
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
 				if
 					(teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0)
