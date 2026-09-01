@@ -33,13 +33,12 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	end
 end
 
+-- Keep in sync with unit_areaattack_limiter.lua (customparams.areaattack_unlimited)
 local isBomberUnitDef = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if
 		(unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
-		or string.find(unitDef.name, "armlance")
-		or string.find(unitDef.name, "cortitan")
-		or string.find(unitDef.name, "legatorpbomber")
+		or unitDef.customParams.areaattack_unlimited
 	then
 		isBomberUnitDef[unitDefID] = true
 	end

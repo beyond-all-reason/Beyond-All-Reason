@@ -1545,7 +1545,7 @@ local function DrawJunoArea(data)
 	local circles = Cache.Calculated.unitCircles
 	local divs = Config.Render.circleDivs
 
-	local areaDenialRadius = 450 -- defined in unit_juno_damage.lua
+	local areaDenialRadius = Spring.GetGameRulesParam("juno_area_denial_radius") or 450 -- published by unit_juno_damage.lua
 	local impactRingWidth = aoe - areaDenialRadius
 
 	glPushMatrix()

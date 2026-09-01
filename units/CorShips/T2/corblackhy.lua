@@ -39,6 +39,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 6,
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
