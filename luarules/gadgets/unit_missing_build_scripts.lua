@@ -27,14 +27,11 @@ local function hasBuildScript(unitID, unitDefID)
 		return hasBuildScripts[unitDefID] 
 	end
 	if Spring.GetCOBScriptID(unitID, "StartBuilding") then
-		Spring.Echo("hasBuildScript")
 		hasBuildScripts[unitDefID] = true
 		return true
 	end
 	local env = Spring.UnitScript.GetScriptEnv(unitID)
 	if env and env.script.StartBuilding then
-		Spring.Echo("hasBuildScript")
-
 		hasBuildScripts[unitDefID] = true
 		return true
 	end
@@ -56,7 +53,6 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 	Spring.SetUnitCOBValue(unitID, COB.INBUILDSTANCE, true)
 	Spring.SetUnitNanoPieces(unitID, {1})
-	Spring.Echo("setup for unit:"..unitID.." done")
 end
 
 function gadget:Initizalize()
