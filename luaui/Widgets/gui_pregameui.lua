@@ -23,6 +23,9 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
+-- Don't decode missionoptions per frame
+local commanderSpawnDisabled = VFS.Include("luaui/Include/mission_options.lua").IsInitialCommanderSpawnDisabled()
+
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
@@ -519,6 +522,11 @@ end
 
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then
+		return
+	end
+
+	-- skip if scenario or mission options disable initial commander spawn
+	if commanderSpawnDisabled then
 		return
 	end
 

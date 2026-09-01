@@ -11,7 +11,7 @@
 --   https://github.com/beyond-all-reason/maps-metadata schemas/map_list.yaml
 
 local SplineLib = VFS.Include("common/lib_spline.lua")
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
 
 local function GetStartboxName(midX, midZ)
 	if midX < 0.33 then
@@ -39,30 +39,6 @@ local function GetStartboxName(midX, midZ)
 			return "Center", "Center"
 		end
 	end
-end
-
-local function decodeModoption(raw)
-	if not raw or #raw == 0 then
-		return nil
-	end
-
-	local okDecode, decoded = pcall(base64.Decode, raw)
-	if not okDecode or not decoded or decoded == "" then
-		return nil
-	end
-
-	-- VFS.ZlibDecompress raises on non-zlib or empty input rather than returning nil.
-	local okZlib, decompressed = pcall(VFS.ZlibDecompress, decoded)
-	if not okZlib or not decompressed then
-		return nil
-	end
-
-	local okJson, parsed = pcall(Json.decode, decompressed)
-	if not okJson or type(parsed) ~= "table" then
-		return nil
-	end
-
-	return parsed
 end
 
 local function getActiveAllyTeamCount()
@@ -295,8 +271,8 @@ local function ParseBoxes()
 	local numTeams = getActiveAllyTeamCount()
 
 	local modoptions = Spring.GetModOptions()
-	local parsedOverride = decodeModoption(modoptions.mapmetadata_startbox_override)
-	local parsedSet = decodeModoption(modoptions.mapmetadata_startboxes_set)
+	local parsedOverride = ModoptionPayload.Decode(modoptions.mapmetadata_startbox_override)
+	local parsedSet = ModoptionPayload.Decode(modoptions.mapmetadata_startboxes_set)
 
 	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, numTeams)
 

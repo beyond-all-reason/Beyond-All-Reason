@@ -39,8 +39,7 @@ local base64chars = {
 	[55] = '3', [56] = '4', [57] = '5', [58] = '6', [59] = '7', [60] = '8', [61] = '9', [62] = '-', [63] = '_'
 }
 
--- function encode
--- encodes input string to base64.
+-- encodes input string to base64url with = padding.
 local function base64Encode(data)
 	local bytes = {}
 	local result = {}
@@ -61,6 +60,8 @@ local function base64Encode(data)
 end
 
 -- decoding table
+-- The url alphabet ('-' and '_') is what base64Encode above emits and what the modoptions transport specifies.
+-- '+' and '/' are accepted as aliases.
 local base64bytes = {
 	['A'] = 0, ['B'] = 1, ['C'] = 2, ['D'] = 3, ['E'] = 4, ['F'] = 5, ['G'] = 6, ['H'] = 7, ['I'] = 8, ['J'] = 9,
 	['K'] = 10, ['L'] = 11, ['M'] = 12, ['N'] = 13, ['O'] = 14, ['P'] = 15, ['Q'] = 16, ['R'] = 17, ['S'] = 18,
@@ -69,12 +70,39 @@ local base64bytes = {
 	['l'] = 37, ['m'] = 38, ['n'] = 39, ['o'] = 40, ['p'] = 41, ['q'] = 42, ['r'] = 43, ['s'] = 44, ['t'] = 45,
 	['u'] = 46, ['v'] = 47, ['w'] = 48, ['x'] = 49, ['y'] = 50, ['z'] = 51, ['0'] = 52, ['1'] = 53, ['2'] = 54,
 	['3'] = 55, ['4'] = 56, ['5'] = 57, ['6'] = 58, ['7'] = 59, ['8'] = 60, ['9'] = 61, ['-'] = 62, ['_'] = 63,
+	['+'] = 62, ['/'] = 63,
 	['='] = nil,
 }
 
--- function decode
--- decode base64 input to string
+-- Anything outside the alphabet, padding aside.
+local UNEXPECTED_CHARACTER_PATTERN = "[^%w=_+/-]"
+
+-- Decoding is best-effort for compatibility, but warns about invalid chars
+local function warnUnexpectedCharacters(data)
+	local seen = {}
+	local characters = {}
+
+	for character in data:gmatch(UNEXPECTED_CHARACTER_PATTERN) do
+		if not seen[character] then
+			seen[character] = true
+			characters[#characters + 1] = string.format("%q", character)
+		end
+	end
+
+	Spring.Log("base64", LOG.WARNING, string.format(
+		"Decoding input with %d unexpected character(s) (%s); they are dropped, so the result is truncated.",
+		#characters,
+		table.concat(characters, ", ")
+	))
+end
+
+-- decode base64 or base64url input to string
 local function base64Decode(data)
+
+	if data:find(UNEXPECTED_CHARACTER_PATTERN) then
+		warnUnexpectedCharacters(data)
+	end
+
 	local chars = {}
 	local result = {}
 	local resultCount = 0
