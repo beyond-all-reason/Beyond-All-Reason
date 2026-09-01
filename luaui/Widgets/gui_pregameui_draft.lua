@@ -13,6 +13,8 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+
 local mathFloor = math.floor
 local mathMax = math.max
 local mathRandom = math.random
@@ -1141,11 +1143,7 @@ function widget:Initialize()
 		end
 	end
 
-	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
-	local msx, msz = Game.mapSizeX, Game.mapSizeZ
-	if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
-		hasStartbox = true
-	end
+	hasStartbox = StartboxLib.HasStartbox(myAllyTeamID)
 
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
