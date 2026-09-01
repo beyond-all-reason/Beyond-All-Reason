@@ -46,14 +46,32 @@ local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 ------------------------------------------------------------
 -- unit tables
 ------------------------------------------------------------
+
+--- What one builder can put on a resource spot. Every unit of a given unit def
+--- shares one of these, so the instance and the def registries below hold the
+--- same tables under different keys.
+---@class ResourceSpotConstructor
+---@field buildings integer How many entries `building` holds, and the cursor the fill loop appends at.
+---@field building (-UnitDefID)[] Build commands, i.e. negated extractor unit def IDs.
+
+---@type table<UnitID, ResourceSpotConstructor?>
 local mexConstructors = {}
+---@type table<UnitDefID, ResourceSpotConstructor?>
 local mexConstructorsDef = {}
+--- Extractors, by how much metal each one pulls from a spot.
+---@type table<UnitDefID, number?>
 local mexBuildings = {}
 
+---@type table<UnitID, ResourceSpotConstructor?>
 local geoConstructors = {}
+---@type table<UnitDefID, ResourceSpotConstructor?>
 local geoConstructorsDef = {}
+--- Geothermal plants and how much energy each one makes.
+---@type table<UnitDefID, number?>
 local geoBuildings = {}
 
+--- Extractors that only produce metal or energy, so every faction has one.
+---@type table<UnitDefID, true?>
 local standardExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
