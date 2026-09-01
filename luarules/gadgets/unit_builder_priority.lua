@@ -282,6 +282,8 @@ local function UpdatePassiveBuilders(
 	-- Clear previous team's build target owners (reuse table to avoid GC)
 	clearTable(teamBuildTargetOwners)
 
+	-- First pass: check passive builders that are building, track their expense inline
+	local anyPassiveBuilding = false
 	clearTable(_passiveMetal)
 	clearTable(_passiveEnergy)
 
@@ -297,6 +299,7 @@ local function UpdatePassiveBuilders(
 				local ecost = targetCosts[2] * rate
 				_passiveMetal[builderID] = mcost
 				_passiveEnergy[builderID] = ecost
+				anyPassiveBuilding = true
 				if not buildTargets[builtUnit] then
 					buildTargets[builtUnit] = true
 					teamBuildTargetOwners[builderID] = builtUnit
@@ -312,20 +315,23 @@ local function UpdatePassiveBuilders(
 		teamsWithOwners[teamID] = nil
 	end
 
-	local teamBuilders = canBuild[teamID]
-	for builderID in pairs(teamBuilders) do
-		if not passiveTeamCons[builderID] then
-			local builtUnit = spGetUnitIsBuilding(builderID)
-			if builtUnit then
-				local targetCosts = costID[builtUnit]
-				local buildSpeed = realBuildSpeed[builderID]
-				if targetCosts and buildSpeed then
-					local rate = buildSpeed / targetCosts[3]
-					local mcost = targetCosts[1]
-					mcost = mcost <= 1 and 0 or mcost * rate
-					local ecost = targetCosts[2] * rate
-					nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
-					nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
+	-- Second pass: check non-passive builders ONLY if we have passive builders building
+	if anyPassiveBuilding then
+		local teamBuilders = canBuild[teamID]
+		for builderID in pairs(teamBuilders) do
+			if not passiveTeamCons[builderID] then
+				local builtUnit = spGetUnitIsBuilding(builderID)
+				if builtUnit then
+					local targetCosts = costID[builtUnit]
+					local buildSpeed = realBuildSpeed[builderID]
+					if targetCosts and buildSpeed then
+						local rate = buildSpeed / targetCosts[3]
+						local mcost = targetCosts[1]
+						mcost = mcost <= 1 and 0 or mcost * rate
+						local ecost = targetCosts[2] * rate
+						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
+						nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
+					end
 				end
 			end
 		end
