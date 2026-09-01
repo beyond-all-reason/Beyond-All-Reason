@@ -357,7 +357,7 @@ local function UpdatePassiveBuilders(
 	--   (mmUse), which includes mex upkeep and all builders. Add back
 	--   passiveConsTotalExpenseEnergy so low-prio builders already counted in
 	--   ePull are not double-subtracted.
-	-- 
+	--
 	-- The allocation loop below then tests each passive con at full
 	-- realBuildSpeed to decide whether it may run until the next check.
 	local intervalOverSpeed = interval / simSpeed
