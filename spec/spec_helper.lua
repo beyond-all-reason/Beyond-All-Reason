@@ -294,6 +294,26 @@ _G.VFS.MOD = 2
 _G.VFS.BASE = 4
 _G.VFS_MODES = _G.VFS.MAP + _G.VFS.MOD + _G.VFS.BASE
 
+-- The engine sets Json up globally in init.lua, so game code uses it without including it.
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
+-- Stand-in for the engine's zlib, which is not available to plain Lua. Only the contract
+-- game code depends on is modelled: a round trip, and a raise (not a nil) when handed
+-- anything that is not a compressed payload.
+local ZLIB_MARKER = "\120\156spec"
+
+_G.VFS.ZlibCompress = _G.VFS.ZlibCompress or function(data)
+	return ZLIB_MARKER .. data
+end
+
+_G.VFS.ZlibDecompress = _G.VFS.ZlibDecompress
+	or function(data)
+		if type(data) ~= "string" or data:sub(1, #ZLIB_MARKER) ~= ZLIB_MARKER then
+			error("not a zlib stream", 0)
+		end
+		return data:sub(#ZLIB_MARKER + 1)
+	end
+
 -- to enable, `luarocks install inspect`
 _G.inspect = (function()
 	local ok, mod = pcall(require, "inspect")
