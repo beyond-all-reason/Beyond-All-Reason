@@ -348,7 +348,18 @@ local function UpdatePassiveBuilders(
 		end
 	end
 
-	-- calculate how much expense passive cons will be allowed (using pre-fetched resource data)
+	-- Resource accounting for the stall budget:
+	--
+	-- Metal: reserve theoretical full-speed metal for high-prio builders only
+	--   (nonPassiveConsTotalExpenseMetal).
+	--
+	-- Energy: reserve actual team energy pull (ePull) minus e-converter draw
+	--   (mmUse), which includes mex upkeep and all builders. Add back
+	--   passiveConsTotalExpenseEnergy so low-prio builders already counted in
+	--   ePull are not double-subtracted.
+	-- 
+	-- The allocation loop below then tests each passive con at full
+	-- realBuildSpeed to decide whether it may run until the next check.
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
