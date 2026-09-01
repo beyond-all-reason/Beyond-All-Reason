@@ -273,15 +273,14 @@ local function unitDef_Post(name, uDef)
 		customparams.subfolder = "none"
 	end
 
-	-- mirrors customparams.isscavenger (set in scavengers/unitdef_post.lua); all raptor defs share the name prefix
-	if string.sub(name, 1, 6) == "raptor" then
-		customparams.israptor = true
+	-- israptor/iscritter are set explicitly in the unit def files; the name prefixes stay
+	-- load-bearing elsewhere (createScavengerUnitDefs in unitdefs_post.lua), so warn loudly
+	-- when a def follows the naming convention but is missing its flag
+	if string.sub(name, 1, 6) == "raptor" and not customparams.israptor then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a raptor but lacks customparams.israptor")
 	end
-
-	-- all critter defs share the name prefix (createScavengerUnitDefs in unitdefs_post.lua
-	-- also relies on it, and runs before this flag exists — keep that check name-based)
-	if string.sub(name, 1, 8) == "critter_" then
-		customparams.iscritter = true
+	if string.sub(name, 1, 8) == "critter_" and not customparams.iscritter then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a critter but lacks customparams.iscritter")
 	end
 
 	if modOptions.unit_restrictions_notech15 then

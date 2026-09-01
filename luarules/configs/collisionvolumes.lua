@@ -207,15 +207,16 @@ unitCollisionVolume.legsolar = {
 	off = { 40, 76, 40, 0, -10, 1, 0, 1, 0 },
 }
 
--- copy each entry to its _scav variant (scav defs are copies of the base unit).
--- exact-name matching only: the old substring propagation corrupted units whose name
--- merely contained another entry's name (armannit3/cordoomt3 got armanni/cordoom's
--- whole-unit volumes, clobbering their own per-piece definitions every armored toggle)
+-- copy each entry to its scavenger variants, matched via the customparams that scav def
+-- generation stamps (isscavenger + fromunit backlink). The old substring propagation
+-- corrupted units whose name merely contained another entry's name (armannit3/cordoomt3
+-- got armanni/cordoom's whole-unit volumes, clobbering their per-piece definitions)
 local function propagateToScavCopies(tbl)
 	local scavCopies = {}
-	for name, v in pairs(tbl) do
-		if UnitDefNames[name .. "_scav"] then
-			scavCopies[name .. "_scav"] = v
+	for _, unitDef in pairs(UnitDefs) do
+		local baseName = unitDef.customParams.isscavenger and unitDef.customParams.fromunit
+		if baseName and tbl[baseName] then
+			scavCopies[unitDef.name] = tbl[baseName]
 		end
 	end
 	for name, v in pairs(scavCopies) do

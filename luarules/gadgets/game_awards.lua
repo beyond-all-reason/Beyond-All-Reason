@@ -24,16 +24,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- economy structures (energy generators, geothermals and converters), derived from def
 	-- properties; storage produces nothing and drops out naturally, lootboxes and scav
-	-- beacons are excluded via their paratrooper tag
+	-- beacons are excluded via their paratrooper tag.
+	-- thresholds mirror the economy classification in snd_notifications.lua: every dedicated
+	-- generator makes at least 20 energy (the margin keeps future units with incidental
+	-- trickle production out) and must not be a net energy consumer at the same time
+	local MIN_GENERATOR_ENERGY_MAKE = 20
+	local MAX_GENERATOR_ENERGY_UPKEEP = 10
 	local isEcon = {}
 	for udid, ud in pairs(UnitDefs) do
 		local cp = ud.customParams
 		if ud.speed == 0 and not cp.israptor and not cp.paratrooper then
+			local isGenerator = ud.energyMake >= MIN_GENERATOR_ENERGY_MAKE
+				and (not ud.energyUpkeep or ud.energyUpkeep < MAX_GENERATOR_ENERGY_UPKEEP)
 			if
-				ud.windGenerator > 0
+				isGenerator
+				or ud.windGenerator > 0
 				or ud.tidalGenerator > 0
 				or cp.solar
-				or (ud.energyMake > 19 and (not ud.energyUpkeep or ud.energyUpkeep < 10))
 				or (cp.energyconv_capacity and cp.energyconv_efficiency)
 			then
 				isEcon[udid] = true
