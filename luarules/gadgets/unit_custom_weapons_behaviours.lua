@@ -619,12 +619,14 @@ weaponCustomParamKeys.torpwaterpen = {
 
 local minSubTargetDiveSpeed = -0.08
 local surfaceTargetDepth = -2
+local surfaceTransitionStartDepth = -12
 local surfaceDepthCorrection = 0.025
 local minSurfaceDiveSpeed = -0.12
 local minShoreSurfaceDiveSpeed = -4
 local maxUnderwaterSurfaceRiseSpeed = 1.25
 local surfaceArrivalLeadFrames = 20
 local defaultTrackingTurnRadius = 180
+local surfaceEntryCorrectionDistance = 180
 local terrainAvoidanceClearance = 6
 ---@type table<integer, true?>
 local shoreTorpedoEnteredWater = {}
@@ -710,13 +712,16 @@ local function torpedoWaterPen(params, projectileID)
 	local distance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
 	local trackingTurnRadius = params and params.tracking_turn_radius or defaultTrackingTurnRadius
 	local proximityBlend = math_clamp(1 - distance / trackingTurnRadius, 0, 1)
+	local surfaceEntryBlend = math_clamp(1 - distance / surfaceEntryCorrectionDistance, 0, 1)
 	local desiredVelocityY
 
 	if targetY < -10 then
 		desiredVelocityY = math.min(velocityY / 4, minSubTargetDiveSpeed)
 	else
+		local entryTargetDepth = surfaceTransitionStartDepth
+			+ (surfaceTargetDepth - surfaceTransitionStartDepth) * surfaceEntryBlend
 		desiredVelocityY = math_clamp(
-			(surfaceTargetDepth - positionY) * surfaceDepthCorrection,
+			(entryTargetDepth - positionY) * surfaceDepthCorrection,
 			minSurfaceDiveSpeed,
 			maxUnderwaterSurfaceRiseSpeed
 		)
@@ -736,7 +741,11 @@ local function torpedoWaterPen(params, projectileID)
 	)
 
 	if targetY >= -10 then
-		projectiles[projectileID] = specialEffectFunction.torpsurfacetrack
+		-- Keep rounding steep water entries until the torpedo is travelling near
+		-- its normal surface-running descent rate, then hand off to tracking.
+		if velocityY >= minSurfaceDiveSpeed then
+			projectiles[projectileID] = specialEffectFunction.torpsurfacetrack
+		end
 		return false
 	end
 	return true
