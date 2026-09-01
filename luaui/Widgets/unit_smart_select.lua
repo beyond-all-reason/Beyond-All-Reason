@@ -104,7 +104,7 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (isMobile == false)
 	local isUtil = udef.customParams.unitgroup == "util"
 	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
-	local radar = isMobile and isUtil and udef.radarDistance > 0
+	local radar = udef.canFly == false and isMobile and isUtil and udef.radarDistance > 0
 	local jammer = isMobile and isUtil and udef.radarDistanceJam > 0
 	local scout = udef.canFly == true and isMobile and isUtil and udef.radarDistance > 0
 
