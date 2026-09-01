@@ -60,7 +60,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	Spring.SetUnitNanoPieces(unitID, {1})
 end
 
-function gadget:Initizalize()
+function gadget:Initialize()
 	local units = Spring.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
