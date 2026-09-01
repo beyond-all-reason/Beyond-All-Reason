@@ -3028,6 +3028,9 @@ local initialModel = {
 	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
 	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
 	tsSlot4Mode = "plateau",
+	-- PERFORMANCE section quality preset (data-class-active="tsQuality == '<tier>'");
+	-- synced from WG.TilesetTerrain.getQuality.
+	tsQuality = "high",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -9950,6 +9953,19 @@ local initialModel = {
 			local dm = widgetState.dmHandle
 			if dm then
 				dm.tsSlot4Mode = name
+			end
+		end
+	end,
+	onTsQuality = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setQuality) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setQuality(name)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tsQuality = name
 			end
 		end
 	end,

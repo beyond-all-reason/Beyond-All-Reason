@@ -999,6 +999,7 @@ function M.attach(doc, ctx)
 
 	-- Tileset Terrain tool (TILESET) category sections
 	envSectionToggle("btn-toggle-ts-library", "img-toggle-ts-library", "section-ts-library", true)
+	envSectionToggle("btn-toggle-ts-perf", "img-toggle-ts-perf", "section-ts-perf", false)
 	envSectionToggle("btn-toggle-ts-metal", "img-toggle-ts-metal", "section-ts-metal", false)
 	envSectionToggle("btn-toggle-ts-scale", "img-toggle-ts-scale", "section-ts-scale", true)
 	envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)

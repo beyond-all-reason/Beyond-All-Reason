@@ -52,6 +52,16 @@ local KNOBS = {
 	{ "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" },
 	{ "parallaxAmp", "%.2f" },
+	-- PERFORMANCE section levers
+	{ "detileMul", "%.0f" },
+	{ "foothills", "%d" },
+	{ "stagger", "%d" },
+	{ "cliffGateDeg", "%.1f" },
+	{ "farCache", "%d" },
+	{ "farStart", "%.2f" },
+	{ "farBand", "%.2f" },
+	{ "farCliffFp", "%.2f" },
+	{ "clipCache", "%d" },
 	{ "macroVar", "%.2f" },
 	{ "macroLod", "%.1f" },
 	{ "albedoSortMode", "%d" },
@@ -122,6 +132,7 @@ local KNOBS = {
 -- because nothing in them affects an engine-rendered map.
 local TUNING_FRAMES = {
 	"frame-ts-library",
+	"frame-ts-perf",
 	"frame-ts-metal",
 	"frame-ts-scale",
 	"frame-ts-normals",
@@ -432,6 +443,14 @@ function M.sync(doc, ctx, setSummary)
 	-- widget (initial state + console-driven /tileset changes); debugView has no slider.
 	if knobs.debugView ~= nil and dm.tsDebugView ~= knobs.debugView then
 		dm.tsDebugView = knobs.debugView
+	end
+
+	-- PERFORMANCE: mirror the active quality tier to the preset buttons
+	if WG.TilesetTerrain.getQuality then
+		local q = WG.TilesetTerrain.getQuality()
+		if q and dm.tsQuality ~= q then
+			dm.tsQuality = q
+		end
 	end
 
 	if setSummary then
