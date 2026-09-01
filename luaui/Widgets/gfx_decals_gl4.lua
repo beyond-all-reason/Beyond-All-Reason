@@ -266,8 +266,8 @@ local function initGL4(DPATname)
 		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 		decalVBO.VAO = smallDecalVAO
 	else
-		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
-		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4, 4)
+		local planeVBOsmall = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
+		local planeIndexVBOsmall = InstanceVBOTable.makePlaneIndexVBO(4, 4)
 		decalVBO.vertexVBO = planeVBOsmall
 		decalVBO.indexVBO = planeIndexVBOsmall
 		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(decalVBO.vertexVBO, decalVBO.instanceVBO, decalVBO.indexVBO)

@@ -115,7 +115,7 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 
-				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(uID)
+				local health, maxHealth = Spring.GetUnitHealth(uID)
 				Spring.AddUnitDamage(uID, maxHealth * 3, stunDuration, 99, weaponID) --no weapon ID, no stun. with weapon ID, infinite loops, even with the 99 exclusion. -1 does not work.
 				--aID check removed as -probably- only useful for kill crediting?
 			end
@@ -209,7 +209,7 @@ if gadgetHandler:IsSyncedCode() then
 							--does the cyl search above not already do this...?
 							if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 								-- linear and not O(n^2)
-								local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+								local health, maxHealth, paralyzeDamage = Spring.GetUnitHealth(unitID)
 								--Spring.Echo(paralyzeDamage, maxHealth*1.2)
 								if paralyzeDamage < maxHealth * 1.2 then --try to prevent excessive stun times, also needless restuns
 									Spring.AddUnitDamage(

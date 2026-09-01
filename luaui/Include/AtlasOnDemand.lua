@@ -518,7 +518,7 @@ local function MakeAtlasOnDemand(config)
 		local width = math.ceil(textparams.font:GetTextWidth(textparams.text) * textparams.size)
 
 		-- Height needs to take into account outlines as well! (and maybe even
-		local textheight, textdescender, numlines = textparams.font:GetTextHeight(textparams.text) -- See https://springrts.com/wiki/GetTextHeight
+		local textheight, textdescender = textparams.font:GetTextHeight(textparams.text) -- See https://springrts.com/wiki/GetTextHeight
 		local height = math.ceil((textheight + textdescender) * textparams.size)
 		textdescender = -1 * textdescender * textparams.size -- descender is negative for 'b' ?
 		if self.debug then

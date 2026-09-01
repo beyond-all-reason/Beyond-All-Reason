@@ -79,7 +79,7 @@ local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 local aiTeams = {}
 local teamColorKeys = {}
 for i = 1, #teamList do
-	local r, g, b, a = spGetTeamColor(teamList[i])
+	local r, g, b = spGetTeamColor(teamList[i])
 	teamColorKeys[teamList[i]] = r .. "_" .. g .. "_" .. b
 	local _, _, _, isAiTeam = Spring.GetTeamInfo(teamList[i], false)
 	if isAiTeam then
@@ -109,7 +109,7 @@ local function tsOrderPlayers()
 		local playerID = playersList[i]
 		local playerTs = playersTS[playerID]
 		if playerTs then
-			local _, _, spec, teamID = spGetPlayerInfo(playerID, false)
+			local _, _, spec = spGetPlayerInfo(playerID, false)
 			if not spec then
 				count = count + 1
 				local orderedPlayer = tsOrderedPlayers[count]
@@ -721,7 +721,7 @@ function widget:Update(dt)
 		-- check if team colors have changed
 		local detectedChanges = false
 		for i = 1, #teamList do
-			local r, g, b, a = spGetTeamColor(teamList[i])
+			local r, g, b = spGetTeamColor(teamList[i])
 			if teamColorKeys[teamList[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teamList[i]] = r .. "_" .. g .. "_" .. b
 				detectedChanges = true
@@ -878,7 +878,7 @@ local function drawContent()
 		gl.PushMatrix()
 		gl.CallList(drawlist[1])
 		gl.PopMatrix()
-		local mx, my, mb = spGetMouseState()
+		local mx, my = spGetMouseState()
 		if
 			showTrackingButtons
 			and not aiTeams[myTeamID]
@@ -934,7 +934,7 @@ local function drawContent()
 					prevLockPlayerID = lockPlayerID
 					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
-				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
+				local name, _, spec = spGetPlayerInfo(myTeamPlayerID, false)
 				name = (
 					(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myTeamPlayerID)
 				) or name
@@ -1125,7 +1125,7 @@ function widget:Initialize()
 	end
 
 	for _, playerID in ipairs(playersList) do
-		local _, _, spec, team = spGetPlayerInfo(playerID, false)
+		local _, _, spec = spGetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
 		end

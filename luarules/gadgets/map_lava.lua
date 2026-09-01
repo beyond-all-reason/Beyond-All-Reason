@@ -573,8 +573,8 @@ else -- UNSYCNED
 		-- numverts = 128 * 384 * 384 *2 tris then we will get 280k tris ....
 		local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 		local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
-		local indexBuffer, indexBufferSize = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
+		local vertexBuffer = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
+		local indexBuffer = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)

@@ -536,7 +536,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if pathCandidate then
 			-- For the first path command, use raw shift state to decide whether to clear queue
 			-- This ensures queue is cleared unless user explicitly holds shift
-			local alt, ctrl, meta, _ = GetModKeys()
+			local alt, ctrl, meta = GetModKeys()
 			local _, _, _, rawShift = spGetModKeyState()
 			if spGetInvertQueueKey() then
 				rawShift = not rawShift
@@ -567,7 +567,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
 				-- Only add command if it's not too close to any previous position
 				if not tooClose then
-					local alt, ctrl, meta, shift = GetModKeys()
+					local alt, ctrl, meta = GetModKeys()
 					local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB)
 
 					GiveNotifyingOrder(usingCmd, pos, cmdOpts)

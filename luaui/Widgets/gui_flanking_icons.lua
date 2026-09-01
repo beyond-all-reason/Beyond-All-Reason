@@ -72,7 +72,7 @@ local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon
 	gameframe = gameframe or spGetGameFrame()
 
 	local radius = spGetUnitRadius(unitID) * 3 or 64
-	local mode, modilityAdd, minDamage, maxDamage, dirX, dirY, dirZ, bonusnumber = spGetUnitFlanking(unitID)
+	local mode, modilityAdd, minDamage, maxDamage, dirX, dirY, dirZ = spGetUnitFlanking(unitID)
 
 	local flankingangle = 0
 	if dirX then

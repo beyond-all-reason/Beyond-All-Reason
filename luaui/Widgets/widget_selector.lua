@@ -222,7 +222,7 @@ function drawChatInput()
 			}
 			local usedFontSize = 15 * widgetScale
 			local lineHeight = floor(usedFontSize * 1.15)
-			local x, y, _ = spGetMouseState()
+			local x, y = spGetMouseState()
 			local chatlogHeightDiff = 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.15)
@@ -1229,11 +1229,11 @@ function widget:DrawScreen()
 			local tooltip = ""
 			local maxWidth = WG.tooltip.getFontsize() * 90
 			if d.desc and d.desc ~= "" then
-				local textLines, numLines = font:WrapText(d.desc, maxWidth)
+				local textLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip .. WhiteStr .. string.gsub(textLines, "[\n]", "\n" .. WhiteStr) .. "\n"
 			end
 			if d.author and d.author ~= "" then
-				local textLines, numLines = font:WrapText(d.author, maxWidth)
+				local textLines = font:WrapText(d.author, maxWidth)
 				tooltip = tooltip
 					.. "\255\175\175\175"
 					.. BAR.I18N("ui.widgetselector.author")

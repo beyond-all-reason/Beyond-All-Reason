@@ -449,7 +449,7 @@ local function buildUnitCache()
 		update = function(unitID, value)
 			local reclaimMetal = 0
 			local reclaimEnergy = 0
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, metalUse, energyMake = Spring.GetUnitResources(unitID)
 			if metalMake then
 				if value[1] then
 					reclaimMetal = metalMake - value[1]
@@ -469,7 +469,7 @@ local function buildUnitCache()
 	unitCache.energyConverters = {
 		add = nil,
 		update = function(unitID, value)
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake = Spring.GetUnitResources(unitID)
 			if metalMake then
 				return metalMake
 			end

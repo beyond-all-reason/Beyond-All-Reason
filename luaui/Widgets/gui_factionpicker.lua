@@ -168,7 +168,7 @@ local function drawFactionpicker()
 			local text = BAR.I18N("ui.factionPicker.factions." .. factions[i].faction)
 			local tooltip = ""
 			local maxWidth = WG.tooltip.getFontsize() * 80
-			local textLines, numLines = font2:WrapText(text, maxWidth)
+			local textLines = font2:WrapText(text, maxWidth)
 			tooltip = tooltip .. string.gsub(textLines, "[\n]", "\n") .. "\n"
 			WG.tooltip.AddTooltip(
 				"factionpicker_" .. i,

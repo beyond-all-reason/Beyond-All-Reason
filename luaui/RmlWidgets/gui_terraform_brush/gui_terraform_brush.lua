@@ -10922,7 +10922,7 @@ local initialModel = {
 		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then
 			return
 		end
-		local amt, freq = WG.DiffusePainter.getFractal()
+		local amt = WG.DiffusePainter.getFractal()
 		if WG.DiffusePainter.setFractal then
 			WG.DiffusePainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
 		end

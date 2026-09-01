@@ -1957,7 +1957,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end

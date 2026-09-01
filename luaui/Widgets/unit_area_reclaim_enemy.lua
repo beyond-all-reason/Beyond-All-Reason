@@ -57,8 +57,8 @@ function widget:CommandNotify(id, params, options)
 
 	local cx, cy, cz, cr = unpack(params)
 
-	local mx, my, mz = spWorldToScreenCoords(cx, cy, cz)
-	local cType, id = spTraceScreenRay(mx, my)
+	local mx, my = spWorldToScreenCoords(cx, cy, cz)
+	local cType = spTraceScreenRay(mx, my)
 
 	if not (cType == "unit" or cType == "ground") then
 		return

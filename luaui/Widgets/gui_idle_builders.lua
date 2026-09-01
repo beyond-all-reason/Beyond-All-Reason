@@ -535,7 +535,7 @@ end
 
 local function checkUnitGroupsPos(isViewresize)
 	if WG.unitgroups then
-		local px, py, sx, sy = WG.unitgroups.getPosition()
+		local px, py, sx = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
@@ -626,8 +626,7 @@ function widget:ViewResize()
 	usedHeight = iconSize + (posY - height > 0 and backgroundPadding or 0)
 
 	if WG.unitgroups then
-		local px, py, sx, sy = WG.unitgroups.getPosition()
-		local oldPosX, oldPosY = posX, posY
+		local px, py, sx = WG.unitgroups.getPosition()
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
 	end

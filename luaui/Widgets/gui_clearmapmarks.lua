@@ -72,7 +72,7 @@ end
 
 local function updatePosition(force)
 	if WG.advplayerlist_api ~= nil then
-		local vsx, vsy = Spring.GetViewGeometry()
+		local vsx = Spring.GetViewGeometry()
 		local margin = WG.FlowUI.elementPadding
 		xPos = vsx - margin
 		local prevPos = advplayerlistPos
@@ -154,7 +154,7 @@ function widget:MouseRelease(mx, my, mb)
 		if Script.LuaUI("ClearMapMarks") then
 			Script.LuaUI.ClearMapMarks()
 		end
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl = Spring.GetModKeyState()
 		if ctrl then
 			continuouslyClean = not continuouslyClean
 			WG.clearmapmarks.continuous = continuouslyClean

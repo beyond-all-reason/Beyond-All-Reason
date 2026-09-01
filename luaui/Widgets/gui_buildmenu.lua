@@ -1569,7 +1569,7 @@ function widget:DrawScreen()
 						local uDefID = -cmd.id
 						WG.buildmenu.hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local alt, ctrl, meta = Spring.GetModKeyState()
 						if WG.tooltip and not meta then
 							-- when meta: unitstats does the tooltip
 							local text

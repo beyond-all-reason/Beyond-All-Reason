@@ -95,7 +95,7 @@ local function GetAllyTeamStats(allyTeamID)
 	local builders = 0
 	local buildspeed = 0
 	if not allyTeamName[allyTeamID] then
-		local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamlist[1], false)
+		local _, playerID = Spring.GetTeamInfo(teamlist[1], false)
 		local name = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
 			or Spring.GetPlayerInfo(playerID, false)
 		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1])) .. name

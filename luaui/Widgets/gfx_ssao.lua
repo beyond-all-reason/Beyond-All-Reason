@@ -253,7 +253,7 @@ local function shaderDefinesChangedCallback(name, value, index, oldvalue)
 	end
 end
 
-local vsx, vsy = spGetViewGeometry()
+local vsx = spGetViewGeometry()
 
 local shaderDefinedSliders = {
 	windowtitle = "SSAO Defines",

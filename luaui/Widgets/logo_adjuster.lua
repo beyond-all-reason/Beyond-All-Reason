@@ -99,7 +99,7 @@ function widget:Update(dt)
 		sec = 0
 		local gameFrame = spGetGameFrame()
 		if gameFrame > 0 then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local _, gameSpeed = Spring.GetGameSpeed()
 			local newPaused = false
 			if gameFrame == previousGameFrame or gameSpeed == 0 then -- when host (admin) paused its just gamespeed 0
 				newPaused = true

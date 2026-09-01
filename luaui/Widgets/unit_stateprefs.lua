@@ -268,7 +268,7 @@ end
 
 function widget:GameFrame(n)
 	if Spring.GetGameState then
-		local finishedLoading, loadedFromSave, locallyPaused, lagging = Spring.GetGameState()
+		local finishedLoading, loadedFromSave = Spring.GetGameState()
 		if loadedFromSave then
 			widgetHandler:RemoveCallIn("GameFrame", self)
 			return

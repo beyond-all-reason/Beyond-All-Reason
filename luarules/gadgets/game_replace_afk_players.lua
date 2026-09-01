@@ -246,14 +246,14 @@ else
 	-----------------------------
 
 	local myPlayerID = Spring.GetLocalPlayerID()
-	local spec, _ = Spring.GetSpectatingState()
+	local spec = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
 	local ColorString = BAR.Utilities.Color.ToString
 
 	local revealed = false
 
 	local function colourNames(teamID)
-		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+		local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
 		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 

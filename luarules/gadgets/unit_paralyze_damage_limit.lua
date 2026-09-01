@@ -246,7 +246,7 @@ function gadget:UnitDamaged(
 		return
 	end
 
-	local uHealth, uMaxHealth, uParalyze = spGetUnitHealth(unitID)
+	local uHealth, uMaxHealth = spGetUnitHealth(unitID)
 
 	-- Support for paralyzeOnMaxHealth Feature
 	local effectiveHP = Game.paralyzeOnMaxHealth and uMaxHealth or uHealth

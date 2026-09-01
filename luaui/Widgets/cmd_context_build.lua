@@ -215,7 +215,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	local x, y, lmb, mmb, rmb = spGetMouseState()
+	local x, y, lmb = spGetMouseState()
 
 	if mouseDownPos and lmb then
 		-- currently doing a build drag, don't swap buildings

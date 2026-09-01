@@ -2332,7 +2332,7 @@ local function drawEngineTooltip()
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
-			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
+			local text = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 			font:Begin(true)
 			font:SetTextColor(1, 1, 1, 1)
 			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
@@ -2598,7 +2598,7 @@ local function LeftMouseButton(unitDefID, unitTable)
 end
 
 local function MiddleMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local alt, ctrl = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
 		Spring.SendCommands(viewSelectionCmd)
@@ -2614,7 +2614,7 @@ local function MiddleMouseButton(unitDefID, unitTable)
 end
 
 local function RightMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local alt, ctrl = spGetModKeyState()
 
 	-- remove selected units of icon type
 	-- Clear and reuse map table instead of creating new one
@@ -2999,7 +2999,7 @@ function widget:DrawScreen()
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(
+					local text = font:WrapText(
 						unitDefInfo[selectionCells[cellHovered]].description,
 						(backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16)
 					)

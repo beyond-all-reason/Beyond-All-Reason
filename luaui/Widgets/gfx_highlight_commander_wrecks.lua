@@ -173,7 +173,7 @@ local function shouldHighlight(unitName)
 end
 
 local function addHighlight(featureID, noUpload)
-	local m, dm, e, de, rl, rt = Spring.GetFeatureResources(featureID)
+	local m = Spring.GetFeatureResources(featureID)
 	if m > 0 then
 		local x, y, z = Spring.GetFeaturePosition(featureID)
 		y = Spring.GetGroundHeight(x, z) - 50 --account for deformable terrain

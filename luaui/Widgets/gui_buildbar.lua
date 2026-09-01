@@ -886,7 +886,7 @@ function widget:Update(dt)
 				unitDefID = unitBuildDefID
 				-- Progress will be drawn separately every frame
 			elseif unfinished_facs[facInfo.unitID] then
-				local isBeingBuilt, progress = GetUnitIsBeingBuilt(facInfo.unitID)
+				local isBeingBuilt = GetUnitIsBeingBuilt(facInfo.unitID)
 				-- Keep showing factory icon when it's being built
 				-- Progress for unfinished factory will be drawn separately
 				if not isBeingBuilt then

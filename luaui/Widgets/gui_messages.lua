@@ -67,7 +67,7 @@ function widget:ViewResize()
 	if buildmenuBottomPosition then
 		posY = 0.21
 		if WG.ordermenu then
-			local oposX, oposY, owidth, oheight = WG.ordermenu.getPosition()
+			local oposX, oposY = WG.ordermenu.getPosition()
 			if oposY > 0.5 then
 				posY = 0.16
 			end
