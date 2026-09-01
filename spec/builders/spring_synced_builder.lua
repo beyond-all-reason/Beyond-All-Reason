@@ -300,27 +300,6 @@ function SB:BuildSpring()
 
 	local resourceSetCalls = {}
 
-	local function recordSetCall(teamID, resourceType, data)
-		table.insert(resourceSetCalls, {
-			teamID = teamID,
-			resource = resourceType,
-			data = table.copy(data or {}),
-		})
-	end
-
-	local function applyResourcePatch(teamID, resourceType, patch)
-		if type(patch) ~= "table" then
-			error("ResourceData patch must be a table")
-		end
-
-		local store, normalized = getResourceStore(teamID, resourceType)
-		for key, value in pairs(patch) do
-			store[key] = value
-		end
-		store.resourceType = normalized
-		recordSetCall(teamID, normalized, patch)
-	end
-
 	---@type SpringSyncedMock
 	local mock = {
 		CMD = Spring and Spring.CMD or {

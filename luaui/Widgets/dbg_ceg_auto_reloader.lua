@@ -320,10 +320,6 @@ local function isFloat3(value)
 	return parseCEGExpression(value, 3)
 end
 
-local function isFloat4(value)
-	return parseCEGExpression(value, 4)
-end
-
 -- TODO FIXME:
 local generatorNames = {}
 local function isExplosionGenerator(value)
@@ -894,51 +890,6 @@ local function validateCEG(cegTable, cegName)
 					end
 				end
 			end
-		end
-	end
-	return true
-end
-
-local function AreIntegers(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "number" or k % 1 ~= 0 then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreBooleans(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "boolean" and k ~= 1 and k ~= 0 then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreStrings(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "string" then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreColorMaps(t)
-	for k, v in pairs(t) do
-		if not isColorMapValid(k) then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreNumbers(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "number" then
-			return false
 		end
 	end
 	return true

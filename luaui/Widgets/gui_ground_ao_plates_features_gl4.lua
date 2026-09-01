@@ -1,8 +1,5 @@
 local widget = widget ---@type Widget
 
-local files = {} -- forward-decl: referenced only by dead addDirToAtlas
-local imgExts = {} -- forward-decl: referenced only by dead addDirToAtlas
-
 function widget:GetInfo()
 	return {
 		name = "Ground AO Plates Features GL4",
@@ -37,28 +34,6 @@ local function basepath(s, pattern)
 		s = string.sub(s, string.find(s, pattern, 1, true) + 1)
 	end
 	return s
-end
-
-local function addDirToAtlas(atlas, path)
-	--spEcho("Adding",#files, "images to atlas from", path)
-	for i = 1, #files do
-		if imgExts[string.sub(files[i], -3, -1)] then
-			local s3oname = basepath(files[i], "/")
-			if string.find(s3oname, "_dead", 1, true) then
-				--spEcho('s3oname',s3oname)
-				s3oname = string.sub(s3oname, 1, string.find(s3oname, "_dead", 1, true) + 4)
-				atlassedImages[s3oname] = files[i]
-			elseif string.find(s3oname, "arm.x.._._", 1) or string.find(s3oname, "cor.x.._._", 1) then
-				s3oname = string.sub(s3oname, 1, 7)
-
-				--spEcho('s3oname',s3oname)
-				atlassedImages[s3oname] = files[i]
-			else
-				--spEcho('Custom Feature AO plate:',s3oname, files[i])
-				atlassedImages[s3oname] = files[i]
-			end
-		end
-	end
 end
 
 local function makeAtlas()
