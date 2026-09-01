@@ -21,6 +21,10 @@ function gadget:GetInfo()
 end
 
 local hasBuildScripts = {}
+local isBuilder = {}
+for unitDefID, def in pairs(UnitDefs) do
+	isBuilder[unitDefID] = def.isBuilder
+end
 
 local function hasBuildScript(unitID, unitDefID)
 	if hasBuildScripts[unitDefID] ~= nil then
@@ -39,18 +43,15 @@ local function hasBuildScript(unitID, unitDefID)
 		hasBuildScripts[unitDefID] = true
 		return true
 	end
-
 	hasBuildScripts[unitDefID] = false
 	return false
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if hasBuildScripts[unitDefID] then
+	if not isBuilder[unitDefID] then
 		return
 	end
-	local def = UnitDefs[unitDefID]
-	local isBuilder = def.canBuild or def.canRepair or def.canCapture or def.canAssist or def.canRestore or def.canResurrect 
-	if not isBuilder then
+	if hasBuildScripts[unitDefID] then
 		return
 	end
 	if hasBuildScript(unitID, unitDefID) then
