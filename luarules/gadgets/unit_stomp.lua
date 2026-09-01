@@ -16,22 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local stompable = {
-	armfav = true,
-	corfav = true,
-	armflea = true,
-	corak = true,
-	armpw = true,
-	leggob = true,
-}
-local stompableCopy = table.copy(stompable)
-for name, v in pairs(stompableCopy) do
-	stompable[name .. "_scav"] = true
-end
 local stompableDefs = {}
 for udid, ud in pairs(UnitDefs) do
-	if stompable[ud.name] then
-		stompableDefs[udid] = ud
+	if ud.customParams.stompable then
+		stompableDefs[udid] = true
 	end
 end
 

@@ -224,12 +224,19 @@ local function unitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	if isAprilFools and holidayModels.AprilFools[basename] then
-		uDef.objectname = holidayModels.AprilFools[basename]
-	elseif isHalloween and holidayModels.Halloween[basename] then
-		uDef.objectname = holidayModels.Halloween[basename]
-	elseif isXmas and holidayModels.Xmas[basename] then
-		uDef.objectname = holidayModels.Xmas[basename]
+	local holidayModel
+	if isAprilFools then
+		holidayModel = holidayModels.AprilFools[basename]
+	elseif isHalloween then
+		holidayModel = holidayModels.Halloween[basename]
+	elseif isXmas then
+		holidayModel = holidayModels.Xmas[basename]
+	end
+	if holidayModel then
+		uDef.objectname = holidayModel.model
+		if holidayModel.hats then
+			customparams.holidayhatcount = holidayModel.hats
+		end
 	end
 
 	----------------------------------------------------------------------------------------------------------
@@ -264,6 +271,17 @@ local function unitDef_Post(name, uDef)
 	end
 	if not customparams.subfolder then
 		customparams.subfolder = "none"
+	end
+
+	-- mirrors customparams.isscavenger (set in scavengers/unitdef_post.lua); all raptor defs share the name prefix
+	if string.sub(name, 1, 6) == "raptor" then
+		customparams.israptor = true
+	end
+
+	-- all critter defs share the name prefix (createScavengerUnitDefs in unitdefs_post.lua
+	-- also relies on it, and runs before this flag exists — keep that check name-based)
+	if string.sub(name, 1, 8) == "critter_" then
+		customparams.iscritter = true
 	end
 
 	if modOptions.unit_restrictions_notech15 then

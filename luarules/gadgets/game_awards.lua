@@ -22,38 +22,21 @@ if gadgetHandler:IsSyncedCode() then
 	local coopInfo = {}
 	local present = {}
 
-	local isEcon = {
-		--land t1
-		[UnitDefNames.armsolar.id] = true,
-		[UnitDefNames.corsolar.id] = true,
-		[UnitDefNames.armadvsol.id] = true,
-		[UnitDefNames.coradvsol.id] = true,
-		[UnitDefNames.armwin.id] = true,
-		[UnitDefNames.corwin.id] = true,
-		[UnitDefNames.armmakr.id] = true,
-		[UnitDefNames.cormakr.id] = true,
-		--sea t1
-		[UnitDefNames.armtide.id] = true,
-		[UnitDefNames.cortide.id] = true,
-		[UnitDefNames.armfmkr.id] = true,
-		[UnitDefNames.corfmkr.id] = true,
-		--land t2
-		[UnitDefNames.armmmkr.id] = true,
-		[UnitDefNames.cormmkr.id] = true,
-		[UnitDefNames.corfus.id] = true,
-		[UnitDefNames.armfus.id] = true,
-		[UnitDefNames.armafus.id] = true,
-		[UnitDefNames.corafus.id] = true,
-		--sea t2
-		[UnitDefNames.armuwfus.id] = true,
-		[UnitDefNames.coruwfus.id] = true,
-		[UnitDefNames.armuwmmm.id] = true,
-		[UnitDefNames.coruwmmm.id] = true,
-	}
+	-- economy structures (energy generators, geothermals and converters), derived from def
+	-- properties; storage produces nothing and drops out naturally, lootboxes and scav
+	-- beacons are excluded via their paratrooper tag
+	local isEcon = {}
 	for udid, ud in pairs(UnitDefs) do
-		for id, v in pairs(isEcon) do
-			if string.find(ud.name, UnitDefs[id].name) then
-				isEcon[udid] = v
+		local cp = ud.customParams
+		if ud.speed == 0 and not cp.israptor and not cp.paratrooper then
+			if
+				ud.windGenerator > 0
+				or ud.tidalGenerator > 0
+				or cp.solar
+				or (ud.energyMake > 19 and (not ud.energyUpkeep or ud.energyUpkeep < 10))
+				or (cp.energyconv_capacity and cp.energyconv_efficiency)
+			then
+				isEcon[udid] = true
 			end
 		end
 	end

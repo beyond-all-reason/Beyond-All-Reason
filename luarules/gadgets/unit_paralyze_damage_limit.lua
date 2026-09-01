@@ -21,15 +21,8 @@ local modOptions = Spring.GetModOptions()
 
 local maxTime = modOptions.emprework == true and 10 or 20 --- bug fixed
 
-local excluded = {
-	-- mobile units that are excluded from the maxTime limit
-	[UnitDefNames.armscab.id] = true,
-	[UnitDefNames.cormabm.id] = true,
-	[UnitDefNames.corcarry.id] = true,
-	[UnitDefNames.armcarry.id] = true,
-	[UnitDefNames.armantiship.id] = true,
-	[UnitDefNames.corantiship.id] = true,
-}
+-- mobile units carrying customparams.paralyzetime_uncapped are excluded from the maxTime limit
+local excluded = {}
 
 local isBuilding = {}
 local unitOhms = {} -- rework related
@@ -105,13 +98,11 @@ local function EvaluateCustomStunCondition(unitDef, unitConditionKey, unitCondit
 end
 
 for udid, ud in pairs(UnitDefs) do
-	for id, v in pairs(excluded) do
-		if string.find(ud.name, UnitDefs[id].name) then
-			excluded[udid] = v
-		end
-		if ud.isBuilding then
-			isBuilding[udid] = true
-		end
+	if ud.customParams.paralyzetime_uncapped then
+		excluded[udid] = true
+	end
+	if ud.isBuilding then
+		isBuilding[udid] = true
 	end
 
 	-- Precompute our fixed_stun_duration and paralyzetime_exceptions to save on computation during the game

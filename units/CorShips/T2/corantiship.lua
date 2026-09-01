@@ -50,6 +50,7 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",

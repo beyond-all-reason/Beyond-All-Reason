@@ -18,17 +18,12 @@ end
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitStealth = Spring.SetUnitStealth
-local stringFind = string.find
 
 local stealthyUnits = {}
-local stealthyTransports = {
-	[UnitDefNames.armdfly.id] = true,
-}
+local stealthyTransports = {}
 for udid, ud in pairs(UnitDefs) do
-	for id, v in pairs(stealthyTransports) do
-		if stringFind(ud.name, UnitDefs[id].name, 1, true) then
-			stealthyTransports[udid] = v
-		end
+	if ud.customParams.stealths_passengers then
+		stealthyTransports[udid] = true
 	end
 	if ud.stealth then
 		stealthyUnits[udid] = true

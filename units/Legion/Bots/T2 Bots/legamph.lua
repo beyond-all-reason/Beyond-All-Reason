@@ -41,6 +41,7 @@ return {
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
+			reaimtime = 4,
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
