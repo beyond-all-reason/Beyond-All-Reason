@@ -338,15 +338,13 @@ local function UpdatePassiveBuilders(
 	local teamStallingMetal = mCur
 		- mathMax(mInc * stallMarginInc, mStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (mInc + mRec - mSent)
-		- nonPassiveConsTotalExpenseMetal * interval
+		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (eInc + eRec - eSent)
-		- nonPassiveConsTotalExpenseEnergy * interval
+		+ intervalOverSpeed * (eInc + eRec - eSent - nonPassiveConsTotalExpenseEnergy)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -354,8 +352,8 @@ local function UpdatePassiveBuilders(
 
 		local pMetal = _passiveMetal[builderID]
 		if pMetal then
-			local passivePullMetal = pMetal * interval
-			local passivePullEnergy = _passiveEnergy[builderID] * interval
+			local passivePullMetal = pMetal * intervalOverSpeed
+			local passivePullEnergy = _passiveEnergy[builderID] * intervalOverSpeed
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
 				if
 					(teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0)
