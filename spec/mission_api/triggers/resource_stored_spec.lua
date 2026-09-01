@@ -1,37 +1,30 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Spring.GetTeamResources inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 local resourceStored = VFS.Include("luarules/mission_api/triggers/resource_stored.lua")
 local onGameFrame = resourceStored.callins.GameFrame
 
 describe("mission_api.triggers.resource_stored", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
 
-	-- select(1, ...) is the current stored level.
+	-- Stored levels come from a built team, so the tuple GetTeamResources returns
+	-- keeps the engine's field order.
 	local function resources(level)
-		return function()
-			return level
-		end
+		local team = Builders.Team.new():WithID(0):WithMetal(level):WithEnergy(level)
+		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
 	end
 
 	it("declares its type and parameters", function()

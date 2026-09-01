@@ -1,9 +1,9 @@
 require("spec_helper")
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+local Builders = VFS.Include("spec/builders/index.lua")
+
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, which the builder installs.
+Builders.MissionApi.new():Install()
 
 local totalUnitsBuilt = VFS.Include("luarules/mission_api/triggers/total_units_built.lua")
 

@@ -1,33 +1,27 @@
 require("spec_helper")
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+local Builders = VFS.Include("spec/builders/index.lua")
 
-_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and UnitDefs inside its handler.
+Builders.MissionApi.new():Install()
+
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armpw" },
+	[2] = { name = "corfast" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitCaptured = VFS.Include("luarules/mission_api/triggers/unit_captured.lua")
 local onUnitTaken = unitCaptured.callins.UnitTaken
 
 describe("mission_api.triggers.unit_captured", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesUnitHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

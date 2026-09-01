@@ -1,34 +1,28 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time,
 -- Game.envDamageTypes from the harness, and UnitDefs inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
-_G.UnitDefs = { [1] = { name = "armrad" }, [2] = { name = "armsolar" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armrad" },
+	[2] = { name = "armsolar" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local unitReclaimed = VFS.Include("luarules/mission_api/triggers/unit_reclaimed.lua")
 local onUnitDestroyed = unitReclaimed.callins.UnitDestroyed
 
 describe("mission_api.triggers.unit_reclaimed", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			DoesUnitHaveName = function()
-				return true
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

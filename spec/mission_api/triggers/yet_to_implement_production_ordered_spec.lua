@@ -1,42 +1,33 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 _G.CMD = _G.CMD or {}
 _G.CMD.INSERT = 34
 _G.CMD.MOVE = 10
 
-_G.UnitDefs = {
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armlab", isFactory = true },
 	[2] = { name = "corvp", isFactory = true },
 	[10] = { name = "armpw" },
 	[11] = { name = "corfast" },
-}
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local productionOrdered = VFS.Include("luarules/mission_api/triggers/yet_to_implement_production_ordered.lua")
 local onUnitCommand = productionOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesUnitHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

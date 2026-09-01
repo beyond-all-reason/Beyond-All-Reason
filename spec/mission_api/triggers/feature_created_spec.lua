@@ -1,33 +1,27 @@
 require("spec_helper")
 
--- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+local Builders = VFS.Include("spec/builders/index.lua")
 
-_G.FeatureDefs = { [1] = { name = "treetype1" }, [2] = { name = "rock1" } }
+-- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and FeatureDefs inside its handler.
+Builders.MissionApi.new():Install()
+
+local featureDefs = Builders.FeatureDefs.new():WithFeatureDefs({
+	[1] = { name = "treetype1" },
+	[2] = { name = "rock1" },
+})
+_G.FeatureDefs = featureDefs:GetFeatureDefsByID()
 
 local featureCreated = VFS.Include("luarules/mission_api/triggers/feature_created.lua")
 local onFeatureCreated = featureCreated.callins.FeatureCreated
 
 describe("mission_api.triggers.feature_created", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			IsFeatureInArea = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

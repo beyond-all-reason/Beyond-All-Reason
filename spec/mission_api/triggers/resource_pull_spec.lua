@@ -1,37 +1,30 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Game.gameSpeed / Spring.GetTeamResources inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 local resourcePull = VFS.Include("luarules/mission_api/triggers/resource_pull.lua")
 local onGameFrame = resourcePull.callins.GameFrame
 
 describe("mission_api.triggers.resource_pull", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
 
-	-- select(3, ...) is the pull value.
+	-- Pull comes from a built team, so the tuple GetTeamResources returns keeps the
+	-- engine's field order.
 	local function resources(pull)
-		return function()
-			return 0, 0, pull
-		end
+		local team = Builders.Team.new():WithID(0):WithMetalPull(pull):WithEnergyPull(pull)
+		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
 	end
 
 	it("declares its type and parameters", function()

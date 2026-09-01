@@ -1,16 +1,20 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitWorkerTask / CMD.RESURRECT / Engine.FeatureSupport / Game.maxUnits / UnitDefs inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 _G.CMD = _G.CMD or {}
 _G.CMD.RESURRECT = 125
 _G.CMD.RECLAIM = 90
 
-_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armpw" },
+	[2] = { name = "corfast" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 _G.Game.maxUnits = _G.Game.maxUnits or 32000
 
@@ -29,22 +33,12 @@ describe("mission_api.triggers.unit_resurrected", function()
 	end)
 
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesFeatureHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

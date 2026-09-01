@@ -1,10 +1,10 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Game.gameSpeed / Spring.GetTeamResources / Spring.GetTeamUnits / UnitDefs inside its handler.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 local resourceIncome = VFS.Include("luarules/mission_api/triggers/resource_income.lua")
 local onGameFrame = resourceIncome.callins.GameFrame
@@ -23,31 +23,32 @@ describe("mission_api.triggers.resource_income", function()
 	end)
 
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			GetReclaimIncomeSnapshot = function()
-				return nil
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"
 
-	-- select(4, ...) is total income; select(8, ...) is resources received via sharing.
+	-- Income and the resources received via sharing come from a built team, so the
+	-- tuple GetTeamResources returns keeps the engine's field order.
 	local function resources(income, received)
-		return function()
-			return 0, 0, 0, income, 0, 0, 0, received or 0
-		end
+		local team = Builders.Team
+			.new()
+			:WithID(0)
+			:WithMetalIncome(income)
+			:WithEnergyIncome(income)
+			:WithMetalReceived(received or 0)
+			:WithEnergyReceived(received or 0)
+		return Builders.Spring.new():WithTeam(team):Build().GetTeamResources
+	end
+
+	-- The extractor-sourced tests need a def that extracts metal.
+	local function extractorUnitDefs()
+		return Builders.UnitDefs.new():WithUnitDef(1, { extractsMetal = 1 }):GetUnitDefsByID()
 	end
 
 	it("declares its type and parameters", function()
@@ -97,7 +98,7 @@ describe("mission_api.triggers.resource_income", function()
 		Spring.GetUnitDefID = function()
 			return 1
 		end
-		_G.UnitDefs = { [1] = { extractsMetal = 1 } }
+		_G.UnitDefs = extractorUnitDefs()
 		Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -117,7 +118,7 @@ describe("mission_api.triggers.resource_income", function()
 
 	it("filters by source: extractor income alone", function()
 		local context, fired = newContext()
-		_G.UnitDefs = { [1] = { extractsMetal = 1 } }
+		_G.UnitDefs = extractorUnitDefs()
 		Spring.GetTeamUnits = function()
 			return { 1 }
 		end
@@ -165,7 +166,7 @@ describe("mission_api.triggers.resource_income", function()
 		-- Extractor income is metal-only per the trigger; requesting extractor-sourced
 		-- energy income should never exceed a positive threshold.
 		local context, fired = newContext()
-		_G.UnitDefs = { [1] = { extractsMetal = 1 } }
+		_G.UnitDefs = extractorUnitDefs()
 		Spring.GetTeamUnits = function()
 			return { 1 }
 		end
