@@ -33,6 +33,8 @@ return { --costs should be same as legmohoconct and legmohoconin
 		sightdistance = 273,
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
+			attached_con_turret = "legmohoconct",
+			attached_con_turret_mex = "legmohoconin",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohocon_aoplane.dds",
 			buildinggrounddecalsizey = 7,

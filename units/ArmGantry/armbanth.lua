@@ -41,6 +41,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 1,
+			reaimtime = 1,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

@@ -291,7 +291,7 @@ local removeUnitGrassQueue = {}
 
 local buildingRadius = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.isBuilding or string.find(unitDef.name, "nanotc")) and unitDef.radius > 18 then
+	if (unitDef.isBuilding or unitDef.customParams.isnanoturret) and unitDef.radius > 18 then
 		buildingRadius[unitDefID] = unitDef.radius
 	end
 end

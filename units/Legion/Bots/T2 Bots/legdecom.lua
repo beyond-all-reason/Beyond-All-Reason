@@ -73,11 +73,13 @@ return {
 		},
 		customparams = {
 			unitgroup = "buildert2",
+			canwearcosmetics = true,
 			decoyfor = "legcom",
 			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 5,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			isdecoycommander = true,

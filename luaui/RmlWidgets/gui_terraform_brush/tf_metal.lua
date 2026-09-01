@@ -190,14 +190,13 @@ function M.sync(doc, ctx, mbState, setSummary)
 			"btn-mb-curve-down",
 			"btn-mb-curve-up",
 		}, nonStamp)
-		-- Metal Value: disabled in remove submode
-		local valueOff = (sm == "remove")
+		-- Metal Value stays live in remove submode: the erase rate scales with it
 		ctx.setDisabledIds(doc, {
 			"slider-metal-value",
 			"slider-metal-value-numbox",
 			"btn-metal-value-down",
 			"btn-metal-value-up",
-		}, valueOff)
+		}, false)
 	end
 
 	do
