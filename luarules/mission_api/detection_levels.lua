@@ -108,8 +108,8 @@ end
 
 ---The level bit a unit currently sits at. Without a sensorAllyTeam, the highest level held
 ---by any allyTeam other than the unit's own wins, so a unit seen by one and unheard by
----another reads as seen. The owner is skipped because an allyTeam always has vision of
----its own units, which would otherwise report every unit as seen by every sensor.
+---another reads as seen. The owner is skipped because an allyTeam always has vision of its
+---own units, which would otherwise report every unit as seen by every sensor.
 ---@return integer levelBit
 local function levelBitOf(unitID, sensorAllyTeam)
 	if sensorAllyTeam then
@@ -159,8 +159,16 @@ end
 local function newDetectionUpdate(fireOnDetection, matchesUnit)
 	return function(trigger, triggerID, context, dirtyUnits)
 		local parameters = trigger.parameters
-		local sensorAllyTeam = parameters.sensorAllyTeam
 		local latched = table.ensureTable(latches, triggerID)
+
+		-- Resolved once per trigger: without it every unit reads as seen, because a unit's
+		-- own allyTeam always has vision of it and the unfiltered level is the highest held
+		-- by any allyTeam.
+		local sensorAllyTeam = trigger.sensorAllyTeam
+		if sensorAllyTeam == nil and parameters.sensorAllyTeamName then
+			sensorAllyTeam = GG["MissionAPI"].AllyTeams[parameters.sensorAllyTeamName]
+			trigger.sensorAllyTeam = sensorAllyTeam
+		end
 
 		local levelMask = trigger.levelMask
 		if not levelMask then

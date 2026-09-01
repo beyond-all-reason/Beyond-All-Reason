@@ -6,7 +6,7 @@ return {
 	type = 'ProductionStarted',
 	parameters = {
 		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',         required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
 		{ name = 'factoryName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'factoryDefName', required = false, type = ParameterTypes.UnitDefName },
 	},
@@ -26,7 +26,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamID and parameters.teamID ~= unitTeam then
+			if parameters.teamName and GG['MissionAPI'].Teams[parameters.teamName] ~= unitTeam then
 				return
 			end
 			if parameters.factoryName and not context.DoesUnitHaveName(builderID, parameters.factoryName) then

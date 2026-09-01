@@ -522,6 +522,19 @@ function widget:DrawWorld()
 		return
 	end
 
+	-- skip if scenario or mission options disable initial commander spawn
+	local modOptions = Spring.GetModOptions()
+	local options = modOptions.scenariooptions or modOptions.missionoptions
+	if options then
+		local optionsDecoded = Json.decode(string.base64Decode(options))
+		if
+			optionsDecoded
+			and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout))
+		then
+			return
+		end
+	end
+
 	-- draw pregamestart commander models at start positions
 	local id
 	for i = 1, #teamList do

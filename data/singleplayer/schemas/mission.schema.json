@@ -1,0 +1,267 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "mission.schema.json",
+	"title": "Mission Definition",
+	"description": "Lobby-facing part of a BAR mission. Lives next to the mission.lua that holds the in-game logic (stages, objectives, triggers, actions, loadouts).",
+	"type": "object",
+	"required": ["missionId", "title", "description", "startScript"],
+	"additionalProperties": false,
+	"definitions": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+$",
+			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
+		},
+		"assetFilename": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9._-]+$",
+			"description": "Filename of an asset stored in this mission's folder."
+		},
+		"optionValue": {
+			"type": ["string", "number", "boolean"],
+			"description": "Value of a mod/map option, passed through to the start script as-is."
+		},
+		"team": {
+			"type": "object",
+			"description": "A single team. The key it is stored under is the teamName used by the mission's Lua files (must be unique across all ally teams).",
+			"required": ["name"],
+			"additionalProperties": false,
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "In-game display name. Player name rules apply, so no spaces. Maps to the start script 'Name' key."
+				},
+				"side": {
+					"enum": ["Armada", "Cortex", "Legion", "Random"],
+					"description": "Faction of the team. Maps to the start script 'Side' key."
+				},
+				"rgbColor": {
+					"type": "array",
+					"description": "Team colour as red, green and blue components in the range 0 to 1. Maps to the start script 'RgbColor' key, which is written as three space separated values. Omit to let the lobby assign a colour.",
+					"minItems": 3,
+					"maxItems": 3,
+					"items": {
+						"type": "number",
+						"minimum": 0,
+						"maximum": 1
+					}
+				},
+				"startPosX": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Start position X in world coordinates (elmos). Maps to the start script 'StartPosX' key. Used when startPosType is 'fixed' or 'chooseBeforeGame'."
+				},
+				"startPosZ": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Start position Z in world coordinates (elmos). Maps to the start script 'StartPosZ' key. Used when startPosType is 'fixed' or 'chooseBeforeGame'."
+				},
+				"incomeMultiplier": {
+					"type": "number",
+					"minimum": 0,
+					"description": "Resource income multiplier for this team (1.0 = normal). Maps to the start script 'IncomeMultiplier' key."
+				},
+				"ai": {
+					"type": "string",
+					"description": "Short name of the AI controlling this team, for example 'SimpleAI' or 'NullAI'. Omit the property entirely to make this a human player team."
+				}
+			}
+		},
+		"allyTeam": {
+			"type": "object",
+			"description": "A group of teams that share victory conditions. The key it is stored under is the allyTeamName used by mission.lua.",
+			"required": ["teams"],
+			"additionalProperties": false,
+			"properties": {
+				"teams": {
+					"type": "object",
+					"description": "Map of teamName to team definition.",
+					"minProperties": 1,
+					"propertyNames": {
+						"$ref": "#/definitions/identifier"
+					},
+					"additionalProperties": {
+						"$ref": "#/definitions/team"
+					}
+				}
+			}
+		}
+	},
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "Path or URL to the JSON Schema for this file."
+		},
+		"missionId": {
+			"allOf": [{ "$ref": "#/definitions/identifier" }],
+			"description": "Unique ID of the mission within its campaign. Referenced by the campaign's 'unlocks' map."
+		},
+		"title": {
+			"type": "string",
+			"description": "Display title of the mission."
+		},
+		"description": {
+			"type": "string",
+			"description": "Short description shown in the mission selection UI."
+		},
+		"authors": {
+			"type": "array",
+			"description": "People credited for this mission.",
+			"minItems": 1,
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"image": {
+			"allOf": [{ "$ref": "#/definitions/assetFilename" }],
+			"description": "Filename of the mission preview image, relative to this mission's folder."
+		},
+		"startPos": {
+			"type": "object",
+			"description": "Marker on the lobby minimap indicating where the player starts. Normalised map coordinates, not world coordinates.",
+			"required": ["x", "y"],
+			"additionalProperties": false,
+			"properties": {
+				"x": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1,
+					"description": "Horizontal position as a fraction of map width (0 = west edge, 1 = east edge)."
+				},
+				"y": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1,
+					"description": "Vertical position as a fraction of map height (0 = north edge, 1 = south edge)."
+				}
+			}
+		},
+		"briefing": {
+			"type": "object",
+			"description": "Optional briefing panel content shown before the mission starts. Purely informational; none of it affects gameplay.",
+			"additionalProperties": false,
+			"properties": {
+				"alliesPresent": {
+					"type": "array",
+					"description": "Friendly forces to mention in the briefing.",
+					"items": { "type": "string" }
+				},
+				"objectives": {
+					"type": "array",
+					"description": "Human readable objective summaries. These are briefing text only and are unrelated to the Objectives table in mission.lua.",
+					"items": { "type": "string" }
+				},
+				"knownHostiles": {
+					"type": "array",
+					"description": "Enemy forces to mention in the briefing.",
+					"items": { "type": "string" }
+				},
+				"newUnits": {
+					"type": "array",
+					"description": "Units introduced by this mission, in display order.",
+					"items": {
+						"type": "object",
+						"required": ["unitDefName", "description"],
+						"additionalProperties": false,
+						"properties": {
+							"unitDefName": {
+								"allOf": [{ "$ref": "#/definitions/identifier" }],
+								"description": "UnitDefName of the unit, for example 'armflash'."
+							},
+							"description": {
+								"type": "string",
+								"description": "Short explanation of what the unit does."
+							}
+						}
+					}
+				}
+			}
+		},
+		"players": {
+			"type": "array",
+			"description": "Player counts this mission can be played at. Omit in a campaign mission to inherit the campaign's value; required for a scenario. Must stay consistent with startScript.players.",
+			"minItems": 1,
+			"items": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		"startScript": {
+			"type": "object",
+			"description": "Everything the lobby needs to build the engine start script for this mission.",
+			"required": ["mapName", "allyTeams"],
+			"additionalProperties": false,
+			"properties": {
+				"mapName": {
+					"type": "string",
+					"description": "Map name as shown in the map selection screen. The lobby replaces spaces with underscores."
+				},
+				"startPosType": {
+					"enum": ["fixed", "random", "chooseInGame", "chooseBeforeGame"],
+					"description": "How start positions are assigned. The lobby maps these to the engine values fixed = 0, random = 1, chooseInGame = 2, chooseBeforeGame = 3."
+				},
+				"disableFactionPicker": {
+					"type": "boolean",
+					"description": "When true, players cannot change the faction defined by the mission."
+				},
+				"disableInitialCommanderSpawn": {
+					"type": "boolean",
+					"description": "When true, no starting commander is spawned. Use this when the mission spawns its own starting units via UnitLoadout in mission.lua."
+				},
+				"players": {
+					"type": "object",
+					"description": "Player count range written into the start script. The lobby facing list of selectable counts is the top level 'players' property; keep the two consistent.",
+					"required": ["min", "max"],
+					"additionalProperties": false,
+					"properties": {
+						"min": {
+							"type": "integer",
+							"minimum": 1
+						},
+						"max": {
+							"type": "integer",
+							"minimum": 1
+						}
+					}
+				},
+				"unitLimits": {
+					"type": "object",
+					"description": "Map of UnitDefName to the maximum number that may be built. Use 0 to disable a unit entirely.",
+					"propertyNames": {
+						"$ref": "#/definitions/identifier"
+					},
+					"additionalProperties": {
+						"type": "integer",
+						"minimum": 0
+					}
+				},
+				"modOptions": {
+					"type": "object",
+					"description": "Mod options to force for this mission, as defined in modoptions.lua.",
+					"additionalProperties": {
+						"$ref": "#/definitions/optionValue"
+					}
+				},
+				"mapOptions": {
+					"type": "object",
+					"description": "Map specific options to force for this mission.",
+					"additionalProperties": {
+						"$ref": "#/definitions/optionValue"
+					}
+				},
+				"allyTeams": {
+					"type": "object",
+					"description": "Map of allyTeamName to ally team definition. Team and ally team names defined here are the names mission.lua refers to.",
+					"minProperties": 1,
+					"propertyNames": {
+						"$ref": "#/definitions/identifier"
+					},
+					"additionalProperties": {
+						"$ref": "#/definitions/allyTeam"
+					}
+				}
+			}
+		}
+	}
+}

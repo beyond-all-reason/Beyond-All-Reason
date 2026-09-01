@@ -15,6 +15,8 @@ GG["MissionAPI"].Modules.SeismicContacts = GG["MissionAPI"].Modules.SeismicConta
 	}
 
 _G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
+GG["MissionAPI"].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
 
 GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
@@ -127,8 +129,8 @@ describe("mission_api.triggers.unit_undetected", function()
 			end
 			assert.is_true(names.unitName)
 			assert.is_true(names.unitDefName)
-			assert.is_true(names.owningTeamID)
-			assert.is_true(names.sensorAllyTeam)
+			assert.is_true(names.owningTeamName)
+			assert.is_true(names.sensorAllyTeamName)
 			assert.is_true(names.sensorTypes)
 			assert.are.same({ "unitName", "unitDefName" }, unitUndetected.parameters.requiresOneOf)
 		end)
@@ -155,19 +157,19 @@ describe("mission_api.triggers.unit_undetected", function()
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on owningTeamID", function()
+		it("filters on owningTeamName", function()
 			local context, fired = newContext()
 			Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
-			local t = trigger({ unitDefName = "armpw", owningTeamID = 3 })
+			local t = trigger({ unitDefName = "armpw", owningTeamName = "theEnemyTeam" })
 			loseUnit(t, freshTriggerID(), context, freshUnitID())
 			assert.are.equal(0, fired())
 		end)
 
-		it("filters on sensorAllyTeam", function()
+		it("filters on sensorAllyTeamName", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeam = SENSOR_ALLY }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeamName = "sensorAlly" }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Seen and then lost by an allyTeam this trigger does not watch.

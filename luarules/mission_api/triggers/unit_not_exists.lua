@@ -5,7 +5,7 @@ return {
 	parameters = {
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -16,7 +16,7 @@ return {
 			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
+			if trigger.parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
 				return
 			end
 			context.ActivateTrigger(trigger)

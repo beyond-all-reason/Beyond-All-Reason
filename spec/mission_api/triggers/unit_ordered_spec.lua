@@ -4,6 +4,7 @@ require("spec_helper")
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 9 }
 
 _G.CMD = _G.CMD or {}
 _G.CMD.INSERT = 34
@@ -70,7 +71,7 @@ describe("mission_api.triggers.unit_ordered", function()
 		assert.is_true(names.command)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ command = true }, required)
 		assert.are.same({ "unitName", "unitDefName" }, unitOrdered.parameters.requiresOneOf)
@@ -97,9 +98,14 @@ describe("mission_api.triggers.unit_ordered", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, unitDefName = "armpw", teamID = 9 }), context, CMD.MOVE, { 0, 0, 0 }) -- unitTeam 0
+		order(
+			trigger({ command = CMD.MOVE, unitDefName = "armpw", teamName = "theEnemyTeam" }),
+			context,
+			CMD.MOVE,
+			{ 0, 0, 0 }
+		) -- unitTeam 0
 		assert.are.equal(0, fired())
 	end)
 

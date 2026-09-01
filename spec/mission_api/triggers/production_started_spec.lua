@@ -5,6 +5,7 @@ require("spec_helper")
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
 GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
 _G.UnitDefs = {
@@ -63,7 +64,7 @@ describe("mission_api.triggers.production_started", function()
 			names[parameter.name] = parameter.required
 		end
 		assert.is_true(names.unitDefName) -- a buildee has no unitName yet, so this stands in as required
-		assert.is_false(names.teamID)
+		assert.is_false(names.teamName)
 		assert.is_false(names.factoryName)
 		assert.is_false(names.factoryDefName)
 	end)
@@ -74,9 +75,9 @@ describe("mission_api.triggers.production_started", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 9, 10)
+		produced(trigger({ unitDefName = "armpw", teamName = "thePlayerTeam" }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -99,7 +100,7 @@ describe("mission_api.triggers.production_started", function()
 
 	it("fires for a matching production", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 0, 10)
+		produced(trigger({ unitDefName = "armpw", teamName = "thePlayerTeam" }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

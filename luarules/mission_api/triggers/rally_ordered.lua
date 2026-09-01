@@ -30,7 +30,7 @@ return {
 		{ name = 'command',              required = true,  type = ParameterTypes.Command },
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',               required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
@@ -64,7 +64,7 @@ return {
 			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if trigger.parameters.teamID and trigger.parameters.teamID ~= unitTeam then
+			if trigger.parameters.teamName and GG['MissionAPI'].Teams[trigger.parameters.teamName] ~= unitTeam then
 				return
 			end
 			context.ActivateTrigger(trigger)

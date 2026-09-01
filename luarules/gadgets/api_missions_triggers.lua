@@ -75,13 +75,20 @@ local function isTriggerValid(trigger)
 		return false
 	end
 
-	if trigger.triggered and not settings.repeating then
+	if trigger.triggered and not trigger.settings.repeating then
 		return false
 	end
-	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
+	if
+		trigger.settings.repeating
+		and trigger.settings.maxRepeats ~= nil
+		and trigger.repeatCount > trigger.settings.maxRepeats
+	then
 		return false
 	end
-	if settings.difficulties ~= nil and not settings.difficulties[GG["MissionAPI"].Difficulty] then
+	if
+		trigger.settings.difficulties ~= nil
+		and not table.contains(trigger.settings.difficulties, GG["MissionAPI"].Difficulty)
+	then
 		return false
 	end
 
@@ -110,7 +117,7 @@ end
 
 local function getUnitsInArea(trigger)
 	local area = trigger.parameters.area
-	local teamID = trigger.parameters.teamID
+	local teamID = GG["MissionAPI"].Teams[trigger.parameters.teamName]
 	local unitsInArea = {}
 
 	if area.x1 and area.z1 and area.x2 and area.z2 then

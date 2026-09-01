@@ -14,10 +14,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local objectivesController, stagesController, triggersController, actionsController
+local objectivesController, stagesController, triggersController, actionsController, missionLoader
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(missionDir)
+	Spring.Echo("Loading mission " .. missionDir)
+
+	local mission = missionLoader.LoadMissionFiles(missionDir)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -53,15 +55,29 @@ local function loadMission(scriptPath)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
 end
 
+local function setAiNames(ais)
+	for i, name in pairs(ais) do
+		Spring.SetGameRulesParam("ainame_" .. i, name)
+	end
+end
+
 function gadget:Initialize()
-	local scriptPath = nil -- relative to `singleplayer`, e.g.: 'mission-api-tests/filename.lua'.
-	if not scriptPath then
+	local missionOptions = Spring.GetModOptions().missionoptions
+	if not missionOptions then
 		gadgetHandler:RemoveGadget()
 		return
 	end
+	missionOptions = Json.decode(string.base64Decode(missionOptions))
+
+	setAiNames(missionOptions.ais)
 
 	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Difficulty = 0
+	GG["MissionAPI"].Difficulty = missionOptions.difficulty or 0
+	GG["MissionAPI"].AllyTeams = missionOptions.allyTeams or {}
+	GG["MissionAPI"].Teams = missionOptions.teams or {}
+	GG["MissionAPI"].AIs = missionOptions.ais or {}
+	GG["MissionAPI"].Players = missionOptions.players or {}
+
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -70,6 +86,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].ManagedObjectives = {}
+
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
@@ -81,6 +98,7 @@ function gadget:Initialize()
 
 	objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
 	stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
+	missionLoader = VFS.Include("luarules/mission_api/mission_loader.lua")
 
 	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
 	GG["MissionAPI"].ActionDefinitions = actionsController.LoadActionDefinitions()
@@ -88,7 +106,13 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(scriptPath)
+	if not missionOptions.missionFolder then
+		Spring.Log("api_missions.lua", LOG.ERROR, "[Mission API] missionoptions has no 'missionFolder'")
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	loadMission(missionOptions.missionFolder)
 end
 
 function gadget:GamePreload()

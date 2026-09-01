@@ -12,6 +12,9 @@ GG["MissionAPI"].Modules.SeismicContacts = {
 	end,
 }
 
+-- Triggers name their sensor allyTeam, which the module resolves through this lookup.
+GG["MissionAPI"].AllyTeams = { sensorAlly = 0, otherAlly = 1 }
+
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
 
@@ -95,7 +98,7 @@ describe("mission_api.detection_levels", function()
 		end)
 	end)
 
-	describe("without a sensorAllyTeam", function()
+	describe("without a sensorAllyTeamName", function()
 		-- allyTeams are 0:reference, 1:enemy, 2:gaia
 		it("ignores Gaia, which sees plenty and means nothing by it", function()
 			losStatusByAllyTeam[2] = INLOS
@@ -305,11 +308,11 @@ describe("mission_api.detection_levels", function()
 		end)
 
 		-- Resolving per allyTeam, rather than per trigger, is what shares these two.
-		it("shares a named sensorAllyTeam with the triggers that name none", function()
+		it("shares a named sensorAllyTeamName with the triggers that name none", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 
 			DetectionLevels.BeginUpdate()
-			onDetected(newTrigger({ sensorAllyTeam = 0 }), "named", context, { [100] = true })
+			onDetected(newTrigger({ sensorAllyTeamName = "sensorAlly" }), "named", context, { [100] = true })
 			onDetected(newTrigger(), "unnamed", context, { [100] = true })
 
 			assert.are.equal(2, losStateReads)

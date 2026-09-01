@@ -9,7 +9,7 @@ return {
 		{ name = 'duration',    required = true,  type = ParameterTypes.Number },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
@@ -34,7 +34,8 @@ return {
 				-- If unit just entered area (and hasn't already triggered), start counting:
 				elseif (dwellingUnitsInAreas[triggerID] == nil or dwellingUnitsInAreas[triggerID][unitID] == nil)
 					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
-					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName) then
+					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
+					and (not trigger.parameters.teamName or Spring.GetUnitTeam(unitID) == GG['MissionAPI'].Teams[trigger.parameters.teamName]) then
 					table.ensureTable(dwellingUnitsInAreas, triggerID)
 					dwellingUnitsInAreas[triggerID][unitID] = 0
 				end
