@@ -34,8 +34,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- These values are supposedly engine-backed:
-local stallMarginInc = 0.20
+-- Arbitrarily chosen heuristics to prevent stall in engine code
+local stallMarginInc = 0.4 -- Builder priority is checked every 6 frames, so this represents a buffer of 2 cycles without stalling.
 local stallMarginSto = 0.01
 
 local passiveCons = {} -- passiveCons[teamID][builderID]
@@ -92,6 +92,7 @@ local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
 local suspendBuilderPriority
 local teamsWithOwners = {} -- teams that have active buildTargetOwners entries
+local mmUseParamName = "mmUse"
 
 -- Reusable scratch tables to reduce GC pressure (cleared before each use)
 local _passiveMetal = {}
@@ -258,7 +259,8 @@ local function UpdatePassiveBuilders(
 	eInc,
 	eShare,
 	eSent,
-	eRec
+	eRec,
+	ePull
 )
 	-- Early exit if no passive builders for this team
 	if not passiveConsCount[teamID] or passiveConsCount[teamID] == 0 then
@@ -274,8 +276,8 @@ local function UpdatePassiveBuilders(
 
 	-- calculate how much expense each passive con would require
 	-- and how much total expense the non-passive cons require
-	local nonPassiveConsTotalExpenseEnergy = 0
 	local nonPassiveConsTotalExpenseMetal = 0
+	local passiveConsTotalExpenseEnergy = 0
 	local teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 	local hasOwners = false
 
@@ -328,9 +330,18 @@ local function UpdatePassiveBuilders(
 						local rate = buildSpeed / targetCosts[3]
 						local mcost = targetCosts[1]
 						mcost = mcost <= 1 and 0 or mcost * rate
-						local ecost = targetCosts[2] * rate
 						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
-						nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
+					end
+				end
+			else -- passive builder
+				local builtUnit = spGetUnitIsBuilding(builderID)
+				if builtUnit then
+					local targetCosts = costID[builtUnit]
+					local buildSpeed = currentBuildSpeed[builderID]
+					if targetCosts and buildSpeed then
+						local rate = buildSpeed / targetCosts[3]
+						local ecost = targetCosts[2] * rate
+						passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + ecost
 					end
 				end
 			end
@@ -347,10 +358,12 @@ local function UpdatePassiveBuilders(
 		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
+	local converterEnergyUse = spGetTeamRulesParam(teamID, mmUseParamName) or 0
+	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (eInc + eRec - eSent - nonPassiveConsTotalExpenseEnergy)
+		+ intervalOverSpeed * (eInc + eRec - eSent - nonConverterEnergyPull + passiveConsTotalExpenseEnergy)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -420,7 +433,7 @@ function gadget:GameFrame(n)
 				if n >= updateFrame[teamID] then
 					-- Read resource data once for both interval calc and UpdatePassiveBuilders
 					local mCur, mStor, _, mInc, _, mShare, mSent, mRec = spGetTeamResources(teamID, "metal")
-					local eCur, eStor, _, eInc, _, eShare, eSent, eRec = spGetTeamResources(teamID, "energy")
+					local eCur, eStor, ePull, eInc, _, eShare, eSent, eRec = spGetTeamResources(teamID, "energy")
 					-- Inlined GetUpdateInterval: find max frames to fill storage for metal/energy (capped at 6)
 					local interval = 1
 					if mInc > 0 then
@@ -452,7 +465,8 @@ function gadget:GameFrame(n)
 						eInc,
 						eShare,
 						eSent,
-						eRec
+						eRec,
+						ePull
 					)
 					updateFrame[teamID] = n + interval
 				end
