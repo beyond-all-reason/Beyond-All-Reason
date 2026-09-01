@@ -224,12 +224,19 @@ local function unitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	if isAprilFools and holidayModels.AprilFools[basename] then
-		uDef.objectname = holidayModels.AprilFools[basename]
-	elseif isHalloween and holidayModels.Halloween[basename] then
-		uDef.objectname = holidayModels.Halloween[basename]
-	elseif isXmas and holidayModels.Xmas[basename] then
-		uDef.objectname = holidayModels.Xmas[basename]
+	local holidayModel
+	if isAprilFools then
+		holidayModel = holidayModels.AprilFools[basename]
+	elseif isHalloween then
+		holidayModel = holidayModels.Halloween[basename]
+	elseif isXmas then
+		holidayModel = holidayModels.Xmas[basename]
+	end
+	if holidayModel then
+		uDef.objectname = holidayModel.model
+		if holidayModel.hats then
+			customparams.holidayhatcount = holidayModel.hats
+		end
 	end
 
 	----------------------------------------------------------------------------------------------------------
@@ -264,6 +271,16 @@ local function unitDef_Post(name, uDef)
 	end
 	if not customparams.subfolder then
 		customparams.subfolder = "none"
+	end
+
+	-- israptor/iscritter are set explicitly in the unit def files; the name prefixes stay
+	-- load-bearing elsewhere (createScavengerUnitDefs in unitdefs_post.lua), so warn loudly
+	-- when a def follows the naming convention but is missing its flag
+	if string.sub(name, 1, 6) == "raptor" and not customparams.israptor then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a raptor but lacks customparams.israptor")
+	end
+	if string.sub(name, 1, 8) == "critter_" and not customparams.iscritter then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a critter but lacks customparams.iscritter")
 	end
 
 	if modOptions.unit_restrictions_notech15 then

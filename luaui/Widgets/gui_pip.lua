@@ -24,7 +24,7 @@ end
 -- Forward-declare config so zoom helpers can reference it (config table defined below)
 local config
 
--- Helper function to get effective zoom minimum (accounts for minimap mode)]]]]]]]]]]]]
+-- Helper function to get effective zoom minimum (accounts for minimap mode)
 
 local function GetEffectiveZoomMin()
 	if isMinimapMode and minimapModeMinZoom then

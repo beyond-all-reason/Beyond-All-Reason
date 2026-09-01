@@ -33,8 +33,10 @@ return {
 		turnrate = 600,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 6,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

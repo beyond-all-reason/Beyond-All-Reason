@@ -98,6 +98,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "legstone",
 			shield_color_mult = 0.8,
 			shield_power = 1900,
 			shield_radius = 150,
