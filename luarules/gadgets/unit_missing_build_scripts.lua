@@ -15,7 +15,7 @@ function gadget:GetInfo()
 		author = "DoodVanDaag",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 2, -- needs to happen after unit scripts loaded
 		enabled = true,
 	}
 end
@@ -26,15 +26,20 @@ local function hasBuildScript(unitID, unitDefID)
 	if hasBuildScripts[unitDefID] ~= nil then
 		return hasBuildScripts[unitDefID] 
 	end
+	local env = Spring.UnitScript.GetScriptEnv(unitID)
+	if env then
+		if env.script.StartBuilding then
+			hasBuildScripts[unitDefID] = true
+			return true
+		end
+		hasBuildScripts[unitDefID] = false
+		return false
+	end
 	if Spring.GetCOBScriptID(unitID, "StartBuilding") then
 		hasBuildScripts[unitDefID] = true
 		return true
 	end
-	local env = Spring.UnitScript.GetScriptEnv(unitID)
-	if env and env.script.StartBuilding then
-		hasBuildScripts[unitDefID] = true
-		return true
-	end
+
 	hasBuildScripts[unitDefID] = false
 	return false
 end
