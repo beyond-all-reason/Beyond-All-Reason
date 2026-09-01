@@ -1432,6 +1432,12 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if isPregame then
+		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		isPregame = not missionOptions.IsInitialCommanderSpawnDisabled()
+	end
+
 	WG.gridmenu = {}
 	WG.buildmenu = {}
 
