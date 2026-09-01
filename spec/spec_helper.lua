@@ -17,6 +17,11 @@ local LOG_LEVELS = {
 -- Current log level - only log messages at this level or higher
 _G.CURRENT_LOG_LEVEL = _G.LOG.WARNING
 
+local function isLogged(level)
+	local levelValue = LOG_LEVELS[level]
+	return levelValue ~= nil and levelValue >= (LOG_LEVELS[_G.CURRENT_LOG_LEVEL] or 0)
+end
+
 _G.Spring = _G.Spring
 	or {
 		Log = function(tag, level, message)
@@ -28,14 +33,18 @@ _G.Spring = _G.Spring
 			end
 
 			-- Only log if the message level meets or exceeds the current log level
-			if LOG_LEVELS[level] and LOG_LEVELS[level] >= LOG_LEVELS[_G.CURRENT_LOG_LEVEL] then
+			if isLogged(level) then
 				print(string.format("[%s] %s: %s", tag, level, message))
 			end
 		end,
 	}
 
+-- Game code echoes while it runs, which would bury the spec output, so an echo counts as
+-- INFO: set CURRENT_LOG_LEVEL to LOG.INFO to see echoes while debugging a spec.
 _G.Spring.Echo = _G.Spring.Echo or function(...)
-	print(...)
+	if isLogged(_G.LOG.INFO) then
+		print(...)
+	end
 end
 
 _G.Game = _G.Game or {}
@@ -261,6 +270,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 
 	-- Use find command with pattern matching
 	-- Use -iname for case-insensitive pattern matching
+	-- -maxdepth is a global option, so it has to come before -iname
 	local name_pattern = pattern and pattern ~= "*" and string.format("-iname '%s'", pattern) or ""
 	if recursive then
 		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
