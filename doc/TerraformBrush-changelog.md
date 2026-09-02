@@ -4,6 +4,20 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.14 - unreleased
+
+### New
+
+- The Open Project browser gained a search box (matches the name, the folder path or the NxN size), RECENT / NAME / SIZE sort chips and a folder tree. Projects may live in subfolders of MapProjects/ up to four levels deep, and a project name may contain "/" to save into one, so a git clone of a maps repository placed inside MapProjects/ lists as it is on disk and pulls straight into the browser. The date column reads as an age ("3 h ago", "yesterday"); RECENT orders by the last open or save through the editor, not only the last save; and a project saved this session, or freshly cloned and opened once, lists even while the engine's folder snapshot cannot see it yet.
+
+### Improvements
+
+- Open Project rows are set larger and the window is wider, so project names read at a glance (requested by PtaQ and MrBob).
+
+### Fixes
+
+- Editor sessions no longer spawn commanders (requested by PtaQ and MrBob). New Map and Open Project start scripts carry an `editor_sandbox` flag; the initial-spawn gadget skips the commander for those sessions and the game-end gadgets stand down on the same flag. A project load runs in pregame, so it used to wipe the units before any commander existed and then start the game, which spawned one per team at a guessed spot; New Map spawned one the moment the session started. Editor canvases now also leave pregame on their own a few frames after boot, so terrain raised above the canvas base is clickable without a manual start.
+
 ## 1.13 - 2026-09-02
 
 ### New
