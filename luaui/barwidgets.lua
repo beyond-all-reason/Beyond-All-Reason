@@ -1229,6 +1229,11 @@ function widgetHandler:ForgetWidget(name)
 	if not self.knownWidgets[name] then
 		return
 	end
+	local ki = self.knownWidgets[name]
+	local md5 = ki and table.getKeyOf(self.widgetHashes, ki.filename)
+	if md5 ~= nil then
+		self.widgetHashes[md5] = nil
+	end
 	self.knownWidgets[name] = nil
 	self.knownCount = self.knownCount - 1
 	self.knownChanged = true
