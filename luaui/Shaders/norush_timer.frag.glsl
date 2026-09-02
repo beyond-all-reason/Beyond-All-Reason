@@ -26,27 +26,26 @@ uniform sampler2D mapDepths;
 out vec4 fragColor;
 
 // Signed distance to a polygon ring, negative inside.
-float sdPolygon2( in vec2 p, in int startOffset, in int numVertices)
+float sdPolygon2(in vec2 p, in int startOffset, in int numVertices)
 {
 	float d = dot(p - polyVerts[startOffset].zw, p - polyVerts[startOffset].zw);
 	float s = 1.0;
-	for( int i=0, j=numVertices-1; i<numVertices; j=i, i++ )
-	{
+	for (int i = 0, j = numVertices - 1; i < numVertices; j = i, i++) {
 		int newj = startOffset + j;
 		int newi = startOffset + i;
 		vec2 e = polyVerts[newj].zw - polyVerts[newi].zw;
-		vec2 w =    p - polyVerts[newi].zw;
-		vec2 b = w - e*clamp( dot(w,e)/dot(e,e), 0.0, 1.0 );
-		d = min( d, dot(b,b) );
+		vec2 w = p - polyVerts[newi].zw;
+		vec2 b = w - e * clamp(dot(w, e) / dot(e, e), 0.0, 1.0);
+		d = min(d, dot(b, b));
 
 		// winding number from http://geomalgorithms.com/a03-_inclusion.html
-		bvec3 cond = bvec3( p.y>=polyVerts[newi].w,
-		                    p.y <polyVerts[newj].w,
-		                    e.x*w.y>e.y*w.x );
-		if( all(cond) || all(not(cond)) ) s=-s;
+		bvec3 cond = bvec3(p.y >= polyVerts[newi].w,
+		                   p.y < polyVerts[newj].w,
+		                   e.x * w.y > e.y * w.x);
+		if (all(cond) || all(not(cond))) s = -s;
 	}
 
-	return s*sqrt(d);
+	return s * sqrt(d);
 }
 
 #line 21000
