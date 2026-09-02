@@ -21,6 +21,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 - LAYERS paint, clone-tool pastes and a project's splat swap now tell the tileset shader which region changed, so painted layers no longer vanish when zooming out. The shader serves distant ground from a baked copy that sampled the splat texture at bake time; strokes widen a dirty rectangle that is flushed to the far cache and clipmap during the drag and once more when it ends, and whole-texture changes (undo, redo, load) request a full refill.
 - The picture-in-picture widget no longer floods the log with GL errors on Mesa drivers: a uniform call was handed every return value of a multi-value function instead of only the ones the uniform takes.
+- The header's passthrough (pause) button works with the SURFACE panel (reported by Moose). The toggle saved, deactivated and restored every tool except the surface painter, so pausing with SURFACE armed left its brush owning the mouse and clicks never reached unit selection. Both submodes now stand down on pause and re-arm on unpause, LAYERS included.
 
 ## 1.12 - 2026-08-22
 

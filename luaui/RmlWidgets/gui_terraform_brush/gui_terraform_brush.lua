@@ -7460,14 +7460,23 @@ local initialModel = {
 			local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 			local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 			local clSt = WG.CloneTool and WG.CloneTool.getState()
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			local sfSt = sfPtr and sfPtr.getState and sfPtr.getState()
 			if tfSt and tfSt.active then
 				saved = { tool = "terraform", mode = tfSt.mode }
 			elseif fpSt and fpSt.active then
 				saved = { tool = "features", mode = fpSt.mode }
 			elseif wbSt and wbSt.active then
 				saved = { tool = "weather", mode = wbSt.mode }
+			elseif widgetState.surfHardActive then
+				-- LAYERS: the splat engine runs headless under the SURFACE panel;
+				-- the pin (not the engine) tells it apart from the legacy SPLAT tool.
+				saved = { tool = "surfaceHard" }
 			elseif spSt and spSt.active then
 				saved = { tool = "splat" }
+			elseif sfSt and sfSt.active then
+				saved = { tool = "surface" }
 			elseif mbSt and mbSt.active then
 				saved = { tool = "metal", mode = mbSt.subMode }
 			elseif gbSt and gbSt.active then
@@ -7493,6 +7502,9 @@ local initialModel = {
 			if WG.SplatPainter then
 				WG.SplatPainter.deactivate()
 			end
+			if sfPtr and sfPtr.deactivate then
+				sfPtr.deactivate()
+			end
 			if WG.MetalBrush then
 				WG.MetalBrush.deactivate()
 			end
@@ -7512,6 +7524,8 @@ local initialModel = {
 			widgetState.lightActive = false
 			widgetState.startposActive = false
 			widgetState.cloneActive = false
+			widgetState.surfHardActive = false
+			widgetState.surfPickerSlot = nil -- pausing the tool closes the variant picker
 			widgetState.passthroughSaved = saved
 			widgetState.passthroughMode = true
 			local d = widgetState.dmHandle
@@ -7533,6 +7547,10 @@ local initialModel = {
 			end
 			local s = widgetState.passthroughSaved
 			widgetState.passthroughSaved = nil
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			---@type table?
+			local spPtr = WG.SplatPainter
 			if s then
 				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode;
 				-- Weather's setMode only picks the submode without re-arming the tool.
@@ -7544,6 +7562,11 @@ local initialModel = {
 					WG.WeatherBrush.activate(s.mode or "scatter")
 				elseif s.tool == "splat" and WG.SplatPainter then
 					WG.SplatPainter.activate()
+				elseif s.tool == "surface" and sfPtr and sfPtr.activate then
+					sfPtr.activate()
+				elseif s.tool == "surfaceHard" and spPtr and spPtr.activate then
+					spPtr.activate()
+					widgetState.surfHardActive = true
 				elseif s.tool == "metal" and WG.MetalBrush then
 					WG.MetalBrush.activate(s.mode or "stamp")
 				elseif s.tool == "grass" and WG.GrassBrush then
