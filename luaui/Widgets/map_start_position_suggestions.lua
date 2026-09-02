@@ -120,8 +120,6 @@ local glUseShader = gl.UseShader
 ---@field positions ModOptionPositions
 ---@field team ModOptionTeams[]
 
----@alias AllyTeamID number
-
 ---@class WidgetMapPosition
 ---@field x number
 ---@field z number

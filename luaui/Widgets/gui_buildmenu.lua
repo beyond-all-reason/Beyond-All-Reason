@@ -2356,7 +2356,7 @@ function widget:Initialize()
 	---@field bottom CostLine?
 
 	---Override the cost display for a specific unit in the build menu
-	---@param unitDefID number The unit definition ID to override costs for
+	---@param unitDefID UnitDefID The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
 	WG.buildmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
@@ -2366,7 +2366,7 @@ function widget:Initialize()
 	end
 
 	---Clear cost overrides for a specific unit or all units
-	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	---@param unitDefID UnitDefID? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
 	WG.buildmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
@@ -2381,7 +2381,7 @@ function widget:Initialize()
 	---Highlight a build option to draw the player's attention to it with a pulsing
 	---inner outline and a soft inner glow. Non-destructive: does not affect input or
 	---block hover/selection visuals. Subsequent calls update the existing highlight.
-	---@param unitDefID number The unit definition ID to highlight.
+	---@param unitDefID UnitDefID The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	WG.buildmenu.setHighlight = function(unitDefID, color)
 		if not unitDefID then
@@ -2397,7 +2397,7 @@ function widget:Initialize()
 	end
 
 	---Remove a highlight previously set via setHighlight.
-	---@param unitDefID number
+	---@param unitDefID UnitDefID
 	WG.buildmenu.removeHighlight = function(unitDefID)
 		if unitDefID and highlights[unitDefID] then
 			highlights[unitDefID] = nil
@@ -2414,7 +2414,7 @@ function widget:Initialize()
 	end
 
 	---Returns true if there is an active highlight for the given unitDefID.
-	---@param unitDefID number
+	---@param unitDefID UnitDefID
 	---@return boolean
 	WG.buildmenu.hasHighlight = function(unitDefID)
 		return unitDefID ~= nil and highlights[unitDefID] ~= nil

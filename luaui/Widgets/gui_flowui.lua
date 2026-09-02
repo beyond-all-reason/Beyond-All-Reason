@@ -1885,7 +1885,11 @@ WG.FlowUI.Draw.RectRoundOutline = function(px, py, sx, sy, cs, outlineWidth, tl,
 			return
 		end
 
-		local innerCs = mathMax(0, cs - outlineWidth)
+		-- Offsetting a 45-degree chamfer edge inward by outlineWidth shifts it by outlineWidth * sqrt(2)
+		-- along each axis, so the inner chamfer only shrinks by outlineWidth * (2 - sqrt(2)).
+		-- This keeps the diagonal part of the outline as thick as the straight sides.
+		local innerCs = mathMax(0, cs - outlineWidth * 0.5857864376) -- 2 - sqrt(2)
+		innerCs = mathMin(innerCs, (ix2 - ix1) * 0.5, (iy2 - iy1) * 0.5)
 
 		-- Draw the outline by drawing quads between outer and inner rectangles
 
@@ -2114,7 +2118,10 @@ WG.FlowUI.Draw.RectRoundOutlineQuad = function(
 		local itdx, itdy = n2(iTLx - iTRx, iTLy - iTRy)
 		local ildx, ildy = n2(iBLx - iTLx, iBLy - iTLy)
 
-		local innerCs = mathMax(0, cs - outlineWidth)
+		-- Offsetting a 45-degree chamfer edge inward by outlineWidth shifts it by outlineWidth * sqrt(2)
+		-- along each axis, so the inner chamfer only shrinks by outlineWidth * (2 - sqrt(2)).
+		-- This keeps the diagonal part of the outline as thick as the straight sides.
+		local innerCs = mathMax(0, cs - outlineWidth * 0.5857864376) -- 2 - sqrt(2)
 
 		-- Outer chamfer cut points at distance cs from each outer corner along adjacent edges
 		local oblb_x, oblb_y = oBLx + cs * bdx, oBLy + cs * bdy
@@ -2362,7 +2369,7 @@ local function DrawUnitUncached(
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			borderSize,
 			tl,
 			tr,
@@ -2379,7 +2386,7 @@ local function DrawUnitUncached(
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			featherWidth,
 			tl,
 			tr,
@@ -2460,7 +2467,7 @@ local function DrawUnitFrame(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, bor
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			borderSize,
 			tl,
 			tr,
@@ -2477,7 +2484,7 @@ local function DrawUnitFrame(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, bor
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			featherWidth,
 			tl,
 			tr,

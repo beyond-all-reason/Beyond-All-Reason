@@ -1575,7 +1575,7 @@ function widget:Initialize()
 	---@field bottom CostLine?
 
 	---Override the cost display for a specific unit in the grid menu
-	---@param unitDefID number The unit definition ID to override costs for
+	---@param unitDefID UnitDefID The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
 	WG.gridmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
@@ -1586,7 +1586,7 @@ function widget:Initialize()
 	end
 
 	---Clear cost overrides for a specific unit or all units
-	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	---@param unitDefID UnitDefID? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
 	WG.gridmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
@@ -1602,7 +1602,7 @@ function widget:Initialize()
 	---Highlight a build option to draw the player's attention to it with a pulsing
 	---inner outline and a soft inner glow. Non-destructive: does not affect input or
 	---block hover/selection visuals. Subsequent calls update the existing highlight.
-	---@param unitDefID number The unit definition ID to highlight.
+	---@param unitDefID UnitDefID The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	local function setHighlight(unitDefID, color)
 		if not unitDefID then

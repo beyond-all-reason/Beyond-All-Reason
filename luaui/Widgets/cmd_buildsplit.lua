@@ -68,7 +68,7 @@ local function getBuilderInfos(unitIDs)
 	return builders
 end
 
----@param builderIDs number[]
+---@param builderIDs UnitID[]
 ---@param buildings BuildingInfo[]
 ---@param cmdOpts table
 local function splitBuildings(builderIDs, buildings, cmdOpts)

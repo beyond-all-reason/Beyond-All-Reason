@@ -422,6 +422,18 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local function hasBlockingFeature(x, z, unitDefID)
+		local halfFootprint = UnitDefs[unitDefID].xsize * Game.squareSize / 2
+		local features =
+			Spring.GetFeaturesInRectangle(x - halfFootprint, z - halfFootprint, x + halfFootprint, z + halfFootprint)
+		for i = 1, #features do
+			if Spring.GetFeatureBlocking(features[i]) then
+				return true
+			end
+		end
+		return false
+	end
+
 	local _unitType = {}
 	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
 	local function isFootingUntraversable(x, y, z, unitDefID)
@@ -439,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1)
-			)
+				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+			) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
