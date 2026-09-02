@@ -208,10 +208,20 @@ if gadgetHandler:IsSyncedCode() then
 		return unitTeam and spAreTeamsAllied(teamID, unitTeam)
 	end
 
+	-- A target the muzzle cannot see may still be reachable once the unit aims,
+	-- when the muzzle rests on a lowered piece. GG.Prefire asks the unit to aim
+	-- in that case, so the target is left in the list for the next probe.
 	local function testTargetUnit(unitID, weaponList, target)
 		for weaponNum = 1, #weaponList do
-			if weaponList[weaponNum] and spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
-				return weaponNum
+			if weaponList[weaponNum] then
+				if spGetUnitWeaponTryTarget(unitID, weaponNum, target) then
+					return weaponNum
+				elseif
+					spGetUnitWeaponTestTarget(unitID, weaponNum, target)
+					and spGetUnitWeaponTestRange(unitID, weaponNum, target)
+				then
+					GG.Prefire.targetUnit(unitID, weaponNum, target)
+				end
 			end
 		end
 	end
@@ -222,9 +232,11 @@ if gadgetHandler:IsSyncedCode() then
 				weaponList[weaponNum]
 				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, y, z)
 				and spGetUnitWeaponTestRange(unitID, weaponNum, x, y, z)
-				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z)
 			then
-				return weaponNum
+				if spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z) then
+					return weaponNum
+				end
+				GG.Prefire.targetPos(unitID, weaponNum, x, y, z)
 			end
 		end
 	end
