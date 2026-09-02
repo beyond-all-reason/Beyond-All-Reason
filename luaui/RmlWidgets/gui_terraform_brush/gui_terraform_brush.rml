@@ -8568,10 +8568,10 @@
 
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div class="text-lg text-light">NAME</div>
-			<div class="text-sm text-keybind">letters, digits, - and _</div>
+			<div class="text-sm text-keybind">letters, digits, - and _; / for a folder</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-2">
-			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="64" value="" />
+			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="128" value="" />
 		</div>
 
 		<div id="tf-project-save-list" class="tf-hm-browser mb-2" style="max-height: 28vh;"></div>
@@ -8604,9 +8604,19 @@
 		</div>
 		<div class="tf-panel-body">
 
-		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. This restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
+		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. Subfolders list as a tree, so a git clone of a maps repository can sit inside MapProjects/ and pull straight into this browser. Opening restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
 
-		<div id="tf-project-open-list" class="tf-hm-browser mb-2" style="max-height: 40vh;"></div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="ll-search-wrapper" style="flex: 1;">
+				<input type="text" id="tf-project-search" class="ll-search-input" placeholder="Search projects..." data-event-change="onProjectSearch()" />
+				<div id="btn-project-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			</div>
+			<div class="tf-action-btn" style="flex: 0.42;" data-class-active="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')"><div class="tf-action-btn-text">RECENT</div></div>
+			<div class="tf-action-btn" style="flex: 0.36;" data-class-active="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')"><div class="tf-action-btn-text">NAME</div></div>
+			<div class="tf-action-btn" style="flex: 0.32;" data-class-active="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')"><div class="tf-action-btn-text">SIZE</div></div>
+		</div>
+
+		<div id="tf-project-open-list" class="tf-hm-browser mb-2" style="max-height: 55vh;"></div>
 
 		<div class="text-base text-keybind mb-1" data-if="projectOpenSelected == ''">Select a project above, then LOAD or DELETE it.</div>
 		<div class="text-base text-light mb-1" data-if="projectOpenSelected != ''">Selected: {{projectOpenSelected}}</div>

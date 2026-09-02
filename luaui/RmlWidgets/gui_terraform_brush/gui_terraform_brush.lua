@@ -347,6 +347,9 @@ widgetState = { -- forward-declared above playSound so mute check works
 	projectDeleteConfirmExpiry = 0,
 	projectOpenRowEls = {}, -- {{slug = ..., el = ...}, ...} for selection painting
 	projectOpenNeedsRebuild = false, -- set by a delete, consumed in Update
+	projectOpenFilter = "", -- search box text (lowercased substring match on name/path/size)
+	projectOpenSort = "recent", -- "recent" (last touched) | "name" | "size"
+	projectOpenCollapsed = {}, -- folder path -> true while its tree node is folded
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
@@ -2901,6 +2904,55 @@ function capUI.set(key, value)
 	capUI.sync()
 end
 
+-- "3 h ago" / "yesterday" / "2026-08-22" for the project lists. Manifests and
+-- the recent-projects journal stamp ISO-8601 UTC; os.time() reads a table as
+-- local time, so the parsed stamp is shifted by the local UTC offset. Dates a
+-- week or older show as the (local) calendar day. On widgetState: the main
+-- chunk is near the Lua 5.1 200-local ceiling.
+widgetState.relativeAge = function(iso, now)
+	local stamp = tostring(iso or "")
+	local y, mo, d, h, mi, s = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+):?(%d*)")
+	if not y then
+		return stamp ~= "" and stamp or "(no date)"
+	end
+	-- isdst = false on BOTH conversions: the stamp and the offset probe then go
+	-- through the same standard-time interpretation, so the offset cancels
+	-- exactly whatever the daylight-saving state of either date is.
+	local t = os.time({
+		year = tonumber(y),
+		month = tonumber(mo),
+		day = tonumber(d),
+		hour = tonumber(h),
+		min = tonumber(mi),
+		sec = tonumber(s) or 0,
+		isdst = false,
+	})
+	if not t then
+		return string.format("%s-%s-%s", y, mo, d)
+	end
+	local nowT = now or os.time()
+	local probe = os.date("!*t", nowT)
+	probe.isdst = false
+	local utcOffset = nowT - os.time(probe)
+	local epoch = t + utcOffset
+	local diff = nowT - epoch
+	if diff < 0 then
+		diff = 0
+	end
+	if diff < 60 then
+		return "just now"
+	elseif diff < 3600 then
+		return string.format("%d min ago", math.floor(diff / 60))
+	elseif diff < 86400 then
+		return string.format("%d h ago", math.floor(diff / 3600))
+	elseif diff < 2 * 86400 then
+		return "yesterday"
+	elseif diff < 7 * 86400 then
+		return string.format("%d d ago", math.floor(diff / 86400))
+	end
+	return os.date("%Y-%m-%d", epoch)
+end
+
 -- Opens the Save Project As dialog: prefills the name (current project >
 -- last-typed > slugified map name) and rebuilds the existing-projects list,
 -- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
@@ -2948,10 +3000,10 @@ widgetState.openProjectSaveDialog = function()
 		return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 	end
 	local parts = {}
+	local now = os.time()
 	for i, p in ipairs(projects) do
-		local stamp = tostring(p.modified or "")
-		local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
-		local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi) or (stamp ~= "" and stamp or "(no date)")
+		-- Nested projects show their path: that is what the NAME field receives.
+		local label = (p.folder and p.folder ~= "") and p.slug or (p.name or p.slug)
 		parts[#parts + 1] = string.format(
 			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
 				.. '<div class="tf-hm-date">%s</div>'
@@ -2959,8 +3011,8 @@ widgetState.openProjectSaveDialog = function()
 				.. '<div class="tf-hm-badge">%sx%s</div>'
 				.. "</div></div>",
 			i,
-			esc(when),
-			esc(p.name or p.slug),
+			esc(widgetState.relativeAge(p.modified, now)),
+			esc(label),
 			esc(p.size_x or "?"),
 			esc(p.size_z or "?")
 		)
@@ -3052,6 +3104,7 @@ local initialModel = {
 	projectSaveOpen = false,
 	projectSaveHint = "",
 	projectSaveUnits = false, -- "save units loadout" toggle (position/team of every unit)
+	projectOpenSort = "recent", -- Open Project sort chip: recent | name | size
 	projectCurrentName = "", -- FILE > Save target ("" = none yet → Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
@@ -7008,6 +7061,9 @@ local initialModel = {
 			return
 		end
 		local function rebuild()
+			-- The selection survives a folder toggle, a sort or a filter change;
+			-- it drops only when the selected project is no longer listed.
+			local keepSlug = widgetState.projectOpenSelectedSlug
 			widgetState.projectOpenRowEls = {}
 			widgetState.projectOpenSelectedSlug = nil
 			widgetState.projectDeleteConfirmExpiry = 0
@@ -7025,42 +7081,178 @@ local initialModel = {
 				end
 				return
 			end
-			local projects = WG.MapProject.listDetailed()
-			if #projects == 0 then
+			local all = WG.MapProject.listDetailed()
+			if #all == 0 then
 				listEl.inner_rml = '<div class="tf-hm-empty">'
-					.. "No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache).</div>"
+					.. "No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache). "
+					.. "To browse a shared maps repository, clone it inside that folder: git clone &lt;url&gt; MapProjects/&lt;name&gt;.</div>"
 				return
 			end
 			local function esc(s)
 				return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 			end
-			local parts = {}
-			for i, p in ipairs(projects) do
-				-- Manifests stamp ISO-8601 UTC ("2026-07-27T14:22:31Z"); the heightmap
-				-- browser shows "YYYY-MM-DD HH:MM", so drop the seconds and the T/Z.
-				local stamp = tostring(p.modified or "")
-				local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
-				local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi)
-					or (stamp ~= "" and stamp or "(no date)")
+			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
+			local sortMode = widgetState.projectOpenSort or "recent"
+			local now = os.time()
+			-- RECENT means last touched: the newer of "opened or saved through the
+			-- editor" (journal) and the manifest's modified stamp, both ISO-8601 so
+			-- string order is time order.
+			local function touched(p)
+				local a, b = tostring(p.last_touched or ""), tostring(p.modified or "")
+				return a > b and a or b
+			end
+			local function less(a, b)
+				if sortMode == "name" then
+					local an, bn = tostring(a.name or a.slug):lower(), tostring(b.name or b.slug):lower()
+					if an ~= bn then
+						return an < bn
+					end
+				elseif sortMode == "size" then
+					local aa = (tonumber(a.size_x) or 0) * (tonumber(a.size_z) or 0)
+					local bb = (tonumber(b.size_x) or 0) * (tonumber(b.size_z) or 0)
+					if aa ~= bb then
+						return aa > bb
+					end
+				else
+					local ta, tb = touched(a), touched(b)
+					if ta ~= tb then
+						return ta > tb
+					end
+				end
+				return a.slug < b.slug
+			end
+			-- Search: case-insensitive substring over the name, the path and the
+			-- NxN size, so "cm0", "campaign/" and "16x16" all work.
+			local projects = {}
+			for _, p in ipairs(all) do
+				if filter == "" then
+					projects[#projects + 1] = p
+				else
+					local hay = string.format("%s %s %sx%s", p.name or "", p.slug or "", p.size_x or "", p.size_z or "")
+					if hay:lower():find(filter, 1, true) then
+						projects[#projects + 1] = p
+					end
+				end
+			end
+			if #projects == 0 then
+				listEl.inner_rml = '<div class="tf-hm-empty">No project matches "'
+					.. esc(widgetState.projectOpenFilter)
+					.. '".</div>'
+				return
+			end
+			table.sort(projects, less)
+			local parts, rows, folders = {}, {}, {}
+			local collapsed = widgetState.projectOpenCollapsed or {}
+			local function projectRow(p, depth, showPath)
+				rows[#rows + 1] = p
+				local pathHtml = ""
+				if showPath and p.folder and p.folder ~= "" then
+					pathHtml = '<div class="tf-proj-path">' .. esc(p.folder .. "/") .. "</div>"
+				end
 				parts[#parts + 1] = string.format(
-					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
+					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row tf-proj-depth-%d"><div class="tf-hm-row-line">'
 						.. '<div class="tf-hm-date">%s</div>'
-						.. '<div class="tf-hm-mapname">%s</div>'
+						.. '<div class="tf-hm-mapname">%s</div>%s'
 						.. '<div class="tf-hm-badge">%sx%s</div>'
 						.. "</div></div>",
-					i,
-					esc(when),
+					#rows,
+					depth,
+					esc(widgetState.relativeAge(touched(p), now)),
 					esc(p.name or p.slug),
+					pathHtml,
 					esc(p.size_x or "?"),
 					esc(p.size_z or "?")
 				)
 			end
+			if filter ~= "" then
+				-- Flat while searching; the folder path travels with each row.
+				for _, p in ipairs(projects) do
+					projectRow(p, 0, true)
+				end
+			else
+				-- Tree: a folder's own projects first (in the chosen order), then its
+				-- subfolders. Every intermediate folder gets a node even when it
+				-- holds no project of its own, so a cloned repository's layout shows
+				-- as it is on disk.
+				local byFolder, children, count, newest = { [""] = {} }, {}, {}, {}
+				local function parentOf(path)
+					return path:match("^(.*)/[^/]+$") or ""
+				end
+				local function ensureFolder(path)
+					if path == "" or byFolder[path] then
+						return
+					end
+					byFolder[path] = {}
+					local parent = parentOf(path)
+					ensureFolder(parent)
+					children[parent] = children[parent] or {}
+					children[parent][#children[parent] + 1] = path
+				end
+				for _, p in ipairs(projects) do
+					local f = p.folder or ""
+					ensureFolder(f)
+					byFolder[f][#byFolder[f] + 1] = p
+					local t = touched(p)
+					local anc = f
+					while anc ~= "" do
+						count[anc] = (count[anc] or 0) + 1
+						if t > (newest[anc] or "") then
+							newest[anc] = t
+						end
+						anc = parentOf(anc)
+					end
+				end
+				local function folderLess(a, b)
+					if sortMode == "recent" then
+						local na, nb = newest[a] or "", newest[b] or ""
+						if na ~= nb then
+							return na > nb
+						end
+					elseif sortMode == "size" then
+						local ca, cb = count[a] or 0, count[b] or 0
+						if ca ~= cb then
+							return ca > cb
+						end
+					end
+					return a:lower() < b:lower()
+				end
+				local function render(path, depth)
+					for _, p in ipairs(byFolder[path] or {}) do
+						projectRow(p, depth, false)
+					end
+					local subs = children[path] or {}
+					table.sort(subs, folderLess)
+					for _, sub in ipairs(subs) do
+						local open = not collapsed[sub]
+						folders[#folders + 1] = sub
+						parts[#parts + 1] = string.format(
+							'<div id="tf-proj-f%d" class="tf-proj-folder tf-proj-depth-%d">'
+								.. '<div class="tf-proj-folder-glyph">%s</div>'
+								.. '<div class="tf-proj-folder-name">%s/</div>'
+								.. '<div class="tf-proj-folder-count">%d</div></div>',
+							#folders,
+							depth,
+							open and "-" or "+",
+							esc(sub:match("([^/]+)$") or sub),
+							count[sub] or 0
+						)
+						if open then
+							render(sub, depth + 1)
+						end
+					end
+				end
+				render("", 0)
+			end
 			listEl.inner_rml = table.concat(parts)
-			for i, p in ipairs(projects) do
+			for i, p in ipairs(rows) do
 				local row = doc:GetElementById("tf-proj-r" .. i)
 				if row then
-					local slug, label = p.slug, (p.name or p.slug)
-					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = { slug = slug, el = row }
+					-- Nested projects select by their path so "Selected:" and the
+					-- console echoes say exactly what will open.
+					local slug = p.slug
+					local label = (p.folder and p.folder ~= "") and slug or (p.name or slug)
+					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] =
+						{ slug = slug, label = label, el = row }
 					row:AddEventListener("click", function(ev)
 						ev:StopPropagation()
 						playSound("click")
@@ -7077,6 +7269,32 @@ local initialModel = {
 							r.el:SetClass("selected", r.slug == slug)
 						end
 					end, false)
+				end
+			end
+			for i, path in ipairs(folders) do
+				local fEl = doc:GetElementById("tf-proj-f" .. i)
+				if fEl then
+					fEl:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						playSound("click")
+						local c = widgetState.projectOpenCollapsed or {}
+						c[path] = (not c[path]) and true or nil
+						widgetState.projectOpenCollapsed = c
+						-- Rebuild next frame, not from inside the click on a row the
+						-- rebuild destroys.
+						widgetState.projectOpenNeedsRebuild = true
+					end, false)
+				end
+			end
+			if keepSlug then
+				for _, r in ipairs(widgetState.projectOpenRowEls) do
+					if r.slug == keepSlug then
+						widgetState.projectOpenSelectedSlug = keepSlug
+						r.el:SetClass("selected", true)
+						if dm then
+							dm.projectOpenSelected = r.label
+						end
+					end
 				end
 			end
 		end
@@ -7161,6 +7379,34 @@ local initialModel = {
 		end
 		-- Never leave DELETE armed for the next time the dialog opens.
 		widgetState.projectDeleteConfirmExpiry = 0
+	end,
+	-- Open Project search box (change fires per keystroke) and sort chips. All
+	-- three queue the deferred rebuild rather than rebuilding here: the list is
+	-- torn down and rebuilt, which must not happen inside an event dispatch.
+	onProjectSearch = function(_event)
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-search")
+		widgetState.projectOpenFilter = (inp and inp:GetAttribute("value")) or ""
+		widgetState.projectOpenNeedsRebuild = true
+	end,
+	onProjectSearchClear = function(_event)
+		playSound("click")
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-search")
+		if inp then
+			inp:SetAttribute("value", "")
+		end
+		widgetState.projectOpenFilter = ""
+		widgetState.projectOpenNeedsRebuild = true
+	end,
+	onProjectSort = function(_event, mode)
+		playSound("click")
+		widgetState.projectOpenSort = mode or "recent"
+		local d = widgetState.dmHandle
+		if d then
+			d.projectOpenSort = widgetState.projectOpenSort
+		end
+		widgetState.projectOpenNeedsRebuild = true
 	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
