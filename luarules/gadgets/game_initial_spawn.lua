@@ -593,6 +593,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- Map editor sessions (New Map / Open Project) start with editor_sandbox=1
+		-- in the start script: the map maker edits an empty canvas or a project's
+		-- own unit loadout, so no team gets a commander. Reuses the scenario
+		-- path so the spawn effects and warp-in skip as well.
+		if not scenarioSpawnsUnits and tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
+			scenarioSpawnsUnits = true
+		end
+
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)

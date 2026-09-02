@@ -2492,10 +2492,16 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- game_team_com_ends remove themselves at init, so teams survive with zero
 	-- units (edit without commanders) and commander death cannot end the session.
 	script = script:gsub("[Dd][Ee][Aa][Tt][Hh][Mm][Oo][Dd][Ee]%s*=[^;\r\n]*;?", "")
+	-- editor_sandbox=1 marks the session as a map editor canvas for the game
+	-- gadgets: game_initial_spawn spawns no commanders (the map maker edits an
+	-- empty canvas or the project's own unit loadout), and game_end /
+	-- game_team_com_ends stand down whatever deathmode the lobby set. Strip an
+	-- inherited copy first so editor-to-editor reloads stay idempotent.
+	script = script:gsub("[Ee][Dd][Ii][Tt][Oo][Rr]_[Ss][Aa][Nn][Dd][Bb][Oo][Xx]%s*=[^;\r\n]*;?", "")
 	local needModoptions = true
 	local _, moE = script:find("%[[Mm][Oo][Dd][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*\r?\n?%s*{")
 	if moE then
-		script = script:sub(1, moE) .. "\ndeathmode=neverend;" .. script:sub(moE + 1)
+		script = script:sub(1, moE) .. "\ndeathmode=neverend;\neditor_sandbox=1;" .. script:sub(moE + 1)
 		needModoptions = false
 	end
 
@@ -2563,6 +2569,7 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		injectParts[#injectParts + 1] = "[modoptions]"
 		injectParts[#injectParts + 1] = "{"
 		injectParts[#injectParts + 1] = "deathmode=neverend;"
+		injectParts[#injectParts + 1] = "editor_sandbox=1;"
 		injectParts[#injectParts + 1] = "}"
 	end
 	local inject = table.concat(injectParts, "\n")
@@ -14103,7 +14110,8 @@ function widget:Initialize()
 	-- both mean the keep-alive toggle is already effectively ON.
 	do
 		local allyCount = #Spring.GetAllyTeamList() - 1 -- minus gaia
-		if Spring.GetModOptions().deathmode == "neverend" or allyCount < 2 then
+		local mo = Spring.GetModOptions()
+		if mo.deathmode == "neverend" or tostring(mo.editor_sandbox or "") == "1" or allyCount < 2 then
 			widgetState.keepAlive = { active = true }
 			dm.keepAliveStr = "ON"
 			dm.keepAliveActive = true
@@ -14116,6 +14124,17 @@ function widget:Initialize()
 	-- killing it darkened every normal game this widget was enabled in.
 	if _isGeneratedBlankMap() then
 		widgetState._pendingFogOff = 15
+	end
+
+	-- Editor canvases have no commander to place (editor_sandbox=1 makes
+	-- game_initial_spawn skip it), so pregame has nothing to wait for, and
+	-- pregame clips every ground ray at the flat canvas height (see finishLoad in
+	-- cmd_map_project.lua): raise terrain before starting and it turns unclickable.
+	-- Start the game a few draw frames in. Project loads keep their own
+	-- forcestart at the end of the load pipeline; the countdown consumer skips
+	-- while one is running.
+	if _isGeneratedBlankMap() and Spring.GetGameFrame() <= 0 then
+		widgetState._pendingForceStart = 15
 	end
 
 	-- The document itself is deferred to ensureDocument(), called from Update the
@@ -14331,6 +14350,23 @@ function widget:DrawScreen()
 		if widgetState._pendingFogOff <= 0 then
 			widgetState._pendingFogOff = nil
 			widgetState.disableFog()
+		end
+	end
+
+	-- Leave pregame on editor canvases (armed in Initialize). A project load
+	-- started from its pointer file owns the forcestart itself.
+	if widgetState._pendingForceStart then
+		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
+		if widgetState._pendingForceStart <= 0 then
+			widgetState._pendingForceStart = nil
+			local mp = WG.MapProject
+			local loading = mp and mp.isLoading and mp.isLoading()
+			if Spring.GetGameFrame() <= 0 and not loading then
+				Spring.Echo(
+					"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
+				)
+				Spring.SendCommands("forcestart")
+			end
 		end
 	end
 

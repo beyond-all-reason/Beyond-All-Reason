@@ -154,6 +154,11 @@ function gadget:Initialize()
 	then
 		gadgetHandler:RemoveGadget(self)
 	end
+	-- Map editor sessions (editor_sandbox=1 in the start script) have no
+	-- commanders at all; commander counting has nothing to end.
+	if tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
+		gadgetHandler:RemoveGadget(self)
+	end
 
 	local allyTeamList = spGetAllyTeamList()
 	for i = 1, #allyTeamList do
