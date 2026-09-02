@@ -287,7 +287,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 1.2,
