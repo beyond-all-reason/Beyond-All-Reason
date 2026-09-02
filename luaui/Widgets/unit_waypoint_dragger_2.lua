@@ -29,6 +29,7 @@ local floor = math.floor
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
 local glColor = gl.Color
+local glDepthTest = gl.DepthTest
 local glLineStipple = gl.LineStipple
 local glDrawGroundCircle = gl.DrawGroundCircle
 
@@ -300,6 +301,7 @@ function widget:DrawWorld()
 	if not shift then
 		return
 	end
+	glDepthTest(false)
 	for _, wpData in pairs(selWayPtsTbl) do
 		local cmd = wpData[6]
 		local nx, ny, nz = wpData[1], wpData[2], wpData[3]
