@@ -384,6 +384,7 @@ local zipOnly = {
 	["Widget Selector"] = true,
 	["Widget Profiler"] = true,
 }
+local zipWasRaw = {}
 
 local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
@@ -394,12 +395,21 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 
 	for _, file in ipairs(widgetFiles) do
-		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local widget = widgetHandler:LoadWidget(file, fromZip) ---@type table?
 
-		if widget and not fromZip and zipOnly[widget.whInfo.name] then
-			-- Drop what the user registered so the game's copy is not refused as a duplicate.
-			widgetHandler:ForgetWidget(widget.whInfo.name)
-			widget = nil
+		if widget and zipOnly[widget.whInfo.name] then
+			local name = widget.whInfo.name
+			if not fromZip then
+				-- Drop what the user registered so the game's copy is not refused as a duplicate.
+				Spring.Echo("Ignoring user copy: " .. file .. "  (the game provides " .. name .. ")")
+				widgetHandler:ForgetWidget(name)
+				zipWasRaw[name] = true
+				widget = nil
+			elseif zipWasRaw[name] then
+				-- LoadWidget reads raw-first, so the user's copy may have been read here instead.
+				widgetHandler:ForgetWidget(name)
+				widget = widgetHandler:LoadWidget(file, true, nil, true) -- reload reads the zip
+			end
 		end
 
 		if widget then
@@ -442,6 +452,7 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
+	zipWasRaw = {}
 
 	if self.allowUserWidgets and allowuserwidgets then
 		if not allowunitcontrolwidgets then
