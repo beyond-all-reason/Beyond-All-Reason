@@ -355,26 +355,22 @@ local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 		-- Exclude self-owned units (should always be allowed to shoot those)
 		-- Exclude non-allied units and allied comms (you can't DGun grief an allied comm)
 		if unitTeam and unitTeam ~= myTeamID and spAreTeamsAllied(unitTeam, myTeamID) and not isCommander[unitDefID] then
-			local unitX = spGetUnitPosition(unitID)
-			if unitX then -- FIXME this check may be a relic of old line segment stuff
-				local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
-				if (captureProgress or 0) > 0 then
-					-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
-					-- It is ok to dgun to prevent unit capture.
-					return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
-				end
+			local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
+			if (captureProgress or 0) > 0 then
+				-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
+				-- It is ok to dgun to prevent unit capture.
+				return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
+			end
 
-				local threatenedPower = 0
-				-- Partially built units only contribute proportional power to threat.
-				-- This is to prevent a malicious player from triggering false positives
-				-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
-				buildProgress = buildProgress or 1
-				threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
-				threatenedAllyPower = threatenedAllyPower + threatenedPower
-				if threatenedPower > mostPowerfulThreatenedPower then
-					mostPowerfulThreatenedPower = threatenedPower
-					mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
-				end
+			-- Partially built units only contribute proportional power to threat.
+			-- This is to prevent a malicious player from triggering false positivesd
+			-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
+			buildProgress = buildProgress or 1
+			local threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
+			threatenedAllyPower = threatenedAllyPower + threatenedPower
+			if threatenedPower > mostPowerfulThreatenedPower then
+				mostPowerfulThreatenedPower = threatenedPower
+				mostPowerfulThreatenedUnitName = GetUnitDisplayName(unitDefID)
 			end
 		end
 	end
@@ -402,8 +398,8 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 		local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
 		local unitTeam = spGetUnitTeam(unitID)
 		-- Turns out seagulls and such are counted. So need to gaia check
-		if unitTeam ~= gaiaTeamID and losState and (losState % 4) > 0 then
-			return true, "Enemies on radar/LOS within range"
+		if unitTeam ~= gaiaTeamID then
+			return true, "Enemies on radar/LOS within range" -- FIXME confirm LOS behaves as desired when removed from conditional
 		end
 	end
 
