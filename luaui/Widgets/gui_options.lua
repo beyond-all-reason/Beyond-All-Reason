@@ -6662,6 +6662,28 @@ function init()
 			end,
 		},
 		{
+			id = "advplayerlist_colortooltip",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.advplayerlist_colortooltip"),
+			type = "bool",
+			value = false,
+			description = BAR.I18N("ui.settings.option.advplayerlist_colortooltip_descr"),
+			onload = function(i)
+				loadWidgetData("AdvPlayersList", "advplayerlist_colortooltip", { "m_active_Table", "colorTooltip" })
+			end,
+			onchange = function(i, value)
+				saveOptionValue(
+					"AdvPlayersList",
+					"advplayerlist_api",
+					"SetModuleActive",
+					{ "m_active_Table", "colorTooltip" },
+					value,
+					{ "colorTooltip", value }
+				)
+			end,
+		},
+		{
 			id = "advplayerlist_cpuping",
 			group = "ui",
 			category = types.advanced,
