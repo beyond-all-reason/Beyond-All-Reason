@@ -3,6 +3,20 @@
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
+
+local modOptions = Spring.GetModOptions()
+local tweaked = modOptions.tweakunits ~= "" or modOptions.tweakdefs ~= ""
+local i = 1
+while i <= 9 and not tweaked do
+	tweaked = modOptions["tweakunits"..i] ~= "" or modOptions["tweakdefs"..i] ~= ""
+	i = i + 1
+end
+if not tweaked then
+	Spring.Echo("No tweak detected, ignoring unit_missing_build_scripts.lua.")
+	return
+end
+
+Spring.Echo("Detected tweaked defs; loading unit_missing_build_scripts.lua.")
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
@@ -28,7 +42,7 @@ end
 
 local function hasBuildScript(unitID, unitDefID)
 	if hasBuildScripts[unitDefID] ~= nil then
-		return hasBuildScripts[unitDefID] 
+		return hasBuildScripts[unitDefID]
 	end
 	local env = Spring.UnitScript.GetScriptEnv(unitID)
 	if env then
