@@ -1,0 +1,26 @@
+{
+	"ui": {
+		"techBlocking": {
+			"techLevel": "TECH",
+			"gameStart": "Tech Core active: build Keystones to unlock T2 (%{t2Threshold} needed) and T3 (%{t3Threshold} needed)",
+			"techUp": "Tech %{level} unlocked! %{unlockDescription}",
+			"milestone": {
+				"t2": "T2 units and %{unitSharingMode} unit sharing unlocked",
+				"t3": "T3 units and full sharing unlocked"
+			},
+			"tooltip": {
+				"currentLevel": "Tech %{level} — %{points}/%{threshold} Keystones",
+				"nextUnlock": "Next: Tech %{nextLevel} unlocks %{unitSharingMode} sharing at %{threshold} Keystones"
+			},
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2 Unlocked!",
+				"level3": "Tech Level 3 Unlocked!"
+			},
+			"opening": {
+				"units": "%{unitSharingMode} unlock at Tech %{level} (%{points}/%{threshold} Keystones)",
+				"tax": "%{rate}%% tax from Tech %{level} (%{points}/%{threshold} Keystones)"
+			}
+		}
+	}
+}
