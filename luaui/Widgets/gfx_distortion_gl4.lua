@@ -463,7 +463,7 @@ end
 ---InitializeDistortion(distortionTable, unitID)
 ---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
----@param unitID number
+---@param unitID UnitID
 local function InitializeDistortion(distortionTable, unitID)
 	if not distortionTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesn't exist yet
@@ -686,7 +686,7 @@ end
 ---Remove a distortion
 ---@param distortionshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the distortion to remove
----@param unitID number make this non-nil to remove it from a unit
+---@param unitID UnitID? make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the distortion was not found
 local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	if unitID then

@@ -201,8 +201,8 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 end
 
 ---Whether an allied extractor can be replaced: higher techlevel or same-tier higher yield always upgrades; otherwise specialty extractors (does more than just produce metal/energy) may replace standard extractors/other specialty extractors.
----@param currentExtractorUuid number uuid of current extractor
----@param newExtractorId number unitDefID of new extractor
+---@param currentExtractorUuid UnitID
+---@param newExtractorId UnitDefID
 ---@return boolean
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))

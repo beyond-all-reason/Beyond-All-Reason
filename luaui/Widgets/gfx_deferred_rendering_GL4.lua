@@ -635,7 +635,7 @@ end
 ---InitializeLight(lightTable, unitID)
 ---Takes a light definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
----@param unitID number
+---@param unitID UnitID
 local function InitializeLight(lightTable, unitID)
 	if not lightTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesn't exist yet
@@ -1419,7 +1419,7 @@ end
 ---Remove a light
 ---@param lightshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the light to remove
----@param unitID number make this non-nil to remove it from a unit
+---@param unitID UnitID? make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the light was not found
 local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 	if unitID then
