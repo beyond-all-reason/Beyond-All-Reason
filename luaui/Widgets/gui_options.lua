@@ -6502,6 +6502,20 @@ function init()
 		},
 
 		{
+			id = "info_selection_modes",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.info_selection_modes"),
+			type = "bool",
+			value = (WG.info ~= nil and WG.info.getSelectionModesEnabled ~= nil and WG.info.getSelectionModesEnabled()),
+			description = BAR.I18N("ui.settings.option.info_selection_modes_descr"),
+			onload = function(i) end,
+			onchange = function(i, value)
+				saveOptionValue("Info", "info", "setSelectionModesEnabled", { "selectionModesEnabled" }, value)
+			end,
+		},
+
+		{
 			id = "advplayerlist_country",
 			group = "ui",
 			category = types.basic,
@@ -11726,6 +11740,38 @@ function init()
 		--specularColor = {number r, number g, number b},
 		--planeColor = {number r, number g, number b},
 	}
+
+	-- one option per way of drawing a selection that a widget added, nested under the setting they
+	-- all hang under. built here rather than declared above because which ones exist is up to
+	-- whichever widgets are loaded
+	if WG.info and WG.info.getSelectionModes then
+		local at = getOptionByID("info_selection_modes")
+		if at then
+			for _, mode in ipairs(WG.info.getSelectionModes()) do
+				at = at + 1
+				table.insert(options, at, {
+					id = "info_selection_mode_" .. mode.name,
+					group = "ui",
+					category = types.advanced,
+					name = widgetOptionColor .. "      " .. mode.title,
+					type = "bool",
+					value = mode.enabled,
+					description = mode.description or BAR.I18N("ui.settings.option.info_selection_mode_descr"),
+					onload = function(i) end,
+					onchange = function(i, value)
+						saveOptionValue(
+							"Info",
+							"info",
+							"setSelectionModeEnabled",
+							{ "selectionModeEnabled", mode.name },
+							value,
+							{ mode.name, value }
+						)
+					end,
+				})
+			end
+		end
+	end
 
 	if not isPotatoGpu and not devMode and not devUI then
 		options[getOptionByID("advmapshading")] = nil
