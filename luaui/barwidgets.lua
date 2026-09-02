@@ -409,6 +409,9 @@ local function loadWidgetFiles(folder, vfsMode)
 				-- LoadWidget reads raw-first, so the user's copy may have been read here instead.
 				widgetHandler:ForgetWidget(name)
 				widget = widgetHandler:LoadWidget(file, true, nil, true) -- reload reads the zip
+				if not widget then
+					Spring.Echo("Missing widget: " .. name .. "  (failed in replacing user copy)")
+				end
 			end
 		end
 
@@ -459,6 +462,7 @@ function widgetHandler:Initialize()
 			CreateSandboxedSystem()
 		end
 
+		-- The RAW passes populate seen zipOnly files.
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
