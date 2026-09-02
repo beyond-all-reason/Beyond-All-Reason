@@ -1,0 +1,144 @@
+/* Tech Points Display - Keystone-based system */
+
+body {
+    pointer-events: none;
+}
+
+.tech-points-root {
+    pointer-events: auto;
+    position: fixed;
+    left: 27.54vw;
+    top: -3dp;
+    width: 42dp;
+    z-index: 1000;
+    font-family: Exo 2;
+}
+
+.tech-points-container {
+    width: 100%;
+    height: 42dp;
+    background-color: rgba(40, 40, 40, 40);
+    border-radius: 6dp;
+    border-width: 4dp;
+    border-color: rgba(30, 30, 30, 150);
+    decorator: image("/luaui/images/stripes-small.png" repeat);
+    image-color: rgba(35, 35, 35, 120);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tech-points-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background-color: #585757;
+    decorator: vertical-gradient(rgba(121, 121, 121, 0.62) #585757);
+}
+
+.tech-points-fill.one-more {
+    background-color: #4a7a2e;
+    decorator: vertical-gradient(rgba(100, 200, 60, 0.7) #4a7a2e);
+    animation: 1.5s 0s linear infinite tech-one-more-pulse;
+}
+
+@keyframes tech-one-more-pulse {
+    0% { image-color: rgba(100, 200, 60, 180); }
+    50% { image-color: rgba(140, 255, 80, 255); }
+    100% { image-color: rgba(100, 200, 60, 180); }
+}
+
+.tech-text-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    z-index: 2;
+}
+
+.tech-level-header {
+    font-size: 10dp;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
+}
+
+.tech-level-number {
+    font-size: 22dp;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+    font-effect: outline(1dp black);
+}
+
+.tech-keystone-count {
+    font-size: 9dp;
+    font-weight: bold;
+    color: #cccccc;
+    text-align: center;
+    font-effect: outline(1dp black);
+    white-space: nowrap;
+    margin-bottom: 2dp;
+}
+
+.tech-milestones {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 2dp;
+}
+
+.milestone {
+    font-size: 8dp;
+    font-weight: bold;
+    color: rgba(150, 150, 150, 0.6);
+    text-align: center;
+    font-effect: outline(1dp black);
+    flex: 1;
+}
+
+.milestone.active {
+    color: #ffffff;
+}
+
+.milestone.reached {
+    color: rgba(100, 200, 60, 0.9);
+}
+
+.tech-level-popup {
+    position: absolute;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-100%, -50%);
+    font-family: Exo 2;
+    font-size: 2.78vh;
+    font-effect: outline(1dp black);
+    white-space: nowrap;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0.93vh 2.08vw;
+    border-radius: 0.56vh;
+    border-width: 0.09vh;
+    border-color: rgba(255, 255, 255, 0.3);
+    opacity: 0;
+}
+
+.tech-level-popup.show-popup {
+    animation: 3s 0s cubic-in-out 1 tech-popup-fade;
+}
+
+@keyframes tech-popup-fade {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
