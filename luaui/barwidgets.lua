@@ -622,9 +622,13 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
+
+	-- Only the game gets to hide a widget: a hidden one always loads and cannot be disabled.
+	local hidden = fromZip and widget.whInfo.hidden or false
+
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
-	elseif widget.whInfo.hidden then
+	elseif hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
@@ -654,7 +658,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
-		knownInfo.hidden = widget.whInfo.hidden
+		knownInfo.hidden = hidden
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
