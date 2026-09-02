@@ -4541,9 +4541,10 @@ function widget:Update(dt)
 				local es = extraState
 				local lastX, lastZ = es.autorampLastX, es.autorampLastZ
 				if not (lastX and lastZ) then
-					lastX, lastZ = worldX, worldZ
 					es.autorampLastX, es.autorampLastZ = worldX, worldZ
 				end
+				lastX = lastX or worldX
+				lastZ = lastZ or worldZ
 				local adx = worldX - lastX
 				local adz = worldZ - lastZ
 				local spacing = max(16, activeRadius * 0.5)

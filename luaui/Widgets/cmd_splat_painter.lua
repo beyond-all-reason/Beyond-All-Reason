@@ -204,7 +204,7 @@ local pendingSnapshot = false -- set on MousePress, consumed before first stroke
 -- (Lua 5.1 ceiling), so this costs it one, not four.
 local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
 ---@type table
-local farInv = { dirty = nil, at = nil } -- dirty = { ax, az, bx, bz } elmos, or nil
+local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
 
 function farInv.mark(worldX, worldZ, radius)
 	local r = (radius or 0) * 1.5 + 16 -- rotated squares reach r*sqrt(2); fractal edges a bit past
@@ -1946,6 +1946,7 @@ function widget:DrawWorld()
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("splatPainter", worldX, worldZ, activeRadius, 1.0)
@@ -1957,6 +1958,7 @@ function widget:DrawWorld()
 		return
 	end
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -1969,6 +1971,7 @@ function widget:DrawWorld()
 	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
 	-- inert with the tileset shader off (the uniform simply never renders).
 	do
+		---@type table?
 		local T = WG.TilesetTerrain
 		if T and T.setSurfacePreview then
 			local mode = 0
