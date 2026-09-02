@@ -577,33 +577,6 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	grassPatchVBO:Upload(uniqueVBOData)
 end
 
-local function fsrand(a, b) -- fast, repeatable random vec2
-	local s = math.sin((a * 12.9898 + b * 78.233))
-	return math.fract(s * 43758.5453), math.fract(s * 41758.5453)
-end
-
-local function testForGrass(mx, mz)
-	if grassConfig.obeyGrassMap then
-		if spGetGrass(mx, mz) == 1 then
-			return spGetGroundHeight(mx, mz)
-		else
-			return nil
-		end
-	else
-		local gx, gy, gz, gs = Spring.GetGroundNormal(mx, mz)
-		local gh = spGetGroundHeight(mx, mz)
-		if
-			(gh > grassConfig.grassMinHeight)
-			and (gh < grassConfig.grassMaxHeight)
-			and (gy > grassConfig.grassMaxSlope)
-		then
-			return gh
-		else
-			return nil
-		end
-	end
-end
-
 local function mapHasSMFGrass() -- returns 255 is SMF has no grass, 0 if map has no grass, 1 if map has old style binary grass, 2<=  <=254 if map has new style uint grass
 	local highestgrassmapvalue = 0
 	local patchResolution = 32

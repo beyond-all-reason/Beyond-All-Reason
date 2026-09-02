@@ -598,37 +598,6 @@ local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distorti
 	return instanceID
 end
 
----updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
----This function is for internal use only, to update the position of a distortion.
----Only use if you know the consequences of updating a VBO in-place!
-local function updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
-	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then
-		return nil
-	end
-	instanceIndex = (instanceIndex - 1) * distortionVBO.instanceStep
-	local instData = distortionVBO.instanceData
-	if posx then
-		instData[instanceIndex + 1] = posx
-		instData[instanceIndex + 2] = posy
-		instData[instanceIndex + 3] = posz
-	end
-	if radius then
-		instData[instanceIndex + 4] = radius
-	end
-
-	if p2x then
-		instData[instanceIndex + 5] = p2x
-		instData[instanceIndex + 6] = p2y
-		instData[instanceIndex + 7] = p2z
-	end
-	if theta then
-		instData[instanceIndex + 8] = theta
-	end
-	distortionVBO.dirty = true
-	return instanceIndex
-end
-
 -- Specialized fast path for projectile position updates: no nil-checks, always writes pos+dir
 local function updateProjectilePosition(distortionVBO, instanceID, posx, posy, posz, dx, dy, dz)
 	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
