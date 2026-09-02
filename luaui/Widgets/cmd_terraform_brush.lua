@@ -915,7 +915,6 @@ local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
-local savedDirectionBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
 
@@ -9384,7 +9383,6 @@ function widget:MousePress(mx, my, button)
 	if button == 3 then
 		if not rightMouseHeld then
 			savedModeBeforeRMB = activeMode
-			savedDirectionBeforeRMB = activeDirection
 			rightMouseHeld = true
 			setMode("lower")
 			Echo(
@@ -9511,7 +9509,6 @@ function widget:MouseRelease(mx, my, button)
 			activeDirection = nil
 		end
 		savedModeBeforeRMB = nil
-		savedDirectionBeforeRMB = nil
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil

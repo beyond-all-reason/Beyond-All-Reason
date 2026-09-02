@@ -143,14 +143,11 @@ local historyUndoCount = 0
 local historyRedoCount = 0
 
 -- Coroutine for async operations
-local activeCoroutine = nil
 local coroutineProgress = 0
 local coroutineLabel = ""
 
 -- Splat FBO
 local splatCaptureFBO = nil
-local splatCaptureW = 0
-local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
 local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
 local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
@@ -216,7 +213,6 @@ end
 local function deactivate()
 	active = false
 	state = "idle"
-	activeCoroutine = nil
 	coroutineProgress = 0
 	boxDrag.active = false
 end
@@ -1302,8 +1298,6 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, sc.u0, sc.v0, sc.u1, sc.v1)
 				glTexture(0, false)
 			end)
-			splatCaptureW = sc.pw
-			splatCaptureH = sc.ph
 			local pixelData = {}
 			glRenderToTexture(splatCaptureFBO, function()
 				pixelData = glReadPixels(0, 0, sc.pw, sc.ph)

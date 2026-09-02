@@ -238,7 +238,6 @@ end
 local wasgameframe = 0
 local prevframems = 0
 local lastframeduration -- shared across draw callins; read into prevframems
-local gameFrameHappened = false
 local drawspergameframe = 0
 
 local eventBuffer = {}
@@ -315,7 +314,6 @@ end
 function widget:GameFrame(n)
 	nowEvent("GameFrame")
 	wasgameframe = wasgameframe + 1
-	gameFrameHappened = true
 	if drawspergameframe ~= 2 then
 		--spEcho(drawspergameframe, "draws instead of 2", n)
 	end
@@ -453,5 +451,4 @@ function widget:DrawScreen()
 
 	wasgameframe = 0
 	prevframems = lastframeduration
-	gameFrameHappened = false
 end
