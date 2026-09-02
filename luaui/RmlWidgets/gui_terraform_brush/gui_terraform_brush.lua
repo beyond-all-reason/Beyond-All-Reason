@@ -817,6 +817,9 @@ local function tickSkyDynamic(dt)
 			setSlLb(skyDynamic.sunSliderY, skyDynamic.sunLabelY, sy)
 			setSlLb(skyDynamic.sunSliderZ, skyDynamic.sunLabelZ, sz)
 			uiState.updatingFromCode = false
+			if widgetState.refreshEnvSunAzEl then
+				widgetState.refreshEnvSunAzEl()
+			end
 		end
 	end
 end
@@ -2039,6 +2042,21 @@ widgetState.refreshEnvSunSliders = function()
 	uiState.updatingFromCode = false
 end
 
+-- Same for the AZIMUTH / ELEVATION pair. Kept separate from the XYZ refresh so a
+-- drag on either pair only restamps the other (restamping the slider under the
+-- pointer fights the drag).
+widgetState.refreshEnvSunAzEl = function()
+	local sx, sy, sz = gl.GetSun("pos")
+	if not sx then
+		return
+	end
+	local az, el = widgetState.azElFromSunDir(sx, sy, sz)
+	uiState.updatingFromCode = true
+	_envSetSlider("slider-env-sun-az", "lbl-env-sun-az", math.floor(az * 10 + 0.5), string.format("%.1f", az))
+	_envSetSlider("slider-env-sun-el", "lbl-env-sun-el", math.floor(el * 10 + 0.5), string.format("%.1f", el))
+	uiState.updatingFromCode = false
+end
+
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
@@ -2051,10 +2069,15 @@ widgetState.applyEnvConfig = function(d)
 		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
 		-- it would black out the map, so a degenerate direction is ignored.
 		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
-			local intensity = d.sunIntensity or 1.0
+			-- A config without an intensity (the harvested map moods have none)
+			-- keeps the session's; only an explicit value changes it.
+			local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
 			Spring.SetSunDirection(sdx, sdy, sdz, intensity)
 			widgetState.envSunIntensity = intensity
 			widgetState.refreshEnvSunSliders()
+			if widgetState.refreshEnvSunAzEl then
+				widgetState.refreshEnvSunAzEl()
+			end
 		end
 	end
 	local shadowParams = {}
@@ -2089,6 +2112,17 @@ widgetState.applyEnvConfig = function(d)
 	if next(lightParams) then
 		Spring.SetSunLighting(lightParams)
 		Spring.SendCommands("luarules updatesun")
+		-- A skybox fade in flight scales the six sun colours from its captured
+		-- originals and restores those at the end, which would overwrite what
+		-- was just applied: retarget the fade at the new colours instead.
+		if skyFade.active then
+			skyFade.origGroundAmbient = lightParams.groundAmbientColor or skyFade.origGroundAmbient
+			skyFade.origGroundDiffuse = lightParams.groundDiffuseColor or skyFade.origGroundDiffuse
+			skyFade.origGroundSpecular = lightParams.groundSpecularColor or skyFade.origGroundSpecular
+			skyFade.origUnitAmbient = lightParams.unitAmbientColor or skyFade.origUnitAmbient
+			skyFade.origUnitDiffuse = lightParams.unitDiffuseColor or skyFade.origUnitDiffuse
+			skyFade.origUnitSpecular = lightParams.unitSpecularColor or skyFade.origUnitSpecular
+		end
 	end
 	local atmosParams = {}
 	-- Env-preset fog intentionally NOT applied (placeholder + obscuring): force it off.
@@ -2162,6 +2196,280 @@ widgetState.applyEnvConfig = function(d)
 		for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
 			t.element:SetClass("active", t.path == d.skybox)
 		end
+	end
+	-- The ENV panel's RESET buttons return to "the defaults": after a project
+	-- or preset apply those are the applied values, not whatever the engine
+	-- held when the panel first opened (often the flat blank-map lighting).
+	if widgetState.captureEnvDefaults then
+		widgetState.captureEnvDefaults()
+	end
+end
+
+-- Sun direction <-> azimuth/elevation (degrees). Azimuth is compass-like on the
+-- map: 0 = north (toward -Z, the top of the minimap), 90 = east (+X).
+-- Elevation is the angle above the horizon. sunDir points AT the sun.
+widgetState.sunDirFromAzEl = function(azDeg, elDeg)
+	local az, el = math.rad(azDeg or 0), math.rad(math.max(0.5, math.min(89.5, elDeg or 45)))
+	local c = math.cos(el)
+	return c * math.sin(az), math.sin(el), -c * math.cos(az)
+end
+widgetState.azElFromSunDir = function(x, y, z)
+	local len = math.sqrt((x or 0) ^ 2 + (y or 0) ^ 2 + (z or 0) ^ 2)
+	if len < 1e-6 then
+		return 0, 45
+	end
+	local el = math.deg(math.asin(math.max(-1, math.min(1, (y or 0) / len))))
+	local az = math.deg(math.atan2(x or 0, -(z or 0)))
+	if az < 0 then
+		az = az + 360
+	end
+	return az, el
+end
+
+-- Sun-only quick presets for the ENV panel: a time of day as azimuth, elevation,
+-- intensity, the six sun colours, the sun tint and both shadow densities. They
+-- never touch water, fog or sky, so they are safe on any map.
+widgetState.envSunPresets = {
+	{
+		name = "Dawn",
+		az = 95,
+		el = 9,
+		sunIntensity = 0.9,
+		groundAmbientColor = { 0.44, 0.42, 0.5 },
+		groundDiffuseColor = { 1.0, 0.78, 0.6 },
+		groundSpecularColor = { 0.6, 0.5, 0.45 },
+		unitAmbientColor = { 0.5, 0.48, 0.56 },
+		unitDiffuseColor = { 1.0, 0.85, 0.7 },
+		unitSpecularColor = { 0.8, 0.65, 0.55 },
+		sunColor = { 1.0, 0.82, 0.62 },
+		groundShadowDensity = 0.6,
+		modelShadowDensity = 0.6,
+	},
+	{
+		name = "Morning",
+		az = 120,
+		el = 32,
+		sunIntensity = 1.0,
+		groundAmbientColor = { 0.5, 0.5, 0.53 },
+		groundDiffuseColor = { 0.98, 0.94, 0.86 },
+		groundSpecularColor = { 0.65, 0.65, 0.62 },
+		unitAmbientColor = { 0.55, 0.55, 0.6 },
+		unitDiffuseColor = { 0.98, 0.95, 0.88 },
+		unitSpecularColor = { 0.8, 0.7, 0.65 },
+		sunColor = { 1.0, 0.94, 0.84 },
+		groundShadowDensity = 0.7,
+		modelShadowDensity = 0.7,
+	},
+	{
+		name = "Noon",
+		az = 180,
+		el = 72,
+		sunIntensity = 1.0,
+		groundAmbientColor = { 0.55, 0.55, 0.55 },
+		groundDiffuseColor = { 1.0, 1.0, 0.97 },
+		groundSpecularColor = { 0.7, 0.7, 0.7 },
+		unitAmbientColor = { 0.58, 0.58, 0.6 },
+		unitDiffuseColor = { 1.0, 1.0, 0.96 },
+		unitSpecularColor = { 0.8, 0.75, 0.7 },
+		sunColor = { 1.0, 0.98, 0.94 },
+		groundShadowDensity = 0.8,
+		modelShadowDensity = 0.8,
+	},
+	{
+		name = "Afternoon",
+		az = 245,
+		el = 38,
+		sunIntensity = 1.0,
+		groundAmbientColor = { 0.5, 0.5, 0.52 },
+		groundDiffuseColor = { 1.0, 0.95, 0.85 },
+		groundSpecularColor = { 0.68, 0.65, 0.6 },
+		unitAmbientColor = { 0.55, 0.55, 0.58 },
+		unitDiffuseColor = { 1.0, 0.96, 0.88 },
+		unitSpecularColor = { 0.8, 0.7, 0.62 },
+		sunColor = { 1.0, 0.93, 0.8 },
+		groundShadowDensity = 0.72,
+		modelShadowDensity = 0.72,
+	},
+	{
+		name = "Dusk",
+		az = 272,
+		el = 10,
+		sunIntensity = 0.85,
+		groundAmbientColor = { 0.4, 0.36, 0.46 },
+		groundDiffuseColor = { 1.0, 0.66, 0.45 },
+		groundSpecularColor = { 0.6, 0.45, 0.4 },
+		unitAmbientColor = { 0.46, 0.42, 0.52 },
+		unitDiffuseColor = { 1.0, 0.72, 0.52 },
+		unitSpecularColor = { 0.8, 0.55, 0.45 },
+		sunColor = { 1.0, 0.62, 0.36 },
+		groundShadowDensity = 0.55,
+		modelShadowDensity = 0.55,
+	},
+	{
+		name = "Overcast",
+		az = 180,
+		el = 58,
+		sunIntensity = 0.75,
+		groundAmbientColor = { 0.62, 0.63, 0.66 },
+		groundDiffuseColor = { 0.72, 0.74, 0.77 },
+		groundSpecularColor = { 0.4, 0.4, 0.42 },
+		unitAmbientColor = { 0.64, 0.65, 0.68 },
+		unitDiffuseColor = { 0.75, 0.77, 0.8 },
+		unitSpecularColor = { 0.5, 0.5, 0.52 },
+		sunColor = { 0.85, 0.87, 0.9 },
+		groundShadowDensity = 0.35,
+		modelShadowDensity = 0.35,
+	},
+}
+
+-- The ENV panel's preset catalog: harvested map moods (the New Map wizard's
+-- list), the user's own files in Terraform Brush/Environments/ (SAVE in the
+-- panel; legacy Lightmaps/*_environ_*.lua saves are listed too), and the
+-- sun-only quick presets above. Each entry = { name, kind, data | path }.
+-- (Fields on widgetState, not chunk locals: the main chunk is near the Lua 5.1
+-- 200-local ceiling.)
+widgetState.envPresetDir = "Terraform Brush/Environments/"
+widgetState.listEnvPresets = function()
+	local ENV_PRESET_DIR = widgetState.envPresetDir
+	local out = {}
+	for _, p in ipairs(widgetState.envSunPresets) do
+		out[#out + 1] = { name = p.name, kind = "sun", data = p }
+	end
+	for _, p in ipairs(widgetState.newMapEnvPresets or {}) do
+		out[#out + 1] = { name = p.name, kind = "mood", data = p }
+	end
+	local user = {}
+	for _, f in ipairs(VFS.DirList(ENV_PRESET_DIR, "*.lua", VFS.RAW) or {}) do
+		local base = (f:match("([^/\\]+)%.lua$") or f)
+		user[#user + 1] = { name = base, kind = "user", path = f }
+	end
+	for _, f in ipairs(VFS.DirList("Terraform Brush/Lightmaps/", "*_environ_*.lua", VFS.RAW) or {}) do
+		local base = (f:match("([^/\\]+)%.lua$") or f)
+		user[#user + 1] = { name = base, kind = "user", path = f }
+	end
+	table.sort(user, function(a, b)
+		return a.name:lower() < b.name:lower()
+	end)
+	for _, u in ipairs(user) do
+		out[#out + 1] = u
+	end
+	return out
+end
+
+-- Resolve an entry's config table (files load on demand, BOM-stripped: Recoil
+-- runs stock Lua 5.1 and loadstring chokes on a UTF-8 BOM).
+widgetState.loadEnvPresetData = function(entry)
+	if entry.data then
+		return entry.data
+	end
+	local raw = entry.path and VFS.LoadFile(entry.path, VFS.RAW)
+	if not raw or raw == "" then
+		return nil, "could not read " .. tostring(entry.path)
+	end
+	raw = raw:gsub("^\239\187\191", "")
+	local chunk = loadstring(raw)
+	if not chunk then
+		return nil, "parse failed for " .. tostring(entry.path)
+	end
+	local ok, d = pcall(chunk)
+	if not ok or type(d) ~= "table" then
+		return nil, "invalid data in " .. tostring(entry.path)
+	end
+	return d
+end
+
+-- Apply a preset with the panel's scope. "sun" takes only the sun keys (a
+-- sun-only preset has nothing else anyway); "full" hands the whole table to
+-- applyEnvConfig. A sun-only preset's az/el become a sunDir first.
+widgetState.envSunKeys = {
+	"sunDir",
+	"sunIntensity",
+	"groundShadowDensity",
+	"modelShadowDensity",
+	"groundAmbientColor",
+	"groundDiffuseColor",
+	"groundSpecularColor",
+	"unitAmbientColor",
+	"unitDiffuseColor",
+	"unitSpecularColor",
+	"sunColor",
+}
+widgetState.applyEnvPreset = function(entry, scope)
+	local d, err = widgetState.loadEnvPresetData(entry)
+	if not d then
+		Spring.Echo("[Environ] preset '" .. tostring(entry.name) .. "': " .. tostring(err))
+		return false
+	end
+	if d.az and d.el and not d.sunDir then
+		local x, y, z = widgetState.sunDirFromAzEl(d.az, d.el)
+		local copy = {}
+		for k, v in pairs(d) do
+			copy[k] = v
+		end
+		copy.sunDir = { x, y, z }
+		d = copy
+	end
+	if scope == "sun" or entry.kind == "sun" then
+		local subset = {}
+		for _, k in ipairs(widgetState.envSunKeys) do
+			subset[k] = d[k]
+		end
+		d = subset
+	end
+	widgetState.applyEnvConfig(d)
+	widgetState.envPresetCurrent = entry.name
+	return true
+end
+
+-- SAVE in the panel: the full live environment (buildEnvConfigContent) under a
+-- user-chosen name, so it lists in every session and on every map.
+widgetState.saveEnvPreset = function(name)
+	name = tostring(name or ""):match("^%s*(.-)%s*$"):gsub("[^%w_%- ]", "_")
+	if name == "" then
+		return false, "type a preset name first"
+	end
+	Spring.CreateDir(widgetState.envPresetDir)
+	local path = widgetState.envPresetDir .. name .. ".lua"
+	local f = io.open(path, "w")
+	if not f then
+		return false, "could not write " .. path
+	end
+	f:write(widgetState.buildEnvConfigContent())
+	f:close()
+	Spring.Echo("[Environ] saved environment preset: " .. path)
+	return true, path
+end
+
+-- /tf_sunlog: log every sun write (direction and lighting) with a traceback, so
+-- "who reset my sun?" is answered by the console instead of by guessing. The
+-- wrappers sit on the shared Spring table, so every LuaUI widget's writes show.
+widgetState.setSunLog = function(on)
+	if on and not widgetState._sunLogOrig then
+		local orig = { dir = Spring.SetSunDirection, light = Spring.SetSunLighting }
+		widgetState._sunLogOrig = orig
+		Spring.SetSunDirection = function(x, y, z, i)
+			Spring.Echo(
+				string.format("[sunlog] SetSunDirection(%.3f, %.3f, %.3f, %s)", x or 0, y or 0, z or 0, tostring(i))
+			)
+			Spring.Echo(debug.traceback("", 2))
+			return orig.dir(x, y, z, i)
+		end
+		Spring.SetSunLighting = function(t)
+			local keys = {}
+			for k in pairs(type(t) == "table" and t or {}) do
+				keys[#keys + 1] = tostring(k)
+			end
+			table.sort(keys)
+			Spring.Echo("[sunlog] SetSunLighting{" .. table.concat(keys, ", ") .. "}")
+			Spring.Echo(debug.traceback("", 2))
+			return orig.light(t)
+		end
+		Spring.Echo("[Terraform Brush] sun write logging ON (/tf_sunlog again to stop)")
+	elseif not on and widgetState._sunLogOrig then
+		Spring.SetSunDirection = widgetState._sunLogOrig.dir
+		Spring.SetSunLighting = widgetState._sunLogOrig.light
+		widgetState._sunLogOrig = nil
+		Spring.Echo("[Terraform Brush] sun write logging OFF")
 	end
 end
 
@@ -3675,6 +3983,8 @@ local initialModel = {
 	splatTexVisible = false,
 	skyboxLibraryVisible = false,
 	envSunVisible = false,
+	envPresetScope = "full", -- Sun & Shadows PRESETS: what a preset click applies ("sun" | "full")
+	envPresetHint = "",
 	envFogVisible = false,
 	envGroundLightingVisible = false,
 	envUnitLightingVisible = false,
@@ -8711,8 +9021,19 @@ local initialModel = {
 		if not d then
 			return
 		end
-		Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3])
+		local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
+		Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3], intensity)
+		widgetState.envSunIntensity = intensity
 		Spring.SetSunLighting({ groundShadowDensity = d.groundShadowDensity, modelShadowDensity = d.unitShadowDensity })
+		if widgetState.refreshEnvSunAzEl then
+			widgetState.refreshEnvSunAzEl()
+		end
+		_envSetSlider(
+			"slider-env-sun-intensity",
+			"lbl-env-sun-intensity",
+			math.floor(intensity * 1000 + 0.5),
+			string.format("%.2f", intensity)
+		)
 		_envSetSlider(
 			"slider-env-sun-y",
 			"lbl-env-sun-y",
@@ -9127,6 +9448,46 @@ local initialModel = {
 		widgetState.applyEnvConfig(d)
 		playSound("save")
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
+	end,
+	-- ENV panel PRESETS (Sun & Shadows window): SAVE writes the live environment
+	-- under a name, BROWSE lists sun-only quick presets, the harvested map moods
+	-- and the user's files; the SUN ONLY / FULL chips set what a click applies.
+	onEnvPresetSave = function(_event)
+		local doc = widgetState.document
+		local inp = doc and doc:GetElementById("env-preset-name-input")
+		local name = inp and (inp:GetAttribute("value") or "") or ""
+		local ok, msg = widgetState.saveEnvPreset(name)
+		local d = widgetState.dmHandle
+		if d then
+			d.envPresetHint = ok and ("Saved " .. tostring(name)) or tostring(msg)
+		end
+		if ok then
+			playSound("save")
+			if inp then
+				inp:SetAttribute("value", "")
+			end
+			if widgetState.envPresetDropdownOpen and widgetState.rebuildEnvPresetList then
+				widgetState.rebuildEnvPresetList()
+			end
+		end
+	end,
+	onEnvPresetToggle = function(_event)
+		local open = not widgetState.envPresetDropdownOpen
+		if open and widgetState.rebuildEnvPresetList then
+			widgetState.rebuildEnvPresetList()
+		end
+		if widgetState.setEnvPresetDropdownOpen then
+			widgetState.setEnvPresetDropdownOpen(open)
+		end
+		playSound("click")
+	end,
+	onEnvPresetScope = function(_event, scope)
+		playSound("click")
+		widgetState.envPresetScope = scope == "sun" and "sun" or "full"
+		local d = widgetState.dmHandle
+		if d then
+			d.envPresetScope = widgetState.envPresetScope
+		end
 	end,
 
 	-- ── Terraform mode buttons ────────────────────────────────────────────────
@@ -14005,6 +14366,95 @@ local function attachEventListeners()
 	-- tileset preset is just a named snapshot of the knob table, stored in the write-dir
 	-- widget via WG.TilesetTerrain.savePreset/loadPreset. Closures hang on widgetState so
 	-- the model handlers (onTilesetPreset*) can drive them.
+	-- Sun & Shadows PRESETS dropdown: same shape as the tileset one below. The
+	-- catalog is rebuilt on every open (user files change on disk); a row click
+	-- applies with the panel's scope; user rows carry an X that deletes the
+	-- file. In a do-block: this function is near the Lua 5.1 local/upvalue caps.
+	do
+		local envPresetNameInput = getCachedEl(doc, "env-preset-name-input")
+		local envPresetDropdown = getCachedEl(doc, "env-preset-dropdown")
+		local envPresetToggleBtn = getCachedEl(doc, "btn-env-preset-toggle")
+		if envPresetNameInput then
+			envPresetNameInput:AddEventListener("focus", function(_e)
+				WG.TerraformBrushInputFocused = true
+				Spring.SDLStartTextInput()
+				widgetState.focusedRmlInput = envPresetNameInput
+			end, false)
+			envPresetNameInput:AddEventListener("blur", function(_e)
+				WG.TerraformBrushInputFocused = false
+				Spring.SDLStopTextInput()
+				widgetState.focusedRmlInput = nil
+			end, false)
+		end
+		widgetState.setEnvPresetDropdownOpen = function(open)
+			widgetState.envPresetDropdownOpen = open
+			if envPresetDropdown then
+				envPresetDropdown:SetClass("hidden", not open)
+			end
+			if envPresetToggleBtn then
+				envPresetToggleBtn:SetClass("open", open)
+			end
+		end
+		widgetState.rebuildEnvPresetList = function()
+			if not envPresetDropdown then
+				return
+			end
+			envPresetDropdown.inner_rml = ""
+			local entries = widgetState.listEnvPresets()
+			local kindLabel = { sun = "sun only", mood = "map mood", user = "saved" }
+			local lastKind
+			for _, entry in ipairs(entries) do
+				if entry.kind ~= lastKind then
+					lastKind = entry.kind
+					local head = doc:CreateElement("div")
+					head:SetClass("tf-preset-summary", true)
+					head.inner_rml = kindLabel[entry.kind] or entry.kind
+					envPresetDropdown:AppendChild(head)
+				end
+				local row = doc:CreateElement("div")
+				row:SetClass("tf-preset-row", true)
+				if widgetState.envPresetCurrent == entry.name then
+					row:SetClass("selected", true)
+				end
+				local topRow = doc:CreateElement("div")
+				topRow:SetClass("tf-preset-row-top", true)
+				local nameEl = doc:CreateElement("div")
+				nameEl:SetClass("tf-preset-name", true)
+				nameEl.inner_rml = entry.name:gsub("&", "&amp;"):gsub("<", "&lt;")
+				topRow:AppendChild(nameEl)
+				if entry.kind == "user" and entry.path then
+					local delEl = doc:CreateElement("div")
+					delEl:SetClass("tf-preset-delete", true)
+					delEl.inner_rml = "X"
+					delEl:AddEventListener("click", function(event)
+						playSound("reset")
+						os.remove(entry.path)
+						Spring.Echo("[Environ] deleted environment preset: " .. entry.path)
+						widgetState.rebuildEnvPresetList()
+						event:StopPropagation()
+					end, false)
+					topRow:AppendChild(delEl)
+				end
+				row:AppendChild(topRow)
+				row:AddEventListener("click", function(event)
+					playSound("click")
+					local ok = widgetState.applyEnvPreset(entry, widgetState.envPresetScope or "full")
+					local d = widgetState.dmHandle
+					if d then
+						d.envPresetHint = ok and ("Applied " .. entry.name)
+							or ("Could not apply " .. entry.name .. " (see console)")
+					end
+					if ok and envPresetNameInput then
+						envPresetNameInput:SetAttribute("value", entry.name)
+					end
+					widgetState.setEnvPresetDropdownOpen(false)
+					event:StopPropagation()
+				end, false)
+				envPresetDropdown:AppendChild(row)
+			end
+		end
+	end
+
 	local tsPresetNameInput = getCachedEl(doc, "ts-preset-name-input")
 	local tsPresetDropdown = getCachedEl(doc, "ts-preset-dropdown")
 	local tsPresetToggleBtn = getCachedEl(doc, "btn-ts-preset-toggle")
@@ -14418,6 +14868,11 @@ function widget:Initialize()
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("hidden", widgetState.panelHidden)
 		end
+		return true
+	end, nil, "t")
+	-- /tf_sunlog toggles a traceback on every sun write (see setSunLog).
+	widgetHandler:AddAction("tf_sunlog", function()
+		widgetState.setSunLog(not widgetState._sunLogOrig)
 		return true
 	end, nil, "t")
 
@@ -18374,4 +18829,8 @@ function widget:Shutdown()
 	skyFade.phase = "idle"
 
 	widgetHandler:RemoveAction("terraformpanel")
+	widgetHandler:RemoveAction("tf_sunlog")
+	if widgetState.setSunLog then
+		widgetState.setSunLog(false)
+	end
 end

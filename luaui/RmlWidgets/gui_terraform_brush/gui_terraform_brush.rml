@@ -6785,6 +6785,21 @@
 			</div>
 		<div id="env-section-sundir">
 		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 50dp;">azimuth</div>
+			<div id="btn-env-sun-az-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-env-sun-az" class="tf-slider" min="0" max="3600" step="1" value="1800" />
+			<div id="btn-env-sun-az-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-env-sun-az-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 50dp;">elevation</div>
+			<div id="btn-env-sun-el-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-env-sun-el" class="tf-slider" min="5" max="895" step="1" value="450" />
+			<div id="btn-env-sun-el-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-env-sun-el-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="text-sm text-keybind mb-1">azimuth 0 = north (top of the minimap), 90 = east; elevation is degrees above the horizon. The rows below are the same direction as a vector.</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
 			<div class="text-sm text-keybind" style="width: 50dp;">height</div>
 			<div id="btn-env-sun-y-down" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
 			<input type="range" id="slider-env-sun-y" class="tf-slider" min="50" max="9999" step="1" value="5000" />
@@ -6822,6 +6837,31 @@
 		</div>
 		</div><!-- /env-section-sunint -->
 		</div><!-- /frame-sunint -->
+		<div class="tf-section-frame" id="env-frame-sunpre">
+			<div id="btn-env-toggle-sunpre" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-env-toggle-sunpre" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">PRESETS</div>
+			</div>
+		<div id="env-section-sunpre">
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-sm text-keybind" style="width: 50dp;">apply</div>
+			<div class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-class-active="envPresetScope == 'sun'" data-event-mousedown="onEnvPresetScope('sun')"><div class="tf-action-btn-text">SUN ONLY</div></div>
+			<div class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-class-active="envPresetScope == 'full'" data-event-mousedown="onEnvPresetScope('full')"><div class="tf-action-btn-text">FULL ENVIRONMENT</div></div>
+		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<input type="text" id="env-preset-name-input" class="tf-preset-input" maxlength="40" value="" />
+			<div id="btn-env-preset-save" class="tf-preset-btn tf-preset-save" data-event-mousedown="onEnvPresetSave()">
+				<div class="text-base text-medium font-bold">Save</div>
+			</div>
+			<div id="btn-env-preset-toggle" class="tf-preset-btn tf-preset-toggle" data-event-mousedown="onEnvPresetToggle()">
+				<div class="text-base text-medium font-bold">Browse</div>
+			</div>
+		</div>
+		<div id="env-preset-dropdown" class="tf-preset-dropdown hidden"></div>
+		<div class="text-sm text-keybind mb-1">Sun-only presets are times of day (direction, intensity, sun colours, shadows). Map moods and your saved files also carry fog colour, sky, water and skybox; SUN ONLY takes just their sun. Save writes the whole live environment to Terraform Brush/Environments/.</div>
+		<div class="text-sm text-light mb-1" data-if="envPresetHint != ''">{{envPresetHint}}</div>
+		</div><!-- /env-section-sunpre -->
+		</div><!-- /frame-sunpre -->
 		<div class="tf-section-frame" id="env-frame-shadow">
 			<div id="btn-env-toggle-shadow" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-shadow" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />

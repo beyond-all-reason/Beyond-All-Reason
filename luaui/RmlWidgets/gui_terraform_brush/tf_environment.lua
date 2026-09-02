@@ -151,56 +151,63 @@ function M.attach(doc, ctx)
 	-- (onEnvResetSkybox / onEnvToggleFade now in initialModel in gui_terraform_brush.lua)
 
 	-- Environment sub-windows
-	-- Capture map defaults at startup
-	local sunX, sunY, sunZ = gl.GetSun("pos")
-	sunX, sunY, sunZ = sunX or 0, sunY or 1, sunZ or 0
-	local gaR, gaG, gaB = gl.GetSun("ambient")
-	gaR, gaG, gaB = gaR or 0, gaG or 0, gaB or 0
-	local gdR, gdG, gdB = gl.GetSun("diffuse")
-	gdR, gdG, gdB = gdR or 0, gdG or 0, gdB or 0
-	local gsR, gsG, gsB = gl.GetSun("specular")
-	gsR, gsG, gsB = gsR or 0, gsG or 0, gsB or 0
-	local uaR, uaG, uaB = gl.GetSun("ambient", "unit")
-	uaR, uaG, uaB = uaR or 0, uaG or 0, uaB or 0
-	local udR, udG, udB = gl.GetSun("diffuse", "unit")
-	udR, udG, udB = udR or 0, udG or 0, udB or 0
-	local usR, usG, usB = gl.GetSun("specular", "unit")
-	usR, usG, usB = usR or 0, usG or 0, usB or 0
-	local fogS = gl.GetAtmosphere("fogStart")
-	local fogE = gl.GetAtmosphere("fogEnd")
-	local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
-	local scR, scG, scB = gl.GetAtmosphere("sunColor")
-	local skR, skG, skB = gl.GetAtmosphere("skyColor")
-	local saX, saY, saZ, saAngle = gl.GetAtmosphere("skyAxisAngle")
-	local gsd = gl.GetSun("shadowDensity", "ground") or 0
-	local usd = gl.GetSun("shadowDensity", "unit") or 0
+	-- Capture the "defaults" the RESET buttons return to. Captured here at
+	-- attach, and again by applyEnvConfig after a project or preset apply, so
+	-- RESET means "what this session loaded", not the flat blank-map lighting
+	-- the engine happened to hold when the panel first opened.
+	widgetState.captureEnvDefaults = function()
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		sunX, sunY, sunZ = sunX or 0, sunY or 1, sunZ or 0
+		local gaR, gaG, gaB = gl.GetSun("ambient")
+		gaR, gaG, gaB = gaR or 0, gaG or 0, gaB or 0
+		local gdR, gdG, gdB = gl.GetSun("diffuse")
+		gdR, gdG, gdB = gdR or 0, gdG or 0, gdB or 0
+		local gsR, gsG, gsB = gl.GetSun("specular")
+		gsR, gsG, gsB = gsR or 0, gsG or 0, gsB or 0
+		local uaR, uaG, uaB = gl.GetSun("ambient", "unit")
+		uaR, uaG, uaB = uaR or 0, uaG or 0, uaB or 0
+		local udR, udG, udB = gl.GetSun("diffuse", "unit")
+		udR, udG, udB = udR or 0, udG or 0, udB or 0
+		local usR, usG, usB = gl.GetSun("specular", "unit")
+		usR, usG, usB = usR or 0, usG or 0, usB or 0
+		local fogS = gl.GetAtmosphere("fogStart")
+		local fogE = gl.GetAtmosphere("fogEnd")
+		local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
+		local scR, scG, scB = gl.GetAtmosphere("sunColor")
+		local skR, skG, skB = gl.GetAtmosphere("skyColor")
+		local saX, saY, saZ, saAngle = gl.GetAtmosphere("skyAxisAngle")
+		local gsd = gl.GetSun("shadowDensity", "ground") or 0
+		local usd = gl.GetSun("shadowDensity", "unit") or 0
 
-	widgetState.envDefaults = {
-		sunPos = { sunX, sunY, sunZ },
-		groundAmbient = { gaR, gaG, gaB },
-		groundDiffuse = { gdR, gdG, gdB },
-		groundSpecular = { gsR, gsG, gsB },
-		unitAmbient = { uaR, uaG, uaB },
-		unitDiffuse = { udR, udG, udB },
-		unitSpecular = { usR, usG, usB },
-		fogStart = fogS,
-		fogEnd = fogE,
-		fogColor = { fR, fG, fB, fA },
-		sunColor = { scR, scG, scB },
-		skyColor = { skR, skG, skB },
-		skyAxisAngle = { saX, saY, saZ, saAngle },
-		groundShadowDensity = gsd,
-		unitShadowDensity = usd,
-		cloudColor = { gl.GetAtmosphere("cloudColor") },
-		sunIntensity = 1.0,
-		waterAbsorb = { gl.GetWaterRendering("absorb") },
-		waterBaseColor = { gl.GetWaterRendering("baseColor") },
-		waterMinColor = { gl.GetWaterRendering("minColor") },
-		waterSurfaceColor = { gl.GetWaterRendering("surfaceColor") },
-		waterPlaneColor = { gl.GetWaterRendering("planeColor") },
-		waterDiffuseColor = { gl.GetWaterRendering("diffuseColor") },
-		waterSpecularColor = { gl.GetWaterRendering("specularColor") },
-	}
+		widgetState.envDefaults = {
+			sunPos = { sunX, sunY, sunZ },
+			groundAmbient = { gaR, gaG, gaB },
+			groundDiffuse = { gdR, gdG, gdB },
+			groundSpecular = { gsR, gsG, gsB },
+			unitAmbient = { uaR, uaG, uaB },
+			unitDiffuse = { udR, udG, udB },
+			unitSpecular = { usR, usG, usB },
+			fogStart = fogS,
+			fogEnd = fogE,
+			fogColor = { fR, fG, fB, fA },
+			sunColor = { scR, scG, scB },
+			skyColor = { skR, skG, skB },
+			skyAxisAngle = { saX, saY, saZ, saAngle },
+			groundShadowDensity = gsd,
+			unitShadowDensity = usd,
+			cloudColor = { gl.GetAtmosphere("cloudColor") },
+			-- The engine has no intensity getter; the UI tracks what it applied.
+			sunIntensity = widgetState.envSunIntensity or 1.0,
+			waterAbsorb = { gl.GetWaterRendering("absorb") },
+			waterBaseColor = { gl.GetWaterRendering("baseColor") },
+			waterMinColor = { gl.GetWaterRendering("minColor") },
+			waterSurfaceColor = { gl.GetWaterRendering("surfaceColor") },
+			waterPlaneColor = { gl.GetWaterRendering("planeColor") },
+			waterDiffuseColor = { gl.GetWaterRendering("diffuseColor") },
+			waterSpecularColor = { gl.GetWaterRendering("specularColor") },
+		}
+	end
+	widgetState.captureEnvDefaults()
 
 	-- Grab floating window root elements
 	widgetState.envSunRootEl = doc:GetElementById("tf-env-sun-root")
@@ -900,6 +907,7 @@ function M.attach(doc, ctx)
 	-- Sun & Shadows collapsible sections (default expanded)
 	envSectionToggle("btn-env-toggle-sundir", "img-env-toggle-sundir", "env-section-sundir", true)
 	envSectionToggle("btn-env-toggle-sunint", "img-env-toggle-sunint", "env-section-sunint", true)
+	envSectionToggle("btn-env-toggle-sunpre", "img-env-toggle-sunpre", "env-section-sunpre", true)
 	envSectionToggle("btn-env-toggle-shadow", "img-env-toggle-shadow", "env-section-shadow", true)
 
 	-- Fog & Atmosphere collapsible sections (default collapsed)
@@ -1047,6 +1055,8 @@ function M.attach(doc, ctx)
 			-- non-color sliders with ± buttons
 			"sun-y",
 			"sun-x",
+			"sun-az",
+			"sun-el",
 			"sun-z",
 			"sun-intensity",
 			"gshadow",
@@ -1138,41 +1148,69 @@ function M.attach(doc, ctx)
 	skyDynamic.sunSliderZ = doc:GetElementById("slider-env-sun-z")
 	skyDynamic.sunLabelZ = doc:GetElementById("lbl-env-sun-z")
 
+	-- Every direction write goes through this: keeps the applied intensity (the
+	-- engine defaults a missing 4th argument to 1.0), re-asserts the shadow
+	-- densities PER SCOPE (reading "shadowDensity" without a scope returns the
+	-- ground value, which used to flatten a ground/unit split on every nudge),
+	-- and restamps the other slider pair.
+	widgetState.envSetSunDir = function(x, y, z, restamp)
+		Spring.SetSunDirection(x, y, z, widgetState.envSunIntensity or 1.0)
+		Spring.SetSunLighting({
+			groundShadowDensity = gl.GetSun("shadowDensity", "ground"),
+			modelShadowDensity = gl.GetSun("shadowDensity", "unit"),
+		})
+		if restamp == "azel" and widgetState.refreshEnvSunAzEl then
+			widgetState.refreshEnvSunAzEl()
+		elseif restamp == "xyz" and widgetState.refreshEnvSunSliders then
+			widgetState.refreshEnvSunSliders()
+		end
+	end
 	envSlider("slider-env-sun-y", "lbl-env-sun-y", function(v)
 		return v / 10000
 	end, function()
 		return (select(2, gl.GetSun("pos"))) * 10000
 	end, function(val)
-		local sx, sy, sz = gl.GetSun("pos")
-		Spring.SetSunDirection(sx, val, sz)
-		Spring.SetSunLighting({
-			groundShadowDensity = gl.GetSun("shadowDensity"),
-			modelShadowDensity = gl.GetSun("shadowDensity"),
-		})
+		local sx, _, sz = gl.GetSun("pos")
+		widgetState.envSetSunDir(sx, val, sz, "azel")
 	end)
 	envSlider("slider-env-sun-x", "lbl-env-sun-x", function(v)
 		return v / 10000
 	end, function()
 		return (select(1, gl.GetSun("pos"))) * 10000
 	end, function(val)
-		local sx, sy, sz = gl.GetSun("pos")
-		Spring.SetSunDirection(val, sy, sz)
-		Spring.SetSunLighting({
-			groundShadowDensity = gl.GetSun("shadowDensity"),
-			modelShadowDensity = gl.GetSun("shadowDensity"),
-		})
+		local _, sy, sz = gl.GetSun("pos")
+		widgetState.envSetSunDir(val, sy, sz, "azel")
 	end)
 	envSlider("slider-env-sun-z", "lbl-env-sun-z", function(v)
 		return v / 10000
 	end, function()
 		return (select(3, gl.GetSun("pos"))) * 10000
 	end, function(val)
-		local sx, sy, sz = gl.GetSun("pos")
-		Spring.SetSunDirection(sx, sy, val)
-		Spring.SetSunLighting({
-			groundShadowDensity = gl.GetSun("shadowDensity"),
-			modelShadowDensity = gl.GetSun("shadowDensity"),
-		})
+		local sx, sy = gl.GetSun("pos")
+		widgetState.envSetSunDir(sx, sy, val, "azel")
+	end)
+	-- AZIMUTH / ELEVATION: the artist-facing pair (tenths of a degree on the
+	-- track). Elevation stays above the horizon; the XYZ rows keep the exact
+	-- vector for people who think in it.
+	envSlider("slider-env-sun-az", "lbl-env-sun-az", function(v)
+		return v / 10
+	end, function()
+		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		return az * 10
+	end, function(val)
+		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		local x, y, z = widgetState.sunDirFromAzEl(val, el)
+		widgetState.envSetSunDir(x, y, z, "xyz")
+	end)
+	envSlider("slider-env-sun-el", "lbl-env-sun-el", function(v)
+		return v / 10
+	end, function()
+		local _, el = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		return el * 10
+	end, function(val)
+		local az = widgetState.azElFromSunDir(gl.GetSun("pos"))
+		local x, y, z = widgetState.sunDirFromAzEl(az, val)
+		widgetState.envSetSunDir(x, y, z, "xyz")
 	end)
 	envSlider("slider-env-gshadow", "lbl-env-gshadow", function(v)
 		return v / 1000
