@@ -1226,7 +1226,7 @@ function widgetHandler:IsWidgetKnown(name)
 end
 
 function widgetHandler:ForgetWidget(name)
-	if not self.knownWidgets[name] then
+	if not self:IsWidgetKnown(name) then
 		return
 	end
 	local ki = self.knownWidgets[name]
