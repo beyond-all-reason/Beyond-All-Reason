@@ -1100,6 +1100,44 @@ function widgetState.pushPanelClip(el)
 	return false
 end
 
+-- The FILE dropdown must stay on top of everything, but the GL thumbnail
+-- passes run in DrawScreenPost, after RmlUi has rendered, so an open menu
+-- would be painted over (reported by Moose for the SURFACE tiles; the same
+-- held for every tile grid). Measured once per frame into widgetState.fmBox;
+-- every pass skips tiles that touch it. Element coords, y down. Gated on the
+-- data model, not the element box: an element that is not laid out can still
+-- report a stale non-zero box (the panel-down lesson above).
+function widgetState.measureFileMenuBox()
+	widgetState.fmBoxX = nil
+	local dm = widgetState.dmHandle
+	if not (dm and dm.fileMenuOpen) then
+		return
+	end
+	local doc = widgetState.document
+	local menu = doc and doc:GetElementById("tf-file-menu")
+	if not menu then
+		return
+	end
+	local w, h = menu.offset_width, menu.offset_height
+	if w and h and w > 0 and h > 0 then
+		widgetState.fmBoxX = menu.absolute_left
+		widgetState.fmBoxY = menu.absolute_top
+		widgetState.fmBoxW = w
+		widgetState.fmBoxH = h
+	end
+end
+function widgetState.underFileMenu(x, y, w, h)
+	local bx = widgetState.fmBoxX
+	if not bx then
+		return false
+	end
+	-- set together with fmBoxX; the or-defaults are for the analyzer
+	local by = widgetState.fmBoxY or 0
+	local bw = widgetState.fmBoxW or 0
+	local bh = widgetState.fmBoxH or 0
+	return x < bx + bw and x + w > bx and y < by + bh and y + h > by
+end
+
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
 -- by onCl* (and any future) model-king handlers inside initialModel.
 local clearPassthrough
@@ -14575,7 +14613,7 @@ local function drawSkyboxThumbnailPreviews()
 				local y = el.absolute_top
 				local w = el.offset_width
 				local h = el.offset_height
-				if w > 4 and h > 4 then
+				if w > 4 and h > 4 and not widgetState.underFileMenu(x, y, w, h) then
 					local glY1 = vsy - y - h
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
@@ -14660,7 +14698,7 @@ local function drawSurfPaletteThumbs()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if gl.Texture(0, tex) then
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
 					-- centered crop: a full 4K tile at 52dp reads as noise, so a
 					-- quarter-window shows the material's actual character.
 					-- Entries may widen it (the picker's hover preview is big
@@ -14725,7 +14763,7 @@ widgetState.drawTs4PaletteThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if gl.Texture(0, tex) then
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
 					-- centered quarter-window crop, like the surf tiles: a full
 					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -14778,7 +14816,7 @@ widgetState.drawTsBiomeThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if gl.Texture(0, tex) then
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
 					if els[i].crop then
 						-- a 4K albedo at 60dp reads as noise: centered quarter crop
 						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -14798,6 +14836,9 @@ widgetState.drawTsBiomeThumbs = function()
 end
 
 function widget:DrawScreenPost()
+	-- FILE dropdown box, read once for every pass below to skip tiles under it.
+	widgetState.measureFileMenuBox()
+
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
 
@@ -15277,7 +15318,7 @@ function widget:DrawScreenPost()
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
 				end
 
-				local bound = gl.Texture(0, tex)
+				local bound = not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex)
 
 				if logDraw then
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
