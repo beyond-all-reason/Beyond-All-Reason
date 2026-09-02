@@ -430,9 +430,14 @@ local function loadWidgetFiles(folder, vfsMode)
 
 	for _, file in ipairs(widgetFiles) do
 		local widget = widgetHandler:LoadWidget(file, fromZip)
-		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
 
-		if widget and not excludeWidget then
+		if widget and not fromZip and zipOnly[widget.whInfo.name] then
+			-- Drop what the user registered so the game's copy is not refused as a duplicate.
+			widgetHandler:ForgetWidget(widget.whInfo.name)
+			widget = nil
+		end
+
+		if widget then
 			table.insert(unsortedWidgets, widget)
 			Yield()
 		end
@@ -705,6 +710,11 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return loadFailed(basename, err)
 	end
 
+	if widget.GetInfo == nil then
+		-- Do not keep widgets known but unregistered (active, no order entry)
+		return loadFailed(basename, "no GetInfo() call")
+	end
+
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
@@ -741,10 +751,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	end
 	knownInfo.active = true
 	knownInfo.localsAccess = enableLocalsAccess
-
-	if widget.GetInfo == nil then
-		return loadFailed(basename, "no GetInfo() call")
-	end
 
 	-- Get widget information
 	local info = widget:GetInfo()
@@ -1218,6 +1224,9 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
+			if self.knownWidgets[name] then
+				self.knownWidgets[name].active = false
+			end
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 			self:RecordError(
 				widget.whInfo.basename,
@@ -1355,6 +1364,15 @@ end
 
 function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
+end
+
+function widgetHandler:ForgetWidget(name)
+	if not self.knownWidgets[name] then
+		return
+	end
+	self.knownWidgets[name] = nil
+	self.knownCount = self.knownCount - 1
+	self.knownChanged = true
 end
 
 function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
