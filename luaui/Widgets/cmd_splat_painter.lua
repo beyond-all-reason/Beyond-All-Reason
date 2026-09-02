@@ -203,6 +203,7 @@ local pendingSnapshot = false -- set on MousePress, consumed before first stroke
 -- One table for state + helpers: widget:DrawWorld sits at 58/60 upvalues
 -- (Lua 5.1 ceiling), so this costs it one, not four.
 local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
+---@type table
 local farInv = { dirty = nil, at = nil } -- dirty = { ax, az, bx, bz } elmos, or nil
 
 function farInv.mark(worldX, worldZ, radius)

@@ -154,9 +154,10 @@ function M.attach(doc, ctx)
 	widgetState.surfFlipSelEl = doc:GetElementById("surf-flip-sel")
 	if widgetState.surfFlipSelEl then
 		widgetState.surfFlipSelEl:AddEventListener("mousedown", function(event)
+			---@type table?
 			local T = WG.TilesetTerrain
 			local asset = (T and T.setNormalFlip) and selectedSurfAsset() or nil
-			if asset then
+			if asset and T then
 				local on = not T.getNormalFlip(asset)
 				T.setNormalFlip(asset, on)
 				widgetState.surfFlipSelEl:SetClass("active", on)
@@ -609,6 +610,7 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- Palette rebuild on biome / list / selection / slot / picker-target change.
 	-- Per-slot picking replaced the old "first free slot" assignment, so there
 	-- is no unassignable state left to dim for.
+	---@type table?
 	local T = WG.TilesetTerrain
 	local list, bkey = nil, nil
 	if T and T.getSurfaceVariants then
@@ -619,8 +621,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- only reader here is the picker's "already carries paint" warning, so the
 	-- painter computes it only while a picker is open (gated readback).
 	do
+		---@type table?
 		local sp = WG.SurfacePainter
-		if sp.setCoverageWanted then
+		if sp and sp.setCoverageWanted then
 			sp.setCoverageWanted(pickSlot ~= nil)
 		end
 	end

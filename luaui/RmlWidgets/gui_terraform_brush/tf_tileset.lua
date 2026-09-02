@@ -394,8 +394,10 @@ function M.sync(doc, ctx, setSummary)
 	end
 	-- BIOME LIBRARY tiles: rebuild when the manifest list, a thumbnail or the
 	-- active biome changes (covers startup, /tileset biomes reload, console picks).
-	if WG.TilesetTerrain.getBiomes then
-		local rows = WG.TilesetTerrain.getBiomes()
+	---@type table?
+	local tsT = WG.TilesetTerrain
+	if tsT and tsT.getBiomes then
+		local rows = tsT.getBiomes()
 		local sigParts = { tostring(dm.tsBiome) }
 		for i = 1, #rows do
 			sigParts[#sigParts + 1] = rows[i].key .. "=" .. tostring(rows[i].thumb)

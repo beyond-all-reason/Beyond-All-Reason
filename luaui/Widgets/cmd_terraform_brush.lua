@@ -4535,16 +4535,17 @@ function widget:Update(dt)
 			lastScreenX = mx
 			lastScreenY = my
 			local worldX, worldZ = getWorldMousePosition()
-			if worldX then
+			if worldX and worldZ then
 				lockedWorldX = worldX
 				lockedWorldZ = worldZ
 				local es = extraState
-				if not es.autorampLastX then
-					es.autorampLastX = worldX
-					es.autorampLastZ = worldZ
+				local lastX, lastZ = es.autorampLastX, es.autorampLastZ
+				if not (lastX and lastZ) then
+					lastX, lastZ = worldX, worldZ
+					es.autorampLastX, es.autorampLastZ = worldX, worldZ
 				end
-				local adx = worldX - es.autorampLastX
-				local adz = worldZ - es.autorampLastZ
+				local adx = worldX - lastX
+				local adz = worldZ - lastZ
 				local spacing = max(16, activeRadius * 0.5)
 				if adx * adx + adz * adz >= spacing * spacing then
 					if es.sendAutorampAt(worldX, worldZ) then

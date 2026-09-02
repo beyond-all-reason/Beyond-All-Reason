@@ -15187,7 +15187,7 @@ function widget:DrawScreenPost()
 		end
 	end
 
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = GetViewGeometry()
 
 	local shader = widgetState.spPreviewShader
 

@@ -20788,7 +20788,10 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	if interactionState.trackingPlayerID then
 		local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
-			r, g, b = Spring.GetTeamColor(teamID)
+			local tr, tg, tb = Spring.GetTeamColor(teamID)
+			if tr and tg and tb then
+				r, g, b = tr, tg, tb
+			end
 		end
 	end
 
