@@ -3525,6 +3525,10 @@ local initialModel = {
 	surfHardOverlay = false, -- LAYERS: splat override channel overlay (engine flag mirror)
 	-- SURFACE soft-submode smart filters (engine = dev_surface_painter)
 	surfSoftAvoidWater = false,
+	-- INFLUENCE section (both submodes): chip state + the profile's owner
+	surfInfAlt = false,
+	surfInfSlope = false,
+	surfInfKey = "",
 	surfSoftAvoidCliffs = false,
 	surfSoftAltMin = false,
 	surfSoftAltMax = false,
@@ -10249,6 +10253,60 @@ local initialModel = {
 			(sf2.avoidWater or sf2.avoidCliffs or sf2.altMinEnable or sf2.altMaxEnable) and true or false
 		)
 	end,
+	-- INFLUENCE (soft altitude / slope bands scaling the stroke): SURFACE edits
+	-- the armed texture's profile in dev_surface_painter, LAYERS the active
+	-- channel's in the splat engine. Same three handlers for both submodes.
+	onSurfInfluence = function(_event, key)
+		local dm = widgetState.dmHandle
+		local eng = (dm and dm.surfMode == "hard") and WG.SplatPainter or WG.SurfacePainter
+		if not (eng and eng.setInfluence and eng.getState) then
+			return
+		end
+		local inf = (eng.getState() or {}).influence or {}
+		local nv = not inf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		eng.setInfluence(key, nv)
+	end,
+	onSurfInfluenceSlider = function(_event, key)
+		if uiState.updatingFromCode then
+			return
+		end
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local dm = widgetState.dmHandle
+		local eng = (dm and dm.surfMode == "hard") and WG.SplatPainter or WG.SurfacePainter
+		if not (eng and eng.setInfluence) then
+			return
+		end
+		local map = {
+			["alt-min"] = { "altMin", 0 },
+			["alt-max"] = { "altMax", 200 },
+			["alt-feather"] = { "altFeatherLo", 40 },
+			["slope-min"] = { "slopeMin", 0 },
+			["slope-max"] = { "slopeMax", 30 },
+			["slope-feather"] = { "slopeFeather", 10 },
+		}
+		local m = map[key]
+		if not m then
+			return
+		end
+		local v = _elemSliderVal("surf-slider-inf-" .. key, m[2])
+		eng.setInfluence(m[1], v)
+		-- one Feather slider drives both altitude feathers
+		if m[1] == "altFeatherLo" then
+			eng.setInfluence("altFeatherHi", v)
+		end
+	end,
+	onSurfInfluenceCopy = function(_event)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.copyInfluenceToAll) then
+			return
+		end
+		local n = sp.copyInfluenceToAll()
+		playSound("click")
+		Spring.Echo("[Terraform Brush] influence profile copied to " .. tostring(n) .. " texture(s)")
+	end,
 	-- LAYERS display: the splat engine's channel overlay, colored per override
 	onSurfHardOverlay = function(_event)
 		local sp = WG.SplatPainter
@@ -16170,6 +16228,8 @@ local HEIGHT_BAND_SLIDERS = {
 	"sp-slider-alt-max",
 	"surf-hard-slider-alt-min",
 	"surf-hard-slider-alt-max",
+	"surf-slider-inf-alt-min",
+	"surf-slider-inf-alt-max",
 }
 
 -- Widen those sliders to a padded envelope of the map's real height range,

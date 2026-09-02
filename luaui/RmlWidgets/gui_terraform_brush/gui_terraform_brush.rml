@@ -5729,6 +5729,67 @@
 				</div><!-- /section-sf-smart -->
 				</div><!-- /frame-sf-smart -->
 
+				<!-- INFLUENCE: soft altitude / slope bands that scale the stroke (the
+				     FILTERS above cut). Remembered per texture in SURFACE, per channel
+				     in LAYERS. The slider ids are shared by both submodes; the handler
+				     routes by surfMode like the brush sliders do. -->
+				<div class="tf-section-frame tf-collapsed" id="frame-sf-influence">
+					<div id="btn-toggle-sf-influence" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-sf-influence" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">INFLUENCE</div>
+						<div id="warn-chip-sf-influence" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
+					</div>
+				<div id="section-sf-influence" class="hidden">
+					<div class="flex flex-row items-center gap-1 mb-1">
+						<div id="btn-surf-inf-alt" class="tf-overlay-chip" data-class-active="surfInfAlt" data-event-mousedown="onSurfInfluence('altOn')">
+							<div class="tf-overlay-chip-label">Altitude</div>
+						</div>
+						<div id="btn-surf-inf-slope" class="tf-overlay-chip" data-class-active="surfInfSlope" data-event-mousedown="onSurfInfluence('slopeOn')">
+							<div class="tf-overlay-chip-label">Slope</div>
+						</div>
+						<div id="btn-surf-inf-copy" class="tf-overlay-chip" data-if="surfMode == 'soft'" data-event-mousedown="onSurfInfluenceCopy()">
+							<div class="tf-overlay-chip-label">Copy to all</div>
+						</div>
+					</div>
+					<div class="text-sm text-keybind mb-1">profile: {{surfInfKey}}</div>
+					<div data-if="surfInfAlt">
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Alt min</div>
+							<input type="range" id="surf-slider-inf-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfInfluenceSlider('alt-min')" />
+							<input type="text" id="surf-slider-inf-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Alt max</div>
+							<input type="range" id="surf-slider-inf-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfInfluenceSlider('alt-max')" />
+							<input type="text" id="surf-slider-inf-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Feather</div>
+							<input type="range" id="surf-slider-inf-alt-feather" class="tf-slider" min="0" max="300" step="1" value="40" data-event-change="onSurfInfluenceSlider('alt-feather')" />
+							<input type="text" id="surf-slider-inf-alt-feather-numbox" class="tf-slider-numbox" readonly value="40" />
+						</div>
+					</div>
+					<div data-if="surfInfSlope">
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Slope min</div>
+							<input type="range" id="surf-slider-inf-slope-min" class="tf-slider" min="0" max="89" step="1" value="0" data-event-change="onSurfInfluenceSlider('slope-min')" />
+							<input type="text" id="surf-slider-inf-slope-min-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Slope max</div>
+							<input type="range" id="surf-slider-inf-slope-max" class="tf-slider" min="0" max="89" step="1" value="30" data-event-change="onSurfInfluenceSlider('slope-max')" />
+							<input type="text" id="surf-slider-inf-slope-max-numbox" class="tf-slider-numbox" readonly value="30" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Feather</div>
+							<input type="range" id="surf-slider-inf-slope-feather" class="tf-slider" min="0" max="45" step="1" value="10" data-event-change="onSurfInfluenceSlider('slope-feather')" />
+							<input type="text" id="surf-slider-inf-slope-feather-numbox" class="tf-slider-numbox" readonly value="10" />
+						</div>
+					</div>
+					<div class="text-base text-light" style="opacity: 0.7;">Soft bands scale a stroke instead of cutting it: full strength inside the band, fading over the feather outside it. Erasing is never scaled. SURFACE remembers a profile per texture (projects keep them); LAYERS per channel.</div>
+				</div><!-- /section-sf-influence -->
+				</div><!-- /frame-sf-influence -->
+
 				<!-- FILL AND SEED -->
 				<div class="tf-section-frame tf-collapsed" id="frame-surf-fill" data-if="surfMode == 'soft'">
 					<div id="btn-toggle-surf-fill" class="tf-section-title-row" style="cursor: pointer;">

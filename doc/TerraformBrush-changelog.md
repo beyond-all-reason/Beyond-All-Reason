@@ -12,6 +12,7 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 - Sun & Shadows gained PRESETS (requested by PtaQ and MrBob): six sun-only times of day (Dawn to Overcast: direction, intensity, sun colours and shadow densities, nothing else), the harvested map moods the New Map wizard offers, and your own saved files. Save writes the whole live environment under a name to Terraform Brush/Environments/, so a look carries to every map and session; a SUN ONLY / FULL ENVIRONMENT switch decides what a click applies. The sun direction also has AZIMUTH and ELEVATION sliders next to the vector rows.
 - `/tf_sunlog` logs every sun write from any widget with a traceback, for finding out what reset a sun.
+- SURFACE and LAYERS gained an INFLUENCE section (requested by PtaQ and MrBob): an altitude band and a slope band, each with a feather, that scale a stroke instead of cutting it the way the FILTERS do, so a texture does more of its thing in the lowlands or on the flats and fades out beyond them. SURFACE remembers a profile per texture (it follows the texture across slots and biome swaps, projects keep it in surface.lua, and Copy to all stamps it onto every slot); LAYERS keeps one per channel. Erasing is never scaled, and the Ctrl sneak peek shows the band so what you see is what lands.
 
 ### Improvements
 

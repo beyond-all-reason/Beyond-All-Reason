@@ -44,6 +44,13 @@ local SLIDER_IDS = {
 	{ "surf-soft-slider-slope-max", "surf-soft-slope-max" },
 	{ "surf-soft-slider-alt-min", "surf-soft-alt-min" },
 	{ "surf-soft-slider-alt-max", "surf-soft-alt-max" },
+	-- INFLUENCE sliders (shared by both submodes; handler routes by surfMode)
+	{ "surf-slider-inf-alt-min", "surf-inf-alt-min" },
+	{ "surf-slider-inf-alt-max", "surf-inf-alt-max" },
+	{ "surf-slider-inf-alt-feather", "surf-inf-alt-feather" },
+	{ "surf-slider-inf-slope-min", "surf-inf-slope-min" },
+	{ "surf-slider-inf-slope-max", "surf-inf-slope-max" },
+	{ "surf-slider-inf-slope-feather", "surf-inf-slope-feather" },
 }
 
 -- Group tint knobs mirrored from WG.TilesetTerrain (GRADING section).
@@ -502,6 +509,17 @@ local function syncHard(doc, ctx, setSummary)
 		"section-sf-smart",
 		(sf.avoidWater or sf.avoidCliffs or sf.altMinEnable or sf.altMaxEnable) and true or false
 	)
+	-- INFLUENCE chips + the active channel's profile name
+	local inf = spState.influence or {}
+	setDm("surfInfAlt", inf.altOn == true)
+	setDm("surfInfSlope", inf.slopeOn == true)
+	setDm("surfInfKey", spState.influenceKey or "")
+	ctx.syncWarnChip(
+		doc,
+		"warn-chip-sf-influence",
+		"section-sf-influence",
+		(inf.altOn or inf.slopeOn) and true or false
+	)
 
 	-- BRUSH sliders mirror the splat engine in this submode (same slider-unit
 	-- mappings as the legacy panel: strength*100, curve*10).
@@ -521,6 +539,12 @@ local function syncHard(doc, ctx, setSummary)
 	ss("surf-hard-slider-slope-max", "surf-hard-slope-max", tostring(sf.slopeMax or 45))
 	ss("surf-hard-slider-alt-min", "surf-hard-alt-min", tostring(sf.altMin or 0))
 	ss("surf-hard-slider-alt-max", "surf-hard-alt-max", tostring(sf.altMax or 200))
+	ss("surf-slider-inf-alt-min", "surf-inf-alt-min", tostring(math.floor((inf.altMin or 0) + 0.5)))
+	ss("surf-slider-inf-alt-max", "surf-inf-alt-max", tostring(math.floor((inf.altMax or 200) + 0.5)))
+	ss("surf-slider-inf-alt-feather", "surf-inf-alt-feather", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+	ss("surf-slider-inf-slope-min", "surf-inf-slope-min", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+	ss("surf-slider-inf-slope-max", "surf-inf-slope-max", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+	ss("surf-slider-inf-slope-feather", "surf-inf-slope-feather", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 	do
 		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
 		local function nb(id, txt)
@@ -530,6 +554,12 @@ local function syncHard(doc, ctx, setSummary)
 		nb("surf-slider-strength-numbox", string.format("%.2f", spState.strength or 0.15))
 		nb("surf-slider-falloff-numbox", string.format("%.1f", spState.curve or 1.0))
 		nb("surf-hard-slider-slope-max-numbox", tostring(sf.slopeMax or 45))
+		nb("surf-slider-inf-alt-min-numbox", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		nb("surf-slider-inf-alt-max-numbox", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		nb("surf-slider-inf-alt-feather-numbox", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		nb("surf-slider-inf-slope-min-numbox", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		nb("surf-slider-inf-slope-max-numbox", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		nb("surf-slider-inf-slope-feather-numbox", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 		nb("surf-hard-slider-alt-min-numbox", tostring(sf.altMin or 0))
 		nb("surf-hard-slider-alt-max-numbox", tostring(sf.altMax or 200))
 	end
@@ -679,6 +709,19 @@ function M.sync(doc, ctx, surfState, setSummary)
 			(ssf.avoidWater or ssf.avoidCliffs or ssf.altMinEnable or ssf.altMaxEnable) and true or false
 		)
 	end
+	-- INFLUENCE chips + the armed texture's profile name
+	do
+		local inf = surfState.influence or {}
+		setDm("surfInfAlt", inf.altOn == true)
+		setDm("surfInfSlope", inf.slopeOn == true)
+		setDm("surfInfKey", shortAsset(surfState.influenceKey or "base"))
+		ctx.syncWarnChip(
+			doc,
+			"warn-chip-sf-influence",
+			"section-sf-influence",
+			(inf.altOn or inf.slopeOn) and true or false
+		)
+	end
 	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
 	-- channel is both assigned and switched on.
 	local canFill = false
@@ -796,6 +839,17 @@ function M.sync(doc, ctx, surfState, setSummary)
 		ss("surf-soft-slider-slope-max", "surf-soft-slope-max", tostring(ssf.slopeMax or 45))
 		ss("surf-soft-slider-alt-min", "surf-soft-alt-min", tostring(ssf.altMin or 0))
 		ss("surf-soft-slider-alt-max", "surf-soft-alt-max", tostring(ssf.altMax or 200))
+		local inf = surfState.influence or {}
+		ss("surf-slider-inf-alt-min", "surf-inf-alt-min", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		ss("surf-slider-inf-alt-max", "surf-inf-alt-max", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		ss("surf-slider-inf-alt-feather", "surf-inf-alt-feather", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		ss("surf-slider-inf-slope-min", "surf-inf-slope-min", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		ss("surf-slider-inf-slope-max", "surf-inf-slope-max", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		ss(
+			"surf-slider-inf-slope-feather",
+			"surf-inf-slope-feather",
+			tostring(math.floor((inf.slopeFeather or 10) + 0.5))
+		)
 	end
 	do
 		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
@@ -812,6 +866,13 @@ function M.sync(doc, ctx, surfState, setSummary)
 		nb("surf-soft-slider-slope-max-numbox", tostring(ssf.slopeMax or 45))
 		nb("surf-soft-slider-alt-min-numbox", tostring(ssf.altMin or 0))
 		nb("surf-soft-slider-alt-max-numbox", tostring(ssf.altMax or 200))
+		local inf = surfState.influence or {}
+		nb("surf-slider-inf-alt-min-numbox", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		nb("surf-slider-inf-alt-max-numbox", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		nb("surf-slider-inf-alt-feather-numbox", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		nb("surf-slider-inf-slope-min-numbox", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		nb("surf-slider-inf-slope-max-numbox", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		nb("surf-slider-inf-slope-feather-numbox", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 	end
 	uiState.updatingFromCode = false
 	-- ONLY when a slider was actually re-stamped (see syncHard's note): this

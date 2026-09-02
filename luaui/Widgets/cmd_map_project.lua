@@ -522,6 +522,36 @@ local function stepSurface()
 	for i = 1, MAX_SURFACE_SLOTS do
 		lines[#lines + 1] = string.format("\tslot%d = %q,", i, tostring(meta["slot" .. i] or ""))
 	end
+	-- INFLUENCE profiles (soft altitude / slope bands the painter remembers per
+	-- texture), keyed by asset name, sorted for a stable file.
+	if type(meta.influence) == "table" and next(meta.influence) then
+		local names = {}
+		for n, p in pairs(meta.influence) do
+			if type(n) == "string" and type(p) == "table" then
+				names[#names + 1] = n
+			end
+		end
+		table.sort(names)
+		lines[#lines + 1] = "\tinfluence = {"
+		for _, n in ipairs(names) do
+			local p = meta.influence[n]
+			lines[#lines + 1] = string.format(
+				"\t\t[%q] = { altOn = %s, altMin = %s, altMax = %s, altFeatherLo = %s, altFeatherHi = %s, "
+					.. "slopeOn = %s, slopeMin = %s, slopeMax = %s, slopeFeather = %s },",
+				n,
+				tostring(p.altOn and true or false),
+				fmtNum(tonumber(p.altMin) or 0),
+				fmtNum(tonumber(p.altMax) or 0),
+				fmtNum(tonumber(p.altFeatherLo) or 0),
+				fmtNum(tonumber(p.altFeatherHi) or 0),
+				tostring(p.slopeOn and true or false),
+				fmtNum(tonumber(p.slopeMin) or 0),
+				fmtNum(tonumber(p.slopeMax) or 0),
+				fmtNum(tonumber(p.slopeFeather) or 0)
+			)
+		end
+		lines[#lines + 1] = "\t},"
+	end
 	lines[#lines + 1] = "}"
 	lines[#lines + 1] = ""
 
@@ -2264,6 +2294,10 @@ local function phaseSurface(c)
 					picks[i] = (a and a ~= "") and a or nil
 				end
 				sp.applySlots(picks)
+			end
+			-- per-texture INFLUENCE profiles (absent in older projects = none)
+			if sp.setInfluenceTable then
+				sp.setInfluenceTable(meta.influence)
 			end
 		elseif not T then
 			echoP(
