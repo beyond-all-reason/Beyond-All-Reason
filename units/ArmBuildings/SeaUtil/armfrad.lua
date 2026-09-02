@@ -33,6 +33,7 @@ return {
 		waterline = 1,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

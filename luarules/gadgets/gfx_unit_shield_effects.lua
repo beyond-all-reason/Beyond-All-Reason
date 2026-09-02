@@ -705,11 +705,6 @@ local function LoadShieldConfig()
 				myShield.colormap1[2][4] = strengthMult * myShield.colormap1[2][4]
 			end
 
-			-- Special handling for raptors
-			if string.find(ud.name, "raptor_", nil, true) then
-				myShield.colormap1 = { { 0.3, 0.9, 0.2, 1.2 }, { 0.6, 0.4, 0.1, 1.2 } }
-			end
-
 			configTable[unitDefID] = {
 				config = myShield,
 				search = searchSizes[radius],

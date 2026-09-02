@@ -504,21 +504,6 @@ function widget:Update() -- this is pointlessly expensive!
 	areaDecals[hash].smoothness = totalsmoothness
 end
 
-local function DrawSmoothness()
-	gl.Color(1, 1, 1, 1)
-	for areaHash, areaInfo in pairs(areaDecals) do
-		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
-		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
-			gl.PushMatrix()
-			local text = string.format("Smoothness = %d", areaInfo.smoothness)
-			local w = gl.GetTextWidth(text) * 16.0
-			gl.Translate(areaInfo.x - w, areaInfo.y + 64, areaInfo.z)
-			gl.Text(text, 0, 0, 16, "n")
-			gl.PopMatrix()
-		end
-	end
-end
-
 -----------------------------------------------------------------------------------------------
 
 local dCT = {} -- decalCacheTable

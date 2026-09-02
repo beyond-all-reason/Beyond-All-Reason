@@ -87,6 +87,10 @@ local MIN_RADIUS = 8
 local MAX_RADIUS = 2000
 local RADIUS_STEP = 8
 local ROTATION_STEP = 3
+-- Bounds of the per-feature scale sliders. Wide on purpose: making trees read
+-- small against the units is the whole point, so well below 1 matters most.
+local SCALE_LIMIT_MIN = 0.1
+local SCALE_LIMIT_MAX = 3.0
 local KEYSYMS_SPACE = 0x20
 local UPDATE_INTERVAL = 1 / 30
 local GRID_SNAP_SIZE = 48 -- matches build grid widget spacing (3 * 16 elmos)
@@ -113,6 +117,10 @@ local fp = {
 	featureCount = 1,
 	cadence = 10, -- 1-1000 logarithmic (higher = faster)
 	distribution = "random", -- "random", "regular", or "clustered"
+	-- Per-feature visual scale range. 1/1 means untouched: entries then carry no
+	-- scale at all, keeping wire traffic and save files byte-identical.
+	scaleMin = 1.0,
+	scaleMax = 1.0,
 	smartEnabled = false, -- terrain-aware filtering applied on top of distribution
 	smartFilters = {
 		avoidWater = false, -- reject underwater positions (height < 0)
@@ -137,6 +145,9 @@ local fp = {
 }
 
 local updateTimer = 0
+-- Cursor fade from the edge-extended resolver: 1 inside the map, falling to 0
+-- as the cursor recedes past the border. Scales every brush-cursor visual.
+local edgeFade = 1
 local gridOverlay = false
 local gridSnap = false
 local gridShowing = false
@@ -281,6 +292,13 @@ local function classifyFeature(name, def)
 	return "other"
 end
 
+-- Baked scale variants (see tools/s3o_scale.py and features/enginetrees_override.lua).
+-- The engine rejects runtime piece-matrix scale, so the scale sliders work by
+-- snapping each rolled scale to the nearest pre-baked variant def. Defs without
+-- variants simply ignore the roll -- the ghost preview then shows base size,
+-- which is exactly what gets placed, keeping the preview truthful.
+local variantSets = {} -- baseDefName -> sorted { { factor, name }, ... } including the base itself at 1.0
+
 local function buildFeatureDefList()
 	if featureDefListBuilt then
 		return
@@ -288,24 +306,46 @@ local function buildFeatureDefList()
 	featureDefListBuilt = true
 	featureDefList = {}
 	featureCategories = {}
+	variantSets = {}
 	for _, cat in ipairs(CATEGORY_ORDER) do
 		featureCategories[cat] = {}
 	end
 	for id, def in pairs(FeatureDefs) do
-		local cat = classifyFeature(def.name, def)
-		if cat then
-			local entry = {
-				name = def.name,
-				id = id,
-				category = cat,
-			}
-			featureDefList[#featureDefList + 1] = entry
-			if not featureCategories[cat] then
-				featureCategories[cat] = {}
+		local cp = def.customParams
+		local base = cp and cp.scale_base
+		if base then
+			-- Scale variants stay out of the asset library; the placer reaches
+			-- them only through scale snapping.
+			local factor = tonumber(cp.scale_factor)
+			if factor and FeatureDefNames[base] then
+				local set = variantSets[base]
+				if not set then
+					set = { { factor = 1.0, name = base } }
+					variantSets[base] = set
+				end
+				set[#set + 1] = { factor = factor, name = def.name }
 			end
-			local catList = featureCategories[cat]
-			catList[#catList + 1] = entry
+		else
+			local cat = classifyFeature(def.name, def)
+			if cat then
+				local entry = {
+					name = def.name,
+					id = id,
+					category = cat,
+				}
+				featureDefList[#featureDefList + 1] = entry
+				if not featureCategories[cat] then
+					featureCategories[cat] = {}
+				end
+				local catList = featureCategories[cat]
+				catList[#catList + 1] = entry
+			end
 		end
+	end
+	for _, set in pairs(variantSets) do
+		table.sort(set, function(a, b)
+			return a.factor < b.factor
+		end)
 	end
 	table.sort(featureDefList, function(a, b)
 		return a.name < b.name
@@ -443,6 +483,19 @@ end
 -- World mouse position
 ----------------------------------------------------------------
 local function getWorldMousePosition()
+	edgeFade = 1
+	-- Shared edge-extended cursor: keeps following the mouse slightly past the
+	-- map border, with fade < 1 once the footprint no longer touches the map.
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local radius = fp.mode == "point" and 64 or fp.radius
+		local wx, wz, fade = tb.getWorldPositionExtended(radius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then
@@ -511,6 +564,8 @@ local function layoutParams()
 		count = fp.featureCount,
 		distribution = fp.distribution,
 		rotRandom = fp.rotRandom,
+		scaleMin = fp.scaleMin,
+		scaleMax = fp.scaleMax,
 		defNames = fp.selectedDefs,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
@@ -527,8 +582,38 @@ local function layoutKey(params)
 		params.count,
 		params.distribution,
 		params.rotRandom,
+		params.scaleMin,
+		params.scaleMax,
 		table.concat(params.defNames, ","),
 	}, "\0")
+end
+
+-- Swap each rolled scale for the nearest baked variant def. The scale field is
+-- cleared afterwards: the size is baked into the variant's model, so ghosts
+-- draw it unscaled and the wire carries a plain entry -- def swap IS the scale.
+-- Defs without variants drop the roll entirely, which keeps the preview honest
+-- about the engine's limits.
+local function applyScaleVariants(layout)
+	for i = 1, #layout do
+		local entry = layout[i]
+		local scale = entry.scale
+		if scale then
+			entry.scale = nil
+			local set = variantSets[entry.defName]
+			if set then
+				local best = set[1]
+				local bestDiff = abs(set[1].factor - scale)
+				for j = 2, #set do
+					local diff = abs(set[j].factor - scale)
+					if diff < bestDiff then
+						best, bestDiff = set[j], diff
+					end
+				end
+				entry.defName = best.name
+			end
+		end
+	end
+	return layout
 end
 
 local function ensureLayout(params)
@@ -545,20 +630,48 @@ local function ensureLayout(params)
 		local rng = Scatter.newRng(preview.seed)
 		local baseHeading = floor(params.rotation / 360 * 65536) % 65536
 		local spread = floor(params.rotRandom / 100 * 32768)
-		preview.layout = {
+		local scale = nil
+		if params.scaleMin ~= 1 or params.scaleMax ~= 1 then
+			scale = Scatter.rollScale(rng, params.scaleMin, params.scaleMax)
+		end
+		preview.layout = applyScaleVariants({
 			{
 				dx = 0,
 				dz = 0,
 				defName = params.defNames[rng:int(1, #params.defNames)],
 				heading = (baseHeading + rng:int(-spread, spread)) % 65536,
+				scale = scale,
 			},
-		}
+		})
 	else
-		preview.layout = Scatter.generateLocal(params, preview.seed)
+		preview.layout = applyScaleVariants(Scatter.generateLocal(params, preview.seed))
 	end
 
 	preview.layoutKey = key
 	return preview.layout
+end
+
+-- The edge-extended cursor can put part of the footprint outside the map, and
+-- both Scatter.resolve and the gadget CLAMP such positions onto the border
+-- instead of dropping them -- features would pile up along the edge line. So
+-- out-of-map entries are filtered per symmetry copy BEFORE resolving, using the
+-- same rotation maths resolve itself applies. Preview and placement share this,
+-- keeping the ghost preview truthful about what actually gets placed.
+local function layoutInsideMap(layout, centerX, centerZ, extraRotDeg)
+	local mapX, mapZ = Game.mapSizeX, Game.mapSizeZ
+	local kept = {}
+	for i = 1, #layout do
+		local entry = layout[i]
+		local dx, dz = entry.dx, entry.dz
+		if extraRotDeg ~= 0 then
+			dx, dz = Scatter.rotatePoint(dx, dz, extraRotDeg)
+		end
+		local x, z = centerX + dx, centerZ + dz
+		if x >= 0 and x <= mapX and z >= 0 and z <= mapZ then
+			kept[#kept + 1] = entry
+		end
+	end
+	return kept
 end
 
 -- Every placement the brush would make right now, across all symmetry copies.
@@ -576,7 +689,8 @@ local function resolvePlacements(worldX, worldZ)
 		-- Each symmetry copy carries its own rotation, and the outline and the
 		-- erase brush both already honour it. The layout was rotated once by the
 		-- base rotation, so hand resolve() only the difference.
-		local resolved = Scatter.resolve(layout, p.x, p.z, params, (p.rot or fp.rotation) - fp.rotation)
+		local copyRot = (p.rot or fp.rotation) - fp.rotation
+		local resolved = Scatter.resolve(layoutInsideMap(layout, p.x, p.z, copyRot), p.x, p.z, params, copyRot)
 		for j = 1, #resolved do
 			placements[#placements + 1] = resolved[j]
 		end
@@ -601,8 +715,34 @@ local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
-local function yawToHeading(yaw)
-	return floor(-(yaw or 0) / HEADING_TO_RAD) % 65536
+-- The uniform scale the gadget baked into a live feature's root piece matrix,
+-- read back as the length of the first basis vector. 1 for anything never
+-- scaled. Needed so removal highlights and gizmo ghosts drawn over an already
+-- scaled feature match it instead of reverting to model size.
+local function getFeatureVisualScale(featureID)
+	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
+		return 1
+	end
+	-- Model-less features (editor_geocrack and friends): the engine never
+	-- instantiates a LocalModel for them, and the piece callouts deref the empty
+	-- piece list -- an access violation, not a Lua error (the same crash the
+	-- gadget dodges by not walking map features at load). No model also means
+	-- nothing could have been scaled, so 1 is the true answer.
+	local defID = GetFeatureDefID(featureID)
+	local def = defID and FeatureDefs[defID]
+	if not def or (def.modelname or "") == "" then
+		return 1
+	end
+	local root = Spring.GetFeatureRootPiece(featureID) or 1
+	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
+	if not m11 then
+		return 1
+	end
+	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
+	if s < 0.01 then
+		return 1
+	end
+	return s
 end
 
 local function clearGhosts()
@@ -655,11 +795,12 @@ local function syncGhosts(items)
 				headingToYaw(item.heading),
 				item.pitch or 0,
 				item.roll or 0,
-				item.alpha or GHOST_ALPHA,
+				(item.alpha or GHOST_ALPHA) * edgeFade,
 				item.tintR or 1,
 				item.tintG or 1,
 				item.tintB or 1,
 				item.tintAmount or 0,
+				item.scale or 1,
 				ghosts[n + 1],
 				GHOST_OWNER
 			)
@@ -703,6 +844,7 @@ local function collectRemovalTargets(worldX, worldZ)
 						heading = (yaw or 0) / (2 * pi) * 65536,
 						pitch = pitch or 0,
 						roll = roll or 0,
+						scale = getFeatureVisualScale(fid),
 						alpha = 0.7,
 						tintR = 1,
 						tintG = 0.15,
@@ -750,11 +892,16 @@ local function sendPlacements(placements)
 	for i = 1, #placements do
 		local p = placements[i]
 		local entry
+		-- Token counts are the wire protocol: 4 plain, 5 with scale, 7 with
+		-- tilt/lift, 8 with both. See parsePlacement in the gadget.
 		if p.pitch ~= 0 or p.roll ~= 0 or p.y ~= GetGroundHeight(p.x, p.z) then
 			entry =
 				string.format("%s %.1f %.1f %d %.4f %.4f %.1f", p.defName, p.x, p.z, p.heading, p.pitch, p.roll, p.y)
 		else
 			entry = string.format("%s %.1f %.1f %d", p.defName, p.x, p.z, p.heading)
+		end
+		if p.scale and abs(p.scale - 1) > 0.001 then
+			entry = entry .. string.format(" %.3f", p.scale)
 		end
 		batch[#batch + 1] = entry
 		if #batch >= PLACE_BATCH then
@@ -839,12 +986,21 @@ local function readFeatureTransform(featureID)
 		return nil
 	end
 	local pitch, yaw, roll = Spring.GetFeatureRotation(featureID)
-	return { x = x, y = y, z = z, pitch = pitch or 0, yaw = yaw or 0, roll = roll or 0 }
+	return {
+		x = x,
+		y = y,
+		z = z,
+		pitch = pitch or 0,
+		yaw = yaw or 0,
+		roll = roll or 0,
+		scale = getFeatureVisualScale(featureID),
+	}
 end
 
 -- How far a feature reaches from its own origin. Position is the model's base,
 -- so a tall tree needs its height counted, not just its collision radius, or the
--- gizmo would sit around the trunk with the canopy hiding it.
+-- gizmo would sit around the trunk with the canopy hiding it. Def dimensions are
+-- model-space, so the live visual scale multiplies in.
 local function featureReach(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
@@ -853,7 +1009,7 @@ local function featureReach(featureID)
 	end
 	local r = def.radius or 16
 	local h = def.model and def.model.maxy or 0
-	return (h > r) and h or r
+	return ((h > r) and h or r) * getFeatureVisualScale(featureID)
 end
 
 local function recomputePivot()
@@ -1099,6 +1255,7 @@ local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
 				pitch = pitch,
 				yaw = yaw,
 				roll = roll,
+				scale = base.scale,
 			}
 		end
 	end
@@ -1131,6 +1288,7 @@ local function syncGizmoGhosts(targets)
 				1,
 				1,
 				0,
+				t.scale or getFeatureVisualScale(t.id),
 				gz.ghosts[n + 1],
 				GIZMO_OWNER
 			)
@@ -1398,6 +1556,38 @@ local function setDistribution(mode)
 	end
 end
 
+-- Dragging one bound through the other pushes the other bound along rather than
+-- rejecting the input, so the pair can never invert.
+local function clampScale(v)
+	v = tonumber(v)
+	if not v then
+		return nil
+	end
+	return max(SCALE_LIMIT_MIN, min(SCALE_LIMIT_MAX, v))
+end
+
+local function setScaleMin(v)
+	v = clampScale(v)
+	if not v then
+		return
+	end
+	fp.scaleMin = v
+	if fp.scaleMax < v then
+		fp.scaleMax = v
+	end
+end
+
+local function setScaleMax(v)
+	v = clampScale(v)
+	if not v then
+		return
+	end
+	fp.scaleMax = v
+	if fp.scaleMin > v then
+		fp.scaleMin = v
+	end
+end
+
 local function setSmartEnabled(val)
 	fp.smartEnabled = val and true or false
 end
@@ -1470,17 +1660,26 @@ local function parseSavedEntries()
 				parts[#parts + 1] = word
 			end
 			if parts[1] and parts[2] and parts[3] then
+				-- Token counts, mirroring the gadget's export: 4 plain, 5 with
+				-- scale, 7 tilt/lift, 8 both. Present only for features that were
+				-- actually transformed; the gadget decides, comparing against the
+				-- engine's own resting alignment rather than against zero.
+				local n = #parts
+				local scale
+				if n == 5 then
+					scale = tonumber(parts[5])
+				elseif n >= 8 then
+					scale = tonumber(parts[8])
+				end
 				entries[#entries + 1] = {
 					name = parts[1],
 					x = tonumber(parts[2]),
 					z = tonumber(parts[3]),
 					rot = tonumber(parts[4]) or 0,
-					-- Present only for features the gizmo tilted or lifted; the
-					-- gadget decides, comparing against the engine's own resting
-					-- alignment rather than against zero.
-					pitch = tonumber(parts[5]),
-					roll = tonumber(parts[6]),
-					y = tonumber(parts[7]),
+					pitch = n >= 6 and tonumber(parts[5]) or nil,
+					roll = n >= 6 and tonumber(parts[6]) or nil,
+					y = n >= 6 and tonumber(parts[7]) or nil,
+					scale = scale,
 				}
 			end
 		end
@@ -1565,24 +1764,35 @@ local function handleSaveEnd(count)
 			local z = parts[3]
 			local rot = parts[4] or "0" -- engine heading, written as rot
 			if defName and x and z then
-				-- pitch/roll/y only appear for features the gizmo tilted or
-				-- lifted, so a map that was never gizmo-edited writes exactly
-				-- the same bytes it always did.
-				if parts[5] and parts[6] and parts[7] then
+				-- Optional tails only appear for features that were actually
+				-- tilted, lifted, or scaled, so a map that was never edited that
+				-- way writes exactly the same bytes it always did. Token counts:
+				-- 4 plain, 5 scale, 7 tilt, 8 tilt+scale.
+				local n = #parts
+				local scaleField = ""
+				if n == 5 then
+					scaleField = string.format(", scale = %s", parts[5])
+				elseif n >= 8 then
+					scaleField = string.format(", scale = %s", parts[8])
+				end
+				if n >= 7 then
 					file:write(
 						string.format(
-							"\t{ name = %q, x = %s, z = %s, rot = %s, pitch = %s, roll = %s, y = %s },\n",
+							"\t{ name = %q, x = %s, z = %s, rot = %s, pitch = %s, roll = %s, y = %s%s },\n",
 							defName,
 							x,
 							z,
 							rot,
 							parts[5],
 							parts[6],
-							parts[7]
+							parts[7],
+							scaleField
 						)
 					)
 				else
-					file:write(string.format("\t{ name = %q, x = %s, z = %s, rot = %s },\n", defName, x, z, rot))
+					file:write(
+						string.format("\t{ name = %q, x = %s, z = %s, rot = %s%s },\n", defName, x, z, rot, scaleField)
+					)
 				end
 			end
 		end
@@ -1656,11 +1866,20 @@ local function featureLoad(filename)
 				local entry = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
 				-- Optional gizmo transform. Files written before the gizmo
 				-- existed simply have none of these and load as they always did.
+				local hasScale = tonumber(f.scale) and abs(tonumber(f.scale) - 1) > 0.001
 				if f.pitch or f.roll or f.y then
 					entry = entry .. string.format(" %.4f %.4f", tonumber(f.pitch) or 0, tonumber(f.roll) or 0)
 					if f.y then
 						entry = entry .. string.format(" %.1f", tonumber(f.y))
+					elseif hasScale then
+						-- Scale is token 8 and only unambiguous after a full tilt
+						-- tail, so a tilted-but-unlifted record gets its resting
+						-- height written out.
+						entry = entry .. string.format(" %.1f", GetGroundHeight(f.x, f.z))
 					end
+				end
+				if hasScale then
+					entry = entry .. string.format(" %.3f", tonumber(f.scale))
 				end
 				batch[#batch + 1] = entry
 			end
@@ -1689,6 +1908,8 @@ local function getState()
 		featureCount = fp.featureCount,
 		cadence = fp.cadence,
 		distribution = fp.distribution,
+		scaleMin = fp.scaleMin,
+		scaleMax = fp.scaleMax,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
 		selectedDefs = fp.selectedDefs,
@@ -1866,9 +2087,9 @@ local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg, sf)
 					local valid = isPointValid(wx, wz, sf)
 
 					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08)
+						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
 					else
-						glColor(0.9, 0.15, 0.15, 0.14)
+						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
 					end
 
 					local x0 = wx - halfStep
@@ -1942,7 +2163,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	glLineWidth(1.5)
 
 	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55)
+		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
@@ -1951,7 +2172,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	end
 
 	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55)
+		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
@@ -1962,7 +2183,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
 	local stride = max(1, floor(#corners / 8))
 	local strutBot = botY or (topY and topY - 100) or 0
 	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2)
+	glColor(1, 1, 1, 0.2 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		for i = 1, #corners, stride do
 			local wx = cx + corners[i][1]
@@ -2406,13 +2627,13 @@ function widget:DrawWorld()
 	-- Color by mode (red when right-dragging to remove)
 	local _, _, _, _, rightPressed = GetMouseState()
 	if fp.dragging and fp.dragAction == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7)
+		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
 	elseif fp.mode == "scatter" then
-		glColor(0.2, 0.8, 0.4, 0.7)
+		glColor(0.2, 0.8, 0.4, 0.7 * edgeFade)
 	elseif fp.mode == "point" then
-		glColor(0.4, 0.7, 1.0, 0.7)
+		glColor(0.4, 0.7, 1.0, 0.7 * edgeFade)
 	elseif fp.mode == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7)
+		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
 	end
 
 	glLineWidth(2)
@@ -2454,13 +2675,13 @@ function widget:DrawWorld()
 		for i = 2, #positions do
 			local p = positions[i]
 			if fp.dragging and fp.dragAction == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3)
+				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			elseif fp.mode == "scatter" then
-				glColor(0.2, 0.8, 0.4, 0.3)
+				glColor(0.2, 0.8, 0.4, 0.3 * edgeFade)
 			elseif fp.mode == "point" then
-				glColor(0.4, 0.7, 1.0, 0.3)
+				glColor(0.4, 0.7, 1.0, 0.3 * edgeFade)
 			elseif fp.mode == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3)
+				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			end
 
 			if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
@@ -2574,6 +2795,8 @@ function widget:Initialize()
 		setFeatureCount = setFeatureCount,
 		setCadence = setCadence,
 		setDistribution = setDistribution,
+		setScaleMin = setScaleMin,
+		setScaleMax = setScaleMax,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		selectFeature = selectFeature,

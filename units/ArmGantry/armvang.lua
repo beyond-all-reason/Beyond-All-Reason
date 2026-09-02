@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

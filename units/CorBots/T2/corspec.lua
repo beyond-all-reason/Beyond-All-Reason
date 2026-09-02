@@ -38,6 +38,7 @@ return {
 		turnrate = 1086.75,
 		upright = true,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			off_on_stun = "true",
