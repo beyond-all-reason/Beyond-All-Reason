@@ -715,10 +715,6 @@ local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
-local function yawToHeading(yaw)
-	return floor(-(yaw or 0) / HEADING_TO_RAD) % 65536
-end
-
 -- The uniform scale the gadget baked into a live feature's root piece matrix,
 -- read back as the length of the first basis vector. 1 for anything never
 -- scaled. Needed so removal highlights and gizmo ghosts drawn over an already

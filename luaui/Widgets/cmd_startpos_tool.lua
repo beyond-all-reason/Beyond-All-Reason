@@ -313,10 +313,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 	return pts
 end
 
-local function generateSquarePositions(cx, cz, radius, count, rotation)
-	return generatePolygonPositions(cx, cz, radius, 4, count, rotation)
-end
-
 local function generateShapePositions(cx, cz)
 	local sides = ({
 		circle = 0,

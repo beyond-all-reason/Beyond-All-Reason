@@ -765,11 +765,6 @@ local function quatRotateVec(qx, qy, qz, qw, vx, vy, vz)
 	return vx + qw * tx + (qy * tz - qz * ty), vy + qw * ty + (qz * tx - qx * tz), vz + qw * tz + (qx * ty - qy * tx)
 end
 
--- Quaternion inverse (conjugate for unit quaternions)
-local function quatInv(qx, qy, qz, qw)
-	return -qx, -qy, -qz, qw
-end
-
 local function tickSkyDynamic(dt)
 	if not skyDynamic.playing then
 		return
@@ -11250,72 +11245,6 @@ clearPassthrough = function()
 			widgetState.rootElement:SetClass("passthrough-dimmed", false)
 		end
 	end
-end
-
-local function onRotateCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(ROTATION_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onRotateCCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(-ROTATION_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onCurveUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onCurveDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity * 1.15
-		if newI < state.intensity + 0.1 then
-			newI = state.intensity + 0.1
-		end
-		WG.TerraformBrush.setIntensity(newI)
-	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity / 1.15
-		if newI > state.intensity - 0.1 then
-			newI = state.intensity - 0.1
-		end
-		WG.TerraformBrush.setIntensity(newI)
-	end
-
-	event:StopPropagation()
 end
 
 capMinValue = 0

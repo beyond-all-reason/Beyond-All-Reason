@@ -3653,6 +3653,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 								end
 							end
 						end
+						commitInputHistory(executedInput)
+						cancelChatInput()
 						Spring.SendCommands(command)
 					else
 						local badWord = findBadWords(inputText)
@@ -3674,12 +3676,13 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 							end
 						end
 						lastMessage = inputText
+						commitInputHistory(executedInput)
+						cancelChatInput()
 					end
-					commitInputHistory(executedInput)
 				else
 					ensureInputHistoryDraft()
+					cancelChatInput()
 				end
-				cancelChatInput()
 			end
 		else
 			cancelChatInput()

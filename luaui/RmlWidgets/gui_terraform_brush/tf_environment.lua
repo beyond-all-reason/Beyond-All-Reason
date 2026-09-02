@@ -737,32 +737,6 @@ function M.attach(doc, ctx)
 		)
 		wireMutexChipPair("sp-slope-mode-avoid", "avoidCliffs", "sp-slope-mode-prefer", "preferSlopes", getSP)
 
-		-- Exclusive tab pills for grass brush (original behavior)
-		local function wirePillTabs(pills, onActivate)
-			for _, p in ipairs(pills) do
-				local btn = doc:GetElementById(p.btnId)
-				local content = doc:GetElementById(p.contentId)
-				if btn and content then
-					btn:AddEventListener("click", function()
-						for _, q in ipairs(pills) do
-							local b2 = doc:GetElementById(q.btnId)
-							local c2 = doc:GetElementById(q.contentId)
-							if b2 then
-								b2:SetClass("active", b2 == btn)
-							end
-							if c2 then
-								c2:SetClass("hidden", c2 ~= content)
-							end
-						end
-						content:SetClass("hidden", false)
-						btn:SetClass("active", true)
-						if onActivate then
-							onActivate()
-						end
-					end)
-				end
-			end
-		end
 		-- gb pill/slope/altitude/avoid-water/color chips all use data-event-click in RML → onGbXxx handlers in initialModel
 	end
 	envSectionToggle("btn-toggle-wb-undo", "img-toggle-wb-undo", "section-wb-undo", false)

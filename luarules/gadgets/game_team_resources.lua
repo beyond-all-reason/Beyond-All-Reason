@@ -19,6 +19,7 @@ end
 local minStorageMetal = 1000
 local minStorageEnergy = 1000
 local mathMax = math.max
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local function GetTeamPlayerCounts()
 	local teamPlayerCounts = {}
@@ -33,7 +34,7 @@ local function GetTeamPlayerCounts()
 	return teamPlayerCounts
 end
 
-local function setup(addResources)
+local function setup(addResources, skipGaia)
 	local startMetalStorage = Spring.GetModOptions().startmetalstorage
 	local startEnergyStorage = Spring.GetModOptions().startenergystorage
 	local startMetal = Spring.GetModOptions().startmetal
@@ -49,6 +50,11 @@ local function setup(addResources)
 	end
 
 	local teamList = Spring.GetTeamList()
+	if skipGaia then
+		teamList = table.filterArray(teamList, function(teamID)
+			return teamID ~= gaiaTeamID
+		end)
+	end
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 
@@ -103,7 +109,7 @@ end
 
 function gadget:GameStart()
 	-- reset because commander added additional storage as well
-	setup()
+	setup(false, true)
 end
 
 function gadget:TeamDied(teamID)

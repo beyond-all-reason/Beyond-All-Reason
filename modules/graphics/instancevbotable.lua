@@ -929,26 +929,6 @@ local function drawInstanceVBO(iT)
 	end
 end
 
-local function countInvalidUnitIDs(iT)
-	local invalids = {}
-	for i, objectID in ipairs(iT.indextoUnitID) do
-		local isValidID = false
-		if iT.featureIDs then
-			isValidID = Spring.ValidFeatureID(objectID)
-		else
-			isValidID = Spring.ValidUnitID(objectID)
-		end
-		if isValidID then
-		else
-			invalids[#invalids + 1] = objectID
-		end
-	end
-	if #invalids > 0 then
-		Spring.Echo(#invalids, "invalid IDs found in ", iT.myName)
-	end
-	return invalids
-end
-
 --------- HELPERS FOR PRIMITIVES ------------------
 
 --- The geometry helpers below each build a standalone `VBO` -- not an

@@ -71,7 +71,7 @@ end
 ---Finds all builders among selected units that can make the specified building, and gets their average position.
 ---When useQueueEnd is true, uses the position of the last queued command instead of the unit's current position.
 ---@param units table selected units
----@param constructorIds table All mex constructors
+---@param constructorIds table<UnitID, ResourceSpotConstructor?> All mex constructors
 ---@param buildingId number Specific mex that we want to build
 ---@param useQueueEnd boolean Whether to use the end-of-queue position (for shift-queuing)
 ---@return table { x, z }
