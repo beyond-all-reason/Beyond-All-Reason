@@ -4,11 +4,12 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
-## 1.13 - 2026-09-01
+## 1.13 - 2026-09-02
 
 ### New
 
 - The Tileset window gained a PERFORMANCE section: HIGH, MEDIUM and LOW quality presets that drop draw-time features of the tileset shader, and the levers underneath them as sliders (foothills, stagger, far anti-tiling, cliff-tap slack, the far cache with its start and band, "Cliffs cached past" for the distance at which steep faces join the cache, and the clipmap toggle). A preset applies on top of the sliders, so HIGH is where each lever can be judged on its own.
+- The BIOME LIBRARY tiles are built at runtime from the tileset shader's biome manifests (one Lua file per biome in the shader's `tilesets/` folder) instead of six hardcoded RML tiles, so a biome added on disk shows up in the picker without a UI edit; Bismuth becomes reachable for the first time. Thumbnails are GL overdraws like the EXTRA LAYER material tiles (a shipped preview drawn whole, or the base albedo as a centered crop), and each biome's skybox pick comes from its manifest instead of a name-match table in the UI.
 
 ### Improvements
 
