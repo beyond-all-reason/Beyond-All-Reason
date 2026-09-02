@@ -2791,9 +2791,15 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 
 	if options[i].widget ~= nil and widgetHandler.orderList[options[i].widget] ~= nil then
 		if options[i].value then
-			widgetHandler:EnableWidget(options[i].widget)
+			if widgetHandler.orderList[options[i].widget] < 0.5 then
+				widgetHandler:EnableWidget(options[i].widget)
+			end
 		else
-			widgetHandler:DisableWidget(options[i].widget)
+			if widgetHandler.orderList[options[i].widget] > 0 then
+				widgetHandler:ToggleWidget(options[i].widget)
+			else
+				widgetHandler:DisableWidget(options[i].widget)
+			end
 		end
 		forceUpdate = true
 		scheduleInit = true

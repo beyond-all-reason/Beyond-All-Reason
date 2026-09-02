@@ -22,7 +22,6 @@ local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
 local SELECTOR_BASENAME = "selector.lua"
-local SELECTOR_NAME = "Widget Selector"
 
 local SAFEWRAP = 1
 -- 0: disabled
@@ -603,14 +602,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
-
-	-- Hiding is a game-widget privilege. A hidden user widget is unlistable, undisableable, and
-	-- loaded again on every reload, so a broken one could only be fixed by editing files.
-	local hidden = fromZip and widget.whInfo.hidden or false
-
 	if basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
-	elseif hidden then
+	elseif widget.whInfo.hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
@@ -634,7 +628,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
-		knownInfo.hidden = hidden
+		knownInfo.hidden = widget.whInfo.hidden
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -1245,9 +1239,9 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
+		self.orderList[name] = 0 -- disable
+		self:SaveConfigData()
 	end
-	self.orderList[name] = 0 -- disable
-	self:SaveConfigData()
 	return true
 end
 
@@ -1259,13 +1253,14 @@ function widgetHandler:ToggleWidgetRaw(name)
 	end
 	if ki.active then
 		return self:DisableWidgetRaw(name)
+	elseif self.orderList[name] <= 0 then
+		return self:EnableWidgetRaw(name)
+	else
+		-- the widget is not active, but enabled; disable it
+		self.orderList[name] = 0
+		self:SaveConfigData()
 	end
-	-- The widget is enabled but not running, so it errored out or bowed out. This is the state a
-	-- player clicks to repair, so bring it back, and only write it off when it will not even load.
-	if self:EnableWidgetRaw(name) then
-		return true
-	end
-	return self:DisableWidgetRaw(name)
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -1437,18 +1432,6 @@ function widgetHandler:Shutdown()
 	-- save config
 	if self.__blankOutConfig then
 		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
-	elseif self.__blankOutOrder then
-		-- Keep what each widget was configured to do, forget which widgets ran and in what order.
-		for _, w in ipairs(self.widgets) do
-			if w.GetConfigData then
-				self.configData[w.whInfo.name] = w:GetConfigData()
-			end
-		end
-		table.save(
-			{ data = self.configData, allowUserWidgets = self.allowUserWidgets },
-			CONFIG_FILENAME,
-			"-- Widget Custom data and order"
-		)
 	else
 		self:SaveConfigData()
 	end
@@ -1495,12 +1478,14 @@ function widgetHandler:ConfigureLayout(command)
 		self:SendConfigData()
 		return true
 	elseif command == "selector" then
-		-- Bring the selector back up for recovery even if its config says to disable it.
-		self:EnableWidgetRaw(SELECTOR_NAME)
-		local sw = self:FindWidget(SELECTOR_NAME)
-		if sw then
-			self:RaiseWidgetRaw(sw)
+		for _, w in ipairs(self.widgets) do
+			if w.whInfo.basename == SELECTOR_BASENAME then
+				return true -- there can only be one
+			end
 		end
+		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
+		self:InsertWidgetRaw(sw)
+		self:RaiseWidgetRaw(sw)
 		return true
 	elseif string.find(command, "togglewidget") == 1 then
 		self:ToggleWidgetRaw(string.sub(command, 14))
