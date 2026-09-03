@@ -312,7 +312,7 @@ function gadget:GameFrame(frameNumber)
 		teamReclaimIncomeSnapshot = teamReclaimIncome
 		teamReclaimIncome = {}
 
-		-- All countdowns tick down together (see countdowns.lua header):
+		-- All countdowns tick down together (see Decrement() in countdowns.lua):
 		local endedCountdownIDs = countdowns.Decrement()
 		for i = 1, #endedCountdownIDs do
 			dispatchTriggerCallin("CountdownEnded", endedCountdownIDs[i])
