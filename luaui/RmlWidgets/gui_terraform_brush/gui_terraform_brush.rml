@@ -873,6 +873,9 @@
 			<div id="btn-ring" class="tf-shape-btn" data-class-active="activeShape == 'ring'" data-event-mousedown="onTfSetShape('ring')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_ring.png" />
 			</div>
+			<div id="btn-crater" class="tf-shape-btn" data-class-active="activeShape == 'crater'" data-event-mousedown="onTfSetShape('crater')">
+				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_crater.png" />
+			</div>
 			<div id="btn-fill" class="tf-shape-btn" data-class-active="activeShape == 'fill'" data-event-mousedown="onTfSetShape('fill')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_fill.png" />
 			</div>
@@ -5872,7 +5875,32 @@
 						<div class="tf-collapsible-title">GRADING</div>
 					</div>
 					<div id="section-surf-grading" class="hidden">
-						<div class="text-sm text-light mb-1">TOPS (base + variants)</div>
+						<!-- SELECTED SLOT: a per-texture albedo tint for the armed variant
+						     (dev_tileset_terrain slotTintN, keyed by asset like FLIP), so one
+						     painted top can be recoloured on its own; the group tints below
+						     move every top together. -->
+						<div class="flex flex-row items-center gap-1 mb-1">
+							<div class="text-sm text-light" style="flex: 1;">SELECTED SLOT: {{surfInfKey}}</div>
+							<div id="btn-surf-slottint-reset" class="tf-overlay-chip" data-event-mousedown="onSurfSlotTintReset()">
+								<div class="tf-overlay-chip-label">Reset</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Tint R</div>
+							<input type="range" id="surf-slider-slotTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfSlotTint('R')" />
+							<input type="text" id="surf-slider-slotTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Tint G</div>
+							<input type="range" id="surf-slider-slotTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfSlotTint('G')" />
+							<input type="text" id="surf-slider-slotTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Tint B</div>
+							<input type="range" id="surf-slider-slotTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfSlotTint('B')" />
+							<input type="text" id="surf-slider-slotTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">TOPS (base + variants)</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint R</div>
 							<input type="range" id="surf-slider-topsTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintR')" />

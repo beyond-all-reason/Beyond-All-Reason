@@ -14,6 +14,9 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - `/tf_sunlog` logs every sun write from any widget with a traceback, for finding out what reset a sun.
 - SURFACE and LAYERS gained an INFLUENCE section (requested by PtaQ and MrBob): an altitude band and a slope band, each with a feather, that scale a stroke instead of cutting it the way the FILTERS do, so a texture does more of its thing in the lowlands or on the flats and fades out beyond them. SURFACE remembers a profile per texture (it follows the texture across slots and biome swaps, projects keep it in surface.lua, and Copy to all stamps it onto every slot); LAYERS keeps one per channel. Erasing is never scaled, and the Ctrl sneak peek shows the band so what you see is what lands.
 
+- A CRATER brush shape for the terraform brush (requested by PtaQ and MrBob, for Teizer's orbital bombardment): one RAISE stroke digs a parabolic bowl to the brush depth inside the floor radius (the RING WIDTH slider) and lifts a rim outside it that peaks at half that height and falls back to nothing at the edge; LOWER makes the inverse, a mound with a moat. It is the one signed shape, so it exists for raise, lower and noise only; the other modes fall back to a circle.
+- SURFACE > GRADING gained SELECTED SLOT tints: a per-texture albedo tint for the armed variant, remembered by texture like FLIP, saved with the project in tileset.lua, and independent of the TOPS group tint that moves every top together. Together with the borrowed grass tops in the Teizer tileset it is the oasis workaround until a grass-on-sand top exists.
+
 ### Improvements
 
 - Open Project rows are set larger and the window is wider, so project names read at a glance (requested by PtaQ and MrBob).

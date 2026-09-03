@@ -9679,12 +9679,12 @@ local initialModel = {
 			end
 			WG.LightPlacer.setShape(shape)
 		elseif fpState and fpState.active then
-			if shape == "ring" or shape == "fill" then
+			if shape == "ring" or shape == "fill" or shape == "crater" then
 				return
 			end
 			WG.FeaturePlacer.setShape(shape)
 		elseif spState and spState.active then
-			if shape == "ring" or shape == "fill" then
+			if shape == "ring" or shape == "fill" or shape == "crater" then
 				return
 			end
 			WG.SplatPainter.setShape(shape)
@@ -9696,11 +9696,20 @@ local initialModel = {
 			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then
 				return
 			end
+			-- crater is signed (bowl down, rim up): only raise / lower / noise
+			if
+				shape == "crater"
+				and state
+				and not (state.mode == "raise" or state.mode == "lower" or state.mode == "noise")
+			then
+				return
+			end
 			WG.TerraformBrush.setShape(shape)
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = shape
-			widgetState.dmHandle.tfRingVisible = (shape == "ring")
+			-- the RING WIDTH slider doubles as the crater's floor size
+			widgetState.dmHandle.tfRingVisible = (shape == "ring" or shape == "crater")
 			widgetState.dmHandle.shapeName = shapeNames[shape]
 		end
 	end,
@@ -10306,6 +10315,45 @@ local initialModel = {
 		local n = sp.copyInfluenceToAll()
 		playSound("click")
 		Spring.Echo("[Terraform Brush] influence profile copied to " .. tostring(n) .. " texture(s)")
+	end,
+	-- SELECTED SLOT tint (GRADING): per-asset albedo tint of the armed variant
+	-- in the tileset shader (T.setSlotTint, keyed like FLIP). One slider sets
+	-- one channel; the other two come from the current entry.
+	onSurfSlotTint = function(_event, ch)
+		if uiState.updatingFromCode then
+			return
+		end
+		---@type table?
+		local T = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if not (T and T.setSlotTint and asset) then
+			return
+		end
+		local r, g, b = T.getSlotTint(asset)
+		local doc = widgetState.document
+		local sl = doc and doc:GetElementById("surf-slider-slotTint" .. tostring(ch))
+		local v = sl and tonumber(sl:GetAttribute("value"))
+		if not v then
+			return
+		end
+		if ch == "R" then
+			r = v
+		elseif ch == "G" then
+			g = v
+		elseif ch == "B" then
+			b = v
+		end
+		T.setSlotTint(asset, r, g, b)
+	end,
+	onSurfSlotTintReset = function(_event)
+		---@type table?
+		local T = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if not (T and T.setSlotTint and asset) then
+			return
+		end
+		T.setSlotTint(asset, 1, 1, 1)
+		playSound("reset")
 	end,
 	-- LAYERS display: the splat engine's channel overlay, colored per override
 	onSurfHardOverlay = function(_event)
@@ -11943,6 +11991,7 @@ local initialModel = {
 
 shapeNames = {
 	circle = "Circle",
+	crater = "Crater",
 	square = "Square",
 	hexagon = "Hexagon",
 	octagon = "Octagon",
@@ -13666,6 +13715,7 @@ local function attachEventListeners()
 	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
 	widgetState.shapeButtons.octagon = getCachedEl(doc, "btn-octagon")
 	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
+	widgetState.shapeButtons.crater = getCachedEl(doc, "btn-crater")
 	widgetState.shapeButtons.ring = getCachedEl(doc, "btn-ring")
 	widgetState.shapeButtons.fill = getCachedEl(doc, "btn-fill")
 
@@ -17614,7 +17664,7 @@ function widget:Update()
 					-- keep for cache; visibility driven by dm.tfRingVisible
 				end
 				if widgetState.dmHandle then
-					local v = (state.shape == "ring")
+					local v = (state.shape == "ring" or state.shape == "crater")
 					if widgetState.dmHandle.tfRingVisible ~= v then
 						widgetState.dmHandle.tfRingVisible = v
 					end
@@ -18290,10 +18340,14 @@ function widget:Update()
 			-- Gray out unsupported shapes per mode
 			local isRamp = state.mode == "ramp"
 			local isLevel = state.mode == "level" or state.mode == "smooth"
-			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true }
+			-- crater is signed (bowl down, rim up): raise / lower / noise only
+			local craterOk = state.mode == "raise" or state.mode == "lower" or state.mode == "noise"
+			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true, crater = true }
 			for shape, element in pairs(widgetState.shapeButtons) do
 				if element then
-					local disabled = (isRamp and rampDisabled[shape]) or (isLevel and shape == "ring")
+					local disabled = (isRamp and rampDisabled[shape])
+						or (isLevel and shape == "ring")
+						or (shape == "crater" and not craterOk)
 					element:SetClass("disabled", disabled or false)
 				end
 			end

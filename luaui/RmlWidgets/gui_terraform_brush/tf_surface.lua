@@ -44,6 +44,10 @@ local SLIDER_IDS = {
 	{ "surf-soft-slider-slope-max", "surf-soft-slope-max" },
 	{ "surf-soft-slider-alt-min", "surf-soft-alt-min" },
 	{ "surf-soft-slider-alt-max", "surf-soft-alt-max" },
+	-- SELECTED SLOT tint (GRADING; per-asset, dev_tileset_terrain slotTintN)
+	{ "surf-slider-slotTintR", "surf-slotTintR" },
+	{ "surf-slider-slotTintG", "surf-slotTintG" },
+	{ "surf-slider-slotTintB", "surf-slotTintB" },
 	-- INFLUENCE sliders (shared by both submodes; handler routes by surfMode)
 	{ "surf-slider-inf-alt-min", "surf-inf-alt-min" },
 	{ "surf-slider-inf-alt-max", "surf-inf-alt-max" },
@@ -432,6 +436,35 @@ local function syncTints(doc, ctx)
 	if not cache then
 		cache = {}
 		widgetState.surfTintLast = cache
+	end
+	-- SELECTED SLOT tint: the armed texture's per-asset entry in the tileset
+	-- widget, restamped only when the asset or a channel changes (and never
+	-- under the slider being dragged).
+	do
+		local T = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if T and T.getSlotTint and asset then
+			local r, g, b = T.getSlotTint(asset)
+			local vals = { R = r, G = g, B = b }
+			for ch, v in pairs(vals) do
+				local key = "slotTint" .. ch
+				if ds ~= ("surf-" .. key) then
+					local id = "surf-slider-" .. key
+					local sig = asset .. "|" .. string.format("%.4f", v)
+					if cache[id] ~= sig then
+						cache[id] = sig
+						local sl = doc:GetElementById(id)
+						if sl then
+							sl:SetAttribute("value", tostring(v))
+						end
+						local nb = doc:GetElementById(id .. "-numbox")
+						if nb then
+							nb:SetAttribute("value", string.format("%.2f", v))
+						end
+					end
+				end
+			end
+		end
 	end
 	for _, k in ipairs(TINT_KNOBS) do
 		local key = k[1]

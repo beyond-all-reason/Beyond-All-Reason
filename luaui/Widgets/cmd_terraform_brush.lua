@@ -1460,7 +1460,7 @@ local function setMode(mode)
 	elseif mode == "level" or mode == "smooth" or mode == "smudge" then
 		activeDirection = 0
 		activeMode = mode
-		if activeShape == "ring" then
+		if activeShape == "ring" or activeShape == "crater" then
 			activeShape = "circle"
 		end
 	elseif mode == "autoramp" then
@@ -1477,12 +1477,18 @@ local function setMode(mode)
 	elseif mode == "restore" then
 		activeDirection = 0
 		activeMode = "restore"
+		if activeShape == "crater" then
+			activeShape = "circle"
+		end
 	elseif mode == "noise" then
 		activeDirection = 1
 		activeMode = "noise"
 	elseif mode == "erode" then
 		activeDirection = 0
 		activeMode = "erode"
+		if activeShape == "crater" then
+			activeShape = "circle"
+		end
 	end
 end
 
@@ -1495,11 +1501,19 @@ local function setShape(shape)
 		or shape == "octagon"
 		or shape == "triangle"
 		or shape == "fill"
+		or shape == "crater"
 	then
 		if activeMode == "ramp" and shape ~= "circle" and shape ~= "square" then
 			return
 		end
 		if (activeMode == "level" or activeMode == "smooth" or activeMode == "smudge") and shape == "ring" then
+			return
+		end
+		-- The CRATER shape is signed (its bowl is a negative falloff), which only
+		-- means something to the strokes that add a displacement: raise, lower
+		-- and noise. (Inline, not a helper: this chunk sits at the Lua 5.1
+		-- 200-local ceiling.)
+		if shape == "crater" and not (activeMode == "raise" or activeMode == "lower" or activeMode == "noise") then
 			return
 		end
 		if activeMode == "autoramp" and shape ~= "circle" then
@@ -4865,7 +4879,8 @@ function extraState.drawCurrentOutline(cx, cz, groundY)
 		extraState.drawRegularPolygon(cx, cz, activeRadius, activeRotation, 6, activeLengthScale)
 	elseif activeShape == "octagon" then
 		extraState.drawRegularPolygon(cx, cz, activeRadius, activeRotation, 8, activeLengthScale)
-	elseif activeShape == "ring" then
+	elseif activeShape == "ring" or activeShape == "crater" then
+		-- crater: the ring outlines the rim band, its inner circle is the floor
 		extraState.drawRing(cx, cz, activeRadius, activeRotation, activeLengthScale)
 	elseif activeShape == "fill" then
 		-- Diamond crosshair cursor for fill brush
@@ -5049,7 +5064,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 				extraState.drawRegularPolygon(p.x, p.z, activeRadius, p.rot, 6, activeLengthScale)
 			elseif activeShape == "octagon" then
 				extraState.drawRegularPolygon(p.x, p.z, activeRadius, p.rot, 8, activeLengthScale)
-			elseif activeShape == "ring" then
+			elseif activeShape == "ring" or activeShape == "crater" then
 				extraState.drawRing(p.x, p.z, activeRadius, p.rot, activeLengthScale)
 			end
 			glLineWidth(1)
@@ -5093,7 +5108,7 @@ function extraState.getShapeCorners(shape, radius, angleDeg, lengthScale)
 		return cached
 	end
 	local corners
-	if shape == "circle" or shape == "ring" then
+	if shape == "circle" or shape == "ring" or shape == "crater" then
 		corners = {}
 		local segments = 32
 		for i = 0, segments - 1 do

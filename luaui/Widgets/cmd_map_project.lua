@@ -606,6 +606,31 @@ local function stepTileset()
 			lines[#lines + 1] = string.format("\tslot4_material = %q,", tostring(s4.material))
 		end
 	end
+	-- per-texture albedo tints of painted variants (SURFACE > GRADING), sorted
+	if T.getSlotTints then
+		local tints = T.getSlotTints() or {}
+		local names = {}
+		for a, c in pairs(tints) do
+			if type(a) == "string" and type(c) == "table" then
+				names[#names + 1] = a
+			end
+		end
+		table.sort(names)
+		if #names > 0 then
+			lines[#lines + 1] = "\tslot_tints = {"
+			for _, a in ipairs(names) do
+				local c = tints[a]
+				lines[#lines + 1] = string.format(
+					"\t\t[%q] = { %s, %s, %s },",
+					a,
+					fmtNum(tonumber(c[1]) or 1),
+					fmtNum(tonumber(c[2]) or 1),
+					fmtNum(tonumber(c[3]) or 1)
+				)
+			end
+			lines[#lines + 1] = "\t},"
+		end
+	end
 	-- keys sorted so repeated saves of unchanged state serialize identically
 	-- (project files live in git)
 	local knobs = T.getKnobs() or {}
@@ -2376,6 +2401,13 @@ local function phaseTileset(c)
 	end
 	if d.metal_style and d.metal_style ~= "" and T.setMetalStyle then
 		T.setMetalStyle(d.metal_style)
+	end
+	if type(d.slot_tints) == "table" and T.setSlotTint then
+		for a, c in pairs(d.slot_tints) do
+			if type(a) == "string" and type(c) == "table" then
+				T.setSlotTint(a, c[1], c[2], c[3])
+			end
+		end
 	end
 	local applied, unknown = 0, 0
 	if type(d.knobs) == "table" and T.setKnob then
