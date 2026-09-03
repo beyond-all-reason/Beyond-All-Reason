@@ -376,8 +376,7 @@ local function UpdatePassiveBuilders(
 	local eStorEff = eStor * eShare
 	local converterEnergyUse = spGetTeamRulesParam(teamID, converterEnergyUsageParamName) or 0
 	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
-	local nonBuilderEnergyPull =
-		mathMax(0, nonConverterEnergyPull - nonPassiveConsEnergyPull - passiveConsEnergyPull)
+	local nonBuilderEnergyPull = mathMax(0, nonConverterEnergyPull - nonPassiveConsEnergyPull - passiveConsEnergyPull)
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
