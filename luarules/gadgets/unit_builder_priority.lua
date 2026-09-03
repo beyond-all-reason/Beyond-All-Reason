@@ -72,6 +72,7 @@ local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
+local spGetUnitResources = Spring.GetUnitResources
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
@@ -277,7 +278,10 @@ local function UpdatePassiveBuilders(
 	-- calculate how much expense each passive con would require
 	-- and how much total expense the non-passive cons require
 	local nonPassiveConsTotalExpenseMetal = 0
-	local passiveConsTotalExpenseEnergy = 0
+	local nonPassiveConsTotalExpenseEnergy = 0
+	-- Current energy pull of non-passive and passive cons (engine GetUnitResources, not theoretical full-speed cost).
+	local nonPassiveConsEnergyPull = 0
+	local passiveConsEnergyPull = 0
 	local teamBuildTargetOwners = buildTargetOwnersByTeam[teamID]
 	local hasOwners = false
 
@@ -317,7 +321,10 @@ local function UpdatePassiveBuilders(
 		teamsWithOwners[teamID] = nil
 	end
 
-	-- Second pass: check non-passive builders ONLY if we have passive builders building
+	-- Second pass: ONLY if we have passive builders building
+	-- Metal/energy (non-passive): theoretical full-speed cost for reservation gate
+	-- Energy pull: measured builder share of ePull via GetUnitResources (to peel
+	-- builders out of team pull when computing non-builder drain)
 	if anyPassiveBuilding then
 		local teamBuilders = canBuild[teamID]
 		for builderID in pairs(teamBuilders) do
@@ -330,19 +337,19 @@ local function UpdatePassiveBuilders(
 						local rate = buildSpeed / targetCosts[3]
 						local mcost = targetCosts[1]
 						mcost = mcost <= 1 and 0 or mcost * rate
+						local ecost = targetCosts[2] * rate
 						nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + mcost
+						nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + ecost
 					end
 				end
-			else -- passive builder
-				local builtUnit = spGetUnitIsBuilding(builderID)
-				if builtUnit then
-					local targetCosts = costID[builtUnit]
-					local buildSpeed = currentBuildSpeed[builderID]
-					if targetCosts and buildSpeed then
-						local rate = buildSpeed / targetCosts[3]
-						local ecost = targetCosts[2] * rate
-						passiveConsTotalExpenseEnergy = passiveConsTotalExpenseEnergy + ecost
-					end
+			end
+
+			local energyUse = select(4, spGetUnitResources(builderID))
+			if energyUse and energyUse > 0 then
+				if passiveTeamCons[builderID] then
+					passiveConsEnergyPull = passiveConsEnergyPull + energyUse
+				else
+					nonPassiveConsEnergyPull = nonPassiveConsEnergyPull + energyUse
 				end
 			end
 		end
@@ -350,16 +357,14 @@ local function UpdatePassiveBuilders(
 
 	-- Resource accounting for the stall budget:
 	--
-	-- Metal: reserve theoretical full-speed metal for high-prio builders only
+	-- Metal: reserve theoretical full-speed metal for non-passive cons only
 	--   (nonPassiveConsTotalExpenseMetal).
 	--
-	-- Energy: reserve actual team energy pull (ePull) minus e-converter draw
-	--   (mmUse), which includes mex upkeep and all builders. Add back
-	--   passiveConsTotalExpenseEnergy so low-prio builders already counted in
-	--   ePull are not double-subtracted.
-	--
-	-- The allocation loop below then tests each passive con at full
-	-- realBuildSpeed to decide whether it may run until the next check.
+	-- Energy: peel measured builder draw out of ePull (minus converters) to get
+	--   non-builder pull. Reserve that plus theoretical full-speed non-passive
+	--   con energy (nonPassiveConsTotalExpenseEnergy). Leave passive
+	--   measured pull out so the allocation loop can re-test each passive at
+	--   full realBuildSpeed.
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
@@ -371,10 +376,12 @@ local function UpdatePassiveBuilders(
 	local eStorEff = eStor * eShare
 	local converterEnergyUse = spGetTeamRulesParam(teamID, converterEnergyUsageParamName) or 0
 	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
+	local nonBuilderEnergyPull =
+		mathMax(0, nonConverterEnergyPull - nonPassiveConsEnergyPull - passiveConsEnergyPull)
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (eInc + eRec - eSent - nonConverterEnergyPull + passiveConsTotalExpenseEnergy)
+		+ intervalOverSpeed * (eInc + eRec - eSent - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
