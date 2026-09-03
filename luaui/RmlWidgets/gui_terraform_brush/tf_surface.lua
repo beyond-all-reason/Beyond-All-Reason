@@ -533,6 +533,16 @@ local function syncHard(doc, ctx, setSummary)
 	setDm("surfHardAvoidCliffs", sf.avoidCliffs == true)
 	setDm("surfHardAltMin", sf.altMinEnable == true)
 	setDm("surfHardAltMax", sf.altMaxEnable == true)
+	do
+		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
+		local hs = WG.TerraformBrush
+			and WG.TerraformBrush.getState
+			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		setDm("surfAltMinSample", hs == "spAltMin")
+		setDm("surfAltMaxSample", hs == "spAltMax")
+		setDm("surfInfAltMinSample", hs == "spInfAltMin")
+		setDm("surfInfAltMaxSample", hs == "spInfAltMax")
+	end
 	setDm("surfHardExportFmt", string.upper(spState.exportFormat or "png"))
 	setDm("surfHardOverlay", spState.showSplatOverlay == true)
 	-- FILTERS live in a canonical collapsed section now, so they get the
@@ -736,6 +746,14 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfSoftAvoidCliffs", ssf.avoidCliffs == true)
 		setDm("surfSoftAltMin", ssf.altMinEnable == true)
 		setDm("surfSoftAltMax", ssf.altMaxEnable == true)
+		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
+		local hs = WG.TerraformBrush
+			and WG.TerraformBrush.getState
+			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		setDm("surfAltMinSample", hs == "sfAltMin")
+		setDm("surfAltMaxSample", hs == "sfAltMax")
+		setDm("surfInfAltMinSample", hs == "sfInfAltMin")
+		setDm("surfInfAltMaxSample", hs == "sfInfAltMax")
 		ctx.syncWarnChip(
 			doc,
 			"warn-chip-sf-smart",

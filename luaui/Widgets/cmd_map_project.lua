@@ -137,8 +137,14 @@ local function validateSlug(slug)
 		if #seg > 64 then
 			return nil, "project name segment too long (max 64)"
 		end
-		if not seg:match("^[A-Za-z0-9_%-]+$") then
-			return nil, "project names may only contain letters, digits, _ and - (no spaces); / separates folders"
+		-- Spaces are allowed inside a segment (a git clone of a maps repository
+		-- keeps its folder names), never at either end: Windows strips trailing
+		-- spaces from folder names, so such a slug would never round-trip.
+		if not seg:match("^[A-Za-z0-9_%- ]+$") then
+			return nil, "project names may only contain letters, digits, spaces, _ and -; / separates folders"
+		end
+		if seg:sub(1, 1) == " " or seg:sub(-1) == " " then
+			return nil, "a folder or project name cannot start or end with a space"
 		end
 		if rawget(RESERVED_NAMES, seg:lower()) then
 			return nil, "'" .. seg .. "' is a reserved Windows device name"

@@ -19,6 +19,9 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 
 ### Improvements
 
+- SURFACE altitude bounds gained SAMPLE buttons like the raise tool's HEIGHT CAP (requested by PtaQ): the FILTERS Alt min / Alt max rows in both modes and the INFLUENCE Alt min / Alt max rows arm the height sampler, the next click on the terrain (or on a colormap contour) writes that height into the bound, pushes the other bound along if the band would invert, and switches the filter or band on.
+- Sun & Shadows PRESETS trimmed to three (requested by PtaQ): Canonical, Dusk and Overcast. Canonical is PtaQ's saved editor sun and is also the New Map wizard's Clear Daylight sun.
+- Project folders and names may contain spaces (requested by PtaQ): a cloned maps repository with spaces in its folder names now lists in Open Project, and Save As accepts them; a name still cannot start or end with a space.
 - Open Project rows are set larger and the window is wider, so project names read at a glance (requested by PtaQ and MrBob).
 - The sun sliders keep the applied intensity on every nudge (the engine defaults a missing intensity to 1.0), re-assert the ground and unit shadow densities separately instead of flattening them to the ground value, and restamp each other so the vector rows and the azimuth/elevation rows never disagree.
 

@@ -5685,11 +5685,13 @@
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfSoftAltMin">
 							<div class="tf-slider-label text-light">Alt min</div>
+							<div id="btn-surf-soft-alt-min-sample" class="tf-sample-btn" data-class-active="surfAltMinSample" data-event-mousedown="onSurfAltSample('sfAltMin')">SAMPLE</div>
 							<input type="range" id="surf-soft-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfSlider('alt-min')" />
 							<input type="text" id="surf-soft-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfSoftAltMax">
 							<div class="tf-slider-label text-light">Alt max</div>
+							<div id="btn-surf-soft-alt-max-sample" class="tf-sample-btn" data-class-active="surfAltMaxSample" data-event-mousedown="onSurfAltSample('sfAltMax')">SAMPLE</div>
 							<input type="range" id="surf-soft-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfSlider('alt-max')" />
 							<input type="text" id="surf-soft-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
 						</div>
@@ -5717,11 +5719,13 @@
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMin">
 							<div class="tf-slider-label text-light">Alt min</div>
+							<div id="btn-surf-hard-alt-min-sample" class="tf-sample-btn" data-class-active="surfAltMinSample" data-event-mousedown="onSurfAltSample('spAltMin')">SAMPLE</div>
 							<input type="range" id="surf-hard-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfHardSlider('alt-min')" />
 							<input type="text" id="surf-hard-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMax">
 							<div class="tf-slider-label text-light">Alt max</div>
+							<div id="btn-surf-hard-alt-max-sample" class="tf-sample-btn" data-class-active="surfAltMaxSample" data-event-mousedown="onSurfAltSample('spAltMax')">SAMPLE</div>
 							<input type="range" id="surf-hard-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfHardSlider('alt-max')" />
 							<input type="text" id="surf-hard-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
 						</div>
@@ -5755,11 +5759,13 @@
 					<div data-if="surfInfAlt">
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Alt min</div>
+							<div id="btn-surf-inf-alt-min-sample" class="tf-sample-btn" data-class-active="surfInfAltMinSample" data-event-mousedown="onSurfAltSample('infAltMin')">SAMPLE</div>
 							<input type="range" id="surf-slider-inf-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfInfluenceSlider('alt-min')" />
 							<input type="text" id="surf-slider-inf-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Alt max</div>
+							<div id="btn-surf-inf-alt-max-sample" class="tf-sample-btn" data-class-active="surfInfAltMaxSample" data-event-mousedown="onSurfAltSample('infAltMax')">SAMPLE</div>
 							<input type="range" id="surf-slider-inf-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfInfluenceSlider('alt-max')" />
 							<input type="text" id="surf-slider-inf-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
 						</div>
@@ -8739,7 +8745,7 @@
 
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div class="text-lg text-light">NAME</div>
-			<div class="text-sm text-keybind">letters, digits, - and _; / for a folder</div>
+			<div class="text-sm text-keybind">letters, digits, spaces, - and _; / for a folder</div>
 		</div>
 		<div class="flex flex-row gap-1 mb-2">
 			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="128" value="" />

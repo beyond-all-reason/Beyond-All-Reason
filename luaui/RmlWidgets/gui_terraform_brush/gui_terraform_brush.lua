@@ -1594,9 +1594,11 @@ end
 -- block in sync with tools/mapgen/scan_environments.py / env_presets.lua.
 widgetState.newMapEnvPresets = {
 	{
+		-- sunDir + sunColor = PtaQ's canonical editor sun (2026-09-03), see
+		-- envSunPresets[1]; the rest is the harvested Altair Crossing mood.
 		name = "Clear Daylight",
 		source = "Altair_Crossing_V4.1",
-		sunDir = { 0.8000, 0.8000, -0.7000 },
+		sunDir = { 0.4490, 0.5645, -0.6926 },
 		groundShadowDensity = 0.7500,
 		modelShadowDensity = 0.7500,
 		groundAmbientColor = { 0.5000, 0.5000, 0.5000 },
@@ -1608,7 +1610,7 @@ widgetState.newMapEnvPresets = {
 		fogStart = 0.8000,
 		fogEnd = 1.0000,
 		fogColor = { 0.8000, 0.8000, 0.5000, 1.0000 },
-		sunColor = { 1.0000, 0.9200, 0.7800 },
+		sunColor = { 1.0000, 1.0000, 1.0000 },
 		skyColor = { 0.4288, 0.5802, 0.6400 },
 		cloudColor = { 0.9600, 0.9600, 0.9600 },
 		splatTexMults = { 1.2000, 0.7000, 0.5300, 0.5000 },
@@ -2233,69 +2235,27 @@ widgetState.azElFromSunDir = function(x, y, z)
 	return az, el
 end
 
--- Sun-only quick presets for the ENV panel: a time of day as azimuth, elevation,
--- intensity, the six sun colours, the sun tint and both shadow densities. They
--- never touch water, fog or sky, so they are safe on any map.
+-- Sun-only quick presets for the ENV panel: azimuth, elevation, intensity, the
+-- six sun colours, the sun tint and both shadow densities. They never touch
+-- water, fog or sky, so they are safe on any map. Three on purpose (PtaQ,
+-- 2026-09-03): the canonical sun, a low warm one and a flat one.
 widgetState.envSunPresets = {
 	{
-		name = "Dawn",
-		az = 95,
-		el = 9,
-		sunIntensity = 0.9,
-		groundAmbientColor = { 0.44, 0.42, 0.5 },
-		groundDiffuseColor = { 1.0, 0.78, 0.6 },
-		groundSpecularColor = { 0.6, 0.5, 0.45 },
-		unitAmbientColor = { 0.5, 0.48, 0.56 },
-		unitDiffuseColor = { 1.0, 0.85, 0.7 },
-		unitSpecularColor = { 0.8, 0.65, 0.55 },
-		sunColor = { 1.0, 0.82, 0.62 },
-		groundShadowDensity = 0.6,
-		modelShadowDensity = 0.6,
-	},
-	{
-		name = "Morning",
-		az = 120,
-		el = 32,
+		-- PtaQ's canonical editor sun (Terraform Brush/Environments/Canonical sun.lua,
+		-- 2026-09-03): the default here and the New Map wizard's Clear Daylight sun.
+		name = "Canonical",
+		az = 33,
+		el = 34.4,
 		sunIntensity = 1.0,
-		groundAmbientColor = { 0.5, 0.5, 0.53 },
-		groundDiffuseColor = { 0.98, 0.94, 0.86 },
-		groundSpecularColor = { 0.65, 0.65, 0.62 },
-		unitAmbientColor = { 0.55, 0.55, 0.6 },
-		unitDiffuseColor = { 0.98, 0.95, 0.88 },
-		unitSpecularColor = { 0.8, 0.7, 0.65 },
-		sunColor = { 1.0, 0.94, 0.84 },
-		groundShadowDensity = 0.7,
-		modelShadowDensity = 0.7,
-	},
-	{
-		name = "Noon",
-		az = 180,
-		el = 72,
-		sunIntensity = 1.0,
-		groundAmbientColor = { 0.55, 0.55, 0.55 },
-		groundDiffuseColor = { 1.0, 1.0, 0.97 },
+		groundAmbientColor = { 0.5, 0.5, 0.5 },
+		groundDiffuseColor = { 0.99, 0.99, 0.95 },
 		groundSpecularColor = { 0.7, 0.7, 0.7 },
-		unitAmbientColor = { 0.58, 0.58, 0.6 },
-		unitDiffuseColor = { 1.0, 1.0, 0.96 },
-		unitSpecularColor = { 0.8, 0.75, 0.7 },
-		sunColor = { 1.0, 0.98, 0.94 },
-		groundShadowDensity = 0.8,
-		modelShadowDensity = 0.8,
-	},
-	{
-		name = "Afternoon",
-		az = 245,
-		el = 38,
-		sunIntensity = 1.0,
-		groundAmbientColor = { 0.5, 0.5, 0.52 },
-		groundDiffuseColor = { 1.0, 0.95, 0.85 },
-		groundSpecularColor = { 0.68, 0.65, 0.6 },
-		unitAmbientColor = { 0.55, 0.55, 0.58 },
-		unitDiffuseColor = { 1.0, 0.96, 0.88 },
-		unitSpecularColor = { 0.8, 0.7, 0.62 },
-		sunColor = { 1.0, 0.93, 0.8 },
-		groundShadowDensity = 0.72,
-		modelShadowDensity = 0.72,
+		unitAmbientColor = { 0.56, 0.56, 0.6 },
+		unitDiffuseColor = { 0.95, 0.955, 0.9 },
+		unitSpecularColor = { 0.8, 0.6, 0.6 },
+		sunColor = { 1.0, 1.0, 1.0 },
+		groundShadowDensity = 0.75,
+		modelShadowDensity = 0.75,
 	},
 	{
 		name = "Dusk",
@@ -3539,6 +3499,10 @@ local initialModel = {
 	surfInfKey = "",
 	surfSoftAvoidCliffs = false,
 	surfSoftAltMin = false,
+	surfAltMinSample = false,
+	surfAltMaxSample = false,
+	surfInfAltMinSample = false,
+	surfInfAltMaxSample = false,
 	surfSoftAltMax = false,
 	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl over
 	-- the map renders the selected layer inside the brush ring as if the
@@ -7297,9 +7261,11 @@ local initialModel = {
 			end
 			return
 		end
-		if not name:match("^[A-Za-z0-9_%-]+$") then
+		-- Coarse screen only; cmd_map_project's validateSlug is the rule (spaces
+		-- inside a segment are fine, / separates folders).
+		if not name:match("^[A-Za-z0-9_%- /]+$") then
 			if d then
-				d.projectSaveHint = "Only letters, digits, - and _ (no spaces)."
+				d.projectSaveHint = "Only letters, digits, spaces, - and _; / for a folder."
 			end
 			return
 		end
@@ -10524,6 +10490,21 @@ local initialModel = {
 		end
 		playSound("modeSwitch")
 		WG.SplatPainter.setChannel(tonumber(n) or 1)
+	end,
+	-- SAMPLE buttons on the SURFACE altitude rows (FILTERS in both modes and the
+	-- INFLUENCE band): arm the brush widget's height sampler, which reads the
+	-- next click's ground height (or the colormap contour under the cursor)
+	-- into the target. 'infAltMin'/'infAltMax' resolve to the engine of the
+	-- active mode; the FILTERS rows pass their engine's target directly.
+	onSurfAltSample = function(_event, target)
+		if not WG.TerraformBrush then
+			return
+		end
+		if target == "infAltMin" or target == "infAltMax" then
+			target = (widgetState.surfHardActive and "spInf" or "sfInf") .. target:sub(4)
+		end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
 	end,
 	onSurfHardFilter = function(_event, key)
 		if not WG.SplatPainter then

@@ -3244,6 +3244,13 @@ function widget:Initialize()
 				gbAltMin = true,
 				spAltMax = true,
 				spAltMin = true,
+				-- SURFACE panel: soft FILTERS (surface painter), INFLUENCE band per engine
+				sfAltMax = true,
+				sfAltMin = true,
+				sfInfAltMax = true,
+				sfInfAltMin = true,
+				spInfAltMax = true,
+				spInfAltMin = true,
 			}
 			extraState.heightSamplingMode = valid[target] and target or nil
 			if extraState.heightSamplingMode then
@@ -9133,6 +9140,13 @@ function widget:MousePress(mx, my, button)
 		extraState.heightSamplingMode = nil
 		if sampledH then
 			local rounded = floor(sampledH + 0.5)
+			-- SURFACE panel engines (soft + hard), aliased once: the analyzer counts
+			-- every WG mention in this file, and the main chunk has no room for a
+			-- file-level alias
+			---@type table?
+			local sfp = WG.SurfacePainter
+			---@type table?
+			local spp = WG.SplatPainter
 			if sampledTarget == "max" then
 				setHeightCapMax(rounded)
 			elseif sampledTarget == "min" then
@@ -9179,6 +9193,45 @@ function widget:MousePress(mx, my, button)
 				end
 				WG.SplatPainter.setSmartFilter("altMinEnable", true)
 				WG.SplatPainter.setSmartFilter("altMin", rounded)
+			elseif sampledTarget == "sfAltMax" and sfp then
+				local sf = (sfp.getState() or {}).smartFilters or {}
+				if sf.altMinEnable and rounded < (sf.altMin or 0) then
+					sfp.setSmartFilter("altMin", rounded)
+				end
+				sfp.setSmartFilter("altMaxEnable", true)
+				sfp.setSmartFilter("altMax", rounded)
+			elseif sampledTarget == "sfAltMin" and sfp then
+				local sf = (sfp.getState() or {}).smartFilters or {}
+				if sf.altMaxEnable and rounded > (sf.altMax or 0) then
+					sfp.setSmartFilter("altMax", rounded)
+				end
+				sfp.setSmartFilter("altMinEnable", true)
+				sfp.setSmartFilter("altMin", rounded)
+			elseif
+				sampledTarget == "sfInfAltMax"
+				or sampledTarget == "sfInfAltMin"
+				or sampledTarget == "spInfAltMax"
+				or sampledTarget == "spInfAltMin"
+			then
+				-- INFLUENCE altitude band: the sampled height becomes one bound, the
+				-- other bound is pushed along if the band would invert, the band is
+				-- switched on. The engine is the one the panel's mode is driving.
+				local eng = (sampledTarget:sub(1, 2) == "sf") and sfp or spp
+				if eng and eng.setInfluence and eng.getState then
+					local inf = (eng.getState() or {}).influence or {}
+					if sampledTarget:sub(-3) == "Max" then
+						if rounded < (inf.altMin or 0) then
+							eng.setInfluence("altMin", rounded)
+						end
+						eng.setInfluence("altMax", rounded)
+					else
+						if rounded > (inf.altMax or 0) then
+							eng.setInfluence("altMax", rounded)
+						end
+						eng.setInfluence("altMin", rounded)
+					end
+					eng.setInfluence("altOn", true)
+				end
 			end
 			if WG.TerraformBrushUI and WG.TerraformBrushUI.onHeightSampled then
 				WG.TerraformBrushUI.onHeightSampled(sampledTarget, rounded)
