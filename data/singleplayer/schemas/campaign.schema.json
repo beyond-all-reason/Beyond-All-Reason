@@ -2,15 +2,20 @@
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "campaign.schema.json",
 	"title": "Campaign Definition",
-	"description": "Schema for a BAR campaign definition file. Lives at data/singleplayer/campaigns/<campaign>/campaign.json; every subfolder next to it except 'shared' is a mission.",
+	"description": "Schema for a BAR campaign definition file in data/singleplayer/campaigns/<campaign>/campaign.json. The subfolders named in its 'missions' list are its missions.",
 	"type": "object",
-	"required": ["campaignId", "title", "description", "players"],
+	"required": ["campaignId", "titleKey", "descriptionKey", "players"],
 	"additionalProperties": false,
 	"definitions": {
 		"identifier": {
 			"type": "string",
 			"pattern": "^[A-Za-z0-9_-]+$",
 			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
+		},
+		"i18nKey": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
+			"description": "A dotted I18N key, never literal text. Resolved against language/<lang>.json."
 		}
 	},
 	"properties": {
@@ -21,13 +26,13 @@
 		"campaignId": {
 			"$ref": "#/definitions/identifier"
 		},
-		"title": {
-			"type": "string",
-			"description": "Display title of the campaign."
+		"titleKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the display title of the campaign."
 		},
-		"description": {
-			"type": "string",
-			"description": "Short description shown in the campaign selection UI."
+		"descriptionKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the short description shown in the campaign selection UI."
 		},
 		"authors": {
 			"type": "array",
@@ -66,7 +71,7 @@
 		},
 		"missions": {
 			"type": "array",
-			"description": "Mission IDs in presentation order. Missions found in this campaign's folder but absent here are appended, sorted by ID. IDs must match the 'missionId' of a mission.json in this campaign.",
+			"description": "Folders to load missions from, in display order. 'shared' and 'language' are reserved names and cannot be used.",
 			"uniqueItems": true,
 			"items": {
 				"$ref": "#/definitions/identifier"

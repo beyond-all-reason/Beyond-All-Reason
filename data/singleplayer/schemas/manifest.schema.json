@@ -2,7 +2,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "manifest.schema.json",
 	"title": "Mission Manifest",
-	"description": "Schema for a content manifest. Lives at data/singleplayer/campaigns/manifest.json and data/singleplayer/scenarios/manifest.json, and sets the order the folder's content is presented in. Entries are IDs, not folder names. Anything found on disk but absent here is appended, sorted by ID. An archive loaded at higher VFS priority may replace this file to reorder or insert content.",
+	"description": "Schema for a content manifest. Lives at data/singleplayer/campaigns/manifest.json and data/singleplayer/scenarios/manifest.json, and determines which of the folder's content is loaded and in what order. Entries are IDs, not folder names. Only listed content is loaded; anything found on disk but absent here is ignored. An archive loaded at higher VFS priority may replace this file to reorder content or add its own.",
 	"type": "object",
 	"additionalProperties": false,
 	"definitions": {
@@ -19,7 +19,7 @@
 		},
 		"campaigns": {
 			"type": "array",
-			"description": "Campaign IDs in presentation order. Must match the 'campaignId' of a campaign.json under data/singleplayer/campaigns/.",
+			"description": "Campaign IDs to load, in presentation order. A campaign under data/singleplayer/campaigns/ is loaded only if listed here. Must match the 'campaignId' of its campaign.json.",
 			"uniqueItems": true,
 			"items": {
 				"$ref": "#/definitions/identifier"
@@ -27,7 +27,7 @@
 		},
 		"scenarios": {
 			"type": "array",
-			"description": "Mission IDs in presentation order, for scenarios under data/singleplayer/scenarios/ — missions that belong to no campaign. Must match the 'missionId' of a mission.json there.",
+			"description": "Mission IDs to load, in presentation order, for scenarios under data/singleplayer/scenarios/ — missions that belong to no campaign. A scenario is loaded only if listed here. Must match the 'missionId' of its mission.json.",
 			"uniqueItems": true,
 			"items": {
 				"$ref": "#/definitions/identifier"

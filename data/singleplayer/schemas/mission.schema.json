@@ -4,7 +4,7 @@
 	"title": "Mission Definition",
 	"description": "Lobby-facing part of a BAR mission. Lives next to the mission.lua that holds the in-game logic (stages, objectives, triggers, actions, loadouts).",
 	"type": "object",
-	"required": ["missionId", "title", "description", "startScript"],
+	"required": ["missionId", "titleKey", "descriptionKey", "startScript"],
 	"additionalProperties": false,
 	"definitions": {
 		"identifier": {
@@ -17,6 +17,11 @@
 			"pattern": "^[A-Za-z0-9._-]+$",
 			"description": "Filename of an asset stored in this mission's folder."
 		},
+		"i18nKey": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
+			"description": "A dotted I18N key, never literal text. Resolved against language/<lang>.json."
+		},
 		"optionValue": {
 			"type": ["string", "number", "boolean"],
 			"description": "Value of a mod/map option, passed through to the start script as-is."
@@ -24,12 +29,12 @@
 		"team": {
 			"type": "object",
 			"description": "A single team. The key it is stored under is the teamName used by the mission's Lua files (must be unique across all ally teams).",
-			"required": ["name"],
+			"required": ["nameKey"],
 			"additionalProperties": false,
 			"properties": {
-				"name": {
-					"type": "string",
-					"description": "In-game display name. Player name rules apply, so no spaces. Maps to the start script 'Name' key."
+				"nameKey": {
+					"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+					"description": "I18N key for the in-game display name of the team. The lobby resolves it and writes the result to the start script 'Name' key, so the resolved string must obey player name rules."
 				},
 				"side": {
 					"enum": ["Armada", "Cortex", "Legion", "Random"],
@@ -96,13 +101,13 @@
 			"allOf": [{ "$ref": "#/definitions/identifier" }],
 			"description": "Unique ID of the mission within its campaign. Referenced by the campaign's 'unlocks' map."
 		},
-		"title": {
-			"type": "string",
-			"description": "Display title of the mission."
+		"titleKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the display title of the mission."
 		},
-		"description": {
-			"type": "string",
-			"description": "Short description shown in the mission selection UI."
+		"descriptionKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the short description shown in the mission selection UI."
 		},
 		"authors": {
 			"type": "array",
@@ -144,34 +149,34 @@
 			"properties": {
 				"alliesPresent": {
 					"type": "array",
-					"description": "Friendly forces to mention in the briefing.",
-					"items": { "type": "string" }
+					"descriptionKey": "I18N keys for the friendly forces to mention in the briefing.",
+					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"objectives": {
 					"type": "array",
-					"description": "Human readable objective summaries. These are briefing text only and are unrelated to the Objectives table in mission.lua.",
-					"items": { "type": "string" }
+					"descriptionKey": "I18N keys for human readable objective summaries. These are briefing text only and are unrelated to the Objectives table in mission.lua.",
+					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"knownHostiles": {
 					"type": "array",
-					"description": "Enemy forces to mention in the briefing.",
-					"items": { "type": "string" }
+					"descriptionKey": "I18N keys for the enemy forces to mention in the briefing.",
+					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"newUnits": {
 					"type": "array",
 					"description": "Units introduced by this mission, in display order.",
 					"items": {
 						"type": "object",
-						"required": ["unitDefName", "description"],
+						"required": ["unitDefName", "descriptionKey"],
 						"additionalProperties": false,
 						"properties": {
 							"unitDefName": {
 								"allOf": [{ "$ref": "#/definitions/identifier" }],
 								"description": "UnitDefName of the unit, for example 'armflash'."
 							},
-							"description": {
-								"type": "string",
-								"description": "Short explanation of what the unit does."
+							"descriptionKey": {
+								"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+								"description": "I18N key for a short explanation of what the unit does."
 							}
 						}
 					}

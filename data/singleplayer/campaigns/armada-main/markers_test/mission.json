@@ -1,0 +1,34 @@
+{
+	"$schema": "../../../schemas/mission.schema.json",
+	"missionId": "markers_test",
+	"titleKey": "markers_test.title",
+	"descriptionKey": "markers_test.description",
+	"image": "scenario011.jpg",
+	"startScript": {
+		"mapName": "Quicksilver Remake 1.24",
+		"startPosType": "chooseBeforeGame",
+		"allyTeams": {
+			"thePlayerAllyTeam": {
+				"teams": {
+					"thePlayerTeam": {
+						"nameKey": "markers_test.teams.thePlayerTeam",
+						"side": "Cortex",
+						"startPosX": 1800,
+						"startPosZ": 2000
+					}
+				}
+			},
+			"theEnemyAllyTeam": {
+				"teams": {
+					"theEnemyTeam": {
+						"nameKey": "markers_test.teams.theEnemyTeam",
+						"side": "Armada",
+						"startPosX": 3000,
+						"startPosZ": 2400,
+						"ai": "NullAI"
+					}
+				}
+			}
+		}
+	}
+}
