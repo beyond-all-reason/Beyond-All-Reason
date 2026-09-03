@@ -43,7 +43,7 @@ local modOptions = Spring.GetModOptions() or {}
 local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
 local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
 local tractorbeamDefs = tractorBeamMode
-		and VFS.Include("tractor_beams_temp_defs/transporter_defs_" .. tractorBeamMode .. ".lua")
+		and VFS.Include("modules/transport/tractor_beams/transporter_defs_" .. tractorBeamMode .. ".lua")
 	or {}
 
 -- TRANSPORTAPI LOCALS
