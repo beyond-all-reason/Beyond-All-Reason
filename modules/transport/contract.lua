@@ -14,6 +14,11 @@ local Defs = VFS.Include("modules/defs/contract.lua") ---@type DefsContract
 ---@field ownTeam boolean|nil the passenger is the carrier's own team's
 ---@field nano boolean|nil the passenger is a nano turret
 ---@field passengerSpeed number|nil
+---@field carried boolean|nil already aboard some carrier
+---@field underConstruction boolean|nil
+---@field inAnimation boolean|nil mid load or unload animation (tractor beams)
+---@field enemyLoading boolean|nil false when the carrier's ruleset never lifts enemies
+---@field seen boolean|nil the carrier's ally team has the passenger in LOS or radar
 
 ---@class TransportUnloadContext: TransportApproachContext
 ---@field nano boolean|nil
@@ -28,7 +33,14 @@ local Defs = VFS.Include("modules/defs/contract.lua") ---@type DefsContract
 ---@class TransportLoadStages: PolicyStages<TransportLoadContext, boolean>
 ---@field Submerged string
 ---@field WithinReach string
+---@field Untransportable string
+---@field Carried string
+---@field UnderConstruction string
+---@field InAnimation string
 ---@field MovingEnemy string
+---@field EnemyLoading string
+---@field EnemyImmune string
+---@field Unseen string
 ---@field AlliedNano string
 ---@field Allowed string
 
@@ -36,7 +48,14 @@ local Defs = VFS.Include("modules/defs/contract.lua") ---@type DefsContract
 local Load = {
 	Submerged = "Submerged",
 	WithinReach = "WithinReach",
+	Untransportable = "Untransportable",
+	Carried = "Carried",
+	UnderConstruction = "UnderConstruction",
+	InAnimation = "InAnimation",
 	MovingEnemy = "MovingEnemy",
+	EnemyLoading = "EnemyLoading",
+	EnemyImmune = "EnemyImmune",
+	Unseen = "Unseen",
 	AlliedNano = "AlliedNano",
 	Allowed = "Allowed",
 }
