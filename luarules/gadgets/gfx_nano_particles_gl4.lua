@@ -96,7 +96,6 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 local uploadElementRange = InstanceVBOTable.uploadElementRange
 
@@ -339,24 +338,45 @@ local DISTANT_EMIT_FAR_SQ = DISTANT_EMIT_RANGE * DISTANT_EMIT_RANGE
 local DISTANT_EMIT_BAND_INV = 1.0 / (DISTANT_EMIT_FAR_SQ - DISTANT_EMIT_NEAR_SQ)
 local DISTANT_EMIT_DROP = 1.0 - DISTANT_EMIT_KEEP
 
--- Dynamic scan stride: builders are scanned 1/stride per sim frame. Per-builder
--- emit count is multiplied by stride so total rate is preserved. Grows with
--- pool saturation (the gate would drop most emissions at high fill anyway).
-local MIN_SCAN_STRIDE = 1
+-- Visit stride and saturation throttle (see the scanBuilders header):
+--   MIN_SCAN_STRIDE  -- how often a builder is visited: every
+--                       MIN_SCAN_STRIDE * runEvery sim frames. Each visit emits
+--                       the frames it accounts for, with per-particle spawn
+--                       frames spread over the next MIN_SCAN_STRIDE frames (see
+--                       emitNano) so the stream stays continuous. Every visit
+--                       carries the full per-visit cost (engine queries, target
+--                       resolution, emitter setup) for about one particle, so a
+--                       larger stride is almost a proportional saving. The price
+--                       grows with it: up to (stride - 1) frames of emission
+--                       latency, that many frames of nozzle offset on moving
+--                       nozzles (factory arms, walking constructors), and the
+--                       queued not-yet-due particles occupy pool slots while
+--                       invisible (about emission-per-frame * stride / 2 slots).
+--                       2-4 is the sensible range.
+--   MAX_SCAN_STRIDE  -- NOT a visit stride: the throttle's stride divisor at
+--                       full saturation (throttleStride ramps 1 -> MAX with pool
+--                       fill). With MAX_SCAN_RUN_EVERY it sets the per-frame
+--                       emission divisor when the pool is full (2 * 3 = rate/6),
+--                       i.e. the pool-fill curve. Emission per visit is
+--                       compensated by MIN_SCAN_STRIDE / throttleStride, so
+--                       changing MIN_SCAN_STRIDE does not change that curve;
+--                       raising MAX_SCAN_STRIDE makes the saturated pool sparser.
+local MIN_SCAN_STRIDE = 5
 local MAX_SCAN_STRIDE = 2
+
+-- Emitter geometry cache for static single-nozzle builders (see emitNano):
+-- refresh cadence, and the settle window after a target change during which
+-- the turret head may still be turning toward it.
+local EMIT_CTX_FRAMES = 12
+local EMIT_CTX_SETTLE_FRAMES = 45
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
 local NANO_SPEED = 4.0 -- engine default: 4.0 (recently updated)
 
--- Anti-clump: half-width (elmos) of the symmetric stagger window around the
--- nanopiece. Particles in a batch are spread along their velocity in
--- [-MAX_SPREAD_AHEAD_ELMOS, +MAX_SPREAD_AHEAD_ELMOS], so a few sit slightly
--- behind the emit point (partially occluded by the builder model) and the
--- rest just ahead. Just enough to break up the visible "blob" without making
--- particles appear detached from the source. Direction jitter already
--- provides lateral spread; this only fixes the on-axis pile-up.
+-- Padding (elmos) added to the homing view-sphere radius around a stream, so
+-- particles that were nudged a little away from the nozzle still count as
+-- inside the sphere for the frustum skip.
 local MAX_SPREAD_AHEAD_ELMOS = 6
-local MAX_SPREAD_AHEAD_FRAMES = MAX_SPREAD_AHEAD_ELMOS / NANO_SPEED
 
 -- Shape selector for cube-mode geometry shader. The GS branches on this and
 -- emits the corresponding polyhedron's faces. All shapes use the same per-face
@@ -374,10 +394,6 @@ local SHAPE_IDS = { cube = 0, octahedron = 1 }
 --   sign      = negative iff inverse (reclaim)
 -- sizeMult expected in [0, 4); fadeFrames integer in [0, ~120]. Magnitude is
 -- always > 0 since spawnParticle uses sizeMult ~1, so the sign bit is free.
-local function packSizeFade(sizeMult, fadeFrames, inverse)
-	local v = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
-	return inverse and -v or v
-end
 
 -- The engine API takes rotVel in deg/sec and rotAcc in deg/sec^2 and internally
 -- divides by GAME_SPEED to convert to per-frame units. We integrate per-frame in
@@ -402,7 +418,14 @@ U.GROUND_CLAMP_MARGIN = 11.0
 -- In-flight correction cadence. Enabled mode can periodically reproject active
 -- particles above terrain to prevent straight-line tunneling through cliffs.
 -- 0 means "all active particles each pass".
-U.GROUND_CLAMP_RUN_EVERY = 6
+U.GROUND_CLAMP_RUN_EVERY = 1
+-- With RUN_EVERY 1 and MAX_PER_STEP 0, each frame examines a 1/SPREAD_FRAMES
+-- slice of the clamp entries (cursor rotates), so every entry is still seen
+-- every SPREAD_FRAMES frames but the pass never lands on one frame.
+U.GROUND_CLAMP_SPREAD_FRAMES = 6
+-- Homing passes: true = every frame on a 1/HOMING_RUN_EVERY coset of the
+-- lists (no one-frame spike); false = the whole pass every HOMING_RUN_EVERY.
+U.HOMING_SPREAD = true
 U.GROUND_CLAMP_MAX_PER_STEP = 0
 U.GROUND_CLAMP_RECHECK_HIT = 6
 U.GROUND_CLAMP_RECHECK_MISS = 12
@@ -415,7 +438,7 @@ U.GROUND_CLAMP_SMART_CACHE_FRAMES = 45
 
 U.GROUND_CACHE_INV_CELL = 1 / 16
 U.GROUND_CACHE_STRIDE = mathFloor(((Game.mapSizeZ or 65536) * U.GROUND_CACHE_INV_CELL) + 0.5) + 1024
-U.GROUND_CACHE_SLOTS = 4096
+U.GROUND_CACHE_SLOTS = 32768
 U._groundYCache = {}
 U._groundYStamp = {}
 U._groundYKey = {}
@@ -441,6 +464,32 @@ do
 	U._jitterTableLast = idx - 3
 end
 
+-- Uniform [0,1) sample table for the per-particle variation inside emitNano
+-- (speed, stagger, catch-up age, rotation, size, alpha). One math.random per
+-- batch picks the start cursor so consecutive batches never replay the same
+-- run; the seven per-particle draws are then array reads instead of C calls.
+U._randTable = {}
+U._RAND_TABLE_SIZE = 4096
+do
+	local rt = U._randTable
+	for i = 1, U._RAND_TABLE_SIZE do
+		rt[i] = mathRandom()
+	end
+end
+
+-- Deferred-light spawn batching. emitNano appends 21-value records here and
+-- the batch is handed to the lights widget in ONE Script.LuaUI call per sim
+-- frame (one cross-VM CopyData + one VBO upload on the widget side) instead
+-- of one call and one upload per sampled particle.
+U._lightBatch = {}
+U._lightBatchN = 0 -- values used in U._lightBatch
+U._lightBatchCount = 0 -- records in U._lightBatch
+U._LIGHT_RECORD_SIZE = 19
+
+-- Cap on cold-stream catch-up particles materialized per draw frame (see
+-- materializeVisibleVirtualStreams).
+U.VIRTUAL_PARTICLE_BUDGET_PER_DRAW = 256
+
 -- Clamp-focused debug stream (lightweight; independent from full DEBUG timers)
 local CLAMP_DEBUG = false
 local clampDbg = {
@@ -453,35 +502,57 @@ local clampDbg = {
 	maxSubset = 0,
 }
 
--- Ground-height cache for clamp hot paths. Quantized keys trade tiny spatial
--- precision for far fewer Spring.GetGroundHeight calls in dense sprays.
-local function getGroundYMargin(x, z, frame)
-	if frame then
-		local qx = mathFloor(x * U.GROUND_CACHE_INV_CELL + 0.5)
-		local qz = mathFloor(z * U.GROUND_CACHE_INV_CELL + 0.5)
-		local key = qx * U.GROUND_CACHE_STRIDE + qz
-		local slot = (key % U.GROUND_CACHE_SLOTS) + 1
-		if U._groundYStamp[slot] == frame and U._groundYKey[slot] == key then
-			return U._groundYCache[slot]
-		end
-		local gy = spGetGroundHeight(x, z) + U.GROUND_CLAMP_MARGIN
-		U._groundYStamp[slot] = frame
-		U._groundYKey[slot] = key
-		U._groundYCache[slot] = gy
-		return gy
-	end
-	return spGetGroundHeight(x, z) + U.GROUND_CLAMP_MARGIN
-end
+-- Ground-height cache for clamp hot paths. Quantized keys (16-elmo cells)
+-- trade tiny spatial precision for far fewer Spring.GetGroundHeight calls.
+-- Entries stay valid for GROUND_CACHE_FRAMES sim frames: terrain only changes
+-- through slow deformation, and a one-second-stale height is irrelevant for a
+-- particle clamp. The long validity is what makes the maintenance passes
+-- cheap: the particles of one stream follow the same path, so the leading
+-- particle paves the cells and the followers -- examined on later frames --
+-- hit the cache. The slot count is sized for that working set (every live
+-- stream's path cells plus builder path samples and endpoints).
+U.GROUND_CACHE_FRAMES = 32
+-- Hot path (about a thousand calls per frame from the maintenance passes):
+-- the constants and cache arrays are captured as upvalues inside a block so
+-- the lookup costs no string-key table reads and no main-chunk locals.
+local getGroundYMargin, clampYAboveGround
+do
+	local invCell = U.GROUND_CACHE_INV_CELL
+	local cacheStride = U.GROUND_CACHE_STRIDE
+	local cacheSlots = U.GROUND_CACHE_SLOTS
+	local cacheFrames = U.GROUND_CACHE_FRAMES
+	local margin = U.GROUND_CLAMP_MARGIN
+	local yStamp, yKey, yCache = U._groundYStamp, U._groundYKey, U._groundYCache
 
-local function clampYAboveGround(x, y, z, frame)
-	if not U.GROUND_CLAMP_ENABLED then
+	getGroundYMargin = function(x, z, frame)
+		if frame then
+			local stamp = frame - (frame % cacheFrames)
+			local qx = mathFloor(x * invCell + 0.5)
+			local qz = mathFloor(z * invCell + 0.5)
+			local key = qx * cacheStride + qz
+			local slot = (key % cacheSlots) + 1
+			if yStamp[slot] == stamp and yKey[slot] == key then
+				return yCache[slot]
+			end
+			local gy = spGetGroundHeight(x, z) + margin
+			yStamp[slot] = stamp
+			yKey[slot] = key
+			yCache[slot] = gy
+			return gy
+		end
+		return spGetGroundHeight(x, z) + margin
+	end
+
+	clampYAboveGround = function(x, y, z, frame)
+		if not U.GROUND_CLAMP_ENABLED then
+			return y
+		end
+		local gy = getGroundYMargin(x, z, frame)
+		if y < gy then
+			return gy
+		end
 		return y
 	end
-	local gy = getGroundYMargin(x, z, frame)
-	if y < gy then
-		return gy
-	end
-	return y
 end
 
 local function shouldClampEmit(builderID, sx, sy, sz, ex, ey, ez, frame)
@@ -573,7 +644,12 @@ local groundClampCursor = 1
 local groundClampParticles = {}
 local groundClampFree = {}
 
-local function registerGroundClampParticle(id, death, wp, fx, fy, fz, targetID)
+-- One entry per emitNano batch (particle IDs [f, f + n)), see the tracking
+-- record layout above emitNano. wp: frame at which the batch's waypoint leg
+-- ends (nil for plain recheck mode). ex/ey/ez + jc/js: batch endpoint and
+-- jitter basis so the waypoint redirect can rebuild each particle's own
+-- landing point.
+local function registerGroundClampRecord(firstID, count, death, wp, ex, ey, ez, targetID, jc, js)
 	local nFree = #groundClampFree
 	local entry = groundClampFree[nFree]
 	if entry then
@@ -581,17 +657,20 @@ local function registerGroundClampParticle(id, death, wp, fx, fy, fz, targetID)
 	else
 		entry = {}
 	end
-	entry.id = id
+	entry.f = firstID
+	entry.n = count
 	entry.death = death
 	entry.wp = wp
-	entry.fx = fx
-	entry.fy = fy
-	entry.fz = fz
+	entry.ex = ex
+	entry.ey = ey
+	entry.ez = ez
 	entry.targetID = targetID
+	entry.jc = jc
+	entry.js = js
 	entry.next = wp or 0
 	groundClampParticles[#groundClampParticles + 1] = entry
 	if CLAMP_DEBUG then
-		clampDbg.registered = clampDbg.registered + 1
+		clampDbg.registered = clampDbg.registered + count
 	end
 end
 
@@ -775,9 +854,174 @@ function U.releaseDeathBucket(bucket)
 	free[#free + 1] = bucket
 end
 
--- Shared scratch table reused for every pushElementInstance call -- avoids
--- allocating a fresh 16-element array per spawn (thousands per second).
-local instanceScratch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+-- Hand this frame's sampled light spawns to the lights widget. One
+-- Script.LuaUI call with the flat record array when the widget offers the
+-- batched entry point, else the legacy one-call-per-light path.
+function U.flushLightBatch()
+	local count = U._lightBatchCount
+	if count == 0 then
+		return
+	end
+	local batch = U._lightBatch
+	local n = U._lightBatchN
+	U._lightBatchCount = 0
+	U._lightBatchN = 0
+	local nl = deathBuckets.__nanoLight
+	if not (nl and nl.bridgeReady) then
+		return
+	end
+	-- Drop stale values left over from a bigger earlier batch so the cross-VM
+	-- copy only carries this frame's records.
+	for i = #batch, n + 1, -1 do
+		batch[i] = nil
+	end
+	if nl.batchReady then
+		Script.LuaUI.EnvNanoBallisticLightSpawnBatch(batch, count)
+		return
+	end
+	local spawn = Script.LuaUI.EnvNanoBallisticLightSpawn
+	for i = 0, count - 1 do
+		local o = i * U._LIGHT_RECORD_SIZE
+		spawn(
+			batch[o + 1],
+			batch[o + 2],
+			batch[o + 3],
+			batch[o + 4],
+			batch[o + 5],
+			batch[o + 6],
+			batch[o + 7],
+			batch[o + 8],
+			batch[o + 9],
+			batch[o + 10],
+			batch[o + 11],
+			batch[o + 12],
+			batch[o + 13],
+			batch[o + 14],
+			batch[o + 15],
+			batch[o + 16],
+			batch[o + 17],
+			batch[o + 18],
+			batch[o + 19]
+		)
+	end
+end
+
+-- Same idea for the homing passes' light corrections (8 values per record,
+-- same argument order as EnvNanoBallisticLightCorrect) and for the light
+-- removals issued by cullDead: one cross-VM call per pass instead of one per
+-- light.
+U._lightCorrBatch = {}
+U._lightCorrN = 0
+U._lightCorrCount = 0
+U._lightRemoveBatch = {}
+function U.queueLightCorrection(lightID, x, y, z, vx, vy, vz, frame)
+	local batch = U._lightCorrBatch
+	local n = U._lightCorrN
+	batch[n + 1] = lightID
+	batch[n + 2] = x
+	batch[n + 3] = y
+	batch[n + 4] = z
+	batch[n + 5] = vx
+	batch[n + 6] = vy
+	batch[n + 7] = vz
+	batch[n + 8] = frame
+	U._lightCorrN = n + 8
+	U._lightCorrCount = U._lightCorrCount + 1
+end
+
+function U.flushLightCorrections()
+	local count = U._lightCorrCount
+	if count == 0 then
+		return
+	end
+	local batch = U._lightCorrBatch
+	local n = U._lightCorrN
+	U._lightCorrCount = 0
+	U._lightCorrN = 0
+	local nl = deathBuckets.__nanoLight
+	if not (nl and nl.bridgeReady) then
+		return
+	end
+	for i = #batch, n + 1, -1 do
+		batch[i] = nil
+	end
+	if nl.correctBatchReady then
+		Script.LuaUI.EnvNanoBallisticLightCorrectBatch(batch, count)
+		return
+	end
+	local correct = Script.LuaUI.EnvNanoBallisticLightCorrect
+	for i = 0, count - 1 do
+		local o = i * 8
+		correct(
+			batch[o + 1],
+			batch[o + 2],
+			batch[o + 3],
+			batch[o + 4],
+			batch[o + 5],
+			batch[o + 6],
+			batch[o + 7],
+			batch[o + 8]
+		)
+	end
+end
+
+-- Rewritten-slot tracking for the maintenance passes and death fades. Every
+-- in-place VBO-mirror rewrite appends its slot here; the flush uploads them
+-- one element at a time when they are scattered (the normal case: a range
+-- upload spanning the whole pool marshals every element in between, which
+-- costs about as much per element as a dedicated upload) and falls back to
+-- one range upload when the touched slots are dense.
+U._dirtySlots = {}
+U._dirtySlotN = 0
+U.DIRTY_SCATTER_RATIO = 2
+function U.flushDirtySlots()
+	local dn = U._dirtySlotN
+	U._dirtySlotN = 0
+	local vbo = nanoVBO
+	if dn == 0 or not vbo then
+		return
+	end
+	local slots = U._dirtySlots
+	local minSlot, maxSlot = slots[1], slots[1]
+	for i = 2, dn do
+		local s = slots[i]
+		if s < minSlot then
+			minSlot = s
+		elseif s > maxSlot then
+			maxSlot = s
+		end
+	end
+	if dn * U.DIRTY_SCATTER_RATIO < (maxSlot - minSlot + 1) then
+		local data = vbo.instanceData
+		local step = vbo.instanceStep
+		local gpu = vbo.instanceVBO
+		for i = 1, dn do
+			local base = (slots[i] - 1) * step
+			gpu:Upload(data, nil, slots[i] - 1, base + 1, base + step)
+		end
+	else
+		uploadElementRange(vbo, minSlot - 1, maxSlot)
+	end
+end
+
+function U.flushLightRemovals(count)
+	local batch = U._lightRemoveBatch
+	for i = #batch, count + 1, -1 do
+		batch[i] = nil
+	end
+	local nl = deathBuckets.__nanoLight
+	if not (nl and nl.bridgeReady) then
+		return
+	end
+	if nl.removeBatchReady then
+		Script.LuaUI.EnvNanoBallisticLightRemoveBatch(batch, count)
+		return
+	end
+	local remove = Script.LuaUI.EnvNanoBallisticLightRemove
+	for i = 1, count do
+		remove(batch[i])
+	end
+end
 
 -- Per-builder cache: avoids re-fetching nano pieces / team color every frame.
 -- builderID -> info table, or false sentinel for non-builders / teamless units.
@@ -886,7 +1130,9 @@ void main() {
 	float spawnFrame   = velAndSpawnFrame.w;
 	float deathFrame   = rotData.w;
 
-	if (currentFrame >= deathFrame) {
+	// Dead, or not yet due: stride-staggered batches carry spawn frames a
+	// little ahead of the frame they were written in.
+	if (currentFrame >= deathFrame || currentFrame < spawnFrame) {
 		v_dead = 1.0;
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 		v_worldPos = vec3(0.0);
@@ -1640,18 +1886,18 @@ local recentFactoryBuildTargetCache = {}
 -- position. Particle position formula is `pos = spawn + vel * (frame - spawnFrame)`,
 -- so we rewrite spawn = current pos, vel = (newTarget - currentPos)/remaining,
 -- spawnFrame = current frame. Death stays the same.
---   homingByBuilder[builderID] = { {id=, pieceIdx=, death=}, ... }
+--   homingByBuilder[builderID] = { record, ... }   (see appendTrackRecord)
 local homingByBuilder = {}
-local HOMING_MAX_PER_BUILDER = 96 -- safety cap; oldest entries drop off
+local HOMING_MAX_PER_BUILDER = 128 -- safety cap in records (one per emit batch); oldest drop off
 
 -- Forward homing: outbound particles aimed at a UNIT target (repair, capture)
 -- bend toward the target's CURRENT mid-position. Same rewrite trick as inverse.
 -- Keyed by target so each target's position resolves once per frame.
---   homingFwdByTarget[targetUnitID] = { {id=, death=}, ... }
+--   homingFwdByTarget[targetUnitID] = { record, ... }   (see appendTrackRecord)
 local homingFwdByTarget = {}
 local targetPosCache = {} -- unitID -> [epoch, x, y, z]
-local targetIncompleteCache = {} -- unitID -> [epoch, isBeingBuilt]
-local HOMING_FWD_MAX_PER_TARGET = 384 -- safety cap per repaired/captured unit
+local targetIncompleteCache = {} -- unitID -> [epoch, isBeingBuilt, lastIncompleteFrame]
+local HOMING_FWD_MAX_PER_TARGET = 512 -- safety cap in records per repaired/captured/assisted unit
 
 -- Reclaim-completion burst tracking. While a tracked unit is being reclaimed
 -- by one or more of our builders, we record the builder set so that on
@@ -1671,7 +1917,7 @@ local reclaimTargetBuildProgress = {}
 -- Forward emissions aimed at an UNFINISHED unit are NOT registered in
 -- homingFwdByTarget (HOMING_SKIP_INCOMPLETE early-returns) so they don't curve
 -- toward a moving factory exit. We still track them here in a fade-only list
--- (same {id, death} layout) for the per-particle death fade if that unit dies
+-- (same record layout) for the per-particle death fade if that unit dies
 -- or is cancelled mid-build. Cleared on UnitFinished and UnitDestroyed (both
 -- also fade so trailing spray dissolves cleanly).
 local fadeFwdByTarget = {}
@@ -1690,6 +1936,54 @@ function U.recycleTrackList(list)
 			list[i] = nil
 		end
 	end
+end
+
+-- Tracking records describe one emitNano batch: particle IDs [f, f + n) were
+-- handed out consecutively, share a nano piece (pi), clamp flag (gc), light
+-- flag (lc) and jitter basis (jc/js), and the last of them dies at frame d.
+-- Homing and fade passes walk the ID range and read per-particle state
+-- straight from the VBO mirror, so emission never allocates or fills a
+-- per-particle Lua table. Records are pooled in U._trackEntryFree; emitNano
+-- files them inline and only calls this when a list has hit its cap.
+--
+-- Append a record to a tracking list, keeping the list under `cap` records:
+-- expired records are compacted away first, and only if the list is still
+-- full do the oldest records stop being tracked.
+local function appendTrackRecord(list, rec, cap, frame)
+	local n = #list
+	if n >= cap then
+		local free = U._trackEntryFree
+		local w = 0
+		for i = 1, n do
+			local r = list[i]
+			if frame >= r.d then
+				free[#free + 1] = r
+			else
+				w = w + 1
+				list[w] = r
+			end
+		end
+		for i = n, w + 1, -1 do
+			list[i] = nil
+		end
+		n = w
+		if n >= cap then
+			-- Still full of live records: retire the oldest half in one pass,
+			-- so a busy target costs O(1) amortized per append instead of O(cap).
+			local drop = mathFloor(n / 2)
+			for i = 1, drop do
+				free[#free + 1] = list[i]
+			end
+			for i = 1, n - drop do
+				list[i] = list[i + drop]
+			end
+			for i = n - drop + 1, n do
+				list[i] = nil
+			end
+			n = n - drop
+		end
+	end
+	list[n + 1] = rec
 end
 
 local function getBuilderInfo(builderID)
@@ -1794,86 +2088,23 @@ end
 -- Emission
 --------------------------------------------------------------------------------
 
-local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames, inverse)
-	if not nanoVBO then
-		return
-	end
 
-	local death = frame + lifetime
-
-	local rotVal = U.ROT_VAL_BASE + U.ROT_VAL_RANGE * (mathRandom() * 2 - 1)
-	local rotVel = U.ROT_VEL_BASE + U.ROT_VEL_RANGE * (mathRandom() * 2 - 1)
-
-	-- Per-particle size and alpha jitter. Size is packed into w alongside
-	-- fadeFrames; alpha replaces the flat NANO_ALPHA in the color attribute.
-	local sizeVar = U.SIZE_VAR
-	local nanoAlpha = U.NANO_ALPHA
-	local alphaVar = U.ALPHA_VAR
-	local sizeMult = (sizeVar > 0) and (1.0 + sizeVar * (mathRandom() * 2 - 1)) or 1.0
-	local alpha = (alphaVar > 0) and (nanoAlpha * (1.0 + alphaVar * (mathRandom() * 2 - 1))) or nanoAlpha
-	if alpha < 0 then
-		alpha = 0
-	end
-
-	local id = nextID
-	nextID = nextID + 1
-
-	local s = instanceScratch
-	s[1] = px
-	s[2] = py
-	s[3] = pz
-	s[4] = packSizeFade(sizeMult, fadeFrames, inverse)
-	s[5] = vx
-	s[6] = vy
-	s[7] = vz
-	s[8] = frame
-	s[9] = r
-	s[10] = g
-	s[11] = b
-	s[12] = alpha
-	s[13] = rotVal
-	s[14] = rotVel
-	s[15] = frame
-	s[16] = death
-
-	if pushElementInstance(nanoVBO, s, id, false, true, nil) then
-		local bucket = deathBuckets[death]
-		if bucket then
-			bucket[#bucket + 1] = id
-		else
-			bucket = U.acquireDeathBucket()
-			bucket[1] = id
-			deathBuckets[death] = bucket
-		end
-		local oldest = deathBuckets.__oldestFrame
-		if not oldest or death < oldest then
-			deathBuckets.__oldestFrame = death
-		end
-		local latest = deathBuckets.__latestFrame
-		if not latest or death > latest then
-			deathBuckets.__latestFrame = death
-		end
-		U.expandParticleBounds(death, px, py, pz, px + vx * lifetime, py + vy * lifetime, pz + vz * lifetime)
-		liveCount = liveCount + 1
-		return id
-	end
-end
-
--- Multi-emit form: count >= 1 spawns that many particles in a single call,
--- amortising piece-pos lookup, sqrt, range gate, normalize, jitter scale, LOS
--- gate selection and colour/fade lookup across the batch. Per-particle work
--- is only jitter rejection sampling, optional speed variance, spawnParticle
--- and homing register. Used by scanBuilders' single-piece path and by the
--- multi-piece round-robin (one batched call per piece).
+-- Multi-emit form: count >= 1 spawns that many particles in a single call.
+-- Everything constant across the batch -- piece position, range gate,
+-- direction, jitter scale, colour, fade window, LOS decision, forward-homing
+-- classification -- is resolved once; the per-particle body is a few table
+-- reads, some multiplies and sixteen VBO-mirror writes. Bookkeeping that used
+-- to be per particle (pool bounds, oldest/latest death frame, homing / fade /
+-- clamp tracking) happens once per batch: particle IDs are consecutive, so a
+-- single {firstID, count, ...} record addresses every particle. Used by
+-- scanBuilders' single-piece path, the multi-piece round-robin (one batched
+-- call per piece), virtual-stream catch-up and the reclaim burst.
 --
--- spreadFrames: when > 0, stagger the batch's spawn times across this many
--- frames so a high-stride visit doesn't dump a clumped blob at the
--- nanopiece. Each particle is advanced along its velocity by a per-particle
--- time offset, simulating continuous emission since the last visit. The
--- caller bounds this to ~one steady-state visit interval (stride * runEvery)
--- so particles only get nudged a small distance ahead of the source -- they
--- must NOT be placed partway to the target. Defaults to 0 (legacy
--- simultaneous spawn) when omitted.
+-- spreadFrames: number of sim frames this batch accounts for (the scan's
+-- stride compensation). Particles get spawn frames spread over
+-- [frame, frame + spreadFrames) and the shader hides each until its own
+-- spawn frame, so the batch streams out of the nozzle one particle per frame
+-- instead of appearing as a clump. 0 or 1 spawns everything at `frame`.
 local function emitNano(
 	builderID,
 	info,
@@ -1889,6 +2120,10 @@ local function emitNano(
 	spreadFrames,
 	catchupAgeFrames
 )
+	local vbo = nanoVBO
+	if not vbo then
+		return
+	end
 	count = count or 1
 	spreadFrames = spreadFrames or 0
 	catchupAgeFrames = catchupAgeFrames or 0
@@ -1897,76 +2132,128 @@ local function emitNano(
 	local clampGuideY
 	local clampPeakT
 
-	-- Spring.GetUnitPiecePosDir is the hot Spring->C call here. Cached by
-	-- (unitID, pieceIdx) for the duration of one scan frame, invalidated by
-	-- per-frame epoch bump. Same builder/piece often emits multiple particles
-	-- per frame (resurrect dual-emit, multi-piece cycling).
-	local key = builderID * 256 + pieceIdx
-	local entry = piecePosCache[key]
-	local sx, sy, sz
-	if entry and entry[1] == piecePosEpoch then
-		sx, sy, sz = entry[2], entry[3], entry[4]
+	local sx, sy, sz, len, invLen, ndx, ndy, ndz, jitterScale, fadeBandKeep
+	-- Emitter geometry cache. A static single-nozzle builder (nano turret)
+	-- working a static endpoint produces the same piece position, clamp gate,
+	-- length, direction, jitter scale and range gate on every visit, so they
+	-- are kept on `info` and only refreshed every EMIT_CTX_FRAMES -- or every
+	-- 2 frames while the head may still be turning toward a fresh target.
+	local ctxUntil = info.ctxUntil
+	if
+		ctxUntil
+		and frame < ctxUntil
+		and info.ctxPiece == pieceIdx
+		and info.ctxEndX == endX
+		and info.ctxEndY == endY
+		and info.ctxEndZ == endZ
+	then
+		sx, sy, sz = info.ctxSx, info.ctxSy, info.ctxSz
+		clampThisEmit, clampGuideY, clampPeakT = info.ctxClamp, info.ctxGuideY, info.ctxPeakT
+		endY = info.ctxEndYc
+		len, invLen = info.ctxLen, info.ctxInvLen
+		ndx, ndy, ndz = info.ctxNdx, info.ctxNdy, info.ctxNdz
+		jitterScale = info.ctxJitterScale
+		fadeBandKeep = info.ctxFadeBand
 	else
-		sx, sy, sz = spGetUnitPiecePosDir(builderID, pieceIdx)
-		if not sx then
-			return
-		end
-		if entry then
-			entry[1] = piecePosEpoch
-			entry[2] = sx
-			entry[3] = sy
-			entry[4] = sz
+		local rawEndY = endY
+		-- Spring.GetUnitPiecePosDir is the hot Spring->C call here. Cached by
+		-- (unitID, pieceIdx) for the duration of one scan frame, invalidated by
+		-- per-frame epoch bump. Same builder/piece often emits multiple particles
+		-- per frame (resurrect dual-emit, multi-piece cycling).
+		local key = builderID * 256 + pieceIdx
+		local entry = piecePosCache[key]
+		if entry and entry[1] == piecePosEpoch then
+			sx, sy, sz = entry[2], entry[3], entry[4]
 		else
-			piecePosCache[key] = { piecePosEpoch, sx, sy, sz }
-		end
-	end
-
-	if U.GROUND_CLAMP_ENABLED and not info.isFactory then
-		clampThisEmit, clampGuideY, clampPeakT = shouldClampEmit(builderID, sx, sy, sz, endX, endY, endZ, frame)
-		if clampThisEmit then
-			endY = clampYAboveGround(endX, endY, endZ, frame)
-		end
-	end
-
-	local dx, dy, dz = endX - sx, endY - sy, endZ - sz
-	local lenSq = dx * dx + dy * dy + dz * dz
-	if lenSq < 1.0 then
-		return
-	end
-	local len = mathSqrt(lenSq)
-
-	-- Range gate for moving-unit targets. Engine reach is (buildDistance +
-	-- target radius); buildDistance alone under-counts heavily for large
-	-- buildees. effectiveBD precomputed on meta at resolveTarget time. Hard
-	-- cull is one compare; fade-band keep is rolled per-particle inside the loop.
-	-- IMPORTANT: engine buildDistance is a horizontal cylinder (XZ only), not a
-	-- sphere. A builder on a cliff has extra vertical distance but the same XZ
-	-- reach, so we must compare effectiveBD against horizontal distance only.
-	local fadeBandKeep
-	if targetUnitID then
-		local effectiveBD = info.targetMeta and info.targetMeta.effectiveBD
-		if effectiveBD then
-			local horzLen = mathSqrt(dx * dx + dz * dz)
-			local maxLen = effectiveBD * BUILD_RANGE_MAX_EXTENSION
-			if horzLen > maxLen then
+			sx, sy, sz = spGetUnitPiecePosDir(builderID, pieceIdx)
+			if not sx then
 				return
 			end
-			if horzLen > effectiveBD then
-				fadeBandKeep = (maxLen - horzLen) / (effectiveBD * (BUILD_RANGE_MAX_EXTENSION - 1.0))
+			if entry then
+				entry[1] = piecePosEpoch
+				entry[2] = sx
+				entry[3] = sy
+				entry[4] = sz
+			else
+				piecePosCache[key] = { piecePosEpoch, sx, sy, sz }
 			end
+		end
+
+		if U.GROUND_CLAMP_ENABLED and not info.isFactory then
+			clampThisEmit, clampGuideY, clampPeakT =
+				shouldClampEmit(builderID, sx, sy, sz, endX, endY, endZ, frame)
+			if clampThisEmit then
+				endY = clampYAboveGround(endX, endY, endZ, frame)
+			end
+		end
+
+		local dx, dy, dz = endX - sx, endY - sy, endZ - sz
+		local lenSq = dx * dx + dy * dy + dz * dz
+		if lenSq < 1.0 then
+			return
+		end
+		len = mathSqrt(lenSq)
+
+		-- Range gate for moving-unit targets. Engine reach is (buildDistance +
+		-- target radius); buildDistance alone under-counts heavily for large
+		-- buildees. effectiveBD precomputed on meta at resolveTarget time. Hard
+		-- cull is one compare; fade-band keep is rolled per-particle inside the loop.
+		-- IMPORTANT: engine buildDistance is a horizontal cylinder (XZ only), not a
+		-- sphere. A builder on a cliff has extra vertical distance but the same XZ
+		-- reach, so we must compare effectiveBD against horizontal distance only.
+		if targetUnitID then
+			local effectiveBD = info.targetMeta and info.targetMeta.effectiveBD
+			if effectiveBD then
+				local horzLen = mathSqrt(dx * dx + dz * dz)
+				local maxLen = effectiveBD * BUILD_RANGE_MAX_EXTENSION
+				if horzLen > maxLen then
+					return
+				end
+				if horzLen > effectiveBD then
+					fadeBandKeep = (maxLen - horzLen) / (effectiveBD * (BUILD_RANGE_MAX_EXTENSION - 1.0))
+				end
+			end
+		end
+
+		invLen = 1.0 / len
+		ndx, ndy, ndz = dx * invLen, dy * invLen, dz * invLen
+
+		-- Engine: dif += guRNG.NextVector() * jitterScale, where NextVector() is
+		-- rejection-sampled inside the unit sphere (GlobalRNG.h). Builders pass a
+		-- per-task radius (jitterScale = radius/len); factories use a fixed 0.15.
+		jitterScale = jitterRadius and (jitterRadius * invLen) or U.DIR_JITTER
+
+		if (not info.isMobile) and (not info.isFactory) and info.nPieces == 1 then
+			local meta = info.targetMeta
+			local since = meta and meta.since
+			local settling = (not since) or (frame - since) < EMIT_CTX_SETTLE_FRAMES
+			info.ctxUntil = frame + (settling and 2 or EMIT_CTX_FRAMES)
+			info.ctxPiece = pieceIdx
+			info.ctxEndX = endX
+			info.ctxEndY = rawEndY
+			info.ctxEndZ = endZ
+			info.ctxEndYc = endY
+			info.ctxSx = sx
+			info.ctxSy = sy
+			info.ctxSz = sz
+			info.ctxClamp = clampThisEmit
+			info.ctxGuideY = clampGuideY
+			info.ctxPeakT = clampPeakT
+			info.ctxLen = len
+			info.ctxInvLen = invLen
+			info.ctxNdx = ndx
+			info.ctxNdy = ndy
+			info.ctxNdz = ndz
+			info.ctxJitterScale = jitterScale
+			info.ctxFadeBand = fadeBandKeep
 		end
 	end
 
-	local invLen = 1.0 / len
-	local ndx, ndy, ndz = dx * invLen, dy * invLen, dz * invLen
-
-	-- Engine: dif += guRNG.NextVector() * jitterScale, where NextVector() is
-	-- rejection-sampled inside the unit sphere (GlobalRNG.h). Builders pass a
-	-- per-task radius (jitterScale = radius/len); factories use a fixed 0.15.
-	local jitterScale = jitterRadius and (jitterRadius * invLen) or U.DIR_JITTER
-
 	local r, g, b = info.r, info.g, info.b
-	local fadeFrames = inverse and FADE_FRAMES_RECLAIM or FADE_FRAMES_REPAIR
+	-- spawnPosAndSize.w packs sizeMult (low 1024) + fadeFrames * 1024 and is
+	-- negated for inverse (reclaim) particles; fadeTrackedRecords has the
+	-- matching unpack. The fade part is constant across the batch.
+	local fadePacked = (inverse and FADE_FRAMES_RECLAIM or FADE_FRAMES_REPAIR) * 1024
 	local infoIsMobile = info.isMobile
 	local speedVar = U.SPEED_VAR
 	local useWaypoint = clampThisEmit and U.GROUND_CLAMP_USE_WAYPOINT and clampGuideY and not inverse
@@ -1982,7 +2269,6 @@ local function emitNano(
 			fwdMaxRangeSq = maxRange * maxRange
 		end
 	end
-	local trackEntryFree = U._trackEntryFree
 
 	-- LOS check needed at all? Per-particle result is still cached on info
 	-- because position varies for inverse emissions, but most visits skip the
@@ -2015,39 +2301,116 @@ local function emitNano(
 		end
 	end
 
-	-- Stagger denominator: divide the symmetric spread window
-	-- [-spreadFrames, +spreadFrames] across `count` slots so particles are
-	-- evenly spaced in time (with sub-slot RNG jitter to avoid visible banding
-	-- when count is small). spreadInv == 0 disables staggering.
-	local spreadInv = (spreadFrames > 0 and count > 0) and (2 * spreadFrames / count) or 0
-	local spreadBase = -spreadFrames
+	-- Forward-homing classification for the whole batch (the answer depends
+	-- only on the target): 0 = no tracking, 1 = fade-only tracking because the
+	-- target is still under construction (HOMING_SKIP_INCOMPLETE), 2 = full
+	-- forward homing.
+	local fwdMode = 0
+	if (not inverse) and targetUnitID then
+		if HOMING_SKIP_INCOMPLETE then
+			local ient = targetIncompleteCache[targetUnitID]
+			local beingBuilt
+			-- A cached `true` is trusted until UnitFinished / UnitDestroyed
+			-- rewrite or drop the entry: an unfinished unit cannot become
+			-- finished without one of those callins, so no re-query per frame.
+			if ient and (ient[1] == piecePosEpoch or ient[2] == true) then
+				beingBuilt = ient[2]
+			else
+				beingBuilt = spGetUnitIsBeingBuilt(targetUnitID) and true or false
+				if ient then
+					ient[1] = piecePosEpoch
+					ient[2] = beingBuilt
+					if beingBuilt then
+						ient[3] = frame
+					end
+				else
+					ient = { piecePosEpoch, beingBuilt, beingBuilt and frame or -1 }
+					targetIncompleteCache[targetUnitID] = ient
+				end
+			end
+			if beingBuilt then
+				-- Track for death-fade: if the unfinished target dies or the
+				-- build is cancelled, UnitDestroyed fades these so the trailing
+				-- spray dissolves instead of popping.
+				fwdMode = 1
+			else
+				-- Grace window: still skip for a short time after completion so
+				-- the last particles don't chase the unit out.
+				local lastIncompleteFrame = ient[3] or -1
+				if lastIncompleteFrame >= 0 and (frame - lastIncompleteFrame) < HOMING_SKIP_GRACE_FRAMES then
+					fwdMode = 0
+				elseif U.NANO_PARTICLES_HOMING then
+					fwdMode = 2
+				end
+			end
+		elseif U.NANO_PARTICLES_HOMING then
+			fwdMode = 2
+		end
+	end
+
+	-- Spawn-frame stagger: the batch's particles get spawn frames spread over
+	-- [frame, frame + spreadFrames) -- `count` evenly spaced slots with
+	-- sub-slot RNG jitter -- and the shader hides each until its own spawn
+	-- frame, so a visit that accounts for several frames streams out one
+	-- particle per frame instead of a clump. spreadInv == 0 disables it.
+	local spreadInv = (spreadFrames > 1 and count > 0) and (spreadFrames / count) or 0
 	local jitterTable = U._jitterTable
 	local jitterCursor = U._jitterCursor
 	local jitterTableLast = U._jitterTableLast
+	local randTable = U._randTable
+	local randLast = U._RAND_TABLE_SIZE - 8
+	local rc = mathFloor(mathRandom() * randLast) + 1
+	local rotValBase, rotValRange = U.ROT_VAL_BASE, U.ROT_VAL_RANGE
+	local rotVelBase, rotVelRange = U.ROT_VEL_BASE, U.ROT_VEL_RANGE
+	local sizeVar, nanoAlpha, alphaVar = U.SIZE_VAR, U.NANO_ALPHA, U.ALPHA_VAR
+
+	-- Direct VBO-mirror writes. Particle IDs are handed out consecutively, so
+	-- the batch is fully described by (firstID, spawned) for the tracking
+	-- records filed below. Slots only ever append here; cull swaps the tail
+	-- into freed slots, which is why lookups always go through idToIndex.
+	local data = vbo.instanceData
+	local idToIndex = vbo.instanceIDtoIndex
+	local indexToID = vbo.indextoInstanceID
+	local step = vbo.instanceStep
+	local used = vbo.usedElements
+	local maxUsed = vbo.maxElements - 1
+	local id = nextID
+	local firstID = id
+	local firstJitter = jitterCursor
+	local spawned = 0
+	local minDeath, maxDeath = 1e18, -1
+	local bMinX, bMinY, bMinZ = 1e18, 1e18, 1e18
+	local bMaxX, bMaxY, bMaxZ = -1e18, -1e18, -1e18
+	local wpLatest
+	local lightBatch, lightN, lightCount
+	if lightBridge then
+		lightBatch = U._lightBatch
+		lightN = U._lightBatchN
+		lightCount = U._lightBatchCount
+		if nl.spawnFrame ~= frame then
+			nl.spawnFrame = frame
+			nl.spawnCount = 0
+		end
+	end
 
 	-- `repeat ... until true` with `break` is Lua 5.1's idiom for `continue`:
-	-- skip individual particles (fade-band drop, LOS hidden, lifetime
-	-- underflow, HOMING_SKIP_INCOMPLETE branches) without aborting the batch.
+	-- skip individual particles (fade-band drop, lifetime underflow, LOS
+	-- hidden) without aborting the batch. Everything that can skip a particle
+	-- runs BEFORE the jitter cursor advances, so the k-th spawned particle of
+	-- the batch always used jitter entry firstJitter + 3k: forward homing
+	-- rebuilds each particle's landing offset from that instead of storing it.
 	for i = 1, count do
 		repeat
 			if fadeBandKeep and mathRandom() > fadeBandKeep then
 				break
 			end
-
-			local jx = jitterTable[jitterCursor]
-			local jy = jitterTable[jitterCursor + 1]
-			local jz = jitterTable[jitterCursor + 2]
-			jitterCursor = jitterCursor + 3
-			if jitterCursor > jitterTableLast then
-				jitterCursor = 1
+			if rc > randLast then
+				rc = 1
 			end
-			local fdx = ndx + jx * jitterScale
-			local fdy = ndy + jy * jitterScale
-			local fdz = ndz + jz * jitterScale
 
 			local speed = NANO_SPEED
 			if speedVar > 0 then
-				speed = NANO_SPEED * (1.0 + speedVar * (mathRandom() * 2 - 1))
+				speed = NANO_SPEED * (1.0 + speedVar * (randTable[rc] * 2 - 1))
 				if speed < 0.1 then
 					speed = 0.1
 				end
@@ -2056,6 +2419,33 @@ local function emitNano(
 			if lifetime < 1 then
 				break
 			end
+
+			-- This particle's own spawn frame within the batch window.
+			local spawnF = frame
+			if spreadInv > 0 then
+				spawnF = frame + mathFloor(((i - 1) + randTable[rc + 1]) * spreadInv)
+			end
+			local shift = 0
+
+			-- Cold-offscreen catch-up: materialize a virtual particle already
+			-- partway along its path when the camera first sees this endpoint.
+			if catchupAgeFrames > 0 and lifetime > 1 then
+				local age = mathFloor(randTable[rc + 2] * catchupAgeFrames)
+				if age >= lifetime then
+					age = lifetime - 1
+				end
+				if age > 0 then
+					shift = shift + age
+					lifetime = lifetime - age
+				end
+			end
+
+			local jx = jitterTable[jitterCursor]
+			local jy = jitterTable[jitterCursor + 1]
+			local jz = jitterTable[jitterCursor + 2]
+			local fdx = ndx + jx * jitterScale
+			local fdy = ndy + jy * jitterScale
+			local fdz = ndz + jz * jitterScale
 			local vx, vy, vz = fdx * speed, fdy * speed, fdz * speed
 
 			-- Engine (ProjectileHandler::AddNanoParticle, inverse branch):
@@ -2070,45 +2460,16 @@ local function emitNano(
 				py = sy + fdy * len
 				pz = sz + fdz * len
 				vx, vy, vz = -vx, -vy, -vz
+				if clampThisEmit then
+					py = clampYAboveGround(px, py, pz, frame)
+				end
 			else
 				px, py, pz = sx, sy, sz
 			end
-			if clampThisEmit and inverse then
-				py = clampYAboveGround(px, py, pz, frame)
-			end
-
-			-- Stagger this particle's spawn along its velocity by `tOff` frames,
-			-- where tOff is in [-spreadFrames, +spreadFrames]. Negative offsets
-			-- place the particle slightly behind the nanopiece (partially
-			-- occluded by the builder model); positive offsets place it
-			-- slightly ahead. Lifetime is adjusted so total travel time to the
-			-- target remains constant. If the bounded window would somehow
-			-- exhaust the lifetime (very-close target), skip the particle.
-			if spreadInv > 0 then
-				local tOff = spreadBase + ((i - 1) + mathRandom()) * spreadInv
-				local newLifetime = lifetime - mathFloor(tOff)
-				if newLifetime < 1 then
-					break
-				end
-				px = px + vx * tOff
-				py = py + vy * tOff
-				pz = pz + vz * tOff
-				lifetime = newLifetime
-			end
-
-			-- Cold-offscreen catch-up: materialize a virtual particle already
-			-- partway along its path when the camera first sees this endpoint.
-			if catchupAgeFrames > 0 and lifetime > 1 then
-				local age = mathFloor(mathRandom() * catchupAgeFrames)
-				if age >= lifetime then
-					age = lifetime - 1
-				end
-				if age > 0 then
-					px = px + vx * age
-					py = py + vy * age
-					pz = pz + vz * age
-					lifetime = lifetime - age
-				end
+			if shift ~= 0 then
+				px = px + vx * shift
+				py = py + vy * shift
+				pz = pz + vz * shift
 			end
 
 			-- LOS filter: enemy emissions hidden when not in regular LOS / not
@@ -2128,12 +2489,21 @@ local function emitNano(
 					break
 				end
 			end
+			if used >= maxUsed then
+				-- VBO physically full; only reachable when the soft cap equals
+				-- the VBO size. The saturation gate handles the rest.
+				break
+			end
+			jitterCursor = jitterCursor + 3
+			if jitterCursor > jitterTableLast then
+				jitterCursor = 1
+			end
 
-			local wpFrame, finalX, finalY, finalZ
+			local wpFrame
 			if useWaypoint then
-				finalX = px + vx * lifetime
-				finalY = py + vy * lifetime
-				finalZ = pz + vz * lifetime
+				local finalX = px + vx * lifetime
+				local finalY = py + vy * lifetime
+				local finalZ = pz + vz * lifetime
 				local peak = clampPeakT or 0.5
 				if peak < 0.15 then
 					peak = 0.15
@@ -2155,247 +2525,287 @@ local function emitNano(
 					vx = (wpX - px) * invLeg1
 					vy = (wpY - py) * invLeg1
 					vz = (wpZ - pz) * invLeg1
-					wpFrame = frame + leg1
-				end
-			end
-
-			local pid = spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, fadeFrames, inverse)
-			if pid and clampThisEmit then
-				if useWaypoint then
-					if wpFrame then
-						registerGroundClampParticle(
-							pid,
-							frame + lifetime,
-							wpFrame,
-							finalX,
-							finalY,
-							finalZ,
-							targetUnitID
-						)
-					end
-				else
-					registerGroundClampParticle(pid, frame + lifetime)
-				end
-			end
-			if pid then
-				if lightBridge then
-					if nl.spawnFrame ~= frame then
-						nl.spawnFrame = frame
-						nl.spawnCount = 0
-					end
-					local spawnCount = nl.spawnCount or 0
-					if spawnCount < (nl.maxSpawnsPerFrame or 48) and nl.activeCount < (nl.maxActive or 2048) then
-						local sampleAccum = (nl.sampleAccum or 1.0) + (nl.sampleRate or 0.25)
-						if sampleAccum >= 1.0 then
-							nl.sampleAccum = sampleAccum - 1.0
-							nl.spawnCount = spawnCount + 1
-							local lightLifetime = mathFloor(lifetime * (nl.lifeMult or 2.2) + 0.5)
-							local minLifetime = nl.minLifetime or 14
-							local maxLifetime = nl.maxLifetime or 96
-							if lightLifetime < minLifetime then
-								lightLifetime = minLifetime
-							end
-							if lightLifetime > maxLifetime then
-								lightLifetime = maxLifetime
-							end
-							if lightLifetime > 1 then
-								local sustain = mathFloor(lightLifetime * (nl.sustainFrac or 0.7) + 0.5)
-								if sustain < 1 then
-									sustain = 1
-								end
-								if sustain > lightLifetime then
-									sustain = lightLifetime
-								end
-								local lightID = "NANOP_" .. pid
-								Script.LuaUI.EnvNanoBallisticLightSpawn(
-									lightID,
-									px,
-									py,
-									pz,
-									vx,
-									vy,
-									vz,
-									nl.spawnRadius or 25,
-									info.lr or r,
-									info.lg or g,
-									info.lb or b,
-									nl.alpha,
-									lightLifetime,
-									sustain,
-									0.35,
-									0.15,
-									0.20,
-									0.0,
-									frame
-								)
-								nl.active[pid] = frame
-								nl.ids[pid] = lightID
-								nl.activeCount = nl.activeCount + 1
-							end
-						else
-							nl.sampleAccum = sampleAccum
-						end
+					wpFrame = spawnF + leg1
+					if not wpLatest or wpFrame > wpLatest then
+						wpLatest = wpFrame
 					end
 				end
 			end
 
-			-- Inverse particles converge on the builder. If the builder moves
-			-- before the particle dies, the original straight-line trajectory
-			-- ends at a stale location. Track so applyHoming() can re-aim.
-			if inverse and pid and U.NANO_PARTICLES_HOMING then
-				local list = homingByBuilder[builderID]
-				if not list then
-					list = {}
-					homingByBuilder[builderID] = list
-				end
-				local viewRadius = len * (1 + jitterScale) + MAX_SPREAD_AHEAD_ELMOS
-				if not list._viewRadius or viewRadius > list._viewRadius then
-					list._viewRadius = viewRadius
-				end
-				local deathFrame = frame + lifetime
-				if not list._latestDeath or deathFrame > list._latestDeath then
-					list._latestDeath = deathFrame
-				end
-				local nL = #list
-				local p
-				if nL >= HOMING_MAX_PER_BUILDER then
-					p = list[1]
-					for i = 1, nL - 1 do
-						list[i] = list[i + 1]
-					end
-					list[nL] = p
-				else
-					local nFree = #trackEntryFree
-					p = trackEntryFree[nFree]
-					if p then
-						trackEntryFree[nFree] = nil
-					else
-						p = {}
-					end
-					list[nL + 1] = p
-				end
-				p.id = pid
-				p.pieceIdx = pieceIdx
-				p.death = frame + lifetime
-				p.gc = clampThisEmit
-				p.lc = infoIsMobile
-			elseif (not inverse) and pid and targetUnitID then
-				-- Forward emission aimed at a moving unit (repair/capture).
-				-- Track so applyForwardHoming() can curve the particle toward
-				-- the target's new position when it moves.
-				if HOMING_SKIP_INCOMPLETE then
-					local ient = targetIncompleteCache[targetUnitID]
-					local beingBuilt
-					if ient and ient[1] == piecePosEpoch then
-						beingBuilt = ient[2]
-					else
-						beingBuilt = spGetUnitIsBeingBuilt(targetUnitID) and true or false
-						if ient then
-							ient[1] = piecePosEpoch
-							ient[2] = beingBuilt
-							if beingBuilt then
-								ient[3] = frame
-							end
-						else
-							targetIncompleteCache[targetUnitID] =
-								{ piecePosEpoch, beingBuilt, beingBuilt and frame or -1 }
-						end
-					end
-					if beingBuilt then
-						-- Track for death-fade: if the unfinished target dies or
-						-- the build is cancelled, UnitDestroyed fades these so the
-						-- trailing spray dissolves instead of popping.
-						local flist = fadeFwdByTarget[targetUnitID]
-						if not flist then
-							flist = {}
-							fadeFwdByTarget[targetUnitID] = flist
-						end
-						local fn = #flist
-						local p
-						if fn >= FADE_FWD_MAX_PER_TARGET then
-							p = flist[1]
-							for i = 1, fn - 1 do
-								flist[i] = flist[i + 1]
-							end
-							flist[fn] = p
-						else
-							local nFree = #trackEntryFree
-							p = trackEntryFree[nFree]
-							if p then
-								trackEntryFree[nFree] = nil
-							else
-								p = {}
-							end
-							flist[fn + 1] = p
-						end
-						p.id = pid
-						p.death = frame + lifetime
-						p.gc = clampThisEmit
-						break
-					end
-					-- Grace window: still skip for a short time after
-					-- completion so the last particles don't chase the unit out.
-					local lastIncompleteFrame = ient and ient[3] or -1
-					if lastIncompleteFrame >= 0 and (frame - lastIncompleteFrame) < HOMING_SKIP_GRACE_FRAMES then
-						break
-					end
-				end
-				if not U.NANO_PARTICLES_HOMING then
-					break
-				end
-				-- Per-particle landing offset (jitter encodes a unique end-point)
-				-- so spray spread is preserved at the destination as the target moves.
-				local landingX = sx + fdx * len
-				local landingY = sy + fdy * len
-				local landingZ = sz + fdz * len
-				local offX = landingX - endX
-				local offY = landingY - endY
-				local offZ = landingZ - endZ
-				local list = homingFwdByTarget[targetUnitID]
-				if not list then
-					list = {}
-					homingFwdByTarget[targetUnitID] = list
-				end
-				local viewRadius = len * (1 + jitterScale) + MAX_SPREAD_AHEAD_ELMOS
-				if not list._viewRadius or viewRadius > list._viewRadius then
-					list._viewRadius = viewRadius
-				end
-				local deathFrame = frame + lifetime
-				if not list._latestDeath or deathFrame > list._latestDeath then
-					list._latestDeath = deathFrame
-				end
-				local nL = #list
-				local p
-				if nL >= HOMING_FWD_MAX_PER_TARGET then
-					p = list[1]
-					for i = 1, nL - 1 do
-						list[i] = list[i + 1]
-					end
-					list[nL] = p
-				else
-					local nFree = #trackEntryFree
-					p = trackEntryFree[nFree]
-					if p then
-						trackEntryFree[nFree] = nil
-					else
-						p = {}
-					end
-					list[nL + 1] = p
-				end
-				p.id = pid
-				p.death = frame + lifetime
-				p.ox = offX
-				p.oy = offY
-				p.oz = offZ
-				p.gc = clampThisEmit
-				p.builderID = builderID
-				p.pieceIdx = pieceIdx
-				p.maxRangeSq = fwdMaxRangeSq
-				p.lc = targetIsMobileUnit
+			local death = spawnF + lifetime
+			local rotVal = rotValBase + rotValRange * (randTable[rc + 3] * 2 - 1)
+			local rotVel = rotVelBase + rotVelRange * (randTable[rc + 4] * 2 - 1)
+			local sizeMult = 1.0
+			if sizeVar > 0 then
+				sizeMult = 1.0 + sizeVar * (randTable[rc + 5] * 2 - 1)
 			end
+			local alpha = nanoAlpha
+			if alphaVar > 0 then
+				alpha = nanoAlpha * (1.0 + alphaVar * (randTable[rc + 6] * 2 - 1))
+				if alpha < 0 then
+					alpha = 0
+				end
+			end
+			rc = rc + 7
+			local packed = mathFloor(sizeMult * 256 + 0.5) + fadePacked
+			if inverse then
+				packed = -packed
+			end
+
+			local base = used * step
+			used = used + 1
+			data[base + 1] = px
+			data[base + 2] = py
+			data[base + 3] = pz
+			data[base + 4] = packed
+			data[base + 5] = vx
+			data[base + 6] = vy
+			data[base + 7] = vz
+			data[base + 8] = spawnF
+			data[base + 9] = r
+			data[base + 10] = g
+			data[base + 11] = b
+			data[base + 12] = alpha
+			data[base + 13] = rotVal
+			data[base + 14] = rotVel
+			data[base + 15] = spawnF
+			data[base + 16] = death
+			idToIndex[id] = used
+			indexToID[used] = id
+
+			local bucket = deathBuckets[death]
+			if bucket then
+				bucket[#bucket + 1] = id
+			else
+				bucket = U.acquireDeathBucket()
+				bucket[1] = id
+				deathBuckets[death] = bucket
+			end
+			if death < minDeath then
+				minDeath = death
+			end
+			if death > maxDeath then
+				maxDeath = death
+			end
+
+			-- Batch trajectory bounds: spawn point and straight-line landing point.
+			local lx, ly, lz = px + vx * lifetime, py + vy * lifetime, pz + vz * lifetime
+			if px < bMinX then
+				bMinX = px
+			end
+			if px > bMaxX then
+				bMaxX = px
+			end
+			if lx < bMinX then
+				bMinX = lx
+			end
+			if lx > bMaxX then
+				bMaxX = lx
+			end
+			if py < bMinY then
+				bMinY = py
+			end
+			if py > bMaxY then
+				bMaxY = py
+			end
+			if ly < bMinY then
+				bMinY = ly
+			end
+			if ly > bMaxY then
+				bMaxY = ly
+			end
+			if pz < bMinZ then
+				bMinZ = pz
+			end
+			if pz > bMaxZ then
+				bMaxZ = pz
+			end
+			if lz < bMinZ then
+				bMinZ = lz
+			end
+			if lz > bMaxZ then
+				bMaxZ = lz
+			end
+
+			if lightBridge then
+				local spawnCount = nl.spawnCount or 0
+				if spawnCount < (nl.maxSpawnsPerFrame or 48) and nl.activeCount < (nl.maxActive or 2048) then
+					local sampleAccum = (nl.sampleAccum or 1.0) + (nl.sampleRate or 0.25)
+					if sampleAccum >= 1.0 then
+						nl.sampleAccum = sampleAccum - 1.0
+						nl.spawnCount = spawnCount + 1
+						local lightLifetime = mathFloor(lifetime * (nl.lifeMult or 2.2) + 0.5)
+						local minLifetime = nl.minLifetime or 14
+						local maxLifetime = nl.maxLifetime or 96
+						if lightLifetime < minLifetime then
+							lightLifetime = minLifetime
+						end
+						if lightLifetime > maxLifetime then
+							lightLifetime = maxLifetime
+						end
+						if lightLifetime > 1 then
+							local sustain = mathFloor(lightLifetime * (nl.sustainFrac or 0.7) + 0.5)
+							if sustain < 1 then
+								sustain = 1
+							end
+							if sustain > lightLifetime then
+								sustain = lightLifetime
+							end
+							local lightID = "NANOP_" .. id
+							-- Same argument order as EnvNanoBallisticLightSpawn;
+							-- U.flushLightBatch hands the whole frame over at once.
+							lightBatch[lightN + 1] = lightID
+							lightBatch[lightN + 2] = px
+							lightBatch[lightN + 3] = py
+							lightBatch[lightN + 4] = pz
+							lightBatch[lightN + 5] = vx
+							lightBatch[lightN + 6] = vy
+							lightBatch[lightN + 7] = vz
+							lightBatch[lightN + 8] = nl.spawnRadius or 25
+							lightBatch[lightN + 9] = info.lr or r
+							lightBatch[lightN + 10] = info.lg or g
+							lightBatch[lightN + 11] = info.lb or b
+							lightBatch[lightN + 12] = nl.alpha
+							lightBatch[lightN + 13] = lightLifetime
+							lightBatch[lightN + 14] = sustain
+							lightBatch[lightN + 15] = 0.35
+							lightBatch[lightN + 16] = 0.15
+							lightBatch[lightN + 17] = 0.20
+							lightBatch[lightN + 18] = 0.0
+							lightBatch[lightN + 19] = spawnF
+							lightN = lightN + 19
+							lightCount = lightCount + 1
+							nl.active[id] = frame
+							nl.ids[id] = lightID
+							nl.activeCount = nl.activeCount + 1
+						end
+					else
+						nl.sampleAccum = sampleAccum
+					end
+				end
+			end
+
+			id = id + 1
+			spawned = spawned + 1
 		until true
+		if used >= maxUsed then
+			break
+		end
 	end
 	U._jitterCursor = jitterCursor
+	if lightBridge then
+		U._lightBatchN = lightN
+		U._lightBatchCount = lightCount
+	end
+	if spawned == 0 then
+		return
+	end
+
+	nextID = id
+	vbo.usedElements = used
+	liveCount = liveCount + spawned
+	local oldest = deathBuckets.__oldestFrame
+	if not oldest or minDeath < oldest then
+		deathBuckets.__oldestFrame = minDeath
+	end
+	local latest = deathBuckets.__latestFrame
+	if not latest or maxDeath > latest then
+		deathBuckets.__latestFrame = maxDeath
+	end
+	-- One bounds expansion per batch, filed under the batch's last death frame
+	-- so it stays in the culling union for as long as any of its particles live.
+	U.expandParticleBounds(maxDeath, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
+
+	if clampThisEmit and (wpLatest or not useWaypoint) then
+		registerGroundClampRecord(
+			firstID,
+			spawned,
+			maxDeath,
+			wpLatest,
+			endX,
+			endY,
+			endZ,
+			targetUnitID,
+			firstJitter,
+			jitterScale * len
+		)
+	end
+
+	-- Tracking record for the batch (see appendTrackRecord for the layout):
+	--   inverse:     homingByBuilder -- particles converge on the builder; if it
+	--                moves before they die, applyHoming() re-aims them.
+	--   fwdMode 1:   fadeFwdByTarget -- fade-only tracking for an unfinished target.
+	--   fwdMode 2:   homingFwdByTarget -- forward emission at a moving unit
+	--                (repair/capture); applyForwardHoming() curves the particles
+	--                after it. Per-particle landing offsets are rebuilt from the
+	--                jitter table (entry jc + 3k for the k-th particle, scaled
+	--                by js), which preserves the spray spread as the target moves.
+	local list, cap
+	if inverse then
+		if U.NANO_PARTICLES_HOMING then
+			list = homingByBuilder[builderID]
+			if not list then
+				list = {}
+				homingByBuilder[builderID] = list
+			end
+			cap = HOMING_MAX_PER_BUILDER
+		end
+	elseif fwdMode == 1 then
+		list = fadeFwdByTarget[targetUnitID]
+		if not list then
+			list = {}
+			fadeFwdByTarget[targetUnitID] = list
+		end
+		cap = FADE_FWD_MAX_PER_TARGET
+	elseif fwdMode == 2 then
+		list = homingFwdByTarget[targetUnitID]
+		if not list then
+			list = {}
+			homingFwdByTarget[targetUnitID] = list
+		end
+		cap = HOMING_FWD_MAX_PER_TARGET
+	end
+	if list then
+		if fwdMode ~= 1 then
+			local viewRadius = len * (1 + jitterScale) + MAX_SPREAD_AHEAD_ELMOS
+			if not list._viewRadius or viewRadius > list._viewRadius then
+				list._viewRadius = viewRadius
+			end
+			if not list._latestDeath or maxDeath > list._latestDeath then
+				list._latestDeath = maxDeath
+			end
+		end
+		local free = U._trackEntryFree
+		local nFree = #free
+		local rec = free[nFree]
+		if rec then
+			free[nFree] = nil
+			rec.faded = nil
+		else
+			rec = {}
+		end
+		rec.f = firstID
+		rec.n = spawned
+		rec.d = maxDeath
+		rec.gc = clampThisEmit
+		if inverse then
+			rec.pi = pieceIdx
+			rec.lc = infoIsMobile
+		elseif fwdMode == 2 then
+			rec.bid = builderID
+			rec.pi = pieceIdx
+			rec.mrs = fwdMaxRangeSq
+			rec.lc = targetIsMobileUnit
+			rec.jc = firstJitter
+			rec.js = jitterScale * len
+		end
+		local n = #list
+		if n < cap then
+			list[n + 1] = rec
+		else
+			appendTrackRecord(list, rec, cap, frame)
+		end
+	end
 end
 
 local function emitNanoBatch(
@@ -2629,6 +3039,7 @@ local function fireReclaimBurst(targetUnitID, targetUnitDefID, attackerTeam, bui
 			end
 		end
 	end
+	U.flushLightBatch()
 end
 
 --------------------------------------------------------------------------------
@@ -2713,7 +3124,10 @@ local function resolveTarget(info, cmdID, targetID)
 
 	local px, py, pz
 	local cached = emitTargetPosCache[meta.targetID]
-	if cached and cached[1] == piecePosEpoch then
+	-- cached[5] marks a target that cannot move (feature, immobile unit): its
+	-- position is kept until UnitDestroyed / FeatureDestroyed drop the entry
+	-- instead of being re-queried by every builder on every scan frame.
+	if cached and (cached[5] or cached[1] == piecePosEpoch) then
 		px, py, pz = cached[2], cached[3], cached[4]
 	else
 		if meta.isFeature then
@@ -2724,13 +3138,15 @@ local function resolveTarget(info, cmdID, targetID)
 			px, py, pz = mx, my, mz
 		end
 		if px then
+			local static = (meta.isFeature or not meta.isMobileUnit) and true or false
 			if cached then
 				cached[1] = piecePosEpoch
 				cached[2] = px
 				cached[3] = py
 				cached[4] = pz
+				cached[5] = static
 			else
-				emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz }
+				emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz, static }
 			end
 		end
 	end
@@ -2763,8 +3179,17 @@ U._accrueColdVirtualStream = function(unitID, info, meta, frame)
 		return
 	end
 
+	-- Same stride compensation as the visible path in scanBuilders.
+	local lastVisit = info.lastVisitFrame
+	local elapsed = lastVisit and (frame - lastVisit) or 1
+	local compCap = U._emitCompCap or MIN_SCAN_STRIDE
+	if elapsed < 1 then
+		elapsed = 1
+	elseif elapsed > compCap then
+		elapsed = compCap
+	end
 	info.lastVisitFrame = frame
-	local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * (NanoParticlesRate or 1.0)
+	local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticlesRate or 1.0)
 	local accum = (info.emitAccum or 0) + rate
 	local emits = mathFloor(accum)
 	info.emitAccum = accum - emits
@@ -2854,6 +3279,10 @@ local function materializeVisibleVirtualStreams(frame)
 		idx = 1
 	end
 	piecePosEpoch = piecePosEpoch + 1
+	-- Catch-up bursts run on the draw thread; bound the particles materialized
+	-- per draw frame so a camera jump onto a busy base costs a few frames of
+	-- gradual fill-in instead of one long frame.
+	local budget = U.VIRTUAL_PARTICLE_BUDGET_PER_DRAW or 256
 
 	local checked = 0
 	while checked < maxChecks and listCount > 0 do
@@ -2879,9 +3308,19 @@ local function materializeVisibleVirtualStreams(frame)
 				visible = Spring.IsSphereInView(vx, meta.virtualY, meta.virtualZ, radius) and true or false
 			end
 			if visible then
+				if budget <= 0 then
+					-- Budget spent: leave this stream queued for the next draw.
+					deathBuckets.__virtualStreamsNeedCheck = true
+					break
+				end
+				local emitNow = virtualEmits
+				if emitNow > budget then
+					emitNow = budget
+				end
 				local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID =
 					resolveTarget(info, meta.cmdID, meta.targetID)
 				meta = info.targetMeta
+				remove = true
 				if ex and meta then
 					if info.isFactory then
 						jitterRadius = nil
@@ -2891,9 +3330,16 @@ local function materializeVisibleVirtualStreams(frame)
 					meta.lastVisibleFrame = frame
 					meta.coldOffscreenUntil = 0
 					local catchupAgeFrames = meta.virtualAgeFrames or 0
-					meta.virtualEmits = 0
-					meta.virtualAgeFrames = 0
-					meta.virtualFrame = frame
+					meta.virtualEmits = virtualEmits - emitNow
+					if meta.virtualEmits > 0 then
+						-- Partially materialized: keep it listed for the next draw.
+						remove = false
+						deathBuckets.__virtualStreamsNeedCheck = true
+					else
+						meta.virtualAgeFrames = 0
+						meta.virtualFrame = frame
+					end
+					budget = budget - emitNow
 					emitNanoBatch(
 						unitID,
 						info,
@@ -2905,12 +3351,11 @@ local function materializeVisibleVirtualStreams(frame)
 						frame,
 						targetUnitID,
 						isResurrect,
-						virtualEmits,
+						emitNow,
 						0,
 						catchupAgeFrames
 					)
 				end
-				remove = true
 			end
 		else
 			remove = true
@@ -2933,6 +3378,7 @@ local function materializeVisibleVirtualStreams(frame)
 	end
 	deathBuckets.__virtualStreamCursor = idx
 	deathBuckets.__virtualStreamCount = listCount
+	U.flushLightBatch()
 	local postUsed = nanoVBO.usedElements or 0
 	if postUsed > preUsed then
 		uploadElementRange(nanoVBO, preUsed, postUsed)
@@ -2958,9 +3404,19 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 	local idtoIndex = nanoVBO.instanceIDtoIndex
 	local step = nanoVBO.instanceStep
 	local trackEntryFree = U._trackEntryFree
+	local nl = deathBuckets.__nanoLight
+	local lightActive = nl and nl.bridgeReady and nl.active
+	local lightMinFrames = nl and nl.correctEvery or 10
+	local dirtySlots = U._dirtySlots
+	local dn = U._dirtySlotN
+	-- This frame's coset: each builder's list is handled every HOMING_RUN_EVERY frames.
+	local phase = U.HOMING_SPREAD and (frame % HOMING_RUN_EVERY) or nil
 
 	for builderID, list in pairs(homingByBuilder) do
 		repeat
+			if phase and builderID % HOMING_RUN_EVERY ~= phase then
+				break
+			end
 			local info = builderCache[builderID]
 			if not info or not spValidUnitID(builderID) then
 				U.recycleTrackList(list)
@@ -2977,17 +3433,24 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 				break
 			end
 			local writeIdx = 0
-			-- Hoist the high half of the piecePosCache key out of the per-particle
-			-- loop. Hot path: ~thousands of particles per scan in heavy reclaim.
+			-- Hoist the high half of the piecePosCache key out of the per-record
+			-- loop. Hot path: thousands of particles per scan in heavy reclaim.
 			local builderKeyHi = builderID * 256
 			local clampDelta = U.GROUND_CLAMP_SMART_DELTA
-			for i = 1, #list do
-				local p = list[i]
-				local remaining = p.death - frame
-				local slot = (remaining > 1) and idtoIndex[p.id] or nil
-				if slot then
-					-- Resolve current piece position via the per-frame cache.
-					local pieceIdx = p.pieceIdx
+			-- Bounds of everything rewritten this pass, filed once per builder
+			-- under the latest death frame still tracked.
+			local any = false
+			local lDeath = -1
+			local bMinX, bMinY, bMinZ = 1e18, 1e18, 1e18
+			local bMaxX, bMaxY, bMaxZ = -1e18, -1e18, -1e18
+			for ri = 1, #list do
+				local rec = list[ri]
+				if frame >= rec.d - 1 then
+					-- Whole batch dead or dying next frame: drop the record.
+					trackEntryFree[#trackEntryFree + 1] = rec
+				else
+					-- Resolve the batch's piece position via the per-frame cache.
+					local pieceIdx = rec.pi
 					local key = builderKeyHi + pieceIdx
 					local entry = piecePosCache[key]
 					local pieceMoving
@@ -3039,92 +3502,161 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 						end
 					end
 
-					if nx then
-						if pieceMoving == false and not p.gc then
-							writeIdx = writeIdx + 1
-							list[writeIdx] = p
-						else
-							local base = (slot - 1) * step
-							local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
-							local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
-							local spawnF = data[base + 8]
-							local elapsed = frame - spawnF
-							local cpx = sx + vx * elapsed
-							local cpy = sy + vy * elapsed
-							local cpz = sz + vz * elapsed
-							local aimY = ny
-							if p.gc then
-								-- For reclaim on high-to-low terrain, keep particles above current
-								-- ground during homing updates so they travel along the upper
-								-- surface before descending at the cliff break.
-								local gyCur = getGroundYMargin(cpx, cpz, frame)
-								if cpy < gyCur then
-									cpy = gyCur
+					if not nx then
+						trackEntryFree[#trackEntryFree + 1] = rec
+					elseif pieceMoving == false and not rec.gc then
+						-- Static piece, no terrain guidance: spawn-time aim is
+						-- still exact, nothing to rewrite for this batch.
+						writeIdx = writeIdx + 1
+						list[writeIdx] = rec
+					else
+						local gc = rec.gc
+						local gyDst
+						if gc then
+							gyDst = entry[9]
+							if gyDst == nil then
+								gyDst = getGroundYMargin(nx, nz, frame)
+								entry[9] = gyDst
+							end
+						end
+						local lc = rec.lc and lightActive
+						local recAny = false
+						for id = rec.f, rec.f + rec.n - 1 do
+							local slot = idtoIndex[id]
+							if slot then
+								local base = (slot - 1) * step
+								-- A particle whose spawn frame is still ahead (stride
+								-- stagger) has not moved yet: re-aim it from its spawn
+								-- point and keep its spawn frame.
+								local startF = data[base + 8]
+								if startF < frame then
+									startF = frame
 								end
-								local gyDst = entry and entry[9]
-								if gyDst == nil then
-									gyDst = getGroundYMargin(nx, nz, frame)
-									if entry then
-										entry[9] = gyDst
+								local remaining = data[base + 16] - startF
+								if remaining > 1 then
+									local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+									local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+									local elapsed = startF - data[base + 8]
+									local cpx = sx + vx * elapsed
+									local cpy = sy + vy * elapsed
+									local cpz = sz + vz * elapsed
+									local aimY = ny
+									local lifted = false
+									if gc then
+										-- For reclaim on high-to-low terrain, keep particles above current
+										-- ground during homing updates so they travel along the upper
+										-- surface before descending at the cliff break.
+										local gyCur = getGroundYMargin(cpx, cpz, frame)
+										if cpy < gyCur then
+											cpy = gyCur
+											lifted = true
+										end
+										if aimY < gyDst then
+											aimY = gyDst
+										end
+										if gyCur > (aimY + clampDelta) then
+											aimY = gyCur
+										end
+									end
+									-- Inverse particles all converge on the builder piece (engine
+									-- behaviour: speed = -dif*3 makes pos arrive at startPos exactly).
+									-- Visual spread comes from staggered spawn positions, not from
+									-- the velocity direction, so simple aim is correct here.
+									local invR = 1.0 / remaining
+									local nvx = (nx - cpx) * invR
+									local nvy = (aimY - cpy) * invR
+									local nvz = (nz - cpz) * invR
+									-- No rewrite when nothing changes: a particle already flying
+									-- straight at an unmoved aim from above ground (the common
+									-- terrain-guided case) needs neither VBO write nor upload.
+									local dvx, dvy, dvz = nvx - vx, nvy - vy, nvz - vz
+									if lifted or (dvx * dvx + dvy * dvy + dvz * dvz) > 1e-6 then
+										data[base + 1] = cpx
+										data[base + 2] = cpy
+										data[base + 3] = cpz
+										data[base + 5] = nvx
+										data[base + 6] = nvy
+										data[base + 7] = nvz
+										data[base + 8] = startF
+										if cpx < bMinX then
+											bMinX = cpx
+										end
+										if cpx > bMaxX then
+											bMaxX = cpx
+										end
+										if cpy < bMinY then
+											bMinY = cpy
+										end
+										if cpy > bMaxY then
+											bMaxY = cpy
+										end
+										if cpz < bMinZ then
+											bMinZ = cpz
+										end
+										if cpz > bMaxZ then
+											bMaxZ = cpz
+										end
+										if lc then
+											local lastFix = lightActive[id]
+											if lastFix and (frame - lastFix) >= lightMinFrames then
+												local lightID = nl.ids[id]
+												if lightID then
+													lightActive[id] = frame
+													U.queueLightCorrection(lightID, cpx, cpy, cpz, nvx, nvy, nvz, frame)
+												end
+											end
+										end
+										local s0 = slot - 1
+										if s0 < dirtyMin then
+											dirtyMin = s0
+										end
+										if s0 + 1 > dirtyMax then
+											dirtyMax = s0 + 1
+										end
+										dn = dn + 1
+										dirtySlots[dn] = slot
+										recAny = true
 									end
 								end
-								if aimY < gyDst then
-									aimY = gyDst
-								end
-								if gyCur > (aimY + clampDelta) then
-									aimY = gyCur
-								end
 							end
-							-- Inverse particles all converge on the builder piece (engine
-							-- behaviour: speed = -dif*3 makes pos arrive at startPos exactly).
-							-- Visual spread comes from staggered spawn positions, not from
-							-- the velocity direction, so simple aim is correct here.
-							local invR = 1.0 / remaining
-							data[base + 1] = cpx
-							data[base + 2] = cpy
-							data[base + 3] = cpz
-							data[base + 5] = (nx - cpx) * invR
-							data[base + 6] = (aimY - cpy) * invR
-							data[base + 7] = (nz - cpz) * invR
-							data[base + 8] = frame
-							U.expandParticleBounds(p.death, cpx, cpy, cpz, nx, aimY, nz)
-							local nl = deathBuckets.__nanoLight
-							if p.lc and nl and nl.bridgeReady then
-								local lastFix = nl.active[p.id]
-								local minFrames = nl.correctEvery or 10
-								local lightID = nl.ids[p.id]
-								if lastFix and lightID and (frame - lastFix) >= minFrames then
-									nl.active[p.id] = frame
-									Script.LuaUI.EnvNanoBallisticLightCorrect(
-										lightID,
-										cpx,
-										cpy,
-										cpz,
-										(nx - cpx) * invR,
-										(aimY - cpy) * invR,
-										(nz - cpz) * invR,
-										frame
-									)
-								end
-							end
-							local s0 = slot - 1
-							if s0 < dirtyMin then
-								dirtyMin = s0
-							end
-							if s0 + 1 > dirtyMax then
-								dirtyMax = s0 + 1
-							end
-							writeIdx = writeIdx + 1
-							list[writeIdx] = p
 						end
-					else
-						trackEntryFree[#trackEntryFree + 1] = p
+						if recAny then
+							any = true
+							if rec.d > lDeath then
+								lDeath = rec.d
+							end
+							if nx < bMinX then
+								bMinX = nx
+							end
+							if nx > bMaxX then
+								bMaxX = nx
+							end
+							if nz < bMinZ then
+								bMinZ = nz
+							end
+							if nz > bMaxZ then
+								bMaxZ = nz
+							end
+							local aimTop = gc and gyDst or ny
+							if aimTop < ny then
+								aimTop = ny
+							end
+							if ny < bMinY then
+								bMinY = ny
+							end
+							if aimTop > bMaxY then
+								bMaxY = aimTop
+							end
+						end
+						writeIdx = writeIdx + 1
+						list[writeIdx] = rec
 					end
-				else
-					trackEntryFree[#trackEntryFree + 1] = p
 				end
 			end
-			-- Trim dropped entries (dead, missing slot, or no piece pos).
+			if any then
+				U.expandParticleBounds(lDeath, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
+			end
+			-- Trim dropped records (dead, or no piece pos).
 			for j = #list, writeIdx + 1, -1 do
 				list[j] = nil
 			end
@@ -3133,6 +3665,7 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 			end
 		until true
 	end
+	U._dirtySlotN = dn
 	return dirtyMin, dirtyMax
 end
 
@@ -3168,8 +3701,19 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 	local idtoIndex = nanoVBO.instanceIDtoIndex
 	local step = nanoVBO.instanceStep
 	local trackEntryFree = U._trackEntryFree
-	local function fadeParticle(slot, p)
-		local remaining = p.death - frame
+	local jitterTable = U._jitterTable
+	local jitterLen = U._jitterTableLast + 2
+	local nl = deathBuckets.__nanoLight
+	local lightActive = nl and nl.bridgeReady and nl.active
+	local lightMinFrames = nl and nl.correctEvery or 10
+	local dirtySlots = U._dirtySlots
+	local dn = U._dirtySlotN
+
+	-- Shorten one particle's life so the shader's fade ramp dissolves it; it
+	-- keeps coasting on its current trajectory. The record remembers it so
+	-- later passes leave it alone (re-fading would restart the alpha ramp).
+	local function fadeParticle(rec, id, slot, base)
+		local remaining = data[base + 16] - frame
 		if remaining <= 0 then
 			return false
 		end
@@ -3180,9 +3724,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 		if fadeFrames > remaining then
 			fadeFrames = remaining
 		end
-		local newDeath = frame + fadeFrames
-		local base = (slot - 1) * step
-		data[base + 16] = newDeath
+		data[base + 16] = frame + fadeFrames
 		local packed = data[base + 4]
 		local absPacked = packed < 0 and -packed or packed
 		local oldFade = mathFloor(absPacked / 1024)
@@ -3196,14 +3738,26 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 		if s0 + 1 > dirtyMax then
 			dirtyMax = s0 + 1
 		end
-		fadeNanoDeferredLight(p.id, frame, fadeFrames)
+		dn = dn + 1
+		dirtySlots[dn] = slot
+		local faded = rec.faded
+		if not faded then
+			faded = {}
+			rec.faded = faded
+		end
+		faded[id] = true
+		fadeNanoDeferredLight(id, frame, fadeFrames)
 		return true
 	end
 
 	targetPosEpoch = targetPosEpoch + 1
+	-- This frame's coset: each target's list is handled every HOMING_RUN_EVERY frames.
+	local phase = U.HOMING_SPREAD and (frame % HOMING_RUN_EVERY) or nil
 
 	for targetID, list in pairs(homingFwdByTarget) do
-		if not spValidUnitID(targetID) then
+		if phase and targetID % HOMING_RUN_EVERY ~= phase then
+			-- not this frame's coset
+		elseif not spValidUnitID(targetID) then
 			U.recycleTrackList(list)
 			homingFwdByTarget[targetID] = nil
 		else
@@ -3220,7 +3774,11 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				local h, maxH, _, _, bp = spGetUnitHealth(targetID)
 				if h and maxH and h >= maxH and (bp == nil or bp >= 1.0) then
 					if not list._fadingOut then
+						-- The fade flushes the shared slot list: hand it our slots
+						-- so far and continue from the emptied list.
+						U._dirtySlotN = dn
 						fadeOutHomingFwd(targetID)
+						dn = U._dirtySlotN
 						list._fadingOut = true
 					end
 				else
@@ -3237,7 +3795,9 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					if isAir then
 						local mt = spGetUnitMoveTypeData(targetID)
 						if mt and mt.aircraftState == "crashing" then
+							U._dirtySlotN = dn
 							fadeOutHomingFwd(targetID)
+							dn = U._dirtySlotN
 							U.recycleTrackList(list)
 							homingFwdByTarget[targetID] = nil
 							targetPosCache[targetID] = nil
@@ -3314,17 +3874,17 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					end
 
 					if entry[8] >= STATIONARY_SKIP_AFTER then
-						-- Stationary: just trim dead/missing particles from list,
-						-- skip the expensive per-particle rewrite. Spawn-time
-						-- velocity already aims at the (still-correct) target.
+						-- Stationary: just trim expired records, skip the
+						-- per-particle rewrite. Spawn-time velocity already aims
+						-- at the (still-correct) target.
 						local writeIdx = 0
-						for i = 1, #list do
-							local p = list[i]
-							if (p.death - frame) >= 1 and idtoIndex[p.id] then
-								writeIdx = writeIdx + 1
-								list[writeIdx] = p
+						for ri = 1, #list do
+							local rec = list[ri]
+							if frame >= rec.d - 1 then
+								trackEntryFree[#trackEntryFree + 1] = rec
 							else
-								trackEntryFree[#trackEntryFree + 1] = p
+								writeIdx = writeIdx + 1
+								list[writeIdx] = rec
 							end
 						end
 						for j = #list, writeIdx + 1, -1 do
@@ -3336,21 +3896,31 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 						end
 					else
 						local writeIdx = 0
-						for i = 1, #list do
-							local p = list[i]
-							local remaining = p.death - frame
-							local slot = (remaining >= 1) and idtoIndex[p.id] or nil
-							if slot then
-								local fadeParticleOut = false
-								local maxRangeSq = p.maxRangeSq
-								if maxRangeSq and p.builderID and p.pieceIdx then
-									local key = p.builderID * 256 + p.pieceIdx
+						-- Bounds of everything rewritten this pass, filed once per
+						-- target under the latest death frame still tracked.
+						local any = false
+						local lDeath = -1
+						local bMinX, bMinY, bMinZ = 1e18, 1e18, 1e18
+						local bMaxX, bMaxY, bMaxZ = -1e18, -1e18, -1e18
+						for ri = 1, #list do
+							local rec = list[ri]
+							if frame >= rec.d - 1 then
+								trackEntryFree[#trackEntryFree + 1] = rec
+							else
+								-- Build-range gate, once per batch: when the target has
+								-- left the emitting piece's horizontal reach, fade the
+								-- whole batch instead of chasing it.
+								local fadeAll = false
+								local maxRangeSq = rec.mrs
+								local builderID = rec.bid
+								if maxRangeSq and builderID then
+									local key = builderID * 256 + rec.pi
 									local bx, bz
 									local pent = piecePosCache[key]
 									if pent and pent[1] == piecePosEpoch then
 										bx, bz = pent[2], pent[4]
 									else
-										local px, py, pz = spGetUnitPiecePosDir(p.builderID, p.pieceIdx)
+										local px, py, pz = spGetUnitPiecePosDir(builderID, rec.pi)
 										if px then
 											if pent then
 												pent[1] = piecePosEpoch
@@ -3367,79 +3937,134 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 										local rdx = tx - bx
 										local rdz = tz - bz
 										if (rdx * rdx + rdz * rdz) > maxRangeSq then
-											fadeParticleOut = fadeParticle(slot, p)
+											fadeAll = true
 										end
 									end
 								end
-								if not fadeParticleOut then
-									local base = (slot - 1) * step
-									local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
-									local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
-									local spawnF = data[base + 8]
-									local elapsed = frame - spawnF
-									local cpx = sx + vx * elapsed
-									local cpy = sy + vy * elapsed
-									local cpz = sz + vz * elapsed
-									-- Aim at target + per-particle landing offset. The offset is the
-									-- engine's jitter-driven spread point for this specific particle,
-									-- so the spray width at the destination is preserved as the
-									-- target moves.
-									local aimX = tx + p.ox
-									local aimZ = tz + p.oz
-									local aimY = ty + p.oy
-									local dvx = aimX - cpx
-									local dvy = aimY - cpy
-									local dvz = aimZ - cpz
-									local invR = 1.0 / remaining
-									local needSpeedSq = (dvx * dvx + dvy * dvy + dvz * dvz) * (invR * invR)
-									if needSpeedSq > maxSpeedSq then
-										fadeParticleOut = fadeParticle(slot, p)
-									else
-										data[base + 1] = cpx
-										data[base + 2] = cpy
-										data[base + 3] = cpz
-										data[base + 5] = dvx * invR
-										data[base + 6] = dvy * invR
-										data[base + 7] = dvz * invR
-										data[base + 8] = frame
-										U.expandParticleBounds(p.death, cpx, cpy, cpz, aimX, aimY, aimZ)
-										local nl = deathBuckets.__nanoLight
-										if p.lc and nl and nl.bridgeReady then
-											local lastFix = nl.active[p.id]
-											local minFrames = nl.correctEvery or 10
-											local lightID = nl.ids[p.id]
-											if lastFix and lightID and (frame - lastFix) >= minFrames then
-												nl.active[p.id] = frame
-												Script.LuaUI.EnvNanoBallisticLightCorrect(
-													lightID,
-													cpx,
-													cpy,
-													cpz,
-													dvx * invR,
-													dvy * invR,
-													dvz * invR,
-													frame
-												)
+								local faded = rec.faded
+								local js = rec.js
+								local jc0 = rec.jc - 1
+								local firstID = rec.f
+								local lc = rec.lc and lightActive
+								local recAny = false
+								for id = firstID, firstID + rec.n - 1 do
+									local slot = idtoIndex[id]
+									if slot and not (faded and faded[id]) then
+										local base = (slot - 1) * step
+										-- Not-yet-due particles (stride stagger) are re-aimed
+										-- from their spawn point and keep their spawn frame.
+										local startF = data[base + 8]
+										if startF < frame then
+											startF = frame
+										end
+										local remaining = data[base + 16] - startF
+										if remaining >= 1 then
+											if fadeAll then
+												fadeParticle(rec, id, slot, base)
+											else
+												-- Aim at target + this particle's landing offset. The
+												-- offset is the jitter-driven spread point the particle
+												-- was emitted with, so the spray width at the
+												-- destination is preserved as the target moves.
+												local jidx = ((jc0 + 3 * (id - firstID)) % jitterLen) + 1
+												local aimX = tx + jitterTable[jidx] * js
+												local aimY = ty + jitterTable[jidx + 1] * js
+												local aimZ = tz + jitterTable[jidx + 2] * js
+												local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+												local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+												local elapsed = startF - data[base + 8]
+												local cpx = sx + vx * elapsed
+												local cpy = sy + vy * elapsed
+												local cpz = sz + vz * elapsed
+												local dvx = aimX - cpx
+												local dvy = aimY - cpy
+												local dvz = aimZ - cpz
+												local invR = 1.0 / remaining
+												local needSpeedSq = (dvx * dvx + dvy * dvy + dvz * dvz) * (invR * invR)
+												if needSpeedSq > maxSpeedSq then
+													fadeParticle(rec, id, slot, base)
+												else
+													local nvx, nvy, nvz = dvx * invR, dvy * invR, dvz * invR
+													data[base + 1] = cpx
+													data[base + 2] = cpy
+													data[base + 3] = cpz
+													data[base + 5] = nvx
+													data[base + 6] = nvy
+													data[base + 7] = nvz
+													data[base + 8] = startF
+													if cpx < bMinX then
+														bMinX = cpx
+													end
+													if cpx > bMaxX then
+														bMaxX = cpx
+													end
+													if aimX < bMinX then
+														bMinX = aimX
+													end
+													if aimX > bMaxX then
+														bMaxX = aimX
+													end
+													if cpy < bMinY then
+														bMinY = cpy
+													end
+													if cpy > bMaxY then
+														bMaxY = cpy
+													end
+													if aimY < bMinY then
+														bMinY = aimY
+													end
+													if aimY > bMaxY then
+														bMaxY = aimY
+													end
+													if cpz < bMinZ then
+														bMinZ = cpz
+													end
+													if cpz > bMaxZ then
+														bMaxZ = cpz
+													end
+													if aimZ < bMinZ then
+														bMinZ = aimZ
+													end
+													if aimZ > bMaxZ then
+														bMaxZ = aimZ
+													end
+													if lc then
+														local lastFix = lightActive[id]
+														if lastFix and (frame - lastFix) >= lightMinFrames then
+															local lightID = nl.ids[id]
+															if lightID then
+																lightActive[id] = frame
+																U.queueLightCorrection(lightID, cpx, cpy, cpz, nvx, nvy, nvz, frame)
+															end
+														end
+													end
+													local s0 = slot - 1
+													if s0 < dirtyMin then
+														dirtyMin = s0
+													end
+													if s0 + 1 > dirtyMax then
+														dirtyMax = s0 + 1
+													end
+													dn = dn + 1
+													dirtySlots[dn] = slot
+													recAny = true
+												end
 											end
 										end
-										local s0 = slot - 1
-										if s0 < dirtyMin then
-											dirtyMin = s0
-										end
-										if s0 + 1 > dirtyMax then
-											dirtyMax = s0 + 1
-										end
 									end
 								end
-								if not fadeParticleOut then
-									writeIdx = writeIdx + 1
-									list[writeIdx] = p
-								else
-									trackEntryFree[#trackEntryFree + 1] = p
+								if recAny then
+									any = true
+									if rec.d > lDeath then
+										lDeath = rec.d
+									end
 								end
-							else
-								trackEntryFree[#trackEntryFree + 1] = p
+								writeIdx = writeIdx + 1
+								list[writeIdx] = rec
 							end
+						end
+						if any then
+							U.expandParticleBounds(lDeath, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
 						end
 						for j = #list, writeIdx + 1, -1 do
 							list[j] = nil
@@ -3453,6 +4078,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 			end -- end of "not fully repaired" else
 		end
 	end
+	U._dirtySlotN = dn
 	return dirtyMin, dirtyMax
 end
 
@@ -3487,16 +4113,27 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 		return dirtyMin, dirtyMax
 	end
 
+	-- Per-frame slice: with MAX_PER_STEP 0 each frame examines
+	-- total / GROUND_CLAMP_SPREAD_FRAMES entries from the rotating cursor, so
+	-- every entry is still examined on its recheck cadence without the whole
+	-- pass landing on one frame.
 	local maxPer = U.GROUND_CLAMP_MAX_PER_STEP or 0
-	if maxPer < 1 or maxPer > total then
+	if maxPer < 1 then
+		maxPer = mathCeil(total / (U.GROUND_CLAMP_SPREAD_FRAMES or 1))
+	end
+	if maxPer > total then
 		maxPer = total
 	end
 
 	local data = nanoVBO.instanceData
 	local step = nanoVBO.instanceStep
 	local idtoIndex = nanoVBO.instanceIDtoIndex
+	local jitterTable = U._jitterTable
+	local jitterLen = U._jitterTableLast + 2
 	local recheckHit = U.GROUND_CLAMP_RECHECK_HIT or 2
 	local recheckMiss = U.GROUND_CLAMP_RECHECK_MISS or 4
+	local dirtySlots = U._dirtySlots
+	local dn = U._dirtySlotN
 	local idx = groundClampCursor
 	if idx < 1 or idx > total then
 		idx = 1
@@ -3504,9 +4141,8 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 
 	local processed = 0
 	local checked = 0
-	local maxChecks = total + maxPer
 	local n = total
-	while processed < maxPer and checked < maxChecks do
+	while checked < maxPer do
 		if n == 0 then
 			idx = 1
 			break
@@ -3515,102 +4151,222 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 			idx = 1
 		end
 		local entry = groundClampParticles[idx]
-		local slot = idtoIndex[entry.id]
-		if (not slot) or entry.death <= frame + 1 then
-			local removed = entry
+		if entry.death <= frame + 1 then
+			-- Whole batch dead (or dying next frame).
 			groundClampParticles[idx] = groundClampParticles[n]
 			groundClampParticles[n] = nil
 			n = n - 1
-			groundClampFree[#groundClampFree + 1] = removed
+			groundClampFree[#groundClampFree + 1] = entry
 			if CLAMP_DEBUG then
-				clampDbg.dropped = clampDbg.dropped + 1
+				clampDbg.dropped = clampDbg.dropped + entry.n
 			end
 		elseif entry.next and frame < entry.next then
 			idx = idx + 1
 		elseif entry.wp then
-			local base = (slot - 1) * step
-			local rem = entry.death - frame
-			if rem > 1 and entry.fx then
-				local fx, fy, fz = entry.fx, entry.fy, entry.fz
-				local completionFrame = entry.targetID and recentFactoryBuildTargetCache[entry.targetID]
-				if completionFrame and frame - completionFrame >= HOMING_SKIP_GRACE_FRAMES then
-					recentFactoryBuildTargetCache[entry.targetID] = nil
-					completionFrame = nil
-				end
-				if entry.targetID and not completionFrame then
-					local _, _, _, mx, my, mz = spGetUnitPosition(entry.targetID, true)
-					if mx then
-						fx, fy, fz = mx, my, mz
-					end
-				end
-				local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
-				local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
-				local spawnF = data[base + 8]
-				local elapsed = frame - spawnF
-				local cpx = sx + vx * elapsed
-				local cpy = sy + vy * elapsed
-				local cpz = sz + vz * elapsed
-				local invR = 1.0 / rem
-				data[base + 1] = cpx
-				data[base + 2] = cpy
-				data[base + 3] = cpz
-				data[base + 5] = (fx - cpx) * invR
-				data[base + 6] = (fy - cpy) * invR
-				data[base + 7] = (fz - cpz) * invR
-				data[base + 8] = frame
-				U.expandParticleBounds(entry.death, cpx, cpy, cpz, fx, fy, fz)
-				local s0 = slot - 1
-				if s0 < dirtyMin then
-					dirtyMin = s0
-				end
-				if s0 + 1 > dirtyMax then
-					dirtyMax = s0 + 1
-				end
-				if CLAMP_DEBUG then
-					clampDbg.corrected = clampDbg.corrected + 1
+			-- Waypoint leg done: aim every live particle of the batch at its
+			-- own landing point (batch endpoint + per-particle jitter offset).
+			-- A unit target that is still around and did not just roll off a
+			-- factory pad supplies its current mid position instead.
+			local fx, fy, fz = entry.ex, entry.ey, entry.ez
+			local targetID = entry.targetID
+			local completionFrame = targetID and recentFactoryBuildTargetCache[targetID]
+			if completionFrame and frame - completionFrame >= HOMING_SKIP_GRACE_FRAMES then
+				recentFactoryBuildTargetCache[targetID] = nil
+				completionFrame = nil
+			end
+			if targetID and not completionFrame then
+				local _, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
+				if mx then
+					fx, fy, fz = mx, my, mz
 				end
 			end
-			local removed = entry
+			local js = entry.js
+			local jc0 = entry.jc - 1
+			local firstID = entry.f
+			local any = false
+			local bMinX, bMinY, bMinZ = 1e18, 1e18, 1e18
+			local bMaxX, bMaxY, bMaxZ = -1e18, -1e18, -1e18
+			for id = firstID, firstID + entry.n - 1 do
+				local slot = idtoIndex[id]
+				if slot then
+					local base = (slot - 1) * step
+					-- Not-yet-due particles (stride stagger) are redirected from
+					-- their spawn point and keep their spawn frame.
+					local startF = data[base + 8]
+					if startF < frame then
+						startF = frame
+					end
+					local rem = data[base + 16] - startF
+					if rem > 1 then
+						local jidx = ((jc0 + 3 * (id - firstID)) % jitterLen) + 1
+						local ax = fx + jitterTable[jidx] * js
+						local ay = fy + jitterTable[jidx + 1] * js
+						local az = fz + jitterTable[jidx + 2] * js
+						local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+						local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+						local elapsed = startF - data[base + 8]
+						local cpx = sx + vx * elapsed
+						local cpy = sy + vy * elapsed
+						local cpz = sz + vz * elapsed
+						local invR = 1.0 / rem
+						data[base + 1] = cpx
+						data[base + 2] = cpy
+						data[base + 3] = cpz
+						data[base + 5] = (ax - cpx) * invR
+						data[base + 6] = (ay - cpy) * invR
+						data[base + 7] = (az - cpz) * invR
+						data[base + 8] = startF
+						if cpx < bMinX then
+							bMinX = cpx
+						end
+						if cpx > bMaxX then
+							bMaxX = cpx
+						end
+						if ax < bMinX then
+							bMinX = ax
+						end
+						if ax > bMaxX then
+							bMaxX = ax
+						end
+						if cpy < bMinY then
+							bMinY = cpy
+						end
+						if cpy > bMaxY then
+							bMaxY = cpy
+						end
+						if ay < bMinY then
+							bMinY = ay
+						end
+						if ay > bMaxY then
+							bMaxY = ay
+						end
+						if cpz < bMinZ then
+							bMinZ = cpz
+						end
+						if cpz > bMaxZ then
+							bMaxZ = cpz
+						end
+						if az < bMinZ then
+							bMinZ = az
+						end
+						if az > bMaxZ then
+							bMaxZ = az
+						end
+						local s0 = slot - 1
+						if s0 < dirtyMin then
+							dirtyMin = s0
+						end
+						if s0 + 1 > dirtyMax then
+							dirtyMax = s0 + 1
+						end
+						dn = dn + 1
+						dirtySlots[dn] = slot
+						any = true
+					end
+				end
+			end
+			if any then
+				U.expandParticleBounds(entry.death, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
+				if CLAMP_DEBUG then
+					clampDbg.corrected = clampDbg.corrected + entry.n
+				end
+			end
 			groundClampParticles[idx] = groundClampParticles[n]
 			groundClampParticles[n] = nil
 			n = n - 1
-			groundClampFree[#groundClampFree + 1] = removed
+			groundClampFree[#groundClampFree + 1] = entry
 			processed = processed + 1
 			if CLAMP_DEBUG then
 				clampDbg.processed = clampDbg.processed + 1
 			end
 		else
-			local base = (slot - 1) * step
-			local remaining = entry.death - frame
-			local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
-			local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
-			local spawnF = data[base + 8]
-			local elapsed = frame - spawnF
-			local cpx = sx + vx * elapsed
-			local cpy = sy + vy * elapsed
-			local cpz = sz + vz * elapsed
-			local clampedCpy = clampYAboveGround(cpx, cpy, cpz, frame)
-
-			if clampedCpy ~= cpy then
-				local aimX = cpx + vx * remaining
-				local aimY = cpy + vy * remaining
-				local aimZ = cpz + vz * remaining
-				local invR = 1.0 / remaining
-				data[base + 1] = cpx
-				data[base + 2] = clampedCpy
-				data[base + 3] = cpz
-				data[base + 5] = (aimX - cpx) * invR
-				data[base + 6] = (aimY - clampedCpy) * invR
-				data[base + 7] = (aimZ - cpz) * invR
-				data[base + 8] = frame
-				U.expandParticleBounds(entry.death, cpx, clampedCpy, cpz, aimX, aimY, aimZ)
-				local s0 = slot - 1
-				if s0 < dirtyMin then
-					dirtyMin = s0
+			-- Recheck mode: reproject any particle of the batch that dipped
+			-- below ground + margin, keeping its landing point.
+			local hit = false
+			local firstID = entry.f
+			local bMinX, bMinY, bMinZ = 1e18, 1e18, 1e18
+			local bMaxX, bMaxY, bMaxZ = -1e18, -1e18, -1e18
+			for id = firstID, firstID + entry.n - 1 do
+				local slot = idtoIndex[id]
+				if slot then
+					local base = (slot - 1) * step
+					local startF = data[base + 8]
+					if startF < frame then
+						startF = frame
+					end
+					local remaining = data[base + 16] - startF
+					if remaining >= 1 then
+						local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
+						local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
+						local elapsed = startF - data[base + 8]
+						local cpx = sx + vx * elapsed
+						local cpy = sy + vy * elapsed
+						local cpz = sz + vz * elapsed
+						local clampedCpy = clampYAboveGround(cpx, cpy, cpz, frame)
+						if clampedCpy ~= cpy then
+							local aimX = cpx + vx * remaining
+							local aimY = cpy + vy * remaining
+							local aimZ = cpz + vz * remaining
+							local invR = 1.0 / remaining
+							data[base + 1] = cpx
+							data[base + 2] = clampedCpy
+							data[base + 3] = cpz
+							data[base + 5] = (aimX - cpx) * invR
+							data[base + 6] = (aimY - clampedCpy) * invR
+							data[base + 7] = (aimZ - cpz) * invR
+							data[base + 8] = startF
+							if cpx < bMinX then
+								bMinX = cpx
+							end
+							if cpx > bMaxX then
+								bMaxX = cpx
+							end
+							if aimX < bMinX then
+								bMinX = aimX
+							end
+							if aimX > bMaxX then
+								bMaxX = aimX
+							end
+							if clampedCpy < bMinY then
+								bMinY = clampedCpy
+							end
+							if clampedCpy > bMaxY then
+								bMaxY = clampedCpy
+							end
+							if aimY < bMinY then
+								bMinY = aimY
+							end
+							if aimY > bMaxY then
+								bMaxY = aimY
+							end
+							if cpz < bMinZ then
+								bMinZ = cpz
+							end
+							if cpz > bMaxZ then
+								bMaxZ = cpz
+							end
+							if aimZ < bMinZ then
+								bMinZ = aimZ
+							end
+							if aimZ > bMaxZ then
+								bMaxZ = aimZ
+							end
+							local s0 = slot - 1
+							if s0 < dirtyMin then
+								dirtyMin = s0
+							end
+							if s0 + 1 > dirtyMax then
+								dirtyMax = s0 + 1
+							end
+							dn = dn + 1
+							dirtySlots[dn] = slot
+							hit = true
+						end
+					end
 				end
-				if s0 + 1 > dirtyMax then
-					dirtyMax = s0 + 1
-				end
+			end
+			if hit then
+				U.expandParticleBounds(entry.death, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
 				if CLAMP_DEBUG then
 					clampDbg.corrected = clampDbg.corrected + 1
 				end
@@ -3618,7 +4374,6 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 			else
 				entry.next = frame + recheckMiss
 			end
-
 			processed = processed + 1
 			if CLAMP_DEBUG then
 				clampDbg.processed = clampDbg.processed + 1
@@ -3629,6 +4384,7 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 	end
 
 	groundClampCursor = idx
+	U._dirtySlotN = dn
 	return dirtyMin, dirtyMax
 end
 
@@ -3643,9 +4399,14 @@ function U.updateParticleMaintenance(frame, preUsed, runHoming, runGroundClamp)
 
 	tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance")
 	local dirtyMin, dirtyMax = math.huge, -1
-	if runHoming and U.NANO_PARTICLES_HOMING and frame >= (deathBuckets.__nextHomingFrame or 0) then
+	if runHoming and U.NANO_PARTICLES_HOMING and (U.HOMING_SPREAD or frame >= (deathBuckets.__nextHomingFrame or 0)) then
+		-- With HOMING_SPREAD both passes run every frame on a 1/HOMING_RUN_EVERY
+		-- coset of their lists, so each list is still re-aimed every
+		-- HOMING_RUN_EVERY frames without the whole pass landing on one frame.
+		if not U.HOMING_SPREAD then
+			deathBuckets.__nextHomingFrame = frame + HOMING_RUN_EVERY
+		end
 		tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance:Homing")
-		deathBuckets.__nextHomingFrame = frame + HOMING_RUN_EVERY
 		dirtyMin, dirtyMax = applyHoming(frame, dirtyMin, dirtyMax)
 		dirtyMin, dirtyMax = applyForwardHoming(frame, dirtyMin, dirtyMax)
 		tracy.ZoneEnd()
@@ -3655,20 +4416,17 @@ function U.updateParticleMaintenance(frame, preUsed, runHoming, runGroundClamp)
 		dirtyMin, dirtyMax = applyGroundClamp(frame, dirtyMin, dirtyMax)
 		tracy.ZoneEnd()
 	end
+	U.flushLightCorrections()
+	tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance:Upload")
+	-- Rewrites are scattered over the pool: upload them per slot (or as one
+	-- range when dense). This frame's spawns are a contiguous tail append and
+	-- go up as one range.
+	U.flushDirtySlots()
 	local postUsed = nanoVBO.usedElements
 	if preUsed and postUsed > preUsed then
-		if preUsed < dirtyMin then
-			dirtyMin = preUsed
-		end
-		if postUsed > dirtyMax then
-			dirtyMax = postUsed
-		end
+		uploadElementRange(nanoVBO, preUsed, postUsed)
 	end
-	if dirtyMax > dirtyMin then
-		tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance:Upload")
-		uploadElementRange(nanoVBO, dirtyMin, dirtyMax)
-		tracy.ZoneEnd()
-	end
+	tracy.ZoneEnd()
 	tracy.ZoneEnd()
 end
 
@@ -3717,15 +4475,32 @@ local function scanBuilders(frame, includeMaintenance)
 	-- Dynamic scan-frame skip: empty pool -> every frame, saturated -> every
 	-- MAX_SCAN_RUN_EVERY frames. emitProb scales by runEvery so total emission
 	-- rate is preserved.
-	local runEvery = MIN_SCAN_RUN_EVERY + math.floor(saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY) + 0.5)
+	local scanTick = (deathBuckets.__scanFrameTick or 0) + 1
+	deathBuckets.__scanFrameTick = scanTick
+	-- Saturation throttle. The pool-fill curve is the pre-stride design's: a
+	-- per-frame emission divisor of throttleStride * runEvery (1 with room in
+	-- the pool, MAX_SCAN_STRIDE * MAX_SCAN_RUN_EVERY when full). Instead of
+	-- skipping whole scans it is folded into the visit stride, so the visits
+	-- are spread evenly over every sim frame (no scan-frame spikes), and each
+	-- visit compensates stride / divisor frames of emission (U._emitCompCap),
+	-- which reproduces that curve exactly.
+	local runEvery = MIN_SCAN_RUN_EVERY + mathFloor(saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY) + 0.5)
 	if runEvery < 1 then
 		runEvery = 1
 	end
-	local scanTick = (deathBuckets.__scanFrameTick or 0) + 1
-	deathBuckets.__scanFrameTick = scanTick
-	if runEvery > 1 and (scanTick % runEvery) ~= 0 then
-		skipEmit = true
-	end
+	local throttleStride = 1 + mathFloor(saturation * (MAX_SCAN_STRIDE - 1) + 0.5)
+	local throttleDiv = throttleStride * runEvery
+	-- Visit stride: the base stride times the former scan-skip factor, so a
+	-- builder is visited as rarely as before but the visits land on every
+	-- frame instead of bunching on scan frames.
+	local stride = MIN_SCAN_STRIDE * runEvery
+	U._emitCompCap = stride / throttleDiv
+	-- Emission accrues per frame since the last visit, capped at three visit
+	-- intervals so a builder skipped by the saturation early-out never dumps
+	-- a backlog burst. Zero-yield visits sleep for at most two intervals; the
+	-- extra interval of accrual covers the coset alignment of the wake-up.
+	local accrueCap = stride * 3
+	local waitCap = stride + stride
 
 	if not skipEmit then
 		tracy.ZoneBeginN("G:NanoParticles:RunFrame:ScanBuilders:EmitLoop")
@@ -3734,12 +4509,6 @@ local function scanBuilders(frame, includeMaintenance)
 		-- DISTANT_EMIT_* squared bands live at module scope.
 		local camX, camY, camZ = Spring.GetCameraPosition()
 
-		-- Dynamic stride: empty pool -> 1 (full fidelity), near full -> MAX_SCAN_STRIDE.
-		-- Per-builder elapsed-frames-based emit count compensates so total rate is constant.
-		local stride = MIN_SCAN_STRIDE + math.floor(saturation * (MAX_SCAN_STRIDE - MIN_SCAN_STRIDE) + 0.5)
-		if stride < 1 then
-			stride = 1
-		end
 
 		-- Pool-saturation-driven offscreen keep-fraction. Recomputed once per scan
 		-- so all per-emit checks below use the same value.
@@ -3778,7 +4547,7 @@ local function scanBuilders(frame, includeMaintenance)
 			local i = start + cosetIdx * stride
 			repeat
 				local unitID = list[i]
-				local info = getBuilderInfo(unitID)
+				local info = builderCache[unitID] or getBuilderInfo(unitID)
 				if not info then
 					break
 				end
@@ -3806,6 +4575,13 @@ local function scanBuilders(frame, includeMaintenance)
 					break
 				end
 				info.idleScanUntil = nil
+				-- Zero-yield visits are skipped: a visit that could not emit knows
+				-- from its accumulator how many frames it takes to reach one
+				-- particle at the current throttle and sleeps until then.
+				local emitReady = info.emitReadyFrame
+				if emitReady and frame < emitReady then
+					break
+				end
 				-- Cheap idle filter: a builder with no current build power is not
 				-- emitting (walking, queued, blocked, paused, no orders). Skipping
 				-- saves the worker-task lookup, which together with this dominates
@@ -3929,21 +4705,37 @@ local function scanBuilders(frame, includeMaintenance)
 							local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID
 							local meta = info.targetMeta
 							local coldOffscreen = false
-							if
-								meta
-								and meta.cmdID == cmdID
-								and meta.targetID == targetID
-								and meta.coldOffscreenUntil
-								and frame < meta.coldOffscreenUntil
-							then
+							local metaCurrent = meta and meta.cmdID == cmdID and meta.targetID == targetID
+							if metaCurrent and meta.coldOffscreenUntil and frame < meta.coldOffscreenUntil then
 								coldOffscreen = true
 								inverse = meta.isReclaim and true or false
 								isResurrect = meta.isResurrect
 								targetUnitID = (not meta.isFeature) and meta.resolvedID or nil
 							else
-								ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID =
-									resolveTarget(info, cmdID, targetID)
-								meta = info.targetMeta
+								-- Static targets (features, immobile units) keep their
+								-- resolved position in emitTargetPosCache until a destroy
+								-- callin drops it: the most common case needs no resolver
+								-- call at all.
+								local tpc = metaCurrent and emitTargetPosCache[targetID]
+								if tpc and tpc[5] then
+									ex, ey, ez = tpc[2], tpc[3], tpc[4]
+									if meta.isReclaim then
+										inverse = true
+									elseif meta.isResurrect then
+										inverse, isResurrect = false, true
+									else
+										inverse = false
+									end
+									jitterRadius = meta.jitterRadius
+									targetUnitID = (not meta.isFeature) and meta.resolvedID or nil
+								else
+									ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID =
+										resolveTarget(info, cmdID, targetID)
+									meta = info.targetMeta
+									if meta and not meta.since then
+										meta.since = frame
+									end
+								end
 							end
 							-- Record this builder as actively reclaiming `targetUnitID`
 							-- so the UnitDestroyed callin can fire a finishing burst
@@ -3979,26 +4771,50 @@ local function scanBuilders(frame, includeMaintenance)
 								end
 								-- Keep build-progress fresh so UnitDestroyed can scale
 								-- the burst even though the unit is already dead then.
-								local isBuilt, bp = spGetUnitIsBeingBuilt(nowReclaiming)
-								if isBuilt and bp then
-									reclaimTargetBuildProgress[nowReclaiming] = bp
-								else
-									reclaimTargetBuildProgress[nowReclaiming] = nil
+								-- Polled at HEALTH_CHECK_EVERY per builder: the burst only
+								-- needs a rough progress value.
+								local rbpFrame = meta.rbpFrame
+								if not rbpFrame or (frame - rbpFrame) >= HEALTH_CHECK_EVERY then
+									meta.rbpFrame = frame
+									local isBuilt, rbp = spGetUnitIsBeingBuilt(nowReclaiming)
+									if isBuilt and rbp then
+										reclaimTargetBuildProgress[nowReclaiming] = rbp
+									else
+										reclaimTargetBuildProgress[nowReclaiming] = nil
+									end
 								end
 							end
 							local emits, resurrectEmits = 0, 0
 							local feedbackForced = false
+							local visitFrames = 1
 							if ex or coldOffscreen then
 								-- Factories always use the engine's fixed 0.15 jitter regardless of buildee size.
 								if info.isFactory then
 									jitterRadius = nil
 								end
+								-- Frames this visit accounts for. The base scan stride is
+								-- compensated so the emission rate is independent of it;
+								-- the saturation-driven scan skip (runEvery) is not, so it
+								-- keeps acting as the pool throttle (U._emitCompCap).
+								-- emitNano gives the particles of one visit consecutive
+								-- future spawn frames, which is what keeps a compensated
+								-- batch from reading as a blob at the nozzle.
+								local lastVisit = info.lastVisitFrame
+								local elapsed = lastVisit and (frame - lastVisit) or 1
+								if elapsed < 1 then
+									elapsed = 1
+								elseif elapsed > accrueCap then
+									elapsed = accrueCap
+								end
+								visitFrames = elapsed
+								if visitFrames > MIN_SCAN_STRIDE then
+									visitFrames = MIN_SCAN_STRIDE
+								end
 								info.lastVisitFrame = frame
-								local elapsed = 1
-								local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED)
-									* elapsed
-									* (NanoParticlesRate or 1.0)
-								local accum = (info.emitAccum or 0) + rate
+								-- Per-frame emission at the current throttle (see the scan header),
+								-- accrued over the frames since the last visit.
+								local ratePerFrame = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * (NanoParticlesRate or 1.0) / throttleDiv
+								local accum = (info.emitAccum or 0) + ratePerFrame * elapsed
 								emits = mathFloor(accum)
 								info.emitAccum = accum - emits
 								if emits == 0 and bp > 0 then
@@ -4011,6 +4827,16 @@ local function scanBuilders(frame, includeMaintenance)
 								end
 								if emits > 0 then
 									info.lastEmitFrame = frame
+									info.emitReadyFrame = nil
+								elseif ratePerFrame > 0 then
+									-- Sleep until the accumulator can reach one particle.
+									local wait = mathCeil((1 - info.emitAccum) / ratePerFrame)
+									if wait > waitCap then
+										wait = waitCap
+									end
+									if wait > 1 then
+										info.emitReadyFrame = frame + wait
+									end
 								end
 								if isResurrect then
 									resurrectEmits = takeScaledEmitCount(
@@ -4142,19 +4968,11 @@ local function scanBuilders(frame, includeMaintenance)
 								if DEBUG then
 									_dbgEmits = _dbgEmits + 1
 								end
-								local elapsed = 1
-								-- Spread window (half-width in frames) for the in-batch
-								-- stagger inside emitNano. Particles end up in
-								-- [-spreadWindow, +spreadWindow] frames of velocity
-								-- around the nanopiece -- a few slightly behind (model
-								-- occlusion) and a few slightly ahead. Hard-capped at
-								-- MAX_SPREAD_AHEAD_FRAMES so the cluster stays close to
-								-- the source, never partway to the target. Direction
-								-- jitter already provides lateral spread -- this just
-								-- breaks the on-axis pile-up of a multi-particle batch.
-								-- Count compensation still uses full `elapsed`, so total
-								-- emission rate is preserved.
-								local spreadWindow = math.min(MAX_SPREAD_AHEAD_FRAMES, elapsed)
+								-- Spawn frames of this visit's particles are spread over
+								-- the frames the visit accounts for (see emitNano), so a
+								-- stride-compensated batch streams out of the nozzle one
+								-- particle per frame instead of appearing at once.
+								local spreadWindow = visitFrames
 								local catchupAgeFrames = 0
 								if meta and meta.virtualEmits and meta.virtualEmits > 0 then
 									resurrectEmits = resurrectEmits + meta.virtualEmits
@@ -4164,21 +4982,40 @@ local function scanBuilders(frame, includeMaintenance)
 									meta.virtualFrame = frame
 								end
 								if resurrectEmits > 0 then
-									emitNanoBatch(
-										unitID,
-										info,
-										ex,
-										ey,
-										ez,
-										inverse,
-										jitterRadius,
-										frame,
-										targetUnitID,
-										isResurrect,
-										resurrectEmits,
-										spreadWindow,
-										catchupAgeFrames
-									)
+									if info.nPieces == 1 and not isResurrect then
+										-- Single nozzle, single leg: skip the batch dispatcher.
+										emitNano(
+											unitID,
+											info,
+											ex,
+											ey,
+											ez,
+											inverse,
+											jitterRadius,
+											frame,
+											targetUnitID,
+											info.pieces[1],
+											resurrectEmits,
+											spreadWindow,
+											catchupAgeFrames
+										)
+									else
+										emitNanoBatch(
+											unitID,
+											info,
+											ex,
+											ey,
+											ez,
+											inverse,
+											jitterRadius,
+											frame,
+											targetUnitID,
+											isResurrect,
+											resurrectEmits,
+											spreadWindow,
+											catchupAgeFrames
+										)
+									end
 								end
 							end
 						elseif info.targetMeta then
@@ -4200,6 +5037,7 @@ local function scanBuilders(frame, includeMaintenance)
 				end
 			until true
 		end
+		U.flushLightBatch()
 		tracy.ZoneEnd()
 	end -- if not skipEmit
 
@@ -4230,46 +5068,61 @@ local function cullDead(frame)
 	local nl = deathBuckets.__nanoLight
 	local lightActive = nl and nl.activeCount and nl.activeCount > 0 and nl.active
 	local lightIDs = nl and nl.ids
-	local canRemove = lightActive and Script.LuaUI("EnvNanoBallisticLightRemove")
+	local canRemove = lightActive and nl.bridgeReady
+	local removeBatch = U._lightRemoveBatch
+	local removeN = 0
+	local vbo = nanoVBO
+	local data, idToIndex, indexToID, step, gpu
+	if vbo then
+		data = vbo.instanceData
+		idToIndex = vbo.instanceIDtoIndex
+		indexToID = vbo.indextoInstanceID
+		step = vbo.instanceStep
+		gpu = vbo.instanceVBO
+	end
 	for deathFrame = oldest, frame do
 		local bucket = deathBuckets[deathFrame]
 		if bucket then
 			local nb = #bucket
-			if not nanoVBO then
-				if lightActive then
-					for i = 1, nb do
-						local id = bucket[i]
-						if lightActive[id] then
-							lightActive[id] = nil
-							nl.activeCount = nl.activeCount - 1
-							local lightID = lightIDs and lightIDs[id]
-							if canRemove and lightID then
-								Script.LuaUI.EnvNanoBallisticLightRemove(lightID)
+			for i = 1, nb do
+				local id = bucket[i]
+				if vbo then
+					-- Inline swap-with-last pop: InstanceVBOTable.popElementInstance
+					-- minus the unitID / zombie bookkeeping this table never uses.
+					-- One ~64B upload per moved element; batching the dirty range
+					-- was measured far slower here because a range upload marshals
+					-- every element in between.
+					local slot = idToIndex[id]
+					if slot then
+						local used = vbo.usedElements
+						idToIndex[id] = nil
+						if slot == used then
+							indexToID[used] = nil
+						else
+							local lastID = indexToID[used]
+							local dst = (slot - 1) * step
+							local src = (used - 1) * step
+							for k = 1, step do
+								data[dst + k] = data[src + k]
 							end
-							if lightIDs then
-								lightIDs[id] = nil
-							end
+							idToIndex[lastID] = slot
+							indexToID[slot] = lastID
+							indexToID[used] = nil
+							gpu:Upload(data, nil, slot - 1, dst + 1, dst + step)
 						end
+						vbo.usedElements = used - 1
 					end
 				end
-			else
-				-- Per-pop upload (~64B/swap). Tried batching with one uploadElementRange
-				-- at the end and cull jumped from ~2-4ms to ~15-18ms in factory-heavy
-				-- scenes -- per-element marshalling cost in uploadElementRange dominates
-				-- the GL submit savings when slots are scattered.
-				for i = 1, nb do
-					local id = bucket[i]
-					popElementInstance(nanoVBO, id, false)
-					if lightActive and lightActive[id] then
-						lightActive[id] = nil
-						nl.activeCount = nl.activeCount - 1
-						local lightID = lightIDs and lightIDs[id]
-						if canRemove and lightID then
-							Script.LuaUI.EnvNanoBallisticLightRemove(lightID)
-						end
-						if lightIDs then
-							lightIDs[id] = nil
-						end
+				if lightActive and lightActive[id] then
+					lightActive[id] = nil
+					nl.activeCount = nl.activeCount - 1
+					local lightID = lightIDs and lightIDs[id]
+					if canRemove and lightID then
+						removeN = removeN + 1
+						removeBatch[removeN] = lightID
+					end
+					if lightIDs then
+						lightIDs[id] = nil
 					end
 				end
 			end
@@ -4278,6 +5131,9 @@ local function cullDead(frame)
 			deathBuckets.__boundsDirty = true
 			U.releaseDeathBucket(bucket)
 		end
+	end
+	if removeN > 0 then
+		U.flushLightRemovals(removeN)
 	end
 	local latest = deathBuckets.__latestFrame
 	if latest and latest > frame then
@@ -4513,7 +5369,7 @@ function gadget:Update()
 		end
 		nl.enabled = (Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 1) == 1)
 		if nl.enabled then
-			nl.spawnRadius = 33
+			nl.spawnRadius = 35
 			nl.alpha = 0.05
 			nl.sampleRate = 0.25
 			nl.maxSpawnsPerFrame = 48
@@ -4526,6 +5382,9 @@ function gadget:Update()
 			nl.bridgeReady = Script.LuaUI("EnvNanoBallisticLightSpawn")
 				and Script.LuaUI("EnvNanoBallisticLightCorrect")
 				and Script.LuaUI("EnvNanoBallisticLightRemove")
+			nl.batchReady = nl.bridgeReady and Script.LuaUI("EnvNanoBallisticLightSpawnBatch")
+			nl.correctBatchReady = nl.bridgeReady and Script.LuaUI("EnvNanoBallisticLightCorrectBatch")
+			nl.removeBatchReady = nl.bridgeReady and Script.LuaUI("EnvNanoBallisticLightRemoveBatch")
 			nl.fadeReady = Script.LuaUI("EnvNanoBallisticLightFade")
 		else
 			if nl.activeCount > 0 then
@@ -4541,6 +5400,9 @@ function gadget:Update()
 				nl.activeCount = 0
 			end
 			nl.bridgeReady = false
+			nl.batchReady = false
+			nl.correctBatchReady = false
+			nl.removeBatchReady = false
 			nl.fadeReady = false
 		end
 
@@ -4831,6 +5693,91 @@ end
 -- window so the particles dissolve rather than snapping out. The builder is
 -- already dead so applyHoming will nil the list on the next pass; we only need
 -- to touch the VBO data here.
+-- Death-fade every live particle of a tracking-record list: shorten deathFrame
+-- and bake a per-particle fade window into spawnPosAndSize.w so the shader's
+-- end-of-life alpha ramp dissolves the spray instead of snapping it off.
+-- Velocity and spawn are left untouched so the particles keep coasting along
+-- their last trajectory. Slot reclamation still happens at the original death
+-- frame (deathBuckets is untouched); the shader renders nothing in the gap.
+-- Particles a homing pass already faded are skipped: re-fading would restart
+-- their alpha ramp. Returns the accumulated 0-based dirty slot range.
+-- Death-fade every live particle of a tracking-record list: shorten deathFrame
+-- and bake a per-particle fade window into spawnPosAndSize.w so the shader's
+-- end-of-life alpha ramp dissolves the spray instead of snapping it off.
+-- Velocity and spawn are left untouched so the particles keep coasting along
+-- their last trajectory. Slot reclamation still happens at the original death
+-- frame (deathBuckets is untouched); the shader renders nothing in the gap.
+-- Particles a homing pass already faded are skipped: re-fading would restart
+-- their alpha ramp. Returns the accumulated 0-based dirty slot range.
+-- Death-fade every live particle of a tracking-record list: shorten deathFrame
+-- and bake a per-particle fade window into spawnPosAndSize.w so the shader's
+-- end-of-life alpha ramp dissolves the spray instead of snapping it off.
+-- Velocity and spawn are left untouched so the particles keep coasting along
+-- their last trajectory. Slot reclamation still happens at the original death
+-- frame (deathBuckets is untouched); the shader renders nothing in the gap.
+-- Particles a homing pass already faded are skipped: re-fading would restart
+-- their alpha ramp. Returns the accumulated 0-based dirty slot range.
+local function fadeTrackedRecords(list, frame, dirtyMin, dirtyMax)
+	if not list then
+		return dirtyMin, dirtyMax
+	end
+	local data = nanoVBO.instanceData
+	local idtoIndex = nanoVBO.instanceIDtoIndex
+	local step = nanoVBO.instanceStep
+	local dirtySlots = U._dirtySlots
+	local dn = U._dirtySlotN
+	for ri = 1, #list do
+		local rec = list[ri]
+		if frame < rec.d then
+			local faded = rec.faded
+			for id = rec.f, rec.f + rec.n - 1 do
+				local slot = idtoIndex[id]
+				if slot and not (faded and faded[id]) then
+					local base = (slot - 1) * step
+					local remaining = data[base + 16] - frame
+					if remaining > 0 then
+						-- Per-particle fade duration: FADE_FRAMES_DEATH * (0.4..1.4),
+						-- staggered so particles don't all wink out on the same
+						-- frame, and never longer than the remaining life.
+						local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
+						if fadeFrames < 1 then
+							fadeFrames = 1
+						end
+						if fadeFrames > remaining then
+							fadeFrames = remaining
+						end
+						data[base + 16] = frame + fadeFrames
+						-- w is packed sizeMult + fadeFrames*1024, negative for
+						-- inverse (reclaim) particles: keep the size bits and the
+						-- sign, replace only the fade window.
+						local packed = data[base + 4]
+						local absPacked = packed < 0 and -packed or packed
+						local oldFade = mathFloor(absPacked / 1024)
+						local sizeBits = absPacked - oldFade * 1024
+						local newPacked = sizeBits + fadeFrames * 1024
+						data[base + 4] = packed < 0 and -newPacked or newPacked
+						local s0 = slot - 1
+						if s0 < dirtyMin then
+							dirtyMin = s0
+						end
+						if s0 + 1 > dirtyMax then
+							dirtyMax = s0 + 1
+						end
+						dn = dn + 1
+						dirtySlots[dn] = slot
+						fadeNanoDeferredLight(id, frame, fadeFrames)
+					end
+				end
+			end
+		end
+	end
+	U._dirtySlotN = dn
+	return dirtyMin, dirtyMax
+end
+
+-- Fade out inverse-homing (reclaim) particles travelling toward a builder that
+-- just died. The builder is already dead so applyHoming will nil the list on
+-- the next pass; we only need to touch the VBO data here.
 local function fadeOutHomingInverse(builderID)
 	if not nanoVBO then
 		return
@@ -4839,54 +5786,13 @@ local function fadeOutHomingInverse(builderID)
 	if not list then
 		return
 	end
-	local data = nanoVBO.instanceData
-	local idtoIndex = nanoVBO.instanceIDtoIndex
-	local step = nanoVBO.instanceStep
-	local frame = Spring.GetGameFrame()
-	local dirtyMin, dirtyMax = math.huge, -1
-	for i = 1, #list do
-		local p = list[i]
-		local slot = idtoIndex[p.id]
-		if slot then
-			local remaining = p.death - frame
-			if remaining > 0 then
-				local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
-				if fadeFrames < 1 then
-					fadeFrames = 1
-				end
-				if fadeFrames > remaining then
-					fadeFrames = remaining
-				end
-				local newDeath = frame + fadeFrames
-				local base = (slot - 1) * step
-				data[base + 16] = newDeath
-				local packed = data[base + 4]
-				local absPacked = packed < 0 and -packed or packed
-				local oldFade = mathFloor(absPacked / 1024)
-				local sizeBits = absPacked - oldFade * 1024
-				local newPacked = sizeBits + fadeFrames * 1024
-				data[base + 4] = packed < 0 and -newPacked or newPacked
-				local s0 = slot - 1
-				if s0 < dirtyMin then
-					dirtyMin = s0
-				end
-				if s0 + 1 > dirtyMax then
-					dirtyMax = s0 + 1
-				end
-				fadeNanoDeferredLight(p.id, frame, fadeFrames)
-			end
-		end
-	end
-	if dirtyMax > dirtyMin then
-		uploadElementRange(nanoVBO, dirtyMin, dirtyMax)
-	end
+	local dirtyMin, dirtyMax = fadeTrackedRecords(list, Spring.GetGameFrame(), math.huge, -1)
+	U.flushDirtySlots()
 end
 
--- Fade out forward-homing particles aimed at a unit that just died: shorten
--- their deathFrame so the shader's end-of-life alpha ramp kicks in. Velocity
--- and spawn are left untouched so they keep coasting along their last
--- trajectory while fading out. Slot reclamation still happens at the original
--- death frame (deathBuckets is untouched); the shader renders nothing in the gap.
+-- Fade out forward-homing particles aimed at a unit that just died or was
+-- completed. includeSkipList also fades the fade-only list of particles that
+-- were aimed at the unit while it was still under construction.
 fadeOutHomingFwd = function(unitID, includeSkipList)
 	if not nanoVBO then
 		return
@@ -4896,64 +5802,33 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 	if not list and not flist then
 		return
 	end
-	local data = nanoVBO.instanceData
-	local idtoIndex = nanoVBO.instanceIDtoIndex
-	local step = nanoVBO.instanceStep
 	local frame = Spring.GetGameFrame()
-	-- Per-particle fade duration: FADE_FRAMES_DEATH * (0.4..1.6). Staggers the
-	-- dissolve so particles don't all wink out on the same frame.
-	local dirtyMin, dirtyMax = math.huge, -1
-	local function fadeList(plist)
-		if not plist then
-			return
-		end
-		for i = 1, #plist do
-			local p = plist[i]
-			local slot = idtoIndex[p.id]
-			if slot then
-				local remaining = p.death - frame
-				if remaining > 0 then
-					local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
-					if fadeFrames < 1 then
-						fadeFrames = 1
-					end
-					-- Clamp to remaining lifetime: never extend a particle's life,
-					-- only shorten/replace it.
-					if fadeFrames > remaining then
-						fadeFrames = remaining
-					end
-					local newDeath = frame + fadeFrames
-					local base = (slot - 1) * step
-					data[base + 16] = newDeath
-					-- Force per-particle fade window so reclaim-style (fadeFrames=0)
-					-- particles also dissolve. w is packed: preserve sizeMult bits,
-					-- replace only the fadeFrames portion.
-					-- NOTE: inverse (reclaim) particles store a negative value; use
-					-- abs before bit-manipulation and restore the sign afterward.
-					local packed = data[base + 4]
-					local absPacked = packed < 0 and -packed or packed
-					local oldFade = mathFloor(absPacked / 1024)
-					local sizeBits = absPacked - oldFade * 1024
-					local newPacked = sizeBits + fadeFrames * 1024
-					data[base + 4] = packed < 0 and -newPacked or newPacked
-					local s0 = slot - 1
-					if s0 < dirtyMin then
-						dirtyMin = s0
-					end
-					if s0 + 1 > dirtyMax then
-						dirtyMax = s0 + 1
-					end
-					fadeNanoDeferredLight(p.id, frame, fadeFrames)
-				end
-			end
-		end
-	end
-	fadeList(list)
-	fadeList(flist)
-	if dirtyMax > dirtyMin then
-		uploadElementRange(nanoVBO, dirtyMin, dirtyMax)
-	end
+	local dirtyMin, dirtyMax = fadeTrackedRecords(list, frame, math.huge, -1)
+	dirtyMin, dirtyMax = fadeTrackedRecords(flist, frame, dirtyMin, dirtyMax)
+	U.flushDirtySlots()
 end
+
+-- Fade out inverse-homing (reclaim) particles travelling toward a builder that
+-- just died. The builder is already dead so applyHoming will nil the list on
+-- the next pass; we only need to touch the VBO data here.
+
+-- Fade out forward-homing particles aimed at a unit that just died or was
+-- completed. includeSkipList also fades the fade-only list of particles that
+-- were aimed at the unit while it was still under construction.
+
+-- Fade out inverse-homing (reclaim) particles travelling toward a builder that
+-- just died. The builder is already dead so applyHoming will nil the list on
+-- the next pass; we only need to touch the VBO data here.
+
+-- Fade out forward-homing particles aimed at a unit that just died or was
+-- completed. includeSkipList also fades the fade-only list of particles that
+-- were aimed at the unit while it was still under construction.
+
+-- Fade out forward-homing particles aimed at a unit that just died: shorten
+-- their deathFrame so the shader's end-of-life alpha ramp kicks in. Velocity
+-- and spawn are left untouched so they keep coasting along their last
+-- trajectory while fading out. Slot reclamation still happens at the original
+-- death frame (deathBuckets is untouched); the shader renders nothing in the gap.
 
 U.refreshFeatureToggles = function()
 	local homingEnabled = Spring.GetConfigInt("NanoParticlesHoming", 1) ~= 0
@@ -5063,6 +5938,7 @@ end
 function gadget:RenderUnitDestroyed(unitID)
 	-- RenderUnitDestroyed has no attacker arg; rely on whatever UnitDestroyed
 	-- already decided. If the burst ran (or skipped), the entry is gone.
+	emitTargetPosCache[unitID] = nil
 	reclaimedTargets[unitID] = nil
 	reclaimTargetBuildProgress[unitID] = nil
 	fadeOutHomingFwd(unitID, true)
