@@ -500,8 +500,11 @@ validators[Types.TriggerID] = function(triggerID)
 	end
 end
 
+-- Names of runtime-created entities: existence can't be checked at load time,
+-- only cross-referenced (see validateReferences) and guarded at runtime.
 validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
+validators[Types.CountdownID] = validators[Types.String]
 
 validators[Types.UnitDefName] = function(unitDefName)
 	local luaTypeResult = validators[Types.String](unitDefName)

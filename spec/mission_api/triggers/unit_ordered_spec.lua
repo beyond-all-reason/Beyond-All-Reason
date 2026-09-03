@@ -1,9 +1,9 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
 _G.CMD = _G.CMD or {}
 _G.CMD.INSERT = 34
@@ -12,7 +12,11 @@ _G.CMD.RECLAIM = 90
 _G.CMD.ANY = "a"
 _G.CMD.BUILD = "b"
 
-_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armpw" },
+	[2] = { name = "corfast" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 -- VFS.Include caches source text, not results, so this re-runs the trigger file
 -- and captures the `CMD` values set above -- even though another spec already
@@ -22,22 +26,12 @@ local onUnitCommand = unitOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.unit_ordered", function()
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesUnitHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

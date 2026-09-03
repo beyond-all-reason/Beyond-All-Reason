@@ -23,6 +23,7 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
+local countdowns
 
 local needsBuildPlacements
 local needsBuildOwnerMap
@@ -225,6 +226,7 @@ function gadget:Initialize()
 	seismicContacts = GG["MissionAPI"].Modules.SeismicContacts
 	SEISMIC_INTERVAL_FRAMES = seismicContacts.UpdateInterval
 	detectionLevels = GG["MissionAPI"].Modules.DetectionLevels
+	countdowns = GG["MissionAPI"].Modules.Countdowns
 
 	statistics = VFS.Include("luarules/mission_api/statistics.lua")
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
@@ -312,6 +314,12 @@ function gadget:GameFrame(frameNumber)
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
 		teamReclaimIncomeSnapshot = teamReclaimIncome
 		teamReclaimIncome = {}
+
+		-- All countdowns tick down together (see Decrement() in countdowns.lua):
+		local endedCountdownIDs = countdowns.Decrement()
+		for i = 1, #endedCountdownIDs do
+			dispatchTriggerCallin("CountdownEnded", endedCountdownIDs[i])
+		end
 	end
 
 	dispatchTriggerCallin("GameFrame", frameNumber)
