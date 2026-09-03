@@ -84,10 +84,12 @@ local LoadedSpeed = {
 
 ---@class TransportUnitDefStages the stages transport adds to the defs module's unit_def fold
 ---@field EnemyTransport string transportByEnemy written onto every def from the transportenemy option
+---@field TractorBeams string the beta_tractorbeam ruleset's carriers, seats and lab buildoptions; runs before Base
 
 ---@type TransportUnitDefStages
 local UnitDef = {
 	EnemyTransport = "EnemyTransport",
+	TractorBeams = "TractorBeams",
 }
 
 ---@class TransportPipelines what LoadPolicies("transport") hands back
