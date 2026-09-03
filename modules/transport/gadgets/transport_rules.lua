@@ -43,6 +43,9 @@ end
 
 local modOptions = Spring.GetModOptions()
 local commanderDrag = modOptions[TransportEnums.ModOptions.CommanderTransportSlow] == true
+-- Tractor beams (Fx-Doo's custom air transports) load and unload in Lua; the engine
+-- callins below then stay permissive and the unload physics are theirs to manage.
+local tractorBeams = (modOptions.beta_tractorbeam or "disabled") ~= "disabled"
 local FRAMES_PER_SECOND = Game.gameSpeed
 
 local reach = {} ---@type table<integer, number> air transport def -> elmos
@@ -111,6 +114,9 @@ local function deadOrCrashing(unitID)
 end
 
 function gadget:AllowUnitTransport(_, transporterDefID, _, transporteeID, transporteeDefID)
+	if tractorBeams then
+		return true
+	end
 	local _, y = Spring.GetUnitPosition(transporteeID)
 	return decideLoad({
 		goalY = y,
@@ -131,6 +137,9 @@ function gadget:AllowUnitTransportLoad(
 	goalY,
 	goalZ
 )
+	if tractorBeams then
+		return true
+	end
 	local airReach = reach[transporterDefID]
 	local allowed = decideLoad({
 		carrierDef = UnitDefs[transporterDefID],
@@ -150,6 +159,9 @@ function gadget:AllowUnitTransportLoad(
 end
 
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, _, transporteeID, _, _, goalX, goalY, goalZ)
+	if tractorBeams then
+		return true
+	end
 	local airReach = reach[transporterDefID]
 	local allowed = decideUnload({
 		goalY = goalY,
@@ -166,6 +178,9 @@ end
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 	if not UnitDefs[unitDefID].isTransport then
 		return false
+	end
+	if tractorBeams then
+		return true
 	end
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 1 then
@@ -231,6 +246,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 		Spring.SetUnitLeavesGhost(unitID, true)
 	end
 
+	if tractorBeams then
+		return
+	end
 	if isParatrooper[unitDefID] then
 		local vx, vy, vz = Spring.GetUnitVelocity(transportID)
 		vx, vz = Rules.ClampParatrooperVelocity(vx), Rules.ClampParatrooperVelocity(vz)

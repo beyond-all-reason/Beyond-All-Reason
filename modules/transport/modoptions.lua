@@ -35,4 +35,16 @@ return {
 		section = "transport",
 		def = false,
 	},
+	{
+		key = "beta_tractorbeam",
+		name = "Tractor Beams",
+		desc = "Experimental tractor beam transportation method",
+		type = "list",
+		def = "disabled",
+		section = "transport",
+		items = {
+			{ key = "disabled", name = "Disabled", desc = "Disabled" },
+			{ key = "vanilla", name = "Vanilla-like", desc = "Tractor beam logic without balance adjustments" },
+		},
+	},
 }
