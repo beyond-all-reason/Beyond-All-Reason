@@ -2914,6 +2914,20 @@
 			"name": "Own Commander Slows Transport",
 			"desc": "A T2 transport carrying your own Commander flies at speed 120. Enemy commanders are governed by Enemy Transporting."
 		},
+		"beta_tractorbeam": {
+			"name": "Tractor Beams",
+			"desc": "Experimental tractor beam transportation method",
+			"items": {
+				"disabled": {
+					"name": "Disabled",
+					"desc": "Disabled"
+				},
+				"vanilla": {
+					"name": "Vanilla-like",
+					"desc": "Tractor beam logic without balance adjustments"
+				}
+			}
+		},
 		"tax_resource_sharing_amount": {
 			"name": "Resource Sharing Tax",
 			"desc": "Taxes resource sharing and overflow (engine TODO:)\nSet to [0] to turn off. Recommended: [0.4]."
