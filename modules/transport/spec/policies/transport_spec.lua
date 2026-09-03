@@ -12,13 +12,19 @@ end
 describe("transport policies", function()
 	it("publishes every stage name, keyed as its pipelines are, for the owner and for whoever contributes", function()
 		for _, stages in pairs(Contract) do
-			local category = PolicyBuilder.IdentityOf(stages).category
+			local identity = PolicyBuilder.IdentityOf(stages)
+			-- a contribution's names land on the target module's pipeline
+			local owner = identity.contributes and identity.contributes.owner or "transport"
+			local category = identity.contributes and identity.contributes.category or identity.category
 			local named = {}
-			for _, stage in ipairs(ModuleHandler.LoadPolicies(Modules.Transport)[category]) do
+			for _, stage in ipairs(ModuleHandler.LoadPolicies(owner)[category]) do
 				named[stage.name] = true
 			end
 			for key, name in pairs(stages) do
-				assert.is_true(named[name], category .. " has no stage " .. name .. " (Contract." .. key .. ")")
+				assert.is_true(
+					named[name],
+					owner .. "." .. category .. " has no stage " .. name .. " (Contract." .. key .. ")"
+				)
 			end
 		end
 	end)
