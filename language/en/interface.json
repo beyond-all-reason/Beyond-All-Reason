@@ -515,7 +515,9 @@
 				"moveSelect": "Move that squad and select it",
 				"cycleRecent": "Cycle through recently used squads",
 				"cycleIdle": "Cycle through idle squads",
-				"limitFlip": "Invert selection within a squad"
+				"limitFlip": "Invert selection within a squad",
+				"lock": "Lock/unlock the selected squads (nothing selected: select the nearest locked squad)",
+				"selectLocked": "Add the nearest locked squad to the selection (tap again for the next one)"
 			},
 			"drawing": {
 				"title": "Drawing",
