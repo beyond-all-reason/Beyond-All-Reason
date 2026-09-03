@@ -1770,9 +1770,15 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	end
 end
 
-local function addLastUnitShareMessage()
+local function addLastUnitShareMessage(gameFrame)
 	if not lastUnitShare then
 		return
+	end
+	for _, unitShare in pairs(lastUnitShare) do
+		-- half a second: shares from one action can be spread over several sim frames by the network
+		if gameFrame - unitShare.frame < 15 then
+			return
+		end
 	end
 	for _, unitShare in pairs(lastUnitShare) do
 		local oldTeamName = teamNames[unitShare.oldTeamID]
@@ -1816,9 +1822,11 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 			oldTeamID = oldTeamID,
 			newTeamID = newTeamID,
 			unitIDs = {},
+			frame = spGetGameFrame(),
 		}
 	end
 	lastUnitShare[key].unitIDs[#lastUnitShare[key].unitIDs + 1] = unitID
+	lastUnitShare[key].frame = spGetGameFrame()
 end
 
 drawGameTime = function(gameFrame)
@@ -2039,8 +2047,9 @@ local function processChatLineGL(i)
 end
 
 local uiSec = 0
-function widget:GameFrame()
+function widget:GameFrame(gameFrame)
 	state.gameFrameHappened = true
+	addLastUnitShareMessage(gameFrame)
 end
 
 function widget:Update(dt)
@@ -2059,8 +2068,6 @@ function widget:Update(dt)
 		Spring.SDLStartTextInput()
 		updateTextInputDlist = true
 	end
-
-	addLastUnitShareMessage()
 
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then
