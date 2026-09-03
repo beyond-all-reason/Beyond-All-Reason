@@ -55,6 +55,7 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
@@ -123,6 +124,7 @@ local CACHE_PRUNE_INTERVAL = 60 * Game.gameSpeed -- prune expired cache contents
 local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
 
 -- cache these for faster lookups
+local myPlayerID = spGetMyPlayerID()
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
@@ -399,7 +401,7 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 		local unitTeam = spGetUnitTeam(unitID)
 		-- Turns out seagulls and such are counted. So need to gaia check
 		if unitTeam ~= gaiaTeamID then
-			return true, "Enemies on radar/LOS within range" -- FIXME confirm LOS behaves as desired when removed from conditional
+			return true, "Enemies on radar/LOS within range"
 		end
 	end
 
@@ -553,6 +555,10 @@ function gadget:GameFrame(currentFrame)
 end
 
 function gadget:PlayerChanged(playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
+
 	RefreshPlayerState()
 end
 
