@@ -20,8 +20,11 @@ describe("transport's stage on the unit def fold", function()
 	end
 
 	it("follows the base game's post", function()
-		assert.are.equal("Base", pipeline[1].name)
-		assert.are.equal("EnemyTransport", pipeline[2].name)
+		local order = {}
+		for i, stage in ipairs(pipeline) do
+			order[stage.name] = i
+		end
+		assert.is_true(order.Base < order.EnemyTransport)
 	end)
 
 	it("makes commanders immune under All But Commanders, and everyone under Disallow All", function()

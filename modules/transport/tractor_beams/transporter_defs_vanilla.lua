@@ -43,8 +43,8 @@
 -- total weight = 0.5 + 3 + 3 + 1 = 7.5
 -- speedMod = 1 - ((( 7.5 - 6 ) / (0.5 * 6)) * 0.3 = 0.85
 
-local DEFAULT_GENERIC_SCRIPT = "units/generic_air_transport_lus.lua"
-local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
+local DEFAULT_GENERIC_SCRIPT = "modules/transport/scripts/generic_air_transport_lus.lua"
+local DEFAULT_WEAPONIZED_SCRIPT = "modules/transport/scripts/weaponized_air_transport_lus.lua"
 
 return {
 	-- Gadget settings

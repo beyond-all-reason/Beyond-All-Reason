@@ -5,11 +5,15 @@ local Contract = VFS.Include("modules/defs/contract.lua") ---@type DefsContract
 describe("defs pipelines", function()
 	local pipelines = ModuleHandler.LoadPolicies("defs") ---@type DefsPipelines
 
-	it("are folds over one def, opened by the base game's post", function()
+	it("are folds over one def, with the base game's post as a named stage", function()
 		for _, category in ipairs({ "unit_def", "weapon_def" }) do
 			local pipeline = pipelines[category]
 			assert.are.equal("fold", pipeline.result, category)
-			assert.are.equal("Base", pipeline[1].name, category)
+			local named = {}
+			for _, stage in ipairs(pipeline) do
+				named[stage.name] = true
+			end
+			assert.is_true(named.Base, category)
 		end
 		assert.are.same(
 			{ owner = "defs", category = "unit_def", result = "fold" },

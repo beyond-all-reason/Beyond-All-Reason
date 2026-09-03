@@ -28,8 +28,8 @@ local spEcho = Spring.Echo
 -- (none)
 
 -- CONSTANTS
-local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/" -- prefix for VFS.Include (from game root)
-local AIR_TRANSPORT_INC = "Units/airTransports/" -- prefix for include()    (from scripts/)
+local AIR_TRANSPORT_PATH = "modules/transport/scripts/airTransports/" -- prefix for VFS.Include (from game root)
+local AIR_TRANSPORT_INC = AIR_TRANSPORT_PATH -- include() takes a modules/ path as it is
 
 -- VARIABLES
 local unitDef = UnitDefs[unitDefID]
