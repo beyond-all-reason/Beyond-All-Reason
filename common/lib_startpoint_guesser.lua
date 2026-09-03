@@ -14,27 +14,18 @@ local mathMax = math.max
 local mathClamp = math.clamp
 local spGetGroundHeight = Spring.GetGroundHeight
 
-local ParseBoxes = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 local PolygonLib = VFS.Include("common/lib_polygon.lua")
-
-local startboxConfig, startboxConfigExplicit, startboxConfigParsed
 
 -- The bounds handed to these functions are the polygon's bounding box, so a box that is not
 -- a rectangle needs the shape itself to decide what is inside it.
 local function GetStartboxEntry(allyID)
-	if not startboxConfigParsed then
-		startboxConfigParsed = true
-		local ok, config, _, explicit = pcall(ParseBoxes)
-		if ok then
-			startboxConfig, startboxConfigExplicit = config, explicit
-		end
-	end
-
-	if not (startboxConfigExplicit and startboxConfig) then
+	local config, _, explicit = StartboxLib.GetConfig()
+	if not (explicit and config) then
 		return nil
 	end
 
-	return startboxConfig[allyID]
+	return config[allyID]
 end
 
 local function IsInStartbox(allyID, x, z, xmin, zmin, xmax, zmax)
