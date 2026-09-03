@@ -92,7 +92,7 @@ local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
 local suspendBuilderPriority
 local teamsWithOwners = {} -- teams that have active buildTargetOwners entries
-local mmUseParamName = "mmUse"
+local converterEnergyUsageParamName = "mmUse"
 
 -- Reusable scratch tables to reduce GC pressure (cleared before each use)
 local _passiveMetal = {}
@@ -369,7 +369,7 @@ local function UpdatePassiveBuilders(
 		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
-	local converterEnergyUse = spGetTeamRulesParam(teamID, mmUseParamName) or 0
+	local converterEnergyUse = spGetTeamRulesParam(teamID, converterEnergyUsageParamName) or 0
 	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
