@@ -1,19 +1,25 @@
 require("spec_helper")
 
 local Builders = VFS.Include("spec/builders/index.lua")
+local RegisterMissionApiModules = require("mission_api.spec_helper")
 
+-- The real trigger definitions, so the observer index sees the real schema.
+-- (Trigger files read GG['MissionAPI'].Modules at include time.)
 Builders.MissionApi.new():Install()
+RegisterMissionApiModules()
+local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+local TRIGGER_TYPES = triggerDefinitions.Types
 
 local Objectives = VFS.Include("luarules/mission_api/objectives.lua")
-
--- Stand-in trigger type IDs, as triggers_loader would assign them.
-local TRIGGER_TYPES = { ObjectiveCompleted = 101, TimeElapsed = 102 }
+local ObjectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
 
 describe("mission_api.objectives", function()
 	local missionApi
 
+	-- Installs the mock and indexes its triggers the way loadMission does.
 	local function install(builder)
-		missionApi = builder:WithTriggerDefinitions({ Types = TRIGGER_TYPES }):Install()
+		missionApi = builder:WithTriggerDefinitions(triggerDefinitions):Install()
+		missionApi.ObjectiveObservers = ObjectivesLoader.ProcessObjectiveObservers(missionApi.Triggers)
 	end
 
 	-- One stage listing the given objectives, entered as the current stage.

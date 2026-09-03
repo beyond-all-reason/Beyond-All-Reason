@@ -39,4 +39,28 @@ describe("mission_api.schema_utils", function()
 			assert.are.same({}, result)
 		end)
 	end)
+
+	describe("GetNamesWithParameterType", function()
+		it("returns the parameter name per trigger type that has the parameter type", function()
+			local result =
+				schemaUtils.GetNamesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.ObjectiveID)
+			assert.are.equal("objectiveID", result[triggerTypes.ObjectiveCompleted])
+			assert.are.equal(
+				"quantity",
+				schemaUtils.GetNamesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.Quantity)[triggerTypes.UnitsOwned]
+			)
+		end)
+
+		it("does not include trigger types that lack the parameter type", function()
+			local result =
+				schemaUtils.GetNamesWithParameterType(triggerDefinitions.Parameters, parameterTypes.Types.ObjectiveID)
+			assert.is_nil(result[triggerTypes.TimeElapsed])
+			assert.is_nil(result[triggerTypes.UnitsOwned])
+		end)
+
+		it("returns an empty table when no types have the given parameter type", function()
+			local result = schemaUtils.GetNamesWithParameterType(triggerDefinitions.Parameters, "NonExistentType")
+			assert.are.same({}, result)
+		end)
+	end)
 end)

@@ -57,13 +57,16 @@ end
 --- Activates every `ObjectiveCompleted` trigger watching the objective.
 local function notifyObjectiveCompleted(objectiveID)
 	local triggerType = GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCompleted
-	local activateTrigger = GG["MissionAPI"].ActivateTrigger
+	local observers = GG["MissionAPI"].ObjectiveObservers[objectiveID]
+	local triggers = observers and observers[triggerType]
+	if not triggers then
+		return
+	end
 
-	GG["MissionAPI"].ProcessTriggersOfType(triggerType, function(trigger)
-		if trigger.parameters.objectiveID == objectiveID then
-			activateTrigger(trigger)
-		end
-	end)
+	local activateTrigger = GG["MissionAPI"].ActivateTrigger
+	for i = 1, #triggers do
+		activateTrigger(triggers[i])
+	end
 end
 
 --- Run the stage's exit routes for an objective that has just completed.

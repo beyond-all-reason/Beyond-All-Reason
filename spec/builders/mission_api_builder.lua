@@ -24,7 +24,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field ActionDefinitions table
 ---@field TriggerDefinitions table
 ---@field Modules table
----@field ProcessTriggersOfType fun(triggerType: any, func: fun(trigger: table, triggerID: any))
+---@field ObjectiveObservers table
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
@@ -80,6 +80,7 @@ function MB.new()
 		featureLoadout = {},
 		actionDefinitions = {},
 		triggerDefinitions = {},
+		objectiveObservers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
 		realParameterTypes = true,
@@ -449,19 +450,12 @@ function MB:Build()
 		CurrentStageID = instance.currentStageID,
 		UnitLoadout = instance.unitLoadout,
 		FeatureLoadout = instance.featureLoadout,
+		ObjectiveObservers = instance.objectiveObservers,
 		ActionDefinitions = instance.actionDefinitions,
 		TriggerDefinitions = instance.triggerDefinitions,
 		Modules = modules,
 		--- Published by api_missions_triggers.lua:Initialize() for objectives.lua.
-		--- Both read GG['MissionAPI'] at call time, as the gadget's functions do;
-		--- an activation records the stage that was current when it happened.
-		ProcessTriggersOfType = function(triggerType, func)
-			for triggerID, trigger in pairs(GG["MissionAPI"].Triggers) do
-				if trigger.type == triggerType then
-					func(trigger, triggerID)
-				end
-			end
-		end,
+		--- An activation records the stage that was current when it happened.
 		ActivateTrigger = function(trigger)
 			activateTriggerCalls[#activateTriggerCalls + 1] =
 				{ trigger = trigger, stageID = GG["MissionAPI"].CurrentStageID }
