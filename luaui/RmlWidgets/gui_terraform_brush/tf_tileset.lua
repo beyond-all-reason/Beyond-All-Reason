@@ -39,6 +39,13 @@ local KNOBS = {
 	{ "intermediateBlend", "%.2f" },
 	{ "intermediateEvidence", "%.2f" },
 	{ "cavityFloor", "%.2f" },
+	-- DEPOSIT section (automatic sand slot: lee side + pockets)
+	{ "depositSlot", "%d" },
+	{ "depositStrength", "%.2f" },
+	{ "depositLee", "%.2f" },
+	{ "depositCavity", "%.2f" },
+	{ "windDirDeg", "%.0f" },
+	{ "depositSlopeDeg", "%.1f" },
 	{ "intermediateScatter", "%.2f" },
 	{ "intermediateStartDeg", "%.1f" },
 	{ "intermediateFullDeg", "%.1f" },
