@@ -146,14 +146,12 @@ end
 
 local wasgameframe = 0
 local prevframems = 0
-local gameFrameHappened = false
 local drawspergameframe = 0
 local actualdrawspergameframe = 0
 
 function widget:GameFrame(n)
 	simtime = simtime + 1
 	wasgameframe = wasgameframe + 1
-	gameFrameHappened = true
 	if drawspergameframe ~= 2 then
 		--spEcho(drawspergameframe, "draws instead of 2", n)
 	end

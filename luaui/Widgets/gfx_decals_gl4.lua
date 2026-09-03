@@ -492,14 +492,12 @@ function widget:Update() -- this is pointlessly expensive!
 	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
-	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x, z)
 			totalsmoothness = totalsmoothness + abs(h - prevHeight)
 			prevHeight = h
 		end
-		prevX = prevHeight
 	end
 	areaDecals[hash].smoothness = totalsmoothness
 end

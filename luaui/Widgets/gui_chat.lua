@@ -2094,14 +2094,12 @@ function widget:Update(dt)
 		--end
 
 		-- detect team colors changes
-		local changeDetected = false
 		local changedPlayers = {}
 		local teams = Spring.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
-				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
 					name = (

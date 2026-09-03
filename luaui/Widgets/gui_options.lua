@@ -3216,7 +3216,6 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
-	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index
@@ -3239,7 +3238,6 @@ function init()
 			end
 		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
-			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
