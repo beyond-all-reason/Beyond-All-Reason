@@ -105,6 +105,7 @@ end
 local SQUAD_KIND_TOKENS = {
 	manual = "manual",
 	reserve = "reserve",
+	automatic = "reserve", -- newer name for "reserve" (as used by the options)
 	locked = "locked",
 	any = false, -- recognized as a token, but imposes no filter
 }
@@ -116,7 +117,7 @@ local SQUAD_KIND_TOKENS = {
 --                     ("land"/"air"/"naval") present in the current selection
 --   "retarget"      — filtered actions only; let a replace-mode click swing the
 --                     type filter to the closest unit's type
---   "manual"/"reserve"/"locked"/"any" — squad-kind filter (see SQUAD_KIND_TOKENS)
+--   "manual"/"reserve" (a.k.a. "automatic")/"locked"/"any" — squad-kind filter (see SQUAD_KIND_TOKENS)
 --   "distance_<N>"  — cap the selection to units within N world-distance of the cursor
 --   numbers         — step values, in order
 --
