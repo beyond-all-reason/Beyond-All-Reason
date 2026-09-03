@@ -1020,7 +1020,8 @@ function widget:DrawScreen()
 				local pointed = (pointedName == name)
 				local order = widgetHandler.orderList[name]
 				local enabled = order and (order > 0)
-				local active = data.active
+				local known = widgetHandler.knownWidgets[name] -- live lookup
+				local active = known and known.active
 				if pointed and not activescrollbar then
 					pointedY = posy
 					if not pagestepped and (lmb or mmb or rmb) then
