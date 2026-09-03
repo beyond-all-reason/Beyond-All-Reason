@@ -1,12 +1,16 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so here), and
 -- UnitDefs / Spring.GetUnitIsBeingBuilt / Spring.GetUnitTeam / Spring.GetUnitDefID in its handlers.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
-_G.UnitDefs = { { name = "armsolar" }, { name = "armwar" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armsolar" },
+	[2] = { name = "armwar" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionProgress = VFS.Include("luarules/mission_api/triggers/construction_progress.lua")
 local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
@@ -38,23 +42,12 @@ describe("mission_api.triggers.construction_progress", function()
 	end)
 
 	local function trigger(parameters, settings)
-		return { parameters = parameters or {}, settings = settings or {} }
+		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			DoesUnitHaveName = function()
-				return true
-			end,
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			ConstructionState = {},
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

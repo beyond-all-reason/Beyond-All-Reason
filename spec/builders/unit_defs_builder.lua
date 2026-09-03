@@ -52,6 +52,17 @@ function UDFB:WithUnitDef(defID, def)
 	return self
 end
 
+---Register several definitions at once, keyed by defID, which reads closer to the
+---UnitDefs table the engine exposes.
+---@param defsByID table<number, table>
+---@return UnitDefsBuilder
+function UDFB:WithUnitDefs(defsByID)
+	for defID, def in pairs(defsByID or {}) do
+		self:WithUnitDef(defID, def)
+	end
+	return self
+end
+
 ---Register a live unit instance. defIDOrName accepts either a numeric defID
 ---or the name of a previously-registered def. Errors loudly if the def has
 ---not been registered (via WithUnitDef or WithRealUnitDefs).
