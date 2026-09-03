@@ -2781,8 +2781,53 @@ function widget:Initialize()
 		end
 		return true
 	end
+	-- Batched forms of Correct and Remove: `batch` carries `count` records of
+	-- 8 values (same order as EnvNanoBallisticLightCorrect) or `count` ids.
+	WG.lightsgl4.EnvNanoBallisticLightCorrectBatch = function(batch, count)
+		if type(batch) ~= "table" or not count or count < 1 then
+			return false
+		end
+		local vbo = predictivePointLightVBO
+		local idToIndex = vbo.instanceIDtoIndex
+		local instData = vbo.instanceData
+		local step = vbo.instanceStep
+		local o = 0
+		for _ = 1, count do
+			local elementIndex = idToIndex[batch[o + 1]]
+			if elementIndex then
+				local base = (elementIndex - 1) * step
+				instData[base + 1] = batch[o + 2]
+				instData[base + 2] = batch[o + 3]
+				instData[base + 3] = batch[o + 4]
+				instData[base + 5] = batch[o + 5]
+				instData[base + 6] = batch[o + 6]
+				instData[base + 7] = batch[o + 7]
+				instData[base + 8] = 1.0
+				instData[base + spawnFramePos] = batch[o + 8] or gameFrame
+				uploadElementRange(vbo, elementIndex - 1, elementIndex)
+			end
+			o = o + 8
+		end
+		return true
+	end
+	WG.lightsgl4.EnvNanoBallisticLightRemoveBatch = function(ids, count)
+		if type(ids) ~= "table" or not count or count < 1 then
+			return false
+		end
+		local vbo = predictivePointLightVBO
+		local idToIndex = vbo.instanceIDtoIndex
+		for i = 1, count do
+			local id = ids[i]
+			if idToIndex[id] then
+				popElementInstance(vbo, id)
+			end
+		end
+		return true
+	end
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightSpawn", WG.lightsgl4.EnvNanoBallisticLightSpawn)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightSpawnBatch", WG.lightsgl4.EnvNanoBallisticLightSpawnBatch)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrectBatch", WG.lightsgl4.EnvNanoBallisticLightCorrectBatch)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemoveBatch", WG.lightsgl4.EnvNanoBallisticLightRemoveBatch)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrect", WG.lightsgl4.EnvNanoBallisticLightCorrect)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightFade", WG.lightsgl4.EnvNanoBallisticLightFade)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemove", WG.lightsgl4.EnvNanoBallisticLightRemove)
