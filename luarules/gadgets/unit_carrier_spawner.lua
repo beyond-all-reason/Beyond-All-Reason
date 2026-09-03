@@ -34,7 +34,6 @@ local spSetUnitVelocity = Spring.SetUnitVelocity
 local spUnitAttach = Spring.UnitAttach
 local spUnitDetach = Spring.UnitDetach
 local spSetUnitHealth = Spring.SetUnitHealth
-local spSetUnitMaxHealth = Spring.SetUnitMaxHealth
 local spSetUnitUseAirLos = Spring.SetUnitUseAirLos
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
@@ -67,8 +66,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local mcEnable = Spring.MoveCtrl.Enable
 local mcDisable = Spring.MoveCtrl.Disable
 local mcSetPosition = Spring.MoveCtrl.SetPosition
-local mcSetRotation = Spring.MoveCtrl.SetRotation
-local mcSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -86,8 +83,6 @@ local PI = math.pi
 local GAME_SPEED = Game.gameSpeed
 local PRIVATE = { private = true }
 local CMD_CARRIER_SPAWN_ONOFF = GameCMD.CARRIER_SPAWN_ONOFF
-
-local noCreate = false
 
 local spawnDefs = {}
 local shieldCollide = {}
@@ -927,7 +922,6 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
 			local droneMetaData = carrierMetaList[carrierUnitID].subUnitsList[unitID]
 			local bomberStage = droneMetaData.bomberStage
-			local fighterStage = droneMetaData.fighterStage
 			local droneType = droneMetaData.dronetype
 			if droneType == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and bomberStage > 0 then
 				if droneMetaData.bomberStage == 1 then

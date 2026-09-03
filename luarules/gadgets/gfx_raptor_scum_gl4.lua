@@ -31,8 +31,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local sqrt = math.sqrt
 	local floor = math.floor
-	local max = math.max
-	local min = math.min
 	local clamp = math.clamp
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
@@ -1002,7 +1000,6 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 		end
 		lastSunChanged = df
 		if GG.NightFactor then
-			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
 			nightFactor[1] = GG.NightFactor.red
 			nightFactor[2] = GG.NightFactor.green
 			nightFactor[3] = GG.NightFactor.blue

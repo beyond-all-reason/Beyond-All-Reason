@@ -40,9 +40,6 @@ local function rot_to_facing(rotation)
 	return 2
 end
 
-local startMetal = 1000
-local startEnergy = 1000
-local teamList = {}
 local additionalStorage = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -153,17 +150,4 @@ function gadget:GameFrame(n)
 		end
 		gadgetHandler:RemoveGadget()
 	end
-	--[[ periodic checking isn't very good
-	if n %17 == 7 then
-		local teamList = Spring.GetTeamList()
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local m, mstore = Spring.GetTeamResources(teamID, "metal")
-			local e, estore = Spring.GetTeamResources(teamID, "energy")
-			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end
-			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end
-		end
-	end
-	]]
-	--
 end

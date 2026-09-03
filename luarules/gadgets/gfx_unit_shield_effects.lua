@@ -497,8 +497,6 @@ end
 
 local function DrawIcosahedron(subd, cw)
 	local sqrt = math.sqrt
-	local sin = math.sin
-	local cos = math.cos
 	local atan2 = math.atan2
 	local acos = math.acos
 

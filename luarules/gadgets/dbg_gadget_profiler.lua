@@ -868,7 +868,6 @@ else
 
 	-- Cache format strings
 	local noDataColor = "\255\200\200\200"
-	local maxnameColor = "\255\200\200\200"
 
 	local function DrawSortedList(list, name, isSynced)
 		NewSection(name)

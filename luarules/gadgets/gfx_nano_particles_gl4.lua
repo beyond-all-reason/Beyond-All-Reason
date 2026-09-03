@@ -81,7 +81,6 @@ local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local spGetUnitWorkerTask = Spring.GetUnitWorkerTask
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spIsUnitVisible = Spring.IsUnitVisible
 local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
 local spGetGroundHeight = Spring.GetGroundHeight
 
@@ -135,7 +134,6 @@ local function refreshMaxParticles()
 	MAX_PARTICLES = computeMaxParticles()
 end
 
-local NANO_TEXTURE = "bitmaps/projectiletextures/nanopart.tga"
 local LOS_FILTER = true -- drop emissions outside our LOS
 
 -- Render mode: "shape" (3D polyhedra via geometry shader; specific shape in
@@ -822,7 +820,6 @@ end
 -- Refreshed from Update on a 1s sim-frame cadence (cheap, one Spring.GetGameSpeed call).
 local GAMESPEED_THROTTLE_START = 1.5 -- below this, no extra throttle
 local GAMESPEED_THROTTLE_FULL = 5.0 -- at or above this, full throttle
-local GAMESPEED_EMIT_CUT = 0.66 -- emitProb cut at full throttle (0..1)
 local GAMESPEED_MAX_CUT = 0.85 -- effective-max cut at full throttle (0..1)
 local speedThrottle = 0.0 -- 0 = none, 1 = max (set from Update)
 
