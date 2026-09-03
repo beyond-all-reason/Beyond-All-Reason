@@ -197,3 +197,5 @@ bind ctrl+sc_mouse5 squad_select_portion_filtered 0 //0 = 0% of the squad but at
 bind Meta+sc_a squad_limit_flip
 bind Meta+sc_s squad_cycle_recent
 bind Meta+sc_d squad_cycle_idle
+bind Meta+sc_v squad_lock
+bind Meta+shift+sc_v squad_select append locked //append the next nearest locked squad, so one squad_lock unlocks them all

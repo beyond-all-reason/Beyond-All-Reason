@@ -301,6 +301,8 @@ local function appendSquadKeybinds()
 	add(getActionHotkey("squad_cycle_recent"), i18n("cycleRecent"))
 	add(getActionHotkey("squad_cycle_idle"), i18n("cycleIdle"))
 	add(getActionHotkey("squad_limit_flip"), i18n("limitFlip"))
+	add(getActionHotkey("squad_lock"), i18n("lock"))
+	add(getActionHotkey("squad_select_append locked"), i18n("selectLocked"))
 end
 
 local function refreshText()
