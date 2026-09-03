@@ -58,10 +58,8 @@ end
 -------------------------------------------------------------------------------
 -- Config
 --
--- Hull-specific look + animation. Owned and persisted by this widget. The
--- shared cross-visualization options (visualizationMode, showReserveSquads,
--- squadColorMode, squadCustomColor*) live in the main widget and are read via
--- WG['squadselection'].getConfig().
+-- Hull-specific look + animation. Owned and persisted by this widget.
+-- The shared cross-visualization options (visualizationMode, showReserveSquads, showLockedSquads, squadColorMode, squadCustomColor*) live in the main widget and are read via WG['squadselection'].getConfig().
 -------------------------------------------------------------------------------
 
 ---@class HullConfig
@@ -513,6 +511,7 @@ function widget:DrawWorldPreUnit()
 	local squadSelCount = state.squadSelCount
 	local squadHighlightBlend = state.squadHighlightBlend
 	local squadControlBlend = state.squadControlBlend
+	local squadLockFlash = state.squadLockFlash
 	local teamColor = state.teamColor
 
 	local fillOpacity = hullConfig.convexHullFillOpacity
@@ -521,6 +520,7 @@ function widget:DrawWorldPreUnit()
 	local padding = hullConfig.convexHullPadding
 	local arcRes = hullConfig.convexHullArcResolution
 	local showReserves = config.showReserveSquads
+	local showLocked = config.showLockedSquads
 	local colorMode = config.squadColorMode
 
 	if not hullTimeOrigin then
@@ -533,8 +533,12 @@ function widget:DrawWorldPreUnit()
 	glLineWidth(borderThickness)
 
 	for _, squad in ipairs(squads) do
-		if not squad.isReserve or showReserves then
-			local size = #squad
+		local size = #squad
+		local locked = squad.isLocked
+		local lockFlash = squadLockFlash[squad] or 0
+		local drawn = (not squad.isReserve or showReserves)
+			and (not locked or showLocked or lockFlash > 0 or (squadSelCount[squad] or 0) > 0)
+		if drawn then
 			if size > 0 then
 				local idleBlend = squadIdleBlend[squad] or 0
 				local hb = squadHighlightBlend[squad] or 0
@@ -546,7 +550,7 @@ function widget:DrawWorldPreUnit()
 					alphaScale = fullySelected and 1 or math.max(1 - idleBlend, hb, ctb)
 				end
 
-				if alphaScale <= 0.001 then
+				if alphaScale <= 0.001 and lockFlash <= 0 then
 					-- Fully hidden for idle flying-air squads.
 				else
 					local cr, cg, cb
@@ -574,6 +578,10 @@ function widget:DrawWorldPreUnit()
 						alphaScale = alphaScale * 0.70
 						cr, cg, cb = cr * 1.25, cg * 1.25, cb * 1.25
 					end
+					local lockedOutline = locked
+					if lockedOutline then
+						alphaScale = alphaScale * (fullySelected and 0.85 or 0.6)
+					end
 
 					-- Highlight tiers faded in by their blends.
 					local effFill, effBorder = fillOpacity, borderOpacity
@@ -586,6 +594,15 @@ function widget:DrawWorldPreUnit()
 						cr = cr + (1 - cr) * bright
 						cg = cg + (1 - cg) * bright
 						cb = cb + (1 - cb) * bright
+					end
+					if lockFlash > 0 then
+						-- Bright ring that snaps outwards and fades
+						effBorder = math.min(1, effBorder + 0.6 * lockFlash)
+						effPadding = effPadding + 10 * lockFlash
+						alphaScale = math.max(alphaScale, lockFlash)
+						cr = cr + (1 - cr) * lockFlash
+						cg = cg + (1 - cg) * lockFlash
+						cb = cb + (1 - cb) * lockFlash
 					end
 
 					-- fill scratchWorld in place (reuse {x,y} tables) and track
@@ -685,14 +702,17 @@ function widget:DrawWorldPreUnit()
 								else
 									glUniform(hullStripeLoc, 0, 1, 0)
 								end
-								glUniform(hullColorLoc, cr, cg, cb, effFill * alphaScale)
-								hullVao:DrawArrays(GL.TRIANGLE_FAN, n)
+								if not lockedOutline then
+									glUniform(hullColorLoc, cr, cg, cb, effFill * alphaScale)
+									hullVao:DrawArrays(GL.TRIANGLE_FAN, n)
+								end
 								if squad.isReserve then
 									glUniform(hullStripeLoc, 0, 1, 0)
 								end
 								glUniform(hullColorLoc, cr, cg, cb, effBorder * alphaScale)
-								if hb > 0 then
-									glLineWidth(borderThickness + 1.5 * hb)
+								local extraWidth = 1.5 * hb + 2.5 * lockFlash
+								if extraWidth > 0 then
+									glLineWidth(borderThickness + extraWidth)
 									hullVao:DrawArrays(GL.LINE_LOOP, n)
 									glLineWidth(borderThickness)
 								else

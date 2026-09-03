@@ -99,13 +99,13 @@ local function stepToCount(step, poolSize)
 	return math.min(math.floor(step), poolSize)
 end
 
--- Squad-kind keywords accepted by every selection action: restrict the search to
--- manual squads (player-created) or reserve squads (per-factory + uncategorized).
--- "any" is the default and only exists so a bind can state it explicitly.
----@alias SquadKind "manual"|"reserve"
+-- Squad-kind keywords accepted by every selection action: restrict the search to manual squads (player-created), reserve/automatic squads (per-factory + uncategorized) or locked squads (parked via squad_lock; the only way a select action reaches them).
+-- "any" is the default and only exists so a bind can state it explicitly
+---@alias SquadKind "manual"|"reserve"|"locked"
 local SQUAD_KIND_TOKENS = {
 	manual = "manual",
 	reserve = "reserve",
+	locked = "locked",
 	any = false, -- recognized as a token, but imposes no filter
 }
 
@@ -116,7 +116,7 @@ local SQUAD_KIND_TOKENS = {
 --                     ("land"/"air"/"naval") present in the current selection
 --   "retarget"      — filtered actions only; let a replace-mode click swing the
 --                     type filter to the closest unit's type
---   "manual"/"reserve"/"any" — squad-kind filter (see SQUAD_KIND_TOKENS)
+--   "manual"/"reserve"/"locked"/"any" — squad-kind filter (see SQUAD_KIND_TOKENS)
 --   "distance_<N>"  — cap the selection to units within N world-distance of the cursor
 --   numbers         — step values, in order
 --
