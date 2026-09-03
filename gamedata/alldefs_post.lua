@@ -76,7 +76,7 @@ if not tractorBeamEnabled then
 	tractorBeamMode = nil
 end
 local _tractorbeamDefs = tractorBeamMode
-		and VFS.Include("tractor_beams_temp_defs/transporter_defs_" .. tractorBeamMode .. ".lua")
+		and VFS.Include("modules/transport/tractor_beams/transporter_defs_" .. tractorBeamMode .. ".lua")
 	or {}
 local transporterDefs = _tractorbeamDefs.transporters
 local transporterDefaults = _tractorbeamDefs.transporterDefaults

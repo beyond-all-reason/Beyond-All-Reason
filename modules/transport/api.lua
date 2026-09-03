@@ -20,6 +20,7 @@ end
 ---@field MayLoad fun(ctx: TransportLoadContext): boolean
 ---@field DefFacts fun(unitDefID: number|nil): TransportDefFacts|nil
 ---@field UnitFacts fun(unitID: integer|nil): TransportDefFacts|nil the live unit's def facts
+---@field TractorBeams fun(): table|nil seat, pad and cargo helpers; nil unless the beta_tractorbeam ruleset is on
 
 local canEverCarry = {} ---@type table<integer, table<integer, boolean>>
 
@@ -112,6 +113,13 @@ return {
 			and Rules.CanCarry(transportFacts, unitFacts, carriedMass, #cargo)
 	end,
 
+	---The tractor beam helpers, published by the api_tractor_beams gadget and
+	---widget on their side of the fence; absent when that ruleset is off.
+	---@return table|nil
+	TractorBeams = function()
+		local scope = GG or WG
+		return scope and scope.TransportAPI or nil
+	end,
 	---@param ctx TransportLoadContext
 	---@return boolean
 	MayLoad = function(ctx)
