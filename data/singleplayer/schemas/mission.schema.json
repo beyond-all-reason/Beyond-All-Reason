@@ -99,7 +99,7 @@
 		},
 		"missionId": {
 			"allOf": [{ "$ref": "#/definitions/identifier" }],
-			"description": "Unique ID of the mission within its campaign. Referenced by the campaign's 'unlocks' map."
+			"description": "Unique ID of the mission within its campaign."
 		},
 		"titleKey": {
 			"allOf": [{ "$ref": "#/definitions/i18nKey" }],

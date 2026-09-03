@@ -76,20 +76,6 @@
 			"items": {
 				"$ref": "#/definitions/identifier"
 			}
-		},
-		"unlocks": {
-			"type": "object",
-			"description": "Map of mission IDs to their unlock requirements. Missions not listed here have no prerequisites and are unlocked from the start. IDs must match the 'missionId' of a mission.json in this campaign.",
-			"propertyNames": {
-				"$ref": "#/definitions/identifier"
-			},
-			"additionalProperties": {
-				"type": "array",
-				"description": "List of mission IDs that must be completed to unlock this mission.",
-				"items": {
-					"$ref": "#/definitions/identifier"
-				}
-			}
 		}
 	}
 }

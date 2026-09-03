@@ -67,6 +67,8 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
+
+	-- TODO: use util from https://github.com/beyond-all-reason/Beyond-All-Reason/pull/9031
 	missionOptions = Json.decode(string.base64Decode(missionOptions))
 
 	setAiNames(missionOptions.ais)

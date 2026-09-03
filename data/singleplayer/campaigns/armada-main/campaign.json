@@ -26,8 +26,4 @@
 		"unit_detection_test",
 		"unit_received_order_test"
 	],
-
-	"unlocks": {
-		"markers_test": ["start_script_test"]
-	}
 }

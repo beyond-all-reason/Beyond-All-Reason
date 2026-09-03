@@ -87,9 +87,6 @@ so shared Lua helpers can live in one.
 
 Team names come from `mission.json`, and the Lua refers to them as `teamName`.
 
-`unlocks` in `campaign.json` maps `missionId` to its prerequisites. Missions not listed there are available from the
-start.
-
 `players` and `authors` are campaign level. A campaign mission may override them; a scenario must set `players` itself.
 `authors` is optional everywhere.
 
