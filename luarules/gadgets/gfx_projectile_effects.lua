@@ -182,7 +182,7 @@ local allWatchedProjectileIDs = {}
 local waterIsLava = Spring.GetModOptions().map_waterislava
 
 function gadget:Initialize()
-	local minheight, maxheight = Spring.GetGroundExtremes()
+	local minheight, _ = Spring.GetGroundExtremes()
 	if minheight > 100 then
 		mapHasWater = false
 	end

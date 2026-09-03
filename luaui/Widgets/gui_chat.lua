@@ -2854,7 +2854,7 @@ drawTextInput = function()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
-			local x, y, b = spGetMouseState()
+			local x, y, _ = spGetMouseState()
 			if state.hasActiveCommand() then
 				return
 			end

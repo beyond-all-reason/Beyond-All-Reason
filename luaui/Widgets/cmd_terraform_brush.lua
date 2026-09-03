@@ -214,7 +214,7 @@ local function loadKeybindsFromDisk()
 	if VFS.FileExists(KEYBINDS_FILE, VFS.RAW) then
 		local raw = VFS.LoadFile(KEYBINDS_FILE, VFS.RAW)
 		if raw then
-			local fn, err = loadstring(raw)
+			local fn, _err = loadstring(raw)
 			if fn then
 				local ok, data = pcall(fn)
 				if ok and type(data) == "table" then

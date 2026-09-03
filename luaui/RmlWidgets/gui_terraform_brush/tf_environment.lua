@@ -1166,7 +1166,7 @@ function M.attach(doc, ctx)
 	end, function()
 		return (select(3, gl.GetSun("pos"))) * 10000
 	end, function(val)
-		local sx, sy, sz = gl.GetSun("pos")
+		local sx, sy, _ = gl.GetSun("pos")
 		Spring.SetSunDirection(sx, sy, val)
 		Spring.SetSunLighting({
 			groundShadowDensity = gl.GetSun("shadowDensity"),
@@ -1703,7 +1703,7 @@ function M.attach(doc, ctx)
 		local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
 		return (angle or 0) * 100
 	end, function(val)
-		local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+		local x, y, z, _ = gl.GetAtmosphere("skyAxisAngle")
 		Spring.SetAtmosphere({ skyAxisAngle = { x, y, z, val } })
 	end)
 	local function skyAxisSlider(axis, idx)

@@ -401,7 +401,7 @@ if gadgetHandler:IsSyncedCode() then
 			local featureID = allFeatures[i]
 			local featureDefID = Spring.GetFeatureDefID(featureID)
 			if IsLikelyTreeFeature(featureID, featureDefID) then
-				local fx, fy, fz = GetFeaturePosition(featureID)
+				local fx, fy, _ = GetFeaturePosition(featureID)
 				if fx and fy <= lavaLevel then
 					DestroyFeature(featureID)
 				end
@@ -522,10 +522,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		local ppx, ppy, ppz
 		if fx ~= nil then
-			local health, maxhealth, _ = GetFeatureHealth(featureID)
+			local health, _, _ = GetFeatureHealth(featureID)
 			if dmg >= health then
 				local fire
-				local _, maxMetal, _, maxEnergy, reclaimLeft = GetFeatureResources(featureID)
+				local _, maxMetal, _, maxEnergy, _ = GetFeatureResources(featureID)
 				local dissapearSpeed = 1.7
 				local size = "medium"
 				if treeScaleY[featureDefID] then

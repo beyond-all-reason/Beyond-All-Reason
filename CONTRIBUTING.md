@@ -68,6 +68,7 @@ You should prefer common functions, then, over potential shortcuts. For example,
 * Do not avoid newlines in code. Add extra newlines after blocks (loops, if/then statements) to aid future readers and reviewers. You can skip some extra newlines, like between immediately-nested if/elseif/else/then/end statements.
 * Do not keep dead code. This includes all dead (unreachable), unused (not called), or removed (commented) code in any file. Delete all code not in active use.
 * Do not keep throwaway debug code. Logging invalid or unexpected state is ok, as is debug code gated behind a debug flag.
+* Consume all function returns, assigning unused ones to `_`, or to `_name` where the name documents what is being discarded.
 
 #### Lua 5.1 hard limits
 
