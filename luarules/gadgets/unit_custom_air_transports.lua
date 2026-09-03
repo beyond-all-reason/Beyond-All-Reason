@@ -27,6 +27,16 @@ if not TransportAPI then
 	return false
 end
 
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Modules = VFS.Include("modules/enums.lua").Modules
+local pipelines = ModuleHandler.LoadPolicies(Modules.Transport) ---@type TransportPipelines
+
+---@param ctx TransportLoadContext
+---@return boolean
+local function decideLoad(ctx)
+	return ModuleHandler.Evaluate(pipelines.load, ctx) == true
+end
+
 local modOptions = Spring.GetModOptions() or {}
 local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
 local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
@@ -268,9 +278,6 @@ local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID
 	if passengerID == transporterID then
 		return false
 	end
-	if UnitDefs[passengerDefID].cantBeTransported then
-		return false
-	end
 	return true
 end
 
@@ -295,38 +302,26 @@ local function CanBeTransportedDynamic(
 	if spGetUnitIsDead(passengerID) then
 		return false
 	end
-	if spGetUnitTransporter(passengerID) ~= nil then
-		return false
-	end
-	if spGetUnitIsBeingBuilt(passengerID) then
-		return false
-	end
-	if isUnderwater(passengerID, passengerPosY) then
-		return false
-	end
-	if spGetUnitRulesParam(passengerID, "inUnloadAnim") == 1 then
-		return false
-	end
-	if (spGetUnitRulesParam(passengerID, "inLoadAnim") or 0) > 0 then
-		return false
-	end
 	local allied = spAreTeamsAllied(passengerTeamID, transporterTeamID)
-	if allied then
-		return true
+	local seen = nil
+	if not allied then
+		local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
+		seen = losState ~= nil and (losState.los or losState.radar) == true
 	end
-	if ALLOW_ENEMY_LOAD_MODE == 1 then
-		return false
-	end
-	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander
-		or UnitDefs[passengerDefID].transportByEnemy == false
-	if cantLoadAsEnemy then
-		return false
-	end
-	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
-	if not losState or not (losState.los or losState.radar) then
-		return false
-	end
-	return true
+	return decideLoad({
+		goalY = passengerPosY,
+		height = spGetUnitHeight(passengerID),
+		carrierDef = UnitDefs[spGetUnitDefID(transporterID)],
+		passengerDef = UnitDefs[passengerDefID],
+		allied = allied,
+		ownTeam = passengerTeamID == transporterTeamID,
+		carried = spGetUnitTransporter(passengerID) ~= nil,
+		underConstruction = spGetUnitIsBeingBuilt(passengerID) == true,
+		inAnimation = spGetUnitRulesParam(passengerID, "inUnloadAnim") == 1
+			or (spGetUnitRulesParam(passengerID, "inLoadAnim") or 0) > 0,
+		enemyLoading = ALLOW_ENEMY_LOAD_MODE ~= 1,
+		seen = seen,
+	})
 end
 
 ---@param passengerID number
