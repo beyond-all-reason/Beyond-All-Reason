@@ -17,6 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
+
+local tractorBeams = (Spring.GetModOptions().beta_tractorbeam or "disabled") ~= "disabled"
 local Unstack = VFS.Include("modules/transport/lib/unstack.lua") ---@type TransportUnstack
 local state = VFS.Include("modules/transport/state.lua") ---@type TransportState
 
@@ -27,6 +29,9 @@ local function deadOrCrashing(unitID)
 end
 
 function gadget:AllowUnitTransport(_, transporterDefID, _, transporteeID, transporteeDefID)
+	if tractorBeams then
+		return true
+	end
 	return Transport.MayCarry(transporterDefID, transporteeID, transporteeDefID)
 end
 
@@ -41,16 +46,25 @@ function gadget:AllowUnitTransportLoad(
 	goalY,
 	goalZ
 )
+	if tractorBeams then
+		return true
+	end
 	return Transport.MayLoad(transporterID, transporterDefID, transporteeID, transporteeDefID, goalX, goalY, goalZ)
 end
 
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, _, transporteeID, _, _, goalX, goalY, goalZ)
+	if tractorBeams then
+		return true
+	end
 	return Transport.MayUnload(transporterID, transporterDefID, transporteeID, goalX, goalY, goalZ)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 	if not Transport.DefTraits(unitDefID).isTransport then
 		return false
+	end
+	if tractorBeams then
+		return true
 	end
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 1 then

@@ -16,6 +16,7 @@ local Modules = VFS.Include("modules/enums.lua").Modules
 ---@field MayUnload fun(carrierID: integer, carrierDefID: integer, passengerID: integer, goalX: number, goalY: number, goalZ: number): boolean may the carrier set the passenger down at the goal
 ---@field MayOrderLoad fun(carrierID: integer, carrierDefID: integer, teamID: integer, targetID: integer): boolean a player's load order: the command question, with who owns the target
 ---@field MayOrderUnload fun(goalX: number, goalY: number, goalZ: number): boolean a player's order to set a nano turret down at the goal
+---@field TractorBeams fun(): table|nil seat, pad and cargo helpers; nil unless the beta_tractorbeam ruleset is on
 ---@field LoadedSpeed fun(carrierID: integer): number|nil elmos per frame the loaded carrier may fly; nil when it carries nothing
 ---@field Loaded fun(unitID: integer, unitDefID: integer, transportID: integer) a passenger came aboard: the loaded action
 ---@field Unloaded fun(unitID: integer, unitDefID: integer, transportID: integer) a passenger was set down: the unloaded action
@@ -103,6 +104,12 @@ local TransportApi = {
 	---@return boolean
 	CanCarry = function(transportDefID, unitDefID, carriedMass, carriedCount)
 		return Rules.CanCarry(Traits.Of(transportDefID), Traits.Of(unitDefID), carriedMass, carriedCount)
+	end,
+
+	---@return table|nil
+	TractorBeams = function()
+		local scope = GG or WG
+		return scope and scope.TransportAPI or nil
 	end,
 
 	DefTraits = Traits.Of,
@@ -265,6 +272,7 @@ local TransportApi = {
 			passenger = Traits.Of(unitDefID),
 			loadedSpeed = carrier.canFly and (TransportApi.LoadedSpeed(transportID) or false) or nil,
 			frame = Spring.GetGameFrame(),
+			settles = (Spring.GetModOptions().beta_tractorbeam or "disabled") == "disabled",
 		})
 	end,
 
