@@ -392,12 +392,12 @@ local GAME_SPEED = Game.gameSpeed or 30
 -- particle reads still hit a local rather than a table key.
 local U = {}
 
-U.NANO_PARTICLES_HOMING = Spring.GetConfigInt("NanoParticlesHoming", 0) ~= 0
-U.NANO_PARTICLES_RECLAIM_BURST = Spring.GetConfigInt("NanoParticlesReclaimBurst", 0) ~= 0
+U.NANO_PARTICLES_HOMING = Spring.GetConfigInt("NanoParticlesHoming", 1) ~= 0
+U.NANO_PARTICLES_RECLAIM_BURST = Spring.GetConfigInt("NanoParticlesReclaimBurst", 1) ~= 0
 
 -- Optional terrain clamp for particle paths. Disabled by default because it
 -- adds extra ground-height queries in hot paths.
-U.GROUND_CLAMP_ENABLED = Spring.GetConfigInt("NanoParticlesGroundClamp", 0) ~= 0
+U.GROUND_CLAMP_ENABLED = Spring.GetConfigInt("NanoParticlesGroundClamp", 1) ~= 0
 U.GROUND_CLAMP_MARGIN = 11.0
 -- In-flight correction cadence. Enabled mode can periodically reproject active
 -- particles above terrain to prevent straight-line tunneling through cliffs.
@@ -4511,7 +4511,7 @@ function gadget:Update()
 			nl = { activeCount = 0, active = {}, ids = {} }
 			deathBuckets.__nanoLight = nl
 		end
-		nl.enabled = (Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1)
+		nl.enabled = (Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 1) == 1)
 		if nl.enabled then
 			nl.spawnRadius = 33
 			nl.alpha = 0.05
@@ -4956,7 +4956,7 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 end
 
 U.refreshFeatureToggles = function()
-	local homingEnabled = Spring.GetConfigInt("NanoParticlesHoming", 0) ~= 0
+	local homingEnabled = Spring.GetConfigInt("NanoParticlesHoming", 1) ~= 0
 	if homingEnabled ~= U.NANO_PARTICLES_HOMING then
 		U.NANO_PARTICLES_HOMING = homingEnabled
 		if not homingEnabled then
@@ -4996,7 +4996,7 @@ U.refreshFeatureToggles = function()
 		end
 	end
 
-	local reclaimBurstEnabled = Spring.GetConfigInt("NanoParticlesReclaimBurst", 0) ~= 0
+	local reclaimBurstEnabled = Spring.GetConfigInt("NanoParticlesReclaimBurst", 1) ~= 0
 	if reclaimBurstEnabled ~= U.NANO_PARTICLES_RECLAIM_BURST then
 		U.NANO_PARTICLES_RECLAIM_BURST = reclaimBurstEnabled
 		if not reclaimBurstEnabled then
