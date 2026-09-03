@@ -4971,7 +4971,7 @@ U.refreshFeatureToggles = function()
 		end
 	end
 
-	local groundClampEnabled = Spring.GetConfigInt("NanoParticlesGroundClamp", 0) ~= 0
+	local groundClampEnabled = Spring.GetConfigInt("NanoParticlesGroundClamp", 1) ~= 0
 	if groundClampEnabled ~= U.GROUND_CLAMP_ENABLED then
 		U.GROUND_CLAMP_ENABLED = groundClampEnabled
 		if not groundClampEnabled then
