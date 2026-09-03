@@ -37,7 +37,7 @@ return {
 		sightdistance = 600,
 		speed = 75,
 		turninplace = true,
-		turninplaceanglelimit = 90,
+		turninplaceanglelimit = 80,
 		turninplacespeedlimit = 1.65,
 		turnrate = 1168.40002,
 		upright = true,
