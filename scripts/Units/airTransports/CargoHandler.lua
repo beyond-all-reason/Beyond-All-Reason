@@ -222,49 +222,31 @@ function CargoHandler.FindSlot(passengerID, cargo, allowReorganize, fromReorgani
 	local sizeList = cargo.slotsBySize[seats]
 	if not sizeList then return nil end
 
-	local bestSlotID   = nil
-	local bestDistSq   = math.huge
-	local hasOverlap   = false  -- true if an overlapping slot is available but a non-overlapping one isn't
+	local bestSlotID, bestDistSq = nil, math.huge
+	local bestOverlapSlotID, bestOverlapDistSq = nil, math.huge
 
+	-- normal calls take the closest slot regardless of overlap; reorganize prefers non-overlapping
+	-- but still tracks the closest overlapping one as a fallback so a unit is never left stranded
 	for _, slotID in ipairs(sizeList) do
 		local slotData = cargo.slots[slotID]
 		if slotData.cargo == nil and RequiresMet(slotData, cargo.slots) then
-			if slotData.overlapping then
-				if not fromReorganize then
-					hasOverlap = true  -- note it but keep looking for a clean slot
+			local dSq = PassengerToSlotDistSq(passengerID, slotID)
+			if fromReorganize and slotData.overlapping then
+				if dSq < bestOverlapDistSq then
+					bestOverlapDistSq = dSq
+					bestOverlapSlotID = slotID
 				end
-			else
-				local dSq = PassengerToSlotDistSq(passengerID, slotID)
-				if dSq < bestDistSq then
-					bestDistSq = dSq
-					bestSlotID = slotID
-				end
+			elseif dSq < bestDistSq then
+				bestDistSq = dSq
+				bestSlotID = slotID
 			end
 		end
 	end
+	bestSlotID = bestSlotID or bestOverlapSlotID
 
-	-- a non-overlapping slot is available: claim it
 	if bestSlotID then
 		cargo.slots[bestSlotID].cargo = passengerID
 		return { id = passengerID, height = spGetUnitHeight(passengerID), radius = spGetUnitRadius(passengerID), slotID = bestSlotID }
-	end
-
-	-- only overlapping slots are available: try one (closest)
-	if not fromReorganize and hasOverlap then
-		for _, slotID in ipairs(sizeList) do
-			local slotData = cargo.slots[slotID]
-			if slotData.cargo == nil and slotData.overlapping and RequiresMet(slotData, cargo.slots) then
-				local dSq = PassengerToSlotDistSq(passengerID, slotID)
-				if dSq < bestDistSq then
-					bestDistSq = dSq
-					bestSlotID = slotID
-				end
-			end
-		end
-		if bestSlotID then
-			cargo.slots[bestSlotID].cargo = passengerID
-			return { id = passengerID, height = spGetUnitHeight(passengerID), radius = spGetUnitRadius(passengerID), slotID = bestSlotID }
-		end
 	end
 
 	-- no slot at all: maybe reorganize can make room

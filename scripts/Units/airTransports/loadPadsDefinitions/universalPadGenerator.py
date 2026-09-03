@@ -331,28 +331,100 @@ def build_links(active):
 
 # ── Pad defs (port of Lua GeneratePadDefs) ────────────────────────────────────
 
-def _pick_non_overlapping(links, n):
-    """Greedily pick up to n mutually non-overlapping links (by beam set)."""
-    selected, rest = [], []
-    used = set()
-    for l in links:
-        if len(selected) < n and not (set(l['beams']) & used):
-            selected.append(l)
-            used.update(l['beams'])
-        else:
-            rest.append(l)
-    return selected, rest
+def _largest_pow2_leq(n):
+    """Largest power of two <= n (0 if n <= 0)."""
+    if n <= 0:
+        return 0
+    p = 1
+    while p * 2 <= n:
+        p *= 2
+    return p
+
+
+def _is_safe_slot(tested_slot, ordered_links, beam_sets, requires, transporter_size, debug=False):
+    """
+    SAFE = after loading tested_slot, there is always at least one branch where,
+    at every subsequent step, we load a slot whose size is EXACTLY the largest
+    power of two that still fits the remaining capacity, until remaining hits 0.
+
+    The required size at each step is fixed arithmetically (largest power of two
+    <= remaining) - it is NOT found by scanning for whatever sizes happen to have
+    an available slot. If no available, non-conflicting slot of that exact size
+    exists, that branch is a dead end immediately (no fallback to a smaller size).
+    Multiple available slots of that exact size are separate branches; SAFE if
+    ANY branch reaches remaining == 0.
+    """
+    capacity_used = tested_slot['size']
+    remaining_capacity = transporter_size - capacity_used
+
+    if debug:
+        print(f"\n_is_safe_slot: Testing {tested_slot['name']} (size {capacity_used}), remaining={remaining_capacity}")
+
+    if remaining_capacity < 0:
+        if debug:
+            print(f"  -> slot bigger than transporter, UNSAFE")
+        return False
+    if remaining_capacity == 0:
+        if debug:
+            print(f"  -> exact fit alone, SAFE")
+        return True
+
+    # Mark tested_slot + everything conflicting with it unavailable
+    unavailable = {tested_slot['name']}
+    for link in ordered_links:
+        if tested_slot['name'] in requires[link['name']]:
+            unavailable.add(link['name'])
+    locked_beams = set(beam_sets[tested_slot['name']])
+
+    def can_fill(remaining, unavailable_set, locked, depth):
+        if remaining == 0:
+            return True
+
+        target_size = _largest_pow2_leq(remaining)
+        candidates = [
+            slot for slot in ordered_links
+            if slot['size'] == target_size
+            and slot['name'] not in unavailable_set
+            and not (beam_sets[slot['name']] & locked)
+        ]
+
+        if debug:
+            names = [c['name'] for c in candidates] or ['NONE']
+            print(f"{'  ' * (depth + 1)}remaining={remaining}, need size {target_size}: {names}")
+
+        if not candidates:
+            return False  # dead end - no fallback to a smaller size
+
+        for slot in candidates:
+            slot_name = slot['name']
+            new_unavailable = unavailable_set | {slot_name}
+            for link in ordered_links:
+                if slot_name in requires[link['name']]:
+                    new_unavailable.add(link['name'])
+            new_locked = locked | beam_sets[slot_name]
+
+            if can_fill(remaining - target_size, new_unavailable, new_locked, depth + 1):
+                return True
+
+        return False
+
+    result = can_fill(remaining_capacity, unavailable, locked_beams, 0)
+    if debug:
+        print(f"  Final: {tested_slot['name']} -> {'SAFE' if result else 'UNSAFE'}")
+    return result
 
 
 def build_pad_defs(links_per_size):
     """
     Returns dict  size → {links: [...sorted...], requires: {name: [...]}}
-    Sorted: largest slot first, preferred non-overlapping first within each slot size.
+    Sorted: largest slot first, grouped by size.
+    Tests ALL possible slots (not just non-overlapping) for safety.
     """
     pad_defs = {}
     for size in range(1, MAX_SIZE + 1):
         links = links_per_size[size]
 
+        # Sort: largest slots first, then alphabetically
         groups = {}
         for l in links:
             groups.setdefault(l['size'], []).append(l)
@@ -360,10 +432,7 @@ def build_pad_defs(links_per_size):
         ordered = []
         for slot_size in sorted(groups, reverse=True):
             group = sorted(groups[slot_size], key=lambda l: l['name'])
-            n = size // slot_size
-            selected, rest = _pick_non_overlapping(group, n)
-            ordered.extend(selected)
-            ordered.extend(rest)
+            ordered.extend(group)  # Include ALL slots, not just non-overlapping
 
         beam_sets = {l['name']: set(l['beams']) for l in ordered}
         requires  = {}
@@ -375,7 +444,24 @@ def build_pad_defs(links_per_size):
             )
             requires[la['name']] = req
 
-        pad_defs[size] = {'links': ordered, 'requires': requires}
+        # Compute 'safe' flag for each slot: can we always reach full capacity after loading it?
+        safe = {}
+        for link in ordered:
+            safe[link['name']] = _is_safe_slot(link, ordered, beam_sets, requires, size, debug=False)
+
+        safe_count = sum(1 for v in safe.values() if v)
+        unsafe_count = len(safe) - safe_count
+        print(f"Size {size}: {len(ordered)} links, {safe_count} SAFE, {unsafe_count} UNSAFE")
+
+        pad_defs[size] = {'links': ordered, 'requires': requires, 'safe': safe}
+
+    total_slots = sum(len(pad_defs[s]['links']) for s in range(1, MAX_SIZE + 1))
+    total_unsafe = sum(sum(1 for v in pad_defs[s]['safe'].values() if not v) for s in range(1, MAX_SIZE + 1))
+    print(f"\n=== FINAL RESULTS ===")
+    print(f"Total slots: {total_slots}")
+    print(f"SAFE: {total_slots - total_unsafe}")
+    print(f"UNSAFE: {total_unsafe}")
+
     return pad_defs
 
 
@@ -465,8 +551,11 @@ def generate_lua_defs(pad_defs, footprints, output_path):
                 req_lua = '{ ' + ', '.join(f'"{n}"' for n in req) + ' }'
             else:
                 req_lua = '{}'
+            # overlapping = true: unsafe (using this slot prevents reaching full capacity due to lost conflicts)
+            # overlapping = false: safe (using this slot still allows reaching full capacity)
+            overlapping_str = "true" if not defs['safe'].get(l['name'], False) else "false"
             lines.append(
-                f'                {{ name = "{l["name"]}", size = {l["size"]}, requires = {req_lua} }},')
+                f'                {{ name = "{l["name"]}", size = {l["size"]}, overlapping = {overlapping_str}, requires = {req_lua} }},')
         lines.append(f'            }},')
         lines.append(f'        }},')
         lines.append(f'        loadMethod = {{')
