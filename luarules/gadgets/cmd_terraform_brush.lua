@@ -818,7 +818,7 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 			rawFalloff = 1 - t * t
 		else
 			local t = (d - ri) / (1 - ri)
-			rawFalloff = 0.5 * math.sin(t * math.pi)
+			rawFalloff = 0.5 * sin(t * pi)
 		end
 	end
 

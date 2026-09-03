@@ -125,6 +125,13 @@ local function formatFrequency(f)
 end
 
 local WG = WG
+-- Engine globals as chunk locals (the tf_* modules do the same): RmlUi event
+-- closures can run outside the widget env where bare globals read nil, and
+-- the CI analyzer counts every bare engine global as an undefined-global
+-- finding. Same table objects, so Spring.X = ... still reaches every widget.
+local Spring = Spring
+local VFS = VFS
+local gl = gl
 local GetViewGeometry = Spring.GetViewGeometry
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
@@ -2424,7 +2431,8 @@ end
 -- SAVE in the panel: the full live environment (buildEnvConfigContent) under a
 -- user-chosen name, so it lists in every session and on every map.
 widgetState.saveEnvPreset = function(name)
-	name = tostring(name or ""):match("^%s*(.-)%s*$"):gsub("[^%w_%- ]", "_")
+	local trimmed = tostring(name or ""):match("^%s*(.-)%s*$") or ""
+	name = trimmed:gsub("[^%w_%- ]", "_")
 	if name == "" then
 		return false, "type a preset name first"
 	end
@@ -3227,12 +3235,12 @@ widgetState.relativeAge = function(iso, now)
 	-- through the same standard-time interpretation, so the offset cancels
 	-- exactly whatever the daylight-saving state of either date is.
 	local t = os.time({
-		year = tonumber(y),
-		month = tonumber(mo),
-		day = tonumber(d),
-		hour = tonumber(h),
-		min = tonumber(mi),
-		sec = tonumber(s) or 0,
+		year = math.floor(tonumber(y) or 0),
+		month = math.floor(tonumber(mo) or 1),
+		day = math.floor(tonumber(d) or 1),
+		hour = math.floor(tonumber(h) or 0),
+		min = math.floor(tonumber(mi) or 0),
+		sec = math.floor(tonumber(s) or 0),
 		isdst = false,
 	})
 	if not t then
@@ -7369,15 +7377,19 @@ local initialModel = {
 		-- Clicking a row only selects it — LOAD and DELETE live at the bottom of
 		-- the dialog, like Save Project and New Map. Neither belongs on a stray
 		-- click in a list: one restarts the session, the other destroys files.
+		---@type table?
 		local doc = widgetState.document
 		local listEl = doc and doc:GetElementById("tf-project-open-list")
-		if not listEl then
+		if not (doc and listEl) then
 			return
 		end
 		local function rebuild()
+			if not doc then
+				return
+			end
 			-- The selection survives a folder toggle, a sort or a filter change;
 			-- it drops only when the selected project is no longer listed.
-			local keepSlug = widgetState.projectOpenSelectedSlug
+			local keepSlug = tostring(widgetState.projectOpenSelectedSlug or "")
 			widgetState.projectOpenRowEls = {}
 			widgetState.projectOpenSelectedSlug = nil
 			widgetState.projectDeleteConfirmExpiry = 0
@@ -7406,7 +7418,7 @@ local initialModel = {
 				return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
 			end
 			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
-			local sortMode = widgetState.projectOpenSort or "recent"
+			local sortMode = tostring(widgetState.projectOpenSort or "recent")
 			local now = os.time()
 			-- RECENT means last touched: the newer of "opened or saved through the
 			-- editor" (journal) and the manifest's modified stamp, both ISO-8601 so
@@ -7493,7 +7505,7 @@ local initialModel = {
 					return path:match("^(.*)/[^/]+$") or ""
 				end
 				local function ensureFolder(path)
-					if path == "" or byFolder[path] then
+					if path == "" or rawget(byFolder, path) then
 						return
 					end
 					byFolder[path] = {}
@@ -7600,7 +7612,7 @@ local initialModel = {
 					end, false)
 				end
 			end
-			if keepSlug then
+			if keepSlug ~= "" then
 				for _, r in ipairs(widgetState.projectOpenRowEls) do
 					if r.slug == keepSlug then
 						widgetState.projectOpenSelectedSlug = keepSlug
@@ -7698,6 +7710,7 @@ local initialModel = {
 	-- three queue the deferred rebuild rather than rebuilding here: the list is
 	-- torn down and rebuilt, which must not happen inside an event dispatch.
 	onProjectSearch = function(_event)
+		---@type table?
 		local doc2 = widgetState.document
 		local inp = doc2 and doc2:GetElementById("tf-project-search")
 		widgetState.projectOpenFilter = (inp and inp:GetAttribute("value")) or ""
@@ -7705,6 +7718,7 @@ local initialModel = {
 	end,
 	onProjectSearchClear = function(_event)
 		playSound("click")
+		---@type table?
 		local doc2 = widgetState.document
 		local inp = doc2 and doc2:GetElementById("tf-project-search")
 		if inp then
@@ -7716,6 +7730,7 @@ local initialModel = {
 	onProjectSort = function(_event, mode)
 		playSound("click")
 		widgetState.projectOpenSort = mode or "recent"
+		---@type table?
 		local d = widgetState.dmHandle
 		if d then
 			d.projectOpenSort = widgetState.projectOpenSort
@@ -9457,10 +9472,12 @@ local initialModel = {
 	-- under a name, BROWSE lists sun-only quick presets, the harvested map moods
 	-- and the user's files; the SUN ONLY / FULL chips set what a click applies.
 	onEnvPresetSave = function(_event)
+		---@type table?
 		local doc = widgetState.document
 		local inp = doc and doc:GetElementById("env-preset-name-input")
 		local name = inp and (inp:GetAttribute("value") or "") or ""
 		local ok, msg = widgetState.saveEnvPreset(name)
+		---@type table?
 		local d = widgetState.dmHandle
 		if d then
 			d.envPresetHint = ok and ("Saved " .. tostring(name)) or tostring(msg)
@@ -9488,6 +9505,7 @@ local initialModel = {
 	onEnvPresetScope = function(_event, scope)
 		playSound("click")
 		widgetState.envPresetScope = scope == "sun" and "sun" or "full"
+		---@type table?
 		local d = widgetState.dmHandle
 		if d then
 			d.envPresetScope = widgetState.envPresetScope
@@ -14547,6 +14565,7 @@ local function attachEventListeners()
 				row:AddEventListener("click", function(event)
 					playSound("click")
 					local ok = widgetState.applyEnvPreset(entry, widgetState.envPresetScope or "full")
+					---@type table?
 					local d = widgetState.dmHandle
 					if d then
 						d.envPresetHint = ok and ("Applied " .. entry.name)

@@ -441,10 +441,11 @@ local function syncTints(doc, ctx)
 	-- widget, restamped only when the asset or a channel changes (and never
 	-- under the slider being dragged).
 	do
-		local T = WG.TilesetTerrain
+		---@type table?
+		local TT = WG.TilesetTerrain
 		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
-		if T and T.getSlotTint and asset then
-			local r, g, b = T.getSlotTint(asset)
+		if TT and TT.getSlotTint and asset then
+			local r, g, b = TT.getSlotTint(asset)
 			local vals = { R = r, G = g, B = b }
 			for ch, v in pairs(vals) do
 				local key = "slotTint" .. ch

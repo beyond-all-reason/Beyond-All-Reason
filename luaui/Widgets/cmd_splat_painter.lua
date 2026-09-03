@@ -141,7 +141,7 @@ local smartFilter = {
 		slopeFeather = 10,
 	},
 	influence = {}, -- channel (1..4) -> profile
-	_uInf = nil,
+	_uInf = { altOn = -1, alt = -1, slopeOn = -1, slope = -1 }, -- filled by createShaders
 }
 
 -- Texture state
@@ -638,12 +638,10 @@ local function createShaders()
 	uLocSfAltMin = glGetUniformLocation(paintShader, "sfAltMin")
 	uLocSfAltMaxEnable = glGetUniformLocation(paintShader, "sfAltMaxEnable")
 	uLocSfAltMax = glGetUniformLocation(paintShader, "sfAltMax")
-	smartFilter._uInf = {
-		altOn = glGetUniformLocation(paintShader, "infAltOn"),
-		alt = glGetUniformLocation(paintShader, "infAlt"),
-		slopeOn = glGetUniformLocation(paintShader, "infSlopeOn"),
-		slope = glGetUniformLocation(paintShader, "infSlope"),
-	}
+	smartFilter._uInf.altOn = glGetUniformLocation(paintShader, "infAltOn")
+	smartFilter._uInf.alt = glGetUniformLocation(paintShader, "infAlt")
+	smartFilter._uInf.slopeOn = glGetUniformLocation(paintShader, "infSlopeOn")
+	smartFilter._uInf.slope = glGetUniformLocation(paintShader, "infSlope")
 
 	copyShader = glCreateShader({
 		vertex = PAINT_VERT_SRC,
@@ -895,12 +893,10 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		-- INFLUENCE profile of the channel being painted
 		local inf = sf.influence[activeChannel] or sf.influenceDefault
 		local u = sf._uInf
-		if u then
-			glUniformInt(u.altOn, inf.altOn and 1 or 0)
-			glUniform(u.alt, inf.altMin, inf.altMax, inf.altFeatherLo, inf.altFeatherHi)
-			glUniformInt(u.slopeOn, inf.slopeOn and 1 or 0)
-			glUniform(u.slope, inf.slopeMin, inf.slopeMax, inf.slopeFeather, inf.slopeFeather)
-		end
+		glUniformInt(u.altOn, inf.altOn and 1 or 0)
+		glUniform(u.alt, inf.altMin, inf.altMax, inf.altFeatherLo, inf.altFeatherHi)
+		glUniformInt(u.slopeOn, inf.slopeOn and 1 or 0)
+		glUniform(u.slope, inf.slopeMin, inf.slopeMax, inf.slopeFeather, inf.slopeFeather)
 
 		-- Draw fullscreen quad
 		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)

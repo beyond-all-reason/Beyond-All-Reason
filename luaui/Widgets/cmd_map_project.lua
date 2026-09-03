@@ -33,6 +33,10 @@ end
 -- matches the recorded map (blank-map name, exact size, map damage enabled,
 -- local singleplayer); on mismatch it deletes the pointer and explains itself.
 
+-- Engine globals as chunk locals: the CI analyzer counts every bare engine
+-- global as an undefined-global finding (same table objects, no behaviour change).
+local Spring = Spring
+local VFS = VFS
 local Echo = Spring.Echo
 
 local PROJECTS_DIR = "MapProjects/"
@@ -136,7 +140,7 @@ local function validateSlug(slug)
 		if not seg:match("^[A-Za-z0-9_%-]+$") then
 			return nil, "project names may only contain letters, digits, _ and - (no spaces); / separates folders"
 		end
-		if RESERVED_NAMES[seg:lower()] then
+		if rawget(RESERVED_NAMES, seg:lower()) then
 			return nil, "'" .. seg .. "' is a reserved Windows device name"
 		end
 	end
@@ -1749,7 +1753,7 @@ local function finishSave()
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
 	currentSlug = job.slug
 	lastSaveInfo = { ok = true, slug = job.slug }
-	touchRecent(job.slug)
+	touchRecent(currentSlug)
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -2403,9 +2407,9 @@ local function phaseTileset(c)
 		T.setMetalStyle(d.metal_style)
 	end
 	if type(d.slot_tints) == "table" and T.setSlotTint then
-		for a, c in pairs(d.slot_tints) do
-			if type(a) == "string" and type(c) == "table" then
-				T.setSlotTint(a, c[1], c[2], c[3])
+		for a, col in pairs(d.slot_tints) do
+			if type(a) == "string" and type(col) == "table" then
+				T.setSlotTint(a, col[1], col[2], col[3])
 			end
 		end
 	end
