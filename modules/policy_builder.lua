@@ -32,6 +32,16 @@ function PolicyBuilder.Product(stages)
 	return setmetatable(stages, { __result = "product" })
 end
 
+---A fold pipeline hands one context through every Select in turn; each may
+---change it, none may end it. Evaluate returns the context it was given.
+---@generic C
+---@param stages PolicyStages<C, C>
+---@return PolicyStages<C, C>
+function PolicyBuilder.Fold(stages)
+	assert(type(stages) == "table" and getmetatable(stages) == nil, "PolicyBuilder.Fold(stages)")
+	return setmetatable(stages, { __result = "fold" })
+end
+
 ---@generic T: table
 ---@param provisions T enum of the field names enrichers may provide
 ---@return T
@@ -67,7 +77,7 @@ function PolicyBuilder.Contract(owner, categories)
 			meta ~= nil and (meta.__result ~= nil or meta.__context),
 			"PolicyBuilder.Contract: "
 				.. tostring(member)
-				.. " must declare itself: Single(...), Product(...) or Context(...)"
+				.. " must declare itself: Single(...), Product(...), Fold(...) or Context(...)"
 		)
 		local category = PolicyBuilder.KeyOf(member)
 		if meta.__context then
@@ -229,6 +239,15 @@ function PolicyBuilder.Validate(stages, result, label)
 			assert(
 				stage.kind == "select",
 				label .. ": a product pipeline multiplies Select results; " .. stage.name .. " is a guard"
+			)
+		end
+		return
+	end
+	if result == "fold" then
+		for _, stage in ipairs(stages) do
+			assert(
+				stage.kind == "select",
+				label .. ": a fold pipeline runs every Select over the context; " .. stage.name .. " is a guard"
 			)
 		end
 		return

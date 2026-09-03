@@ -192,6 +192,14 @@ function ModuleHandler.RmlWidgetDirs(vfsMode)
 	return moduleSubdirs("rml_widgets/", vfsMode)
 end
 
+---Lua unit scripts a module ships; the unit script loader lists these next
+---to scripts/, and a def names one by its full modules/ path.
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ScriptDirs(vfsMode)
+	return moduleSubdirs("scripts/", vfsMode)
+end
+
 ---@param vfsMode string?
 ---@return string[]
 function ModuleHandler.GadgetDirs(vfsMode)
@@ -517,6 +525,12 @@ end
 ---@param ... any further arguments passed to each policy's evaluate
 ---@return T|nil result nil only if no policy produced a result
 function ModuleHandler.Evaluate(policies, ctx, ...)
+	if policies.result == "fold" then
+		for _, policy in ipairs(policies) do
+			policy.evaluate(ctx, ...)
+		end
+		return ctx
+	end
 	if policies.result == "product" then
 		local product = nil
 		for _, policy in ipairs(policies) do

@@ -64,7 +64,7 @@ describe("a pipeline's identity", function()
 	it("requires every category to declare itself", function()
 		assert.has_error(function()
 			PolicyBuilder.Contract("transport", { Load = { Submerged = "Submerged" } })
-		end, "PolicyBuilder.Contract: Load must declare itself: Single(...), Product(...) or Context(...)")
+		end, "PolicyBuilder.Contract: Load must declare itself: Single(...), Product(...), Fold(...) or Context(...)")
 	end)
 
 	it("serializes a declaration's name to the key the runtime uses", function()
@@ -297,5 +297,52 @@ describe("the declared result", function()
 			PolicyBuilder.Apply(stages, PolicyBuilder.Pipeline().Unless("NoMud", function() end).Build(), "mod")
 			PolicyBuilder.Validate(stages, "product", "transport.loaded_speed")
 		end, "transport.loaded_speed: a product pipeline multiplies Select results; NoMud is a guard")
+	end)
+end)
+
+describe("the fold result", function()
+	local function fold(ops, origin)
+		---@type AssembledPipeline<table, table>
+		local stages = { result = "fold" }
+		PolicyBuilder.Apply(stages, ops, origin)
+		return stages
+	end
+
+	it("hands one context through every Select, owner's first, and returns it", function()
+		local stages = fold(
+			PolicyBuilder.Pipeline()
+				.Select("Base", function(ctx)
+					ctx.def.mass = (ctx.def.mass or 0) + 1
+				end)
+				.Build(),
+			"owner"
+		)
+		PolicyBuilder.Apply(
+			stages,
+			PolicyBuilder.Pipeline()
+				.Select("Heavier", function(ctx)
+					ctx.def.mass = ctx.def.mass * 10
+				end)
+				.Build(),
+			"mod"
+		)
+		local ctx = { def = {} }
+		assert.are.equal(ctx, ModuleHandler.Evaluate(stages, ctx))
+		assert.are.equal(10, ctx.def.mass)
+		assert.are.same({ "Base", "Heavier" }, names(stages))
+	end)
+
+	it("every stage is a Select: a fold has nothing to refuse", function()
+		local stages = fold(
+			PolicyBuilder.Pipeline()
+				.Unless("Never", function()
+					return false
+				end)
+				.Build(),
+			"owner"
+		)
+		assert.has_error(function()
+			PolicyBuilder.Validate(stages, "fold", "defs.unit_def")
+		end, "defs.unit_def: a fold pipeline runs every Select over the context; Never is a guard")
 	end)
 end)
