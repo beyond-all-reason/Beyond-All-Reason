@@ -31,9 +31,9 @@ Policies = {}
 function Policies.Pipeline(stages) end
 
 ---@generic C
----@param token PolicyContextToken<C>
+---@param facts PolicyFacts<C>
 ---@return PolicyEnrichment<C>
-function Policies.Enrich(token) end
+function Policies.Enrich(facts) end
 
 ---@class PolicyDescriptor
 ---@field name string

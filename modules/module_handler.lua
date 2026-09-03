@@ -192,6 +192,14 @@ function ModuleHandler.RmlWidgetDirs(vfsMode)
 	return moduleSubdirs("rml_widgets/", vfsMode)
 end
 
+---Lua unit scripts a module ships; the unit script loader lists these next
+---to scripts/, and a def names one by its full modules/ path.
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ScriptDirs(vfsMode)
+	return moduleSubdirs("scripts/", vfsMode)
+end
+
 ---@param vfsMode string?
 ---@return string[]
 function ModuleHandler.GadgetDirs(vfsMode)
@@ -294,6 +302,7 @@ end
 
 local policiesCache = {}
 local enrichersCache = {}
+local presetsCache = nil
 local policyFiles = nil ---@type { chains: table, enrichments: table }|nil every module's policy chains and enrichments, read once
 
 ---@param vfsMode string?
@@ -308,10 +317,38 @@ local function loadPolicyFiles(vfsMode)
 		names[#names + 1] = name
 	end
 	table.sort(names)
+	-- Every module's declared contributions, keyed by the target's owner and
+	-- category: LoadPolicies refuses a pipeline a declared name never reached.
+	local contributions = {} ---@type table<string, table<string, { module: string, names: string[] }[]>>
+	-- Every contract's declared facts, keyed the same way: a fact is a promise the
+	-- owner keeps with a Default when no module provides it.
+	local facts = {} ---@type table<string, table<string, string[]>>
 	for _, name in ipairs(names) do
 		local stagesPath = manifests[name].dir .. "contract.lua"
 		if VFS.FileExists(stagesPath, vfsMode) then
-			VFS.Include(stagesPath, nil, vfsMode)
+			local contract = VFS.Include(stagesPath, nil, vfsMode)
+			for _, declared in pairs(type(contract) == "table" and contract or {}) do
+				local identity = PolicyBuilder.IdentityOf(declared)
+				if identity and identity.facts then
+					local names = {}
+					for _, field in pairs(declared) do
+						names[#names + 1] = field
+					end
+					facts[identity.owner] = facts[identity.owner] or {}
+					facts[identity.owner][identity.category] = names
+				end
+				if identity and identity.contributes then
+					local target = identity.contributes
+					contributions[target.owner] = contributions[target.owner] or {}
+					local list = contributions[target.owner][target.category] or {}
+					contributions[target.owner][target.category] = list
+					local declaredNames = {}
+					for _, stageName in pairs(declared) do
+						declaredNames[#declaredNames + 1] = stageName
+					end
+					list[#list + 1] = { module = name, names = declaredNames }
+				end
+			end
 		end
 	end
 
@@ -327,8 +364,8 @@ local function loadPolicyFiles(vfsMode)
 					built[#built + 1] = { kind = "pipeline", chain = chain }
 					return chain
 				end,
-				Enrich = function(token)
-					local chain = PolicyBuilder.Enrichment(token)
+				Enrich = function(facts)
+					local chain = PolicyBuilder.Enrichment(facts)
 					built[#built + 1] = { kind = "enrichment", chain = chain }
 					return chain
 				end,
@@ -350,8 +387,8 @@ local function loadPolicyFiles(vfsMode)
 								.. ": Policies.Pipeline needs the stages of a pipeline — a table from a module's contract.lua"
 						)
 					end
-					if identity.context then
-						error(filePath .. ": " .. identity.category .. " is a context, not a pipeline")
+					if identity.facts then
+						error(filePath .. ": " .. identity.category .. " is facts, not a pipeline")
 					end
 					local ops = chain.Build()
 					if #ops == 0 then
@@ -360,39 +397,24 @@ local function loadPolicyFiles(vfsMode)
 					chains[identity.owner] = chains[identity.owner] or {}
 					local list = chains[identity.owner][identity.category] or {}
 					chains[identity.owner][identity.category] = list
-					list[#list + 1] = { module = name, identity = identity, ops = ops, file = filePath }
+					list[#list + 1] =
+						{ module = name, identity = identity, stages = chain.stages, ops = ops, file = filePath }
 				else
 					local chain = entry.chain
-					local identity = PolicyBuilder.IdentityOf(chain.token)
-					if identity == nil or not identity.context then
+					local identity = PolicyBuilder.IdentityOf(chain.facts)
+					if identity == nil or not identity.facts then
 						error(
 							filePath
-								.. ": Policies.Enrich needs a context token — a Context(...) table from a module's contract.lua"
+								.. ": Policies.Enrich needs facts — a Facts(...) table from a module's contract.lua"
 						)
 					end
 					local ops = chain.Build()
 					if #ops == 0 then
 						error(filePath .. ": an empty enrichment")
 					end
-					local known = {}
-					for _, field in pairs(chain.token) do
-						known[field] = true
-					end
-					for _, op in ipairs(ops) do
-						for _, field in ipairs(op.names) do
-							if not known[field] then
-								error(
-									filePath
-										.. ": no provision named "
-										.. field
-										.. " on "
-										.. identity.owner
-										.. "."
-										.. identity.category
-								)
-							end
-						end
-					end
+					-- A provider may fill a fact the contract declares or add one it does
+					-- not; a fact is never removed, and each is filled exactly once
+					-- (LoadEnrichers refuses two providers for one name).
 					enrichments[identity.owner] = enrichments[identity.owner] or {}
 					local list = enrichments[identity.owner][identity.category] or {}
 					enrichments[identity.owner][identity.category] = list
@@ -401,8 +423,40 @@ local function loadPolicyFiles(vfsMode)
 			end
 		end
 	end
-	policyFiles = { chains = chains, enrichments = enrichments }
+	policyFiles = { chains = chains, enrichments = enrichments, contributions = contributions, facts = facts }
 	return policyFiles
+end
+
+---The first step a chain adds under a name outside `declared`, or nil. A step
+---is a name in a contract: the owner's in the pipeline's own stages, anyone
+---else's with Contributes. Moving, replacing or removing a step names one
+---that already exists, so only additions are checked. Pure.
+---@param ops PolicyOp[]
+---@param declared table<string, boolean> the names this module may add
+---@return string|nil
+function ModuleHandler.UndeclaredStep(ops, declared)
+	for _, op in ipairs(ops) do
+		if op.op == "add" and not declared[op.name] then
+			return op.name
+		end
+	end
+	return nil
+end
+
+---The first declared name no stage landed under, or nil. A name in a
+---contract is a promise other modules place rules against, so the owner's
+---own stages and a contributor's declared names are held to it alike. Pure.
+---@param names table<any, string> a contract's stage enum, or a contribution's names
+---@param landed table<string, boolean> the names on the assembled pipeline
+---@return string|nil
+function ModuleHandler.UnbuiltStage(names, landed)
+	local missing = nil
+	for _, stageName in pairs(names) do
+		if not landed[stageName] and (missing == nil or stageName < missing) then
+			missing = stageName
+		end
+	end
+	return missing
 end
 
 ---@param name string module name
@@ -442,14 +496,83 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 		for _, chain in ipairs(others) do
 			ordered[#ordered + 1] = chain
 		end
+		local contributions = (loadPolicyFiles(vfsMode).contributions[name] or {})[category] or {}
 		local pipeline = { result = list[1].identity.result }
 		for _, chain in ipairs(ordered) do
+			-- No step is named inline: the owner's come from its stages, a
+			-- contributor's from what its contract declares with Contributes.
+			local declared = {}
+			if chain.module == name then
+				for _, stageName in pairs(chain.stages) do
+					declared[stageName] = true
+				end
+			else
+				for _, contribution in ipairs(contributions) do
+					if contribution.module == chain.module then
+						for _, stageName in ipairs(contribution.names) do
+							declared[stageName] = true
+						end
+					end
+				end
+			end
+			local undeclared = ModuleHandler.UndeclaredStep(chain.ops, declared)
+			if undeclared then
+				error(
+					chain.file
+						.. ": adds a "
+						.. undeclared
+						.. " stage to "
+						.. name
+						.. "."
+						.. category
+						.. " that no contract declares; "
+						.. (
+							chain.module == name and "name it in the pipeline's stages in contract.lua"
+							or "declare it with PolicyBuilder.Contributes in " .. chain.module .. "'s contract.lua"
+						)
+				)
+			end
 			PolicyBuilder.Apply(pipeline, chain.ops, chain.file)
 		end
 		for _, stage in ipairs(pipeline) do
 			stage.category = category
 		end
 		PolicyBuilder.Validate(pipeline, pipeline.result, name .. "." .. category)
+		-- A name in a contract is a step on the pipeline, whoever declared it:
+		-- a consumer places rules against the contract, so an unbuilt name is
+		-- a promise the pipeline does not keep.
+		local landed = {}
+		for _, stage in ipairs(pipeline) do
+			landed[stage.name] = true
+		end
+		local unbuilt = ModuleHandler.UnbuiltStage(ordered[1].stages, landed)
+		if unbuilt then
+			error(
+				ordered[1].file
+					.. ": "
+					.. name
+					.. "'s contract declares a "
+					.. unbuilt
+					.. " stage on "
+					.. category
+					.. " but never builds it"
+			)
+		end
+		for _, declared in ipairs(contributions) do
+			local missing = ModuleHandler.UnbuiltStage(declared.names, landed)
+			if missing then
+				error(
+					declared.module
+						.. " declares a "
+						.. missing
+						.. " stage on "
+						.. name
+						.. "."
+						.. category
+						.. " but never builds it"
+				)
+			end
+		end
 		byCategory[category] = pipeline
 	end
 	policiesCache[name] = byCategory
@@ -471,9 +594,233 @@ end
 ---A context's provisions, every module's merged: each field name provided
 ---exactly once, or the second provider is a load error naming both files.
 ---@param owner string module name
----@param category string the context token's name in the owner's contract.lua
+---@param category string the facts' name in the owner's contract.lua
 ---@param vfsMode string?
 ---@return PolicyProvision[]
+---A module's presets, read from its modes/: what a mode makes live is the
+---module that ships it, plus whatever the preset names with .Uses.
+---@class ModulePreset
+---@field key string
+---@field category string
+---@field module string the module whose modes/ holds it
+---@field uses string[] modules the preset makes live besides its own
+
+---@param vfsMode string?
+---@return table<string, table<string, ModulePreset>> presets by category, by key
+---@return table<string, boolean> modules that ship no presets: always live
+function ModuleHandler.Presets(vfsMode)
+	if presetsCache then
+		return presetsCache.byCategory, presetsCache.alwaysLive
+	end
+	local manifests = ModuleHandler.Discover(vfsMode)
+	local byCategory = {} ---@type table<string, table<string, ModulePreset>>
+	local alwaysLive = {} ---@type table<string, boolean>
+	for name, manifest in pairs(manifests) do
+		local dir = manifest.dir .. "modes/"
+		local files = VFS.DirList(dir, "*.lua", vfsMode)
+		local shipped = false
+		for _, filePath in ipairs(files) do
+			local ok, mode = pcall(VFS.Include, filePath, nil, vfsMode)
+			if ok and type(mode) == "table" and mode.key and mode.category then
+				shipped = true
+				byCategory[mode.category] = byCategory[mode.category] or {}
+				byCategory[mode.category][mode.key] = {
+					key = mode.key,
+					category = mode.category,
+					module = name,
+					uses = mode.uses or {},
+				}
+			end
+		end
+		if not shipped then
+			alwaysLive[name] = true
+		end
+	end
+	presetsCache = { byCategory = byCategory, alwaysLive = alwaysLive }
+	return byCategory, alwaysLive
+end
+
+---The selector each category answers to, and its default, from the modules'
+---own option fragments: "<category>_mode".
+---@param vfsMode string?
+---@return table<string, string> category -> default preset key
+local function defaultSelection(vfsMode)
+	local defaults = {}
+	for _, option in ipairs(ModuleHandler.ModOptions(vfsMode)) do
+		local category = type(option.key) == "string" and option.key:match("^(.+)_mode$")
+		if category and option.def ~= nil then
+			defaults[category] = tostring(option.def)
+		end
+	end
+	return defaults
+end
+
+---Which modules are live under one selection of presets. Pure.
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param selection table<string, string> category -> preset key
+---@return table<string, boolean>
+function ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+	local live = {}
+	for name in pairs(alwaysLive) do
+		live[name] = true
+	end
+	for category, presets in pairs(byCategory) do
+		local preset = selection[category] and presets[selection[category]]
+		if preset then
+			live[preset.module] = true
+			for _, used in ipairs(preset.uses) do
+				live[used] = true
+			end
+		end
+	end
+	return live
+end
+
+---The live set for a game: the presets its modoptions select, falling back to
+---each selector's default.
+---@param modOptions table<string, any>
+---@param vfsMode string?
+---@return table<string, boolean>
+function ModuleHandler.LiveModulesFor(modOptions, vfsMode)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local selection = defaultSelection(vfsMode)
+	for category in pairs(byCategory) do
+		local picked = modOptions and modOptions[category .. "_mode"]
+		if picked ~= nil then
+			selection[category] = tostring(picked)
+		end
+	end
+	return ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+end
+
+---@class ResolvedProvisions
+---@field providers { op: PolicyProvision, module: string, file: string }[] every module's, in module order; the live set decides who answers
+---@field defaults table<string, PolicyProvision> the owner's answer per declared slot
+---@field slots string[]
+
+---Providers and the owner's defaults for one contract's facts. Any number of
+---modules may provide a fact; which of them is live is the mode's decision, checked
+---against every preset combination by CheckProviderIsolation. The owner must
+---Default every declared fact, so a fact is a promise. Pure.
+---@param key string owner.category, for messages
+---@param owner string the facts' module
+---@param slots string[] the facts the contract declares
+---@param list { module: string, ops: PolicyProvision[], file: string }[]
+---@return ResolvedProvisions
+function ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local providers = {}
+	local defaults = {} ---@type table<string, PolicyProvision>
+	local defaultFile = {}
+	local declared = {}
+	for _, field in ipairs(slots) do
+		declared[field] = true
+	end
+	for _, enrichment in ipairs(list) do
+		for _, op in ipairs(enrichment.ops) do
+			if op.default then
+				local field = op.names[1]
+				if enrichment.module ~= owner then
+					error(enrichment.file .. ": only " .. owner .. " may Default " .. field .. " on " .. key)
+				end
+				if not declared[field] then
+					error(enrichment.file .. ": " .. key .. " declares no slot named " .. field .. " to Default")
+				end
+				if defaults[field] then
+					error(
+						enrichment.file
+							.. ": "
+							.. field
+							.. " on "
+							.. key
+							.. " already has a Default in "
+							.. defaultFile[field]
+					)
+				end
+				defaults[field] = op
+				defaultFile[field] = enrichment.file
+			else
+				providers[#providers + 1] = { op = op, module = enrichment.module, file = enrichment.file }
+			end
+		end
+	end
+	local missing = {}
+	for _, field in ipairs(slots) do
+		if not defaults[field] then
+			missing[#missing + 1] = field
+		end
+	end
+	if #missing > 0 then
+		table.sort(missing)
+		error(
+			key
+				.. " declares "
+				.. table.concat(missing, ", ")
+				.. " without a Default; "
+				.. owner
+				.. " must say what the slot means when nobody provides it"
+		)
+	end
+	return { providers = providers, defaults = defaults, slots = slots }
+end
+
+---Every preset combination, one per category, that makes two providers of
+---one slot live at once. Pure.
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param providers { op: PolicyProvision, module: string, file: string }[]
+---@return string[] conflicts, one line each; empty when the modes isolate every slot
+function ModuleHandler.IsolationConflicts(byCategory, alwaysLive, providers)
+	local categories = {}
+	for category in pairs(byCategory) do
+		categories[#categories + 1] = category
+	end
+	table.sort(categories)
+	local conflicts = {}
+	local function check(selection)
+		local live = ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+		local seen = {} ---@type table<string, string>
+		for _, provider in ipairs(providers) do
+			if live[provider.module] then
+				for _, field in ipairs(provider.op.names) do
+					if seen[field] and seen[field] ~= provider.file then
+						local picks = {}
+						for _, category in ipairs(categories) do
+							picks[#picks + 1] = category .. "=" .. tostring(selection[category])
+						end
+						conflicts[#conflicts + 1] = field
+							.. " is provided by both "
+							.. seen[field]
+							.. " and "
+							.. provider.file
+							.. " under "
+							.. table.concat(picks, ", ")
+					end
+					seen[field] = seen[field] or provider.file
+				end
+			end
+		end
+	end
+	local function walk(i, selection)
+		if i > #categories then
+			return check(selection)
+		end
+		local category = categories[i]
+		for key in pairs(byCategory[category]) do
+			selection[category] = key
+			walk(i + 1, selection)
+		end
+		selection[category] = nil
+	end
+	walk(1, {})
+	table.sort(conflicts)
+	return conflicts
+end
+
+---@param owner string
+---@param category string
+---@param vfsMode string?
+---@return ResolvedProvisions
 function ModuleHandler.LoadEnrichers(owner, category, vfsMode)
 	local key = owner .. "." .. category
 	if enrichersCache[key] then
@@ -483,40 +830,83 @@ function ModuleHandler.LoadEnrichers(owner, category, vfsMode)
 	table.sort(list, function(a, b)
 		return a.module < b.module
 	end)
-	local provisions = {} ---@type PolicyProvision[]
-	local providerOf = {}
-	for _, enrichment in ipairs(list) do
-		for _, op in ipairs(enrichment.ops) do
-			for _, field in ipairs(op.names) do
-				if providerOf[field] then
-					error(
-						enrichment.file
-							.. ": "
-							.. field
-							.. " on "
-							.. key
-							.. " is already provided by "
-							.. providerOf[field]
-					)
-				end
-				providerOf[field] = enrichment.file
-			end
-			provisions[#provisions + 1] = op
-		end
+	local slots = (loadPolicyFiles(vfsMode).facts[owner] or {})[category] or {}
+	local resolved = ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local conflicts = ModuleHandler.IsolationConflicts(byCategory, alwaysLive, resolved.providers)
+	if #conflicts > 0 then
+		error(key .. ": a mode leaves two providers live for one fact\n" .. table.concat(conflicts, "\n"))
 	end
-	enrichersCache[key] = provisions
-	return provisions
+	enrichersCache[key] = resolved
+	return resolved
 end
 
----Single-result pipelines answer with the first result a stage produces —
----a guard that fails (an Unless whose condition holds, an If whose condition
----does not) answers with the pipeline's Refusal (false when none is declared). Product pipelines multiply every factor produced.
----@generic C, T
----@param policies AssembledPipeline<C, T>
----@param ctx C
----@param ... any further arguments passed to each policy's evaluate
----@return T|nil result nil only if no policy produced a result
+---Fill a contract's facts for one ask: the live providers answer (a nil answer
+---declines), two live answers for one fact is a mode bug and fails loudly,
+---and a fact nobody answered takes the owner's Default. Pure given the live set.
+---@param resolved ResolvedProvisions|PolicyProvision[] a flat list is a test seam: every entry live, no defaults
+---@param live table<string, boolean>|nil nil means every provider is live
+---@param ctx table
+---@param ... any extra producer arguments
+---@return table<string, any>
+function ModuleHandler.EnrichWith(resolved, live, ctx, ...)
+	local out = {}
+	local answeredBy = {} ---@type table<string, string>
+	local providers = resolved.providers
+	if providers == nil then
+		providers = {}
+		for i, op in ipairs(resolved) do
+			providers[i] = { op = op, module = "?", file = "seam" }
+		end
+	end
+	for _, provider in ipairs(providers) do
+		if live == nil or live[provider.module] then
+			local results = { provider.op.evaluate(ctx, ...) }
+			for i, field in ipairs(provider.op.names) do
+				if results[i] ~= nil then
+					if answeredBy[field] and answeredBy[field] ~= provider.file then
+						error(
+							field
+								.. " answered by both "
+								.. answeredBy[field]
+								.. " and "
+								.. provider.file
+								.. " in one ask: the mode leaves both live"
+						)
+					end
+					answeredBy[field] = provider.file
+					out[field] = results[i]
+				end
+			end
+		end
+	end
+	for _, field in ipairs(resolved.slots or {}) do
+		if out[field] == nil and resolved.defaults and resolved.defaults[field] then
+			out[field] = resolved.defaults[field].evaluate(ctx, ...)
+		end
+	end
+	return out
+end
+
+---Fill a contract's facts for one ask under the game's modes.
+---@param owner string
+---@param category string
+---@param modOptions table<string, any>
+---@param ctx table
+---@param ... any extra producer arguments
+---@return table<string, any>
+function ModuleHandler.Enrich(owner, category, modOptions, ctx, ...)
+	local resolved = ModuleHandler.LoadEnrichers(owner, category)
+	return ModuleHandler.EnrichWith(resolved, ModuleHandler.LiveModulesFor(modOptions), ctx, ...)
+end
+
 function ModuleHandler.Evaluate(policies, ctx, ...)
+	if policies.result == "fold" then
+		for _, policy in ipairs(policies) do
+			policy.evaluate(ctx, ...)
+		end
+		return ctx
+	end
 	if policies.result == "product" then
 		local product = nil
 		for _, policy in ipairs(policies) do
@@ -575,6 +965,7 @@ end
 
 function ModuleHandler.ResetCaches()
 	manifestsCache = nil
+	presetsCache = nil
 	apiCache = {}
 	actionsCache = {}
 	policiesCache = {}
