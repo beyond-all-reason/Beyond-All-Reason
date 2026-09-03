@@ -237,11 +237,13 @@ local function colorSafeWords(line)
 	while pos <= len do
 		local c = sbyte(line, pos)
 		if c == 255 and pos + 3 <= len then
+			-- Inline color code: 255 followed by three color bytes, kept whole so a wrap cannot split it
 			if wordStart == 0 then
 				wordStart = pos
 			end
 			pos = pos + 4
 		elseif c == 32 or (c >= 9 and c <= 13) then
+			-- Whitespace, the same set as %s: space, tab, newline, vertical tab, form feed, carriage return
 			if wordStart > 0 then
 				count = count + 1
 				words[count] = ssub(line, wordStart, pos - 1)
