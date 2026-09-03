@@ -10,6 +10,7 @@ local state = VFS.Include("modules/transport/state.lua") ---@type TransportState
 ---@field passenger TransportDefTraits
 ---@field loadedSpeed number|false|nil the carrier's speed with what it still carries; false when it carries nothing; nil for a carrier that does not fly
 ---@field frame integer the game frame the set-down happened on
+---@field settles boolean|nil false when tractor beams own the landing physics; nil is true
 
 ---@param request table unvalidated; validate is what makes it a TransportUnloadedRequest
 ---@return boolean allowed, string? reason
@@ -50,6 +51,10 @@ Actions.RegisterExecute(function(request)
 	if not passenger.canMove then
 		Unstack.Wake(state.unstacking, unitID)
 	end
+	if request.settles == false then
+		return true
+	end
+
 	if passenger.isParatrooper then
 		local vx, vy, vz = Spring.GetUnitVelocity(transportID)
 		vx, vz = Rules.ClampParatrooperVelocity(vx), Rules.ClampParatrooperVelocity(vz)
