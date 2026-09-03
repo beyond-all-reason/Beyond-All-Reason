@@ -31,7 +31,7 @@ Policies = {}
 function Policies.Pipeline(stages) end
 
 ---@generic C
----@param token PolicyContextToken<C>
+---@param token PolicyToken<C>
 ---@return PolicyEnrichment<C>
 function Policies.Enrich(token) end
 

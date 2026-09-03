@@ -62,9 +62,12 @@ describe("a pipeline's identity", function()
 	end)
 
 	it("requires every category to declare itself", function()
-		assert.has_error(function()
-			PolicyBuilder.Contract("transport", { Load = { Submerged = "Submerged" } })
-		end, "PolicyBuilder.Contract: Load must declare itself: Single(...), Product(...) or Context(...)")
+		assert.has_error(
+			function()
+				PolicyBuilder.Contract("transport", { Load = { Submerged = "Submerged" } })
+			end,
+			"PolicyBuilder.Contract: Load must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Token(...)"
+		)
 	end)
 
 	it("serializes a declaration's name to the key the runtime uses", function()
@@ -161,13 +164,13 @@ describe("one chain for owners and contributors", function()
 	end)
 end)
 
-describe("a context token", function()
+describe("a token", function()
 	it("carries identity, and provisions are named or refused", function()
 		local Contract = PolicyBuilder.Contract("transfer", {
-			TeamPairing = PolicyBuilder.Context({ TechBlocking = "techBlocking" }),
+			TeamPairing = PolicyBuilder.Token({ TechBlocking = "techBlocking" }),
 		})
 		assert.are.same(
-			{ owner = "transfer", category = "team_pairing", context = true },
+			{ owner = "transfer", category = "team_pairing", token = true },
 			PolicyBuilder.IdentityOf(Contract.TeamPairing)
 		)
 		local ops = PolicyBuilder.Enrichment(Contract.TeamPairing)
@@ -297,5 +300,83 @@ describe("the declared result", function()
 			PolicyBuilder.Apply(stages, PolicyBuilder.Pipeline().Unless("NoMud", function() end).Build(), "mod")
 			PolicyBuilder.Validate(stages, "product", "transport.loaded_speed")
 		end, "transport.loaded_speed: a product pipeline multiplies Select results; NoMud is a guard")
+	end)
+end)
+
+describe("the fold result", function()
+	local function fold(ops, origin)
+		---@type AssembledPipeline<table, table>
+		local stages = { result = "fold" }
+		PolicyBuilder.Apply(stages, ops, origin)
+		return stages
+	end
+
+	it("hands one context through every Select, owner's first, and returns it", function()
+		local stages = fold(
+			PolicyBuilder.Pipeline()
+				.Select("Base", function(ctx)
+					ctx.def.mass = (ctx.def.mass or 0) + 1
+				end)
+				.Build(),
+			"owner"
+		)
+		PolicyBuilder.Apply(
+			stages,
+			PolicyBuilder.Pipeline()
+				.Select("Heavier", function(ctx)
+					ctx.def.mass = ctx.def.mass * 10
+				end)
+				.Build(),
+			"mod"
+		)
+		local ctx = { def = {} }
+		assert.are.equal(ctx, ModuleHandler.Evaluate(stages, ctx))
+		assert.are.equal(10, ctx.def.mass)
+		assert.are.same({ "Base", "Heavier" }, names(stages))
+	end)
+
+	it("every stage is a Select: a fold has nothing to refuse", function()
+		local stages = fold(
+			PolicyBuilder.Pipeline()
+				.Unless("Never", function()
+					return false
+				end)
+				.Build(),
+			"owner"
+		)
+		assert.has_error(function()
+			PolicyBuilder.Validate(stages, "fold", "defs.unit_def")
+		end, "defs.unit_def: a fold pipeline runs every Select over the context; Never is a guard")
+	end)
+end)
+
+describe("a declared contribution", function()
+	local function target()
+		return PolicyBuilder.Contract("transport", {
+			Load = PolicyBuilder.Single({ Submerged = "Submerged", Allowed = "Allowed" }),
+			Facts = PolicyBuilder.Token({ Reach = "reach" }),
+		})
+	end
+
+	it("carries the target's identity and the contributor's own", function()
+		local Contract = target()
+		local mod = PolicyBuilder.Contract("mod", {
+			Load = PolicyBuilder.Contributes(Contract.Load, { NoTanks = "NoTanks" }),
+		})
+		assert.are.same(
+			{ owner = "mod", category = "load", contributes = PolicyBuilder.IdentityOf(Contract.Load) },
+			PolicyBuilder.IdentityOf(mod.Load)
+		)
+		assert.are.equal("NoTanks", mod.Load.NoTanks)
+	end)
+
+	it("targets a pipeline, never a context", function()
+		local Contract = target()
+		assert.has_error(function()
+			PolicyBuilder.Contributes({}, { A = "A" })
+		end, "PolicyBuilder.Contributes(target, names): target must be a pipeline's stages")
+		assert.has_error(function()
+			PolicyBuilder.Contributes(Contract.Facts, { A = "A" })
+		end, "PolicyBuilder.Contributes(target, names): target must be a pipeline's stages")
 	end)
 end)

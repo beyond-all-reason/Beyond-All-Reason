@@ -4,7 +4,7 @@ local PolicyBuilder = {}
 
 ---@class PolicyStages<C, T>: { [string]: string } stage names for one pipeline; C is the context its evaluates receive, T the result it produces
 
----@class PolicyContextToken<C>: { [string]: string } provision names for one context; C is the context enrichers receive
+---@class PolicyToken<C>: { [string]: string } provision names for one token; C is the context enrichers receive
 
 ---@class AssembledPipeline<C, T>: { [integer]: PolicyDescriptor } one pipeline as LoadPolicies hands it back, contributions applied
 ---@field result "single"|"product"
@@ -14,7 +14,7 @@ local PolicyBuilder = {}
 ---@field owner string the module whose pipeline or context this is
 ---@field category string its name within the module
 ---@field result "single"|"product"|nil how a pipeline's results combine
----@field context boolean|nil true for a context token: enrichable, not evaluable
+---@field token boolean|nil true for a token: enrichable, not evaluable
 
 ---@generic T: table
 ---@param stages T enum of stage names
@@ -32,12 +32,39 @@ function PolicyBuilder.Product(stages)
 	return setmetatable(stages, { __result = "product" })
 end
 
+---A fold pipeline hands one context through every Select in turn; each may
+---change it, none may end it. Evaluate returns the context it was given.
+---@generic C
+---@param stages PolicyStages<C, C>
+---@return PolicyStages<C, C>
+function PolicyBuilder.Fold(stages)
+	assert(type(stages) == "table" and getmetatable(stages) == nil, "PolicyBuilder.Fold(stages)")
+	return setmetatable(stages, { __result = "fold" })
+end
+
 ---@generic T: table
 ---@param provisions T enum of the field names enrichers may provide
 ---@return T
-function PolicyBuilder.Context(provisions)
-	assert(type(provisions) == "table" and getmetatable(provisions) == nil, "PolicyBuilder.Context(provisions)")
-	return setmetatable(provisions, { __context = true })
+---The stages a module adds to another module's pipeline, named here so a
+---third party can place a rule against them by reference. The runtime
+---refuses to assemble the target if a declared name never lands.
+---@generic C, T
+---@param target PolicyStages<C, T> the target pipeline's stages, from its owner's contract.lua
+---@param names table<string, string>
+---@return table<string, string>
+function PolicyBuilder.Contributes(target, names)
+	local identity = PolicyBuilder.IdentityOf(target)
+	assert(
+		identity ~= nil and not identity.token,
+		"PolicyBuilder.Contributes(target, names): target must be a pipeline's stages"
+	)
+	assert(type(names) == "table" and getmetatable(names) == nil, "PolicyBuilder.Contributes(target, names)")
+	return setmetatable(names, { __contributes = identity })
+end
+
+function PolicyBuilder.Token(provisions)
+	assert(type(provisions) == "table" and getmetatable(provisions) == nil, "PolicyBuilder.Token(provisions)")
+	return setmetatable(provisions, { __token = true })
 end
 
 ---The key a declaration's name serializes to: `UnitTermsNotes` is
@@ -64,14 +91,16 @@ function PolicyBuilder.Contract(owner, categories)
 	for member, stages in pairs(categories) do
 		local meta = type(stages) == "table" and getmetatable(stages) or nil
 		assert(
-			meta ~= nil and (meta.__result ~= nil or meta.__context),
+			meta ~= nil and (meta.__result ~= nil or meta.__token or meta.__contributes),
 			"PolicyBuilder.Contract: "
 				.. tostring(member)
-				.. " must declare itself: Single(...), Product(...) or Context(...)"
+				.. " must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Token(...)"
 		)
 		local category = PolicyBuilder.KeyOf(member)
-		if meta.__context then
-			meta.__policy = { owner = owner, category = category, context = true }
+		if meta.__contributes then
+			meta.__policy = { owner = owner, category = category, contributes = meta.__contributes }
+		elseif meta.__token then
+			meta.__policy = { owner = owner, category = category, token = true }
 		else
 			meta.__policy = { owner = owner, category = category, result = meta.__result }
 		end
@@ -233,6 +262,15 @@ function PolicyBuilder.Validate(stages, result, label)
 		end
 		return
 	end
+	if result == "fold" then
+		for _, stage in ipairs(stages) do
+			assert(
+				stage.kind == "select",
+				label .. ": a fold pipeline runs every Select over the context; " .. stage.name .. " is a guard"
+			)
+		end
+		return
+	end
 	assert(#stages > 0, label .. ": an empty pipeline")
 	local last = stages[#stages]
 	assert(
@@ -246,11 +284,11 @@ end
 ---@field evaluate function one producer; each returned value assigns its name, in order
 
 ---@class PolicyEnrichment<C>
----@field token table|nil the context token this enrichment targets
+---@field token table|nil the token this enrichment targets
 ---@field Provide fun(...: string|fun(ctx: C, ...: any): any): PolicyEnrichment<C> one or more provision names, then the producer
 ---@field Build fun(): PolicyProvision[]
 
----@param token table|nil the context token, from the owner's contract.lua
+---@param token table|nil the token, from the owner's contract.lua
 ---@return PolicyEnrichment
 function PolicyBuilder.Enrichment(token)
 	local ops = {} ---@type PolicyProvision[]

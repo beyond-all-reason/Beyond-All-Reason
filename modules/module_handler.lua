@@ -192,6 +192,14 @@ function ModuleHandler.RmlWidgetDirs(vfsMode)
 	return moduleSubdirs("rml_widgets/", vfsMode)
 end
 
+---Lua unit scripts a module ships; the unit script loader lists these next
+---to scripts/, and a def names one by its full modules/ path.
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ScriptDirs(vfsMode)
+	return moduleSubdirs("scripts/", vfsMode)
+end
+
 ---@param vfsMode string?
 ---@return string[]
 function ModuleHandler.GadgetDirs(vfsMode)
@@ -308,10 +316,27 @@ local function loadPolicyFiles(vfsMode)
 		names[#names + 1] = name
 	end
 	table.sort(names)
+	-- Every module's declared contributions, keyed by the target's owner and
+	-- category: LoadPolicies refuses a pipeline a declared name never reached.
+	local contributions = {} ---@type table<string, table<string, { module: string, names: string[] }[]>>
 	for _, name in ipairs(names) do
 		local stagesPath = manifests[name].dir .. "contract.lua"
 		if VFS.FileExists(stagesPath, vfsMode) then
-			VFS.Include(stagesPath, nil, vfsMode)
+			local contract = VFS.Include(stagesPath, nil, vfsMode)
+			for _, declared in pairs(type(contract) == "table" and contract or {}) do
+				local identity = PolicyBuilder.IdentityOf(declared)
+				if identity and identity.contributes then
+					local target = identity.contributes
+					contributions[target.owner] = contributions[target.owner] or {}
+					local list = contributions[target.owner][target.category] or {}
+					contributions[target.owner][target.category] = list
+					local declaredNames = {}
+					for _, stageName in pairs(declared) do
+						declaredNames[#declaredNames + 1] = stageName
+					end
+					list[#list + 1] = { module = name, names = declaredNames }
+				end
+			end
 		end
 	end
 
@@ -350,8 +375,8 @@ local function loadPolicyFiles(vfsMode)
 								.. ": Policies.Pipeline needs the stages of a pipeline — a table from a module's contract.lua"
 						)
 					end
-					if identity.context then
-						error(filePath .. ": " .. identity.category .. " is a context, not a pipeline")
+					if identity.token then
+						error(filePath .. ": " .. identity.category .. " is a token, not a pipeline")
 					end
 					local ops = chain.Build()
 					if #ops == 0 then
@@ -364,10 +389,10 @@ local function loadPolicyFiles(vfsMode)
 				else
 					local chain = entry.chain
 					local identity = PolicyBuilder.IdentityOf(chain.token)
-					if identity == nil or not identity.context then
+					if identity == nil or not identity.token then
 						error(
 							filePath
-								.. ": Policies.Enrich needs a context token — a Context(...) table from a module's contract.lua"
+								.. ": Policies.Enrich needs a token — a Token(...) table from a module's contract.lua"
 						)
 					end
 					local ops = chain.Build()
@@ -401,7 +426,7 @@ local function loadPolicyFiles(vfsMode)
 			end
 		end
 	end
-	policyFiles = { chains = chains, enrichments = enrichments }
+	policyFiles = { chains = chains, enrichments = enrichments, contributions = contributions }
 	return policyFiles
 end
 
@@ -450,6 +475,26 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 			stage.category = category
 		end
 		PolicyBuilder.Validate(pipeline, pipeline.result, name .. "." .. category)
+		local landed = {}
+		for _, stage in ipairs(pipeline) do
+			landed[stage.name] = true
+		end
+		for _, declared in ipairs((loadPolicyFiles(vfsMode).contributions[name] or {})[category] or {}) do
+			for _, stageName in ipairs(declared.names) do
+				if not landed[stageName] then
+					error(
+						declared.module
+							.. " declares a "
+							.. stageName
+							.. " stage on "
+							.. name
+							.. "."
+							.. category
+							.. " but never builds it"
+					)
+				end
+			end
+		end
 		byCategory[category] = pipeline
 	end
 	policiesCache[name] = byCategory
@@ -471,7 +516,7 @@ end
 ---A context's provisions, every module's merged: each field name provided
 ---exactly once, or the second provider is a load error naming both files.
 ---@param owner string module name
----@param category string the context token's name in the owner's contract.lua
+---@param category string the token's name in the owner's contract.lua
 ---@param vfsMode string?
 ---@return PolicyProvision[]
 function ModuleHandler.LoadEnrichers(owner, category, vfsMode)
@@ -517,6 +562,12 @@ end
 ---@param ... any further arguments passed to each policy's evaluate
 ---@return T|nil result nil only if no policy produced a result
 function ModuleHandler.Evaluate(policies, ctx, ...)
+	if policies.result == "fold" then
+		for _, policy in ipairs(policies) do
+			policy.evaluate(ctx, ...)
+		end
+		return ctx
+	end
 	if policies.result == "product" then
 		local product = nil
 		for _, policy in ipairs(policies) do
