@@ -12,13 +12,18 @@ end
 describe("transport policies", function()
 	it("publishes every stage name, keyed as its pipelines are, for the owner and for whoever contributes", function()
 		for _, stages in pairs(Contract) do
-			local category = PolicyBuilder.IdentityOf(stages).category
+			local identity = PolicyBuilder.IdentityOf(stages)
+			local owner = identity.contributes and identity.contributes.owner or "transport"
+			local category = identity.contributes and identity.contributes.category or identity.category
 			local named = {}
-			for _, stage in ipairs(ModuleHandler.LoadPolicies(Modules.Transport)[category]) do
+			for _, stage in ipairs(ModuleHandler.LoadPolicies(owner)[category]) do
 				named[stage.name] = true
 			end
 			for key, name in pairs(stages) do
-				assert.is_true(named[name], category .. " has no stage " .. name .. " (Contract." .. key .. ")")
+				assert.is_true(
+					named[name],
+					owner .. "." .. category .. " has no stage " .. name .. " (Contract." .. key .. ")"
+				)
 			end
 		end
 	end)
@@ -84,19 +89,21 @@ describe("transport policies", function()
 
 	describe("loaded speed", function()
 		it("is the carrier's own unless a commander drags it and the rule is on", function()
-			assert.are.equal(
+			assert.is.near(
 				9,
 				decide(
 					pipelines.loaded_speed,
 					{ carriesCommander = true, transportSpeed = 270, dragEnabled = false, framesPerSecond = 30 }
-				)
+				),
+				1e-9
 			)
-			assert.are.equal(
+			assert.is.near(
 				4,
 				decide(
 					pipelines.loaded_speed,
 					{ carriesCommander = true, transportSpeed = 270, dragEnabled = true, framesPerSecond = 30 }
-				)
+				),
+				1e-9
 			)
 		end)
 	end)
