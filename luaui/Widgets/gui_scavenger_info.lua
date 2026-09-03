@@ -237,7 +237,7 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if
 			math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)
 			or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])

@@ -2029,7 +2029,7 @@ function widget:MouseWheel(up, value)
 		return false
 	end
 
-	local altHeld, ctrlHeld, _, shiftHeld = Spring.GetModKeyState()
+	local altHeld, ctrlHeld, _, _ = Spring.GetModKeyState()
 
 	if subMode == "shape" or subMode == "express" then
 		if altHeld then

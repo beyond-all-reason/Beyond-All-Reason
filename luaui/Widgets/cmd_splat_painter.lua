@@ -245,7 +245,7 @@ local function isPointValid(px, pz)
 	end
 
 	-- Slope checks
-	local nx, ny, nz = GetGroundNormal(px, pz)
+	local nx, ny, _ = GetGroundNormal(px, pz)
 	if nx then
 		if sf.avoidCliffs then
 			local cosMax = cos(sf.slopeMax * pi / 180)

@@ -3224,7 +3224,7 @@ function DrawCamera(posY, active)
 end
 
 function colourNames(teamID, returnRgb)
-	local nameColourR, nameColourG, nameColourB, nameColourA = sp.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = sp.GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
@@ -4035,7 +4035,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 1 then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, _, _ = Spring.GetModKeyState()
 		sliderPosition = nil
 		shareAmount = 0
 

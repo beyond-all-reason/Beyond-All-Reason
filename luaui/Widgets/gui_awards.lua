@@ -58,7 +58,7 @@ local function colourNames(teamID)
 	if teamID < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 

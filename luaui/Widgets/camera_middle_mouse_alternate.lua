@@ -43,12 +43,12 @@ local drawing = false
 function widget:Update(dt)
 	if active then
 		local speedFactor = Spring.GetConfigInt("OverheadScrollSpeed", 10)
-		local x, y, lmb, mmb, rmb = spGetMouseState()
+		local x, y, _, mmb, _ = spGetMouseState()
 		local cs = spGetCameraState()
 		local speed = dt * speedFactor
 
 		if cs.name == "free" then
-			local a, c, m, s = spGetModKeyState()
+			local _, c, _, _ = spGetModKeyState()
 			if c then
 				return
 			end
@@ -131,7 +131,7 @@ end
 function widget:MouseWheel(up, value)
 	-- Get the current camera state and mod key state
 	local cameraState = Spring.GetCameraState()
-	local altDown, ctrlDown, metaDown, shiftDown = Spring.GetModKeyState()
+	local altDown, _, _, _ = Spring.GetModKeyState()
 
 	-- If the Alt key is down, adjust the camera height
 	if altDown then

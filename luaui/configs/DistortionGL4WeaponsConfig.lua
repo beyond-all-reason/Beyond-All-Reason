@@ -3226,7 +3226,7 @@ for name, distortionList in pairs(explosionDistortionsNames) do
 		explosionDistortions[WeaponDefNames[name].id] = distortionList
 	end
 	-- loop through each distortion in the list and add them to the scavenger variant
-	local scavName, paramsScav = applyScavVariants(name, distortionList)
+	local scavName, _ = applyScavVariants(name, distortionList)
 	if scavName and WeaponDefNames[scavName] then
 		explosionDistortions[WeaponDefNames[scavName].id] = {}
 		for _, distortion in ipairs(distortionList) do

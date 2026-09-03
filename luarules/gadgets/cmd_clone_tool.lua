@@ -181,7 +181,7 @@ end
 -- Handle terrain clone: "$clone_terrain$count x z h x z h ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneTerrain(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local vertexCount = tonumber(parts[1]) or 0
 	if vertexCount == 0 then
 		return
@@ -211,7 +211,7 @@ end
 -- Handle metal clone: "$clone_metal$count mx mz val mx mz val ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneMetal(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
 	if entryCount == 0 then
 		return
@@ -250,7 +250,7 @@ end
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local function handleCloneFeatures(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
 	spEcho("[Clone Gadget] Features recv: " .. entryCount)
 	if entryCount == 0 then
@@ -332,7 +332,7 @@ local function handleTerrainGrid(payload)
 	if not pendingPaste then
 		return
 	end
-	local parts, cnt = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local rowStart = tonumber(parts[1]) or 0
 	local rowCount = tonumber(parts[2]) or 0
 	local cols = pendingPaste.srcCols

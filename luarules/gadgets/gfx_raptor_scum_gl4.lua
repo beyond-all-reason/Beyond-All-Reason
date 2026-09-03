@@ -666,8 +666,8 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 			return
 		end
 
-		local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1, 1, resolution, resolution)
-		local planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(resolution, resolution, true)
+		local planeVBO, _ = InstanceVBOTable.makePlaneVBO(1, 1, resolution, resolution)
+		local planeIndexVBO, _ = InstanceVBOTable.makePlaneIndexVBO(resolution, resolution, true)
 
 		scumVBO.vertexVBO = planeVBO
 		scumVBO.indexVBO = planeIndexVBO
@@ -937,7 +937,7 @@ elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 			return
 		end
 		if debugmode then
-			local mx, my, mb = Spring.GetMouseState()
+			local mx, my, _ = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
 			if coords and (IsPosInScum(coords[1], coords[2], coords[3])) then
 				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2], coords[3]))

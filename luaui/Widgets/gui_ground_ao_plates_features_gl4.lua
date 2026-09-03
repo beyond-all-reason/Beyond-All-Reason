@@ -278,7 +278,7 @@ function givefeaturesCmd(_, line)
 		end
 	end
 	if #matches > 0 then
-		local mx, my, mb = Spring.GetMouseState()
+		local mx, my, _ = Spring.GetMouseState()
 		local _, coords = Spring.TraceScreenRay(mx, my, true)
 		local maxx = math.ceil(math.sqrt(#matches))
 		local size = 80

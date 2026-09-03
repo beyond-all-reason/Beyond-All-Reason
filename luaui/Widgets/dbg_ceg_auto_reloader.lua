@@ -298,7 +298,7 @@ end
 
 local function isInteger(value)
 	-- seems like cegops are allowed here too!
-	local res, err = isFloat(value)
+	local res, _err = isFloat(value)
 	if res then
 		return true
 	end
