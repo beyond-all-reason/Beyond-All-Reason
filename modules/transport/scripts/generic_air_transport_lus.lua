@@ -11,8 +11,8 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spUnitDetach = Spring.UnitDetach
 local spEcho = Spring.Echo
 
-local AIR_TRANSPORT_PATH = "scripts/Units/airTransports/"
-local AIR_TRANSPORT_INC = "Units/airTransports/"
+local AIR_TRANSPORT_PATH = "modules/transport/scripts/airTransports/"
+local AIR_TRANSPORT_INC = AIR_TRANSPORT_PATH
 
 local unitDef = UnitDefs[unitDefID]
 local unitName = unitDef.name

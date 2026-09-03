@@ -1,5 +1,5 @@
-local DEFAULT_GENERIC_SCRIPT = "units/generic_air_transport_lus.lua"
-local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
+local DEFAULT_GENERIC_SCRIPT = "modules/transport/scripts/generic_air_transport_lus.lua"
+local DEFAULT_WEAPONIZED_SCRIPT = "modules/transport/scripts/weaponized_air_transport_lus.lua"
 
 return {
 	ALLOW_ENEMY_LOAD_MODE = 4,
