@@ -21,8 +21,29 @@ end
 Policies.Pipeline(load)
 	.Unless(load.Submerged, submerged)
 	.If(load.WithinReach, withinReach)
+	.Unless(load.Untransportable, function(ctx)
+		return ctx.passengerDef ~= nil and ctx.passengerDef.cantBeTransported == true
+	end)
+	.Unless(load.Carried, function(ctx)
+		return ctx.carried == true
+	end)
+	.Unless(load.UnderConstruction, function(ctx)
+		return ctx.underConstruction == true
+	end)
+	.Unless(load.InAnimation, function(ctx)
+		return ctx.inAnimation == true
+	end)
 	.Unless(load.MovingEnemy, function(ctx)
 		return ctx.allied == false and (ctx.passengerSpeed or 0) >= NAP_MAX_SPEED
+	end)
+	.Unless(load.EnemyLoading, function(ctx)
+		return ctx.allied == false and ctx.enemyLoading == false
+	end)
+	.Unless(load.EnemyImmune, function(ctx)
+		return ctx.allied == false and ctx.passengerDef ~= nil and ctx.passengerDef.transportByEnemy == false
+	end)
+	.Unless(load.Unseen, function(ctx)
+		return ctx.allied == false and ctx.seen == false
 	end)
 	.Unless(load.AlliedNano, function(ctx)
 		return ctx.nano == true and ctx.allied == true and ctx.ownTeam ~= true
