@@ -14,24 +14,9 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
-	local clearPassthrough = ctx.clearPassthrough
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
-	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
-	local cadenceToSlider = ctx.cadenceToSlider
-	local sliderToFrequency = ctx.sliderToFrequency
-	local sliderToPersist = ctx.sliderToPersist
-	local PERSIST_PERMANENT_VAL = ctx.PERSIST_PERMANENT_VAL
-	local formatFrequency = ctx.formatFrequency
-	local guideHints = ctx.guideHints
-	local shapeNames = ctx.shapeNames
 	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
-	local quatFromAxisAngle = ctx.quatFromAxisAngle
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
 	-- keys in a DataModel after OpenDataModel.
@@ -2337,12 +2322,6 @@ end
 
 function M.sync(doc, ctx, setSummary)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
-	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- ===== Environment mode: highlight button, clear other highlights =====
 	-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
 	if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then

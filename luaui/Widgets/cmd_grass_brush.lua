@@ -31,7 +31,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPolygonOffset = gl.PolygonOffset
 local glText = gl.Text
 local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending

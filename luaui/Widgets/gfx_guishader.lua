@@ -17,7 +17,6 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
-local mathMax = math.max
 local stringFind = string.find
 
 -- Localized Spring API for performance

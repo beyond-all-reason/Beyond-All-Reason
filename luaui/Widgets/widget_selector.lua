@@ -1453,7 +1453,6 @@ function widget:MouseRelease(x, y, mb)
 	end
 
 	local name = namedata[1]
-	local data = namedata[2]
 
 	if mb == 1 then
 		widgetHandler:ToggleWidget(name)

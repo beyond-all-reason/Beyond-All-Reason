@@ -1096,7 +1096,6 @@ function DrawWindow()
 
 	-- draw options
 	local yPos
-	local prevGroup = ""
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
@@ -1838,7 +1837,6 @@ function widget:DrawScreen()
 			showOnceMore = false
 
 			-- mouseover (highlight and tooltip)
-			local description = ""
 			if
 				not (devMode or devUI)
 				and titleRect ~= nil
@@ -12252,7 +12250,6 @@ function init()
 	else
 		local cursorsets = {}
 		local cursor = 1
-		local cursoroption
 		cursorsets = WG.cursors.getcursorsets()
 		local cursorname = WG.cursors.getcursor()
 		for i, c in pairs(cursorsets) do

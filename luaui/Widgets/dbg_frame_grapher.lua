@@ -5,8 +5,6 @@
 
 local widget = widget ---@type Widget
 
-local lastframems -- forward-decl: read into prevframems
-
 local alpha = 0 -- forward-decl: read at file scope in a shader-params table
 
 function widget:GetInfo()
@@ -22,16 +20,10 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
-local mathAbs = math.abs
-local mathMin = math.min
-
 -- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
 local spEcho = Spring.Echo
 
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 ---------------------------Internal vars---------------------------
 local timerstart = nil
@@ -308,7 +300,6 @@ end
 
 function widget:GameFramePost()
 	nowEvent("GameFramePost")
-	--spEcho("GameFramePost", spGetGameFrame())
 end
 
 function widget:GameFrame(n)
@@ -333,45 +324,6 @@ function widget:Update()
 end
 
 function widget:DrawScreen()
-	--[[
-  drawspergameframe = drawspergameframe + 1
-	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
-
-	local timernew = spGetTimer()
-	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
-	timerold = timernew
-  local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
-  local fto = Spring.GetFrameTimeOffset()
-
-  local CTOError = 0
-
-  if drawpersimframe == 2 then
-	CTOError = 4 * mathMin(mathAbs(fto-0.5), mathAbs(fto))
-  elseif drawpersimframe ==3 then
-	CTOError = 6 * mathMin(mathMin(mathAbs(fto-0.33), mathAbs(fto -0.66)), mathAbs(fto))
-  elseif drawpersimframe ==4 then
-	CTOError = 8 * mathMin(mathMin(mathAbs(fto-0.25), mathAbs(fto -0.5)), mathMin(mathAbs(fto), mathAbs(fto-0.75)))
-  end
-  --spEcho(spGetGameFrame(), fto, CTOError)
-
-  rectInstancePtr = rectInstancePtr+1
-  if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0, CTOError}, rectInstancePtr, true)
-  if wasgameframe>0 then
-
-    rectInstancePtr = rectInstancePtr+1
-    if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1, CTOError}, rectInstancePtr, true)
-  end
-
-  if fto > 0.99 then
-
-    rectInstancePtr = rectInstancePtr+1
-    if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, 3}, rectInstancePtr, true)
-  end
-
-]]
 	--#region
 
 	for i = 1, #eventBuffer do

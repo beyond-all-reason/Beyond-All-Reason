@@ -22,7 +22,6 @@ local MyAtlasOnDemand
 local buildPicList = {}
 local font
 
-local t = "ABCDEFGHIJKLabcdefghij"
 local n = 0
 function widget:Update()
 	n = n + 1

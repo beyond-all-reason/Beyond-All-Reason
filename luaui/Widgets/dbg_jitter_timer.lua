@@ -165,7 +165,6 @@ end
 local correctionfactor = 0
 local avgjitter = 0.0
 local alpha = 0.01
-local drawduration
 
 --- CTO uniformity
 lastdrawCTO = spGetGameFrame()

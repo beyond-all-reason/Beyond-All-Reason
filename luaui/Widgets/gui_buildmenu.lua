@@ -110,7 +110,6 @@ local costOverrides = {}
 -- New state variables for the robust update system
 local selectionUpdateTime = 0 -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
-local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false -- The failsafe retry flag
 local refreshRetryCounter = 0 -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -708,7 +707,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
-local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	tracy.ZoneBeginN("W:BuildMenu:Update")
 	if delayRefresh and spGetGameSeconds() >= delayRefresh then

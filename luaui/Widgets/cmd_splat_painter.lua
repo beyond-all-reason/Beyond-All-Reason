@@ -38,8 +38,6 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
-local glCreateList = gl.CreateList
-local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 local glPolygonOffset = gl.PolygonOffset
 local glDepthTest = gl.DepthTest
@@ -65,7 +63,6 @@ local MAX_RADIUS = 2000
 local RADIUS_STEP = 8
 local MIN_STRENGTH = 0.01
 local MAX_STRENGTH = 1.0
-local STRENGTH_STEP = 0.01
 local DEFAULT_STRENGTH = 0.15
 local DEFAULT_RADIUS = 100
 local DEFAULT_CURVE = 1.0
@@ -85,7 +82,6 @@ local DEFAULT_INTENSITY = 1.0
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 10.0
 local INTENSITY_STEP = 0.1
-local FALLOFF_DISPLAY_HEIGHT = 60
 local GRID_STEP = 24 -- elmos between smart-filter sample points
 
 -- Shapes (reuse from terraform brush)
