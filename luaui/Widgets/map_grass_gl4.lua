@@ -275,7 +275,6 @@ local grassVAO = nil
 local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
-local grassPatchCount = 0
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -1130,7 +1129,6 @@ local function buildGrassTiles(cols, rows, sampleFn, jitter)
 			tileCount[tile] = offset - tileOffset[tile]
 		end
 	end
-	grassPatchCount = offset
 end
 
 local function LoadGrassTGA(filename)
