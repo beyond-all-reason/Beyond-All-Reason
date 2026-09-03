@@ -27,6 +27,18 @@ if not TransportAPI then
 	return false
 end
 
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Modules = VFS.Include("modules/enums.lua").Modules
+local pipelines = ModuleHandler.LoadPolicies(Modules.Transport) ---@type TransportPipelines
+
+---Whether this passenger may be lifted at all is the transport module's
+---question, so a mod's rule reaches tractor beams and engine loads alike.
+---@param ctx TransportLoadContext
+---@return boolean
+local function decideLoad(ctx)
+	return ModuleHandler.Evaluate(pipelines.load, ctx) == true
+end
+
 local modOptions = Spring.GetModOptions() or {}
 local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
 local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
@@ -147,7 +159,7 @@ end
 -- local function BuggerOff(...)                  -- Nudge units away from an unload pad location
 -- local function RemoveAreaLoadCoroutine(...)    -- Clean up a finished or cancelled area-load coroutine
 -- local function RemoveSuccessiveCoroutine(...)  -- Clean up a finished or cancelled successive-load coroutine
--- local function CanBeTransportedStatic(...)     -- Check static eligibility: unit type, alive, not under construction
+-- local function CanBeTransportedStatic(...)     -- Check the engine sanity of a candidate: valid, alive, not itself
 -- local function CanBeTransportedDynamic(...)    -- Check dynamic eligibility: LOS, team, distance, not already claimed
 -- local function CanBeAutoClaimed(...)           -- Return true if unit may be auto-claimed by area commands
 -- local function SpawnWeakBeam(...)              -- Spawn a visual targeting beam from transporter to passenger
@@ -305,9 +317,6 @@ local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID
 	if passengerID == transporterID then
 		return false
 	end
-	if UnitDefs[passengerDefID].cantBeTransported then
-		return false
-	end
 	return true
 end
 
@@ -332,38 +341,28 @@ local function CanBeTransportedDynamic(
 	if spGetUnitIsDead(passengerID) then
 		return false
 	end
-	if spGetUnitTransporter(passengerID) ~= nil then
-		return false
-	end
-	if spGetUnitIsBeingBuilt(passengerID) then
-		return false
-	end
-	if isUnderwater(passengerID, passengerPosY) then
-		return false
-	end
-	if spGetUnitRulesParam(passengerID, "inUnloadAnim") == 1 then
-		return false
-	end
-	if (spGetUnitRulesParam(passengerID, "inLoadAnim") or 0) > 0 then
-		return false
-	end
 	local allied = spAreTeamsAllied(passengerTeamID, transporterTeamID)
-	if allied then
-		return true
+	local seen = nil
+	if not allied then
+		local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
+		seen = losState ~= nil and (losState.los or losState.radar) == true
 	end
-	if ALLOW_ENEMY_LOAD_MODE == 1 then
-		return false
-	end
-	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander
-		or UnitDefs[passengerDefID].transportByEnemy == false
-	if cantLoadAsEnemy then
-		return false
-	end
-	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
-	if not losState or not (losState.los or losState.radar) then
-		return false
-	end
-	return true
+	-- Speed is deliberately left out: a moving enemy is a timing matter for
+	-- CanBeTransportedNow, which waits rather than dropping the claim.
+	return decideLoad({
+		goalY = passengerPosY,
+		height = spGetUnitHeight(passengerID),
+		carrierDef = UnitDefs[spGetUnitDefID(transporterID)],
+		passengerDef = UnitDefs[passengerDefID],
+		allied = allied,
+		ownTeam = passengerTeamID == transporterTeamID,
+		carried = spGetUnitTransporter(passengerID) ~= nil,
+		underConstruction = spGetUnitIsBeingBuilt(passengerID) == true,
+		inAnimation = spGetUnitRulesParam(passengerID, "inUnloadAnim") == 1
+			or (spGetUnitRulesParam(passengerID, "inLoadAnim") or 0) > 0,
+		enemyLoading = ALLOW_ENEMY_LOAD_MODE ~= 1,
+		seen = seen,
+	})
 end
 
 ---@param passengerID number

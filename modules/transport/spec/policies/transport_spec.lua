@@ -36,6 +36,50 @@ describe("transport policies", function()
 			assert.is_true(decide(pipelines.load, ok))
 		end)
 
+		local function with(base, extra)
+			local ctx = {}
+			for k, v in pairs(base) do
+				ctx[k] = v
+			end
+			for k, v in pairs(extra) do
+				ctx[k] = v
+			end
+			return ctx
+		end
+
+		it("stays permissive when a fact is not supplied, so the engine path keeps its answers", function()
+			assert.is_true(decide(pipelines.load, { goalY = 10, height = 20 }))
+			assert.is_true(decide(pipelines.load, { goalY = 10, height = 20, allied = false }))
+		end)
+
+		it("refuses what no carrier lifts: untransportable, already carried, unfinished, mid-animation", function()
+			assert.is_false(decide(pipelines.load, with(ok, { passengerDef = { cantBeTransported = true } })))
+			assert.is_true(decide(pipelines.load, with(ok, { passengerDef = { cantBeTransported = false } })))
+			assert.is_false(decide(pipelines.load, with(ok, { carried = true })))
+			assert.is_false(decide(pipelines.load, with(ok, { underConstruction = true })))
+			assert.is_false(decide(pipelines.load, with(ok, { inAnimation = true })))
+		end)
+
+		it("judges an enemy by the carrier's ruleset, the passenger's immunity, and whether it is seen", function()
+			local enemy = { goalY = 10, height = 20, allied = false, passengerSpeed = 0 }
+			assert.is_true(decide(pipelines.load, with(enemy, { enemyLoading = true, seen = true })))
+			assert.is_false(decide(pipelines.load, with(enemy, { enemyLoading = false, seen = true })))
+			assert.is_false(decide(pipelines.load, with(enemy, { enemyLoading = true, seen = false })))
+			assert.is_false(
+				decide(pipelines.load, with(enemy, { passengerDef = { transportByEnemy = false }, seen = true }))
+			)
+			-- an ally is never immune, never unseen, never gated by the enemy ruleset
+			assert.is_true(decide(
+				pipelines.load,
+				with(enemy, {
+					allied = true,
+					enemyLoading = false,
+					seen = false,
+					passengerDef = { transportByEnemy = false },
+				})
+			))
+		end)
+
 		it("refuses under water, out of reach, or a moving enemy — each on its own", function()
 			assert.is_false(
 				decide(pipelines.load, { goalY = -30, height = 10, distance = 5, reach = 20, allied = true })
