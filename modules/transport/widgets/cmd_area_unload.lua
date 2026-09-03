@@ -54,6 +54,10 @@ function widget:CommandNotify(id, params, options)
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
+			if #units == 1 then
+				spGiveOrderToUnit(units[1], CMD.UNLOAD_UNIT, { params[1], params[2], params[3] }, { shift = shift })
+				return true
+			end
 			local alpha = 1
 			local b = math.floor(alpha * math_sqrt(#units))
 			local phi = (math_sqrt(5) + 1) / 2
