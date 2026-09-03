@@ -257,10 +257,10 @@ function gadget:Initialize()
 	}
 
 	-- The objectives module dispatches its own triggers on objectives:
-	GG['MissionAPI'].Modules.Objectives.Init({
+	GG["MissionAPI"].Modules.Objectives.Init({
 		processTriggersOfType = processTriggersOfType,
 		activateTrigger = activateTrigger,
-		presentation = GG['MissionAPI'].Modules.Presentation,
+		presentation = GG["MissionAPI"].Modules.Presentation,
 	})
 
 	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
