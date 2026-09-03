@@ -63,7 +63,7 @@ local config = {
 	cyclingToNextSquad = true, -- when full squad/type is selected, exclude it to cycle to next
 	leftClickSelectsSquad = true, -- left-click can be used to select squads
 	leftClickAlternativeSelection = false, -- switches left-click (replace and append) between the normal selection — the whole closest squad, any kind, no distance cap — and the alternative one defined by leftClickAlternativeArgs. Bind a hotkey via `squad_setting toggle leftClickAlternativeSelection` to flip on demand
-	leftClickAlternativeArgs = { 1, 0.5, "distance_850" }, -- what the alternative left-click selection does; same tokens as the squad_select_portion action: step values, an optional "distance_<N>" cap and an optional "manual"/"reserve" squad-kind filter. Default is 100% then 50% within 850 elmos.
+	leftClickAlternativeArgs = { 1, 0.5, "distance_850" }, -- what the alternative left-click selection does; same tokens as the squad_select_portion action: step values, an optional "distance_<N>" cap and an optional "manual"/"reserve" (a.k.a. "automatic")/"locked" squad-kind filter. Default is 100% then 50% within 850 elmos.
 	leftClickAppendFiltersDomain = true, -- when true, left-click Shift-append squads whose domains ⊆ the selection's. Using it again within inDoubleTapWindow flips to the opposite value.
 	leftClickFilteredRetargets = true, -- when true, Alt+Ctrl-click (replace-mode filtered) acts like the `retarget` keyword: even if the closest unit's type isn't in the current selection, treat the click as a fresh selection on that new type instead of using the selection's types as the filter. Append mode is unaffected.
 	rightClickSquadCreate = false, -- right-click creates squads; bind a hotkey via `squad_setting toggle rightClickSquadCreate` to flip on demand
@@ -926,7 +926,7 @@ end
 -- Cylinder radius (elmos) for perf heuristic.
 local SEARCH_RADIUS = 850
 
--- Squad-kind gate: "manual" keeps player-created squads, "reserve" keeps per-factory + uncategorized reserves, "locked" keeps locked squads, nil keeps everything except locked squads.
+-- Squad-kind gate: "manual" keeps player-created squads, "reserve" (named "automatic" in the options) keeps per-factory + uncategorized reserves, "locked" keeps locked squads, nil keeps everything except locked squads.
 ---@param sq Squad
 ---@param squadKind SquadKind?
 ---@return boolean
@@ -1280,7 +1280,7 @@ end
 ---@field filterDefs table<number, boolean>? defID set; narrows the pool to matching unit types.
 ---@field groupSet table<number, boolean>? unitID set; narrows the pool to control-group members.
 ---@field maxDistance number? Cap the pool to units within this world distance of the cursor.
----@field squadKind SquadKind? Only consider manual squads or reserve squads; nil (default) considers both.
+---@field squadKind SquadKind? Only consider manual squads, reserve squads, or locked squads; nil (default) considers manual and reserve.
 ---@field cycleWhenFull boolean? When the closest squad's pool is already fully selected, re-pick a squad with those units excluded.
 ---@field useDomainFilter boolean? Restrict squad cycling to domains ("land"/"air"/"naval") present in the selection. Ignored when no tracked units are selected.
 ---@field isMousePress boolean? True for left-click-initiated selection, false for action/hotkey-initiated.
@@ -2030,6 +2030,7 @@ local function squadSetting(_, _, args)
 					tok:match("^distance_%d+%.?%d*$")
 					or tok == "manual"
 					or tok == "reserve"
+					or tok == "automatic"
 					or tok == "locked"
 					or tok == "any"
 				then
