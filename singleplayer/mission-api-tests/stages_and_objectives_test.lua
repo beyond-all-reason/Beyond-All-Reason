@@ -68,10 +68,11 @@ local triggers = {
 		actions = { 'spawnBot' },
 	},
 
-	changeStage3 = {
-		type = triggerTypes.TimeElapsed,
+	-- Completing buildBots is the only way into the third stage.
+	botsBuilt = {
+		type = triggerTypes.ObjectiveCompleted,
 		parameters = {
-			seconds = 7,
+			objectiveID = 'buildBots',
 		},
 		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
 	},

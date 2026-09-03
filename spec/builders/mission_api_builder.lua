@@ -24,6 +24,8 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field ActionDefinitions table
 ---@field TriggerDefinitions table
 ---@field Modules table
+---@field ProcessTriggersOfType fun(triggerType: any, func: fun(trigger: table, triggerID: any))
+---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
 
@@ -37,8 +39,10 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field processSoundQueue table
 ---@field changeStage table
 ---@field tryAdvanceStage table
+---@field onObjectiveCompleted table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
+---@field activateTrigger table
 
 ---@class MissionApiBuilder
 local MB = {}
@@ -305,8 +309,10 @@ function MB:Build()
 	local processSoundQueueCalls = {}
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
+	local onObjectiveCompletedCalls = {}
 	local updateProgressCalls = {}
 	local echoCalls = {}
+	local activateTriggerCalls = {}
 
 	local tracking = {
 		TrackUnit = function(name, unitID)
@@ -380,6 +386,10 @@ function MB:Build()
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
 		end,
+		OnObjectiveCompleted = function(objectiveID, objective)
+			onObjectiveCompletedCalls[#onObjectiveCompletedCalls + 1] =
+				{ objectiveID = objectiveID, objective = objective }
+		end,
 		UpdateObjectiveProgress = function(
 			objectiveID,
 			eventTeamID,
@@ -442,7 +452,21 @@ function MB:Build()
 		ActionDefinitions = instance.actionDefinitions,
 		TriggerDefinitions = instance.triggerDefinitions,
 		Modules = modules,
-
+		--- Published by api_missions_triggers.lua:Initialize() for objectives.lua.
+		--- Both read GG['MissionAPI'] at call time, as the gadget's functions do;
+		--- an activation records the stage that was current when it happened.
+		ProcessTriggersOfType = function(triggerType, func)
+			for triggerID, trigger in pairs(GG["MissionAPI"].Triggers) do
+				if trigger.type == triggerType then
+					func(trigger, triggerID)
+				end
+			end
+		end,
+		ActivateTrigger = function(trigger)
+			activateTriggerCalls[#activateTriggerCalls + 1] =
+				{ trigger = trigger, stageID = GG["MissionAPI"].CurrentStageID }
+			return true
+		end,
 		--- Recorded module calls, keyed by the stub they came from:
 		--- `calls.playSound` records `Modules.Sounds.PlaySound`.
 		calls = {
@@ -454,31 +478,34 @@ function MB:Build()
 			processSoundQueue = processSoundQueueCalls,
 			changeStage = changeStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
+			onObjectiveCompleted = onObjectiveCompletedCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
+			activateTrigger = activateTriggerCalls,
 		},
-	}
-
-	mock.clearCalls = function()
-		local tracked = {
-			spawnUnitCalls,
-			spawnFeatureCalls,
-			convertOrdersCalls,
-			playSoundCalls,
-			enqueueSoundCalls,
-			processSoundQueueCalls,
-			changeStageCalls,
-			tryAdvanceCalls,
-			updateProgressCalls,
-			echoCalls,
-		}
-		for i = 1, #tracked do
-			local list = tracked[i]
-			for j = #list, 1, -1 do
-				list[j] = nil
+		clearCalls = function()
+			local tracked = {
+				spawnUnitCalls,
+				spawnFeatureCalls,
+				convertOrdersCalls,
+				playSoundCalls,
+				enqueueSoundCalls,
+				processSoundQueueCalls,
+				changeStageCalls,
+				tryAdvanceCalls,
+				onObjectiveCompletedCalls,
+				updateProgressCalls,
+				echoCalls,
+				activateTriggerCalls,
+			}
+			for i = 1, #tracked do
+				local list = tracked[i]
+				for j = #list, 1, -1 do
+					list[j] = nil
+				end
 			end
-		end
-	end
+		end,
+	}
 
 	return mock
 end

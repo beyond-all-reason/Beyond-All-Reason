@@ -17,7 +17,9 @@ local function updateObjective(objectiveID, completed, textKey)
 	end
 
 	local objectives = GG['MissionAPI'].Modules.Objectives
-	objectives.TryAdvanceStage(objective)
+	if objective.completed then
+		objectives.OnObjectiveCompleted(objectiveID, objective)
+	end
 	objectives.EchoObjectiveUpdate(objectiveID, objective)
 end
 
