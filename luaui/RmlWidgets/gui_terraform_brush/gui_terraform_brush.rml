@@ -873,9 +873,6 @@
 			<div id="btn-ring" class="tf-shape-btn" data-class-active="activeShape == 'ring'" data-event-mousedown="onTfSetShape('ring')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_ring.png" />
 			</div>
-			<div id="btn-crater" class="tf-shape-btn" data-class-active="activeShape == 'crater'" data-event-mousedown="onTfSetShape('crater')">
-				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_crater.png" />
-			</div>
 			<div id="btn-fill" class="tf-shape-btn" data-class-active="activeShape == 'fill'" data-event-mousedown="onTfSetShape('fill')">
 				<img class="tf-icon-lg" src="/luaui/images/terraform_brush/shape_fill.png" />
 			</div>
@@ -5852,6 +5849,51 @@
 								<div class="tf-action-btn-text" data-if="surfClearAllArm">CONFIRM?</div>
 							</div>
 						</div>
+						<!-- AUTOMATIC DEPOSIT (authoring, so it lives here under FILL AND SEED): a
+						     SURFACE variant slot the shader claims on its own where wind-blown sand
+						     would gather (lee side of slopes + pockets). Off until a slot is chosen;
+						     paint always wins over it. Ids stay ts-*: tf_tileset stamps them by id. -->
+						<div class="tf-section-frame tf-collapsed" id="frame-ts-deposit">
+							<div id="btn-toggle-ts-deposit" class="tf-section-title-row" style="cursor: pointer;">
+								<img id="img-toggle-ts-deposit" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+								<div class="tf-collapsible-title">AUTOMATIC DEPOSIT</div>
+								<div id="btn-ts-reset-deposit" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('deposit')">RESET</div>
+							</div>
+							<div id="section-ts-deposit" class="hidden">
+									<div class="text-sm text-keybind mb-1">Automatic sand: the chosen SURFACE slot claims the lee side of slopes (relative to the wind) and the pockets, wherever nothing was painted. 0 = off. The slot needs a texture assigned in SURFACE.</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Deposit slot</div>
+										<input type="range" id="ts-slider-depositSlot" class="tf-slider" min="0" max="7" step="1" value="0" data-event-change="onTilesetKnob('depositSlot')" />
+										<input type="text" id="ts-slider-depositSlot-numbox" class="tf-slider-numbox" readonly value="0" />
+									</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Strength</div>
+										<input type="range" id="ts-slider-depositStrength" class="tf-slider" min="0" max="1" step="0.01" value="1.00" data-event-change="onTilesetKnob('depositStrength')" />
+										<input type="text" id="ts-slider-depositStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
+									</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Lee side</div>
+										<input type="range" id="ts-slider-depositLee" class="tf-slider" min="0" max="2" step="0.01" value="1.00" data-event-change="onTilesetKnob('depositLee')" />
+										<input type="text" id="ts-slider-depositLee-numbox" class="tf-slider-numbox" readonly value="1.00" />
+									</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Pockets</div>
+										<input type="range" id="ts-slider-depositCavity" class="tf-slider" min="0" max="2" step="0.01" value="0.50" data-event-change="onTilesetKnob('depositCavity')" />
+										<input type="text" id="ts-slider-depositCavity-numbox" class="tf-slider-numbox" readonly value="0.50" />
+									</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Wind from</div>
+										<input type="range" id="ts-slider-windDirDeg" class="tf-slider" min="0" max="360" step="1" value="270" data-event-change="onTilesetKnob('windDirDeg')" />
+										<input type="text" id="ts-slider-windDirDeg-numbox" class="tf-slider-numbox" readonly value="270" />
+									</div>
+									<div class="flex flex-row gap-1 items-center mb-1">
+										<div class="tf-slider-label text-light">Slope start</div>
+										<input type="range" id="ts-slider-depositSlopeDeg" class="tf-slider" min="2" max="30" step="0.5" value="8.0" data-event-change="onTilesetKnob('depositSlopeDeg')" />
+										<input type="text" id="ts-slider-depositSlopeDeg-numbox" class="tf-slider-numbox" readonly value="8.0" />
+									</div>
+									<div class="text-sm text-keybind mb-1">Wind from: 0 = north (top of the minimap), 90 = east. Slopes facing away from it collect sand from Slope start, saturating at three times that angle; cliff faces never do.</div>
+							</div>
+						</div><!-- /frame-ts-deposit -->
 					</div>
 				</div><!-- /frame-surf-fill -->
 
@@ -6309,51 +6351,6 @@
 							</div>
 					</div>
 				</div><!-- /frame-ts-place -->
-
-				<!-- DEPOSIT: a SURFACE variant slot the shader claims on its own where
-				     wind-blown sand would gather (lee side of slopes + pockets). Off
-				     until a slot is chosen; paint always wins over it. -->
-				<div class="tf-section-frame tf-collapsed" id="frame-ts-deposit">
-					<div id="btn-toggle-ts-deposit" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-ts-deposit" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-						<div class="tf-collapsible-title">DEPOSIT</div>
-						<div id="btn-ts-reset-deposit" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('deposit')">RESET</div>
-					</div>
-					<div id="section-ts-deposit" class="hidden">
-							<div class="text-sm text-keybind mb-1">Automatic sand: the chosen SURFACE slot claims the lee side of slopes (relative to the wind) and the pockets, wherever nothing was painted. 0 = off. The slot needs a texture assigned in SURFACE.</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Deposit slot</div>
-								<input type="range" id="ts-slider-depositSlot" class="tf-slider" min="0" max="7" step="1" value="0" data-event-change="onTilesetKnob('depositSlot')" />
-								<input type="text" id="ts-slider-depositSlot-numbox" class="tf-slider-numbox" readonly value="0" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Strength</div>
-								<input type="range" id="ts-slider-depositStrength" class="tf-slider" min="0" max="1" step="0.01" value="1.00" data-event-change="onTilesetKnob('depositStrength')" />
-								<input type="text" id="ts-slider-depositStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Lee side</div>
-								<input type="range" id="ts-slider-depositLee" class="tf-slider" min="0" max="2" step="0.01" value="1.00" data-event-change="onTilesetKnob('depositLee')" />
-								<input type="text" id="ts-slider-depositLee-numbox" class="tf-slider-numbox" readonly value="1.00" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Pockets</div>
-								<input type="range" id="ts-slider-depositCavity" class="tf-slider" min="0" max="2" step="0.01" value="0.50" data-event-change="onTilesetKnob('depositCavity')" />
-								<input type="text" id="ts-slider-depositCavity-numbox" class="tf-slider-numbox" readonly value="0.50" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Wind from</div>
-								<input type="range" id="ts-slider-windDirDeg" class="tf-slider" min="0" max="360" step="1" value="270" data-event-change="onTilesetKnob('windDirDeg')" />
-								<input type="text" id="ts-slider-windDirDeg-numbox" class="tf-slider-numbox" readonly value="270" />
-							</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="tf-slider-label text-light">Slope start</div>
-								<input type="range" id="ts-slider-depositSlopeDeg" class="tf-slider" min="2" max="30" step="0.5" value="8.0" data-event-change="onTilesetKnob('depositSlopeDeg')" />
-								<input type="text" id="ts-slider-depositSlopeDeg-numbox" class="tf-slider-numbox" readonly value="8.0" />
-							</div>
-							<div class="text-sm text-keybind mb-1">Wind from: 0 = north (top of the minimap), 90 = east. Slopes facing away from it collect sand from Slope start, saturating at three times that angle; cliff faces never do.</div>
-					</div>
-				</div><!-- /frame-ts-deposit -->
 
 				<!-- EXTRA LAYER (slot 4): the fourth texture suite. All 32 texture
 				     units are taken shader-side, so a "new" layer can only repurpose

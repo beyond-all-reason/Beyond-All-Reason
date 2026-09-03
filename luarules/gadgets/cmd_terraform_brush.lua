@@ -739,9 +739,6 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 	local distSquared = dx * dx + dz * dz
 	local radiusSquared = radius * radius
 	local rawFalloff = nil
-	-- CRATER is the one SIGNED shape: the bowl returns a negative falloff so a
-	-- raise stroke digs it while the rim rises. Every other shape stays +1.
-	local sign = 1
 
 	if shape == "circle" then
 		local lx, lz = rotatePoint(dx, dz, -angleDeg)
@@ -798,35 +795,13 @@ local function computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScal
 		local midRadius = (radius + innerRadius) * 0.5
 		local distFromMid = abs(dist - midRadius)
 		rawFalloff = 1 - (distFromMid / (ringWidth * 0.5))
-	elseif shape == "crater" then
-		-- Impact crater in one stroke: a parabolic bowl inside the floor radius
-		-- (ringInnerRatio, the RING WIDTH slider) that digs to the full brush
-		-- depth at the centre, and a raised rim outside it peaking at half that
-		-- height midway to the edge, falling back to zero at the radius. RAISE
-		-- makes the crater, LOWER makes its inverse (a mound with a moat).
-		local lx, lz = rotatePoint(dx, dz, -angleDeg)
-		lz = lz / lengthScale
-		local d2 = lx * lx + lz * lz
-		if d2 > radiusSquared then
-			return nil
-		end
-		local d = (d2 ^ 0.5) / radius
-		local ri = max(0.05, min(0.95, ringInnerRatio))
-		if d <= ri then
-			local t = d / ri
-			sign = -1
-			rawFalloff = 1 - t * t
-		else
-			local t = (d - ri) / (1 - ri)
-			rawFalloff = 0.5 * sin(t * pi)
-		end
 	end
 
 	if not rawFalloff then
 		return nil
 	end
 
-	return sign * (rawFalloff ^ curve)
+	return rawFalloff ^ curve
 end
 
 -- ─── FALLOFF STAMP CACHE ─────────────────────────────────────────────────────
@@ -880,8 +855,7 @@ local function buildFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ri
 		for ix = 0, size - 1 do
 			local dx = (ix - halfCells) * ss
 			local f = computeFalloff(dx, dz, radius, shape, angleDeg, curve, lengthScale)
-			-- abs: the crater shape's bowl is a NEGATIVE falloff and must keep its cells
-			if f and abs(f) >= FALLOFF_EPSILON then
+			if f and f >= FALLOFF_EPSILON then
 				data[rowBase + ix + 1] = f
 			end
 			-- else leave nil (skip cell at apply time)

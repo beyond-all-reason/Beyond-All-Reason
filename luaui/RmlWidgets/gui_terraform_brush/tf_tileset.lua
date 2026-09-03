@@ -135,6 +135,20 @@ local KNOBS = {
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
 }
 
+-- The AUTOMATIC DEPOSIT rows live in the SURFACE panel (FILL AND SEED), not in
+-- the TILESET window, so M.syncDeposit stamps just these keys from the SURFACE
+-- sync (M.sync early-outs while the TILESET window is closed). A separate set
+-- rather than a flag on the KNOBS rows: the analyzer types every row from the
+-- first one, so a tagged row reads as a type mismatch.
+local DEPOSIT_KNOBS = {
+	depositSlot = true,
+	depositStrength = true,
+	depositLee = true,
+	depositCavity = true,
+	windDirDeg = true,
+	depositSlopeDeg = true,
+}
+
 -- Every section under the SHADER switch: grayed out while the switch is off,
 -- because nothing in them affects an engine-rendered map.
 local TUNING_FRAMES = {
@@ -294,6 +308,61 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 			pad:SetClass("tf-biome-pad", true)
 			row:AppendChild(pad)
 		end
+	end
+end
+
+-- Push the knob values into the ts-slider-* rows (slider + numbox), skipping
+-- the slider being dragged. `only` = nil for every row, or a key set (see
+-- DEPOSIT_KNOBS) to stamp just those rows.
+local function stampKnobRows(doc, ctx, knobs, only)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local cache = widgetState.tsLastVal
+	local ds = uiState.draggingSlider
+	uiState.updatingFromCode = true
+	local stamped = false
+	for _, k in ipairs(KNOBS) do
+		local key = k[1]
+		local v = knobs[key]
+		-- Skip the slider the user is dragging so we don't fight the drag.
+		if v ~= nil and ds ~= ("ts-" .. key) and (only == nil or only[key]) then
+			local id = "ts-slider-" .. key
+			local slStr = tostring(v)
+			if cache[id] ~= slStr then
+				cache[id] = slStr
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("value", slStr)
+					stamped = true
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", string.format(k[2], v))
+				end
+			end
+		end
+	end
+	uiState.updatingFromCode = false
+	-- RmlUi delivers the change events these SetAttribute stamps raise on a
+	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
+	-- this timestamp to drop that deferred echo — otherwise every programmatic
+	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
+	-- values into the knob table, compounding per swap (the "red intermediate area
+	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	if stamped then
+		uiState.tsStampFrame = Spring.GetDrawFrame()
+	end
+end
+
+-- SURFACE sync hook: the AUTOMATIC DEPOSIT rows (FILL AND SEED) are tileset
+-- knobs by id, so keep them honest while the TILESET window is closed.
+function M.syncDeposit(doc, ctx)
+	if not doc or not WG.TilesetTerrain or not ctx.widgetState.tsLastVal then
+		return
+	end
+	local knobs = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
+	if knobs then
+		stampKnobRows(doc, ctx, knobs, DEPOSIT_KNOBS)
 	end
 end
 
@@ -459,42 +528,7 @@ function M.sync(doc, ctx, setSummary)
 		return
 	end
 
-	local uiState = ctx.uiState
-	local cache = widgetState.tsLastVal
-	local ds = uiState.draggingSlider
-	uiState.updatingFromCode = true
-	local stamped = false
-	for _, k in ipairs(KNOBS) do
-		local key = k[1]
-		local v = knobs[key]
-		-- Skip the slider the user is dragging so we don't fight the drag.
-		if v ~= nil and ds ~= ("ts-" .. key) then
-			local id = "ts-slider-" .. key
-			local slStr = tostring(v)
-			if cache[id] ~= slStr then
-				cache[id] = slStr
-				local sl = doc:GetElementById(id)
-				if sl then
-					sl:SetAttribute("value", slStr)
-					stamped = true
-				end
-				local nb = doc:GetElementById(id .. "-numbox")
-				if nb then
-					nb:SetAttribute("value", string.format(k[2], v))
-				end
-			end
-		end
-	end
-	uiState.updatingFromCode = false
-	-- RmlUi delivers the change events these SetAttribute stamps raise on a
-	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
-	-- this timestamp to drop that deferred echo — otherwise every programmatic
-	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
-	-- values into the knob table, compounding per swap (the "red intermediate area
-	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
-	if stamped then
-		uiState.tsStampFrame = Spring.GetDrawFrame()
-	end
+	stampKnobRows(doc, ctx, knobs, nil)
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
 	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).

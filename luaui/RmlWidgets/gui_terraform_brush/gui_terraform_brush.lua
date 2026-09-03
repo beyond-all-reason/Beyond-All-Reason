@@ -9697,12 +9697,12 @@ local initialModel = {
 			end
 			WG.LightPlacer.setShape(shape)
 		elseif fpState and fpState.active then
-			if shape == "ring" or shape == "fill" or shape == "crater" then
+			if shape == "ring" or shape == "fill" then
 				return
 			end
 			WG.FeaturePlacer.setShape(shape)
 		elseif spState and spState.active then
-			if shape == "ring" or shape == "fill" or shape == "crater" then
+			if shape == "ring" or shape == "fill" then
 				return
 			end
 			WG.SplatPainter.setShape(shape)
@@ -9714,20 +9714,11 @@ local initialModel = {
 			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then
 				return
 			end
-			-- crater is signed (bowl down, rim up): only raise / lower / noise
-			if
-				shape == "crater"
-				and state
-				and not (state.mode == "raise" or state.mode == "lower" or state.mode == "noise")
-			then
-				return
-			end
 			WG.TerraformBrush.setShape(shape)
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = shape
-			-- the RING WIDTH slider doubles as the crater's floor size
-			widgetState.dmHandle.tfRingVisible = (shape == "ring" or shape == "crater")
+			widgetState.dmHandle.tfRingVisible = (shape == "ring")
 			widgetState.dmHandle.shapeName = shapeNames[shape]
 		end
 	end,
@@ -12009,7 +12000,6 @@ local initialModel = {
 
 shapeNames = {
 	circle = "Circle",
-	crater = "Crater",
 	square = "Square",
 	hexagon = "Hexagon",
 	octagon = "Octagon",
@@ -13733,7 +13723,6 @@ local function attachEventListeners()
 	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
 	widgetState.shapeButtons.octagon = getCachedEl(doc, "btn-octagon")
 	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
-	widgetState.shapeButtons.crater = getCachedEl(doc, "btn-crater")
 	widgetState.shapeButtons.ring = getCachedEl(doc, "btn-ring")
 	widgetState.shapeButtons.fill = getCachedEl(doc, "btn-fill")
 
@@ -17383,6 +17372,8 @@ function widget:Update()
 		elseif widgetState.surfActive then
 			if tfSurface then
 				tfSurface.sync(doc, ctx, WG.SurfacePainter and WG.SurfacePainter.getState(), setSummary)
+				-- AUTOMATIC DEPOSIT rows under FILL AND SEED are tileset knobs (ts-* ids)
+				tfTileset.syncDeposit(doc, ctx)
 			end
 		elseif wbState and wbState.active then
 			-- Weather Brush has no M.sync; drive mirror chips directly here.
@@ -17683,7 +17674,7 @@ function widget:Update()
 					-- keep for cache; visibility driven by dm.tfRingVisible
 				end
 				if widgetState.dmHandle then
-					local v = (state.shape == "ring" or state.shape == "crater")
+					local v = (state.shape == "ring")
 					if widgetState.dmHandle.tfRingVisible ~= v then
 						widgetState.dmHandle.tfRingVisible = v
 					end
@@ -18359,14 +18350,10 @@ function widget:Update()
 			-- Gray out unsupported shapes per mode
 			local isRamp = state.mode == "ramp"
 			local isLevel = state.mode == "level" or state.mode == "smooth"
-			-- crater is signed (bowl down, rim up): raise / lower / noise only
-			local craterOk = state.mode == "raise" or state.mode == "lower" or state.mode == "noise"
-			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true, crater = true }
+			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true }
 			for shape, element in pairs(widgetState.shapeButtons) do
 				if element then
-					local disabled = (isRamp and rampDisabled[shape])
-						or (isLevel and shape == "ring")
-						or (shape == "crater" and not craterOk)
+					local disabled = (isRamp and rampDisabled[shape]) or (isLevel and shape == "ring")
 					element:SetClass("disabled", disabled or false)
 				end
 			end
