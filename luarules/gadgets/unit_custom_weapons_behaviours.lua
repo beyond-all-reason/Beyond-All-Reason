@@ -41,10 +41,7 @@ local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
@@ -70,11 +67,6 @@ local weaponDefEffect = {}
 
 local projectiles = {}
 local projectilesData = {}
-local projectilesPostFrame = {}
-
--- These read piece positions, which GameFrame sees before movement and animation.
-local effectRunsPostFrame = { launchrail = true }
-local postFrameWeaponDefs = {}
 
 local gameFrame = 0
 
@@ -126,16 +118,6 @@ end
 local function toPositiveNumber(value)
 	value = tonumber(value)
 	return value and math_max(0, value) or nil
-end
-
-local function toPieceNameList(value)
-	local names = {}
-	if type(value) == "string" then
-		for name in value:gmatch("%S+") do
-			names[#names + 1] = name
-		end
-	end
-	return #names > 0 and names or nil
 end
 
 --- Weapon behaviors -----------------------------------------------------------
@@ -680,51 +662,6 @@ specialEffectFunction.torpwaterpen = function(params, projectileID)
 	end
 end
 
-weaponCustomParamKeys.launchrail = {
-	launchrail_length = toPositiveNumber, -- Climb distance above the launch piece before the projectile is released.
-	launchrail_pieces = toPieceNameList, -- Space-separated names of the pieces the weapon launches from.
-}
-
-local launchrailPieceNumbers = {} -- [unitDefID] = piece numbers resolved from launchrail_pieces
-
-specialEffectFunction.launchrail = function(params, projectileID)
-	local ownerID = spGetProjectileOwnerID(projectileID)
-	if not ownerID or spGetUnitIsDead(ownerID) ~= false or spGetProjectileTimeToLive(projectileID) <= 0 then
-		return true
-	end
-
-	local unitDefID = spGetUnitDefID(ownerID)
-	local pieceNumbers = launchrailPieceNumbers[unitDefID]
-	if not pieceNumbers then
-		pieceNumbers = {}
-		local pieceMap = spGetUnitPieceMap(ownerID)
-		for index = 1, #params.launchrail_pieces do
-			pieceNumbers[#pieceNumbers + 1] = pieceMap[params.launchrail_pieces[index]]
-		end
-		launchrailPieceNumbers[unitDefID] = pieceNumbers
-	end
-
-	-- nearest listed piece; the pin keeps that choice stable between frames
-	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-	local anchorX, anchorY, anchorZ, bestDistanceSq
-	for index = 1, #pieceNumbers do
-		local pieceX, pieceY, pieceZ = spGetUnitPiecePosDir(ownerID, pieceNumbers[index])
-		if pieceX then
-			local distanceSq = (pieceX - positionX) ^ 2 + (pieceZ - positionZ) ^ 2
-			if not bestDistanceSq or distanceSq < bestDistanceSq then
-				bestDistanceSq, anchorX, anchorY, anchorZ = distanceSq, pieceX, pieceY, pieceZ
-			end
-		end
-	end
-
-	if not anchorX or positionY - anchorY >= params.launchrail_length then
-		return true
-	end
-
-	spSetProjectilePosition(projectileID, anchorX, positionY, anchorZ)
-	return false
-end
-
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
@@ -757,10 +694,6 @@ function gadget:Initialize()
 					-- Otherwise, call the effect directly (skips the `params` arg):
 					weaponDefEffect[weaponDefID] = specialEffectFunction[effectName]
 				end
-
-				if effectRunsPostFrame[effectName] then
-					postFrameWeaponDefs[weaponDefID] = true
-				end
 			end
 		end
 	end
@@ -778,17 +711,12 @@ end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 	if weaponDefEffect[weaponDefID] then
-		if postFrameWeaponDefs[weaponDefID] then
-			projectilesPostFrame[projectileID] = weaponDefEffect[weaponDefID]
-		else
-			projectiles[projectileID] = weaponDefEffect[weaponDefID]
-		end
+		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
 end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	projectilesPostFrame[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
@@ -798,14 +726,6 @@ function gadget:GameFrame(frame)
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil
-		end
-	end
-end
-
-function gadget:GameFramePost(frame)
-	for projectileID, effect in pairs(projectilesPostFrame) do
-		if effect(projectileID) then
-			projectilesPostFrame[projectileID] = nil
 		end
 	end
 end
