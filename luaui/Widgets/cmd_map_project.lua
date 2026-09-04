@@ -3163,7 +3163,12 @@ local function openProject(slug)
 	return true
 end
 
-function widget:DrawScreen()
+-- Job driver. DrawScreenPost, NOT DrawScreen: the widget handler skips
+-- DrawScreen while the interface is hidden and the Terraformer's FOCUS MODE
+-- hides it on purpose, so a Save / Open started there would sit until the HUD
+-- came back. Nothing here grabs the screen (the thumbnail step renders to its
+-- own FBO), so running after the UI pass changes nothing.
+function widget:DrawScreenPost()
 	if unitsWaiter then
 		pollUnitsWaiter()
 	end

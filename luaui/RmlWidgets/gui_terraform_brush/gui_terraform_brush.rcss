@@ -1543,6 +1543,25 @@ body {
 	opacity: 0.7;
 }
 
+/* === Focus Mode (Eye) Button: game HUD hidden, editor alive === */
+.tf-focus-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+}
+
+.tf-focus-btn.active:hover {
+	background-color: #133a30;
+	border-color: #7cecd6;
+}
+
+.tf-focus-btn.active img {
+	image-color: #40e0c0;
+}
+
+.tf-focus-btn.active:hover img {
+	image-color: #7cecd6;
+}
+
 /* === Guide Floating Tooltip === */
 .tf-guide-floating-tip {
 	position: absolute;

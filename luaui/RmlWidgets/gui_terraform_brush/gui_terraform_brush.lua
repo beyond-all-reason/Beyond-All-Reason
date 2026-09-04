@@ -334,6 +334,11 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Passthrough mode: deactivate all tools but keep panel visible
 	passthroughMode = false,
 	passthroughSaved = nil, -- {tool=string, mode=string|nil}
+	-- Focus mode (game interface hidden, editor left alive): focusMode and
+	-- focusSetTimer are assigned by setFocusMode and deliberately NOT initialised
+	-- here. The analyzer takes a false/nil literal in this constructor as the
+	-- field's only value and flags every guard on it (the passthroughMode ones
+	-- above are all in the baseline for that reason).
 	-- Settings window
 	settingsRootEl = nil,
 	settingsOpen = false,
@@ -921,7 +926,9 @@ local function applySkybox(texturePath)
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
-	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in DrawScreen.
+	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in the
+	-- DrawScreenPost drain (drainDeferredApplies; DrawScreen is skipped while the
+	-- interface is hidden, and FOCUS MODE hides it on purpose).
 	widgetState._pendingSkyboxPath = normalized
 end
 widgetState.applySkybox = applySkybox
@@ -3386,6 +3393,7 @@ local initialModel = {
 
 	-- Phase 2 step 3: data-if visibility flags (tf_guide pilot)
 	passthroughActive = false,
+	focusActive = false,
 	settingsOpen = false,
 	settingsTab = "keybinds",
 	-- Map Labels window (gui_map_labels widget) — header button highlight
@@ -8086,6 +8094,10 @@ local initialModel = {
 			widgetState.g3Toast.expiry = 0
 		end
 	end,
+	onGuideToggleFocus = function(_event)
+		widgetState.setFocusMode(not widgetState.focusMode)
+		playSound("modeSwitch")
+	end,
 	onGuideTogglePassthrough = function(_event)
 		if not widgetState.passthroughMode then
 			local saved = nil
@@ -12122,6 +12134,68 @@ clearPassthrough = function()
 	end
 end
 
+-- FOCUS MODE (the eye button next to pause): the engine's /hideinterface with
+-- the editor left alive. RmlUi documents are rendered by the engine outside
+-- the hidden-interface gate (CGame::Draw calls RmlGui::RenderFrame
+-- unconditionally, DrawInputReceivers is the only block hideInterface skips),
+-- so the panel survives on its own. The brush widget reads isFocusMode() to
+-- keep its ring, grid and water overlays drawing through it, and the deferred
+-- applies (skybox picks included) drain from DrawScreenPost because DrawScreen
+-- is the one call-in the widget handler gates on Spring.IsGUIHidden().
+-- widgetState field, not a chunk local: this chunk is near the 200-local cap.
+widgetState.setFocusMode = function(on)
+	on = on and true or false
+	if widgetState.focusMode == on then
+		return
+	end
+	widgetState.focusMode = on
+	widgetState.focusSetTimer = Spring.GetTimer()
+	if widgetState.dmHandle then
+		widgetState.dmHandle.focusActive = on
+	end
+	-- Explicit argument, never the bare toggle: the toggle would desync from the
+	-- flag the moment anything else touched the interface (F5, a map capture).
+	-- A running capture owns the interface; its restoreScene lands on this flag.
+	---@type table?
+	local cap = WG.TerraformCapture
+	if not (cap and cap.isBusy and cap.isBusy()) then
+		Spring.SendCommands(on and "hideinterface 1" or "hideinterface 0")
+	end
+end
+
+-- Update-side bookkeeping, called once per Update after the panel visibility
+-- sync. Two exits besides the button: every tool gone (panel close, quit, tool
+-- deactivation) hands the HUD back so nobody is left with no UI at all; and the
+-- interface coming back from outside (F5, /hideinterface) drops the flag so the
+-- eye reads right and the next click hides again. The T hotkey (panelHidden) is
+-- deliberately not an exit: focus + hidden panel is the clean-screenshot setup.
+widgetState.syncFocusMode = function(panelVisible, panelHidden)
+	if not widgetState.focusMode then
+		return
+	end
+	if not panelVisible and not panelHidden then
+		widgetState.setFocusMode(false)
+		return
+	end
+	---@type table?
+	local cap = WG.TerraformCapture
+	if cap and cap.isBusy and cap.isBusy() then
+		return
+	end
+	-- SendCommands may land a frame late; give a fresh toggle time to take.
+	-- (Member access, not a local copy: the analyzer types a copied dynamic
+	-- field as nil and calls the guard impossible.)
+	if widgetState.focusSetTimer and Spring.DiffTimers(Spring.GetTimer(), widgetState.focusSetTimer) < 0.5 then
+		return
+	end
+	if not Spring.IsGUIHidden() then
+		widgetState.focusMode = false
+		if widgetState.dmHandle then
+			widgetState.dmHandle.focusActive = false
+		end
+	end
+end
+
 capMinValue = 0
 capMaxValue = 0
 capEnabled = true -- master on/off for the height cap; min/max values are retained when off
@@ -12303,6 +12377,7 @@ local guideHints = {
 	["btn-ar-start-subtract"] = "Cliff start \xe2\x80\x94 Subtract: the bottom lip stays where it is; the new face carves back into the mesa top.",
 	["btn-ar-start-average"] = "Cliff start \xe2\x80\x94 Average: the face pivots on the cliff's mid line, biting half into the top and spilling half over the bottom.",
 	["btn-passthrough"] = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
+	["btn-focus"] = "Focus mode: hide the game interface (like F5) but keep the Terraformer alive \xe2\x80\x94 panel, brush preview, overlays and skybox switching all stay on. Click again, close the panel or press F5 to bring the interface back.",
 	["btn-features"] = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
 	["btn-weather"] = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
 	["btn-environment"] = "Change the skybox texture at runtime. Select from the skybox library or reset to the map default.",
@@ -15188,6 +15263,12 @@ function widget:Initialize()
 		isEngaged = function()
 			return widgetState.panelEngaged == true
 		end,
+		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps
+		-- drawing through it. cmd_terraform_brush and the capture widget read this
+		-- to tell it apart from a plain F5 (see setFocusMode).
+		isFocusMode = function()
+			return widgetState.focusMode == true
+		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
 		getPanelBounds = function()
@@ -15247,83 +15328,6 @@ end
 local lastUpdateClock = Spring.GetTimer()
 
 function widget:DrawScreen()
-	-- New Map environment preset: apply once, a few frames after a fresh-map reload
-	-- (gives the water renderer time to come up). Frame-counted rather than gated on
-	-- a game frame so it works while the editor is paused.
-	if widgetState._pendingEnvApply then
-		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
-		if widgetState._pendingEnvCountdown <= 0 then
-			local p = widgetState._pendingEnvApply
-			widgetState._pendingEnvApply = nil
-			widgetState.applyEnvConfig(p)
-			Spring.Echo("[Terraform Brush] Applied environment preset: " .. (p.name or "?"))
-		end
-	end
-
-	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
-	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
-	if widgetState._pendingFogOff then
-		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
-		if widgetState._pendingFogOff <= 0 then
-			widgetState._pendingFogOff = nil
-			widgetState.disableFog()
-		end
-	end
-
-	-- Leave pregame on editor canvases (armed in Initialize). A project load
-	-- started from its pointer file owns the forcestart itself.
-	if widgetState._pendingForceStart then
-		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
-		if widgetState._pendingForceStart <= 0 then
-			widgetState._pendingForceStart = nil
-			local mp = WG.MapProject
-			local loading = mp and mp.isLoading and mp.isLoading()
-			if Spring.GetGameFrame() <= 0 and not loading then
-				Spring.Echo(
-					"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
-				)
-				Spring.SendCommands("forcestart")
-			end
-		end
-	end
-
-	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
-	-- done here in DrawScreen. Register the DDS in the GL named-texture cache so
-	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
-	if widgetState._pendingSkyboxPath then
-		local rawTex = widgetState._pendingSkyboxPath
-		local tex = rawTex
-		widgetState._pendingSkyboxPath = nil
-		if tex ~= "" then
-			local bound = nil
-			local candidates = {
-				tex,
-				":r:" .. tex,
-				":l:" .. tex,
-				"maps/" .. tex,
-				":r:maps/" .. tex,
-				":l:maps/" .. tex,
-			}
-			for _, name in ipairs(candidates) do
-				if gl.Texture(name) then
-					gl.Texture(false)
-					bound = name
-					break
-				end
-			end
-			if not bound then
-				Spring.Echo("[Terraform Brush] Skybox bind failed: " .. tex)
-			else
-				tex = bound
-			end
-		end
-		if widgetState.envFadeEnabled then
-			startSkyboxFade(tex, rawTex)
-		else
-			applySkyboxNow(tex, rawTex)
-		end
-	end
-
 	-- NOTE: DDS skybox preloading removed. Spring.SetSkyBoxTexture() loads the
 	-- DDS file directly via the engine; eagerly binding all cubemaps into GL
 	-- exhausted the TexMemPool (512 MB) when many large skyboxes were present,
@@ -15788,7 +15792,96 @@ widgetState.drawTsBiomeThumbs = function()
 	gl.Color(1, 1, 1, 1)
 end
 
+-- Deferred applies that need a draw call-in (gl.Texture) or a frame count after
+-- a reload. Drained from DrawScreenPost, NOT DrawScreen: the widget handler
+-- skips DrawScreen while the interface is hidden (barwidgets.lua, IsGUIHidden)
+-- and FOCUS MODE hides it on purpose, which used to leave a skybox pick parked
+-- until the HUD came back and would stall a New Map reload's env preset,
+-- fog-off and forcestart the same way. DrawScreenPost runs right after
+-- DrawScreen in the same frame, so nothing else moves.
+widgetState.drainDeferredApplies = function()
+	-- New Map environment preset: apply once, a few frames after a fresh-map reload
+	-- (gives the water renderer time to come up). Frame-counted rather than gated on
+	-- a game frame so it works while the editor is paused.
+	if widgetState._pendingEnvApply then
+		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
+		if widgetState._pendingEnvCountdown <= 0 then
+			local p = widgetState._pendingEnvApply
+			widgetState._pendingEnvApply = nil
+			widgetState.applyEnvConfig(p)
+			Spring.Echo("[Terraform Brush] Applied environment preset: " .. ((p and p.name) or "?"))
+		end
+	end
+
+	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
+	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
+	if widgetState._pendingFogOff then
+		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
+		if widgetState._pendingFogOff <= 0 then
+			widgetState._pendingFogOff = nil
+			widgetState.disableFog()
+		end
+	end
+
+	-- Leave pregame on editor canvases (armed in Initialize). A project load
+	-- started from its pointer file owns the forcestart itself.
+	if widgetState._pendingForceStart then
+		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
+		if widgetState._pendingForceStart <= 0 then
+			widgetState._pendingForceStart = nil
+			local mp = WG.MapProject
+			local loading = mp and mp.isLoading and mp.isLoading()
+			if Spring.GetGameFrame() <= 0 and not loading then
+				Spring.Echo(
+					"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
+				)
+				Spring.SendCommands("forcestart")
+			end
+		end
+	end
+
+	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
+	-- done from a draw call-in. Register the DDS in the GL named-texture cache so
+	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
+	if widgetState._pendingSkyboxPath then
+		local rawTex = widgetState._pendingSkyboxPath
+		local tex = rawTex
+		widgetState._pendingSkyboxPath = nil
+		if tex ~= "" then
+			local bound = nil
+			local candidates = {
+				tex,
+				":r:" .. tex,
+				":l:" .. tex,
+				"maps/" .. tex,
+				":r:maps/" .. tex,
+				":l:maps/" .. tex,
+			}
+			for _, name in ipairs(candidates) do
+				if gl.Texture(name) then
+					gl.Texture(false)
+					bound = name
+					break
+				end
+			end
+			if not bound then
+				Spring.Echo("[Terraform Brush] Skybox bind failed: " .. tex)
+			else
+				tex = bound
+			end
+		end
+		if widgetState.envFadeEnabled then
+			startSkyboxFade(tex, rawTex)
+		else
+			applySkyboxNow(tex, rawTex)
+		end
+	end
+end
+
 function widget:DrawScreenPost()
+	-- Skybox pick, New Map env preset, fog-off, forcestart (see the definition).
+	widgetState.drainDeferredApplies()
+
 	-- FILE dropdown box, read once for every pass below to skip tiles under it.
 	widgetState.measureFileMenuBox()
 
@@ -16921,6 +17014,7 @@ function widget:Update()
 		-- cmd_terraform_brush checks isEngaged() before tool-switch handling, so a
 		-- dormant Terraformer leaves f/m/g/etc. to the engine's own keybinds.
 		widgetState.panelEngaged = panelVisible and true or false
+		widgetState.syncFocusMode(panelVisible, widgetState.panelHidden)
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("hidden", not panelVisible)
 		end
@@ -18919,6 +19013,10 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+
+	-- Hand the game interface back before anything else: a /luaui reload with
+	-- focus mode on must not leave the user with no UI at all.
+	widgetState.setFocusMode(false)
 
 	-- The water level preview plane is drawn by the other widget, so a shutdown
 	-- with the Dimensions window open would strand it on screen.

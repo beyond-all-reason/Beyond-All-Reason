@@ -774,6 +774,18 @@ extraState.setParamHud = function(text)
 	extraState.paramHudTimer = 1.5
 end
 
+-- F5 / a map capture hide the whole interface, editor overlays included. FOCUS
+-- MODE (the eye button in the panel header) hides the game HUD on purpose and
+-- the editor must keep drawing through it, so it does not count as hidden here.
+-- extraState field, not a chunk local: this chunk is at the 200-local ceiling.
+extraState.interfaceHiddenForEditor = function()
+	if not Spring.IsGUIHidden() then
+		return false
+	end
+	local ui = WG.TerraformBrushUI
+	return not (ui and ui.isFocusMode and ui.isFocusMode())
+end
+
 -- Symmetry: get effective origin (fallback to map center)
 extraState.getSymmetryOrigin = function()
 	local ox = extraState.symmetryOriginX or (Game.mapSizeX * 0.5)
@@ -7672,7 +7684,12 @@ function extraState.measureFindNearEndpoint(sx, sy)
 	return best
 end
 
-function widget:DrawScreen()
+-- Deferred jobs that need a draw call-in: New Map DNTS apply and procedural
+-- drive (post-reload), heightmap export and import. DrawScreenPost, NOT
+-- DrawScreen: the widget handler skips DrawScreen while the interface is hidden
+-- and FOCUS MODE (the panel's eye button) hides it on purpose, so a job queued
+-- there would sit until the HUD came back. DrawScreenPost runs every frame.
+function widget:DrawScreenPost()
 	if not extraState._newmapDNTSApplied then
 		extraState._newmapTryApplyDNTS()
 	end
@@ -7690,6 +7707,9 @@ function widget:DrawScreen()
 	if importHeightRows then
 		doImportHeightmapSend()
 	end
+end
+
+function widget:DrawScreen()
 	-- Height colormap contour labels: height values at topo-line / brush-edge intersections
 	if extraState.heightColormap and extraState.colormapLabels then
 		for _, lbl in ipairs(extraState.colormapLabels) do
@@ -8350,13 +8370,13 @@ function widget:DrawWorld()
 	end
 
 	-- Full-map grid overlay: visible across the whole map regardless of brush active state.
-	-- Skipped with the interface hidden (F5) or while a map capture is walking
-	-- the camera — the capture reprojects the rendered frame, so the grid would
-	-- be baked into the exported photo. Conditions are inlined rather than
-	-- hoisted into a helper: this chunk is at the Lua 5.1 200-local ceiling.
+	-- Skipped with the interface hidden (F5, but not FOCUS MODE) or while a map
+	-- capture is walking the camera — the capture reprojects the rendered frame,
+	-- so the grid would be baked into the exported photo. Conditions are inlined
+	-- rather than hoisted into a helper: this chunk is at the Lua 5.1 200-local ceiling.
 	if
 		gridOverlay
-		and not Spring.IsGUIHidden()
+		and not extraState.interfaceHiddenForEditor()
 		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 	then
 		-- Debounce rebuilds: while actively terraforming, `gridDirty` flips true
@@ -8381,7 +8401,7 @@ function widget:DrawWorld()
 	-- overlay, and a map capture would otherwise bake it into the photo).
 	if
 		extraState.waterPreviewLevel
-		and not Spring.IsGUIHidden()
+		and not extraState.interfaceHiddenForEditor()
 		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 	then
 		extraState.drawWaterLevelPreview()
@@ -8813,14 +8833,14 @@ function widget:DrawWorld()
 	-- Suppress brush outline when placing/hovering/dragging symmetry origin, or
 	-- whenever the map labels tool owns the cursor (placing, dot hover/drag,
 	-- over its windows, or a comment is open)
-	-- ...or whenever the interface is hidden (F5) or a map capture is walking the
-	-- camera. Both mean "no cursor furniture in the world": the capture
-	-- reprojects the rendered frame, so a ring drawn here is baked into the
-	-- exported photo (and the symmetry mirror bakes in a second one).
+	-- ...or whenever the interface is hidden (F5, but not FOCUS MODE) or a map
+	-- capture is walking the camera. Both mean "no cursor furniture in the
+	-- world": the capture reprojects the rendered frame, so a ring drawn here is
+	-- baked into the exported photo (and the symmetry mirror bakes in a second one).
 	local suppressBrush = extraState.symmetryPlacingOrigin
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
-		or Spring.IsGUIHidden()
+		or extraState.interfaceHiddenForEditor()
 		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush and WG.MapLabels.shouldSuppressBrush())
 

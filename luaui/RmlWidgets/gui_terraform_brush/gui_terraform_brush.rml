@@ -24,6 +24,10 @@
 						<img id="passthrough-icon-pause" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_pause.png" data-if="!passthroughActive" />
 						<img id="passthrough-icon-play" class="tf-header-icon" src="/luaui/images/terraform_brush/passthrough_play.png" data-if="passthroughActive" />
 					</div>
+					<div id="btn-focus" class="tf-header-btn tf-focus-btn" data-class-active="focusActive" data-event-mousedown="onGuideToggleFocus()">
+						<img id="focus-icon-eye" class="tf-header-icon" src="/luaui/images/terraform_brush/eye.png" data-if="!focusActive" />
+						<img id="focus-icon-eye-slash" class="tf-header-icon" src="/luaui/images/terraform_brush/eye_slash.png" data-if="focusActive" />
+					</div>
 					<div id="btn-quit" class="tf-header-btn tf-quit-btn"><img class="tf-header-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 				</div>
 			</div>
