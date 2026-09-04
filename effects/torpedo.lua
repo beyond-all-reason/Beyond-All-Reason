@@ -1,4 +1,4 @@
-local function savedTorpedoCavitationTrail()
+local function torpedoCavitationTrail()
 	return {
 		air = false,
 		class = [[CBitmapMuzzleFlame]],
@@ -22,16 +22,34 @@ local function savedTorpedoCavitationTrail()
 	}
 end
 
-local function torpedoCavitationTrail()
-	local trail = savedTorpedoCavitationTrail()
+local function torpedoCavitationTrailSmall()
+	return {
+		air = false,
+		class = [[CBitmapMuzzleFlame]],
+		count = 1,
+		ground = false,
+		underwater = true,
+		water = true,
 
-	return trail
+		properties = {
+			colormap = [[0.55 0.72 1.00 0.0168   0.38 0.58 0.95 0.0126   0.18 0.32 0.65 0.007   0.04 0.08 0.18 0.0028   0 0 0 0.0042]],
+			dir = [[dir]],
+			frontoffset = 0.03,
+			fronttexture = [[blastwave]],
+			length = -1.4,
+			sidetexture = [[shot]],
+			size = 1.175,
+			sizegrowth = -0.09,
+			ttl = 8,
+			useairlos = true,
+		},
+	}
 end
 
 local definitions = {
 
 	["torpedotrail-tiny"] = {
-		cavitation = torpedoCavitationTrail(),
+		cavitation = torpedoCavitationTrailSmall(),
 		trail = {
 			air = false,
 			class = [[CBitmapMuzzleFlame]],
