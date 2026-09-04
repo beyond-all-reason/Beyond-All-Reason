@@ -887,6 +887,10 @@
 				<div class="tf-full-restore-label">{{tfRestoreLabel2Str}}</div>
 			</div>
 		</div>
+		<div class="flex flex-row items-center mb-1" data-if="tfFollowVisible">
+			<div id="btn-follow-stroke" class="tf-inline-chip tf-inline-chip-lg" data-class-active="tfFollowStroke" data-class-disabled="activeShape == 'fill'" data-event-mousedown="onTfFollowStroke()">FOLLOW STROKE</div>
+			<div class="text-sm text-light" style="margin-left: 6dp;">shape rides the drag direction</div>
+		</div>
 		</div>
 		</div><!-- /frame-shape -->
 		</div>

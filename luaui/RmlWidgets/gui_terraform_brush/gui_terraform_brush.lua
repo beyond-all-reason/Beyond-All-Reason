@@ -231,6 +231,7 @@ local windowDragAllWindows = {}
 widgetState = { -- forward-declared above playSound so mute check works
 	rmlContext = nil,
 	document = nil,
+	---@type table?
 	dmHandle = nil,
 	rootElement = nil,
 	modeButtons = {},
@@ -1379,6 +1380,10 @@ local function _tbFindAnglePresetIdx(val)
 	end
 	return best
 end
+-- FOLLOW STROKE applies to the terrain sculpt drag only: the other tools in the
+-- SHAPE row (metal, grass, features, splat) stamp rather than stroke, and ramp /
+-- noise / autoramp / restore / erode own their own sampling.
+local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true, smudge = true }
 local function _tbMirrorToggle(P, stateKey, setter, dmKey)
 	if not WG.TerraformBrush then
 		return
@@ -3927,6 +3932,8 @@ local initialModel = {
 	tfHeightColormap = false,
 	tfCurveOverlay = false,
 	tfVelocityIntensity = false,
+	tfFollowStroke = false,
+	tfFollowVisible = true,
 	tfSymMirrorX = false,
 	tfSymMirrorY = false,
 	tfSymFlipped = false,
@@ -14252,6 +14259,9 @@ local function attachEventListeners()
 			if dm then
 				dm.tfVelocityIntensity = false
 			end
+			if dm then
+				dm.tfFollowStroke = false
+			end
 			event:StopPropagation()
 		end, false)
 	end
@@ -17059,6 +17069,10 @@ function widget:Update()
 						or widgetState.surfActive
 						or widgetState.surfHardActive
 					setDm("tfShapeRowVisible", not hideShape)
+					setDm(
+						"tfFollowVisible",
+						(not hideShape) and tfActive and tfState and _tbFollowModes[tfState.mode] and true or false
+					)
 					-- smooth submodes: visible only in smooth/level terraform mode
 					local otherToolActive = fpActive
 						or wbActive
@@ -17267,6 +17281,14 @@ function widget:Update()
 					end
 					if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then
 						widgetState.dmHandle.tfShapeRowVisible = not hideShape2
+					end
+					-- Same predicate as the shape row plus the modes whose drag runs the stroke
+					-- resampler: this reset block re-opens the shape row every frame, so the
+					-- FOLLOW chip has to be recomputed alongside it.
+					local followVis = not hideShape2 and tfActive and tfState and _tbFollowModes[tfState.mode] and true
+						or false
+					if widgetState.dmHandle.tfFollowVisible ~= followVis then
+						widgetState.dmHandle.tfFollowVisible = followVis
 					end
 				end
 			end
@@ -17991,6 +18013,10 @@ function widget:Update()
 
 				if dm then
 					dm.tfVelocityIntensity = state.velocityIntensity == true
+				end
+
+				if dm then
+					dm.tfFollowStroke = state.followStroke == true
 				end
 
 				do

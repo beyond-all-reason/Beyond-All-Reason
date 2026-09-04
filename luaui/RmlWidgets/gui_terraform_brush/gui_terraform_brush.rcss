@@ -3118,6 +3118,22 @@ body {
 	border-color: #55556080;
 	color: #9ca3af;
 }
+/* A chip that carries a whole phrase (FOLLOW STROKE) rather than a word. */
+.tf-inline-chip-lg {
+	padding: 4dp 10dp;
+	font-size: 0.92rem;
+}
+.tf-inline-chip.disabled {
+	color: #4a4a52;
+	background-color: #202028;
+	border-color: #2c2c3440;
+	cursor: default;
+}
+.tf-inline-chip.disabled:hover {
+	color: #4a4a52;
+	background-color: #202028;
+	border-color: #2c2c3440;
+}
 .tf-inline-chip.active {
 	background-color: #0d2c24;
 	border-color: #40e0c060;
