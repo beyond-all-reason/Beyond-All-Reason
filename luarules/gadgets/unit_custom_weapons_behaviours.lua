@@ -158,8 +158,10 @@ end
 ---@return number? targetX xyz coords
 ---@return number? targetY
 ---@return number? targetZ
-local function getTargetPositionWithError(projectileID)
-	local targetType, target = spGetProjectileTarget(projectileID)
+local function getTargetPositionWithError(projectileID, targetType, target)
+	if targetType == nil then
+		targetType, target = spGetProjectileTarget(projectileID)
+	end
 	if targetType == targetedUnit then
 		local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
@@ -615,40 +617,52 @@ end
 -- Water entry and continuous surface-depth tracking are separate stages.
 
 weaponCustomParamKeys.torpwaterpen = {
-	tracking_turn_radius = tonumber, -- turn radius of a tracking projectile, larger gives stronger correction
+	tracking_turn_radius = tonumber, -- proximity radius used to strengthen water-entry pitch correction
 }
 
+-- Shared surface-depth limits
 local surfaceTargetDepth = -2
-local surfaceTransitionStartDepth = -12
 local surfaceDepthCorrection = 0.025
-local minSurfaceEntryDiveSpeed = -0.3
 local minSurfaceDiveSpeed = -0.12
-local minShoreSurfaceDiveSpeed = -4
 local maxUnderwaterSurfaceRiseSpeed = 1.25
+
+-- Air-to-water entry
+local surfaceTransitionStartDepth = -12
+local minSurfaceEntryDiveSpeed = -0.3
+local defaultEntryCorrectionRadius = 180
+local surfaceEntryCorrectionDistance = 180
+local waterEntryCorrectionStartDepth = -2
+local waterEntryCorrectionFullDepth = -10
+local minWaterEntryCorrection = 0.3
+local maxWaterEntryCorrection = 0.85
+
+-- Surface-target arrival
 local surfaceArrivalLeadFrames = 20
 local minSurfaceCorrectionFrames = 8
 local surfaceCorrectionRampStartFrames = 50
 local surfaceCorrectionRampEndFrames = 20
 local minSurfaceTrackingCorrection = 0.2
 local maxSurfaceTrackingCorrection = 0.5
-local defaultTrackingTurnRadius = 180
-local surfaceEntryCorrectionDistance = 180
-local waterEntryCorrectionStartDepth = -2
-local waterEntryCorrectionFullDepth = -10
+
+-- Terrain avoidance
 local terrainAvoidanceClearance = 6
 local terrainAvoidanceLookaheadFrames = 4
 local terrainAvoidanceRampDepth = 12
 local terrainAvoidanceTargetReleaseDistance = 36
+
 ---@type table<integer, boolean?>
 local torpedoSurfaceTargets = {}
 ---@type table<integer, true?>
 local torpedoWaterEntryHeadingCorrected = {}
+
+-- Shore-launcher breach protection
+local minShoreSurfaceDiveSpeed = -4
 ---@type table<integer, true?>
 local shoreTorpedoEnteredWater = {}
 local shoreTorpedoBreachCeiling = 2
 
-local function getTorpedoTargetPosition(projectileID)
-	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
+local function getTorpedoTargetPosition(projectileID, targetType, target)
+	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID, targetType, target)
 	if targetY ~= nil then
 		-- Retain only the target class when it leaves sensor coverage. The engine
 		-- continues horizontal homing; Lua only needs this for vertical guidance.
@@ -657,12 +671,7 @@ local function getTorpedoTargetPosition(projectileID)
 	return targetX, targetY, targetZ, torpedoSurfaceTargets[projectileID]
 end
 
-local function getTargetHorizontalVelocityWithError(projectileID, targetID)
-	local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
-	local targetVelocityX, _, targetVelocityZ = readAsTeam(teamID, spGetUnitVelocity, targetID)
-	return targetVelocityX, targetVelocityZ
-end
-
+---@return number?
 local function getSurfaceArrivalFrames(
 	projectileID,
 	targetID,
@@ -680,7 +689,8 @@ local function getSurfaceArrivalFrames(
 
 	local horizontalDistance = math_diag(targetX - positionX, targetZ - positionZ)
 	local arrivalFrames = horizontalDistance / horizontalSpeed
-	local targetVelocityX, targetVelocityZ = getTargetHorizontalVelocityWithError(projectileID, targetID)
+	local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
+	local targetVelocityX, _, targetVelocityZ = readAsTeam(teamID, spGetUnitVelocity, targetID)
 	if targetVelocityX ~= nil and targetVelocityZ ~= nil then
 		local predictedTargetX = targetX + targetVelocityX * arrivalFrames
 		local predictedTargetZ = targetZ + targetVelocityZ * arrivalFrames
@@ -832,7 +842,7 @@ local function torpedoWaterPen(params, projectileID)
 		return false
 	end
 
-	local trackingTurnRadius = params and params.tracking_turn_radius or defaultTrackingTurnRadius
+	local entryCorrectionRadius = params and params.tracking_turn_radius or defaultEntryCorrectionRadius
 	local proximityBlend = 0.0
 	local surfaceEntryBlend = 0.0
 	local entryDepthBlend = math_clamp(
@@ -842,7 +852,7 @@ local function torpedoWaterPen(params, projectileID)
 	)
 	if targetX ~= nil and targetY ~= nil and targetZ ~= nil then
 		local distance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
-		proximityBlend = math_clamp(1 - distance / trackingTurnRadius, 0, 1)
+		proximityBlend = math_clamp(1 - distance / entryCorrectionRadius, 0, 1)
 		surfaceEntryBlend = math_clamp(1 - distance / surfaceEntryCorrectionDistance, 0, 1)
 	end
 	local entryTargetDepth = surfaceTransitionStartDepth
@@ -863,7 +873,8 @@ local function torpedoWaterPen(params, projectileID)
 		velocityZ,
 		speed,
 		desiredVelocityY,
-		(0.3 + 0.55 * proximityBlend) * entryDepthBlend
+		(minWaterEntryCorrection + (maxWaterEntryCorrection - minWaterEntryCorrection) * proximityBlend)
+			* entryDepthBlend
 	)
 
 	-- Keep rounding steep water entries until the torpedo is travelling near
@@ -903,7 +914,7 @@ local function torpedoSurfaceTrack(projectileID)
 		return false
 	end
 
-	local targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID)
+	local targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, targetID)
 	if surfaceTarget == false then
 		return true
 	end
@@ -924,9 +935,9 @@ local function torpedoSurfaceTrack(projectileID)
 	then
 		return false
 	end
-	local targetPositionKnown = targetX ~= nil and targetZ ~= nil
+	---@type number?
 	local arrivalFrames
-	if targetPositionKnown then
+	if targetX ~= nil and targetZ ~= nil then
 		arrivalFrames = getSurfaceArrivalFrames(
 			projectileID,
 			targetID,
@@ -982,27 +993,18 @@ local function torpedoSurfaceTrack(projectileID)
 	)
 
 	if stayUnderwater then
-		local currentPositionX, currentPositionY, currentPositionZ = spGetProjectilePosition(projectileID)
 		local currentVelocityX, currentVelocityY, currentVelocityZ, currentSpeed = spGetProjectileVelocity(projectileID)
-		if
-			currentPositionX == nil
-			or currentPositionY == nil
-			or currentPositionZ == nil
-			or currentVelocityX == nil
-			or currentVelocityY == nil
-			or currentVelocityZ == nil
-			or currentSpeed == nil
-		then
+		if currentVelocityX == nil or currentVelocityY == nil or currentVelocityZ == nil or currentSpeed == nil then
 			return false
 		end
-		local maxRiseSpeed = shoreTorpedoBreachCeiling - currentPositionY
+		local maxRiseSpeed = shoreTorpedoBreachCeiling - positionY
 
 		if currentVelocityY > maxRiseSpeed then
 			setTorpedoPitchVelocity(
 				projectileID,
-				currentPositionX,
-				currentPositionY,
-				currentPositionZ,
+				positionX,
+				positionY,
+				positionZ,
 				currentVelocityX,
 				currentVelocityY,
 				currentVelocityZ,
