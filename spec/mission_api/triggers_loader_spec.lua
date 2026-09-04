@@ -182,10 +182,11 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.FeatureDestroyed[T.FeatureDestroyed])
 		end)
 
-		it("registers no callins for statistics and mission-control triggers", function()
+		it("registers no callins for statistics, mission-control and objective triggers", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
+			assert.is_number(T.ObjectiveCompleted)
 			for callinName, handlers in pairs(C) do
 				assert.is_nil(handlers[T.TotalUnitsLost], callinName)
 				assert.is_nil(handlers[T.TotalUnitsBuilt], callinName)
@@ -194,6 +195,7 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.UnitsOwned], callinName)
 				assert.is_nil(handlers[T.Victory], callinName)
 				assert.is_nil(handlers[T.Defeat], callinName)
+				assert.is_nil(handlers[T.ObjectiveCompleted], callinName)
 			end
 		end)
 	end)

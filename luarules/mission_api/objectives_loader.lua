@@ -88,6 +88,28 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	return objectives
 end
 
+local function processObjectiveObservers(triggers)
+	local objectiveIDParameters = schemaUtils.GetNamesWithParameterType(
+		GG["MissionAPI"].TriggerDefinitions.Parameters,
+		parameterTypes.Types.ObjectiveID
+	)
+
+	local observers = {}
+	for _, trigger in pairs(triggers) do
+		local parameterName = objectiveIDParameters[trigger.type]
+
+		if parameterName then
+			local objectiveID = trigger.parameters[parameterName]
+			local byType = table.ensureTable(observers, objectiveID)
+			local sequence = table.ensureTable(byType, trigger.type)
+			sequence[#sequence + 1] = trigger
+		end
+	end
+
+	return observers
+end
+
 return {
 	ProcessRawObjectives = processRawObjectives,
+	ProcessObjectiveObservers = processObjectiveObservers,
 }
