@@ -31,7 +31,7 @@ end
 
 ---Register a unit definition. Delegates to the underlying UnitDefsBuilder.
 ---@overload fun(self: SpringUnsyncedBuilder, udb: UnitDefBuilder): SpringUnsyncedBuilder
----@param defID number
+---@param defID UnitDefID
 ---@param def table
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnitDef(defID, def)
@@ -40,7 +40,7 @@ function SUB:WithUnitDef(defID, def)
 end
 
 ---Place a live unit instance on the map. Errors if the def is not registered.
----@param unitID number
+---@param unitID UnitID
 ---@param defIDOrName number|string
 ---@return SpringUnsyncedBuilder
 function SUB:WithUnit(unitID, defIDOrName)

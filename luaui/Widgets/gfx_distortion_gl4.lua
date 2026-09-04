@@ -19,7 +19,6 @@ local mathMax = math.max
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local stringFormat = string.format
-local stringFind = string.find
 local pairs = pairs
 local ipairs = ipairs
 local type = type
@@ -40,14 +39,11 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
 local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -64,7 +60,6 @@ local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glDeleteTexture = gl.DeleteTexture
 local glCreateTexture = gl.CreateTexture
-local glLoadFont = gl.LoadFont
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -96,7 +91,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -463,7 +457,7 @@ end
 ---InitializeDistortion(distortionTable, unitID)
 ---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
----@param unitID number
+---@param unitID UnitID
 local function InitializeDistortion(distortionTable, unitID)
 	if not distortionTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesn't exist yet
@@ -598,37 +592,6 @@ local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distorti
 	return instanceID
 end
 
----updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
----This function is for internal use only, to update the position of a distortion.
----Only use if you know the consequences of updating a VBO in-place!
-local function updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
-	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then
-		return nil
-	end
-	instanceIndex = (instanceIndex - 1) * distortionVBO.instanceStep
-	local instData = distortionVBO.instanceData
-	if posx then
-		instData[instanceIndex + 1] = posx
-		instData[instanceIndex + 2] = posy
-		instData[instanceIndex + 3] = posz
-	end
-	if radius then
-		instData[instanceIndex + 4] = radius
-	end
-
-	if p2x then
-		instData[instanceIndex + 5] = p2x
-		instData[instanceIndex + 6] = p2y
-		instData[instanceIndex + 7] = p2z
-	end
-	if theta then
-		instData[instanceIndex + 8] = theta
-	end
-	distortionVBO.dirty = true
-	return instanceIndex
-end
-
 -- Specialized fast path for projectile position updates: no nil-checks, always writes pos+dir
 local function updateProjectilePosition(distortionVBO, instanceID, posx, posy, posz, dx, dy, dz)
 	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
@@ -717,7 +680,7 @@ end
 ---Remove a distortion
 ---@param distortionshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the distortion to remove
----@param unitID number make this non-nil to remove it from a unit
+---@param unitID UnitID? make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the distortion was not found
 local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	if unitID then
@@ -813,7 +776,6 @@ local function LoadDistortionConfig()
 end
 
 local nightFactor = 1 --0.33
-local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {
 	"unitAmbientColor",
 	"unitDiffuseColor",

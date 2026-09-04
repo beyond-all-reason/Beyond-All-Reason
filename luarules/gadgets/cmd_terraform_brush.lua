@@ -141,7 +141,6 @@ local importDoneCounter = 0
 -- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.
 local mergeSnapshot = nil -- the active snapshot being merged into; nil = no drag in progress
-local mergeVertexSet = nil -- set of numeric keys already in mergeSnapshot
 local mergeSnapshotLen = 0 -- explicit length of mergeSnapshot (avoids # on growing tables)
 local currentStrokeId = 0 -- incremented on each STROKE_END; tags all entries in a stroke
 local lastUndoFrame = -1 -- throttle: only one undo per game frame
@@ -178,11 +177,6 @@ local function parseParts(payload)
 		scratchParts[i] = nil
 	end
 	return scratchParts
-end
-
--- Numeric key for merge vertex set: avoids per-vertex string allocation
-local function vertexKey(x, z)
-	return x * 65536 + z
 end
 
 local floor = math.floor
@@ -437,7 +431,6 @@ local function finalizeMerge()
 		mergeSnapshot.vertexCount = mergeSnapshotLen / 3
 	end
 	mergeSnapshot = nil
-	mergeVertexSet = nil
 	mergeSnapshotLen = 0
 end
 
@@ -719,21 +712,6 @@ local function rotatePoint(px, pz, angleDeg)
 		_rpSin = sin(rad)
 	end
 	return px * _rpCos - pz * _rpSin, px * _rpSin + pz * _rpCos
-end
-
-local function isInsideCircle(dx, dz, radius)
-	return dx * dx + dz * dz <= radius * radius
-end
-
-local function isInsideSquare(dx, dz, radius, angleDeg)
-	local lx, lz = rotatePoint(dx, dz, -angleDeg)
-	return abs(lx) <= radius and abs(lz) <= radius
-end
-
-local function isInsideRing(dx, dz, radius)
-	local distSquared = dx * dx + dz * dz
-	local innerRadius = radius * ringInnerRatio
-	return distSquared <= radius * radius and distSquared >= innerRadius * innerRadius
 end
 
 local function regularPolygonFalloff(dx, dz, radius, angleDeg, numSides)

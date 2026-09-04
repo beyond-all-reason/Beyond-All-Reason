@@ -173,8 +173,6 @@ local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
 
-local lastExplicitlySelectedBlueprintIndex = nil
-
 local state = {
 	---@type Point|nil
 	---non-nil implies that we are dragging
@@ -428,11 +426,9 @@ local function deleteBlueprint(index)
 	elseif index == selectedBlueprintIndex then
 		-- find the closest valid blueprint, searching backwards
 		setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex(selectedBlueprintIndex))
-		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	else -- index < selectedBlueprintIndex
 		-- keep the same blueprint selected
 		setSelectedBlueprintIndex(selectedBlueprintIndex - 1)
-		lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 	end
 end
 
@@ -814,7 +810,6 @@ local function handleBlueprintNextAction()
 	end
 
 	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
-	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
@@ -832,7 +827,6 @@ local function handleBlueprintPrevAction()
 	end
 
 	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
-	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 

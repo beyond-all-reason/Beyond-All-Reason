@@ -16,7 +16,7 @@ local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 ---@field myName string
 ---@field instanceIDtoIndex table<any, integer>
 ---@field indextoInstanceID table<integer, any>
----@field indextoUnitID table<integer, integer>?
+---@field indextoUnitID table<integer, UnitID>?
 ---@field unitIDattribID integer?
 ---@field layout table[]
 ---@field dirty boolean
@@ -551,7 +551,7 @@ Here is how you upload starting from 1st element and starting from 4th element i
 ---@param instanceID string|number|nil Key for later reference; `nil` auto-generates one.
 ---@param updateExisting boolean? Allow overwriting an element with the same key.
 ---@param noUpload boolean? Skip the upload, to batch several operations.
----@param unitID integer? Bind the instance to a unit, so the buffer tracks it.
+---@param unitID UnitID? Bind the instance to a unit, so the buffer tracks it.
 ---@return string|number|nil instanceID The key it was filed under; `nil` on failure.
 local function pushElementInstance(iT, thisInstance, instanceID, updateExisting, noUpload, unitID)
 	-- iT: instanceTable created with makeInstanceTable
@@ -927,26 +927,6 @@ local function drawInstanceVBO(iT)
 			iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements, 0)
 		end
 	end
-end
-
-local function countInvalidUnitIDs(iT)
-	local invalids = {}
-	for i, objectID in ipairs(iT.indextoUnitID) do
-		local isValidID = false
-		if iT.featureIDs then
-			isValidID = Spring.ValidFeatureID(objectID)
-		else
-			isValidID = Spring.ValidUnitID(objectID)
-		end
-		if isValidID then
-		else
-			invalids[#invalids + 1] = objectID
-		end
-	end
-	if #invalids > 0 then
-		Spring.Echo(#invalids, "invalid IDs found in ", iT.myName)
-	end
-	return invalids
 end
 
 --------- HELPERS FOR PRIMITIVES ------------------

@@ -14,24 +14,9 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
-	local clearPassthrough = ctx.clearPassthrough
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
-	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
-	local cadenceToSlider = ctx.cadenceToSlider
-	local sliderToFrequency = ctx.sliderToFrequency
-	local sliderToPersist = ctx.sliderToPersist
-	local PERSIST_PERMANENT_VAL = ctx.PERSIST_PERMANENT_VAL
-	local formatFrequency = ctx.formatFrequency
-	local guideHints = ctx.guideHints
-	local shapeNames = ctx.shapeNames
 	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
-	local quatFromAxisAngle = ctx.quatFromAxisAngle
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
 	-- keys in a DataModel after OpenDataModel.
@@ -737,32 +722,6 @@ function M.attach(doc, ctx)
 		)
 		wireMutexChipPair("sp-slope-mode-avoid", "avoidCliffs", "sp-slope-mode-prefer", "preferSlopes", getSP)
 
-		-- Exclusive tab pills for grass brush (original behavior)
-		local function wirePillTabs(pills, onActivate)
-			for _, p in ipairs(pills) do
-				local btn = doc:GetElementById(p.btnId)
-				local content = doc:GetElementById(p.contentId)
-				if btn and content then
-					btn:AddEventListener("click", function()
-						for _, q in ipairs(pills) do
-							local b2 = doc:GetElementById(q.btnId)
-							local c2 = doc:GetElementById(q.contentId)
-							if b2 then
-								b2:SetClass("active", b2 == btn)
-							end
-							if c2 then
-								c2:SetClass("hidden", c2 ~= content)
-							end
-						end
-						content:SetClass("hidden", false)
-						btn:SetClass("active", true)
-						if onActivate then
-							onActivate()
-						end
-					end)
-				end
-			end
-		end
 		-- gb pill/slope/altitude/avoid-water/color chips all use data-event-click in RML → onGbXxx handlers in initialModel
 	end
 	envSectionToggle("btn-toggle-wb-undo", "img-toggle-wb-undo", "section-wb-undo", false)
@@ -2363,12 +2322,6 @@ end
 
 function M.sync(doc, ctx, setSummary)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
-	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- ===== Environment mode: highlight button, clear other highlights =====
 	-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
 	if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then

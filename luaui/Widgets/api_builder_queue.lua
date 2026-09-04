@@ -29,7 +29,6 @@ local spEcho = Spring.Echo
 
 -- Localize frequently used functions
 local mathFloor = math.floor
-local mathAbs = math.abs
 local mathMin = math.min
 local tableInsert = table.insert
 local tableRemove = table.remove

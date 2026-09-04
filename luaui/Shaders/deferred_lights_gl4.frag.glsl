@@ -923,6 +923,8 @@ void main(void)
 			float randomOffset = blueNoiseSample.a * (-0.25);
 			// Collect occludedness in this variable
 			float occludedness = 0.0;
+			// Skip the march where attenuation is already 0, as unoccluded only scales blendedlights, which gets multiplied by attenuation anyway. Gated per quad, as the quadGather below needs all four lanes
+			if (any(greaterThan(quadGather(attenuation), vec4(0.0)))) {
 			
 			#if 0 // This is deprecated for being slow in the WorldToScreen and ScreenToWorld conversions
 				
@@ -1086,6 +1088,7 @@ void main(void)
 					
 				}
 			#endif
+			}
 
 			float prob = 0.56;
 

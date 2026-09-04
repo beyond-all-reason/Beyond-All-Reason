@@ -16,7 +16,6 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 
 local vsx, vsy = spGetViewGeometry()
@@ -46,26 +45,7 @@ local function createFont(file, size, outlineSize, outlineStrength)
 	fonts[id] = gl.LoadFont(file, size * fontScale, outlineSize * fontScale, outlineStrength)
 end
 
-local sec = 0
 function widget:Update(dt)
-	-- sec = sec + dt
-	-- if sec > 4 then
-	-- 	sec = 0
-	-- 	local i = 0
-	-- 	for id,font in pairs(fonts) do
-	-- 		i = i + 1
-	-- 		if string.find(id, 'Exo') then
-	-- 			spEcho(id)
-	-- 		end
-	-- 	end
-	-- 	for id,font in pairs(fonts) do
-	-- 		if not string.find(id, 'Exo') then
-	-- 			spEcho(id)
-	-- 		end
-	-- 	end
-	-- 	spEcho(i)
-	-- end
-
 	if sceduledDeleteFontsClock and sceduledDeleteFontsClock < os.clock() then
 		for i, font in pairs(sceduledDeleteFonts) do
 			gl.DeleteFont(font)

@@ -1,5 +1,4 @@
 include("keysym.h.lua")
-local versionNumber = "1.34"
 
 local widget = widget ---@type Widget
 
@@ -10,6 +9,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
+		version = "1.34",
 		layer = 999999,
 		enabled = true,
 	}
@@ -51,7 +51,6 @@ local font =
 	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier = 1
-local maxAlpha = 0.65
 local maxShaderAlpha = 0.25
 local maxNonShaderAlpha = 0.12 --background alpha when shaders aren't available
 local boxWidth = 200
