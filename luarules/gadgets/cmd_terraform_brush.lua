@@ -910,16 +910,20 @@ local function applyTerraform(
 	instant,
 	localBlur,
 	localSmudge,
-	smudgeStart
+	smudgeStart,
+	clayPlaneIn
 )
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	lengthScale = lengthScale or 1.0
 
-	-- Clay mode: compute a target plane at center height + full brush displacement
-	local clayPlane
-	if clayMode and direction ~= 0 and direction ~= 2 then
+	-- Clay mode: target plane at centre height + full brush displacement.
+	-- clayPlaneIn is set when the dab arrives as part of a stroke batch, whose
+	-- planes were all derived from the pre-tick heightmap up front so dabs in
+	-- one tick cannot compound on each other (see handleStroke).
+	local clayPlane = clayPlaneIn
+	if not clayPlane and clayMode and direction ~= 0 and direction ~= 2 then
 		local centerHeight = GetGroundHeight(centerX, centerZ)
 		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
 	end
@@ -2030,6 +2034,102 @@ local function applyAutoramp(
 	end
 end
 
+-- Hoisted handler: one message carries a whole tick of brush dabs (the widget's
+-- extraState.sendStrokeDabs builds it). Clay planes for every dab are derived
+-- from the pre-tick heightmap BEFORE the first dab lands, so a stroke deposits
+-- per distance travelled instead of per tick split by the dab count -- and still
+-- cannot rise more than HEIGHT_STEP * intensity within one tick, because every
+-- plane in the batch came from the same untouched heights.
+local strokeDabX, strokeDabZ, strokeDabA, strokeClayPlane = {}, {}, {}, {}
+local function handleStroke(payload)
+	local parts = parseParts(payload)
+	local direction = tonumber(parts[1])
+	local radius = tonumber(parts[2])
+	local shape = parts[3] or "circle"
+	local curve = tonumber(parts[4]) or 1.0
+	local heightMin = tonumber(parts[5])
+	local heightMax = tonumber(parts[6])
+	local intensity = tonumber(parts[7]) or 1.0
+	local lengthScale = tonumber(parts[8]) or 1.0
+	local clayMode = parts[9] == "1"
+	local dustMode = parts[10] == "1"
+	local opacity = tonumber(parts[11]) or 0.3
+	local instant = parts[12] == "1"
+	-- Same sentinels as the per-dab message: "smooth" and "smudge<startDigit>"
+	-- ride the flatten slot as non-numeric values.
+	local localBlur = parts[13] == "smooth"
+	local localSmudge = parts[13] ~= nil and parts[13]:sub(1, 6) == "smudge"
+	local smudgeStart = localSmudge and parts[13]:sub(7, 7) == "1"
+	local flattenHeight = tonumber(parts[13])
+	if parts[14] then
+		ringInnerRatio = max(0.05, min(0.95, tonumber(parts[14]) or 0.6))
+	end
+	local nDabs = tonumber(parts[15]) or 0
+	if not direction or not radius or nDabs < 1 then
+		return
+	end
+
+	radius = max(MIN_RADIUS, min(MAX_RADIUS, radius))
+	curve = max(0.1, min(5.0, curve))
+	intensity = max(0.1, min(100.0, intensity))
+	lengthScale = max(0.2, min(5.0, lengthScale))
+	opacity = max(0.01, min(1.0, opacity))
+
+	-- Copy the dabs out of the shared parse scratch before applying any of them.
+	local count = 0
+	for i = 1, nDabs do
+		local b = 15 + (i - 1) * 3
+		local x = tonumber(parts[b + 1])
+		local z = tonumber(parts[b + 2])
+		if not x or not z then
+			break
+		end
+		count = count + 1
+		strokeDabX[count] = x
+		strokeDabZ[count] = z
+		strokeDabA[count] = tonumber(parts[b + 3]) or 0
+	end
+	if count < 1 then
+		return
+	end
+
+	local doClay = clayMode and direction ~= 0 and direction ~= 2
+	if doClay then
+		local rise = direction * HEIGHT_STEP * intensity
+		for i = 1, count do
+			strokeClayPlane[i] = GetGroundHeight(strokeDabX[i], strokeDabZ[i]) + rise
+		end
+	end
+	for i = 1, count do
+		applyTerraform(
+			strokeDabX[i],
+			strokeDabZ[i],
+			radius,
+			direction,
+			shape,
+			strokeDabA[i],
+			curve,
+			heightMin,
+			heightMax,
+			intensity,
+			lengthScale,
+			clayMode,
+			opacity,
+			flattenHeight,
+			instant,
+			localBlur,
+			localSmudge,
+			smudgeStart,
+			doClay and strokeClayPlane[i] or nil
+		)
+	end
+	-- One dust burst per tick rather than one per dab: up to 48 CEG spawns a tick
+	-- cost frames and looked no different.
+	if dustMode then
+		spawnDust(strokeDabX[count], strokeDabZ[count], radius, intensity)
+	end
+end
+
 -- Hoisted handler: the RecvLuaMsg dispatcher sits near the 60-upvalue cap, so
 -- the parse/clamp body lives here and the dispatcher only gains two upvalues.
 local function handleAutoramp(payload)
@@ -2964,6 +3064,17 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return true
 		end
 		handleAutoramp(msg:sub(#AUTORAMP_HEADER + 1))
+		return true
+	end
+
+	-- Header spelled inline, not via the STROKE_HEADER local: this dispatcher is
+	-- one upvalue under the Lua 5.1 cap of 60, and a string constant costs none.
+	if msg:sub(1, 18) == "$terraform_stroke$" then
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
+			return true
+		end
+		handleStroke(msg:sub(19))
 		return true
 	end
 
