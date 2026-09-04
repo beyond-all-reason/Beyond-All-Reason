@@ -236,8 +236,9 @@ local function colorSafeWords(line)
 	local pos = 1
 	while pos <= len do
 		local c = sbyte(line, pos)
-		if c == 255 and pos + 3 <= len then
-			-- Inline color code: 255 followed by three color bytes, kept whole so a wrap cannot split it
+		if c == 255 then
+			-- Inline color code: 255 followed by three color bytes, kept whole so a wrap cannot split it.
+			-- The font eats all four bytes even when fewer than three follow, so do the same here
 			if wordStart == 0 then
 				wordStart = pos
 			end
