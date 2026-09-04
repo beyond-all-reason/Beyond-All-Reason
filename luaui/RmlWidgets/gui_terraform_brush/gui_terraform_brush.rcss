@@ -2972,6 +2972,10 @@ body {
 	decorator: vertical-gradient(#18463a #0d2c24);
 	box-shadow: 0dp 2dp 5dp 0dp #00000080, inset 0dp 1dp 0dp 0dp #40e0c050;
 }
+/* chip whose action has no target right now (e.g. FLIP with an empty slot selected) */
+.tf-overlay-chip.unavailable {
+	opacity: 0.4;
+}
 .tf-overlay-chip-label {
 	font-size: 1.0rem;
 	color: #9ca3af;
@@ -3650,6 +3654,13 @@ margin-top: 3dp;
 	width: 60dp;
 	height: 60dp;
 	border-radius: 3dp;
+	/* an empty rect the widget overdraws with the thumbnail via gl.TexRect
+	   (DrawScreenPost); the tint shows until the texture is resident */
+	background-color: #26263699;
+}
+/* invisible filler so a short last row keeps the tile width */
+.tf-biome-tile.tf-biome-pad {
+	visibility: hidden;
 }
 .tf-biome-name {
 	margin-top: 2dp;
@@ -3768,7 +3779,9 @@ margin-top: 3dp;
 	overflow: hidden;
 }
 /* PICK / X: real buttons, because a grey glyph beside the name was invisible
-   and because selecting a slot and choosing its texture are different actions */
+   and because selecting a slot and choosing its texture are different actions.
+   (FLIP is NOT per tile: a third button here clipped into its neighbours, so
+   it lives in the NOW PAINTING strip and acts on the selected slot.) */
 .surf-slot-actions {
 	display: flex;
 	flex-direction: row;
@@ -3800,7 +3813,7 @@ margin-top: 3dp;
 	color: #ffdb8a;
 }
 .surf-slot-btn.surf-slot-x {
-	flex: 0 0 22dp;
+	flex: 0 0 26dp;
 	color: #9ca3af;
 	font-size: 1.25rem;
 }

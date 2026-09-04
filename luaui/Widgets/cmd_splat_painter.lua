@@ -186,6 +186,68 @@ local MAX_UNDO_SPLAT = 20
 local undoStack = {}
 local redoStack = {}
 local pendingSnapshot = false -- set on MousePress, consumed before first stroke
+
+-- Tileset far cache / clipmap invalidation. The tileset shader serves every
+-- pixel past its handoff from a baked composite (far cache + clipmap), and that
+-- bake samples $ssmf_splat_distr at bake time: a stroke that only rewrites the
+-- texture is invisible there until something else re-bakes the region (the
+-- "layers vanish when I zoom out" report, 2026-09-01). Every executed stroke
+-- widens a dirty rect (elmos); it is flushed to WG.TilesetTerrain.refreshSurface
+-- (rect -> sub-rect far bake + clipmap edit, ~free for a brush footprint) every
+-- FAR_FLUSH_S during a drag and as soon as the drag ends. Whole-texture changes
+-- (undo, redo, load) pass no rect = a throttled whole-map refill.
+-- One table for state + helpers: widget:DrawWorld sits at 58/60 upvalues
+-- (Lua 5.1 ceiling), so this costs it one, not four.
+local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
+---@type table
+local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
+
+function farInv.mark(worldX, worldZ, radius)
+	local r = (radius or 0) * 1.5 + 16 -- rotated squares reach r*sqrt(2); fractal edges a bit past
+	local ax, az, bx, bz = worldX - r, worldZ - r, worldX + r, worldZ + r
+	local d = farInv.dirty
+	if d then
+		if ax < d[1] then
+			d[1] = ax
+		end
+		if az < d[2] then
+			d[2] = az
+		end
+		if bx > d[3] then
+			d[3] = bx
+		end
+		if bz > d[4] then
+			d[4] = bz
+		end
+	else
+		farInv.dirty = { ax, az, bx, bz }
+	end
+end
+
+function farInv.flush(force)
+	local d = farInv.dirty
+	if not d then
+		return
+	end
+	local now = Spring.GetTimer()
+	if not force and farInv.at and Spring.DiffTimers(now, farInv.at) < FAR_FLUSH_S then
+		return
+	end
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface(d[1], d[2], d[3], d[4])
+	end
+	farInv.dirty = nil
+	farInv.at = now
+end
+
+function farInv.all()
+	farInv.dirty = nil
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface()
+	end
+end
 local pendingUndoCount = 0
 local pendingRedoCount = 0
 
@@ -1797,6 +1859,8 @@ function widget:DrawWorld()
 		lastLoadResult = executeLoadSplats(loadPath)
 		if lastLoadResult ~= "ok" then
 			Echo("[Splat Painter] Splat load " .. tostring(lastLoadResult))
+		else
+			farInv.all() -- the whole splat texture changed under the tileset bakes
 		end
 		-- The load may have created fboTex; a still-queued activation init would
 		-- rebuild it and clobber (and leak) the freshly loaded state.
@@ -1834,6 +1898,7 @@ function widget:DrawWorld()
 		pendingUndoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 	if pendingRedoCount > 0 then
@@ -1850,6 +1915,7 @@ function widget:DrawWorld()
 		pendingRedoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 
@@ -1863,12 +1929,20 @@ function widget:DrawWorld()
 	if #pendingPaintStrokes > 0 then
 		for _, stroke in ipairs(pendingPaintStrokes) do
 			executePaintStroke(stroke[1], stroke[2], stroke[3])
+			farInv.mark(stroke[1], stroke[2], activeRadius)
 		end
 		pendingPaintStrokes = {}
+	end
+	-- tileset far cache / clipmap: throttled (FAR_FLUSH_S); the drag's tail lands
+	-- within one throttle period after release. (No drag-state upvalue here on
+	-- purpose: DrawWorld sits at the Lua 5.1 60-upvalue ceiling.)
+	if farInv.dirty then
+		farInv.flush(false)
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("splatPainter", worldX, worldZ, activeRadius, 1.0)
@@ -1880,6 +1954,7 @@ function widget:DrawWorld()
 		return
 	end
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -1892,6 +1967,7 @@ function widget:DrawWorld()
 	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
 	-- inert with the tileset shader off (the uniform simply never renders).
 	do
+		---@type table?
 		local T = WG.TilesetTerrain
 		if T and T.setSurfacePreview then
 			local mode = 0
