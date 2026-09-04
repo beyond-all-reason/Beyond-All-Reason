@@ -26,6 +26,9 @@ local SLIDER_IDS = {
 	{ "surf-slider-strength", "surf-strength" },
 	{ "surf-slider-falloff", "surf-falloff" },
 	{ "surf-slider-spacing", "surf-spacing" },
+	{ "surf-slider-scatter-pos", "surf-scatter-pos" },
+	{ "surf-slider-scatter-size", "surf-scatter-size" },
+	{ "surf-slider-scatter-str", "surf-scatter-str" },
 	{ "surf-slider-fill-scale", "surf-fill-scale" },
 	{ "surf-slider-fill-seed", "surf-fill-seed" },
 	{ "surf-slider-topsTintR", "surf-topsTintR" },
@@ -884,6 +887,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((surfState.strength or 0.15) * 100 + 0.5)))
 	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((surfState.curve or 0.5) * 10 + 0.5)))
 	ss("surf-slider-spacing", "surf-spacing", tostring(surfState.spacing or 0))
+	ss("surf-slider-scatter-pos", "surf-scatter-pos", tostring(math.floor((surfState.scatterPos or 0) * 100 + 0.5)))
+	ss("surf-slider-scatter-size", "surf-scatter-size", tostring(math.floor((surfState.scatterSize or 0) * 100 + 0.5)))
+	ss("surf-slider-scatter-str", "surf-scatter-str", tostring(math.floor((surfState.scatterStr or 0) * 100 + 0.5)))
 	ss("surf-slider-fill-scale", "surf-fill-scale", tostring(surfState.fillScale or 1400))
 	ss("surf-slider-fill-seed", "surf-fill-seed", tostring(surfState.fillSeed or 0))
 	do
@@ -912,6 +918,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		nb("surf-slider-strength-numbox", string.format("%.2f", surfState.strength or 0.15))
 		nb("surf-slider-falloff-numbox", string.format("%.1f", surfState.curve or 0.5))
 		nb("surf-slider-spacing-numbox", (surfState.spacing or 0) > 0 and tostring(surfState.spacing) or "off")
+		nb("surf-slider-scatter-pos-numbox", string.format("%.2f", surfState.scatterPos or 0))
+		nb("surf-slider-scatter-size-numbox", string.format("%.2f", surfState.scatterSize or 0))
+		nb("surf-slider-scatter-str-numbox", string.format("%.2f", surfState.scatterStr or 0))
 		nb("surf-slider-fill-scale-numbox", tostring(surfState.fillScale or 1400))
 		nb("surf-slider-fill-seed-numbox", tostring(surfState.fillSeed or 0))
 		local ssf = surfState.smartFilters or {}

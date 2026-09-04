@@ -10213,6 +10213,12 @@ local initialModel = {
 			sp.setCurve(_elemSliderVal("surf-slider-falloff", 5) / 10)
 		elseif key == "spacing" then
 			sp.setSpacing(_elemSliderVal("surf-slider-spacing", 0))
+		elseif key == "scatter-pos" then
+			sp.setScatterPos(_elemSliderVal("surf-slider-scatter-pos", 0) / 100)
+		elseif key == "scatter-size" then
+			sp.setScatterSize(_elemSliderVal("surf-slider-scatter-size", 0) / 100)
+		elseif key == "scatter-str" then
+			sp.setScatterStr(_elemSliderVal("surf-slider-scatter-str", 0) / 100)
 		elseif key == "fill-scale" then
 			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
 		elseif key == "fill-seed" then
@@ -12302,6 +12308,9 @@ local guideHints = {
 	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
 	["btn-surf-erase"] = "Erase mode: strokes withdraw the painted claim so the ground returns to the shader's automatic choice. Right-click always erases. To force plain base instead, pick the BASE tile and paint.",
 	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
+	["surf-slider-scatter-pos"] = "Scatter position: each stamp is offset by up to this many brush radii in a random direction. With Spacing set, one drag lays a dot field instead of a band.",
+	["surf-slider-scatter-size"] = "Scatter size: random size variation per stamp, as a fraction of the brush size.",
+	["surf-slider-scatter-str"] = "Scatter strength: random strength variation per stamp, as a fraction of the brush strength.",
 	["btn-ts-cliff-protect"] = "Keep soft strokes (intermediate, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
 	["ts-slider-exposure"] = "Final gain on the lit ground. The shader takes all its light from the map ENVIRONMENT (sun and ground ambient), never from the skybox, and it draws raw albedo where the engine draws a pre-brightened baked texture — so a dark set on a dimly lit map can go nearly black. This lifts it. Run /tileset probe to see whether the map is actually dark before reaching for it; relighting the environment is the honest fix.",
 	["ts-slider-lumaTops"] = "Whether the brightness bias above also applies to the soft tops. 0 keeps it off them, so how much ground a top takes is authored rather than decided by which top is paler; 1 is the old behaviour. Expect a slightly wider intermediary at 0, since a pale sand no longer gets a free boost against it.",

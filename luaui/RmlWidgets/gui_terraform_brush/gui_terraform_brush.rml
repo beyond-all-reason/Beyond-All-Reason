@@ -5684,6 +5684,22 @@
 								<input type="text" id="surf-slider-spacing-numbox" class="tf-slider-numbox" readonly value="off" />
 							</div>
 							<div class="text-base text-light mb-1" style="opacity: 0.7;">Spacing 0 paints continuously; otherwise one stamp every N elmos of drag.</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Scatter</div>
+								<input type="range" id="surf-slider-scatter-pos" class="tf-slider" min="0" max="100" step="5" value="50" data-event-change="onSurfSlider('scatter-pos')" />
+								<input type="text" id="surf-slider-scatter-pos-numbox" class="tf-slider-numbox" readonly value="0.50" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Sc Size</div>
+								<input type="range" id="surf-slider-scatter-size" class="tf-slider" min="0" max="50" step="5" value="30" data-event-change="onSurfSlider('scatter-size')" />
+								<input type="text" id="surf-slider-scatter-size-numbox" class="tf-slider-numbox" readonly value="0.30" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Sc Str</div>
+								<input type="range" id="surf-slider-scatter-str" class="tf-slider" min="0" max="50" step="5" value="30" data-event-change="onSurfSlider('scatter-str')" />
+								<input type="text" id="surf-slider-scatter-str-numbox" class="tf-slider-numbox" readonly value="0.30" />
+							</div>
+							<div class="text-base text-light mb-1" style="opacity: 0.7;">Scatter jitters each stamp: position in brush radii, size and strength as a fraction. With Spacing near 1.5x the size, one drag lays a dot field.</div>
 							<div class="text-base text-light" style="opacity: 0.7;">Variants only ever retexture the soft top — hard surfaces ignore the brush by design. Cliff protection for the LAYERS overrides is a shader setting, in the TILESET window.</div>
 						</div>
 						<div class="text-base text-light" style="opacity: 0.7;" data-if="surfMode == 'hard'">LMB paints the selected override channel, RMB erases it. Keys 1&#8211;4 pick the channel.</div>
