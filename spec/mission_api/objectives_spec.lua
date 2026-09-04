@@ -503,16 +503,46 @@ describe("mission_api.objectives", function()
 		end)
 	end)
 
-	describe("OnObjectiveCompleted", function()
-		it("activates every ObjectiveCompleted trigger watching the objective", function()
+	describe("CompleteObjective", function()
+		it("completes the objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("completes a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("is a no-op on a completed objective", function()
 			install(
 				mission()
 					:WithObjective("obj1", { active = true, completed = true })
+					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates every ObjectiveCompleted trigger watching the objective", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false })
 					:WithTrigger("watchA", observer(T.ObjectiveCompleted, "obj1"))
 					:WithTrigger("watchB", observer(T.ObjectiveCompleted, "obj1"))
 			)
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal(2, #missionApi.calls.activateTrigger)
 		end)
@@ -520,12 +550,12 @@ describe("mission_api.objectives", function()
 		it("leaves triggers watching another objective alone", function()
 			install(
 				mission()
-					:WithObjective("obj1", { active = true, completed = true })
+					:WithObjective("obj1", { active = true, completed = false })
 					:WithObjective("obj2", { active = true, completed = false })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj2"))
 			)
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal(0, #missionApi.calls.activateTrigger)
 		end)
@@ -533,11 +563,11 @@ describe("mission_api.objectives", function()
 		it("leaves triggers of another type alone", function()
 			install(
 				mission()
-					:WithObjective("obj1", { active = true, completed = true })
+					:WithObjective("obj1", { active = true, completed = false })
 					:WithTrigger("timer", { type = T.TimeElapsed, parameters = { objectiveID = "obj1" } })
 			)
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal(0, #missionApi.calls.activateTrigger)
 		end)
@@ -547,12 +577,12 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
 			assert.are.equal("s2", missionApi.CurrentStageID)
@@ -563,12 +593,12 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
@@ -579,7 +609,7 @@ describe("mission_api.objectives", function()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
 					:WithStage("s9")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
 					:WithCurrentStage("s1")
 			)
@@ -588,7 +618,7 @@ describe("mission_api.objectives", function()
 				Objectives.ChangeStage("s9")
 			end
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s9", missionApi.CurrentStageID)
 		end)
@@ -598,7 +628,7 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
 					:WithCurrentStage("s1")
 			)
@@ -606,7 +636,7 @@ describe("mission_api.objectives", function()
 				Objectives.ChangeStage("s1")
 			end
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s1", missionApi.CurrentStageID)
 		end)
@@ -617,17 +647,17 @@ describe("mission_api.objectives", function()
 					:WithStage("s1", { objectives = { "obj1", "obj2" } })
 					:WithStage("s2")
 					:WithStage("s3")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2" })
-					:WithObjective("obj2", { active = true, completed = true, nextStage = "s3" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
+					:WithObjective("obj2", { active = true, completed = false, nextStage = "s3" })
 					:WithTrigger("watch", observer(T.ObjectiveCompleted, "obj1"))
 					:WithCurrentStage("s1")
 			)
 			-- obj1's trigger completes obj2, whose own gate moves the stage:
 			missionApi.ActivateTrigger = function()
-				Objectives.OnObjectiveCompleted("obj2", missionApi.Objectives.obj2)
+				Objectives.CompleteObjective("obj2")
 			end
 
-			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s3", missionApi.CurrentStageID)
 		end)
@@ -641,6 +671,15 @@ describe("mission_api.objectives", function()
 
 			assert.is_true(missionApi.Objectives.obj1.completed)
 			assert.is_true(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("fails a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.FailObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.failed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
 		end)
 
 		it("is a no-op on a completed objective", function()
@@ -733,6 +772,79 @@ describe("mission_api.objectives", function()
 			Objectives.FailObjective("obj1")
 
 			assert.are.equal("s9", missionApi.CurrentStageID)
+		end)
+	end)
+
+	describe("CancelObjective", function()
+		it("marks the objective canceled and takes it out of play, unfinished", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false })
+					:WithObjectiveTrigger("obj1", { settings = { active = true } })
+			)
+
+			Objectives.CancelObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.canceled)
+			assert.is_false(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Triggers.__objective_obj1.settings.active)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = false, completed = true }))
+
+			Objectives.CancelObjective("obj1")
+
+			assert.is_nil(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("activates the ObjectiveCanceled triggers watching the objective and no other", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false })
+					:WithTrigger("watch", observer(T.ObjectiveCanceled, "obj1"))
+					:WithTrigger("other", observer(T.ObjectiveCompleted, "obj1"))
+			)
+
+			Objectives.CancelObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.watch, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("leaves the gate unsatisfied until the objective is activated and completed", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1", "obj2" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2" })
+					:WithObjective("obj2", { active = true, completed = true, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.CancelObjective("obj1")
+			assert.are.equal("s1", missionApi.CurrentStageID)
+
+			Objectives.ActivateObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+
+			Objectives.CompleteObjective("obj1")
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+	end)
+
+	describe("HideObjective and ShowObjective", function()
+		it("flip hidden and nothing else", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false }))
+
+			Objectives.HideObjective("obj1")
+			assert.is_true(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
+
+			Objectives.ShowObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
 		end)
 	end)
 end)

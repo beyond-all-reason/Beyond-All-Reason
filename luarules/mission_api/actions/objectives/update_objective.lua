@@ -1,26 +1,18 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function updateObjective(objectiveID, completed, textKey)
+local function updateObjective(objectiveID)
 	local objective = GG['MissionAPI'].Objectives[objectiveID]
 
 	if objective.completed then return end
 
-	if textKey then
-		objective.textKey = textKey
-	end
-
-	if completed ~= nil then
-		objective.completed = completed
-	elseif textKey == nil then
-		objective.progress = (objective.progress or 0) + 1
-		objective.completed = objective.amount == nil or objective.progress >= objective.amount
-	end
+	objective.progress = (objective.progress or 0) + 1
 
 	local objectives = GG['MissionAPI'].Modules.Objectives
-	if objective.completed then
-		objectives.OnObjectiveCompleted(objectiveID, objective)
+	if objective.amount == nil or objective.progress >= objective.amount then
+		objectives.CompleteObjective(objectiveID)
+	else
+		objectives.EchoObjectiveUpdate(objectiveID, objective)
 	end
-	objectives.EchoObjectiveUpdate(objectiveID, objective)
 end
 
 return {
@@ -28,8 +20,6 @@ return {
 		type = 'UpdateObjective',
 		parameters = {
 			{ name = 'objectiveID', required = true, type = ParameterTypes.ObjectiveID },
-			{ name = 'completed', required = false, type = ParameterTypes.Boolean },
-			{ name = 'textKey', required = false, type = ParameterTypes.String },
 		},
 		actionFunction = updateObjective,
 	}

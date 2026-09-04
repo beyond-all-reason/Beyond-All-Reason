@@ -15,7 +15,8 @@ end
 
 --- Enables progress, display, and any synthesized triggers on an objective.
 local function activateObjective(objectiveID)
-	if GG["MissionAPI"].Objectives[objectiveID].completed then
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
 		return
 	end
 
@@ -24,6 +25,7 @@ local function activateObjective(objectiveID)
 		return
 	end
 
+	objective.canceled = false
 	setObjectiveActive(objectiveID, true)
 end
 
@@ -111,7 +113,21 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. " | completed: "
 			.. tostring(objective.completed)
 			.. (objective.failed and " (failed)" or "")
+			.. (objective.canceled and " (canceled)" or "")
+			.. (objective.hidden and " (hidden)" or "")
 	)
+end
+
+local function hideObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	objective.hidden = true
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+local function showObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	objective.hidden = false
+	echoObjectiveUpdate(objectiveID, objective)
 end
 
 --- Activates every trigger of the given type watching the objective.
@@ -138,8 +154,16 @@ local function runExitRoutes(objectiveID, objective, triggerType)
 	end
 end
 
-local function onObjectiveCompleted(objectiveID, objective)
+local function completeObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.canceled = false
+	objective.completed = true
 	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCompleted)
+	echoObjectiveUpdate(objectiveID, objective)
 end
 
 local function failObjective(objectiveID)
@@ -148,9 +172,22 @@ local function failObjective(objectiveID)
 		return
 	end
 
+	objective.canceled = false
 	objective.completed = true
 	objective.failed = true
 	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveFailed)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+local function cancelObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed or objective.canceled then
+		return
+	end
+
+	objective.canceled = true
+	setObjectiveActive(objectiveID, false)
+	notifyObservers(objectiveID, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCanceled)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
@@ -203,9 +240,9 @@ local function updateObjectiveProgress(
 		isComplete = managedObjMetadata._count >= amount
 	end
 
-	objective.completed = isComplete
 	if isComplete then
-		onObjectiveCompleted(objectiveID, objective)
+		completeObjective(objectiveID)
+		return
 	end
 
 	echoObjectiveUpdate(objectiveID, objective)
@@ -217,8 +254,11 @@ return {
 	TryAdvanceStage = tryAdvanceStage,
 	ActivateObjective = activateObjective,
 	DeactivateObjective = deactivateObjective,
+	CancelObjective = cancelObjective,
+	CompleteObjective = completeObjective,
 	FailObjective = failObjective,
+	HideObjective = hideObjective,
+	ShowObjective = showObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
-	OnObjectiveCompleted = onObjectiveCompleted,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

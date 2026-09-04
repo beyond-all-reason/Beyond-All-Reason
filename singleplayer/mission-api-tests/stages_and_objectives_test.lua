@@ -1,185 +1,292 @@
+---
+--- Stages and objectives test mission.
+---
+
+---
+--- Expected in the infolog, in this order (grep "Stage set to|Objective updated|MissionTest"):
+---   Stage set to: gate
+---   quick completed at 2 s and bonus at 3 s, with no stage change
+---   Stage set to: observer, then slow completed with active: false (slow at 5 s
+---     finished the all-of pair; leaving gate deactivated it)
+---   Stage set to: failure, then route completed (route's observer changed stage
+---     before the gate could move to decoy; "Stage set to: decoy" never appears)
+---   MissionTest: ObjectiveFailed fired for doomed, then Stage set to: cancel, then
+---     doomed completed (failed) (observers run first; the failure advanced the gate)
+---   MissionTest: ObjectiveCanceled fired for flaky, then flaky (canceled) with active: false
+---   partner completed at 12 s with no stage change (flaky holds the gate)
+---   Stage set to: activation, then flaky completed without (canceled)
+---   lingering with active: true (entry activated it)
+---   count with active: false and progress: nil (two probes spawned; counted, not evaluated)
+---   future with active: false (activation denied outside its stage)
+---   count with active: true (hidden), then count shown
+---   Stage set to: final, then count completed with progress: 3 (the third probe)
+---   future with active: true, lingering with active: false (entry and exit)
+---   MissionTest: complete, then future completed, then the game ends
+---
+
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
-local initialStage = 'firstStage'
+local initialStage = 'gate'
 local stages = {
-	firstStage = {
-		objectives = { 'wait3secs' }
-	},
-	secondStage = {
-		objectives = { 'buildBots' }
-	},
-	thirdStage = {
-		objectives = { 'buildBots', 'destroyBots', 'noLosses' }
-	}
+	gate       = { objectives = { 'quick', 'slow', 'bonus' } },
+	observer   = { objectives = { 'route' } },
+	decoy      = { objectives = {} },
+	failure    = { objectives = { 'doomed' } },
+	cancel     = { objectives = { 'flaky', 'partner' } },
+	activation = { objectives = { 'lingering' } },
+	final      = { objectives = { 'future' } },
 }
 
 local objectives = {
 
-	wait3secs = {
-		textKey = "wait_3_seconds",
-		trigger = {
-			type = triggerTypes.TimeElapsed,
-			parameters = {
-				seconds = 3,
-			},
-		},
-		nextStage = 'secondStage',
+	-- Stage gate: quick and slow share a nextStage, so the stage holds until both
+	-- complete; bonus has none and moves nothing.
+	quick = {
+		textKey = 'gate_quick',
+		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 2 } },
+		nextStage = 'observer',
+	},
+	slow = {
+		textKey = 'gate_slow',
+		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 5 } },
+		nextStage = 'observer',
+	},
+	bonus = {
+		textKey = 'gate_bonus',
+		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 3 } },
 	},
 
-	buildBots = {
-		textKey = "build_3_bots",
-		amount = 3,
-		trigger = {
-			type = triggerTypes.ConstructionFinished,
-			parameters = {
-				unitDefName = 'corak',
-				teamID = 0,
-			},
-		},
+	-- Stage observer: route's nextStage is the decoy, but its ObjectiveCompleted
+	-- trigger changes to failure first, and the gate stands down.
+	route = {
+		textKey = 'observer_route',
+		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 7 } },
+		nextStage = 'decoy',
 	},
 
-	destroyBots = {
-		textKey = "destroy_all_bots",
-		amount = 0,
-		trigger = {
-			type = triggerTypes.UnitsOwned,
-			parameters = {
-				unitName = 'bots',
-				teamID = 0,
-			},
-		},
+	-- Stage failure: failed by action, and the failure counts for the gate.
+	doomed = {
+		textKey = 'failure_doomed',
+		nextStage = 'cancel',
 	},
 
-	-- Has no trigger of its own; an action fails it.
-	noLosses = {
-		textKey = "lose_no_units",
+	-- Stage cancel: partner completes on its own; flaky is canceled, which holds
+	-- the gate, then completed by action, which clears the cancel and advances.
+	flaky = {
+		textKey = 'cancel_flaky',
+		nextStage = 'activation',
+	},
+	partner = {
+		textKey = 'cancel_partner',
+		trigger = { type = triggerTypes.TimeElapsed, parameters = { seconds = 12 } },
+		nextStage = 'activation',
 	},
 
-	-- Listed in no stage; an action activates it.
-	killDestroyers = {
-		textKey = "kill_both_destroyers",
+	-- Stage activation: listed here, so entry activates it and exit deactivates it.
+	lingering = {
+		textKey = 'activation_lingering',
+	},
+
+	-- Listed in no stage and hidden: it counts spawned probes while inactive and
+	-- completes only once activated. Its ObjectiveCompleted trigger moves on.
+	count = {
+		textKey = 'activation_count',
 		amount = 2,
-		trigger = {
-			type = triggerTypes.TotalUnitsKilled,
-			parameters = {
-				unitDefName = 'armllt',
-				teamID = 0,
-			},
-		},
+		hidden = true,
+		trigger = { type = triggerTypes.UnitsOwned, parameters = { unitName = 'probe', teamID = 0 } },
+	},
+
+	-- Listed only in the final stage: activating it from another stage is denied.
+	future = {
+		textKey = 'final_future',
 	},
 }
 
 local triggers = {
 
-	spawnBots = {
+	-- Stage observer: route completes at 7 s.
+	routeCompleted = {
+		type = triggerTypes.ObjectiveCompleted,
+		parameters = { objectiveID = 'route' },
+		actions = { 'changeToFailure' },
+	},
+
+	-- Stage failure.
+	failDoomed = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = true,
-			stages = { 'secondStage', 'thirdStage' },
-			maxRepeats = 5,
-		},
-		parameters = {
-			seconds = 0,
-			interval = 2,
-		},
-		actions = { 'spawnBot' },
+		settings = { stages = { 'failure' } },
+		parameters = { seconds = 9 },
+		actions = { 'failDoomed' },
 	},
-
-	-- Completing buildBots is the only way into the third stage.
-	botsBuilt = {
-		type = triggerTypes.ObjectiveCompleted,
-		parameters = {
-			objectiveID = 'buildBots',
-		},
-		actions = { 'changeToThirdStage', 'spawnBotDestroyer', 'activateKillDestroyers' },
-	},
-
-	failOnLoss = {
-		type = triggerTypes.TotalUnitsLost,
-		settings = {
-			stages = { 'thirdStage' },
-		},
-		parameters = {
-			teamID = 0,
-			quantity = 1,
-		},
-		actions = { 'failNoLosses' },
-	},
-
-	reportFailure = {
+	doomedFailed = {
 		type = triggerTypes.ObjectiveFailed,
-		parameters = {
-			objectiveID = 'noLosses',
-		},
-		actions = { 'announceLoss' },
+		parameters = { objectiveID = 'doomed' },
+		actions = { 'reportDoomedFailed' },
 	},
 
-	-- Once the bots are gone, the destroyers no longer matter.
-	botsDestroyed = {
+	-- Stage cancel: partner completes at 12 s.
+	cancelFlaky = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'cancel' } },
+		parameters = { seconds = 11 },
+		actions = { 'cancelFlaky' },
+	},
+	flakyCanceled = {
+		type = triggerTypes.ObjectiveCanceled,
+		parameters = { objectiveID = 'flaky' },
+		actions = { 'reportFlakyCanceled' },
+	},
+	completeFlaky = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'cancel' } },
+		parameters = { seconds = 14 },
+		actions = { 'completeFlaky' },
+	},
+
+	-- Stage activation.
+	probeLingering = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 15 },
+		actions = { 'probeLingering' },
+	},
+	spawnTwoProbes = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 16 },
+		actions = { 'spawnTwoProbes' },
+	},
+	probeBeforeActivation = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 17 },
+		actions = { 'probeCount', 'activateFuture' },
+	},
+	activateCount = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 18 },
+		actions = { 'activateCount', 'showCount' },
+	},
+	spawnThirdProbe = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'activation' } },
+		parameters = { seconds = 20 },
+		actions = { 'spawnOneProbe' },
+	},
+	countCompleted = {
 		type = triggerTypes.ObjectiveCompleted,
-		parameters = {
-			objectiveID = 'destroyBots',
-		},
-		actions = { 'deactivateKillDestroyers' },
+		parameters = { objectiveID = 'count' },
+		actions = { 'changeToFinal' },
+	},
+
+	-- Stage final.
+	probeAfterEntry = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'final' } },
+		parameters = { seconds = 21 },
+		actions = { 'probeFuture', 'probeLingering' },
+	},
+	completeFuture = {
+		type = triggerTypes.TimeElapsed,
+		settings = { stages = { 'final' } },
+		parameters = { seconds = 22 },
+		actions = { 'completeFuture' },
+	},
+	futureCompleted = {
+		type = triggerTypes.ObjectiveCompleted,
+		parameters = { objectiveID = 'future' },
+		actions = { 'reportComplete', 'victory' },
 	},
 }
 
 local actions = {
 
-	spawnBot = {
-		type = actionTypes.SpawnUnits,
-		parameters = {
-			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'bots' },
-			},
-		},
-	},
-
-	changeToThirdStage = {
+	changeToFailure = {
 		type = actionTypes.ChangeStage,
-		parameters = {
-			stageID = 'thirdStage',
-		},
+		parameters = { stageID = 'failure' },
+	},
+	changeToFinal = {
+		type = actionTypes.ChangeStage,
+		parameters = { stageID = 'final' },
 	},
 
-	spawnBotDestroyer = {
+	failDoomed = {
+		type = actionTypes.FailObjective,
+		parameters = { objectiveID = 'doomed' },
+	},
+	cancelFlaky = {
+		type = actionTypes.CancelObjective,
+		parameters = { objectiveID = 'flaky' },
+	},
+	completeFlaky = {
+		type = actionTypes.CompleteObjective,
+		parameters = { objectiveID = 'flaky' },
+	},
+	completeFuture = {
+		type = actionTypes.CompleteObjective,
+		parameters = { objectiveID = 'future' },
+	},
+	activateCount = {
+		type = actionTypes.ActivateObjective,
+		parameters = { objectiveID = 'count' },
+	},
+	showCount = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'count' },
+	},
+	activateFuture = {
+		type = actionTypes.ActivateObjective,
+		parameters = { objectiveID = 'future' },
+	},
+
+	-- Probes: they print the objective and change nothing it does not already have.
+	probeLingering = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'lingering' },
+	},
+	probeFuture = {
+		type = actionTypes.ShowObjective,
+		parameters = { objectiveID = 'future' },
+	},
+	probeCount = {
+		type = actionTypes.HideObjective,
+		parameters = { objectiveID = 'count' },
+	},
+
+	spawnTwoProbes = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, quantity = 2 },
+				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'probe', quantity = 2 },
+			},
+		},
+	},
+	spawnOneProbe = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'probe', quantity = 1 },
 			},
 		},
 	},
 
-	failNoLosses = {
-		type = actionTypes.Custom,
-		parameters = {
-			['function'] = function()
-				GG['MissionAPI'].Modules.Objectives.FailObjective('noLosses')
-			end,
-		},
-	},
-
-	announceLoss = {
+	reportDoomedFailed = {
 		type = actionTypes.SendMessage,
-		parameters = {
-			message = "A unit was lost. Objective failed.",
-		},
+		parameters = { message = 'MissionTest: ObjectiveFailed fired for doomed' },
 	},
-
-	activateKillDestroyers = {
-		type = actionTypes.ActivateObjective,
-		parameters = {
-			objectiveID = 'killDestroyers',
-		},
+	reportFlakyCanceled = {
+		type = actionTypes.SendMessage,
+		parameters = { message = 'MissionTest: ObjectiveCanceled fired for flaky' },
 	},
-
-	deactivateKillDestroyers = {
-		type = actionTypes.DeactivateObjective,
-		parameters = {
-			objectiveID = 'killDestroyers',
-		},
+	reportComplete = {
+		type = actionTypes.SendMessage,
+		parameters = { message = 'MissionTest: complete' },
+	},
+	victory = {
+		type = actionTypes.Victory,
+		parameters = { allyTeamIDs = { 0 } },
 	},
 }
 
