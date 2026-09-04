@@ -17,7 +17,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.12</span>
+					<span class="tf-title-version">1.13</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -5488,6 +5488,12 @@
 							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
 								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
 							</div>
+							<!-- FLIP acts on the SELECTED slot (BASE included): one always-present
+							     button instead of a per-tile one, which left PICK / FLIP / X too
+							     cramped to hit. -->
+							<div id="surf-flip-sel" class="tf-overlay-chip" style="margin-left: 4dp;">
+								<div class="tf-overlay-chip-label">FLIP</div>
+							</div>
 						</div>
 						<!-- SLOT RAIL. One tile per slot, thumbnail first: the texture is what
 						     the artist picks by, so it gets the space. ONE CLICK, ONE ACTION —
@@ -5881,34 +5887,10 @@
 							<div class="tf-collapsible-title">BIOME LIBRARY</div>
 						</div>
 						<div id="section-ts-library">
-							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'namaqualand'" data-event-mousedown="onPickBiome('namaqualand')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_namaqualand.png" />
-									<div class="tf-biome-name">Namaqualand</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'teizer'" data-event-mousedown="onPickBiome('teizer')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_teizer.png" />
-									<div class="tf-biome-name">Teizer-5</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'enborelde'" data-event-mousedown="onPickBiome('enborelde')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_enborelde.png" />
-									<div class="tf-biome-name">Enborelde</div>
-								</div>
-							</div>
-							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'protodesert'" data-event-mousedown="onPickBiome('protodesert')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
-									<div class="tf-biome-name">Protodesert</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
-									<div class="tf-biome-name">Prototemperate</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'palehang'" data-event-mousedown="onPickBiome('palehang')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_palehang.png" />
-									<div class="tf-biome-name">Pale Hang</div>
-								</div>
-							</div>
+							<!-- Biome tiles are built at sync from WG.TilesetTerrain.getBiomes() (one
+							     manifest per biome in tileset_dev/tilesets/); thumbnails are GL overdraws
+							     like the EXTRA LAYER material tiles (tf_tileset.lua rebuildBiomePalette). -->
+							<div id="ts-biome-grid"></div>
 							<div class="text-base text-light" style="opacity: 0.7;">Swaps all four terrain layers live.</div>
 							<div class="flex flex-row gap-1 items-center mb-1" style="margin-top: 4dp;">
 								<img id="btn-ts-skybox-sync" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleSkyboxSync()" />
@@ -5916,6 +5898,70 @@
 							</div>
 						</div>
 					</div><!-- /frame-ts-library -->
+					<div class="tf-section-frame tf-collapsed" id="frame-ts-perf">
+						<div id="btn-toggle-ts-perf" class="tf-section-title-row" style="cursor: pointer;">
+							<img id="img-toggle-ts-perf" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+							<div class="tf-collapsible-title">PERFORMANCE</div>
+							<div id="btn-ts-reset-perf" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('perf')">RESET</div>
+						</div>
+						<div id="section-ts-perf" class="hidden">
+							<div class="text-base text-light" style="opacity: 0.7;">Quality presets drop draw-time features. A preset applies on top of the sliders &#8212; pick HIGH to test each lever on its own.</div>
+							<div class="flex flex-row gap-1 mb-1" style="margin-top: 4dp;">
+								<div class="tf-mode-btn tf-s4-btn" data-class-active="tsQuality == 'high'" data-event-mousedown="onTsQuality('high')"><div class="tf-btn-text">HIGH</div></div>
+								<div class="tf-mode-btn tf-s4-btn" data-class-active="tsQuality == 'medium'" data-event-mousedown="onTsQuality('medium')"><div class="tf-btn-text">MEDIUM</div></div>
+								<div class="tf-mode-btn tf-s4-btn" data-class-active="tsQuality == 'low'" data-event-mousedown="onTsQuality('low')"><div class="tf-btn-text">LOW</div></div>
+							</div>
+							<div class="text-base text-light" style="opacity: 0.7; margin-top: 4dp;">Levers (foothills/stagger 1 = on). Parallax and Height blend live in their own sections; presets set them too. Foothills and metal spots stay on in every preset: cheap, and dropping them reads as a downgrade.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Foothills</div>
+							<input type="range" id="ts-slider-foothills" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('foothills')" />
+							<input type="text" id="ts-slider-foothills-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Stagger</div>
+							<input type="range" id="ts-slider-stagger" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('stagger')" />
+							<input type="text" id="ts-slider-stagger-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Far anti-tiling</div>
+							<input type="range" id="ts-slider-detileMul" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('detileMul')" />
+							<input type="text" id="ts-slider-detileMul-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;">1 = a second scaled tap past ~1200 elmos hides the tile repeat (softens the texture until the C2 contrast fix lands); 0 = crisp, repeats show, three fewer taps. Only the ends matter: any value above 0 pays all the taps.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Cliff-tap slack (deg)</div>
+							<input type="range" id="ts-slider-cliffGateDeg" class="tf-slider" min="0" max="30" step="1" value="22.0" data-event-change="onTilesetKnob('cliffGateDeg')" />
+							<input type="text" id="ts-slider-cliffGateDeg-numbox" class="tf-slider-numbox" readonly value="22.0" />
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7; margin-top: 4dp;">Far cache: zoomed out, the ground becomes one tap of a baked copy of itself instead of the full stack. Start = cache texels per pixel where the handoff begins; 1.00 never magnifies the cache (never softer than live), lower engages earlier and softer. Band = crossfade width as a ratio. Steep faces stay live (a top-down bake has no texels on a wall) unless Cliffs cached past is above 0: from that many elmos per pixel of footprint (fully at twice it) walls join the cache too, which is most of the far-zoom cost. /tileset far prints the engage distances.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Far cache</div>
+							<input type="range" id="ts-slider-farCache" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('farCache')" />
+							<input type="text" id="ts-slider-farCache-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Far start (texels)</div>
+							<input type="range" id="ts-slider-farStart" class="tf-slider" min="0.25" max="3" step="0.05" value="1.00" data-event-change="onTilesetKnob('farStart')" />
+							<input type="text" id="ts-slider-farStart-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Far band (ratio)</div>
+							<input type="range" id="ts-slider-farBand" class="tf-slider" min="1.05" max="3" step="0.05" value="1.35" data-event-change="onTilesetKnob('farBand')" />
+							<input type="text" id="ts-slider-farBand-numbox" class="tf-slider-numbox" readonly value="1.35" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Cliffs cached past (elmos/px)</div>
+							<input type="range" id="ts-slider-farCliffFp" class="tf-slider" min="0" max="6" step="0.25" value="1.50" data-event-change="onTilesetKnob('farCliffFp')" />
+							<input type="text" id="ts-slider-farCliffFp-numbox" class="tf-slider-numbox" readonly value="1.50" />
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7; margin-top: 4dp;">Clipmap: finer camera-following copies of the far cache, so the baked ground serves every zoom, not only the strategic one (about -1.9 ms per frame at close and mid zoom, 4K). Off = the far cache alone. /tileset clip prints the levels.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Clipmap</div>
+							<input type="range" id="ts-slider-clipCache" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('clipCache')" />
+							<input type="text" id="ts-slider-clipCache-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						</div>
+					</div><!-- /frame-ts-perf -->
 
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-metal">
 					<div id="btn-toggle-ts-metal" class="tf-section-title-row" style="cursor: pointer;">

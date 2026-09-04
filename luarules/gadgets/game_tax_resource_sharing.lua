@@ -53,7 +53,7 @@ end
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
+	-- We also check for 'metal' or 'energy' in case Spring decides to use those in a later version
 	local resourceName
 	if (resourceType == "m") or (resourceType == "metal") then
 		resourceName = "metal"
