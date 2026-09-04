@@ -1,8 +1,6 @@
 // Compensated turret aim. A per frame controller cancels the hull rotation while aiming so walking
 // turns never disturb the aim, tracks the target at constant speed (or with acceleration when
-// configured) and lets AimWeapon answer honestly. Related to constant_acceleration_turret_turning.h
-// (CATT) by Beherith. Changeheading compensation and belief servo ideas by DoodVanDaag.
-// License GNU GPL v2 or later.
+// configured) and lets AimWeapon answer honestly.
 //
 // Usage. Include recoil_common_includes.h first, define the settings below, then include this file
 // after the piece declarations.
