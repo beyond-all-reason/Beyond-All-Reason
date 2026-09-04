@@ -3173,7 +3173,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 local highValueTargets = {}
 for unitName, params in pairs(highValueTargetsNames) do
 	if not UnitDefNames[unitName] then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldnt find unit name: " .. unitName)
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldn't find unit name: " .. unitName)
 	else
 		highValueTargets[UnitDefNames[unitName].id] = params
 	end

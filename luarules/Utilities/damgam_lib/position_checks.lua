@@ -36,7 +36,7 @@ local function initializeStartPositionTable()
 			allyTeamHasStartbox = false
 		end
 		AllyTeamStartboxes[testAllyTeamID + 1] =
-			{ -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+			{ -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 every time
 				allyTeamHasStartbox = allyTeamHasStartbox,
 				xMin = xMin,
 				zMin = zMin,
@@ -294,7 +294,7 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
 		return not returnTrueWhenNoStartbox
 	end
 
-	if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+	if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 every time
 		return not returnTrueWhenNoStartbox
 	else
 		return returnTrueWhenNoStartbox
