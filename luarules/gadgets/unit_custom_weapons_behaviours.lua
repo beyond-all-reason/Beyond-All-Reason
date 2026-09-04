@@ -633,7 +633,7 @@ local defaultEntryCorrectionRadius = 180
 local surfaceEntryCorrectionDistance = 180
 local waterEntryCorrectionStartDepth = -2
 local waterEntryCorrectionFullDepth = -10
-local minWaterEntryCorrection = 0.3
+local minWaterEntryCorrection = 0.2
 local maxWaterEntryCorrection = 0.85
 
 -- Surface-target arrival
