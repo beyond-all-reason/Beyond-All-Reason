@@ -3426,6 +3426,7 @@ local initialModel = {
 	tsQuality = "high",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
+	tsGlowOn = false, -- METAL SPOTS glow light master (grays the GLOW LIGHT block via data-class-disabled)
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
 	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
 	surfPreset = "dot",
@@ -10807,6 +10808,11 @@ local initialModel = {
 			not (WG.TilesetTerrain.getMetalLights and WG.TilesetTerrain.getMetalLights())
 		)
 		playSound(on and "toggleOn" or "toggleOff")
+		---@type table?
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsGlowOn = on
+		end
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("btn-ts-metal-glow")
 		if el then
@@ -10815,6 +10821,19 @@ local initialModel = {
 				on and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
 			)
 		end
+	end,
+	-- GLOW LIGHT colour swatches, borrowed from the LIGHTS tool: they only write
+	-- tileset knobs; the shader widget rebuilds the deferred lights from the
+	-- knob table.
+	onTsGlowSwatch = function(_event, idx)
+		local c = widgetState.lpPalette and widgetState.lpPalette[tonumber(idx) or 0]
+		if not (c and WG.TilesetTerrain and WG.TilesetTerrain.setKnob) then
+			return
+		end
+		WG.TilesetTerrain.setKnob("metalGlowR", c[1])
+		WG.TilesetTerrain.setKnob("metalGlowG", c[2])
+		WG.TilesetTerrain.setKnob("metalGlowB", c[3])
+		playSound("click")
 	end,
 	onTfSwitchLights = function(_event)
 		playSound("toolSwitch")

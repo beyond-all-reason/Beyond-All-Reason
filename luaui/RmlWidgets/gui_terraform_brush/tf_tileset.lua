@@ -128,9 +128,18 @@ local KNOBS = {
 	-- 2 cliff, 3 plateau) and how much it darkens
 	{ "metalApronLayer", "%d" },
 	{ "metalApronTone", "%.2f" },
+	{ "metalApronWidth", "%.2f" },
 	{ "metalTintR", "%.2f" },
 	{ "metalTintG", "%.2f" },
 	{ "metalTintB", "%.2f" },
+	-- GLOW LIGHT rows (the LIGHTS tool's point-light controls on every spot's
+	-- light); the on/off knob is a checkbox, mirrored by hand in M.sync below
+	{ "metalGlowBright", "%.2f" },
+	{ "metalGlowRadius", "%.0f" },
+	{ "metalGlowHeight", "%.0f" },
+	{ "metalGlowR", "%.2f" },
+	{ "metalGlowG", "%.2f" },
+	{ "metalGlowB", "%.2f" },
 	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
 }
@@ -186,6 +195,8 @@ function M.attach(doc, ctx)
 	ctx.widgetState.ts4PaletteSig = nil
 	ctx.widgetState.ts4PaletteEls = nil
 	ctx.widgetState.ts4SectionEl = nil
+	-- glow colour preview bar: repaint from the knobs on a fresh document
+	ctx.widgetState.tsGlowPrevLast = nil
 	-- same for the METAL SPOTS suite toggle's gray-out
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
@@ -510,6 +521,9 @@ function M.sync(doc, ctx, setSummary)
 	end
 	if WG.TilesetTerrain.getMetalLights then
 		local glow = WG.TilesetTerrain.getMetalLights() and true or false
+		if dm.tsGlowOn ~= glow then
+			dm.tsGlowOn = glow -- grays the GLOW LIGHT block while the light is off
+		end
 		if widgetState.tsGlowLast ~= glow then
 			widgetState.tsGlowLast = glow
 			local el = doc:GetElementById("btn-ts-metal-glow")
@@ -529,6 +543,28 @@ function M.sync(doc, ctx, setSummary)
 	end
 
 	stampKnobRows(doc, ctx, knobs, nil)
+
+	-- GLOW LIGHT: the colour knobs paint the preview bar (borrowed from the
+	-- LIGHTS tool). Knob-driven, so a style swap, a section RESET or a project
+	-- load land here too.
+	if knobs.metalGlowR and knobs.metalGlowG and knobs.metalGlowB then
+		local function ch(v)
+			return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5)
+		end
+		local css = string.format(
+			"background-color: #%02x%02x%02x;",
+			ch(knobs.metalGlowR),
+			ch(knobs.metalGlowG),
+			ch(knobs.metalGlowB)
+		)
+		if widgetState.tsGlowPrevLast ~= css then
+			widgetState.tsGlowPrevLast = css
+			local el = doc:GetElementById("ts-glow-preview")
+			if el then
+				el:SetAttribute("style", css)
+			end
+		end
+	end
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
 	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).

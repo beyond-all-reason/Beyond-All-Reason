@@ -6119,6 +6119,99 @@
 							<img id="btn-ts-metal-glow" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_off.png" style="cursor: pointer;" data-event-mousedown="onTsToggleMetalGlow()" />
 							<div class="text-sm text-light">Dim glow light per spot</div>
 						</div>
+						<!-- GLOW LIGHT: the LIGHTS tool's point-light controls (intensity /
+						     radius / height / colour) applied to every spot's light at once. All of it
+						     is tileset knobs (metalGlow*), so it saves with the project, rides
+						     in presets and reseeds from the style on a RESET. -->
+						<div id="ts-glow-body" data-class-disabled="!tsGlowOn">
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Intensity</div>
+								<input type="range" id="ts-slider-metalGlowBright" class="tf-slider" min="0" max="3" step="0.015" value="0.22" data-event-change="onTilesetKnob('metalGlowBright')" />
+								<input type="text" id="ts-slider-metalGlowBright-numbox" class="tf-slider-numbox" readonly value="0.22" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Radius</div>
+								<input type="range" id="ts-slider-metalGlowRadius" class="tf-slider" min="10" max="1000" step="5" value="90" data-event-change="onTilesetKnob('metalGlowRadius')" />
+								<input type="text" id="ts-slider-metalGlowRadius-numbox" class="tf-slider-numbox" readonly value="90" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Height</div>
+								<input type="range" id="ts-slider-metalGlowHeight" class="tf-slider" min="0" max="500" step="2.5" value="10" data-event-change="onTilesetKnob('metalGlowHeight')" />
+								<input type="text" id="ts-slider-metalGlowHeight-numbox" class="tf-slider-numbox" readonly value="10" />
+							</div>
+							<div id="ts-glow-palette" class="lp-color-palette mb-1">
+								<div id="ts-glow-swatch-1" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(1)" style="background-color: #ffffff;"></div>
+								<div id="ts-glow-swatch-2" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(2)" style="background-color: #e0e0e0;"></div>
+								<div id="ts-glow-swatch-3" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(3)" style="background-color: #888888;"></div>
+								<div id="ts-glow-swatch-4" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(4)" style="background-color: #555555;"></div>
+								<div id="ts-glow-swatch-5" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(5)" style="background-color: #333333;"></div>
+								<div id="ts-glow-swatch-6" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(6)" style="background-color: #1d1d1d;"></div>
+								<div id="ts-glow-swatch-7" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(7)" style="background-color: #080606;"></div>
+								<div id="ts-glow-swatch-8" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(8)" style="background-color: #ff0000;"></div>
+								<div id="ts-glow-swatch-9" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(9)" style="background-color: #ff4400;"></div>
+								<div id="ts-glow-swatch-10" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(10)" style="background-color: #ff8800;"></div>
+								<div id="ts-glow-swatch-11" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(11)" style="background-color: #ffcc00;"></div>
+								<div id="ts-glow-swatch-12" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(12)" style="background-color: #ffee54;"></div>
+								<div id="ts-glow-swatch-13" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(13)" style="background-color: #88ff00;"></div>
+								<div id="ts-glow-swatch-14" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(14)" style="background-color: #00ff00;"></div>
+								<div id="ts-glow-swatch-15" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(15)" style="background-color: #00ffcc;"></div>
+								<div id="ts-glow-swatch-16" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(16)" style="background-color: #00ccff;"></div>
+								<div id="ts-glow-swatch-17" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(17)" style="background-color: #0088ff;"></div>
+								<div id="ts-glow-swatch-18" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(18)" style="background-color: #0000ff;"></div>
+								<div id="ts-glow-swatch-19" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(19)" style="background-color: #ffffcc;"></div>
+								<div id="ts-glow-swatch-20" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(20)" style="background-color: #ffe0b0;"></div>
+								<div id="ts-glow-swatch-21" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(21)" style="background-color: #ffc87c;"></div>
+								<div id="ts-glow-swatch-22" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(22)" style="background-color: #ffaa44;"></div>
+								<div id="ts-glow-swatch-23" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(23)" style="background-color: #cc6600;"></div>
+								<div id="ts-glow-swatch-24" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(24)" style="background-color: #884400;"></div>
+								<div id="ts-glow-swatch-25" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(25)" style="background-color: #442200;"></div>
+								<div id="ts-glow-swatch-26" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(26)" style="background-color: #ff0088;"></div>
+								<div id="ts-glow-swatch-27" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(27)" style="background-color: #ff00ff;"></div>
+								<div id="ts-glow-swatch-28" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(28)" style="background-color: #8800ff;"></div>
+								<div id="ts-glow-swatch-29" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(29)" style="background-color: #a41de2;"></div>
+								<div id="ts-glow-swatch-30" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(30)" style="background-color: #6644cc;"></div>
+								<div id="ts-glow-swatch-31" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(31)" style="background-color: #00ffff;"></div>
+								<div id="ts-glow-swatch-32" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(32)" style="background-color: #aaffcc;"></div>
+								<div id="ts-glow-swatch-33" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(33)" style="background-color: #ccddff;"></div>
+								<div id="ts-glow-swatch-34" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(34)" style="background-color: #ffccdd;"></div>
+								<div id="ts-glow-swatch-35" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(35)" style="background-color: #ddccff;"></div>
+								<div id="ts-glow-swatch-36" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(36)" style="background-color: #ccffdd;"></div>
+								<div id="ts-glow-swatch-37" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(37)" style="background-color: #2ba5ea;"></div>
+								<div id="ts-glow-swatch-38" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(38)" style="background-color: #fdc04c;"></div>
+								<div id="ts-glow-swatch-39" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(39)" style="background-color: #46ea2b;"></div>
+								<div id="ts-glow-swatch-40" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(40)" style="background-color: #6b5a00;"></div>
+								<div id="ts-glow-swatch-41" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(41)" style="background-color: #282828;"></div>
+								<div id="ts-glow-swatch-42" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(42)" style="background-color: #ffeedd;"></div>
+								<div id="ts-glow-swatch-43" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(43)" style="background-color: #ffd4a0;"></div>
+								<div id="ts-glow-swatch-44" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(44)" style="background-color: #ffbb77;"></div>
+								<div id="ts-glow-swatch-45" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(45)" style="background-color: #ff9944;"></div>
+								<div id="ts-glow-swatch-46" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(46)" style="background-color: #ff7722;"></div>
+								<div id="ts-glow-swatch-47" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(47)" style="background-color: #dd5500;"></div>
+								<div id="ts-glow-swatch-48" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(48)" style="background-color: #eeeeff;"></div>
+								<div id="ts-glow-swatch-49" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(49)" style="background-color: #ccccff;"></div>
+								<div id="ts-glow-swatch-50" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(50)" style="background-color: #aabbff;"></div>
+								<div id="ts-glow-swatch-51" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(51)" style="background-color: #8899dd;"></div>
+								<div id="ts-glow-swatch-52" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(52)" style="background-color: #6677bb;"></div>
+								<div id="ts-glow-swatch-53" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(53)" style="background-color: #445599;"></div>
+								<div id="ts-glow-swatch-54" class="lp-palette-swatch" data-event-mousedown="onTsGlowSwatch(54)" style="background-color: #223377;"></div>
+							</div>
+							<div id="ts-glow-preview" class="lp-color-preview mb-1"></div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Red</div>
+								<input type="range" id="ts-slider-metalGlowR" class="tf-slider lp-slider-channel-r" min="0" max="1" step="0.005" value="0.55" data-event-change="onTilesetKnob('metalGlowR')" />
+								<input type="text" id="ts-slider-metalGlowR-numbox" class="tf-slider-numbox" readonly value="0.55" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Green</div>
+								<input type="range" id="ts-slider-metalGlowG" class="tf-slider lp-slider-channel-g" min="0" max="1" step="0.005" value="0.70" data-event-change="onTilesetKnob('metalGlowG')" />
+								<input type="text" id="ts-slider-metalGlowG-numbox" class="tf-slider-numbox" readonly value="0.70" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Blue</div>
+								<input type="range" id="ts-slider-metalGlowB" class="tf-slider lp-slider-channel-b" min="0" max="1" step="0.005" value="1.0" data-event-change="onTilesetKnob('metalGlowB')" />
+								<input type="text" id="ts-slider-metalGlowB-numbox" class="tf-slider-numbox" readonly value="1.0" />
+							</div>
+						</div><!-- /ts-glow-body -->
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Influence</div>
 							<input type="range" id="ts-slider-metalInfluence" class="tf-slider" min="0" max="1" step="0.005" value="1.0" data-event-change="onTilesetKnob('metalInfluence')" />
@@ -6163,6 +6256,11 @@
 							<div class="tf-slider-label text-light">Band tone</div>
 							<input type="range" id="ts-slider-metalApronTone" class="tf-slider" min="0.3" max="1.3" step="0.005" value="0.78" data-event-change="onTilesetKnob('metalApronTone')" />
 							<input type="text" id="ts-slider-metalApronTone-numbox" class="tf-slider-numbox" readonly value="0.78" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Band width</div>
+							<input type="range" id="ts-slider-metalApronWidth" class="tf-slider" min="0" max="3" step="0.015" value="1.0" data-event-change="onTilesetKnob('metalApronWidth')" />
+							<input type="text" id="ts-slider-metalApronWidth-numbox" class="tf-slider-numbox" readonly value="1.0" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Tint R</div>
