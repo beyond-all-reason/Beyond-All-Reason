@@ -1211,6 +1211,28 @@ describe("mission_api.validation", function()
 			end
 		)
 
+		it("passes countdown ID references that are added, and countdowns left to run out", function()
+			GG["MissionAPI"].Actions = {
+				addBomb = { type = actionTypes.AddCountdown, parameters = { countdownID = "bomb", seconds = 60 } },
+				pauseBomb = { type = actionTypes.PauseCountdown, parameters = { countdownID = "bomb" } },
+				addLone = { type = actionTypes.AddCountdown, parameters = { countdownID = "lone", seconds = 10 } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
+		it("warns for a countdown ID that is not added in any action", function()
+			GG["MissionAPI"].Actions = {
+				cancelGhost = { type = actionTypes.CancelCountdown, parameters = { countdownID = "ghost" } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Countdown 'ghost' is not added in any action. Referenced in: cancelGhost"))
+		end)
+
 		it("logs an error when a stage refers to a non-existent objective", function()
 			GG["MissionAPI"].Objectives = {
 				obj1 = { textKey = "ok" },

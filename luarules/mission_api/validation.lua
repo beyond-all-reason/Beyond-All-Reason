@@ -1442,6 +1442,41 @@ local function validateMarkerNameReferences(actionTypes, actions)
 	end
 end
 
+local function validateCountdownIDReferences(actionTypes, actions)
+	local referencingActionTypes = {
+		[actionTypes.CancelCountdown] = true,
+		[actionTypes.PauseCountdown] = true,
+		[actionTypes.UnpauseCountdown] = true,
+	}
+
+	local addedCountdownIDs = {}
+	local referencedCountdownIDs = {}
+	for actionID, action in pairs(actions) do
+		local countdownID = action.parameters and action.parameters.countdownID
+		if countdownID then
+			if action.type == actionTypes.AddCountdown then
+				addedCountdownIDs[countdownID] = true
+			elseif referencingActionTypes[action.type] then
+				referencedCountdownIDs[countdownID] = referencedCountdownIDs[countdownID] or {}
+				referencedCountdownIDs[countdownID][#referencedCountdownIDs[countdownID] + 1] = actionID
+			end
+		end
+	end
+
+	-- A countdown that is added and simply left to run out is fine, so unlike
+	-- marker names there is no warning in the other direction.
+	for countdownID, actionIDs in pairs(referencedCountdownIDs) do
+		if not addedCountdownIDs[countdownID] then
+			logWarn(
+				"Countdown '"
+					.. countdownID
+					.. "' is not added in any action. Referenced in: "
+					.. table.concat(actionIDs, ", ")
+			)
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1457,6 +1492,7 @@ local function validateReferences()
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
+	validateCountdownIDReferences(actionTypes, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
