@@ -3,7 +3,7 @@ local TRIGGER_FILES_PATTERN = "*.lua"
 
 -- Some triggers declare no callins and are activated elsewhere:
 -- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
--- - ObjectiveCompleted by objectives.lua
+-- - objective triggers (Objective[Completed|Failed]) by objectives.lua
 local function loadTriggerDefinitions()
 	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 

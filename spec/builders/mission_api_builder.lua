@@ -40,6 +40,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field changeStage table
 ---@field tryAdvanceStage table
 ---@field onObjectiveCompleted table
+---@field failObjective table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
 ---@field activateTrigger table
@@ -311,6 +312,7 @@ function MB:Build()
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
 	local onObjectiveCompletedCalls = {}
+	local failObjectiveCalls = {}
 	local updateProgressCalls = {}
 	local echoCalls = {}
 	local activateTriggerCalls = {}
@@ -390,6 +392,9 @@ function MB:Build()
 		OnObjectiveCompleted = function(objectiveID, objective)
 			onObjectiveCompletedCalls[#onObjectiveCompletedCalls + 1] =
 				{ objectiveID = objectiveID, objective = objective }
+		end,
+		FailObjective = function(objectiveID)
+			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		UpdateObjectiveProgress = function(
 			objectiveID,
@@ -473,6 +478,7 @@ function MB:Build()
 			changeStage = changeStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
 			onObjectiveCompleted = onObjectiveCompletedCalls,
+			failObjective = failObjectiveCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
 			activateTrigger = activateTriggerCalls,
@@ -488,6 +494,7 @@ function MB:Build()
 				changeStageCalls,
 				tryAdvanceCalls,
 				onObjectiveCompletedCalls,
+				failObjectiveCalls,
 				updateProgressCalls,
 				echoCalls,
 				activateTriggerCalls,
