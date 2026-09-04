@@ -15007,12 +15007,8 @@ end
 shaders.SetWaterDynamicUniforms = function()
 	local locs = shaders.waterLocs
 	gl.UniformFloat(locs.waterLevel, GetWaterLevel())
-	-- parens truncate multi-returns to one value: GetGameFrame returns a second
-	-- number and GetSun("pos") three — extra args turn this into glUniform2,
-	-- which is GL_INVALID_OPERATION on a float uniform (the set silently fails;
-	-- Mesa's debug output additionally spams the infolog every frame)
-	gl.UniformFloat(locs.gameFrames, (Spring.GetGameFrame()))
-	gl.UniformFloat(locs.sunDirY, (select(2, gl.GetSun("pos"))))
+	gl.UniformFloat(locs.gameFrames, Spring.GetGameFrame())
+	gl.UniformFloat(locs.sunDirY, select(2, gl.GetSun("pos")))
 	local lavaHdx, lavaHdz = GetLavaHeatDistort()
 	gl.UniformFloat(locs.heatDistortX, lavaHdx)
 	gl.UniformFloat(locs.heatDistortZ, lavaHdz)
@@ -20788,10 +20784,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	if interactionState.trackingPlayerID then
 		local _, _, _, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if teamID then
-			local tr, tg, tb = Spring.GetTeamColor(teamID)
-			if tr and tg and tb then
-				r, g, b = tr, tg, tb
-			end
+			r, g, b = Spring.GetTeamColor(teamID)
 		end
 	end
 
