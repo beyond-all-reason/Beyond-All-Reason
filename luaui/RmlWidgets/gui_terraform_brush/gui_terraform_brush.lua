@@ -350,7 +350,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
-	-- Used to auto-blur when game chat is opened, so chat keys aren't stolen by RmlUI.
+	-- Used to auto-blur when game chat is opened, so Tab autocomplete isn't stolen by RmlUI.
 	focusedRmlInput = nil,
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
@@ -918,23 +918,26 @@ widgetState.applySkybox = applySkybox
 -- vary (SpaceSkybox1/2/3, EarthSkybox1/2/3, ...). namaqualand -> red desert planet
 -- is our pick (user specified only bismuth/teizer/enborelde).
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
-local BIOME_SKYBOX_MATCH = {
-	bismuth = "spaceskybox", -- starry sky
-	teizer = "goldsunrise", -- sunset (bespoke desert kept the old pick)
-	protodesert = "goldsunrise", -- the renamed original Teizer stand-in set
-	enborelde = "earthskybox", -- sunny blue sky with clouds (bespoke earthlike kept the old pick)
-	prototemperate = "earthskybox", -- the renamed original Enborelde stand-in set
-	namaqualand = "redplanet", -- red desert planet
-	palehang = "allthatglitters", -- crystal-desert sky (Theta Crystals family)
-}
+-- The fragment per biome comes from its manifest (tileset_dev/tilesets/<key>.lua,
+-- field `skybox`), read through WG.TilesetTerrain.getBiomes(); nothing is
+-- hardcoded here any more, so a new biome brings its own sky.
 
 -- Resolve a biome key to a full DDS path in the skybox library, or nil if unmapped /
 -- the matching file is absent. Deterministic: lowest-sorted name wins (so *1 variants).
 local function resolveBiomeSkybox(biomeKey)
-	local frag = BIOME_SKYBOX_MATCH[biomeKey]
-	if not frag then
+	local frag
+	local T = WG.TilesetTerrain
+	local rows = T and T.getBiomes and T.getBiomes()
+	for _, b in ipairs(rows or {}) do
+		if b.key == biomeKey then
+			frag = b.skybox
+			break
+		end
+	end
+	if not frag or frag == "" then
 		return nil
 	end
+	frag = tostring(frag):lower()
 	local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
 	table.sort(files)
 	for _, fp in ipairs(files) do
@@ -960,6 +963,27 @@ local function syncSkyboxToBiome(biomeKey)
 	for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
 		t.element:SetClass("active", t.path == sky)
 	end
+end
+
+-- Pick a biome: shared by the data-model onPickBiome and the BIOME LIBRARY
+-- tiles tf_tileset.lua builds at runtime from the manifests. On widgetState,
+-- not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
+widgetState.pickBiome = function(key)
+	if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
+		return false
+	end
+	local ok = WG.TilesetTerrain.setBiome(key)
+	if ok then
+		playSound("click")
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsBiome = key
+		end
+		-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
+		-- toggle on, or when the manifest names no sky).
+		syncSkyboxToBiome(key)
+	end
+	return ok
 end
 
 local function tickSkyboxFade(dt)
@@ -1074,6 +1098,44 @@ function widgetState.pushPanelClip(el)
 		node = node.parent_node
 	end
 	return false
+end
+
+-- The FILE dropdown must stay on top of everything, but the GL thumbnail
+-- passes run in DrawScreenPost, after RmlUi has rendered, so an open menu
+-- would be painted over (reported by Moose for the SURFACE tiles; the same
+-- held for every tile grid). Measured once per frame into widgetState.fmBox;
+-- every pass skips tiles that touch it. Element coords, y down. Gated on the
+-- data model, not the element box: an element that is not laid out can still
+-- report a stale non-zero box (the panel-down lesson above).
+function widgetState.measureFileMenuBox()
+	widgetState.fmBoxX = nil
+	local dm = widgetState.dmHandle
+	if not (dm and dm.fileMenuOpen) then
+		return
+	end
+	local doc = widgetState.document
+	local menu = doc and doc:GetElementById("tf-file-menu")
+	if not menu then
+		return
+	end
+	local w, h = menu.offset_width, menu.offset_height
+	if w and h and w > 0 and h > 0 then
+		widgetState.fmBoxX = menu.absolute_left
+		widgetState.fmBoxY = menu.absolute_top
+		widgetState.fmBoxW = w
+		widgetState.fmBoxH = h
+	end
+end
+function widgetState.underFileMenu(x, y, w, h)
+	local bx = widgetState.fmBoxX
+	if not bx then
+		return false
+	end
+	-- set together with fmBoxX; the or-defaults are for the analyzer
+	local by = widgetState.fmBoxY or 0
+	local bw = widgetState.fmBoxW or 0
+	local bh = widgetState.fmBoxH or 0
+	return x < bx + bw and x + w > bx and y < by + bh and y + h > by
 end
 
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
@@ -3023,6 +3085,9 @@ local initialModel = {
 	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
 	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
 	tsSlot4Mode = "plateau",
+	-- PERFORMANCE section quality preset (data-class-active="tsQuality == '<tier>'");
+	-- synced from WG.TilesetTerrain.getQuality.
+	tsQuality = "high",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -7433,14 +7498,23 @@ local initialModel = {
 			local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 			local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 			local clSt = WG.CloneTool and WG.CloneTool.getState()
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			local sfSt = sfPtr and sfPtr.getState and sfPtr.getState()
 			if tfSt and tfSt.active then
 				saved = { tool = "terraform", mode = tfSt.mode }
 			elseif fpSt and fpSt.active then
 				saved = { tool = "features", mode = fpSt.mode }
 			elseif wbSt and wbSt.active then
 				saved = { tool = "weather", mode = wbSt.mode }
+			elseif widgetState.surfHardActive then
+				-- LAYERS: the splat engine runs headless under the SURFACE panel;
+				-- the pin (not the engine) tells it apart from the legacy SPLAT tool.
+				saved = { tool = "surfaceHard" }
 			elseif spSt and spSt.active then
 				saved = { tool = "splat" }
+			elseif sfSt and sfSt.active then
+				saved = { tool = "surface" }
 			elseif mbSt and mbSt.active then
 				saved = { tool = "metal", mode = mbSt.subMode }
 			elseif gbSt and gbSt.active then
@@ -7466,6 +7540,9 @@ local initialModel = {
 			if WG.SplatPainter then
 				WG.SplatPainter.deactivate()
 			end
+			if sfPtr and sfPtr.deactivate then
+				sfPtr.deactivate()
+			end
 			if WG.MetalBrush then
 				WG.MetalBrush.deactivate()
 			end
@@ -7485,6 +7562,8 @@ local initialModel = {
 			widgetState.lightActive = false
 			widgetState.startposActive = false
 			widgetState.cloneActive = false
+			widgetState.surfHardActive = false
+			widgetState.surfPickerSlot = nil -- pausing the tool closes the variant picker
 			widgetState.passthroughSaved = saved
 			widgetState.passthroughMode = true
 			local d = widgetState.dmHandle
@@ -7506,6 +7585,10 @@ local initialModel = {
 			end
 			local s = widgetState.passthroughSaved
 			widgetState.passthroughSaved = nil
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			---@type table?
+			local spPtr = WG.SplatPainter
 			if s then
 				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode;
 				-- Weather's setMode only picks the submode without re-arming the tool.
@@ -7517,6 +7600,11 @@ local initialModel = {
 					WG.WeatherBrush.activate(s.mode or "scatter")
 				elseif s.tool == "splat" and WG.SplatPainter then
 					WG.SplatPainter.activate()
+				elseif s.tool == "surface" and sfPtr and sfPtr.activate then
+					sfPtr.activate()
+				elseif s.tool == "surfaceHard" and spPtr and spPtr.activate then
+					spPtr.activate()
+					widgetState.surfHardActive = true
 				elseif s.tool == "metal" and WG.MetalBrush then
 					WG.MetalBrush.activate(s.mode or "stamp")
 				elseif s.tool == "grass" and WG.GrassBrush then
@@ -9914,20 +10002,7 @@ local initialModel = {
 		end
 	end,
 	onPickBiome = function(_event, key)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
-			return
-		end
-		local ok = WG.TilesetTerrain.setBiome(key)
-		if ok then
-			playSound("click")
-			local dm = widgetState.dmHandle
-			if dm then
-				dm.tsBiome = key
-			end
-			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
-			-- toggle on; also no-op on maps that booted without a real cubemap sky).
-			syncSkyboxToBiome(key)
-		end
+		widgetState.pickBiome(key)
 	end,
 	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
 	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
@@ -9945,6 +10020,19 @@ local initialModel = {
 			local dm = widgetState.dmHandle
 			if dm then
 				dm.tsSlot4Mode = name
+			end
+		end
+	end,
+	onTsQuality = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setQuality) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setQuality(name)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tsQuality = name
 			end
 		end
 	end,
@@ -14525,7 +14613,7 @@ local function drawSkyboxThumbnailPreviews()
 				local y = el.absolute_top
 				local w = el.offset_width
 				local h = el.offset_height
-				if w > 4 and h > 4 then
+				if w > 4 and h > 4 and not widgetState.underFileMenu(x, y, w, h) then
 					local glY1 = vsy - y - h
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
@@ -14610,7 +14698,7 @@ local function drawSurfPaletteThumbs()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if gl.Texture(0, tex) then
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
 					-- centered crop: a full 4K tile at 52dp reads as noise, so a
 					-- quarter-window shows the material's actual character.
 					-- Entries may widen it (the picker's hover preview is big
@@ -14675,7 +14763,7 @@ widgetState.drawTs4PaletteThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if gl.Texture(0, tex) then
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
 					-- centered quarter-window crop, like the surf tiles: a full
 					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -14691,7 +14779,66 @@ widgetState.drawTs4PaletteThumbs = function()
 	gl.Color(1, 1, 1, 1)
 end
 
+-- GL thumbnails for the BIOME LIBRARY tiles (tf_tileset.lua's rebuildBiomePalette):
+-- the shipped biome_<key>.png or a manifest `thumb` drawn whole, or the base
+-- layer's albedo as a centered crop when a biome has neither. Same mechanism and
+-- gates as drawTs4PaletteThumbs above.
+widgetState.drawTsBiomeThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.tsBiomeSectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.tsBiomeTileEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+					if els[i].crop then
+						-- a 4K albedo at 60dp reads as noise: centered quarter crop
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					else
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0, 1, 1, 0)
+					end
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawScreenPost()
+	-- FILE dropdown box, read once for every pass below to skip tiles under it.
+	widgetState.measureFileMenuBox()
+
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
 
@@ -14700,6 +14847,9 @@ function widget:DrawScreenPost()
 
 	-- EXTRA LAYER material tile thumbnails (early-outs on its own window check).
 	widgetState.drawTs4PaletteThumbs()
+
+	-- BIOME LIBRARY tile thumbnails (same gates).
+	widgetState.drawTsBiomeThumbs()
 
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
@@ -15101,7 +15251,7 @@ function widget:DrawScreenPost()
 		end
 	end
 
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = GetViewGeometry()
 
 	local shader = widgetState.spPreviewShader
 
@@ -15168,7 +15318,7 @@ function widget:DrawScreenPost()
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
 				end
 
-				local bound = gl.Texture(0, tex)
+				local bound = not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex)
 
 				if logDraw then
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
@@ -15516,7 +15666,7 @@ function widget:Update()
 		end
 
 		-- When game chat input is open, auto-blur any focused RmlUI text input so
-		-- keystrokes reach the chat widget instead of navigating RmlUI fields.
+		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
 		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil

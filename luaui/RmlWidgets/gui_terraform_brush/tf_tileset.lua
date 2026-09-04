@@ -52,6 +52,16 @@ local KNOBS = {
 	{ "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" },
 	{ "parallaxAmp", "%.2f" },
+	-- PERFORMANCE section levers
+	{ "detileMul", "%.0f" },
+	{ "foothills", "%d" },
+	{ "stagger", "%d" },
+	{ "cliffGateDeg", "%.1f" },
+	{ "farCache", "%d" },
+	{ "farStart", "%.2f" },
+	{ "farBand", "%.2f" },
+	{ "farCliffFp", "%.2f" },
+	{ "clipCache", "%d" },
 	{ "macroVar", "%.2f" },
 	{ "macroLod", "%.1f" },
 	{ "albedoSortMode", "%d" },
@@ -122,6 +132,7 @@ local KNOBS = {
 -- because nothing in them affects an engine-rendered map.
 local TUNING_FRAMES = {
 	"frame-ts-library",
+	"frame-ts-perf",
 	"frame-ts-metal",
 	"frame-ts-scale",
 	"frame-ts-normals",
@@ -216,6 +227,66 @@ local function rebuildS4Palette(doc, ctx, list, current)
 		end, false)
 		row:AppendChild(tile)
 		widgetState.ts4PaletteEls[#widgetState.ts4PaletteEls + 1] = { el = thumb, tex = v.diff }
+	end
+end
+
+-- BIOME LIBRARY tiles: built from WG.TilesetTerrain.getBiomes(), one manifest
+-- per biome in tileset_dev/tilesets/, so a biome added on disk shows up without
+-- an RML edit. Thumbnails are GL overdraws (gui_terraform_brush.lua's
+-- drawTsBiomeThumbs), like the EXTRA LAYER material tiles above.
+local function rebuildBiomePalette(doc, ctx, rows, activeKey)
+	local widgetState = ctx.widgetState
+	local grid = doc:GetElementById("ts-biome-grid")
+	widgetState.tsBiomeSectionEl = doc:GetElementById("section-ts-library")
+	if not grid then
+		return
+	end
+	grid.inner_rml = ""
+	widgetState.tsBiomeTileEls = {}
+	local row
+	for i = 1, #rows do
+		local b = rows[i]
+		if not row or ((i - 1) % 3) == 0 then
+			row = doc:CreateElement("div")
+			row:SetClass("tf-biome-grid", true)
+			row:SetClass("flex", true)
+			row:SetClass("flex-row", true)
+			row:SetClass("gap-1", true)
+			row:SetClass("mb-1", true)
+			grid:AppendChild(row)
+		end
+		local tile = doc:CreateElement("div")
+		tile:SetClass("tf-biome-tile", true)
+		if b.key == activeKey then
+			tile:SetClass("active", true)
+		end
+		if b.file then
+			tile:SetAttribute("title", b.file)
+		end
+		local thumb = doc:CreateElement("div")
+		thumb:SetClass("tf-biome-thumb", true)
+		tile:AppendChild(thumb)
+		local name = doc:CreateElement("div")
+		name:SetClass("tf-biome-name", true)
+		name.inner_rml = b.name or b.key
+		tile:AppendChild(name)
+		tile:AddEventListener("mousedown", function(_event)
+			if widgetState.pickBiome then
+				widgetState.pickBiome(b.key)
+			end
+		end, false)
+		row:AppendChild(tile)
+		widgetState.tsBiomeTileEls[#widgetState.tsBiomeTileEls + 1] = { el = thumb, tex = b.thumb, crop = b.thumbCrop }
+	end
+	-- invisible pads keep a short last row at tile width (flex: 1 1 0)
+	local rem = #rows % 3
+	if row and rem > 0 then
+		for _ = 1, 3 - rem do
+			local pad = doc:CreateElement("div")
+			pad:SetClass("tf-biome-tile", true)
+			pad:SetClass("tf-biome-pad", true)
+			row:AppendChild(pad)
+		end
 	end
 end
 
@@ -321,6 +392,23 @@ function M.sync(doc, ctx, setSummary)
 			end
 		end
 	end
+	-- BIOME LIBRARY tiles: rebuild when the manifest list, a thumbnail or the
+	-- active biome changes (covers startup, /tileset biomes reload, console picks).
+	---@type table?
+	local tsT = WG.TilesetTerrain
+	if tsT and tsT.getBiomes then
+		local rows = tsT.getBiomes()
+		local sigParts = { tostring(dm.tsBiome) }
+		for i = 1, #rows do
+			sigParts[#sigParts + 1] = rows[i].key .. "=" .. tostring(rows[i].thumb)
+		end
+		local sig = table.concat(sigParts, "|")
+		if widgetState.tsBiomeSig ~= sig then
+			widgetState.tsBiomeSig = sig
+			rebuildBiomePalette(doc, ctx, rows, dm.tsBiome)
+		end
+	end
+
 	-- Material picker tiles: rebuild when the biome catalog or the pick changes
 	-- (covers startup, biome swaps and console /tileset s4).
 	if WG.TilesetTerrain.getSlot4Materials then
@@ -432,6 +520,14 @@ function M.sync(doc, ctx, setSummary)
 	-- widget (initial state + console-driven /tileset changes); debugView has no slider.
 	if knobs.debugView ~= nil and dm.tsDebugView ~= knobs.debugView then
 		dm.tsDebugView = knobs.debugView
+	end
+
+	-- PERFORMANCE: mirror the active quality tier to the preset buttons
+	if WG.TilesetTerrain.getQuality then
+		local q = WG.TilesetTerrain.getQuality()
+		if q and dm.tsQuality ~= q then
+			dm.tsQuality = q
+		end
 	end
 
 	if setSummary then
