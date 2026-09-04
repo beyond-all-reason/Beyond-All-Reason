@@ -51,12 +51,12 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.amount)
 			.. " | completed: "
 			.. tostring(objective.completed)
+			.. (objective.failed and " (failed)" or "")
 	)
 end
 
---- Activates every `ObjectiveCompleted` trigger watching the objective.
-local function notifyObjectiveCompleted(objectiveID)
-	local triggerType = GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCompleted
+--- Activates every trigger of the given type watching the objective.
+local function notifyObservers(objectiveID, triggerType)
 	local observers = GG["MissionAPI"].ObjectiveObservers[objectiveID]
 	local triggers = observers and observers[triggerType]
 	if not triggers then
@@ -69,14 +69,30 @@ local function notifyObjectiveCompleted(objectiveID)
 	end
 end
 
---- Run the stage's exit routes for an objective that has just completed.
---- This runs in a fixed order: ObjectiveCompleted triggers, then nextStage.
-local function onObjectiveCompleted(objectiveID, objective)
+--- Run the stage's exit routes for an objective that has just completed or failed.
+--- This runs in a fixed order: observer triggers of triggerType, then nextStage.
+local function runExitRoutes(objectiveID, objective, triggerType)
 	local stageChangesBefore = stageChanges
-	notifyObjectiveCompleted(objectiveID)
+	notifyObservers(objectiveID, triggerType)
 	if stageChanges == stageChangesBefore then
 		tryAdvanceStage(objective)
 	end
+end
+
+local function onObjectiveCompleted(objectiveID, objective)
+	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCompleted)
+end
+
+local function failObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.completed = true
+	objective.failed = true
+	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveFailed)
+	echoObjectiveUpdate(objectiveID, objective)
 end
 
 --- Update objective progress for a managed (statistics-based) objective.
@@ -140,6 +156,7 @@ return {
 	ChangeStage = changeStage,
 	TryAdvanceStage = tryAdvanceStage,
 	OnObjectiveCompleted = onObjectiveCompleted,
+	FailObjective = failObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

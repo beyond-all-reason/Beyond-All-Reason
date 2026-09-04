@@ -33,8 +33,11 @@ describe("mission_api.objectives", function()
 		return builder:WithStage(stageID, { objectives = objectiveIDs })
 	end
 
-	local function observer(objectiveID)
-		return { type = TRIGGER_TYPES.ObjectiveCompleted, parameters = { objectiveID = objectiveID } }
+	local function observer(objectiveID, triggerType)
+		return {
+			type = triggerType or TRIGGER_TYPES.ObjectiveCompleted,
+			parameters = { objectiveID = objectiveID },
+		}
 	end
 
 	local function completedObjective(nextStage)
@@ -300,6 +303,83 @@ describe("mission_api.objectives", function()
 			end
 			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
 			assert.are.equal("s3", missionApi.CurrentStageID)
+		end)
+	end)
+
+	describe("FailObjective", function()
+		it("completes the objective and marks it failed", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			Objectives.FailObjective("obj1")
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_true(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = true }))
+			Objectives.FailObjective("obj1")
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("does not mark a success as failed", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("activates the ObjectiveFailed triggers naming the objective", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false })
+					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveFailed))
+			)
+			Objectives.FailObjective("obj1")
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.watch, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("leaves ObjectiveCompleted triggers alone", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false })
+					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveCompleted))
+			)
+			Objectives.FailObjective("obj1")
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the triggers while the objective's stage is still current", function()
+			install(
+				stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }):WithTrigger(
+					"watch",
+					observer("obj1", TRIGGER_TYPES.ObjectiveFailed)
+				)
+			)
+			Objectives.FailObjective("obj1")
+			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("advances the stage through the gate, so a failure cannot softlock it", function()
+			install(stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }))
+			Objectives.FailObjective("obj1")
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("lets a stage change from a trigger stand instead of running the gate", function()
+			install(
+				stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } })
+					:WithStage("s9", { objectives = {} })
+					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveFailed))
+			)
+			missionApi.ActivateTrigger = function()
+				Objectives.ChangeStage("s9")
+			end
+			Objectives.FailObjective("obj1")
+			assert.are.equal("s9", missionApi.CurrentStageID)
 		end)
 	end)
 end)
