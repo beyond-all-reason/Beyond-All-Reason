@@ -445,12 +445,9 @@ local function StopDrawParalyzedUnitGL4(unitID)
 end
 
 ---  All the stuff from the old paralyze effect widget to make this shit work!
-local unitIDtoUniqueID = {}
 local TESTMODE = false
 
 local gameFrame = spGetGameFrame()
-local prevGameFrame = gameFrame
-local numParaUnits = 0
 local myTeamID
 local spec, fullview
 

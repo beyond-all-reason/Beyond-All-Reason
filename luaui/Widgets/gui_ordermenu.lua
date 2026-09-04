@@ -727,7 +727,7 @@ function widget:Initialize()
 	---Highlight a command in the order menu with an animated pulsing outline +
 	---inner glow. Subsequent calls update the existing highlight (without
 	---restarting the pulse phase).
-	---@param cmdID number The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
+	---@param cmdID integer|CMD The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	WG.ordermenu.setHighlight = function(cmdID, color)
 		if not cmdID then
@@ -892,8 +892,6 @@ local function drawHighlights()
 	end
 	local now = os_clock()
 	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
-	local outlineAlpha = 0.45 + 0.5 * pulse
-	local glowAlpha = 0.10 + 0.20 * pulse
 	for cell = 1, #commands do
 		local cmd = commands[cell]
 		local rect = cellRects[cell]

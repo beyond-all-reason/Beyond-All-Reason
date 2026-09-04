@@ -198,7 +198,7 @@ function SB:WithGameFrame(frame)
 end
 
 ---@param self SpringSyncedBuilder
----@param teamID number
+---@param teamID TeamID
 ---@param key string
 ---@param value any
 ---@return SpringSyncedBuilder
@@ -299,27 +299,6 @@ function SB:BuildSpring()
 	end
 
 	local resourceSetCalls = {}
-
-	local function recordSetCall(teamID, resourceType, data)
-		table.insert(resourceSetCalls, {
-			teamID = teamID,
-			resource = resourceType,
-			data = table.copy(data or {}),
-		})
-	end
-
-	local function applyResourcePatch(teamID, resourceType, patch)
-		if type(patch) ~= "table" then
-			error("ResourceData patch must be a table")
-		end
-
-		local store, normalized = getResourceStore(teamID, resourceType)
-		for key, value in pairs(patch) do
-			store[key] = value
-		end
-		store.resourceType = normalized
-		recordSetCall(teamID, normalized, patch)
-	end
 
 	---@type SpringSyncedMock
 	local mock = {
@@ -914,7 +893,7 @@ end
 ---Register a unit definition. Accepts either a UnitDefBuilder or a (defID, defTable) pair.
 ---Delegates to the shared UnitDefsBuilder registry.
 ---@overload fun(self: SpringSyncedBuilder, udb: UnitDefBuilder): SpringSyncedBuilder
----@param defID number
+---@param defID UnitDefID
 ---@param def table
 ---@return SpringSyncedBuilder
 function SB:WithUnitDef(defID, def)

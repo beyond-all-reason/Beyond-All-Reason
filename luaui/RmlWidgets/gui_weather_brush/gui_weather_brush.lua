@@ -20,7 +20,6 @@ local MODEL_NAME = "weather_brush_model"
 local RML_PATH = "luaui/RmlWidgets/gui_weather_brush/gui_weather_brush.rml"
 
 local WG = WG
-local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 25

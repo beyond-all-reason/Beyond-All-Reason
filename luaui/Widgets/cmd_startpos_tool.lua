@@ -19,7 +19,6 @@ local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetViewGeometry = Spring.GetViewGeometry
 local GetMapSize = Spring.GetMapSize or function()
 	return Game.mapSizeX, Game.mapSizeZ
 end
@@ -33,8 +32,6 @@ local glDrawGroundCircle = gl.DrawGroundCircle
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
-local glRotate = gl.Rotate
-local glScale = gl.Scale
 local glBillboard = gl.Billboard
 local glText = gl.Text
 local glBeginEnd = gl.BeginEnd
@@ -42,7 +39,6 @@ local glVertex = gl.Vertex
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glBlending = gl.Blending
-local glDepthTest = gl.DepthTest
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -73,7 +69,6 @@ local math_pi = math.pi
 local math_max = math.max
 local math_min = math.min
 local math_random = math.random
-local math_atan2 = math.atan2
 
 -- ============================================================
 -- Constants
@@ -145,9 +140,6 @@ local shapeType = "circle" -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
 local shapeRadius = 2000
 local shapeRotation = 0 -- degrees
 local shapeCount = 4 -- number of positions to place with shape
-local shapePreview = {} -- preview positions for shape mode
-local shapeCenterX = nil -- shape center (set on click)
-local shapeCenterZ = nil
 
 -- Startbox state
 local startboxes = {} -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
@@ -191,8 +183,6 @@ local dragging = false
 local dragIdx = nil -- which position index is being dragged
 local dragStartX = nil
 local dragStartY = nil -- screen coords at mouse-down
-local mouseDownWorldX = nil
-local mouseDownWorldZ = nil
 
 -- Hover state (drives cursor + marker highlight)
 local hoverPosIdx = nil -- index of position currently hovered (express mode)
@@ -286,7 +276,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 	-- If we need more, add midpoints between each pair of vertices
 	local level = 1
 	while #allPoints < count do
-		local newPoints = {}
 		local prevPoints = {}
 		-- Collect edge endpoints at current subdivision level
 		-- At level 1: midpoints between vertices
@@ -311,10 +300,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 		pts[i] = { x = x, z = z }
 	end
 	return pts
-end
-
-local function generateSquarePositions(cx, cz, radius, count, rotation)
-	return generatePolygonPositions(cx, cz, radius, 4, count, rotation)
 end
 
 local function generateShapePositions(cx, cz)

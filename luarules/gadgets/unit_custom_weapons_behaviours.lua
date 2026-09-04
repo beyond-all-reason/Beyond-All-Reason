@@ -172,8 +172,8 @@ local function getTargetPositionWithError(projectileID, targetType, target)
 end
 
 ---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
----@param projectileID integer
----@param target integer|xyz?
+---@param projectileID ProjectileID
+---@param target UnitOrPosition?
 ---@param targetType TargetType
 local function setProjectileTarget(projectileID, target, targetType)
 	if targetType == 1 then
@@ -197,7 +197,7 @@ do
 		team = -1,
 	}
 
-	---@return integer weaponDefID
+	---@return WeaponDefID weaponDefID
 	---@return ProjectileParams projectileParams
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)
@@ -403,8 +403,8 @@ weaponCustomParamKeys.guidance = {
 ---@class GuidanceEffectResult
 ---@field [1] boolean isFiring
 ---@field [2] TargetType guidanceType
----@field [3] boolean isUserTarget, nil when guidanceType is `0`
----@field [4] integer|xyz guidanceTarget, nil when guidanceType is `0`
+---@field [3] boolean? isUserTarget, nil when guidanceType is `0`
+---@field [4] (UnitOrPosition|ProjectileID)? guidanceTarget, nil when guidanceType is `0`
 
 local guidanceResults = {} ---@type table<integer, GuidanceEffectResult|xyz>
 

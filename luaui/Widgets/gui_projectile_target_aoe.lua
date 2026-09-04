@@ -1258,7 +1258,6 @@ function widget:DrawInMiniMap(sx, sy)
 
 	local currentTime = osClock()
 	local worldToPixelX = sx / mapSizeX
-	local worldToPixelY = sy / mapSizeZ
 	local waveBase = currentTime * Config.nukeWaveSpeed
 
 	-- Collect all nuke data into minimap batch (reuses tables)

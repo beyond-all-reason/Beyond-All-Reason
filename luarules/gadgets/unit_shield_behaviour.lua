@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
----@alias ShieldPreDamagedCallback fun(projectileID:integer, attackerID:integer, shieldWeaponIndex:integer, shieldUnitID:integer, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:integer?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
+---@alias ShieldPreDamagedCallback fun(projectileID:ProjectileID, attackerID:UnitID, shieldWeaponIndex:integer, shieldUnitID:UnitID, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:UnitID?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
 
 local mathMax = math.max
 local mathMin = math.min
@@ -992,7 +992,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param shieldUnitID integer
+---@param shieldUnitID UnitID
 ---@return boolean?
 local function isInShield(x, y, z, shieldUnitID)
 	local sx, sy, sz, sr = getUnitShieldPosition(shieldUnitID)

@@ -16,10 +16,6 @@ local startTime = -1
 local cachedLoadTimes = VFS.FileExists("loadprogress_cached.lua") and VFS.Include("loadprogress_cached.lua") or {}
 local cachedTotalTime = (cachedLoadTimes[Game.mapName] or -1) * 0.97 --*0.97 cause else last rendered frame would show 99%
 
-local function mix(x, y, a)
-	return x * (1 - a) + y * a
-end
-
 function SG.GetLoadProgress()
 	if startTime < 0 then
 		startTime = os.clock()

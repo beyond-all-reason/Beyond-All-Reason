@@ -20,12 +20,6 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
--- Localized gl functions for performance
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glCallList = gl.CallList
-local glTranslate = gl.Translate
-
 --[[
 
 -- Available API functions:
@@ -66,7 +60,6 @@ local RectRound, UiElement, bgpadding
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
-local currentTooltipName = nil -- Track which tooltip is currently displayed
 
 -- Get or create a texture from the pool
 local function getPooledTexture(width, height, key)

@@ -107,23 +107,6 @@ local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a ve
 end
 
 --------------- DEBUG HELPERS --------------------------
-local function comparetables(t1, t2, name)
-	for k, v in pairs(t1) do
-		if t2[k] == nil then
-			Spring.Echo("Key ", k, "with value", v, "existing in t1 does not exist in t2 in ", name)
-		elseif t2[k] ~= v then
-			Spring.Echo("Value ", v, "for", k, "existing in t1 does not match value for t2", t2[k], " in ", name)
-		end
-	end
-
-	for k, v in pairs(t2) do
-		if t1[k] == nil then
-			Spring.Echo("Key ", k, "with value", v, "existing in t2 does not exist in t1 in ", name)
-		elseif t1[k] ~= v then
-			Spring.Echo("Value ", v, "for", k, "existing in t2 does not match value for t1", t1[k], " in ", name)
-		end
-	end
-end
 
 local function dbgt(t, name)
 	name = name or ""
