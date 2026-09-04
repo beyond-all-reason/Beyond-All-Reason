@@ -1,7 +1,6 @@
 #define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  
 
@@ -32,6 +31,11 @@ torsoPivot;
 static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, movespeed, explosions, shieldup, whichBarrel;
 
 static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
+
+#define COMPAIM1_PIECE_Y torsoPivot
+#define COMPAIM1_YAW_SPEED <200.000000>
+#define COMPAIM1_RESTORE_SPEED <90.000000>
+#include "../compensated_turret_aim.h"
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_WALK			2
@@ -424,6 +428,7 @@ Create()
 	whichBarrel = 0;
 	turn legThighL to y-axis <10> speed <2426.939443> / animSpeed;
 	turn legThighR to y-axis <-10> speed <1931.974545> / animSpeed;
+	start-script COMPAIM1_Controller();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -442,16 +447,15 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn torsoPivot to y-axis <0.000000> speed <90.000000>;
+	call-script COMPAIM1_StopAiming();
 	turn gunSleeve to x-axis <0.000000> speed <90.000000>;
-	wait-for-turn torsoPivot around y-axis;
-	wait-for-turn gunSleeve around x-axis;
 	bAiming = FALSE;
 }
 
 SetStunned(State)
 {
     Stunned = State;
+    call-script COMPAIM1_SetStunned(State);
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
@@ -477,10 +481,14 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	turn torsoPivot to y-axis heading speed <200.000000>;
+	call-script COMPAIM1_Aim(heading);
 	turn gunSleeve to x-axis <0.000000> - pitch speed <90.000000>;
-	wait-for-turn torsoPivot around y-axis;
 	start-script RestoreAfterDelay();
+
+	if (!COMPAIM1ready)
+	{
+		return (0);
+	}
 	return (1);
 }
 
