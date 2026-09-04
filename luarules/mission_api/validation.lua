@@ -1442,7 +1442,8 @@ local function validateMarkerNameReferences(actionTypes, actions)
 	end
 end
 
-local function validateCountdownIDReferences(actionTypes, actions)
+local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
+	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
 	local referencingActionTypes = {
 		[actionTypes.CancelCountdown] = true,
 		[actionTypes.PauseCountdown] = true,
@@ -1451,27 +1452,45 @@ local function validateCountdownIDReferences(actionTypes, actions)
 
 	local addedCountdownIDs = {}
 	local referencedCountdownIDs = {}
+
 	for actionID, action in pairs(actions) do
 		local countdownID = action.parameters and action.parameters.countdownID
 		if countdownID then
 			if action.type == actionTypes.AddCountdown then
 				addedCountdownIDs[countdownID] = true
 			elseif referencingActionTypes[action.type] then
-				referencedCountdownIDs[countdownID] = referencedCountdownIDs[countdownID] or {}
-				referencedCountdownIDs[countdownID][#referencedCountdownIDs[countdownID] + 1] = actionID
+				local references = table.ensureTable(referencedCountdownIDs, countdownID)
+				references[#references + 1] = "action " .. actionID
 			end
+		end
+	end
+
+	for triggerID, trigger in pairs(triggers) do
+		local countdownID = trigger.parameters and trigger.parameters.countdownID
+		if countdownID and triggerTypesReferencingCountdownIDs[trigger.type] then
+			local references = table.ensureTable(referencedCountdownIDs, countdownID)
+			references[#references + 1] = "trigger " .. triggerID
+		end
+	end
+
+	-- Objective inline triggers can also refer to countdown IDs.
+	for objectiveID, objective in pairs(objectives or {}) do
+		local countdownID = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.countdownID
+		if countdownID then
+			local references = table.ensureTable(referencedCountdownIDs, countdownID)
+			references[#references + 1] = "objective " .. objectiveID .. " (trigger)"
 		end
 	end
 
 	-- A countdown that is added and simply left to run out is fine, so unlike
 	-- marker names there is no warning in the other direction.
-	for countdownID, actionIDs in pairs(referencedCountdownIDs) do
+	for countdownID, labels in pairs(referencedCountdownIDs) do
 		if not addedCountdownIDs[countdownID] then
 			logWarn(
 				"Countdown '"
 					.. countdownID
 					.. "' is not added in any action. Referenced in: "
-					.. table.concat(actionIDs, ", ")
+					.. table.concat(labels, ", ")
 			)
 		end
 	end
@@ -1492,7 +1511,7 @@ local function validateReferences()
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
-	validateCountdownIDReferences(actionTypes, actions)
+	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
