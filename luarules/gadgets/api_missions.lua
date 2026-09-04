@@ -72,6 +72,8 @@ function gadget:Initialize()
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].ManagedObjectives = {}
+	GG["MissionAPI"].ObjectiveTriggers = {}
+	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
@@ -100,9 +102,7 @@ function gadget:GamePreload()
 	loadoutModule.SpawnUnitLoadout(GG["MissionAPI"].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG["MissionAPI"].FeatureLoadout)
 
-	if GG["MissionAPI"].CurrentStageID then
-		Spring.Echo("Stage set to: " .. GG["MissionAPI"].CurrentStageID)
-	end
+	GG["MissionAPI"].Modules.Objectives.ActivateStage(GG["MissionAPI"].CurrentStageID)
 end
 
 function gadget:GameFrame(frameNumber)
