@@ -28,7 +28,7 @@ topFlare,
 bottomFlare,
 torsoPivot;
 
-static-var  bMoving, bAiming, restore_delay, wpn1_lasthead, currentSpeed, movespeed, explosions, shieldup, whichBarrel;
+static-var  bMoving, bAiming, restore_delay, currentSpeed, movespeed, explosions, shieldup, whichBarrel;
 
 static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 

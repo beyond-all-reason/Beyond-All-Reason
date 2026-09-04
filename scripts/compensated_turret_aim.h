@@ -1,7 +1,7 @@
 // Compensated turret aim. A per frame controller cancels the hull rotation while aiming so walking
-// turns never disturb the aim, tracks the target at constant speed and lets AimWeapon answer honestly.
-// Constant speed sibling of constant_acceleration_turret_turning.h (CATT) by Beherith, which suits
-// heavy accelerating turrets. Changeheading compensation and belief servo ideas by DoodVanDaag.
+// turns never disturb the aim, tracks the target at constant speed (or with acceleration when
+// configured) and lets AimWeapon answer honestly. Related to constant_acceleration_turret_turning.h
+// (CATT) by Beherith. Changeheading compensation and belief servo ideas by DoodVanDaag.
 // License GNU GPL v2 or later.
 //
 // Usage. Include recoil_common_includes.h first, define the settings below, then include this file
@@ -49,6 +49,12 @@
 
 // Define COMPAIM1_YAW_LIMIT to keep the turret within that angle either side of forward,
 // targets beyond it are reported not ready
+
+// Define COMPAIM1_YAW_ACCEL in degrees per second squared to ramp the yaw speed up and down
+// instead of turning at full speed instantly
+#ifdef COMPAIM1_YAW_ACCEL
+	#define COMPAIM1_YAW_ACCEL_STEP (COMPAIM1_YAW_ACCEL / 30 / 30)
+#endif
 #ifdef COMPAIM1_PIECE_X
 	#ifndef COMPAIM1_FIRE_ANGLE_PITCH
 		#define COMPAIM1_FIRE_ANGLE_PITCH COMPAIM1_FIRE_ANGLE
@@ -59,6 +65,9 @@ static-var COMPAIM1goalHeading, COMPAIM1belief, COMPAIM1lastHullHeading, COMPAIM
 #ifdef COMPAIM1_PIECE_X
 	static-var COMPAIM1goalPitch, COMPAIM1pitchBelief;
 #endif
+#ifdef COMPAIM1_YAW_ACCEL
+	static-var COMPAIM1yawVelocity;
+#endif
 
 // Singleton, started once from Create, the only writer of the aim pieces
 COMPAIM1_Controller()
@@ -67,6 +76,9 @@ COMPAIM1_Controller()
 	var hullDelta;
 	var step;
 	var delta;
+	#ifdef COMPAIM1_YAW_ACCEL
+		var brakeDistance;
+	#endif
 	COMPAIM1lastHullHeading = get HEADING;
 	while (TRUE)
 	{
@@ -97,14 +109,42 @@ COMPAIM1_Controller()
 				}
 			#endif
 			delta = WRAPDELTA(COMPAIM1goalHeading - COMPAIM1belief);
-			if ((get ABS(delta)) > step)
-			{
-				COMPAIM1belief = WRAPDELTA(COMPAIM1belief + SIGN(delta) * step);
-			}
-			else
-			{
-				COMPAIM1belief = COMPAIM1goalHeading;
-			}
+			#ifdef COMPAIM1_YAW_ACCEL
+				brakeDistance = ((get ABS(COMPAIM1yawVelocity)) / COMPAIM1_YAW_ACCEL_STEP) * (get ABS(COMPAIM1yawVelocity)) / 2;
+				if (((COMPAIM1yawVelocity * SIGN(delta)) < 0) OR ((get ABS(delta)) <= brakeDistance))
+				{
+					if ((get ABS(COMPAIM1yawVelocity)) <= COMPAIM1_YAW_ACCEL_STEP)
+					{
+						COMPAIM1yawVelocity = 0;
+					}
+					else
+					{
+						COMPAIM1yawVelocity = COMPAIM1yawVelocity - SIGN(COMPAIM1yawVelocity) * COMPAIM1_YAW_ACCEL_STEP;
+					}
+				}
+				else
+				{
+					COMPAIM1yawVelocity = COMPAIM1yawVelocity + SIGN(delta) * COMPAIM1_YAW_ACCEL_STEP;
+				}
+				if ((get ABS(COMPAIM1yawVelocity)) > step)
+				{
+					COMPAIM1yawVelocity = SIGN(COMPAIM1yawVelocity) * step;
+				}
+				if ((get ABS(COMPAIM1yawVelocity)) > (get ABS(delta)))
+				{
+					COMPAIM1yawVelocity = delta;
+				}
+				COMPAIM1belief = WRAPDELTA(COMPAIM1belief + COMPAIM1yawVelocity);
+			#else
+				if ((get ABS(delta)) > step)
+				{
+					COMPAIM1belief = WRAPDELTA(COMPAIM1belief + SIGN(delta) * step);
+				}
+				else
+				{
+					COMPAIM1belief = COMPAIM1goalHeading;
+				}
+			#endif
 			turn COMPAIM1_PIECE_Y to y-axis COMPAIM1belief now;
 
 			#ifdef COMPAIM1_PIECE_X
