@@ -233,12 +233,15 @@
 				<div id="warn-chip-st-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-st-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-st-grid-overlay" class="tf-overlay-chip" data-class-active="stGridOverlay" data-event-mousedown="onTbToggleGridOverlay('st')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-st-height-colormap" class="tf-overlay-chip" data-class-active="stHeightColormap" data-event-mousedown="onTbToggleHeightColormap('st')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-st-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-st-overlays -->
@@ -547,12 +550,15 @@
 				<div id="warn-chip-cl-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-cl-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-cl-grid-overlay" class="tf-overlay-chip" data-class-active="clGridOverlay" data-event-mousedown="onTbToggleGridOverlay('cl')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-cl-height-colormap" class="tf-overlay-chip" data-class-active="clHeightColormap" data-event-mousedown="onTbToggleHeightColormap('cl')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-cl-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-cl-overlays -->
@@ -934,12 +940,15 @@
 					<div id="mb-mapanalysis-notify-dot" class="tf-notify-dot hidden"></div>
 				</div>
 			<div id="section-mb-overlays" class="hidden">
-			<div class="flex flex-row items-center gap-1 mb-1">
+			<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 				<div id="btn-mb-grid-overlay" class="tf-overlay-chip" data-class-active="mbGridOverlay" data-event-mousedown="onMbToggleGridOverlay()">
 					<div class="tf-overlay-chip-label">Grid</div>
 				</div>
 				<div id="btn-mb-height-colormap" class="tf-overlay-chip" data-class-active="mbHeightColormap" data-event-mousedown="onMbToggleHeightColormap()">
 					<div class="tf-overlay-chip-label">Height Map</div>
+				</div>
+				<div id="btn-mb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 				</div>
 				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" data-event-mousedown="onMbToggleMapOverlay()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
@@ -1357,12 +1366,15 @@
 					</div>
 				</div>
 			<div id="section-gb-overlays" class="hidden">
-			<div class="flex flex-row items-center gap-1 mb-1">
+			<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 				<div id="btn-gb-grid-overlay" data-class-active="gbGridOverlay" data-event-mousedown="onGbToggleGridOverlay()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label">Grid</div>
 				</div>
 				<div id="btn-gb-height-colormap" data-class-active="gbHeightColormap" data-event-mousedown="onGbToggleHeightMap()" class="tf-overlay-chip">
 					<div class="tf-overlay-chip-label">Height Map</div>
+				</div>
+				<div id="btn-gb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 				</div>
 			</div>
 			</div><!-- /section-gb-overlays -->
@@ -2141,12 +2153,15 @@
 				</div>
 			</div>
 		<div id="section-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-grid-overlay" class="tf-overlay-chip" data-class-active="tfGridOverlay" data-event-mousedown="onTfGridOverlay()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-height-colormap" class="tf-overlay-chip" data-class-active="tfHeightColormap" data-event-mousedown="onTfHeightColormap()">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-overlays -->
@@ -2691,12 +2706,15 @@
 				<div id="warn-chip-fp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-fp-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-fp-grid-overlay" class="tf-overlay-chip" data-class-active="fpGridOverlay" data-event-mousedown="onFpToggleGridOverlay()">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-fp-height-colormap" class="tf-overlay-chip" data-class-active="fpHeightColormap" data-event-mousedown="onFpToggleHeightMap()">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-fp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-fp-overlays -->
@@ -3168,12 +3186,15 @@
 				<div id="warn-chip-wb-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-wb-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-wb-grid-overlay" class="tf-overlay-chip" data-class-active="wbGridOverlay" data-event-mousedown="onTbToggleGridOverlay('wb')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-wb-height-colormap" class="tf-overlay-chip" data-class-active="wbHeightColormap" data-event-mousedown="onTbToggleHeightColormap('wb')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-wb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-wb-overlays -->
@@ -3532,12 +3553,15 @@
 				<div id="sp-display-notify-dot" class="tf-notify-dot" data-if="spDisplayHintVisible"></div>
 			</div>
 		<div id="section-sp-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-sp-grid-overlay" class="tf-overlay-chip" data-class-active="spGridOverlay" data-event-mousedown="onTbToggleGridOverlay('sp')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-sp-height-colormap" class="tf-overlay-chip" data-class-active="spHeightColormap" data-event-mousedown="onTbToggleHeightColormap('sp')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-sp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" data-event-mousedown="onSplToggleSplatOverlay()">
 				<div class="tf-overlay-chip-label">Splat Map</div>
@@ -3998,12 +4022,15 @@
 				<div id="warn-chip-dc-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-dc-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-dc-grid-overlay" class="tf-overlay-chip" data-class-active="dcGridOverlay" data-event-mousedown="onTbToggleGridOverlay('dc')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-dc-height-colormap" class="tf-overlay-chip" data-class-active="dcHeightColormap" data-event-mousedown="onTbToggleHeightColormap('dc')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-dc-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-dc-overlays -->
@@ -4808,12 +4835,15 @@
 				<div id="warn-chip-lp-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 			</div>
 		<div id="section-lp-overlays" class="hidden">
-		<div class="flex flex-row items-center gap-1 mb-1">
+		<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 			<div id="btn-lp-grid-overlay" class="tf-overlay-chip" data-class-active="lpGridOverlay" data-event-mousedown="onTbToggleGridOverlay('lp')">
 				<div class="tf-overlay-chip-label">Grid</div>
 			</div>
 			<div id="btn-lp-height-colormap" class="tf-overlay-chip" data-class-active="lpHeightColormap" data-event-mousedown="onTbToggleHeightColormap('lp')">
 				<div class="tf-overlay-chip-label">Height Map</div>
+			</div>
+			<div id="btn-lp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
 		</div>
 		</div><!-- /section-lp-overlays -->
@@ -5279,12 +5309,15 @@
 						<div id="warn-chip-sf-overlays" class="tf-overlay-chip tf-overlay-chip-warn hidden"><div class="tf-overlay-chip-label">Active</div></div>
 					</div>
 				<div id="section-sf-overlays" class="hidden">
-				<div class="flex flex-row items-center gap-1 mb-1">
+				<div class="flex flex-row items-center gap-1 mb-1 tf-chip-row">
 					<div id="btn-sf-grid-overlay" class="tf-overlay-chip" data-class-active="sfGridOverlay" data-event-mousedown="onTbToggleGridOverlay('sf')">
 						<div class="tf-overlay-chip-label">Grid</div>
 					</div>
 					<div id="btn-sf-height-colormap" class="tf-overlay-chip" data-class-active="sfHeightColormap" data-event-mousedown="onTbToggleHeightColormap('sf')">
 						<div class="tf-overlay-chip-label">Height Map</div>
+					</div>
+					<div id="btn-sf-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 					</div>
 					<div id="btn-sf-reveal" class="tf-overlay-chip" data-class-active="surfReveal" data-event-mousedown="onSurfRevealToggle()">
 						<div class="tf-overlay-chip-label">Sneak Peek</div>

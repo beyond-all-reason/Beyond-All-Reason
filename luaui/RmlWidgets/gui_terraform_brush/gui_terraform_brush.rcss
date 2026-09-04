@@ -3047,6 +3047,14 @@ body {
 	decorator: vertical-gradient(#3a3a46 #1e1e28);
 	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
+/* Chip rows (DISPLAY, INSTRUMENTS) wrap onto a second line instead of
+   squeezing: five chips in one row crushed their labels onto two lines each. */
+.tf-chip-row {
+	flex-wrap: wrap;
+}
+.tf-chip-row .tf-overlay-chip {
+	flex-shrink: 0;
+}
 .tf-overlay-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;

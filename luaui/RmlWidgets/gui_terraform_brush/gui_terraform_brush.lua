@@ -1384,6 +1384,29 @@ end
 -- SHAPE row (metal, grass, features, splat) stamp rather than stroke, and ramp /
 -- noise / autoramp / restore / erode own their own sampling.
 local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true, smudge = true }
+-- PASSABILITY overlay (MrBob's F6 check without a selected unit): the tileset
+-- shader tints everything steeper than the class's max slope in the engine's
+-- impassable purple, so a cliff can be judged while sculpting. Degrees are read
+-- off a representative unit's movedef so the band matches what F6 draws; the
+-- literals are gamedata/movedefs.lua's own SLOPE values as a fallback.
+local _tbPassClasses = {
+	{ key = "BOT", unit = "armpw", deg = 54 },
+	{ key = "VEH", unit = "armflash", deg = 27 },
+	{ key = "HOVER", unit = "corch", deg = 33 },
+	{ key = "AMPH", unit = "coramph", deg = 54 },
+}
+local _tbPassIdx = 0 -- 0 = off
+local function _tbPassDeg(entry)
+	---@diagnostic disable-next-line: undefined-global
+	local ud = UnitDefNames and UnitDefNames[entry.unit]
+	local ms = ud and ud.moveDef and ud.moveDef.maxSlope
+	-- movedef maxSlope is stored as 1 - cos(angle), same space as
+	-- Spring.GetGroundNormal's fourth return.
+	if ms and ms > 0 and ms < 2 then
+		return math.deg(math.acos(1 - ms))
+	end
+	return entry.deg
+end
 local function _tbMirrorToggle(P, stateKey, setter, dmKey)
 	if not WG.TerraformBrush then
 		return
@@ -3934,6 +3957,9 @@ local initialModel = {
 	tfVelocityIntensity = false,
 	tfFollowStroke = false,
 	tfFollowVisible = true,
+	-- PASSABILITY overlay: one shared state across every DISPLAY row
+	tbPassActive = false,
+	tbPassLabelStr = "Passability",
 	tfSymMirrorX = false,
 	tfSymMirrorY = false,
 	tfSymFlipped = false,
@@ -11132,6 +11158,34 @@ local initialModel = {
 		local dm = widgetState.dmHandle
 		if dm then
 			dm.tfVelocityIntensity = nv
+		end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTbCyclePassability = function(_event)
+		local TT = WG.TilesetTerrain
+		if not (TT and TT.setKnob) then
+			Spring.Echo("[Terraform Brush] PASSABILITY needs the tileset shader (SHADER in the SCENE window)")
+			return
+		end
+		_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
+		local entry = _tbPassClasses[_tbPassIdx]
+		TT.setKnob("passSlopeDeg", entry and _tbPassDeg(entry) or 0)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tbPassActive = entry ~= nil
+			dm.tbPassLabelStr = entry and ("Pass: " .. entry.key) or "Passability"
+		end
+		playSound(entry and "toggleOn" or "toggleOff")
+	end,
+	onTfFollowStroke = function(_event)
+		if not WG.TerraformBrush or not WG.TerraformBrush.setFollowStroke then
+			return
+		end
+		local nv = not (WG.TerraformBrush.getState() or {}).followStroke
+		WG.TerraformBrush.setFollowStroke(nv)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tfFollowStroke = nv
 		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
