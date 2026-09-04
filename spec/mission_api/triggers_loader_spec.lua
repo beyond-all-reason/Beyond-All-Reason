@@ -188,6 +188,7 @@ describe("mission_api.triggers_loader", function()
 
 			assert.is_number(T.ObjectiveCompleted)
 			assert.is_number(T.ObjectiveFailed)
+			assert.is_number(T.ObjectiveCanceled)
 			for callinName, handlers in pairs(C) do
 				assert.is_nil(handlers[T.TotalUnitsLost], callinName)
 				assert.is_nil(handlers[T.TotalUnitsBuilt], callinName)
@@ -198,6 +199,7 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.Defeat], callinName)
 				assert.is_nil(handlers[T.ObjectiveCompleted], callinName)
 				assert.is_nil(handlers[T.ObjectiveFailed], callinName)
+				assert.is_nil(handlers[T.ObjectiveCanceled], callinName)
 			end
 		end)
 	end)

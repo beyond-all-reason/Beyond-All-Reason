@@ -41,8 +41,11 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field processSoundQueue table
 ---@field changeStage table
 ---@field tryAdvanceStage table
----@field onObjectiveCompleted table
+---@field completeObjective table
 ---@field failObjective table
+---@field cancelObjective table
+---@field hideObjective table
+---@field showObjective table
 ---@field activateObjective table
 ---@field deactivateObjective table
 ---@field activateStageObjectives table
@@ -316,8 +319,11 @@ function MB:Build()
 	local processSoundQueueCalls = {}
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
-	local onObjectiveCompletedCalls = {}
+	local completeObjectiveCalls = {}
 	local failObjectiveCalls = {}
+	local cancelObjectiveCalls = {}
+	local hideObjectiveCalls = {}
+	local showObjectiveCalls = {}
 	local activateObjectiveCalls = {}
 	local deactivateObjectiveCalls = {}
 	local activateStageObjectivesCalls = {}
@@ -397,12 +403,20 @@ function MB:Build()
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
 		end,
-		OnObjectiveCompleted = function(objectiveID, objective)
-			onObjectiveCompletedCalls[#onObjectiveCompletedCalls + 1] =
-				{ objectiveID = objectiveID, objective = objective }
+		CompleteObjective = function(objectiveID)
+			completeObjectiveCalls[#completeObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		FailObjective = function(objectiveID)
 			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		CancelObjective = function(objectiveID)
+			cancelObjectiveCalls[#cancelObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		HideObjective = function(objectiveID)
+			hideObjectiveCalls[#hideObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		ShowObjective = function(objectiveID)
+			showObjectiveCalls[#showObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		ActivateObjective = function(objectiveID)
 			activateObjectiveCalls[#activateObjectiveCalls + 1] = { objectiveID = objectiveID }
@@ -496,8 +510,11 @@ function MB:Build()
 			processSoundQueue = processSoundQueueCalls,
 			changeStage = changeStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
-			onObjectiveCompleted = onObjectiveCompletedCalls,
+			completeObjective = completeObjectiveCalls,
 			failObjective = failObjectiveCalls,
+			cancelObjective = cancelObjectiveCalls,
+			hideObjective = hideObjectiveCalls,
+			showObjective = showObjectiveCalls,
 			activateObjective = activateObjectiveCalls,
 			deactivateObjective = deactivateObjectiveCalls,
 			activateStageObjectives = activateStageObjectivesCalls,
@@ -515,8 +532,11 @@ function MB:Build()
 				processSoundQueueCalls,
 				changeStageCalls,
 				tryAdvanceCalls,
-				onObjectiveCompletedCalls,
+				completeObjectiveCalls,
 				failObjectiveCalls,
+				cancelObjectiveCalls,
+				hideObjectiveCalls,
+				showObjectiveCalls,
 				activateObjectiveCalls,
 				deactivateObjectiveCalls,
 				activateStageObjectivesCalls,

@@ -56,10 +56,11 @@ local objectives = {
 		textKey = "lose_no_units",
 	},
 
-	-- Listed in no stage; an action activates it.
+	-- Listed in no stage and hidden; actions activate and show it.
 	killDestroyers = {
 		textKey = "kill_both_destroyers",
 		amount = 2,
+		hidden = true,
 		trigger = {
 			type = triggerTypes.TotalUnitsKilled,
 			parameters = {
@@ -92,7 +93,7 @@ local triggers = {
 		parameters = {
 			objectiveID = 'buildBots',
 		},
-		actions = { 'changeToThirdStage', 'spawnBotDestroyer', 'activateKillDestroyers' },
+		actions = { 'changeToThirdStage', 'spawnBotDestroyer', 'activateKillDestroyers', 'showKillDestroyers' },
 	},
 
 	failOnLoss = {
@@ -153,11 +154,9 @@ local actions = {
 	},
 
 	failNoLosses = {
-		type = actionTypes.Custom,
+		type = actionTypes.FailObjective,
 		parameters = {
-			['function'] = function()
-				GG['MissionAPI'].Modules.Objectives.FailObjective('noLosses')
-			end,
+			objectiveID = 'noLosses',
 		},
 	},
 
@@ -177,6 +176,13 @@ local actions = {
 
 	deactivateKillDestroyers = {
 		type = actionTypes.DeactivateObjective,
+		parameters = {
+			objectiveID = 'killDestroyers',
+		},
+	},
+
+	showKillDestroyers = {
+		type = actionTypes.ShowObjective,
 		parameters = {
 			objectiveID = 'killDestroyers',
 		},
