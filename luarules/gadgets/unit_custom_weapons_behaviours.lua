@@ -650,15 +650,12 @@ local terrainAvoidanceLookaheadFrames = 4
 local terrainAvoidanceRampDepth = 12
 local terrainAvoidanceTargetReleaseDistance = 36
 local terrainAvoidanceDepthLeadRatio = 2
-local groundTargetPredictionStartDiveFraction = 0.2
-local groundTargetPredictionFullDiveFraction = 0.45
+local terrainAvoidanceGroundTargetLeadRatio = 3
 
 ---@type table<integer, boolean?>
 local torpedoSurfaceTargets = {}
 ---@type table<integer, true?>
 local torpedoWaterEntryHeadingCorrected = {}
----@type table<integer, number?>
-local torpedoGroundTerrainAvoidanceScales = {}
 
 -- Shore-launcher breach protection
 local minShoreSurfaceDiveSpeed = -4
@@ -674,47 +671,6 @@ local function getTorpedoTargetPosition(projectileID, targetType, target)
 		torpedoSurfaceTargets[projectileID] = targetY >= -10
 	end
 	return targetX, targetY, targetZ, torpedoSurfaceTargets[projectileID]
-end
-
--- This ground-target-only safeguard is primarily a visual fix for unusual
--- deep-water shots, keeping their final approach from looking unreasonable.
-local function getGroundTargetTerrainAvoidanceScale(
-	positionX,
-	positionY,
-	positionZ,
-	velocityX,
-	velocityZ,
-	speed,
-	targetX,
-	targetY,
-	targetZ
-)
-	local targetDirectionX = targetX - positionX
-	local targetDirectionZ = targetZ - positionZ
-	local horizontalDistance = math_diag(targetDirectionX, targetDirectionZ)
-	if horizontalDistance <= 0.01 then
-		return 0
-	end
-
-	-- Estimate arrival from the velocity currently closing on the target.
-	local closingSpeed = (velocityX * targetDirectionX + velocityZ * targetDirectionZ) / horizontalDistance
-	if closingSpeed <= 0.01 or speed <= 0 then
-		return 1
-	end
-
-	local arrivalFrames = horizontalDistance / closingSpeed
-	-- Gradually release terrain avoidance as more of the available speed is
-	-- needed to reach the target depth by the predicted arrival time.
-	local requiredDiveSpeed = math_max((positionY - targetY) / arrivalFrames, 0)
-	local requiredDiveFraction = math_clamp(requiredDiveSpeed / speed, 0, 1)
-	local releaseBlend = math_clamp(
-		(requiredDiveFraction - groundTargetPredictionStartDiveFraction)
-			/ (groundTargetPredictionFullDiveFraction - groundTargetPredictionStartDiveFraction),
-		0,
-		1
-	)
-	releaseBlend = releaseBlend * releaseBlend * (3 - 2 * releaseBlend)
-	return 1 - releaseBlend
 end
 
 ---@return number?
@@ -865,43 +821,22 @@ local function torpedoWaterPen(params, projectileID)
 		return false
 	end
 	if not surfaceTarget then
-		-- Preserve native submerged-unit tracking while anticipating the seafloor.
-		-- Explicit ground targets use prediction primarily so unusual deep-water
-		-- trajectories remain visually reasonable when they occur.
+		-- Preserve native submerged-target tracking while anticipating the
+		-- seafloor, then release avoidance near the intended impact point.
 		local terrainAvoidanceScale = 1.0
 		if targetX ~= nil and targetY ~= nil and targetZ ~= nil then
 			local targetOffsetX = positionX - targetX
 			local targetOffsetY = positionY - targetY
 			local targetOffsetZ = positionZ - targetZ
 			local targetDistance = math_diag(targetOffsetX, targetOffsetY, targetOffsetZ)
+			local targetHorizontalDistance = math_diag(targetOffsetX, targetOffsetZ)
+			local depthLeadRatio = targetType == targetedGround and terrainAvoidanceGroundTargetLeadRatio
+				or terrainAvoidanceDepthLeadRatio
+			local horizontalReleaseDistance =
+				math_max(terrainAvoidanceTargetReleaseDistance, math.abs(targetOffsetY) * depthLeadRatio)
 			local targetDistanceScale = math_clamp(targetDistance / terrainAvoidanceTargetReleaseDistance, 0, 1)
-			if targetType == targetedGround then
-				local predictionScale = getGroundTargetTerrainAvoidanceScale(
-					positionX,
-					positionY,
-					positionZ,
-					velocityX,
-					velocityZ,
-					speed,
-					targetX,
-					targetY,
-					targetZ
-				)
-				terrainAvoidanceScale = targetDistanceScale * predictionScale
-				-- Once this ground-target handoff begins, do not reintroduce
-				-- avoidance as the remaining depth and distance change.
-				terrainAvoidanceScale =
-					math.min(torpedoGroundTerrainAvoidanceScales[projectileID] or 1, terrainAvoidanceScale)
-				torpedoGroundTerrainAvoidanceScales[projectileID] = terrainAvoidanceScale
-			else
-				local targetHorizontalDistance = math_diag(targetOffsetX, targetOffsetZ)
-				local horizontalReleaseDistance = math_max(
-					terrainAvoidanceTargetReleaseDistance,
-					math.abs(targetOffsetY) * terrainAvoidanceDepthLeadRatio
-				)
-				local horizontalReleaseScale = math_clamp(targetHorizontalDistance / horizontalReleaseDistance, 0, 1)
-				terrainAvoidanceScale = targetDistanceScale * horizontalReleaseScale
-			end
+			local horizontalReleaseScale = math_clamp(targetHorizontalDistance / horizontalReleaseDistance, 0, 1)
+			terrainAvoidanceScale = targetDistanceScale * horizontalReleaseScale
 		end
 		setTorpedoPitchVelocity(
 			projectileID,
@@ -1160,7 +1095,6 @@ function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
 	torpedoSurfaceTargets[projectileID] = nil
 	torpedoWaterEntryHeadingCorrected[projectileID] = nil
-	torpedoGroundTerrainAvoidanceScales[projectileID] = nil
 	shoreTorpedoEnteredWater[projectileID] = nil
 end
 
