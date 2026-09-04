@@ -421,6 +421,30 @@ local BUILTIN_PRESETS = {
 		noiseSeed = 0,
 	},
 	{
+		-- MrBob's sculpting setup from the campaign terrain tutorial: clay, the
+		-- lowest intensity and the sharpest falloff, square riding the stroke.
+		-- Many weak passes build the form; the sharp edge leaves the striations.
+		name = "Clay Sculpt",
+		mode = "raise",
+		shape = "square",
+		radius = 120,
+		rotationDeg = 0,
+		curve = 0.1,
+		intensity = 0.1,
+		lengthScale = 1.0,
+		heightCapMin = nil,
+		heightCapMax = nil,
+		heightCapAbsolute = true,
+		clayMode = true,
+		followStroke = true,
+		noiseType = "perlin",
+		noiseScale = 64,
+		noiseOctaves = 4,
+		noisePersistence = 0.5,
+		noiseLacunarity = 2.0,
+		noiseSeed = 0,
+	},
+	{
 		name = "Dunes",
 		mode = "noise",
 		shape = "circle",
