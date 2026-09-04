@@ -21,15 +21,11 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
-local spGetAllFeatures = Spring.GetAllFeatures
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureHeading = Spring.GetFeatureHeading
-local spGetFeatureRotation = Spring.GetFeatureRotation
-local spGetGroundNormal = Spring.GetGroundNormal
 local spEcho = Spring.Echo
-local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -46,9 +42,7 @@ local glRenderToTexture = gl.RenderToTexture
 local glReadPixels = gl.ReadPixels
 
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINES = GL.LINES
 local GL_QUADS = GL.QUADS
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
@@ -61,7 +55,6 @@ local sin = math.sin
 local rad = math.rad
 local abs = math.abs
 local huge = math.huge
-local pi = math.pi
 
 local Game = Game
 local mapSizeX = Game.mapSizeX
@@ -72,7 +65,6 @@ local metalSquareSize = 16
 -- ---------------------------------------------------------------------------
 -- Message headers (must match gadget)
 -- ---------------------------------------------------------------------------
-local MSG_TERRAIN = "$clone_terrain$"
 local MSG_METAL = "$clone_metal$"
 local MSG_FEATURES = "$clone_features$"
 local MSG_FEATURES_CLEAR = "$clone_features_clear$"
@@ -82,7 +74,6 @@ local MSG_TBEGIN = "$clone_tbegin$"
 local MSG_TGRID = "$clone_tgrid$"
 local MSG_TEND = "$clone_tend$"
 
-local TERRAIN_CHUNK_SIZE = 400 -- vertices per message (legacy triplet format)
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
@@ -143,14 +134,11 @@ local historyUndoCount = 0
 local historyRedoCount = 0
 
 -- Coroutine for async operations
-local activeCoroutine = nil
 local coroutineProgress = 0
 local coroutineLabel = ""
 
 -- Splat FBO
 local splatCaptureFBO = nil
-local splatCaptureW = 0
-local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
 local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
 local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
@@ -216,7 +204,6 @@ end
 local function deactivate()
 	active = false
 	state = "idle"
-	activeCoroutine = nil
 	coroutineProgress = 0
 	boxDrag.active = false
 end
@@ -1302,8 +1289,6 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, sc.u0, sc.v0, sc.u1, sc.v1)
 				glTexture(0, false)
 			end)
-			splatCaptureW = sc.pw
-			splatCaptureH = sc.ph
 			local pixelData = {}
 			glRenderToTexture(splatCaptureFBO, function()
 				pixelData = glReadPixels(0, 0, sc.pw, sc.ph)

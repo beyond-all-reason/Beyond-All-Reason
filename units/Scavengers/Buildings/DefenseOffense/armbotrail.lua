@@ -32,6 +32,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
+			islrpc = true,
 			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,

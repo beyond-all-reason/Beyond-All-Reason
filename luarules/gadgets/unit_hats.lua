@@ -428,21 +428,12 @@ local spCallCOBScript = Spring.CallCOBScript
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local stringSub = string.sub
 
-local unitDefCanWearHats = {
-	[UnitDefNames.corcom.id] = true,
-	[UnitDefNames.cordecom.id] = true,
-	[UnitDefNames.armcom.id] = true,
-	[UnitDefNames.armdecom.id] = true,
-}
-
-if Spring.GetModOptions().experimentallegionfaction then
-	unitDefCanWearHats[UnitDefNames.legcom.id] = true
-	unitDefCanWearHats[UnitDefNames.legdecom.id] = true
-end
-
+local unitDefCanWearHats = {}
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
-	--almost all raptors have dying anims
+	if ud.customParams.canwearcosmetics and not ud.customParams.isscavenger then
+		unitDefCanWearHats[udid] = true
+	end
 	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
 		unitDefHat[udid] = true
 	end
@@ -516,7 +507,7 @@ function gadget:GameFrame(gf)
 						if list[pick].implementation == "unit" then
 							local units = spGetTeamUnits(teamID) or {}
 							for k = 1, #units do
-								if not unitDefHat[units[k]] then
+								if not unitDefHat[spGetUnitDefID(units[k])] then
 									local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
 									CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
 								end
@@ -525,8 +516,8 @@ function gadget:GameFrame(gf)
 							local units = spGetTeamUnits(teamID) or {}
 							for k = 1, #units do
 								local unitID = units[k]
-								if not unitDefHat[unitID] then
-									local unitDefID = spGetUnitDefID(unitID)
+								local unitDefID = spGetUnitDefID(unitID)
+								if not unitDefHat[unitDefID] then
 									if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
 										local scriptEnv = spGetUnitScriptEnv(unitID)
 										if scriptEnv then

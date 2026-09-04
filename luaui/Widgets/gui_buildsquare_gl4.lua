@@ -115,6 +115,9 @@ local MINIMUM_SCREEN_DIAMETER = 3.0
 local SIMPLIFIED_MINIMAP_ENABLED = true
 local MAX_MINIMAP_BUILDINGS = 16384
 local MAX_BATCH_CELLS = 262144
+local PREUNIT_PASS_ALPHA = 0.8 -- opacity multiplier of the base DrawWorldPreUnit pass
+local OVERLAY_PASS_ENABLED = true -- redraw the squares in DrawWorld (on top of units) so they stay faintly visible when covered
+local OVERLAY_PASS_ALPHA = 0.3 -- opacity multiplier of the DrawWorld overlay pass
 
 local STATUS_BLOCKED = 0
 local STATUS_OCCUPIED = 1
@@ -155,6 +158,7 @@ local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
 local heightOffsetLoc = nil
 local waterLevelLoc = nil
+local alphaMultiplierLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -196,6 +200,7 @@ local previewRenderCacheCount = 0
 local nextPreviewRenderCache = 1
 local previewRenderCacheLookup = {}
 local extendedCellsDrawFrame = -1
+local overlayBatchDrawFrame = -1
 local drawSquareCount = 0
 local drawSquareCellCount = 0
 local effectiveExtendedCells = EXTENDED_CELLS
@@ -859,6 +864,7 @@ uniform float footprintBoundaryEnabled;
 uniform float footprintBoundaryWidth;
 uniform float showInvalidFootprintBoundary;
 uniform vec4 invalidFootprintBoundaryColor;
+uniform float alphaMultiplier;
 
 void main() {
 	bool merged = v_mode > 1.5;
@@ -944,7 +950,7 @@ void main() {
 		alpha = mix(alpha, invalidFootprintBoundaryColor.a, footprintOutline);
 	}
 
-	fragColor = vec4(color, alpha * coverage);
+	fragColor = vec4(color, alpha * coverage * alphaMultiplier);
 }
 ]]
 
@@ -995,6 +1001,7 @@ local function initGL4Resources()
 			footprintBoundaryWidth = FOOTPRINT_BOUNDARY_WIDTH,
 			showInvalidFootprintBoundary = SHOW_INVALID_FOOTPRINT_BOUNDARY and 1.0 or 0.0,
 			invalidFootprintBoundaryColor = INVALID_FOOTPRINT_BOUNDARY_COLOR,
+			alphaMultiplier = 1.0,
 		},
 	})
 
@@ -1008,6 +1015,7 @@ local function initGL4Resources()
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
 	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
 	waterLevelLoc = glGetUniformLocation(shaderID, "waterLevel")
+	alphaMultiplierLoc = glGetUniformLocation(shaderID, "alphaMultiplier")
 
 	local quadVerts = {
 		0.0,
@@ -1105,6 +1113,7 @@ local function resetPreviewState()
 	batchInstanceCount = 0
 	minimapInstanceCount = 0
 	extendedCellsDrawFrame = -1
+	overlayBatchDrawFrame = -1
 	drawSquareCount = 0
 	drawSquareCellCount = 0
 	buildSquareGameFrame = -1
@@ -2124,7 +2133,38 @@ function widget:DrawWorldPreUnit()
 	glUseShader(shaderProgram)
 	glUniform(heightOffsetLoc, getCurrentHeightOffset())
 	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
+	glUniform(alphaMultiplierLoc, PREUNIT_PASS_ALPHA)
 	glUniformInt(isMiniMapLoc, 0)
+	if PREUNIT_PASS_ALPHA > 0 then
+		batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
+	end
+	glUseShader(0)
+	glTexture(0, false)
+	glDepthTest(GL_LESS)
+	overlayBatchDrawFrame = drawFrame
+	tracy.ZoneEnd()
+end
+
+-- Overlay pass: redraws the batch that DrawWorldPreUnit just drew, on top of units, at reduced opacity so covered
+-- squares stay visible. Reuses the uploaded instance buffer and the uniforms set by the pre-unit pass this frame;
+-- only the alpha multiplier differs, so the extra cost is a single draw call.
+function widget:DrawWorld()
+	if
+		not OVERLAY_PASS_ENABLED
+		or OVERLAY_PASS_ALPHA <= 0
+		or batchInstanceCount == 0
+		or overlayBatchDrawFrame ~= spGetDrawFrame()
+	then
+		return
+	end
+
+	tracy.ZoneBeginN("W:BuildSquare:DrawOverlayBatch")
+	glTexture(0, "$heightmap")
+	glDepthTest(false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glCulling(false)
+	glUseShader(shaderProgram)
+	glUniform(alphaMultiplierLoc, OVERLAY_PASS_ALPHA)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)
 	glTexture(0, false)
@@ -2151,6 +2191,7 @@ function widget:DrawInMiniMap()
 	glUseShader(shaderProgram)
 	local rotation = spGetMiniMapRotation and spGetMiniMapRotation() or 0
 	local rotationQuarterTurns = math.floor((rotation / math.pi * 2 + 0.5) % 4)
+	glUniform(alphaMultiplierLoc, 1.0)
 	glUniformInt(isMiniMapLoc, 1)
 	glUniformInt(rotationMiniMapLoc, rotationQuarterTurns)
 	minimapVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, minimapInstanceCount)

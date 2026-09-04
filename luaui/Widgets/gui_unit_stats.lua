@@ -140,7 +140,6 @@ local floor = mathFloor
 local ceil = math.ceil
 local bit_and = math.bit_and
 local format = string.format
-local char = string.char
 
 local glColor = gl.Color
 

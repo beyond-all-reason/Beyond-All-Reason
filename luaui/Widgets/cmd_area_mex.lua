@@ -54,7 +54,7 @@ function widget:Initialize()
 end
 
 ---Gets the position of the last command in a unit's queue, or nil if the queue is empty
----@param unitID number
+---@param unitID UnitID
 ---@return number|nil x
 ---@return number|nil z
 local function getLastQueuedPosition(unitID)
@@ -71,8 +71,8 @@ end
 ---Finds all builders among selected units that can make the specified building, and gets their average position.
 ---When useQueueEnd is true, uses the position of the last queued command instead of the unit's current position.
 ---@param units table selected units
----@param constructorIds table All mex constructors
----@param buildingId number Specific mex that we want to build
+---@param constructorIds table<UnitID, ResourceSpotConstructor?> All mex constructors
+---@param buildingId UnitDefID Specific mex that we want to build
 ---@param useQueueEnd boolean Whether to use the end-of-queue position (for shift-queuing)
 ---@return table { x, z }
 local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, useQueueEnd)

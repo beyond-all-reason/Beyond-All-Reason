@@ -42,7 +42,7 @@
 			"commanderCount": "Commander Counter",
 			"commanderCountTooltip": "Displays the number of ally and enemy commanders",
 			"tidalspeed": "Tidal Speed",
-			"tidalspeedTooltip": "Tidal (water) speed on this map  (always constant)",
+			"tidalspeedTooltip": "Tidal (water) speed on this map (always constant)",
 			"windspeed": "Wind Speed",
 			"windspeedTooltip": "(small numbers are minimum and maximum)\nAverage wind speed on this map is %{avgWindValue}\nCurrent wind risk is %{riskWindValue} (percentage of time wind speed will be below 6)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
 			"wind": {
@@ -61,7 +61,7 @@
 				"shareEnergyTooltip": "Share excess energy above this point with your team",
 				"pullTooltip": "The desired demand for %{resource} (per second) provided that there is sufficient supply and storage.\nBuilders on low-priority will only use leftover resources and thus their demand isn't counted here.",
 				"incomeTooltip": "%{resource} income (per second)",
-				"expenseTooltip": "%{resource} spending  (per second)",
+				"expenseTooltip": "%{resource} spending (per second)",
 				"storageTooltip": "%{resource} storage",
 				"conversionTooltipTitle": "Energy Conversion Slider",
 				"conversionTooltip": "Excess energy above this point\nwill power your Energy Converters"
@@ -372,7 +372,7 @@
 			"resources": "[%{keyset}] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
 		},
 		"pauseScreen": {
-			"paused": "GAME  PAUSED"
+			"paused": "GAME PAUSED"
 		},
 		"voting": {
 			"no": "NO",
@@ -403,8 +403,8 @@
 			"reclaimableEnergy": "Reclaimable Energy"
 		},
 		"cmdlimiter": {
-			"forceresignwarning": "You queued too much buildings a few time, continue this and you will get forcefully resigned.",
-			"forceresign": "You queued too much buildings too many times, you have been force resigned!"
+			"forceresignwarning": "You queued too many buildings a few times, continue and you will get forcefully resigned.",
+			"forceresign": "You queued too many buildings too many times, you have been forcibly resigned!"
 		},
 		"raptors": {
 			"firstWave1": "The Raptors have arrived!",
@@ -507,12 +507,12 @@
 				"other": "Bosses are resistant to:"
 			},
 			"bossStaggerActive": {
-				"one": "Boss is Staggered!",
-				"other": "Bosss are Staggered!"
+				"one"   : "Boss is Staggered!",
+				"other" : "Bosses are Staggered!"
 			},
 			"bossStaggerPercentage": {
-				"one": "Boss Stagger: %{value}%%",
-				"other": "Bosss Stagger: %{value}%%"
+				"one"   : "Boss Stagger: %{value}%%",
+				"other" : "Bosses Stagger: %{value}%%"
 			},
 			"gracePeriod": "Grace Period: %{time}",
 			"burrowCount": "Burrows: %{count}",
@@ -594,7 +594,7 @@
 		},
 		"draftOrderMod": {
 			"teamPlacement": "Team Placement",
-			"placeYourCom": "Place your commmander",
+			"placeYourCom": "Place your commander",
 			"waitingFor": "Waiting for %{name}",
 			"waitingForTurn": "Waiting for turn",
 			"waitingForPlayers": "Waiting for players",
@@ -603,7 +603,7 @@
 			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
 			"modeCaptain": "Captain draft order start position mode activated. Players await their turn to place",
 			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
-			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"
+			"modeFair": "Fair start position mode activated. Please wait until players join the game before placing"
 		},
 		"substitutePlayers": {
 			"offer": "Offer to play",
@@ -937,7 +937,7 @@
 				"vsync_fraction": "frame limiter",
 				"vsync_fraction_descr": "Render only a fractional number of frames",
 				"limitoffscreenfps": "Limit FPS when offscreen",
-				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
+				"limitoffscreenfps_descr": "Reduces fps when offscreen (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your PC more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode",
 				"limitidlefps": "also limit when idle",
 				"limitidlefps_descr": "Reduces fps when idle for a minute (by setting vsync to a high number)\nCamera movement will break idle mode",
 				"msaa": "Anti Aliasing",
@@ -1057,7 +1057,7 @@
 				"snowmap": "enabled on this map",
 				"snowmap_descr": "It will remember what you toggled for every map\n\n(by default: maps with wintery names have this toggled)",
 				"snowautoreduce": "auto reduce",
-				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again",
+				"snowautoreduce_descr": "Automatically reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust to average FPS again)",
 				"snowamount": "amount",
 				"snowamount_descr": "disable \"auto reduce\" option to see the max snow amount you have set",
 				"xmas": "X-mas balls",
@@ -1419,7 +1419,7 @@
 				"metalspots_descr": "Shows a circle around (unoccupied) metal spots with the amount of metal in it",
 				"metalspots_opacity": "opacity",
 				"metalspots_values": "show values",
-				"metalspots_values_descr": "Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it's significantly enough more costly to draw the text values",
+				"metalspots_values_descr": "Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it's significantly more costly to draw the text values",
 				"metalspots_metalviewonly": "limit to F4 (metalmap) view",
 				"metalspots_metalviewonly_descr": "Limit display to only during pre-gamestart or when in metalmap view (f4)",
 				"geospots": "Geothermals",
@@ -1592,7 +1592,7 @@
 				"factoryrepeat_descr": "Sets new factories on Repeat mode",
 				"settargetdefault": "Set-target as default",
 				"settargetdefault_descr": "Replace default attack command to a set-target command\n(when rightclicked on enemy unit)",
-				"dgunnogroundenemies": "Dont snap DGun to ground units",
+				"dgunnogroundenemies": "Don't snap DGun to ground units",
 				"dgunnogroundenemies_descr": "Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)",
 				"dgunstallassist": "Conserve energy when DGunning",
 				"dgunstallassist_descr": "When the D-Gun order is active, units that drain energy will pause their energy use.",
@@ -1835,7 +1835,7 @@
 		"debugshadowfrustum": "Enable/Disable drawing of shadow frustum shape",
 		"debugtraceray": "Enable/Disable drawing of traceray debug-data",
 		"debugvisibility": "Enable/Disable drawing of visible terrain",
-		"decguiopacity": "Decreases the the opacity(see-through-ness) of GUI elements",
+		"decguiopacity": "Decreases the opacity (see-through-ness) of GUI elements",
 		"decreaseviewradius": "Decrease the view radius (higher performance, uglier view)",
 		"deselect": "Deselects all currently selected units",
 		"destroy": "Destroys one or multiple units by unitID immediately (needs /cheat)",
@@ -1884,7 +1884,7 @@
 		"iconsasui": "Set whether unit icons are drawn as an UI element (true) or old LOD-like style (false, default).",
 		"iconscaleui": "Set the multiplier for the size of the UI unit icons",
 		"iconshidewithui": "Set whether unit icons are hidden when UI is hidden.",
-		"incguiopacity": "Increases the the opacity(see-through-ness) of GUI elements",
+		"incguiopacity": "Increases the opacity (see-through-ness) of GUI elements",
 		"increaseviewradius": "Increase terrain tessellation level",
 		"info": "Shows/Hides the player roster",
 		"inputtextgeo": "Move and/or resize the input-text field (the \"Say: \" thing)",
@@ -2021,7 +2021,7 @@
 			"CamSpringFOV": "No description available",
 			"CamSpringHalflife": "For Spring Dampened camera. It is the time in milliseconds at which the camera should be approximately halfway towards the goal.",
 			"CamSpringLockCardinalDirections": "Whether cardinal directions should be `locked` for a short time when rotating.",
-			"CamSpringMinZoomDistance": "Minimum camera zoom distance, note this is the distance from frustrum location to the ground in the direction of view",
+			"CamSpringMinZoomDistance": "Minimum camera zoom distance, note this is the distance from frustum location to the ground in the direction of view",
 			"CamSpringScrollSpeed": "No description available",
 			"CamSpringTrackMapHeightMode": "Camera height is influenced by terrain height. 0=Static 1=Terrain 2=Smoothmesh",
 			"CamSpringZoomInToMousePos": "No description available",
@@ -2297,7 +2297,7 @@
 		"teamhighlight": "Enables/Disables uncontrolled team blinking",
 		"toggleinfo": "Toggles current info texture view",
 		"togglelos": "Enable rendering of the auxiliary LOS-map overlay",
-		"tooltip": "Enables/Disables the general tool-tips, displayed when hovering over units. features or the map",
+		"tooltip": "Enables/Disables the general tool-tips, displayed when hovering over units, features, or the map",
 		"track": "Start/stop following the selected unit(s) with the camera",
 		"trackmode": "Shift through different ways of following selected unit(s)",
 		"tset": "Set a config key=value pair in the overlay, meaning it will not be persisted for future games",
@@ -2619,8 +2619,8 @@
 					"desc": "You can distinguish different players but everyone sees different colors locally. Diplomacy is harder but possible using positions (e.g. \"Southeast, let's ally against Northeast\")."
 				},
 				"disco": {
-					"name": "Shuffle Locally (Continiously)",
-					"desc": "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness."
+					"name": "Shuffle Locally (Continuously)",
+					"desc": "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spiciness."
 				},
 				"allred": {
 					"name": "Everyone Is Red",
@@ -2727,12 +2727,12 @@
 			"desc": "Disables Nuke Interceptor Units and Structures."
 		},
 		"unit_restrictions_nolrpc": {
-			"name": "Disable Long Range Artilery (LRPC)",
-			"desc": "Disable Long Range Plasma Artilery (LRPC) structures"
+			"name": "Disable Long Range Artillery (LRPC)",
+			"desc": "Disable Long Range Plasma Artillery (LRPC) structures"
 		},
 		"unit_restrictions_noendgamelrpc": {
-			"name": "Disable Endgame Artilery (LRPC)",
-			"desc": "Disable Endgame Long Range Plasma Artilery (LRPC) structures (AKA lolcannons)"
+			"name": "Disable Endgame Artillery (LRPC)",
+			"desc": "Disable Endgame Long Range Plasma Artillery (LRPC) structures (AKA lolcannons)"
 		},
 		"options": {
 			"name": "Other",
@@ -2965,7 +2965,7 @@
 		},
 		"map_lavatiderhythm": {
 			"name": "Lava Tides",
-			"desc": "Lava level periodicially cycles height when tides are present",
+			"desc": "Lava level periodically cycles height when tides are present",
 			"items": {
 				"default": {
 					"name": "Default",
@@ -3368,7 +3368,7 @@
 		},
 		"teamcolors_icon_dev_mode": {
 			"name": "Icon Dev Mode",
-			"desc": "(Don't use in normal games) Forces teamcolors to be an specific one, for all teams",
+			"desc": "(Don't use in normal games) Forces teamcolors to be a specific one, for all teams",
 			"items": {
 				"disabled": {
 					"name": "Disabled",
@@ -3422,19 +3422,19 @@
 		},
 		"date_year": {
 			"name": "Year",
-			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwritten"
 		},
 		"date_month": {
 			"name": "Month",
-			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwritten"
 		},
 		"date_day": {
 			"name": "Day",
-			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwritten"
 		},
 		"date_hour": {
 			"name": "Hour",
-			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten"
+			"desc": "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwritten"
 		},
 		"factionlimiter": {
 			"name": "Faction Limiter: ON\nBITMASK",
@@ -3458,7 +3458,7 @@
 		},
 		"options_cheats": {
 			"name": "Cheats",
-			"desc": "Options that alter the game balance in unintended way, Use at your own risk."
+			"desc": "Options that alter the game balance in unintended ways, Use at your own risk."
 		},
 		"dynamiccheats": {
 			"name": "Dynamic Cheats",

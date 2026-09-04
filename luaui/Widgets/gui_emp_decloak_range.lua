@@ -32,7 +32,6 @@ local spGetSpectatingState = Spring.GetSpectatingState
 --------------------------------------------------------------------------------
 local onlyDrawRangeWhenSelected = true
 local fadeOnCameraDistance = true
-local showLineGlow = true
 local opacityMultiplier = 1.0
 local fadeMultiplier = 1.2 -- lower value: fades out sooner
 local circleDivs = 64 -- detail of range circle
@@ -55,7 +54,6 @@ local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glDrawGroundCircle = gl.DrawGroundCircle
 
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetTeamList = Spring.GetTeamList
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -63,7 +61,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spIsSphereInView = Spring.IsSphereInView
 local spIsUnitSelected = Spring.IsUnitSelected
 local spValidUnitID = Spring.ValidUnitID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -71,8 +68,6 @@ local spGetGameSeconds = Spring.GetGameSeconds
 --------------------------------------------------------------------------------
 -- COMMAND CONSTANTS
 --------------------------------------------------------------------------------
-local CMD_MOVE_STATE = CMD.MOVE_STATE
-local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 --------------------------------------------------------------------------------
 -- GAME STATE
@@ -245,22 +240,6 @@ function widget:DrawWorldPreUnit()
 			local alphaScale = fadeOnCameraDistance and mathMin(1, (1100 / distToCam) * fadeMultiplier) or 1
 			if alphaScale > 0.15 then
 				local cloaked = spGetUnitIsCloaked(unitID) == true
-
-				-- -- glow pass unchanged
-				-- if showLineGlow then
-				--     glLineWidth(12)
-				--     if prop[1] > 0 and cloaked then
-				--         glColor(0.6, 0.6, 1.0, 0.06 * alphaScale * opacityMultiplier)
-				--         glDrawGroundCircle(dx, dy, dz, prop[1], circleDivs)
-				--     end
-				--     if prop[2] > 0 then
-				--         local r = 0.3 * pulseD + 0.7 * (1-pulseD)
-				--         local g = 0.3 * pulseD + 0.7 * (1-pulseD)
-				--         local b = 1.0
-				--         glColor(r, g, b, 0.15 * alphaScale * opacityMultiplier)
-				--         glDrawGroundCircle(dx, dy, dz, prop[2], circleDivs)
-				--     end
-				-- end
 
 				-- main pass with opacity pulses
 				local lw = mathMax(1.5, 2.5 - mathMin(2, distToCam / 2000))

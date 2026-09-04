@@ -76,8 +76,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local WATERWEAPON = 0
 	do
-		local allowNonAttackerUnit = { legpede = true } -- Fastpass for units that don't have an attack command for other reasons.
-
 		local function hasTargeting(weapon, canManualFire)
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			return weapon.slavedTo == 0
@@ -87,7 +85,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local function canSetTarget(unitDef)
-			if (unitDef.canAttack or allowNonAttackerUnit[unitDef.name]) and unitDef.maxWeaponRange > 0 then
+			-- customparams.allow_set_target: fastpass for units that don't have an attack command for other reasons
+			if (unitDef.canAttack or unitDef.customParams.allow_set_target) and unitDef.maxWeaponRange > 0 then
 				local canManualFire = unitDef.canManualFire
 				for _, weapon in pairs(unitDef.weapons) do
 					if hasTargeting(weapon, canManualFire) then
@@ -530,7 +529,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	---A single entry in a unit's target queue, as tracked on the synced side.
 	---@class UnitTargetEntry
-	---@field target UnitID|Position3D Either a target unitID or a `{x, y, z}` ground position.
+	---@field target UnitOrPosition
 	---@field alwaysSeen boolean? Target does not need to stay in sensor range to be kept.
 	---@field ignoreStop boolean? Target survives a Stop command.
 	---@field userTarget boolean? Target was set by the player rather than by Lua.
@@ -538,7 +537,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	---Returns the unit's currently active target.
 	---@param unitID UnitID
-	---@return UnitID|Position3D|nil target A unitID, a `{x, y, z}` ground position, or `nil` when untargeted.
+	---@return UnitOrPosition? target `nil` when untargeted.
 	function GG.GetUnitTarget(unitID)
 		local unitData = activeTargets[unitID]
 		local targetData = unitData and unitData.targets[unitData.currentIndex]
@@ -1069,7 +1068,7 @@ else -- UNSYNCED
 
 	---An entry in the unsynced mirror of a unit's target queue, kept for drawing.
 	---@class UnitTargetEntryUnsynced
-	---@field target UnitID|Position3D Either a target unitID or a `{x, y, z}` ground position.
+	---@field target UnitOrPosition
 	---@field userTarget boolean? Target was set by the player rather than by Lua.
 
 	---Returns the unsynced mirror of the unit's target queue.

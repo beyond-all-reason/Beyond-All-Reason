@@ -765,11 +765,6 @@ local function quatRotateVec(qx, qy, qz, qw, vx, vy, vz)
 	return vx + qw * tx + (qy * tz - qz * ty), vy + qw * ty + (qz * tx - qx * tz), vz + qw * tz + (qx * ty - qy * tx)
 end
 
--- Quaternion inverse (conjugate for unit quaternions)
-local function quatInv(qx, qy, qz, qw)
-	return -qx, -qy, -qz, qw
-end
-
 local function tickSkyDynamic(dt)
 	if not skyDynamic.playing then
 		return
@@ -1956,6 +1951,29 @@ widgetState.disableFog = function()
 	Spring.SetAtmosphere({ fogStart = FOG_OFF.fogStart, fogEnd = FOG_OFF.fogEnd })
 end
 
+-- Push the live sun state into the ENV panel sliders. The sliders seed only once
+-- at document attach, so an environment applied afterwards (project load) must
+-- refresh them — otherwise the next nudge on any sun slider writes its stale
+-- attach-time value back through Spring.SetSunDirection.
+widgetState.refreshEnvSunSliders = function()
+	local sx, sy, sz = gl.GetSun("pos")
+	if not sx then
+		return
+	end
+	uiState.updatingFromCode = true
+	_envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(sx * 10000 + 0.5), string.format("%.2f", sx))
+	_envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(sy * 10000 + 0.5), string.format("%.2f", sy))
+	_envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(sz * 10000 + 0.5), string.format("%.2f", sz))
+	local si = widgetState.envSunIntensity or 1.0
+	_envSetSlider(
+		"slider-env-sun-intensity",
+		"lbl-env-sun-intensity",
+		math.floor(si * 1000 + 0.5),
+		string.format("%.2f", si)
+	)
+	uiState.updatingFromCode = false
+end
+
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
@@ -1964,9 +1982,15 @@ widgetState.applyEnvConfig = function(d)
 		return
 	end
 	if d.sunDir then
-		local intensity = d.sunIntensity or 1.0
-		Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
-		widgetState.envSunIntensity = intensity
+		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
+		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
+		-- it would black out the map, so a degenerate direction is ignored.
+		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
+			local intensity = d.sunIntensity or 1.0
+			Spring.SetSunDirection(sdx, sdy, sdz, intensity)
+			widgetState.envSunIntensity = intensity
+			widgetState.refreshEnvSunSliders()
+		end
 	end
 	local shadowParams = {}
 	if d.groundShadowDensity then
@@ -2065,6 +2089,15 @@ widgetState.applyEnvConfig = function(d)
 		Spring.SetWaterParams(wcParams)
 		Spring.SendCommands("water 4")
 	end
+	-- Skybox: the engine has no getter for the active skybox, so the config
+	-- carries the library path the user picked (applySkybox re-validates it).
+	if type(d.skybox) == "string" and d.skybox ~= "" and widgetState.applySkybox then
+		widgetState.applySkybox(d.skybox)
+		widgetState.envCurrentSkybox = d.skybox
+		for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
+			t.element:SetClass("active", t.path == d.skybox)
+		end
+	end
 end
 
 -- Serialize the live environment state into the env-config Lua format (the same
@@ -2104,6 +2137,12 @@ widgetState.buildEnvConfigContent = function(opts)
 	local bstr = function(v)
 		return v and "true" or "false"
 	end
+	-- A nil or zero-length sun vector must not serialize as {0,0,0} — a config
+	-- carrying that would black out the map it is later applied to.
+	local sunDirLine = "\t-- sunDir omitted: engine returned no sun position at save time"
+	if sX and ((sX * sX + (sY or 0) * (sY or 0) + (sZ or 0) * (sZ or 0)) > 1e-6) then
+		sunDirLine = "\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ","
+	end
 	local outLines = {
 		"-- Environment config exported from BAR Terraform Brush",
 		"-- Map: " .. (Game.mapName or "unknown"),
@@ -2117,7 +2156,7 @@ widgetState.buildEnvConfigContent = function(opts)
 		'\tmapName = "' .. (Game.mapName or "unknown") .. '",',
 		"",
 		"\t-- Sun direction",
-		"\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ",",
+		sunDirLine,
 		"",
 		"\t-- Shadow density",
 		"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
@@ -2148,6 +2187,9 @@ widgetState.buildEnvConfigContent = function(opts)
 		"",
 		"\t-- Skybox rotation",
 		"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
+		"",
+		"\t-- Skybox texture (library path; the engine has no getter, the UI tracks the pick)",
+		"\tskybox = " .. string.format("%q", widgetState.envCurrentSkybox or "") .. ",",
 		"",
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
@@ -2529,6 +2571,18 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 			if base == m.skybox then
 				skyboxPath = thumb.path
 				break
+			end
+		end
+		if not skyboxPath then
+			-- The thumb cache only exists once the panel document has been built;
+			-- resolve straight against the library so a project reopens with its
+			-- sky even when the panel was never opened this session.
+			local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
+			for _, fp in ipairs(files) do
+				if fp:match("([^/\\]+)$") == m.skybox then
+					skyboxPath = fp:gsub("\\", "/")
+					break
+				end
 			end
 		end
 		if not skyboxPath then
@@ -2966,6 +3020,9 @@ local initialModel = {
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
 	tsBiome = "",
+	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
+	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
+	tsSlot4Mode = "plateau",
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
@@ -2975,12 +3032,20 @@ local initialModel = {
 	surfHasVariants = false,
 	surfHasSculpted = false,
 	surfShaderOff = false,
-	surfCoverageStr = "\226\128\148",
-	surfCoverageAmber = false,
 	surfSlot1Name = "\226\128\148",
 	surfSlot2Name = "\226\128\148",
+	surfSlot3Name = "\226\128\148",
+	surfSlot4Name = "\226\128\148",
+	surfSlot5Name = "\226\128\148",
+	surfSlot6Name = "\226\128\148",
+	surfSlot7Name = "\226\128\148",
 	surfFillV1 = true,
 	surfFillV2 = true,
+	surfFillV3 = true,
+	surfFillV4 = true,
+	surfFillV5 = true,
+	surfFillV6 = true,
+	surfFillV7 = true,
 	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
 	-- (the fill shader preserves channels it is not allowed to write), so the
 	-- button grays out rather than looking broken.
@@ -2989,14 +3054,20 @@ local initialModel = {
 	surfNowName = "base (erase)",
 	surfNowDetail = "",
 	surfNowMode = "PAINT",
-	surfSelSlot = 0, -- 0 = base/erase, 1/2 = variant slots
+	surfSelSlot = 0, -- 0 = base/erase, 1-7 = variant slots
 	surfSlot1Assigned = false,
 	surfSlot2Assigned = false,
-	surfSlot1Share = "",
-	surfSlot2Share = "",
-	surfBaseShare = "",
+	surfSlot3Assigned = false,
+	surfSlot4Assigned = false,
+	surfSlot5Assigned = false,
+	surfSlot6Assigned = false,
+	surfSlot7Assigned = false,
 	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
 	surfPickerTitle = "",
+	surfPickSlot = 0, -- slot whose library is open (lights that tile's PICK)
+	-- Picker hover preview (tf_surface drives both from the hovered tile)
+	surfPreviewName = "\226\128\148",
+	surfPreviewHint = "",
 	surfPickerHasPaint = false,
 	surfClearArm = false, -- CLEAR VARIANT armed, waiting for the confirm click
 	surfClearAllArm = false, -- CLEAR ALL armed
@@ -3018,6 +3089,33 @@ local initialModel = {
 	surfHardAltMin = false,
 	surfHardAltMax = false,
 	surfHardExportFmt = "PNG",
+	surfHardOverlay = false, -- LAYERS: splat override channel overlay (engine flag mirror)
+	-- SURFACE soft-submode smart filters (engine = dev_surface_painter)
+	surfSoftAvoidWater = false,
+	surfSoftAvoidCliffs = false,
+	surfSoftAltMin = false,
+	surfSoftAltMax = false,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl over
+	-- the map renders the selected layer inside the brush ring as if the
+	-- stroke had landed (engines drive WG.TilesetTerrain.setSurfacePreview),
+	-- so the artist can inspect where the texture's fixed features fall
+	-- before painting. This flag is the on/off gate, mirrored into both
+	-- engines by tf_surface's sync.
+	surfReveal = true,
+	-- sf (SURFACE/LAYERS shared panel) TB mirror set, syncTBMirrorControls
+	sfGridOverlay = false,
+	sfHeightColormap = false,
+	sfGridSnap = false,
+	sfAngleSnap = false,
+	sfMeasureActive = false,
+	sfSymmetryActive = false,
+	sfSymmetryRadial = false,
+	sfSymMirrorX = false,
+	sfSymMirrorY = false,
+	sfSymHasAxis = false,
+	sfMeasureShowLength = false,
+	sfMeasureRulerMode = false,
+	sfMeasureStickyMode = false,
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -3161,7 +3259,7 @@ local initialModel = {
 	-- Phase 2 step 2: active-state dm fields (data-class-active bindings)
 	activeMode = "", -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
 	activeShape = "circle", -- shared shape for all tools
-	activeSmoothMode = "", -- "smooth"/"level" when in smooth/level group, else ""
+	activeSmoothMode = "", -- "smooth"/"level"/"smudge" when in the modify group, else ""
 	noiseType = "perlin", -- noise type selection
 	mbSubMode = "paint", -- metal brush sub-mode
 	gbSubMode = "paint", -- grass brush sub-mode
@@ -3299,6 +3397,8 @@ local initialModel = {
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
+	fpScaleMinStr = "1.00",
+	fpScaleMaxStr = "1.00",
 	fpCountStr = "1",
 	fpCadenceStr = "1",
 	fpSlopeMaxStr = "45",
@@ -3328,6 +3428,9 @@ local initialModel = {
 	envCurrMinStr = "--",
 	envCurrMaxStr = "--",
 	envWaterPlaneStr = "--",
+	envWaterTargetStr = "Drag to move the shoreline.",
+	envDimRangeMode = "scale",
+	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
 	tfRestoreStrengthStr = "100%",
@@ -3400,6 +3503,9 @@ local initialModel = {
 	tfRingVisible = false,
 	tfInRestore = false,
 	tfRampMode = false,
+	tfRampType = "", -- "straight"/"spline"/"auto" when in a ramp mode, else ""
+	arStart = "average", -- autoramp cliff anchor: "extend"/"subtract"/"average"
+	arPreview = true, -- autoramp WYSIWYG hover preview toggle
 	tfShapeRowVisible = true,
 	tfSmoothSubmodesVisible = false,
 	tfErodeControlsVisible = false,
@@ -5275,6 +5381,44 @@ local initialModel = {
 		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setRotRandom(math.max(0, (st.rotRandom or 100) - 5))
+	end,
+
+	-- Scale variation (per-feature visual scale range)
+	onFpScaleMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(_elemSliderVal("fp-slider-scale-min", 1))
+	end,
+	onFpScaleMinDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) - 0.1)
+	end,
+	onFpScaleMinUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) + 0.1)
+	end,
+	onFpScaleMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(_elemSliderVal("fp-slider-scale-max", 1))
+	end,
+	onFpScaleMaxDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) - 0.1)
+	end,
+	onFpScaleMaxUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) + 0.1)
 	end,
 
 	-- Count
@@ -8483,66 +8627,110 @@ local initialModel = {
 		end
 		Spring.SendCommands("water 4")
 	end,
-	onEnvDimRefresh = function(_event)
-		if widgetState.envRefreshDimExtremes then
-			widgetState.envRefreshDimExtremes()
-		end
-	end,
+	-- Commits the previewed shoreline: the terrain slides so the water plane
+	-- lands on the slider's height. The slider is then reseeded (the terrain it
+	-- was measured against just moved) on a short delay, once the sim has
+	-- applied the shift.
 	onEnvApplyWaterLevel = function(_event)
-		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		local val = wlInputEl and tonumber(wlInputEl:GetAttribute("value"))
-		if val and val ~= 0 then
-			Spring.SendCommands("luarules waterlevel " .. tostring(val))
-			if wlInputEl then
-				wlInputEl:SetAttribute("value", "0")
-			end
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvApplyMinHeight = function(_event)
-		local doc = widgetState.document
-		local minHEl = doc and doc:GetElementById("input-dim-minheight")
-		local val = minHEl and tonumber(minHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampminheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvApplyMaxHeight = function(_event)
-		local doc = widgetState.document
-		local maxHEl = doc and doc:GetElementById("input-dim-maxheight")
-		local val = maxHEl and tonumber(maxHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampmaxheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then
-				widgetState.envRefreshDimExtremes()
-			end
-		end
-	end,
-	onEnvResetWaterLevel = function(_event)
-		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		if wlInputEl then
-			wlInputEl:SetAttribute("value", "0")
-		end
-	end,
-	onEnvResetBounds = function(_event)
-		local doc = widgetState.document
-		if not doc then
+		local tb = WG.TerraformBrush
+		if not (tb and tb.applyWaterLevel) then
 			return
 		end
-		local minHEl = doc:GetElementById("input-dim-minheight")
-		local maxHEl = doc:GetElementById("input-dim-maxheight")
-		if minHEl then
-			minHEl:SetAttribute("value", "")
+		local doc = widgetState.document
+		local sl = doc and doc:GetElementById("slider-env-waterlevel")
+		local level = sl and tonumber(sl:GetAttribute("value"))
+		if not level then
+			return
 		end
-		if maxHEl then
-			maxHEl:SetAttribute("value", "")
+		if not tb.applyWaterLevel(level) then
+			Spring.Echo("[Terraform Brush] Shoreline is already at that height.")
+			return
+		end
+		playSound("save")
+		widgetState.envWaterReseedTicks = 40
+	end,
+	onEnvDimRangeMode = function(_event, mode)
+		local dm = widgetState.dmHandle
+		if not dm or dm.envDimRangeMode == mode then
+			return
+		end
+		playSound("click")
+		dm.envDimRangeMode = mode
+		if mode == "clamp" then
+			dm.envDimRangeDescStr = "Cuts everything outside the range. Peaks and pits come out flat."
+		else
+			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
+		end
+	end,
+	-- Applies the slider min/max to the whole map. RESCALE remaps the live
+	-- extremes onto the range (the thing the old clamp-only buttons could never
+	-- do: lowering the max used to just shear the mountain tops off); CLAMP is
+	-- the old behaviour, kept for shaving a single runaway peak.
+	onEnvApplyHeightRange = function(_event)
+		local doc = widgetState.document
+		local minHEl = doc and doc:GetElementById("slider-env-dim-minheight")
+		local maxHEl = doc and doc:GetElementById("slider-env-dim-maxheight")
+		local newMin = minHEl and tonumber(minHEl:GetAttribute("value"))
+		local newMax = maxHEl and tonumber(maxHEl:GetAttribute("value"))
+		if not newMin or not newMax then
+			Spring.Echo("[Terraform Brush] Height range needs a number on both sliders.")
+			return
+		end
+		if newMax - newMin < 1 then
+			Spring.Echo("[Terraform Brush] Height range needs a max at least 1 above the min.")
+			return
+		end
+		local tb = WG.TerraformBrush
+		if not (tb and tb.remapHeights) then
+			return
+		end
+		local dm = widgetState.dmHandle
+		playSound("save")
+		-- No refresh here: the sim applies a frame or two later, so it would
+		-- only re-show the pre-edit numbers. The window poll picks it up.
+		tb.remapHeights(newMin, newMax, dm and dm.envDimRangeMode or "scale")
+	end,
+	-- Put the water back where the map had it, undoing every water level apply
+	-- made this session. Parking the slider is not enough on its own: an apply
+	-- already recentres it, so a slider-only reset is a visible no-op.
+	onEnvResetWaterLevel = function(_event)
+		local tb = WG.TerraformBrush
+		local shift = tb and tb.resetWaterLevel and tb.resetWaterLevel()
+		if shift then
+			playSound("save")
+			Spring.Echo(string.format("[Terraform Brush] Water level restored (undid %.0f).", shift))
+			widgetState.envWaterReseedTicks = 40
+		else
+			playSound("click")
+			Spring.Echo("[Terraform Brush] Water is already at the map's own level.")
+			if widgetState.envSeedWaterSlider then
+				widgetState.envSeedWaterSlider()
+			end
+		end
+	end,
+	-- "CURRENT" button: park the slider back on the water's live plane —
+	-- recentres the track and clears the shoreline preview without touching
+	-- the terrain (reseed = bounds centred on the plane, handle in the middle).
+	onEnvWaterCurrent = function(_event)
+		if widgetState.envSeedWaterSlider then
+			playSound("click")
+			widgetState.envSeedWaterSlider()
+		end
+	end,
+	-- "RESET" chip: back to the map's own height range. Init min/max come from
+	-- the map's SMF header, so they survive every edit and stay a true default.
+	onEnvResetBounds = function(_event)
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(true)
+		end
+	end,
+	-- "CURRENT" button: refill both boxes from the live extremes, so editing one
+	-- end of the range does not need the other typed back in by hand.
+	onEnvFillBoundsCurrent = function(_event)
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(false)
 		end
 	end,
 	onEnvSave = function(_event)
@@ -8677,9 +8865,11 @@ local initialModel = {
 		if WG.TerraformBrush.setErodeReposeDeg then
 			WG.TerraformBrush.setErodeReposeDeg(val)
 		end
-		-- Keep the attribute coherent for the steppers: outside a change event
-		-- GetAttribute returns the stale pre-drag value (rmlui quirk).
-		_noSetSliderVal("erode-repose", val)
+		-- No echo-write of the value attribute here: a stamp raises a DEFERRED
+		-- change event (see syncAndFlash), which re-enters this handler with
+		-- updatingFromCode already false and fights the native thumb drag.
+		-- The steppers read widget state, and the per-sync restamp reconciles
+		-- the attribute after release, so nothing needs the write.
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 	-- Steppers read the authoritative widget state, not the slider attribute,
@@ -8707,6 +8897,67 @@ local initialModel = {
 		end
 		_noSetSliderVal("erode-repose", val)
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
+	end,
+
+	-- ── Autoramp submode sliders ─────────────────────────────────────────────
+	-- data-event-change="onTfAutorampSlider('angle')" etc. Angle is degrees;
+	-- the percent sliders map 0–100 onto the widget's 0–1 knobs.
+	onTfAutorampSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local tb = WG.TerraformBrush
+		-- Read-and-store only — no echo-write of the value attribute: a stamp
+		-- raises a deferred change event that re-enters this handler and fights
+		-- the native thumb drag (the marble sticks while the track still works).
+		-- The per-sync restamp reconciles the attribute once the drag ends.
+		if key == "angle" then
+			local val = _noSliderVal("ar-angle", 60)
+			if tb.setAutorampAngleDeg then
+				tb.setAutorampAngleDeg(val)
+			end
+		else
+			local setters = {
+				falloff = tb.setAutorampFalloff,
+				edgenoise = tb.setAutorampEdgeNoise,
+				erosion = tb.setAutorampErosion,
+				talus = tb.setAutorampTalus,
+			}
+			local defaults = { falloff = 50, edgenoise = 35, erosion = 35, talus = 40 }
+			local setter = setters[key]
+			if setter then
+				local val = _noSliderVal("ar-" .. key, defaults[key])
+				setter(val / 100)
+			end
+		end
+	end,
+
+	-- data-event-click="onTfArStart('extend')" — autoramp cliff anchor chips
+	onTfArStart = function(_event, mode)
+		playSound("toggleOn")
+		if WG.TerraformBrush and WG.TerraformBrush.setAutorampStart then
+			WG.TerraformBrush.setAutorampStart(mode)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arStart = mode
+		end
+	end,
+
+	-- data-event-click="onTfArPreview()" — autoramp WYSIWYG preview toggle
+	onTfArPreview = function(_event)
+		local tb = WG.TerraformBrush
+		if not tb then
+			return
+		end
+		local s = tb.getState and tb.getState()
+		local nv = not (s and s.autorampPreview)
+		playSound(nv and "toggleOn" or "toggleOff")
+		if tb.setAutorampPreview then
+			tb.setAutorampPreview(nv)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arPreview = nv
+		end
 	end,
 
 	-- data-event-click="onTfSetShape('circle')"
@@ -8752,10 +9003,16 @@ local initialModel = {
 	onTfRampStraight = function(_event)
 		playSound("tick")
 		if WG.TerraformBrush then
+			-- Leaving Auto: shape changes are rejected while autoramp is active
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
 			WG.TerraformBrush.setShape("square")
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = "square"
+			widgetState.dmHandle.tfRampType = "straight"
 		end
 	end,
 
@@ -8763,10 +9020,27 @@ local initialModel = {
 	onTfRampSpline = function(_event)
 		playSound("tick")
 		if WG.TerraformBrush then
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
 			WG.TerraformBrush.setShape("circle")
 		end
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "spline"
+		end
+	end,
+
+	-- data-event-click="onTfRampAuto()"
+	onTfRampAuto = function(_event)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMode("autoramp")
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "auto"
 		end
 	end,
 
@@ -9118,6 +9392,12 @@ local initialModel = {
 			if dm and dm.surfMode ~= "soft" then
 				dm.surfMode = "soft"
 			end
+			-- Sneak Peek re-arms on every entry into this mode: it is the
+			-- tool's discovery surface, so a mid-session toggle-off never
+			-- carries over to the next visit.
+			if dm then
+				dm.surfReveal = true
+			end
 			WG.SurfacePainter.activate()
 		end
 	end,
@@ -9150,6 +9430,10 @@ local initialModel = {
 		local dm = widgetState.dmHandle
 		if dm and dm.surfMode ~= "hard" then
 			dm.surfMode = "hard"
+		end
+		-- Sneak Peek re-arms on every entry into this mode (see SURFACE above)
+		if dm then
+			dm.surfReveal = true
 		end
 		WG.SplatPainter.activate()
 		widgetState.surfHardActive = true
@@ -9209,6 +9493,15 @@ local initialModel = {
 			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
 		elseif key == "fill-seed" then
 			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
+		elseif sp.setSmartFilter then
+			-- soft-submode FILTERS sliders (ids surf-soft-slider-*)
+			if key == "slope-max" then
+				sp.setSmartFilter("slopeMax", _elemSliderVal("surf-soft-slider-slope-max", 45))
+			elseif key == "alt-min" then
+				sp.setSmartFilter("altMin", _elemSliderVal("surf-soft-slider-alt-min", 0))
+			elseif key == "alt-max" then
+				sp.setSmartFilter("altMax", _elemSliderVal("surf-soft-slider-alt-max", 200))
+			end
 		end
 	end,
 	onSurfPreset = function(_event, name)
@@ -9226,6 +9519,43 @@ local initialModel = {
 		local st = WG.SurfacePainter.getState() or {}
 		WG.SurfacePainter.setEraseMode(not st.eraseMode)
 		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Pure panel state:
+	-- tf_surface mirrors it into both paint engines each sync; the engines
+	-- watch Ctrl and drive WG.TilesetTerrain.setSurfacePreview themselves.
+	onSurfRevealToggle = function(_event)
+		local dm = widgetState.dmHandle
+		if not dm then
+			return
+		end
+		dm.surfReveal = not dm.surfReveal
+		playSound(dm.surfReveal and "toggleOn" or "toggleOff")
+	end,
+	-- Soft-submode smart filters (engine = dev_surface_painter; mirrors
+	-- onSurfHardFilter's enable-follows-any-chip behaviour).
+	onSurfFilter = function(_event, key)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setSmartFilter) then
+			return
+		end
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.altMinEnable or sf2.altMaxEnable) and true or false
+		)
+	end,
+	-- LAYERS display: the splat engine's channel overlay, colored per override
+	onSurfHardOverlay = function(_event)
+		local sp = WG.SplatPainter
+		if not (sp and sp.setSplatOverlay) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setSplatOverlay(not st.showSplatOverlay)
+		playSound(st.showSplatOverlay and "toggleOff" or "toggleOn")
 	end,
 	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
 	-- slot's variant (no-op when the slot is empty — the palette assigns).
@@ -9247,14 +9577,26 @@ local initialModel = {
 		end
 		local slot = tonumber(n)
 		local st = WG.SurfacePainter.getState() or {}
-		local asset = (slot == 1) and st.slot1 or st.slot2
-		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
-			WG.SurfacePainter.setVariant(asset)
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return -- a chip the painter does not have (stale click)
 		end
-		local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
-		widgetState.surfPickerSlot = open
-		widgetState.surfPaletteSig = nil -- rebuild for the new target
-		playSound(open and "dropdown" or "click")
+		local asset = st["slot" .. slot]
+		if asset and asset ~= "" then
+			-- ARM THE SLOT, nothing else. This used to open the library as well,
+			-- so switching brush threw the whole catalog on screen every time;
+			-- the tile's PICK button owns that now.
+			if WG.SurfacePainter.setVariant then
+				WG.SurfacePainter.setVariant(asset)
+			end
+			playSound("click")
+		else
+			-- an empty slot has nothing to paint with, so the only useful thing
+			-- a click can mean is "let me choose something for it"
+			local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
+			widgetState.surfPickerSlot = open
+			widgetState.surfPaletteSig = nil
+			playSound(open and "dropdown" or "click")
+		end
 	end,
 	onSurfNoiseFill = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then
@@ -9265,13 +9607,21 @@ local initialModel = {
 		-- mask verbatim, so the button silently did nothing. The RML grays it
 		-- in that state (dm.surfCanFill) — this is the backstop that explains.
 		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
-		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2)) then
+		local anyAssigned, anyFill = false, false
+		for i = 1, (st.slotCount or 0) do
+			if st["slot" .. i] then
+				anyAssigned = true
+				if st["fillV" .. i] then
+					anyFill = true
+				end
+			end
+		end
+		if not anyFill then
 			Spring.Echo(
 				"[Terraform Brush] SURFACE fill did nothing \226\128\148 "
 					.. (
-						(not st.slot1 and not st.slot2)
-							and "assign a variant to slot 1 or 2 first (the caret on a slot chip)."
-						or "enable V1 or V2 below."
+						anyAssigned and "enable a V chip below."
+						or "assign a variant to a slot first (click a slot chip)."
 					)
 			)
 			return
@@ -9285,16 +9635,16 @@ local initialModel = {
 		end
 		local st = WG.SurfacePainter.getState() or {}
 		local dm = widgetState.dmHandle
-		if tonumber(n) == 1 then
-			WG.SurfacePainter.setFillV1(not st.fillV1)
-			if dm then
-				dm.surfFillV1 = not st.fillV1
-			end
-		else
-			WG.SurfacePainter.setFillV2(not st.fillV2)
-			if dm then
-				dm.surfFillV2 = not st.fillV2
-			end
+		local slot = tonumber(n)
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return
+		end
+		local want = not st["fillV" .. slot]
+		if WG.SurfacePainter.setFillV then
+			WG.SurfacePainter.setFillV(slot, want)
+		end
+		if dm then
+			dm["surfFillV" .. slot] = want
 		end
 		playSound("tick")
 	end,
@@ -9577,6 +9927,25 @@ local initialModel = {
 			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
 			-- toggle on; also no-op on maps that booted without a real cubemap sky).
 			syncSkyboxToBiome(key)
+		end
+	end,
+	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
+	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
+	-- widget reseeds the two reused sliders on a change; tf_tileset.sync
+	-- restamps them and retitles their labels.
+	-- METAL SPOTS suite toggle: what TU22-24 serve. false = the metal-spot
+	-- material (legacy), true = a third paintable SURFACE variant (slot 3).
+	onTsSlot4Mode = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setSlot4Mode(name)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tsSlot4Mode = name
+			end
 		end
 	end,
 	onTsToggleSkyboxSync = function(_event)
@@ -10829,7 +11198,7 @@ local function setActiveClass(buttons, activeKey)
 	end
 end
 
-CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true }
+CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true, autoramp = true }
 
 clearPassthrough = function()
 	if widgetState.passthroughMode then
@@ -10849,72 +11218,6 @@ clearPassthrough = function()
 			widgetState.rootElement:SetClass("passthrough-dimmed", false)
 		end
 	end
-end
-
-local function onRotateCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(ROTATION_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onRotateCCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(-ROTATION_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onCurveUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onCurveDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
-	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity * 1.15
-		if newI < state.intensity + 0.1 then
-			newI = state.intensity + 0.1
-		end
-		WG.TerraformBrush.setIntensity(newI)
-	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity / 1.15
-		if newI > state.intensity - 0.1 then
-			newI = state.intensity - 0.1
-		end
-		WG.TerraformBrush.setIntensity(newI)
-	end
-
-	event:StopPropagation()
 end
 
 capMinValue = 0
@@ -11087,6 +11390,16 @@ local guideHints = {
 	["btn-noise"] = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
 	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
+	["btn-ramp-auto"] = "Autoramp: click an existing cliff to rebuild it at a chosen angle, with wavy edges, erosion gullies and scree buildup at the base. One click per cliff; each click is one undo step.",
+	["slider-ar-angle"] = "Target slope of the rebuilt cliff face (10\xc2\xb0\xe2\x80\x9385\xc2\xb0). Low values turn the cliff into a walkable ramp; high values keep it a sheer wall.",
+	["slider-ar-falloff"] = "How softly the new face shoulders into the plateaus above and below. Low = hard crisp lips, high = wide rounded blend.",
+	["slider-ar-edgenoise"] = "Waviness of the cliff line: perturbs the top and bottom lips so the face meanders instead of running straight.",
+	["slider-ar-erosion"] = "Depth of ridged gullies cut down the face, like water-carved channels.",
+	["slider-ar-talus"] = "Scree fan banked against the cliff base \xe2\x80\x94 ground buildup from washed-off material.",
+	["btn-ar-preview"] = "WYSIWYG preview: while hovering, shows the exact resulting terrain as a translucent mesh \xe2\x80\x94 green where ground is added, orange where it is cut.",
+	["btn-ar-start-extend"] = "Cliff start \xe2\x80\x94 Extend: the top lip stays where it is; the new face spills outward over the low ground, never biting into the mesa.",
+	["btn-ar-start-subtract"] = "Cliff start \xe2\x80\x94 Subtract: the bottom lip stays where it is; the new face carves back into the mesa top.",
+	["btn-ar-start-average"] = "Cliff start \xe2\x80\x94 Average: the face pivots on the cliff's mid line, biting half into the top and spilling half over the bottom.",
 	["btn-passthrough"] = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
 	["btn-features"] = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
 	["btn-weather"] = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
@@ -11257,6 +11570,8 @@ local guideHints = {
 	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
 	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
+	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). Most features land near this end — natural stands are mostly small with a few large.",
+	["fp-slider-scale-max"] = "Largest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
 	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely.",
 	["fp-slider-cadence"] = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load
@@ -12531,6 +12846,7 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "fp-slider-grid-snap-size", "fp-grid-snap-size" },
 		{ "gb-slider-grid-snap-size", "gb-grid-snap-size" },
 		{ "mb-slider-grid-snap-size", "mb-grid-snap-size" },
+		{ "sf-slider-grid-snap-size", "sf-grid-snap-size" },
 		{ "slider-angle-snap-step", "tf-angle-snap-step" },
 		{ "st-slider-angle-snap-step", "st-angle-snap-step" },
 		{ "cl-slider-angle-snap-step", "cl-angle-snap-step" },
@@ -12541,6 +12857,16 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "fp-slider-angle-snap-step", "fp-angle-snap-step" },
 		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
 		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
+		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
+		-- MODIFY/ERODE submode sliders: same data-event-change pattern, same
+		-- requirement. The drag ids must match the per-sync restamp guards
+		-- (uiState.draggingSlider ~= id) or the restamp fights the drag.
+		{ "slider-ar-angle", "ar-angle" },
+		{ "slider-ar-falloff", "ar-falloff" },
+		{ "slider-ar-edgenoise", "ar-edgenoise" },
+		{ "slider-ar-erosion", "ar-erosion" },
+		{ "slider-ar-talus", "ar-talus" },
+		{ "slider-erode-repose", "erode-repose" },
 	}
 	for i = 1, #SNAP_SLIDERS do
 		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])
@@ -13794,6 +14120,11 @@ function widget:Initialize()
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
 		end,
+		-- Runtime skybox pick (library path, nil if untouched); the manifest
+		-- records its basename so reopening the project boots with the same sky.
+		getCurrentSkybox = function()
+			return widgetState.envCurrentSkybox
+		end,
 		-- Start script for opening a map project (blank map at the manifest's
 		-- size with project-local DNTS assets); called by WG.MapProject.open.
 		buildProjectStartScript = function(manifest, slug)
@@ -14109,6 +14440,19 @@ local function drawSkyboxThumbnailPreviews()
 	if not widgetState.skyboxLibraryOpen then
 		return
 	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
 	local thumbs = widgetState.envSkyboxThumbs
 	if not thumbs or #thumbs == 0 then
 		return
@@ -14216,6 +14560,19 @@ local function drawSurfPaletteThumbs()
 	if widgetState.lobbyHidden then
 		return
 	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
 	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
 	-- not laid out can still report a stale non-zero box (the splat-preview
 	-- lesson), so every container that can hide these thumbs must be tested
@@ -14254,8 +14611,73 @@ local function drawSurfPaletteThumbs()
 				local x = div.absolute_left
 				local y = div.absolute_top
 				if gl.Texture(0, tex) then
-					-- centered crop: a full 4K tile at 52dp reads as noise,
-					-- a quarter-window shows the material's actual character
+					-- centered crop: a full 4K tile at 52dp reads as noise, so a
+					-- quarter-window shows the material's actual character.
+					-- Entries may widen it (the picker's hover preview is big
+					-- enough to want the whole tile).
+					local u0 = els[i].u0 or 0.25
+					local u1 = els[i].u1 or 0.75
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, u0, u0, u1, u1)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- GL albedo thumbnails for the EXTRA LAYER material tiles (tf_tileset.lua's
+-- rebuildS4Palette). Same mechanism as drawSurfPaletteThumbs above, but gated
+-- on the TILESET floating window, not the active tool — the window is
+-- tool-independent by design. On widgetState, not a local: the main chunk sits
+-- near Lua 5.1's 200-local ceiling.
+widgetState.drawTs4PaletteThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	-- OFF mode grays the row out via the disabled class; GL overdraw ignores
+	-- CSS opacity, so it has to skip explicitly.
+	if dm.tsSlot4Mode == "off" then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.ts4SectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.ts4PaletteEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			-- collapsed sections / hidden windows report zero size (the same
+			-- guard the surf palette relies on)
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if gl.Texture(0, tex) then
+					-- centered quarter-window crop, like the surf tiles: a full
+					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
 					gl.Texture(0, false)
 				end
@@ -14276,6 +14698,9 @@ function widget:DrawScreenPost()
 	-- SURFACE palette tile thumbnails (early-outs on its own tool check).
 	drawSurfPaletteThumbs()
 
+	-- EXTRA LAYER material tile thumbnails (early-outs on its own window check).
+	widgetState.drawTs4PaletteThumbs()
+
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
 	local dm = widgetState.dmHandle
@@ -14288,6 +14713,11 @@ function widget:DrawScreenPost()
 		return
 	end
 	if widgetState.lobbyHidden then
+		return
+	end
+	-- ...and the root element carries the hidden class the same sync sets
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
 		return
 	end
 
@@ -15390,6 +15820,14 @@ function widget:Update()
 			widgetState.rootElement:SetClass("hidden", not panelVisible)
 		end
 		if not panelVisible then
+			-- The water level preview plane is drawn in the world by the other
+			-- widget, so hiding the panel has to take it down explicitly.
+			if widgetState.envWaterPreviewAt ~= nil then
+				widgetState.envWaterPreviewAt = nil
+				if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+					WG.TerraformBrush.setWaterLevelPreview(nil)
+				end
+			end
 			-- Clear any locked sliders when panel hides
 			if next(widgetState.lockedSliders) then
 				for id, element in pairs(widgetState.lockedSliders) do
@@ -15550,6 +15988,55 @@ function widget:Update()
 					setDm("envWaterVisible", widgetState.envWaterOpen or false)
 					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
 					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
+					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with
+					-- the range they are about to change.
+					if widgetState.envDimensionsOpen and not widgetState.envDimWasOpen then
+						widgetState.envDimWasOpen = true
+						if widgetState.envFillDimRangeInputs then
+							widgetState.envFillDimRangeInputs()
+						end
+					elseif not widgetState.envDimensionsOpen then
+						widgetState.envDimWasOpen = false
+					end
+					-- Shoreline machinery runs while EITHER window holding a track is
+					-- open: WATER LEVEL lives in Dimensions, its FLUID LEVEL mirror in
+					-- Water. The extremes/plane readouts poll here too — they are the
+					-- only feedback that a range or water edit landed, and the sim
+					-- applies it a frame or two after the click (GetGroundExtremes is
+					-- an engine-cached read).
+					if widgetState.envDimensionsOpen or widgetState.envWaterOpen then
+						if not widgetState.envWaterUIWasOpen then
+							widgetState.envWaterUIWasOpen = true
+							-- Seed on the open edge, but never over a live preview: the
+							-- other window may already be mid-adjustment on its track.
+							if widgetState.envWaterPreviewAt == nil and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						widgetState.envDimTick = (widgetState.envDimTick or 0) + 1
+						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
+							widgetState.envDimTick = 0
+							widgetState.envRefreshDimExtremes()
+						end
+						-- Reseed after an apply, once the sim has moved the terrain the
+						-- slider's bounds were measured against.
+						if (widgetState.envWaterReseedTicks or 0) > 0 then
+							widgetState.envWaterReseedTicks = widgetState.envWaterReseedTicks - 1
+							if widgetState.envWaterReseedTicks == 0 and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						if widgetState.envSyncWaterPreview then
+							widgetState.envSyncWaterPreview()
+						end
+					elseif widgetState.envWaterUIWasOpen then
+						widgetState.envWaterUIWasOpen = false
+						widgetState.envWaterReseedTicks = 0
+						widgetState.envWaterPreviewAt = nil
+						if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+							WG.TerraformBrush.setWaterLevelPreview(nil)
+						end
+					end
 					-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
 					if not lpActive and widgetState.lightLibraryOpen then
 						widgetState.lightLibraryOpen = false
@@ -15579,7 +16066,9 @@ function widget:Update()
 						or clActive
 						or decalsActive
 						or widgetState.surfActive
-					local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
+					local inSmoothGroup = tfActive
+						and tfState
+						and (tfState.mode == "smooth" or tfState.mode == "level" or tfState.mode == "smudge")
 					setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
 					-- erode controls: visible only in erode terraform mode
 					local inErode = tfActive and tfState and tfState.mode == "erode"
@@ -15600,8 +16089,6 @@ function widget:Update()
 				end
 			end
 		end -- if panelVisible
-
-		local dcActive = widgetState.decalsActive
 
 		-- Toggle noise floating window
 		local noiseActive = tfActive and tfState.mode == "noise"
@@ -16583,10 +17070,18 @@ function widget:Update()
 					ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
 					-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
 					ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
-					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore; irrelevant only for level
-					ctx.setDisabled(doc, "param-intensity-row", tMode == "level")
-					-- Height cap (min/max) irrelevant for ramp and restore modes
-					ctx.setDisabled(doc, "section-heightcap", tMode == "ramp" or tMode == "restore")
+					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore;
+					-- irrelevant for level and for autoramp (one-shot region op)
+					ctx.setDisabled(doc, "param-intensity-row", tMode == "level" or tMode == "autoramp")
+					-- Autoramp has its own Falloff knob in the AUTORAMP block; the
+					-- global FALL-OFF curve does not feed it
+					ctx.setDisabled(doc, "param-falloff-row", tMode == "autoramp")
+					-- Height cap (min/max) irrelevant for ramp, restore and autoramp modes
+					ctx.setDisabled(
+						doc,
+						"section-heightcap",
+						tMode == "ramp" or tMode == "restore" or tMode == "autoramp"
+					)
 				end
 
 				uiState.updatingFromCode = false
@@ -16594,7 +17089,9 @@ function widget:Update()
 
 			local dm = widgetState.dmHandle
 			do
-				local primaryKey = (state.mode == "level") and "smooth" or state.mode
+				local primaryKey = (state.mode == "level" or state.mode == "smudge") and "smooth"
+					or (state.mode == "autoramp") and "ramp"
+					or state.mode
 				if dm and dm.activeMode ~= primaryKey then
 					dm.activeMode = primaryKey
 				end
@@ -16605,17 +17102,26 @@ function widget:Update()
 
 			-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
 			do
-				local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
+				local inSmoothGroup = state.mode == "smooth" or state.mode == "level" or state.mode == "smudge"
 				local v = (inSmoothGroup and state.mode) or ""
 				if dm and dm.activeSmoothMode ~= v then
 					dm.activeSmoothMode = v
 				end
 			end
 
-			-- Show ramp-type-row when in ramp mode; hide normal shape row
+			-- Show ramp-type-row when in a ramp mode (incl. autoramp); hide normal shape row
 			do
-				local isRamp = state.mode == "ramp"
+				local isRamp = state.mode == "ramp" or state.mode == "autoramp"
+				local rampType = ""
+				if state.mode == "autoramp" then
+					rampType = "auto"
+				elseif state.mode == "ramp" then
+					rampType = (state.shape == "circle") and "spline" or "straight"
+				end
 				if widgetState.dmHandle then
+					if widgetState.dmHandle.tfRampType ~= rampType then
+						widgetState.dmHandle.tfRampType = rampType
+					end
 					if widgetState.dmHandle.tfRampMode ~= isRamp then
 						widgetState.dmHandle.tfRampMode = isRamp
 					end
@@ -16624,7 +17130,7 @@ function widget:Update()
 					end
 				end
 			end
-			-- Ramp type active state driven by dm.activeShape (data-class-active in RML)
+			-- Ramp type active state driven by dm.tfRampType (data-class-active in RML)
 
 			-- D4: Update contextual status summary line
 			do
@@ -16635,10 +17141,12 @@ function widget:Update()
 						lower = "#ef4444",
 						level = "#fdc04c",
 						smooth = "#fdc04c",
+						smudge = "#fdc04c",
 						ramp = "#fdc04c",
 						restore = "#fdc04c",
 						noise = "#fdc04c",
 						erode = "#fdc04c",
+						autoramp = "#fdc04c",
 					}
 					local m = state.mode or "---"
 					local mc = modeColors[m] or "#9ca3af"
@@ -16754,12 +17262,49 @@ function widget:Update()
 				uiState.updatingFromCode = true
 				local erodeSlider = getCachedEl(doc, "slider-erode-repose")
 				if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
-					erodeSlider:SetAttribute("value", tostring(state.erodeReposeDeg))
+					-- Dirty-checked: an unconditional stamp raises a deferred change
+					-- event every sync pass (after updatingFromCode is already
+					-- cleared), re-entering the slider handler each frame.
+					setAttrValueIfChanged(erodeSlider, "slider-erode-repose", tostring(state.erodeReposeDeg))
 				end
 				if dm then
 					local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
 					if dm.tfErodeReposeStr ~= v then
 						dm.tfErodeReposeStr = v
+					end
+				end
+				uiState.updatingFromCode = false
+			end
+
+			-- Sync the autoramp sliders from state when in autoramp mode; the
+			-- percent knobs are stored 0–1 widget-side, shown 0–100 here.
+			if state.mode == "autoramp" and state.autorampAngleDeg then
+				uiState.updatingFromCode = true
+				local arSync = {
+					{ "ar-angle", state.autorampAngleDeg },
+					{ "ar-falloff", (state.autorampFalloff or 0.5) * 100 },
+					{ "ar-edgenoise", (state.autorampEdgeNoise or 0.35) * 100 },
+					{ "ar-erosion", (state.autorampErosion or 0.35) * 100 },
+					{ "ar-talus", (state.autorampTalus or 0.4) * 100 },
+				}
+				for i = 1, #arSync do
+					local id, val = arSync[i][1], arSync[i][2]
+					local sl = getCachedEl(doc, "slider-" .. id)
+					if sl and uiState.draggingSlider ~= id then
+						-- Dirty-checked (cache keyed by element id, which is what
+						-- trackSliderDrag invalidates on mouseup): an unconditional
+						-- stamp raises a deferred change event every sync pass.
+						setAttrValueIfChanged(sl, "slider-" .. id, tostring(math.floor(val + 0.5)))
+					end
+				end
+				if dm then
+					local st = state.autorampStart or "average"
+					if dm.arStart ~= st then
+						dm.arStart = st
+					end
+					local pv = state.autorampPreview and true or false
+					if dm.arPreview ~= pv then
+						dm.arPreview = pv
 					end
 				end
 				uiState.updatingFromCode = false
@@ -17251,6 +17796,12 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+
+	-- The water level preview plane is drawn by the other widget, so a shutdown
+	-- with the Dimensions window open would strand it on screen.
+	if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+		WG.TerraformBrush.setWaterLevelPreview(nil)
+	end
 
 	if WG.TerraformerShared then
 		-- Hand the mouse wheel back before leaving: a slider locked at shutdown

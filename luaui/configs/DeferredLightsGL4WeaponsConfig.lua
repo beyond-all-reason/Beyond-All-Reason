@@ -527,8 +527,6 @@ local function GetClosestSizeClass(desiredsize)
 	return best, SizeRadius[best]
 end
 
-local Lifetimes = { Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270 }
-
 local lightClasses = {}
 
 local function deepcopy(orig)
@@ -703,7 +701,6 @@ local function AssignLightsToAllWeapons()
 			--muzzleFlash = true -- doesn't work
 
 			if not weaponDef.paralyzer then
-				local muzzleFlash = true
 				t.color2r, t.color2g, t.color2b = (r * 0.1), (g * 0.1), (b * 0.1)
 				t.r, t.g, t.b = math.min(1, r + 0.25), math.min(1, g + 0.25), math.min(1, b + 0.25)
 				t.life = 4

@@ -19,8 +19,12 @@ Keep patches narrowly scoped and easy to review. Large cross-subsystem refactors
 
 ## Keeping These Instructions Current
 
-- Update the affected section in the same pull request whenever a change alters a convention, tool, workflow,
-  directory, or command described here.
+Instruction files: this one, `.github/RmlUi-instructions.md`, and
+`luarules/mission_api/mission-api-instructions.md`. The rules below apply to all of them.
+
+- Update the affected file and section in the same pull request whenever a change alters a convention, tool,
+  workflow, directory, or command they describe. A change to a subsystem covered by its own file updates that file,
+  not this one.
 - Verify a claim before writing it down (run the command, read the config, count the occurrences).
 - Delete guidance that no longer matches the repository instead of layering exceptions on top of it.
 
@@ -111,8 +115,7 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
   that churn: `git checkout -- lux.lock` afterwards, and only commit a lockfile change you made deliberately.
 - Lint: `luacheck` 1.2.0 with `.luacheckrc`; CI reports only lines changed in the PR (`.github/workflows/lint.yml`).
 - Format: StyLua with `.stylua.toml` (tabs, indent width 4, 120 columns, CRLF, sorted requires) and `.styluaignore`;
-  `.editorconfig` mirrors the indent and whitespace rules. `.github/workflows/format_check.yml` pins stylua 2.5.2 and
-  runs it with `--check --respect-ignores`; install that version locally rather than relying on `lx fmt`.
+  `.editorconfig` mirrors the indent and whitespace rules.
 - Types: EmmyLua analyzer via `.emmyrc.json`, stubs in `types/`, engine definitions from the `recoil-lua-library`
   submodule. The codebase is at zero type errors — keep it there.
 - Integration tests: headless engine via `docker compose -f tools/headless_testing/docker-compose.yml`
@@ -125,24 +128,13 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 ### Commands
 
 ```sh
-lx --lua-version 5.1 test                                    # full busted suite (what CI runs)
-lx --lua-version 5.1 test -- spec/common/lib_spline_spec.lua # single spec file
-lx --lua-version 5.1 test -- --output=plainTerminal          # extra flags after `--` reach busted
-lx lint                                                      # luacheck over the project; provisions luacheck itself
-lx exec luacheck -- path/to/file.lua                         # lint one file
-stylua --respect-ignores path/to/file.lua                    # format one file
-stylua --check --respect-ignores path/to/file.lua            # verify formatting without rewriting
+lx --lua-version 5.1 test                      # full busted suite (what CI runs)
+busted --output=plainTerminal                  # same suite, when the .lux tree is already synced
+busted spec/common/lib_spline_spec.lua         # single spec file
+lx lint                                        # luacheck over the project; provisions luacheck itself
+luacheck path/to/file.lua                      # lint one file, if luacheck is installed directly
+stylua path/to/file.lua                        # format one file (`lx fmt` reformats the whole codebase)
 ```
-
-Always drive busted and luacheck through `lx`. It is the only invocation that resolves against the project's
-`.lux/` tree and `lux.lock`; a system-wide `busted` or `luacheck` on `PATH` silently resolves a different dependency
-set, and the lux-generated wrappers under `.lux/` and `~/.local/share/lux/` are not runnable directly (they need the
-`LUA_INIT` loader that `lx` sets).
-
-StyLua is the exception: it is a standalone binary, not a rock, so `lx exec stylua` fails and `lx fmt` is a silent
-no-op on lux 0.28.x (exit 0, nothing reformatted). Call `stylua` directly, pinned to the version in
-`.github/workflows/format_check.yml` (2.5.2). Pass `--respect-ignores` whenever you name explicit paths, or
-`.styluaignore` is bypassed and generated files such as the atlases get reformatted.
 
 Scope `luacheck` and `stylua` to the files you touched; repository-wide runs create large unrelated diffs. `lx lint`
 reports pre-existing warnings across the tree, so compare against the baseline rather than assuming your change
@@ -152,8 +144,8 @@ caused them.
 
 - `.lua` (LuaUI/LuaRules/AI/common): relevant `spec/` tests, clean luacheck and StyLua, plus in-engine runtime
   verification (LuaUI reload). Do not reach for BOS tooling.
-- `spec/**/*_spec.lua`: `lx --lua-version 5.1 test`, per the commands above. Keep `lux.lock` and `.emmyrc.json` in
-  sync when dependencies resolve to new versions.
+- `spec/**/*_spec.lua`: busted, per the commands above. Keep `lux.lock` and `.emmyrc.json` in sync when dependencies
+  resolve to new versions.
 - Definition and gamedata changes: `spec/gamedata/unitdefs_spec.lua` covers def loading.
 - `.bos`: `BARScriptCompiler.exe` (external tool).
 - Shaders: compile path plus runtime fallback behavior where applicable.
@@ -206,6 +198,12 @@ caused them.
   `{ "ui": { "topbar": { "button": { "quit": ... } } } }`.
 - Only add strings to `language/en/`; the community handles other languages through Transifex
   (`language/transifex.yml`).
+
+## Mission API
+
+The data-driven mission runtime has load-order and dispatch conventions of its own. Read
+`luarules/mission_api/mission-api-instructions.md` before editing `luarules/mission_api/`,
+`luarules/gadgets/api_missions*.lua`, `singleplayer/`, or `spec/mission_api/`.
 
 ## RmlUi
 

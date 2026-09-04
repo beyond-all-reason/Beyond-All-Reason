@@ -1,4 +1,4 @@
-#version 420
+#version 430 core
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
@@ -9,9 +9,13 @@
 
 #line 20000
 
-uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 float noRushFramesLeft;
+
+layout (std430, binding = 4) buffer startPolygonBuffer {
+	//-- Quads of: teamID (for teamColor), numVertices, x, z. NUM_POLYGONS blocks.
+	vec4 polyVerts[];
+};
 
 in DataVS {
 	vec4 v_position;
@@ -21,10 +25,27 @@ uniform sampler2D mapDepths;
 
 out vec4 fragColor;
 
-float distanceToBox(vec2 point, vec4 box_xyXY) {
-	vec2 closestPointInAABB = clamp(point, box_xyXY.xy, box_xyXY.zw);
-	vec2 distance = point - closestPointInAABB;
-	return length(distance);
+// Signed distance to a polygon ring, negative inside.
+float sdPolygon2(in vec2 p, in int startOffset, in int numVertices)
+{
+	float d = dot(p - polyVerts[startOffset].zw, p - polyVerts[startOffset].zw);
+	float s = 1.0;
+	for (int i = 0, j = numVertices - 1; i < numVertices; j = i, i++) {
+		int newj = startOffset + j;
+		int newi = startOffset + i;
+		vec2 e = polyVerts[newj].zw - polyVerts[newi].zw;
+		vec2 w = p - polyVerts[newi].zw;
+		vec2 b = w - e * clamp(dot(w, e) / dot(e, e), 0.0, 1.0);
+		d = min(d, dot(b, b));
+
+		// winding number from http://geomalgorithms.com/a03-_inclusion.html
+		bvec3 cond = bvec3(p.y >= polyVerts[newi].w,
+		                   p.y < polyVerts[newj].w,
+		                   e.x * w.y > e.y * w.x);
+		if (all(cond) || all(not(cond))) s = -s;
+	}
+
+	return s * sqrt(d);
 }
 
 #line 21000
@@ -49,18 +70,32 @@ void main(void)
 	}
 
 	float closestbox = 1e6;
-	float furthestbox = 0;
 	vec3 mycolor = vec3(1);
-	for (int i = 0; i < NUM_BOXES; i++) {
-		float dist = distanceToBox(mapWorldPos.xz, startBoxes[i]);
+	int startpoint = 0;
+	for (int i = 0; i < NUM_POLYGONS; i++) {
+		if (startpoint >= NUM_POINTS) {
+			break;
+		}
+
+		int vertexCount = max(int(polyVerts[startpoint].y), 0);
+		int endpoint = min(startpoint + vertexCount, NUM_POINTS);
+		if ((endpoint - startpoint) < 3) {
+			startpoint = endpoint;
+			continue;
+		}
+
+		float dist = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
 		if (closestbox > dist){
 			closestbox = dist;
-			mycolor = teamColor[i].rgb;
+			// Keyed on the team the buffer carries, not the loop counter: one allyteam can own
+			// several polygons, which would shift every later box onto the wrong colour.
+			mycolor = teamColor[int(polyVerts[startpoint].x)].rgb;
 		}
-		furthestbox = max(furthestbox, dist);
+		startpoint = endpoint;
 	}
-	// Note that now we have the distance to the closest box in closestbox
-	// and the distance to the most distant box in furthestbox
+	// sdPolygon2 is signed, but everything below wants the outside distance and the inside
+	// case is flattened to zero alpha anyway, so clamp here and leave that code untouched.
+	closestbox = max(closestbox, 0.0);
 
 	// First we color based on their distance
 	noRushFramesLeft = (clamp((noRushTimer - timeInfo.x+30), 0, 300)/300);

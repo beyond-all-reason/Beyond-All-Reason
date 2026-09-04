@@ -192,13 +192,10 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 end
 
-local vtoldamagetag = Game.armorTypes.vtol
-local defaultdamagetag = Game.armorTypes.default
 local function initializeUnitDefRing(unitDefID)
 	unitDefRings[unitDefID].rings = {}
 	local weapons = unitWeapons[unitDefID]
 	for weaponNum = 1, #weapons do
-		local weaponDef = weapons[weaponNum]
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 
@@ -499,7 +496,6 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
-local weaponTypeToString = { "ground", "air", "nuke", "cannon" }
 local allyenemypairs = { "ally", "enemy" }
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
@@ -954,7 +950,6 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			local allystring = "ally"
 			for i, weaponType in ipairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
@@ -972,7 +967,6 @@ function widget:Update(dt)
 	if cmdID ~= nil and (cmdID < 0) then
 		buildUnitDefID = -1 * cmdID
 		if unitDefRings[buildUnitDefID] then
-			local rings = unitDefRings[buildUnitDefID]
 			-- only add to ally, independent of buttonconfig (ugh)
 			-- todo, this won't show the respective attack range ring if the button for it is off.
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
@@ -985,7 +979,6 @@ function widget:Update(dt)
 
 			if coords and coords[1] and coords[2] and coords[3] then
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
-				local allystring = "ally"
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID].weapons) do
 					local allystring = "ally"
 					buildDrawOverride[weaponType] = true
@@ -1036,8 +1029,6 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 	return 1
 end
 
-local groundnukeair = { "ground", "air", "nuke" }
-local cannonlrpc = { "cannon", "lrpc" }
 local allrings = { "ground", "air", "nuke", "cannon", "lrpc" }
 local stenciledrings = {}
 local nonstenciledrings = {}

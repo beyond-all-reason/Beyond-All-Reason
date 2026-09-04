@@ -337,7 +337,6 @@ local function initializeUnitDefRing(unitDefID)
 			end
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
-			local wName = weaponDef.name
 			if
 				(weaponDef.type == "AircraftBomb")
 				or weaponDef.customParams.bogus == "1"
@@ -505,11 +504,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnits = Spring.GetSelectedUnits
 local chobbyInterface
-
-local CMD_ATTACK = CMD.ATTACK
-local CMD_FIGHT = CMD.FIGHT
-local CMD_AREA_ATTACK = CMD.AREA_ATTACK
-local CMD_MANUALFIRE = CMD.MANUALFIRE
 
 local function defrangeCmd(_, line)
 	local command = line or ""
