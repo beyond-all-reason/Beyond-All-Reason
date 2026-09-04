@@ -60,6 +60,9 @@ end
 local function decrement()
 	local countdowns = GG["MissionAPI"].Countdowns
 	local endedIDs = {}
+	-- Each tick carries its new time, since ended countdowns are removed below
+	-- before the caller can read them.
+	local ticks = {}
 
 	for countdownID, countdown in pairs(countdowns) do
 		if not countdown.paused then
@@ -72,6 +75,7 @@ local function decrement()
 				countdown.buffered = false
 			else
 				countdown.timeRemaining = countdown.timeRemaining - 1
+				ticks[#ticks + 1] = { id = countdownID, timeRemaining = math.max(0, countdown.timeRemaining) }
 				if countdown.timeRemaining <= 0 then
 					endedIDs[#endedIDs + 1] = countdownID
 				end
@@ -83,7 +87,7 @@ local function decrement()
 		countdowns[countdownID] = nil
 	end
 
-	return endedIDs
+	return endedIDs, ticks
 end
 
 return {

@@ -135,6 +135,41 @@ describe("mission_api.countdowns", function()
 
 			assert.are.same({}, countdowns.Decrement())
 		end)
+
+		it("returns each ticked countdown with its new time", function()
+			countdowns.AddCountdown("first", 10)
+			countdowns.AddCountdown("second", 20)
+			countdowns.Decrement() -- consume both hold-back ticks
+
+			local _, ticks = countdowns.Decrement()
+
+			table.sort(ticks, function(a, b)
+				return a.id < b.id
+			end)
+			assert.are.same({
+				{ id = "first", timeRemaining = 9 },
+				{ id = "second", timeRemaining = 19 },
+			}, ticks)
+		end)
+
+		it("does not report held or paused countdowns as ticked", function()
+			addTicking("paused", 10)
+			countdowns.PauseCountdown("paused")
+			countdowns.AddCountdown("held", 5)
+
+			local _, ticks = countdowns.Decrement()
+
+			assert.are.same({}, ticks)
+		end)
+
+		it("reports an ending countdown ticking to zero", function()
+			addTicking("ending", 1)
+
+			local endedIDs, ticks = countdowns.Decrement()
+
+			assert.are.same({ "ending" }, endedIDs)
+			assert.are.same({ { id = "ending", timeRemaining = 0 } }, ticks)
+		end)
 	end)
 
 	describe("CancelCountdown", function()

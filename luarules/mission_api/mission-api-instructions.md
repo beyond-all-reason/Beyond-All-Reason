@@ -69,8 +69,9 @@ return {
 - `context` is the only sanctioned way to reach shared bookkeeping (`DoesUnitHaveName`, `GetUnitsInArea`,
   `PreviousUnitsInAreas`, `ConstructionState`, `IsBuildFrameOwner`, …). Extend `triggerContext` rather than reaching
   into gadget locals or duplicating state per trigger.
-- The call-in key must be a real engine call-in that `api_missions_triggers.lua` already forwards. If it does not,
-  add the gadget call-in plus its `dispatchTriggerCallin` line.
+- The call-in key must be one `api_missions_triggers.lua` already forwards — an engine call-in or a synthetic
+  dispatch (e.g. `DetectionUpdate`, `CountdownTick`, `CountdownEnded`). If it is not forwarded yet, add the gadget
+  call-in plus its `dispatchTriggerCallin` line.
 - `AllowUnitBuildStep`, `AllowFeatureBuildStep`, and `UnitBuildStepPost` are unsubscribed in `Initialize()` unless a
   loaded trigger needs them. A new trigger on one of those must extend the matching `needs*` check, or it will
   silently never fire.
