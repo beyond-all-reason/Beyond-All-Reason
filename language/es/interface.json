@@ -67,7 +67,6 @@
 				"tooManyConverters2Tooltip": "Deja de construir conversores de energía y aumenta tu producción energética."
 			}
 		},
-
 		"playersList": {
 			"spectators": "Espectadores %{amount}",
 			"enemies": "Enemigos %{amount}",
@@ -167,111 +166,7 @@
 			"areamex_tooltip": "Consejo: Haz clic sobre este extractor dos veces para usar el comando \"Construir extractores de metal en la zona\""
 		},
 		"orderMenu": {
-			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
-			"move": "Mover",
-			"move_tooltip": "Mueve a una unidad a una posición, o sigue a otras unidades",
-			"stop": "Alto",
-			"stop_tooltip": "Cancela las acciones actuales de las unidades",
-			"attack": "Atacar",
-			"attack_tooltip": "Ataca a una unidad o zona del terreno",
-			"areaattack": "Ataque en área",
-			"areaattack_tooltip": "Dibuja un círculo y ataca a todo lo que esté dentro de él (clic + arrastrar)",
-			"manualfire": "Dgun",
-			"manualfire_tooltip": "Dispara el arma más poderosa del comandante: el cañón desintegrador",
-			"manuallaunch": "Lanzar",
-			"manuallaunch_tooltip": "Lanza un misil al objetivo",
-			"patrol": "Patrullar",
-			"patrol_tooltip": "Patrulla a lo largo de uno o más puntos de ruta",
-			"fight": "Luchar",
-			"fight_tooltip": "Ordena a las unidades que ataquen mientras se mueven a una posición",
-			"resurrect": "Resucitar",
-			"resurrect_tooltip": "Reconstruye restos y los convierte en unidades (clic + arrastrar en una zona)",
-			"guard": "Proteger",
-			"guard_tooltip": "Protege a otra unidad frente a los enemigos",
-			"factoryguard": "Proteger fábrica",
-			"factoryguard_tooltip": "Los constructores creados en esta fábrica la protegerán automáticamente",
-			"wait": "Esperar",
-			"wait_tooltip": "Pausa el procesado de órdenes/colas de construcción de una unidad/fábrica",
-			"repair": "Reparar",
-			"repair_tooltip": "Repara una unidad dañada",
-			"reclaim": "Reclamar",
-			"reclaim_tooltip": "Obtén metal/energía de escombros o de otros objetos (árboles/rocas)",
-			"restore": "Restaurar",
-			"restore_tooltip": "Devuelve una zona del mapa a su altura original",
-			"capture": "Capturar",
-			"capture_tooltip": "Convierte a las unidades que pertenecen al enemigo (o aliado)",
-			"settarget": "Establecer Objetivo",
-			"settarget_tooltip": "Establece un objetivo prioritario (priorizado cuando esté dentro del alcance)",
-			"canceltarget": "Desmarcar objetivo",
-			"canceltarget_tooltip": "Desmarca el objetivo prioritario",
-			"areamex": "Ext. de metal en área",
-			"areamex_tooltip": "Haz clic y arrastra para crear un área para automatizar la extracción de metal de los extractores de todos los nodos disponibles",
-			"loadunits": "Cargar unidades",
-			"loadunits_tooltip": "Carga una unidad o unidades dentro del área marcada en el transporte",
-			"unloadunits": "Descargar unidades",
-			"unloadunits_tooltip": "Descarga una unidad o unidades dentro del área marcada del transporte",
-			"stockpile": "Reservas %{stockpileStatus}",
-			"stockpile_tooltip": "[ cantidad de reservas ] / [ cantidad de reservas objetivo ]",
-			"stopproduction": "Borrar cola",
-			"stopproduction_tooltip": "Borra la cola de construcción y cuotas de todas las unidades en las fábricas seleccionadas.",
-			"morph": "Mejorar",
-			"morph_tooltip": "Mejora al siguiente nivel tecnológico (clic adicional para cancelar)",
-			"Spawning Disabled": "Desactivar producción",
-			"Spawning Enabled": "Producción activada",
-			"sellunit": "Vender unidad",
-			"sellunit_tooltip": "Habilita las unidades seleccionadas para su venta, de esa forma los aliados podrán comprarlas. ",
-			"For Sale": "A la venta",
-			"Not For Sale": "No está a la venta",
-
-			"Fire at will": "Auto Ataque",
-			"Hold fire": "Alto el fuego",
-			"Return fire": "Devolver fuego",
-			"firestate_tooltip": "Ajusta las condiciones bajo las que una unidad empezará a disparar a un enemigo (sin haber recibido una orden de ataque directa)",
-			"Hold pos": "Mantener posición",
-			"Maneuver": "Maniobrar",
-			"Roam": "Deambular",
-			"movestate_tooltip": "Ajusta la distancia máxima a la que una unidad se moverá para atacar a un enemigo",
-			"Repeat on": "Repetir ON",
-			"Repeat off": "Repetir OFF",
-			"repeat_tooltip": "Repite la cola de órdenes de la unidad",
-			"Low Prio": "Baja Prioridad",
-			"High Prio": "Alta Prioridad",
-			"priority_tooltip": "Asigna recursos para el uso de este constructor cuando no haya suficientes para todas las tareas",
-			"Decloaked": "Visible",
-			"Cloaked": "Camuflado",
-			"wantcloak_tooltip": "Estado de Visibilidad",
-			" On ": "Encendido",
-			" Off ": "Apagado",
-			"onoff_tooltip": "Estado activo: enciende/apaga una unidad",
-			" Fly ": "Volar",
-			"Land": "Aterrizar",
-			"idlemode_tooltip": "Configura la acción de una nave cuando no tiene órdenes asignadas",
-			"apLandAt_tooltip": "Configura la acción de una nave cuando despega de una fábrica aérea",
-			"csSpawning_tooltip": "Configura el estado de aparición del transporte",
-			"Low traj": "Trayectoria Baja",
-			"High traj": "Trayectoria Alta",
-			"trajectory_toggle_tooltip": "Cambia el ángulo de disparo de la artillería entre trayectoria baja, alta o automática.",
-			"trajectory_low": "Trayectoria baja",
-			"trajectory_high": "Trayectoria alta",
-			"trajectory_auto": "Autotrayectoria",
-			"hound_weapon_plasma": "Plasma pesado",
-			"hound_weapon_gauss": "Cañón Gauss",
-			"hound_weapon_toggle_tooltip": "Cambia entre un proyectil de plasma lento con una gran área de efecto, o un proyectil Gauss de alta velocidad.",
-			"blueprint_place": "Colocar plano",
-			"blueprint_place_tooltip": "Coloca un plano guardado",
-			"blueprint_create": "Guardar plano",
-			"blueprint_create_tooltip": "Guarda las unidades seleccionadas en un nuevo plano (en el mismo orden de selección)",
-			"factoryqueuemode_normal": "Modo Cola",
-			"factoryqueuemode_quota": "Modo Cuota",
-			"factoryqueuemode_tooltip": "Cola: Construye todas las unidades en cola una vez.\nCuota: Mantén una cantidad mínima de cada unidad en el campo de batalla.",
-			"customOnOff": {
-				"lowTrajectory": "Trayectoria baja",
-				"highTrajectory": "Trayectoria alta",
-				"trajectory_tooltip": "Cambia el ángulo de disparo de la artillería entre trayectoria baja o alta",
-				"gauss_tooltip": "Alterna entre el cañón Gauss y el cañón de plasma pesado."
-			},
-			"quicksharetotarget": "Compartir unidad",
-			"quicksharetotarget_tooltip": "Comparte la unidad con el jugador objetivo."
+			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}"
 		},
 		"idleBuilders": {
 			"name": "Constructores inactivos",
@@ -294,7 +189,7 @@
 		"keybinds": {
 			"title": "Atajos de teclado",
 			"disclaimer": "Estos son los atajos de teclado por defecto. Si eliminas o sustituyes algún widget de acceso directo, o si usas tus propios atajos, ¡podrían dejar de funcionar!",
-			"howtochangekeybinds":"Para modificarlos: en Ajustes/Pestaña \"Controles\", ajusta los atajos de teclado a \"Personalizados\" para crear un archivo BAR/data/uikeys.txt.\nEdita este archivo y escribe /keyreload en el chat para volverlos a cargar en el juego.",
+			"howtochangekeybinds": "Para modificarlos: en Ajustes/Pestaña \"Controles\", ajusta los atajos de teclado a \"Personalizados\" para crear un archivo BAR/data/uikeys.txt.\nEdita este archivo y escribe /keyreload en el chat para volverlos a cargar en el juego.",
 			"chat": {
 				"title": "Chat",
 				"send": "Enviar mensaje de chat",
@@ -311,7 +206,6 @@
 				"share": "Compartir unidades / recursos"
 			},
 			"camera": {
-				"title": "Movimiento de cámara",
 				"zoomKey": "Rueda de ratón",
 				"zoom": "Acercar / alejar cámara",
 				"panKey": "Flechas, cursor a borde de pantalla",
@@ -319,8 +213,7 @@
 				"tiltKey": "CTRL + Rueda de ratón",
 				"tilt": "Cambiar ángulo de cámara",
 				"dragKey": "Clic central (+ arrastrar)",
-				"drag": "Arrastrar cámara",
-				"flip": "Girar cámara"
+				"drag": "Arrastrar cámara"
 			},
 			"cameraModes": {
 				"title": "Modos de cámara",
@@ -329,21 +222,13 @@
 				"fullscreenKey": "Alt + Borrar",
 				"fullscreen": "Cambiar a pantalla completa",
 				"overview": "Ver cámara general",
-				"los": "Activar modo Campo de Visión",
-				"heightmap": "Mostrar mapa topográfico",
-				"traversability": "Mostrar transitabilidad (unidad seleccionada)",
-				"mapmarks": "Revisar marcas del mapa",
-				"resourceSpots": "Mostrar mapa de metales",
-				"interface": "Ocultar IU general"
+				"los": "Activar modo Campo de Visión"
 			},
 			"sound": {
-				"title": "Sonido",
 				"volumeKey": "-/+",
-				"volume": "Cambiar volumen",
-				"mute": "Activar / Desactivar silenciado"
+				"volume": "Cambiar volumen"
 			},
 			"selection": {
-				"title": "Selección de unidades",
 				"unitsKey": "Clic izquierdo (+ arrastrar)",
 				"units": "Elegir o deseleccionar unidades"
 			},
@@ -355,23 +240,8 @@
 				"formationOrder": "Dar orden de formación a unidad(es)"
 			},
 			"orders": {
-				"title": "Selección de órdenes",
 				"defaultKey": "(ninguna)",
-				"default": "Orden por defecto (estándar: moverse)",
-				"move": "mover",
-				"attack": "atacar",
-				"stop": "Detener (vacía la cola de órdenes)",
-				"repair": "reparar",
-				"reclaim": "reclamar",
-				"resurrect": "resucitar",
-				"patrol": "Patrullar",
-				"fight": "luchar",
-				"setTarget": "Marcar objetivo prioritario",
-				"cancelTarget": "Desmarcar objetivo prioritario",
-				"wait": "Esperar (pausa la orden actual)",
-				"cloak": "Camuflar",
-				"dGun": "disparo manual (cañón D)",
-				"selfDestruct": "autodestruir"
+				"default": "Orden por defecto (estándar: moverse)"
 			},
 			"issueOrders": {
 				"title": "Asignación de órdenes seleccionadas",
@@ -383,11 +253,9 @@
 				"formation": "Dar orden de formación a unidad(es)"
 			},
 			"queues": {
-				"title": "Secuencia de órdenes",
 				"append": "Añadir orden al final de sec. de órdenes",
 				"appendKey": "Mayús + (Orden)",
-				"prependKey": "Espacio + (Orden)",
-				"prepend": "Añadir orden al inicio de sec. de órdenes"
+				"prependKey": "Espacio + (Orden)"
 			},
 			"buildOrders": {
 				"title": "Selección de órdenes de construcción",
@@ -401,8 +269,7 @@
 				"intel": "Cambiar entre radar/defensas/etc.",
 				"factoriesKey": "v",
 				"factories": "Cambiar entre fábricas",
-				"rotateKey": "[ ´ ,  + ] ",
-				"rotate": "Cambiar orientación de edificios"
+				"rotateKey": "[ ´ ,  + ] "
 			},
 			"issueBuildOrders": {
 				"title": "Asignación de órdenes de construcción",
@@ -415,29 +282,22 @@
 				"gridKey": "Mayús + Alt + (Construir)",
 				"grid": "Construir en cuadrado",
 				"spacingUpKey": "Alt + Z",
-				"spacingUp": "Aumentar espacio de construcción",
-				"spacingDownKey": "Alt + X",
-				"spacingDown": "Disminuir espacio de construcción"
+				"spacingDownKey": "Alt + X"
 			},
 			"massSelect": {
 				"title": "Selección de grupos",
 				"allKey": "CTRL + A",
-				"all": "Seleccionar todas las unidades",
 				"buildersKey": "CTRL + B",
-				"builders": "Seleccionar todos los constructores",
 				"createGroupKey": "CTRL + (Num)",
 				"createGroup": "Añadir unidades al grupo (num=1,2,..)",
 				"createAutoGroupKey": "Alt + (Num)",
 				"createAutoGroup": "Añadir tipo de unidad al autogrupo (num=1,2,..)",
 				"removeAutoGroupKey": "Alt + °",
-				"removeAutoGroup": "Eliminar tipo de unidad del autogrupo",
 				"groupKey": "(num)",
 				"group": "Seleccionar todas las unidades asignadas al grupo (num)",
-				"sameTypeKey": "CTRL + Z",
-				"sameType": "Seleccionar todas las unidades del mismo tipo seleccionado"
+				"sameTypeKey": "CTRL + Z"
 			},
 			"drawing": {
-				"title": "Dibujado",
 				"mapmarkKey": "` + doble clic",
 				"mapmark": "Colocar marca de mapa",
 				"drawKey": "` + Arrastrar clic izquierdo",
@@ -448,9 +308,7 @@
 			"console": {
 				"title": "Comandos de consola",
 				"eraseKey": "/clearmapmarks",
-				"erase": "Borra todos tus dibujos y marcas",
-				"pauseKey": "/pause",
-				"pause": "Pausa"
+				"pauseKey": "/pause"
 			}
 		},
 		"chat": {
@@ -532,7 +390,7 @@
 			"heightTitle": "Altura",
 			"heightmap": "[%{keyset}] Muestra un color diferente para cada nivel de altura",
 			"pathingTitle": "Transitabilidad",
-			"pathing":"[%{keyset}] Muestra dónde se puede mover la unidad seleccionada, Verde: bien, Rojo: problemático, Púrpura: no se puede mover",
+			"pathing": "[%{keyset}] Muestra dónde se puede mover la unidad seleccionada, Verde: bien, Rojo: problemático, Púrpura: no se puede mover",
 			"resourcesTitle": "Recursos",
 			"resources": "[%{keyset}] Resalta las manchas metálicas en verde y los respiraderos geotérmicos en amarillo.\n   Los puntos metálicos ocupados se muestran en rojo."
 		},
@@ -573,14 +431,14 @@
 			"airWave1": "¡Raptores voladores! ¡Ya llegan!",
 			"airWave2": "¡%{unitCount} raptores!",
 			"queenIsAngry1": {
-				"one"   : "¡Ha llegado la reina!",
-				"other" : "¡Han llegado las reinas!"
+				"one": "¡Ha llegado la reina!",
+				"other": "¡Han llegado las reinas!"
 			},
 			"queenIsAngry2": "¡Prepárate para la batalla final!",
 			"queenResistant": "¡La reina se está volviendo resistente a los ataques de %{unit}!",
-			"resistanceUnits":{
-				"one"   : "La reina se está volviendo resistente a:",
-				"other" : "Las reinas se están volviendo resistentes a:"
+			"resistanceUnits": {
+				"one": "La reina se está volviendo resistente a:",
+				"other": "Las reinas se están volviendo resistentes a:"
 			},
 			"wave1": "Oleada %{waveNumber}",
 			"wave2": "¡%{unitCount} raptores!",
@@ -593,17 +451,17 @@
 			"queenAngerAggression": "Agresión de jugador: +%{value}%%/s",
 			"queenAngerEco": "Economía: +%{value}%%/s",
 			"queenETA": {
-				"one"   : "La reina llegará en: %{time}.",
-				"other" : "%{count} reinas llegarán en: %{time}"
+				"one": "La reina llegará en: %{time}.",
+				"other": "%{count} reinas llegarán en: %{time}"
 			},
 			"queenHealth": {
-				"one"   : "Salud de reina: %{health}%%",
-				"other" : "Salud de reinas: %{health}%%"
+				"one": "Salud de reina: %{health}%%",
+				"other": "Salud de reinas: %{health}%%"
 			},
 			"queensKilled": "Reinas abatidas: %{nKilled}/%{nTotal}",
 			"queenResistantToList": {
-				"one"   : "La reina es resistente a:",
-				"other" : "Las reinas son resistentes a:"
+				"one": "La reina es resistente a:",
+				"other": "Las reinas son resistentes a:"
 			},
 			"gracePeriod": "Periodo de gracia: %{time}",
 			"burrowCount": "Madrigueras: %{count}",
@@ -627,14 +485,14 @@
 			"firstWave1": "¡Los Carroñeros han llegado!",
 			"firstWave2": "¡Prepárate para defenderte!",
 			"bossIsAngry1": {
-				"one"   : "¡Ha llegado el Jefe!",
-				"other" : "¡Han llegado los jefes!"
+				"one": "¡Ha llegado el Jefe!",
+				"other": "¡Han llegado los jefes!"
 			},
 			"bossIsAngry2": "¡Prepárate para la batalla final!",
 			"bossResistant": "¡El Jefe se está volviendo resistente a los ataques de %{unit}!",
 			"resistanceUnits": {
-				"one"   : "El Jefe se está volviendo resistente a:",
-				"other" : "Los jefes se están volviendo resistentes a:"
+				"one": "El Jefe se está volviendo resistente a:",
+				"other": "Los jefes se están volviendo resistentes a:"
 			},
 			"wave1": "Oleada %{waveNumber}",
 			"wave2": "%{unitCount} Carroñeros!",
@@ -647,17 +505,17 @@
 			"bossAngerAggression": "Agresión de jugador: +%{value}%%/s",
 			"bossAngerEco": "Economía: +%{value}%%/s",
 			"bossETA": {
-				"one"   : "El Jefe llegará en: %{time}.",
-				"other" : "%{count} jefes llegan en: %{time}"
+				"one": "El Jefe llegará en: %{time}.",
+				"other": "%{count} jefes llegan en: %{time}"
 			},
 			"bossHealth": {
-				"one"   : "Salud del Jefe: %{health}%%",
-				"other" : "Saludes de jefe: %{health}%%"
+				"one": "Salud del Jefe: %{health}%%",
+				"other": "Saludes de jefe: %{health}%%"
 			},
 			"bossesKilled": "Jefes eliminados: %{nKilled}/%{nTotal}",
 			"bossResistantToList": {
-				"one"   : "El Jefe es resistente a:",
-				"other" : "Los jefes son resistentes a:"
+				"one": "El Jefe es resistente a:",
+				"other": "Los jefes son resistentes a:"
 			},
 			"gracePeriod": "Periodo de gracia: %{time}",
 			"burrowCount": "Madrigueras: %{count}",
@@ -743,7 +601,7 @@
 		},
 		"moveAttackNotify": {
 			"underAttack": "¡La unidad %{unit} está siendo atacada!",
-			"cantMove":"%{unit}: ¡No puedo llegar a mi destino!"
+			"cantMove": "%{unit}: ¡No puedo llegar a mi destino!"
 		},
 		"unitShare": {
 			"shared": "compartida %{units} a%{name}",
@@ -940,15 +798,15 @@
 			"metalIncome_title": "Generación de metal",
 			"metalIncome_tooltip": "Cantidad de metal generada por segundo",
 			"energyConversionMetalIncome_title": "Conversión de metal",
-			"energyConversionMetalIncome_tooltip": "Cantidad de metal generada por conversión de energía" ,
+			"energyConversionMetalIncome_tooltip": "Cantidad de metal generada por conversión de energía",
 			"energyIncome_title": "Generación de energía",
 			"energyIncome_tooltip": "Cantidad de energía generada por segundo",
 			"buildPower_title": "Constructividad",
 			"buildPower_tooltip": "Constructividad asignable",
 			"metalProduced_title": "Metal producido",
-			"metalProduced_tooltip": "Cantidad total de metal producido" ,
+			"metalProduced_tooltip": "Cantidad total de metal producido",
 			"energyProduced_title": "Energía producida",
-			"energyProduced_tooltip": "Cantidad total de energía producida" ,
+			"energyProduced_tooltip": "Cantidad total de energía producida",
 			"metalExcess_title": "Exceso de metal",
 			"metalExcess_tooltip": "Cantidad total de exceso de metal",
 			"energyExcess_title": "Exceso de energía",

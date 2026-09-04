@@ -325,52 +325,85 @@ local layouts = {
 	"workman",
 }
 
+-- The order the engine writes modifiers in, and the one every surface should read and emit.
+local modifierOrder = { "Alt", "Ctrl", "Meta", "Shift" }
+
+-- Single-letter abbreviations, as uikeys.txt may spell them (A/C/M/S; * for Any). Derived so
+-- the vocabulary is stated once.
+local modAbbrev = {}
+for _, name in ipairs(modifierOrder) do
+	modAbbrev[name:sub(1, 1):upper()] = name:upper() .. "+"
+end
+
+-- Printable keys the engine reports by name. The scancode names are positional, so
+-- they map to the qwerty character and pick up the layout translation afterwards;
+-- the keycode names are the character outright.
+local scanKeyWords = {
+	minus = "-",
+	equals = "=",
+	comma = ",",
+	apostrophe = "'",
+	period = ".",
+	semicolon = ";",
+	leftbracket = "[",
+	rightbracket = "]",
+	slash = "/",
+	backquote = "`",
+	backslash = "\\",
+}
+local keyCodeWords = {
+	backquote = "`",
+	tilde = "`",
+	caret = "^",
+	backslash = "\\",
+}
+
 local function sanitizeKey(key, layout)
-	if not (type(key) == "string") then
+	if type(key) ~= "string" then
 		return ""
 	end
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	key = key:upper():gsub("ANY%+", "")
-	key = key:gsub("SC_(.)", function(c)
-		return scanToCode[layout][c] or c
+	-- The engine names the punctuation keys with words rather than the character they
+	-- produce ("sc_backquote", "backslash"). Fold those back first so they render as
+	-- the key itself, and so the scancode form still picks up the layout mapping below.
+	key = key:gsub("[Ss][Cc]_(%a%a+)", function(word)
+		return "sc_" .. (scanKeyWords[word:lower()] or word)
+	end)
+	-- Whole words wherever they sit, not just the last one: a chain's first tap is a key
+	-- name too. Anything not a key name falls through unchanged, modifiers included.
+	key = key:gsub("%f[%a](%a%a+)%f[%A]", function(word)
+		return keyCodeWords[word:lower()] or word
+	end)
+
+	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
+
+	-- Callers pass whole keysets, chains included, so a key name runs to the next comma
+	-- rather than to the end of the string. The leading "." takes one character before the
+	-- comma test so a bound comma key reads as itself instead of a separator.
+	-- Only a single character is positional: matching one character of a named key would
+	-- remap its first letter instead, which renders sc_space as "OPACE" on dvorak.
+	local positional = scanToCode[layout] or scanToCode.qwerty
+	key = key:gsub("SC_(.[^,]*)", function(token)
+		if #token == 1 then
+			return positional[token] or token
+		end
+
+		-- Named keys sit in the same place on every layout, so the name is the label.
+		return token
+	end)
+	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
+	key = key:gsub("%f[%u]([ACMS])%+", function(m)
+		return modAbbrev[m]
 	end)
 
 	return key
-end
-
-local keybindingLayouts = {
-	"Grid", -- the first element will be the default value if a fallback is ever needed
-	"Grid (60% Keyboard)",
-	"Legacy",
-	"Legacy (60% Keyboard)",
-	"Custom",
-}
-
-local keybindingPresets = {
-	[keybindingLayouts[1]] = "luaui/configs/hotkeys/grid_keys.txt", -- the first element will be the default value if a fallback is ever needed
-	[keybindingLayouts[2]] = "luaui/configs/hotkeys/grid_keys_60pct.txt",
-	[keybindingLayouts[3]] = "luaui/configs/hotkeys/legacy_keys.txt",
-	[keybindingLayouts[4]] = "luaui/configs/hotkeys/legacy_keys_60pct.txt",
-	[keybindingLayouts[5]] = "uikeys.txt",
-}
-
-local keybindingLayoutFiles = {}
-local presetKeybindings = {}
-
-for i, v in ipairs(keybindingLayouts) do
-	local file = keybindingPresets[v]
-	keybindingLayoutFiles[i] = file
-	presetKeybindings[file] = v
 end
 
 return {
 	layouts = layouts,
 	scanToCode = scanToCode,
 	sanitizeKey = sanitizeKey,
-	keybindingLayouts = keybindingLayouts,
-	keybindingLayoutFiles = keybindingLayoutFiles,
-	keybindingPresets = keybindingPresets,
-	presetKeybindings = presetKeybindings,
+	modifierOrder = modifierOrder,
 }

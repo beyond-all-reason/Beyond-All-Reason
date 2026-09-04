@@ -1,0 +1,66 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://raw.githubusercontent.com/beyond-all-reason/Beyond-All-Reason/master/common/configs/keybind_defaults.schema.json",
+	"title": "Shipped keybind profiles",
+	"description": "The read-only keybind profiles the game ships. Each profile is a whole keymap, never a delta.",
+	"type": "object",
+	"required": ["version", "profiles"],
+	"additionalProperties": false,
+	"definitions": {
+		"profile": {
+			"type": "object",
+			"required": ["name", "binds"],
+			"additionalProperties": false,
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Display name, and the id a surface stores as the active selection. Unique across both lists."
+				},
+				"fakeMeta": {
+					"type": "string",
+					"description": "Key to treat as the Meta modifier, if the profile wants one."
+				},
+				"binds": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "object",
+						"required": ["keyset", "action"],
+						"additionalProperties": false,
+						"properties": {
+							"keyset": {
+								"type": "string",
+								"minLength": 1,
+								"description": "Keyset exactly as /bind expects it, including any modifier prefix and comma-separated chain."
+							},
+							"action": {
+								"type": "string",
+								"minLength": 1,
+								"description": "Bind command plus its space-separated arguments."
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"properties": {
+		"version": {
+			"type": "integer",
+			"minimum": 1,
+			"description": "Format version of this file."
+		},
+		"priority": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 },
+			"description": "Action prefixes, highest priority first. Two actions on one key are tried in the order they were bound, so bind files are emitted with these actions first; anything unlisted keeps the order it already had."
+		},
+		"profiles": {
+			"type": "array",
+			"minItems": 1,
+			"description": "Selectable profiles, ordered; the first is what a surface falls back to when nothing valid is selected.",
+			"items": { "$ref": "#/definitions/profile" }
+		}
+	}
+}
