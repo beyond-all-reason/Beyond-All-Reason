@@ -10245,7 +10245,7 @@ function init()
 				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
 				options[getOptionByID("fog_color_reset")].value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-				Spring.Echo("resetted map fog color defaults")
+				Spring.Echo("reset map fog color defaults")
 			end,
 		},
 
@@ -11039,7 +11039,7 @@ function init()
 				options[getOptionByID("sunlighting_reset")].value = false
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting(defaultSunLighting)
-				Spring.Echo("resetted ground/unit coloring")
+				Spring.Echo("reset ground/unit coloring")
 				init()
 			end,
 		},
@@ -11143,7 +11143,7 @@ function init()
 			onchange = function(i, value)
 				options[getOptionByID("skyaxisangle_reset")].value = false
 				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-				Spring.Echo("resetted skyAxisAngle atmosphere")
+				Spring.Echo("reset skyAxisAngle atmosphere")
 				init()
 			end,
 		},
