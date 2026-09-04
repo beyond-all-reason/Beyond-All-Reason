@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spGetUnitNearestAlly = Spring.GetUnitNearestAlly
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTransporter = Spring.GetUnitTransporter
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
@@ -28,17 +28,15 @@ local mathRandom = math.random
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 
--- Turrets are static, so a turret with nothing inside its search radius only
--- needs an occasional recheck. Each turret is assigned to one of SLOW_INTERVAL
--- frame buckets (by unitID) so the slow checks are spread evenly over frames.
--- A turret that had an ally in range is put on the "hot" list and rechecked
--- every frame until it is clear again. Placing or unloading an immobile unit
--- wakes the turrets around it immediately, so stacking is still caught on the
--- frame it happens.
-local SLOW_INTERVAL = 30
+-- Fully event driven: turrets are static and only end up stacked when a
+-- structure is created or unloaded on top of them, so those events put the
+-- turrets around the new unit on a "hot" list. Hot turrets are nudged every
+-- frame until no immobile ally is left inside their search radius. GameFrame
+-- is switched off entirely while the hot list is empty, so an idle base costs
+-- nothing per frame.
 local WAKE_MARGIN = 32
 
-local searchRadius = {} -- unitDefID -> nearest-ally search radius (nano turrets only)
+local searchRadius = {} -- unitDefID -> search radius (nano turrets only)
 local minDepthLimit = {} -- unitDefID -> -minWaterDepth (target ground height must be below this)
 local maxDepthLimit = {} -- unitDefID -> -maxWaterDepth (target ground height must be above this)
 local canMove = {}
@@ -61,12 +59,6 @@ local wakeRadius = maxSearchRadius + WAKE_MARGIN
 
 local turretDefID = {} -- unitID -> unitDefID for every live nano turret
 
-local buckets = {} -- frame slot -> array of unitIDs checked on that slot
-for i = 0, SLOW_INTERVAL - 1 do
-	buckets[i] = {}
-end
-local bucketPos = {} -- unitID -> index inside its bucket
-
 local hot = {} -- array of unitIDs checked every frame
 local hotCount = 0
 local hotPos = {} -- unitID -> index inside hot, nil when not hot
@@ -78,6 +70,9 @@ local function addHot(unitID)
 	hotCount = hotCount + 1
 	hot[hotCount] = unitID
 	hotPos[unitID] = hotCount
+	if hotCount == 1 then
+		gadgetHandler:UpdateCallIn("GameFrame")
+	end
 end
 
 local function removeHot(unitID)
@@ -93,46 +88,37 @@ local function removeHot(unitID)
 	hotPos[unitID] = nil
 end
 
-local function registerTurret(unitID, unitDefID)
-	turretDefID[unitID] = unitDefID
-	local bucket = buckets[unitID % SLOW_INTERVAL]
-	local n = #bucket + 1
-	bucket[n] = unitID
-	bucketPos[unitID] = n
-	addHot(unitID)
-end
-
-local function unregisterTurret(unitID)
-	removeHot(unitID)
-	local bucket = buckets[unitID % SLOW_INTERVAL]
-	local pos = bucketPos[unitID]
-	local n = #bucket
-	local last = bucket[n]
-	bucket[pos] = last
-	bucketPos[last] = pos
-	bucket[n] = nil
-	bucketPos[unitID] = nil
-	turretDefID[unitID] = nil
-end
-
--- Returns true when any ally is inside the turret's search radius, i.e. the
--- turret needs rechecking next frame.
+-- Nudges the turret away from the nearest immobile ally inside its search
+-- radius. Returns true when such an ally exists, i.e. recheck next frame.
 local function checkTurret(unitID, unitDefID)
-	local nearestAlly = spGetUnitNearestAlly(unitID, searchRadius[unitDefID])
-	if not nearestAlly then
+	local x, _, z = spGetUnitPosition(unitID)
+	local radius = searchRadius[unitDefID]
+	local allyTeam = spGetUnitAllyTeam(unitID)
+	local units = spGetUnitsInCylinder(x, z, radius)
+	local ax, az, nearestSq = nil, nil, radius * radius + 1
+	for i = 1, #units do
+		local other = units[i]
+		if other ~= unitID and not canMove[spGetUnitDefID(other)] and spGetUnitAllyTeam(other) == allyTeam then
+			local ox, _, oz = spGetUnitPosition(other)
+			local ddx, ddz = ox - x, oz - z
+			local distSq = ddx * ddx + ddz * ddz
+			if distSq < nearestSq then
+				ax, az, nearestSq = ox, oz, distSq
+			end
+		end
+	end
+	if not ax then
 		return false
 	end
-	if canMove[spGetUnitDefID(nearestAlly)] or spGetUnitTransporter(unitID) then
+	if spGetUnitTransporter(unitID) then
 		return true
 	end
 
-	local x, _, z = spGetUnitPosition(unitID)
-	local ax, _, az = spGetUnitPosition(nearestAlly)
 	local dx, dz = 0, 0
 	local r = mathRandom(1, 3)
 	if r == 1 then
 		if x == ax or z == az then
-			local testRange = searchRadius[unitDefID] * 2
+			local testRange = radius * 2
 			dx = mathRandom(-testRange, testRange)
 			dz = mathRandom(-testRange, testRange)
 		end
@@ -188,14 +174,19 @@ function gadget:Initialize()
 		local unitID = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if searchRadius[unitDefID] then
-			registerTurret(unitID, unitDefID)
+			turretDefID[unitID] = unitDefID
+			addHot(unitID)
 		end
+	end
+	if hotCount == 0 then
+		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if searchRadius[unitDefID] then
-		registerTurret(unitID, unitDefID)
+		turretDefID[unitID] = unitDefID
+		addHot(unitID)
 	end
 	wakeTurretsNear(unitID, unitDefID)
 end
@@ -206,28 +197,20 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID)
 	if turretDefID[unitID] then
-		unregisterTurret(unitID)
+		removeHot(unitID)
+		turretDefID[unitID] = nil
 	end
 end
 
-function gadget:GameFrame(n)
-	-- idle turrets: once every SLOW_INTERVAL frames; ones with an ally in range go hot
-	local hotBefore = hotCount
-	local bucket = buckets[n % SLOW_INTERVAL]
-	for i = 1, #bucket do
-		local unitID = bucket[i]
-		if not hotPos[unitID] and checkTurret(unitID, turretDefID[unitID]) then
-			addHot(unitID)
-		end
-	end
-
-	-- turrets that had an ally in range on an earlier frame: every frame
-	-- (turrets added above start next frame; iterate backwards so
-	-- swap-removal never skips an entry)
-	for i = hotBefore, 1, -1 do
+function gadget:GameFrame()
+	-- iterate backwards so swap-removal never skips an entry
+	for i = hotCount, 1, -1 do
 		local unitID = hot[i]
 		if not checkTurret(unitID, turretDefID[unitID]) then
 			removeHot(unitID)
 		end
+	end
+	if hotCount == 0 then
+		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 end
