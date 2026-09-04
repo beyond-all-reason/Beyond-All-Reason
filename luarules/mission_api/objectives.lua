@@ -4,10 +4,37 @@
 
 local stageChanges = 0
 
+--- Enables progress, display, and any synthesized triggers on an objective.
+local function activateObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.active = true
+
+	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
+	if triggerID then
+		GG["MissionAPI"].Triggers[triggerID].settings.active = true
+	end
+end
+
+local function activateStage(stageID)
+	local stage = GG["MissionAPI"].Stages[stageID]
+	if not stage then
+		return
+	end
+
+	for _, objectiveID in ipairs(stage.objectives) do
+		activateObjective(objectiveID)
+	end
+end
+
 local function changeStage(stageID)
 	stageChanges = stageChanges + 1
 	GG["MissionAPI"].CurrentStageID = stageID
 	Spring.Echo("Stage set to: " .. stageID)
+	activateStage(stageID)
 end
 
 --- Advance to nextStage if the objective is completed and every other objective
@@ -49,6 +76,8 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.progress)
 			.. " | amount: "
 			.. tostring(objective.amount)
+			.. " | active: "
+			.. tostring(objective.active)
 			.. " | completed: "
 			.. tostring(objective.completed)
 			.. (objective.failed and " (failed)" or "")
@@ -128,7 +157,7 @@ local function updateObjectiveProgress(
 	end
 
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
-	if objective.completed then
+	if objective.completed or not objective.active then
 		return
 	end
 
@@ -154,6 +183,8 @@ end
 
 return {
 	ChangeStage = changeStage,
+	ActivateObjective = activateObjective,
+	ActivateStage = activateStage,
 	TryAdvanceStage = tryAdvanceStage,
 	OnObjectiveCompleted = onObjectiveCompleted,
 	FailObjective = failObjective,

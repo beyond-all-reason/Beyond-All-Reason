@@ -55,6 +55,19 @@ local objectives = {
 	noLosses = {
 		textKey = "lose_no_units",
 	},
+
+	-- Listed in no stage; an action activates it.
+	killDestroyers = {
+		textKey = "kill_both_destroyers",
+		amount = 2,
+		trigger = {
+			type = triggerTypes.TotalUnitsKilled,
+			parameters = {
+				unitDefName = 'armllt',
+				teamID = 0,
+			},
+		},
+	},
 }
 
 local triggers = {
@@ -79,7 +92,7 @@ local triggers = {
 		parameters = {
 			objectiveID = 'buildBots',
 		},
-		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
+		actions = { 'changeToThirdStage', 'spawnBotDestroyer', 'activateKillDestroyers' },
 	},
 
 	failOnLoss = {
@@ -143,6 +156,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "A unit was lost. Objective failed.",
+		},
+	},
+
+	activateKillDestroyers = {
+		type = actionTypes.ActivateObjective,
+		parameters = {
+			objectiveID = 'killDestroyers',
 		},
 	},
 }

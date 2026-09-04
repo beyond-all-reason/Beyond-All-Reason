@@ -41,6 +41,10 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	for objectiveID, objective in pairs(objectives) do
 		local objectiveStages = objectiveToStages[objectiveID] or {}
 
+		if type(objective) == "table" then
+			objective.active = false
+		end
+
 		if type(objectiveID) == "string" and type(objective) == "table" and type(objective.trigger) == "table" then
 			local amount = objective.amount
 			local triggerType = objective.trigger.type
@@ -71,6 +75,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 						stages = objectiveStages,
 						repeating = isRepeating,
 						maxRepeats = maxRepeats,
+						active = false,
 					},
 					actions = { actionID },
 				}
@@ -81,6 +86,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 						objectiveID = objectiveID,
 					},
 				}
+
+				GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
 			end
 		end
 	end

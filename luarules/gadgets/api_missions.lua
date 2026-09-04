@@ -53,6 +53,7 @@ local function loadMission(scriptPath)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
 
 	GG["MissionAPI"].ObjectiveObservers = objectivesController.ProcessObjectiveObservers(GG["MissionAPI"].Triggers)
+	GG["MissionAPI"].Modules.Objectives.ActivateStage(initialStage) -- TODO: in search of a good home
 end
 
 function gadget:Initialize()
@@ -72,6 +73,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].ManagedObjectives = {}
+	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")

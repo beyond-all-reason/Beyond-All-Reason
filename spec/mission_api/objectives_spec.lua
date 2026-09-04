@@ -53,11 +53,80 @@ describe("mission_api.objectives", function()
 			Objectives.ChangeStage("stage2")
 			assert.are.equal("stage2", missionApi.CurrentStageID)
 		end)
+
+		it("activates the objectives the new stage lists", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("listed", { completed = false, active = false })
+					:WithObjective("unlisted", { completed = false, active = false })
+					:WithStage("s2", { objectives = { "listed" } })
+			)
+			Objectives.ChangeStage("s2")
+			assert.is_true(missionApi.Objectives.listed.active)
+			assert.is_false(missionApi.Objectives.unlisted.active)
+		end)
+	end)
+
+	describe("ActivateObjective", function()
+		it("flips the objective on", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = false }))
+			Objectives.ActivateObjective("obj1")
+			assert.is_true(missionApi.Objectives.obj1.active)
+		end)
+
+		it("enables the objective's synthesized trigger", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false, active = false })
+					:WithTrigger("__objective_obj1", { settings = { active = false } })
+			)
+			missionApi.ObjectiveTriggers.obj1 = "__objective_obj1"
+			Objectives.ActivateObjective("obj1")
+			assert.is_true(missionApi.Triggers.__objective_obj1.settings.active)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = true, active = false })
+					:WithTrigger("__objective_obj1", { settings = { active = false } })
+			)
+			missionApi.ObjectiveTriggers.obj1 = "__objective_obj1"
+			Objectives.ActivateObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.active)
+			assert.is_false(missionApi.Triggers.__objective_obj1.settings.active)
+		end)
+	end)
+
+	describe("ActivateStage", function()
+		it("activates every objective the stage lists and no other", function()
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("a", { completed = false, active = false })
+					:WithObjective("b", { completed = false, active = false })
+					:WithObjective("c", { completed = false, active = false })
+					:WithStage("s1", { objectives = { "a", "b" } })
+			)
+			Objectives.ActivateStage("s1")
+			assert.is_true(missionApi.Objectives.a.active)
+			assert.is_true(missionApi.Objectives.b.active)
+			assert.is_false(missionApi.Objectives.c.active)
+		end)
+
+		it("does nothing for an unknown stage", function()
+			install(Builders.MissionApi.new():WithObjective("a", { completed = false, active = false }))
+			Objectives.ActivateStage("nowhere")
+			assert.is_false(missionApi.Objectives.a.active)
+		end)
 	end)
 
 	describe("TryAdvanceStage", function()
 		it("does nothing for an objective that is not completed", function()
-			install(stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }))
+			install(stagedBuilder("s1", { obj1 = { completed = false, active = true, nextStage = "s2" } }))
 			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
 			assert.are.equal("s1", missionApi.CurrentStageID)
 		end)
@@ -85,7 +154,7 @@ describe("mission_api.objectives", function()
 		it("waits for every objective in the stage sharing the nextStage", function()
 			install(stagedBuilder("s1", {
 				obj1 = completedObjective("s2"),
-				obj2 = { completed = false, nextStage = "s2" },
+				obj2 = { completed = false, active = true, nextStage = "s2" },
 			}))
 			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
 			assert.are.equal("s1", missionApi.CurrentStageID)
@@ -98,7 +167,7 @@ describe("mission_api.objectives", function()
 		it("ignores objectives in the stage with a different nextStage", function()
 			install(stagedBuilder("s1", {
 				obj1 = completedObjective("s2"),
-				obj2 = { completed = false, nextStage = "s3" },
+				obj2 = { completed = false, active = true, nextStage = "s3" },
 			}))
 			Objectives.TryAdvanceStage(missionApi.Objectives.obj1)
 			assert.are.equal("s2", missionApi.CurrentStageID)
@@ -110,8 +179,17 @@ describe("mission_api.objectives", function()
 			return { parameters = parameters, stages = stages or {}, amount = amount }
 		end
 
+		it("counts events for an inactive objective without evaluating completion", function()
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = false }))
+			local metadata = managed({ teamID = 0 }, {}, 1)
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+			assert.are.equal(1, metadata._count)
+			assert.is_nil(missionApi.Objectives.obj1.progress)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+		end)
+
 		it("ignores events for another team", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = managed({ teamID = 0 }, {}, 1)
 			Objectives.UpdateObjectiveProgress("obj1", 1, "armwar", nil, 1, metadata)
 			assert.is_nil(metadata._count)
@@ -119,14 +197,14 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("ignores events for another unitDefName", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = managed({ teamID = 0, unitDefName = "corak" }, {}, 1)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_nil(metadata._count)
 		end)
 
 		it("ignores events without a matching unitName", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = managed({ teamID = 0, unitName = "bots" }, {}, 1)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", {}, 1, metadata)
 			assert.is_nil(metadata._count)
@@ -136,7 +214,10 @@ describe("mission_api.objectives", function()
 
 		it("counts events outside the objective's stages without evaluating completion", function()
 			install(
-				Builders.MissionApi.new():WithObjective("obj1", { completed = false }):WithCurrentStage("otherStage")
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false, active = true })
+					:WithCurrentStage("otherStage")
 			)
 			local metadata = managed({ teamID = 0 }, { "objStage" }, 1)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
@@ -146,7 +227,12 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("evaluates completion in the objective's own stage", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }):WithCurrentStage("objStage"))
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false, active = true })
+					:WithCurrentStage("objStage")
+			)
 			local metadata = managed({ teamID = 0 }, { "objStage" }, 1)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.are.equal(1, missionApi.Objectives.obj1.progress)
@@ -154,19 +240,24 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("evaluates completion in any stage when the objective has no stages", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }):WithCurrentStage("anywhere"))
+			install(
+				Builders.MissionApi
+					.new()
+					:WithObjective("obj1", { completed = false, active = true })
+					:WithCurrentStage("anywhere")
+			)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, managed({ teamID = 0 }, {}, 1))
 			assert.is_true(missionApi.Objectives.obj1.completed)
 		end)
 
 		it("completes on the first event when amount is nil", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, managed({ teamID = 0 }, {}, nil))
 			assert.is_true(missionApi.Objectives.obj1.completed)
 		end)
 
 		it("completes when the count reaches the amount", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = managed({ teamID = 0 }, {}, 2)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_false(missionApi.Objectives.obj1.completed)
@@ -175,7 +266,7 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("completes an amount = 0 objective when the count returns to zero", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = managed({ teamID = 0 }, {}, 0)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_false(missionApi.Objectives.obj1.completed)
@@ -192,7 +283,7 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("advances the stage through the gate on completion", function()
-			install(stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }))
+			install(stagedBuilder("s1", { obj1 = { completed = false, active = true, nextStage = "s2" } }))
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, managed({ teamID = 0 }, {}, 1))
 			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
@@ -201,7 +292,7 @@ describe("mission_api.objectives", function()
 			install(
 				Builders.MissionApi
 					.new()
-					:WithObjective("obj1", { completed = false })
+					:WithObjective("obj1", { completed = false, active = true })
 					:WithTrigger("watch", observer("obj1"))
 			)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, managed({ teamID = 0 }, {}, 1))
@@ -213,7 +304,7 @@ describe("mission_api.objectives", function()
 			install(
 				Builders.MissionApi
 					.new()
-					:WithObjective("obj1", { completed = false })
+					:WithObjective("obj1", { completed = false, active = true })
 					:WithTrigger("watch", observer("obj1"))
 			)
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, managed({ teamID = 0 }, {}, 2))
@@ -239,7 +330,7 @@ describe("mission_api.objectives", function()
 				Builders.MissionApi
 					.new()
 					:WithObjective("obj1", completedObjective(nil))
-					:WithObjective("obj2", { completed = false })
+					:WithObjective("obj2", { completed = false, active = true })
 					:WithTrigger("watch", observer("obj2"))
 			)
 			Objectives.OnObjectiveCompleted("obj1", missionApi.Objectives.obj1)
@@ -308,7 +399,7 @@ describe("mission_api.objectives", function()
 
 	describe("FailObjective", function()
 		it("completes the objective and marks it failed", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			Objectives.FailObjective("obj1")
 			assert.is_true(missionApi.Objectives.obj1.completed)
 			assert.is_true(missionApi.Objectives.obj1.failed)
@@ -321,7 +412,7 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("does not mark a success as failed", function()
-			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false }))
+			install(Builders.MissionApi.new():WithObjective("obj1", { completed = false, active = true }))
 			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
 			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
 			assert.is_true(missionApi.Objectives.obj1.completed)
@@ -332,7 +423,7 @@ describe("mission_api.objectives", function()
 			install(
 				Builders.MissionApi
 					.new()
-					:WithObjective("obj1", { completed = false })
+					:WithObjective("obj1", { completed = false, active = true })
 					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveFailed))
 			)
 			Objectives.FailObjective("obj1")
@@ -344,7 +435,7 @@ describe("mission_api.objectives", function()
 			install(
 				Builders.MissionApi
 					.new()
-					:WithObjective("obj1", { completed = false })
+					:WithObjective("obj1", { completed = false, active = true })
 					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveCompleted))
 			)
 			Objectives.FailObjective("obj1")
@@ -353,7 +444,7 @@ describe("mission_api.objectives", function()
 
 		it("activates the triggers while the objective's stage is still current", function()
 			install(
-				stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }):WithTrigger(
+				stagedBuilder("s1", { obj1 = { completed = false, active = true, nextStage = "s2" } }):WithTrigger(
 					"watch",
 					observer("obj1", TRIGGER_TYPES.ObjectiveFailed)
 				)
@@ -364,14 +455,14 @@ describe("mission_api.objectives", function()
 		end)
 
 		it("advances the stage through the gate, so a failure cannot softlock it", function()
-			install(stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } }))
+			install(stagedBuilder("s1", { obj1 = { completed = false, active = true, nextStage = "s2" } }))
 			Objectives.FailObjective("obj1")
 			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
 
 		it("lets a stage change from a trigger stand instead of running the gate", function()
 			install(
-				stagedBuilder("s1", { obj1 = { completed = false, nextStage = "s2" } })
+				stagedBuilder("s1", { obj1 = { completed = false, active = true, nextStage = "s2" } })
 					:WithStage("s9", { objectives = {} })
 					:WithTrigger("watch", observer("obj1", TRIGGER_TYPES.ObjectiveFailed))
 			)
