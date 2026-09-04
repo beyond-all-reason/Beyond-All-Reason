@@ -2926,6 +2926,14 @@ local function finishLoad()
 		)
 		Spring.SendCommands("forcestart")
 	end
+
+	-- A loaded project is there to be edited: bring the Terraformer up
+	-- (requested by PtaQ 2026-09-04). The panel widget owns the how.
+	---@type table?
+	local ui = WG.TerraformBrushUI
+	if ui and ui.openEditor then
+		ui.openEditor()
+	end
 end
 
 local function abortLoad(reason)

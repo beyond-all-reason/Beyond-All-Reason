@@ -15009,6 +15009,23 @@ local function editorWantsPanel()
 	return false
 end
 
+-- Open the editor the way the terraformbrush action does: the brush in RAISE.
+-- A fresh editor canvas is only ever started to edit it (requested by PtaQ
+-- 2026-09-04), so a New Map opens it from its forcestart below and a project
+-- load from cmd_map_project's finishLoad (WG.TerraformBrushUI.openEditor).
+-- No-op while any tool already has the panel up, so it never yanks a user off
+-- the tool they picked. widgetState field: this chunk is near the local cap.
+widgetState.openEditor = function()
+	if editorWantsPanel() then
+		return
+	end
+	---@type table?
+	local tf = WG.TerraformBrush
+	if tf and tf.setMode then
+		tf.setMode("raise")
+	end
+end
+
 -- Build the panel document on first use.
 --
 -- The RML is ~6200 elements and ~1800 data bindings, and RmlUi carries that in
@@ -15268,6 +15285,11 @@ function widget:Initialize()
 		-- to tell it apart from a plain F5 (see setFocusMode).
 		isFocusMode = function()
 			return widgetState.focusMode == true
+		end,
+		-- Bring the editor up (brush in RAISE) unless a tool already has the
+		-- panel; cmd_map_project calls this when a project load completes.
+		openEditor = function()
+			widgetState.openEditor()
 		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
@@ -15829,13 +15851,18 @@ widgetState.drainDeferredApplies = function()
 		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
 		if widgetState._pendingForceStart <= 0 then
 			widgetState._pendingForceStart = nil
+			---@type table?
 			local mp = WG.MapProject
 			local loading = mp and mp.isLoading and mp.isLoading()
-			if Spring.GetGameFrame() <= 0 and not loading then
-				Spring.Echo(
-					"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
-				)
-				Spring.SendCommands("forcestart")
+			if not loading then
+				if Spring.GetGameFrame() <= 0 then
+					Spring.Echo(
+						"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
+					)
+					Spring.SendCommands("forcestart")
+				end
+				-- New Map: the canvas is playable now, bring the editor up.
+				widgetState.openEditor()
 			end
 		end
 	end
