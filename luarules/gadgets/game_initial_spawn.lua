@@ -451,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
-			) or hasBlockingFeature(x, z, unitDefID)
+					Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+				) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
