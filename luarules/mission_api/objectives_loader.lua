@@ -26,7 +26,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	)
 
 	-- Build objective-to-stages mapping from stages structure
-	local objectiveToStages = {}
+	local objectiveToStages = GG["MissionAPI"].ObjectiveStages
 	for stageID, stageData in pairs(stages or {}) do
 		if type(stageData) == "table" and type(stageData.objectives) == "table" then
 			for _, objectiveID in ipairs(stageData.objectives) do

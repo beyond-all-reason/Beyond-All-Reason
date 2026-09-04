@@ -114,6 +114,15 @@ local triggers = {
 		},
 		actions = { 'announceLoss' },
 	},
+
+	-- Once the bots are gone, the destroyers no longer matter.
+	botsDestroyed = {
+		type = triggerTypes.ObjectiveCompleted,
+		parameters = {
+			objectiveID = 'destroyBots',
+		},
+		actions = { 'deactivateKillDestroyers' },
+	},
 }
 
 local actions = {
@@ -161,6 +170,13 @@ local actions = {
 
 	activateKillDestroyers = {
 		type = actionTypes.ActivateObjective,
+		parameters = {
+			objectiveID = 'killDestroyers',
+		},
+	},
+
+	deactivateKillDestroyers = {
+		type = actionTypes.DeactivateObjective,
 		parameters = {
 			objectiveID = 'killDestroyers',
 		},

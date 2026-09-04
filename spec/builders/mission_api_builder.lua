@@ -26,6 +26,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field Modules table
 ---@field ObjectiveObservers table
 ---@field ObjectiveTriggers table
+---@field ObjectiveStages table
 ---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
@@ -43,6 +44,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field onObjectiveCompleted table
 ---@field failObjective table
 ---@field activateObjective table
+---@field deactivateObjective table
 ---@field activateStageObjectives table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
@@ -152,6 +154,17 @@ end
 ---@return MissionApiBuilder
 function MB:WithTrigger(triggerID, trigger)
 	self.triggers[triggerID] = trigger or {}
+	return self
+end
+
+---Seed an objective's synthesized trigger, named and related as objectives_loader.lua does.
+---@param objectiveID string
+---@param trigger table?
+---@return MissionApiBuilder
+function MB:WithObjectiveTrigger(objectiveID, trigger)
+	local triggerID = "__objective_" .. objectiveID
+	self.triggers[triggerID] = trigger or { settings = { active = false } }
+	self.objectiveTriggers[objectiveID] = triggerID
 	return self
 end
 
@@ -286,6 +299,15 @@ function MB:Build()
 		trackEntity(entry.name, entry.id, trackedFeatureIDs, trackedFeatureNames)
 	end
 
+	-- Mirrors objectives_loader.lua: the stages that list each objective.
+	local objectiveStages = {}
+	for stageID, stage in pairs(self.stages) do
+		for _, objectiveID in ipairs(stage.objectives or {}) do
+			local sequence = ensureTable(objectiveStages, objectiveID)
+			sequence[#sequence + 1] = stageID
+		end
+	end
+
 	local spawnUnitCalls = {}
 	local spawnFeatureCalls = {}
 	local convertOrdersCalls = {}
@@ -297,6 +319,7 @@ function MB:Build()
 	local onObjectiveCompletedCalls = {}
 	local failObjectiveCalls = {}
 	local activateObjectiveCalls = {}
+	local deactivateObjectiveCalls = {}
 	local activateStageObjectivesCalls = {}
 	local updateProgressCalls = {}
 	local echoCalls = {}
@@ -384,6 +407,9 @@ function MB:Build()
 		ActivateObjective = function(objectiveID)
 			activateObjectiveCalls[#activateObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
+		DeactivateObjective = function(objectiveID)
+			deactivateObjectiveCalls[#deactivateObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
 		ActivateStage = function(stageID)
 			activateStageObjectivesCalls[#activateStageObjectivesCalls + 1] = { stageID = stageID }
 		end,
@@ -448,6 +474,7 @@ function MB:Build()
 		FeatureLoadout = self.featureLoadout,
 		ObjectiveObservers = self.objectiveObservers,
 		ObjectiveTriggers = self.objectiveTriggers,
+		ObjectiveStages = objectiveStages,
 		ActionDefinitions = self.actionDefinitions,
 		TriggerDefinitions = self.triggerDefinitions,
 		Modules = modules,
@@ -472,6 +499,7 @@ function MB:Build()
 			onObjectiveCompleted = onObjectiveCompletedCalls,
 			failObjective = failObjectiveCalls,
 			activateObjective = activateObjectiveCalls,
+			deactivateObjective = deactivateObjectiveCalls,
 			activateStageObjectives = activateStageObjectivesCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
@@ -490,6 +518,7 @@ function MB:Build()
 				onObjectiveCompletedCalls,
 				failObjectiveCalls,
 				activateObjectiveCalls,
+				deactivateObjectiveCalls,
 				activateStageObjectivesCalls,
 				updateProgressCalls,
 				echoCalls,

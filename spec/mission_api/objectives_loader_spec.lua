@@ -58,6 +58,16 @@ describe("mission_api.objectives_loader", function()
 			assert.are.equal("__objective_timed", missionApi.ObjectiveTriggers.timed)
 		end)
 
+		it("records the stages that list each objective", function()
+			local _, _, missionApi = process({ a = { textKey = "a" }, b = { textKey = "b" }, c = { textKey = "c" } }, {
+				s1 = { objectives = { "a" } },
+				s2 = { objectives = { "b" } },
+			})
+			assert.are.same({ "s1" }, missionApi.ObjectiveStages.a)
+			assert.are.same({ "s2" }, missionApi.ObjectiveStages.b)
+			assert.is_nil(missionApi.ObjectiveStages.c)
+		end)
+
 		it("records no trigger for a managed objective", function()
 			local kills = {
 				textKey = "k",

@@ -4,19 +4,27 @@
 
 local stageChanges = 0
 
---- Enables progress, display, and any synthesized triggers on an objective.
-local function activateObjective(objectiveID)
-	local objective = GG["MissionAPI"].Objectives[objectiveID]
-	if objective.completed then
-		return
-	end
-
-	objective.active = true
+local function setObjectiveActive(objectiveID, active)
+	GG["MissionAPI"].Objectives[objectiveID].active = active
 
 	local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
 	if triggerID then
-		GG["MissionAPI"].Triggers[triggerID].settings.active = true
+		GG["MissionAPI"].Triggers[triggerID].settings.active = active
 	end
+end
+
+--- Enables progress, display, and any synthesized triggers on an objective.
+local function activateObjective(objectiveID)
+	if GG["MissionAPI"].Objectives[objectiveID].completed then
+		return
+	end
+
+	local stages = GG["MissionAPI"].ObjectiveStages[objectiveID]
+	if stages and not table.contains(stages, GG["MissionAPI"].CurrentStageID) then
+		return
+	end
+
+	setObjectiveActive(objectiveID, true)
 end
 
 local function activateStage(stageID)
@@ -25,15 +33,37 @@ local function activateStage(stageID)
 		return
 	end
 
+	GG["MissionAPI"].CurrentStageID = stageID
+	Spring.Echo("Stage set to: " .. stageID)
+
 	for _, objectiveID in ipairs(stage.objectives) do
 		activateObjective(objectiveID)
 	end
 end
 
+--- Disables progress, display, and any synthesized triggers on an objective.
+local function deactivateObjective(objectiveID)
+	setObjectiveActive(objectiveID, false)
+end
+
+local function deactivateStage(stageID)
+	local stage = GG["MissionAPI"].Stages[stageID]
+	if not stage then
+		return
+	end
+
+	for _, objectiveID in ipairs(stage.objectives) do
+		deactivateObjective(objectiveID)
+	end
+end
+
 local function changeStage(stageID)
+	if not GG["MissionAPI"].Stages[stageID] then
+		return
+	end
+
 	stageChanges = stageChanges + 1
-	GG["MissionAPI"].CurrentStageID = stageID
-	Spring.Echo("Stage set to: " .. stageID)
+	deactivateStage(GG["MissionAPI"].CurrentStageID)
 	activateStage(stageID)
 end
 
@@ -182,12 +212,13 @@ local function updateObjectiveProgress(
 end
 
 return {
-	ChangeStage = changeStage,
-	ActivateObjective = activateObjective,
 	ActivateStage = activateStage,
+	ChangeStage = changeStage,
 	TryAdvanceStage = tryAdvanceStage,
-	OnObjectiveCompleted = onObjectiveCompleted,
+	ActivateObjective = activateObjective,
+	DeactivateObjective = deactivateObjective,
 	FailObjective = failObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
+	OnObjectiveCompleted = onObjectiveCompleted,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }
