@@ -365,10 +365,8 @@ local function initializeUnitDefRing(unitDefID)
 			local maxangledif = 0
 
 			-- customParams (note the case), is a table of strings always
-			if
-				(weapons[weaponNum].maxAngleDif > -1)
-				and not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)
-			then
+			local skipArc = weaponDef.customParams and weaponDef.customParams.noattackrangearc
+			if (weapons[weaponNum].maxAngleDif > -1) and not skipArc then
 				--spEcho(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
 				local difffract = 0
@@ -403,6 +401,21 @@ local function initializeUnitDefRing(unitDefID)
 
 				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
+			elseif
+				-- onlyForward weapons (!turret, non-starburst): fire cone comes from
+				-- weapondef tolerance, exposed to Lua as WeaponDefs.maxAngle (radians).
+				-- Pack the same way as maxangledif arcs: fractional half-angle/180°.
+				not skipArc
+				and not weaponDef.turret
+				and weaponDef.type ~= "StarburstLauncher"
+				and weaponDef.maxAngle
+				and weaponDef.maxAngle > 0
+			then
+				local difffract = weaponDef.maxAngle / mathPi
+				-- fract(1.0)==0 in the shader, so keep strictly below a full ±180°
+				if difffract < 0.999 then
+					maxangledif = difffract
+				end
 			end
 
 			--if weapons[weaponNum].maxAngleDif then	spEcho(weapons[weaponNum].maxAngleDif,'for',weaponDef.name, 'saved as',maxangledif ) end
