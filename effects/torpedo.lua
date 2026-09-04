@@ -1,5 +1,3 @@
--- Baseline saved before further cavitation-trail testing. Keep this unchanged
--- so the accepted core can be restored without reconstructing its values.
 local function savedTorpedoCavitationTrail()
 	return {
 		air = false,
@@ -27,13 +25,6 @@ end
 local function torpedoCavitationTrail()
 	local trail = savedTorpedoCavitationTrail()
 
-	-- Experimental reduced trail retained for future testing.
-	-- local properties = trail.properties
-	-- properties.colormap = [[0.55 0.72 1.00 0.0084   0.38 0.58 0.95 0.0063   0.18 0.32 0.65 0.0035   0.04 0.08 0.18 0.0014   0 0 0 0.0021]]
-	-- properties.frontoffset = -0.15
-	-- properties.length = -1.4
-	-- properties.size = 2
-
 	return trail
 end
 
@@ -57,7 +48,7 @@ local definitions = {
 				sidetexture = [[none]],
 				size = 1.8,
 				sizegrowth = 1.4,
-				ttl = 5, -- Experimental reduced value: 4
+				ttl = 5,
 				rotParams = [[0, -50 r100, -20 r40]],
 			},
 		},
@@ -81,7 +72,7 @@ local definitions = {
 				sidetexture = [[none]],
 				size = 1.6,
 				sizegrowth = 1.2,
-				ttl = 6, -- Experimental reduced value: 5
+				ttl = 6,
 				rotParams = [[0, -50 r100, -20 r40]],
 			},
 		},
@@ -105,7 +96,7 @@ local definitions = {
 				sidetexture = [[none]],
 				size = 1.8,
 				sizegrowth = 1.4,
-				ttl = 6, -- Experimental reduced value: 5
+				ttl = 6,
 				rotParams = [[0, -50 r100, -20 r40]],
 			},
 		},
@@ -126,7 +117,7 @@ local definitions = {
 				sidetexture = [[none]],
 				size = 1.8,
 				sizegrowth = 1.4,
-				ttl = 5, -- Experimental reduced value: 4
+				ttl = 5,
 				rotParams = [[0, -50 r100, -20 r40]],
 			},
 		},
@@ -185,42 +176,5 @@ local definitions = {
 
 	-- },
 }
-
---[[ Model-specific resizing retained for future testing.
-local function copyTable(original)
-    local copy = {}
-
-    for key, value in pairs(original) do
-        copy[key] = type(value) == "table" and copyTable(value) or value
-    end
-
-    return copy
-end
-
-
-local function addModelDiameterVariant(name, source, diameter, length)
-    local variant = copyTable(definitions[source])
-    variant.cavitation.properties.size = diameter
-    variant.cavitation.properties.length = length or variant.cavitation.properties.length
-    definitions[name] = variant
-end
-
-
-local modelDiameterVariants = {
-    { "depthcharge", 3 },
-    { "coradv", 5, -2.8 },
-    { "legfat", 4, -2.8 },
-}
-
-
--- Generate every bubble-density variant at each non-default model diameter.
-for _, trailSize in ipairs({ "tiny", "small", "large" }) do
-    local source = "torpedotrail-" .. trailSize
-
-    for _, variant in ipairs(modelDiameterVariants) do
-        addModelDiameterVariant(source .. "-" .. variant[1], source, variant[2], variant[3])
-    end
-end
-]]
 
 return definitions
