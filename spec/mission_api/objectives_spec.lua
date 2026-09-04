@@ -513,6 +513,15 @@ describe("mission_api.objectives", function()
 			assert.is_nil(missionApi.Objectives.obj1.failed)
 		end)
 
+		it("completes a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+		end)
+
 		it("is a no-op on a completed objective", function()
 			install(
 				mission()
@@ -662,6 +671,15 @@ describe("mission_api.objectives", function()
 
 			assert.is_true(missionApi.Objectives.obj1.completed)
 			assert.is_true(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("fails a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.FailObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.failed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
 		end)
 
 		it("is a no-op on a completed objective", function()

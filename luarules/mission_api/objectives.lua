@@ -160,6 +160,7 @@ local function completeObjective(objectiveID)
 		return
 	end
 
+	objective.canceled = false
 	objective.completed = true
 	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveCompleted)
 	echoObjectiveUpdate(objectiveID, objective)
@@ -171,6 +172,7 @@ local function failObjective(objectiveID)
 		return
 	end
 
+	objective.canceled = false
 	objective.completed = true
 	objective.failed = true
 	runExitRoutes(objectiveID, objective, GG["MissionAPI"].TriggerDefinitions.Types.ObjectiveFailed)
