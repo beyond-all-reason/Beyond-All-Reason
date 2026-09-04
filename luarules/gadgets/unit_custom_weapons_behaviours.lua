@@ -649,6 +649,7 @@ local terrainAvoidanceClearance = 6
 local terrainAvoidanceLookaheadFrames = 4
 local terrainAvoidanceRampDepth = 12
 local terrainAvoidanceTargetReleaseDistance = 36
+local terrainAvoidanceDepthLeadRatio = 2
 
 ---@type table<integer, boolean?>
 local torpedoSurfaceTargets = {}
@@ -822,8 +823,18 @@ local function torpedoWaterPen(params, projectileID)
 		-- seafloor, then release avoidance near the intended impact point.
 		local terrainAvoidanceScale = 1.0
 		if targetX ~= nil and targetY ~= nil and targetZ ~= nil then
-			local targetDistance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
-			terrainAvoidanceScale = math_clamp(targetDistance / terrainAvoidanceTargetReleaseDistance, 0, 1)
+			local targetOffsetX = positionX - targetX
+			local targetOffsetY = positionY - targetY
+			local targetOffsetZ = positionZ - targetZ
+			local targetDistance = math_diag(targetOffsetX, targetOffsetY, targetOffsetZ)
+			local targetHorizontalDistance = math_diag(targetOffsetX, targetOffsetZ)
+			local horizontalReleaseDistance = math_max(
+				terrainAvoidanceTargetReleaseDistance,
+				math.abs(targetOffsetY) * terrainAvoidanceDepthLeadRatio
+			)
+			local targetDistanceScale = math_clamp(targetDistance / terrainAvoidanceTargetReleaseDistance, 0, 1)
+			local horizontalReleaseScale = math_clamp(targetHorizontalDistance / horizontalReleaseDistance, 0, 1)
+			terrainAvoidanceScale = targetDistanceScale * horizontalReleaseScale
 		end
 		setTorpedoPitchVelocity(
 			projectileID,
