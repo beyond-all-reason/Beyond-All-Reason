@@ -256,9 +256,7 @@ local function invalidateCircleDisplayList()
 	end
 end
 
-local reusePositionTable = { 0, 0, 0 }
 local reuseColorTable = { 0, 0, 0, 0 }
-local reuseColorTable2 = { 0, 0, 0, 0 }
 local reuseColorsArray = {}
 local reuseGlowColorsArray = {}
 

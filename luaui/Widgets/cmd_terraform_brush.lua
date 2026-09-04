@@ -75,11 +75,9 @@ local pi = math.pi
 local ceil = math.ceil
 local atan2 = math.atan2
 local log = math.log
-local exp = math.exp
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local KEYSYMS_SPACE = 0x20
-local KEYSYMS_R = 0x72
 
 local RING_WIDTH_STEP = 0.05
 local RADIUS_STEP = 8
@@ -90,18 +88,15 @@ local MIN_RADIUS = 8
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local DEFAULT_CURVE = 1.0
-local INTENSITY_STEP = 0.1
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 100.0
 local DEFAULT_INTENSITY = 1.0
 local CIRCLE_SEGMENTS = 64
-local FALLOFF_DISPLAY_HEIGHT = 60
 local ringInnerRatio = 0.6
 local DEFAULT_LENGTH_SCALE = 1.0
 local MIN_LENGTH_SCALE = 0.2
 local MAX_LENGTH_SCALE = 5.0
 local LENGTH_SCALE_STEP = 0.1
-local GRID_SNAP_SIZE = 48 -- default; overridden by extraState.gridSnapSize
 local PRESETS_DIR = "Terraform Brush/Presets/"
 local KEYBINDS_DIR = "Terraform Brush/"
 local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
@@ -915,7 +910,6 @@ local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
-local savedDirectionBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
 
@@ -9384,7 +9378,6 @@ function widget:MousePress(mx, my, button)
 	if button == 3 then
 		if not rightMouseHeld then
 			savedModeBeforeRMB = activeMode
-			savedDirectionBeforeRMB = activeDirection
 			rightMouseHeld = true
 			setMode("lower")
 			Echo(
@@ -9511,7 +9504,6 @@ function widget:MouseRelease(mx, my, button)
 			activeDirection = nil
 		end
 		savedModeBeforeRMB = nil
-		savedDirectionBeforeRMB = nil
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil

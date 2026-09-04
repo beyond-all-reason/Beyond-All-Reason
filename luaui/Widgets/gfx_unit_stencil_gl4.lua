@@ -472,8 +472,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
 			unitDef.model.maxy,
 			unitDef.model.maxz,
 		}
-		local dimsXYZ = unitDimensionsXYZ[unitDefID]
-		--spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
 	end
 	local dimsXYZ = unitDimensionsXYZ[unitDefID]
 

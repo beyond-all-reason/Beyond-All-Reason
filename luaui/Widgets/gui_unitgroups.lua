@@ -770,7 +770,6 @@ function widget:Update(dt)
 					selectedGroups[group] = true
 				end
 			end
-			local changed = false
 			for group, _ in pairs(selectedGroups) do
 				if not prevSelectedGroups[group] then
 					doUpdate = true

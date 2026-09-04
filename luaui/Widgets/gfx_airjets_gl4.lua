@@ -155,7 +155,6 @@ local activePlanes = {}
 local inactivePlanes = {}
 local lights = {}
 
-local shaders
 local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 

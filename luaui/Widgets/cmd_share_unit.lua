@@ -46,7 +46,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList

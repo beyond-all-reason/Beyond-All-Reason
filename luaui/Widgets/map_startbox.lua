@@ -40,8 +40,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local GL_TRIANGLES = GL.TRIANGLES
 
-local UPDATE_RATE = 30
-
 local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
 local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
@@ -114,13 +112,11 @@ local glCallList = gl.CallList
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glTexCoord = gl.TexCoord
 local GL_POLYGON = GL.POLYGON
-local GL_QUADS = GL.QUADS
 
 local hasStartbox = false
 

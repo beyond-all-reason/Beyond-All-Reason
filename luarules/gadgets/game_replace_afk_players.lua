@@ -39,7 +39,6 @@ if gadgetHandler:IsSyncedCode() then
 	local players = {}
 	local absent = {}
 	local replaced = false
-	local gameStarted = false
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local SpGetPlayerList = Spring.GetPlayerList
@@ -174,7 +173,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
-		gameStarted = true
 		FindSubs(true)
 	end
 

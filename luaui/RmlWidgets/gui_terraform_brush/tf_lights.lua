@@ -74,7 +74,6 @@ function M.attach(doc, ctx)
 		ctx.attachTBMirrorControls(doc, "lp")
 	end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
@@ -412,8 +411,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- btn-lights active state driven by data-class-active="activeTool == 'lp'" in RML.
 
 	-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).
