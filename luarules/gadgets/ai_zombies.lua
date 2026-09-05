@@ -115,7 +115,7 @@ local ordersEnabled = true
 local isPacified = false
 local autoOrdersSuspended = false
 local gameFrame = 0
-local totalZombiePower = 0
+local totalMobileZombiePower = 0
 local aggroExpirationTimestamp = 0
 
 local mobileUnitDefs = {}
@@ -225,7 +225,9 @@ local function unwatchZombie(unitID)
 	if not zombieData then
 		return
 	end
-	totalZombiePower = totalZombiePower - zombieData.power
+	if mobileUnitDefs[zombieData.unitDefID] then
+		totalMobileZombiePower = totalMobileZombiePower - zombieData.power
+	end
 	removeZombieFromBucket(unitID, zombieOrderBuckets[unitID % ZOMBIE_ORDER_CHECK_INTERVAL + 1], zombieData.orderBucketIndex, "orderBucketIndex")
 	removeZombieFromBucket(unitID, zombieStuckBuckets[unitID % STUCK_CHECK_INTERVAL + 1], zombieData.stuckBucketIndex, "stuckBucketIndex")
 	zombieWatch[unitID] = nil
@@ -241,93 +243,6 @@ local function getActiveZombieAggro(unitID)
 		return nil
 	end
 	return zombieAggros[unitID]
-end
-
-local function assignZombieAggroEvenly()
-	if gameFrame >= aggroExpirationTimestamp then
-		zombieAggros = {}
-	end
-	local playerTeams = GG.PowerLib.PlayerTeams
-	local teamPowers = GG.PowerLib.TeamPowers
-	local allyPowers = {}
-	for teamID in pairs(playerTeams) do
-		local allyTeamID = select(6, spring.GetTeamInfo(teamID))
-		local teamPower = teamPowers[teamID] or 0
-		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
-	end
-
-	local assignedPowerByAlly = {}
-	for unitID, allyTeamID in pairs(zombieAggros) do
-		assignedPowerByAlly[allyTeamID] = (assignedPowerByAlly[allyTeamID] or 0) + zombieWatch[unitID].power
-	end
-
-	local eligibleAllies = {}
-	for allyTeamID, allyPower in pairs(allyPowers) do
-		if allyPower > 0 then
-			eligibleAllies[#eligibleAllies + 1] = {
-				allyTeamID = allyTeamID,
-				assignedPower = assignedPowerByAlly[allyTeamID] or 0,
-			}
-		end
-	end
-
-	if #eligibleAllies == 0 then
-		return
-	end
-
-	local equalShare = totalZombiePower / #eligibleAllies
-	for allyIndex = 1, #eligibleAllies do
-		eligibleAllies[allyIndex].share = equalShare
-	end
-
-	if #eligibleAllies > 1 then
-		local allyIndex = 1
-		while allyIndex <= #eligibleAllies and #eligibleAllies > 1 do
-			if eligibleAllies[allyIndex].assignedPower > eligibleAllies[allyIndex].share then
-				table.remove(eligibleAllies, allyIndex)
-			else
-				allyIndex = allyIndex + 1
-			end
-		end
-	end
-
-	for allyIndex = #eligibleAllies, 2, -1 do
-		local randomAllyIndex = random(1, allyIndex)
-		eligibleAllies[allyIndex], eligibleAllies[randomAllyIndex] =
-			eligibleAllies[randomAllyIndex], eligibleAllies[allyIndex]
-	end
-
-	local sortedZombies = {}
-	for unitID, zombieData in pairs(zombieWatch) do
-		if not zombieAggros[unitID] then
-			sortedZombies[#sortedZombies + 1] = { unitID = unitID, power = zombieData.power }
-		end
-	end
-
-	if #sortedZombies == 0 then
-		return
-	end
-
-	table.sort(sortedZombies, function(firstZombie, secondZombie)
-		return firstZombie.power > secondZombie.power
-	end)
-
-	local eligibleIndex = 1
-	for zombieIndex = 1, #sortedZombies do
-		local zombieData = sortedZombies[zombieIndex]
-		local targetAlly = eligibleAllies[eligibleIndex]
-		zombieAggros[zombieData.unitID] = targetAlly.allyTeamID
-		targetAlly.assignedPower = targetAlly.assignedPower + zombieData.power
-
-		if #eligibleAllies > 1 and targetAlly.assignedPower > targetAlly.share then
-			table.remove(eligibleAllies, eligibleIndex)
-		else
-			eligibleIndex = eligibleIndex + 1
-		end
-		if eligibleIndex > #eligibleAllies then
-			eligibleIndex = 1
-		end
-	end
 end
 
 local function addAllyTeamUnit(unitID, allyTeamID)
@@ -475,10 +390,10 @@ local function setRandomEdgeObjective(zombieData)
 	zombieData.objective = { type = OBJECTIVE_TYPE_NORMAL, x = objectiveX, z = objectiveZ }
 end
 
-local function setAggroObjective(zombieData, allyTeamID)
+local function getRandomValidAllyTeamUnit(allyTeamID)
 	local unitList = allyTeamUnits[allyTeamID]
 	if not unitList or #unitList == 0 then
-		return false
+		return
 	end
 	local attemptsRemaining = #unitList
 	while attemptsRemaining > 0 do
@@ -486,19 +401,50 @@ local function setAggroObjective(zombieData, allyTeamID)
 		if spValidUnitID(targetUnitID) and not spGetUnitIsDead(targetUnitID) then
 			local targetX, _, targetZ = spGetUnitPosition(targetUnitID)
 			if targetX then
-				zombieData.objective = {
-					type = OBJECTIVE_TYPE_AGGRO,
-					x = targetX,
-					z = targetZ,
-					targetUnitID = targetUnitID,
-				}
-				return true
+				return targetUnitID, targetX, targetZ
 			end
 		end
 		removeAllyTeamUnit(targetUnitID)
 		attemptsRemaining = attemptsRemaining - 1
 	end
-	return false
+end
+
+local function setAggroObjective(zombieData, allyTeamID)
+	local targetUnitID, targetX, targetZ = getRandomValidAllyTeamUnit(allyTeamID)
+	if not targetUnitID then
+		return false
+	end
+	zombieData.objective = {
+		type = OBJECTIVE_TYPE_AGGRO,
+		x = targetX,
+		z = targetZ,
+		targetUnitID = targetUnitID,
+	}
+	return true
+end
+
+local function getLeastAssignedAlly(eligibleAllies)
+	local leastAssignedAlly = eligibleAllies[1]
+	for allyIndex = 2, #eligibleAllies do
+		local allyData = eligibleAllies[allyIndex]
+		if
+			allyData.assignedPower < leastAssignedAlly.assignedPower
+			or (
+				allyData.assignedPower == leastAssignedAlly.assignedPower
+				and allyData.allyTeamID < leastAssignedAlly.allyTeamID
+			)
+		then
+			leastAssignedAlly = allyData
+		end
+	end
+	return leastAssignedAlly
+end
+
+local function compareZombiePower(firstZombie, secondZombie)
+	if firstZombie.power == secondZombie.power then
+		return firstZombie.unitID < secondZombie.unitID
+	end
+	return firstZombie.power > secondZombie.power
 end
 
 local function isObjectiveReached(unitID, objective, unitX, unitZ)
@@ -522,6 +468,71 @@ local function isAggroObjectiveValid(unitID, objective, allyTeamID)
 		return false
 	end
 	return not isObjectiveReached(unitID, objective)
+end
+
+local function assignZombieAggroEvenly()
+	local playerTeams = GG.PowerLib.PlayerTeams
+	local teamPowers = GG.PowerLib.TeamPowers
+	local allyPowers = {}
+	for teamID in pairs(playerTeams) do
+		local allyTeamID = select(6, spring.GetTeamInfo(teamID))
+		local teamPower = teamPowers[teamID] or 0
+		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
+	end
+
+	local eligibleAllies = {}
+	local eligibleAlliesByID = {}
+	for allyTeamID, allyPower in pairs(allyPowers) do
+		if allyPower > 0 and getRandomValidAllyTeamUnit(allyTeamID) then
+			local allyData = {
+				allyTeamID = allyTeamID,
+				assignedPower = 0,
+			}
+			eligibleAllies[#eligibleAllies + 1] = allyData
+			eligibleAlliesByID[allyTeamID] = allyData
+		end
+	end
+
+	local zombiesNeedingAggro = {}
+	for unitID, zombieData in pairs(zombieWatch) do
+		if mobileUnitDefs[zombieData.unitDefID] then
+			local allyTeamID = zombieAggros[unitID]
+			local allyData = allyTeamID and eligibleAlliesByID[allyTeamID]
+			if allyData and isAggroObjectiveValid(unitID, zombieData.objective, allyTeamID) then
+				allyData.assignedPower = allyData.assignedPower + zombieData.power
+			else
+				zombieAggros[unitID] = nil
+				if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
+					zombieData.objective = nil
+				end
+				clearUnitOrders(unitID)
+				zombiesNeedingAggro[#zombiesNeedingAggro + 1] = {
+					unitID = unitID,
+					power = zombieData.power,
+				}
+			end
+		else
+			zombieAggros[unitID] = nil
+			if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
+				zombieData.objective = nil
+			end
+		end
+	end
+
+	if #eligibleAllies == 0 then
+		return
+	end
+
+	table.sort(zombiesNeedingAggro, compareZombiePower)
+	for zombieIndex = 1, #zombiesNeedingAggro do
+		local pendingZombie = zombiesNeedingAggro[zombieIndex]
+		local zombieData = zombieWatch[pendingZombie.unitID]
+		local leastAssignedAlly = getLeastAssignedAlly(eligibleAllies)
+		if setAggroObjective(zombieData, leastAssignedAlly.allyTeamID) then
+			zombieAggros[pendingZombie.unitID] = leastAssignedAlly.allyTeamID
+			leastAssignedAlly.assignedPower = leastAssignedAlly.assignedPower + pendingZombie.power
+		end
+	end
 end
 
 local function rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
@@ -563,11 +574,24 @@ local function ensureMovementObjective(unitID, zombieData, allyTeamID)
 		if setAggroObjective(zombieData, allyTeamID) then
 			return zombieData.objective, true
 		end
+		if zombieAggros[unitID] == allyTeamID then
+			zombieAggros[unitID] = nil
+		end
 	end
 
 	objective = zombieData.objective
 	if zombieData.rememberedObjectiveX then
-		if
+		local isRememberedObjective =
+			objective
+			and objective.type == OBJECTIVE_TYPE_NORMAL
+			and objective.x == zombieData.rememberedObjectiveX
+			and objective.z == zombieData.rememberedObjectiveZ
+		if isRememberedObjective and isObjectiveReached(unitID, objective) then
+			zombieData.rememberedObjectiveX = nil
+			zombieData.rememberedObjectiveZ = nil
+			zombieData.objective = nil
+			objective = nil
+		elseif
 			not objective
 			or objective.type ~= OBJECTIVE_TYPE_NORMAL
 			or objective.x ~= zombieData.rememberedObjectiveX
@@ -579,8 +603,9 @@ local function ensureMovementObjective(unitID, zombieData, allyTeamID)
 				z = zombieData.rememberedObjectiveZ,
 			}
 			return zombieData.objective, true
+		else
+			return objective, false
 		end
-		return objective, false
 	end
 
 	if not objective or objective.type ~= OBJECTIVE_TYPE_NORMAL or isObjectiveReached(unitID, objective) then
@@ -640,8 +665,11 @@ local function issueObjectiveMove(unitID, unitDefID, zombieData, objective)
 		and objective.z == zombieData.rememberedObjectiveZ
 		and isObjectiveReached(unitID, objective, unitX, unitZ)
 	then
-		clearUnitOrders(unitID)
-		return
+		zombieData.rememberedObjectiveX = nil
+		zombieData.rememberedObjectiveZ = nil
+		zombieData.objective = nil
+		setRandomEdgeObjective(zombieData)
+		objective = zombieData.objective
 	end
 
 	local firstTargetX, firstTargetY, firstTargetZ =
@@ -859,8 +887,8 @@ local function initializeZombie(unitID, unitDefID)
 	stuckBucket[zombieData.stuckBucketIndex] = unitID
 	if mobileUnitDefs[unitDefID] then
 		setRandomEdgeObjective(zombieData)
+		totalMobileZombiePower = totalMobileZombiePower + unitPower
 	end
-	totalZombiePower = totalZombiePower + unitPower
 	setZombieStates(unitID, unitDefID)
 	if ordersEnabled then
 		updateOrders(unitID, unitDefID)
@@ -928,12 +956,18 @@ local function suspendAutoOrders(enabled)
 end
 
 local function aggroAllZombiesToAllyTeam(allyTeamID)
-	clearAllOrders()
 	local markedAny = false
 	for zombieID in pairs(zombieWatch) do
-		if spValidUnitID(zombieID) then
+		local zombieData = zombieWatch[zombieID]
+		if spValidUnitID(zombieID) and mobileUnitDefs[zombieData.unitDefID] then
+			clearUnitOrders(zombieID)
 			zombieAggros[zombieID] = allyTeamID
 			markedAny = true
+		else
+			zombieAggros[zombieID] = nil
+			if zombieData.objective and zombieData.objective.type == OBJECTIVE_TYPE_AGGRO then
+				zombieData.objective = nil
+			end
 		end
 	end
 
@@ -975,7 +1009,7 @@ local function updateAggro()
 		return
 	end
 	local totalPlayerPower = GG.PowerLib.TotalPlayerTeamsPower()
-	local powerCheckSucceeded = totalZombiePower > totalPlayerPower * AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO
+	local powerCheckSucceeded = totalMobileZombiePower > totalPlayerPower * AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO
 	if powerCheckSucceeded then
 		assignZombieAggroEvenly()
 		setAggroExpiration()
@@ -1016,6 +1050,7 @@ local function updateStuckZombies()
 			if unitX then
 				local unitDefID = zombieData.unitDefID
 				local objective = zombieData.objective
+				local movedDistanceSquared = distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
 				local isAtRememberedObjective = zombieData.rememberedObjectiveX
 					and objective
 					and objective.type == OBJECTIVE_TYPE_NORMAL
@@ -1025,8 +1060,7 @@ local function updateStuckZombies()
 				if
 					mobileUnitDefs[unitDefID]
 					and not isAtRememberedObjective
-					and distance2dSquared(unitX, unitZ, zombieData.lastX, zombieData.lastZ)
-						< STUCK_DISTANCE_SQUARED
+					and movedDistanceSquared < STUCK_DISTANCE_SQUARED
 				then
 					local directionTargetX = objective and objective.x
 					local directionTargetZ = objective and objective.z
