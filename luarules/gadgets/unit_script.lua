@@ -565,12 +565,19 @@ function gadget:Initialize()
 	--  * exact path can be specified to resolve ambiguous basenames
 	--  * engine default scriptName (with .cob extension) works
 
-	-- Recursively collect files below UNITSCRIPT_DIR.
+	-- Recursively collect files below UNITSCRIPT_DIR and each module's scripts/.
 	local scriptFiles = {}
-	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
-		local basename = Basename(filename)
-		scriptFiles[filename] = filename -- for exact match
-		scriptFiles[basename] = filename -- for basename match
+	local scriptDirs = { UNITSCRIPT_DIR }
+	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+	for _, dir in ipairs(ModuleHandler.ScriptDirs(VFSMODE)) do
+		scriptDirs[#scriptDirs + 1] = dir:lower()
+	end
+	for _, dir in ipairs(scriptDirs) do
+		for _, filename in ipairs(VFS.DirList(dir, "*.lua", VFSMODE, true)) do
+			local basename = Basename(filename)
+			scriptFiles[filename] = filename -- for exact match
+			scriptFiles[basename] = filename -- for basename match
+		end
 	end
 
 	-- Go through all UnitDefs and load scripts.
@@ -582,7 +589,11 @@ function gadget:Initialize()
 	for i = 1, #UnitDefs do
 		local unitDef = UnitDefs[i]
 		if unitDef and not scripts[unitDef.scriptName] then
-			local fn = UNITSCRIPT_DIR .. unitDef.scriptName:lower()
+			local scriptName = unitDef.scriptName:lower()
+			-- A module's script is named by its full modules/ path; the engine may
+			-- already have put scripts/ in front of it. Anything else lives under scripts/.
+			local moduleScript = scriptName:match("^scripts/(modules/.*)$") or scriptName:match("^(modules/.*)$")
+			local fn = moduleScript or UNITSCRIPT_DIR .. scriptName
 			local bn = Basename(fn)
 			local cfn = fn:gsub("%.cob$", "%.lua")
 			local cbn = bn:gsub("%.cob$", "%.lua")
@@ -694,7 +705,8 @@ local include_cache = {}
 -- core of include() function for unit scripts
 local function ScriptInclude(filename)
 	--Spring.Echo("  Loading include: " .. UNITSCRIPT_DIR .. filename)
-	local chunk = LoadChunk(UNITSCRIPT_DIR .. filename)
+	local path = filename:lower():find("^modules/") and filename or UNITSCRIPT_DIR .. filename
+	local chunk = LoadChunk(path)
 	if chunk then
 		include_cache[filename] = chunk
 		return chunk
