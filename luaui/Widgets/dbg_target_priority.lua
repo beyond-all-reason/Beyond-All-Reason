@@ -100,7 +100,7 @@ local PRIORITY_SCOUTS = 100
 local active = false
 local showLines = false
 local showDetails = false
-local weaponNumber = nil -- explicit weapon number, else the first weapon that autotargets, sorry
+local weaponNumber = nil ---@type number? explicit weapon number, else the first weapon that autotargets, sorry
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -150,7 +150,7 @@ do
 	end
 
 	local function isBomberWeapon(weapon)
-		local weaponDef = WeaponDefs[weapon.weaponDef]
+		local weaponDef = WeaponDefs[weapon.weaponDef] ---@type table
 		return weaponDef.type == "AircraftBomb"
 			or weaponDef.type == "TorpedoLauncher"
 			or string.find(weaponDef.name, "arm_pidr", 1, true)
@@ -168,11 +168,11 @@ do
 		if not hasTargeting(unitDef, weapon) or not hasAntiAirTargeting(weapon) then
 			return false
 		end
-		local weaponDef = WeaponDefs[weapon.weaponDef]
+		local weaponDef = WeaponDefs[weapon.weaponDef] ---@type table
 		if nonAntiAirTypes[weaponDef.type] or weaponDef.range < 100 then
 			return false
 		end
-		local damages = weaponDef.damages
+		local damages = weaponDef.damages ---@type table
 		return damages[Game.armorTypes.vtol] > damages[Game.armorTypes.default] * 0.5
 	end
 
@@ -202,7 +202,7 @@ local function getAimAdjustPriority(unitDefID, weaponNum)
 		byWeapon = {}
 		aimAdjustPriority[unitDefID] = byWeapon
 
-		local name = UnitDefs[unitDefID].name:gsub("_scav$", "")
+		local name = (UnitDefs[unitDefID] or {}).name:gsub("_scav$", "")
 		local files = VFS.DirList("units/", name .. ".lua", nil, true)
 		local ok, defs = false, nil
 		if files[1] then
@@ -229,7 +229,7 @@ local function getSweepWeapon(unitDef)
 	end
 	for i = 1, #weapons do
 		local weapon = weapons[i]
-		local weaponDef = WeaponDefs[weapon.weaponDef]
+		local weaponDef = WeaponDefs[weapon.weaponDef] ---@type table
 		if
 			weapon.slavedTo == 0
 			and not weaponDef.noAutoTarget
@@ -265,7 +265,7 @@ local function isCrashing(unitID, fullview)
 	if not fullview then
 		return false
 	end
-	local moveData = spGetUnitMoveTypeData(unitID)
+	local moveData = spGetUnitMoveTypeData(unitID) ---@type table?
 	return moveData ~= nil and moveData.aircraftState == "crashing"
 end
 
@@ -332,8 +332,8 @@ end
 local function sweepTargets()
 	local frame = spGetGameFrame()
 	local unitID, weaponNum = attackerID, attackerWeapon
-	local unitDef = UnitDefs[attackerDefID]
-	local weapon = unitDef.weapons[weaponNum]
+	local unitDef = UnitDefs[attackerDefID] ---@type table
+	local weapon = unitDef.weapons[weaponNum] ---@type table
 	local weaponDef = WeaponDefs[weapon.weaponDef]
 	local allyTeam = spGetUnitAllyTeam(unitID)
 	local _, fullview = spGetSpectatingState()
