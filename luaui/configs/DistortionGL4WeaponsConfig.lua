@@ -2095,7 +2095,7 @@ local function AssignDistortionsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius)
 			--projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
 		elseif weaponDef.type == "DGun" then
-			--muzzleFlash = true --doesnt work
+			--muzzleFlash = true --doesn't work
 			sizeclass = "DGun"
 
 			projectileDefDistortions[weaponID] = GetDistortionClass("AirShockWaveDgun", sizeclass, overrideTable)
@@ -2669,28 +2669,28 @@ muzzleFlashDistortionsNames.armguard_plasma = {
 	}),
 }
 
-projectileDefDistortionsNames.armspid_spider = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armspid_spider = --doesn't work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
-projectileDefDistortionsNames.armdfly_armdfly_paralyzer = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armdfly_armdfly_paralyzer = --doesn't work on lightning cannon
 	GetDistortionClass("EMPBeamXL", "Zetto")
 
-projectileDefDistortionsNames.corbw_bladewing_lyzer = --doesnt work on lightning cannon
+projectileDefDistortionsNames.corbw_bladewing_lyzer = --doesn't work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
-projectileDefDistortionsNames.armclaw_dclaw = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armclaw_dclaw = --doesn't work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")
 
-projectileDefDistortionsNames.armthor_emp = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armthor_emp = --doesn't work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
--- projectileDefDistortionsNames["armzeus_lightning"] = --doesnt work on lightning cannon
+-- projectileDefDistortionsNames["armzeus_lightning"] = --doesn't work on lightning cannon
 -- 	GetDistortionClass("LightningBeam", "Atto")
 
--- projectileDefDistortionsNames["armlship_lightning"] = --doesnt work on lightning cannon
+-- projectileDefDistortionsNames["armlship_lightning"] = --doesn't work on lightning cannon
 -- 	GetDistortionClass("LightningBeam", "Femto")
 
-projectileDefDistortionsNames.armthor_thunder = --doesnt work on lightning cannon
+projectileDefDistortionsNames.armthor_thunder = --doesn't work on lightning cannon
 	GetDistortionClass("LightningBeam", "Pico")
 
 muzzleFlashDistortionsNames.armthor_thunder = {
