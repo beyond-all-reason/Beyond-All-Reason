@@ -71,7 +71,26 @@ for i = 1, #mapList + 1 do
 	end
 end
 
-if not gadgetHandler:IsSyncedCode() then
+local PACKET_HEADER = "atonf"
+local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
+
+if gadgetHandler:IsSyncedCode() then
+	-- This is the synced part of the gadget, which handles RecvLuaMsg
+	function gadget:RecvLuaMsg(msg, playerID)
+		if
+			#msg < PACKET_HEADER_LENGTH
+			or string.byte(msg, 1) ~= PH_B1
+			or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER
+		then
+			return
+		end
+        -- Forward to unsynced gadget
+        SendToUnsynced("NightModeMsg", playerID, msg)
+        return true
+    end
+else
+	-- UNSYNCED PART OF THE GADGET
 	--[[
 		Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
 		Spring.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
@@ -88,6 +107,7 @@ if not gadgetHandler:IsSyncedCode() then
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	]]
 	--
+	local myPlayerID = Spring.GetLocalPlayerID()
 
 	local function tablecopy(t)
 		local copy = {}
@@ -190,7 +210,7 @@ if not gadgetHandler:IsSyncedCode() then
 			Spring.SetAtmosphere(lightandatmos.atmosphere)
 		end
 		--if lightandatmos.lighting then Spring.SetSunLighting({groundShadowDensity = lightandatmos.lighting.groundShadowDensity}) end -- for some godforsaken reason, this needs to be set TWICE!
-		if lightandatmos.lighting then
+		if lightandatmos.lighting or lightandatmos.nightFactor then
 			Spring.SetSunLighting({})
 		end -- for some godforsaken reason, this needs to be set TWICE!
 
@@ -458,6 +478,28 @@ if not gadgetHandler:IsSyncedCode() then
 		lastSunChanged = df
 	end
 
+	local function NightModeMsg(_, playerID, msg)
+		if playerID ~= myPlayerID then return end
+
+		-- Strip header
+		local csv = msg:sub(7)  -- skip "atonf "
+
+		local r, g, b, shadow, altitude =
+			csv:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
+
+		if r then
+			SetLightingAndAtmosphere({
+				nightFactor = {
+					red      = tonumber(r),
+					green    = tonumber(g),
+					blue     = tonumber(b),
+					shadow   = tonumber(shadow),
+					altitude = tonumber(altitude),
+				}
+			})
+		end
+	end
+
 	function gadget:Initialize()
 		initial_atmosphere_lighting = GetLightingAndAtmosphere()
 		for i, nightConf in ipairs(nightModeConfig) do
@@ -472,6 +514,7 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddChatAction("NightModeToggle", NightModeToggle)
 		gadgetHandler:AddChatAction("PrintSun", PrintSun)
 		gadgetHandler:RegisterGlobal("NightModeParams", { r = 1, g = 1, b = 1, s = 1, a = 1 })
+		gadgetHandler:AddSyncAction("NightModeMsg", NightModeMsg)
 	end
 
 	function gadget:Shutdown()
@@ -480,6 +523,11 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("MixLightingAndAtmosphere")
 		gadgetHandler:RemoveChatAction("NightMode")
 		gadgetHandler:RemoveChatAction("NightModeToggle")
+		gadgetHandler:RemoveSyncAction("NightModeMsg")
 		SetLightingAndAtmosphere(initial_atmosphere_lighting)
 	end
+
+
+
 end
+
