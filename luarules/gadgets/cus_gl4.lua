@@ -2244,10 +2244,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		end
 	end
 end
-local spValidFeatureID = Spring.ValidFeatureID
-local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
-local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
-local spSetFeatureFade = Spring.SetFeatureFade
 
 local function ProcessFeatures(features, drawFlags, reason)
 	local numFeatures = #features

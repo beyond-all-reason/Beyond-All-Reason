@@ -33,7 +33,6 @@ local spSetUnitVelocity = Spring.SetUnitVelocity
 local spUnitAttach = Spring.UnitAttach
 local spUnitDetach = Spring.UnitDetach
 local spSetUnitHealth = Spring.SetUnitHealth
-local spSetUnitMaxHealth = Spring.SetUnitMaxHealth
 local spSetUnitUseAirLos = Spring.SetUnitUseAirLos
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
@@ -66,8 +65,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local mcEnable = Spring.MoveCtrl.Enable
 local mcDisable = Spring.MoveCtrl.Disable
 local mcSetPosition = Spring.MoveCtrl.SetPosition
-local mcSetRotation = Spring.MoveCtrl.SetRotation
-local mcSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -93,8 +90,6 @@ local CMD_REPAIR = CMD.REPAIR
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_STOCKPILE = CMD.STOCKPILE
-
-local noCreate = false
 
 local spawnDefs = {}
 local hasAmmoDrones = false -- some drone type has limited ammo (needs the ProjectileCreated callin)

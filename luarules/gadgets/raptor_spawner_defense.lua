@@ -88,7 +88,6 @@ if gadgetHandler:IsSyncedCode() then
 	local SetFeatureResources = Spring.SetFeatureResources
 	local SetFeatureHealth = Spring.SetFeatureHealth
 	local GetFeatureHealth = Spring.GetFeatureHealth
-	local DestroyFeature = Spring.DestroyFeature
 	local GetFeatureDefID = Spring.GetFeatureDefID
 	local SpawnCEG = Spring.SpawnCEG
 

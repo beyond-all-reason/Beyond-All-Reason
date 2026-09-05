@@ -37,7 +37,6 @@ if gadgetHandler:IsSyncedCode() then
 	local ValidUnitID = Spring.ValidUnitID
 	local GetUnitNeutral = Spring.GetUnitNeutral
 	local GetTeamList = Spring.GetTeamList
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GetGaiaTeamID = Spring.GetGaiaTeamID
 	local SetGameRulesParam = Spring.SetGameRulesParam
 	local GetGameRulesParam = Spring.GetGameRulesParam
