@@ -94,6 +94,8 @@ local PRIORITY_VTOLS = 1
 local PRIORITY_FIGHTERS = 2
 local PRIORITY_SCOUTS = 100
 
+---@diagnostic disable
+
 --------------------------------------------------------------------------------
 -- State -----------------------------------------------------------------------
 
