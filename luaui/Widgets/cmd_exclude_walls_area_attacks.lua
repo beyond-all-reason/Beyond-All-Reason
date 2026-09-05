@@ -15,6 +15,7 @@ end
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_ATTACK = CMD.ATTACK
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 local CMD_STOP = CMD.STOP
 
 local excludedUnitsDefID = {}
@@ -22,6 +23,7 @@ local excludedUnitsDefID = {}
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 
 -- Keep in sync with unit_areaattack_limiter.lua
 local BATCH_LIMIT = 30
@@ -65,7 +67,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	if cmdID == CMD_ATTACK then
+	if cmdID == CMD_ATTACK and not CMD_ATTACK_TARGETS then
 		-- Deterministic handoff: if limiter would kick in (non-bomber overflow),
 		-- do not consume this command so LuaRules areaattack limiter can process it.
 		local selectedUnits = spGetSelectedUnits()
@@ -85,18 +87,31 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
 	local newCmds = {}
+	local targetIDs = {}
 	local somethingWasExcluded = false
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 
 		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			if cmdID == CMD_ATTACK and CMD_ATTACK_TARGETS then
+				targetIDs[#targetIDs + 1] = unitID
+			else
+				addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			end
 		elseif not spGetUnitNeutral(unitID) then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			if cmdID == CMD_ATTACK and CMD_ATTACK_TARGETS then
+				targetIDs[#targetIDs + 1] = unitID
+			else
+				addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+			end
 		else
 			somethingWasExcluded = true
 		end
+	end
+	if #targetIDs > 0 and somethingWasExcluded then
+		spGiveOrderToUnitArray(spGetSelectedUnits(), CMD_ATTACK_TARGETS, targetIDs, cmdOpts.coded or 0)
+		return true
 	end
 	if #newCmds > 0 and somethingWasExcluded then
 		Spring.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)

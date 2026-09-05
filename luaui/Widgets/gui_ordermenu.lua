@@ -201,6 +201,8 @@ local hiddenCommands = {
 	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
 	[34922] = true, -- set unit target (no ground)
+	[34926] = true, -- set unit targets
+	[34927] = true, -- attack targets
 }
 
 local hiddenCommandTypes = {
