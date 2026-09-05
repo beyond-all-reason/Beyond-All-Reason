@@ -343,6 +343,30 @@ local function UpdateVisibility(unitID, unitData, fullview, forceUpdate)
 	end
 end
 
+-- Teams run by the Scavengers AI; shields they own get the purple palette.
+local scavengerTeams = {}
+for _, teamID in ipairs(Spring.GetTeamList()) do
+	local luaAI = Spring.GetTeamLuaAI(teamID)
+	if luaAI and string.find(luaAI, "Scavenger", 1, true) then
+		scavengerTeams[teamID] = true
+	end
+end
+
+-- Selects the normal or scavenger colours for a unit from its owning team.
+local function ApplyTeamPalette(unitData, teamID)
+	local info = unitData.shieldInfo
+	local config = shieldUnitDefs[unitData.unitDefID].config
+	if scavengerTeams[teamID] then
+		info.scavenger = true
+		info.colormap1 = config.scavColormap1
+		info.colormap2 = config.scavColormap2
+	else
+		info.scavenger = false
+		info.colormap1 = config.colormap1
+		info.colormap2 = config.colormap2
+	end
+end
+
 local function AddUnit(unitID, unitDefID)
 	local def = shieldUnitDefs[unitDefID]
 	if not def then
@@ -380,6 +404,8 @@ local function AddUnit(unitID, unitDefID)
 		unitData.hitData = {}
 		unitData.needsUpdate = false
 	end
+
+	ApplyTeamPalette(unitData, Spring.GetUnitTeam(unitID))
 
 	IterableMap.Add(shieldUnits, unitID, unitData)
 
@@ -746,6 +772,15 @@ local function LoadShieldConfig()
 				myShield.colormap1[1][4] = strengthMult * myShield.colormap1[1][4]
 				myShield.colormap1[2][4] = strengthMult * myShield.colormap1[2][4]
 			end
+
+			-- Scavenger-owned shields get the faction's purple tint (chosen per unit
+			-- from the owning team, see ApplyTeamPalette): full-charge body colours
+			-- turn purple (alphas kept), the depleted orange stays so the low-charge
+			-- warning still reads; the shader picks a purple rim too.
+			local c1 = myShield.colormap1
+			local c2 = myShield.colormap2
+			myShield.scavColormap1 = { { 0.80, 0.40, 1.00, c1[1][4] }, { c1[2][1], c1[2][2], c1[2][3], c1[2][4] } }
+			myShield.scavColormap2 = { { 0.60, 0.30, 0.80, c2[1][4] }, { c2[2][1], c2[2][2], c2[2][3], c2[2][4] } }
 
 			-- Effects bitmask is static per unitdef; precompute both outline variants
 			myShield.effectsOutline = EncodeEffects(myShield, true)
@@ -1228,7 +1263,7 @@ local function BuildInstanceData()
 		data[o + 17] = effects
 		data[o + 18] = impactBase
 		data[o + 19] = impactCount
-		data[o + 20] = 0
+		data[o + 20] = info.scavenger and 1 or 0 -- flags: 1 = scavenger palette
 	end
 
 	return haveTerrainOutline, haveUnitsOutline
@@ -1361,11 +1396,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
+local function UnitChangedTeam(unitID, newTeam)
 	local unitData = IterableMap.Get(shieldUnits, unitID)
 	if unitData then
 		unitData.allyTeamID = Spring.GetUnitAllyTeam(unitID)
+		ApplyTeamPalette(unitData, newTeam)
 	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
+	UnitChangedTeam(unitID, newTeam)
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	UnitChangedTeam(unitID, newTeam)
 end
 
 function gadget:PlayerChanged()
