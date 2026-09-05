@@ -24,7 +24,7 @@ flat in vec4 v_translationScale;
 flat in vec4 v_color1;
 flat in vec4 v_color2;
 flat in vec2 v_fadeOverlap;   // shieldFade, overlapScale
-flat in ivec3 v_params;       // effects bitmask, impact base index, impact count
+flat in ivec4 v_params;       // effects bitmask, impact base index, impact count, flags (1 = scavenger palette)
 flat in vec2 v_arcBreath;     // arc burst gate, breathing brightness (per shield, from VS)
 flat in float v_cameraInside; // 1.0 when the camera is inside this shield
 
@@ -466,16 +466,19 @@ void main() {
 		// rim target between cool teal (healthy) and a hot orange (damaged).
 		// This way the rim still announces low-charge urgency.
 		const vec3 RIM_COOL_COLOR = vec3(0.10, 0.95, 1.20); // teal/cyan, healthy
+		const vec3 RIM_SCAV_COLOR = vec3(0.90, 0.30, 1.30); // magenta/purple, healthy scavenger shield
 		const vec3 RIM_WARM_COLOR = vec3(1.40, 0.45, 0.10); // orange/red, damaged
+		bool scavenger = (v_params.w & 1) != 0;
 		float warmness = clamp(color1.r - color1.b * 0.8, 0.0, 1.0);
-		vec3 rimTarget = mix(RIM_COOL_COLOR, RIM_WARM_COLOR, warmness);
+		vec3 rimTarget = mix(scavenger ? RIM_SCAV_COLOR : RIM_COOL_COLOR, RIM_WARM_COLOR, warmness);
 		vec3 rimTint   = mix(color1.rgb * 0.5, rimTarget, pow(rim, 0.6));
 
 		// Chromatic dispersion at the extreme silhouette: bias toward the
 		// rim target's dominant channel so the brightest hot edge keeps its
 		// hue (cool when healthy, warm when damaged) instead of clipping.
 		float chromaMask = pow(rim, 4.0);
-		vec3 chromaDir   = mix(vec3(-1.0, 0.4, 1.0), vec3(1.0, -0.2, -0.8), warmness);
+		vec3 coolChromaDir = scavenger ? vec3(0.5, -0.6, 1.0) : vec3(-1.0, 0.4, 1.0);
+		vec3 chromaDir   = mix(coolChromaDir, vec3(1.0, -0.2, -0.8), warmness);
 		vec3 chromaSplit = chromaDir * CHROMA_SPLIT * chromaMask * idle;
 
 		vec3 rimColor = rimTint * idle * RIM_COLOR_GAIN + chromaSplit;

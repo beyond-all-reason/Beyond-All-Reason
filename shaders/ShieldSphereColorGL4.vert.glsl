@@ -24,7 +24,7 @@ flat out vec4 v_translationScale;
 flat out vec4 v_color1;
 flat out vec4 v_color2;
 flat out vec2 v_fadeOverlap;  // shieldFade, overlapScale
-flat out ivec3 v_params;      // effects bitmask, impact base index, impact count
+flat out ivec4 v_params;      // effects bitmask, impact base index, impact count, flags (1 = scavenger palette)
 flat out vec2 v_arcBreath;    // per-shield idle-field terms: arc burst gate, breathing brightness
 flat out float v_cameraInside; // 1.0 when the camera sits inside this shield sphere
 
@@ -78,7 +78,7 @@ void main() {
 	v_color1 = instColor1;
 	v_color2 = instColor2;
 	v_fadeOverlap = instRotMargin.zw;
-	v_params = ivec3(effects, int(instParams.y + 0.5), int(instParams.z + 0.5));
+	v_params = ivec4(effects, int(instParams.y + 0.5), int(instParams.z + 0.5), int(instParams.w + 0.5));
 
 	// Idle-field terms that are constant across the whole shield: evaluate
 	// them once per vertex instead of once per fragment.
