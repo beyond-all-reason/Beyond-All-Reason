@@ -256,6 +256,14 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+-- Defaults are applied when a unit finishes building; one that ARRIVES finished
+-- never crosses that moment and kept its previous owner's states forever.
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitFinished(unitID, unitDefID, newTeam)
+	end
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
