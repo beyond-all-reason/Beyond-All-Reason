@@ -45,9 +45,6 @@ local MAP_Z = Game.mapSizeZ
 local METAL_MAP_X = math.floor(MAP_X / METAL_SQ)
 local METAL_MAP_Z = math.floor(MAP_Z / METAL_SQ)
 
--- Reference values from map_metal_spot_placer.lua for standard metal spots
-local REF_METAL_BUDGET_PER_UNIT = 0.43 * 9 * 255 -- total raw metal budget per 1.0 extraction rate
-
 local floor = math.floor
 local max = math.max
 local min = math.min

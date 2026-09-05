@@ -61,7 +61,6 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local CreateUnit = Spring.CreateUnit
-local GetUnitTeam = Spring.GetUnitTeam
 local ValidUnitID = Spring.ValidUnitID
 
 local random = math.random

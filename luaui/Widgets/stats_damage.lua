@@ -47,7 +47,7 @@ if chunk then
 	stats = chunk()
 end
 
-function RecieveGameMode(mode)
+function ReceiveGameMode(mode)
 	mode = mode or "unknown"
 
 	stats = stats or {}
@@ -68,7 +68,7 @@ function RecieveGameMode(mode)
 	info._games_per_version[version] = info._games_per_version[version] + 1
 end
 
-function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
+function ReceiveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
 	if not info then
 		return
 	end
@@ -103,11 +103,11 @@ function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_co
 end
 
 function widget:SendStats_GameMode(mode)
-	RecieveGameMode(mode)
+	ReceiveGameMode(mode)
 end
 
 function widget:SendStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
-	RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
+	ReceiveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
 end
 
 function widget:GameOver()

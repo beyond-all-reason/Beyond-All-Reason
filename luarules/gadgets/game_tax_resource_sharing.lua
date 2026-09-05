@@ -77,7 +77,6 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 
 	local taxedAmount = math_min((1 - sharingTax) * amount, maxShare)
 	local totalAmount = taxedAmount / (1 - sharingTax)
-	local transferTax = totalAmount * sharingTax
 
 	spSetTeamResource(receiverTeamId, resourceName, rCur + taxedAmount)
 	local sCur, _, _, _, _, _ = spGetTeamResources(senderTeamId, resourceName)

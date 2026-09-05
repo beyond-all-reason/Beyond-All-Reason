@@ -27,8 +27,6 @@ end
 		5. Best used in singleplayer. Reading raw-filesystem state in synced will desync multiplayer.
 ]]
 
-local STATE_FILE = "LuaUI/Config/restart_state.lua"
-
 -- minimal Lua-table serializer for the types we actually store: nil/number/boolean/string/table
 local function serialize(o, indent)
 	indent = indent or ""

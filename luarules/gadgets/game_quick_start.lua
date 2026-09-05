@@ -124,7 +124,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
-local spTestMoveOrder = Spring.TestMoveOrder
 local random = math.random
 local ceil = math.ceil
 local max = math.max

@@ -22,7 +22,6 @@ local CMD_STOP = CMD.STOP
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 
 local isBombWeapon = {}
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
