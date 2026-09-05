@@ -42,6 +42,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
 			model_author = "ZephyrSkies",
+			reaimtime = 9,
 			techlevel = 3,
 		},
 		featuredefs = {

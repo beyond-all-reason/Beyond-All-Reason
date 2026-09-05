@@ -35,6 +35,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 2,
 			subfolder = "other/scavengers",
 			techlevel = 3,
 		},

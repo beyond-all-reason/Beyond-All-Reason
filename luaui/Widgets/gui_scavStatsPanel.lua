@@ -94,24 +94,10 @@ local rules = {
 	"scavCount",
 }
 
-local waveColor = "\255\255\0\0"
 local textColor = "\255\255\255\255"
-
-local function commaValue(amount)
-	local formatted = amount
-	local k
-	while true do
-		formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
-		if k == 0 then
-			break
-		end
-	end
-	return formatted
-end
 
 local function getScavCounts(type)
 	local total = 0
-	local subtotal
 
 	return total
 end

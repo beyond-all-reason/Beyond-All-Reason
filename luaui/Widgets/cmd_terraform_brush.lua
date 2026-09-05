@@ -28,6 +28,8 @@ local MSG = {
 	NOISE = "$terraform_noise$",
 	ERODE = "$terraform_erode$",
 	FILL_SHAPE = "$terraform_fill$",
+	REMAP = "$terraform_remap$",
+	AUTORAMP = "$terraform_autoramp$",
 }
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
@@ -73,11 +75,9 @@ local pi = math.pi
 local ceil = math.ceil
 local atan2 = math.atan2
 local log = math.log
-local exp = math.exp
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local KEYSYMS_SPACE = 0x20
-local KEYSYMS_R = 0x72
 
 local RING_WIDTH_STEP = 0.05
 local RADIUS_STEP = 8
@@ -88,18 +88,15 @@ local MIN_RADIUS = 8
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local DEFAULT_CURVE = 1.0
-local INTENSITY_STEP = 0.1
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 100.0
 local DEFAULT_INTENSITY = 1.0
 local CIRCLE_SEGMENTS = 64
-local FALLOFF_DISPLAY_HEIGHT = 60
 local ringInnerRatio = 0.6
 local DEFAULT_LENGTH_SCALE = 1.0
 local MIN_LENGTH_SCALE = 0.2
 local MAX_LENGTH_SCALE = 5.0
 local LENGTH_SCALE_STEP = 0.1
-local GRID_SNAP_SIZE = 48 -- default; overridden by extraState.gridSnapSize
 local PRESETS_DIR = "Terraform Brush/Presets/"
 local KEYBINDS_DIR = "Terraform Brush/"
 local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
@@ -111,9 +108,9 @@ local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
 -- ═══════════════════════════════════════════════════════════════════════
 local DEFAULT_KEYBINDS = {
 	-- Terrain modes (no modifier required)
-	mode_level = { key = 108, label = "L", desc = "Smooth / Level mode (toggles)" },
+	mode_level = { key = 108, label = "L", desc = "Smooth / Level / Smudge mode (cycles)" },
 	mode_noise = { key = 110, label = "N", desc = "Noise mode" },
-	mode_ramp = { key = 114, label = "R", desc = "Ramp mode" },
+	mode_ramp = { key = 114, label = "R", desc = "Ramp / Autoramp mode (toggles)" },
 	mode_restore = { key = 101, label = "E", desc = "Restore mode" },
 	-- Shapes (no modifier required)
 	shape_circle = { key = 99, label = "C", desc = "Circle shape" },
@@ -611,6 +608,18 @@ local extraState = {
 	-- Erode: thermal (talus) erosion brush
 	erodeReposeDeg = 33, -- repose angle in degrees (10–60); slopes steeper than this shed material
 	erodePhase = 0, -- tick counter; rotates the gadget's strided cell subset on large brushes
+	-- Autoramp: one-click cliff restyler (RAMP TYPE "Auto")
+	autorampAngleDeg = 60, -- target face slope in degrees (10–85)
+	autorampFalloff = 0.5, -- 0–1: shoulder softness + blend band into untouched terrain
+	autorampEdgeNoise = 0.35, -- 0–1: wavy perturbation of the cliff line
+	autorampErosion = 0.35, -- 0–1: ridged gullies cut down the face
+	autorampTalus = 0.4, -- 0–1: scree buildup banked against the base
+	autorampStart = "average", -- cliff anchor: "extend" | "subtract" | "average"
+	autorampPreview = true, -- WYSIWYG hover preview of the resulting terrain
+	arPrevKey = nil, -- param+position signature of the cached preview
+	arPrevData = nil, -- last compute result from common/autoramp_profile.lua
+	arPrevDirty = false, -- preview display list needs rebuild/deletion
+	arPrevList = nil, -- GL display list of the preview mesh
 }
 
 -- Pen pressure: read tablet pressure from shared file written by tools/pen_pressure_server.py
@@ -711,6 +720,7 @@ extraState.modeCursors = {
 	restore = "cursornormal",
 	noise = "cursornormal",
 	erode = "cursornormal",
+	autoramp = "cursornormal",
 }
 
 -- D5: trigger cursor-anchored parameter feedback HUD (1.5s fade)
@@ -833,6 +843,56 @@ extraState.buildFullMapGrid = function()
 	extraState.gridDirty = false
 end
 
+-- WYSIWYG preview for the Dimensions window's water level slider.
+--
+-- The operation moves the terrain, not the water plane (Lua has no water plane
+-- setter), so what the user has to be shown is the resulting SHORELINE, drawn
+-- in the terrain's current frame: a quad across the map at the height the water
+-- will meet the land. Terrain standing above it occludes it, so the visible
+-- edge of the quad is exactly the coastline the apply will produce.
+--
+-- The depth test is what makes that read as water rather than as an abstract
+-- plane hanging in the sky: without it the quad is a flat sheet over the whole
+-- screen with no hills poking through, which looks like the terrain's new
+-- datum instead of a flooded landscape. Lua draw callins start with
+-- GL_DEPTH_TEST OFF, which is why every draw helper in this file ends by
+-- turning it on rather than starting that way, so it is enabled explicitly
+-- here and left on to match that convention.
+--
+-- The map-edge outline is drawn without depth test, so the level stays
+-- locatable when it sits below the terrain (or below the existing water)
+-- everywhere, which is the case while draining a map.
+extraState.drawWaterLevelPreview = function()
+	local y = extraState.waterPreviewLevel
+	if not y then
+		return
+	end
+	local msx, msz = Game.mapSizeX, Game.mapSizeZ
+
+	gl.DepthTest(true)
+	glColor(0.12, 0.45, 0.72, 0.55)
+	glBeginEnd(GL.QUADS, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	gl.DepthTest(false)
+	glLineWidth(2)
+	glColor(0.50, 0.92, 1.0, 0.85)
+	glBeginEnd(GL.LINE_LOOP, function()
+		glVertex(0, y, 0)
+		glVertex(msx, y, 0)
+		glVertex(msx, y, msz)
+		glVertex(0, y, msz)
+	end)
+
+	glLineWidth(1)
+	glColor(1, 1, 1, 1)
+	gl.DepthTest(true)
+end
+
 local lockedWorldX = nil
 local lockedWorldZ = nil
 local lockedGroundY = nil
@@ -850,7 +910,6 @@ local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
-local savedDirectionBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
 
@@ -872,6 +931,19 @@ local tessellationDirtyFrames = 0
 
 local function markTessellationDirty()
 	tessellationDirtyFrames = TESS_DIRTY_FRAMES
+end
+
+-- Client-side follow-up every whole-map terrain change needs: the mesh
+-- tessellation and shadows are stale, the tileset shader's height anchor still
+-- points at the old extremes, and the custom heightmap export range was seeded
+-- from them. Same set a full heightmap import arms.
+extraState._noteBulkTerrainChange = function()
+	tessellationDirtyFrames = 60
+	extraState._importNeedsShadowRefresh = 60
+	if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+		WG.TilesetTerrain.refreshHeightRef()
+	end
+	extraState._exportReseedFrames = 90
 end
 
 -- Terrain-change signal for draw-path caches: the engine fires this for ANY heightmap
@@ -897,15 +969,74 @@ local function closeBrushStroke()
 	SendLuaRulesMsg(MSG.STROKE_END)
 end
 
-local function getWorldMousePosition()
+-- Intersect the raw mouse ray with the horizontal plane y = planeY, without
+-- requiring the ray to hit terrain (TraceScreenRay only reports hits inside
+-- map bounds, so it goes blind the moment the cursor crosses a map edge).
+-- Returns worldX, worldZ, or nil when the ray can't reach the plane (sky).
+-- GetPixelDir wants raw window coordinates while GetMouseState reports
+-- viewport bottom-origin ones, hence the conversion (TraceScreenRay does the
+-- same conversion internally in LuaUnsyncedRead.cpp; GetPixelDir does not).
+extraState.mouseRayOnPlane = function(mx, my, planeY)
+	local _, viewSizeY, viewPosX = Spring.GetViewGeometry()
+	local dirX, dirY, dirZ = Spring.GetPixelDir(mx + (viewPosX or 0), viewSizeY - 1 - my)
+	if not dirX or abs(dirY) < 0.0001 then
+		return nil, nil
+	end
+	local camX, camY, camZ = GetCameraPosition()
+	local t = (planeY - camY) / dirY
+	if t <= 0 then
+		return nil, nil
+	end
+	return camX + dirX * t, camZ + dirZ * t
+end
+
+-- Shared mouse→world resolver, extended past the map edge. When the ray
+-- misses the terrain (TraceScreenRay only reports hits inside map bounds),
+-- the ground plane is extended outward so the brush keeps following the
+-- mouse. Strokes stay meaningful while the footprint still touches the map
+-- (within one `radius` of the edge; apply paths clamp away off-map cells) --
+-- needed to comfortably sculpt/paint right up against the border. Past that
+-- the position is still returned but with a fade factor dropping to zero one
+-- fade span later, so callers can dim their cursor with distance.
+-- Returns wx, wz, fade (fade = 1 anywhere the footprint touches the map).
+-- Also exported through WG.TerraformBrush for the sub-tool painters.
+extraState.worldMouseExtended = function(radius)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
-
 	if pos then
-		return pos[1], pos[3]
+		return pos[1], pos[3], 1
 	end
+	local wx, wz = extraState.mouseRayOnPlane(mx, my, 0)
+	if not wx then
+		return nil, nil, nil
+	end
+	-- Re-intersect at the height of the nearest in-map point so sloped/raised
+	-- borders land close to where the cursor visually points (GetGroundHeight
+	-- clamps out-of-map coords to the edge).
+	local edgeY = GetGroundHeight(wx, wz)
+	if edgeY and edgeY ~= 0 then
+		local ex, ez = extraState.mouseRayOnPlane(mx, my, edgeY)
+		if ex then
+			wx, wz = ex, ez
+		end
+	end
+	local dx = max(0, -wx, wx - Game.mapSizeX)
+	local dz = max(0, -wz, wz - Game.mapSizeZ)
+	local dist = (dx * dx + dz * dz) ^ 0.5
+	local band = radius or 0
+	local fadeSpan = max(band, 100)
+	if dist >= band + fadeSpan then
+		return nil, nil, nil
+	end
+	return wx, wz, 1 - max(0, dist - band) / fadeSpan
+end
 
-	return nil, nil
+local function getWorldMousePosition()
+	local wx, wz, fade = extraState.worldMouseExtended(activeRadius)
+	if wx then
+		extraState.brushEdgeFade = fade
+	end
+	return wx, wz
 end
 
 -- Project the mouse ray onto a fixed horizontal plane at planeY.
@@ -914,8 +1045,20 @@ local function getWorldMousePositionOnPlane(planeY)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if not pos then
-		return nil, nil
+		-- Cursor crossed the map edge mid-stroke: keep the drag alive by
+		-- intersecting the raw mouse ray with the locked plane, clamped into
+		-- the one-brush-radius overhang band so the stroke doesn't cut out.
+		local wx, wz = extraState.mouseRayOnPlane(mx, my, planeY)
+		if not wx then
+			return nil, nil
+		end
+		local band = activeRadius
+		wx = max(-band, min(Game.mapSizeX + band, wx))
+		wz = max(-band, min(Game.mapSizeZ + band, wz))
+		extraState.brushEdgeFade = 1 -- pinned at the paintable band while painting
+		return wx, wz
 	end
+	extraState.brushEdgeFade = 1
 
 	local camX, camY, camZ = GetCameraPosition()
 	local hitX, hitY, hitZ = pos[1], pos[2], pos[3]
@@ -1058,7 +1201,12 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 	-- per-cell blur target instead. "smooth" rides the same wire slot as a
 	-- non-numeric sentinel (tonumber() on it is nil, same as the "no target"
 	-- case), so recordLinkedStroke/replay need no changes to carry it.
+	-- Smudge rides the slot the same way, with a stroke-start digit appended:
+	-- the gadget's carried height buffer must re-grab on a fresh drag, and only
+	-- the widget knows where strokes begin (lastAppliedX is nil until the first
+	-- dab of a drag has been sent).
 	local flattenStr = (activeMode == "smooth") and "smooth"
+		or (activeMode == "smudge") and ("smudge" .. (extraState.lastAppliedX == nil and "1" or "0"))
 		or (flattenHeight and string.format("%.0f", flattenHeight) or "nil")
 	local penPressureFactor = 1
 	if extraState.penPressureEnabled and extraState.penPressureModulateIntensity and not extraState.penOverUI then
@@ -1190,9 +1338,11 @@ local function activate(direction, mode, args)
 		lower = "LOWER",
 		level = "LEVEL",
 		smooth = "SMOOTH",
+		smudge = "SMUDGE",
 		ramp = "RAMP",
 		restore = "RESTORE",
 		erode = "ERODE",
+		autoramp = "AUTORAMP",
 	}
 	local modeLabel = modeLabels[mode] or mode
 	Echo(
@@ -1242,6 +1392,15 @@ local function deactivateTerraform()
 	activeDirection = nil
 	activeMode = nil
 	extraState.heightSamplingMode = nil -- cancel pending height sampling
+	-- Drop the autoramp preview: DrawWorld stops running for this widget, so
+	-- delete the display list here instead of via the dirty flag.
+	extraState.arPrevData = nil
+	extraState.arPrevKey = nil
+	extraState.arPrevDirty = false
+	if extraState.arPrevList then
+		glDeleteList(extraState.arPrevList)
+		extraState.arPrevList = nil
+	end
 	return true
 end
 
@@ -1259,8 +1418,10 @@ extraState.MODE_PARAM_GROUPS = {
 	restore = "sculpt",
 	noise = "sculpt",
 	erode = "sculpt",
+	autoramp = "sculpt",
 	level = "modify",
 	smooth = "modify",
+	smudge = "modify",
 }
 extraState.paramGroup = "sculpt"
 extraState.modeParamSnapshots = {
@@ -1296,12 +1457,17 @@ local function setMode(mode)
 	elseif mode == "lower" then
 		activeDirection = -1
 		activeMode = "lower"
-	elseif mode == "level" or mode == "smooth" then
+	elseif mode == "level" or mode == "smooth" or mode == "smudge" then
 		activeDirection = 0
 		activeMode = mode
 		if activeShape == "ring" then
 			activeShape = "circle"
 		end
+	elseif mode == "autoramp" then
+		-- One-click region op: the gadget footprint is always a circle
+		activeDirection = 0
+		activeMode = "autoramp"
+		activeShape = "circle"
 	elseif mode == "ramp" then
 		activeDirection = 0
 		activeMode = "ramp"
@@ -1333,7 +1499,10 @@ local function setShape(shape)
 		if activeMode == "ramp" and shape ~= "circle" and shape ~= "square" then
 			return
 		end
-		if (activeMode == "level" or activeMode == "smooth") and shape == "ring" then
+		if (activeMode == "level" or activeMode == "smooth" or activeMode == "smudge") and shape == "ring" then
+			return
+		end
+		if activeMode == "autoramp" and shape ~= "circle" then
 			return
 		end
 		activeShape = shape
@@ -1835,6 +2004,11 @@ extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lu
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
 extraState._mapgen = VFS.Include("luaui/Widgets/cmd_terraform_brush_mapgen.lua")
 
+-- Autoramp terrain math shared with the synced gadget: the hover preview and
+-- the actual apply run the same pure seeded computation, so the preview IS the
+-- result. (Attached to extraState — 200-local limit.)
+extraState._autorampProfile = VFS.Include("common/autoramp_profile.lua")
+
 -- ============ New Map: post-reload procedural terrain apply ============
 -- The New Map dialog writes a recipe file and reloads the engine onto a flat
 -- blank map (the engine can only make flat maps). On the new session we read the
@@ -1937,6 +2111,10 @@ extraState._newmapTryApplyDNTS = function()
 	local distr = mapOpts.blank_map_splatdistr
 	if type(distr) == "string" and distr ~= "" then
 		Spring.SetMapShadingTexture("$ssmf_splat_distr", registerTexName(distr) or distr)
+		-- the tileset far cache / clipmap bake the splat channels: whole refill
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshSurface then
+			WG.TilesetTerrain.refreshSurface()
+		end
 	end
 
 	local detail = mapOpts.blank_map_splatdetailtex
@@ -2164,6 +2342,13 @@ local function getState()
 		noiseLacunarity = noiseLacunarity,
 		noiseSeed = noiseSeed,
 		erodeReposeDeg = extraState.erodeReposeDeg,
+		autorampAngleDeg = extraState.autorampAngleDeg,
+		autorampFalloff = extraState.autorampFalloff,
+		autorampEdgeNoise = extraState.autorampEdgeNoise,
+		autorampErosion = extraState.autorampErosion,
+		autorampTalus = extraState.autorampTalus,
+		autorampStart = extraState.autorampStart,
+		autorampPreview = extraState.autorampPreview,
 		ringInnerRatio = ringInnerRatio,
 		importProgress = importHeightRows and importRowIndex or nil,
 		importTotal = importHeightRows and #importHeightRows or nil,
@@ -2837,6 +3022,12 @@ function widget:Initialize()
 	widgetHandler:AddAction("terraformsmooth", function(_, _, args)
 		return activate(0, "smooth", args)
 	end, nil, "t")
+	widgetHandler:AddAction("terraformsmudge", function(_, _, args)
+		return activate(0, "smudge", args)
+	end, nil, "t")
+	widgetHandler:AddAction("terraformautoramp", function(_, _, args)
+		return activate(0, "autoramp", args)
+	end, nil, "t")
 	widgetHandler:AddAction("terraformerode", function(_, _, args)
 		return activate(0, "erode", args)
 	end, nil, "t")
@@ -2874,6 +3065,11 @@ function widget:Initialize()
 		end,
 		setMode = setMode,
 		setShape = setShape,
+		-- Shared edge-extended cursor for the sub-tool painters (splat, diffuse,
+		-- grass, features, ...): returns wx, wz, fade for the given brush radius.
+		getWorldPositionExtended = function(radius)
+			return extraState.worldMouseExtended(radius)
+		end,
 		rotate = rotateBy,
 		setRotation = setRotation,
 		setCurve = setCurve,
@@ -3071,6 +3267,29 @@ function widget:Initialize()
 		end,
 		setErodeReposeDeg = function(value)
 			extraState.erodeReposeDeg = max(10, min(60, tonumber(value) or 33))
+		end,
+		setAutorampAngleDeg = function(value)
+			extraState.autorampAngleDeg = max(10, min(85, tonumber(value) or 60))
+		end,
+		setAutorampFalloff = function(value)
+			extraState.autorampFalloff = max(0, min(1, tonumber(value) or 0.5))
+		end,
+		setAutorampEdgeNoise = function(value)
+			extraState.autorampEdgeNoise = max(0, min(1, tonumber(value) or 0.35))
+		end,
+		setAutorampErosion = function(value)
+			extraState.autorampErosion = max(0, min(1, tonumber(value) or 0.35))
+		end,
+		setAutorampTalus = function(value)
+			extraState.autorampTalus = max(0, min(1, tonumber(value) or 0.4))
+		end,
+		setAutorampStart = function(mode)
+			if mode == "extend" or mode == "subtract" or mode == "average" then
+				extraState.autorampStart = mode
+			end
+		end,
+		setAutorampPreview = function(value)
+			extraState.autorampPreview = value and true or false
 		end,
 		setRingInnerRatio = setRingInnerRatio,
 		-- Pen pressure API
@@ -3276,6 +3495,67 @@ function widget:Initialize()
 		fullRestore = function()
 			SendLuaRulesMsg(MSG.FULL_RESTORE)
 		end,
+		-- Whole-map height range edit driven by the Dimensions window.
+		-- mode "scale" stretches the relief onto the new range, "clamp" only
+		-- cuts what falls outside it. Undoable like any other stroke.
+		remapHeights = function(newMin, newMax, mode)
+			newMin, newMax = tonumber(newMin), tonumber(newMax)
+			if not newMin or not newMax or newMax - newMin < 1 then
+				return false
+			end
+			SendLuaRulesMsg(
+				string.format("%s%.3f:%.3f:%s", MSG.REMAP, newMin, newMax, mode == "clamp" and "clamp" or "scale")
+			)
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- Dimensions window water level slider: pass the world height the water
+		-- should end up at to draw the preview plane, or nil to clear it.
+		setWaterLevelPreview = function(level)
+			extraState.waterPreviewLevel = tonumber(level)
+		end,
+		-- Move the shoreline to `level` (a world height in the terrain's current
+		-- coordinates). The engine has no water plane setter, so this is done the
+		-- way /luarules waterlevel does it: the whole terrain slides by the
+		-- difference, leaving the water plane where it is.
+		applyWaterLevel = function(level)
+			level = tonumber(level)
+			if not level then
+				return false
+			end
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local delta = level - plane
+			if math.abs(delta) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(delta))
+			-- Track the running total so the panel's RESET can put the map back.
+			-- Nothing else can tell us: the water level command overwrites its own
+			-- stored value instead of accumulating, and it moves the ORIGINAL
+			-- heightmap along with the live one, so the map's load-time datum is
+			-- not recoverable from the engine afterwards.
+			extraState.waterLevelShift = (extraState.waterLevelShift or 0) + delta
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return true
+		end,
+		-- How far this session has moved the terrain under the water plane.
+		getWaterLevelShift = function()
+			return extraState.waterLevelShift or 0
+		end,
+		-- Put the water back where the map had it. Returns the shift that was
+		-- undone, or false when the map is already at its own water level.
+		resetWaterLevel = function()
+			local shift = extraState.waterLevelShift or 0
+			if math.abs(shift) < 0.05 then
+				return false
+			end
+			Spring.SendCommands("luarules waterlevel " .. tostring(-shift))
+			extraState.waterLevelShift = 0
+			extraState.waterPreviewLevel = nil
+			extraState._noteBulkTerrainChange()
+			return shift
+		end,
 		-- Keybind configuration API
 		getKeybinds = function()
 			return deepCopyKeybinds(activeKeybinds)
@@ -3343,6 +3623,10 @@ function widget:Shutdown()
 		glDeleteList(extraState.protractorDL)
 		extraState.protractorDL = nil
 	end
+	if extraState.arPrevList then
+		glDeleteList(extraState.arPrevList)
+		extraState.arPrevList = nil
+	end
 	-- Release text ownership if measure mode was active when widget unloaded
 	if extraState.measureActive then
 		widgetHandler:DisownText()
@@ -3352,6 +3636,8 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("terraformdown")
 	widgetHandler:RemoveAction("terraformlevel")
 	widgetHandler:RemoveAction("terraformsmooth")
+	widgetHandler:RemoveAction("terraformsmudge")
+	widgetHandler:RemoveAction("terraformautoramp")
 	widgetHandler:RemoveAction("terraformerode")
 	widgetHandler:RemoveAction("terraformramp")
 	widgetHandler:RemoveAction("terraformrestore")
@@ -3705,6 +3991,216 @@ extraState.attachRampChain = function(pts, radius, clay)
 	extraState.measureLines[#extraState.measureLines + 1] = chain
 end
 
+-- ── Autoramp WYSIWYG preview ─────────────────────────────────────────────────
+-- Recomputes the shared profile math (common/autoramp_profile.lua) on a coarse
+-- grid under the cursor while AUTORAMP is armed, so the artist sees the exact
+-- resulting terrain before clicking. Runs every frame — refresh latency beats
+-- compute cost here (explicit call, 2026-08-23) — but the signature key (click
+-- cell + every knob + terrainVersion) makes identical frames free, so it only
+-- pays while the cursor or a knob actually moves. The draw side rebuilds its
+-- display list only when the data changed.
+-- (Attached to extraState: main chunk is at the 200-local limit.)
+extraState.updateAutorampPreview = function()
+	local es = extraState
+	if activeMode ~= "autoramp" or not es.autorampPreview then
+		if es.arPrevData or es.arPrevList then
+			es.arPrevData = nil
+			es.arPrevKey = nil
+			es.arPrevDirty = true
+		end
+		return
+	end
+	local wx, wz = getWorldMousePosition()
+	if not wx then
+		if es.arPrevData then
+			es.arPrevData = nil
+			es.arPrevKey = nil
+			es.arPrevDirty = true
+		end
+		return
+	end
+	local cwx, cwz = floor(wx), floor(wz)
+	-- Coarse preview grid: ~80 cells across the brush regardless of radius
+	local cell = floor(activeRadius / 40)
+	if cell < 8 then
+		cell = 8
+	elseif cell > 32 then
+		cell = 32
+	end
+	local key = cwx
+		.. ":"
+		.. cwz
+		.. ":"
+		.. activeRadius
+		.. ":"
+		.. cell
+		.. ":"
+		.. es.autorampAngleDeg
+		.. ":"
+		.. es.autorampFalloff
+		.. ":"
+		.. es.autorampEdgeNoise
+		.. ":"
+		.. es.autorampErosion
+		.. ":"
+		.. es.autorampTalus
+		.. ":"
+		.. es.autorampStart
+		.. ":"
+		.. es.terrainVersion
+	if key == es.arPrevKey then
+		return
+	end
+	es.arPrevKey = key
+	-- Same seed formula as the click in MousePress: preview IS the click result.
+	-- pcall: a compute error must degrade to "no preview", never kill the widget.
+	local ok, res = pcall(es._autorampProfile.compute, {
+		centerX = wx,
+		centerZ = wz,
+		radius = activeRadius,
+		angleDeg = es.autorampAngleDeg,
+		falloffK = es.autorampFalloff,
+		edgeNoiseK = es.autorampEdgeNoise,
+		erosionK = es.autorampErosion,
+		talusK = es.autorampTalus,
+		seed = (cwx * 73 + cwz * 179) % 10000,
+		startMode = es.autorampStart,
+		cellSize = cell,
+		mapSizeX = Game.mapSizeX,
+		mapSizeZ = Game.mapSizeZ,
+		getHeight = GetGroundHeight,
+	})
+	es.arPrevData = ok and res or nil
+	es.arPrevDirty = true
+end
+
+-- Draws the preview mesh: green where material is added (fill/talus), orange
+-- where it is removed (cut), alpha scaled by how much the height changes.
+-- Handles its own display-list lifecycle so it also cleans up after the data
+-- is cleared (mode left, preview toggled off, cursor off-map).
+-- One autoramp application at a world position: builds the param tail from the
+-- live knobs and sends one message per symmetry copy (off-map copies dropped).
+-- Shared by the MousePress dab and the swipe re-fires in Update. Returns
+-- whether anything was sent.
+extraState.sendAutorampAt = function(worldX, worldZ)
+	local es = extraState
+	local paramTail = " "
+		.. activeRadius
+		.. " "
+		.. floor(es.autorampAngleDeg)
+		.. " "
+		.. string.format("%.2f", es.autorampFalloff)
+		.. " "
+		.. string.format("%.2f", es.autorampEdgeNoise)
+		.. " "
+		.. string.format("%.2f", es.autorampErosion)
+		.. " "
+		.. string.format("%.2f", es.autorampTalus)
+	local positions = es.getSymmetricPositions(worldX, worldZ, 0)
+	local sent = false
+	for _, p in ipairs(positions) do
+		if p.x >= 0 and p.x <= Game.mapSizeX and p.z >= 0 and p.z <= Game.mapSizeZ then
+			-- Seed from the target cell: deterministic per spot, so a replayed
+			-- or re-done application reproduces the same cliff.
+			local seed = (floor(p.x) * 73 + floor(p.z) * 179) % 10000
+			SendLuaRulesMsg(
+				MSG.AUTORAMP .. floor(p.x) .. " " .. floor(p.z) .. paramTail .. " " .. seed .. " " .. es.autorampStart
+			)
+			sent = true
+		end
+	end
+	return sent
+end
+
+function extraState.drawAutorampPreview(suppressed)
+	local es = extraState
+	if es.arPrevDirty then
+		es.arPrevDirty = false
+		if es.arPrevList then
+			glDeleteList(es.arPrevList)
+			es.arPrevList = nil
+		end
+		local res = es.arPrevData
+		if res then
+			es.arPrevList = glCreateList(function()
+				local n = res.n
+				local ox, oz, cs = res.ox, res.oz, res.cellSize
+				local orig, out = res.orig, res.newH
+				local span = res.hTop - res.hBot
+				if span < 1 then
+					span = 1
+				end
+				local alphaScale = 1
+				local function vtx(x, z, i)
+					local delta = out[i] - orig[i]
+					local a = 0.1 + abs(delta) / span * 0.5
+					if a > 0.42 then
+						a = 0.42
+					end
+					a = a * alphaScale
+					if delta >= 0 then
+						glColor(0.25, 0.95, 0.6, a) -- fill: material added
+					else
+						glColor(1.0, 0.45, 0.2, a) -- cut: material removed
+					end
+					glVertex(x, out[i] + 1.0, z)
+				end
+				local function meshQuads()
+					for iz = 0, n - 2 do
+						local rowBase = iz * n
+						local z0 = (oz + iz) * cs
+						local z1 = z0 + cs
+						for ix = 0, n - 2 do
+							local i00 = rowBase + ix + 1
+							local i10 = i00 + 1
+							local i01 = i00 + n
+							local i11 = i01 + 1
+							if orig[i00] and orig[i10] and orig[i01] and orig[i11] then
+								local m = abs(out[i00] - orig[i00])
+								local m2 = abs(out[i10] - orig[i10])
+								if m2 > m then
+									m = m2
+								end
+								m2 = abs(out[i01] - orig[i01])
+								if m2 > m then
+									m = m2
+								end
+								m2 = abs(out[i11] - orig[i11])
+								if m2 > m then
+									m = m2
+								end
+								if m > 0.3 then
+									local x0 = (ox + ix) * cs
+									local x1 = x0 + cs
+									vtx(x0, z0, i00)
+									vtx(x1, z0, i10)
+									vtx(x1, z1, i11)
+									vtx(x0, z1, i01)
+								end
+							end
+						end
+					end
+				end
+				-- Two passes: a faint ghost pass with depth testing off so CUT
+				-- regions (the new surface lies under the current ground, which
+				-- would occlude it) stay readable through the terrain, then a
+				-- full-strength depth-tested pass for everything actually in view.
+				gl.DepthTest(false)
+				alphaScale = 0.4
+				glBeginEnd(GL.QUADS, meshQuads)
+				gl.DepthTest(true)
+				alphaScale = 1
+				glBeginEnd(GL.QUADS, meshQuads)
+				gl.DepthTest(false)
+				glColor(1, 1, 1, 1)
+			end)
+		end
+	end
+	if es.arPrevList and not suppressed then
+		glCallList(es.arPrevList)
+	end
+end
+
 function widget:Update(dt)
 	-- Pen pressure: poll tablet pressure from shared file
 	extraState.readPenPressure(dt)
@@ -3746,6 +4242,11 @@ function widget:Update(dt)
 	if not activeMode then
 		return
 	end
+
+	-- Autoramp WYSIWYG: refresh the hover preview at frame rate, above the
+	-- 20 Hz brush gate — hover latency matters more than the compute cost, and
+	-- the signature key inside makes no-change frames free.
+	extraState.updateAutorampPreview()
 
 	updateTimer = updateTimer + dt
 	if updateTimer < UPDATE_INTERVAL then
@@ -3820,6 +4321,8 @@ function widget:Update(dt)
 		extraState.erodePhase = 0
 		rampEndX = nil
 		rampEndZ = nil
+		extraState.autorampLastX = nil
+		extraState.autorampLastZ = nil
 		if extraState.splineCacheList then
 			glDeleteList(extraState.splineCacheList)
 			extraState.splineCacheList = nil
@@ -4017,6 +4520,37 @@ function widget:Update(dt)
 		end
 		extraState.erodePhase = extraState.erodePhase + 1
 		afterBrushTick()
+	elseif activeMode == "autoramp" then
+		-- Swipe: re-fire the one-click region op along the drag path once the
+		-- cursor has moved a brush-radius fraction from the last application,
+		-- so successive cliff rebuilds knit together without hammering the
+		-- gadget every tick. A stationary hold fires nothing.
+		if mx ~= lastScreenX or my ~= lastScreenY then
+			lastScreenX = mx
+			lastScreenY = my
+			local worldX, worldZ = getWorldMousePosition()
+			if worldX and worldZ then
+				lockedWorldX = worldX
+				lockedWorldZ = worldZ
+				local es = extraState
+				local lastX, lastZ = es.autorampLastX, es.autorampLastZ
+				if not (lastX and lastZ) then
+					es.autorampLastX, es.autorampLastZ = worldX, worldZ
+				end
+				lastX = lastX or worldX
+				lastZ = lastZ or worldZ
+				local adx = worldX - lastX
+				local adz = worldZ - lastZ
+				local spacing = max(16, activeRadius * 0.5)
+				if adx * adx + adz * adz >= spacing * spacing then
+					if es.sendAutorampAt(worldX, worldZ) then
+						afterBrushTick()
+					end
+					es.autorampLastX = worldX
+					es.autorampLastZ = worldZ
+				end
+			end
+		end
 	elseif activeMode == "noise" then
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
@@ -4089,8 +4623,9 @@ function widget:Update(dt)
 		-- Level mode (direction=0) passes the flatten target height (first-click,
 		-- pinned). Smooth mode needs none: the gadget computes a local per-cell
 		-- blur target itself (see the "smooth" sentinel in sendTerraformMessage).
+		-- Smudge likewise: its target is the gadget's carried height buffer.
 		local fh = nil
-		if activeDirection == 0 and activeMode ~= "smooth" then
+		if activeDirection == 0 and activeMode ~= "smooth" and activeMode ~= "smudge" then
 			fh = lockedGroundY
 		end
 
@@ -4099,26 +4634,36 @@ function widget:Update(dt)
 		-- Skipped in stamp mode (which is discrete stamps by design).
 		local prevX, prevZ = extraState.lastAppliedX, extraState.lastAppliedZ
 		local steps = 1
+		local endX, endZ = lockedWorldX, lockedWorldZ
 		if prevX and not isStampMode() then
-			local ddx = lockedWorldX - prevX
-			local ddz = lockedWorldZ - prevZ
+			local ddx = endX - prevX
+			local ddz = endZ - prevZ
 			local dist = (ddx * ddx + ddz * ddz) ^ 0.5
 			-- Denser overlap (~15% of radius) eliminates visible banding at
-			-- slow-to-mid drag speeds; fast drags are capped by maxSteps.
+			-- slow-to-mid drag speeds.
 			local stepSize = max(4, activeRadius * 0.15)
 			steps = floor(dist / stepSize + 0.5)
 			if steps < 1 then
 				steps = 1
 			end
+			-- The step cap must never widen the spacing: bridging the whole
+			-- distance with capped steps spread the stamps out past the brush
+			-- radius on fast drags, which smudge renders as terrain ribs (and
+			-- past 2R every dab re-grabs instead of painting). Saturate the
+			-- travel instead - the stroke lags the cursor and the remainder is
+			-- bridged on the following ticks, so the path stays gapless.
 			if steps > 48 then
 				steps = 48
+				local travel = steps * stepSize
+				endX = prevX + ddx / dist * travel
+				endZ = prevZ + ddz / dist * travel
 			end
 		end
 		if steps <= 1 or not prevX then
 			sendTerraformMessage(
 				activeDirection,
-				lockedWorldX,
-				lockedWorldZ,
+				endX,
+				endZ,
 				activeRadius,
 				activeShape,
 				activeRotation,
@@ -4135,8 +4680,8 @@ function widget:Update(dt)
 			end
 			for i = 1, steps do
 				local t = i / steps
-				local ix = prevX + (lockedWorldX - prevX) * t
-				local iz = prevZ + (lockedWorldZ - prevZ) * t
+				local ix = prevX + (endX - prevX) * t
+				local iz = prevZ + (endZ - prevZ) * t
 				sendTerraformMessage(
 					activeDirection,
 					ix,
@@ -4153,8 +4698,10 @@ function widget:Update(dt)
 		-- Per-tick MERGE_END: each tick = one undo entry, all tagged with same stroke ID.
 		-- UNDO_STROKE pops entire stroke atomically. closeBrushStroke() on mouse release.
 		afterBrushTick()
-		extraState.lastAppliedX = lockedWorldX
-		extraState.lastAppliedZ = lockedWorldZ
+		-- endX/endZ, not lockedWorld: on a saturated tick the stroke has only
+		-- reached the lag point, and the next tick must continue from there.
+		extraState.lastAppliedX = endX
+		extraState.lastAppliedZ = endZ
 	end
 
 	-- Seismic sound feedback: play periodic impact sounds while actively sculpting
@@ -4198,6 +4745,8 @@ local function getModeRGB()
 		return 0.9, 0.7, 0.2
 	elseif activeMode == "erode" then
 		return 0.72, 0.5, 0.25
+	elseif activeMode == "autoramp" then
+		return 0.2, 0.75, 0.65
 	else
 		return 0.3, 0.5, 0.9 -- level
 	end
@@ -4217,6 +4766,8 @@ local function getModeRGBBright()
 		return 1.0, 0.88, 0.4
 	elseif activeMode == "erode" then
 		return 0.92, 0.7, 0.42
+	elseif activeMode == "autoramp" then
+		return 0.4, 1.0, 0.88
 	else
 		return 0.5, 0.78, 1.0 -- level
 	end
@@ -4354,6 +4905,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 		local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 		local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 		local clSt = WG.CloneTool and WG.CloneTool.getState()
+		local sfSt = WG.SurfacePainter and WG.SurfacePainter.getState()
 		if
 			not (
 				(mbSt and mbSt.active)
@@ -4365,6 +4917,7 @@ extraState.drawSymmetryOverlay = function(worldX, worldZ, groundY)
 				or (lpSt and lpSt.active)
 				or (stSt and stSt.active)
 				or (clSt and clSt.active)
+				or (sfSt and sfSt.active)
 			)
 		then
 			return
@@ -7141,6 +7694,106 @@ end
 extraState.doUnmouseScreenFx = function() end -- intentionally empty
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- ── Edge fade ────────────────────────────────────────────────────────────────
+-- Past the paintable band (map + one brush radius) the brush keeps following
+-- the mouse but fades with distance, hitting zero one fade span out; opacity
+-- returns to full where the footprint touches the map again. brushFadeAlpha
+-- (0..1) mirrors brushEdgeFade, which the position helpers compute per call.
+
+-- Animated glow outline, shared by the normal draw path and the fade path.
+-- alphaMul scales the whole glow (1 = full strength).
+extraState.drawBrushGlow = function(worldX, worldZ, groundY, alphaMul)
+	-- Map intensity (0.1-100) to a 0-1 strength via log scale
+	local intFrac = (math.log(activeIntensity + 1) / math.log(101))
+	if intFrac < 0 then
+		intFrac = 0
+	elseif intFrac > 1 then
+		intFrac = 1
+	end
+	-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
+	-- Use a continuous timer so phase stays smooth when intensity changes.
+	if not extraState.brushPulseTimer then
+		extraState.brushPulseTimer = Spring.GetTimer()
+	end
+	local elapsed = Spring.DiffTimers(Spring.GetTimer(), extraState.brushPulseTimer)
+	local freqHz = 0.45 + 0.65 * intFrac
+	local pulse = sin(elapsed * freqHz * 2 * pi) -- -1..1
+	local pulse01 = 0.5 + 0.5 * pulse -- 0..1
+
+	local baseAlpha = 0.05 + 0.22 * intFrac
+	local swingAlpha = 0.04 + 0.20 * intFrac
+	local pulseAlpha = (baseAlpha + swingAlpha * pulse) * alphaMul
+
+	-- Thickness also breathes slightly, more noticeably at low intensity where
+	-- the slow pulse is the primary visual cue.
+	local halo = 14 + 3 * intFrac + (2.5 - 1.2 * intFrac) * pulse01
+	local core = 6 + 2 * intFrac + (1.8 - 0.8 * intFrac) * pulse01
+
+	local mr, mg, mb = getModeRGB()
+	-- Outer soft halo
+	glLineWidth(halo)
+	glColor(mr, mg, mb, pulseAlpha * 0.7)
+	extraState.drawCurrentOutline(worldX, worldZ, groundY)
+	-- Inner sharper halo
+	glLineWidth(core)
+	glColor(mr, mg, mb, pulseAlpha * 1.6)
+	extraState.drawCurrentOutline(worldX, worldZ, groundY)
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+-- Lightweight faded brush at opacity `a`: footprint fill + outline + glow.
+-- Used while the cursor is in the fade zone beyond the paintable band, because
+-- the normal path's display list bakes its colors and can't be dimmed after
+-- the fact. Heavy extras (height prisms, falloff curtains, colormap) are
+-- skipped -- fill + ring + glow carry the look.
+extraState.drawBrushFaded = function(wx, wz, gy, a)
+	if not activeMode then
+		return
+	end
+	if activeMode == "ramp" then
+		glColor(0.9, 0.7, 0.2, 0.7 * a)
+		glLineWidth(3)
+		glDrawGroundCircle(wx, gy, wz, activeRadius, CIRCLE_SEGMENTS)
+		glColor(1, 1, 1, 1)
+		glLineWidth(1)
+		return
+	end
+	local mr, mg, mb = getModeRGB()
+	local br, bg, bb = getModeRGBBright()
+	local intensityT = log(activeIntensity / MIN_INTENSITY) / log(MAX_INTENSITY / MIN_INTENSITY)
+	intensityT = max(0, min(1, intensityT))
+	local fillAlpha = min(0.6, 0.08 + intensityT * 0.45) * a
+	if activeMode == "raise" or activeMode == "lower" or activeMode == "level" then
+		local cr = mr * 0.55 + br * 0.45
+		local cg = mg * 0.55 + bg * 0.45
+		local cb = mb * 0.55 + bb * 0.45
+		extraState.drawShapeGroundFill(
+			wx,
+			wz,
+			activeRadius,
+			activeShape,
+			activeRotation,
+			gy,
+			activeLengthScale,
+			activeCurve,
+			cr,
+			cg,
+			cb,
+			fillAlpha
+		)
+	else
+		glColor(mr, mg, mb, fillAlpha)
+		extraState.drawShapeGroundFill(wx, wz, activeRadius, activeShape, activeRotation, gy, activeLengthScale)
+	end
+	glColor(mr, mg, mb, (0.4 + intensityT * 0.55) * a)
+	glLineWidth(3.5)
+	extraState.drawCurrentOutline(wx, wz, gy)
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+	extraState.drawBrushGlow(wx, wz, gy, a)
+end
+
 -- Draws measure distance labels. Called from both DrawScreen (normal) and
 -- DrawScreenEffects (F5 / hidden-UI mode) so they always show.
 function extraState.drawMeasureLabels()
@@ -7378,6 +8031,16 @@ function widget:DrawWorld()
 		glCallList(extraState.gridDL)
 	end
 
+	-- Water level preview: same gating as the grid overlay (it is an editor
+	-- overlay, and a map capture would otherwise bake it into the photo).
+	if
+		extraState.waterPreviewLevel
+		and not Spring.IsGUIHidden()
+		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
+	then
+		extraState.drawWaterLevelPreview()
+	end
+
 	if not activeMode then
 		invalidateDrawCache()
 		hideBuildGrid()
@@ -7442,6 +8105,7 @@ function widget:DrawWorld()
 				local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 				local stState = WG.StartPosTool and WG.StartPosTool.getState()
 				local clState = WG.CloneTool and WG.CloneTool.getState()
+				local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 				if (mbState and mbState.active) or (gbState and gbState.active) then
 					local wx, wz = getWorldMousePosition()
 					if wx and not extraState.symmetryHoveringOrigin then
@@ -7530,6 +8194,12 @@ function widget:DrawWorld()
 							1.0
 						)
 					end
+				elseif sfState and sfState.active then
+					-- SURFACE variant painter (rotationless circle brush)
+					local wx, wz = getWorldMousePosition()
+					if wx and not extraState.symmetryHoveringOrigin then
+						extraState.drawHeightColormap(wx, wz, sfState.radius or 72, "circle", 0, 1.0)
+					end
 				end
 			end
 		end
@@ -7544,6 +8214,7 @@ function widget:DrawWorld()
 			local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 			local stState = WG.StartPosTool and WG.StartPosTool.getState()
 			local clState = WG.CloneTool and WG.CloneTool.getState()
+			local sfState = WG.SurfacePainter and WG.SurfacePainter.getState()
 			local r
 			if fpState and fpState.active then
 				r = fpState.radius or 200
@@ -7563,6 +8234,8 @@ function widget:DrawWorld()
 				end
 			elseif clState and clState.active then
 				r = clState.radius or 300
+			elseif sfState and sfState.active then
+				r = sfState.radius or 72
 			end
 			if r then
 				local wx, wz = getWorldMousePosition()
@@ -7632,6 +8305,12 @@ function widget:DrawWorld()
 	else
 		worldX, worldZ = getWorldMousePosition()
 	end
+	-- Edge fade: the brush keeps following the mouse past the map edge; opacity
+	-- comes from how far past the paintable band the cursor is (computed by the
+	-- position helpers), reaching full again the moment the footprint touches
+	-- the map. worldX goes nil only once the fade has fully run out (or sky).
+	extraState.brushFadeAlpha = worldX and (extraState.brushEdgeFade or 1) or 0
+
 	if not worldX then
 		-- Mouse over UI: still draw symmetry lines at last known position
 		if extraState.symmetryActive and extraState.symmetryLastWorldX then
@@ -7799,46 +8478,17 @@ function widget:DrawWorld()
 		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush and WG.MapLabels.shouldSuppressBrush())
 
-	-- Animated glow outline — drawn every frame outside the display-list cache so it can pulse.
-	if activeMode and activeMode ~= "ramp" and not suppressBrush then
-		-- Map intensity (0.1-100) to a 0-1 strength via log scale
-		local intFrac = (math.log(activeIntensity + 1) / math.log(101))
-		if intFrac < 0 then
-			intFrac = 0
-		elseif intFrac > 1 then
-			intFrac = 1
-		end
-		-- Pulse speed: slow (~0.45 Hz) at low intensity, a bit faster (~1.1 Hz) at high.
-		-- Use a continuous timer so phase stays smooth when intensity changes.
-		if not extraState.brushPulseTimer then
-			extraState.brushPulseTimer = Spring.GetTimer()
-		end
-		local elapsed = Spring.DiffTimers(Spring.GetTimer(), extraState.brushPulseTimer)
-		local freqHz = 0.45 + 0.65 * intFrac
-		local pulse = sin(elapsed * freqHz * 2 * pi) -- -1..1
-		local pulse01 = 0.5 + 0.5 * pulse -- 0..1
-
-		local baseAlpha = 0.05 + 0.22 * intFrac
-		local swingAlpha = 0.04 + 0.20 * intFrac
-		local pulseAlpha = baseAlpha + swingAlpha * pulse
-
-		-- Thickness also breathes slightly, more noticeably at low intensity where
-		-- the slow pulse is the primary visual cue.
-		local halo = 14 + 3 * intFrac + (2.5 - 1.2 * intFrac) * pulse01
-		local core = 6 + 2 * intFrac + (1.8 - 0.8 * intFrac) * pulse01
-
-		local mr, mg, mb = getModeRGB()
-		-- Outer soft halo
-		glLineWidth(halo)
-		glColor(mr, mg, mb, pulseAlpha * 0.7)
-		extraState.drawCurrentOutline(worldX, worldZ, groundY)
-		-- Inner sharper halo
-		glLineWidth(core)
-		glColor(mr, mg, mb, pulseAlpha * 1.6)
-		extraState.drawCurrentOutline(worldX, worldZ, groundY)
-		glColor(1, 1, 1, 1)
-		glLineWidth(1)
+	-- Animated glow outline — drawn every frame outside the display-list cache so
+	-- it can pulse. While the edge fade is still recovering, the fade path below
+	-- draws the glow instead (scaled by fade alpha), so skip it here.
+	if activeMode and activeMode ~= "ramp" and not suppressBrush and extraState.brushFadeAlpha >= 1 then
+		extraState.drawBrushGlow(worldX, worldZ, groundY, 1)
 	end
+
+	-- Autoramp WYSIWYG: translucent fill/cut mesh of the resulting terrain.
+	-- Called for every active mode — it self-cleans its display list after the
+	-- preview data is cleared (mode left, toggle off, cursor off-map).
+	extraState.drawAutorampPreview(suppressBrush)
 
 	-- Unmouse amber glow + landing ring (only drawn while brush is parked beside UI)
 	extraState.doUnmouseDraw(worldX, worldZ, groundY)
@@ -7904,7 +8554,7 @@ function widget:DrawWorld()
 	-- each frame (trivially cheap), spline geometry uses a dedicated sub-cache that
 	-- only rebuilds when new path points are added or the brush radius changes.
 	if activeMode == "ramp" and activeShape == "circle" then
-		glColor(0.9, 0.7, 0.2, 0.7)
+		glColor(0.9, 0.7, 0.2, 0.7 * extraState.brushFadeAlpha)
 		glLineWidth(3)
 		glDrawGroundCircle(worldX, groundY, worldZ, activeRadius, CIRCLE_SEGMENTS)
 		if #rampSplinePoints >= 2 then
@@ -7951,6 +8601,15 @@ function widget:DrawWorld()
 		end
 		glColor(1, 1, 1, 1)
 		glLineWidth(1)
+		penRestoreDraw()
+		return
+	end
+
+	-- Edge fade-in: while opacity is still recovering, draw the lightweight
+	-- faded brush instead of the full-strength cached furniture (the display
+	-- list bakes its colors, so it can't be dimmed after the fact).
+	if extraState.brushFadeAlpha < 1 then
+		extraState.drawBrushFaded(worldX, worldZ, groundY, extraState.brushFadeAlpha)
 		penRestoreDraw()
 		return
 	end
@@ -8010,6 +8669,12 @@ function widget:DrawWorld()
 		-- transparent so the user can read the brush's effective strength profile
 		-- at a glance. Overall opacity still scales with intensity.
 		local fillAlpha = min(0.6, 0.08 + intensityT * 0.45)
+		if activeMode == "autoramp" then
+			-- Barely-there wash: the WYSIWYG preview mesh is the real feedback
+			-- here and a strong footprint fill would tint it. Intensity does not
+			-- feed autoramp, so the alpha is fixed rather than intensity-scaled.
+			fillAlpha = 0.05
+		end
 		-- Noise / restore / ramp apply uniformly inside the footprint, so we
 		-- skip the falloff gradient for those modes and keep the flat fill.
 		local usesFalloff = (activeMode == "raise" or activeMode == "lower" or activeMode == "level")
@@ -8412,15 +9077,22 @@ function widget:KeyPress(key, mods, isRepeat)
 			setShape("octagon")
 			return true
 		elseif key == getKeybindKey("mode_ramp") then
-			setMode("ramp")
+			-- Toggle between manual RAMP and one-click AUTORAMP
+			if activeMode == "ramp" then
+				setMode("autoramp")
+			else
+				setMode("ramp")
+			end
 			return true
 		elseif key == getKeybindKey("mode_restore") then
 			setMode("restore")
 			return true
 		elseif key == getKeybindKey("mode_level") then
-			-- Toggle between SMOOTH (primary) and LEVEL (submode)
+			-- Cycle the MODIFY submodes: SMOOTH → LEVEL → SMUDGE → SMOOTH
 			if activeMode == "smooth" then
 				setMode("level")
+			elseif activeMode == "level" then
+				setMode("smudge")
 			else
 				setMode("smooth")
 			end
@@ -8687,6 +9359,29 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		end
+		-- Autoramp: region op — restyle the cliff under the cursor. A click
+		-- fires once; holding LMB and swiping re-fires along the drag path,
+		-- spaced by brush radius (see the autoramp branch in Update). The
+		-- whole swipe is one undo stroke, closed by the shared release
+		-- cleanup at the top of Update — no immediate close here.
+		if activeMode == "autoramp" then
+			local worldX, worldZ = getWorldMousePosition()
+			if worldX then
+				if extraState.sendAutorampAt(worldX, worldZ) then
+					afterBrushTick()
+				end
+				-- Arm the swipe: the Update dispatch gates on lockedWorldX, and
+				-- the spacing check needs the last-applied anchor.
+				lockedWorldX = worldX
+				lockedWorldZ = worldZ
+				lockedGroundY = GetGroundHeight(worldX, worldZ)
+				lastScreenX = mx
+				lastScreenY = my
+				extraState.autorampLastX = worldX
+				extraState.autorampLastZ = worldZ
+			end
+			return true
+		end
 		local worldX, worldZ = getWorldMousePosition()
 		if worldX then
 			if extraState.measureActive and extraState.measureRulerMode then
@@ -8731,7 +9426,6 @@ function widget:MousePress(mx, my, button)
 	if button == 3 then
 		if not rightMouseHeld then
 			savedModeBeforeRMB = activeMode
-			savedDirectionBeforeRMB = activeDirection
 			rightMouseHeld = true
 			setMode("lower")
 			Echo(
@@ -8858,7 +9552,6 @@ function widget:MouseRelease(mx, my, button)
 			activeDirection = nil
 		end
 		savedModeBeforeRMB = nil
-		savedDirectionBeforeRMB = nil
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil

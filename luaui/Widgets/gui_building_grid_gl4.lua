@@ -257,6 +257,7 @@ function widget:DrawWorldPreUnit()
 	gridShader:Deactivate()
 	gl.Texture(0, false)
 	gl.DepthTest(false)
+	gl.Culling(false) -- don't leak face culling into widgets drawn after this one
 end
 
 function widget:GameStart()

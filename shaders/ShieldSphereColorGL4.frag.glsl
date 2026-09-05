@@ -1,56 +1,43 @@
-#version 150 compatibility
+#version 430 core
 
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
-#define MAX_POINTS ###MAX_POINTS###
+
+//__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D mapDepthTex;
 uniform sampler2D modelsDepthTex;
 
-uniform int effects;
-
-uniform vec4 color1;
-uniform vec4 color2;
-
-#if 1
-	uniform mat4 projMat;
-#else
-	#define projMat gl_ProjectionMatrix
-#endif
-
-uniform float gameFrame;
-
-uniform vec4 translationScale;
-
-// 0..1 fade-in/out multiplier driven by gadget when shield turns on/depletes
-uniform float shieldFade;
-uniform float overlapScale; // [0..1] dims this shield when it overlaps with others, so dense shield clusters don't fully obscure the map
-
-struct ImpactInfo {
-	int count;
-	vec4 impactInfoArray[MAX_POINTS];
+// Impact points of every visible shield this frame, packed back to back.
+// Each shield reads v_params.z entries starting at v_params.y.
+layout (std430, binding = ###IMPACT_SSBO_BINDING###) readonly buffer ImpactBuffer {
+	vec4 impacts[]; // xyz = normalized impact direction, w = aoe
 };
-uniform ImpactInfo impactInfo;
 
-in Data {
-	vec4 modelPos;
-	vec4 worldPos;
-	vec4 viewPos;
+in vec4 modelPos;
+in vec4 worldPos;
+in vec4 viewPos;
+in float colormix;
+in float normalizedFragDepth;
+noperspective in vec2 v_screenUV;
 
-	float colormix;
-	float normalizedFragDepth;
+flat in vec4 v_translationScale;
+flat in vec4 v_color1;
+flat in vec4 v_color2;
+flat in vec2 v_fadeOverlap;   // shieldFade, overlapScale
+flat in ivec4 v_params;       // effects bitmask, impact base index, impact count, flags (1 = scavenger palette)
+flat in vec2 v_arcBreath;     // arc burst gate, breathing brightness (per shield, from VS)
+flat in float v_cameraInside; // 1.0 when the camera is inside this shield
 
-	noperspective vec2 v_screenUV;
-};
+out vec4 fragColor;
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
-
 
 //Lua limitations only allow to send 24 bits. Should be enough :)
 #define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
 
 float GetViewSpaceDepth(float depthNDC) {
-	return -projMat[3][2] / (projMat[2][2] + depthNDC);
+	return -cameraProj[3][2] / (cameraProj[2][2] + depthNDC);
 }
 
 mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, vec3 up) {
@@ -200,7 +187,7 @@ float Hexagon2D(vec2 p, float edge0, float edge1) {
 	return smoothstep(edge0, edge1, val);
 }
 
-vec2 GetRippleOffset(vec3 thisPoint, vec3 impactPoint, float magMult) {
+vec2 GetRippleOffset(vec3 thisPoint, vec3 impactPoint, float magMult, float gameFrame) {
 	vec2 dir = thisPoint.xy - impactPoint.xy;
 	float dist = dot(thisPoint, impactPoint);
 	vec2 offset = dir * SNORM2NORM( sin(-dist * 1024.0 + gameFrame * 0.5) ) * 1.0 * magMult;
@@ -218,20 +205,91 @@ const mat3 YCBCR2RGB = mat3(
 	1.5748, -0.468124, -5.55112e-17);
 
 const float PI = acos(0.0) * 2.0;
-const float PI8 = PI * 8.0;
 
 void main() {
+	float gameFrame = timeInfo.x + timeInfo.w;
+	int effects = v_params.x;
+	vec4 color1 = v_color1;
+	vec4 color2 = v_color2;
+	vec4 translationScale = v_translationScale;
+	float shieldFade = v_fadeOverlap.x;
+	float overlapScale = v_fadeOverlap.y;
+
+	// A shield sphere is drawn double sided. Seen from outside, the back face is
+	// a second, nearly identical layer under the front face: it only adds the
+	// localized effects (contact outline, impacts) and its share of the rim is
+	// folded into the front face's alpha instead. With the camera inside the
+	// sphere only back faces exist, so they take the full path.
+	bool cameraInside = v_cameraInside > 0.5;
+	bool fullPath = gl_FrontFacing || cameraInside;
 
 	vec4 color;
 	color = mix(color1, color2, colormix);
+	if (!fullPath) {
+		color.a = 0.0; // body layer is only drawn once (front face)
+	}
+
+	// --- Contact outline: cheap depth proximity test first -----------------
+	const float outlineEffectSize = 30.0;
+	const float outlineAlpha = 0.45;
+	// The outline factor is smoothstep(0, depthDiff, size * noise): it has a
+	// long soft tail. In the tail the noise is frozen at its mean, so the glow
+	// is negligible (< 0.5%) beyond this distance and the tail costs no noise.
+	const float OUTLINE_TAIL_RANGE = 300.0;
+	const float OUTLINE_TAIL_NOISE = 0.5;
+	// The animated crackle is only worth its cost in the bright core of the
+	// band; it fades out between these two distances so no seam is visible.
+	const float OUTLINE_CRACKLE_FADE_START = 30.0;
+	const float OUTLINE_CRACKLE_FADE_END = 90.0;
+	bool doOutline = BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2);
+	float depthDiff = 1.0e9;
+	if (doOutline) {
+		float minDepth = 1.0;
+		if (BITMASK_FIELD(effects, 1)) { // terrain outline
+			minDepth = min(minDepth, texture( mapDepthTex, v_screenUV ).r);
+		}
+		if (BITMASK_FIELD(effects, 2)) { // units outline
+			minDepth = min(minDepth, texture( modelsDepthTex, v_screenUV ).r);
+		}
+
+		#if (DEPTH_CLIP01 == 1)
+			// Nothing. NDC and window/texture space are same for depth
+		#else
+			minDepth = NORM2SNORM(minDepth);
+		#endif
+
+		float minDepthView = GetViewSpaceDepth( minDepth );
+		depthDiff = abs(viewPos.z - minDepthView);
+	}
+	bool contactCore = doOutline && (depthDiff < OUTLINE_CRACKLE_FADE_END); // bright part of the band
+	// The faint tail is only drawn on the front face; the back face's tail sits
+	// under the front face's fill and is not worth keeping those fragments alive.
+	bool nearContact = contactCore || (doOutline && fullPath && (depthDiff < OUTLINE_TAIL_RANGE));
+
+	// --- Rim mask: also gates the (expensive) idle field ---------------------
+	const float RIM_SHARPNESS = 1.5;   // higher = thinner edge band
+	const float RIM_EPS = 0.005;       // below this the rim alpha is invisible
+	float rim = 1.0 - clamp(colormix, 0.0, 1.0);
+	rim = pow(rim, RIM_SHARPNESS);
+	bool doRim = fullPath && (rim > RIM_EPS);
+
+	int impactCount = BITMASK_FIELD(effects, 3) ? v_params.z : 0;
+
+	// Back face away from any contact and without impacts: nothing to draw.
+	if (!fullPath && !nearContact && impactCount == 0) {
+		discard;
+	}
 
 	const float valueNoiseMovePace = 0.25;
+	float valueNoise = 0.0;
+	if (contactCore || impactCount > 0) {
+		vec3 valueNoiseVec = modelPos.xyz * translationScale.www;
+		valueNoiseVec.y += gameFrame * valueNoiseMovePace;
+		valueNoise = Value3D(valueNoiseVec);
+	}
 
-	vec3 valueNoiseVec = modelPos.xyz * translationScale.www;
-	valueNoiseVec.y += gameFrame * valueNoiseMovePace;
-	float valueNoise = Value3D(valueNoiseVec);
-
-	if (BITMASK_FIELD(effects, 6)) {
+	// Body colour feeds the outline, so back faces need it only in the bright core.
+	if (BITMASK_FIELD(effects, 6) && (fullPath || contactCore)) {
 		const float perlinNoiseMovePace = 0.0025;
 		float waveFront = mod(-gameFrame * 0.0020, 0.5);
 
@@ -248,45 +306,34 @@ void main() {
 		color = pow(color, vec4(1.3 - pb));
 	}
 
-	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
-		const float outlineEffectSize = 30.0;
-		const float outlineAlpha = 0.45;
-
-		float minDepth = 1.0;
-		if (BITMASK_FIELD(effects, 1)) { // terrain outline
-			minDepth = min(minDepth, texture( mapDepthTex, v_screenUV ).r);
-		}
-		if (BITMASK_FIELD(effects, 2)) { // units outline
-			minDepth = min(minDepth, texture( modelsDepthTex, v_screenUV ).r);
-		}
-
-		#if (DEPTH_CLIP01 == 1)
-			// Nothing. NDC and window/texture space are same for depth
-		#else
-			minDepth = NORM2SNORM(minDepth);
-		#endif
-
-		float minDepthView = GetViewSpaceDepth( minDepth );
-		float outlineFactor = smoothstep( 0.0, abs(viewPos.z - minDepthView), outlineEffectSize * valueNoise );
+	if (nearContact) {
+		// Noise modulates the band width in the core; blend to its mean towards
+		// the tail so the tail needs no noise evaluation and stays seamless.
+		float outlineNoise = mix(valueNoise, OUTLINE_TAIL_NOISE, smoothstep(OUTLINE_CRACKLE_FADE_START, OUTLINE_CRACKLE_FADE_END, depthDiff));
+		float outlineFactor = smoothstep( 0.0, depthDiff, outlineEffectSize * outlineNoise );
 		outlineFactor *= mix(0.25, 1.0, SNORM2NORM(sin(0.1*gameFrame + 5.0*(modelPos.x + modelPos.z +  modelPos.y))));
 
 		// Animated crackle on the outline edge so where the shield meets terrain/units
-		// it shimmers like a contact arc rather than a static halo.
-		const float OUTLINE_CRACKLE_SCALE = 130.0;  // noise frequency along the edge
-		const float OUTLINE_CRACKLE_SPEED = 0.110; // scroll speed
-		const float OUTLINE_CRACKLE_AMOUNT = 0.25; // modulation depth (0 = off, 1 = full flicker)
-		vec3 outlineCrackleP = modelPos.xyz * OUTLINE_CRACKLE_SCALE;
-		outlineCrackleP.y -= gameFrame * OUTLINE_CRACKLE_SPEED;
-		outlineCrackleP.x += gameFrame * OUTLINE_CRACKLE_SPEED * 0.37;
-		float outlineCrackle = SNORM2NORM(SimplexPerlin3D(outlineCrackleP));
-		outlineFactor *= mix(1.0 - OUTLINE_CRACKLE_AMOUNT, 1.0 + OUTLINE_CRACKLE_AMOUNT, outlineCrackle);
+		// it shimmers like a contact arc rather than a static halo. Only evaluated
+		// in the bright core of the band, fading out so the tail stays seamless.
+		if (contactCore) {
+			const float OUTLINE_CRACKLE_SCALE = 130.0;  // noise frequency along the edge
+			const float OUTLINE_CRACKLE_SPEED = 0.110; // scroll speed
+			const float OUTLINE_CRACKLE_AMOUNT = 0.25; // modulation depth (0 = off, 1 = full flicker)
+			float crackleAmount = OUTLINE_CRACKLE_AMOUNT * (1.0 - smoothstep(OUTLINE_CRACKLE_FADE_START, OUTLINE_CRACKLE_FADE_END, depthDiff));
+			vec3 outlineCrackleP = modelPos.xyz * OUTLINE_CRACKLE_SCALE;
+			outlineCrackleP.y -= gameFrame * OUTLINE_CRACKLE_SPEED;
+			outlineCrackleP.x += gameFrame * OUTLINE_CRACKLE_SPEED * 0.37;
+			float outlineCrackle = SNORM2NORM(SimplexPerlin3D(outlineCrackleP));
+			outlineFactor *= mix(1.0 - crackleAmount, 1.0 + crackleAmount, outlineCrackle);
+		}
 		outlineFactor = clamp(outlineFactor, 0.0, 1.0);
 
 		// Scale by shieldFade so outline alpha fades with the rest of the shield
 		color.a = mix(color.a, outlineAlpha * shieldFade, outlineFactor);
 	}
 
-	if (BITMASK_FIELD(effects, 3)) { // impact animation
+	if (impactCount > 0) { // impact animation
 		const vec4 impactColor = vec4(0.35);
 
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
@@ -297,10 +344,16 @@ void main() {
 		}
 
 		vec4 impactFactor = vec4(0.0);
-		for (int i = 0; i < impactInfo.count; ++i) {
-			vec3 worldImpactVec = normalize(impactInfo.impactInfoArray[i].xyz);
+		int impactBase = v_params.y;
+		for (int i = 0; i < impactCount; ++i) {
+			vec4 impactInfo = impacts[impactBase + i];
+			vec3 worldImpactVec = normalize(impactInfo.xyz);
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
-			vec3 thisImpactFactor = vec3(smoothstep( impactInfo.impactInfoArray[i].w * cameraDistanceFactors.x, 0.0, angleDist ));
+			float impactRadius = impactInfo.w * cameraDistanceFactors.x;
+			if (angleDist >= impactRadius) {
+				continue; // outside this impact's footprint: its factor would be 0
+			}
+			vec3 thisImpactFactor = vec3(smoothstep( impactRadius, 0.0, angleDist ));
 
 			float centerFactor = pow(thisImpactFactor.r, 6.0 / cameraDistanceFactors.y);
 
@@ -312,7 +365,7 @@ void main() {
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 
 			if (BITMASK_FIELD(effects, 8)) { // impactRipples
-				vec2 rippleOffset = GetRippleOffset(impactNoiseVec, vec3(0.0, 0.0, 1.0), thisImpactFactor.r);
+				vec2 rippleOffset = GetRippleOffset(impactNoiseVec, vec3(0.0, 0.0, 1.0), thisImpactFactor.r, gameFrame);
 				impactNoiseVec.xy += rippleOffset;
 				thisImpactFactor *= 1.0 + length(rippleOffset) * 1.0;
 			}
@@ -343,8 +396,7 @@ void main() {
 	// even when many shields overlap.
 	vec3  rimHotBoost  = vec3(0.0); // applied AFTER tonemap to keep saturation
 	float rimHotAlpha  = 0.0;
-	{
-		const float RIM_SHARPNESS  = 1.5;   // higher = thinner edge band
+	if (doRim) {
 		const float RIM_ALPHA      = 0.45;  // peak alpha contribution at silhouette
 		const float RIM_COLOR_GAIN = 2.2;   // how much rim brightens (lower = more saturated)
 		const float HEX_SCALE_U    = 1.6;   // hex pattern density around belly
@@ -354,19 +406,14 @@ void main() {
 		const float SWEEP_FREQ     = 5.0;   // vertical scanline density (higher = more bands on the shield at once)
 		const float SWEEP_SPEED    = 0.040; // scanline upward speed (animation speed of each band)
 		const float SWEEP_SHARP    = 5.0;   // shape exponent (2 = smooth breathe, 5 = narrow peaks)
-		const float BREATH_SPEED   = 0.018; // overall pulse speed
 		const float CRACKLE_SCALE  = 100.0;  // micro-noise frequency on rim
 		const float CRACKLE_SPEED  = 0.170; // micro-noise scroll speed
 		const float CRACKLE_AMOUNT = 0.44;  // crackle modulation strength
 		const float HEX_FIRE_PROB  = 0.18;  // fraction of "charged" hex cells
 		const float HEX_FIRE_GAIN  = 1.8;   // brightness boost on charged cells
-		const float ARC_BURST_FREQ = 0.013; // arc-flash frequency (per frame)
 		const float ARC_BURST_GAIN = 2.2;   // arc-flash brightness peak
 		const float CHROMA_SPLIT   = 0.5;  // cyan-positive split at extreme rim
 		const float HOT_ESCAPE     = 0.85;  // fraction of rim color to keep post-tonemap
-
-		float rim = 1.0 - clamp(colormix, 0.0, 1.0);
-		rim = pow(rim, RIM_SHARPNESS);
 
 		// Hex energy cells drifting around the sphere; spherical UV from modelPos
 		vec2 hexUV;
@@ -377,14 +424,11 @@ void main() {
 		float hex = 1.0 - Hexagon2D(hexUV, 0.30, 0.55);
 
 		// Per-cell randomization: use floor(hexUV) as cell id, hash with Value3D
-		// to pick which cells "fire" brighter. Cross-fade between adjacent
-		// time buckets so cells charge/discharge smoothly instead of snapping.
+		// to pick which cells "fire" brighter. Time is the third noise axis, so
+		// Value3D's own fade curve cross-fades between adjacent time buckets and
+		// cells charge/discharge smoothly with a single noise evaluation.
 		float cellTime  = gameFrame * 0.020;
-		float cellBucket = floor(cellTime);
-		float cellBlend  = smoothstep(0.0, 1.0, fract(cellTime));
-		vec3 cellIdA = vec3(floor(hexUV * 1.7), cellBucket);
-		vec3 cellIdB = vec3(floor(hexUV * 1.7), cellBucket + 1.0);
-		float cellHash = mix(Value3D(cellIdA), Value3D(cellIdB), cellBlend);
+		float cellHash = Value3D(vec3(floor(hexUV * 1.7), cellTime));
 		float cellFire = smoothstep(1.0 - HEX_FIRE_PROB, 1.0, cellHash);
 		hex *= mix(1.0, HEX_FIRE_GAIN, cellFire);
 
@@ -396,31 +440,22 @@ void main() {
 		float sweep = pow(sweepRaw, SWEEP_SHARP);
 
 		// Occasional arc-burst: a brighter, faster sweep band that swells
-		// irregularly. Cross-fade between adjacent randomness buckets and
-		// shape the gate with a half-sine envelope so bursts ramp in and out
-		// smoothly instead of snapping off at the bucket boundary.
-		float arcTime   = gameFrame * ARC_BURST_FREQ;
-		float arcBucket = floor(arcTime);
-		float arcFrac   = fract(arcTime);
-		float arcSeedA  = Value3D(vec3(arcBucket,       translationScale.x * 0.07, translationScale.z * 0.11));
-		float arcSeedB  = Value3D(vec3(arcBucket + 1.0, translationScale.x * 0.07, translationScale.z * 0.11));
-		float arcSeed   = mix(arcSeedA, arcSeedB, smoothstep(0.0, 1.0, arcFrac));
-		// Half-sine envelope across the bucket so even at peak seed the burst
-		// fades in/out rather than ending abruptly.
-		float arcEnvelope = sin(arcFrac * PI);
-		float arcGate   = smoothstep(0.78, 0.92, arcSeed) * arcEnvelope;
+		// irregularly. The gate (randomness + envelope) is per shield and comes
+		// from the vertex shader.
+		float arcGate   = v_arcBreath.x;
 		float arcLocal  = SNORM2NORM(sin(modelPos.y * SWEEP_FREQ * 2.2 - gameFrame * SWEEP_SPEED * 5.0));
 		arcLocal = pow(arcLocal, SWEEP_SHARP);
 		float arc = arcLocal * arcGate * ARC_BURST_GAIN;
 
-		// Slow breathing brightness modulation so idle shields feel alive
-		float breath = 0.85 + 0.15 * SNORM2NORM(sin(gameFrame * BREATH_SPEED + translationScale.x * 0.13));
+		// Slow breathing brightness modulation so idle shields feel alive (per shield, from VS)
+		float breath = v_arcBreath.y;
 
 		// High-freq crackle noise modulating only the rim alpha for that
 		// "containment field" feel (no color contribution -> stays cheap).
+		// Value noise (already 0..1) instead of simplex: roughly a third of the cost.
 		vec3 crackleP = modelPos.xyz * CRACKLE_SCALE;
 		crackleP.y -= gameFrame * CRACKLE_SPEED;
-		float crackle = SNORM2NORM(SimplexPerlin3D(crackleP));
+		float crackle = Value3D(crackleP);
 		float crackleMod = mix(1.0 - CRACKLE_AMOUNT, 1.0 + CRACKLE_AMOUNT, crackle);
 
 		// Combine: rim is the master mask, hex/sweep/arc are texture, breath modulates
@@ -431,16 +466,19 @@ void main() {
 		// rim target between cool teal (healthy) and a hot orange (damaged).
 		// This way the rim still announces low-charge urgency.
 		const vec3 RIM_COOL_COLOR = vec3(0.10, 0.95, 1.20); // teal/cyan, healthy
+		const vec3 RIM_SCAV_COLOR = vec3(0.90, 0.30, 1.30); // magenta/purple, healthy scavenger shield
 		const vec3 RIM_WARM_COLOR = vec3(1.40, 0.45, 0.10); // orange/red, damaged
+		bool scavenger = (v_params.w & 1) != 0;
 		float warmness = clamp(color1.r - color1.b * 0.8, 0.0, 1.0);
-		vec3 rimTarget = mix(RIM_COOL_COLOR, RIM_WARM_COLOR, warmness);
+		vec3 rimTarget = mix(scavenger ? RIM_SCAV_COLOR : RIM_COOL_COLOR, RIM_WARM_COLOR, warmness);
 		vec3 rimTint   = mix(color1.rgb * 0.5, rimTarget, pow(rim, 0.6));
 
 		// Chromatic dispersion at the extreme silhouette: bias toward the
 		// rim target's dominant channel so the brightest hot edge keeps its
 		// hue (cool when healthy, warm when damaged) instead of clipping.
 		float chromaMask = pow(rim, 4.0);
-		vec3 chromaDir   = mix(vec3(-1.0, 0.4, 1.0), vec3(1.0, -0.2, -0.8), warmness);
+		vec3 coolChromaDir = scavenger ? vec3(0.5, -0.6, 1.0) : vec3(-1.0, 0.4, 1.0);
+		vec3 chromaDir   = mix(coolChromaDir, vec3(1.0, -0.2, -0.8), warmness);
 		vec3 chromaSplit = chromaDir * CHROMA_SPLIT * chromaMask * idle;
 
 		vec3 rimColor = rimTint * idle * RIM_COLOR_GAIN + chromaSplit;
@@ -459,12 +497,19 @@ void main() {
 		// does not push channels into the white clamp.
 		vec3 hotAdd = rimTint * idle * (RIM_COLOR_GAIN - 1.0) * shieldFade + chromaSplit;
 		color.rgb += hotAdd * (1.0 - HOT_ESCAPE) * 0.4;
-		color.a   += rimA;
 
 		// Post-tonemap: add the remaining hot contribution so saturated hue
 		// survives the YCbCr luma clamp.
 		rimHotBoost = hotAdd * HOT_ESCAPE * 0.4;
 		rimHotAlpha = rimA * 0.35;
+
+		// Seen from outside, the back face used to draw the same rim as a
+		// second blended layer. Fold that layer in: a + a * (1 - a).
+		if (!cameraInside) {
+			rimA        = rimA * (2.0 - rimA);
+			rimHotAlpha = rimHotAlpha * (2.0 - rimHotAlpha);
+		}
+		color.a += rimA;
 	}
 
 	//poor man's tonemapping ahead
@@ -492,5 +537,5 @@ void main() {
 	// rim/glow color stays correct and shields just become more transparent.
 	color.a *= overlapScale;
 
-	gl_FragColor = color;
+	fragColor = color;
 }

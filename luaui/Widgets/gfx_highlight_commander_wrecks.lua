@@ -33,16 +33,6 @@ local SpringGetFeatureTeam = Spring.GetFeatureTeam
 local SpringGetSpectatingState = Spring.GetSpectatingState
 local SpringGetMapDrawMode = Spring.GetMapDrawMode
 
--- util
-
-local function map(list, func)
-	local result = {}
-	for i, v in ipairs(list) do
-		result[i] = func(v, i)
-	end
-	return result
-end
-
 -- GL4
 
 local LuaShader = gl.LuaShader
@@ -117,6 +107,7 @@ local shader
 local highlightVBOLayout = {
 	{ id = 0, name = "position", size = 3 },
 }
+---@type InstanceVBOTable?
 local instanceVBO = nil
 local instanceVBOLayout = {
 	{ id = 1, name = "position", size = 3 },
@@ -150,6 +141,8 @@ local function makeCylinderVBO(sections)
 	return vbo, numVertices
 end
 
+---Wraps a vertex buffer in an instance buffer for the wreck highlights.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
 	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, "gfx_highlight_commander_wrecks")
 	vbo.vertexVBO = vertexVBO

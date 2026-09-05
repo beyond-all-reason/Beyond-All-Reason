@@ -62,6 +62,9 @@ local harderTechToRezPowerSpeeds = {
 	[4.5] = 130,
 }
 
+---One of the zombie difficulty presets, matching the keys of `zombieModeConfigs`.
+---@alias ZombieMode "normal"|"hard"|"nightmare"|"akumu"
+
 local zombieModeConfigs = {
 	normal = {
 		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
@@ -97,6 +100,7 @@ local zombieModeConfigs = {
 	},
 }
 
+---@type ZombieMode
 local currentZombieMode = "normal"
 local currentZombieConfig = zombieModeConfigs.normal
 
@@ -252,8 +256,12 @@ local function updateRezSpeed()
 	rebuildZombieCorpseSpawnDelays()
 end
 
+---Applies a preset's tuning to the live zombie config, falling back to `normal`
+---for an unknown mode.
+---@param mode ZombieMode
 local function applyZombieModeSettings(mode)
 	local config = zombieModeConfigs[mode]
+	---@diagnostic disable-next-line: unnecessary-if
 	if not config then
 		config = zombieModeConfigs.normal
 	end
@@ -449,6 +457,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 	end
 end
 
+---Turns a unit into a zombie, swapping it for its `_scav` variant where one exists.
+---@param unitID UnitID
 local function setZombie(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if not unitDefID then
@@ -757,6 +767,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 end
 
+---Immediately raises zombies from a corpse feature. Only acts while in idle mode.
+---@param featureID FeatureID
+---@return boolean spawned `false` when not in idle mode, or the feature is not a zombie corpse.
 local function createZombieFromFeature(featureID)
 	if isIdleMode then
 		local featureDefID = spring.GetFeatureDefID(featureID)
@@ -785,6 +798,7 @@ local function createZombieFromFeature(featureID)
 	return false
 end
 
+---Queues every corpse currently on the map to raise zombies.
 local function queueAllCorpsesForSpawning()
 	local features = spring.GetAllFeatures()
 	for _, featureID in ipairs(features) do
@@ -792,12 +806,16 @@ local function queueAllCorpsesForSpawning()
 	end
 end
 
+---Switches all zombies between return-fire with no auto-orders and normal aggression.
+---@param enabled boolean `true` to pacify, `false` to restore normal behavior.
 local function pacifyZombies(enabled)
 	if GG.ZombieAI then
 		GG.ZombieAI.PacifyZombies(enabled)
 	end
 end
 
+---Stops or resumes the automatic orders given to zombies, without changing fire state.
+---@param enabled boolean `true` to suspend auto-orders, `false` to resume them.
 local function suspendAutoOrders(enabled)
 	if GG.ZombieAI then
 		GG.ZombieAI.SuspendAutoOrders(enabled)
@@ -830,6 +848,9 @@ local function clearAllOrders()
 	end
 end
 
+---Enables or disables raising zombies from corpses automatically.
+---Enabling also queues every corpse already on the map.
+---@param enabled boolean
 local function setAutoSpawning(enabled)
 	autoSpawningEnabled = enabled
 	if enabled then
@@ -837,6 +858,7 @@ local function setAutoSpawning(enabled)
 	end
 end
 
+---Drops every queued corpse spawn without affecting zombies already raised.
 local function clearAllZombieSpawns()
 	for featureID in pairs(corpsesData) do
 		clearCorpseRezRulesParam(featureID)
@@ -867,6 +889,9 @@ local function isAuthorized(playerID)
 	return false
 end
 
+---Turns each of the given units into a zombie.
+---@param unitIDs UnitID[]?
+---@return integer converted Number of units that were valid and converted.
 local function convertUnitsToZombies(unitIDs)
 	if not unitIDs or #unitIDs == 0 then
 		return 0
@@ -883,6 +908,8 @@ local function convertUnitsToZombies(unitIDs)
 	return convertedCount
 end
 
+---Turns every Gaia-owned unit that is not already a zombie into one.
+---@return integer converted
 local function setAllGaiaToZombies()
 	local allUnits = spring.GetAllUnits()
 	local convertedCount = 0
@@ -1061,7 +1088,11 @@ local function commandClearZombieSpawns(_, line, words, playerID)
 	spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 end
 
+---Switches the zombie difficulty preset.
+---@param mode ZombieMode
+---@return boolean applied `false` when `mode` is not a known preset.
 local function setZombieMode(mode)
+	---@diagnostic disable-next-line: unnecessary-if
 	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
 		return false
 	end

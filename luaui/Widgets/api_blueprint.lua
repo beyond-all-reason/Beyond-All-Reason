@@ -38,8 +38,8 @@ local tableInsert = table.insert
 ---@alias Point number[]
 
 ---@class BlueprintUnit
----@field blueprintUnitID number a globally unique ID for this unit
----@field unitDefID number
+---@field blueprintUnitID integer a globally unique ID for this unit
+---@field unitDefID UnitDefID
 ---@field position Point
 ---@field facing number
 
@@ -200,6 +200,7 @@ local outlineVertexVBOLayout = {
 	{ id = 0, name = "position", size = 2 },
 }
 
+---@type InstanceVBOTable?
 local outlineInstanceVBO = nil
 local outlineInstanceVBOLayout = {
 	{ id = 1, name = "position", size = 3 },
@@ -235,6 +236,8 @@ local function makeOutlineVBO()
 	return vbo, numVertices
 end
 
+---Wraps a vertex buffer in an instance buffer for this widget's outlines.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function makeInstanceVBO(layout, vertexVBO, numVertices)
 	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, widget:GetInfo().name)
 	vbo.vertexVBO = vertexVBO
@@ -562,7 +565,7 @@ end
 --- Gives build orders for a blueprint to a set of builders.
 ---@param blueprint Blueprint The blueprint to build.
 ---@param buildPositions table The locations to build the blueprint at.
----@param builders number[] A list of builder unit IDs.
+---@param builders UnitID[]
 ---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
 ---@param cmdOpts table Command options.
 local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit, cmdOpts)
@@ -676,7 +679,7 @@ end
 ---Synchronize the building and outline instances with the given list of build positions.
 ---@param blueprint Blueprint
 ---@param buildPositions StartPoints
----@param teamID number
+---@param teamID TeamID
 local function updateInstances(blueprint, buildPositions, teamID)
 	if isHeadless then
 		return

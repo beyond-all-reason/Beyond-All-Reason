@@ -14,24 +14,9 @@ function M.attach(doc, ctx)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
-	local setActiveClass = ctx.setActiveClass
 	local trackSliderDrag = ctx.trackSliderDrag
-	local clearPassthrough = ctx.clearPassthrough
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
-	local LENGTH_SCALE_STEP = ctx.LENGTH_SCALE_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
-	local cadenceToSlider = ctx.cadenceToSlider
-	local sliderToFrequency = ctx.sliderToFrequency
-	local sliderToPersist = ctx.sliderToPersist
-	local PERSIST_PERMANENT_VAL = ctx.PERSIST_PERMANENT_VAL
-	local formatFrequency = ctx.formatFrequency
-	local guideHints = ctx.guideHints
-	local shapeNames = ctx.shapeNames
 	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
-	local quatFromAxisAngle = ctx.quatFromAxisAngle
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
 	-- keys in a DataModel after OpenDataModel.
@@ -737,32 +722,6 @@ function M.attach(doc, ctx)
 		)
 		wireMutexChipPair("sp-slope-mode-avoid", "avoidCliffs", "sp-slope-mode-prefer", "preferSlopes", getSP)
 
-		-- Exclusive tab pills for grass brush (original behavior)
-		local function wirePillTabs(pills, onActivate)
-			for _, p in ipairs(pills) do
-				local btn = doc:GetElementById(p.btnId)
-				local content = doc:GetElementById(p.contentId)
-				if btn and content then
-					btn:AddEventListener("click", function()
-						for _, q in ipairs(pills) do
-							local b2 = doc:GetElementById(q.btnId)
-							local c2 = doc:GetElementById(q.contentId)
-							if b2 then
-								b2:SetClass("active", b2 == btn)
-							end
-							if c2 then
-								c2:SetClass("hidden", c2 ~= content)
-							end
-						end
-						content:SetClass("hidden", false)
-						btn:SetClass("active", true)
-						if onActivate then
-							onActivate()
-						end
-					end)
-				end
-			end
-		end
 		-- gb pill/slope/altitude/avoid-water/color chips all use data-event-click in RML → onGbXxx handlers in initialModel
 	end
 	envSectionToggle("btn-toggle-wb-undo", "img-toggle-wb-undo", "section-wb-undo", false)
@@ -999,14 +958,17 @@ function M.attach(doc, ctx)
 
 	-- Tileset Terrain tool (TILESET) category sections
 	envSectionToggle("btn-toggle-ts-library", "img-toggle-ts-library", "section-ts-library", true)
+	envSectionToggle("btn-toggle-ts-perf", "img-toggle-ts-perf", "section-ts-perf", false)
 	envSectionToggle("btn-toggle-ts-metal", "img-toggle-ts-metal", "section-ts-metal", false)
 	envSectionToggle("btn-toggle-ts-scale", "img-toggle-ts-scale", "section-ts-scale", true)
 	envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
 	envSectionToggle("btn-toggle-ts-cliffs", "img-toggle-ts-cliffs", "section-ts-cliffs", false)
 	envSectionToggle("btn-toggle-ts-place", "img-toggle-ts-place", "section-ts-place", false)
+	envSectionToggle("btn-toggle-ts-slot4", "img-toggle-ts-slot4", "section-ts-slot4", false)
 	envSectionToggle("btn-toggle-ts-blend", "img-toggle-ts-blend", "section-ts-blend", false)
 	envSectionToggle("btn-toggle-ts-curv", "img-toggle-ts-curv", "section-ts-curv", false)
 	envSectionToggle("btn-toggle-ts-light", "img-toggle-ts-light", "section-ts-light", false)
+	envSectionToggle("btn-toggle-ts-water", "img-toggle-ts-water", "section-ts-water", false)
 	envSectionToggle("btn-toggle-ts-oldmap", "img-toggle-ts-oldmap", "section-ts-oldmap", false)
 	envSectionToggle("btn-toggle-ts-biome", "img-toggle-ts-biome", "section-ts-biome", false)
 	envSectionToggle("btn-toggle-ts-tints", "img-toggle-ts-tints", "section-ts-tints", false)
@@ -1016,6 +978,10 @@ function M.attach(doc, ctx)
 	-- SURFACE tool (tileset variant paint) sections
 	envSectionToggle("btn-toggle-surf-palette", "img-toggle-surf-palette", "section-surf-palette", true)
 	envSectionToggle("btn-toggle-surf-hard", "img-toggle-surf-hard", "section-surf-hard", true)
+	-- SURFACE/LAYERS canonical DISPLAY / INSTRUMENTS / FILTERS (sf prefix)
+	envSectionToggle("btn-toggle-sf-overlays", "img-toggle-sf-overlays", "section-sf-overlays", false)
+	envSectionToggle("btn-toggle-sf-instruments", "img-toggle-sf-instruments", "section-sf-instruments", false)
+	envSectionToggle("btn-toggle-sf-smart", "img-toggle-sf-smart", "section-sf-smart", false)
 	envSectionToggle("btn-toggle-surf-brush", "img-toggle-surf-brush", "section-surf-brush", true)
 	envSectionToggle("btn-toggle-surf-fill", "img-toggle-surf-fill", "section-surf-fill", false)
 	envSectionToggle("btn-toggle-surf-sculpt", "img-toggle-surf-sculpt", "section-surf-sculpt", false)
@@ -1100,7 +1066,6 @@ function M.attach(doc, ctx)
 			"skydyn-x",
 			"skydyn-y",
 			"skydyn-z",
-			"wl",
 			"w-repeatx",
 			"w-repeaty",
 			"w-alpha",
@@ -1238,7 +1203,8 @@ function M.attach(doc, ctx)
 			Spring.SetSunDirection(sx, sy, sz, val)
 		end
 	end)
-	widgetState.envSunIntensity = 1.0
+	-- Keep an intensity a project load already applied; default only when unset
+	widgetState.envSunIntensity = widgetState.envSunIntensity or 1.0
 
 	-- ---- Fog & Atmosphere sliders ----
 	envSlider("slider-env-fog-start", "lbl-env-fog-start", function(v)
@@ -2100,53 +2066,195 @@ function M.attach(doc, ctx)
 		end
 
 		refreshDimExtremes()
-		-- Store for onEnvDimRefresh / onEnvApplyXxx handlers in initialModel:
+		-- Stored for the Update-loop poll in gui_terraform_brush.lua:
 		widgetState.envRefreshDimExtremes = refreshDimExtremes
 
-		-- Water level input
-		local wlInput = doc:GetElementById("input-dim-waterlevel")
-		if wlInput then
-			wlInput:AddEventListener("focus", function()
-				Spring.SDLStartTextInput()
-				widgetState.focusedRmlInput = wlInput
-			end, false)
-			wlInput:AddEventListener("blur", function()
-				Spring.SDLStopTextInput()
-				widgetState.focusedRmlInput = nil
-			end, false)
+		-- Prefill the HEIGHT RANGE sliders, so the panel opens showing the range
+		-- it is about to change and only one end has to be moved. useInit picks
+		-- the map's own extremes (the RESET chip) over the live ones (CURRENT,
+		-- and the open-edge prefill): init min/max come from the map's SMF header
+		-- and are not moved by any edit, so they stay a true "back to default"
+		-- target. Both tracks are reseeded to span the init and live extremes
+		-- with a full span of headroom each way, so RESCALE can stretch the
+		-- relief well past what the map has now; 512 is the floor for a flat
+		-- canvas, which would otherwise collapse both tracks to a point.
+		-- Deliberately not a local (M.attach is near the Lua 5.1 200-local cap)
+		-- and deliberately not called from the per-frame poll, which would
+		-- overwrite whatever is being adjusted.
+		widgetState.envFillDimRangeInputs = function(useInit)
+			local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+			local boundLo = math.min(initMin or 0, currMin or 0)
+			local boundHi = math.max(initMax or 0, currMax or 0)
+			local pad = math.max(512, boundHi - boundLo)
+			boundLo = math.floor(boundLo - pad)
+			boundHi = math.ceil(boundHi + pad)
+			local vals = {
+				["slider-env-dim-minheight"] = (useInit and initMin or currMin) or 0,
+				["slider-env-dim-maxheight"] = (useInit and initMax or currMax) or 0,
+			}
+			for id, v in pairs(vals) do
+				local vStr = string.format("%.0f", v)
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("min", tostring(boundLo))
+					sl:SetAttribute("max", tostring(boundHi))
+					sl:SetAttribute("value", vStr)
+				end
+				-- Programmatic slider sets do not fire change, so the numbox
+				-- has to be moved by hand.
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", vStr)
+				end
+			end
+		end
+		widgetState.envFillDimRangeInputs()
+
+		-- The shoreline is driven by TWO mirrored tracks: WATER LEVEL in the
+		-- Dimensions window and FLUID LEVEL in the Water window. Same value,
+		-- same preview, same APPLY; the sync poll below keeps them equal.
+		-- On widgetState, not a local: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envWaterSliderIds = { "slider-env-waterlevel", "slider-env-wl" }
+
+		-- Seed the water level sliders: they address an absolute world height
+		-- (the height the shoreline will sit at), so their bounds have to span
+		-- the terrain rather than being fixed from the RML. Reseeded on open
+		-- and after an apply, never while dragging.
+		--
+		-- The track is centred on the current plane with equal travel each way,
+		-- so the handle starts in the middle and drags to raise or lower. Bounding
+		-- it to the terrain instead would park the handle wherever the water
+		-- happens to sit (11% from the left on a -198..1608 map), which reads as
+		-- a slider that can only raise. The half-span is whichever direction
+		-- needs more reach, so the map floor and the highest peak both stay
+		-- inside the track; 200 is the floor for a flat canvas, which would
+		-- otherwise collapse the slider to a single position.
+		widgetState.envSeedWaterSlider = function()
+			local _, _, currMin, currMax = Spring.GetGroundExtremes()
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local half = math.max(200, plane - (currMin or 0), (currMax or 0) - plane)
+			local lo = math.floor(plane - half)
+			local hi = math.ceil(plane + half)
+			local vStr = tostring(math.floor(plane + 0.5))
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("min", tostring(lo))
+					sl:SetAttribute("max", tostring(hi))
+					sl:SetAttribute("value", vStr)
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", vStr)
+				end
+			end
+			widgetState.envWaterPreviewAt = nil
+			if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+				WG.TerraformBrush.setWaterLevelPreview(nil)
+			end
+		end
+		widgetState.envSeedWaterSlider()
+
+		-- Polled from the panel Update loop while either window is open. Reading
+		-- the sliders on a timer rather than off their change events is
+		-- deliberate: the value also moves via the numboxes and the +/- steppers,
+		-- and RmlUi does not fire change for programmatic sets. Whichever track
+		-- moved since the last poll wins and is copied onto the other (a
+		-- programmatic set fires no change, so this cannot loop). Suppressed at
+		-- zero delta so the preview plane does not sit permanently on top of the
+		-- real water.
+		widgetState.envSyncWaterPreview = function()
+			local level
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				local v = sl and tonumber(sl:GetAttribute("value"))
+				if v and v ~= widgetState.envWaterPreviewAt then
+					level = v
+					break
+				end
+			end
+			if not level then
+				return
+			end
+			widgetState.envWaterPreviewAt = level
+			for _, id in ipairs(widgetState.envWaterSliderIds) do
+				local sl = doc:GetElementById(id)
+				if sl and tonumber(sl:GetAttribute("value")) ~= level then
+					sl:SetAttribute("value", tostring(level))
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", tostring(level))
+				end
+			end
+			local plane = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+			local delta = math.floor(level - plane + 0.5)
+			if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+				WG.TerraformBrush.setWaterLevelPreview(delta ~= 0 and level or nil)
+			end
+			local dm = widgetState.dmHandle
+			if dm then
+				-- Name the marker, and state the mechanism after it: the water plane
+				-- never moves, the terrain slides under it.
+				if delta == 0 then
+					dm.envWaterTargetStr = "Drag to move the shoreline."
+				elseif delta > 0 then
+					dm.envWaterTargetStr =
+						string.format("Flood to the blue line, +%.0f. Terrain drops %.0f.", delta, delta)
+				else
+					dm.envWaterTargetStr =
+						string.format("Drain to the blue line, %.0f. Terrain rises %.0f.", delta, -delta)
+				end
+			end
 		end
 
-		-- (onEnvDimRefresh / onEnvApplyWaterLevel now in initialModel in gui_terraform_brush.lua)
+		-- (onEnvApplyWaterLevel / onEnvApplyHeightRange / onEnvDimRangeMode /
+		--  onEnvResetWaterLevel / onEnvResetBounds now in initialModel in
+		--  gui_terraform_brush.lua)
 
-		-- Min height input
-		local minHInput = doc:GetElementById("input-dim-minheight")
-		if minHInput then
-			minHInput:AddEventListener("focus", function()
-				Spring.SDLStartTextInput()
-				widgetState.focusedRmlInput = minHInput
-			end, false)
-			minHInput:AddEventListener("blur", function()
-				Spring.SDLStopTextInput()
-				widgetState.focusedRmlInput = nil
-			end, false)
+		-- HEIGHT RANGE slider steppers. Not wired through the colorSliders loop:
+		-- that loop captures the RML min/max at attach, while these two tracks
+		-- reseed their bounds at runtime (envFillDimRangeInputs), so the clamp
+		-- has to read the live attributes. The numbox is moved by hand because
+		-- a programmatic slider set does not fire change (their numboxes are
+		-- still typed into via the shared tf-slider-numbox wiring).
+		-- On widgetState, not a local: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envWireDimStepper = function(suffix)
+			local sl = doc:GetElementById("slider-env-" .. suffix)
+			if not sl then
+				return
+			end
+			local function step(dir)
+				return function(event)
+					playSound("tick")
+					local mn = tonumber(sl:GetAttribute("min")) or -10000
+					local mx = tonumber(sl:GetAttribute("max")) or 10000
+					local val = (tonumber(sl:GetAttribute("value")) or 0) + dir
+					val = math.max(mn, math.min(mx, val))
+					sl:SetAttribute("value", tostring(val))
+					local nb = doc:GetElementById("slider-env-" .. suffix .. "-numbox")
+					if nb then
+						nb:SetAttribute("value", tostring(val))
+					end
+					event:StopPropagation()
+				end
+			end
+			local downBtn = doc:GetElementById("btn-env-" .. suffix .. "-down")
+			if downBtn then
+				downBtn:AddEventListener("click", step(-1), false)
+			end
+			local upBtn = doc:GetElementById("btn-env-" .. suffix .. "-up")
+			if upBtn then
+				upBtn:AddEventListener("click", step(1), false)
+			end
 		end
-
-		-- (onEnvApplyMinHeight now in initialModel in gui_terraform_brush.lua)
-
-		-- Max height input
-		local maxHInput = doc:GetElementById("input-dim-maxheight")
-		if maxHInput then
-			maxHInput:AddEventListener("focus", function()
-				Spring.SDLStartTextInput()
-				widgetState.focusedRmlInput = maxHInput
-			end, false)
-			maxHInput:AddEventListener("blur", function()
-				Spring.SDLStopTextInput()
-				widgetState.focusedRmlInput = nil
-			end, false)
-		end
-
-		-- (onEnvApplyMaxHeight / onEnvResetWaterLevel / onEnvResetBounds now in initialModel in gui_terraform_brush.lua)
+		widgetState.envWireDimStepper("dim-minheight")
+		widgetState.envWireDimStepper("dim-maxheight")
+		-- The two shoreline tracks reseed their bounds too (envSeedWaterSlider),
+		-- so they get the same live-bounds steppers; pulled out of the
+		-- colorSliders loop for the same reason as the HEIGHT RANGE pair.
+		widgetState.envWireDimStepper("waterlevel")
+		widgetState.envWireDimStepper("wl")
 	end
 
 	-- (onEnvSave / onEnvLoad now in initialModel in gui_terraform_brush.lua)
@@ -2215,12 +2323,6 @@ end
 
 function M.sync(doc, ctx, setSummary)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local setActiveClass = ctx.setActiveClass
-	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- ===== Environment mode: highlight button, clear other highlights =====
 	-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
 	if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then

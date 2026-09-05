@@ -53,13 +53,11 @@ local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
 local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
 local proposed_unit_reworksTweaks =
 	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
-local communityBalanceTweaks = VFS.Include("unitbasedefs/community_balance_patch_defs.lua").communityBalanceTweaks
 local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
 local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
 
@@ -226,12 +224,19 @@ local function unitDef_Post(name, uDef)
 
 	-- Event Model Replacements: -----------------------------------------------------------------------------
 
-	if isAprilFools and holidayModels.AprilFools[basename] then
-		uDef.objectname = holidayModels.AprilFools[basename]
-	elseif isHalloween and holidayModels.Halloween[basename] then
-		uDef.objectname = holidayModels.Halloween[basename]
-	elseif isXmas and holidayModels.Xmas[basename] then
-		uDef.objectname = holidayModels.Xmas[basename]
+	local holidayModel
+	if isAprilFools then
+		holidayModel = holidayModels.AprilFools[basename]
+	elseif isHalloween then
+		holidayModel = holidayModels.Halloween[basename]
+	elseif isXmas then
+		holidayModel = holidayModels.Xmas[basename]
+	end
+	if holidayModel then
+		uDef.objectname = holidayModel.model
+		if holidayModel.hats then
+			customparams.holidayhatcount = holidayModel.hats
+		end
 	end
 
 	----------------------------------------------------------------------------------------------------------
@@ -266,6 +271,16 @@ local function unitDef_Post(name, uDef)
 	end
 	if not customparams.subfolder then
 		customparams.subfolder = "none"
+	end
+
+	-- israptor/iscritter are set explicitly in the unit def files; the name prefixes stay
+	-- load-bearing elsewhere (createScavengerUnitDefs in unitdefs_post.lua), so warn loudly
+	-- when a def follows the naming convention but is missing its flag
+	if string.sub(name, 1, 6) == "raptor" and not customparams.israptor then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a raptor but lacks customparams.israptor")
+	end
+	if string.sub(name, 1, 8) == "critter_" and not customparams.iscritter then
+		Spring.Log("AllDefs", LOG.WARNING, name .. " is named like a critter but lacks customparams.iscritter")
 	end
 
 	if modOptions.unit_restrictions_notech15 then
@@ -598,16 +613,6 @@ local function unitDef_Post(name, uDef)
 		uDef = proposed_unit_reworksTweaks(name, uDef)
 	end
 
-	-- Community Balance Patch
-	if modOptions.community_balance_patch ~= "disabled" then
-		uDef = communityBalanceTweaks(name, uDef, modOptions)
-	end
-
-	-- Legion Simplified Mex Rebalance
-	if modOptions.legionsimplifiedmexes == true then
-		legionSimpleMexes(name, uDef)
-	end
-
 	-- Naval Balance Adjustments, if anything breaks here blame ZephyrSkies
 	if modOptions.naval_balance_tweaks == true then
 		navalBalanceTweaks(name, uDef)
@@ -856,8 +861,8 @@ local function unitDef_Post(name, uDef)
 				customparams.smart_weapon_cmddesc = "default"
 			end
 
-			weapondefs[weapons[  priorityWeapon].def:lower()].customparams.smart_priority = true
-			weapondefs[weapons[    backupWeapon].def:lower()].customparams.smart_backup = true
+			weapondefs[weapons[priorityWeapon].def:lower()].customparams.smart_priority = true
+			weapondefs[weapons[backupWeapon].def:lower()].customparams.smart_backup = true
 			weapondefs[weapons[trajectoryWeapon].def:lower()].customparams.smart_trajectory_checker = true
 		else
 			customparams.weapons_smart_select = nil

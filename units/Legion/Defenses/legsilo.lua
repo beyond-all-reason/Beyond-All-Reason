@@ -102,7 +102,7 @@ return {
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				edgeeffectiveness = 0.45,
+				edgeeffectiveness = 0,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
@@ -140,8 +140,8 @@ return {
 					nuclear = 1,
 				},
 				damage = {
-					commanders = 2500,
-					default = 11500,
+					commanders = 3000,
+					default = 15000,
 				},
 			},
 			nuclear_launch = {

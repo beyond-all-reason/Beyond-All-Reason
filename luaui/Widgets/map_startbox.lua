@@ -40,10 +40,9 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local GL_TRIANGLES = GL.TRIANGLES
 
-local UPDATE_RATE = 30
-
 local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
@@ -113,13 +112,11 @@ local glCallList = gl.CallList
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glTexCoord = gl.TexCoord
 local GL_POLYGON = GL.POLYGON
-local GL_QUADS = GL.QUADS
 
 local hasStartbox = false
 
@@ -574,6 +571,7 @@ local coneShaderSourceCache = {
 	silent = not autoReload,
 }
 
+---@type InstanceVBOTable?
 local startConeVBOTable = nil
 local startConeShader = nil
 
@@ -910,8 +908,8 @@ local function InitStartPolygons()
 	-- hardcoded fallback fires we defer to the engine startrect path below so
 	-- the lobby/host's rectangles remain authoritative.
 	local configLoaded = false
-	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
-	if ok and ParseBoxes then
+	local ParseBoxes = StartboxLib and StartboxLib.ParseBoxes
+	if ParseBoxes then
 		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
 		if pok and startBoxConfig and isExplicit then
 			local activeAllyTeams = {}
@@ -1594,9 +1592,8 @@ function widget:MousePress(x, y, button)
 		local aiTeamID = aiCurrentlyBeingPlaced
 		local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(aiTeamID, false)
 
-		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
-		if xmin < xmax and zmin < zmax then
-			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
+		if StartboxLib.HasStartbox(aiAllyTeamID) then
+			if StartboxLib.IsInside(aiAllyTeamID, worldX, worldZ) then
 				Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
 				aiCurrentlyBeingPlaced = nil
 				return true
@@ -1653,10 +1650,8 @@ function widget:MouseRelease(x, y, button)
 			local finalZ = worldZ + dragOffsetZ
 
 			local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(draggingTeamID, false)
-			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
-
-			if xmin < xmax and zmin < zmax then
-				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
+			if StartboxLib.HasStartbox(aiAllyTeamID) then
+				if StartboxLib.IsInside(aiAllyTeamID, finalX, finalZ) then
 					aiPlacedPositions[draggingTeamID] = { x = finalX, z = finalZ }
 					posCache[draggingTeamID] = nil
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)

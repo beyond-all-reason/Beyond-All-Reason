@@ -38,8 +38,6 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
-local glCreateList = gl.CreateList
-local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 local glPolygonOffset = gl.PolygonOffset
 local glDepthTest = gl.DepthTest
@@ -65,7 +63,6 @@ local MAX_RADIUS = 2000
 local RADIUS_STEP = 8
 local MIN_STRENGTH = 0.01
 local MAX_STRENGTH = 1.0
-local STRENGTH_STEP = 0.01
 local DEFAULT_STRENGTH = 0.15
 local DEFAULT_RADIUS = 100
 local DEFAULT_CURVE = 1.0
@@ -85,7 +82,6 @@ local DEFAULT_INTENSITY = 1.0
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 10.0
 local INTENSITY_STEP = 0.1
-local FALLOFF_DISPLAY_HEIGHT = 60
 local GRID_STEP = 24 -- elmos between smart-filter sample points
 
 -- Shapes (reuse from terraform brush)
@@ -103,6 +99,7 @@ local activeCurve = DEFAULT_CURVE
 local activeFractalAmount = DEFAULT_FRACTAL
 local activeFractalFreq = DEFAULT_FRACTAL_FREQ
 local eraseMode = false
+local edgeFade = 1 -- cursor alpha factor when hovering past the map edge (TerraformBrush extended resolver)
 
 -- Export format state
 local EXPORT_FORMATS = { "png", "tga", "bmp" }
@@ -164,6 +161,12 @@ local overlayShader = nil
 -- Overlay state
 local showSplatOverlay = false
 
+-- Ctrl sneak-peek gate (Terraform Brush DISPLAY chip). While on and the
+-- tileset shader is live, holding Ctrl renders the selected override channel's
+-- material inside the brush ring before any stroke lands (LAYERS tool; also
+-- works from the legacy splat panel since the engine is shared).
+local tilesetPreviewOn = true
+
 -- Drawing
 local drawCacheList = nil
 local leftMouseHeld = false
@@ -183,6 +186,68 @@ local MAX_UNDO_SPLAT = 20
 local undoStack = {}
 local redoStack = {}
 local pendingSnapshot = false -- set on MousePress, consumed before first stroke
+
+-- Tileset far cache / clipmap invalidation. The tileset shader serves every
+-- pixel past its handoff from a baked composite (far cache + clipmap), and that
+-- bake samples $ssmf_splat_distr at bake time: a stroke that only rewrites the
+-- texture is invisible there until something else re-bakes the region (the
+-- "layers vanish when I zoom out" report, 2026-09-01). Every executed stroke
+-- widens a dirty rect (elmos); it is flushed to WG.TilesetTerrain.refreshSurface
+-- (rect -> sub-rect far bake + clipmap edit, ~free for a brush footprint) every
+-- FAR_FLUSH_S during a drag and as soon as the drag ends. Whole-texture changes
+-- (undo, redo, load) pass no rect = a throttled whole-map refill.
+-- One table for state + helpers: widget:DrawWorld sits at 58/60 upvalues
+-- (Lua 5.1 ceiling), so this costs it one, not four.
+local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
+---@type table
+local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
+
+function farInv.mark(worldX, worldZ, radius)
+	local r = (radius or 0) * 1.5 + 16 -- rotated squares reach r*sqrt(2); fractal edges a bit past
+	local ax, az, bx, bz = worldX - r, worldZ - r, worldX + r, worldZ + r
+	local d = farInv.dirty
+	if d then
+		if ax < d[1] then
+			d[1] = ax
+		end
+		if az < d[2] then
+			d[2] = az
+		end
+		if bx > d[3] then
+			d[3] = bx
+		end
+		if bz > d[4] then
+			d[4] = bz
+		end
+	else
+		farInv.dirty = { ax, az, bx, bz }
+	end
+end
+
+function farInv.flush(force)
+	local d = farInv.dirty
+	if not d then
+		return
+	end
+	local now = Spring.GetTimer()
+	if not force and farInv.at and Spring.DiffTimers(now, farInv.at) < FAR_FLUSH_S then
+		return
+	end
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface(d[1], d[2], d[3], d[4])
+	end
+	farInv.dirty = nil
+	farInv.at = now
+end
+
+function farInv.all()
+	farInv.dirty = nil
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface()
+	end
+end
 local pendingUndoCount = 0
 local pendingRedoCount = 0
 
@@ -203,9 +268,21 @@ local function invalidateDrawCache()
 end
 
 local function getWorldMousePosition()
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		local wx, wz, fade = tb.getWorldPositionExtended(activeRadius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		-- Reset so a stale fade doesn't dim the unmouse-target cursor
+		edgeFade = 1
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then
+		edgeFade = 1
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -1027,11 +1104,16 @@ local function getState()
 		undoCount = #undoStack,
 		redoCount = #redoStack,
 		showSplatOverlay = showSplatOverlay,
+		previewEnabled = tilesetPreviewOn,
 	}
 end
 
 local function setSplatOverlay(enabled)
 	showSplatOverlay = enabled and true or false
+end
+
+local function setTilesetPreviewEnabled(enabled)
+	tilesetPreviewOn = enabled and true or false
 end
 
 local function activateSplat()
@@ -1200,6 +1282,7 @@ function widget:Initialize()
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
 		setSplatOverlay = setSplatOverlay,
+		setTilesetPreviewEnabled = setTilesetPreviewEnabled,
 		setGeoDecalSize = setGeoDecalSize,
 		placeGeoDecal = placeGeoDecal,
 		undoGeoDecal = undoGeoDecal,
@@ -1466,9 +1549,9 @@ local function drawSmartFilterOverlay(cx, cz, radius, shape, angleDeg)
 					local valid = isPointValid(wx, wz)
 
 					if valid then
-						glColor(0.2, 0.85, 0.3, 0.08)
+						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
 					else
-						glColor(0.9, 0.15, 0.15, 0.14)
+						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
 					end
 
 					local x0 = wx - halfStep
@@ -1548,7 +1631,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	glLineWidth(1.5)
 
 	if topY then
-		glColor(1.0, 0.6, 0.1, 0.55)
+		glColor(1.0, 0.6, 0.1, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], topY, cz + corners[i][2])
@@ -1557,7 +1640,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	end
 
 	if botY then
-		glColor(0.1, 0.6, 1.0, 0.55)
+		glColor(0.1, 0.6, 1.0, 0.55 * edgeFade)
 		glBeginEnd(GL_LINE_LOOP, function()
 			for i = 1, #corners do
 				glVertex(cx + corners[i][1], botY, cz + corners[i][2])
@@ -1568,7 +1651,7 @@ local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg)
 	local stride = max(1, floor(#corners / 8))
 	local strutBot = botY or (topY and topY - 100) or 0
 	local strutTop = topY or (botY and botY + 100) or 0
-	glColor(1, 1, 1, 0.2)
+	glColor(1, 1, 1, 0.2 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		for i = 1, #corners, stride do
 			local wx = cx + corners[i][1]
@@ -1604,7 +1687,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 		col = { 1.0, 0.5, 0.0, 0.9 } -- orange for erase
 	end
 
-	glColor(col[1], col[2], col[3], col[4])
+	glColor(col[1], col[2], col[3], col[4] * edgeFade)
 	glLineWidth(2.0)
 
 	if shape == "circle" then
@@ -1647,7 +1730,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 	end
 
 	-- Draw inner crosshair
-	glColor(col[1], col[2], col[3], 0.5)
+	glColor(col[1], col[2], col[3], 0.5 * edgeFade)
 	glLineWidth(1.0)
 	local crossSize = min(r * 0.1, 16)
 	glBeginEnd(GL.LINES, function()
@@ -1660,7 +1743,7 @@ local function generateBrushOutline(centerX, centerZ, groundY)
 	-- Draw falloff ring at 50% strength
 	if shape == "circle" and activeCurve > 0.1 then
 		local halfR = r * (0.5 ^ (1 / activeCurve))
-		glColor(col[1], col[2], col[3], 0.3)
+		glColor(col[1], col[2], col[3], 0.3 * edgeFade)
 		glLineWidth(1.0)
 		glDrawGroundCircle(centerX, groundY, centerZ, halfR, segments)
 	end
@@ -1776,6 +1859,8 @@ function widget:DrawWorld()
 		lastLoadResult = executeLoadSplats(loadPath)
 		if lastLoadResult ~= "ok" then
 			Echo("[Splat Painter] Splat load " .. tostring(lastLoadResult))
+		else
+			farInv.all() -- the whole splat texture changed under the tileset bakes
 		end
 		-- The load may have created fboTex; a still-queued activation init would
 		-- rebuild it and clobber (and leak) the freshly loaded state.
@@ -1813,6 +1898,7 @@ function widget:DrawWorld()
 		pendingUndoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 	if pendingRedoCount > 0 then
@@ -1829,6 +1915,7 @@ function widget:DrawWorld()
 		pendingRedoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 
@@ -1842,12 +1929,20 @@ function widget:DrawWorld()
 	if #pendingPaintStrokes > 0 then
 		for _, stroke in ipairs(pendingPaintStrokes) do
 			executePaintStroke(stroke[1], stroke[2], stroke[3])
+			farInv.mark(stroke[1], stroke[2], activeRadius)
 		end
 		pendingPaintStrokes = {}
+	end
+	-- tileset far cache / clipmap: throttled (FAR_FLUSH_S); the drag's tail lands
+	-- within one throttle period after release. (No drag-state upvalue here on
+	-- purpose: DrawWorld sits at the Lua 5.1 60-upvalue ceiling.)
+	if farInv.dirty then
+		farInv.flush(false)
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("splatPainter", worldX, worldZ, activeRadius, 1.0)
@@ -1859,10 +1954,30 @@ function widget:DrawWorld()
 		return
 	end
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
 			return
+		end
+	end
+	-- CTRL SNEAK PEEK (tileset override channels): while Ctrl is held the
+	-- tileset shader renders the selected channel's material inside the brush
+	-- ring as if the stroke had landed. Channel R (auto) has nothing to force.
+	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
+	-- inert with the tileset shader off (the uniform simply never renders).
+	do
+		---@type table?
+		local T = WG.TilesetTerrain
+		if T and T.setSurfacePreview then
+			local mode = 0
+			if tilesetPreviewOn and not geoDecalMode and activeChannel >= 2 then
+				local _, pkCtrl = Spring.GetModKeyState()
+				if pkCtrl then
+					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
+				end
+			end
+			T.setSurfacePreview(mode, worldX, worldZ, activeRadius, activeCurve)
 		end
 	end
 	local groundY = GetGroundHeight(worldX, worldZ)
@@ -1871,12 +1986,12 @@ function widget:DrawWorld()
 	if geoDecalMode then
 		-- Draw geo decal preview: magenta circle at decal size
 		local halfSize = GEO_DECAL_SIZE * 0.5
-		glColor(0.9, 0.3, 0.9, 0.8)
+		glColor(0.9, 0.3, 0.9, 0.8 * edgeFade)
 		glLineWidth(2.0)
 		glDrawGroundCircle(worldX, groundY, worldZ, halfSize, CIRCLE_SEGMENTS)
 		-- Inner crosshair
 		local crossSize = min(halfSize * 0.15, 16)
-		glColor(0.9, 0.3, 0.9, 0.5)
+		glColor(0.9, 0.3, 0.9, 0.5 * edgeFade)
 		glLineWidth(1.0)
 		glBeginEnd(GL.LINES, function()
 			glVertex(worldX - crossSize, groundY + 3, worldZ)

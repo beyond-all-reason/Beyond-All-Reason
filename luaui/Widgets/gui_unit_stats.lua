@@ -26,6 +26,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local texts = {}
+local weaponInfo = VFS.Include("common/weapons.lua")
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua"))
 	and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
@@ -139,7 +140,6 @@ local floor = mathFloor
 local ceil = math.ceil
 local bit_and = math.bit_and
 local format = string.format
-local char = string.char
 
 local glColor = gl.Color
 
@@ -827,11 +827,19 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		-- Handle projectiles that spawn additional projectiles.
 		-- Many properties (might) have nothing to do with the spawned projectile:
-		local burst = uWep.salvoSize * uWep.projectiles
+		-- `reload` is a reported reload while `dpsCycle` is the engine's true time between shots.
+		-- Weapons with a firing time (so, beam weapons) can extend that time beyond their reload.
 		local range = uWep.range
 		local reload = uWep.reload
 		local accuracy = uWep.accuracy
 		local moveError = uWep.targetMoveError
+
+		if uID and weaponNumber > 0 then
+			reload = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or reload
+		end
+		local reloadBonus = reload > 0 and (uWep.reload / reload - 1) or 0
+
+		local burst, dpsCycle = weaponInfo.GetFiringCycle(uWep, reload)
 
 		local damages = uWep.damages
 		local defaultArmorIndex = armorTypes.default
@@ -841,16 +849,8 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local custom = uWep.customParams
 
-		if uWep.type == "BeamLaser" then
-			if custom.sweepfire_firetime then
-				burst = tonumber(custom.sweepfire_firetime) * uWep.projectiles * simSpeed
-				if not uWep.beamBurst then
-					burst = burst / (simSpeed * uWep.beamtime)
-				end
-			end
-			if custom.sweepfire_reloadtime then
-				reload = tonumber(custom.sweepfire_reloadtime)
-			end
+		if uWep.type == "BeamLaser" and custom.sweepfire_reloadtime then
+			reload = tonumber(custom.sweepfire_reloadtime)
 		end
 
 		if custom.spark_forkdamage then
@@ -894,7 +894,6 @@ local function computeContent(uDefID, uID, shiftBool)
 
 			if uExp ~= 0 then
 				local rangeBonus = range ~= 0 and (range / uWep.range - 1) or 0
-				local reloadBonus = reload ~= 0 and (uWep.reload / reload - 1) or 0
 				local accuracyBonus = accuracy ~= 0 and (uWep.accuracy / accuracy - 1) or 0
 				local moveErrorBonus = moveError ~= 0 and (uWep.targetMoveError / moveError - 1) or 0
 				DrawText(
@@ -987,11 +986,11 @@ local function computeContent(uDefID, uID, shiftBool)
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 					damageString = texts.burst .. " = " .. (format(yellow .. "%d", burstDamage)) .. white .. "."
 				else
-					local dps = burstDamage / (useExp and reload or uWep.reload)
+					local dps = burstDamage / dpsCycle
 					if custom.area_onhit_damage and custom.area_onhit_time then
 						local areaDps = custom.area_onhit_damage * burst
 						local duration = custom.area_onhit_time
-						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
+						dps = max(dps + areaDps, areaDps * duration / dpsCycle)
 					end
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
 					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.

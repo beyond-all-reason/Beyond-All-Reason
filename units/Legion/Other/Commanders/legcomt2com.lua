@@ -88,7 +88,6 @@ return {
 			[30] = "legmg",
 			[31] = "armferret",
 			[32] = "armnanotc",
-			[33] = "legmext15",
 		},
 		customparams = {
 			unitgroup = "builder",
@@ -96,7 +95,9 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 5,
 			subfolder = "",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {

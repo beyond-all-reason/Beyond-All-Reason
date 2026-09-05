@@ -22,7 +22,7 @@ local isCommander = {}
 local isFlyingCritter = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if string.sub(unitDef.name, 1, 7) == "critter" then
+	if unitDef.customParams.iscritter then
 		isCritter[unitDefID] = true
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true
@@ -61,7 +61,6 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local CreateUnit = Spring.CreateUnit
-local GetUnitTeam = Spring.GetUnitTeam
 local ValidUnitID = Spring.ValidUnitID
 
 local random = math.random
@@ -80,8 +79,6 @@ local aliveCritters = 0
 local companionRadius = companionRadiusStart
 local processOrders = true
 local addedInitialCritters
-
-local ownCritterDestroy = false
 
 local function randomPatrolInBox(unitID, box, minWaterDepth) -- only define minWaterDepth if unit is a submarine
 	local ux, _, uz = GetUnitPosition(unitID, true, true)
@@ -134,11 +131,6 @@ local function randomPatrolInBox(unitID, box, minWaterDepth) -- only define minW
 			break
 		end
 	end
-end
-
-local function in_circle(center_x, center_y, radius, x, y)
-	local square_dist = ((center_x - x) * (center_x - x)) + ((center_y - y) * (center_y - y))
-	return square_dist <= radius * radius
 end
 
 -- doing multiple orders per unit gives errors, so doing 1 per gameframe is best

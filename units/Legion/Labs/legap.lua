@@ -53,6 +53,7 @@ return {
 			airfactory = true,
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
 		},
 		featuredefs = {

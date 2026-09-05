@@ -206,38 +206,41 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	attached_builder_def[unitID] = nil
 end
 
+-- customparams.attached_con_turret names the turret def to spawn and attach on finish;
+-- customparams.attached_con_turret_noselect additionally hides it from selection/groups
+-- (legmohobp ships without it, keeping its turret selectable as it always was).
+-- scav copies inherit the params but historically never got a turret, so they are excluded.
+local attachedTurretDef = {} -- unitDefID -> { con = defname, noSelect = bool }
+for udid, ud in pairs(UnitDefs) do
+	local con = ud.customParams.attached_con_turret
+	if con and UnitDefNames[con] and not ud.customParams.isscavenger and not ud.customParams.attached_con_turret_mex then
+		attachedTurretDef[udid] = {
+			con = con,
+			noSelect = ud.customParams.attached_con_turret_noselect and true or false,
+		}
+	end
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	local unitDef = UnitDefs[unitDefID]
-	-- for now, just corvac gets an attached con turret
-	if unitDef.name == "corvac" then
-		local xx, yy, zz = SpGetUnitPosition(unitID)
-		nanoID = Spring.CreateUnit("corvacct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
-		if not nanoID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID, nanoID, 3, true)
-		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(nanoID, false, false, false)
-		Spring.SetUnitNoSelect(nanoID, true)
+	local data = attachedTurretDef[unitDefID]
+	if not data then
+		return
+	end
+	local xx, yy, zz = SpGetUnitPosition(unitID)
+	local nanoID = Spring.CreateUnit(data.con, xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
+	if not nanoID then
+		-- unit limit hit or invalid spawn surface
+		return
+	end
+	Spring.UnitAttach(unitID, nanoID, 3, true)
+	-- makes the attached con turret as non-interacting as possible
+	Spring.SetUnitBlocking(nanoID, false, false, false)
+	Spring.SetUnitNoSelect(nanoID, data.noSelect)
+	if data.noSelect then
 		SendToUnsynced("setUnitNoGroup", nanoID, true)
-		attached_builders[nanoID] = unitID
-		attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
 	end
-	if unitDef.name == "legmohobp" then
-		local xx, yy, zz = SpGetUnitPosition(unitID)
-		nanoID = Spring.CreateUnit("legmohobpct", xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
-		if not nanoID then
-			-- unit limit hit or invalid spawn surface
-			return
-		end
-		Spring.UnitAttach(unitID, nanoID, 3, true)
-		-- makes the attached con turret as non-interacting as possible
-		Spring.SetUnitBlocking(nanoID, false, false, false)
-		Spring.SetUnitNoSelect(nanoID, false)
-		attached_builders[nanoID] = unitID
-		attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
-	end
+	attached_builders[nanoID] = unitID
+	attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
 end
 
 function gadget:GameFrame(gameFrame)

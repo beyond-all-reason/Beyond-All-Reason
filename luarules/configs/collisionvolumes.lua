@@ -207,13 +207,24 @@ unitCollisionVolume.legsolar = {
 	off = { 40, 76, 40, 0, -10, 1, 0, 1, 0 },
 }
 
-for name, v in pairs(unitCollisionVolume) do
-	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, name) then
-			unitCollisionVolume[ud.name] = v
+-- copy each entry to its scavenger variants, matched via the customparams that scav def
+-- generation stamps (isscavenger + fromunit backlink). The old substring propagation
+-- corrupted units whose name merely contained another entry's name (armannit3/cordoomt3
+-- got armanni/cordoom's whole-unit volumes, clobbering their per-piece definitions)
+local function propagateToScavCopies(tbl)
+	local scavCopies = {}
+	for _, unitDef in pairs(UnitDefs) do
+		local baseName = unitDef.customParams.isscavenger and unitDef.customParams.fromunit
+		if baseName and tbl[baseName] then
+			scavCopies[unitDef.name] = tbl[baseName]
 		end
 	end
+	for name, v in pairs(scavCopies) do
+		tbl[name] = v
+	end
 end
+
+propagateToScavCopies(unitCollisionVolume)
 
 pieceCollisionVolume.corhrk = {
 	["2"] = { 35, 40, 30, 0, -8, 0, 2, 1 },
@@ -387,7 +398,7 @@ pieceCollisionVolume.cortrem = {
 	["0"] = { 40, 32, 44, 0, 0, 0, 2, 1 },
 	["1"] = { 24, 64, 24, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.seal = {
+pieceCollisionVolume.corseal = {
 	["0"] = { 28, 25, 34, 0, 0, 0, 2, 1 },
 	["1"] = { 12, 16, 12, 0, 0, 0, 2, 1 },
 }
@@ -460,13 +471,14 @@ pieceCollisionVolume['legkeres'] = {
 	['2']={44,19,48,0,9.5,2,2,0},
 }
 
-for name, v in pairs(pieceCollisionVolume) do
-	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, name) then
-			pieceCollisionVolume[ud.name] = v
-		end
-	end
-end
+-- variants that previously inherited their base unit's volumes via substring matching
+pieceCollisionVolume.corgolt4 = pieceCollisionVolume.corgol
+pieceCollisionVolume.corhalab = pieceCollisionVolume.corhal
+pieceCollisionVolume.leggatet3 = pieceCollisionVolume.leggat
+pieceCollisionVolume.leginfestor = pieceCollisionVolume.leginf
+pieceCollisionVolume.legsrailt4 = pieceCollisionVolume.legsrail
+
+propagateToScavCopies(pieceCollisionVolume)
 
 dynamicPieceCollisionVolume.corvipe = {
 	on = {
@@ -479,12 +491,6 @@ dynamicPieceCollisionVolume.corvipe = {
 		offsets = { 0, 8, 0 }, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
 	},
 }
-for name, v in pairs(dynamicPieceCollisionVolume) do
-	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, name) then
-			dynamicPieceCollisionVolume[ud.name] = v
-		end
-	end
-end
+propagateToScavCopies(dynamicPieceCollisionVolume)
 
 return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume

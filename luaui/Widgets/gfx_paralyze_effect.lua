@@ -253,7 +253,7 @@ void main() {
 	float paralysis_level = v_endcolor_alpha.a; // values of 1 are fully paralyzed
 
 	float noisescale;
-	float persistance;
+	float persistence;
 	float lacunarity;
 	vec3 minlightningcolor;
 	vec3 maxlightningcolor;
@@ -267,7 +267,7 @@ void main() {
 
 	if (paralysis_level < 0.9999) { // not fully paralyzed
 		noisescale = 0.15;
-		persistance = 0.45;
+		persistence = 0.45;
 		lacunarity = 2.5;
 		minlightningcolor = vec3(0.1, 0.1, 0.5); //blue
 		maxlightningcolor = vec3(0.9, 0.9, 0.9); //white
@@ -279,7 +279,7 @@ void main() {
 	}
 	else{ // fully paralyzed
 		noisescale = 0.31;
-		persistance = 0.45;
+		persistence = 0.45;
 		lacunarity = 2.5;
 		minlightningcolor = vec3(0.1, 0.1, 1.0); //blue
 		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
@@ -293,10 +293,10 @@ void main() {
 
 	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
-	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
-	noise4 += pow(persistance, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
-	noise4 += pow(persistance, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
-	noise4 += pow(persistance, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
+	noise4 += pow(persistence, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
+	noise4 += pow(persistence, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
+	noise4 += pow(persistence, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
+	noise4 += pow(persistence, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
 	noise4 = (1.0 * noise4 + 0.5);
 	float electricity = clamp(1.0 - abs(noise4 - 0.5) * lighting_width, 0.0, 1.0);
 	electricity = clamp(pow(electricity, lighting_sharpness), 0.0, 1.0);
@@ -347,6 +347,7 @@ if Spring.GetModOptions().emprework then
 	)
 end
 
+---@type InstanceVBOTable?
 local paralyzedDrawUnitVBOTable
 
 local function initGL4()
@@ -444,12 +445,9 @@ local function StopDrawParalyzedUnitGL4(unitID)
 end
 
 ---  All the stuff from the old paralyze effect widget to make this shit work!
-local unitIDtoUniqueID = {}
 local TESTMODE = false
 
 local gameFrame = spGetGameFrame()
-local prevGameFrame = gameFrame
-local numParaUnits = 0
 local myTeamID
 local spec, fullview
 

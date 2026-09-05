@@ -41,7 +41,10 @@ local returnFireTexture = "LuaUI/Images/returnfire.png"
 --------------------------------------------------------------------------------
 -- GL4 Backend
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local holdFireVBO = nil
+---@type InstanceVBOTable?
 local returnFireVBO = nil
 local fireIconShader = nil
 
@@ -86,6 +89,9 @@ local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.85, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 --------------------------------------------------------------------------------
 -- GL4 Initialization
 --------------------------------------------------------------------------------
+
+---Builds the instance buffer backing one fire state icon.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThisShader)
 	local instanceLayout
 	local unitIDattribID
@@ -147,8 +153,11 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 
 		vboTable.nogsTemplateVBO = templateVBO
 		vboTable.nogsIndexVBO = indexVBO
+		-- so the resize can find the template mesh when it rebuilds the VAO
+		vboTable.vertexVBO = templateVBO
+		vboTable.indexVBO = indexVBO
 		local indexCount = #indexData
-		vboTable.VAO = {
+		local vaoWrapper = {
 			realVAO = realVAO,
 			indexCount = indexCount,
 			DrawArrays = function(self, _primitiveType, instanceCount)
@@ -160,6 +169,21 @@ local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThis
 				self.realVAO:Delete()
 			end,
 		}
+		-- the resize will put a plain VAO into this field, keep our wrapper working like DrawPrimitiveAtUnit.lua does
+		setmetatable(vboTable, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 	return vboTable
 end

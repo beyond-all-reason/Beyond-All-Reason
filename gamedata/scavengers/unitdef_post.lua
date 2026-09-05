@@ -258,9 +258,11 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	-- Armada T1 Land Constructors
+	--[[
 	if name == "armca_scav" or name == "armck_scav" or name == "armcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Armada T1 Sea Constructors
 	if name == "armcs_scav" or name == "armcsa_scav" then
@@ -320,9 +322,11 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	-- Cortex T1 Land Constructors
+	--[[
 	if name == "corca_scav" or name == "corck_scav" or name == "corcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T1 Sea Constructors
 	if name == "corcs_scav" or name == "corcsa_scav" then
@@ -332,9 +336,11 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	-- Cortex T1 Bots Factory
+	--[[
 	if name == "corlab_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T2 Land Constructors
 	if name == "coraca_scav" or name == "corack_scav" or name == "coracv_scav" then
@@ -369,9 +375,11 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	-- Cortex T2 Aircraft Plant
+	--[[
 	if name == "coraap_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T2 Shipyard
 	if name == "corasy_scav" then
@@ -379,23 +387,29 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 1] = "coresuppt3_scav" -- Adjudictator - Ultra Heavy Heatray Battleship
 		uDef.buildoptions[numBuildoptions + 2] = "coronager_scav" -- Onager - Coastal Assault Submarine
 		uDef.buildoptions[numBuildoptions + 3] = "cordesolator_scav" -- Desolator - Nuclear ICBM Submarine
-		uDef.buildoptions[numBuildoptions + 4] = "CorPrince_scav" -- Black Prince - Shore bombardment battleship
+		uDef.buildoptions[numBuildoptions + 4] = "corprince_scav" -- Black Prince - Shore bombardment battleship
 	end
 
 	-- Cortex T3 Gantry
+	--[[
 	if name == "corgant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T3 Underwater Gantry
+	--[[
 	if name == "corgantuw_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Legion T1 Land Constructors
+	--[[
 	if name == "legca_scav" or name == "legck_scav" or name == "legcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then
@@ -422,24 +436,32 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
 	-- Armada T1 Land Constructors
+	--[[
 	if name == "armca_scav" or name == "armck_scav" or name == "armcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Armada T1 Sea Constructors
+	--[[
 	if name == "armcs_scav" or name == "armcsa_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Armada T1 Vehicle Factory
+	--[[
 	if name == "armvp_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Armada T1 Aircraft Plant
+	--[[
 	if name == "armap_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Armada T2 Constructors
 	if name == "armaca_scav" or name == "armack_scav" or name == "armacv_scav" then
@@ -500,14 +522,18 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	-- Cortex T2 Sea Constructors
+	--[[
 	if name == "coracsub_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T2 Bots Factory
+	--[[
 	if name == "coralab_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Cortex T2 Vehicle Factory
 	if name == "coravp_scav" then
@@ -550,9 +576,11 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	-- Legion T1 Land Constructors
+	--[[
 	if name == "legca_scav" or name == "legck_scav" or name == "legcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	end
+	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then

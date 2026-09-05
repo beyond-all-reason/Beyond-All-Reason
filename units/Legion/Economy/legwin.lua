@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 175,
-		metalcost = 45,
+		metalcost = 43,
 		buildpic = "LEGWIN.DDS",
 		buildtime = 1680,
 		canrepeat = false,

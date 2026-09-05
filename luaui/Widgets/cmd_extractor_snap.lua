@@ -52,6 +52,12 @@ function widget:Initialize()
 		return
 	end
 
+	if not WG.resource_spot_builder or not WG.resource_spot_finder then
+		Spring.Echo("Extractor Snap: the mex/geo resource spot API is missing, disabling")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	WG.ExtractorSnap = {}
 	local builder = WG.resource_spot_builder
 

@@ -17,12 +17,16 @@ local spEcho = Spring.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+
 local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
-local StartBoxes = {} -- list of xXyY
+local StartPolygons = {} -- list of { team = teamID, poly = { {x, z}, ... } }
+local startPolygonBuffer
+local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
 if noRushTime == 0 then
 	return
@@ -32,7 +36,6 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = Spring.GetGroundExtremes()
-local NUM_BOXES = 0
 
 local shaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
@@ -45,7 +48,8 @@ local shaderSourceCache = {
 	shaderName = "Norush Timer GL4",
 	shaderConfig = {
 		ALPHA = 0.5,
-		NUM_BOXES = NUM_BOXES,
+		NUM_POLYGONS = 0,
+		NUM_POINTS = 0,
 		MINY = minY,
 		MAXY = maxY,
 	},
@@ -90,21 +94,13 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
+	startPolygonBuffer:BindBufferRange(4)
+
 	glCulling(true)
 	glDepthTest(false)
 	gl.DepthMask(false)
 
 	norushTimerShader:Activate()
-	for i, startBox in ipairs(StartBoxes) do
-		--spEcho("startBoxes["..i.."]", startBox[1],startBox[2],startBox[3],startBox[4])
-		norushTimerShader:SetUniform(
-			"startBoxes[" .. (i - 1) .. "]",
-			startBox[1],
-			startBox[2],
-			startBox[3],
-			startBox[4]
-		)
-	end
 	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
@@ -117,23 +113,98 @@ function widget:GameFrame(n)
 	-- TODO: Remove the widget when the timer is up?
 end
 
-function widget:Initialize()
+-- teamColor in the shader is indexed by team, so each polygon carries a team from its
+-- allyteam rather than the allyteam id itself.
+local function ColourTeamOf(allyTeamID)
+	local teams = Spring.GetTeamList(allyTeamID)
+
+	return (teams and teams[1]) or 0
+end
+
+-- Must match map_startbox.lua
+local function BuildStartPolygons()
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID and teamID ~= pveAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--spEcho("Allyteam",teamID,"startbox",xn, zn, xp, zp)
-			StartBoxes[#StartBoxes + 1] = { xn, zn, xp, zp }
+
+	local polygons = {}
+
+	-- isExplicit is false for the hardcoded fallback, which the gadget does not enforce
+	-- either; the engine rectangles stay authoritative in that case.
+	local startBoxConfig, _, isExplicit = StartboxLib.GetConfig()
+	if startBoxConfig and isExplicit then
+		-- Walked in allyteam order rather than with pairs(): the buffer order decides which
+		-- colour each zone gets, and pairs() would let two clients disagree about it.
+		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+			local entry = startBoxConfig[allyTeamID]
+			if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
+				for _, polygon in ipairs(entry.boxes) do
+					polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
+				end
+			end
+		end
+	end
+	if #polygons > 0 then
+		return polygons
+	end
+
+	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID then
+			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(allyTeamID)
+			if xn then
+				-- Expressed as a ring so the shader keeps a single code path.
+				polygons[#polygons + 1] =
+					{ team = ColourTeamOf(allyTeamID), poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
+			end
 		end
 	end
 
-	-- MANUAL OVERRIDE FOR DEBUGGING:
-	-- StartBoxes = { {100, 200, 2000, 3000} , {2200, 3300, 5000, 4000}}
+	return polygons
+end
 
-	shaderSourceCache.shaderConfig.NUM_BOXES = #StartBoxes
+function widget:Initialize()
+	StartPolygons = BuildStartPolygons()
+	if #StartPolygons == 0 then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	local bufferdata = {}
+	local numVertices = 0
+	for _, entry in ipairs(StartPolygons) do
+		local polygon = entry.poly
+		local numPoints = #polygon
+		for _, vertex in ipairs(polygon) do
+			bufferdata[#bufferdata + 1] = entry.team
+			bufferdata[#bufferdata + 1] = numPoints
+			bufferdata[#bufferdata + 1] = vertex[1]
+			bufferdata[#bufferdata + 1] = vertex[2]
+			numVertices = numVertices + 1
+		end
+	end
+
+	-- SHADER_STORAGE_BUFFER data has to be 64 byte aligned.
+	if numVertices % 4 ~= 0 then
+		local pad = 4 - (numVertices % 4)
+		for _ = 1, pad * 4 do
+			bufferdata[#bufferdata + 1] = -1
+		end
+		numVertices = numVertices + pad
+	end
+
+	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false)
+	if not startPolygonBuffer then
+		spEcho("Error: Norush Timer GL4 could not allocate its start polygon buffer")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	startPolygonBuffer:Define(numVertices, { { id = 0, name = "startpolygons", size = 4 } })
+	startPolygonBuffer:Upload(bufferdata)
+
+	shaderSourceCache.shaderConfig.NUM_POLYGONS = #StartPolygons
+	shaderSourceCache.shaderConfig.NUM_POINTS = numVertices
 
 	norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 

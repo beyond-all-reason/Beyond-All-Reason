@@ -47,18 +47,13 @@ if Spring.GetModOptions().easytax then
 	sharingTax = 0.3 -- 30% tax for easytax modoption
 end
 
-local function isAlliedUnit(teamID, unitID)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	return teamID and unitTeam and teamID ~= unitTeam and Spring.AreTeamsAllied(teamID, unitTeam)
-end
-
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 
 function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType, amount)
 	-- Spring uses 'm' and 'e' instead of the full names that we need, so we need to convert the resourceType
-	-- We also check for 'metal' or 'energy' incase Spring decides to use those in a later version
+	-- We also check for 'metal' or 'energy' in case Spring decides to use those in a later version
 	local resourceName
 	if (resourceType == "m") or (resourceType == "metal") then
 		resourceName = "metal"
@@ -82,7 +77,6 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 
 	local taxedAmount = math_min((1 - sharingTax) * amount, maxShare)
 	local totalAmount = taxedAmount / (1 - sharingTax)
-	local transferTax = totalAmount * sharingTax
 
 	spSetTeamResource(receiverTeamId, resourceName, rCur + taxedAmount)
 	local sCur, _, _, _, _, _ = spGetTeamResources(senderTeamId, resourceName)

@@ -21,7 +21,9 @@ local spEcho = Spring.Echo
 -- Make this shared the same way screencopy texture is shared, via an api
 -- bind and sample this texture if needed for any other method :)
 
+---@type InstanceVBOTable?
 local unitStencilVBO = nil
+---@type InstanceVBOTable?
 local featureStencilVBO = nil -- TODO
 local unitStencilShader = nil
 
@@ -350,7 +352,10 @@ local function attachStencilVAO(stencilVBO, templateVBO, indexVBO, indexCount)
 		stencilVBO.VAO:AttachVertexBuffer(stencilVBO.instanceVBO)
 	else
 		local realVAO = InstanceVBOTable.makeVAOandAttach(templateVBO, stencilVBO.instanceVBO, indexVBO)
-		stencilVBO.VAO = {
+		-- so the resize can find the template mesh when it rebuilds the VAO
+		stencilVBO.vertexVBO = templateVBO
+		stencilVBO.indexVBO = indexVBO
+		local vaoWrapper = {
 			realVAO = realVAO,
 			indexCount = indexCount,
 			DrawArrays = function(self, _primitiveType, instanceCount)
@@ -362,6 +367,21 @@ local function attachStencilVAO(stencilVBO, templateVBO, indexVBO, indexCount)
 				self.realVAO:Delete()
 			end,
 		}
+		-- the resize will put a plain VAO into this field, keep our wrapper working like DrawPrimitiveAtUnit.lua does
+		setmetatable(stencilVBO, {
+			__index = function(_, key)
+				if key == "VAO" then
+					return vaoWrapper
+				end
+			end,
+			__newindex = function(instanceTable, key, value)
+				if key == "VAO" then
+					vaoWrapper.realVAO = value
+				else
+					rawset(instanceTable, key, value)
+				end
+			end,
+		})
 	end
 end
 
@@ -452,8 +472,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID)
 			unitDef.model.maxy,
 			unitDef.model.maxz,
 		}
-		local dimsXYZ = unitDimensionsXYZ[unitDefID]
-		--spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
 	end
 	local dimsXYZ = unitDimensionsXYZ[unitDefID]
 

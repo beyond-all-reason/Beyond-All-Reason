@@ -1,11 +1,14 @@
 ---@diagnostic disable: undefined-global
+-- Supplied by the including unit script, which shares this chunk's environment:
+-- luacheck: read_globals base cod foot_l foot_r head heavy isAiming isBuilding isMoving
+-- luacheck: read_globals l_arm l_forearm leftArm left_l r_arm r_forearm rightArm right_l
+-- luacheck: read_globals shin_l shin_r speedMult
 
 ------------------------------------------------------
 -- License:	Public Domain
 -- Author:	Nemo, Smoth
 -- Date:	3/18/2011
 -------------------------------------------------------
-local inStance = false
 local gravFactor = Game.gravity / 120
 
 function walk()
@@ -207,8 +210,8 @@ end
 
 function StandStance()
 	Sleep(200)
-	Move(cod, y_axis, 0, now)
-	Turn(base, z_axis, 0, now)
+	Move(cod, y_axis, 0)
+	Turn(base, z_axis, 0)
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 
@@ -255,8 +258,8 @@ end
 
 function SquatStance()
 	Sleep(200)
-	Move(cod, y_axis, -1.5, now)
-	Turn(base, z_axis, 0, now)
+	Move(cod, y_axis, -1.5)
+	Turn(base, z_axis, 0)
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 
@@ -363,7 +366,7 @@ function LookAround()
 
 			local randomRotDegrees = math.random(10, 50)
 			local randomRotRadians = math.rad(randomRotDegrees)
-			randomAnim = math.random(1, 3)
+			local randomAnim = math.random(1, 3)
 			--Spring.Echo("LookAround",isMoving, randomAnim, AmIBored())
 			if randomAnim >= 2 and AmIBored() then
 				Turn(base, y_axis, randomRotRadians, 0.34 * randomAnim)

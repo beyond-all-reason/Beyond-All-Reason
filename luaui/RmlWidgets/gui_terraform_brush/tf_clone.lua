@@ -29,10 +29,6 @@ function M.sync(doc, ctx, clState, setSummary)
 	end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- ===== Clone Tool mode: highlight button, sync controls =====
 	do
 		-- Update status label (dm.clStatusStr → {{clStatusStr}} in RML)

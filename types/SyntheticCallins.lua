@@ -3,26 +3,28 @@
 ---Call-ins that BAR invents and dispatches from luarules/gadgets.lua.
 ---
 ---The summary call-ins report a frame's events once, after the frame. They run
----only when something happened, and each event runs the layer stack in turn, as
----an engine-driven callin does.
+---only when something happened, and each event runs the layer stack in order.
 ---
 ---Each summary base has a Post and a Total. Both report the same objects in the
 ---same order, and Total adds the sum of each object's steps. We accumulate the
 ---sums only while a Total has subscribers, and Post is the cheaper call-in when
 ---we do not read them.
+---
+---A transition base has only a Post, and reports an object once per change in
+---its tracked state, rather than once per frame in which it saw an event.
 ---@class SyntheticCallins
 ---
 ---
 ---Runs for every unit gained by a team, regardless of how it was gained.
 ---
 ---Dispatch: g:UnitCreated, g:UnitGiven.
----@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---@field MetaUnitAdded? fun(self, unitID: UnitID, unitDefID: UnitDefID, unitTeam: TeamID)
 ---
 ---
 ---Runs for every unit lost to a team, regardless of how it was lost.
 ---
 ---Dispatch: g:UnitDestroyed, g:UnitTaken.
----@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---@field MetaUnitRemoved? fun(self, unitID: UnitID, unitDefID: UnitDefID, unitTeam: TeamID)
 ---
 ---
 ---Optionally replaces the autotarget search radius for a unit's command AI.
@@ -30,7 +32,7 @@
 ---Any return value of zero or less discontinues the chain and prevents the search.
 ---
 ---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
----@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
+---@field UnitAutoTargetRange? fun(self, attackerID: UnitID, autoTargetRange: number): number
 ---
 ---
 ---Runs for every unit that received a build step.
@@ -38,7 +40,7 @@
 ---
 ---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepPost? fun(self, unitID: integer)
+---@field UnitBuildStepPost? fun(self, unitID: UnitID)
 ---
 ---
 ---Runs for every feature that received a build step.
@@ -46,7 +48,7 @@
 ---
 ---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepPost? fun(self, featureID: integer)
+---@field FeatureBuildStepPost? fun(self, featureID: FeatureID)
 ---
 ---
 ---Runs for every unit that received a build step, with the sum of its steps.
@@ -58,7 +60,7 @@
 ---
 ---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
+---@field UnitBuildStepTotal? fun(self, unitID: UnitID, part: number)
 ---
 ---
 ---Runs for every feature that received a build step, with the sum of its steps.
@@ -70,4 +72,15 @@
 ---
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
+---@field FeatureBuildStepTotal? fun(self, featureID: FeatureID, part: number)
+---
+---
+---Runs for every unit that ran out of work, or that found some again.
+---Includes exhausted queues, factory queues, and the "idle tasks" that
+---units carry out on their own, which do not count as positive work.
+---
+---`idled` is `true` when the unit ran out of work, `false` when it found some.
+---
+---Mark: g:UnitIdle, g:UnitCommand, g:UnitTaken, g:UnitDestroyed.
+---Dispatch: g:GameFramePost.
+---@field UnitIdlePost? fun(self, unitID: UnitID, idled: boolean)

@@ -26,6 +26,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable?
 local flankingVBO = nil
 local flankingShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -157,7 +158,7 @@ function widget:Initialize()
 	shaderConfig.POST_SHADING = "fragColor.a = fragColor.a * g_color.a;" -- alpha blend
 	shaderConfig.ANIMATION = nil
 	shaderConfig.USE_CIRCLES = nil
-	shaderConfig.MAX_VERTICES = 4
+	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CORNERRECT = nil
 	flankingVBO, flankingShader = InitDrawPrimitiveAtUnit(shaderConfig, "FlankingIcons")
 	if flankingVBO == nil then

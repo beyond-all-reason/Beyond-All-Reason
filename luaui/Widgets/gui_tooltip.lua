@@ -20,16 +20,10 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
--- Localized gl functions for performance
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glCallList = gl.CallList
-local glTranslate = gl.Translate
-
 --[[
 
 -- Available API functions:
-WG['tooltip'].AddTooltip(name, area, value, delay, x, y, title)  -- area: {x1,y1,x2,y2}   value(optional): 'text'   delay(optional): #seconds   x/y(optional): display coordinates   title(optional): 'text'
+WG['tooltip'].AddTooltip(name, area, value, delay, title)  -- area: ScreenRect {left,bottom,right,top}   value(optional): 'text'   delay(optional): #seconds   title(optional): 'text'
 WG['tooltip'].RemoveTooltip(name)
 
 WG['tooltip'].ShowTooltip(name, value, x, y, title)    -- value(optional): 'text'   x/y (optional): display coordinates   title(optional): 'text'
@@ -66,7 +60,6 @@ local RectRound, UiElement, bgpadding
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
-local currentTooltipName = nil -- Track which tooltip is currently displayed
 
 -- Get or create a texture from the pool
 local function getPooledTexture(width, height, key)
@@ -138,6 +131,13 @@ function widget:Initialize()
 		WG.tooltip.getFontsize = function()
 			return usedFontSize
 		end
+		---Registers a hover tooltip over a screen rectangle. Calling again with the same
+		---name updates it; pass only `name` and `area` to move an existing tooltip.
+		---@param name string Caller-chosen key; pass the same one to `RemoveTooltip`.
+		---@param area ScreenRect
+		---@param value string|number|nil Tooltip body.
+		---@param delay number? Seconds of hover before it appears. Defaults to the widget's delay.
+		---@param title string|number|nil Tooltip heading.
 		WG.tooltip.AddTooltip = function(name, area, value, delay, title)
 			if
 				(
