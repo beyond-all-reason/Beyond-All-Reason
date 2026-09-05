@@ -2014,6 +2014,14 @@
 		"debugapihighlightunit": "Toggle debug output for the Highlight Unit GL4 API widget",
 		"debugapiunittracker": "[draw|level] Toggle Unit Tracker GL4 debug draw or set debug level",
 		"debughealthbars": "Toggle debug mode for Health Bars GL4",
+		"debugtargetpriority": {
+			"_description": "Debug a selected unit's autotarget priority values",
+			"on": "Show priorities",
+			"off": "Hide priorities",
+			"lines": "Toggle the line through targets in selection order",
+			"details": "Toggle the priority factor breakdown, plus rank, chase pick",
+			"weapon": "[n] Pick the selected unit's weapon number to debug"
+		},
 		"decalsgl4skipdraw": "Toggle Decals GL4 rendering on/off (debug)",
 		"decalsgl4stats": "Print Decals GL4 runtime stats",
 		"defrange": "Toggle defense range overlays",
