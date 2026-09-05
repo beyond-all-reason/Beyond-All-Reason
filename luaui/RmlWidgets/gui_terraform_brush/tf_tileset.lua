@@ -39,6 +39,13 @@ local KNOBS = {
 	{ "intermediateBlend", "%.2f" },
 	{ "intermediateEvidence", "%.2f" },
 	{ "cavityFloor", "%.2f" },
+	-- DEPOSIT section (automatic sand slot: lee side + pockets)
+	{ "depositSlot", "%d" },
+	{ "depositStrength", "%.2f" },
+	{ "depositLee", "%.2f" },
+	{ "depositCavity", "%.2f" },
+	{ "windDirDeg", "%.0f" },
+	{ "depositSlopeDeg", "%.1f" },
 	{ "intermediateScatter", "%.2f" },
 	{ "intermediateStartDeg", "%.1f" },
 	{ "intermediateFullDeg", "%.1f" },
@@ -121,11 +128,34 @@ local KNOBS = {
 	-- 2 cliff, 3 plateau) and how much it darkens
 	{ "metalApronLayer", "%d" },
 	{ "metalApronTone", "%.2f" },
+	{ "metalApronWidth", "%.2f" },
 	{ "metalTintR", "%.2f" },
 	{ "metalTintG", "%.2f" },
 	{ "metalTintB", "%.2f" },
+	-- GLOW LIGHT rows (the LIGHTS tool's point-light controls on every spot's
+	-- light); the on/off knob is a checkbox, mirrored by hand in M.sync below
+	{ "metalGlowBright", "%.2f" },
+	{ "metalGlowRadius", "%.0f" },
+	{ "metalGlowHeight", "%.0f" },
+	{ "metalGlowR", "%.2f" },
+	{ "metalGlowG", "%.2f" },
+	{ "metalGlowB", "%.2f" },
 	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
+}
+
+-- The AUTOMATIC DEPOSIT rows live in the SURFACE panel (FILL AND SEED), not in
+-- the TILESET window, so M.syncDeposit stamps just these keys from the SURFACE
+-- sync (M.sync early-outs while the TILESET window is closed). A separate set
+-- rather than a flag on the KNOBS rows: the analyzer types every row from the
+-- first one, so a tagged row reads as a type mismatch.
+local DEPOSIT_KNOBS = {
+	depositSlot = true,
+	depositStrength = true,
+	depositLee = true,
+	depositCavity = true,
+	windDirDeg = true,
+	depositSlopeDeg = true,
 }
 
 -- Every section under the SHADER switch: grayed out while the switch is off,
@@ -165,6 +195,8 @@ function M.attach(doc, ctx)
 	ctx.widgetState.ts4PaletteSig = nil
 	ctx.widgetState.ts4PaletteEls = nil
 	ctx.widgetState.ts4SectionEl = nil
+	-- glow colour preview bar: repaint from the knobs on a fresh document
+	ctx.widgetState.tsGlowPrevLast = nil
 	-- same for the METAL SPOTS suite toggle's gray-out
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
@@ -287,6 +319,61 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 			pad:SetClass("tf-biome-pad", true)
 			row:AppendChild(pad)
 		end
+	end
+end
+
+-- Push the knob values into the ts-slider-* rows (slider + numbox), skipping
+-- the slider being dragged. `only` = nil for every row, or a key set (see
+-- DEPOSIT_KNOBS) to stamp just those rows.
+local function stampKnobRows(doc, ctx, knobs, only)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local cache = widgetState.tsLastVal
+	local ds = uiState.draggingSlider
+	uiState.updatingFromCode = true
+	local stamped = false
+	for _, k in ipairs(KNOBS) do
+		local key = k[1]
+		local v = knobs[key]
+		-- Skip the slider the user is dragging so we don't fight the drag.
+		if v ~= nil and ds ~= ("ts-" .. key) and (only == nil or only[key]) then
+			local id = "ts-slider-" .. key
+			local slStr = tostring(v)
+			if cache[id] ~= slStr then
+				cache[id] = slStr
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("value", slStr)
+					stamped = true
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", string.format(k[2], v))
+				end
+			end
+		end
+	end
+	uiState.updatingFromCode = false
+	-- RmlUi delivers the change events these SetAttribute stamps raise on a
+	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
+	-- this timestamp to drop that deferred echo — otherwise every programmatic
+	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
+	-- values into the knob table, compounding per swap (the "red intermediate area
+	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	if stamped then
+		uiState.tsStampFrame = Spring.GetDrawFrame()
+	end
+end
+
+-- SURFACE sync hook: the AUTOMATIC DEPOSIT rows (FILL AND SEED) are tileset
+-- knobs by id, so keep them honest while the TILESET window is closed.
+function M.syncDeposit(doc, ctx)
+	if not doc or not WG.TilesetTerrain or not ctx.widgetState.tsLastVal then
+		return
+	end
+	local knobs = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
+	if knobs then
+		stampKnobRows(doc, ctx, knobs, DEPOSIT_KNOBS)
 	end
 end
 
@@ -434,6 +521,9 @@ function M.sync(doc, ctx, setSummary)
 	end
 	if WG.TilesetTerrain.getMetalLights then
 		local glow = WG.TilesetTerrain.getMetalLights() and true or false
+		if dm.tsGlowOn ~= glow then
+			dm.tsGlowOn = glow -- grays the GLOW LIGHT block while the light is off
+		end
 		if widgetState.tsGlowLast ~= glow then
 			widgetState.tsGlowLast = glow
 			local el = doc:GetElementById("btn-ts-metal-glow")
@@ -452,41 +542,28 @@ function M.sync(doc, ctx, setSummary)
 		return
 	end
 
-	local uiState = ctx.uiState
-	local cache = widgetState.tsLastVal
-	local ds = uiState.draggingSlider
-	uiState.updatingFromCode = true
-	local stamped = false
-	for _, k in ipairs(KNOBS) do
-		local key = k[1]
-		local v = knobs[key]
-		-- Skip the slider the user is dragging so we don't fight the drag.
-		if v ~= nil and ds ~= ("ts-" .. key) then
-			local id = "ts-slider-" .. key
-			local slStr = tostring(v)
-			if cache[id] ~= slStr then
-				cache[id] = slStr
-				local sl = doc:GetElementById(id)
-				if sl then
-					sl:SetAttribute("value", slStr)
-					stamped = true
-				end
-				local nb = doc:GetElementById(id .. "-numbox")
-				if nb then
-					nb:SetAttribute("value", string.format(k[2], v))
-				end
+	stampKnobRows(doc, ctx, knobs, nil)
+
+	-- GLOW LIGHT: the colour knobs paint the preview bar (borrowed from the
+	-- LIGHTS tool). Knob-driven, so a style swap, a section RESET or a project
+	-- load land here too.
+	if knobs.metalGlowR and knobs.metalGlowG and knobs.metalGlowB then
+		local function ch(v)
+			return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5)
+		end
+		local css = string.format(
+			"background-color: #%02x%02x%02x;",
+			ch(knobs.metalGlowR),
+			ch(knobs.metalGlowG),
+			ch(knobs.metalGlowB)
+		)
+		if widgetState.tsGlowPrevLast ~= css then
+			widgetState.tsGlowPrevLast = css
+			local el = doc:GetElementById("ts-glow-preview")
+			if el then
+				el:SetAttribute("style", css)
 			end
 		end
-	end
-	uiState.updatingFromCode = false
-	-- RmlUi delivers the change events these SetAttribute stamps raise on a
-	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
-	-- this timestamp to drop that deferred echo — otherwise every programmatic
-	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
-	-- values into the knob table, compounding per swap (the "red intermediate area
-	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
-	if stamped then
-		uiState.tsStampFrame = Spring.GetDrawFrame()
 	end
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a

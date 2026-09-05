@@ -1543,6 +1543,25 @@ body {
 	opacity: 0.7;
 }
 
+/* === Focus Mode (Eye) Button: game HUD hidden, editor alive === */
+.tf-focus-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+}
+
+.tf-focus-btn.active:hover {
+	background-color: #133a30;
+	border-color: #7cecd6;
+}
+
+.tf-focus-btn.active img {
+	image-color: #40e0c0;
+}
+
+.tf-focus-btn.active:hover img {
+	image-color: #7cecd6;
+}
+
 /* === Guide Floating Tooltip === */
 .tf-guide-floating-tip {
 	position: absolute;
@@ -2122,8 +2141,7 @@ body {
 }
 
 /* Open Project rows: clicking one selects it; LOAD and DELETE sit at the
-   bottom of the dialog and act on the selection. The window keeps the shared
-   .tf-newmap-window width — no override — so it matches New Map / Save Project. */
+   bottom of the dialog and act on the selection. */
 .tf-proj-row.selected {
 	background-color: #1f3a4d;
 	border: 1dp #2ba5ea;
@@ -2131,6 +2149,100 @@ body {
 
 .tf-proj-row.selected .tf-hm-mapname {
 	color: #ffffff;
+}
+
+/* The Open Project window is wider than the shared .tf-newmap-window and its
+   rows are set larger: project names and the folder tree need the room, and
+   the base row sizes (kept by the heightmap browser) read too small in a list
+   that is browsed rather than glanced at. Scoped to .tf-proj-row so the Save
+   Project list gets the same type. */
+#tf-project-open-root {
+	width: 440dp;
+}
+
+.tf-proj-row {
+	padding: 7dp 10dp;
+}
+
+.tf-proj-row .tf-hm-date {
+	font-size: 1.05rem;
+	min-width: 92dp;
+}
+
+.tf-proj-row .tf-hm-mapname {
+	font-size: 1.3rem;
+}
+
+.tf-proj-row .tf-hm-badge {
+	font-size: 0.95rem;
+}
+
+/* Project tree folders: a disclosure glyph, the folder name and how many
+   projects sit under it. Children indent one step per depth (the browser caps
+   folder depth at 4). */
+.tf-proj-folder {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8dp;
+	flex-shrink: 0;
+	padding: 6dp 10dp;
+	margin-top: 4dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	color: #d9c28a;
+	font-size: 1.1rem;
+	font-weight: bold;
+	border: 1dp transparent;
+}
+
+.tf-proj-folder:hover {
+	background-color: #232a38;
+	border: 1dp #d9c28a60;
+}
+
+.tf-proj-folder-glyph {
+	width: 14dp;
+	color: #94a3b8;
+	font-size: 0.9rem;
+}
+
+.tf-proj-folder-name {
+	flex: 1;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-proj-folder-count {
+	color: #94a3b8;
+	font-size: 0.9rem;
+	font-weight: normal;
+	white-space: nowrap;
+}
+
+.tf-proj-depth-1 {
+	margin-left: 14dp;
+}
+
+.tf-proj-depth-2 {
+	margin-left: 28dp;
+}
+
+.tf-proj-depth-3 {
+	margin-left: 42dp;
+}
+
+.tf-proj-depth-4 {
+	margin-left: 56dp;
+}
+
+/* A project's folder path, shown after the name while a search filter is on
+   (the tree is flattened then, so the folder must travel with the row). */
+.tf-proj-path {
+	color: #94a3b8;
+	font-size: 0.85rem;
+	font-weight: normal;
+	white-space: nowrap;
 }
 
 /* === Absolute Height Cap Toggle === */
@@ -2954,6 +3066,14 @@ body {
 	decorator: vertical-gradient(#3a3a46 #1e1e28);
 	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
 }
+/* Chip rows (DISPLAY, INSTRUMENTS) wrap onto a second line instead of
+   squeezing: five chips in one row crushed their labels onto two lines each. */
+.tf-chip-row {
+	flex-wrap: wrap;
+}
+.tf-chip-row .tf-overlay-chip {
+	flex-shrink: 0;
+}
 .tf-overlay-chip:hover {
 	background-color: #3a3a46;
 	border-color: #5a5a6a;
@@ -3024,6 +3144,22 @@ body {
 	background-color: #343440;
 	border-color: #55556080;
 	color: #9ca3af;
+}
+/* A chip that carries a whole phrase (FOLLOW STROKE) rather than a word. */
+.tf-inline-chip-lg {
+	padding: 4dp 10dp;
+	font-size: 0.92rem;
+}
+.tf-inline-chip.disabled {
+	color: #4a4a52;
+	background-color: #202028;
+	border-color: #2c2c3440;
+	cursor: default;
+}
+.tf-inline-chip.disabled:hover {
+	color: #4a4a52;
+	background-color: #202028;
+	border-color: #2c2c3440;
 }
 .tf-inline-chip.active {
 	background-color: #0d2c24;

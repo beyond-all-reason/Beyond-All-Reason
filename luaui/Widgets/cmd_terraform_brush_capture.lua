@@ -450,6 +450,13 @@ end
 -- Scene state save / restore
 --------------------------------------------------------------------------------
 
+-- FOCUS MODE (the panel's eye button) hides the game interface on purpose; a
+-- capture may start under it and has to leave it hidden when done.
+local function focusModeOn()
+	local ui = WG.TerraformBrushUI
+	return (ui and ui.isFocusMode and ui.isFocusMode()) == true
+end
+
 -- Everything the walk changes is restored through this one function, which also
 -- runs from Shutdown and from the cancel path: a capture that dies half way
 -- through must never leave the session with invisible units.
@@ -495,7 +502,8 @@ local function restoreScene()
 		j.savedSampleRate = nil
 	end
 	if j.guiHidden then
-		pcall(Spring.SendCommands, "hideinterface 0")
+		-- Back to what the editor wants, not blindly on: focus mode keeps it hidden.
+		Spring.SendCommands(focusModeOn() and "hideinterface 1" or "hideinterface 0")
 		j.guiHidden = nil
 	end
 	if j.savedCam then
@@ -1656,7 +1664,9 @@ local function startCapture()
 	if job then
 		return false, "a capture is already running"
 	end
-	if Spring.IsGUIHidden and Spring.IsGUIHidden() then
+	-- A plain F5 is refused (the user hid the UI, the photo path must not un-hide
+	-- it behind their back); focus mode is the editor's own hide and is fine.
+	if Spring.IsGUIHidden and Spring.IsGUIHidden() and not focusModeOn() then
 		return false, "hide-interface is on; turn it off first"
 	end
 

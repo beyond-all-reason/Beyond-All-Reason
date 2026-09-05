@@ -33,6 +33,10 @@ end
 -- matches the recorded map (blank-map name, exact size, map damage enabled,
 -- local singleplayer); on mismatch it deletes the pointer and explains itself.
 
+-- Engine globals as chunk locals: the CI analyzer counts every bare engine
+-- global as an undefined-global finding (same table objects, no behaviour change).
+local Spring = Spring
+local VFS = VFS
 local Echo = Spring.Echo
 
 local PROJECTS_DIR = "MapProjects/"
@@ -106,18 +110,48 @@ local RESERVED_NAMES = {
 	lpt9 = true,
 }
 
+-- A project name may carry folders ("campaign/cm09", "maps-repo/teizer/duel"):
+-- each segment follows the single-name rules, the depth is capped and the whole
+-- path stays short. Folders are what let a git clone of a maps repository sit
+-- inside MapProjects/ and list as a tree in the Open Project dialog. Returns
+-- the normalized slug (forward slashes, no leading or trailing separator);
+-- callers must use the returned value, not their argument.
+local MAX_SLUG_DEPTH = 4
 local function validateSlug(slug)
 	if type(slug) ~= "string" or slug == "" then
 		return nil, "missing project name"
 	end
-	if #slug > 64 then
-		return nil, "project name too long (max 64)"
+	slug = slug:gsub("\\", "/"):gsub("^/+", ""):gsub("/+$", "")
+	if slug == "" then
+		return nil, "missing project name"
 	end
-	if not slug:match("^[A-Za-z0-9_%-]+$") then
-		return nil, "project name may only contain letters, digits, _ and - (no spaces)"
+	if #slug > 128 then
+		return nil, "project path too long (max 128)"
 	end
-	if RESERVED_NAMES[slug:lower()] then
-		return nil, "'" .. slug .. "' is a reserved Windows device name"
+	if slug:find("//", 1, true) then
+		return nil, "project path has an empty folder segment"
+	end
+	local depth = 0
+	for seg in slug:gmatch("[^/]+") do
+		depth = depth + 1
+		if #seg > 64 then
+			return nil, "project name segment too long (max 64)"
+		end
+		-- Spaces are allowed inside a segment (a git clone of a maps repository
+		-- keeps its folder names), never at either end: Windows strips trailing
+		-- spaces from folder names, so such a slug would never round-trip.
+		if not seg:match("^[A-Za-z0-9_%- ]+$") then
+			return nil, "project names may only contain letters, digits, spaces, _ and -; / separates folders"
+		end
+		if seg:sub(1, 1) == " " or seg:sub(-1) == " " then
+			return nil, "a folder or project name cannot start or end with a space"
+		end
+		if rawget(RESERVED_NAMES, seg:lower()) then
+			return nil, "'" .. seg .. "' is a reserved Windows device name"
+		end
+	end
+	if depth > MAX_SLUG_DEPTH then
+		return nil, "project path too deep (max " .. MAX_SLUG_DEPTH .. " levels)"
 	end
 	return slug
 end
@@ -181,6 +215,57 @@ local function readPrevManifest(dir)
 		return nil
 	end
 	return data
+end
+
+-- Recently opened or saved projects, newest first: written by raw io to the
+-- write dir, read back by the Open Project list. Two jobs: RECENT ordering by
+-- last touch rather than last save, and a second discovery path for folders
+-- the VFS snapshot cannot see yet (a project saved this session, a fresh git
+-- clone): a manifest raw io can read gets listed even when VFS.SubDirs misses
+-- its folder.
+local RECENT_PATH = "Terraform Brush/recent_projects.lua"
+local RECENT_MAX = 40
+
+local function readRecent()
+	local f = io.open(RECENT_PATH, "rb")
+	if not f then
+		return {}
+	end
+	local raw = f:read("*a")
+	f:close()
+	raw = raw:gsub("^\239\187\191", "")
+	local chunk = loadstring(raw)
+	if not chunk then
+		return {}
+	end
+	local ok, data = pcall(chunk)
+	if not ok or type(data) ~= "table" then
+		return {}
+	end
+	local out = {}
+	for _, e in ipairs(data) do
+		local slug = type(e) == "table" and validateSlug(e.slug) or nil
+		if slug then
+			out[#out + 1] = { slug = slug, at = tostring(e.at or "") }
+		end
+	end
+	return out
+end
+
+local function touchRecent(slug)
+	local kept = { { slug = slug, at = isoNow() } }
+	for _, e in ipairs(readRecent()) do
+		if e.slug ~= slug and #kept < RECENT_MAX then
+			kept[#kept + 1] = e
+		end
+	end
+	local parts = { "-- Recently opened or saved map projects, newest first (Terraform Brush).", "return {" }
+	for _, e in ipairs(kept) do
+		parts[#parts + 1] = string.format("\t{ slug = %q, at = %q },", e.slug, e.at)
+	end
+	parts[#parts + 1] = "}"
+	Spring.CreateDir("Terraform Brush")
+	writeFile(RECENT_PATH, table.concat(parts, "\n") .. "\n")
 end
 
 -- Generic `return {...}` section file reader (raw io, same VFS-staleness rule).
@@ -447,6 +532,36 @@ local function stepSurface()
 	for i = 1, MAX_SURFACE_SLOTS do
 		lines[#lines + 1] = string.format("\tslot%d = %q,", i, tostring(meta["slot" .. i] or ""))
 	end
+	-- INFLUENCE profiles (soft altitude / slope bands the painter remembers per
+	-- texture), keyed by asset name, sorted for a stable file.
+	if type(meta.influence) == "table" and next(meta.influence) then
+		local names = {}
+		for n, p in pairs(meta.influence) do
+			if type(n) == "string" and type(p) == "table" then
+				names[#names + 1] = n
+			end
+		end
+		table.sort(names)
+		lines[#lines + 1] = "\tinfluence = {"
+		for _, n in ipairs(names) do
+			local p = meta.influence[n]
+			lines[#lines + 1] = string.format(
+				"\t\t[%q] = { altOn = %s, altMin = %s, altMax = %s, altFeatherLo = %s, altFeatherHi = %s, "
+					.. "slopeOn = %s, slopeMin = %s, slopeMax = %s, slopeFeather = %s },",
+				n,
+				tostring(p.altOn and true or false),
+				fmtNum(tonumber(p.altMin) or 0),
+				fmtNum(tonumber(p.altMax) or 0),
+				fmtNum(tonumber(p.altFeatherLo) or 0),
+				fmtNum(tonumber(p.altFeatherHi) or 0),
+				tostring(p.slopeOn and true or false),
+				fmtNum(tonumber(p.slopeMin) or 0),
+				fmtNum(tonumber(p.slopeMax) or 0),
+				fmtNum(tonumber(p.slopeFeather) or 0)
+			)
+		end
+		lines[#lines + 1] = "\t},"
+	end
 	lines[#lines + 1] = "}"
 	lines[#lines + 1] = ""
 
@@ -499,6 +614,31 @@ local function stepTileset()
 		local s4 = T.getSlot4State()
 		if s4 and s4.material then
 			lines[#lines + 1] = string.format("\tslot4_material = %q,", tostring(s4.material))
+		end
+	end
+	-- per-texture albedo tints of painted variants (SURFACE > GRADING), sorted
+	if T.getSlotTints then
+		local tints = T.getSlotTints() or {}
+		local names = {}
+		for a, c in pairs(tints) do
+			if type(a) == "string" and type(c) == "table" then
+				names[#names + 1] = a
+			end
+		end
+		table.sort(names)
+		if #names > 0 then
+			lines[#lines + 1] = "\tslot_tints = {"
+			for _, a in ipairs(names) do
+				local c = tints[a]
+				lines[#lines + 1] = string.format(
+					"\t\t[%q] = { %s, %s, %s },",
+					a,
+					fmtNum(tonumber(c[1]) or 1),
+					fmtNum(tonumber(c[2]) or 1),
+					fmtNum(tonumber(c[3]) or 1)
+				)
+			end
+			lines[#lines + 1] = "\t},"
 		end
 	end
 	-- keys sorted so repeated saves of unchanged state serialize identically
@@ -1619,6 +1759,7 @@ local function finishSave()
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
 	currentSlug = job.slug
 	lastSaveInfo = { ok = true, slug = job.slug }
+	touchRecent(currentSlug)
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1647,6 +1788,7 @@ local function startSave(slug, opts)
 		echoP("cannot save: " .. err)
 		return false
 	end
+	slug = ok
 	if not heightmapPNG then
 		heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
 	end
@@ -1667,10 +1809,11 @@ end
 -- Does a project folder with a readable manifest exist? (UI overwrite guard:
 -- Save As over an existing project asks for a second click first.)
 local function projectExists(slug)
-	if not validateSlug(slug) then
+	local ok = validateSlug(slug)
+	if not ok then
 		return false
 	end
-	return readPrevManifest(PROJECTS_DIR .. slug .. "/") ~= nil
+	return readPrevManifest(PROJECTS_DIR .. ok .. "/") ~= nil
 end
 
 -- Does a saved project include a units section? (UI confirm guard: warns
@@ -1680,32 +1823,74 @@ local function projectHasUnits(slug)
 	if not ok then
 		return false
 	end
-	local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+	local manifest = readPrevManifest(PROJECTS_DIR .. ok .. "/")
 	return (manifest and manifest.sections and manifest.sections.units) and true or false
 end
 
--- Enumerate projects with manifest details for the Open Project dialog.
--- VFS.SubDirs sees the folders; manifests are read via raw io (same-session
--- folders may be invisible/stale in the VFS view — SubDirs RAW semantics for
--- folders created THIS session are unpinned, so a just-saved project may need
--- an engine restart to appear; the dialog says so when the list is empty).
-local function listProjectsDetailed()
-	local out = {}
-	local dirs = VFS.SubDirs(PROJECTS_DIR, "*", VFS.RAW) or {}
+-- One Open Project row. `folder` is the slug's parent path ("" at the root);
+-- `last_touched` comes from the recent-projects journal (nil when never
+-- opened or saved through this widget).
+local function projectEntry(slug, manifest, touchedAt)
+	local m = manifest.map or {}
+	return {
+		slug = slug,
+		folder = slug:match("^(.*)/[^/]+$") or "",
+		name = manifest.name or slug:match("([^/]+)$") or slug,
+		size_x = tonumber(m.size_x),
+		size_z = tonumber(m.size_z),
+		created = manifest.created,
+		modified = manifest.modified or manifest.created,
+		last_touched = touchedAt,
+		format_version = tonumber(manifest.format_version),
+	}
+end
+
+-- Folder walk for the listing, MAX_SLUG_DEPTH deep: a folder with project.lua
+-- is a project and is not descended into; one without is a container. Hidden
+-- folders (".git" in a cloned repository) and names validateSlug rejects are
+-- skipped.
+local function walkProjects(rel, depth, out, seen, touchedAt)
+	local dirs = VFS.SubDirs(PROJECTS_DIR .. (rel ~= "" and (rel .. "/") or ""), "*", VFS.RAW) or {}
 	for _, d in ipairs(dirs) do
-		local slug = d:match("([^/\\]+)[/\\]*$")
-		if slug then
-			local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+		local seg = d:match("([^/\\]+)[/\\]*$")
+		if seg and seg:sub(1, 1) ~= "." then
+			local slug = rel == "" and seg or (rel .. "/" .. seg)
+			if validateSlug(slug) then
+				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+				if manifest and manifest.kind == "bar-map-project" then
+					seen[slug] = true
+					out[#out + 1] = projectEntry(slug, manifest, touchedAt[slug])
+				elseif not manifest and depth < MAX_SLUG_DEPTH then
+					walkProjects(slug, depth + 1, out, seen, touchedAt)
+				end
+			end
+		end
+	end
+end
+
+-- Enumerate projects with manifest details for the Open Project dialog.
+-- VFS.SubDirs sees the folders (walked as a tree, see walkProjects); manifests
+-- are read via raw io (same-session folders may be invisible/stale in the VFS
+-- view — SubDirs RAW semantics for folders created THIS session are unpinned).
+-- The recent-projects journal then adds any project the snapshot missed whose
+-- manifest raw io can read, so a project saved this session or a fresh clone
+-- that was opened once still lists. Sorted newest-modified first; the dialog
+-- re-sorts per its own control.
+local function listProjectsDetailed()
+	local out, seen, touchedAt = {}, {}, {}
+	local recent = readRecent()
+	for _, e in ipairs(recent) do
+		touchedAt[e.slug] = e.at
+	end
+	walkProjects("", 1, out, seen, touchedAt)
+	for _, e in ipairs(recent) do
+		if not seen[e.slug] then
+			local manifest = readPrevManifest(PROJECTS_DIR .. e.slug .. "/")
 			if manifest and manifest.kind == "bar-map-project" then
-				local m = manifest.map or {}
-				out[#out + 1] = {
-					slug = slug,
-					name = manifest.name or slug,
-					size_x = tonumber(m.size_x),
-					size_z = tonumber(m.size_z),
-					modified = manifest.modified,
-					format_version = tonumber(manifest.format_version),
-				}
+				seen[e.slug] = true
+				local p = projectEntry(e.slug, manifest, e.at)
+				p.discovered = "recent"
+				out[#out + 1] = p
 			end
 		end
 	end
@@ -1737,12 +1922,13 @@ local function listProjects()
 	return #found
 end
 
--- Delete a project folder. validateSlug already rejects anything with a path
--- separator, so the target can only ever be one directory under PROJECTS_DIR,
--- and a readable manifest is required — never delete a folder this widget did
--- not write. The manifest goes first on purpose: if a file is locked and the
--- sweep leaves junk behind, the project has already stopped listing (both list
--- paths need project.lua) instead of showing up half-deleted.
+-- Delete a project folder. validateSlug only admits letter/digit/_/- segments
+-- joined by "/", so the target is always a folder under PROJECTS_DIR (never
+-- "..", never an absolute path), and a readable manifest is required — never
+-- delete a folder this widget did not write. Parent folders of a nested
+-- project are left alone. The manifest goes first on purpose: if a file is
+-- locked and the sweep leaves junk behind, the project has already stopped
+-- listing (both list paths need project.lua) instead of showing up half-deleted.
 local function deleteProject(slug)
 	if job then
 		echoP("cannot delete a project while a save is running")
@@ -1757,6 +1943,7 @@ local function deleteProject(slug)
 		echoP("cannot delete: " .. err)
 		return false
 	end
+	slug = ok
 	local dir = PROJECTS_DIR .. slug .. "/"
 	if not readPrevManifest(dir) then
 		echoP("cannot delete '" .. slug .. "': no readable project.lua in " .. dir)
@@ -2143,6 +2330,10 @@ local function phaseSurface(c)
 				end
 				sp.applySlots(picks)
 			end
+			-- per-texture INFLUENCE profiles (absent in older projects = none)
+			if sp.setInfluenceTable then
+				sp.setInfluenceTable(meta.influence)
+			end
 		elseif not T then
 			echoP(
 				"WARNING: surface.png present but the tileset widget is not loaded — the mask loads with no variants bound"
@@ -2220,6 +2411,13 @@ local function phaseTileset(c)
 	end
 	if d.metal_style and d.metal_style ~= "" and T.setMetalStyle then
 		T.setMetalStyle(d.metal_style)
+	end
+	if type(d.slot_tints) == "table" and T.setSlotTint then
+		for a, col in pairs(d.slot_tints) do
+			if type(a) == "string" and type(col) == "table" then
+				T.setSlotTint(a, col[1], col[2], col[3])
+			end
+		end
 	end
 	local applied, unknown = 0, 0
 	if type(d.knobs) == "table" and T.setKnob then
@@ -2728,6 +2926,14 @@ local function finishLoad()
 		)
 		Spring.SendCommands("forcestart")
 	end
+
+	-- A loaded project is there to be edited: bring the Terraformer up
+	-- (requested by PtaQ 2026-09-04). The panel widget owns the how.
+	---@type table?
+	local ui = WG.TerraformBrushUI
+	if ui and ui.openEditor then
+		ui.openEditor()
+	end
 end
 
 local function abortLoad(reason)
@@ -2910,6 +3116,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
+	slug = ok
 	if not isLocalSession() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false
@@ -2959,11 +3166,17 @@ local function openProject(slug)
 		return false
 	end
 	echoP(string.format("restarting into a blank %dx%d map for project '%s'...", m.size_x, m.size_z, slug))
+	touchRecent(slug)
 	Spring.Restart("", script)
 	return true
 end
 
-function widget:DrawScreen()
+-- Job driver. DrawScreenPost, NOT DrawScreen: the widget handler skips
+-- DrawScreen while the interface is hidden and the Terraformer's FOCUS MODE
+-- hides it on purpose, so a Save / Open started there would sit until the HUD
+-- came back. Nothing here grabs the screen (the thumbnail step renders to its
+-- own FBO), so running after the UI pass changes nothing.
+function widget:DrawScreenPost()
 	if unitsWaiter then
 		pollUnitsWaiter()
 	end
@@ -3043,6 +3256,9 @@ function widget:Initialize()
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		-- { {slug, at}, ... } newest first: projects opened or saved through
+		-- this widget (the journal behind the dialog's RECENT order).
+		recent = readRecent,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
 		exists = projectExists,
