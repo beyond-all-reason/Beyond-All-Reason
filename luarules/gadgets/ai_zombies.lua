@@ -16,6 +16,12 @@ end
 
 local spring = Spring
 local modOptions = spring.GetModOptions()
+local modOptionEnabled = modOptions.zombies ~= "disabled"
+local isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
+if not modOptionEnabled and not isIdleMode then
+	return false
+end
+
 local random = math.random
 local distance2dSquared = math.distance2dSquared
 local TAU = 2 * math.pi
@@ -46,7 +52,7 @@ local BLOCK_CHECK_STEP = 15
 local ZOMBIE_MAX_ORDER_ATTEMPTS = 10
 local ZOMBIE_FACTORY_BUILD_COUNT = 20
 local MAX_NOGO_ZONES = 10
-local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1
+local AGGRO_ZOMBIE_TO_PLAYER_POWER_RATIO = 0.1 -- the threshold of relative power where zombies stop wandering and swarm players 
 local COMBAT_ENGAGE_RANGE_RATIO = 0.5
 
 local NORMAL_OBJECTIVE_ANGLE_VARIANCE = 90 * DEGREES_TO_RADIANS
@@ -149,7 +155,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 					local isAAWeapon = weapon.onlyTargets
 						and weapon.onlyTargets.vtol
 						and not weapon.onlyTargets.ground
-						or false
 					local isUnderwaterOnly = weaponDef.type == "TorpedoLauncher"
 
 					if isAAWeapon then
@@ -210,7 +215,7 @@ local function removeZombieFromBucket(unitID, bucket, unitIndex, indexField)
 	local lastUnitID = bucket[lastIndex]
 	bucket[unitIndex] = lastUnitID
 	bucket[lastIndex] = nil
-	if lastUnitID and lastUnitID ~= unitID then
+	if lastUnitID ~= unitID then
 		zombieWatch[lastUnitID][indexField] = unitIndex
 	end
 end
@@ -231,15 +236,6 @@ local function setAggroExpiration()
 	aggroExpirationTimestamp = gameFrame + AGGRO_DURATION
 end
 
-local function setZombieAggro(unitID, allyTeamID)
-	local aggroData = zombieAggros[unitID]
-	if not aggroData then
-		aggroData = {}
-		zombieAggros[unitID] = aggroData
-	end
-	aggroData.allyTeamID = allyTeamID
-end
-
 local function getActiveZombieAggro(unitID)
 	if gameFrame >= aggroExpirationTimestamp then
 		return nil
@@ -256,19 +252,13 @@ local function assignZombieAggroEvenly()
 	local allyPowers = {}
 	for teamID in pairs(playerTeams) do
 		local allyTeamID = select(6, spring.GetTeamInfo(teamID))
-		if allyTeamID then
-			local teamPower = teamPowers[teamID] or 0
-			allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
-		end
+		local teamPower = teamPowers[teamID] or 0
+		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
 	end
 
 	local assignedPowerByAlly = {}
-	for unitID, aggroData in pairs(zombieAggros) do
-		local zombieData = zombieWatch[unitID]
-		if zombieData then
-			local allyTeamID = aggroData.allyTeamID
-			assignedPowerByAlly[allyTeamID] = (assignedPowerByAlly[allyTeamID] or 0) + zombieData.power
-		end
+	for unitID, allyTeamID in pairs(zombieAggros) do
+		assignedPowerByAlly[allyTeamID] = (assignedPowerByAlly[allyTeamID] or 0) + zombieWatch[unitID].power
 	end
 
 	local eligibleAllies = {}
@@ -326,7 +316,7 @@ local function assignZombieAggroEvenly()
 	for zombieIndex = 1, #sortedZombies do
 		local zombieData = sortedZombies[zombieIndex]
 		local targetAlly = eligibleAllies[eligibleIndex]
-		setZombieAggro(zombieData.unitID, targetAlly.allyTeamID)
+		zombieAggros[zombieData.unitID] = targetAlly.allyTeamID
 		targetAlly.assignedPower = targetAlly.assignedPower + zombieData.power
 
 		if #eligibleAllies > 1 and targetAlly.assignedPower > targetAlly.share then
@@ -366,7 +356,7 @@ local function removeAllyTeamUnit(unitID)
 	local lastUnitID = unitList[lastIndex]
 	unitList[unitIndex] = lastUnitID
 	unitList[lastIndex] = nil
-	if lastUnitID and lastUnitID ~= unitID then
+	if lastUnitID ~= unitID then
 		unitAllyTeamIndices[lastUnitID] = unitIndex
 	end
 	unitAllyTeamIDs[unitID] = nil
@@ -374,8 +364,7 @@ local function removeAllyTeamUnit(unitID)
 end
 
 local function isZombie(unitID)
-	local zombieRulesParam = spGetUnitRulesParam(unitID, "zombie")
-	return zombieRulesParam and zombieRulesParam == 1
+	return spGetUnitRulesParam(unitID, "zombie") == 1
 end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID, buildCount)
@@ -398,19 +387,16 @@ local function getWeaponRangeForTarget(attackerDefID, targetID, targetYPosition)
 	if not weaponRanges then
 		return
 	end
-	local targetDefID = spGetUnitDefID(targetID)
-	local targetDef = targetDefID and UnitDefs[targetDefID]
+	local targetDef = UnitDefs[spGetUnitDefID(targetID)]
 	local weaponRange
-	if flyingUnits[targetID] or (targetDef and targetDef.canFly) then
+	if flyingUnits[targetID] or targetDef.canFly then
 		weaponRange = weaponRanges.air
 	elseif targetYPosition + (spGetUnitHeight(targetID) or 0) < 0 then
 		weaponRange = weaponRanges.underwater
 	else
 		weaponRange = weaponRanges.ground
 	end
-	if weaponRange and weaponRange > 0 then
-		return weaponRange
-	end
+	return weaponRange
 end
 
 local function getCombatTargetData(unitDefID, targetID)
@@ -426,10 +412,7 @@ local function getCombatTargetData(unitDefID, targetID)
 		return
 	end
 	local targetDefID = spGetUnitDefID(targetID)
-	local shouldCapture = capturingUnits[unitDefID]
-		and targetDefID
-		and UnitDefs[targetDefID].capturable ~= false
-		or false
+	local shouldCapture = capturingUnits[unitDefID] and UnitDefs[targetDefID].capturable ~= false
 	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetY)
 	if shouldCapture or weaponRange then
 		return targetX, targetZ, shouldCapture, weaponRange
@@ -447,11 +430,7 @@ local function getNearestCombatTarget(unitID, unitDefID)
 	if not unitX then
 		return
 	end
-	local enemyUnits =
-		CallAsTeam(readAsGaia, spGetUnitsInCylinder, unitX, unitZ, ENEMY_ATTACK_DISTANCE, spring.ENEMY_UNITS)
-	if not enemyUnits then
-		return
-	end
+	local enemyUnits = CallAsTeam(readAsGaia, spGetUnitsInCylinder, unitX, unitZ, ENEMY_ATTACK_DISTANCE, spring.ENEMY_UNITS)
 	local bestTargetID
 	local bestTargetX
 	local bestTargetZ
@@ -493,11 +472,7 @@ local function setRandomEdgeObjective(zombieData)
 		objectiveX = 0
 		objectiveZ = MAP_PERIMETER - perimeterPosition
 	end
-	zombieData.objective = {
-		type = OBJECTIVE_TYPE_NORMAL,
-		x = objectiveX,
-		z = objectiveZ,
-	}
+	zombieData.objective = { type = OBJECTIVE_TYPE_NORMAL, x = objectiveX, z = objectiveZ }
 end
 
 local function setAggroObjective(zombieData, allyTeamID)
@@ -506,13 +481,9 @@ local function setAggroObjective(zombieData, allyTeamID)
 		return false
 	end
 	local attemptsRemaining = #unitList
-	while attemptsRemaining > 0 and #unitList > 0 do
+	while attemptsRemaining > 0 do
 		local targetUnitID = unitList[random(1, #unitList)]
-		if
-			spValidUnitID(targetUnitID)
-			and not spGetUnitIsDead(targetUnitID)
-			and unitAllyTeamIDs[targetUnitID] == allyTeamID
-		then
+		if spValidUnitID(targetUnitID) and not spGetUnitIsDead(targetUnitID) then
 			local targetX, _, targetZ = spGetUnitPosition(targetUnitID)
 			if targetX then
 				zombieData.objective = {
@@ -520,7 +491,6 @@ local function setAggroObjective(zombieData, allyTeamID)
 					x = targetX,
 					z = targetZ,
 					targetUnitID = targetUnitID,
-					allyTeamID = allyTeamID,
 				}
 				return true
 			end
@@ -545,8 +515,6 @@ local function isAggroObjectiveValid(unitID, objective, allyTeamID)
 	if
 		not objective
 		or objective.type ~= OBJECTIVE_TYPE_AGGRO
-		or objective.allyTeamID ~= allyTeamID
-		or not objective.targetUnitID
 		or not spValidUnitID(objective.targetUnitID)
 		or spGetUnitIsDead(objective.targetUnitID)
 		or unitAllyTeamIDs[objective.targetUnitID] ~= allyTeamID
@@ -558,7 +526,7 @@ end
 
 local function rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
-	if not unitX or not targetX then
+	if not unitX then
 		return
 	end
 	local deltaX = targetX - unitX
@@ -583,16 +551,16 @@ local function rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
 	zombieData.rememberedObjectiveZ = math.max(0, math.min(MAP_SIZE_Z, unitZ + deltaZ * boundaryScale))
 end
 
-local function ensureMovementObjective(unitID, zombieData, activeAggro)
+local function ensureMovementObjective(unitID, zombieData, allyTeamID)
 	local objective = zombieData.objective
-	if activeAggro then
-		if isAggroObjectiveValid(unitID, objective, activeAggro.allyTeamID) then
+	if allyTeamID then
+		if isAggroObjectiveValid(unitID, objective, allyTeamID) then
 			return objective, false
 		end
 		if objective and objective.type == OBJECTIVE_TYPE_AGGRO then
 			zombieData.objective = nil
 		end
-		if setAggroObjective(zombieData, activeAggro.allyTeamID) then
+		if setAggroObjective(zombieData, allyTeamID) then
 			return zombieData.objective, true
 		end
 	end
@@ -649,17 +617,9 @@ local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX,
 		else
 			movementAngle = objectiveAngle + (random() * 2 - 1) * angleVariance
 		end
-		local targetX = originX + movementDistance * cos(movementAngle)
-			+ random(-POSITION_VARIANCE, POSITION_VARIANCE)
-		local targetZ = originZ + movementDistance * sin(movementAngle)
-			+ random(-POSITION_VARIANCE, POSITION_VARIANCE)
-		if
-			targetX >= 0
-			and targetX <= MAP_SIZE_X
-			and targetZ >= 0
-			and targetZ <= MAP_SIZE_Z
-			and not isInNoGoZone(zombieData, targetX, targetZ)
-		then
+		local targetX = originX + movementDistance * cos(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE)
+		local targetZ = originZ + movementDistance * sin(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE)
+		if targetX >= 0 and targetX <= MAP_SIZE_X and targetZ >= 0 and targetZ <= MAP_SIZE_Z and not isInNoGoZone(zombieData, targetX, targetZ) then
 			local targetY = spGetGroundHeight(targetX, targetZ)
 			if spTestMoveOrder(unitDefID, targetX, targetY, targetZ) then
 				return targetX, targetY, targetZ
@@ -670,7 +630,7 @@ end
 
 local function issueObjectiveMove(unitID, unitDefID, zombieData, objective)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
-	if not unitX or not objective then
+	if not unitX then
 		return
 	end
 	if
@@ -710,7 +670,7 @@ end
 
 local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ, zombieData)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
-	if not unitX or not targetX or not weaponRange then
+	if not unitX then
 		zombieData.lastCombatTargetX = nil
 		zombieData.lastCombatTargetZ = nil
 		clearUnitOrders(unitID)
@@ -882,8 +842,7 @@ local function initializeZombie(unitID, unitDefID)
 	if not unitX then
 		return
 	end
-	local unitDef = UnitDefs[unitDefID]
-	local unitPower = unitDef and unitDef.power or 0
+	local unitPower = UnitDefs[unitDefID].power or 0
 	zombieWatch[unitID] = {
 		unitDefID = unitDefID,
 		lastX = unitX,
@@ -973,7 +932,7 @@ local function aggroAllZombiesToAllyTeam(allyTeamID)
 	local markedAny = false
 	for zombieID in pairs(zombieWatch) do
 		if spValidUnitID(zombieID) then
-			setZombieAggro(zombieID, allyTeamID)
+			zombieAggros[zombieID] = allyTeamID
 			markedAny = true
 		end
 	end
@@ -1054,7 +1013,7 @@ local function updateStuckZombies()
 			unwatchZombie(unitID)
 		else
 			local unitX, _, unitZ = spGetUnitPosition(unitID)
-			if unitX and unitZ then
+			if unitX then
 				local unitDefID = zombieData.unitDefID
 				local objective = zombieData.objective
 				local isAtRememberedObjective = zombieData.rememberedObjectiveX
@@ -1117,23 +1076,13 @@ local function updateStuckZombies()
 end
 
 function gadget:Initialize()
-	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	local isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
-	if not modOptionEnabled and not isIdleMode then
-		gadgetHandler:RemoveGadget(gadget)
-		return
-	end
-
 	gameFrame = spring.GetGameFrame()
 	for _, unitID in ipairs(spring.GetAllUnits()) do
 		local unitTeam = spring.GetUnitTeam(unitID)
 		local allyTeamID = select(6, spring.GetTeamInfo(unitTeam))
 		addAllyTeamUnit(unitID, allyTeamID)
 		if unitTeam == gaiaTeamID and isZombie(unitID) then
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID then
-				initializeZombie(unitID, unitDefID)
-			end
+			initializeZombie(unitID, spGetUnitDefID(unitID))
 		end
 	end
 

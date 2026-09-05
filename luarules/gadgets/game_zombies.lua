@@ -22,6 +22,11 @@ end
 
 local spring = Spring
 local modOptions = spring.GetModOptions()
+local modOptionEnabled = modOptions.zombies ~= "disabled"
+local isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
+if not modOptionEnabled and not isIdleMode then
+	return false
+end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- Frames to start warning before reanimation
@@ -125,7 +130,6 @@ end
 local gameFrame = 0
 local adjustedRezPowerSpeed = currentZombieConfig.techToRezPowerSpeeds[1]
 local currentTechLevel = nil
-local isIdleMode = false
 local autoSpawningEnabled = true
 
 local zombiesBeingBuilt = {}
@@ -182,8 +186,7 @@ for unitDefID, unitDef in pairs(unitDefs) do
 end
 
 local function isZombie(unitID)
-	local isZombieRulesParam = spGetUnitRulesParam(unitID, "zombie")
-	return isZombieRulesParam and isZombieRulesParam == 1
+	return spGetUnitRulesParam(unitID, "zombie") == 1
 end
 
 local function setGaiaStorage()
@@ -227,9 +230,7 @@ local function rebuildZombieCorpseSpawnDelays()
 			corpseDefData.spawnDelayFrames = floor(corpseDefData.customRespawnTime * Game.gameSpeed)
 		else
 			local unitDef = unitDefs[corpseDefData.unitDefID]
-			if unitDef then
-				corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
-			end
+			corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
 		end
 	end
 end
@@ -239,10 +240,8 @@ local function updateAdjustedRezPowerSpeed()
 	adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-		if highestPowerData and highestPowerData.power then
-			techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
-			adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
-		end
+		techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
+		adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 	end
 
 	currentTechLevel = techLevel
@@ -325,10 +324,6 @@ end
 
 local function getScavVariantUnitDefID(unitDefID)
 	local unitDef = unitDefs[unitDefID]
-	if not unitDef then
-		return unitDefID
-	end
-
 	if string.find(unitDef.name, "_scav") then
 		return unitDefID
 	end
@@ -376,15 +371,11 @@ local function calculateSpawnCount(unitDefID)
 	end
 
 	local unitDef = unitDefs[unitDefID]
-	if not unitDef then
-		return countMin
-	end
-
 	local rezTimeSeconds = calculateSpawnDelayFrames(getUnitRezPower(unitDef)) / Game.gameSpeed
 	local rezMin = currentZombieConfig.rezMin
 	local rezMax = currentZombieConfig.rezMax
 
-	if currentTechLevel == nil or currentTechLevel <= 1 then
+	if currentTechLevel <= 1 then
 		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount())
 	end
 
@@ -421,7 +412,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 
 	if pastXp == nil then
 		local corpseData = corpsesData[featureID]
-		if corpseData and corpseData.pastXp ~= nil then
+		if corpseData then
 			pastXp = corpseData.pastXp
 		else
 			pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
@@ -471,16 +462,11 @@ local function setZombie(unitID)
 		local x, y, z = spGetUnitPosition(unitID)
 		local facing = spring.GetUnitDirection(unitID)
 		local teamID = spring.GetUnitTeam(unitID)
-		local newUnitID
-		if x and facing and teamID then
-			newUnitID = spring.CreateUnit(scavUnitDefID, x, y, z, facing, teamID)
-		end
+		local newUnitID = spring.CreateUnit(scavUnitDefID, x, y, z, facing, teamID)
 		if newUnitID then
 			local health, maxHealth = spGetUnitHealth(unitID)
-			if health and maxHealth then
-				local originalHealthRatio = health / maxHealth
-				spring.SetUnitHealth(newUnitID, originalHealthRatio * maxHealth)
-			end
+			local originalHealthRatio = health / maxHealth
+			spring.SetUnitHealth(newUnitID, originalHealthRatio * maxHealth)
 			local experience = spring.GetUnitExperience(unitID)
 			spring.SetUnitExperience(newUnitID, experience)
 
@@ -594,7 +580,7 @@ local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
 	wasZombie = wasZombie or wasZombieCorpse(featureID)
 	if pastXp == nil then
 		local existingCorpseData = corpsesData[featureID]
-		if existingCorpseData and existingCorpseData.pastXp ~= nil then
+		if existingCorpseData then
 			pastXp = existingCorpseData.pastXp
 		else
 			pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
@@ -867,8 +853,7 @@ local function isAuthorized(playerID)
 	local accountID = BAR.Utilities.GetAccountID(playerID)
 	if
 		(
-			_G
-			and _G.permissions.devhelpers
+			_G.permissions.devhelpers
 			and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))
 		)
 		or (
@@ -1107,23 +1092,11 @@ local function commandSetZombieMode(_, line, words, playerID)
 		return
 	end
 
-	local success = setZombieMode(mode)
-	if success then
-		spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
-	else
-		spring.SendMessageToPlayer(playerID, "Failed to set zombie mode to " .. mode)
-	end
+	setZombieMode(mode)
+	spring.SendMessageToPlayer(playerID, "Zombie mode set to " .. mode)
 end
 
 function gadget:Initialize()
-	local modOptionEnabled = modOptions.zombies ~= "disabled"
-	isIdleMode = GG.Zombies and GG.Zombies.IdleMode == true or false
-
-	if not modOptionEnabled and not isIdleMode then
-		gadgetHandler:RemoveGadget(gadget)
-		return
-	end
-
 	local initialMode = modOptions.zombies or "normal"
 	applyZombieModeSettings(initialMode)
 
