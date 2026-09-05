@@ -226,6 +226,8 @@ local autoReload = { enabled = false, vssrc = "", fssrc = "", lastUpdate = Sprin
 
 -- Indicates whether the first round of getting units should grab all instead of delta
 local manualReload = autoReload.enabled or false
+local printfPass = "forward" -- Chose which pass to print debug information for. Can be any of "forward", "shadow", "deferred", "reflection"
+local printfMaterial = "unit"
 local debugmode = false
 local perfdebug = false
 
@@ -681,8 +683,6 @@ end
 
 local LuaShader = gl.LuaShader
 
-local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-
 local QUATERNIONDEFS = ""
 if Engine.FeatureSupport.transformsInGL4 then
 	QUATERNIONDEFS = LuaShader.GetQuaternionDefs()
@@ -838,7 +838,7 @@ local function dumpShaderCodeToInfolog(defs, src, filename) -- no IO in unsynced
 	Spring.Echo(src)
 end
 
-local function CompileLuaShader(shader, definitions, plugIns, addName, recompilation)
+local function CompileLuaShader(shader, definitions, plugIns, addName, recompilation, stripPrintf)
 	--Spring.Echo(" CompileLuaShader",shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then
 		Spring.Echo(addName, "nul definitions", definitions)
@@ -856,9 +856,6 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 
 	-- First the default default defs
 	shader.definitions = table.concat(definitions, "\n") .. "\n"
-
-	-- Then the engineUniformBufferDefs (see LuaShader.lua)
-	shader.definitions = shader.definitions .. engineUniformBufferDefs
 
 	--// insert small pieces of code named `plugins`
 	--// this way we can use a basic shader and add some simple vertex animations etc.
@@ -884,9 +881,22 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 		end
 	end
 
-	local luaShader = LuaShader(shader, "CUS_" .. addName)
-	local compilationResult = luaShader:Initialize()
-	if compilationResult ~= true then
+	local function CompleteSource(source)
+		return source and (shader.definitions .. source)
+	end
+
+	local luaShader = LuaShader.CheckShaderUpdates({
+		vsSrc = CompleteSource(shader.vertex),
+		fsSrc = CompleteSource(shader.fragment),
+		gsSrc = CompleteSource(shader.geometry),
+		shaderConfig = { stripPrintf = stripPrintf },
+		shaderName = "CUS_" .. addName,
+		uniformInt = shader.uniformInt,
+		uniformFloat = shader.uniformFloat,
+		forceupdate = true,
+		silent = true,
+	}, 0)
+	if not luaShader then
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
 		--dumpShaderCodeToInfolog(shader.definitions, shader.vertex, "vs" .. addName)
 		--dumpShaderCodeToInfolog(shader.definitions, shader.fragment, "fs" .. addName)
@@ -896,7 +906,8 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 		return nil
 	end
 
-	return (compilationResult and luaShader) or nil
+	luaShader.ignoreUnkUniform = false
+	return luaShader
 end
 
 local function compileMaterialShader(template, name, recompilation)
@@ -906,28 +917,32 @@ local function compileMaterialShader(template, name, recompilation)
 		template.shaderDefinitions,
 		template.shaderPlugins,
 		name .. "_forward",
-		recompilation
+		recompilation,
+		printfPass ~= "forward" or printfMaterial ~= name
 	)
 	local shadowShader = CompileLuaShader(
 		template.shadow,
 		template.shadowDefinitions,
 		template.shaderPlugins,
 		name .. "_shadow",
-		recompilation
+		recompilation,
+		printfPass ~= "shadow" or printfMaterial ~= name
 	)
 	local deferredShader = CompileLuaShader(
 		template.deferred,
 		template.deferredDefinitions,
 		template.shaderPlugins,
 		name .. "_deferred",
-		recompilation
+		recompilation,
+		printfPass ~= "deferred" or printfMaterial ~= name
 	)
 	local reflectionShader = CompileLuaShader(
 		template.reflection,
 		template.reflectionDefinitions,
 		template.shaderPlugins,
 		name .. "_reflection",
-		recompilation
+		recompilation,
+		printfPass ~= "reflection" or printfMaterial ~= name
 	)
 	if recompilation then
 		if (not forwardShader) or not shadowShader or not deferredShader or not reflectionShader then
@@ -3191,4 +3206,20 @@ function gadget:DrawShadowUnitsLua()
 	tracy.ZoneBeginN("G:CUS:DrawShadowUnitsLua")
 	local batches, units = ExecuteDrawPass(16)
 	tracy.ZoneEnd()
+end
+
+if autoReload.enabled then
+	function gadget:DrawScreen()
+		--Spring.Echo("DrawScreen Called")
+		local yoffset = 0
+		for drawflag, drawpass in pairs(shaders) do 
+			for binname, shader in pairs(drawpass) do
+				--Spring.Echo("DrawScreen:", drawflag, binname, "has drawprintf", shader.DrawPrintf ~= nil)
+				if shader.DrawPrintf then
+					shader.DrawPrintf(0, yoffset)
+					yoffset = yoffset + 24
+				end
+			end
+		end
+	end
 end
