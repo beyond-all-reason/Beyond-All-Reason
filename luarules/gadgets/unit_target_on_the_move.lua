@@ -371,6 +371,7 @@ if gadgetHandler:IsSyncedCode() then
 			setTargetData[unitID] = nil
 			pausedTargets[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
+			spSetUnitRulesParam(unitID, "hasPriorityTarget", nil)
 		end
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 	end
@@ -425,6 +426,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		setTargetData[unitID] = data
+		spSetUnitRulesParam(unitID, "hasPriorityTarget", 1)
 		activeTargets[unitID] = data
 		pausedTargets[unitID] = nil
 		addToQueue(unitID)
