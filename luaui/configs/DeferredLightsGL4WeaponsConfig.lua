@@ -785,7 +785,7 @@ local function AssignLightsToAllWeapons()
 			)
 			projectileDefLights[weaponID].lightConfig.selfshadowing = 1 -- Screen Space Light Shadows
 		elseif weaponDef.type == "DGun" then
-			muzzleFlash = true --doesnt work
+			muzzleFlash = true --doesn't work
 			sizeclass = "Medium"
 			t.a = orgMult * 0.66 * 1.5
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
