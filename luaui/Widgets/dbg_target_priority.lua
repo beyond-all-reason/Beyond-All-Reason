@@ -699,11 +699,12 @@ local function drawStrokes()
 	lineShader:Deactivate()
 end
 
--- Gradient from the most preferred target to the least:
+-- Viridis gradient from the most preferred target to the least.
 local GRADIENT = {
-	{ 1.0, 0.42, 0.24 },
-	{ 1.0, 0.84, 0.32 },
-	{ 0.42, 0.68, 1.0 },
+	{ 0.992, 0.906, 0.145 },
+	{ 0.369, 0.788, 0.384 },
+	{ 0.129, 0.569, 0.549 },
+	{ 0.231, 0.322, 0.545 },
 }
 
 local COLOR_IGNORED = { 0.62, 0.62, 0.66, 1.0 }
@@ -711,9 +712,10 @@ local COLOR_OUTLINE = { 0.0, 0.0, 0.0, 0.85 }
 local COLOR_ATTACKER = { 1.0, 1.0, 1.0, 0.9 }
 
 local function gradientColor(t)
-	local segment = math_min(2, math_floor(t * 2) + 1)
+	local segments = #GRADIENT - 1
+	local segment = math_min(segments, math_floor(t * segments) + 1)
 	local a, b = GRADIENT[segment], GRADIENT[segment + 1]
-	local s = t * 2 - (segment - 1)
+	local s = t * segments - (segment - 1)
 	return { a[1] + (b[1] - a[1]) * s, a[2] + (b[2] - a[2]) * s, a[3] + (b[3] - a[3]) * s, 1.0 }
 end
 
