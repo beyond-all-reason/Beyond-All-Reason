@@ -4,7 +4,7 @@
 hasWpn = true
 sleeptime = 3800 * 2
 --Weapon 1
-local turretSpeed1 = attributes and attributes.SetTurretSpeedWeapon1
+local turretSpeed1 = attributes and attributes.SetTurretSpeedWeapon1 ---@diagnostic disable-line: undefined-global
 local headSpeed = turretSpeed1 and turretSpeed1[2] or 0
 local pitchSpeed = turretSpeed1 and turretSpeed1[1] or 0
 weapons[1] = {
