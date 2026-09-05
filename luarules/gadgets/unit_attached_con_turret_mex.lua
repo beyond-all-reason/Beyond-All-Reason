@@ -90,7 +90,6 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID, true)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
 	Spring.SetUnitStealth(mexID, true)
 
@@ -104,7 +103,13 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitHealth(conID, unitHealth)
 
 	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6, true)
+	-- the turret must be the transporter: transported units cannot be targeted
+	Spring.UnitAttach(conID, mexID, 1, true)
+	-- set after attaching, which resets these states
+	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitNoMinimap(mexID, true)
+	Spring.SetUnitIconDraw(mexID, false)
+	Spring.SetUnitNoDraw(mexID, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
