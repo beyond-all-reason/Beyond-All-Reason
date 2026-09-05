@@ -232,6 +232,10 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = GetGaiaTeamID()
 
 	humanTeams[gaiaTeamID] = nil
+	local humanTeamCount = 0
+	for _ in pairs(humanTeams) do
+		humanTeamCount = humanTeamCount + 1
+	end
 
 	local function PutRaptorAlliesInRaptorTeam(n)
 		local players = GetPlayerList()
@@ -359,16 +363,16 @@ if gadgetHandler:IsSyncedCode() then
 	config.gracePeriodInitial = config.gracePeriod + 0
 	local maxBurrows = (
 		(config.maxBurrows * (1 - config.raptorPerPlayerMultiplier))
-		+ (config.maxBurrows * config.raptorPerPlayerMultiplier) * (math.min(SetCount(humanTeams), 8))
+		+ (config.maxBurrows * config.raptorPerPlayerMultiplier) * (math.min(humanTeamCount, 8))
 	) * config.raptorSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = (
 		(config.maxRaptors * (1 - config.raptorPerPlayerMultiplier))
-		+ (config.maxRaptors * config.raptorPerPlayerMultiplier) * SetCount(humanTeams)
+		+ (config.maxRaptors * config.raptorPerPlayerMultiplier) * humanTeamCount
 	) * config.raptorSpawnMultiplier
 	local minWaveSize = (
 		(config.minRaptors * (1 - config.raptorPerPlayerMultiplier))
-		+ (config.minRaptors * config.raptorPerPlayerMultiplier) * SetCount(humanTeams)
+		+ (config.minRaptors * config.raptorPerPlayerMultiplier) * humanTeamCount
 	) * config.raptorSpawnMultiplier
 	local currentMaxWaveSize = minWaveSize
 	local endlessLoopCounter = 1
@@ -427,15 +431,15 @@ if gadgetHandler:IsSyncedCode() then
 		queenTime = (config.queenTime + config.gracePeriod)
 		maxBurrows = (
 			(config.maxBurrows * (1 - config.raptorPerPlayerMultiplier))
-			+ (config.maxBurrows * config.raptorPerPlayerMultiplier) * (math.min(SetCount(humanTeams), 8))
+			+ (config.maxBurrows * config.raptorPerPlayerMultiplier) * (math.min(humanTeamCount, 8))
 		) * config.raptorSpawnMultiplier
 		maxWaveSize = (
 			(config.maxRaptors * (1 - config.raptorPerPlayerMultiplier))
-			+ (config.maxRaptors * config.raptorPerPlayerMultiplier) * SetCount(humanTeams)
+			+ (config.maxRaptors * config.raptorPerPlayerMultiplier) * humanTeamCount
 		) * config.raptorSpawnMultiplier
 		minWaveSize = (
 			(config.minRaptors * (1 - config.raptorPerPlayerMultiplier))
-			+ (config.minRaptors * config.raptorPerPlayerMultiplier) * SetCount(humanTeams)
+			+ (config.minRaptors * config.raptorPerPlayerMultiplier) * humanTeamCount
 		) * config.raptorSpawnMultiplier
 		config.raptorSpawnRate = nextDifficulty.raptorSpawnRate
 		currentMaxWaveSize = minWaveSize
@@ -491,6 +495,7 @@ if gadgetHandler:IsSyncedCode() then
 	]]
 	function squadManagerKillerLoop() -- Kills squads that have been alive for too long (most likely stuck somewhere on the map)
 		--squadsTable
+		local burrowCount = SetCount(burrows)
 		for i = 1, #squadsTable do
 			squadsTable[i].squadLife = squadsTable[i].squadLife - 1
 			if squadsTable[i].squadLife < 3 and squadsTable[i].squadRegroupEnabled then
@@ -500,7 +505,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if squadsTable[i].squadLife <= 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
-				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
+				if #squadsTable[i].squadUnits > 0 and burrowCount > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedQueens == 0 then
 						if GetUnitIsDead(squadsTable[i].squadBurrow) == false then
 							squadsTable[i].squadBurrow = nil
@@ -533,7 +538,7 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneBeginN("Raptors:squadCommanderGiveOrders")
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
-		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
+		if #units > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
 			if squadsTable[squadID].squadRegroupEnabled then
 				local xmin = 999999
 				local xmax = 0
@@ -650,7 +655,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			for i = 1, #squadsTable do
 				-- Spring.Echo("Attempt to recycle squad #" .. i .. ". Containing " .. SetCount(squadsTable[i].squadUnits) .. " units.")
-				if SetCount(squadsTable[i].squadUnits) == 0 then -- Yes, we found one empty squad to recycle
+				if #squadsTable[i].squadUnits == 0 then -- Yes, we found one empty squad to recycle
 					squadID = i
 					-- Spring.Echo("Recycled squad, #".. squadID)
 					break
@@ -688,7 +693,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("Created Raptor Squad, containing " .. #squadsTable[squadID].squadUnits .. " units!")
 			-- Spring.Echo("Role: " .. squadsTable[squadID].squadRole)
 			-- Spring.Echo("Lifetime: " .. squadsTable[squadID].squadLife)
-			for i = 1, SetCount(squadsTable[squadID].squadUnits) do
+			for i = 1, #squadsTable[squadID].squadUnits do
 				local unitID = squadsTable[squadID].squadUnits[i]
 				unitSquadTable[unitID] = squadID
 				-- Spring.Echo("#".. i ..", ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
@@ -704,17 +709,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function manageAllSquads() -- Get new target for all squads that need it
 		for i = 1, #squadsTable do
-			if mRandom(1, 100) == 1 then
-				local hasTarget = false
-				for squad, target in pairs(unitTargetPool) do
-					if i == squad then
-						hasTarget = true
-						break
-					end
-				end
-				if not hasTarget then
-					refreshSquad(i)
-				end
+			if mRandom(1, 100) == 1 and unitTargetPool[i] == nil then
+				refreshSquad(i)
 			end
 		end
 	end
@@ -1077,7 +1073,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if SetCount(queenIDs) > 0 then
+		if next(queenIDs) ~= nil then
 			if queenStagger.currentlyStaggered == false then
 				if queenStagger.CurrentHealth > 0 then
 					SetGameRulesParam(
@@ -1625,10 +1621,10 @@ if gadgetHandler:IsSyncedCode() then
 				if uSettings.minQueenAnger <= techAnger and uSettings.maxQueenAnger >= techAnger then
 					local numOfTurrets = (uSettings.spawnedPerWave * (1 - config.raptorPerPlayerMultiplier))
 						+ (uSettings.spawnedPerWave * config.raptorPerPlayerMultiplier)
-							* (math.min(SetCount(humanTeams), 8))
+							* (math.min(humanTeamCount, 8))
 					local maxExisting = (uSettings.maxExisting * (1 - config.raptorPerPlayerMultiplier))
 						+ (uSettings.maxExisting * config.raptorPerPlayerMultiplier)
-							* (math.min(SetCount(humanTeams), 8))
+							* (math.min(humanTeamCount, 8))
 					local maxAllowedToSpawn
 					if techAnger <= 100 then -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
 						maxAllowedToSpawn = math.ceil(
@@ -2452,7 +2448,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t < config.gracePeriod then
 				queenAnger = 0
 				minBurrows =
-					math.ceil(math.max(4, 2 * (math.min(SetCount(humanTeams), 8))) * (t / config.gracePeriodInitial))
+					math.ceil(math.max(4, 2 * (math.min(humanTeamCount, 8))) * (t / config.gracePeriodInitial))
 			else
 				if nSpawnedQueens == 0 then
 					queenAnger = math.clamp(
@@ -2512,7 +2508,7 @@ if gadgetHandler:IsSyncedCode() then
 			if t > config.gracePeriodInitial + 5 then
 				if
 					burrowCount > 0
-					and SetCount(spawnQueue) == 0
+					and next(spawnQueue) == nil
 					and ((config.raptorSpawnRate * waveParameters.waveTimeMultiplier) < (t - timeOfLastWave))
 				then
 					Wave()
@@ -2539,13 +2535,18 @@ if gadgetHandler:IsSyncedCode() then
 			local raptors = GetTeamUnits(raptorTeamID)
 			for i = 1, #raptors do
 				local unitID = raptors[i]
-				local defID = GetUnitDefID(unitID)
-				if
-					defID
-					and mRandom(1, math.ceil((33 * math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1
-					and mRandom() < config.spawnChance
-				then
-					SpawnMinions(unitID, defID)
+				local defID
+				-- constant 1/33 roll first so the def lookups only run for units that pass it;
+				-- 1/33 * 1/count keeps the old 1/(33*count) odds
+				if mRandom(1, 33) == 1 then
+					defID = GetUnitDefID(unitID)
+					if
+						defID
+						and mRandom(1, math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))) == 1
+						and mRandom() < config.spawnChance
+					then
+						SpawnMinions(unitID, defID)
+					end
 				end
 				if math.random(1, 10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
 					unitCowardCooldown[unitID] = nil
@@ -2601,9 +2602,11 @@ if gadgetHandler:IsSyncedCode() then
 			unitSquadTable[unitID] = nil
 		end
 
-		for index, _ in ipairs(squadsTable) do
-			if squadsTable[index].squadBurrow == unitID then
-				squadsTable[index].squadBurrow = nil
+		if unitTeam == raptorTeamID then -- squadBurrow is always one of our own units
+			for index, _ in ipairs(squadsTable) do
+				if squadsTable[index].squadBurrow == unitID then
+					squadsTable[index].squadBurrow = nil
+				end
 			end
 		end
 
@@ -2697,6 +2700,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeleportCooldown[unitID] then
 			unitTeleportCooldown[unitID] = nil
 		end
+		unitCowardCooldown[unitID] = nil
+		UnitReactionsTimeout[unitID] = nil
+		UnitLifetimeResetTimeout[unitID] = nil
 		if unitTeam ~= raptorTeamID and config.ecoBuildingsPenalty[unitDefID] then
 			playerAggressionEcoValue = playerAggressionEcoValue
 				- (config.ecoBuildingsPenalty[unitDefID] / (config.queenTime / 3600)) -- scale to 60minutes = 3600seconds queen time
@@ -2704,7 +2710,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TeamDied(teamID)
-		humanTeams[teamID] = nil
+		if humanTeams[teamID] then
+			humanTeams[teamID] = nil
+			humanTeamCount = humanTeamCount - 1
+		end
 		--computerTeams[teamID] = nil
 	end
 
