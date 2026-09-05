@@ -4,6 +4,26 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.13 - 2026-09-02
+
+### New
+
+- The Tileset window gained a PERFORMANCE section: HIGH, MEDIUM and LOW quality presets that drop draw-time features of the tileset shader, and the levers underneath them as sliders (foothills, stagger, far anti-tiling, cliff-tap slack, the far cache with its start and band, "Cliffs cached past" for the distance at which steep faces join the cache, and the clipmap toggle). A preset applies on top of the sliders, so HIGH is where each lever can be judged on its own.
+- The BIOME LIBRARY tiles are built at runtime from the tileset shader's biome manifests (one Lua file per biome in the shader's `tilesets/` folder) instead of six hardcoded RML tiles, so a biome added on disk shows up in the picker without a UI edit. Thumbnails are GL overdraws like the EXTRA LAYER material tiles (a shipped preview drawn whole, or the base albedo as a centered crop), and each biome's skybox pick comes from its manifest instead of a name-match table in the UI.
+
+### Improvements
+
+- AUTORAMP swipe: holding the button and dragging re-fires the ramp along the path, so a whole cliff line restyles in one stroke instead of one click per segment.
+- SURFACE's per-tile FLIP buttons became one FLIP chip in the NOW PAINTING strip that flips the normal map of the selected slot, BASE included. Three buttons per tile left PICK, FLIP and X too cramped to hit; the chip dims when the selected slot has no texture.
+- The SURFACE texture picker asks the painter for its coverage readback only while a picker is open. The readback is a GPU sync, and its only reader is the picker's "already carries paint" warning.
+
+### Fixes
+
+- LAYERS paint, clone-tool pastes and a project's splat swap now tell the tileset shader which region changed, so painted layers no longer vanish when zooming out. The shader serves distant ground from a baked copy that sampled the splat texture at bake time; strokes widen a dirty rectangle that is flushed to the far cache and clipmap during the drag and once more when it ends, and whole-texture changes (undo, redo, load) request a full refill.
+- The picture-in-picture widget no longer floods the log with GL errors on Mesa drivers: a uniform call was handed every return value of a multi-value function instead of only the ones the uniform takes.
+- The FILE dropdown stays on top of the texture thumbnails (reported by Moose). Tile previews (SURFACE palette, EXTRA LAYER, BIOME LIBRARY, skybox and splat channel grids) are GL overdraws painted after the UI renders, so an open menu was drawn under them; every pass now skips tiles the menu covers.
+- The header's passthrough (pause) button works with the SURFACE panel (reported by Moose). The toggle saved, deactivated and restored every tool except the surface painter, so pausing with SURFACE armed left its brush owning the mouse and clicks never reached unit selection. Both submodes now stand down on pause and re-arm on unpause, LAYERS included.
+
 ## 1.12 - 2026-08-22
 
 ### New

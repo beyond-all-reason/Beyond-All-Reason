@@ -892,8 +892,6 @@ local function drawHighlights()
 	end
 	local now = os_clock()
 	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
-	local outlineAlpha = 0.45 + 0.5 * pulse
-	local glowAlpha = 0.10 + 0.20 * pulse
 	for cell = 1, #commands do
 		local cmd = commands[cell]
 		local rect = cellRects[cell]

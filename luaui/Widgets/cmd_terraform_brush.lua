@@ -75,11 +75,9 @@ local pi = math.pi
 local ceil = math.ceil
 local atan2 = math.atan2
 local log = math.log
-local exp = math.exp
 local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local KEYSYMS_SPACE = 0x20
-local KEYSYMS_R = 0x72
 
 local RING_WIDTH_STEP = 0.05
 local RADIUS_STEP = 8
@@ -90,18 +88,15 @@ local MIN_RADIUS = 8
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local DEFAULT_CURVE = 1.0
-local INTENSITY_STEP = 0.1
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 100.0
 local DEFAULT_INTENSITY = 1.0
 local CIRCLE_SEGMENTS = 64
-local FALLOFF_DISPLAY_HEIGHT = 60
 local ringInnerRatio = 0.6
 local DEFAULT_LENGTH_SCALE = 1.0
 local MIN_LENGTH_SCALE = 0.2
 local MAX_LENGTH_SCALE = 5.0
 local LENGTH_SCALE_STEP = 0.1
-local GRID_SNAP_SIZE = 48 -- default; overridden by extraState.gridSnapSize
 local PRESETS_DIR = "Terraform Brush/Presets/"
 local KEYBINDS_DIR = "Terraform Brush/"
 local KEYBINDS_FILE = KEYBINDS_DIR .. "keybinds.lua"
@@ -915,7 +910,6 @@ local shiftState = { axis = nil, originX = nil, originZ = nil, wasHeld = false }
 local gridShowing = false
 local rightMouseHeld = false
 local savedModeBeforeRMB = nil
-local savedDirectionBeforeRMB = nil
 local clayMode = false
 local stampApplied = false -- stamp mode: true after first apply at current position
 
@@ -2117,6 +2111,10 @@ extraState._newmapTryApplyDNTS = function()
 	local distr = mapOpts.blank_map_splatdistr
 	if type(distr) == "string" and distr ~= "" then
 		Spring.SetMapShadingTexture("$ssmf_splat_distr", registerTexName(distr) or distr)
+		-- the tileset far cache / clipmap bake the splat channels: whole refill
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshSurface then
+			WG.TilesetTerrain.refreshSurface()
+		end
 	end
 
 	local detail = mapOpts.blank_map_splatdetailtex
@@ -4080,6 +4078,40 @@ end
 -- where it is removed (cut), alpha scaled by how much the height changes.
 -- Handles its own display-list lifecycle so it also cleans up after the data
 -- is cleared (mode left, preview toggled off, cursor off-map).
+-- One autoramp application at a world position: builds the param tail from the
+-- live knobs and sends one message per symmetry copy (off-map copies dropped).
+-- Shared by the MousePress dab and the swipe re-fires in Update. Returns
+-- whether anything was sent.
+extraState.sendAutorampAt = function(worldX, worldZ)
+	local es = extraState
+	local paramTail = " "
+		.. activeRadius
+		.. " "
+		.. floor(es.autorampAngleDeg)
+		.. " "
+		.. string.format("%.2f", es.autorampFalloff)
+		.. " "
+		.. string.format("%.2f", es.autorampEdgeNoise)
+		.. " "
+		.. string.format("%.2f", es.autorampErosion)
+		.. " "
+		.. string.format("%.2f", es.autorampTalus)
+	local positions = es.getSymmetricPositions(worldX, worldZ, 0)
+	local sent = false
+	for _, p in ipairs(positions) do
+		if p.x >= 0 and p.x <= Game.mapSizeX and p.z >= 0 and p.z <= Game.mapSizeZ then
+			-- Seed from the target cell: deterministic per spot, so a replayed
+			-- or re-done application reproduces the same cliff.
+			local seed = (floor(p.x) * 73 + floor(p.z) * 179) % 10000
+			SendLuaRulesMsg(
+				MSG.AUTORAMP .. floor(p.x) .. " " .. floor(p.z) .. paramTail .. " " .. seed .. " " .. es.autorampStart
+			)
+			sent = true
+		end
+	end
+	return sent
+end
+
 function extraState.drawAutorampPreview(suppressed)
 	local es = extraState
 	if es.arPrevDirty then
@@ -4289,6 +4321,8 @@ function widget:Update(dt)
 		extraState.erodePhase = 0
 		rampEndX = nil
 		rampEndZ = nil
+		extraState.autorampLastX = nil
+		extraState.autorampLastZ = nil
 		if extraState.splineCacheList then
 			glDeleteList(extraState.splineCacheList)
 			extraState.splineCacheList = nil
@@ -4486,6 +4520,37 @@ function widget:Update(dt)
 		end
 		extraState.erodePhase = extraState.erodePhase + 1
 		afterBrushTick()
+	elseif activeMode == "autoramp" then
+		-- Swipe: re-fire the one-click region op along the drag path once the
+		-- cursor has moved a brush-radius fraction from the last application,
+		-- so successive cliff rebuilds knit together without hammering the
+		-- gadget every tick. A stationary hold fires nothing.
+		if mx ~= lastScreenX or my ~= lastScreenY then
+			lastScreenX = mx
+			lastScreenY = my
+			local worldX, worldZ = getWorldMousePosition()
+			if worldX and worldZ then
+				lockedWorldX = worldX
+				lockedWorldZ = worldZ
+				local es = extraState
+				local lastX, lastZ = es.autorampLastX, es.autorampLastZ
+				if not (lastX and lastZ) then
+					es.autorampLastX, es.autorampLastZ = worldX, worldZ
+				end
+				lastX = lastX or worldX
+				lastZ = lastZ or worldZ
+				local adx = worldX - lastX
+				local adz = worldZ - lastZ
+				local spacing = max(16, activeRadius * 0.5)
+				if adx * adx + adz * adz >= spacing * spacing then
+					if es.sendAutorampAt(worldX, worldZ) then
+						afterBrushTick()
+					end
+					es.autorampLastX = worldX
+					es.autorampLastZ = worldZ
+				end
+			end
+		end
 	elseif activeMode == "noise" then
 		if mx ~= lastScreenX or my ~= lastScreenY then
 			lastScreenX = mx
@@ -9294,49 +9359,26 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		end
-		-- Autoramp: single-click region op — restyle the cliff under the cursor.
-		-- Like fill, never locks a drag; each click is one atomic undo stroke.
+		-- Autoramp: region op — restyle the cliff under the cursor. A click
+		-- fires once; holding LMB and swiping re-fires along the drag path,
+		-- spaced by brush radius (see the autoramp branch in Update). The
+		-- whole swipe is one undo stroke, closed by the shared release
+		-- cleanup at the top of Update — no immediate close here.
 		if activeMode == "autoramp" then
 			local worldX, worldZ = getWorldMousePosition()
 			if worldX then
-				local es = extraState
-				local paramTail = " "
-					.. activeRadius
-					.. " "
-					.. floor(es.autorampAngleDeg)
-					.. " "
-					.. string.format("%.2f", es.autorampFalloff)
-					.. " "
-					.. string.format("%.2f", es.autorampEdgeNoise)
-					.. " "
-					.. string.format("%.2f", es.autorampErosion)
-					.. " "
-					.. string.format("%.2f", es.autorampTalus)
-				local positions = extraState.getSymmetricPositions(worldX, worldZ, 0)
-				local sent = false
-				for _, p in ipairs(positions) do
-					if p.x >= 0 and p.x <= Game.mapSizeX and p.z >= 0 and p.z <= Game.mapSizeZ then
-						-- Seed from the click cell: deterministic per spot, so a
-						-- replayed or re-done click reproduces the same cliff.
-						local seed = (floor(p.x) * 73 + floor(p.z) * 179) % 10000
-						SendLuaRulesMsg(
-							MSG.AUTORAMP
-								.. floor(p.x)
-								.. " "
-								.. floor(p.z)
-								.. paramTail
-								.. " "
-								.. seed
-								.. " "
-								.. es.autorampStart
-						)
-						sent = true
-					end
-				end
-				if sent then
+				if extraState.sendAutorampAt(worldX, worldZ) then
 					afterBrushTick()
-					closeBrushStroke()
 				end
+				-- Arm the swipe: the Update dispatch gates on lockedWorldX, and
+				-- the spacing check needs the last-applied anchor.
+				lockedWorldX = worldX
+				lockedWorldZ = worldZ
+				lockedGroundY = GetGroundHeight(worldX, worldZ)
+				lastScreenX = mx
+				lastScreenY = my
+				extraState.autorampLastX = worldX
+				extraState.autorampLastZ = worldZ
 			end
 			return true
 		end
@@ -9384,7 +9426,6 @@ function widget:MousePress(mx, my, button)
 	if button == 3 then
 		if not rightMouseHeld then
 			savedModeBeforeRMB = activeMode
-			savedDirectionBeforeRMB = activeDirection
 			rightMouseHeld = true
 			setMode("lower")
 			Echo(
@@ -9511,7 +9552,6 @@ function widget:MouseRelease(mx, my, button)
 			activeDirection = nil
 		end
 		savedModeBeforeRMB = nil
-		savedDirectionBeforeRMB = nil
 		lockedWorldX = nil
 		lockedWorldZ = nil
 		lockedGroundY = nil

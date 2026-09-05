@@ -13,12 +13,22 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, undoCount, redoCount)
-		if name == "TerraformBrushStacks" then
-			if Script.LuaUI("TerraformBrushStackUpdate") then
-				Script.LuaUI.TerraformBrushStackUpdate(undoCount, redoCount)
-			end
+	-- Registered as a sync action (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function onStacks(_, undoCount, redoCount)
+		if Script.LuaUI("TerraformBrushStackUpdate") then
+			Script.LuaUI.TerraformBrushStackUpdate(undoCount, redoCount)
 		end
+		return true
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("TerraformBrushStacks", onStacks)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("TerraformBrushStacks")
 	end
 	return
 end
@@ -141,7 +151,6 @@ local importDoneCounter = 0
 -- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.
 local mergeSnapshot = nil -- the active snapshot being merged into; nil = no drag in progress
-local mergeVertexSet = nil -- set of numeric keys already in mergeSnapshot
 local mergeSnapshotLen = 0 -- explicit length of mergeSnapshot (avoids # on growing tables)
 local currentStrokeId = 0 -- incremented on each STROKE_END; tags all entries in a stroke
 local lastUndoFrame = -1 -- throttle: only one undo per game frame
@@ -432,7 +441,6 @@ local function finalizeMerge()
 		mergeSnapshot.vertexCount = mergeSnapshotLen / 3
 	end
 	mergeSnapshot = nil
-	mergeVertexSet = nil
 	mergeSnapshotLen = 0
 end
 

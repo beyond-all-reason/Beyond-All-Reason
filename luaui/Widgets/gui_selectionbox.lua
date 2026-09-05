@@ -17,9 +17,6 @@ local lineWidth = 1.5
 -- Optional: Enable colored selection box based on modifier keys
 local coloredModifierKeys = true -- Set to false to always use white selection box
 
-local mapSizeX = Game.mapSizeX
-local mapSizeZ = Game.mapSizeZ
-
 -- Track minimap selection
 local minimapSelectionActive = false
 local minimapSelectionStart = { x = 0, y = 0 }

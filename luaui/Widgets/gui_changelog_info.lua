@@ -14,7 +14,6 @@ end
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
@@ -150,9 +149,6 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarMargin = 10 * widgetScale
 	local scrollbarWidth = 8 * widgetScale
 	local scrollbarPosWidth = 4 * widgetScale
-	local scrollbarPosMinHeight = 8 * widgetScale
-	local scrollbarBackgroundColor = { 0, 0, 0, 0.24 }
-	local scrollbarBarColor = { 1, 1, 1, 0.15 }
 
 	local fontSizeTitle = 17 * widgetScale
 	local fontSizeDate = 13 * widgetScale
@@ -162,7 +158,6 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local fontColorTitle = { 1, 1, 1, 1 }
 	local fontColorDate = { 0.66, 0.88, 0.66, 1 }
 	local fontColorLine = { 0.8, 0.77, 0.74, 1 }
-	local fontColorLineBullet = { 0.9, 0.6, 0.2, 1 }
 
 	local textRightOffset = scrollbar and scrollbarMargin + scrollbarWidth + scrollbarWidth or 0
 	maxLines = mathFloor(height / (lineSeparator + fontSizeTitle))
@@ -350,8 +345,6 @@ function widget:DrawScreen()
 			Spring.SetMouseCursor("cursornormal")
 		end
 		if changelogFile then
-			local lineKey = 1
-			local j = 0
 			local yOffset = 24 * widgetScale
 			local yOffsetUp = ((versionFontSize * 0.66) + yOffset) * widgetScale
 			local yOffsetDown = ((versionFontSize * 1.21) - yOffset) * widgetScale
@@ -421,7 +414,6 @@ function mouseEvent(x, y, button, release)
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			-- version buttons
 			if button == 1 and release then
-				local yOffset = 24
 				local usedScreenX = mathFloor((vsx * centerPosX) - ((screenWidth / 2) * widgetScale))
 				local usedScreenY = mathFloor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
 

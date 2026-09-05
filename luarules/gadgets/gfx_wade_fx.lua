@@ -18,7 +18,7 @@ end
 
 ---@class WadeUnitData
 ---@field id integer
----@field unitID integer
+---@field unitID UnitID
 ---@field h number
 ---@field ceg string
 

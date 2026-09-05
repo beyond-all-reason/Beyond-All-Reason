@@ -1721,8 +1721,6 @@ local function GetClosestSizeClass(desiredsize)
 	return best, SizeRadius[best]
 end
 
-local lifeTimes = { Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270 }
-
 local distortionClasses = {}
 
 local function deepcopy(orig)
@@ -2018,10 +2016,8 @@ local function AssignDistortionsToAllWeapons()
 
 		local projectileSpeed = weaponDef.weaponVelocity or 10
 		local weaponRange = weaponDef.range or 0
-		local weaponReloadTime = weaponDef.reloadtime
 		local areaofeffect = weaponDef.damageAreaOfEffect or 0
 		--local weaponImpulse = weaponDef.impulseFactor or 0 (doesn't seem to work)
-		local life = 12
 		local radius = ((areaofeffect * 0.7) + (areaofeffect * weaponDef.edgeEffectiveness * 1.1))
 		local muzzleflashRadius = radius ^ 0.75 + (weaponRange * 0.015) + (projectileSpeed * 0.045) --for muzzleflashes
 		--local effectiveRangeExplo = ((areaofeffect * 1.2) - ((1 - weaponDef.edgeEffectiveness) * areaofeffect * 0.5)) --+ (weaponImpulse * 1000)
@@ -2033,10 +2029,8 @@ local function AssignDistortionsToAllWeapons()
 		local muzzleFlash = true -- by default add muzzleflash to weapon being fired
 		local explosionDistortion = true -- by default, add explosion distortion to weapon on explosion
 		local sizeclass = GetClosestSizeClass(radius)
-		local t = {}
 		local overrideTable = {}
 		local antiair = string.find(weaponDef.cegTag, "aa") or false
-		local paralyzer = weaponDef.paralyzer or false
 		local scavenger = string.find(weaponDef.name, "_scav") or false
 		local juno = string.find(weaponDef.name, "juno") or false
 		--local isBuilding =
@@ -2052,30 +2046,6 @@ local function AssignDistortionsToAllWeapons()
 				local heatRadius = (1.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius)
 				sizeclass = GetClosestSizeClass(heatRadius * 0.25)
 				projectileDefDistortions[weaponID] = GetDistortionClass("HeatRayHeat", sizeclass, overrideTable)
-			else
-				-- -- Auto-scale distortion based on beam power and size
-				-- local beamThickness = weaponDef.thickness or 2
-				-- local beamSize = weaponDef.size or 1
-				-- -- DPS from reloadtime captures rapid-fire beams (armbeamer) correctly
-				-- local dps = damage / math.max(weaponReloadTime or 1, 0.05)
-				-- -- Power factor: 0..1 range, light rapid-fire ~0.18, heavy beams ~1.0
-				-- local powerFactor = math.min(1.0, dps / 1500)
-
-				-- -- Distortion radius: floor of 20 so even light beams produce visible shimmer
-				-- local beamDistRadius = math.max(5, beamThickness * 1.1 + beamSize * 1.1)
-				-- if weaponDef.paralyzer then
-				-- 	beamDistRadius = beamDistRadius * 0.6
-				-- end
-				-- sizeclass = GetClosestSizeClass(beamDistRadius)
-
-				-- -- Scale noise and effect strength by power
-				-- local beamOverrides = {
-				-- 	noiseStrength = 0.4 + 0.3 * powerFactor,
-				-- 	effectStrength = 1.2 + 0.75 * powerFactor,
-				-- 	noiseScaleSpace = 2.3 - 4.0 * powerFactor,  -- tighter noise for heavier beams
-				-- }
-
-				-- projectileDefDistortions[weaponID] = GetDistortionClass("LaserBeamHeat", sizeclass, beamOverrides)
 			end
 		elseif weaponDef.type == "LaserCannon" then
 			-- take the name in lower-case
@@ -2121,10 +2091,6 @@ local function AssignDistortionsToAllWeapons()
 			end
 			sizeclass = GetClosestSizeClass(radius)
 		elseif weaponDef.type == "Cannon" then
-			-- if string.find(weaponDef.name, 'flak') then
-			-- 	sizeclass = 0
-			-- 	life = 0
-			-- end
 			--muzzleFlash = true
 			sizeclass = GetClosestSizeClass(radius)
 			--projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)

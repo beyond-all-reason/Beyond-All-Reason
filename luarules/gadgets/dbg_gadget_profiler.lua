@@ -390,9 +390,7 @@ else
 	local columnReserve = 0 -- width reserved left of column 0 for the detail panel (0 when none)
 	local detailColour = "\255\255\255\255"
 
-	local timersSynced = {}
 	local startTickTimer
-	local memUsageSynced = {}
 
 	local function SetDrawCallin(drawCallin)
 		-- when the profiler isn't running, the profiler gadget should have *no* draw callin
@@ -481,8 +479,6 @@ else
 			selectedCallinAvgs = {}
 
 			startTickTimer = nil
-			timersSynced = {}
-			memUsageSynced = {}
 
 			ProfilerEcho("luarules profiler killed (player " .. pID .. ")")
 		end
@@ -520,7 +516,6 @@ else
 		end
 	end
 
-	local totalLoads = {}
 	local allOverTimeSec = 0 -- currently unused
 
 	--------------------------------------------------------------------------------
@@ -601,7 +596,6 @@ else
 	end
 
 	local function ProcessCallinStats(stats, timeLoadAvgs, spaceloadAvgs, redStr, deltaTime, isSynced)
-		totalLoads = {}
 		local allOverTime = 0
 		local allOverSpace = 0
 		local n = 1

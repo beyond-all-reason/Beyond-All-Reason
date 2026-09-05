@@ -1228,7 +1228,6 @@ local function updateStatsTexture()
 			else
 				leftBarWidth = mathfloor(barLength / 2)
 			end
-			local rightBarWidth = barLength - leftBarWidth -- TODO: remove unused variable
 
 			local relativeLead = 0
 			local relativeLeadMax = 999

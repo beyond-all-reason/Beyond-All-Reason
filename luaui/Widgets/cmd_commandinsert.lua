@@ -15,14 +15,10 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
-local tableInsert = table.insert
-
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGameFrame = Spring.GetGameFrame
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spEcho = Spring.Echo
 
 local math_sqrt = math.sqrt
 
@@ -80,45 +76,6 @@ function widget:Initialize()
 	widgetHandler:AddAction("commandinsert", pressHandler, nil, "p")
 	widgetHandler:AddAction("commandinsert", releaseHandler, nil, "r")
 end
-
---[[
--- use this for debugging:
-function table.val_to_str ( v )
-  if "string" == type( v ) then
-    v = string.gsub( v, "\n", "\\n" )
-    if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
-      return "'" .. v .. "'"
-    end
-    return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
-  else
-    return "table" == type( v ) and table.tostring( v ) or
-      tostring( v )
-  end
-end
-
-function table.key_to_str ( k )
-  if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
-    return k
-  else
-    return "[" .. table.val_to_str( k ) .. "]"
-  end
-end
-
-function table.tostring( tbl )
-  local result, done = {}, {}
-  for k, v in ipairs( tbl ) do
-    tableInsert( result, table.val_to_str( v ) )
-    done[ k ] = true
-  end
-  for k, v in pairs( tbl ) do
-    if not done[ k ] then
-      tableInsert( result,
-        table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
-    end
-  end
-  return "{" .. table.concat( result, "," ) .. "}"
-end
---]]
 
 local function GetUnitOrFeaturePosition(id)
 	if id < Game.maxUnits then
@@ -198,7 +155,6 @@ function widget:CommandNotify(id, params, options)
 		local insert_pos = 0
 		for j = 1, #commands do
 			local command = commands[j]
-			--spEcho("cmd:"..table.tostring(command))
 			local px2, py2, pz2 = GetCommandPos(command)
 			if px2 and px2 > -1 then
 				local dlen = math_sqrt(
@@ -206,7 +162,6 @@ function widget:CommandNotify(id, params, options)
 				) + math_sqrt(((px - cx) * (px - cx)) + ((py - cy) * (py - cy)) + ((pz - cz) * (pz - cz))) - math_sqrt(
 					(((px2 - px) * (px2 - px)) + ((py2 - py) * (py2 - py)) + ((pz2 - pz) * (pz2 - pz)))
 				)
-				--spEcho("dlen "..dlen)
 				if dlen < min_dlen then
 					min_dlen = dlen
 					insert_pos = j

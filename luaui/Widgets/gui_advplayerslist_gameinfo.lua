@@ -24,11 +24,8 @@ local timeNotation = 24
 local font
 
 local widgetScale = 1
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local drawlist = {}
 local advplayerlistPos = {}

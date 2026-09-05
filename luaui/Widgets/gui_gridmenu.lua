@@ -1647,8 +1647,6 @@ function widget:Initialize()
 	WG.gridmenu.clearHighlights = clearHighlights
 	WG.gridmenu.hasHighlight = hasHighlight
 
-	local blockedUnits = {}
-
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
 		units.unitRestricted[unitDefID] = next(reasons) ~= nil

@@ -213,7 +213,7 @@ end
 local attachedTurretDef = {} -- unitDefID -> { con = defname, noSelect = bool }
 for udid, ud in pairs(UnitDefs) do
 	local con = ud.customParams.attached_con_turret
-	if con and UnitDefNames[con] and not ud.customParams.isscavenger then
+	if con and UnitDefNames[con] and not ud.customParams.isscavenger and not ud.customParams.attached_con_turret_mex then
 		attachedTurretDef[udid] = {
 			con = con,
 			noSelect = ud.customParams.attached_con_turret_noselect and true or false,

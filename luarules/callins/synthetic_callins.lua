@@ -117,13 +117,13 @@ local function makeStopMarking(marked, list, count)
 end
 
 ---Marked IDs this frame, as a set.
----@alias SummaryMarked table<integer, true>
+---@alias SummaryMarked table<ObjectID, true>
 
 ---Marked IDs this frame, as an array.
----@alias SummaryList integer[]
+---@alias SummaryList ObjectID[]
 
 ---Signed sums per marked ID, kept while active.
----@alias SummaryTotals table<integer, number>
+---@alias SummaryTotals table<ObjectID, number>
 
 ---@class SummaryCount
 ---@field [1] integer? the batch size; nil is inactive
@@ -132,7 +132,7 @@ end
 ---@field [1] true? whether accumulating totals
 
 ---Sticky-state per marked ID, kept while active.
----@alias SummaryLatched table<integer, true>
+---@alias SummaryLatched table<ObjectID, true>
 
 local function createSummary(callinName)
 	if not syntheticCallinSummaries[callinName] then
@@ -174,6 +174,9 @@ local function createSummary(callinName)
 			active[1] = true
 		elseif active[1] then
 			for i = 1, count[1] or 0 do
+				-- ObjectID is a union of two integer aliases, which the checker will not
+				-- accept as the key of a table it is clearing an entry from.
+				---@diagnostic disable-next-line: inject-field
 				totals[list[i]] = nil
 			end
 			active[1] = nil
