@@ -370,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
+		-- all the allyteams alive are bidirectionally allied against each other, they are all winners
 		--local winnersCorrectFormat = {}
 		local winnersCorrectFormatCount = 0
 		for winner in pairs(sharedWinnerScratch) do
