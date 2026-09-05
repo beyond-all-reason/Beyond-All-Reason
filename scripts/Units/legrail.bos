@@ -3,7 +3,7 @@
 
 piece  base, btrack, fltrack, frtrack, aimpoint, armor, turret, sleeve, lrail, rrail, flare;
 
-static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, oldheading;
+static-var  restore_delay, shotcount, fired1, fired2, aiming, oldheading;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -11,6 +11,15 @@ static-var  restore_delay, wpn1_lasthead, shotcount, fired1, fired2, aiming, old
 #define SIGNAL_AIM2	2
 #define SIGNAL_IDLE 8 
 #define SIGNAL_SHOOT1 16
+
+#define COMPAIM1_PIECE_Y turret
+#define COMPAIM1_PIECE_X sleeve
+#define COMPAIM1_YAW_SPEED <120>
+#define COMPAIM1_PITCH_SPEED <120>
+#define COMPAIM1_RESTORE_SPEED <50>
+#define COMPAIM1_RESTORE_PITCH_SPEED <50>
+#define COMPAIM1_YAW_LIMIT <105>
+#include "../compensated_turret_aim.h"
 
 #define BASEPIECE base
 #define HITSPEED <45.0>
@@ -31,13 +40,13 @@ Create()
 	//hide flare;
 	restore_delay = 3000;
 	shotcount = 0;
-	wpn1_lasthead = 1000000;
 	fired1 = 0;
 	fired2 = 0;
 	aiming = 0;
 	oldheading = get HEADING;
 	call-script TB_Init();
 	start-script Steering();
+	start-script COMPAIM1_Controller();
 	SLEEP_UNTIL_UNITFINISHED;
 }
 
@@ -106,14 +115,13 @@ ExecuteRestoreAfterDelay()
     }
 	fired1 = 0;
 	fired2 = 0;
-	turn turret to y-axis <0> speed <50>;
-	turn sleeve to x-axis <0> speed <50>;
-	wpn1_lasthead = 1000000;
+	call-script COMPAIM1_StopAiming();
 }
 
 SetStunned(State)
 {
     Stunned = State;
+    call-script COMPAIM1_SetStunned(State);
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
@@ -131,19 +139,13 @@ AimPrimary(heading, pitch)
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	start-script ResetAiming();
-	if (heading < <105> AND heading > <-105>){
-		turn turret to y-axis heading speed <120>;
-		turn sleeve to x-axis <0.000000> - pitch speed <120>;
-		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
-		{
-			wpn1_lasthead = 1000000;
-			wait-for-turn turret around y-axis;
-			wait-for-turn sleeve around x-axis;
-		}
-		wpn1_lasthead = heading;
-		start-script RestoreAfterDelay();
-	}
+	call-script COMPAIM1_Aim(heading, pitch);
+	start-script RestoreAfterDelay();
 	if(fired1 == 1)
+	{
+		return (0);
+	}
+	if (!COMPAIM1ready)
 	{
 		return (0);
 	}
@@ -158,17 +160,13 @@ AimSecondary(heading, pitch)
 	{
 		return (0);
 	}
-	turn turret to y-axis heading speed <120>;
-	turn sleeve to x-axis <0.000000> - pitch speed <120>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;
-	}
-	wpn1_lasthead = heading;
+	call-script COMPAIM1_Aim(heading, pitch);
 	start-script RestoreAfterDelay();
 	if(fired2 == 1)
+	{
+		return (0);
+	}
+	if (!COMPAIM1ready)
 	{
 		return (0);
 	}
