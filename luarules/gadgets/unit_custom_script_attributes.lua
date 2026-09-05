@@ -17,7 +17,7 @@ function gadget:GetInfo()
 	}
 end
 
-local debug = false
+local debug = false ---@type boolean
 
 local spCallCobScript = Spring.CallCOBScript
 local UnitScriptAttributes = VFS.Include("common/unit_script_attributes.lua")
