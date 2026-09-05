@@ -428,6 +428,12 @@ U.GROUND_CLAMP_MAX_PER_STEP = 0
 U.GROUND_CLAMP_RECHECK_HIT = 6
 U.GROUND_CLAMP_RECHECK_MISS = 12
 U.GROUND_CLAMP_USE_WAYPOINT = true
+-- When a waypoint leg ends, a particle is re-aimed at its landing point at
+-- whatever speed reaches it by its death frame. A particle with only a few
+-- frames left (death pulled in by a fade, or the leg examined late in the
+-- slice rotation) would need many times the nano speed; above this multiple
+-- of NANO_SPEED it keeps its current heading and dissolves instead.
+U.GROUND_CLAMP_WAYPOINT_MAX_SPEED_MULT = 3.0
 -- Smart gate: only enable clamp for builders/targets in rough terrain.
 U.GROUND_CLAMP_SMART = true
 U.GROUND_CLAMP_SMART_DELTA = 4.0
@@ -1872,12 +1878,6 @@ local piecePosEpoch = 0
 -- by GetUnitWorkerTask (so feature IDs naturally don't collide with units).
 local emitTargetPosCache = {}
 
--- Factory-completion grace markers: target unit ID -> completion frame. While
--- present, terrain-waypoint particles keep their final factory-pad endpoint
--- instead of chasing the completed unit as it rolls out. Expired markers are
--- removed in scanBuilders so factory production cannot grow this table forever.
-local recentFactoryBuildTargetCache = {}
-
 -- Reclaim/homing particles: in-flight inverse particles (those travelling back
 -- toward a builder) re-aim each frame to follow the builder's CURRENT piece
 -- position. Particle position formula is `pos = spawn + vel * (frame - spawnFrame)`,
@@ -1915,8 +1915,10 @@ local reclaimTargetBuildProgress = {}
 -- homingFwdByTarget (HOMING_SKIP_INCOMPLETE early-returns) so they don't curve
 -- toward a moving factory exit. We still track them here in a fade-only list
 -- (same record layout) for the per-particle death fade if that unit dies
--- or is cancelled mid-build. Cleared on UnitFinished and UnitDestroyed (both
--- also fade so trailing spray dissolves cleanly).
+-- or is cancelled mid-build. Cleared on UnitFinished and UnitDestroyed.
+-- UnitDestroyed always fades them; UnitFinished fades them for a mobile unit
+-- (it is rolling off a factory pad, so the spray has nothing left to land
+-- on) and lets them land on a finished structure.
 local fadeFwdByTarget = {}
 local FADE_FWD_MAX_PER_TARGET = HOMING_FWD_MAX_PER_TARGET
 
@@ -2713,6 +2715,12 @@ local function emitNano(
 	-- so it stays in the culling union for as long as any of its particles live.
 	U.expandParticleBounds(maxDeath, bMinX, bMinY, bMinZ, bMaxX, bMaxY, bMaxZ)
 
+	-- The waypoint redirect follows the target's current position only for a
+	-- forward-homing batch (fwdMode 2), the one case where the particles are
+	-- meant to curve after a moving unit. Build spray at a factory pad (fwdMode
+	-- 1) and the post-completion grace batches (fwdMode 0) keep their spawn-time
+	-- endpoint, so a unit rolling off the pad is not chased by particles whose
+	-- waypoint leg ends after it left.
 	if clampThisEmit and (wpLatest or not useWaypoint) then
 		registerGroundClampRecord(
 			firstID,
@@ -2722,7 +2730,7 @@ local function emitNano(
 			endX,
 			endY,
 			endZ,
-			targetUnitID,
+			(fwdMode == 2) and targetUnitID or nil,
 			firstJitter,
 			jitterScale * len
 		)
@@ -4129,6 +4137,8 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 	local jitterLen = U._jitterTableLast + 2
 	local recheckHit = U.GROUND_CLAMP_RECHECK_HIT or 2
 	local recheckMiss = U.GROUND_CLAMP_RECHECK_MISS or 4
+	local wpMaxSpeed = NANO_SPEED * (U.GROUND_CLAMP_WAYPOINT_MAX_SPEED_MULT or 3.0)
+	local wpMaxSpeedSq = wpMaxSpeed * wpMaxSpeed
 	local dirtySlots = U._dirtySlots
 	local dn = U._dirtySlotN
 	local idx = groundClampCursor
@@ -4162,16 +4172,11 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 		elseif entry.wp then
 			-- Waypoint leg done: aim every live particle of the batch at its
 			-- own landing point (batch endpoint + per-particle jitter offset).
-			-- A unit target that is still around and did not just roll off a
-			-- factory pad supplies its current mid position instead.
+			-- Only a forward-homing batch carries a target (see emitNano); it
+			-- supplies the unit's current mid position instead.
 			local fx, fy, fz = entry.ex, entry.ey, entry.ez
 			local targetID = entry.targetID
-			local completionFrame = targetID and recentFactoryBuildTargetCache[targetID]
-			if completionFrame and frame - completionFrame >= HOMING_SKIP_GRACE_FRAMES then
-				recentFactoryBuildTargetCache[targetID] = nil
-				completionFrame = nil
-			end
-			if targetID and not completionFrame then
+			if targetID then
 				local _, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
 				if mx then
 					fx, fy, fz = mx, my, mz
@@ -4206,59 +4211,66 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 						local cpy = sy + vy * elapsed
 						local cpz = sz + vz * elapsed
 						local invR = 1.0 / rem
-						data[base + 1] = cpx
-						data[base + 2] = cpy
-						data[base + 3] = cpz
-						data[base + 5] = (ax - cpx) * invR
-						data[base + 6] = (ay - cpy) * invR
-						data[base + 7] = (az - cpz) * invR
-						data[base + 8] = startF
-						if cpx < bMinX then
-							bMinX = cpx
+						local nvx = (ax - cpx) * invR
+						local nvy = (ay - cpy) * invR
+						local nvz = (az - cpz) * invR
+						-- See GROUND_CLAMP_WAYPOINT_MAX_SPEED_MULT: too few frames left to
+						-- reach the landing point at a sane speed, keep the current heading.
+						if (nvx * nvx + nvy * nvy + nvz * nvz) <= wpMaxSpeedSq then
+							data[base + 1] = cpx
+							data[base + 2] = cpy
+							data[base + 3] = cpz
+							data[base + 5] = nvx
+							data[base + 6] = nvy
+							data[base + 7] = nvz
+							data[base + 8] = startF
+							if cpx < bMinX then
+								bMinX = cpx
+							end
+							if cpx > bMaxX then
+								bMaxX = cpx
+							end
+							if ax < bMinX then
+								bMinX = ax
+							end
+							if ax > bMaxX then
+								bMaxX = ax
+							end
+							if cpy < bMinY then
+								bMinY = cpy
+							end
+							if cpy > bMaxY then
+								bMaxY = cpy
+							end
+							if ay < bMinY then
+								bMinY = ay
+							end
+							if ay > bMaxY then
+								bMaxY = ay
+							end
+							if cpz < bMinZ then
+								bMinZ = cpz
+							end
+							if cpz > bMaxZ then
+								bMaxZ = cpz
+							end
+							if az < bMinZ then
+								bMinZ = az
+							end
+							if az > bMaxZ then
+								bMaxZ = az
+							end
+							local s0 = slot - 1
+							if s0 < dirtyMin then
+								dirtyMin = s0
+							end
+							if s0 + 1 > dirtyMax then
+								dirtyMax = s0 + 1
+							end
+							dn = dn + 1
+							dirtySlots[dn] = slot
+							any = true
 						end
-						if cpx > bMaxX then
-							bMaxX = cpx
-						end
-						if ax < bMinX then
-							bMinX = ax
-						end
-						if ax > bMaxX then
-							bMaxX = ax
-						end
-						if cpy < bMinY then
-							bMinY = cpy
-						end
-						if cpy > bMaxY then
-							bMaxY = cpy
-						end
-						if ay < bMinY then
-							bMinY = ay
-						end
-						if ay > bMaxY then
-							bMaxY = ay
-						end
-						if cpz < bMinZ then
-							bMinZ = cpz
-						end
-						if cpz > bMaxZ then
-							bMaxZ = cpz
-						end
-						if az < bMinZ then
-							bMinZ = az
-						end
-						if az > bMaxZ then
-							bMaxZ = az
-						end
-						local s0 = slot - 1
-						if s0 < dirtyMin then
-							dirtyMin = s0
-						end
-						if s0 + 1 > dirtyMax then
-							dirtyMax = s0 + 1
-						end
-						dn = dn + 1
-						dirtySlots[dn] = slot
-						any = true
 					end
 				end
 			end
@@ -4433,14 +4445,6 @@ end
 
 local function scanBuilders(frame, includeMaintenance)
 	tracy.ZoneBeginN("G:NanoParticles:RunFrame:ScanBuilders")
-	if frame >= (U._nextFactoryGraceCleanupFrame or 0) then
-		U._nextFactoryGraceCleanupFrame = frame + HOMING_SKIP_GRACE_FRAMES
-		for targetID, completionFrame in pairs(recentFactoryBuildTargetCache) do
-			if frame - completionFrame >= HOMING_SKIP_GRACE_FRAMES then
-				recentFactoryBuildTargetCache[targetID] = nil
-			end
-		end
-	end
 	-- Engine emits nano particles for every active builder regardless of camera
 	-- frustum. Iterate the tracked builder set; LOS filtering happens in emitNano.
 	-- Per-frame epoch bump implicitly invalidates piecePosCache / targetPosCache
@@ -4692,6 +4696,17 @@ local function scanBuilders(frame, includeMaintenance)
 						local cmdID, targetID = info.cmdID, info.targetID
 						if bpRefetched or not cmdID then
 							cmdID, targetID = spGetUnitWorkerTask(unitID)
+							-- On the frame a buildee completes the engine still reports it as
+							-- this builder's repair target (StopBuild runs on the next
+							-- UpdateBuild) although AddBuildPower already refused it. Skip the
+							-- visit rather than spray a stride-compensated batch at the empty
+							-- pad; a damaged unit keeps its repair target for the next visit.
+							if cmdID == CMD_REPAIR and targetID then
+								local ient = targetIncompleteCache[targetID]
+								if ient and ient[2] == false and ient[3] >= 0 and (frame - ient[3]) <= 1 then
+									cmdID, targetID = nil, nil
+								end
+							end
 							info.cmdID = cmdID
 							info.targetID = targetID
 						end
@@ -5622,15 +5637,17 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID)
-	-- Construction completed: fade trailing build-spray particles instead of
-	-- letting them coast into the now-finished unit and pop on natural death.
-	fadeOutHomingFwd(unitID)
+	-- Construction completed. Forward-homing spray always fades out. The
+	-- fade-only build spray (fadeFwdByTarget) is included for a mobile unit:
+	-- it is rolling off a factory pad, and from a far nano turret that spray
+	-- is still several seconds in flight and would keep landing on the empty
+	-- pad. A finished structure lets its last particles land as before.
+	fadeOutHomingFwd(unitID, isMobileUnitDef[unitDefID] == true)
 	U.recycleTrackList(homingFwdByTarget[unitID])
 	U.recycleTrackList(fadeFwdByTarget[unitID])
 	homingFwdByTarget[unitID] = nil
 	fadeFwdByTarget[unitID] = nil
 	targetPosCache[unitID] = nil
-	local completedAtFactory = false
 	-- Keep a completion timestamp so HOMING_SKIP_GRACE_FRAMES still applies
 	-- after UnitFinished; clearing this here made fresh emissions immediately
 	-- re-enter forward homing and chase units as they roll out of factories.
@@ -5644,16 +5661,10 @@ function gadget:UnitFinished(unitID, unitDefID)
 		local bid = trackedBuildersList[i]
 		local info = builderCache[bid]
 		if info and info.targetID == unitID then
-			if info.isFactory then
-				completedAtFactory = true
-			end
 			info.cmdID = nil
 			info.targetID = nil
 			info.targetMeta = nil
 		end
-	end
-	if completedAtFactory then
-		recentFactoryBuildTargetCache[unitID] = Spring.GetGameFrame()
 	end
 	trackUnit(unitID, unitDefID)
 end
@@ -5889,7 +5900,6 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	emitTargetPosCache[unitID] = nil
-	recentFactoryBuildTargetCache[unitID] = nil
 	-- Reclaim-completion burst: in unsynced UnitDestroyed, when a unit is
 	-- removed by reclaim the engine populates attacker* with the reclaiming
 	-- builder (it's the agent that "killed" the unit, with no weaponDefID).
