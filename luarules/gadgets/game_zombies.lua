@@ -29,7 +29,7 @@ if not modOptionEnabled and not isIdleMode then
 end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
-local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- Frames to start warning before reanimation
+local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
 local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS = { public = true }
@@ -324,7 +324,7 @@ local function resetSpawn(featureID, featureData, featureDefData)
 	local newFrame = featureData.tamperedFrame + featureData.spawnDelayFrames
 	featureData.spawnFrame = newFrame
 	featureData.creationFrame = featureData.tamperedFrame
-	featureData.tamperedFrame = nil
+	featureData.tamperedFrame = nil -- reclaim/rez progress restarts the spawn timer from this frame
 	setCorpseRezRulesParam(featureID, newFrame)
 	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
@@ -384,7 +384,7 @@ local function calculateSpawnCount(unitDefID)
 	local rezMax = currentZombieConfig.rezMax
 
 	if currentTechLevel <= 1 then
-		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount())
+		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount()) -- extra min() rolls skew the count down except for cheap, fast-rez units
 	end
 
 	if rezTimeSeconds == rezMin then
@@ -398,7 +398,7 @@ end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z, wasZombie, pastXp)
 	local unitDef = unitDefs[unitDefID]
-	local spawnCount = 1
+	local spawnCount = 1 -- dead zombies never multiply, so they can't snowball
 	if not wasZombie and unitDef.speed > 0 then
 		spawnCount = calculateSpawnCount(unitDefID)
 	end
@@ -441,7 +441,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 			spSpawnCEG("scav-spawnexplo-" .. sizeName, randomX, adjustedY, randomZ, 0, 0, 0)
 			local generatedXp = 0
 			if modOptions.zombies ~= "normal" then
-				generatedXp = math.max(MIN_ZOMBIE_XP, math.min(random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP))
+				generatedXp = math.max(MIN_ZOMBIE_XP, math.min(random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP)) -- triple-roll min keeps most extra XP low
 			end
 			spring.SetUnitExperience(unitID, math.max(pastXp, generatedXp))
 			local unitHealth = spGetUnitHealth(unitID)
@@ -672,7 +672,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			{ xp = spring.GetUnitExperience(unitID) or 0, timeout = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES }
 	end
 	if isZombie(unitID) and currentZombieConfig.zombieCorpses and not heapingZombies[unitID] then
-		wereZombies[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES
+		wereZombies[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES -- FeatureCreated may land later, so stash zombie-ness for a few seconds
 	end
 	heapingZombies[unitID] = nil
 	pendingZombieCaptures[unitID] = nil
@@ -693,7 +693,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if pendingZombieCaptures[unitID] then
 		pendingZombieCaptures[unitID] = nil
 		if not isZombie(unitID) then
-			setZombie(unitID)
+			setZombie(unitID) -- capture finished: the victim becomes a zombie too
 		end
 	end
 end
@@ -720,7 +720,7 @@ local function isUnitInLava(unitID)
 	return false
 end
 
-local function shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID)
+local function shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID) -- water/lava deaths always heap so they can't rez from the fluid
 	if weaponDefID == WATER_DAMAGE_DEF_ID then
 		return true
 	end
@@ -745,7 +745,7 @@ local function leaveZombieHeap(unitID, unitDefID, attackerID)
 	if not defData then
 		return
 	end
-	heapingZombies[unitID] = true
+	heapingZombies[unitID] = true -- eat the killing blow and leave a heap instead of a rez-able wreck
 	spring.DestroyUnit(unitID, false, true, attackerID)
 	spring.SpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, { weaponDef = defData.explosionDefID, owner = unitID })
 	if defData.heapDefID then
