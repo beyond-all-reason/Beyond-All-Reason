@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
--- /debugtargetpriority [on|off|lines|details|weapon <n>]
+-- /debugtargetpriority [on|off] [lines] [details] [weapon <n>]
 --
 -- This reproduces CGameHelper::GenerateWeaponTargets as well as our own priority modifiers.
 -- The engine checks for game modifiers in AllowWeaponTarget (in addition to allow/disallow).
@@ -925,29 +925,38 @@ function widget:Initialize()
 	refreshFont()
 
 	local function debugTargetPriorityCmd(_, _, words)
-		local option = words[1] and words[1]:lower()
 		hintText = nil
-		if option == nil then
+		if not words[1] then
 			active = not active
-		elseif option == "on" then
-			active = true
-		elseif option == "off" then
-			active = false
-		elseif option == "lines" then
-			showLines = not showLines
-			active = true
-		elseif option == "details" then
-			showDetails = not showDetails
-			active = true
-		elseif option == "weapon" then
-			weaponNumber = tonumber(words[2])
-			active = true
 		else
-			hintText = "Options: on, off, lines, details, weapon <n>"
-			active = true
+			local show, lines, details, weapon = true, false, false, nil
+			local index = 1
+			while words[index] do
+				local option = words[index]:lower()
+				if option == "on" then
+					show = true
+				elseif option == "off" then
+					show = false
+				elseif option == "lines" then
+					lines = true
+				elseif option == "details" then
+					details = true
+				elseif option == "weapon" then
+					index = index + 1
+					weapon = tonumber(words[index])
+					if not weapon then
+						hintText = "Options: on, off, lines, details, weapon <n>"
+					end
+				else
+					hintText = "Options: on, off, lines, details, weapon <n>"
+				end
+				index = index + 1
+			end
+			showLines, showDetails, weaponNumber = lines, details, weapon
+			active = show
 		end
 		if active then
-			widget:GameFrame()
+			widget:GameFrame() -- run an immediate check for a selected unit in case we're paused
 		else
 			resetSweep()
 		end
