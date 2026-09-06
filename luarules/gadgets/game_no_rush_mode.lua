@@ -21,6 +21,8 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local norushtimer = Spring.GetModOptions().norushtimer * 60 * Game.gameSpeed -- modoption is in minutes
 local confinedToBase = not Spring.GetModOptions().norushmiddlefree
 local teamToAllyTeamTable = {}
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
+local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 local CommandsToCatchMap =
 	{ -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
@@ -52,6 +54,8 @@ local CommandsToCatchUnit = { -- CMDTYPES: ICON_UNIT, ICON_UNIT_OR_MAP, ICON_UNI
 	[CMD.DGUN] = true,
 	[CMD.CAPTURE] = true,
 	[34923] = true, -- Set Target
+	[34926] = true, -- Set Targets
+	[34927] = true, -- Attack Targets
 }
 
 local CommandsToCatchFeature = { -- CMDTYPES: ICON_UNIT_FEATURE_OR_AREA
@@ -135,6 +139,14 @@ if gadgetHandler:IsSyncedCode() then
 						or not RushStartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] - cmdParams[4], allyTeamID)
 					then
 						allowed = false
+					end
+				end
+			elseif cmdID == CMD_ATTACK_TARGETS or cmdID == CMD_UNIT_SET_TARGETS then
+				for i = 1, #cmdParams do
+					local x, y, z = Spring.GetUnitPosition(cmdParams[i])
+					if x and not RushStartboxCheck(x, y, z, allyTeamID) then
+						allowed = false
+						break
 					end
 				end
 			elseif CommandsToCatchUnit[cmdID] and #cmdParams == 1 then
