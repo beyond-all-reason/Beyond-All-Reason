@@ -24,6 +24,8 @@ static-var last_primary_heading,last_primary_pitch;
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animFramesPerKeyframe;
+// sea laser (weapon 2) range bookkeeping, see UnitSpeed()
+static-var seaLaserRange, seaLaserDisabled;
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
@@ -763,6 +765,16 @@ UnitSpeed(){
   if (animspeed>12) animSpeed = 12;
   //animSpeed = 1;
   sleep 197;
+	// AimSecondary refuses to aim the sea laser while the head is above water, but the engine only
+	// sees a second 300-range weapon whose aim piece (lfirept) sits ahead of the torso. On an attack
+	// order the command AI stops as soon as that weapon reports "in range", the sea laser then never
+	// aims and the land laser never gets the missing distance. Take the sea laser's range away on
+	// land so only weapons that can actually fire decide where the commander stops.
+	if (get PIECE_Y(head) > 0) {
+		if (seaLaserDisabled != 1) { get WEAPON_RANGE(-2, 0); seaLaserDisabled = 1; }
+	} else {
+		if (seaLaserDisabled != 0) { get WEAPON_RANGE(-2, seaLaserRange); seaLaserDisabled = 0; }
+	}
 	if ((bMoving) OR (bAiming) OR (bIsBuilding)) {
 		if (bDancing) {
 			call-script StopDancing();
@@ -817,6 +829,8 @@ Create()
 	animSpeed = 6;
 	currentSpeed = 100;
 	//call-script TeleportControl();
+	seaLaserRange = get WEAPON_RANGE(2);
+	seaLaserDisabled = -1;
 	start-script UnitSpeed();
 }
 
