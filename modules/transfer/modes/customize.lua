@@ -1,6 +1,7 @@
 local ModeDSL = VFS.Include("modules/transfer/mode_dsl.lua") ---@type TransferModeDSL
 local Mode, Transfer, Construction, Take, Tech =
 	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech
+local TechModule = VFS.Include("modules/tech/contract.lua") ---@type TechContract
 
 -- stylua: ignore
 return Mode("Customize")
@@ -9,6 +10,7 @@ return Mode("Customize")
 	)
 	.Ranked()
 	.RetainValues()
+	.Uses(TechModule)
 	.Open(Tech, 1, 1.5).Unlocked()
 	.Allow(Transfer.Units).Unlocked()
 	.Deny(Transfer.Units.AtT2).Unlocked()
