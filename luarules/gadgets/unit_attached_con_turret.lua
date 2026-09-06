@@ -50,14 +50,8 @@ local SpUnitAttach = Spring.UnitAttach
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
 local max_unit_radius = 0
-function gadget:Initialize()
-	local radius = 0
-	for ix, udef in pairs(UnitDefs) do
-		dimensions = SpGetUnitDefDimensions(udef.id)
-		radius = dimensions.radius
-		max_unit_radius = math.max(radius, max_unit_radius)
-	end
-end
+local attached_builders = {} ---@type table<integer, integer?>
+local attached_turrets = {} ---@type table<integer, integer?>
 
 local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local transporterID = SpGetUnitTransporter(baseUnitID)
@@ -202,11 +196,26 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	SpGiveOrderToUnit(nanoID, CMD.STOP)
 end
 
-attached_builders = {}
-attached_builder_def = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	local hostID = attached_builders[unitID]
+	if hostID then
+		attached_turrets[hostID] = nil
+	end
 	attached_builders[unitID] = nil
-	attached_builder_def[unitID] = nil
+
+	local nanoID = attached_turrets[unitID]
+	if nanoID then
+		attached_turrets[unitID] = nil
+		attached_builders[nanoID] = nil
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local nanoID = attached_turrets[unitID]
+	-- Best-effort since the engine can refuse transfer:
+	if nanoID and Spring.GetUnitTeam(nanoID) ~= newTeam then
+		Spring.TransferUnit(nanoID, newTeam)
+	end
 end
 
 -- customparams.attached_con_turret names the turret def to spawn and attach on finish;
@@ -216,6 +225,7 @@ end
 -- like a separate unit, rather as a "paired" set with one real and one virtual unit.
 -- Scav copies inherit the params, but historically never got a turret, so are excluded.
 local attachedTurretDef = {} -- unitDefID -> { con = defname, noSelect = bool }
+local turretDefIDs = {}
 for udid, ud in pairs(UnitDefs) do
 	local con = ud.customParams.attached_con_turret
 	if
@@ -228,6 +238,7 @@ for udid, ud in pairs(UnitDefs) do
 			con = con,
 			select = ud.customParams.attached_con_turret_select and true or false,
 		}
+		turretDefIDs[UnitDefNames[con].id] = true
 	end
 end
 
@@ -256,14 +267,32 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		SendToUnsynced("setUnitNoGroup", nanoID, true)
 	end
 	attached_builders[nanoID] = unitID
-	attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
+	attached_turrets[unitID] = nanoID
 end
 
 function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 		-- go on a slowupdate cycle
 		for nanoID, baseUnitID in pairs(attached_builders) do
-			auto_repair_routine(nanoID, attached_builder_def[nanoID], baseUnitID)
+			auto_repair_routine(nanoID, SpGetUnitDefID(nanoID), baseUnitID)
+		end
+	end
+end
+
+function gadget:Initialize()
+	-- For /luarules reload, get max unit dims and reattach+register turrets.
+	local radius = 0
+	for _, udef in pairs(UnitDefs) do
+		radius = SpGetUnitDefDimensions(udef.id).radius
+		max_unit_radius = math.max(radius, max_unit_radius)
+	end
+	for _, nanoID in pairs(Spring.GetAllUnits()) do
+		if turretDefIDs[SpGetUnitDefID(nanoID)] then
+			local hostID = SpGetUnitTransporter(nanoID)
+			if hostID and attachedTurretDef[SpGetUnitDefID(hostID)] then
+				attached_builders[nanoID] = hostID
+				attached_turrets[hostID] = nanoID
+			end
 		end
 	end
 end
