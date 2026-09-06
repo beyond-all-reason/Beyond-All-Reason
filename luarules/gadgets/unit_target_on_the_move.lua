@@ -60,12 +60,13 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
+	local CMD_MANUALFIRE = CMD.MANUALFIRE
 	local OPT_INTERNAL = CMD.OPT_INTERNAL
 	local FIRESTATE_RETURNFIRE = CMD.FIRESTATE_RETURNFIRE
 
 	local isAttackCommand = {
 		[CMD_ATTACK] = true,
-		[CMD.MANUALFIRE] = true,
+		[CMD_MANUALFIRE] = true,
 		[CMD.AREA_ATTACK] = true,
 		[GameCMD.AREA_ATTACK_GROUND] = true,
 	}
@@ -373,6 +374,17 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+	end
+
+	local function pauseTargetting(unitID)
+		pausedTargets[unitID] = activeTargets[unitID]
+		removeUnit(unitID, true)
+	end
+
+	local function unpauseTargetting(unitID)
+		activeTargets[unitID] = pausedTargets[unitID]
+		pausedTargets[unitID] = nil
+		addToQueue(unitID)
 	end
 
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
@@ -806,17 +818,6 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local function pauseTargetting(unitID)
-		pausedTargets[unitID] = activeTargets[unitID]
-		removeUnit(unitID, true)
-	end
-
-	local function unpauseTargetting(unitID)
-		activeTargets[unitID] = pausedTargets[unitID]
-		pausedTargets[unitID] = nil
-		addToQueue(unitID)
-	end
-
 	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		if cmdID == CMD_STOP and setTargetData[unitID] then
 			removeWithStop(unitID)
@@ -965,8 +966,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Since v103 Attack commands override the unit target on any frame, not just slow updates.
-	-- So we try to override the target again, every single frame, to prevent target jittering.
+	-- Weapons re-read the unit target on any frame, and an Attack command will replace it whenever
+	-- the unit is able to fire. So we re-apply the target every frame to prevent target jittering.
 	function gadget:GameFrame(frame)
 		teamQueryCaches = {}
 		if frame % 15 == 0 then
