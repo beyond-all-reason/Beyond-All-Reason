@@ -950,7 +950,7 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			for i, weaponType in ipairs(rings.weapons) do
+			for i, weaponType in pairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType
