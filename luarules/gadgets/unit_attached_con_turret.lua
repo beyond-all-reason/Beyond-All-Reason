@@ -44,6 +44,9 @@ local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 local SendToUnsynced = SendToUnsynced
 
+local resolveAttachPiece = VFS.Include("luarules/gadgets/include/unit_attachments.lua").ResolveAttachPiece
+local SpUnitAttach = Spring.UnitAttach
+
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
 local max_unit_radius = 0
@@ -231,13 +234,19 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not data then
 		return
 	end
+
+	local piece = resolveAttachPiece(unitID)
+	if not piece then
+		return
+	end
+
 	local xx, yy, zz = SpGetUnitPosition(unitID)
 	local nanoID = Spring.CreateUnit(data.con, xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
 	if not nanoID then
 		-- unit limit hit or invalid spawn surface
 		return
 	end
-	Spring.UnitAttach(unitID, nanoID, 3, true)
+	Spring.UnitAttach(unitID, nanoID, piece, true)
 	-- makes the attached con turret as non-interacting as possible
 	Spring.SetUnitBlocking(nanoID, false, false, false)
 	Spring.SetUnitNoSelect(nanoID, data.noSelect)
