@@ -101,8 +101,8 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	if commandQueue[1] ~= nil and commandQueue[1].id < 0 then
 		-- out of range build command
 		object_radius = SpGetUnitDefDimensions(-commandQueue[1].id).radius
-		distance = math.sqrt((ux - commandQueue[1].params[1]) ^ 2 + (uz - commandQueue[1].params[3]) ^ 2)
-			- object_radius
+		tx, tz = commandQueue[1].params[1], commandQueue[1].params[3]
+		distance = math.sqrt((ux - tx) ^ 2 + (uz - tz) ^ 2) - object_radius
 	end
 	if commandQueue[1] ~= nil and commandQueue[1].id == CMD_REPAIR then
 		-- out of range repair command
