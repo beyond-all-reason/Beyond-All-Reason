@@ -1,10 +1,10 @@
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local ModuleHandler = require("modules/module_handler")
-local alldefs = require("gamedata/alldefs_post")
 local savedefs = require("gamedata/post_save_to_customparams")
 
-local unitDef_Post = alldefs.UnitDef_Post
+local Defs = require("modules/defs/api")
+local Modules = require("modules/enums").Modules
+local ModuleHandler = require("modules/module_handler")
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
@@ -308,9 +308,9 @@ local function preProcessTweakOptions()
 	table.sort(tweaks, function(a, b)
 		-- Ensure that tweakunits are processed before tweakdefs
 		-- This allows fine-tuning of tweaks using extended capabilities of tweakdefs
-		if a.type == 'defs' and b.type == 'units' then
+		if a.type == "defs" and b.type == "units" then
 			return false
-		elseif a.type == 'units' and b.type == 'defs' then
+		elseif a.type == "units" and b.type == "defs" then
 			return true
 		end
 		return a.index < b.index
@@ -384,7 +384,10 @@ end
 
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
-		unitDef_Post(name, unitDef)
+		ModuleHandler.Evaluate(
+			ModuleHandler.Contract(Modules.Defs).UnitDef,
+			{ name = name, def = unitDef, modOptions = modOptions }
+		)
 	end
 end
 
@@ -411,7 +414,7 @@ end
 -- UnitDef processing
 --------------------------------------------------------------
 
-alldefs.PrebakeUnitDefs()
+Defs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
