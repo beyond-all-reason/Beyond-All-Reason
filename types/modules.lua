@@ -5,7 +5,6 @@
 ---@field version string|nil Semver-ish version string
 ---@field description string|nil One-line description
 ---@field requires string[]|nil Names of modules this module depends on
----@field provides string|table|nil Public contract: a path (state-agnostic, default <dir>/api.lua) or an explicit partition { shared = path, synced = path, unsynced = path }; ModuleHandler.Get merges shared + current state into one flat api
 
 ---@class ModuleManifest : ModuleManifestFile
 ---@field dir string Module directory with trailing slash (loader-stamped)
@@ -25,15 +24,13 @@
 ---@class PoliciesRegistrar
 Policies = {}
 
+---The one way in. Hand it a pipeline's stages and the chain takes guards and
+---Answers; hand it a contract's facts and it takes Provide and Default.
 ---@generic C, T
 ---@param stages PolicyStages<C, T>
 ---@return PolicyPipeline<C, T>
-function Policies.Pipeline(stages) end
-
----@generic C
----@param token PolicyContextToken<C>
----@return PolicyEnrichment<C>
-function Policies.Enrich(token) end
+---@overload fun(facts: PolicyFacts<C>): PolicyEnrichment<C>
+function Policies.On(stages) end
 
 ---@class PolicyDescriptor
 ---@field name string
