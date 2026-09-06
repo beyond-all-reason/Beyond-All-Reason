@@ -1231,30 +1231,6 @@ local unitDistortions = {
 		},
 	},
 
-	armblade = {
-		thrustdown = {
-			distortionType = "cone",
-			pieceName = "trust",
-			distortionConfig = {
-				posx = 0,
-				posy = 4,
-				posz = 4,
-				radius = 40,
-				dirx = 0,
-				diry = -1,
-				dirz = 0.1,
-				theta = 0.8,
-				noiseStrength = 0.7,
-				noiseScaleSpace = 1.45,
-				distanceFalloff = 1.0,
-				effectStrength = 1.5,
-				riseRate = -8,
-				lifeTime = 0,
-				effectType = 0,
-			},
-		},
-	},
-
 	armbrawl = {
 		thrustdown = {
 			distortionType = "point",
