@@ -230,7 +230,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local chunk, err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
+local chunk, _err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
 if chunk then
 	local tmp = {}
 	setfenv(chunk, tmp)
@@ -707,7 +707,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		end
 	end
 
-	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+	local x, y, z, mpx, mpy, mpz, _, _, _ = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
@@ -760,7 +760,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			-- This is quite important to pass in as posscale.y!
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
-			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
+			local _, wpy, _, _, _, _ = spGetUnitWeaponVectors(unitID, weaponID)
 			--spEcho("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -1185,7 +1185,7 @@ function widget:Update(dt)
 	end
 
 	if gameFrame % 3 == 2 then
-		local cmdIndex, cmdID, cmdType, cmdName = GetActiveCommand()
+		local _, cmdID, _, _ = GetActiveCommand()
 		if shift_only then
 			if shifted then
 				toggleShowSelectedRanges(true)

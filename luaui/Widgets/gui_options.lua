@@ -405,7 +405,7 @@ function widget:ViewResize()
 end
 
 local function detectWater()
-	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	local _, _, mapMinHeight, _ = Spring.GetGroundExtremes()
 	if mapMinHeight <= -2 then
 		waterDetected = true
 		Spring.SendCommands("water " .. desiredWaterValue)
@@ -1591,7 +1591,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
 		--on window
-		local mx, my, ml = Spring.GetMouseState()
+		local mx, my, _ = Spring.GetMouseState()
 		if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 			return true
 		elseif titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -10308,7 +10308,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local r, _, _, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10328,7 +10328,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local _, g, _, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10348,7 +10348,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local _, _, b, _ = gl.GetMapRendering("splatTexMults")
 				options[i].value = b
 			end,
 			onchange = function(i, value)
@@ -10372,7 +10372,7 @@ function init()
 				options[i].value = a
 			end,
 			onchange = function(i, value)
-				local r, g, b, a = gl.GetMapRendering("splatTexMults")
+				local r, g, b, _ = gl.GetMapRendering("splatTexMults")
 				Spring.SetMapRenderingParams({ splatTexMults = { r, g, b, value } })
 			end,
 		},
@@ -10389,7 +10389,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local r, _, _, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10409,7 +10409,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local _, g, _, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10429,7 +10429,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local _, _, b, _ = gl.GetMapRendering("splatTexScales")
 				options[i].value = b
 			end,
 			onchange = function(i, value)
@@ -10453,7 +10453,7 @@ function init()
 				options[i].value = a
 			end,
 			onchange = function(i, value)
-				local r, g, b, a = gl.GetMapRendering("splatTexScales")
+				local r, g, b, _ = gl.GetMapRendering("splatTexScales")
 				Spring.SetMapRenderingParams({ splatTexScales = { r, g, b, value } })
 			end,
 		},
@@ -10514,7 +10514,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient")
+				local r, _, _ = gl.GetSun("ambient")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10535,7 +10535,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient")
+				local _, g, _ = gl.GetSun("ambient")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10560,7 +10560,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("ambient")
+				local r, g, _ = gl.GetSun("ambient")
 				Spring.SetSunLighting({ groundAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10580,7 +10580,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse")
+				local r, _, _ = gl.GetSun("diffuse")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10601,7 +10601,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse")
+				local _, g, _ = gl.GetSun("diffuse")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10626,7 +10626,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("diffuse")
+				local r, g, _ = gl.GetSun("diffuse")
 				Spring.SetSunLighting({ groundDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10646,7 +10646,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular")
+				local r, _, _ = gl.GetSun("specular")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10667,7 +10667,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular")
+				local _, g, _ = gl.GetSun("specular")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10692,7 +10692,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("specular")
+				local r, g, _ = gl.GetSun("specular")
 				Spring.SetSunLighting({ groundSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10712,7 +10712,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local r, _, _ = gl.GetSun("ambient", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10733,7 +10733,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local _, g, _ = gl.GetSun("ambient", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10758,7 +10758,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("ambient", "unit")
+				local r, g, _ = gl.GetSun("ambient", "unit")
 				Spring.SetSunLighting({ unitAmbientColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10778,7 +10778,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local r, _, _ = gl.GetSun("diffuse", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10799,7 +10799,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local _, g, _ = gl.GetSun("diffuse", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10824,7 +10824,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("diffuse", "unit")
+				local r, g, _ = gl.GetSun("diffuse", "unit")
 				Spring.SetSunLighting({ unitDiffuseColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10844,7 +10844,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local r, _, _ = gl.GetSun("specular", "unit")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10865,7 +10865,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local _, g, _ = gl.GetSun("specular", "unit")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10890,7 +10890,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetSun("specular", "unit")
+				local r, g, _ = gl.GetSun("specular", "unit")
 				Spring.SetSunLighting({ unitSpecularColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10908,7 +10908,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local r, _, _ = gl.GetAtmosphere("sunColor")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10929,7 +10929,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local _, g, _ = gl.GetAtmosphere("sunColor")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -10954,7 +10954,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetAtmosphere("sunColor")
+				local r, g, _ = gl.GetAtmosphere("sunColor")
 				Spring.SetAtmosphere({ sunColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -10974,7 +10974,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local r, _, _ = gl.GetAtmosphere("skyColor")
 				options[i].value = r
 			end,
 			onchange = function(i, value)
@@ -10995,7 +10995,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local _, g, _ = gl.GetAtmosphere("skyColor")
 				options[i].value = g
 			end,
 			onchange = function(i, value)
@@ -11020,7 +11020,7 @@ function init()
 				options[i].value = b
 			end,
 			onchange = function(i, value)
-				local r, g, b = gl.GetAtmosphere("skyColor")
+				local r, g, _ = gl.GetAtmosphere("skyColor")
 				Spring.SetAtmosphere({ skyColor = { r, g, value } })
 				Spring.SendCommands("luarules updatesun")
 			end,
@@ -11079,7 +11079,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local x, _, _, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = x
 			end,
 			onchange = function(i, value)
@@ -11100,7 +11100,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local _, y, _, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = y
 			end,
 			onchange = function(i, value)
@@ -11121,7 +11121,7 @@ function init()
 			value = 0,
 			description = "",
 			onload = function(i)
-				local x, y, z, angle = gl.GetAtmosphere("skyAxisAngle")
+				local _, _, z, _ = gl.GetAtmosphere("skyAxisAngle")
 				options[i].value = z
 			end,
 			onchange = function(i, value)
@@ -12354,7 +12354,7 @@ function init()
 			local desc = data.desc or ""
 			if desc ~= "" and WG.tooltip then
 				local maxWidth = WG.tooltip.getFontsize() * 90
-				local textLines, numLines = font:WrapText(desc, maxWidth)
+				local textLines, _ = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, "[\n]", "\n")
 			end
 			if data.author and data.author ~= "" then

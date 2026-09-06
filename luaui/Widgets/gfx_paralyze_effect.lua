@@ -456,7 +456,7 @@ local function init()
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+		local _, _, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 		if paralyzeDamage and paralyzeDamage > 0 then
 			widget:UnitCreated(unitID, spGetUnitDefID(unitID))
 		end
@@ -478,7 +478,7 @@ function widget:UnitCreated(unitID, unitDefID)
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
 
-	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+	local _, _, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 	if paralyzeDamage and paralyzeDamage > 0 then
 		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
@@ -518,7 +518,7 @@ function widget:GameFrame(n)
 	if TESTMODE == false then
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
-				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+				local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 				if paralyzeDamage == 0 or paralyzeDamage == nil then
 					toremove[unitID] = true
 				else

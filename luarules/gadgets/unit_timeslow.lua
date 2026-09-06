@@ -38,7 +38,7 @@ local function updateSlow(unitID, state)
 	--Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)
 
 	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
-	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+	local health, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 	if health then
 		local maxSlow = health * (MAX_SLOW_FACTOR + (state.extraSlowBound or 0))
 		if paralyzeDamage > maxSlow then

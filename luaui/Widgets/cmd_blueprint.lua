@@ -965,7 +965,7 @@ function widget:MouseWheel(up, value)
 		return
 	end
 
-	local alt, ctrl, meta, shift = unpack(state.modKeys or {})
+	local alt, _, _, _ = unpack(state.modKeys or {})
 
 	if not alt then
 		return
