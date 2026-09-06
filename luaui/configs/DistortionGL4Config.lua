@@ -184,6 +184,26 @@ local unitDistortions = {
 			},
 		},
 	},
+
+	legadveconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "largeMidCell",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 20,
+				noiseStrength = 0.5,
+				noiseScaleSpace = 1.4,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
 	armestor = {
 		distortion = {
 			distortionType = "beam",
@@ -542,6 +562,30 @@ local unitDistortions = {
 				pos2y = 25,
 				pos2z = 0,
 				radius2 = 40,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -1.4,
+				distanceFalloff = 0.8,
+				rampUp = 30,
+				decay = -1.3,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legadvestore = {
+		distortion = {
+			distortionType = "beam",
+			pieceName = "base",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0.01,
+				radius = 30,
+				pos2x = 0,
+				pos2y = 32,
+				pos2z = 0,
+				radius2 = 30,
 				noiseStrength = 0.5,
 				noiseScaleSpace = -1.4,
 				distanceFalloff = 0.8,
@@ -2433,6 +2477,29 @@ local unitDistortions = {
 				pos2x = 0,
 				pos2y = 26,
 				pos2z = -14.4,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+	},
+
+	leglrpc = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "exhaustSmokeCell",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 8,
+				pos2x = 0,
+				pos2y = 8,
+				pos2z = 0,
 				noiseStrength = 0.5,
 				noiseScaleSpace = -2,
 				distanceFalloff = 1.4,
