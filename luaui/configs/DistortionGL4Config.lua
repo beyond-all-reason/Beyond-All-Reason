@@ -126,6 +126,26 @@ local unitDistortions = {
 			},
 		},
 	},
+
+	legeconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "flare",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 16,
+				noiseStrength = 0.6,
+				noiseScaleSpace = 1.5,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
 	armmmkr = {
 		distortion = {
 			distortionType = "point",
@@ -485,6 +505,30 @@ local unitDistortions = {
 		},
 	},
 
+	legestor = {
+		distortion = {
+			distortionType = "beam",
+			pieceName = "legestor",
+			distortionConfig = {
+				posx = 0,
+				posy = 4,
+				posz = 0.01,
+				radius = 24,
+				pos2x = 0,
+				pos2y = 24,
+				pos2z = 0,
+				radius2 = 24,
+				noiseStrength = 0.6,
+				noiseScaleSpace = -1.2,
+				distanceFalloff = 0.8,
+				rampUp = 30,
+				decay = -1.2,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	coruwadves = {
 		distortion = {
 			distortionType = "beam",
@@ -775,6 +819,29 @@ local unitDistortions = {
 		-- 					windAffected = -1, riseRate = 1,
 		-- 					lifeTime = 0, effectType = 'heatDistortion'},
 		-- },
+	},
+
+	legvp = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "ventsmoke",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 6,
+				pos2x = 0,
+				pos2y = 9,
+				pos2z = 0,
+				noiseStrength = 0.4,
+				noiseScaleSpace = -3,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
 	},
 
 	armsd = {
@@ -1525,6 +1592,32 @@ local unitDistortions = {
 		},
 	},
 
+	legtide = {
+		waterflow = {
+			distortionType = "beam",
+			pieceName = "wheel",
+			distortionConfig = {
+				posx = 0,
+				posy = -2.2,
+				posz = -16,
+				radius = 12,
+				pos2x = 0,
+				pos2y = -2.2,
+				pos2z = 16,
+				radius2 = 12,
+				noiseStrength = 2.5,
+				noiseScaleSpace = 0.7,
+				distanceFalloff = 0.75,
+				rampUp = 0,
+				decay = 0,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corvamp = {
 		thrust = {
 			distortionType = "cone",
@@ -2217,6 +2310,25 @@ local unitDistortions = {
 		},
 	},
 
+	legajam = {
+		jamdistortion = {
+			distortionType = "point",
+			pieceName = "jamLight",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 18,
+				noiseStrength = 10,
+				noiseScaleSpace = 0.4,
+				distanceFalloff = 1.5,
+				windAffected = -1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corap = {
 		heatvent1 = {
 			distortionType = "beam",
@@ -2812,6 +2924,25 @@ local unitDistortions = {
 		-- },
 	},
 
+	legdeflector = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "shieldFlare",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 14,
+				noiseStrength = 1,
+				noiseScaleSpace = 0.5,
+				distanceFalloff = 0.3,
+				windAffected = -0.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corfgate = {
 		distortion = {
 			distortionType = "point",
@@ -2835,6 +2966,25 @@ local unitDistortions = {
 		distortion = {
 			distortionType = "point",
 			pieceName = "jam",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 12,
+				noiseStrength = 10,
+				noiseScaleSpace = 0.4,
+				distanceFalloff = 1.5,
+				windAffected = -1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legjam = {
+		jamdistortion = {
+			distortionType = "point",
+			pieceName = "strut",
 			distortionConfig = {
 				posx = 0,
 				posy = 0,
@@ -3118,6 +3268,25 @@ local unitDistortions = {
 			distortionConfig = {
 				posx = 0,
 				posy = 72,
+				posz = 0,
+				radius = 11,
+				noiseStrength = 3,
+				noiseScaleSpace = -0.2,
+				distanceFalloff = 0.5,
+				windAffected = -0.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legjuno = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "junoSphere",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
 				posz = 0,
 				radius = 11,
 				noiseStrength = 3,
