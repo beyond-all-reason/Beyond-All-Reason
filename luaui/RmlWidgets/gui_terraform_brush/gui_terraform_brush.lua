@@ -414,6 +414,28 @@ widgetState = { -- forward-declared above playSound so mute check works
 -- first call, then serves subsequent calls from widgetState.elCache. Caches
 -- are invalidated in widget:Shutdown when the document closes. `nil` lookups
 -- are NOT cached (so late-loaded elements can be found on subsequent frames).
+-- Give an RmlUi text field the keyboard. Without this the game eats every
+-- keystroke and the field never types: SDL text input has to be started while
+-- the field has focus, and WG.TerraformBrushInputFocused is what tells the tool
+-- widgets to stand their single-letter hotkeys down. Every <input type="text">
+-- in the panel must go through here -- the search boxes shipped without it and
+-- were simply dead (reported by Moose, 2026-09-04).
+widgetState.wireTextInput = function(el)
+	if not el then
+		return
+	end
+	el:AddEventListener("focus", function(_e)
+		WG.TerraformBrushInputFocused = true
+		Spring.SDLStartTextInput()
+		widgetState.focusedRmlInput = el
+	end, false)
+	el:AddEventListener("blur", function(_e)
+		WG.TerraformBrushInputFocused = false
+		Spring.SDLStopTextInput()
+		widgetState.focusedRmlInput = nil
+	end, false)
+end
+
 local function getCachedEl(doc, id)
 	local cache = widgetState.elCache
 	local el = cache[id]
@@ -14431,33 +14453,22 @@ local function attachEventListeners()
 	local lastFilter = ""
 
 	if presetNameInput then
-		presetNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = presetNameInput
-		end, false)
-		presetNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(presetNameInput)
 	end
 
 	-- Save Project name input (FILE > Save Project): same SDL text-input capture
 	-- as the preset input, plus a change listener mirroring into widgetState so
 	-- the confirm handler has the value even if GetAttribute lags the keystroke.
+	-- The three search / name fields added later (Open Project filter, Light
+	-- Library filter and its preset name) shipped without the capture above and
+	-- could not be typed into at all.
+	widgetState.wireTextInput(getCachedEl(doc, "tf-project-search"))
+	widgetState.wireTextInput(getCachedEl(doc, "ll-search-input"))
+	widgetState.wireTextInput(getCachedEl(doc, "input-ll-preset-name"))
+
 	local projectNameInput = getCachedEl(doc, "input-project-name")
 	if projectNameInput then
-		projectNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = projectNameInput
-		end, false)
-		projectNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(projectNameInput)
 		projectNameInput:AddEventListener("change", function(event)
 			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
 			-- Editing the name retargets the save: any armed overwrite confirm
@@ -14470,16 +14481,7 @@ local function attachEventListeners()
 	-- game eats every keystroke and the field never types) + change mirror.
 	local newMapNameInput = getCachedEl(doc, "newmap-name-input")
 	if newMapNameInput then
-		newMapNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = newMapNameInput
-		end, false)
-		newMapNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(newMapNameInput)
 		newMapNameInput:AddEventListener("change", function(event)
 			widgetState.newMapNameStr = newMapNameInput:GetAttribute("value") or ""
 		end, false)
@@ -14656,16 +14658,7 @@ local function attachEventListeners()
 		local envPresetDropdown = getCachedEl(doc, "env-preset-dropdown")
 		local envPresetToggleBtn = getCachedEl(doc, "btn-env-preset-toggle")
 		if envPresetNameInput then
-			envPresetNameInput:AddEventListener("focus", function(_e)
-				WG.TerraformBrushInputFocused = true
-				Spring.SDLStartTextInput()
-				widgetState.focusedRmlInput = envPresetNameInput
-			end, false)
-			envPresetNameInput:AddEventListener("blur", function(_e)
-				WG.TerraformBrushInputFocused = false
-				Spring.SDLStopTextInput()
-				widgetState.focusedRmlInput = nil
-			end, false)
+			widgetState.wireTextInput(envPresetNameInput)
 		end
 		widgetState.setEnvPresetDropdownOpen = function(open)
 			widgetState.envPresetDropdownOpen = open
@@ -14741,16 +14734,7 @@ local function attachEventListeners()
 	local tsPresetDropdown = getCachedEl(doc, "ts-preset-dropdown")
 	local tsPresetToggleBtn = getCachedEl(doc, "btn-ts-preset-toggle")
 	if tsPresetNameInput then
-		tsPresetNameInput:AddEventListener("focus", function(_e)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = tsPresetNameInput
-		end, false)
-		tsPresetNameInput:AddEventListener("blur", function(_e)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(tsPresetNameInput)
 	end
 	local function setTsDropdownOpen(open)
 		widgetState.tsDropdownOpen = open

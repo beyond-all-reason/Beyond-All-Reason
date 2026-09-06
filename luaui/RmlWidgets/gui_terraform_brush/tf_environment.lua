@@ -1684,6 +1684,11 @@ function M.attach(doc, ctx)
 	grassCfgWireSlider("slider-gb-mapcolorbase", "lbl-gb-mapcolorbase", "mapColorBase", 1000)
 	grassCfgWireSlider("slider-gb-grassbrightness", "lbl-gb-grassbrightness", "grassBrightness", 1000)
 
+	-- Same keyboard capture the panel's other text fields get, or these two
+	-- cannot be typed into (see widgetState.wireTextInput).
+	ctx.widgetState.wireTextInput(doc:GetElementById("input-gb-blade-tex"))
+	ctx.widgetState.wireTextInput(doc:GetElementById("input-gb-colormod-tex"))
+
 	local bladeApply = doc:GetElementById("btn-gb-blade-tex-apply")
 	if bladeApply then
 		bladeApply:AddEventListener("mousedown", function(event)
