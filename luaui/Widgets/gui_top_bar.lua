@@ -2917,7 +2917,7 @@ function widget:DrawScreen()
 		glCallList(dlist.blendBg)
 	end
 
-	if dlist.wind1 then
+	if cache.showIndicators and dlist.wind1 then
 		glPushMatrix()
 		glCallList(dlist.wind1)
 		glRotate(windRotation, 0, 0, 1)
@@ -2925,7 +2925,7 @@ function widget:DrawScreen()
 		glPopMatrix()
 	end
 
-	if displayTidalSpeed and dlist.tidal2 then
+	if cache.showIndicators and displayTidalSpeed and dlist.tidal2 then
 		local tidalSkewCX = tidalarea[1]
 			+ ((tidalarea[3] - tidalarea[1]) / 2)
 			- (cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0)
