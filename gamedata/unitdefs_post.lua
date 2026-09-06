@@ -1,9 +1,10 @@
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = VFS.Include("gamedata/alldefs_post.lua")
 local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
 
-local unitDef_Post = alldefs.UnitDef_Post
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Modules = VFS.Include("modules/enums.lua").Modules
+local Defs = VFS.Include("modules/defs/api.lua") ---@type DefsApi
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
@@ -311,9 +312,12 @@ local function preProcessTweakOptions()
 	end
 end
 
+-- The defs module's unit_def fold: the base game's post first, then every
+-- module's own stage, one context per def.
 local function postProcessAllUnitDefs()
+	local pipeline = ModuleHandler.LoadPolicies(Modules.Defs).unit_def ---@type AssembledPipeline<DefContext, DefContext>
 	for name, unitDef in pairs(UnitDefs) do
-		unitDef_Post(name, unitDef)
+		ModuleHandler.Evaluate(pipeline, { name = name, def = unitDef, modOptions = modOptions })
 	end
 end
 
@@ -340,7 +344,7 @@ end
 -- UnitDef processing
 --------------------------------------------------------------
 
-alldefs.PrebakeUnitDefs()
+Defs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
