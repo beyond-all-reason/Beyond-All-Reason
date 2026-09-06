@@ -52,6 +52,7 @@ local SpUnitAttach = Spring.UnitAttach
 local max_unit_radius = 0
 local attached_builders = {} ---@type table<integer, integer?>
 local attached_turrets = {} ---@type table<integer, integer?>
+local cobScriptTurrets = {} ---@type table<integer, true?>
 
 local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local transporterID = SpGetUnitTransporter(baseUnitID)
@@ -125,11 +126,12 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		end
 	end
 	if tx and distance <= radius then
-		--let auto con turret continue its thing
-		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
-		heading2 = SpGetUnitHeading(nanoID)
-		SpCallCOBScript(nanoID, "UpdateHeading", 0, heading1 - heading2 + 32768)
+		-- probably don't even need this for COB, but w/e:
+		if cobScriptTurrets[unitDefID] then
+			local heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
+			local heading2 = SpGetUnitHeading(nanoID)
+			SpCallCOBScript(nanoID, "UpdateHeading", 0, heading1 - heading2 + 32768)
+		end
 		return
 	end
 
