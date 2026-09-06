@@ -1,9 +1,10 @@
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = VFS.Include("gamedata/alldefs_post.lua")
 local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
 
-local unitDef_Post = alldefs.UnitDef_Post
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Modules = VFS.Include("modules/enums.lua").Modules
+local Defs = VFS.Include("modules/defs/api.lua") ---@type DefsApi
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
@@ -251,9 +252,9 @@ local function preProcessTweakOptions()
 	table.sort(tweaks, function(a, b)
 		-- Ensure that tweakunits are processed before tweakdefs
 		-- This allows fine-tuning of tweaks using extended capabilities of tweakdefs
-		if a.type == 'defs' and b.type == 'units' then
+		if a.type == "defs" and b.type == "units" then
 			return false
-		elseif a.type == 'units' and b.type == 'defs' then
+		elseif a.type == "units" and b.type == "defs" then
 			return true
 		end
 		return a.index < b.index
@@ -312,8 +313,9 @@ local function preProcessTweakOptions()
 end
 
 local function postProcessAllUnitDefs()
+	local pipeline = ModuleHandler.LoadPolicies(Modules.Defs).unit_def ---@type AssembledPipeline<DefContext, DefContext>
 	for name, unitDef in pairs(UnitDefs) do
-		unitDef_Post(name, unitDef)
+		ModuleHandler.Evaluate(pipeline, { name = name, def = unitDef, modOptions = modOptions })
 	end
 end
 
@@ -340,7 +342,7 @@ end
 -- UnitDef processing
 --------------------------------------------------------------
 
-alldefs.PrebakeUnitDefs()
+Defs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
