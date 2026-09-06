@@ -4285,6 +4285,14 @@ local initialModel = {
 			WG.StartPosTool.saveStartboxes()
 		end
 	end,
+	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
+	-- only: start positions travel as a different modoption entirely.
+	onSpCopy = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			WG.StartPosTool.copyStartboxOverride()
+		end
+	end,
 	onSpLoad = function(_event)
 		playSound("apply")
 		if WG.StartPosTool then
