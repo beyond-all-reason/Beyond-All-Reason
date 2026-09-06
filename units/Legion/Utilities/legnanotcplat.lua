@@ -15,7 +15,7 @@ return {
 		canreclaim = true,
 		canrepeat = false,
 		canstop = true,
-		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
+		cantbetransported = true, -- transports cannot drop them back into water, re-enable once that works
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
@@ -46,6 +46,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
+			isnanoturret = true,
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",

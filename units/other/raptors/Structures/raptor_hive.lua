@@ -44,6 +44,7 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			isairbase = true,
+			israptor = true,
 			subfolder = "other/raptors",
 			model_author = "FireStorm, Beherith",
 			normalmaps = "yes",
@@ -135,7 +136,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
@@ -178,7 +178,6 @@ return {
 				reloadtime = 5,
 				smoketrail = 1,
 				soundhit = "nuke4",
-				soundhitvolume = 10,
 				startvelocity = 2000,
 				turret = 1,
 				weaponacceleration = 120,

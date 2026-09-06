@@ -1,6 +1,5 @@
 return {
 	raptor_air_gunship_emp_t2_v1 = {
-		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -58,9 +57,10 @@ return {
 		wingangle = 0.06593,
 		wingdrag = 0.835,
 		workertime = 0,
-        hoverAttack = true,
+		hoverAttack = true,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -111,7 +111,6 @@ return {
 				--soundhit = "xplomed3",
 				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
-				soundstartvolume = 65,
 				soundtrigger = true,
 				targetmoveerror = 0.15,
 				thickness = 1.5,

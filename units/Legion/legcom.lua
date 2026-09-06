@@ -28,7 +28,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		health = 3700,
 		maxslope = 20,
@@ -44,7 +44,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -87,7 +87,8 @@ return {
 			[27] = "legfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
+			canwearcosmetics = true,
 			combatradius = 600,
 			firestateoncloak = 0,
 			maxrange = 300,
@@ -95,7 +96,10 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
+			spawnpad_unit = "legnanotcbase",
 			subfolder = "",
+			tombstone = "legstone",
 		},
 		featuredefs = {
 			dead = {
@@ -110,7 +114,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 1250,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -262,7 +266,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 1.2,
@@ -321,8 +325,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -348,7 +350,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

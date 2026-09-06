@@ -1,6 +1,6 @@
 return {
 	corerad = {
-		airsightdistance = 1060,
+		airsightdistance = 1200,
 		buildangle = 65536,
 		buildpic = "CORERAD.DDS",
 		buildtime = 12000,
@@ -29,7 +29,6 @@ return {
 			buildinggrounddecaltype = "decals/corerad_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			removestop = true,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "aa",
@@ -112,7 +111,7 @@ return {
 				noselfdamage = true,
 				projectiles = 1,
 				proximitypriority = -0.5,
-				range = 1125,
+				range = 1200,
 				reloadtime = 1.6,
 				smokecolor = 0.95,
 				smokeperiod = 8,

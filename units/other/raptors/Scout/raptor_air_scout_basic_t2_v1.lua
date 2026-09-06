@@ -1,6 +1,5 @@
 return {
 	raptor_air_scout_basic_t2_v1 = {
-		acceleration = 2,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.4,
@@ -61,6 +60,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",

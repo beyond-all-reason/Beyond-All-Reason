@@ -1,4 +1,3 @@
-
 return {
 	legcomlvl3 = {
 		maxacc = 0.18,
@@ -29,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 8000,
@@ -46,7 +45,7 @@ return {
 		radardistance = 900,
 		radaremitheight = 49,
 		reclaimable = false,
-   		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legevocom1.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -66,7 +65,6 @@ return {
 			"legwin",
 			"legadvsol",
 			"legeconv",
-			"legmext15",
 			"leggeo",
 			"legtide",
 			"legestor",
@@ -95,7 +93,7 @@ return {
 			"legdrag",
 			"legrad",
 			"legfrad",
-            "legstronghold",
+			"legstronghold",
 			"legfdrag",
 			"leglab",
 			"legvp",
@@ -107,14 +105,16 @@ return {
 			"legnanotcplat",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			iscommander = true,
 			effigy_offset = 1,
 			evocomlvl = 3,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 5,
 			subfolder = "",
+			tombstone = "legstone",
 			workertimeboost = 3,
 			wtboostunittype = "MOBILE",
 			evolution_health_transfer = "percentage",
@@ -131,7 +131,7 @@ return {
 			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -146,7 +146,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2750,
-				object = 'Units/legcom_dead.s3o',
+				object = "Units/legcom_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -231,7 +231,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6",
-				soundstartvolume = 4.5,
 				soundtrigger = true,
 				sprayangle = 968,
 				texture1 = "shot",
@@ -304,7 +303,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 1.2,
@@ -371,7 +370,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				trajectoryheight = 1,
 				waterbounce = true,
@@ -417,8 +415,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -444,7 +440,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

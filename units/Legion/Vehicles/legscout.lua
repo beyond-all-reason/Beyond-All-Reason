@@ -37,16 +37,16 @@ return {
 		turninplacespeedlimit = 4.224,
 		turnrate = 750,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "body",
 			firingceg = "barrelshot-small",
+			juno_deny = true,
+			juno_kill = true,
 			kickback = "0",
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion",
-			--weapon1turretx = 300,
-			--weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {

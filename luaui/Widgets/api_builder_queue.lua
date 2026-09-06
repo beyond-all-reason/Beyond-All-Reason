@@ -9,7 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		version = 1,
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -23,11 +23,12 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetAllUnits = Spring.GetAllUnits
+local spGetMyPlayerID = Spring.GetLocalPlayerID
+local spGetSpectatingState = Spring.GetSpectatingState
 local spEcho = Spring.Echo
 
 -- Localize frequently used functions
 local mathFloor = math.floor
-local mathAbs = math.abs
 local mathMin = math.min
 local tableInsert = table.insert
 local tableRemove = table.remove
@@ -61,11 +62,11 @@ local commandLookup = {}
 
 -- Event system for notifying consumers
 local Event = {
-	onBuildCommandAdded = 'onBuildCommandAdded',
-	onBuildCommandRemoved = 'onBuildCommandRemoved',
-	onUnitCreated = 'onUnitCreated',
-	onUnitFinished = 'onUnitFinished',
-	onBuilderDestroyed = 'onBuilderDestroyed',
+	onBuildCommandAdded = "onBuildCommandAdded",
+	onBuildCommandRemoved = "onBuildCommandRemoved",
+	onUnitCreated = "onUnitCreated",
+	onUnitFinished = "onUnitFinished",
+	onBuilderDestroyed = "onBuilderDestroyed",
 }
 
 local eventCallbacks = {
@@ -73,12 +74,14 @@ local eventCallbacks = {
 	[Event.onBuildCommandRemoved] = {},
 	[Event.onUnitCreated] = {},
 	[Event.onUnitFinished] = {},
-	[Event.onBuilderDestroyed] = {}
+	[Event.onBuilderDestroyed] = {},
 }
 
 local elapsedSeconds = 0
 local nextUpdateTime = PERIODIC_UPDATE_INTERVAL
 local periodicCheckCounter = 1
+local myPlayerId = spGetMyPlayerID()
+local _, fullView = spGetSpectatingState()
 
 local tablePool = {}
 local tablePoolSize = 0
@@ -172,7 +175,7 @@ local function registerCallback(eventName, callback)
 	if callbacks then
 		tableInsert(callbacks, callback)
 		---@class BuilderQueueEventCallback
-		return {eventName = eventName, callback = callback}
+		return { eventName = eventName, callback = callback }
 	else
 		spEcho("Warn: Unknown event name " .. eventName)
 		return nil
@@ -199,7 +202,7 @@ end
 --------------------------------------------------------------------------------
 
 local function generateId(unitDefId, positionX, positionZ)
-	return unitDefId .. '_' .. positionX .. '_' .. positionZ
+	return unitDefId .. "_" .. positionX .. "_" .. positionZ
 end
 
 local function removeBuilderFromCommand(commandId, unitId)
@@ -293,9 +296,11 @@ local function checkBuilder(unitId, forceUpdate, batchCache)
 			local firstCmd = firstCmds and firstCmds[1]
 			if firstCmd and firstCmd.id < 0 then
 				local params = firstCmd.params
-				if -firstCmd.id == cached.firstDefId
+				if
+					-firstCmd.id == cached.firstDefId
 					and mathFloor(params[1]) == cached.firstPosX
-					and mathFloor(params[3]) == cached.firstPosZ then
+					and mathFloor(params[3]) == cached.firstPosZ
+				then
 					applyCommandSet(unitId, cached.commandIds)
 					return
 				end
@@ -304,7 +309,9 @@ local function checkBuilder(unitId, forceUpdate, batchCache)
 	end
 
 	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
-	if not queue then return end
+	if not queue then
+		return
+	end
 
 	local newCommands = getTable()
 	local firstBuildDefId = nil
@@ -400,7 +407,9 @@ end
 
 local function clearUnit(unitId)
 	local commandId = createdUnitIdToCommandIdMap[unitId]
-	if not commandId then return end
+	if not commandId then
+		return
+	end
 
 	local commandData = buildCommands[commandId]
 	if commandData then
@@ -414,7 +423,9 @@ local function processNewBuildCommands()
 	local batchCache = nil
 	for unitId, commandClockTime in pairs(unitsAwaitingCommandProcessing) do
 		if elapsedSeconds > commandClockTime then
-			if not batchCache then batchCache = {} end
+			if not batchCache then
+				batchCache = {}
+			end
 			checkBuilder(unitId, true, batchCache)
 			unitsAwaitingCommandProcessing[unitId] = nil
 
@@ -429,7 +440,10 @@ end
 local function periodicBuilderCheck()
 	periodicCheckCounter = periodicCheckCounter + 1
 	for unitId, _ in pairs(unitBuildCommands) do
-		if (unitId + periodicCheckCounter) % PERIODIC_CHECK_DIVISOR == 1 and not unitsAwaitingCommandProcessing[unitId] then
+		if
+			(unitId + periodicCheckCounter) % PERIODIC_CHECK_DIVISOR == 1
+			and not unitsAwaitingCommandProcessing[unitId]
+		then
 			local forceDeepCheck = ((unitId + periodicCheckCounter) % DEEP_CHECK_DIVISOR == 1)
 			checkBuilder(unitId, forceDeepCheck)
 		end
@@ -475,11 +489,21 @@ function BuilderQueueApi.ForEachActiveBuildCommand(callback)
 	end
 end
 
-BuilderQueueApi.OnBuildCommandAdded = function(callback) return registerCallback(Event.onBuildCommandAdded, callback) end
-BuilderQueueApi.OnBuildCommandRemoved = function(callback) return registerCallback(Event.onBuildCommandRemoved, callback) end
-BuilderQueueApi.OnUnitCreated = function(callback) return registerCallback(Event.onUnitCreated, callback) end
-BuilderQueueApi.OnUnitFinished = function(callback) return registerCallback(Event.onUnitFinished, callback) end
-BuilderQueueApi.OnBuilderDestroyed = function(callback) return registerCallback(Event.onBuilderDestroyed, callback) end
+BuilderQueueApi.OnBuildCommandAdded = function(callback)
+	return registerCallback(Event.onBuildCommandAdded, callback)
+end
+BuilderQueueApi.OnBuildCommandRemoved = function(callback)
+	return registerCallback(Event.onBuildCommandRemoved, callback)
+end
+BuilderQueueApi.OnUnitCreated = function(callback)
+	return registerCallback(Event.onUnitCreated, callback)
+end
+BuilderQueueApi.OnUnitFinished = function(callback)
+	return registerCallback(Event.onUnitFinished, callback)
+end
+BuilderQueueApi.OnBuilderDestroyed = function(callback)
+	return registerCallback(Event.onBuilderDestroyed, callback)
+end
 BuilderQueueApi.UnregisterCallback = unregisterCallback
 
 --------------------------------------------------------------------------------
@@ -503,9 +527,9 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged(playerId)
-	-- Clear all data when player changes (spectating state changes)
-	local myPlayerId = Spring.GetMyPlayerID()
-	if playerId == myPlayerId then
+	local prevFullView = fullView
+	_, fullView = spGetSpectatingState()
+	if playerId == myPlayerId and prevFullView ~= fullView then
 		resetStateAndReinitialize()
 	end
 end

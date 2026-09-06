@@ -1,6 +1,6 @@
 return {
 	legbastion = {
-		maxacc= 0,
+		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
@@ -40,9 +40,10 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Gabs",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
@@ -128,14 +129,13 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 38,
 				soundtrigger = 1,
 				thickness = 5.5,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				customparams = {
-					sweepfire = 4,
+					sweepfire_firetime = 2.5,
 				},
 				damage = {
 					default = 155,
@@ -148,7 +148,7 @@ return {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "t2heatray",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

@@ -1,4 +1,3 @@
-local unitName = "Epic Skeeter"
 return {
 	armptt2 = {
 		maxacc = 0.03,
@@ -35,7 +34,7 @@ return {
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponaa',
+			unitgroup = "weaponaa",
 			maxrange = "260",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

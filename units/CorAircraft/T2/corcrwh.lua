@@ -38,13 +38,13 @@ return {
 			maxrange = "425",
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 7,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -147,10 +147,8 @@ return {
 				reloadtime = 0.4,
 				sizegrowth = 2.5,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 9.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 7.3,
 				soundtrigger = false,
 				sprayangle = 700,
 				tolerance = 20000,

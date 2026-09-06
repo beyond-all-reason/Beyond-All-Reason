@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -61,7 +60,7 @@ end
 local function getBuilderInfos(unitIDs)
 	local builders = {}
 	for _, unitID in ipairs(unitIDs) do
-		local builderInfo = WG["api_build_orders"].getBuilderInfo(unitID)
+		local builderInfo = WG.api_build_orders.getBuilderInfo(unitID)
 		if builderInfo and unitBuildOptions[builderInfo.unitDefID] then
 			table.insert(builders, builderInfo)
 		end
@@ -69,12 +68,12 @@ local function getBuilderInfos(unitIDs)
 	return builders
 end
 
----@param builderIDs number[]
+---@param builderIDs UnitID[]
 ---@param buildings BuildingInfo[]
 ---@param cmdOpts table
 local function splitBuildings(builderIDs, buildings, cmdOpts)
 	local builders = getBuilderInfos(builderIDs)
-	WG["api_build_orders"].splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
 end
 
 function widget:Initialize()
@@ -88,8 +87,10 @@ function widget:Initialize()
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
 
-	WG['build_split'] = {
-		isActive = function() return activeModifier end,
+	WG.build_split = {
+		isActive = function()
+			return activeModifier
+		end,
 		splitBuildings = splitBuildings,
 	}
 end
@@ -157,5 +158,5 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG['build_split'] = nil
+	WG.build_split = nil
 end

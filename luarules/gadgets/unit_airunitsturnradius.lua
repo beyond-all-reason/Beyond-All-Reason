@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "TurnRadius",
-		desc      = "Fixes TurnRadius Dynamically for bombers",
-		author    = "Doo",
-		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "TurnRadius",
+		desc = "Fixes TurnRadius Dynamically for bombers",
+		author = "Doo",
+		date = "Sept 19th 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -20,7 +20,6 @@ local attackTurnRadius = 500
 
 local CMD_ATTACK = CMD.ATTACK
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
@@ -89,7 +88,18 @@ function gadget:GameFrame(n)
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if Bombers[unitID] then
 		processNextCmd(unitID, unitDefID, cmdID)
 	end

@@ -36,6 +36,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
+			cannot_capture_territory = true,
 			detonaterange = "64",
 			instantselfd = true,
 			mine = true,
@@ -81,7 +82,6 @@ return {
 				range = 64,
 				reloadtime = 1,
 				soundhitwet = "",
-				soundhitwetvolume = 0,
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

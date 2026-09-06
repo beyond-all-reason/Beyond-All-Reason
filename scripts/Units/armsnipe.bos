@@ -699,7 +699,7 @@ Create()
 	isMoving = FALSE;
 	GunOpen = 0;
 	gunProgress = 0;
-	laser_persist = 3000; // miliseconds to hide laser after losing aim
+	laser_persist = 3000; // milliseconds to hide laser after losing aim
 	hide flare;
 	animSpeed = 5;
 	turn flare to x-axis <-90> now;

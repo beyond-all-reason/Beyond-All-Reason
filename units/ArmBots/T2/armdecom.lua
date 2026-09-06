@@ -72,6 +72,7 @@ return {
 			[16] = "armfmkr",
 		},
 		customparams = {
+			canwearcosmetics = true,
 			decoyfor = "armcom",
 			mine_resistant = true,
 			firestateoncloak = 0,
@@ -79,6 +80,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",

@@ -1,5 +1,5 @@
 return {
-	corcomlvl7	= {
+	corcomlvl7 = {
 		maxacc = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -30,7 +30,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
 		sightemitheight = 40,
 		mass = 4900,
@@ -102,7 +102,7 @@ return {
 			"coruwageo",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -113,6 +113,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "corstone",
 			shield_color_mult = 0.8,
 			shield_power = 24700,
 			shield_radius = 100,
@@ -127,7 +128,7 @@ return {
 			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -236,8 +237,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,
@@ -320,8 +319,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -339,7 +336,7 @@ return {
 					raptorqueen = 10,
 				},
 			},
-            corcomeyelaser = {
+			corcomeyelaser = {
 				allowNonBlockingAim = true,
 				areaofeffect = 50,
 				avoidfeature = false,
@@ -369,7 +366,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3burn",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				thickness = 4.5,
 				turret = true,
@@ -462,17 +458,17 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [4] = {
+			[4] = {
 				def = "REPULSOR",
 				onlytargetcategory = "NOTSUB",
 			},
-            [5] = {
+			[5] = {
 				def = "CORCOMEYELASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,

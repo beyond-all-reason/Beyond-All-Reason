@@ -41,10 +41,9 @@ return {
 			kickback = "-2.4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 6,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 192.5,
-			weapon1turrety = 192.5,
 		},
 		featuredefs = {
 			dead = {
@@ -129,6 +128,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeeds = "192.5 192.5",
+				},
 				damage = {
 					default = 75,
 					vtol = 14,

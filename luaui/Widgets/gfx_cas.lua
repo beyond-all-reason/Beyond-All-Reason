@@ -6,14 +6,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name	  = "Contrast Adaptive Sharpen",
-		desc	  = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
-		author	  = "martymcmodding, ivand",
-		layer	  = 2000,
-		enabled   = true,
+		name = "Contrast Adaptive Sharpen",
+		desc = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
+		author = "martymcmodding, ivand",
+		layer = 2000,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -33,14 +32,12 @@ local version = 1.06
 -- Lua Shortcuts
 -----------------------------------------------------------------
 
-local glTexture		 = gl.Texture
-local glBlending	 = gl.Blending
+local glTexture = gl.Texture
+local glBlending = gl.Blending
 
 -----------------------------------------------------------------
 -- File path Constants
 -----------------------------------------------------------------
-
-local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -164,7 +161,6 @@ local fullTexQuad
 -- Local Functions
 -----------------------------------------------------------------
 
-
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
@@ -178,7 +174,6 @@ local function UpdateShader()
 end
 
 function widget:Initialize()
-
 	if gl.CreateShader == nil then
 		spEcho("CAS: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
@@ -210,9 +205,9 @@ function widget:Initialize()
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then
-			spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
-			widgetHandler:RemoveWidget()
-			return
+		spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	UpdateShader()
@@ -231,7 +226,6 @@ function widget:Initialize()
 	WG.cas.getSharpness = function()
 		return SHARPNESS
 	end
-
 end
 
 function widget:Shutdown()
@@ -251,15 +245,17 @@ end
 
 function widget:DrawScreenEffects()
 	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-	if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-		screenCopyTex = WG['screencopymanager'].GetScreenCopy()
+	if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+		screenCopyTex = WG.screencopymanager.GetScreenCopy()
 	else
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		spEcho("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+		spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 		widgetHandler:RemoveWidget()
 		return false
 	end
-	if screenCopyTex == nil then return end
+	if screenCopyTex == nil then
+		return
+	end
 	glTexture(0, screenCopyTex)
 	glBlending(false)
 	casShader:Activate()
@@ -272,7 +268,7 @@ end
 function widget:GetConfigData()
 	return {
 		version = version,
-		SHARPNESS = SHARPNESS
+		SHARPNESS = SHARPNESS,
 	}
 end
 

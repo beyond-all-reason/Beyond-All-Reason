@@ -470,5 +470,5 @@ unitDefRenames = {
 	corwin = "cortex_windturbine",
 	corwint2 = "cortex_advancedwindturbine",
 	corwolv = "cortex_wolverine",
-	correspawn = "cortex_basebuilder"
+	correspawn = "cortex_basebuilder",
 }
