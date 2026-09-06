@@ -18,6 +18,7 @@ local spEcho = Spring.Echo
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
 local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
 
 local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
@@ -26,6 +27,7 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartPolygons = {} -- list of { team = teamID, poly = { {x, z}, ... } }
 local startPolygonBuffer
+local startPolygonSDF -- baked distance field the fullscreen pass samples, see startpolygon_sdf_gl4.lua
 local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
 if noRushTime == 0 then
@@ -42,14 +44,13 @@ local shaderSourceCache = {
 	fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
 	uniformInt = {
 		mapDepths = 0,
+		startPolygonSDF = 1,
 		noRushTimer = Spring.GetModOptions().norushtimer * 60 * 30,
 	},
 	uniformFloat = {},
 	shaderName = "Norush Timer GL4",
 	shaderConfig = {
 		ALPHA = 0.5,
-		NUM_POLYGONS = 0,
-		NUM_POINTS = 0,
 		MINY = minY,
 		MAXY = maxY,
 	},
@@ -72,6 +73,8 @@ end
 
 function widget:DrawWorldPreUnit()
 	if Spring.GetGameFrame() > noRushTime + 150 then
+		-- Fully faded out; free the distance field and the shader.
+		widgetHandler:RemoveWidget()
 		return
 	end
 	if autoReload then
@@ -94,7 +97,12 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
-	startPolygonBuffer:BindBufferRange(4)
+	-- The polygons never change, so this runs once. It has to happen in a world draw
+	-- callin (gl.RenderToTexture), hence not in Initialize.
+	if not startPolygonSDF:IsBakedFor(-1) then
+		startPolygonSDF:Bake(startPolygonBuffer, fullScreenRectVAO, -1)
+	end
+	glTexture(1, startPolygonSDF.texture)
 
 	glCulling(true)
 	glDepthTest(false)
@@ -105,12 +113,9 @@ function widget:DrawWorldPreUnit()
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
 	glTexture(0, false)
+	glTexture(1, false)
 	glCulling(false)
 	glDepthTest(false)
-end
-
-function widget:GameFrame(n)
-	-- TODO: Remove the widget when the timer is up?
 end
 
 -- teamColor in the shader is indexed by team, so each polygon carries a team from its
@@ -203,8 +208,21 @@ function widget:Initialize()
 	startPolygonBuffer:Define(numVertices, { { id = 0, name = "startpolygons", size = 4 } })
 	startPolygonBuffer:Upload(bufferdata)
 
-	shaderSourceCache.shaderConfig.NUM_POLYGONS = #StartPolygons
-	shaderSourceCache.shaderConfig.NUM_POINTS = numVertices
+	-- Only the bake walks the polygons; the draw shader reads the baked field.
+	local sdfError
+	startPolygonSDF, sdfError = StartPolygonSDF.Create({
+		format = GL.RG32F, -- x = signed distance, y = team; the ripple wants full float precision
+		shaderName = "Norush Timer SDF bake GL4",
+		shaderConfig = {
+			NUM_POLYGONS = #StartPolygons,
+			NUM_POINTS = numVertices,
+		},
+	})
+	if not startPolygonSDF then
+		spEcho("Error: Norush Timer GL4 " .. tostring(sdfError))
+		widgetHandler:RemoveWidget()
+		return
+	end
 
 	norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 
@@ -214,4 +232,15 @@ function widget:Initialize()
 		return
 	end
 	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
+end
+
+function widget:Shutdown()
+	if startPolygonSDF then
+		startPolygonSDF:Delete()
+		startPolygonSDF = nil
+	end
+	if norushTimerShader then
+		norushTimerShader:Delete()
+		norushTimerShader = nil
+	end
 end

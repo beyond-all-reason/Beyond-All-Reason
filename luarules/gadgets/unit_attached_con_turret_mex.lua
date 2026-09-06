@@ -20,6 +20,7 @@ end
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
+local resolveAttachPiece = VFS.Include("luarules/gadgets/include/attached_con_turret.lua").ResolveAttachPiece
 
 -- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
 -- mark builds that split into a mex plus an attached con turret; scav copies inherit the
@@ -94,6 +95,14 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
 	Spring.SetUnitStealth(mexID, true)
 
+	local piece = resolveAttachPiece(mexID)
+	if not piece then
+		Spring.DestroyUnit(mexID, false, true)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		return
+	end
+
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
 		Spring.DestroyUnit(mexID, false, true)
@@ -103,8 +112,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitHealth(conID, unitHealth)
 
-	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6, true)
+	Spring.UnitAttach(mexID, conID, piece, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID

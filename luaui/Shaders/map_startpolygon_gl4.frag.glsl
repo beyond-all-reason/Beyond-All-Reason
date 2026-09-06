@@ -12,20 +12,12 @@
 uniform int isMiniMap = 0;
 uniform int myAllyTeamID = -1;
 uniform int rotationMiniMap = 0;
-uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 uniform vec4 pingData; // x,y,z = ping pos, w = ping time
 uniform vec4 pipVisibleArea = vec4(0, 1, 0, 1); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 uniform int waterSurfaceMode;
 uniform float waterLevel;
 float noRushFramesLeft;
-
-
-layout (std430, binding = 4) buffer startPolygonBuffer {
-	//-- Triplets of :teamID, numVertices, x, z
-	// total NUM_POLYGONS count!
-	vec4 polyVerts[];
-};
 
 in DataVS {
 	vec4 v_position;
@@ -39,53 +31,12 @@ uniform sampler2D heightMapTex;
 #ifdef RAPTOR_ALLYTEAM_ID
 	uniform sampler2D raptorTexture;
 #endif
+// Baked by startpolygon_sdf_bake_gl4.frag.glsl for the current allyteam:
+// x = signed distance to the closest box, z = distance to the containing box's edge,
+// w = box membership flags. See luaui/Include/startpolygon_sdf_gl4.lua.
+uniform sampler2D startPolygonSDF;
 
 out vec4 fragColor;
-
-float distanceToBox(vec2 point, vec4 box_xyXY) {
-	vec2 closestPointInAABB = clamp(point, box_xyXY.xy, box_xyXY.zw);
-	vec2 distance = point - closestPointInAABB;
-	return length(distance);
-}
-
-// Really should be:
-//https://www.shadertoy.com/view/wdBXRW
-float dot2( in vec2 v ) { return dot(v,v); }
-float cross2d( in vec2 v0, in vec2 v1) { return v0.x*v1.y - v0.y*v1.x; }
-
-float sdPolygon2( in vec2 p, in int startOffset, in int numVertices)
-{
-    const int num = numVertices;
-    float d = dot(p - polyVerts[startOffset].zw, p - polyVerts[startOffset].zw);
-    float s = 1.0;
-    for( int i=0, j=num-1; i<num; j=i, i++ )
-    {
-        // distance
-		int newj = startOffset + j;
-		int newi = startOffset + i;
-        vec2 e = polyVerts[newj].zw - polyVerts[newi].zw;
-        vec2 w =    p - polyVerts[newi].zw;
-        vec2 b = w - e*clamp( dot(w,e)/dot(e,e), 0.0, 1.0 );
-        d = min( d, dot(b,b) );
-
-        // winding number from http://geomalgorithms.com/a03-_inclusion.html
-        bvec3 cond = bvec3( p.y>=polyVerts[newi].w, 
-                            p.y <polyVerts[newj].w, 
-                            e.x*w.y>e.y*w.x );
-        if( all(cond) || all(not(cond)) ) s=-s;  
-    }
-    
-    return s*sqrt(d);
-}
-
-
-// exponential
-float smin( float a, float b, float k )
-{
-    k *= 1.0;
-    float r = exp2(-a/k) + exp2(-b/k);
-    return -k*log2(r);
-}
 
 //
 //  Wombat
@@ -189,13 +140,13 @@ void main(void)
 	// Transform screen-space depth to world-space position
 	if (isMiniMap == 1) {
 		mapWorldPos.y = (MINY + MAXY) * 0.5;
-		
+
 		// Check if PIP mode (visible area not default)
 		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
-		
+
 		// Start with NDC coords [-1,1] -> normalized coords [0,1]
 		vec2 normCoords = v_position.xy * 0.5 + 0.5;
-		
+
 		mapWorldPos.xz = normCoords;
 		if (rotationMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
@@ -208,7 +159,7 @@ void main(void)
 			mapWorldPos.x = 1.0 - mapWorldPos.z;
 			mapWorldPos.z = 1.0 - tmpX;
 		}
-		
+
 		// For PIP: remap the [0,1] world-normalized coords to visible area
 		// AFTER rotation has been applied
 		if (isPip) {
@@ -218,15 +169,15 @@ void main(void)
 			// Flip Y: screen top (1) -> visB, screen bottom (0) -> visT
 			mapWorldPos.z = mix(pipVisibleArea.w, pipVisibleArea.z, mapWorldPos.z);
 		}
-		
+
 		mapWorldPos.xz *= mapSize.xy;
-		
+
 		fragColor.rgba = vec4(0.5);
-		//return;	
+		//return;
 	}else{
 		mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
 		mapWorldPos = cameraViewProjInv * mapWorldPos;
-		mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; 
+		mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
 
 		// We are above or below the map by 4 or more elmost, discard
 		if (mapWorldPos.y > (MAXY) || mapWorldPos.y < (MINY)){
@@ -253,82 +204,41 @@ void main(void)
 			}
 		}
 	}
-	// Status Indicators
-	float closestbox = 1e6;
-	float furthestbox = 0;
-	float smoothDistance = max(mapSize.x, mapSize.y);
-	float anyBoxEdgeDistance = 1e6;
 
-	int numEnemyBoxes = 0;
-	int inAllyBox = 0;
-	
+	// One bilinear tap of the baked field replaces walking every polygon edge per pixel.
+	// The four texels are fetched by hand: the distances are blended, while the
+	// categorical flags come from the most-inside texel, so the last half texel inside an
+	// edge does not pick up the outside texel's "no box" flags.
+	ivec2 sdfSize = textureSize(startPolygonSDF, 0);
+	vec2 tc = clamp(mapWorldPos.xz / mapSize.xy * vec2(sdfSize) - 0.5, vec2(0.0), vec2(sdfSize - 1));
+	ivec2 i0 = ivec2(tc);
+	ivec2 i1 = min(i0 + 1, sdfSize - 1);
+	vec2 f = tc - vec2(i0);
+	vec4 t00 = texelFetch(startPolygonSDF, i0, 0);
+	vec4 t10 = texelFetch(startPolygonSDF, ivec2(i1.x, i0.y), 0);
+	vec4 t01 = texelFetch(startPolygonSDF, ivec2(i0.x, i1.y), 0);
+	vec4 t11 = texelFetch(startPolygonSDF, i1, 0);
+	vec4 sdf = mix(mix(t00, t10, f.x), mix(t01, t11, f.x), f.y);
+	vec4 flagTexel = t00;
+	if (t10.x < flagTexel.x) flagTexel = t10;
+	if (t01.x < flagTexel.x) flagTexel = t01;
+	if (t11.x < flagTexel.x) flagTexel = t11;
+	int flags = int(flagTexel.w + 0.5);
+
+	float closestbox = sdf.x;
+	float anyBoxEdgeDistance = max(sdf.z, 0.0);
+	int inAllyBox = flags & 1;
+	int numEnemyBoxes = flags >> 3;
 	#ifdef SCAV_ALLYTEAM_ID
-		int inScavBox = 0;
+		int inScavBox = (flags >> 1) & 1;
 	#endif
 	#ifdef RAPTOR_ALLYTEAM_ID
-		int inRaptorBox = 0;
+		int inRaptorBox = (flags >> 2) & 1;
 	#endif
 	bool isPassable = false;
 	vec3 mycolor = vec3(0,0,0);
-	#if 0
-	for (int i = 0; i < NUM_BOXES; i++) {
-		float dist = distanceToBox(mapWorldPos.xz, startBoxes[i]);
-		if (closestbox > dist){
-			closestbox = dist;
-			mycolor = teamColor[i].rgb;
-		}
-		furthestbox = max(furthestbox, dist);
-	}
-	#else
-		int startpoint = 0;
-		for (int i = 0; i < NUM_POLYGONS; i = i + 1){
-			if (startpoint >= NUM_POINTS) {
-				break;
-			}
 
-			int teamID = int(polyVerts[startpoint].x);
-			int vertexCount = max(int(polyVerts[startpoint].y), 0);
-			int endpoint = min(startpoint + vertexCount, NUM_POINTS);
-			if ((endpoint - startpoint) < 3) {
-				startpoint = endpoint;
-				continue;
-			}
-
-			float signedDistance = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
-
-			closestbox = min(closestbox, signedDistance);
-
-			// Check if this is _our_ box
-			if (signedDistance < 0){
-				anyBoxEdgeDistance = min(anyBoxEdgeDistance, -signedDistance);
-				if (teamID == myAllyTeamID + 0){
-					mycolor.g = 0.7;
-					inAllyBox = 1;
-				}else{
-					numEnemyBoxes = numEnemyBoxes + 1;
-					mycolor.r = 1.0;
-				}
-				
-				#ifdef SCAV_ALLYTEAM_ID
-					if (teamID == SCAV_ALLYTEAM_ID){
-						inScavBox = 1;
-					}
-				#endif
-				#ifdef RAPTOR_ALLYTEAM_ID
-					if (teamID == RAPTOR_ALLYTEAM_ID){
-						inRaptorBox = 1;
-					}
-				#endif
-			}else{
-				smoothDistance = smin(smoothDistance, signedDistance, 50.0);
-
-			}
-			// Advance pointer
-			startpoint = endpoint;
-		}
-	#endif
-
-	// Define the colors for the individual cases: 
+	// Define the colors for the individual cases:
 
 	if (inAllyBox == 1){ // my box
 		if (numEnemyBoxes > 0){ // has enemy boxes
@@ -344,7 +254,7 @@ void main(void)
 					mycolor = vec3(1.0, 0.45, 0.0);
 				}
 			#endif
-				
+
 			#ifdef SCAV_ALLYTEAM_ID
 				if (inScavBox == 1){
 					mycolor = vec3(0.6, 0.0, 1.0);
@@ -353,13 +263,13 @@ void main(void)
 
 		}else{ // shared enemy box
 			mycolor = vec3(1.0, 0.2, 0.0);
-			
+
 			#ifdef RAPTOR_ALLYTEAM_ID
 				if (inRaptorBox == 1){
 					mycolor = vec3(1.0, 0.4, 0.0);
 				}
 			#endif
-			
+
 			#ifdef SCAV_ALLYTEAM_ID
 				if (inScavBox == 1){
 					mycolor = vec3(1.0, 0.3, 1.0);
@@ -370,7 +280,6 @@ void main(void)
 
 
 	// Note that now we have the distance to the closest box in closestbox
-	// and the distance to the most distant box in furthestbox
 
 	// Debug color based on their distance from the closest box
 	// fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
@@ -413,7 +322,7 @@ void main(void)
 		// but make it anti aliased
 		float edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 16.0) + clamp (1.0 - anyBoxEdgeDistance * 0.5,0,1), 0.0, 1.0);
 
-		fragColor.a = 0.25; 
+		fragColor.a = 0.25;
 		fragColor.rgb = mycolor;
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
 		float cellNoise =  Cellular3D((1.0/2048.0)* vec3(mapWorldPos.xz, closestbox * 0.5 - timeInfo.y * 190));
@@ -427,13 +336,13 @@ void main(void)
 		cellNoise = 0.1 + 1.15 * cellNoise;
 
 		fragColor.a = cellNoise *(gridmerge + 0.45);
-		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);		
+		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);
 		if (isMiniMap > 0.5){
 			edgeFactor = 1.0 - clamp((1.0*anyBoxEdgeDistance * fragSizeFactor), 0.0, 1.0);
 
 			// disable noise on minimap
 			fragColor.a = 0.2;
-			
+
 			fragColor.rgba += edgeFactor * 0.5;
 			return;
 		}
@@ -446,10 +355,10 @@ void main(void)
 			//fragColor.a = 0.5;
 			//fragColor.g = smoothstep(0.48, 0.52, fract((mapWorldPos.x + mapWorldPos.z) / 16));
 			float impassablewidth = 0.05;
-			fragColor = mix(fragColor, impassableColor, 
+			fragColor = mix(fragColor, impassableColor,
 			smoothstep(-1 * impassablewidth,impassablewidth, MAX_STEEPNESS - mapnormal.y) * 0.5);
 		}
-		
+
 		#ifdef SCAV_ALLYTEAM_ID
 			if (inScavBox == 1 && inAllyBox == 0){
 				vec4 scavTex = texture(scavTexture, mapWorldPos.xz / 1024.0);

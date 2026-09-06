@@ -20,6 +20,7 @@ end
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
+local SpGetFactoryCommands = Spring.GetFactoryCommands
 local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -44,17 +45,15 @@ local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 local SendToUnsynced = SendToUnsynced
 
+local resolveAttachPiece = VFS.Include("luarules/gadgets/include/unit_attachments.lua").ResolveAttachPiece
+local SpUnitAttach = Spring.UnitAttach
+
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
 local max_unit_radius = 0
-function gadget:Initialize()
-	local radius = 0
-	for ix, udef in pairs(UnitDefs) do
-		dimensions = SpGetUnitDefDimensions(udef.id)
-		radius = dimensions.radius
-		max_unit_radius = math.max(radius, max_unit_radius)
-	end
-end
+local attached_builders = {} ---@type table<integer, integer?>
+local attached_turrets = {} ---@type table<integer, integer?>
+local cobScriptTurrets = {} ---@type table<integer, true?>
 
 local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	local transporterID = SpGetUnitTransporter(baseUnitID)
@@ -63,7 +62,9 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		return
 	end
 	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attached_builders[nanoID], 1)
+	local baseDefID = SpGetUnitDefID(baseUnitID)
+	local getQueue = (baseDefID and UnitDefs[baseDefID].isFactory) and SpGetFactoryCommands or SpGetUnitCommands
+	local commandQueue = getQueue(baseUnitID, 1) or {}
 	if commandQueue[1] ~= nil and commandQueue[1].id < 0 then
 		-- build command
 		-- The attached turret must have the same buildlist as the body for this to work correctly
@@ -98,8 +99,8 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	if commandQueue[1] ~= nil and commandQueue[1].id < 0 then
 		-- out of range build command
 		object_radius = SpGetUnitDefDimensions(-commandQueue[1].id).radius
-		distance = math.sqrt((ux - commandQueue[1].params[1]) ^ 2 + (uz - commandQueue[1].params[3]) ^ 2)
-			- object_radius
+		tx, tz = commandQueue[1].params[1], commandQueue[1].params[3]
+		distance = math.sqrt((ux - tx) ^ 2 + (uz - tz) ^ 2) - object_radius
 	end
 	if commandQueue[1] ~= nil and commandQueue[1].id == CMD_REPAIR then
 		-- out of range repair command
@@ -128,11 +129,12 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		end
 	end
 	if tx and distance <= radius then
-		--let auto con turret continue its thing
-		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
-		heading2 = SpGetUnitHeading(nanoID)
-		SpCallCOBScript(nanoID, "UpdateHeading", 0, heading1 - heading2 + 32768)
+		-- probably don't even need this for COB, but w/e:
+		if cobScriptTurrets[unitDefID] then
+			local heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
+			local heading2 = SpGetUnitHeading(nanoID)
+			SpCallCOBScript(nanoID, "UpdateHeading", 0, heading1 - heading2 + 32768)
+		end
 		return
 	end
 
@@ -199,25 +201,49 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	SpGiveOrderToUnit(nanoID, CMD.STOP)
 end
 
-attached_builders = {}
-attached_builder_def = {}
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	local hostID = attached_builders[unitID]
+	if hostID then
+		attached_turrets[hostID] = nil
+	end
 	attached_builders[unitID] = nil
-	attached_builder_def[unitID] = nil
+
+	local nanoID = attached_turrets[unitID]
+	if nanoID then
+		attached_turrets[unitID] = nil
+		attached_builders[nanoID] = nil
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local nanoID = attached_turrets[unitID]
+	-- Best-effort since the engine can refuse transfer:
+	if nanoID and Spring.GetUnitTeam(nanoID) ~= newTeam then
+		Spring.TransferUnit(nanoID, newTeam)
+	end
 end
 
 -- customparams.attached_con_turret names the turret def to spawn and attach on finish;
 -- customparams.attached_con_turret_noselect additionally hides it from selection/groups
--- (legmohobp ships without it, keeping its turret selectable as it always was).
--- scav copies inherit the params but historically never got a turret, so they are excluded.
+--
+-- By default, attached units are hidden; they are difficult to select and should not act
+-- like a separate unit, rather as a "paired" set with one real and one virtual unit.
+-- Scav copies inherit the params, but historically never got a turret, so are excluded.
 local attachedTurretDef = {} -- unitDefID -> { con = defname, noSelect = bool }
+local turretDefIDs = {}
 for udid, ud in pairs(UnitDefs) do
 	local con = ud.customParams.attached_con_turret
-	if con and UnitDefNames[con] and not ud.customParams.isscavenger and not ud.customParams.attached_con_turret_mex then
+	if
+		con
+		and UnitDefNames[con]
+		and not ud.customParams.isscavenger
+		and not ud.customParams.attached_con_turret_mex
+	then
 		attachedTurretDef[udid] = {
 			con = con,
-			noSelect = ud.customParams.attached_con_turret_noselect and true or false,
+			select = ud.customParams.attached_con_turret_select and true or false,
 		}
+		turretDefIDs[UnitDefNames[con].id] = true
 	end
 end
 
@@ -226,28 +252,52 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not data then
 		return
 	end
+
+	local piece = resolveAttachPiece(unitID)
+	if not piece then
+		return
+	end
+
 	local xx, yy, zz = SpGetUnitPosition(unitID)
 	local nanoID = Spring.CreateUnit(data.con, xx, yy, zz, 0, Spring.GetUnitTeam(unitID))
 	if not nanoID then
 		-- unit limit hit or invalid spawn surface
 		return
 	end
-	Spring.UnitAttach(unitID, nanoID, 3, true)
+	Spring.UnitAttach(unitID, nanoID, piece, true)
 	-- makes the attached con turret as non-interacting as possible
 	Spring.SetUnitBlocking(nanoID, false, false, false)
-	Spring.SetUnitNoSelect(nanoID, data.noSelect)
-	if data.noSelect then
+	Spring.SetUnitNoSelect(nanoID, not data.select)
+	if not data.select then
 		SendToUnsynced("setUnitNoGroup", nanoID, true)
 	end
 	attached_builders[nanoID] = unitID
-	attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
+	attached_turrets[unitID] = nanoID
 end
 
 function gadget:GameFrame(gameFrame)
 	if gameFrame % 15 == 0 then
 		-- go on a slowupdate cycle
 		for nanoID, baseUnitID in pairs(attached_builders) do
-			auto_repair_routine(nanoID, attached_builder_def[nanoID], baseUnitID)
+			auto_repair_routine(nanoID, SpGetUnitDefID(nanoID), baseUnitID)
+		end
+	end
+end
+
+function gadget:Initialize()
+	-- For /luarules reload, get max unit dims and reattach+register turrets.
+	local radius = 0
+	for _, udef in pairs(UnitDefs) do
+		radius = SpGetUnitDefDimensions(udef.id).radius
+		max_unit_radius = math.max(radius, max_unit_radius)
+	end
+	for _, nanoID in pairs(Spring.GetAllUnits()) do
+		if turretDefIDs[SpGetUnitDefID(nanoID)] then
+			local hostID = SpGetUnitTransporter(nanoID)
+			if hostID and attachedTurretDef[SpGetUnitDefID(hostID)] then
+				attached_builders[nanoID] = hostID
+				attached_turrets[hostID] = nanoID
+			end
 		end
 	end
 end
