@@ -353,7 +353,7 @@ local function initUnitList()
 		legavantinuke = { weapons = { "nuke" } },
 		armantiship = { weapons = { "nuke" } },
 		corantiship = { weapons = { "nuke" } },
-		leganavyantinukecarrier = { weapons = { "nuke" } }, -- NOTE: drone weapon shown in attack ranges
+		leganavyantinukecarrier = { weapons = { [2] = "nuke" } }, -- weapon 1 is the drone controller
 
 		-- SCAVENGERS
 		scavbeacon_t1_scav = { weapons = { "ground" } },
