@@ -80,7 +80,7 @@ local SIG_AIM = 2
 local SIG_WALK = 4
 
 -- for the AimPrimary script, to skip wait-for-turn if needed
-local last_primary_heading = -1000000
+local last_primary_heading = 0
 
 local function BelowWater(piecename)
 	local _, y, _ = Spring.GetUnitPiecePosition(unitID, piecename)
@@ -972,10 +972,12 @@ end
 function SprayNano(heading, pitch)
 	SetSignalMask(SIG_AIM)
 	Sleep(1000)
-	while true do
-		Turn(torso, 2, rad(10) + buildHeading, rad(10))
+	while true do 
+		-- we want to leave aimy alone and move the torso only
+		-- then we don't even need to worry about the buildheading and buildpitch values, just use the torso heading
+		Turn(torso, 2, rad(10), rad(10))
 		Sleep(2000)
-		Turn(torso, 2, rad(-10) + buildHeading, rad(10))
+		Turn(torso, 2, rad(-10), rad(10))
 		Sleep(2000)
 	end
 end
@@ -1157,6 +1159,9 @@ function script.AimWeapon(weapon, heading, pitch)
 	if weapons[weapon] == "laser" then
 		if isAimingDgun == true then
 			return false
+		elseif isBuilding == true then
+			StartThread(ResumeBuilding)
+			return false
 		else
 			leftArm = false
 			SetSignalMask(SIG_AIM)
@@ -1171,9 +1176,6 @@ function script.AimWeapon(weapon, heading, pitch)
 			end
 			last_primary_heading = heading
 			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
 			StartThread(Restore)
 			return true
 		end
@@ -1181,6 +1183,9 @@ function script.AimWeapon(weapon, heading, pitch)
 		if isAimingDgun == true then
 			return false
 		elseif not BelowWater(rloarm) then
+			return false
+		elseif isBuilding == true then
+			StartThread(ResumeBuilding)
 			return false
 		else
 			leftArm = false
@@ -1192,10 +1197,8 @@ function script.AimWeapon(weapon, heading, pitch)
 			Turn(ruparm, 1, rad(-40) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
 
 			WaitForTurn(aimy1, 2)
+		last_primary_heading = heading -- notify that's where we're looking now.
 			isAiming = true
-			if isBuilding == true then
-				StartThread(ResumeBuilding)
-			end
 			StartThread(Restore)
 			return true
 		end
@@ -1248,13 +1251,15 @@ function script.StartBuilding(heading, pitch)
 	Signal(SIG_AIM)
 	isBuilding = true
 	leftArm = false
-	Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+	Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 	Turn(rloarm, 1, rad(-40), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	Turn(ruparm, 1, rad(-55) - pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-	WaitForTurn(ruparm, 1)
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	-- if we didnt complete the anim because we started shooting mid-aim; we need to have set buildHeading and buildPitch before the wait !
 	buildHeading = heading
 	buildPitch = pitch
+	WaitForTurn(ruparm, 1)
+	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	last_primary_heading = heading -- notify we're looking at the building now.
 	StartThread(SprayNano, heading, pitch)
 	Show(armhexl_emit)
 	Show(armhexl2_emit)
@@ -1288,6 +1293,9 @@ function Restore()
 	isAiming = false
 	isAimingDgun = false
 	Sleep(3000)
+	if isBuilding then
+		return
+	end
 	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)
@@ -1296,7 +1304,7 @@ function Restore()
 	rightArm = true
 	leftArm = true
 	-- for the AimPrimary script, to ensure wait-for-turn is called at least on the first aim
-	last_primary_heading = -1000000
+	last_primary_heading = 0
 end
 
 function script.Killed()
