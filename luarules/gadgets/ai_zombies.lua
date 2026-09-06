@@ -63,14 +63,17 @@ local COMBAT_SECONDARY_ANGLE_SIN = sin(COMBAT_SECONDARY_ANGLE_OFFSET)
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_MOVE = CMD.MOVE
+local CMD_FIGHT = CMD.FIGHT
 local CMD_CAPTURE = CMD.CAPTURE
 local CMD_STOP = CMD.STOP
 local CMD_OPT_SHIFT = { "shift" }
 
 local FIRE_STATE_FIRE_AT_ALL = 3
 local FIRE_STATE_RETURN_FIRE = 1
-local MOVE_STATE_HOLD_POSITION = 0
+local MOVE_STATE_ROAM = 2
+local IDLEMODE_FLY = 0
 local ENABLE_REPEAT = 1
 local NULL_ATTACKER = -1
 local ENVIRONMENTAL_DAMAGE_ID = Game.envDamageTypes.GroundCollision
@@ -120,6 +123,7 @@ local totalMobileZombiePower = 0
 local aggroExpirationTimestamp = 0
 
 local mobileUnitDefs = {}
+local aircraftUnitDefs = {}
 local factoriesWithCombatOptions = {}
 local unitDefWeaponRanges = {}
 local capturingUnits = {}
@@ -189,6 +193,9 @@ end
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.speed > 0 then
 		mobileUnitDefs[unitDefID] = true
+		if unitDef.canFly then
+			aircraftUnitDefs[unitDefID] = true
+		end
 	elseif #unitDef.buildOptions > 0 then
 		local combatOptions = {}
 		for optionIndex = 1, #unitDef.buildOptions do
@@ -639,6 +646,20 @@ local function isInNoGoZone(zombieData, targetX, targetZ)
 	return false
 end
 
+local function isMoveTargetTraversable(unitDefID, targetX, targetY, targetZ)
+	if aircraftUnitDefs[unitDefID] then
+		return true
+	end
+	return spTestMoveOrder(unitDefID, targetX, targetY, targetZ)
+end
+
+local function getMovementCommand(unitDefID)
+	if aircraftUnitDefs[unitDefID] then
+		return CMD_FIGHT
+	end
+	return CMD_MOVE
+end
+
 local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX, originZ)
 	local deltaX = objective.x - originX
 	local deltaZ = objective.z - originZ
@@ -659,7 +680,7 @@ local function getObjectiveMoveTarget(unitDefID, zombieData, objective, originX,
 		local candidateTargetZ = math.max(POSITION_VARIANCE, math.min(MAP_SIZE_Z - POSITION_VARIANCE, originZ + movementDistance * sin(movementAngle) + random(-POSITION_VARIANCE, POSITION_VARIANCE)))
 		if not isInNoGoZone(zombieData, candidateTargetX, candidateTargetZ) then
 			local candidateTargetY = spGetGroundHeight(candidateTargetX, candidateTargetZ)
-			if spTestMoveOrder(unitDefID, candidateTargetX, candidateTargetY, candidateTargetZ) then
+			if isMoveTargetTraversable(unitDefID, candidateTargetX, candidateTargetY, candidateTargetZ) then
 				return candidateTargetX, candidateTargetY, candidateTargetZ
 			end
 		end
@@ -685,16 +706,17 @@ local function issueObjectiveMove(unitID, unitDefID, zombieData, objective)
 		objective = zombieData.objective
 	end
 
+	local movementCommand = getMovementCommand(unitDefID)
 	local firstTargetX, firstTargetY, firstTargetZ =
 		getObjectiveMoveTarget(unitDefID, zombieData, objective, unitX, unitZ)
 	if firstTargetX then
-		spGiveOrderToUnit(unitID, CMD_MOVE, { firstTargetX, firstTargetY, firstTargetZ }, 0)
+		spGiveOrderToUnit(unitID, movementCommand, { firstTargetX, firstTargetY, firstTargetZ }, 0)
 		local secondTargetX, secondTargetY, secondTargetZ =
 			getObjectiveMoveTarget(unitDefID, zombieData, objective, firstTargetX, firstTargetZ) -- pre-queue the next hop so they don't stall between order ticks
 		if secondTargetX then
 			spGiveOrderToUnit(
 				unitID,
-				CMD_MOVE,
+				movementCommand,
 				{ secondTargetX, secondTargetY, secondTargetZ },
 				CMD_OPT_SHIFT
 			)
@@ -737,7 +759,7 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		return
 	end
 	local targetMoveY = spGetGroundHeight(targetMoveX, targetMoveZ)
-	local isTargetMoveValid = spTestMoveOrder(unitDefID, targetMoveX, targetMoveY, targetMoveZ)
+	local isTargetMoveValid = isMoveTargetTraversable(unitDefID, targetMoveX, targetMoveY, targetMoveZ)
 	if not isTargetMoveValid then
 		zombieData.combatTargetID = nil
 		zombieData.lastCombatTargetX = nil
@@ -747,7 +769,8 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		issueObjectiveMove(unitID, unitDefID, zombieData, fallbackObjective)
 		return
 	end
-	spGiveOrderToUnit(unitID, CMD_MOVE, { targetMoveX, targetMoveY, targetMoveZ }, 0)
+	local movementCommand = getMovementCommand(unitDefID)
+	spGiveOrderToUnit(unitID, movementCommand, { targetMoveX, targetMoveY, targetMoveZ }, 0)
 	local radialX = targetMoveX - targetX -- queue a 45° orbit around the target so they don't halt at engage range
 	local radialZ = targetMoveZ - targetZ
 	local rotationDirection = random() < 0.5 and -1 or 1
@@ -765,10 +788,10 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 			and secondaryTargetZ <= MAP_SIZE_Z
 		then
 			local secondaryTargetY = spGetGroundHeight(secondaryTargetX, secondaryTargetZ)
-			if spTestMoveOrder(unitDefID, secondaryTargetX, secondaryTargetY, secondaryTargetZ) then
+			if isMoveTargetTraversable(unitDefID, secondaryTargetX, secondaryTargetY, secondaryTargetZ) then
 				spGiveOrderToUnit(
 					unitID,
-					CMD_MOVE,
+					movementCommand,
 					{ secondaryTargetX, secondaryTargetY, secondaryTargetZ },
 					CMD_OPT_SHIFT
 				)
@@ -782,10 +805,10 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 		local secondaryTargetX = targetX + radialX * COMBAT_ENGAGE_RANGE_RATIO
 		local secondaryTargetZ = targetZ + radialZ * COMBAT_ENGAGE_RANGE_RATIO
 		local secondaryTargetY = spGetGroundHeight(secondaryTargetX, secondaryTargetZ)
-		if spTestMoveOrder(unitDefID, secondaryTargetX, secondaryTargetY, secondaryTargetZ) then
+		if isMoveTargetTraversable(unitDefID, secondaryTargetX, secondaryTargetY, secondaryTargetZ) then
 			spGiveOrderToUnit(
 				unitID,
-				CMD_MOVE,
+				movementCommand,
 				{ secondaryTargetX, secondaryTargetY, secondaryTargetZ },
 				CMD_OPT_SHIFT
 			)
@@ -800,6 +823,7 @@ local function updateOrders(unitID, unitDefID)
 	if mobileUnitDefs[unitDefID] then
 		local previousCombatTargetID = zombieData.combatTargetID
 		local currentCommand = spGetUnitCurrentCommand(unitID)
+		local movementCommand = getMovementCommand(unitDefID)
 		if
 			currentCommand == CMD_CAPTURE -- capture needs LOS, so drop the order if Gaia loses sight
 			and previousCombatTargetID
@@ -840,7 +864,7 @@ local function updateOrders(unitID, unitDefID)
 						)
 						>= COMBAT_TARGET_MOVE_REFRESH_DISTANCE_SQUARED
 				if
-					currentCommand ~= CMD_MOVE
+					currentCommand ~= movementCommand
 					or previousCombatTargetID ~= zombieData.combatTargetID
 					or combatTargetMoved
 				then
@@ -858,7 +882,7 @@ local function updateOrders(unitID, unitDefID)
 			if
 				previousCombatTargetID
 				or objectiveChanged
-				or currentCommand ~= CMD_MOVE
+				or currentCommand ~= movementCommand
 			then
 				issueObjectiveMove(unitID, unitDefID, zombieData, objective)
 			end
@@ -881,7 +905,10 @@ local function setZombieStates(unitID, unitDefID)
 	if factoriesWithCombatOptions[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
 	end
-	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_HOLD_POSITION, 0)
+	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
+	if aircraftUnitDefs[unitDefID] then
+		spGiveOrderToUnit(unitID, CMD_IDLEMODE, IDLEMODE_FLY, 0)
+	end
 	if not isPacified then
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_ALL, 0)
 	else

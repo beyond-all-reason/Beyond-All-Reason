@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre, code snippets/inspiration from Rafal",
 		date = "March 2024",
 		license = "GNU GPL, v2 or later",
-		layer = 2, -- after game_team_resources.lua
+		layer = 2, -- after game_team_resources.lua  (to override resources) and ai_ruins.lua (to overwrite gaia unit cap)
 		enabled = true,
 	}
 end
@@ -30,17 +30,18 @@ end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
+local ZOMBIE_UNIT_CAP_FLOOR = 2000
 local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS = { public = true }
 local WAS_ZOMBIE_TIMEOUT_FRAMES = Game.gameSpeed * 3
-
+local MIN_CAPTURE_DISTANCE_BOOST = 300
 local MIN_ZOMBIE_XP = 0.25
 local ZOMBIE_MAX_XP = 1.5
 
 local standardTechToRezPowerSpeeds = {
 	[0.5] = 1,
-	[1] = 1,
+	[1] = 1,	
 	[1.5] = 3,
 	[2] = 8,
 	[2.5] = 25,
@@ -354,7 +355,7 @@ local function applyZombieBuildRangeBonus(unitID, unitDefID)
 		return
 	end
 	local losRadius = unitDef.losRadius or unitDef.sightDistance or 0
-	local boostedBuildDistance = math.max(originalBuildDistance, losRadius)
+	local boostedBuildDistance = math.max(originalBuildDistance, MIN_CAPTURE_DISTANCE_BOOST)
 	spring.SetUnitBuildParams(unitID, "buildDistance", boostedBuildDistance)
 end
 
@@ -419,16 +420,20 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 	end
 
 	if pastXp == nil then
-		local corpseData = corpsesData[featureID]
+		local corpseData = featureID and corpsesData[featureID]
 		if corpseData then
 			pastXp = corpseData.pastXp
-		else
+		elseif featureID then
 			pastXp = spring.GetFeatureRulesParam(featureID, "previous_xp") or 0
+		else
+			pastXp = 0
 		end
 	end
 
-	spring.DestroyFeature(featureID)
-	corpsesData[featureID] = nil
+	if featureID then
+		spring.DestroyFeature(featureID)
+		corpsesData[featureID] = nil
+	end
 	playSpawnSound(x, y, z)
 
 	for i = 1, spawnCount do
@@ -693,7 +698,17 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if pendingZombieCaptures[unitID] then
 		pendingZombieCaptures[unitID] = nil
 		if not isZombie(unitID) then
-			setZombie(unitID) -- capture finished: the victim becomes a zombie too
+			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+			local health, maxHealth = spGetUnitHealth(unitID)
+			local pastXp = spring.GetUnitExperience(unitID) or 0
+			local healthReductionRatio = 1
+			if health and maxHealth and maxHealth ~= 0 then
+				healthReductionRatio = health / maxHealth
+			end
+			spring.DestroyUnit(unitID, false, true)
+			if unitX then
+				spawnZombies(nil, unitDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
+			end
 		end
 	end
 end
@@ -1195,6 +1210,12 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction("zombiekillall")
 	gadgetHandler:RemoveChatAction("zombieclearallorders")
 	gadgetHandler:RemoveChatAction("zombiemode")
+end
+
+function gadget:GamePreload()
+	local currentUnitCap = spring.GetTeamMaxUnits(gaiaTeamID)
+	local newUnitCap = math.max(ZOMBIE_UNIT_CAP_FLOOR, currentUnitCap)
+	spring.SetTeamMaxUnits(gaiaTeamID, newUnitCap)
 end
 
 function gadget:GameStart()
