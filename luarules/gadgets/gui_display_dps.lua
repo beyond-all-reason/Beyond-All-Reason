@@ -353,8 +353,6 @@ function checkEnabled()
 	enabled = (tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1)
 	if prevEnabled ~= enabled then
 		damageTable = {}
-		unitParalyze = {}
-		unitDamage = {}
 		deadList = {}
 		lastTime = 0
 		changed = false

@@ -1,5 +1,8 @@
 local gadget = gadget ---@type Gadget
 
+---@type table<string, true>
+local startPlayers
+
 function gadget:GetInfo()
 	return {
 		name = "Synctest",

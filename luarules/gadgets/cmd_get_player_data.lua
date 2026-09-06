@@ -1,5 +1,8 @@
 local gadget = gadget ---@type Gadget
 
+---@type LuaFont
+local font
+
 function gadget:GetInfo()
 	return {
 		name = "Get Player Data",

@@ -1,5 +1,12 @@
 local gadget = gadget ---@type Gadget
 
+---@type table<UnitID, UnitDefID>
+local attached_builder_def
+---@type table<UnitID, UnitID>
+local attached_builders
+---@type UnitID?
+local nanoID
+
 function gadget:GetInfo()
 	return {
 		name = "Attached Construction Turret",
@@ -50,7 +57,7 @@ local max_unit_radius = 0
 function gadget:Initialize()
 	local radius = 0
 	for ix, udef in pairs(UnitDefs) do
-		dimensions = SpGetUnitDefDimensions(udef.id)
+		local dimensions = SpGetUnitDefDimensions(udef.id)
 		radius = dimensions.radius
 		max_unit_radius = math.max(radius, max_unit_radius)
 	end
@@ -130,8 +137,8 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 	if tx and distance <= radius then
 		--let auto con turret continue its thing
 		--update heading, by calling into unit script
-		heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
-		heading2 = SpGetUnitHeading(nanoID)
+		local heading1 = SpGetHeadingFromVector(ux - tx, uz - tz)
+		local heading2 = SpGetUnitHeading(nanoID)
 		SpCallCOBScript(nanoID, "UpdateHeading", 0, heading1 - heading2 + 32768)
 		return
 	end
