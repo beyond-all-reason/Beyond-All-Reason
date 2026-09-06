@@ -211,8 +211,10 @@ end
 
 -- customparams.attached_con_turret names the turret def to spawn and attach on finish;
 -- customparams.attached_con_turret_noselect additionally hides it from selection/groups
--- (legmohobp ships without it, keeping its turret selectable as it always was).
--- scav copies inherit the params but historically never got a turret, so they are excluded.
+--
+-- By default, attached units are hidden; they are difficult to select and should not act
+-- like a separate unit, rather as a "paired" set with one real and one virtual unit.
+-- Scav copies inherit the params, but historically never got a turret, so are excluded.
 local attachedTurretDef = {} -- unitDefID -> { con = defname, noSelect = bool }
 for udid, ud in pairs(UnitDefs) do
 	local con = ud.customParams.attached_con_turret
@@ -224,7 +226,7 @@ for udid, ud in pairs(UnitDefs) do
 	then
 		attachedTurretDef[udid] = {
 			con = con,
-			noSelect = ud.customParams.attached_con_turret_noselect and true or false,
+			select = ud.customParams.attached_con_turret_select and true or false,
 		}
 	end
 end
@@ -249,8 +251,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	Spring.UnitAttach(unitID, nanoID, piece, true)
 	-- makes the attached con turret as non-interacting as possible
 	Spring.SetUnitBlocking(nanoID, false, false, false)
-	Spring.SetUnitNoSelect(nanoID, data.noSelect)
-	if data.noSelect then
+	Spring.SetUnitNoSelect(nanoID, not data.select)
+	if not data.select then
 		SendToUnsynced("setUnitNoGroup", nanoID, true)
 	end
 	attached_builders[nanoID] = unitID
