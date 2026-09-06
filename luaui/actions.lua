@@ -17,6 +17,9 @@ local actionHandler = {
 	keyRepeatActions = {},
 	keyReleaseActions = {},
 	syncActions = {},
+	-- Actions triggered by a currently held physical key, keyed by scancode and captured at press time.
+	-- The engine rebuilds the action list from the live modifier state at release time, so a modified bind (e.g. Shift+n) gets no matching release dispatch once the modifier is let go first. Capturing the press list is makes modified binds releasable.
+	pressedKeyActions = {},
 }
 
 --------------------------------------------------------------------------------
@@ -207,26 +210,52 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 	return false
 end
 
-function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
-	if not (actions and next(actions)) then
-		return false
-	end
-
-	local actionSet
-	if press then
-		actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-	else
-		actionSet = self.keyReleaseActions
-	end
-
-	for _, bAction in ipairs(actions) do
+local function TryActionList(actionMap, actionsToTry, isRepeat, release, triggeringActions, key, scanCode)
+	for _, bAction in ipairs(actionsToTry) do
 		local cmd = bAction.command
 		local extra = bAction.extra
 		local words = string.split(extra)
 
-		if TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions, key, scanCode) then
+		if TryAction(actionMap, cmd, extra, words, isRepeat, release, triggeringActions, key, scanCode) then
 			return true
 		end
+	end
+	return false
+end
+
+function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
+	local hasActions = actions ~= nil and next(actions) ~= nil
+
+	if press then
+		-- Remember which actions this physical key triggered, so their release can still be dispatched even when the modifier state no longer matches the bind at release time. Always written (nil included) so a press whose release never arrives cannot leave a stale list behind for the next press of the same key.
+		if scanCode and not isRepeat then
+			self.pressedKeyActions[scanCode] = hasActions and actions or nil
+		end
+
+		if not hasActions then
+			return false
+		end
+
+		local actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
+		if TryActionList(actionSet, actions, isRepeat, false, actions, key, scanCode) then
+			return true
+		end
+
+		return false
+	end
+
+	-- Release: prefer the action list captured at press time.
+	local releaseActions = (scanCode and self.pressedKeyActions[scanCode]) or actions
+	if scanCode then
+		self.pressedKeyActions[scanCode] = nil
+	end
+
+	if not (releaseActions and next(releaseActions)) then
+		return false
+	end
+
+	if TryActionList(self.keyReleaseActions, releaseActions, false, true, releaseActions, key, scanCode) then
+		return true
 	end
 
 	return false
