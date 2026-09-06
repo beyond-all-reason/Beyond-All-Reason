@@ -8,6 +8,8 @@ piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm,
 		hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint;
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount, isCloaked;
+// torpedo (weapon 2) range bookkeeping, see UnitSpeed()
+static-var torpedoRange, torpedoDisabled;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -433,6 +435,8 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
+	torpedoRange = get WEAPON_RANGE(2);
+	torpedoDisabled = -1;
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
@@ -444,6 +448,16 @@ UnitSpeed(){
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
 		sleep 131;
+		// AimWeapon2 refuses to aim the torpedo unless the water under the commander is deep enough, but
+		// the engine only sees a 300-range water weapon aiming from aabarrel. On an attack order against
+		// a target in water the command AI stops as soon as that weapon reports "in range"; the torpedo
+		// then never aims and the laser never gets closer. Take the torpedo's range away while the water
+		// is too shallow so only weapons that can actually fire decide where the commander stops.
+		if (get GROUND_WATER_HEIGHT(get UNIT_XZ) > -2500000) {
+			if (torpedoDisabled != 1) { get WEAPON_RANGE(-2, 0); torpedoDisabled = 1; }
+		} else {
+			if (torpedoDisabled != 0) { get WEAPON_RANGE(-2, torpedoRange); torpedoDisabled = 0; }
+		}
 		if ((isMoving) OR (isAiming) OR (isBuilding))
 		{
 			if (isDancing) {
