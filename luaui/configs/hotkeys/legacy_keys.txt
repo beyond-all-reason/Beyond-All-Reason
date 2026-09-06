@@ -319,3 +319,21 @@ bind           Alt+sc_]  blueprint_next
 
 // quotas
 bind           Alt+sc_g  factoryqueuemode
+
+// Squad selection keys
+// sc_0x064 = ISO key (between Shift and Z/Y, varies by layout)
+bind shift+sc_0x064 squad_select append_domain
+bind sc_0x064 squad_select
+bind ctrl+shift+sc_0x064 squad_select_filtered append distance_850
+bind ctrl+sc_0x064 squad_select_filtered retarget //or remove retarget to lock the type of unit
+
+bind shift+sc_mouse5 squad_select_portion 0 append_domain
+bind sc_mouse5 squad_select_portion 0 //0 = 0% of the squad but at least 1 unit
+bind ctrl+shift+sc_mouse5 squad_select_portion_filtered 0 append
+bind ctrl+sc_mouse5 squad_select_portion_filtered 0 //0 = 0% of the squad but at least 1 unit
+
+bind Meta+sc_a squad_limit_flip
+bind Meta+sc_s squad_cycle_recent
+bind Meta+sc_d squad_cycle_idle
+bind Meta+sc_v squad_lock
+bind Meta+shift+sc_v squad_select append locked //append the next nearest locked squad, so one squad_lock unlocks them all
