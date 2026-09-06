@@ -242,11 +242,6 @@ if gadgetHandler:IsSyncedCode() then
 		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
 	end
 
-	local function inAttackCommand(unitID)
-		local inCommand = spGetUnitCurrentCommand(unitID)
-		return inCommand and isAttackCommand[inCommand]
-	end
-
 	local function inReturnFire(unitID)
 		return spGetUnitStates(unitID, false) == FIRESTATE_RETURNFIRE
 	end
@@ -260,16 +255,22 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
-	local function hasUserTarget(unitID, unitData)
-		for weaponNum, check in pairs(unitData.weapons) do
-			if check then
-				local _, isUserTarget = spGetUnitWeaponTarget(unitID, weaponNum)
-				if isUserTarget then
-					return true
-				end
+
+	local function restoreCommandTarget(unitID)
+		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
+		if not inCommand or not isAttackCommand[inCommand] then
+			return false
+		end
+		if inCommand == CMD_ATTACK or inCommand == CMD_MANUALFIRE then
+			local manualFire = inCommand == CMD_MANUALFIRE
+			local userTarget = not hasAutoTarget(options)
+			if param2 then
+				spSetUnitTarget(unitID, param1, param2, param3, manualFire, userTarget)
+			else
+				spSetUnitTarget(unitID, param1, manualFire, userTarget)
 			end
 		end
-		return false
+		return true
 	end
 
 	local function hasTargetPrecedence(unitID, unitData)
@@ -280,6 +281,8 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		elseif param2 or inCommand ~= CMD_ATTACK then
 			return false
+		elseif not param1 then
+			return true
 		end
 
 		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
@@ -294,7 +297,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		return hasAutoTarget(options) or not hasUserTarget(unitID, unitData)
+		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
 	end
 
 	local function setTargetActive(unitID, unitData, targetIndex)
@@ -319,7 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.activeTarget = false
 		unitData.currentIndex = 1
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
-		if not inAttackCommand(unitID) then
+		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
 		SendToUnsynced("targetIndex", unitID, 1, false)
@@ -361,7 +364,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not inAttackCommand(unitID) then
+		if activeTargets[unitID] and not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
 		activeTargets[unitID] = nil
