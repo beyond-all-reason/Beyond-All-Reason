@@ -2917,7 +2917,7 @@ function widget:DrawScreen()
 		glCallList(dlist.blendBg)
 	end
 
-	if dlist.wind1 then
+	if cache.showIndicators and dlist.wind1 then
 		glPushMatrix()
 		glCallList(dlist.wind1)
 		glRotate(windRotation, 0, 0, 1)
