@@ -5,11 +5,13 @@
 ---@field Game string
 ---@field Transport string
 ---@field Construction string
+---@field Economy string
 local Modules = {
 	Defs = "defs",
 	Game = "game",
 	Transport = "transport",
 	Construction = "construction",
+	Economy = "economy",
 }
 
 return { Modules = Modules }
