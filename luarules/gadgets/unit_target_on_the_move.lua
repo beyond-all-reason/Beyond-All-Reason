@@ -442,7 +442,9 @@ if gadgetHandler:IsSyncedCode() then
 		addToQueue(unitID)
 		sendTargetsToUnsynced(unitID)
 
-		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
+		if not hasTargetPrecedence(unitID, data) then
+			pauseTargetting(unitID)
+		elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
 		end
 	end
