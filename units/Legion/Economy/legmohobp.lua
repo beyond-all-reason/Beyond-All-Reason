@@ -6,7 +6,7 @@ return {
 		buildangle = 2048,
 		energycost = 8100,
 		metalcost = 640,
-		buildpic = "LEGMOHOBP.DDS",
+		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 14100,
 		builder = true,
 		canrepeat = false,
