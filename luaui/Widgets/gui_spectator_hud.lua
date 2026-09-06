@@ -92,11 +92,20 @@ local metricDisplayLists = {}
 
 local shader = nil
 
-local regenerateTextTextures = true
+-- Text is rendered into textures that are only refreshed on stats updates, so a single
+-- bad render (e.g. GL state left behind by another widget in the same DrawGenesis pass,
+-- or a glyph atlas being rebuilt that frame) would otherwise stay on screen for a whole
+-- update interval (up to a second in the basic config). Every refresh request therefore
+-- re-renders on this many consecutive draw frames, which bounds such a glitch to one frame.
+local textTextureRefreshFrames = 2
+local textTextureFramesPending = textTextureRefreshFrames
 local titleTexture = nil
-local titleTextureDone = false
 local statsTexture = nil
 local updateNow = false
+
+local function requestTextTextureRefresh()
+	textTextureFramesPending = textTextureRefreshFrames
+end
 
 local knobVertexShaderSource = [[
 #version 420
@@ -821,11 +830,13 @@ local function createTextures()
 	local titleTextureSizeX = titleDimensions.width
 	local titleTextureSizeY = widgetDimensions.height
 	titleTexture = gl.CreateTexture(titleTextureSizeX, titleTextureSizeY, textureProperties)
-	titleTextureDone = false
 
 	local knobTextureSizeX = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 	local knobTextureSizeY = widgetDimensions.height
 	statsTexture = gl.CreateTexture(knobTextureSizeX, knobTextureSizeY, textureProperties)
+
+	-- fresh textures are empty until the next DrawGenesis renders into them
+	requestTextTextureRefresh()
 end
 
 local function deleteTextures()
@@ -1030,7 +1041,7 @@ local function updateStats()
 		end
 	end
 
-	regenerateTextTextures = true
+	requestTextTextureRefresh()
 end
 
 local colorKnobMiddleGrey = { 0.5, 0.5, 0.5, 1 }
@@ -1156,8 +1167,33 @@ local function drawText()
 	)
 end
 
+-- Widgets drawing earlier in the same DrawGenesis pass can leave GL state behind that the
+-- engine font renderer does not reset itself (face culling, colour/stencil masks, polygon
+-- mode). Text drawn into a freshly cleared texture would then be lost until the next
+-- refresh, so make that state explicit before printing. Blending is set up by R2tHelper.
+local function resetTextRenderState()
+	gl.Culling(false)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+	gl.StencilTest(false)
+	gl.StencilMask(255)
+	gl.ColorMask(true, true, true, true)
+	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+	gl.Texture(false)
+end
+
+-- largest font size (counting down from fontSize) at which text fits into areaWidth
+local function fitFontSize(text, fontSize, areaWidth)
+	local textWidth = font:GetTextWidth(text)
+	while fontSize > 1 and textWidth * fontSize > areaWidth do
+		fontSize = fontSize - 1
+	end
+	return fontSize
+end
+
 local function doTitleTexture()
 	local function drawTitlesToTexture()
+		resetTextRenderState()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(2 / titleDimensions.width, 2 / widgetDimensions.height, 0)
 		font:Begin(true)
@@ -1179,37 +1215,81 @@ local function doTitleTexture()
 end
 
 local function updateStatsTexture()
-	local function drawStatsToTexture()
-		local function drawMetricKnobText(left, bottom, right, top, text)
-			local knobTextAreaWidth = right - left - 2 * knobDimensions.outline
-			local fontSizeSmaller = knobDimensions.fontSize
-			local textWidth = font:GetTextWidth(text)
-			while textWidth * fontSizeSmaller > knobTextAreaWidth do
-				fontSizeSmaller = fontSizeSmaller - 1
-			end
+	-- Build and measure all knob strings before the texture is cleared, so that glyph
+	-- loading and text fitting are done while the previous content is still shown and
+	-- only the printing itself happens inside the render-to-texture pass.
+	local knobTextAreaWidth = knobDimensions.width - 2 * knobDimensions.outline
+	local knobTexts = {}
 
-			font:Print(text, mathfloor((right + left) / 2), mathfloor((top + bottom) / 2), fontSizeSmaller, "cvO")
+	local indexLeft = teamOrder and teamOrder[1] or 1
+	local indexRight = teamOrder and teamOrder[2] or 2
+	for metricIndex, metric in ipairs(metricsEnabled) do
+		local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
+		local valueRight = teamStats[metricIndex].aggregates[indexRight]
+
+		local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
+		local leftBarWidth
+		if valueLeft > 0 or valueRight > 0 then
+			leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
+		else
+			leftBarWidth = mathfloor(barLength / 2)
+		end
+
+		local relativeLead = 0
+		local relativeLeadMax = 999
+		local relativeLeadString = nil
+		if valueLeft > valueRight then
+			if valueRight > 0 then
+				relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
+			else
+				relativeLeadString = "∞"
+			end
+		elseif valueRight > valueLeft then
+			if valueLeft > 0 then
+				relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
+			else
+				relativeLeadString = "∞"
+			end
+		end
+		if relativeLead > relativeLeadMax then
+			relativeLeadString = string.format("%d+%%", relativeLeadMax)
+		elseif not relativeLeadString then
+			relativeLeadString = string.format("%d%%", relativeLead)
+		end
+
+		local textLeft = formatResources(valueLeft, true)
+		local textRight = formatResources(valueRight, true)
+		knobTexts[metricIndex] = {
+			textLeft = textLeft,
+			fontSizeLeft = fitFontSize(textLeft, knobDimensions.fontSize, knobTextAreaWidth),
+			textRight = textRight,
+			fontSizeRight = fitFontSize(textRight, knobDimensions.fontSize, knobTextAreaWidth),
+			textMiddle = relativeLeadString,
+			fontSizeMiddle = fitFontSize(relativeLeadString, knobDimensions.fontSize, knobTextAreaWidth),
+			middleKnobLeft = knobDimensions.width + leftBarWidth + 1,
+		}
+	end
+
+	local function drawStatsToTexture()
+		local function drawMetricKnobText(left, bottom, right, top, text, fontSize)
+			font:Print(text, mathfloor((right + left) / 2), mathfloor((top + bottom) / 2), fontSize, "cvO")
 		end
 
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
+		resetTextRenderState()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(2 / statsTextureWidth, 2 / statsTextureHeight, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
 
-		local indexLeft = teamOrder and teamOrder[1] or 1
-		local indexRight = teamOrder and teamOrder[2] or 2
-		for metricIndex, metric in ipairs(metricsEnabled) do
+		for metricIndex, knobText in ipairs(knobTexts) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 			local top = bottom + metricDimensions.height
 
-			local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
-			local valueRight = teamStats[metricIndex].aggregates[indexRight]
-
 			-- draw left knob text
-			drawMetricKnobText(0, bottom, knobDimensions.width, top, formatResources(valueLeft, true))
+			drawMetricKnobText(0, bottom, knobDimensions.width, top, knobText.textLeft, knobText.fontSizeLeft)
 
 			-- draw right knob text
 			drawMetricKnobText(
@@ -1217,42 +1297,19 @@ local function updateStatsTexture()
 				bottom,
 				knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft,
 				top,
-				formatResources(valueRight, true)
+				knobText.textRight,
+				knobText.fontSizeRight
 			)
 
 			-- draw middle knob text
-			local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
-			local leftBarWidth
-			if valueLeft > 0 or valueRight > 0 then
-				leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
-			else
-				leftBarWidth = mathfloor(barLength / 2)
-			end
-
-			local relativeLead = 0
-			local relativeLeadMax = 999
-			local relativeLeadString = nil
-			if valueLeft > valueRight then
-				if valueRight > 0 then
-					relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
-				else
-					relativeLeadString = "∞"
-				end
-			elseif valueRight > valueLeft then
-				if valueLeft > 0 then
-					relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
-				else
-					relativeLeadString = "∞"
-				end
-			end
-			if relativeLead > relativeLeadMax then
-				relativeLeadString = string.format("%d+%%", relativeLeadMax)
-			elseif not relativeLeadString then
-				relativeLeadString = string.format("%d%%", relativeLead)
-			end
-
-			local middleKnobLeft = knobDimensions.width + leftBarWidth + 1
-			drawMetricKnobText(middleKnobLeft, bottom, middleKnobLeft + knobDimensions.width, top, relativeLeadString)
+			drawMetricKnobText(
+				knobText.middleKnobLeft,
+				bottom,
+				knobText.middleKnobLeft + knobDimensions.width,
+				top,
+				knobText.textMiddle,
+				knobText.fontSizeMiddle
+			)
 		end
 		font:End()
 	end
@@ -1262,11 +1319,13 @@ local function updateStatsTexture()
 end
 
 local function updateTextTextures()
-	if not titleTextureDone then
-		doTitleTexture()
-		titleTextureDone = true
-	end
+	-- Always use the font handler's current font: it replaces its fonts on view resize and
+	-- deletes the old ones, so a handle cached at init could point at a deleted font.
+	font = WG.fonts.getFont()
 
+	-- Both textures are re-rendered together; the title texture is tiny and this keeps a
+	-- bad title render from persisting until the next re-init.
+	doTitleTexture()
 	updateStatsTexture()
 end
 
@@ -2038,7 +2097,8 @@ function widget:Update(dt)
 			if WG.topbar.getShowButtons() ~= prevShowButtons then
 				topbarShowButtons = WG.topbar.getShowButtons()
 				if haveFullView then
-					init()
+					-- release the current textures, VAO and display lists before rebuilding
+					reInit()
 				else
 					deInit()
 				end
@@ -2054,20 +2114,30 @@ function widget:Update(dt)
 	end
 end
 
+function widget:FontsChanged()
+	-- the engine rebuilt its glyph atlases (fallback font added, colour glyphs enabled, ...);
+	-- text cached in our textures has to be rendered again
+	requestTextTextureRefresh()
+end
+
 function widget:DrawGenesis()
 	if not widgetEnabled or not haveFullView then
 		return
 	end
 
-	if regenerateTextTextures then
+	if textTextureFramesPending > 0 then
 		updateTextTextures()
-		regenerateTextTextures = false
+		textTextureFramesPending = textTextureFramesPending - 1
 	end
 end
 
 function widget:DrawScreen()
+	-- state that other widgets drawing before us in DrawScreen may have left behind
 	gl.Blending(true)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Culling(false)
+	gl.DepthTest(false)
+	gl.ColorMask(true, true, true, true)
 
 	if not widgetEnabled or not haveFullView then
 		if WG.guishader and guishaderDlist then
