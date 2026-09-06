@@ -1,11 +1,12 @@
 -- Supplied by the including unit script, which shares this chunk's environment:
--- luacheck: read_globals WeaponDrawn ang defs weapons
+-- luacheck: read_globals WeaponDrawn ang defs weapons attributes
 
 hasWpn = true
 sleeptime = 3800 * 2
 --Weapon 1
-local headSpeed = math.rad(tonumber(defs.customParams["wpn" .. (tostring(1)) .. "turrety"])) / 30
-local pitchSpeed = math.rad(tonumber(defs.customParams["wpn" .. (tostring(1)) .. "turretx"])) / 30
+local turretSpeed1 = attributes and attributes.SetTurretSpeedWeapon1 ---@diagnostic disable-line: undefined-global
+local headSpeed = turretSpeed1 and turretSpeed1[2] or 0
+local pitchSpeed = turretSpeed1 and turretSpeed1[1] or 0
 weapons[1] = {
 	curHead = 0,
 	curPitch = 0,
