@@ -81,6 +81,7 @@ local allyTeamRanking = nil
 local reclaimerUnits = {}
 local avgData = {}
 local uiElementRects = {}
+local uiElementRectsCount = 0
 local tooltipAreas = {}
 local teamTooltipAreas = {}
 local guishaderRects = {}
@@ -312,6 +313,7 @@ end
 local function updateDrawPos()
 	local drawpos = 0
 	aliveAllyTeams = 0
+	local orderChanged = false
 	local currentMyAllyID = spGetMyAllyTeamID()
 	if allyTeamRanking then
 		for _, allyID in pairs(allyTeamRanking) do
@@ -320,7 +322,10 @@ local function updateDrawPos()
 				if isTeamReal(allyID) and (allyID == currentMyAllyID or inSpecMode) and allyData[dataID].isAlive then
 					aliveAllyTeams = aliveAllyTeams + 1
 					drawpos = drawpos + 1
-					allyData[dataID].drawpos = drawpos
+					if allyData[dataID].drawpos ~= drawpos then
+						allyData[dataID].drawpos = drawpos
+						orderChanged = true
+					end
 				end
 			end
 		end
@@ -331,8 +336,18 @@ local function updateDrawPos()
 				aliveAllyTeams = aliveAllyTeams + 1
 				drawpos = drawpos + 1
 			end
-			data.drawpos = drawpos
+			if data.drawpos ~= drawpos then
+				data.drawpos = drawpos
+				orderChanged = true
+			end
 		end
+	end
+	if orderChanged then
+		-- rows moved: the per-allyteam background rects (whose width depends on
+		-- each allyteam's player count) are baked into uiBgTex and the guishader
+		-- blur lists, so force those to be rebuilt from freshly computed positions
+		uiElementRectsCount = 0
+		refreshTeamCompositionList = true
 	end
 end
 
@@ -724,7 +739,6 @@ end
 
 local areaRect = {}
 local prevAreaRect = {}
-local uiElementRectsCount = 0
 local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
