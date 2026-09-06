@@ -1,6 +1,7 @@
 
 local ModeBuilder = VFS.Include("modules/mode_builder.lua")
 local ModeEnums = VFS.Include("modules/game/enums.lua")
+local TransportEnums = VFS.Include("modules/transport/enums.lua")
 
 ---@class GameModeDSL
 ---@field DeathMode DeathModeFields the keys .End accepts
@@ -110,7 +111,10 @@ local Serializers = {
 		}
 	end,
 	["game.slowcomtransport"] = function(p, lock)
-		return option("comm_trans_slow", p.enabled, lock.structure)
+		return option(TransportEnums.ModOptions.CommanderTransportSlow, p.enabled, lock.structure)
+	end,
+	["game.enemytransporting"] = function(p, lock)
+		return option(TransportEnums.ModOptions.TransportEnemy, p.which, lock.structure)
 	end,
 	["game.unit_restrictions"] = function(_p, lock)
 		local options = {}
@@ -200,6 +204,14 @@ M.Mode = ModeBuilder.Grammar({
 		SlowComTransport = function(modeName, enabled)
 			checkBoolean(modeName, "SlowComTransport", enabled)
 			return { "game.slowcomtransport", enabled = enabled }
+		end,
+
+		EnemyTransporting = function(modeName, which)
+			assert(
+				which == TransportEnums.TransportEnemy.NotCommanders or which == TransportEnums.TransportEnemy.None,
+				modeName .. ': .EnemyTransporting expects "notcoms" or "none"'
+			)
+			return { "game.enemytransporting", which = which }
 		end,
 
 		UnitRestrictions = function(_modeName)

@@ -1421,19 +1421,6 @@ local function explosionDef_Post(name, eDef) end
 
 -- process modoptions (last, because they should not get baked)
 local function modOptions_Post(UnitDefs, WeaponDefs)
-	-- transporting enemy coms
-	if Spring.GetModOptions().transportenemy == "notcoms" then
-		for name, ud in pairs(UnitDefs) do
-			if ud.customparams.iscommander then
-				ud.transportbyenemy = false
-			end
-		end
-	elseif Spring.GetModOptions().transportenemy == "none" then
-		for name, ud in pairs(UnitDefs) do
-			ud.transportbyenemy = false
-		end
-	end
-
 	-- For Decals GL4, disables default groundscars for explosions
 	for _, wDef in pairs(WeaponDefs) do
 		wDef.explosionScar = false
