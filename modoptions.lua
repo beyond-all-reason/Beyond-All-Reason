@@ -1898,6 +1898,16 @@ local options = {
 		linkwidth = 350,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "experimental_unit_surfboxes",
+		name = "Shallow water test",
+		desc = "Scouts submerged in very shallow water can be shot and killed",
+		section = "options_experimental",
+		type = "bool",
+		def = false,
+	},
+
 	-- Hidden Tests
 
 	-- NOTE: update language/en/interface.json when you change name or desc
