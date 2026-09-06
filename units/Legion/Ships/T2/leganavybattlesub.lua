@@ -105,7 +105,7 @@ return {
 				burnblow = true,
 				burst = 3,
 				burstrate = 0.33,
-				cegtag = "torpedotrail-small",
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
