@@ -20,6 +20,7 @@ end
 local CMD_REPAIR = CMD.REPAIR
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
+local SpGetFactoryCommands = Spring.GetFactoryCommands
 local SpGetUnitCommands = Spring.GetUnitCommands
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 local SpGetUnitPosition = Spring.GetUnitPosition
@@ -61,7 +62,9 @@ local function auto_repair_routine(nanoID, unitDefID, baseUnitID)
 		return
 	end
 	-- first, check command the body is performing
-	local commandQueue = SpGetUnitCommands(attached_builders[nanoID], 1)
+	local baseDefID = SpGetUnitDefID(baseUnitID)
+	local getQueue = (baseDefID and UnitDefs[baseDefID].isFactory) and SpGetFactoryCommands or SpGetUnitCommands
+	local commandQueue = getQueue(baseUnitID, 1) or {}
 	if commandQueue[1] ~= nil and commandQueue[1].id < 0 then
 		-- build command
 		-- The attached turret must have the same buildlist as the body for this to work correctly
