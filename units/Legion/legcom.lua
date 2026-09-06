@@ -98,7 +98,7 @@ return {
 			paralyzemultiplier = 0,
 			reaimtime = 5,
 			spawnpad_unit = "legnanotcbase",
-			subfolder = "",
+			subfolder = "Legion",
 			tombstone = "legstone",
 		},
 		featuredefs = {

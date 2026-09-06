@@ -40,7 +40,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "CorAircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			crashable = 0,
 		},

@@ -39,7 +39,7 @@ return {
 			model_author = "Kremenchuk",
 			normaltex = "unittextures/leegmech_normal.dds",
 			reaimtime = 5,
-			subfolder = "leggantry",
+			subfolder = "Legion/T3",
 			techlevel = 3,
 		},
 		featuredefs = {

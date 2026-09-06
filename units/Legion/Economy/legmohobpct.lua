@@ -36,7 +36,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Economy",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

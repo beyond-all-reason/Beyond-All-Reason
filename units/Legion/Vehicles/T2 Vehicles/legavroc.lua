@@ -40,7 +40,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmVehicles/T2",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 		},
 		featuredefs = {
