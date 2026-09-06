@@ -336,7 +336,7 @@ local function initUnitList()
 		legrhapsis = { weapons = { "air" } }, --T1.5 AA
 		legflak = { weapons = { "air" } }, --T2 AA FLAK
 		leglraa = { weapons = { "air" } }, --T2 LR-AA
-		legperdition = { weapons = { "cannon" } }, --T2 LR-AA
+		legperdition = { weapons = { "ground" } }, --T2 napalm missile launcher
 		legapopupdef = { weapons = { "ground" } }, --popup riot/minigun turret
 		leganavaltorpturret = { weapons = { "ground" } }, --torpedo launcher
 		leganavalaaturret = { weapons = { "air" } }, --Fulmen
