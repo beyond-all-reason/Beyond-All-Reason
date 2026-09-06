@@ -159,6 +159,8 @@ local armorDefs = {
 		"armstump",
 		"armsy",
 		"armtarg",
+		--arm hover transport
+		"armthovr",
 		"armtide",
 		"armuwes",
 		"armuwfus",
@@ -249,6 +251,8 @@ local armorDefs = {
 		"corsolar",
 		"corstorm",
 		"corsy",
+		-- cor hover transport
+		"corthovr",
 		"legsy",
 		"cortarg",
 		"cortermite",
@@ -282,6 +286,8 @@ local armorDefs = {
 		"armpincer",
 		"coramph",
 		"corgarp",
+		--cor intruder T2 ambi transport
+		"corintr",
 		"cormuskrat",
 		"corparrow",
 		"corseal",
@@ -645,6 +651,9 @@ local armorDefs = {
 		"cormship",
 		"armcarry",
 		"corcarry",
+		--arm &  cor transport ships
+		"armtship",
+		"cortship",
 		"armbats",
 		"corbats",
 		"armepoch",
