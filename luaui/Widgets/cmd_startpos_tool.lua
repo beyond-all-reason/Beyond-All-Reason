@@ -2006,17 +2006,28 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		elseif button == 3 then
-			-- RMB: Undo last placement (remove most recently placed player/shape-batch)
-			local entry = undoHistory[#undoHistory]
-			if entry then
-				for i = 1, entry.count do
+			-- RMB: Undo last placement (remove most recently placed player/shape-batch).
+			-- The history is shared with the startbox editor and its entries carry no
+			-- count, so take the newest POSITION entry rather than the newest entry:
+			-- after drawing boxes the top of the stack is a box edit, and rewinding by
+			-- its missing count crashed the widget.
+			local at
+			for i = #undoHistory, 1, -1 do
+				if (undoHistory[i].mode or "express") ~= "startbox" then
+					at = i
+					break
+				end
+			end
+			local entry = at and undoHistory[at] or nil
+			if entry and at then
+				for _ = 1, (entry.count or 0) do
 					if #positions > 0 then
 						positions[#positions] = nil
 					end
 				end
-				nextAllyTeam = entry.prevNextAllyTeam
+				nextAllyTeam = entry.prevNextAllyTeam or 1
 				nextTeamSlot = entry.prevNextTeamSlot or 1
-				undoHistory[#undoHistory] = nil
+				table.remove(undoHistory, at)
 			end
 			if #positions == 0 then
 				nextAllyTeam = 1
