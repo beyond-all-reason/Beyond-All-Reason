@@ -65,21 +65,21 @@ local function decodeModoption(raw)
 	return parsed
 end
 
-local function getActiveAllyTeamCount()
+local function getActiveAllyTeams()
 	local gaiaAllyTeamID
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	if gaiaTeamID then
 		gaiaAllyTeamID = Spring.GetTeamAllyTeamID(gaiaTeamID)
 	end
 
-	local count = 0
+	local active = {}
 	for _, atID in ipairs(Spring.GetAllyTeamList()) do
 		if atID ~= gaiaAllyTeamID then
-			count = count + 1
+			active[#active + 1] = atID
 		end
 	end
 
-	return count
+	return active
 end
 
 -- Will match any spare boxes, but will not leave any teams without a box.
@@ -226,6 +226,37 @@ local function transformArrangement(arrangement)
 	return config
 end
 
+local function buildWholeMapEntry()
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+
+	return {
+		boxes = {
+			{
+				{ 0, 0 },
+				{ 0, mapSizeZ },
+				{ mapSizeX, mapSizeZ },
+				{ mapSizeX, 0 },
+			},
+		},
+		startpoints = { { mapSizeX * 0.5, mapSizeZ * 0.5 } },
+		nameLong = "Anywhere",
+		nameShort = "Any",
+		wholeMap = true,
+	}
+end
+
+-- resolveArrangement will settle for an arrangement covering fewer allyteams than the game
+-- has. A missing entry reads as "no config, ask the engine", and the engine has nothing to
+-- say for an allyteam the host never sent a rect for.
+local function fillUnboxedAllyTeams(config, activeAllyTeams)
+	for _, allyTeamID in ipairs(activeAllyTeams) do
+		local entry = config[allyTeamID]
+		if not (entry and entry.boxes and #entry.boxes > 0) then
+			config[allyTeamID] = buildWholeMapEntry()
+		end
+	end
+end
+
 local function buildFallback()
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -292,17 +323,18 @@ local function buildFallback()
 end
 
 local function ParseBoxes()
-	local numTeams = getActiveAllyTeamCount()
+	local activeAllyTeams = getActiveAllyTeams()
 
 	local modoptions = Spring.GetModOptions()
 	local parsedOverride = decodeModoption(modoptions.mapmetadata_startbox_override)
 	local parsedSet = decodeModoption(modoptions.mapmetadata_startboxes_set)
 
-	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, numTeams)
+	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, #activeAllyTeams)
 
 	local startBoxConfig
 	if arrangement then
 		startBoxConfig = transformArrangement(arrangement)
+		fillUnboxedAllyTeams(startBoxConfig, activeAllyTeams)
 	else
 		startBoxConfig = buildFallback()
 		configSource = "fallback"
@@ -413,8 +445,9 @@ end
 -- against the wrong axis. A box covering everything restricts nothing, which is what
 -- those callers were really asking about.
 local function HasStartbox(allyTeamID)
-	if GetEntry(allyTeamID) then
-		return true
+	local entry = GetEntry(allyTeamID)
+	if entry then
+		return not entry.wholeMap
 	end
 
 	local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
