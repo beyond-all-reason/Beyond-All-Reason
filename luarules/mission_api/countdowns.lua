@@ -40,6 +40,8 @@ local function setTime(countdownID, seconds)
 	local countdown = GG["MissionAPI"].Countdowns[countdownID]
 	if countdown then
 		countdown.timeRemaining = sanitizeSeconds(seconds)
+		-- A set time restarts the countdown, so it is held through its first tick
+		countdown.buffered = true
 	end
 end
 

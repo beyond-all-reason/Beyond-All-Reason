@@ -1242,6 +1242,25 @@ describe("mission_api.validation", function()
 			assert.is_true(hasError("Countdown 'ghost' is not added in any action. Referenced in: action cancelGhost"))
 		end)
 
+		it("warns for time adjustments on countdown IDs that are not added", function()
+			GG["MissionAPI"].Actions = {
+				setGhost = { type = actionTypes.SetTime, parameters = { countdownID = "setID", seconds = 5 } },
+				addGhost = { type = actionTypes.AddTime, parameters = { countdownID = "addID", seconds = 5 } },
+				removeGhost = {
+					type = actionTypes.RemoveTime,
+					parameters = { countdownID = "removeID", seconds = 5 },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Countdown 'setID' is not added in any action. Referenced in: action setGhost"))
+			assert.is_true(hasError("Countdown 'addID' is not added in any action. Referenced in: action addGhost"))
+			assert.is_true(
+				hasError("Countdown 'removeID' is not added in any action. Referenced in: action removeGhost")
+			)
+		end)
+
 		it("warns for a countdown ID referenced by a trigger but not added", function()
 			GG["MissionAPI"].Triggers = {
 				watchGhost = {

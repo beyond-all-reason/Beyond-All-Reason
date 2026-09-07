@@ -190,6 +190,17 @@ describe("mission_api.countdowns", function()
 			assert.are.equal(60, get("timer").timeRemaining)
 		end)
 
+		it("SetTime holds the countdown through its next tick, like a new countdown", function()
+			addTicking("timer", 10)
+			countdowns.SetTime("timer", 5)
+
+			countdowns.Decrement() -- consumed as the hold-back tick
+			assert.are.equal(5, get("timer").timeRemaining)
+
+			countdowns.Decrement()
+			assert.are.equal(4, get("timer").timeRemaining)
+		end)
+
 		it("AddTime extends the remaining time", function()
 			addTicking("timer", 10)
 			countdowns.AddTime("timer", 15)

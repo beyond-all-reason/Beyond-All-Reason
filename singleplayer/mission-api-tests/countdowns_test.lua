@@ -3,14 +3,20 @@
 ---
 --- Countdowns tick down once per second, and a new countdown is held through
 --- its first tick, so a countdown added at 1s takes its first tick at 3s.
+--- SetTime restarts a countdown, so it is held through its next tick again.
 ---
 --- Expected timeline:
----    1s: 'alpha' (5s), 'doomed' (20s) and 'held' (10s) are added
+---    1s: 'alpha' (5s), 'doomed' (20s), 'held' (10s) and 'adjusted' (30s) are added
 ---    3s: 'held' is paused, at 9 seconds remaining
 ---    4s: 'doomed' is cancelled; its CountdownFinished message must never appear
+---    4s: 'adjusted' is set to 10 seconds (held again through the 5s tick)
 ---    5s: message: alpha reached 2 seconds remaining
+---    6s: 'held' is unpaused; 'adjusted' gets 5 seconds added (14 remaining)
 ---    7s: objective 'surviveAlpha' completes ('alpha' finished)
----    7s: message: held reached 8 seconds remaining (ticking again after unpause at 6s)
+---    7s: message: held reached 8 seconds remaining
+---    8s: 'adjusted' has 9 seconds removed (3 remaining)
+---   10s: message: adjusted reached 1 second remaining
+---   11s: message: adjusted finished (its 30s end here only if all three adjustments applied)
 ---   15s: message: held finished (3 seconds later than it would have without the pause)
 ---
 
@@ -37,7 +43,7 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'addAlpha', 'addDoomed', 'addHeld' },
+		actions = { 'addAlpha', 'addDoomed', 'addHeld', 'addAdjusted' },
 	},
 
 	pauseHeld = {
@@ -62,6 +68,30 @@ local triggers = {
 			seconds = 6,
 		},
 		actions = { 'unpauseHeld' },
+	},
+
+	setAdjusted = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 4,
+		},
+		actions = { 'setAdjusted' },
+	},
+
+	addAdjustedTime = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 6,
+		},
+		actions = { 'addAdjustedTime' },
+	},
+
+	removeAdjustedTime = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 8,
+		},
+		actions = { 'removeAdjustedTime' },
 	},
 
 	alphaReached = {
@@ -97,6 +127,23 @@ local triggers = {
 		},
 		actions = { 'messageDoomedFinished' },
 	},
+
+	adjustedReached = {
+		type = triggerTypes.CountdownReached,
+		parameters = {
+			countdownID = 'adjusted',
+			timeRemaining = 1,
+		},
+		actions = { 'messageAdjustedReached' },
+	},
+
+	adjustedFinished = {
+		type = triggerTypes.CountdownFinished,
+		parameters = {
+			countdownID = 'adjusted',
+		},
+		actions = { 'messageAdjustedFinished' },
+	},
 }
 
 local actions = {
@@ -125,6 +172,14 @@ local actions = {
 		},
 	},
 
+	addAdjusted = {
+		type = actionTypes.AddCountdown,
+		parameters = {
+			countdownID = 'adjusted',
+			seconds = 30,
+		},
+	},
+
 	pauseHeld = {
 		type = actionTypes.PauseCountdown,
 		parameters = {
@@ -143,6 +198,30 @@ local actions = {
 		type = actionTypes.UnpauseCountdown,
 		parameters = {
 			countdownID = 'held',
+		},
+	},
+
+	setAdjusted = {
+		type = actionTypes.SetTime,
+		parameters = {
+			countdownID = 'adjusted',
+			seconds = 10,
+		},
+	},
+
+	addAdjustedTime = {
+		type = actionTypes.AddTime,
+		parameters = {
+			countdownID = 'adjusted',
+			seconds = 5,
+		},
+	},
+
+	removeAdjustedTime = {
+		type = actionTypes.RemoveTime,
+		parameters = {
+			countdownID = 'adjusted',
+			seconds = 9,
 		},
 	},
 
@@ -171,6 +250,20 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = '[Countdowns test] THIS MUST NEVER APPEAR - doomed was cancelled',
+		},
+	},
+
+	messageAdjustedReached = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = '[Countdowns test] adjusted reached 1 second remaining (expected at 10s)',
+		},
+	},
+
+	messageAdjustedFinished = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = '[Countdowns test] adjusted finished (expected at 11s: set to 10 at 4s, +5 at 6s, -9 at 8s)',
 		},
 	},
 }

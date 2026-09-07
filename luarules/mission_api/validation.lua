@@ -1448,6 +1448,9 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 		[actionTypes.CancelCountdown] = true,
 		[actionTypes.PauseCountdown] = true,
 		[actionTypes.UnpauseCountdown] = true,
+		[actionTypes.SetTime] = true,
+		[actionTypes.AddTime] = true,
+		[actionTypes.RemoveTime] = true,
 	}
 
 	local addedCountdownIDs = {}
