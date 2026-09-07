@@ -8,6 +8,10 @@
 
 //__DEFINES__
 
+#ifndef MASKPASS
+	#define MASKPASS 0 // 1: coverage mask pass, see gui_attackrange_gl4.lua
+#endif
+
 layout (location = 0) in vec4 circlepointposition; // x,y in range [-1,1], progress in range [0,1]
 layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 layout (location = 2) in vec4 color1; // Base color for the circle

@@ -603,16 +603,18 @@ local shaderSourceCache = {
 -- of a class covers it. The stencil path (still used for the minimap) rasterizes every disc
 -- into the stencil buffer of the main framebuffer, so hundreds of overlapping discs cost
 -- tens of times the screen area at full (multisampled) resolution. In the world view the
--- discs are instead drawn into a private single-sample FBO with a depth test: the first disc
--- drawn wins per pixel (instance-ordered depth) and the hierarchical depth test rejects the
--- overlapping discs before rasterization, so the cost is proportional to the covered area
--- and not to the summed disc areas. One screen-sized quad then paints the fill from the
--- mask, and the outer rings read the mask instead of the stencil buffer.
+-- discs are instead drawn into the shared single-sample FBO of range_coverage_mask_gl4.lua
+-- with a depth test: the first disc drawn wins per pixel (instance-ordered depth) and the
+-- hierarchical depth test rejects the overlapping discs before rasterization, so the cost
+-- is proportional to the covered area and not to the summed disc areas. One screen-sized
+-- quad then paints the fill from the mask, and the outer rings read the mask instead of the
+-- stencil buffer.
 --
 -- Each ally/enemy group builds its own mask. Within a group the 8-bit red channel holds one
 -- bit per class, mirroring the stencil bit layout: 1 = ground (and cannon), 2 = nano,
 -- 4 = AA, 8 = cannon when colorConfig.cannon_separate_stencil is set. lrpc rings are not
 -- merged, they are only clipped by the cannon class like in the stencil path.
+local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
 local cannonMaskChannel = colorConfig.cannon_separate_stencil and 3 or 0
 local maskChannelClasses = { [0] = { "ground" }, { "nano" }, { "AA" }, {} }
 table.insert(maskChannelClasses[cannonMaskChannel], "cannon")
@@ -621,14 +623,10 @@ local ringClassOrder = { "ground", "nano", "AA", "cannon", "lrpc" }
 local ringClassCannonMode = { ground = 0, nano = 0, AA = 0, cannon = 1, lrpc = 1 }
 local ringClassMaskBit = { ground = 1, nano = 2, AA = 4, cannon = 2 ^ cannonMaskChannel, lrpc = 2 ^ cannonMaskChannel }
 
-local maskFBO, maskTex, maskDepthTex
-local maskSizeX, maskSizeY = 0, 0
-local maskUnavailable = false -- creation failed, keep using the stencil path
+local maskFBO, maskTex -- the shared targets, fetched each draw by maskPathAvailable
+local maskAcquired = false
 local fullScreenQuadVAO
 local maskShader, compositeShader
-local GL_R8 = GL.R8 or 0x8229
-local GL_DEPTH_COMPONENT16 = GL.DEPTH_COMPONENT16 or 0x81A5
-local GL_COLOR_ATTACHMENT0 = GL.COLOR_ATTACHMENT0 or 0x8CE0
 
 local maskShaderSourceCache = {
 	shaderName = "Attack Range GL4 coverage mask",
@@ -676,61 +674,12 @@ local compositeShaderSourceCache = {
 	},
 }
 
-local function deleteMaskTargets()
-	if maskFBO then
-		gl.DeleteFBO(maskFBO)
-		maskFBO = nil
-	end
-	if maskTex then
-		gl.DeleteTexture(maskTex)
-		maskTex = nil
-	end
-	if maskDepthTex then
-		gl.DeleteTexture(maskDepthTex)
-		maskDepthTex = nil
-	end
-	maskSizeX, maskSizeY = 0, 0
-end
-
-local function createMaskTargets(vsx, vsy)
-	deleteMaskTargets()
-	local texOpts = {
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
-		wrap_s = GL.CLAMP_TO_EDGE,
-		wrap_t = GL.CLAMP_TO_EDGE,
-		format = GL_R8,
-	}
-	maskTex = gl.CreateTexture(vsx, vsy, texOpts)
-	texOpts.format = GL_DEPTH_COMPONENT16
-	maskDepthTex = gl.CreateTexture(vsx, vsy, texOpts)
-	if maskTex and maskDepthTex then
-		maskFBO = gl.CreateFBO({
-			color0 = maskTex,
-			depth = maskDepthTex,
-			drawbuffers = { GL_COLOR_ATTACHMENT0 },
-		})
-	end
-	if not (maskFBO and gl.IsValidFBO(maskFBO)) then
-		spEcho("Attack Range GL4: could not create the range coverage mask, using the stencil path")
-		deleteMaskTargets()
-		maskUnavailable = true
-		return false
-	end
-	maskSizeX, maskSizeY = vsx, vsy
-	return true
-end
-
--- The mask has to match the world viewport pixel for pixel, so it is (re)created on demand.
 local function maskPathAvailable()
-	if maskUnavailable or not (maskShader and compositeShader and fullScreenQuadVAO) then
+	if not (maskShader and compositeShader and fullScreenQuadVAO) then
 		return false
 	end
-	local vsx, vsy = Spring.GetViewGeometry()
-	if maskFBO and maskSizeX == vsx and maskSizeY == vsy then
-		return true
-	end
-	return createMaskTargets(vsx, vsy)
+	maskFBO, maskTex = RangeCoverageMask.Get()
+	return maskFBO ~= nil
 end
 
 local function goodbye(reason)
@@ -1011,6 +960,9 @@ local function makeShaders()
 	fullScreenQuadVAO = fullScreenQuadVAO or InstanceVBOTable.MakeTexRectVAO()
 	if not (maskShader and compositeShader and fullScreenQuadVAO) then
 		spEcho("Attack Range GL4: range coverage mask unavailable, using the stencil path")
+	elseif not maskAcquired then
+		RangeCoverageMask.Acquire()
+		maskAcquired = true
 	end
 	return true
 end
@@ -1226,7 +1178,11 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("attack_range_inc", "p")
 	widgetHandler:RemoveAction("attack_range_dec", "p")
 
-	deleteMaskTargets()
+	if maskAcquired then
+		RangeCoverageMask.Release()
+		maskAcquired = false
+	end
+	maskFBO, maskTex = nil, nil
 	if fullScreenQuadVAO then
 		fullScreenQuadVAO:Delete()
 		fullScreenQuadVAO = nil
@@ -1239,12 +1195,6 @@ function widget:Shutdown()
 		compositeShader:Finalize()
 		compositeShader = nil
 	end
-end
-
-function widget:ViewResize()
-	-- the coverage mask is recreated at the new size on the next draw
-	deleteMaskTargets()
-	maskUnavailable = false
 end
 
 local gameFrame = 0
