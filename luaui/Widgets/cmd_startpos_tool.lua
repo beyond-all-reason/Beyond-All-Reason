@@ -147,10 +147,18 @@ local startboxes = {} -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
 -- Forward declarations for cached-fill-list helpers defined further down in the drawing section.
 -- Needed because removeLastStartbox / clearAllStartboxes / drag handlers reference them from
 -- this upper part of the file.
-local ensureBoxFillList, invalidateBoxFill, freeBoxFillList
+-- Forward declarations (defined further down); typed so the calls that sit
+-- above the definitions are not read as calls on nil.
+---@type fun(box: any): any
+local ensureBoxFillList
+---@type fun(box: any)
+local invalidateBoxFill
+---@type fun(box: any)
+local freeBoxFillList
 -- Forward decl: world radius needed for a constant on-screen pixel size at (wx, wz).
 -- Used by DrawWorld for handles/arrows so they keep size while zooming. Defined alongside
 -- getScreenMarker further down in the rendering section.
+---@type fun(wx: number, wz: number, screenPx: number): number
 local worldRadiusForScreenPx
 local startboxMode = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox = false
@@ -164,9 +172,10 @@ local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge current
 -- gizmo sets the anchor strength between 0 and 1.
 -- Curvature editing hangs off one table rather than a dozen file-level locals: the main
 -- chunk of this widget sits on Lua's 200-local ceiling and each new one costs a slot.
+-- selBox / selVert (the selected anchor: box index, vertex index) are assigned
+-- below rather than listed here: a `= nil` in the constructor makes the
+-- analyzer read them as never set.
 local strengthEdit = {
-	selBox = nil,
-	selVert = nil,
 	dragging = false,
 	GIZMO_LEN = 240, -- world units from anchor to the strength-1 end of the gizmo
 	scratch = {}, -- reused anchor ring, see buildRing
@@ -603,6 +612,7 @@ local function addStartboxVertex(x, z)
 	-- Honour the shared brush "instruments": when the grid-snap toggle is on,
 	-- snap polygon vertices to the same world grid the shape/express placement
 	-- paths use, so the Snap instrument actually affects startbox drawing.
+	---@type table?
 	local tb = WG.TerraformBrush
 	local stb = tb and tb.getState and tb.getState() or nil
 	if stb and stb.gridSnap and tb.snapWorld then
@@ -816,7 +826,8 @@ local function removeLastStartbox()
 end
 
 local function clearAllStartboxes()
-	strengthEdit.selBox, strengthEdit.selVert = nil, nil
+	strengthEdit.selBox = nil
+	strengthEdit.selVert = nil
 	strengthEdit.dragging = false
 	for i = 1, #startboxes do
 		freeBoxFillList(startboxes[i])
@@ -896,8 +907,9 @@ function boxUndo.commit()
 	if now and #now.anchors == #pend.box.anchors then
 		local same = now.kind == pend.box.kind
 		for k = 1, #now.anchors do
-			local a, b = now.anchors[k], pend.box.anchors[k]
-			if a.x ~= b.x or a.z ~= b.z or a.strength ~= b.strength then
+			local a = now.anchors[k]
+			local b = pend.box.anchors[k]
+			if not a or not b or a.x ~= b.x or a.z ~= b.z or a.strength ~= b.strength then
 				same = false
 				break
 			end
@@ -1146,23 +1158,28 @@ local function findNearestBoxEdge(wx, wz)
 				local dR = math.abs(wx - maxX) -- right  edge
 				local dT = math.abs(wz - minZ) -- top    edge (min Z)
 				local dB = math.abs(wz - maxZ) -- bottom edge
-				local best, which = EDGE_PICK_DIST, nil
+				local best = EDGE_PICK_DIST
+				local which = nil
 				-- Left/right edges only valid within Z span
 				if wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
 					if dL < best then
-						best, which = dL, "L"
+						best = dL
+						which = "L"
 					end
 					if dR < best then
-						best, which = dR, "R"
+						best = dR
+						which = "R"
 					end
 				end
 				-- Top/bottom edges only valid within X span
 				if wx >= minX - EDGE_PICK_DIST and wx <= maxX + EDGE_PICK_DIST then
 					if dT < best then
-						best, which = dT, "T"
+						best = dT
+						which = "T"
 					end
 					if dB < best then
-						best, which = dB, "B"
+						best = dB
+						which = "B"
 					end
 				end
 				if which then
@@ -1370,7 +1387,10 @@ end
 
 local function findNearestPolygonEdgeMid(wx, wz)
 	local bestD = VERTEX_PICK_DIST_SQ
-	local bestBi, bestEi, bestMx, bestMz = nil, nil, nil, nil
+	local bestBi = nil
+	local bestEi = nil
+	local bestMx = nil
+	local bestMz = nil
 	for bi, box in ipairs(startboxes) do
 		local handles = getEditHandles(box)
 		if handles and #handles >= 3 then
@@ -1383,7 +1403,10 @@ local function findNearestPolygonEdgeMid(wx, wz)
 				local d = distSq(wx, wz, mx, mz)
 				if d < bestD then
 					bestD = d
-					bestBi, bestEi, bestMx, bestMz = bi, i, mx, mz
+					bestBi = bi
+					bestEi = i
+					bestMx = mx
+					bestMz = mz
 				end
 			end
 		end
@@ -1924,6 +1947,7 @@ function widget:MousePress(mx, my, button)
 
 	-- Defer to measure tool when active
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		if stb and stb.measureActive then
@@ -1955,6 +1979,7 @@ function widget:MousePress(mx, my, button)
 			end
 			-- Place new position; smart-assign teams across symmetric copies when symmetry is active
 			do
+				---@type table?
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				local prevNext = nextAllyTeam
@@ -2002,6 +2027,7 @@ function widget:MousePress(mx, my, button)
 	elseif subMode == "shape" then
 		if button == 1 then
 			-- LMB: Place positions using current shape at click location
+			---@type table?
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			local sx, sz = wx, wz
@@ -2109,14 +2135,17 @@ function widget:MousePress(mx, my, button)
 			if startboxMode == "box" then
 				-- Drag rectangle: press to start, release to finish (like copy tool's box)
 				local sx, sz = wx, wz
+				---@type table?
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				if stb and stb.gridSnap and tb.snapWorld then
 					sx, sz = tb.snapWorld(wx, wz, 0)
 				end
 				boxRectActive = true
-				boxRectStartX, boxRectStartZ = sx, sz
-				boxRectEndX, boxRectEndZ = sx, sz
+				boxRectStartX = sx
+				boxRectStartZ = sz
+				boxRectEndX = sx
+				boxRectEndZ = sz
 				dragStartX, dragStartY = mx, my
 				return true
 			elseif startboxMode == "freedraw" then
@@ -2227,8 +2256,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			isDraggingBox = true
 			pendingFillRebuildIdx = boxDragBoxIdx
 			local wx, wz = getWorldMousePosition()
-			if wx and startboxes[boxDragBoxIdx] then
-				local box = startboxes[boxDragBoxIdx]
+			local box = wx and startboxes[boxDragBoxIdx] or nil
+			if box then
 				if box.kind == "spline" and box.controls then
 					local v = box.controls[boxDragIdx]
 					if v then
@@ -2420,12 +2449,14 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	if subMode == "startbox" and boxRectActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
+			---@type table?
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			if stb and stb.gridSnap and tb.snapWorld then
 				wx, wz = tb.snapWorld(wx, wz, 0)
 			end
-			boxRectEndX, boxRectEndZ = wx, wz
+			boxRectEndX = wx
+			boxRectEndZ = wz
 		end
 		return true
 	end
@@ -2474,7 +2505,8 @@ function widget:MouseRelease(mx, my, button)
 	if subMode == "startbox" and (boxDragIdx or boxEdgeDrag or boxBodyDrag) then
 		-- Press and release on a handle without moving is a selection, not a drag.
 		if boxDragIdx and boxDragBoxIdx and not dragging then
-			strengthEdit.selBox, strengthEdit.selVert = boxDragBoxIdx, boxDragIdx
+			strengthEdit.selBox = boxDragBoxIdx
+			strengthEdit.selVert = boxDragIdx
 		end
 		if pendingFillRebuildIdx and startboxes[pendingFillRebuildIdx] then
 			invalidateBoxFill(startboxes[pendingFillRebuildIdx])
@@ -2532,7 +2564,7 @@ function widget:MouseRelease(mx, my, button)
 					local a = smoothed[i]
 					local b = smoothed[(i % #smoothed) + 1]
 					local dx, dz = b.x - a.x, b.z - a.z
-					perim = perim + math.sqrt(dx * dx + dz * dz)
+					perim = perim + math_sqrt(dx * dx + dz * dz)
 				end
 				local targetCtrls = math_floor(perim / 400 + 0.5)
 				if targetCtrls < 6 then
@@ -2546,8 +2578,8 @@ function widget:MouseRelease(mx, my, button)
 				local controls = fitControlPoints(smoothed, targetCtrls)
 				-- A drawn outline is smooth by intent, so every fitted handle starts fully curved.
 				-- Sharpening individual corners afterwards is what the strength gizmo is for.
-				for ci = 1, #controls do
-					controls[ci].strength = 1
+				for _, c in ipairs(controls) do
+					c.strength = 1
 				end
 				startboxes[#startboxes + 1] = {
 					vertices = {},
@@ -2579,6 +2611,7 @@ function widget:MouseWheel(up, value)
 		if altHeld then
 			-- Alt+Scroll: rotate shape (snap to TB protractor step when angleSnap on)
 			local step = 5
+			---@type table?
 			local tb = WG.TerraformBrush
 			local tbs = tb and tb.getState and tb.getState() or nil
 			if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2632,8 +2665,11 @@ function widget:KeyPress(key, mods, isRepeat)
 
 		local entry = fromStack[at]
 		table.remove(fromStack, at)
+		if not entry then
+			return true
+		end
 		if entry.mode == "startbox" then
-			toStack[#toStack + 1] = boxUndo.apply(entry)
+			table.insert(toStack, boxUndo.apply(entry))
 		else
 			-- Positions rewind by count, the way they always have; the counter pair is
 			-- restored from the snapshot rather than guessed at.
@@ -3061,6 +3097,7 @@ function widget:DrawWorld()
 	-- table: DrawWorld is at LuaJIT's 60-upvalue limit, so no new module locals.
 	self.frameTraceX, self.frameTraceZ, self.frameTraceDF = wx, wz, drawFrame
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -3129,6 +3166,7 @@ function widget:DrawWorld()
 
 	-- Express mode: ghost-cursor preview of the next position (or all symmetric copies)
 	if subMode == "express" and wx and not dragIdx and hoverPosIdx == nil then
+		---@type table?
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		local numSlot = math_max(1, numTeamsPerAlly)
@@ -3175,7 +3213,7 @@ function widget:DrawWorld()
 				for i = 1, #verts do
 					local v = verts[i]
 					local vn = verts[(i % #verts) + 1]
-					local segLen = math.sqrt((vn.x - v.x) ^ 2 + (vn.z - v.z) ^ 2)
+					local segLen = math_sqrt((vn.x - v.x) ^ 2 + (vn.z - v.z) ^ 2)
 					local steps = math_max(1, math.ceil(segLen / 48))
 					for s = 0, steps - 1 do
 						local t = s / steps
@@ -3296,7 +3334,7 @@ function widget:DrawWorld()
 						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
 						glVertex(v.x, cy - 0.1, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
 						end
 					end)
@@ -3305,7 +3343,7 @@ function widget:DrawWorld()
 						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
 						glVertex(v.x, cy, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
 						end
 					end)
@@ -3329,7 +3367,7 @@ function widget:DrawWorld()
 						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
 						glVertex(v.x, cy - 0.1, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
 						end
 					end)
@@ -3337,7 +3375,7 @@ function widget:DrawWorld()
 						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
 						glVertex(v.x, cy, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
 						end
 					end)
@@ -3647,7 +3685,7 @@ function widget:DrawScreenEffects()
 			end
 			if not bestVis then
 				-- Fallback: centroid (e.g. all corners off-screen but center on-screen)
-				local ccx, ccz = 0, 0
+				local ccx, ccz = 0.0, 0.0
 				for _, v in ipairs(box.vertices) do
 					ccx = ccx + v.x
 					ccz = ccz + v.z
