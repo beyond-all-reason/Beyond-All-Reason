@@ -100,12 +100,7 @@ describe("mission_api.triggers.unit_ordered", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		order(
-			trigger({ command = CMD.MOVE, unitDefName = "armpw", teamName = "theEnemyTeam" }),
-			context,
-			CMD.MOVE,
-			{ 0, 0, 0 }
-		) -- unitTeam 0
+		order(trigger({ command = CMD.MOVE, unitDefName = "armpw", teamID = 9 }), context, CMD.MOVE, { 0, 0, 0 }) -- unitTeam 0
 		assert.are.equal(0, fired())
 	end)
 

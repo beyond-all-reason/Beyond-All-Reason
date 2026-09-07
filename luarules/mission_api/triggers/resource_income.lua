@@ -60,7 +60,7 @@ return {
 
 			local sources = trigger.parameters.sources
 
-			local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+			local teamID = trigger.parameters.teamID
 			if sources == nil then
 				-- Unfiltered: use the engine's total income (index 4).
 				if trigger.parameters.metal and select(RESOURCE_INCOME_INDEX, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then

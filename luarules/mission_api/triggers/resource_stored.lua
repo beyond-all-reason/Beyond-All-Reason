@@ -13,7 +13,7 @@ return {
 	},
 	callins = {
 		GameFrame = function(trigger, triggerID, context)
-			local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+			local teamID = trigger.parameters.teamID
 			if trigger.parameters.metal and select(CURRENT_RESOURCE_LEVEL_INDEX, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then
 				return
 			end

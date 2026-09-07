@@ -76,13 +76,13 @@ describe("mission_api.triggers.construction_canceled", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 9)
+		destroyed(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when an in-progress unit is destroyed", function()
 		local context, fired = newContext()
-		destroyed(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 0)
+		destroyed(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -106,7 +106,7 @@ describe("mission_api.triggers.construction_canceled", function()
 
 	it("fires for a nanoframe taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 0)
+		taken(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 

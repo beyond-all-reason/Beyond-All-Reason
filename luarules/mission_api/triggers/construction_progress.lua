@@ -28,7 +28,7 @@ return {
 			end
 
 			local parameters = trigger.parameters
-			if parameters.teamName and Spring.GetUnitTeam(unitID) ~= GG['MissionAPI'].Teams[parameters.teamName] then
+			if parameters.teamID and Spring.GetUnitTeam(unitID) ~= parameters.teamID then
 				return
 			end
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[Spring.GetUnitDefID(unitID)].name then

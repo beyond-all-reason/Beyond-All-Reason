@@ -43,7 +43,7 @@ describe("mission_api.actions.reclaim_units", function()
 		assert.are.same({
 			type = "ReclaimUnits",
 			unitName = "UnitName!",
-			reclaimerTeam = "TeamID",
+			reclaimerTeamName = "TeamName",
 		}, summarizeSchema(action))
 	end)
 

@@ -77,7 +77,7 @@ describe("mission_api.triggers.production_started", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamName = "thePlayerTeam" }), context, 1, 9, 10)
+		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
 	end)
 
@@ -100,7 +100,7 @@ describe("mission_api.triggers.production_started", function()
 
 	it("fires for a matching production", function()
 		local context, fired = newContext()
-		produced(trigger({ unitDefName = "armpw", teamName = "thePlayerTeam" }), context, 1, 0, 10)
+		produced(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 0, 10)
 		assert.are.equal(1, fired())
 	end)
 

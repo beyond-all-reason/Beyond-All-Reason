@@ -53,6 +53,7 @@ local function loadMission(missionDir)
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
+	parameterProcessing.ProcessUnitLoadout(GG["MissionAPI"].UnitLoadout)
 end
 
 local function setAiNames(ais)

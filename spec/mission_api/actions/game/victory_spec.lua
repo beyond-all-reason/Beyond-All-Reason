@@ -19,7 +19,7 @@ describe("mission_api.actions.victory", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "Victory",
-			allyTeamIDs = "AllyTeamIDs!",
+			allyTeamNames = "AllyTeamNames!",
 		}, summarizeSchema(action))
 	end)
 

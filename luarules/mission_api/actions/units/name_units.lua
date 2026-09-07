@@ -1,8 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function nameUnits(unitName, teamName, unitDefName, area)
+local function nameUnits(unitName, teamID, unitDefName, area)
 	local tracking = GG['MissionAPI'].Modules.Tracking
-	local teamID = teamName and GG['MissionAPI'].Teams[teamName]
 	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}

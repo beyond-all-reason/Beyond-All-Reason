@@ -20,7 +20,7 @@ return {
 				return not table.contains(previousUnitsInAreas[triggerID] or {}, unitID)
 					and (not trigger.parameters.unitName or context.DoesUnitHaveName(unitID, trigger.parameters.unitName))
 					and (not trigger.parameters.unitDefName or UnitDefs[Spring.GetUnitDefID(unitID)].name == trigger.parameters.unitDefName)
-					and (not trigger.parameters.teamName or Spring.GetUnitTeam(unitID) == GG['MissionAPI'].Teams[trigger.parameters.teamName])
+					and (not trigger.parameters.teamID or Spring.GetUnitTeam(unitID) == trigger.parameters.teamID)
 			end)
 			previousUnitsInAreas[triggerID] = unitsInArea
 

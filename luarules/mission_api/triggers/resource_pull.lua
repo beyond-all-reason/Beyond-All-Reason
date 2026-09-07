@@ -18,7 +18,7 @@ return {
 				return
 			end
 
-			local teamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
+			local teamID = trigger.parameters.teamID
 			if trigger.parameters.metal and select(RESOURCE_PULL_INDEX, Spring.GetTeamResources(teamID, "metal")) < trigger.parameters.metal then
 				return
 			end

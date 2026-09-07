@@ -11,7 +11,8 @@ local function unpackActionParameters(actionId, i)
 	i = i or 1
 
 	if i <= #schema then
-		local parameterValue = actions[actionId].parameters[schema[i].name]
+		-- valueKey is ID resolved from the name the author wrote, i.e. (ally)teamID
+		local parameterValue = actions[actionId].parameters[schema[i].valueKey]
 		return parameterValue, unpackActionParameters(actionId, i + 1)
 	end
 end

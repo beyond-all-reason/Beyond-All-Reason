@@ -19,7 +19,7 @@ describe("mission_api.actions.add_resources", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "AddResources",
-			teamID = "TeamID!",
+			teamName = "TeamName!",
 			metal = "Number",
 			energy = "Number",
 			requiresOneOf = { "metal", "energy" },

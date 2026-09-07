@@ -33,7 +33,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamName and GG['MissionAPI'].Teams[parameters.teamName] ~= Spring.GetUnitTeam(unitID) then
+			if parameters.teamID and parameters.teamID ~= Spring.GetUnitTeam(unitID) then
 				return
 			end
 			context.ActivateTrigger(trigger)

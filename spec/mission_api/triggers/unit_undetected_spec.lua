@@ -162,14 +162,14 @@ describe("mission_api.triggers.unit_undetected", function()
 			Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
-			local t = trigger({ unitDefName = "armpw", owningTeamName = "theEnemyTeam" })
+			local t = trigger({ unitDefName = "armpw", owningTeamID = 1 })
 			loseUnit(t, freshTriggerID(), context, freshUnitID())
 			assert.are.equal(0, fired())
 		end)
 
 		it("filters on sensorAllyTeamName", function()
 			local context, fired = newContext()
-			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeamName = "sensorAlly" }), freshTriggerID()
+			local t, triggerID = trigger({ unitDefName = "armpw", sensorAllyTeamID = 0 }), freshTriggerID()
 			local unitID = freshUnitID()
 
 			-- Seen and then lost by an allyTeam this trigger does not watch.

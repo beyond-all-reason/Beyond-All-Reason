@@ -22,7 +22,7 @@ return {
 			if trigger.parameters.featureDefName and trigger.parameters.featureDefName ~= FeatureDefs[featureDefID].name then
 				return
 			end
-			if trigger.parameters.allyTeamName and attackerAllyTeamID ~= GG['MissionAPI'].AllyTeams[trigger.parameters.allyTeamName] then
+			if trigger.parameters.allyTeamID and attackerAllyTeamID ~= trigger.parameters.allyTeamID then
 				return
 			end
 			if trigger.parameters.area and not context.IsFeatureInArea(featureID, trigger.parameters.area) then

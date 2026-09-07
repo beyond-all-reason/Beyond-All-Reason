@@ -161,14 +161,9 @@ local function newDetectionUpdate(fireOnDetection, matchesUnit)
 		local parameters = trigger.parameters
 		local latched = table.ensureTable(latches, triggerID)
 
-		-- Resolved once per trigger: without it every unit reads as seen, because a unit's
-		-- own allyTeam always has vision of it and the unfiltered level is the highest held
-		-- by any allyTeam.
-		local sensorAllyTeam = trigger.sensorAllyTeam
-		if sensorAllyTeam == nil and parameters.sensorAllyTeamName then
-			sensorAllyTeam = GG["MissionAPI"].AllyTeams[parameters.sensorAllyTeamName]
-			trigger.sensorAllyTeam = sensorAllyTeam
-		end
+		-- Already resolved to an allyTeamID by parameter processing. Nil means unscoped, which
+		-- makes levelBitOf take the highest level held by any allyTeam other than the owner.
+		local sensorAllyTeam = parameters.sensorAllyTeamID
 
 		local levelMask = trigger.levelMask
 		if not levelMask then

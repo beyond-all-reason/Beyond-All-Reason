@@ -161,12 +161,7 @@ describe("mission_api.triggers.unit_detected", function()
 			end
 			local unitID = freshUnitID()
 			seeUnit(unitID)
-			update(
-				trigger({ unitDefName = "armpw", owningTeamName = "theEnemyTeam" }),
-				freshTriggerID(),
-				context,
-				{ unitID }
-			)
+			update(trigger({ unitDefName = "armpw", owningTeamID = 1 }), freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)
 
@@ -174,7 +169,7 @@ describe("mission_api.triggers.unit_detected", function()
 			local context, fired = newContext()
 			local unitID = freshUnitID()
 			seeUnit(unitID, OTHER_ALLY)
-			local t = trigger({ unitDefName = "armpw", sensorAllyTeamName = "sensorAlly" })
+			local t = trigger({ unitDefName = "armpw", sensorAllyTeamID = 0 })
 			update(t, freshTriggerID(), context, { unitID })
 			assert.are.equal(0, fired())
 		end)

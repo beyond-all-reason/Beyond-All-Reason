@@ -30,12 +30,19 @@ local function generateGridPositions(centerX, centerZ, quantity, xSpacing, zSpac
 end
 
 local function spawnUnit(unit, pos)
+	-- Loadout was not pre-processed:
+	if unit.teamID == nil then
+		Spring.Log("mission_api", LOG.ERROR,
+			"[Mission API] unit loadout entry '" .. tostring(unit.unitDefName)
+			.. "' has no resolved teamID for teamName '" .. tostring(unit.teamName).. "'")
+		return
+	end
+
 	-- Make unitName available to MetaUnitAdded call-in which gets triggered by Spring.CreateUnit
 	GG["MissionAPI"].nameOfUnitBeingSpawned = unit.unitName
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = unit.construction
-	local teamID = GG["MissionAPI"].Teams[unit.teamName]
 	local unitID =
-		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", teamID, unit.construction)
+		Spring.CreateUnit(unit.unitDefName, pos.x, pos.y, pos.z, unit.facing or "s", unit.teamID, unit.construction)
 	GG["MissionAPI"].nameOfUnitBeingSpawned = nil
 	GG["MissionAPI"].spawnedUnitIsBeingBuilt = nil
 
@@ -109,10 +116,12 @@ local function spawnUnitLoadout(unitLoadout)
 		local positions = generateGridPositions(unit.x, unit.z, unit.quantity or 1, xsize, zsize)
 		for _, pos in pairs(positions) do
 			local unitID = spawnUnit(unit, pos)
+			if unitID then
 			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
-			GG["MissionAPI"].issuingOrders = true
-			Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
-			GG["MissionAPI"].issuingOrders = nil
+				GG["MissionAPI"].issuingOrders = true
+				Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
+				GG["MissionAPI"].issuingOrders = nil
+			end
 		end
 	end
 end

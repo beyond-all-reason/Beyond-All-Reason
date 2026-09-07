@@ -11,8 +11,8 @@ return {
 	},
 	callins = {
 		UnitTaken = function(trigger, triggerID, context, unitID, unitDefID, oldTeam, newTeam)
-			local oldTeamID = trigger.parameters.oldTeamName and GG['MissionAPI'].Teams[trigger.parameters.oldTeamName]
-			local newTeamID = trigger.parameters.newTeamName and GG['MissionAPI'].Teams[trigger.parameters.newTeamName]
+			local oldTeamID = trigger.parameters.oldTeamID
+			local newTeamID = trigger.parameters.newTeamID
 
 			if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
 				return

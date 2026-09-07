@@ -31,7 +31,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[parameters.teamName] then
+			if parameters.teamID and unitTeam ~= parameters.teamID then
 				return
 			end
 			context.ActivateTrigger(trigger)

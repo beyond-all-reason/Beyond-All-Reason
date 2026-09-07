@@ -16,7 +16,7 @@ return {
 			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if trigger.parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
+			if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 				return
 			end
 			context.ActivateTrigger(trigger)

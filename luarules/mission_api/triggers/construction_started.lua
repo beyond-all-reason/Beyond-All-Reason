@@ -5,7 +5,7 @@ local function matchesBuild(trigger, context, unitDefID, unitTeam, builderID)
 	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return false
 	end
-	if trigger.parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
+	if trigger.parameters.teamID and unitTeam ~= trigger.parameters.teamID then
 		return false
 	end
 	if parameters.builderName and not context.DoesUnitHaveName(builderID, parameters.builderName) then

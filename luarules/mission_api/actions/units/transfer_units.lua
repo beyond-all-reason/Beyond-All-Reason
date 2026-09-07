@@ -1,9 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function transferUnits(unitName, newTeamName)
+local function transferUnits(unitName, newTeamID)
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
-	local newTeamID = GG['MissionAPI'].Teams[newTeamName]
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])

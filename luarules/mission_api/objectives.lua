@@ -61,7 +61,7 @@ local function updateObjectiveProgress(
 	direction,
 	managedObjMetadata
 )
-	if eventTeamID ~= GG["MissionAPI"].Teams[managedObjMetadata.parameters.teamName] then
+	if eventTeamID ~= managedObjMetadata.parameters.teamID then
 		return
 	end
 	if managedObjMetadata.parameters.unitDefName and eventUnitDefName ~= managedObjMetadata.parameters.unitDefName then

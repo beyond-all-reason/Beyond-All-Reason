@@ -1,10 +1,10 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function reclaimUnits(unitName, reclaimerTeamName)
+local function reclaimUnits(unitName, reclaimerTeamID)
     local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
-    local reclaimerTeam = reclaimerTeamName and GG['MissionAPI'].Teams[reclaimerTeamName]
+    local reclaimerTeam = reclaimerTeamID
     -- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
     local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
 	for unitID in pairs(trackedUnitIDs) do

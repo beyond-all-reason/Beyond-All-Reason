@@ -26,7 +26,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if parameters.teamName and GG['MissionAPI'].Teams[parameters.teamName] ~= unitTeam then
+			if parameters.teamID and parameters.teamID ~= unitTeam then
 				return
 			end
 			if parameters.factoryName and not context.DoesUnitHaveName(builderID, parameters.factoryName) then

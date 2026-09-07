@@ -79,13 +79,13 @@ describe("mission_api.triggers.production_canceled", function()
 
 	it("filters by teamName", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 9)
+		canceled(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when a unit in production is canceled", function()
 		local context, fired = newContext()
-		canceled(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 0)
+		canceled(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
@@ -106,7 +106,7 @@ describe("mission_api.triggers.production_canceled", function()
 
 	it("fires for a buildee taken by an enemy team, for the team it was taken from", function()
 		local context, fired = newContext()
-		taken(trigger({ unitDefName = "armsolar", teamName = "thePlayerTeam" }), context, 1, 0, 9)
+		taken(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 0, 9)
 		assert.are.equal(1, fired())
 	end)
 
