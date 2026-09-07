@@ -67,6 +67,10 @@
 #ifdef COMPAIM1_YAW_ACCEL
 	#define COMPAIM1_YAW_ACCEL_STEP (COMPAIM1_YAW_ACCEL / 30 / 30)
 #endif
+// COMPAIM1_PITCH_ACCEL does the same for pitch
+#ifdef COMPAIM1_PITCH_ACCEL
+	#define COMPAIM1_PITCH_ACCEL_STEP (COMPAIM1_PITCH_ACCEL / 30 / 30)
+#endif
 #ifdef COMPAIM1_PIECE_X
 	#ifndef COMPAIM1_FIRE_ANGLE_PITCH
 		#define COMPAIM1_FIRE_ANGLE_PITCH COMPAIM1_FIRE_ANGLE
@@ -86,6 +90,9 @@ static-var COMPAIM1goalRate, COMPAIM1lastAimHeading, COMPAIM1lastAimFrame;
 #ifdef COMPAIM1_YAW_ACCEL
 	static-var COMPAIM1yawVelocity;
 #endif
+#ifdef COMPAIM1_PITCH_ACCEL
+	static-var COMPAIM1pitchVelocity;
+#endif
 
 // Singleton, started once from Create, the only writer of the aim pieces
 COMPAIM1_Controller()
@@ -94,7 +101,7 @@ COMPAIM1_Controller()
 	var hullDelta;
 	var step;
 	var delta;
-	#ifdef COMPAIM1_YAW_ACCEL
+	#if defined(COMPAIM1_YAW_ACCEL) || defined(COMPAIM1_PITCH_ACCEL)
 		var brakeDistance;
 		var relativeVelocity;
 	#endif
@@ -186,14 +193,44 @@ COMPAIM1_Controller()
 					step = (COMPAIM1_RESTORE_PITCH_SPEED / 30);
 				}
 				delta = WRAPDELTA(COMPAIM1goalPitch - COMPAIM1pitchBelief);
-				if ((get ABS(delta)) > step)
-				{
-					COMPAIM1pitchBelief = WRAPDELTA(COMPAIM1pitchBelief + SIGN(delta) * step);
-				}
-				else
-				{
-					COMPAIM1pitchBelief = COMPAIM1goalPitch;
-				}
+				#ifdef COMPAIM1_PITCH_ACCEL
+					relativeVelocity = COMPAIM1pitchVelocity - COMPAIM1pitchRate;
+					brakeDistance = ((get ABS(relativeVelocity)) / COMPAIM1_PITCH_ACCEL_STEP) * (get ABS(relativeVelocity)) / 2;
+					if (((relativeVelocity * SIGN(delta)) < 0) OR ((get ABS(delta)) <= brakeDistance))
+					{
+						if ((get ABS(relativeVelocity)) <= COMPAIM1_PITCH_ACCEL_STEP)
+						{
+							relativeVelocity = 0;
+						}
+						else
+						{
+							relativeVelocity = relativeVelocity - SIGN(relativeVelocity) * COMPAIM1_PITCH_ACCEL_STEP;
+						}
+					}
+					else
+					{
+						relativeVelocity = relativeVelocity + SIGN(delta) * COMPAIM1_PITCH_ACCEL_STEP;
+					}
+					COMPAIM1pitchVelocity = COMPAIM1pitchRate + relativeVelocity;
+					if ((get ABS(COMPAIM1pitchVelocity)) > step)
+					{
+						COMPAIM1pitchVelocity = SIGN(COMPAIM1pitchVelocity) * step;
+					}
+					if (((get ABS(COMPAIM1pitchVelocity)) > (get ABS(delta))) AND ((COMPAIM1pitchVelocity * SIGN(delta)) > 0))
+					{
+						COMPAIM1pitchVelocity = delta;
+					}
+					COMPAIM1pitchBelief = WRAPDELTA(COMPAIM1pitchBelief + COMPAIM1pitchVelocity);
+				#else
+					if ((get ABS(delta)) > step)
+					{
+						COMPAIM1pitchBelief = WRAPDELTA(COMPAIM1pitchBelief + SIGN(delta) * step);
+					}
+					else
+					{
+						COMPAIM1pitchBelief = COMPAIM1goalPitch;
+					}
+				#endif
 				turn COMPAIM1_PIECE_X to x-axis (0 - COMPAIM1pitchBelief) speed COMPAIM1_PITCH_SPEED;
 			#endif
 		}
