@@ -13,25 +13,17 @@
 if System == nil then
 	if tracy == nil then
 		Spring.Echo("Gadgetside tracy: No support detected, replacing tracy.* with function stubs.")
-		tracy = {}
-		tracy.ZoneBeginN = function()
-			return
-		end
-		tracy.ZoneBegin = function()
-			return
-		end
-		tracy.ZoneEnd = function()
-			return
-		end --Spring.Echo("No Tracy") return end
-		tracy.Message = function()
-			return
-		end
-		tracy.ZoneName = function()
-			return
-		end
-		tracy.ZoneText = function()
-			return
-		end
+		-- Built in a local and rawset, so the language server does not read the
+		-- stubs as competing definitions of the engine's `tracy` global -- which
+		-- makes every tracy.* call site disagree about its parameters.
+		local tracyStub = {}
+		tracyStub.ZoneBeginN = function() end
+		tracyStub.ZoneBegin = function() end
+		tracyStub.ZoneEnd = function() end
+		tracyStub.Message = function() end
+		tracyStub.ZoneName = function() end
+		tracyStub.ZoneText = function() end
+		rawset(_G, "tracy", tracyStub)
 	end
 
 	System = {

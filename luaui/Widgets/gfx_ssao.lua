@@ -363,7 +363,6 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local vsx, vsy, vpx, vpy
-local texPaddingX, texPaddingY = 0, 0
 
 local gbuffFuseFBO
 local ssaoFBO
@@ -389,7 +388,6 @@ local texrectPaddedVAO = nil
 local unitStencilTexture
 local getStencilTexture
 
-local unitStencil = nil
 -----------------------------------------------------------------
 -- Local Functions
 -----------------------------------------------------------------

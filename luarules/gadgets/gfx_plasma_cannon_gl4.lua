@@ -112,6 +112,22 @@ local shaderConfig = {
 --------------------------------------------------------------------------------
 local weaponConfigs = {}
 
+-- Cannon weapons that cannot damage anything are gadget triggers (drone carrier spawners, energy
+-- chargers, ...) rather than plasma shells, so they must not get a plasma projectile drawn.
+local numArmorTypes = #Game.armorTypes
+local function weaponDealsDamage(weaponDef)
+	local damages = weaponDef.damages
+	if not damages then
+		return false
+	end
+	for armorTypeID = 0, numArmorTypes do
+		if (damages[armorTypeID] or 0) > 0 then
+			return true
+		end
+	end
+	return false
+end
+
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	local vis = weaponDef.visuals or {}
 	if weaponDef.type == "Cannon" and not weaponDef.model and (not vis.modelName or vis.modelName == "") then
@@ -124,7 +140,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 		local coreB = mathMin(1, b + CORE_COLOR_ADD)
 
 		local cp = weaponDef.customParams or {}
-		if not cp.bogus then
+		if not cp.bogus and weaponDealsDamage(weaponDef) then
 			local size = tonumber(cp.plasma_size_orig) or weaponDef.size or 1.5
 			local range = weaponDef.range or 300
 
@@ -692,6 +708,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local plasmaVBO
 local plasmaShader
 local crossShader -- 90-degree rotated copy for volume from all angles

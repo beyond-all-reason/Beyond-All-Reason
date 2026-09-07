@@ -94,6 +94,7 @@ end
 -- additional smartness for global stall/unstall
 
 -- GL4 Backend stuff:
+---@type InstanceVBOTable?
 local energyIconVBO = nil
 local energyIconShader = nil
 

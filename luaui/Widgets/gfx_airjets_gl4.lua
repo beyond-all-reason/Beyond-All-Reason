@@ -155,7 +155,6 @@ local activePlanes = {}
 local inactivePlanes = {}
 local lights = {}
 
-local shaders
 local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 
@@ -170,6 +169,7 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- draw in refract/reflect too?
 -- GL4 Variables:
 
+---@type InstanceVBOTable?
 local jetInstanceVBO = nil
 local jetShader = nil
 

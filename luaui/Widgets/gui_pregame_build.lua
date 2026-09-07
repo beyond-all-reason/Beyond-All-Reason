@@ -1018,7 +1018,6 @@ function widget:MousePress(mx, my, button)
 
 	local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 	if button == 1 then
-		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		if WG.ExtractorSnap then
 			local snapPos = WG.ExtractorSnap.position
 			if snapPos then

@@ -14,10 +14,9 @@ return {
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		-- negative energyupkeep means it's conditional so when unit is off won't produce
-		energyupkeep = -7,
+		energyupkeep = 3,
 		explodeas = "smallBuildingexplosiongeneric",
-		extractsmetal = 0.0008,
+		extractsmetal = 0.001,
 		footprintx = 4,
 		footprintz = 4,
 		health = 275,

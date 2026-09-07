@@ -34,6 +34,7 @@ return {
 		turnrate = 405,
 		waterline = 0,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			off_on_stun = "true",

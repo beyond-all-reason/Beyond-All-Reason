@@ -4,6 +4,64 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.13 - 2026-09-02
+
+### New
+
+- The Tileset window gained a PERFORMANCE section: HIGH, MEDIUM and LOW quality presets that drop draw-time features of the tileset shader, and the levers underneath them as sliders (foothills, stagger, far anti-tiling, cliff-tap slack, the far cache with its start and band, "Cliffs cached past" for the distance at which steep faces join the cache, and the clipmap toggle). A preset applies on top of the sliders, so HIGH is where each lever can be judged on its own.
+- The BIOME LIBRARY tiles are built at runtime from the tileset shader's biome manifests (one Lua file per biome in the shader's `tilesets/` folder) instead of six hardcoded RML tiles, so a biome added on disk shows up in the picker without a UI edit. Thumbnails are GL overdraws like the EXTRA LAYER material tiles (a shipped preview drawn whole, or the base albedo as a centered crop), and each biome's skybox pick comes from its manifest instead of a name-match table in the UI.
+
+### Improvements
+
+- AUTORAMP swipe: holding the button and dragging re-fires the ramp along the path, so a whole cliff line restyles in one stroke instead of one click per segment.
+- SURFACE's per-tile FLIP buttons became one FLIP chip in the NOW PAINTING strip that flips the normal map of the selected slot, BASE included. Three buttons per tile left PICK, FLIP and X too cramped to hit; the chip dims when the selected slot has no texture.
+- The SURFACE texture picker asks the painter for its coverage readback only while a picker is open. The readback is a GPU sync, and its only reader is the picker's "already carries paint" warning.
+
+### Fixes
+
+- LAYERS paint, clone-tool pastes and a project's splat swap now tell the tileset shader which region changed, so painted layers no longer vanish when zooming out. The shader serves distant ground from a baked copy that sampled the splat texture at bake time; strokes widen a dirty rectangle that is flushed to the far cache and clipmap during the drag and once more when it ends, and whole-texture changes (undo, redo, load) request a full refill.
+- The picture-in-picture widget no longer floods the log with GL errors on Mesa drivers: a uniform call was handed every return value of a multi-value function instead of only the ones the uniform takes.
+- The FILE dropdown stays on top of the texture thumbnails (reported by Moose). Tile previews (SURFACE palette, EXTRA LAYER, BIOME LIBRARY, skybox and splat channel grids) are GL overdraws painted after the UI renders, so an open menu was drawn under them; every pass now skips tiles the menu covers.
+- The header's passthrough (pause) button works with the SURFACE panel (reported by Moose). The toggle saved, deactivated and restored every tool except the surface painter, so pausing with SURFACE armed left its brush owning the mouse and clicks never reached unit selection. Both submodes now stand down on pause and re-arm on unpause, LAYERS included.
+
+## 1.12 - 2026-08-22
+
+### New
+
+- The Dimensions window's HEIGHT BOUNDS became HEIGHT RANGE, with two modes. RESCALE remaps the whole relief onto a new min/max, so lowering the max compresses the terrain instead of shearing the mountain tops off; CLAMP keeps the old cut behavior for shaving a runaway peak. Both act on the whole map, are undoable like any brush stroke, and the sliders seed from the live extremes with CURRENT and RESET (the map's own range) refills.
+- WATER LEVEL is now a slider with a WYSIWYG shoreline preview: dragging draws the resulting coastline in the world at that height, APPLY slides the terrain so the water lands exactly on the previewed line, and RESET returns the map to its own level. The Water window carries a mirrored FLUID LEVEL track, kept in lockstep.
+- The brush cursor no longer dies at the map border. Every editor brush (terraform, splat, diffuse, grass, metal, features) follows the mouse past the edge through a shared resolver and fades out with distance, so terrain and paint right against the border are comfortable to work. The feature placer drops off-map placements per symmetry copy instead of clamping them, which used to pile features up along the edge line.
+- SURFACE grew from two paintable variant slots to seven: slots 1-3 in the first mask, 4-7 in a second one. The DETAIL SLOT 3 metal-suite toggle this branch briefly carried is gone again; slot 3 is a regular slot and the metal spots always keep their material.
+- DISPLAY, INSTRUMENTS and FILTERS are now canonical sections shared by the SURFACE and LAYERS submodes. The soft submode gains smart filters (avoid water, avoid cliffs, alt min/max), LAYERS gets a Layer Map overlay chip, and grid snap, protractor, measure, symmetry and the height colormap all work with the SURFACE brush.
+- Sneak Peek: while it is on, holding Ctrl renders the selected layer inside the brush ring as if the stroke had landed, in both submodes, so where a texture's fixed features fall can be judged before committing. It re-arms on every entry into the tool.
+- The Tileset window's EXTRA LAYER (slot 4) has its own section with a mode switch, and its texture choice is a tile grid with real albedo thumbnails instead of a prev/next name stepper. The first tile restores the biome's own pick, so the material follows biome swaps again.
+- Feature Placer scale variation groundwork: Scale Min / Max sliders roll a per-feature scale at placement time, realized by snapping to pre-baked model variants since the engine exposes no feature-scale API. No variant sets ship yet, so the sliders are inert for now; the fir variants and the tree clump work are shelved on a separate branch. With clustered distribution the roll correlates size with distance to the cluster core.
+- Map projects round-trip the full Tileset configuration through a new `tileset.lua` section: biome, metal-spot style, glow lights, the EXTRA LAYER material and every tuning knob survive save and open. All SURFACE slots persist too, with a second mask saved whenever slots 4-7 carry paint.
+- Map projects record the skybox picked at runtime in the ENVIRONMENT panel instead of the one the canvas booted with, env configs carry the skybox path, and a project reopens with its sky even if the skybox panel was never opened that session.
+- SMUDGE: a third MODIFY submode that drags terrain along the stroke, GIMP's smudge for the heightfield. A height grab is carried with the cursor and folded into the ground as it moves, so relief smears along the drag and tapers off; intensity sets how long the tail survives. L cycles SMOOTH, LEVEL and SMUDGE.
+- AUTORAMP: a third RAMP type. Click an existing cliff and it is rebuilt at a chosen angle with wavy lips, ridged erosion gullies and a scree fan at the base. Cliff start anchors the face (Extend keeps the top lip, Subtract keeps the bottom one, Average pivots on the mid line), and a WYSIWYG hover preview shows the exact resulting terrain as a translucent fill/cut mesh before the click - the preview and the apply run the same seeded math. R toggles RAMP and AUTORAMP.
+- The Tileset window gains a WATER section: walkable depth, shallows tint, clarity, curve, hue, saturation and power, and a deep-floor glow, driving the tileset shader's terrain-based water shading.
+
+### Improvements
+
+- The smooth brush computes a true dense box mean (summed-area table) instead of a sparse 9-tap blur. The sparse taps were blind to ripples whose wavelength matched their spacing, so grid-aligned stripes survived every smoothing pass while everything else flattened.
+- The SURFACE slot rail is thumbnail-first tiles: the texture takes the tile, PICK opens the library for that slot, X clears it, and clicking a tile only arms the brush. Selecting used to also open the library, which threw the whole catalog on screen every time the brush changed.
+- The SURFACE texture picker gained a large hover preview big enough to judge a material by; the coverage meter is retired, since an artist reads the ground rather than a histogram.
+- The SURFACE brush modes (DOT, WASH, FILL, ERASE) are proper icon buttons matching the terrain modes.
+- The Dimensions height extremes readouts poll while the window is open; the refresh button is gone.
+- The metal brush's Metal Value slider stays usable in remove submode, since the erase rate scales with it.
+- The MODIFY MODE row got real icons, including a hand-drawn SMUDGE glyph, at the same visual weight as the tool set. Panel icons are authored with their brightness in the RGB channels now, since RmlUi clamps mid-to-high alpha to fully opaque and alpha-authored softness rendered as solid white.
+
+### Fixes
+
+- Skybox and texture thumbnails no longer hang over the world after the panel closes. The GL overdraw passes kept rendering against stale layout boxes; they now bail when the panel is disengaged or hidden.
+- The metal brush's remove submode always erases, regardless of which mouse button started the drag.
+- An environment config saved while the engine reported no sun position no longer blacks out the map it is later applied to: a degenerate sun direction is neither serialized nor applied.
+- The ENV sun sliders reseed after a project load applies an environment, instead of writing their stale attach-time values back through the engine on the next nudge.
+- Fast brush drags no longer leave gaps between stamps: the stroke interpolator used to widen its stamp spacing past the brush radius on quick flicks (visible as evenly spaced terrain ribs with SMUDGE), and now lags the cursor at proper overlap instead, catching up over the following ticks.
+- Slider restamps no longer fight the thumb mid-drag (the erode repose marble used to stick while the track still worked).
+- The Feature Placer no longer crashes the engine on model-less feature defs such as the geo vent crack.
+
 ## 1.11 - 2026-08-14
 
 ### New

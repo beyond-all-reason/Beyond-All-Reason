@@ -24,11 +24,8 @@ local timeNotation = 24
 local font
 
 local widgetScale = 1
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -181,6 +178,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.displayinfo = {}
+	---Where the game info panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.displayinfo.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

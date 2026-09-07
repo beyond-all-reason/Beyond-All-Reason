@@ -255,6 +255,7 @@ function widget:PlayerChanged()
 end
 
 local sec = 0
+---@type SelectionBoxRect
 local prevSelRect = {}
 function widget:Update(dt)
 	sec = sec + dt

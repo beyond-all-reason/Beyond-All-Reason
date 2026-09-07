@@ -61,6 +61,7 @@ end
 -- and clamp the size of it to always be screensized
 -- GL4 Stuff --
 
+---@type InstanceVBOTable?
 local mapMarkInstanceVBO = nil
 local mapMarkShader = nil
 

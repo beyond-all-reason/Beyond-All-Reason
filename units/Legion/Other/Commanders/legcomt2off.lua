@@ -94,9 +94,8 @@ return {
 			[35] = "legbal",
 			[36] = "leggat",
 			[37] = "armnanotc",
-			[38] = "legmext15",
-			[39] = "armadvsol",
-			[40] = "armgeo",
+			[38] = "armadvsol",
+			[39] = "armgeo",
 		},
 		customparams = {
 			unitgroup = "builder",
@@ -104,7 +103,9 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 5,
 			subfolder = "",
+			tombstone = "legstone",
 			paratrooper = true,
 		},
 		featuredefs = {

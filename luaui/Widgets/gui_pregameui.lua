@@ -64,7 +64,6 @@ local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 local buttonList, buttonHoverList
 local buttonText = ""
 local buttonDrawn = false
-local lockText = ""
 local locked = false
 local isReadyBlocked = false
 local readyBlockedConditions = {}
@@ -103,9 +102,7 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
-local uiLockRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
-local lockRect = { 0, 0, 0, 0 }
 local blinkButton = false
 
 local function createButton()

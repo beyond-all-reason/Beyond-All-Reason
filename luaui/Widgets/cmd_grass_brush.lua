@@ -31,7 +31,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPolygonOffset = gl.PolygonOffset
 local glText = gl.Text
 local glDepthTest = gl.DepthTest
 local glBlending = gl.Blending
@@ -101,6 +100,7 @@ local painting = false
 local paintButton = 0 -- 1 = LMB (add), 3 = RMB (remove)
 local lastPaintTime = 0
 local grassAvailable = false
+local edgeFade = 1 -- cursor alpha multiplier: 1 inside the map, fades to 0 past the edge
 
 -- ============================================================
 -- Undo / Redo History
@@ -908,6 +908,18 @@ end
 -- ============================================================
 
 local function getWorldPos()
+	local tb = WG.TerraformBrush
+	if tb and tb.getWorldPositionExtended then
+		-- Shared edge-extended resolver: keeps following the mouse past the map
+		-- edge, returning fade < 1 once the brush footprint leaves the map.
+		local wx, wz, fade = tb.getWorldPositionExtended(brushRadius)
+		edgeFade = (wx and fade) or 1
+		if wx then
+			return wx, wz
+		end
+		return nil, nil
+	end
+	edgeFade = 1
 	local mx, my = GetMouseState()
 	local kind, pos = TraceScreenRay(mx, my, true)
 	if kind == "ground" then
@@ -1005,9 +1017,9 @@ local function drawSmartFilterOverlay(cx, cz)
 					local wx = cx + lx * cosR - lz * sinR
 					local wz = cz + lx * sinR + lz * cosR
 					if shouldApplyAt(wx, wz, patchRes, grassApi, config) then
-						glColor(0.2, 0.85, 0.3, 0.08)
+						glColor(0.2, 0.85, 0.3, 0.08 * edgeFade)
 					else
-						glColor(0.9, 0.15, 0.15, 0.14)
+						glColor(0.9, 0.15, 0.15, 0.14 * edgeFade)
 					end
 					local y = GetGroundHeight(wx, wz) + 1
 					glVertex(wx - halfStep, y, wz - halfStep)
@@ -1039,9 +1051,9 @@ local function drawCursorInfo(worldX, worldZ)
 	local text =
 		format("%s: D%.0f%% R%d [cur: %.0f%%]", modeName, targetDensity * 100, brushRadius, currentDensity * 100)
 
-	glColor(0, 0, 0, 0.92)
+	glColor(0, 0, 0, 0.92 * edgeFade)
 	glText(text, sx + 2, sy + 18, 24, "co")
-	glColor(1, 1, 1, 1.0)
+	glColor(1, 1, 1, edgeFade)
 	glText(text, sx, sy + 20, 24, "co")
 end
 
@@ -1550,7 +1562,7 @@ function widget:DrawWorld()
 		colorR, colorG, colorB = 1.0, 0.3, 0.3
 	end
 
-	glColor(colorR, colorG, colorB, 0.85)
+	glColor(colorR, colorG, colorB, 0.85 * edgeFade)
 	glLineWidth(2)
 	-- Sync shape/rotation from shared state for outline preview
 	do
@@ -1573,7 +1585,7 @@ function widget:DrawWorld()
 
 	-- Center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
-	glColor(1, 1, 1, 0.5)
+	glColor(1, 1, 1, 0.5 * edgeFade)
 	glBeginEnd(GL_LINES, function()
 		glVertex(worldX - 8, groundY + 2, worldZ)
 		glVertex(worldX + 8, groundY + 2, worldZ)

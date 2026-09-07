@@ -110,6 +110,11 @@ local function move(piece, axis, goal, speed)
 	Move(piece, axis, goal, speed)
 end
 
+---@type number, number, number, number
+local animSpeed, buildHeading, buildPitch, currentSpeed
+---@type boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean
+local bAiming, bMoving, isAiming, isAimingDgun, isAimingTach, isBuilding, leftArm, rightArm
+
 function walk()
 	if bMoving then --Frame:4
 		if leftArm then
@@ -1038,11 +1043,11 @@ function TriggerDance()
 end
 
 function UnitSpeed()
-	maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
-	animFramesPerKeyframe = 4 --we need to calc the frames per keyframe value, from the known animtime
+	local maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
+	local animFramesPerKeyframe = 4 --we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed / (2 * animFramesPerKeyframe)) -- add fudge
 	while true do
-		vx, vy, vz, Speed = Spring.GetUnitVelocity(unitID)
+		local _vx, _vy, _vz, Speed = Spring.GetUnitVelocity(unitID)
 		currentSpeed = Speed * 30
 		animSpeed = currentSpeed
 		if animSpeed < 1 then

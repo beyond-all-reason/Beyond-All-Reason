@@ -5,7 +5,7 @@ return {
 		maxdec = 0,
 		buildangle = 4000,
 		energycost = 0,
-		metalcost = 155,
+		metalcost = 150,
 		buildpic = "LEGSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,

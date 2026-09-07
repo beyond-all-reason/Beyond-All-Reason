@@ -1,7 +1,7 @@
 return {
 	leglupara = {
 		maxacc = 0,
-		airsightdistance = 1000,
+		airsightdistance = 1200,
 		maxdec = 0,
 		buildangle = 65536,
 		energycost = 8200,

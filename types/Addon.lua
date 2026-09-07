@@ -9,7 +9,7 @@ local Addon = {}
 function Addon:GetInfo() end
 
 ---@class AddonInfo
----@field name string?
+---@field name string
 ---@field desc string?
 ---@field author string?
 ---@field date string?

@@ -387,8 +387,11 @@ local featureBars = {} -- we need this additional table of {[featureid] = {barhe
 --local empDecline = 1 / 40 --magic
 local minReloadTime = 4 -- weapons reloading slower than this willget bars
 
+---@type InstanceVBOTable?
 local featureHealthVBO
+---@type InstanceVBOTable?
 local featureResurrectVBO
+---@type InstanceVBOTable?
 local featureReclaimVBO
 
 local barScale = 1 -- Option 'healthbarsscale'
@@ -401,6 +404,7 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 
 --------------------------------------------------------------------------------
 -- GL4 Backend stuff:
+---@type InstanceVBOTable?
 local healthBarVBO = nil
 local healthBarShader = nil
 
@@ -555,6 +559,10 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one of the health bar instance buffers.
+---@param myName string Name used in log messages.
+---@param usesFeatures boolean? Bind the buffer to features rather than units.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function initializeInstanceVBOTable(myName, usesFeatures)
 	local newVBOTable
 	local layout
@@ -594,6 +602,8 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 		newVBOTable.VAO = newVAO
 	else
 		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
+		-- so the resize can find the quad when it rebuilds the VAO
+		newVBOTable.vertexVBO = unitQuadVBO
 	end
 	if usesFeatures then
 		newVBOTable.featureIDs = true

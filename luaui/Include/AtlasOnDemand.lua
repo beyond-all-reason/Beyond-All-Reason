@@ -73,17 +73,19 @@ end
 local UNITTEST = false
 if not Spring then
 	UNITTEST = true
-	Spring = {
+	-- rawset so the language server does not read these test stubs as competing
+	-- definitions of the engine globals, which makes every other field unknown
+	rawset(_G, "Spring", {
 		Echo = function(s)
 			print(s)
 		end,
-	}
-	gl = {
+	})
+	rawset(_G, "gl", {
 		CreateTexture = function()
 			return 0
 		end,
-	}
-	GL = {}
+	})
+	rawset(_G, "GL", {})
 end
 
 --- Create a new texture atlas for any image/text type
@@ -211,7 +213,6 @@ local function MakeAtlasOnDemand(config)
 		end
 	end
 	local GL_RGBA = 0x1908
-	local GL_TEXTURE_2D_MULTISAMPLE = 0x9100
 	AtlasOnDemand.texProps = config.texProps
 		or {
 			min_filter = GL.LINEAR,
@@ -220,9 +221,6 @@ local function MakeAtlasOnDemand(config)
 			wrap_s = GL.CLAMP,
 			wrap_t = GL.CLAMP,
 			format = GL_RGBA,
-
-			--target = GL_TEXTURE_2D_MULTISAMPLE,
-			--samples = 1,
 		}
 	AtlasOnDemand.texProps.fbo = true -- need so that we can RenderToTexture it
 	AtlasOnDemand.textureID = gl.CreateTexture(config.sizex, config.sizey, AtlasOnDemand.texProps)
@@ -446,7 +444,7 @@ local function MakeAtlasOnDemand(config)
 			return { x = 0, X = 1, y = 0, Y = 1, w = 1, h = 1, id = text }
 		end
 		local textparams
-		if not params then -- render with default fot
+		if not params then -- render with default font
 			if self.uvcoords[text] then
 				return self.uvcoords[text]
 			else
@@ -622,8 +620,6 @@ local function MakeAtlasOnDemand(config)
 			gl.Blending(task.srcmode or GL.ONE, task.dstmode or GL.ZERO)
 			local drawmodeTexName = self.drawmode .. task.id
 			gl.Texture(0, drawmodeTexName)
-			local p = self.padx * 0
-			local o = self.padx * 0
 			local w = (task.w / self.xsize) * 2
 			local h = (task.h / self.ysize) * 2
 			local x = (task.x / self.xsize - 0.5) * 2
@@ -762,8 +758,6 @@ local function MakeAtlasOnDemand(config)
 			Spring.Echo("AtlasOnDemand:TextRect cannot find id", id)
 			return
 		end
-		local ypos = y
-		local xpos = x
 		if align then
 			if align == "c" then
 				gl.TexRect(

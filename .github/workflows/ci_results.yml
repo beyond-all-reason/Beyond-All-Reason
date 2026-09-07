@@ -1,0 +1,224 @@
+name: CI Results
+
+# One pull request comment carrying the result of every CI workflow, rewritten
+# in place as each one finishes.
+#
+# This has to be a workflow_run rather than a step inside the checks it reports
+# on, for two reasons. A pull request from a fork gets a read-only token, so it
+# cannot comment on its own pull request; workflow_run runs in the base
+# repository with its own permissions and can. And no single check knows how
+# the others did, so the report has to be assembled by something that runs
+# after them.
+#
+# Consequence worth knowing before editing: GitHub only ever runs the copy of a
+# workflow_run workflow that is on the default branch. Changes here do nothing
+# until they land on master, and cannot be exercised from a pull request.
+
+on:
+  workflow_run:
+    workflows:
+      - Format Check
+      - Lint
+      - Type Check
+      - Run Unit Tests
+      - Run Integration Tests
+    types:
+      - completed
+
+permissions: {}
+
+run-name: "CI Results - ${{ github.event.workflow_run.display_title }}"
+
+jobs:
+  comment:
+    name: CI Results
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+
+    permissions:
+      pull-requests: write
+      actions: read
+
+    # Five workflows finish at five different times and each one wakes this up,
+    # so the writes are serialised per commit. Cancelling instead would drop
+    # the last update and leave a stale comment.
+    concurrency:
+      group: ci-results-${{ github.event.workflow_run.head_sha }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Assemble and post the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          MARKER: "<!-- ci-results -->"
+          # A comment body is capped at 65536 characters. These leave room for
+          # the table and the footer, and a check whose report is longer than
+          # its slice is trimmed rather than losing the whole comment.
+          PER_REPORT: 6000
+          ALL_REPORTS: 40000
+        run: |
+          set -euo pipefail
+
+          # A fork's pull request is absent from workflow_run.pull_requests, so
+          # the number is looked up from the commit instead. That endpoint sees
+          # fork pull requests because this runs in the base repository.
+          PR=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '.[0].number // empty')
+          if [ -z "$PR" ]; then
+            echo "No pull request for $SHA; nothing to comment on."
+            exit 0
+          fi
+          echo "Reporting on pull request #$PR ($SHA)"
+
+          # Every workflow run for this commit. The event filter matters: a
+          # branch push and its pull request produce two runs of the same
+          # workflow, and both would otherwise appear as separate rows.
+          gh api "repos/$REPO/actions/runs?head_sha=$SHA&per_page=100" \
+            --jq '[ .workflow_runs[]
+                    | select(.event == "pull_request")
+                    | select(.name != "CI Results")
+                    | { name, status, conclusion,
+                        url: .html_url,
+                        id: .id } ]' > runs.json
+
+          # A row per job rather than per workflow, so every link lands on the
+          # log that failed instead of a run page the reader has to click
+          # through. It also means a workflow that grows a second job shows up
+          # as two rows without this needing to know about it.
+          : > jobs.json
+          while IFS=$(printf '\t') read -r wf id url; do
+            [ -n "$id" ] || continue
+            # gh api has no --arg, so the workflow name is grafted on in a
+            # second jq rather than inside the query.
+            if gh api "repos/$REPO/actions/runs/$id/jobs" --paginate --jq '.jobs[]' > raw.json 2> jobs.err; then
+              jq -c --arg wf "$wf" --arg run "$url" \
+                '{ workflow: $wf, run: $run, name, status, conclusion,
+                   url: .html_url, started: .started_at, completed: .completed_at }' \
+                raw.json >> jobs.json
+            else
+              # A run whose jobs cannot be listed still deserves a row, so it
+              # falls back to the workflow itself.
+              cat jobs.err >&2
+              jq -c --arg wf "$wf" --arg url "$url" --arg id "$id" \
+                '.[] | select((.id | tostring) == $id)
+                 | { workflow: $wf, run: $url, name: $wf, status: .status,
+                     conclusion: .conclusion, url: $url, started: null, completed: null }' \
+                runs.json >> jobs.json
+            fi
+          done < <(jq -r '.[] | "\(.name)\t\(.id)\t\(.url)"' runs.json)
+
+          # The header and the table, rendered in one pass so the counts and
+          # the rows cannot disagree.
+          jq -n -r \
+            --slurpfile jobs <(jq -s '.' jobs.json) \
+            --arg marker "$MARKER" '
+            def icon($c):
+              if $c == "success" then "✅"
+              elif $c == "failure" then "❌"
+              elif $c == "cancelled" then "⚪"
+              elif $c == "skipped" then "⏭️"
+              elif $c == null then "🟡"
+              else "⚠️" end;
+
+            def statusText($c):
+              if $c == null then "running" else $c end;
+
+            # Whole seconds are enough here and read better than 3m39.412s.
+            def duration($a; $b):
+              (($b | fromdateiso8601) - ($a | fromdateiso8601)) as $s
+              | if $s < 60 then "\($s)s"
+                else "\(($s / 60 | floor))m\($s % 60)s" end;
+
+            ($jobs[0] | sort_by(.workflow, .name)) as $rows
+            | ([ $rows[] | select(.conclusion == "failure") ] | length) as $failed
+            | ([ $rows[] | select(.status != "completed") ] | length) as $running
+
+            | $marker,
+              "## CI results",
+              "",
+              ( if $running > 0 then "\($running) job\(if $running == 1 then "" else "s" end) still running."
+                elif $failed > 0 then "\($failed) job\(if $failed == 1 then "" else "s" end) failed."
+                else "All checks passed." end ),
+              "",
+              "| Workflow | Job | Result | Time |",
+              "| --- | --- | --- | --- |",
+              ( $rows[]
+                | "| \(.workflow) | [\(.name)](\(.url)) | \(icon(.conclusion)) \(statusText(.conclusion)) | \(if .completed and .started then duration(.started; .completed) else "—" end) |" )
+          ' > body.md
+
+          # Each check writes the same job summary it shows on its own page to
+          # a "CI Report" artifact. Pulling those in means the comment explains
+          # a failure instead of only naming it, and the wording stays in the
+          # check that produced it rather than being reimplemented here.
+          budget=$ALL_REPORTS
+          skipped=""
+          jq -r '.[] | select(.conclusion == "failure") | "\(.name)\t\(.url)"' runs.json > failed.tsv
+          while IFS=$(printf '\t') read -r name url; do
+            [ -n "$name" ] || continue
+            id=${url##*/}
+            dir="reports/$id"
+            rm -rf "$dir"
+            if ! gh run download "$id" --repo "$REPO" -n "CI Report" -D "$dir" 2> dl.log; then
+              echo "No CI Report artifact for $name (run $id)" >&2
+              continue
+            fi
+            report="$dir/ci-report.md"
+            [ -s "$report" ] || continue
+
+            if [ "$budget" -le 0 ]; then
+              echo "Report budget spent; skipping $name" >&2
+              if [ -n "$skipped" ]; then skipped="$skipped, $name"; else skipped="$name"; fi
+              continue
+            fi
+
+            slice=$PER_REPORT
+            [ "$slice" -gt "$budget" ] && slice=$budget
+            size=$(wc -c < "$report")
+
+            {
+              echo
+              echo "<details><summary><b>$name</b> — report</summary>"
+              echo
+              head -c "$slice" "$report"
+              if [ "$size" -gt "$slice" ]; then
+                echo
+                echo "_Trimmed. The full report is on the [check's own page]($url)._"
+              fi
+              echo
+              echo "</details>"
+            } >> body.md
+
+            used=$size
+            [ "$used" -gt "$slice" ] && used=$slice
+            budget=$((budget - used))
+          done < failed.tsv
+
+          # Saying which reports were left out beats letting a reader assume
+          # the ones shown are all there were.
+          if [ -n "$skipped" ]; then
+            {
+              echo
+              echo "_Reports for $skipped were too long to include; open the runs above._"
+            } >> body.md
+          fi
+
+          {
+            echo
+            echo "<sub>Commit ${SHA:0:7}. This comment is rewritten as each workflow finishes.</sub>"
+          } >> body.md
+
+          cat body.md
+          echo "comment size: $(wc -c < body.md) bytes"
+
+          # One comment per pull request, edited in place. Without the marker
+          # every workflow completion would leave another copy behind.
+          ID=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
+                 --jq "[ .[] | select(.body | startswith(\"$MARKER\")) ] | .[0].id // empty")
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$ID" -F body=@body.md > /dev/null
+            echo "Updated comment $ID on #$PR"
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@body.md > /dev/null
+            echo "Created a comment on #$PR"
+          fi

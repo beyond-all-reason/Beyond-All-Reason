@@ -100,6 +100,7 @@ local soundData = {
 
 	-- WEAPON SOUNDS
 	weapons = {
+		preload = true,
 		gain = {
 			default = 1.2 * 0.3,
 			custom = {
@@ -148,6 +149,7 @@ local soundData = {
 
 	-- WEAPON SOUNDS MULTI (more concurrent)
 	["weapons-mult"] = {
+		preload = true,
 		gain = 1.2 * 0.3,
 		pitchmod = {
 			default = 0.17,
@@ -189,6 +191,7 @@ local soundData = {
 
 	-- BOMB SOUNDS / More maxconcurrent
 	bombs = {
+		preload = true,
 		gain = 1.2 * 0.3,
 		pitchmod = 0.27,
 		gainmod = 0.2 * 0.3,

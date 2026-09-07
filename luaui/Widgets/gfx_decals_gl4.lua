@@ -133,8 +133,11 @@ end
 
 atlas.flip(atlas)
 
+---@type InstanceVBOTable?
 local decalVBO = nil
+---@type InstanceVBOTable?
 local decalLargeVBO = nil
+---@type InstanceVBOTable?
 local decalExtraLargeVBO = nil
 
 local decalShader = nil
@@ -489,31 +492,14 @@ function widget:Update() -- this is pointlessly expensive!
 	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
-	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x, z)
 			totalsmoothness = totalsmoothness + abs(h - prevHeight)
 			prevHeight = h
 		end
-		prevX = prevHeight
 	end
 	areaDecals[hash].smoothness = totalsmoothness
-end
-
-local function DrawSmoothness()
-	gl.Color(1, 1, 1, 1)
-	for areaHash, areaInfo in pairs(areaDecals) do
-		--spEcho(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
-		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
-			gl.PushMatrix()
-			local text = string.format("Smoothness = %d", areaInfo.smoothness)
-			local w = gl.GetTextWidth(text) * 16.0
-			gl.Translate(areaInfo.x - w, areaInfo.y + 64, areaInfo.z)
-			gl.Text(text, 0, 0, 16, "n")
-			gl.PopMatrix()
-		end
-	end
 end
 
 -----------------------------------------------------------------------------------------------
@@ -2255,8 +2241,6 @@ function widget:Initialize()
 
 							local posx = vboEntry[13]
 							local posz = vboEntry[15]
-							local rotation = vboEntry[3]
-							local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
 							AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
 							restoredCount = restoredCount + 1
 						end

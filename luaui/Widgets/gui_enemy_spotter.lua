@@ -25,6 +25,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable?
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
 local luaShaderDir = "LuaUI/Include/"

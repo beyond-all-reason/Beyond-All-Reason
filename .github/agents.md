@@ -19,8 +19,12 @@ Keep patches narrowly scoped and easy to review. Large cross-subsystem refactors
 
 ## Keeping These Instructions Current
 
-- Update the affected section in the same pull request whenever a change alters a convention, tool, workflow,
-  directory, or command described here.
+Instruction files: this one, `.github/RmlUi-instructions.md`, and
+`luarules/mission_api/mission-api-instructions.md`. The rules below apply to all of them.
+
+- Update the affected file and section in the same pull request whenever a change alters a convention, tool,
+  workflow, directory, or command they describe. A change to a subsystem covered by its own file updates that file,
+  not this one.
 - Verify a claim before writing it down (run the command, read the config, count the occurrences).
 - Delete guidance that no longer matches the repository instead of layering exceptions on top of it.
 
@@ -194,6 +198,12 @@ caused them.
   `{ "ui": { "topbar": { "button": { "quit": ... } } } }`.
 - Only add strings to `language/en/`; the community handles other languages through Transifex
   (`language/transifex.yml`).
+
+## Mission API
+
+The data-driven mission runtime has load-order and dispatch conventions of its own. Read
+`luarules/mission_api/mission-api-instructions.md` before editing `luarules/mission_api/`,
+`luarules/gadgets/api_missions*.lua`, `singleplayer/`, or `spec/mission_api/`.
 
 ## RmlUi
 

@@ -75,6 +75,8 @@ elseif Platform.glHaveAMD then
 		isPotatoGpu = true
 		gpuMem = 0 -- AMD integrated can report incorrect gpuMemorySize, so set to 0 to avoid false positives for low VRAM
 	end
+elseif string.find(glRendererLower, "apple m") then
+	-- Apple Silicon via zink reports vendor Mesa: "zink Vulkan 1.3(Apple M3 Max (MESA_KOSMICKRISP))"
 else
 	-- Unknown/Mesa vendor without specific detection — assume low-end
 	isPotatoGpu = true
@@ -1094,7 +1096,6 @@ function DrawWindow()
 
 	-- draw options
 	local yPos
-	local prevGroup = ""
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
@@ -1836,7 +1837,6 @@ function widget:DrawScreen()
 			showOnceMore = false
 
 			-- mouseover (highlight and tooltip)
-			local description = ""
 			if
 				not (devMode or devUI)
 				and titleRect ~= nil
@@ -3216,7 +3216,6 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
-	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index
@@ -3239,7 +3238,6 @@ function init()
 			end
 		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
-			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -10247,7 +10245,7 @@ function init()
 				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
 				options[getOptionByID("fog_color_reset")].value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-				Spring.Echo("resetted map fog color defaults")
+				Spring.Echo("reset map fog color defaults")
 			end,
 		},
 
@@ -11041,7 +11039,7 @@ function init()
 				options[getOptionByID("sunlighting_reset")].value = false
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting(defaultSunLighting)
-				Spring.Echo("resetted ground/unit coloring")
+				Spring.Echo("reset ground/unit coloring")
 				init()
 			end,
 		},
@@ -11145,7 +11143,7 @@ function init()
 			onchange = function(i, value)
 				options[getOptionByID("skyaxisangle_reset")].value = false
 				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-				Spring.Echo("resetted skyAxisAngle atmosphere")
+				Spring.Echo("reset skyAxisAngle atmosphere")
 				init()
 			end,
 		},
@@ -12252,7 +12250,6 @@ function init()
 	else
 		local cursorsets = {}
 		local cursor = 1
-		local cursoroption
 		cursorsets = WG.cursors.getcursorsets()
 		local cursorname = WG.cursors.getcursor()
 		for i, c in pairs(cursorsets) do

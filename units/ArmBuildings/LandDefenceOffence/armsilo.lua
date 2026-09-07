@@ -129,7 +129,7 @@ return {
 				craterareaofeffect = 1280,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				edgeeffectiveness = 0.45,
+				edgeeffectiveness = 0,
 				energypershot = 125000,
 				explosiongenerator = "custom:newnuke",
 				firestarter = 100,
@@ -170,7 +170,7 @@ return {
 				},
 				damage = {
 					commanders = 2500,
-					default = 9500,
+					default = 12500,
 				},
 			},
 		},

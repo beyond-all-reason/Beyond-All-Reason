@@ -47,7 +47,8 @@ function gadget:GameID(gameID)
 	math.randomseed(FakeRandomSeed)
 end
 
-PlayerCosmeticList = {
+---@type table<integer,string[]>
+local PlayerCosmeticList = {
 	[439] = { -- Goopy
 		"FightNightHat", -- Fight Night 1v1 and Master's League winner
 		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
@@ -205,16 +206,17 @@ PlayerCosmeticList = {
 
 -- Cosmetic Defs
 
---[[
-	slot = "hat", "rightshoulder", "leftshoulder", "necklace", "belt"
-	implementation = "unit", "baked" - unit uses separate unit attached, baked uses model parts baked into the model
-	unitDefID = UnitDefNames.unitdefname and UnitDefNames.unitdefname.id - only for unit implementation
-	scriptCall = "ShowCrown" - only for baked implementation
-	faction = {arm = true, cor = true, leg = true},
-	conflictsWith = {"HatName"}
-]]
+---A single cosmetic that can be attached to a commander.
+---@class CosmeticDefinition
+---@field slot "hat"|"rightshoulder"|"leftshoulder"|"necklace"|"belt" Attaches to the `<slot>cosmeticpoint` piece.
+---@field implementation "unit"|"baked" `unit` attaches a separate unit, `baked` uses model parts baked into the model.
+---@field faction {arm: boolean, cor: boolean, leg: boolean} Factions the cosmetic is offered to.
+---@field conflictsWith string[] Names of cosmetics that cannot be worn alongside this one.
+---@field unitDefID UnitDefID? Unit to attach; set only for the `unit` implementation.
+---@field scriptCall string? LUS function that reveals the baked parts; set only for the `baked` implementation.
 
-CosmeticDefinitions = {
+---@type table<string, CosmeticDefinition>
+local CosmeticDefinitions = {
 
 	------------------------------------------
 	-- Hats
@@ -365,7 +367,8 @@ CosmeticDefinitions = {
 	------------------------------------------
 }
 
-CosmeticUnitDefIDToPiece = {}
+---@type table<UnitDefID, string>
+local CosmeticUnitDefIDToPiece = {}
 for _, def in pairs(CosmeticDefinitions) do
 	if def.implementation == "unit" then
 		CosmeticUnitDefIDToPiece[def.unitDefID] = def.slot .. "cosmeticpoint"
@@ -425,21 +428,12 @@ local spCallCOBScript = Spring.CallCOBScript
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local stringSub = string.sub
 
-local unitDefCanWearHats = {
-	[UnitDefNames.corcom.id] = true,
-	[UnitDefNames.cordecom.id] = true,
-	[UnitDefNames.armcom.id] = true,
-	[UnitDefNames.armdecom.id] = true,
-}
-
-if Spring.GetModOptions().experimentallegionfaction then
-	unitDefCanWearHats[UnitDefNames.legcom.id] = true
-	unitDefCanWearHats[UnitDefNames.legdecom.id] = true
-end
-
+local unitDefCanWearHats = {}
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
-	--almost all raptors have dying anims
+	if ud.customParams.canwearcosmetics and not ud.customParams.isscavenger then
+		unitDefCanWearHats[udid] = true
+	end
 	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
 		unitDefHat[udid] = true
 	end
@@ -513,7 +507,7 @@ function gadget:GameFrame(gf)
 						if list[pick].implementation == "unit" then
 							local units = spGetTeamUnits(teamID) or {}
 							for k = 1, #units do
-								if not unitDefHat[units[k]] then
+								if not unitDefHat[spGetUnitDefID(units[k])] then
 									local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
 									CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
 								end
@@ -522,8 +516,8 @@ function gadget:GameFrame(gf)
 							local units = spGetTeamUnits(teamID) or {}
 							for k = 1, #units do
 								local unitID = units[k]
-								if not unitDefHat[unitID] then
-									local unitDefID = spGetUnitDefID(unitID)
+								local unitDefID = spGetUnitDefID(unitID)
+								if not unitDefHat[unitDefID] then
 									if stringSub(UnitDefs[unitDefID].name, 1, 3) == "arm" then
 										local scriptEnv = spGetUnitScriptEnv(unitID)
 										if scriptEnv then
@@ -691,7 +685,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			end
 		end
 		if DEBUG then
-			Spring.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
+			Spring.Echo("Hat was given, but found no one to put it onto, destroying", hatID)
 		end
 		Spring.DestroyUnit(hatID)
 	end

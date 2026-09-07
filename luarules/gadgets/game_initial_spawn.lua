@@ -422,6 +422,18 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
+	local function hasBlockingFeature(x, z, unitDefID)
+		local halfFootprint = UnitDefs[unitDefID].xsize * Game.squareSize / 2
+		local features =
+			Spring.GetFeaturesInRectangle(x - halfFootprint, z - halfFootprint, x + halfFootprint, z + halfFootprint)
+		for i = 1, #features do
+			if Spring.GetFeatureBlocking(features[i]) then
+				return true
+			end
+		end
+		return false
+	end
+
 	local _unitType = {}
 	--- @return boolean untraversable if the unit can not traverse the passed in x/z position
 	local function isFootingUntraversable(x, y, z, unitDefID)
@@ -439,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1)
-			)
+				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+			) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
@@ -554,31 +566,6 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function setPermutedSpawns(nSpawns, idsToSpawn)
-		-- this function assumes that idsToSpawn is a hash table with nSpawns elements
-		-- returns a bijective random map from key values of idsToSpawn to [1,...,nSpawns]
-
-		-- first, construct a random permutation of [1,...,nSpawns] using a Knuth shuffle
-		local perm = {}
-		for i = 1, nSpawns do
-			perm[i] = i
-		end
-		for i = 1, nSpawns - 1 do
-			local j = math.random(i, nSpawns)
-			local temp = perm[i]
-			perm[i] = perm[j]
-			perm[j] = temp
-		end
-
-		local permutedSpawns = {}
-		local slot = 1
-		for id, _ in pairs(idsToSpawn) do
-			permutedSpawns[id] = perm[slot]
-			slot = slot + 1
-		end
-		return permutedSpawns
-	end
-
 	local startUnitList = {}
 	local startUnitBlocking = {}
 	-- Shared with gadget:GameFrame below, which gates the commander spawn-in
@@ -667,8 +654,7 @@ if gadgetHandler:IsSyncedCode() then
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
 				if x <= 0 or z <= 0 then
-					x = (xmin + xmax) / 2
-					z = (zmin + zmax) / 2
+					x, z = MiddleOfStartbox(allyTeamID, xmin, zmin, xmax, zmax)
 				end
 			end
 		end
@@ -738,7 +724,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local lastGameFrame = 0
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
 			if n == spawnInitialFrame then
@@ -768,17 +753,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		-- for debug purpose
-		-- if GG.SpawnEnvironmentalLightning then
-		-- 	if n > lastGameFrame then
-		-- 		lastGameFrame = n + 150
-		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
-		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
-		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
-		--             Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-		-- 		end
-		-- 	end
-		-- end
 		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end

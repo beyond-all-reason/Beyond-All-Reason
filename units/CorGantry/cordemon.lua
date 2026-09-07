@@ -36,6 +36,7 @@ return {
 			maxrange = "500",
 			model_author = "FireStorm, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 6,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

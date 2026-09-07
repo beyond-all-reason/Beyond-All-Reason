@@ -100,7 +100,12 @@ local msz = Game.mapY * 512
 local groups, unitGroup = {}, {} -- retrieves from buildmenu in initialize
 local unitOrder = {} -- retrieves from buildmenu in initialize
 
-local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
+local bgpadding, font, dlistGuishader, dlistGuishader2, forceGuishader
+---@type ScreenRect?
+local backgroundRect
+---@type ScreenRect?
+local backgroundOptionsRect
+local buildoptionsArea
 local factoriesArea, cornerSize, setInfoDisplayUnitID, setInfoDisplayUnitDefID, factoriesAreaHovered
 
 -------------------------------------------------------------------------------

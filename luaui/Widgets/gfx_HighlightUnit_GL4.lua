@@ -27,6 +27,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 
 local highlightunitShader, unitShapeShader
+---@type InstanceVBOTable?
 local highlightUnitVBOTable
 local uniqueID = 0
 

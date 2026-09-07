@@ -25,59 +25,20 @@ if gadgetHandler:IsSyncedCode() then
 	-- Config
 	----------------------------------------------------------------
 
-	local tokillUnitsNames = {
-		corfav = true,
-		armfav = true,
-		armflea = true,
-		legscout = true,
-		raptor_land_swarmer_brood_t2_v1 = true,
-		raptor_land_kamikaze_basic_t2_v1 = true,
-		raptor_land_kamikaze_emp_t2_v1 = true,
-		raptor_land_kamikaze_basic_t4_v1 = true,
-		raptor_land_kamikaze_emp_t4_v1 = true,
-	}
-
-	--emp these
-	local toStunUnitsNames = { --this could maybe use customparams later, at least in part to detect mines
-		armarad = true,
-		armaser = true,
-		armason = true,
-		armfrad = true,
-		armjam = true,
-		armjamt = true,
-		armmark = true,
-		armrad = true,
-		armseer = true,
-		armsjam = true,
-		armsonar = true,
-		armveil = true,
-		corarad = true,
-		corason = true,
-		coreter = true,
-		corfrad = true,
-		corjamt = true,
-		corrad = true,
-		corshroud = true,
-		corsjam = true,
-		corsonar = true,
-		corspec = true,
-		corvoyr = true,
-		corvrad = true,
-
-		coreyes = true,
-		armeyes = true,
-		armmine1 = true,
-		armmine2 = true,
-		armmine3 = true,
-		cormine1 = true,
-		cormine2 = true,
-		cormine3 = true,
-		armfmine3 = true,
-		corfmine3 = true,
-		legmine1 = true,
-		legmine2 = true,
-		legmine3 = true,
-	}
+	-- customparams.juno_deny marks units destroyed by the pulse and the lingering denial ring;
+	-- other customparams.juno_kill units (sensors) and customparams.mine mines get EMP'd instead
+	local tokillUnits = {}
+	local todenyUnits = {}
+	local toStunUnits = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local cp = unitDef.customParams
+		if cp.juno_deny then
+			tokillUnits[unitDefID] = true
+			todenyUnits[unitDefID] = true
+		elseif cp.juno_kill or cp.mine then
+			toStunUnits[unitDefID] = true
+		end
+	end
 
 	local stunDuration = Spring.GetModOptions().emprework and 32 or 30
 	--hornet todo, might leave this to be decided by EMP settings and just max it out?
@@ -88,41 +49,6 @@ if gadgetHandler:IsSyncedCode() then
 		leggob = true,
 	}
 
-	local todenyUnitsNames = {
-		corfav = true,
-		armfav = true,
-		armflea = true,
-		raptor_land_swarmer_brood_t2_v1 = true,
-		raptor_land_kamikaze_basic_t2_v1 = true,
-		raptor_land_kamikaze_emp_t2_v1 = true,
-		raptor_land_kamikaze_basic_t4_v1 = true,
-		raptor_land_kamikaze_emp_t4_v1 = true,
-	}
-
-	-- convert unitname -> unitDefID
-	local tokillUnits = {}
-	for name, params in pairs(tokillUnitsNames) do
-		if UnitDefNames[name] then
-			tokillUnits[UnitDefNames[name].id] = params
-		end
-	end
-	tokillUnitsNames = nil
-	-- convert unitname -> unitDefID
-	local todenyUnits = {}
-	for name, params in pairs(todenyUnitsNames) do
-		if UnitDefNames[name] then
-			todenyUnits[UnitDefNames[name].id] = params
-		end
-	end
-	todenyUnitsNames = nil
-	-- convert unitname -> unitDefID
-	local toStunUnits = {}
-	for name, params in pairs(toStunUnitsNames) do
-		if UnitDefNames[name] then
-			toStunUnits[UnitDefNames[name].id] = params
-		end
-	end
-	toStunUnitsNames = nil
 	--[[
 	--WiP, works but has bug outlined below, out of time to chase in circles for now
 	local toTarpitUnits = {}
@@ -133,27 +59,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	toTarpitUnitsNames = nil
 	--]]
-
-	for udid, ud in pairs(UnitDefs) do
-		for id, v in pairs(tokillUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-				--if string.find(ud.name, UnitDefs[id].name) then
-				tokillUnits[udid] = v
-			end
-		end
-		for id, v in pairs(todenyUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-				--if string.find(ud.name, UnitDefs[id].name) then
-				todenyUnits[udid] = v
-			end
-		end
-		for id, v in pairs(toStunUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-				--if string.find(ud.name, UnitDefs[id].name) then
-				toStunUnits[udid] = v
-			end
-		end
-	end
 
 	--config -- see also in unsynced
 	local radius = 450 --outer radius of area denial ring
@@ -236,6 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 	local counter = 1 --index each explosion of juno missile with this counter
 
 	function gadget:Initialize()
+		Spring.SetGameRulesParam("juno_area_denial_radius", radius) -- read by gui_attack_aoe.lua
 		if WeaponDefNames.armjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
 		end
@@ -265,7 +171,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(frame)
 		--if frame == 10 then
 		--seems that SendToUnsynced has to happen after
-		--SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
+		--SendToUnsynced("ReceiveConstants", width, radius, effectlength, fadetime)
 		--end
 
 		local curtime = SpGetGameSeconds()

@@ -24,7 +24,6 @@ end
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
-local spEcho = Spring.Echo
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileDefID = Spring.GetProjectileDefID
@@ -305,7 +304,6 @@ end
 -- Max value = 65535 * 4096^3 + 4095 * 4096^2 + 4095 * 4096 + 4095 ≈ 4.5e15,
 -- well under Lua's 2^53 ≈ 9e15 safe-integer ceiling for doubles.
 local BEAM_KEY_AXIS_OFFSET = 2048
-local BEAM_KEY_BZ_MUL = 1
 local BEAM_KEY_BY_MUL = 4096
 local BEAM_KEY_BX_MUL = 4096 * 4096
 local BEAM_KEY_WDEFID_MUL = 4096 * 4096 * 4096
@@ -1019,6 +1017,8 @@ void main(void)
 --------------------------------------------------------------------------------
 -- GL4 state
 --------------------------------------------------------------------------------
+
+---@type InstanceVBOTable?
 local beamVBO
 local beamShader
 local flareShader
@@ -1293,9 +1293,7 @@ end
 local FADE_OUT_START_CACHED = shaderConfig.FADE_OUT_START
 local ONE_MINUS_FADE_OUT = 1.0 - FADE_OUT_START_CACHED
 
--- Pre-computed constants for live beams (lifeFrac is fixed at BEAM_SUSTAIN_LIFEFRAC)
 local LIVE_LIFEFRAC = BEAM_SUSTAIN_LIFEFRAC
-local LIVE_FLARE_PULSE = 1.0 - LIVE_LIFEFRAC * FLARE_LIFE_DIM
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ

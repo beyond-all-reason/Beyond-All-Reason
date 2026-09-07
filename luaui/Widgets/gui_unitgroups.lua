@@ -71,7 +71,9 @@ local doUpdate = true
 
 local groupButtons = {}
 
-local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, ordermenuPosY
+---@type ScreenRect?
+local backgroundRect
 local guishaderWasActive = false
 local buildmenuAlwaysShow = false
 local buildmenuShowingPosY = 0
@@ -149,6 +151,11 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG.unitgroups = {}
+	---Screen rectangle of the unit groups panel, as four values rather than a `ScreenRect`.
+	---@return number left
+	---@return number bottom
+	---@return number right
+	---@return number top
 	WG.unitgroups.getPosition = function()
 		return posX,
 			backgroundRect and backgroundRect[2] or posY,
@@ -763,7 +770,6 @@ function widget:Update(dt)
 					selectedGroups[group] = true
 				end
 			end
-			local changed = false
 			for group, _ in pairs(selectedGroups) do
 				if not prevSelectedGroups[group] then
 					doUpdate = true

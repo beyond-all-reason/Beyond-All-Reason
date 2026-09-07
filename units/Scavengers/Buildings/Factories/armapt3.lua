@@ -39,6 +39,7 @@ return {
 			"armlichet4",
 		},
 		customparams = {
+			airfactory = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armapt3_aoplane.dds",
 			buildinggrounddecalsizey = 15,
