@@ -1156,7 +1156,7 @@ describe("mission_api.validation", function()
 
 			validation.ValidateReferences()
 
-			assert.is_true(hasError("Event trigger is named by no objective, so it can never fire. Trigger: onDone"))
+			assert.is_true(hasError("Event trigger has no owners, so it can never fire. Trigger: onDone"))
 		end)
 
 		it("treats inline objective triggers as unit and feature name references", function()
