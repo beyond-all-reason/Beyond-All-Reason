@@ -243,7 +243,12 @@ for udid, ud in pairs(UnitDefs) do
 			con = con,
 			select = ud.customParams.attached_con_turret_select and true or false,
 		}
-		turretDefIDs[UnitDefNames[con].id] = true
+		local turretDefID = UnitDefNames[con].id
+		turretDefIDs[turretDefID] = true
+		local scriptName = UnitDefs[turretDefID].scriptName
+		if scriptName and string.lower(scriptName):sub(-4) == ".cob" then
+			cobScriptTurrets[turretDefID] = true
+		end
 	end
 end
 
