@@ -16,16 +16,16 @@ local function arrangement(...)
 	return '{"startboxes":[' .. table.concat({ ... }, ",") .. "]}"
 end
 
-local function set(pairsByTeamCount)
+local function set(arrangementsByTeamCount)
 	local parts = {}
-	for _, pair in ipairs(pairsByTeamCount) do
-		parts[#parts + 1] = string.format('"%s":%s', pair[1], pair[2])
+	for _, entry in ipairs(arrangementsByTeamCount) do
+		parts[#parts + 1] = string.format('"%s":%s', entry[1], entry[2])
 	end
 
 	return "{" .. table.concat(parts, ",") .. "}"
 end
 
--- Slices of a 200x200 arrangement space, one per team, so every box is real and none of
+-- Slices of the 200x200 arrangement space, one per team, so every box is real and none of
 -- them covers the map.
 local function evenArrangement(numBoxes)
 	local boxes = {}
@@ -37,7 +37,25 @@ local function evenArrangement(numBoxes)
 	return arrangement(unpack(boxes))
 end
 
-local savedSpring, savedGame, savedJson, savedZlib
+local SHORT_SET = set({
+	{ "2", evenArrangement(2) },
+	{ "3", evenArrangement(3) },
+	{ "4", evenArrangement(4) },
+})
+
+local savedSpring = {
+	GetAllyTeamList = Spring.GetAllyTeamList,
+	GetGaiaTeamID = Spring.GetGaiaTeamID,
+	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
+	GetAllyTeamStartBox = Spring.GetAllyTeamStartBox,
+	GetModOptions = Spring.GetModOptions,
+}
+
+Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
+_G.Json = VFS.Include("common/luaUtilities/json.lua")
+VFS.ZlibDecompress = function(data)
+	return data
+end
 
 local function setUpGame(numAllyTeams, modoptions)
 	local allyTeamList = {}
@@ -64,7 +82,7 @@ local function setUpGame(numAllyTeams, modoptions)
 	end
 	Spring.GetModOptions = function()
 		local encoded = {}
-		for key, json in pairs(modoptions or {}) do
+		for key, json in pairs(modoptions) do
 			encoded[key] = base64.Encode(json)
 		end
 
@@ -72,40 +90,25 @@ local function setUpGame(numAllyTeams, modoptions)
 	end
 end
 
+-- Freshly included every time: the library caches its parse for the life of the module.
+local function load(numAllyTeams, modoptions)
+	setUpGame(numAllyTeams, modoptions)
+	local lib = VFS.Include(MODULE_PATH)
+
+	return lib, lib.ParseBoxes()
+end
+
 describe("startbox_utilities", function()
-	before_each(function()
-		savedSpring = {
-			GetAllyTeamList = Spring.GetAllyTeamList,
-			GetGaiaTeamID = Spring.GetGaiaTeamID,
-			GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
-			GetAllyTeamStartBox = Spring.GetAllyTeamStartBox,
-			GetModOptions = Spring.GetModOptions,
-		}
-		savedGame = { mapSizeX = Game.mapSizeX, mapSizeZ = Game.mapSizeZ }
-		savedJson = _G.Json
-		savedZlib = VFS.ZlibDecompress
-
-		Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
-		_G.Json = VFS.Include("common/luaUtilities/json.lua")
-		VFS.ZlibDecompress = function(data)
-			return data
-		end
-	end)
-
 	after_each(function()
 		for key, value in pairs(savedSpring) do
 			Spring[key] = value
 		end
-		Game.mapSizeX, Game.mapSizeZ = savedGame.mapSizeX, savedGame.mapSizeZ
-		_G.Json = savedJson
-		VFS.ZlibDecompress = savedZlib
 	end)
 
 	describe("an arrangement that covers every allyteam", function()
 		it("gives every allyteam its own box", function()
-			setUpGame(5, { mapmetadata_startboxes_set = set({ { "5", evenArrangement(5) } }) })
-
-			local config, source, explicit = VFS.Include(MODULE_PATH).ParseBoxes()
+			local _, config, source, explicit =
+				load(5, { mapmetadata_startboxes_set = set({ { "5", evenArrangement(5) } }) })
 
 			assert.are.equal("modoption_set", source)
 			assert.is_true(explicit)
@@ -117,31 +120,19 @@ describe("startbox_utilities", function()
 	end)
 
 	describe("an arrangement smaller than the allyteam count", function()
-		local config, lib
-
-		before_each(function()
-			setUpGame(5, {
-				mapmetadata_startboxes_set = set({
-					{ "2", evenArrangement(2) },
-					{ "3", evenArrangement(3) },
-					{ "4", evenArrangement(4) },
-				}),
-			})
-			lib = VFS.Include(MODULE_PATH)
-			config = lib.ParseBoxes()
-		end)
-
 		it("leaves the arranged allyteams alone", function()
+			local _, config = load(5, { mapmetadata_startboxes_set = SHORT_SET })
+
 			for allyTeamID = 0, 3 do
 				assert.is_nil(config[allyTeamID].wholeMap)
 			end
 		end)
 
 		it("gives the unarranged allyteam the whole map", function()
-			local entry = config[4]
+			local lib, config = load(5, { mapmetadata_startboxes_set = SHORT_SET })
 
-			assert.is_true(entry.wholeMap)
-			assert.are.equal(1, #entry.boxes)
+			assert.is_true(config[4].wholeMap)
+			assert.are.equal(1, #config[4].boxes)
 
 			local xmin, zmin, xmax, zmax = lib.GetBounds(4)
 			assert.are.equal(0, xmin)
@@ -151,26 +142,30 @@ describe("startbox_utilities", function()
 		end)
 
 		it("counts a whole-map box as no box at all", function()
+			local lib = load(5, { mapmetadata_startboxes_set = SHORT_SET })
+
 			assert.is_true(lib.HasStartbox(0))
 			assert.is_false(lib.HasStartbox(4))
 		end)
 
 		it("puts nowhere out of bounds for the unarranged allyteam", function()
+			local lib = load(5, { mapmetadata_startboxes_set = SHORT_SET })
+
 			assert.is_true(lib.IsInside(4, 10, 10))
 			assert.is_true(lib.IsInside(4, MAP_SIZE_X - 10, MAP_SIZE_Z - 10))
 			assert.is_false(lib.IsInside(0, MAP_SIZE_X - 10, MAP_SIZE_Z - 10))
 		end)
 
 		it("skips the gaia allyteam", function()
+			local _, config = load(5, { mapmetadata_startboxes_set = SHORT_SET })
+
 			assert.is_nil(config[GAIA_ALLY_TEAM_ID])
 		end)
 	end)
 
 	describe("no arrangement at all", function()
 		it("keeps the hardcoded fallback to two boxes", function()
-			setUpGame(5, {})
-
-			local config, source, explicit = VFS.Include(MODULE_PATH).ParseBoxes()
+			local _, config, source, explicit = load(5, {})
 
 			assert.are.equal("fallback", source)
 			assert.is_false(explicit)
