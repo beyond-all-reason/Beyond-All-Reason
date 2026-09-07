@@ -2647,11 +2647,14 @@ function widget:KeyPress(key, mods, isRepeat)
 		end
 	end
 
-	-- Ctrl+Z / Ctrl+Y. Only entries from the current submode are eligible: positions and
-	-- startboxes coexist, so undoing in one submode must not silently rewind the other.
-	if (key == 122 or key == 121) and mods.ctrl then -- 122 = 'z', 121 = 'y'
-		local fromStack = (key == 122) and undoHistory or boxUndo.redo
-		local toStack = (key == 122) and boxUndo.redo or undoHistory
+	-- Ctrl+Z undoes, Ctrl+Shift+Z redoes: the editor's convention (the clone tool and the
+	-- terraform brush bind redo the same way). Only entries from the current submode are
+	-- eligible: positions and startboxes coexist, so undoing in one submode must not
+	-- silently rewind the other.
+	if key == 122 and mods.ctrl then -- 122 = 'z'
+		local isUndo = not mods.shift
+		local fromStack = isUndo and undoHistory or boxUndo.redo
+		local toStack = isUndo and boxUndo.redo or undoHistory
 		local at
 		for i = #fromStack, 1, -1 do
 			if (fromStack[i].mode or "express") == subMode then
