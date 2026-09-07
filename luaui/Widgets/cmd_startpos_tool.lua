@@ -39,6 +39,7 @@ local glVertex = gl.Vertex
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glBlending = gl.Blending
+local glDepthTest = gl.DepthTest
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
