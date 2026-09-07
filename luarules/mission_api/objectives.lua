@@ -28,6 +28,7 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.completed)
 			.. (objective.failed and " (failed)" or "")
 			.. (objective.canceled and " (canceled)" or "")
+			.. (objective.hidden and " (hidden)" or "")
 	)
 end
 
@@ -65,6 +66,19 @@ local function cancelObjective(objectiveID)
 	objective.canceled = true
 	setObjectiveActive(objectiveID, false)
 	activateEventTrigger(objective.onCanceled)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+-- Hidden is the author's override; presentation reads it and nothing here does.
+local function hideObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	objective.hidden = true
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+local function showObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	objective.hidden = false
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
@@ -185,8 +199,37 @@ local function failObjective(objectiveID)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
-local function onObjectiveCompleted(objective)
+local function completeObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.canceled = false
+	objective.completed = true
 	runExitRoutes(objective, objective.onCompleted)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+--- Progress that did not complete the objective.
+local function onObjectiveProgress(objectiveID, objective)
+	activateEventTrigger(objective.onProgress)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+--- One step of progress, for objectives without a managed count.
+local function updateObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed or not objective.active then
+		return
+	end
+
+	objective.progress = (objective.progress or 0) + 1
+	if objective.amount == nil or objective.progress >= objective.amount then
+		completeObjective(objectiveID)
+	else
+		onObjectiveProgress(objectiveID, objective)
+	end
 end
 
 --- Update objective progress for a managed (statistics-based) objective.
@@ -238,12 +281,11 @@ local function updateObjectiveProgress(
 		isComplete = managedObjMetadata._count >= amount
 	end
 
-	objective.completed = isComplete
 	if isComplete then
-		onObjectiveCompleted(objective)
+		completeObjective(objectiveID)
+	else
+		onObjectiveProgress(objectiveID, objective)
 	end
-
-	echoObjectiveUpdate(objectiveID, objective)
 end
 
 return {
@@ -252,8 +294,11 @@ return {
 	TryAdvanceStage = tryAdvanceStage,
 	ActivateObjective = activateObjective,
 	CancelObjective = cancelObjective,
+	UpdateObjective = updateObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
+	CompleteObjective = completeObjective,
 	FailObjective = failObjective,
-	OnObjectiveCompleted = onObjectiveCompleted,
+	HideObjective = hideObjective,
+	ShowObjective = showObjective,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }

@@ -1,15 +1,15 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function updateObjective(objectiveID)
-	GG['MissionAPI'].Modules.Objectives.UpdateObjective(objectiveID)
+local function completeObjective(objectiveID)
+	GG['MissionAPI'].Modules.Objectives.CompleteObjective(objectiveID)
 end
 
 return {
 	{
-		type = 'UpdateObjective',
+		type = 'CompleteObjective',
 		parameters = {
 			{ name = 'objectiveID', required = true, type = ParameterTypes.ObjectiveID },
 		},
-		actionFunction = updateObjective,
+		actionFunction = completeObjective,
 	}
 }

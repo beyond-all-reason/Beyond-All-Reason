@@ -271,6 +271,14 @@ describe("mission_api.validation", function()
 			)
 		end)
 
+		it("passes for an objective naming an Event trigger in onProgress", function()
+			GG["MissionAPI"].Triggers = { stepped = { type = triggerTypes.Event, actions = { "ok" } } }
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onProgress = "stepped" },
+			})
+			assert.are.same({}, logged)
+		end)
+
 		it("passes for an objective naming Event triggers in onActivated and onCanceled", function()
 			GG["MissionAPI"].Triggers = {
 				began = { type = triggerTypes.Event, actions = { "ok" } },

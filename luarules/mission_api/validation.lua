@@ -796,6 +796,7 @@ end
 local objectiveEventFields = {
 	"onActivated",
 	"onCanceled",
+	"onProgress",
 	"onCompleted",
 	"onFailed",
 }
