@@ -7,6 +7,7 @@ local parameters = {
 	nextStage = Types.StageID,
 	coop = Types.Boolean,
 	onCompleted = Types.TriggerID,
+	onFailed = Types.TriggerID,
 }
 
 return {

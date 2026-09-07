@@ -271,6 +271,20 @@ describe("mission_api.validation", function()
 			)
 		end)
 
+		it("logs an error when onFailed names a trigger that is not an Event", function()
+			GG["MissionAPI"].Triggers = {
+				timer = { type = triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onFailed = "timer" },
+			})
+			assert.is_true(
+				hasError(
+					"Objective event must name an Event trigger. Objective: withEvent, Field: onFailed, Trigger: timer"
+				)
+			)
+		end)
+
 		it("logs an error for missing textKey", function()
 			validation.ValidateObjectives({ noText = {} })
 			assert.is_true(hasError("Objective missing textKey: noText"))

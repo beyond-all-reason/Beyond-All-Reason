@@ -38,6 +38,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field processSoundQueue table
 ---@field changeStage table
 ---@field tryAdvanceStage table
+---@field failObjective table
 ---@field onObjectiveCompleted table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
@@ -308,6 +309,7 @@ function MB:Build()
 	local processSoundQueueCalls = {}
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
+	local failObjectiveCalls = {}
 	local onObjectiveCompletedCalls = {}
 	local updateProgressCalls = {}
 	local echoCalls = {}
@@ -384,6 +386,9 @@ function MB:Build()
 		end,
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
+		end,
+		FailObjective = function(objectiveID)
+			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		OnObjectiveCompleted = function(objective)
 			onObjectiveCompletedCalls[#onObjectiveCompletedCalls + 1] = { objective = objective }
@@ -466,6 +471,7 @@ function MB:Build()
 			processSoundQueue = processSoundQueueCalls,
 			changeStage = changeStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
+			failObjective = failObjectiveCalls,
 			onObjectiveCompleted = onObjectiveCompletedCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
@@ -481,6 +487,7 @@ function MB:Build()
 				processSoundQueueCalls,
 				changeStageCalls,
 				tryAdvanceCalls,
+				failObjectiveCalls,
 				onObjectiveCompletedCalls,
 				updateProgressCalls,
 				echoCalls,

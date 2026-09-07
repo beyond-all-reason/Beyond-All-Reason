@@ -51,6 +51,7 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. tostring(objective.amount)
 			.. " | completed: "
 			.. tostring(objective.completed)
+			.. (objective.failed and " (failed)" or "")
 	)
 end
 
@@ -61,7 +62,19 @@ local function activateEventTrigger(triggerID)
 	GG["MissionAPI"].ActivateTrigger(GG["MissionAPI"].Triggers[triggerID])
 end
 
---- Run the stage's exit routes for an objective that has just completed.
+local function failObjective(objectiveID)
+	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.completed then
+		return
+	end
+
+	objective.completed = true
+	objective.failed = true
+	runExitRoutes(objective, objective.onFailed)
+	echoObjectiveUpdate(objectiveID, objective)
+end
+
+--- Run the stage's exit routes for an objective that has completed or failed.
 --- This runs in a fixed order: the objective's event trigger, then nextStage.
 local function runExitRoutes(objective, eventTriggerID)
 	local stageChangesBefore = stageChanges
@@ -135,7 +148,8 @@ end
 return {
 	ChangeStage = changeStage,
 	TryAdvanceStage = tryAdvanceStage,
-	OnObjectiveCompleted = onObjectiveCompleted,
+	FailObjective = failObjective,
 	UpdateObjectiveProgress = updateObjectiveProgress,
+	OnObjectiveCompleted = onObjectiveCompleted,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }
