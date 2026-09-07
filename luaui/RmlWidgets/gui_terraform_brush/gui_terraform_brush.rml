@@ -531,6 +531,9 @@
 			<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpLoad()">
 				<div class="tf-action-btn-text">LOAD</div>
 			</div>
+			<div id="btn-sp-copy" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpCopy()">
+				<div class="tf-action-btn-text">COPY</div>
+			</div>
 		</div>
 		</div><!-- /section-st-save -->
 		</div><!-- /frame-st-save -->
