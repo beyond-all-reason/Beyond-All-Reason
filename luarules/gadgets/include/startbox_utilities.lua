@@ -246,8 +246,7 @@ local function buildWholeMapEntry()
 end
 
 -- resolveArrangement will settle for an arrangement covering fewer allyteams than the game
--- has. A missing entry reads as "no config, ask the engine", and the engine has nothing to
--- say for an allyteam the host never sent a rect for.
+-- has, and a missing entry sends each consumer off to its own engine-rect fallback.
 local function fillUnboxedAllyTeams(config, activeAllyTeams)
 	for _, allyTeamID in ipairs(activeAllyTeams) do
 		local entry = config[allyTeamID]
