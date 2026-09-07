@@ -1283,7 +1283,7 @@ function widget:MouseWheel(up, value)
 		return false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, _, _ = Spring.GetModKeyState()
 
 	if ctrl and alt then
 		local delta = up and 0.1 or -0.1

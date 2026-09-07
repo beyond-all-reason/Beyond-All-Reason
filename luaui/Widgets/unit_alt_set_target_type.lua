@@ -278,7 +278,7 @@ end
 
 local function handleSelectionLine()
 	local _, cmdID = spGetActiveCommand()
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local alt, ctrl, meta, _ = spGetModKeyState()
 	local correctCommand = cmdID == CMD_SET_TARGET and alt and not ctrl and not meta
 	if not correctCommand then
 		clear()

@@ -1229,11 +1229,11 @@ function widget:DrawScreen()
 			local tooltip = ""
 			local maxWidth = WG.tooltip.getFontsize() * 90
 			if d.desc and d.desc ~= "" then
-				local textLines, numLines = font:WrapText(d.desc, maxWidth)
+				local textLines, _ = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip .. WhiteStr .. string.gsub(textLines, "[\n]", "\n" .. WhiteStr) .. "\n"
 			end
 			if d.author and d.author ~= "" then
-				local textLines, numLines = font:WrapText(d.author, maxWidth)
+				local textLines, _ = font:WrapText(d.author, maxWidth)
 				tooltip = tooltip
 					.. "\255\175\175\175"
 					.. BAR.I18N("ui.widgetselector.author")

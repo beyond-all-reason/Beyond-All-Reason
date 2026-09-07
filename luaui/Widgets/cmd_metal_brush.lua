@@ -431,7 +431,7 @@ local function loadMetalMap()
 	local mapName = Game.mapName or "unknown"
 	local filename = SAVE_DIR .. mapName .. "_metalmap.lua"
 
-	local chunk, err = loadfile(filename)
+	local chunk, _err = loadfile(filename)
 	if not chunk then
 		Echo("[Metal Brush] No saved metal map found: " .. filename)
 		return

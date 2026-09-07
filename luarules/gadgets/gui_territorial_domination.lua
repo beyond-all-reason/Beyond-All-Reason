@@ -285,7 +285,7 @@ local function initializeAllyColors()
 		local allyID = select(6, Spring.GetTeamInfo(teamID))
 		if allyID and not allyColors[allyID] then
 			if allyID ~= gaiaAllyTeamID then
-				local r, g, b, a = Spring.GetTeamColor(teamID)
+				local r, g, b, _ = Spring.GetTeamColor(teamID)
 				allyColors[allyID] = { r, g, b, SQUARE_ALPHA }
 			else
 				allyColors[allyID] = blankColor
