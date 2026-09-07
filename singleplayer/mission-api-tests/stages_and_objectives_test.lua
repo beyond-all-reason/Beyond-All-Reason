@@ -7,7 +7,7 @@ local stages = {
 		objectives = { 'wait3secs' }
 	},
 	secondStage = {
-		objectives = { 'buildBots' }
+		objectives = { 'buildBots', 'patience' }
 	},
 	thirdStage = {
 		objectives = { 'buildBots', 'destroyBots', 'noLosses' }
@@ -40,6 +40,18 @@ local objectives = {
 		onCompleted = 'botsBuilt',
 	},
 
+	-- Never completes in time, so leaving the second stage cancels it.
+	patience = {
+		textKey = "wait_forever",
+		trigger = {
+			type = triggerTypes.TimeElapsed,
+			parameters = {
+				seconds = 3600, -- long
+			},
+		},
+		onCanceled = 'reportPatienceCanceled',
+	},
+
 	destroyBots = {
 		textKey = "destroy_all_bots",
 		amount = 0,
@@ -56,6 +68,20 @@ local objectives = {
 	noLosses = {
 		textKey = "lose_no_units",
 		onFailed = 'reportFailure',
+	},
+
+	-- Listed in no stage; an action activates it.
+	killDestroyers = {
+		textKey = "kill_both_destroyers",
+		amount = 2,
+		trigger = {
+			type = triggerTypes.TotalUnitsKilled,
+			parameters = {
+				unitDefName = 'armllt',
+				teamID = 0,
+			},
+		},
+		onActivated = 'announceDestroyers',
 	},
 }
 
@@ -77,7 +103,17 @@ local triggers = {
 
 	botsBuilt = {
 		type = triggerTypes.Event,
-		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
+		actions = { 'changeToThirdStage', 'spawnBotDestroyer', 'activateKillDestroyers' },
+	},
+
+	reportPatienceCanceled = {
+		type = triggerTypes.Event,
+		actions = { 'announcePatienceCanceled' },
+	},
+
+	announceDestroyers = {
+		type = triggerTypes.Event,
+		actions = { 'announceDestroyers' },
 	},
 
 	failOnLoss = {
@@ -122,6 +158,27 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, quantity = 2 },
 			},
+		},
+	},
+
+	activateKillDestroyers = {
+		type = actionTypes.ActivateObjective,
+		parameters = {
+			objectiveID = 'killDestroyers',
+		},
+	},
+
+	announcePatienceCanceled = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "MissionTest: patience canceled",
+		},
+	},
+
+	announceDestroyers = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "MissionTest: killDestroyers activated",
 		},
 	},
 

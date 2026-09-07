@@ -271,6 +271,17 @@ describe("mission_api.validation", function()
 			)
 		end)
 
+		it("passes for an objective naming Event triggers in onActivated and onCanceled", function()
+			GG["MissionAPI"].Triggers = {
+				began = { type = triggerTypes.Event, actions = { "ok" } },
+				gone = { type = triggerTypes.Event, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvents = { textKey = "ok", onActivated = "began", onCanceled = "gone" },
+			})
+			assert.are.same({}, logged)
+		end)
+
 		it("logs an error when onFailed names a trigger that is not an Event", function()
 			GG["MissionAPI"].Triggers = {
 				timer = { type = triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "ok" } },
