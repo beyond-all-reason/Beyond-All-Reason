@@ -149,17 +149,17 @@
 			"properties": {
 				"alliesPresent": {
 					"type": "array",
-					"descriptionKey": "I18N keys for the friendly forces to mention in the briefing.",
+					"description": "I18N keys for the friendly forces to mention in the briefing.",
 					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"objectives": {
 					"type": "array",
-					"descriptionKey": "I18N keys for human readable objective summaries. These are briefing text only and are unrelated to the Objectives table in mission.lua.",
+					"description": "I18N keys for human readable objective summaries. These are briefing text only and are unrelated to the Objectives table in mission.lua.",
 					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"knownHostiles": {
 					"type": "array",
-					"descriptionKey": "I18N keys for the enemy forces to mention in the briefing.",
+					"description": "I18N keys for the enemy forces to mention in the briefing.",
 					"items": { "$ref": "#/definitions/i18nKey" }
 				},
 				"newUnits": {
