@@ -113,6 +113,13 @@ COMPAIM1_Controller()
 		COMPAIM1lastHullHeading = hullHeading;
 		if (!COMPAIM1stunned)
 		{
+			if (((get GAME_FRAME) - COMPAIM1lastAimFrame) > COMPAIM1_RATE_FRAMES)
+			{
+				COMPAIM1goalRate = 0;
+				#ifdef COMPAIM1_PIECE_X
+					COMPAIM1pitchRate = 0;
+				#endif
+			}
 			if (COMPAIM1active)
 			{
 				COMPAIM1goalHeading = WRAPDELTA(COMPAIM1goalHeading - hullDelta + COMPAIM1goalRate);
