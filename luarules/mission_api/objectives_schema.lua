@@ -6,6 +6,7 @@ local parameters = {
 	amount = Types.Quantity,
 	nextStage = Types.StageID,
 	coop = Types.Boolean,
+	onCompleted = Types.TriggerID,
 }
 
 return {

@@ -37,6 +37,7 @@ local objectives = {
 				teamID = 0,
 			},
 		},
+		onCompleted = 'botsBuilt',
 	},
 
 	destroyBots = {
@@ -68,11 +69,8 @@ local triggers = {
 		actions = { 'spawnBot' },
 	},
 
-	changeStage3 = {
-		type = triggerTypes.TimeElapsed,
-		parameters = {
-			seconds = 7,
-		},
+	botsBuilt = {
+		type = triggerTypes.Event,
 		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
 	},
 }
