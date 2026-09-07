@@ -557,7 +557,7 @@ validators[Types.AllyTeamName] = function(allyTeamName)
 	end
 
 	if not GG["MissionAPI"].AllyTeams[allyTeamName] then
-		return { { message = "Invalid teamName: " .. allyTeamName } }
+		return { { message = "Invalid allyTeamName: " .. allyTeamName } }
 	end
 end
 

@@ -45,7 +45,7 @@ describe("mission_api.triggers.unit_dwell_location", function()
 		assert.are.same({ area = true, duration = true }, required)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, unitDwellLocation.parameters.requiresOneOf)
 	end)
 

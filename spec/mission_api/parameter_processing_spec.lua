@@ -1,6 +1,7 @@
 require("spec_helper")
 
 local RegisterMissionApiModules = require("mission_api.spec_helper")
+local Builders = VFS.Include("spec/builders/index.lua")
 
 local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
@@ -26,14 +27,13 @@ end
 ---parameter_processing reads the schemas, the team maps and the parameter types at
 ---include time, so GG has to be in place beforehand.
 local function loadProcessing(schemaParameters)
-	GG["MissionAPI"] = {
-		Modules = { ParameterTypes = parameterTypes },
-		ActionDefinitions = { Parameters = schemaParameters },
-		TriggerDefinitions = { Parameters = schemaParameters },
-		Teams = TEAMS,
-		AllyTeams = ALLY_TEAMS,
-		soundFiles = {},
-	}
+	Builders.MissionApi
+		.new()
+		:WithTeams(TEAMS)
+		:WithAllyTeams(ALLY_TEAMS)
+		:WithActionDefinitions({ Parameters = schemaParameters })
+		:WithTriggerDefinitions({ Parameters = schemaParameters })
+		:Install()
 	RegisterMissionApiModules()
 	schemaUtils.AssignValueKeys(schemaParameters)
 	return VFS.Include("luarules/mission_api/parameter_processing.lua")

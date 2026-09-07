@@ -61,8 +61,8 @@ describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 		assert.is_true(names.buildDefName)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
-		assert.is_true(names.fromMission)
+		assert.is_true(names.teamName)
+		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ buildDefName = true }, required)
 	end)
 
@@ -130,9 +130,15 @@ describe("mission_api.triggers.yet_to_implement_production_ordered", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("fires on mission-issued orders when fromMission is true", function()
+	it("fires on mission-issued orders when ignoreMissionActions is false", function()
 		local context, fired = newContext()
-		order(trigger({ buildDefName = "armpw", fromMission = true }), context, -10, nil, { issuingOrders = true })
+		order(
+			trigger({ buildDefName = "armpw", ignoreMissionActions = false }),
+			context,
+			-10,
+			nil,
+			{ issuingOrders = true }
+		)
 		assert.are.equal(1, fired())
 	end)
 end)

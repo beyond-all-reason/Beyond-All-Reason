@@ -1,34 +1,38 @@
 require("spec_helper")
 
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+-- Installs the command ids convertOrdersTargetingNames keys its table by.
+require("mission_api.spec_helper")
 
----Builds loadout.lua against the ambient globals it reads, and captures the
+local Builders = VFS.Include("spec/builders/index.lua")
+
+-- The real facing helpers, rather than a stub: IsFacingEW swaps the footprint of
+-- non-square units, which decides the grid a quantity spawn lays out on. Taken from
+-- the module directly, since common/springFunctions.lua drags in colour utilities
+-- that need more ambient state than a spec has.
+_G.BAR = _G.BAR or {}
+_G.BAR.Utilities = _G.BAR.Utilities or VFS.Include("common/springUtilities/facingFunctions.lua")
+
+local TEAMS = { thePlayerTeam = 0, theEnemyTeam = 5 }
+
+---Builds loadout.lua against the ambient state it reads and captures the
 ---Spring.CreateUnit calls it makes. loadout.lua walks UnitDefs and reads the Gaia
 ---team at include time, so all of this has to be in place before it is loaded.
 local function loadLoadout()
-	local createdUnits = {}
+	Builders.MissionApi.new():WithTeams(TEAMS):Install()
+	_G.Spring = Builders.Spring.new():Build()
 
-	_G.Game = _G.Game or {}
+	-- Def tables and unit spawning are not modelled by the Spring builder, so the few
+	-- things loadout.lua touches are pinned here.
 	_G.Game.squareSize = 8
-	_G.Game.maxUnits = 32000
 	_G.UnitDefs = {}
 	_G.FeatureDefNames = {}
 	_G.UnitDefNames = { armflash = { id = 42, xsize = 4, zsize = 4 } }
-	_G.BAR = {
-		Utilities = {
-			IsFacingEW = function()
-				return false
-			end,
-			FacingToHeading = function()
-				return 0
-			end,
-		},
-	}
 
-	_G.Spring.GetGroundHeight = function()
+	local createdUnits = {}
+	Spring.GetGroundHeight = function()
 		return 100
 	end
-	_G.Spring.CreateUnit = function(unitDefName, x, y, z, facing, teamID, construction)
+	Spring.CreateUnit = function(unitDefName, x, y, z, facing, teamID, construction)
 		createdUnits[#createdUnits + 1] = {
 			unitDefName = unitDefName,
 			x = x,
@@ -40,18 +44,8 @@ local function loadLoadout()
 		}
 		return 1000 + #createdUnits
 	end
-	_G.Spring.GiveOrderArrayToUnit = function() end
-	_G.Spring.SetUnitNeutral = function() end
-
-	_G.GG["MissionAPI"] = {
-		Teams = { thePlayerTeam = 0, theEnemyTeam = 5 },
-		trackedUnitIDs = {},
-		trackedUnitNames = {},
-		trackedFeatureIDs = {},
-		trackedFeatureNames = {},
-	}
-	local modules = RegisterMissionApiModules()
-	modules.Tracking = { TrackUnit = function() end, TrackFeature = function() end }
+	Spring.GiveOrderArrayToUnit = function() end
+	Spring.SetUnitNeutral = function() end
 
 	return VFS.Include("luarules/mission_api/loadout.lua"), createdUnits
 end
@@ -132,7 +126,7 @@ describe("mission_api.loadout", function()
 			it("is reported with the unit and team it came from", function()
 				local loadout = loadLoadout()
 				local logged = {}
-				_G.Spring.Log = function(_, _, message)
+				Spring.Log = function(_, _, message)
 					logged[#logged + 1] = message
 				end
 
@@ -148,8 +142,8 @@ describe("mission_api.loadout", function()
 			it("is not given orders, which would take a nil unitID", function()
 				local loadout = loadLoadout()
 				local orderCalls = 0
-				_G.Spring.Log = function() end
-				_G.Spring.GiveOrderArrayToUnit = function()
+				Spring.Log = function() end
+				Spring.GiveOrderArrayToUnit = function()
 					orderCalls = orderCalls + 1
 				end
 

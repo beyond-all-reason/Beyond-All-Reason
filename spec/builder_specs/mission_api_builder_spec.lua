@@ -103,6 +103,26 @@ describe("MissionApiBuilder", function()
             assert.is_table(api.ActionDefinitions.Victory)
             assert.is_table(api.TriggerDefinitions.TimeElapsed)
         end)
+
+        -- Missions address teams by name; parameter_processing resolves them through
+        -- these maps, so anything touching a team parameter needs them seeded.
+        it("seeds team and ally team name to id maps", function()
+            local api = Builders.MissionApi.new()
+                :WithTeams({ thePlayerTeam = 0, theEnemyTeam = 5 })
+                :WithAllyTeams({ thePlayerAllyTeam = 0, theEnemyAllyTeam = 1 })
+                :Build()
+
+            assert.are.equal(0, api.Teams.thePlayerTeam)
+            assert.are.equal(5, api.Teams.theEnemyTeam)
+            assert.are.equal(1, api.AllyTeams.theEnemyAllyTeam)
+        end)
+
+        it("defaults to empty team maps rather than nil", function()
+            local api = Builders.MissionApi.new():Build()
+
+            assert.are.same({}, api.Teams)
+            assert.are.same({}, api.AllyTeams)
+        end)
     end)
 
     describe("Modules.Tracking", function()

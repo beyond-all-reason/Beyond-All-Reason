@@ -34,8 +34,8 @@ describe("mission_api.triggers.unit_captured", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.oldTeamID)
-		assert.is_true(names.newTeamID)
+		assert.is_true(names.oldTeamName)
+		assert.is_true(names.newTeamName)
 		assert.are.same({ "unitName", "unitDefName" }, unitCaptured.parameters.requiresOneOf)
 	end)
 

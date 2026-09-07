@@ -38,10 +38,10 @@ describe("mission_api.triggers.feature_reclaimed", function()
 		end
 		assert.is_true(names.featureName)
 		assert.is_true(names.featureDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.area)
 		assert.are.same(
-			{ "featureName", "featureDefName", "teamID", "area" },
+			{ "featureName", "featureDefName", "teamName", "area" },
 			featureReclaimed.parameters.requiresOneOf
 		)
 	end)

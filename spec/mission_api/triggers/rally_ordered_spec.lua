@@ -73,8 +73,8 @@ describe("mission_api.triggers.rally_ordered", function()
 		assert.is_true(names.command)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
-		assert.is_true(names.fromMission)
+		assert.is_true(names.teamName)
+		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ command = true }, required)
 		assert.are.same({ "unitName", "unitDefName" }, rallyOrdered.parameters.requiresOneOf)
 	end)
@@ -157,10 +157,10 @@ describe("mission_api.triggers.rally_ordered", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("fires on mission-issued orders when fromMission is true", function()
+	it("fires on mission-issued orders when ignoreMissionActions is false", function()
 		local context, fired = newContext()
 		order(
-			trigger({ command = CMD.MOVE, unitDefName = "armlab", fromMission = true }),
+			trigger({ command = CMD.MOVE, unitDefName = "armlab", ignoreMissionActions = false }),
 			context,
 			CMD.MOVE,
 			{ 0, 0, 0 },

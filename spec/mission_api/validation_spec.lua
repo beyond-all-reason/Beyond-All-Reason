@@ -427,7 +427,7 @@ describe("mission_api.validation", function()
 	-- ── Parameter Validators ─────────────────────────────────────────────────
 
 	describe("parameter validators", function()
-		-- Calls ValidateActions with action 'a' referenced by a simple trigger.
+	-- Calls ValidateActions with action 'a' referenced by a simple trigger.
 		local function actionErrors(action)
 			GG["MissionAPI"].Triggers = {
 				t = normalizeTrigger({
@@ -741,7 +741,9 @@ describe("mission_api.validation", function()
 					parameters = { unitName = "x", sensorAllyTeamName = "noSuchAllyTeam" },
 					actions = { "ok" },
 				})
-				assert.is_true(hasError("Invalid allyTeamName: noSuchAllyTeam. Trigger: t, Parameter: sensorAllyName"))
+				assert.is_true(
+					hasError("Invalid allyTeamName: noSuchAllyTeam. Trigger: t, Parameter: sensorAllyTeamName")
+				)
 			end)
 		end)
 

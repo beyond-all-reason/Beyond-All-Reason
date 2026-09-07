@@ -44,7 +44,7 @@ describe("mission_api.triggers.unit_reclaimed", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.ignoreMissionActions)
 		assert.are.same({ "unitName", "unitDefName" }, unitReclaimed.parameters.requiresOneOf)
 	end)
