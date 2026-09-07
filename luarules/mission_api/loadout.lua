@@ -32,9 +32,15 @@ end
 local function spawnUnit(unit, pos)
 	-- Loadout was not pre-processed:
 	if unit.teamID == nil then
-		Spring.Log("mission_api", LOG.ERROR,
-			"[Mission API] unit loadout entry '" .. tostring(unit.unitDefName)
-			.. "' has no resolved teamID for teamName '" .. tostring(unit.teamName).. "'")
+		Spring.Log(
+			"mission_api",
+			LOG.ERROR,
+			"[Mission API] unit loadout entry '"
+				.. tostring(unit.unitDefName)
+				.. "' has no resolved teamID for teamName '"
+				.. tostring(unit.teamName)
+				.. "'"
+		)
 		return
 	end
 
@@ -117,7 +123,7 @@ local function spawnUnitLoadout(unitLoadout)
 		for _, pos in pairs(positions) do
 			local unitID = spawnUnit(unit, pos)
 			if unitID then
-			-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
+				-- Fence around mission-issued orders for UnitOrdered triggers using `ignoreMissionActions`.
 				GG["MissionAPI"].issuingOrders = true
 				Spring.GiveOrderArrayToUnit(unitID, convertOrdersTargetingNames(unit.orders))
 				GG["MissionAPI"].issuingOrders = nil

@@ -427,7 +427,7 @@ describe("mission_api.validation", function()
 	-- ── Parameter Validators ─────────────────────────────────────────────────
 
 	describe("parameter validators", function()
-	-- Calls ValidateActions with action 'a' referenced by a simple trigger.
+		-- Calls ValidateActions with action 'a' referenced by a simple trigger.
 		local function actionErrors(action)
 			GG["MissionAPI"].Triggers = {
 				t = normalizeTrigger({
