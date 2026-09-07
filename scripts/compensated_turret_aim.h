@@ -8,7 +8,7 @@
 //   AimWeapon1()        call-script COMPAIM1_Aim(heading); then return (0) if !COMPAIM1ready, else return (1)
 //                       with COMPAIM1_PIECE_X defined the call is COMPAIM1_Aim(heading, pitch)
 //   idle restore        call-script COMPAIM1_StopAiming();
-//                       the piece returns to COMPAIM1_REST_YAW, or keeps turning when COMPAIM1_REST_YAW_ROTATION is 1
+//                       the piece returns to COMPAIM1_REST_YAW, or keeps turning when COMPAIM1_IDLE_SPIN is 1
 //   SetStunned(State)   call-script COMPAIM1_SetStunned(State);
 // Several weapons on one turret share the instance, each AimWeapon calls COMPAIM1_Aim the same way.
 
@@ -46,11 +46,11 @@
 	#define COMPAIM1_REST_YAW <0>
 #endif
 
-// Set COMPAIM1_REST_YAW_ROTATION to 1 to keep the yaw piece turning at the restore speed while idle
-#ifndef COMPAIM1_REST_YAW_ROTATION
-	#define COMPAIM1_REST_YAW_ROTATION 0
+// Set COMPAIM1_IDLE_SPIN to 1 to keep the yaw piece turning at the restore speed while idle
+#ifndef COMPAIM1_IDLE_SPIN
+	#define COMPAIM1_IDLE_SPIN 0
 #endif
-#if COMPAIM1_REST_YAW_ROTATION
+#if COMPAIM1_IDLE_SPIN
 	static-var COMPAIM1idleYaw;
 #endif
 
@@ -107,7 +107,7 @@ COMPAIM1_Controller()
 			}
 			else
 			{
-				#if COMPAIM1_REST_YAW_ROTATION
+				#if COMPAIM1_IDLE_SPIN
 					COMPAIM1idleYaw = WRAPDELTA(COMPAIM1idleYaw + (COMPAIM1_RESTORE_SPEED / 30));
 					COMPAIM1goalHeading = WRAPDELTA(COMPAIM1_REST_YAW + COMPAIM1idleYaw);
 				#else
