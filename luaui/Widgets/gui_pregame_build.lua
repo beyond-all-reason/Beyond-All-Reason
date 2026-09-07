@@ -284,7 +284,7 @@ end
 function widget:Initialize()
 
 	-- skip if scenario or mission options disable initial commander spawn
-	if VFS.Include("luaui/Include/mission_options.lua").IsInitialCommanderSpawnDisabled() then
+	if VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled() then
 		widgetHandler:RemoveWidget()
 		return
 	end

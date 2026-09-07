@@ -19,7 +19,7 @@ end
 --- Whether the mission places the starting units itself, leaving no commander to pick a
 --- start position for or to queue pregame builds against.
 ---@return boolean
-function missionOptions.IsInitialCommanderSpawnDisabled()
+function missionOptions.IsStartUnitSpawnDisabled()
 	local options = getOptions()
 	if not options then
 		return false

@@ -22,35 +22,35 @@ describe("mission options", function()
 		modOptions = {}
 	end)
 
-	describe("IsInitialCommanderSpawnDisabled", function()
+	describe("IsStartUnitSpawnDisabled", function()
 		it("is true when the mission disables the spawn", function()
 			setMissionOptions([[{"disableInitialCommanderSpawn":true}]])
 
-			assert.is_true(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_true(missionOptions.IsStartUnitSpawnDisabled())
 		end)
 
 		it("is true when the mission places units itself", function()
 			setMissionOptions([[{"unitloadout":[{"name":"armcom","x":1,"z":1}]}]])
 
-			assert.is_true(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_true(missionOptions.IsStartUnitSpawnDisabled())
 		end)
 
 		it("is false for an empty loadout", function()
 			setMissionOptions([[{"unitloadout":[]}]])
 
-			assert.is_false(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_false(missionOptions.IsStartUnitSpawnDisabled())
 		end)
 
 		it("is false without the modoption", function()
-			assert.is_false(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_false(missionOptions.IsStartUnitSpawnDisabled())
 			modOptions.missionoptions = ""
-			assert.is_false(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_false(missionOptions.IsStartUnitSpawnDisabled())
 		end)
 
 		it("is false for a payload that does not decode", function()
 			modOptions.missionoptions = "not a payload"
 
-			assert.is_false(missionOptions.IsInitialCommanderSpawnDisabled())
+			assert.is_false(missionOptions.IsStartUnitSpawnDisabled())
 		end)
 	end)
 

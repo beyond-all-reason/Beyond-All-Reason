@@ -1435,7 +1435,7 @@ function widget:Initialize()
 	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
 	if isPregame then
 		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
-		isPregame = not missionOptions.IsInitialCommanderSpawnDisabled()
+		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 
 	WG.gridmenu = {}
