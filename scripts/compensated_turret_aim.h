@@ -73,9 +73,15 @@
 	#endif
 #endif
 
+// Aim calls at most this many frames apart set the rate that carries the goal between calls
+#ifndef COMPAIM1_RATE_FRAMES
+	#define COMPAIM1_RATE_FRAMES 6
+#endif
+
 static-var COMPAIM1goalHeading, COMPAIM1belief, COMPAIM1lastHullHeading, COMPAIM1active, COMPAIM1stunned, COMPAIM1ready;
+static-var COMPAIM1goalRate, COMPAIM1lastAimHeading, COMPAIM1lastAimFrame;
 #ifdef COMPAIM1_PIECE_X
-	static-var COMPAIM1goalPitch, COMPAIM1pitchBelief;
+	static-var COMPAIM1goalPitch, COMPAIM1pitchBelief, COMPAIM1pitchRate, COMPAIM1lastAimPitch;
 #endif
 #ifdef COMPAIM1_YAW_ACCEL
 	static-var COMPAIM1yawVelocity;
@@ -90,6 +96,7 @@ COMPAIM1_Controller()
 	var delta;
 	#ifdef COMPAIM1_YAW_ACCEL
 		var brakeDistance;
+		var relativeVelocity;
 	#endif
 	COMPAIM1lastHullHeading = get HEADING;
 	while (TRUE)
@@ -101,7 +108,8 @@ COMPAIM1_Controller()
 		{
 			if (COMPAIM1active)
 			{
-				COMPAIM1goalHeading = WRAPDELTA(COMPAIM1goalHeading - hullDelta);
+				COMPAIM1goalHeading = WRAPDELTA(COMPAIM1goalHeading - hullDelta + COMPAIM1goalRate);
+				COMPAIM1lastAimHeading = WRAPDELTA(COMPAIM1lastAimHeading - hullDelta);
 				COMPAIM1belief = WRAPDELTA(COMPAIM1belief - hullDelta);
 				step = (COMPAIM1_YAW_SPEED / 30);
 			}
@@ -127,27 +135,29 @@ COMPAIM1_Controller()
 			#endif
 			delta = WRAPDELTA(COMPAIM1goalHeading - COMPAIM1belief);
 			#ifdef COMPAIM1_YAW_ACCEL
-				brakeDistance = ((get ABS(COMPAIM1yawVelocity)) / COMPAIM1_YAW_ACCEL_STEP) * (get ABS(COMPAIM1yawVelocity)) / 2;
-				if (((COMPAIM1yawVelocity * SIGN(delta)) < 0) OR ((get ABS(delta)) <= brakeDistance))
+				relativeVelocity = COMPAIM1yawVelocity - COMPAIM1goalRate;
+				brakeDistance = ((get ABS(relativeVelocity)) / COMPAIM1_YAW_ACCEL_STEP) * (get ABS(relativeVelocity)) / 2;
+				if (((relativeVelocity * SIGN(delta)) < 0) OR ((get ABS(delta)) <= brakeDistance))
 				{
-					if ((get ABS(COMPAIM1yawVelocity)) <= COMPAIM1_YAW_ACCEL_STEP)
+					if ((get ABS(relativeVelocity)) <= COMPAIM1_YAW_ACCEL_STEP)
 					{
-						COMPAIM1yawVelocity = 0;
+						relativeVelocity = 0;
 					}
 					else
 					{
-						COMPAIM1yawVelocity = COMPAIM1yawVelocity - SIGN(COMPAIM1yawVelocity) * COMPAIM1_YAW_ACCEL_STEP;
+						relativeVelocity = relativeVelocity - SIGN(relativeVelocity) * COMPAIM1_YAW_ACCEL_STEP;
 					}
 				}
 				else
 				{
-					COMPAIM1yawVelocity = COMPAIM1yawVelocity + SIGN(delta) * COMPAIM1_YAW_ACCEL_STEP;
+					relativeVelocity = relativeVelocity + SIGN(delta) * COMPAIM1_YAW_ACCEL_STEP;
 				}
+				COMPAIM1yawVelocity = COMPAIM1goalRate + relativeVelocity;
 				if ((get ABS(COMPAIM1yawVelocity)) > step)
 				{
 					COMPAIM1yawVelocity = SIGN(COMPAIM1yawVelocity) * step;
 				}
-				if ((get ABS(COMPAIM1yawVelocity)) > (get ABS(delta)))
+				if (((get ABS(COMPAIM1yawVelocity)) > (get ABS(delta))) AND ((COMPAIM1yawVelocity * SIGN(delta)) > 0))
 				{
 					COMPAIM1yawVelocity = delta;
 				}
@@ -162,11 +172,12 @@ COMPAIM1_Controller()
 					COMPAIM1belief = COMPAIM1goalHeading;
 				}
 			#endif
-			turn COMPAIM1_PIECE_Y to y-axis COMPAIM1belief now;
+			turn COMPAIM1_PIECE_Y to y-axis COMPAIM1belief speed COMPAIM1_YAW_SPEED;
 
 			#ifdef COMPAIM1_PIECE_X
 				if (COMPAIM1active)
 				{
+					COMPAIM1goalPitch = WRAPDELTA(COMPAIM1goalPitch + COMPAIM1pitchRate);
 					step = (COMPAIM1_PITCH_SPEED / 30);
 				}
 				else
@@ -183,7 +194,7 @@ COMPAIM1_Controller()
 				{
 					COMPAIM1pitchBelief = COMPAIM1goalPitch;
 				}
-				turn COMPAIM1_PIECE_X to x-axis (0 - COMPAIM1pitchBelief) now;
+				turn COMPAIM1_PIECE_X to x-axis (0 - COMPAIM1pitchBelief) speed COMPAIM1_PITCH_SPEED;
 			#endif
 		}
 		sleep 1;
@@ -196,6 +207,35 @@ COMPAIM1_Aim(heading, pitch)
 COMPAIM1_Aim(heading)
 #endif
 {
+	var frames;
+	frames = (get GAME_FRAME) - COMPAIM1lastAimFrame;
+	if (frames > 0)
+	{
+		COMPAIM1goalRate = 0;
+		#ifdef COMPAIM1_PIECE_X
+			COMPAIM1pitchRate = 0;
+		#endif
+		if (frames <= COMPAIM1_RATE_FRAMES)
+		{
+			COMPAIM1goalRate = WRAPDELTA(heading - COMPAIM1lastAimHeading) / frames;
+			if ((get ABS(COMPAIM1goalRate)) > (COMPAIM1_YAW_SPEED / 30))
+			{
+				COMPAIM1goalRate = 0;
+			}
+			#ifdef COMPAIM1_PIECE_X
+				COMPAIM1pitchRate = WRAPDELTA(pitch - COMPAIM1lastAimPitch) / frames;
+				if ((get ABS(COMPAIM1pitchRate)) > (COMPAIM1_PITCH_SPEED / 30))
+				{
+					COMPAIM1pitchRate = 0;
+				}
+			#endif
+		}
+		COMPAIM1lastAimHeading = heading;
+		COMPAIM1lastAimFrame = get GAME_FRAME;
+		#ifdef COMPAIM1_PIECE_X
+			COMPAIM1lastAimPitch = pitch;
+		#endif
+	}
 	COMPAIM1active = 1;
 	COMPAIM1goalHeading = heading;
 	#ifdef COMPAIM1_PIECE_X
