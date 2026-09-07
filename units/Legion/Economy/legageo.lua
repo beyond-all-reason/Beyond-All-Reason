@@ -40,7 +40,7 @@ return {
 			normaltex = "unittextures/LEG_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		sounds = {

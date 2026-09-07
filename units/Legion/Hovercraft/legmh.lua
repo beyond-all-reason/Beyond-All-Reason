@@ -33,7 +33,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorHovercraft",
+			subfolder = "Legion/Hovercraft",
 		},
 		featuredefs = {
 			dead = {

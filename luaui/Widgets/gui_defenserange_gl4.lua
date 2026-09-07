@@ -336,7 +336,7 @@ local function initUnitList()
 		legrhapsis = { weapons = { "air" } }, --T1.5 AA
 		legflak = { weapons = { "air" } }, --T2 AA FLAK
 		leglraa = { weapons = { "air" } }, --T2 LR-AA
-		legperdition = { weapons = { "cannon" } }, --T2 LR-AA
+		legperdition = { weapons = { "ground" } }, --T2 napalm missile launcher
 		legapopupdef = { weapons = { "ground" } }, --popup riot/minigun turret
 		leganavaltorpturret = { weapons = { "ground" } }, --torpedo launcher
 		leganavalaaturret = { weapons = { "air" } }, --Fulmen
@@ -353,7 +353,7 @@ local function initUnitList()
 		legavantinuke = { weapons = { "nuke" } },
 		armantiship = { weapons = { "nuke" } },
 		corantiship = { weapons = { "nuke" } },
-		leganavyantinukecarrier = { weapons = { "nuke" } }, -- NOTE: drone weapon shown in attack ranges
+		leganavyantinukecarrier = { weapons = { [2] = "nuke" } }, -- weapon 1 is the drone controller
 
 		-- SCAVENGERS
 		scavbeacon_t1_scav = { weapons = { "ground" } },
@@ -950,7 +950,7 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			for i, weaponType in ipairs(rings.weapons) do
+			for i, weaponType in pairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType

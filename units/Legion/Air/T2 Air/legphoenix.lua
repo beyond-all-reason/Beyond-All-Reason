@@ -41,7 +41,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Protar/Hornet",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legionaircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		featuredefs = {

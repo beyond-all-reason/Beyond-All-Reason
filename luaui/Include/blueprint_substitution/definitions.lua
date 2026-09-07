@@ -62,10 +62,10 @@ function DefinitionsModule.defineUnitCategories()
 		"ADVANCED_EXPLOITER",
 		{ [SIDES.ARMADA] = "armmoho", [SIDES.CORTEX] = "cormexp", [SIDES.LEGION] = "legmohocon" }
 	)
-	DefCat("UW_EXTRACTOR", { [SIDES.ARMADA] = "armuwmex", [SIDES.CORTEX] = "coruwmex", [SIDES.LEGION] = "leguwmex" })
+	DefCat("UW_EXTRACTOR", { [SIDES.ARMADA] = "armuwmex", [SIDES.CORTEX] = "coruwmex" })
 	DefCat(
 		"ADVANCED_UW_EXTRACTOR",
-		{ [SIDES.ARMADA] = "armuwmme", [SIDES.CORTEX] = "coruwmme", [SIDES.LEGION] = "leguwmme" }
+		{ [SIDES.ARMADA] = "armuwmme", [SIDES.CORTEX] = "coruwmme", [SIDES.LEGION] = "leganavalmex" }
 	)
 	DefCat("METAL_STORAGE", { [SIDES.ARMADA] = "armmstor", [SIDES.CORTEX] = "cormstor", [SIDES.LEGION] = "legmstor" })
 	DefCat(
@@ -78,7 +78,7 @@ function DefinitionsModule.defineUnitCategories()
 	)
 	DefCat(
 		"UW_ADVANCED_METAL_STORAGE",
-		{ [SIDES.ARMADA] = "armuwadvms", [SIDES.CORTEX] = "coruwadvms", [SIDES.LEGION] = "coruwadvms" }
+		{ [SIDES.ARMADA] = "armuwadvms", [SIDES.CORTEX] = "coruwadvms", [SIDES.LEGION] = "legamstor" }
 	)
 
 	-- Energy buildings
@@ -100,19 +100,28 @@ function DefinitionsModule.defineUnitCategories()
 	DefCat("TIDAL", { [SIDES.ARMADA] = "armtide", [SIDES.CORTEX] = "cortide", [SIDES.LEGION] = "legtide" })
 	DefCat("FUSION", { [SIDES.ARMADA] = "armfus", [SIDES.CORTEX] = "corfus", [SIDES.LEGION] = "legfus" })
 	DefCat("ADVANCED_FUSION", { [SIDES.ARMADA] = "armafus", [SIDES.CORTEX] = "corafus", [SIDES.LEGION] = "legafus" })
-	DefCat("UW_FUSION", { [SIDES.ARMADA] = "armuwfus", [SIDES.CORTEX] = "coruwfus", [SIDES.LEGION] = "leguwfus" })
+	DefCat(
+		"UW_FUSION",
+		{ [SIDES.ARMADA] = "armuwfus", [SIDES.CORTEX] = "coruwfus", [SIDES.LEGION] = "leganavalfusion" }
+	)
 	DefCat("GEOTHERMAL", { [SIDES.ARMADA] = "armageo", [SIDES.CORTEX] = "corbhmth", [SIDES.LEGION] = "leggeo" })
-	DefCat("ADVANCED_GEO", { [SIDES.ARMADA] = "armgmm", [SIDES.CORTEX] = "corgmm", [SIDES.LEGION] = "leggmm" })
-	DefCat("UW_ADV_GEO", { [SIDES.ARMADA] = "armuwageo", [SIDES.CORTEX] = "coruwageo", [SIDES.LEGION] = "leguwageo" })
+	DefCat("ADVANCED_GEO", { [SIDES.ARMADA] = "armgmm", [SIDES.CORTEX] = "corgmm" })
+	DefCat(
+		"UW_ADV_GEO",
+		{ [SIDES.ARMADA] = "armuwageo", [SIDES.CORTEX] = "coruwageo", [SIDES.LEGION] = "leganavaladvgeo" }
+	)
 	DefCat("ENERGY_STORAGE", { [SIDES.ARMADA] = "armestor", [SIDES.CORTEX] = "corestor", [SIDES.LEGION] = "legestor" })
 	DefCat(
 		"ADVANCED_ENERGY_STORAGE",
 		{ [SIDES.ARMADA] = "armuwadves", [SIDES.CORTEX] = "coradvestore", [SIDES.LEGION] = "legadvestore" }
 	)
-	DefCat("UW_ENERGY_STORAGE", { [SIDES.ARMADA] = "armuwes", [SIDES.CORTEX] = "coruwes", [SIDES.LEGION] = "leguwes" })
+	DefCat(
+		"UW_ENERGY_STORAGE",
+		{ [SIDES.ARMADA] = "armuwes", [SIDES.CORTEX] = "coruwes", [SIDES.LEGION] = "leguwestore" }
+	)
 	DefCat(
 		"UW_ADVANCED_ENERGY_STORAGE",
-		{ [SIDES.ARMADA] = "armuwadves", [SIDES.CORTEX] = "coruwadves", [SIDES.LEGION] = "coruwadves" }
+		{ [SIDES.ARMADA] = "armuwadves", [SIDES.CORTEX] = "coruwadves", [SIDES.LEGION] = "legadvestore" }
 	)
 
 	-- Factory buildings
@@ -123,8 +132,11 @@ function DefinitionsModule.defineUnitCategories()
 		"ADVANCED_AIRCRAFT_PLANT",
 		{ [SIDES.ARMADA] = "armaap", [SIDES.CORTEX] = "coraap", [SIDES.LEGION] = "legaap" }
 	)
-	DefCat("SHIPYARD", { [SIDES.ARMADA] = "armsy", [SIDES.CORTEX] = "corsy", [SIDES.LEGION] = "corsy" })
-	DefCat("ADVANCED_SHIPYARD", { [SIDES.ARMADA] = "armasy", [SIDES.CORTEX] = "corasy", [SIDES.LEGION] = "legasy" })
+	DefCat("SHIPYARD", { [SIDES.ARMADA] = "armsy", [SIDES.CORTEX] = "corsy", [SIDES.LEGION] = "legsy" })
+	DefCat(
+		"ADVANCED_SHIPYARD",
+		{ [SIDES.ARMADA] = "armasy", [SIDES.CORTEX] = "corasy", [SIDES.LEGION] = "legadvshipyard" }
+	)
 	DefCat("HOVER_PLATFORM", { [SIDES.ARMADA] = "armhp", [SIDES.CORTEX] = "corhp", [SIDES.LEGION] = "leghp" })
 	DefCat(
 		"AMPHIBIOUS_COMPLEX",
@@ -161,7 +173,7 @@ function DefinitionsModule.defineUnitCategories()
 	)
 	DefCat(
 		"FLOATING_HEAVY_LASER",
-		{ [SIDES.ARMADA] = "armfhlt", [SIDES.CORTEX] = "corfhlt", [SIDES.LEGION] = "legfhlt" }
+		{ [SIDES.ARMADA] = "armfhlt", [SIDES.CORTEX] = "corfhlt", [SIDES.LEGION] = "legfhive" }
 	)
 	DefCat("FLOATING_MISSILE", { [SIDES.ARMADA] = "armfrt", [SIDES.CORTEX] = "corfrt", [SIDES.LEGION] = "legfrl" })
 	DefCat(
@@ -169,8 +181,11 @@ function DefinitionsModule.defineUnitCategories()
 		{ [SIDES.ARMADA] = "armmercury", [SIDES.CORTEX] = "corscreamer", [SIDES.LEGION] = "leglraa" }
 	)
 	DefCat("TORPEDO", { [SIDES.ARMADA] = "armdl", [SIDES.CORTEX] = "cordl", [SIDES.LEGION] = "legctl" })
-	DefCat("ADV_TORPEDO", { [SIDES.ARMADA] = "armatl", [SIDES.CORTEX] = "coratl", [SIDES.LEGION] = "legatl" })
-	DefCat("OFFSHORE_TORPEDO", { [SIDES.ARMADA] = "armptl", [SIDES.CORTEX] = "corptl", [SIDES.LEGION] = "legptl" })
+	DefCat(
+		"ADV_TORPEDO",
+		{ [SIDES.ARMADA] = "armatl", [SIDES.CORTEX] = "coratl", [SIDES.LEGION] = "leganavaltorpturret" }
+	)
+	DefCat("OFFSHORE_TORPEDO", { [SIDES.ARMADA] = "armptl", [SIDES.CORTEX] = "corptl" })
 	DefCat("ARTILLERY", { [SIDES.ARMADA] = "armguard", [SIDES.CORTEX] = "corpun", [SIDES.LEGION] = "legcluster" })
 	DefCat(
 		"LONG_RANGE_PLASMA_CANNON",
@@ -207,8 +222,11 @@ function DefinitionsModule.defineUnitCategories()
 	DefCat("ADV_RADAR", { [SIDES.ARMADA] = "armarad", [SIDES.CORTEX] = "corarad", [SIDES.LEGION] = "legarad" })
 	DefCat("JAMMER", { [SIDES.ARMADA] = "armjamt", [SIDES.CORTEX] = "corjamt", [SIDES.LEGION] = "legjam" })
 	DefCat("ADVANCED_JAMMER", { [SIDES.ARMADA] = "armveil", [SIDES.CORTEX] = "corshroud", [SIDES.LEGION] = "legajam" })
-	DefCat("SONAR", { [SIDES.ARMADA] = "armsonar", [SIDES.CORTEX] = "corsonar", [SIDES.LEGION] = "legsonar" })
-	DefCat("ADV_SONAR", { [SIDES.ARMADA] = "armason", [SIDES.CORTEX] = "corason", [SIDES.LEGION] = "legason" })
+	DefCat("SONAR", { [SIDES.ARMADA] = "armsonar", [SIDES.CORTEX] = "corsonar" })
+	DefCat(
+		"ADV_SONAR",
+		{ [SIDES.ARMADA] = "armason", [SIDES.CORTEX] = "corason", [SIDES.LEGION] = "leganavalsonarstation" }
+	)
 	DefCat("CAMERA", { [SIDES.ARMADA] = "armeyes", [SIDES.CORTEX] = "coreyes", [SIDES.LEGION] = "legeyes" })
 	DefCat("NUKE", { [SIDES.ARMADA] = "armsilo", [SIDES.CORTEX] = "corsilo", [SIDES.LEGION] = "legsilo" })
 	DefCat("ANTINUKE", { [SIDES.ARMADA] = "armamd", [SIDES.CORTEX] = "corfmd", [SIDES.LEGION] = "legabm" })
@@ -235,7 +253,7 @@ function DefinitionsModule.defineUnitCategories()
 	DefCat("FLOATING_RADAR_PG", { [SIDES.ARMADA] = "armfrad", [SIDES.CORTEX] = "corfrad", [SIDES.LEGION] = "legfrad" })
 	DefCat(
 		"FLOATING_CONVERTER_PG",
-		{ [SIDES.ARMADA] = "armfmkr", [SIDES.CORTEX] = "corfmkr", [SIDES.LEGION] = "legfmkr" }
+		{ [SIDES.ARMADA] = "armfmkr", [SIDES.CORTEX] = "corfmkr", [SIDES.LEGION] = "legfeconv" }
 	)
 	DefCat(
 		"FLOATING_DRAGONSTEETH_PG",

@@ -16,6 +16,7 @@ end
 local unitdefConfigNames = {
 	armdecom = false,
 	cordecom = false,
+	legdecom = false,
 	armferret = false,
 	armamb = false,
 	armpb = false,

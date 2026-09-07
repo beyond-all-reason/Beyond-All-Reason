@@ -42,7 +42,8 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Defenses",
+			unitgroup = "util",
 		},
 		featuredefs = {
 			rockteeth = {

@@ -97,7 +97,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			subfolder = "Legion/Other/Commanders",
 			tombstone = "legstone",
 			shield_color_mult = 0.8,
 			shield_power = 1900,

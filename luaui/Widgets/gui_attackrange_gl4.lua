@@ -343,6 +343,10 @@ local function initializeUnitDefRing(unitDefID)
 				or weaponDef.customParams.norangering
 			then
 				range = 0
+			elseif weaponDef.customParams.carried_unit then
+				-- The controller's own range is tuned for how close the carrier itself
+				-- closes in; how far the drones will engage is engagementrange.
+				range = tonumber(weaponDef.customParams.engagementrange) or range
 			end
 			--spEcho("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
@@ -654,6 +658,11 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			if true then --range > 0 then -- trying something different
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
+				elseif weaponDef.customParams.carried_unit then
+					-- Drone controllers are dummy cannons that never fire. Their envelope is
+					-- a flat circle, so drawing them ballistically makes the ring bulge and
+					-- shrink over terrain that the drones ignore.
+					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				elseif weaponDef.type == "Cannon" then
 					-- if weaponDef.range < 700 then
 					-- 	entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"

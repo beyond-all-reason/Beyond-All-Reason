@@ -40,7 +40,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "CorAircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		sounds = {
