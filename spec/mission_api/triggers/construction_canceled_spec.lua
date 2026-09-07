@@ -1,13 +1,17 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and then Spring.GetUnitIsBeingBuilt / UnitDefs inside its handler.
 -- The builder is resolved inside the handler by the gadget via context.IsBuildFrameOwner.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+Builders.MissionApi.new():Install()
 
-_G.UnitDefs = { [1] = { name = "armsolar" }, [2] = { name = "armwin" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armsolar" },
+	[2] = { name = "armwin" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 local constructionCanceled = VFS.Include("luarules/mission_api/triggers/construction_canceled.lua")
 local onMetaUnitRemoved = constructionCanceled.callins.MetaUnitRemoved
@@ -21,28 +25,12 @@ describe("mission_api.triggers.construction_canceled", function()
 	end)
 
 	local function trigger(parameters)
-		return { parameters = parameters or {}, settings = {} }
+		return Builders.Trigger.new():WithParameters(parameters):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			DoesUnitHaveName = function()
-				return true
-			end,
-			IsBuildFrameOwner = function()
-				return true
-			end,
-			InFactory = function()
-				return false
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	local triggerID = "t"

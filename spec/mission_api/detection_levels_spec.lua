@@ -1,16 +1,16 @@
 require("spec_helper")
 require("mission_api.spec_helper")
 
--- detection_levels reads the shared SeismicContacts module at load, so it is stubbed first.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
+local Builders = VFS.Include("spec/builders/index.lua")
 
+-- detection_levels reads the shared SeismicContacts module at load, so it is stubbed first.
 local seismicContacts = {}
-GG["MissionAPI"].Modules.SeismicContacts = {
+local seismicContactsModule = {
 	IsContact = function(unitID, allyTeamID)
 		return seismicContacts[allyTeamID] ~= nil and seismicContacts[allyTeamID][unitID] == true
 	end,
 }
+Builders.MissionApi.new():WithModule("SeismicContacts", seismicContactsModule):Install()
 
 -- LosMask bits, as the engine reports them through Spring.GetUnitLosState(_, _, true).
 local INLOS, INRADAR, PREVLOS, CONTRADAR = 1, 2, 4, 8
@@ -139,22 +139,13 @@ describe("mission_api.detection_levels", function()
 	describe("the latch", function()
 		local FIRES_ON_DETECTED, FIRES_ON_UNDETECTED = true, false
 
-		local fired
 		local context
 		local trigger
 
 		before_each(function()
-			fired = 0
 			-- Fresh per test: the compiled level mask caches onto the trigger it belongs to.
-			trigger = { parameters = {}, _settings = {} }
-			context = {
-				ActivateTrigger = function()
-					fired = fired + 1
-				end,
-				DoesUnitHaveName = function()
-					return true
-				end,
-			}
+			trigger = Builders.Trigger.new():Build()
+			context = Builders.TriggerContext.new():Build()
 			Spring.GetUnitIsDead = function()
 				return false
 			end
@@ -178,39 +169,39 @@ describe("mission_api.detection_levels", function()
 			sweep(onDetected, { [100] = true })
 			sweep(onDetected, { [100] = true })
 			sweep(onDetected, { [100] = true })
-			assert.are.equal(1, fired)
+			assert.are.equal(1, context.timesFired())
 		end)
 
 		it("reports a fall once, and rearms for the next rise", function()
 			local onUndetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesAnything)
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onUndetected, { [100] = true }) -- rises, which this trigger does not report
-			assert.are.equal(0, fired)
+			assert.are.equal(0, context.timesFired())
 
 			losStatusByAllyTeam[0] = nil
 			sweep(onUndetected, { [100] = true })
 			sweep(onUndetected, { [100] = true })
-			assert.are.equal(1, fired)
+			assert.are.equal(1, context.timesFired())
 
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onUndetected, { [100] = true }) -- rearmed: rises again, still unreported
 			losStatusByAllyTeam[0] = nil
 			sweep(onUndetected, { [100] = true })
-			assert.are.equal(2, fired)
+			assert.are.equal(2, context.timesFired())
 		end)
 
 		it("does not report a fall for a unit that never rose", function()
 			local onUndetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesAnything)
 			sweep(onUndetected, { [100] = true })
 			sweep(onUndetected, { [100] = true })
-			assert.are.equal(0, fired)
+			assert.are.equal(0, context.timesFired())
 		end)
 
 		it("holds each unit's edges apart", function()
 			local onDetected = DetectionLevels.NewDetectionUpdate(FIRES_ON_DETECTED, matchesAnything)
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onDetected, { [100] = true, [101] = true })
-			assert.are.equal(2, fired)
+			assert.are.equal(2, context.timesFired())
 		end)
 
 		it("does not report a unit that was dead when its level changed", function()
@@ -220,7 +211,7 @@ describe("mission_api.detection_levels", function()
 			end
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onDetected, { [100] = true })
-			assert.are.equal(0, fired)
+			assert.are.equal(0, context.timesFired())
 		end)
 
 		it("does not report a unit its own filters reject", function()
@@ -229,7 +220,7 @@ describe("mission_api.detection_levels", function()
 			end)
 			losStatusByAllyTeam[0] = INLOS
 			sweep(onDetected, { [100] = true })
-			assert.are.equal(0, fired)
+			assert.are.equal(0, context.timesFired())
 		end)
 
 		it("forgets a unit without reporting, since death is not a loss of detection", function()
@@ -239,7 +230,7 @@ describe("mission_api.detection_levels", function()
 			DetectionLevels.Clear(triggerID, 100) -- called in UnitDestroyed
 			losStatusByAllyTeam[0] = nil
 			sweep(onUndetected, { [100] = true })
-			assert.are.equal(0, fired)
+			assert.are.equal(0, context.timesFired())
 		end)
 	end)
 
@@ -252,12 +243,7 @@ describe("mission_api.detection_levels", function()
 		local losStateReads
 
 		before_each(function()
-			context = {
-				ActivateTrigger = function() end,
-				DoesUnitHaveName = function()
-					return true
-				end,
-			}
+			context = Builders.TriggerContext.new():Build()
 			Spring.GetUnitIsDead = function()
 				return false
 			end
@@ -278,7 +264,7 @@ describe("mission_api.detection_levels", function()
 		end
 
 		local function newTrigger(parameters)
-			return { parameters = parameters or {}, settings = {} }
+			return Builders.Trigger.new():WithParameters(parameters):Build()
 		end
 
 		-- The layout is two playing allyTeams, so an unseen unit costs one read of each.

@@ -1,23 +1,28 @@
 require("spec_helper")
 require("mission_api.spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
+
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
 -- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
 -- reads UnitDefs and Spring's unit and LOS state.
-GG["MissionAPI"] = GG["MissionAPI"] or {}
-GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-GG["MissionAPI"].Modules.SeismicContacts = GG["MissionAPI"].Modules.SeismicContacts
-	or {
-		IsContact = function()
-			return false
-		end,
-	}
+-- Nothing here is a seismic contact; the tests drive detection through LOS state.
+local seismicContacts = {
+	IsContact = function()
+		return false
+	end,
+}
+Builders.MissionApi.new():WithModule("SeismicContacts", seismicContacts):Install()
 
-_G.UnitDefs = { [1] = { name = "armpw" }, [2] = { name = "corfast" } }
+local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+	[1] = { name = "armpw" },
+	[2] = { name = "corfast" },
+})
+_G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
-local DetectionLevels = GG["MissionAPI"].Modules.DetectionLevels
+-- detection_levels reads the modules installed above at its own load, so it joins them after.
+local DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+GG["MissionAPI"].Modules.DetectionLevels = DetectionLevels
 
 local unitUndetected = VFS.Include("luarules/mission_api/triggers/unit_undetected.lua")
 local onDetectionUpdate = unitUndetected.callins.DetectionUpdate -- an artificial callin
@@ -70,22 +75,12 @@ describe("mission_api.triggers.unit_undetected", function()
 	end
 
 	local function trigger(parameters, settings)
-		return { parameters = parameters or {}, settings = settings or {} }
+		return Builders.Trigger.new():WithParameters(parameters):WithSettings(settings):Build()
 	end
 
 	local function newContext()
-		local fired = 0
-		local context = {
-			ActivateTrigger = function()
-				fired = fired + 1
-			end,
-			DoesUnitHaveName = function()
-				return true
-			end,
-		}
-		return context, function()
-			return fired
-		end
+		local context = Builders.TriggerContext.new():Build()
+		return context, context.timesFired
 	end
 
 	---Runs one detection sweep over the given units, which is what the gadget raises per frame.

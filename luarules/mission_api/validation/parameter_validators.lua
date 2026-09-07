@@ -175,8 +175,11 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	)
 
+	-- Names of runtime-created entities: existence can't be checked at load time,
+	-- only cross-referenced (see references.lua) and guarded at runtime.
 	parameterValidators[Types.UnitName] = validateString
 	parameterValidators[Types.FeatureName] = validateString
+	parameterValidators[Types.CountdownID] = validateString
 
 	--- List validators, checking each element with its own type's validator:
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])

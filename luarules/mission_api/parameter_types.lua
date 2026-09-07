@@ -23,6 +23,7 @@ local types = {
 	String = "String",
 	StageID = "StageID",
 	ObjectiveID = "ObjectiveID",
+	CountdownID = "CountdownID",
 	TriggerID = "TriggerID",
 	UnitName = "UnitName",
 	FeatureName = "FeatureName",

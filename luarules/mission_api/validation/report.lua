@@ -12,6 +12,17 @@ local sections = {
 	References = 6,
 }
 
+--- A total order, so entries of the same entity keep the order they were reported in.
+local function isBefore(a, b)
+	if a.section ~= b.section then
+		return a.section < b.section
+	end
+	if a.id ~= b.id then
+		return a.id < b.id
+	end
+	return a.sequence < b.sequence
+end
+
 local function formatMessage(entry)
 	if entry.id == "" then
 		-- A mission wide message, e.g. one about the mission's stages as a whole.
@@ -23,7 +34,7 @@ local function formatMessage(entry)
 end
 
 local function toMessages(entries)
-	table.sortStable(entries)
+	table.sortStable(entries, isBefore)
 
 	local messages = {}
 	for i, entry in ipairs(entries) do
