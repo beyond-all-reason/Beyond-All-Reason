@@ -62,6 +62,16 @@ local function activateEventTrigger(triggerID)
 	GG["MissionAPI"].ActivateTrigger(GG["MissionAPI"].Triggers[triggerID])
 end
 
+--- Run the stage's exit routes for an objective that has completed or failed.
+--- This runs in a fixed order: the objective's event trigger, then nextStage.
+local function runExitRoutes(objective, eventTriggerID)
+	local stageChangesBefore = stageChanges
+	activateEventTrigger(eventTriggerID)
+	if stageChanges == stageChangesBefore then
+		tryAdvanceStage(objective)
+	end
+end
+
 local function failObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
 	if objective.completed then
@@ -72,16 +82,6 @@ local function failObjective(objectiveID)
 	objective.failed = true
 	runExitRoutes(objective, objective.onFailed)
 	echoObjectiveUpdate(objectiveID, objective)
-end
-
---- Run the stage's exit routes for an objective that has completed or failed.
---- This runs in a fixed order: the objective's event trigger, then nextStage.
-local function runExitRoutes(objective, eventTriggerID)
-	local stageChangesBefore = stageChanges
-	activateEventTrigger(eventTriggerID)
-	if stageChanges == stageChangesBefore then
-		tryAdvanceStage(objective)
-	end
 end
 
 local function onObjectiveCompleted(objective)
