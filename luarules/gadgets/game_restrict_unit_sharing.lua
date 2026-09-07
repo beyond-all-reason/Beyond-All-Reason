@@ -56,7 +56,6 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
 	if builderUnits[unitDefID] then
-		local unitDef = UnitDefs[unitDefID]
 		local startFrame = Spring.GetGameFrame()
 		local expireFrame = startFrame + DEBUFF_FRAMES
 		debuffedUnits[unitID] = {

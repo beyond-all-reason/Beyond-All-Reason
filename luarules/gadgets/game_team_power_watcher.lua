@@ -48,7 +48,6 @@ local powerThresholds = {
 	{ techLevel = 4.5, threshold = 725000 },
 }
 
-local pveTeamID = scavengerTeam or raptorTeam
 for _, teamID in ipairs(teamList) do
 	local allyID = select(6, Spring.GetTeamInfo(teamID))
 	if teamID ~= scavengerTeam and teamID ~= raptorTeam and select(4, Spring.GetTeamInfo(teamID, false)) then

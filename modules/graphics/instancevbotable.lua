@@ -1725,8 +1725,6 @@ local function MakeTexRectVAO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, na
 	end
 
 	--rectVBO:Define(	6,	{{id = 0, name = "position_xy_uv", size = 8}})
-	local z = 0.5
-	local w = 1
 	rectVBO:Define(6, { { id = 0, name = "pos", size = 4 } })
 	rectVBO:Upload({
 

@@ -59,18 +59,13 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spSetHeightMapFunc = Spring.SetHeightMapFunc
 local spLevelHeightMap = Spring.LevelHeightMap
 local spSetMetalAmount = Spring.SetMetalAmount
-local spGetMetalAmount = Spring.GetMetalAmount
 local spCreateFeature = Spring.CreateFeature
 local spDestroyFeature = Spring.DestroyFeature
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureHeading = Spring.GetFeatureHeading
 local spEcho = Spring.Echo
 local SendToUnsynced = SendToUnsynced
 
 local min = math.min
-local max = math.max
 local floor = math.floor
 local tonumber = tonumber
 
@@ -81,7 +76,6 @@ local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0
 local MAX_UNDO = 100
-local MAX_SNAPSHOT_VERTICES = 4000000
 
 -- ---------------------------------------------------------------------------
 -- Height map application (same pattern as terraform brush)

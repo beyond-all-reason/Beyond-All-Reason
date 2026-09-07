@@ -2,9 +2,11 @@ local function experimentalExtraUnits(name, unitDef)
 	local buildoptions = unitDef.buildoptions
 
 	-- Armada T1 Land Constructors
+	--[[
 	if name == "armca" or name == "armck" or name == "armcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T1 Sea Constructors
 	if name == "armcs" or name == "armcsa" then
@@ -64,9 +66,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T1 Land Constructors
+	--[[
 	if name == "corca" or name == "corck" or name == "corcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T1 Sea Constructors
 	if name == "corcs" or name == "corcsa" then
@@ -76,9 +80,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T1 Bots Factory
+	--[[
 	if name == "corlab" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Land Constructors
 	if name == "coraca" or name == "corack" or name == "coracv" then
@@ -113,9 +119,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T2 Aircraft Plant
+	--[[
 	if name == "coraap" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Shipyard
 	if name == "corasy" then
@@ -139,9 +147,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Legion T1 Land Constructors
+	--[[
 	if name == "legca" or name == "legck" or name == "legcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca" or name == "legack" or name == "legacv" then

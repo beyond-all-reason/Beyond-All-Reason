@@ -413,8 +413,7 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
 	return true -- nothing failed, so it's good.
 end
 
-local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true then position is within Scavengers spawn area.
-	local posradius = posradius or 1000
+local function ScavengerSpawnAreaCheck(posx, posy, posz, _posradius) -- if true then position is within Scavengers spawn area.
 	if scavengerAllyTeamID then
 		local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
 		if scavTechPercentage then
@@ -466,8 +465,7 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
 	end
 end
 
-local function LavaCheck(posx, posy, posz, posradius) -- Returns false if area is in lava
-	local posradius = posradius or 1000
+local function LavaCheck(posx, posy, posz, _posradius) -- Returns false if area is in lava
 	local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 	if lavaLevel and posy <= lavaLevel then
 		return false
