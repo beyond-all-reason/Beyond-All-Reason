@@ -24,15 +24,7 @@ local isExplicitConfig = false
 
 function gadget:Initialize()
 	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-	local ParseBoxes = StartboxLib.ParseBoxes
-	local ok, config, source, isExplicit = pcall(ParseBoxes)
-	if ok then
-		startBoxConfig = config
-		configSource = source
-		isExplicitConfig = isExplicit
-	else
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Failed to parse startbox config: " .. tostring(config))
-	end
+	startBoxConfig, configSource, isExplicitConfig = StartboxLib.GetConfig()
 
 	-- Expand the engine AABB for each active allyTeam to cover the polygon bounds.
 	-- Without this, the engine silently drops clicks outside its default AABB and never

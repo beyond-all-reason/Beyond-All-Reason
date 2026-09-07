@@ -131,6 +131,43 @@ function M.attach(doc, ctx)
 			end, false)
 		end
 	end
+	-- FLIP: per-texture normal G toggle, straight through to the tileset shader
+	-- (asset-keyed there, so re-picking the same texture into another slot keeps
+	-- the flag). ONE button acting on the SELECTED slot (BASE = slot 0, whose
+	-- texture is every empty slot's fallback): a FLIP on every tile left
+	-- PICK / FLIP / X too cramped to hit.
+	local function selectedSurfAsset()
+		local sp = WG.SurfacePainter
+		local st = sp and sp.getState and sp.getState()
+		if not st then
+			return nil
+		end
+		local sel = st.selSlot or 0
+		if sel == 0 then
+			local T = WG.TilesetTerrain
+			local list = T and T.getSurfaceVariants and T.getSurfaceVariants()
+			return list and list[1] and list[1].asset
+		end
+		return st["slot" .. sel]
+	end
+	widgetState.surfSelectedAsset = selectedSurfAsset
+	widgetState.surfFlipSelEl = doc:GetElementById("surf-flip-sel")
+	if widgetState.surfFlipSelEl then
+		widgetState.surfFlipSelEl:AddEventListener("mousedown", function(event)
+			---@type table?
+			local T = WG.TilesetTerrain
+			local asset = (T and T.setNormalFlip) and selectedSurfAsset() or nil
+			if asset and T then
+				local on = not T.getNormalFlip(asset)
+				T.setNormalFlip(asset, on)
+				widgetState.surfFlipSelEl:SetClass("active", on)
+				ctx.playSound(on and "toggleOn" or "toggleOff")
+			else
+				ctx.playSound("click") -- selected slot has no texture to flip
+			end
+			event:StopPropagation()
+		end, false)
+	end
 	local closeBtn = doc:GetElementById("surf-picker-close")
 	if closeBtn then
 		closeBtn:AddEventListener("mousedown", function(event)
@@ -573,12 +610,23 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- Palette rebuild on biome / list / selection / slot / picker-target change.
 	-- Per-slot picking replaced the old "first free slot" assignment, so there
 	-- is no unassignable state left to dim for.
+	---@type table?
 	local T = WG.TilesetTerrain
 	local list, bkey = nil, nil
 	if T and T.getSurfaceVariants then
 		list, bkey = T.getSurfaceVariants()
 	end
 	local pickSlot = widgetState.surfPickerSlot
+	-- The painter's coverage histogram is a gl.ReadPixels (a GPU sync) and its
+	-- only reader here is the picker's "already carries paint" warning, so the
+	-- painter computes it only while a picker is open (gated readback).
+	do
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.setCoverageWanted then
+			sp.setCoverageWanted(pickSlot ~= nil)
+		end
+	end
 	if list then
 		local sig = paletteSig(list, bkey, surfState, pickSlot)
 		if sig ~= widgetState.surfPaletteSig then
@@ -643,6 +691,16 @@ function M.sync(doc, ctx, surfState, setSummary)
 		if asset and fill then
 			canFill = true
 		end
+	end
+	-- The single FLIP button mirrors the SELECTED slot's flag (BASE included)
+	if widgetState.surfFlipSelEl then
+		local selAsset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		local fl = false
+		if selAsset and T and T.getNormalFlip then
+			fl = T.getNormalFlip(selAsset)
+		end
+		widgetState.surfFlipSelEl:SetClass("active", fl)
+		widgetState.surfFlipSelEl:SetClass("unavailable", selAsset == nil)
 	end
 	setDm("surfCanFill", canFill)
 	setDm("surfPickSlot", pickSlot or 0)

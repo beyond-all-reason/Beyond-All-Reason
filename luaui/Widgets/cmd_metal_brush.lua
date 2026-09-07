@@ -54,7 +54,6 @@ local cos = math.cos
 local sin = math.sin
 local abs = math.abs
 local pi = math.pi
-local sqrt = math.sqrt
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -794,13 +793,6 @@ local function commitCurrentLasso()
 	lassoPoints = {}
 end
 
--- Refresh every committed lasso's total (call after the spot cache changes).
-local function recomputeAllLassoTotals()
-	for i = 1, #lassos do
-		lassos[i].total = computePointsSum(lassos[i].points)
-	end
-end
-
 local function buildOverlayList()
 	ensureSpotCache()
 	if spotsCacheDirty then
@@ -1089,10 +1081,6 @@ local function recomputeBalanceAxisSums()
 	balanceAxisSumA = a * 0.001
 	balanceAxisSumB = b * 0.001
 	balanceAxisSumsDirty = false
-end
-
-local function invalidateBalanceAxisSums()
-	balanceAxisSumsDirty = true
 end
 
 -- Extend cache invalidator so map-edits refresh axis sums too.

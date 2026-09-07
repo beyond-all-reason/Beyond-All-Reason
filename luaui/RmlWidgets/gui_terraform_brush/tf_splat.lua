@@ -65,7 +65,6 @@ function M.sync(doc, ctx, spState, setSummary)
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
 	local getCachedEl = ctx.getCachedEl
-	local cadenceToSlider = ctx.cadenceToSlider
 	local shapeNames = ctx.shapeNames
 	-- ===== Splat Painter mode: update splat controls =====
 	-- btn-splat active state driven by data-class-active="activeTool == 'sp'" in RML.

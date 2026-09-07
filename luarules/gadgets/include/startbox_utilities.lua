@@ -331,7 +331,7 @@ local cachedConfig, cachedSource, cachedExplicit
 local haveParsed = false
 
 -- Modoptions and the allyteam list are both fixed for the life of the game, so the parse
--- happens once however many callers ask for it.
+-- happens once per file that includes this one.
 local function GetConfig()
 	if not haveParsed then
 		haveParsed = true
@@ -501,8 +501,7 @@ local function ClosestPos(allyTeamID, x, z)
 	return bestX, bestZ
 end
 
--- Callable as well as indexable: some callers include this file and call the result as the parser.
-return setmetatable({
+return {
 	ParseBoxes = ParseBoxes,
 	GetConfig = GetConfig,
 	GetBounds = GetBounds,
@@ -511,8 +510,4 @@ return setmetatable({
 	IsInside = IsInside,
 	GetRandomPos = GetRandomPos,
 	ClosestPos = ClosestPos,
-}, {
-	__call = function(_, ...)
-		return ParseBoxes(...)
-	end,
-})
+}

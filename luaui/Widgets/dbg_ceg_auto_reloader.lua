@@ -39,8 +39,6 @@ local mouseOffscreen = select(6, spGetMouseState())
 -- except:
 -- Print syntax error
 
-local cegLibrary = {} --maps cegname to cegdef
-local cegFileNames = {} -- maps cegname to filename
 local projectileTexures = {} -- maps texture name to filename
 
 local spawnerDefs = {
@@ -318,10 +316,6 @@ local function isFloat3(value)
 		return true
 	end
 	return parseCEGExpression(value, 3)
-end
-
-local function isFloat4(value)
-	return parseCEGExpression(value, 4)
 end
 
 -- TODO FIXME:
@@ -899,51 +893,6 @@ local function validateCEG(cegTable, cegName)
 	return true
 end
 
-local function AreIntegers(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "number" or k % 1 ~= 0 then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreBooleans(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "boolean" and k ~= 1 and k ~= 0 then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreStrings(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "string" then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreColorMaps(t)
-	for k, v in pairs(t) do
-		if not isColorMapValid(k) then
-			return false
-		end
-	end
-	return true
-end
-
-local function AreNumbers(t)
-	for k, v in pairs(t) do
-		if type(k) ~= "number" then
-			return false
-		end
-	end
-	return true
-end
-
 local cegFileContents = {} -- maps filename to raw file contents
 local cegDefFiles = {} -- maps ceg definitions to filenames
 local cegDefs = {} -- maps ceg name to its full def
@@ -1069,12 +1018,9 @@ function widget:Update()
 	end
 	lastUpdate = Spring.GetTimer()
 
-	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())
 
-	--if not mouseOffscreen and prevMouseOffscreen then
 	ScanChanges()
-	--end
 
 	if spamCeg then
 		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")

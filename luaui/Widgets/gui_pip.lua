@@ -6116,7 +6116,6 @@ local function DrawProjectile(pID, pDefID)
 
 					-- Precompute zoom-dependent scaling
 					local zoomScale = math.max(0.5, cameraState.zoom / 70)
-					local baseOuterWidth = thickness * 9 * zoomScale * resScale
 					local baseInnerWidth = thickness * 2.2 * zoomScale * resScale
 
 					-- Draw segments
@@ -6792,8 +6791,7 @@ local function DrawLaserBeams()
 	-- Zoom-dependent beam width: scale down when zoomed out so beams don't dominate the view
 	-- At zoom 0.024 (full map): ~0.55, at zoom 0.1: ~0.85, at zoom 0.3+: ~1.0
 	local zoomScale = mMin(1.0, 0.4 + cameraState.zoom * 4)
-	local wcx_cached = cameraState.wcx -- Cache these for loop
-	local wcz_cached = cameraState.wcz
+	local wcz_cached = cameraState.wcz -- Cache for loop
 
 	-- Cache world boundaries for culling
 	local worldLeft = render.world.l
@@ -6822,8 +6820,7 @@ local function DrawLaserBeams()
 		elseif beamLosAlly and not spFunc.IsPosInLos(beam.ox, 0, beam.oz, beamLosAlly) then
 			i = i + 1
 		else
-			-- Check if beam is within visible world bounds (with small margin for beam thickness)
-			local margin = 50
+			-- Check if beam is within visible world bounds
 			local beamMinX, beamMaxX, beamMinZ, beamMaxZ
 			if beam.isLightning then
 				-- For lightning, check all segments
@@ -6854,6 +6851,7 @@ local function DrawLaserBeams()
 
 			-- Skip if beam is completely outside visible area
 			-- Check that at least one endpoint (origin OR target) overlaps the visible area
+			-- (with small margin for beam thickness)
 			local beamMargin = 200
 			if
 				beamMaxX < worldLeft - beamMargin
@@ -7387,7 +7385,6 @@ local function DrawExplosions()
 
 	local resScale = render.contentScale or 1
 	local i = 1
-	local wcx_cached = cameraState.wcx
 	local wcz_cached = cameraState.wcz
 
 	-- When LOS view is active, hide explosions outside the viewed allyteam's LOS
@@ -8048,77 +8045,6 @@ local function GetUnitsInBox(x1, y1, x2, y2)
 	return selectableUnits
 end
 
-local function UnitQueueVertices(uID)
-	-- Try cached waypoints first (populated by DrawCommandQueuesOverlay, ~1 frame old)
-	-- Avoids GetUnitCommands allocation (~60 tables per unit per call)
-	local cached = cmdQueueCache.waypoints[uID]
-	if cached and cached.n > 0 then
-		local ux, _, uz = spFunc.GetUnitPosition(uID)
-		if not ux then
-			return
-		end
-		local px, pz = WorldToPipCoords(ux, uz)
-		for i = 1, cached.n do
-			local wp = cached[i]
-			local nx, nz = WorldToPipCoords(wp[1], wp[2])
-			glFunc.Color(cmdColors[wp[3]] or cmdColors.unknown)
-			glFunc.Vertex(px, pz)
-			glFunc.Vertex(nx, nz)
-			px, pz = nx, nz
-		end
-		return
-	end
-
-	-- Fallback: fetch commands directly (first frame or uncached unit)
-	local uCmds = spFunc.GetUnitCommands(uID, 100)
-	if not uCmds or #uCmds == 0 then
-		return
-	end
-	local ux, uy, uz = spFunc.GetUnitPosition(uID)
-	local px, pz = WorldToPipCoords(ux, uz)
-	for i = 1, #uCmds do
-		local cmd = uCmds[i]
-		if (cmd.id < 0) or positionCmds[cmd.id] then
-			local cx, cy, cz
-			local paramCount = #cmd.params
-			if paramCount == 3 or cmd.id == 10 then -- with a little drag its 6
-				-- Regular positional command
-				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
-			elseif paramCount == 4 then
-				-- Area command: {x, y, z, radius} - use x and z
-				cx, cy, cz = cmd.params[1], cmd.params[2], cmd.params[3]
-			elseif paramCount == 5 then
-				-- 5 params could be: {targetID, x, y, z, radius} for set-target area commands
-				-- Check if first param is a valid unit/feature ID (large number)
-				if cmd.params[1] > 0 and cmd.params[1] < 1000000 then
-					-- It's a target ID command, get the target's position
-					if cmd.params[1] > Game.maxUnits then
-						cx, cy, cz = spFunc.GetFeaturePosition(cmd.params[1] - Game.maxUnits)
-					else
-						cx, cy, cz = spFunc.GetUnitPosition(cmd.params[1])
-					end
-				else
-					-- Treat as positional: use x, y, z from params 2, 3, 4
-					cx, cy, cz = cmd.params[2], cmd.params[3], cmd.params[4]
-				end
-			elseif paramCount == 1 then
-				if cmd.params[1] > Game.maxUnits then
-					cx, cy, cz = spFunc.GetFeaturePosition(cmd.params[1] - Game.maxUnits)
-				else
-					cx, cy, cz = spFunc.GetUnitPosition(cmd.params[1])
-				end
-			end
-			if cx then
-				local nx, nz = WorldToPipCoords(cx, cz)
-				glFunc.Color(cmdColors[cmd.id] or cmdColors.unknown)
-				glFunc.Vertex(px, pz)
-				glFunc.Vertex(nx, nz)
-				px, pz = nx, nz
-			end
-		end
-	end
-end
-
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
 	-- Reuse opts table
 	pools.cmdOpts.alt = alt
@@ -8166,11 +8092,6 @@ local function GetBuildingDimensions(uDefID, facing)
 	else
 		return 4 * bDef.xsize, 4 * bDef.zsize
 	end
-end
-
-local function DoBuildingsOverlap(x1, z1, x2, z2, width, height)
-	-- Check if two buildings with same dimensions would overlap
-	return math.abs(x1 - x2) < width and math.abs(z1 - z2) < height
 end
 
 local function FindMyCommander()
@@ -8269,7 +8190,6 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 		-- For diagonal lines, we need to find snap points that stay near the line
 		-- Search along the line with small steps and snap each point
 		local searchStep = buildWidth * 0.5 -- Small search increment
-		local lastPlacedDist = 0
 
 		for searchDist = searchStep, distance, searchStep do
 			local testX = sx + dirX * searchDist
@@ -8297,7 +8217,6 @@ local function CalculateBuildDragPositions(startWX, startWZ, endWX, endWZ, build
 
 				if not tooClose then
 					positions[#positions + 1] = { wx = snappedX, wz = snappedZ }
-					lastPlacedDist = searchDist
 				end
 			end
 		end
@@ -11500,174 +11419,6 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	tracy.ZoneEnd()
 end
 
--- Helper function to draw build preview for cursor
-local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
-	if mx < render.dim.l or mx > render.dim.r or my < render.dim.b or my > render.dim.t then
-		return
-	end
-
-	local _, activeCmdID = Spring.GetActiveCommand()
-
-	-- Exit early if no active command
-	if not activeCmdID then
-		return
-	end
-
-	-- Handle Area Mex command preview
-	if activeCmdID == CMD_AREA_MEX then
-		local wx, wz = PipToWorldCoords(mx, my)
-		local metalSpots = WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList
-		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
-
-		if metalSpots and not metalMap then
-			-- Draw circle showing area
-			local radius = 200
-			local segments = 32
-			glFunc.Color(1, 1, 0, 0.3)
-			glFunc.LineWidth(2)
-			glFunc.BeginEnd(glConst.LINE_LOOP, function()
-				for i = 0, segments do
-					local angle = (i / segments) * 2 * math.pi
-					local x = wx + radius * math.cos(angle)
-					local z = wz + radius * math.sin(angle)
-					local cx, cy = WorldToPipCoords(x, z)
-					glFunc.Vertex(cx, cy)
-				end
-			end)
-			glFunc.LineWidth(1)
-			glFunc.Color(1, 1, 1, 1)
-
-			-- Draw preview icons for all spots in area
-			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
-			if mexBuildings then
-				if not frameSel then
-					frameSel = Spring.GetSelectedUnits()
-				end
-				local selectedUnits = frameSel
-				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
-				local selectedMex = WG.resource_spot_builder
-					and WG.resource_spot_builder.GetBestExtractorFromBuilders(
-						selectedUnits,
-						mexConstructors,
-						mexBuildings
-					)
-
-				if selectedMex then
-					local buildIcon = cache.unitIcon[selectedMex]
-					if buildIcon then
-						local iconSize = iconRadiusZoomDistMult * buildIcon.size * 0.8
-						local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
-
-						for i = 1, #metalSpots do
-							local spot = metalSpots[i]
-							local dist = math.sqrt((spot.x - wx) ^ 2 + (spot.z - wz) ^ 2)
-							if dist < radius then
-								local cx, cy = WorldToPipCoords(spot.x, spot.z)
-								glFunc.Color(1, 1, 1, 0.3)
-								glFunc.Texture(buildIcon.bitmap)
-								if mapRotDeg ~= 0 then
-									glFunc.PushMatrix()
-									glFunc.Translate(cx, cy, 0)
-									glFunc.Rotate(mapRotDeg, 0, 0, 1)
-									glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
-									glFunc.PopMatrix()
-								else
-									glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
-								end
-							end
-						end
-						glFunc.Texture(false)
-					end
-				end
-			end
-		end
-	-- Handle regular build command preview
-	elseif activeCmdID and activeCmdID < 0 and not interactionState.areBuildDragging then
-		local buildDefID = -activeCmdID
-		local wx, wz = PipToWorldCoords(mx, my)
-		local wy = spFunc.GetGroundHeight(wx, wz)
-
-		-- Check if this is a mex/geo that needs spot snapping
-		local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
-		local geoBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetGeoBuildings()
-		local isMex = mexBuildings and mexBuildings[buildDefID]
-		local isGeo = geoBuildings and geoBuildings[buildDefID]
-		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
-
-		if isMex and not metalMap and WG.resource_spot_finder and WG.resource_spot_builder then
-			local metalSpots = WG.resource_spot_finder.metalSpotsList
-			local nearestSpot =
-				WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
-			if nearestSpot then
-				wx, wz = nearestSpot.x, nearestSpot.z
-				wy = nearestSpot.y
-			end
-		elseif isGeo and WG.resource_spot_finder and WG.resource_spot_builder then
-			local geoSpots = WG.resource_spot_finder.geoSpotsList
-			local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
-			if nearestSpot then
-				wx, wz = nearestSpot.x, nearestSpot.z
-				wy = nearestSpot.y
-			end
-		else
-			-- Regular building - snap to building grid
-			local buildDef = UnitDefs[buildDefID]
-			if buildDef then
-				local gridSize = 16
-				wx = math.floor(wx / gridSize + 0.5) * gridSize
-				wz = math.floor(wz / gridSize + 0.5) * gridSize
-			end
-		end
-
-		local buildIcon = cache.unitIcon[buildDefID]
-		if buildIcon then
-			local iconSize = iconRadiusZoomDistMult * buildIcon.size
-			local cx, cy = WorldToPipCoords(wx, wz)
-			local buildFacing = Spring.GetBuildFacing()
-			local canBuild = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
-
-			if canBuild == 2 then
-				glFunc.Color(1, 1, 1, 0.5)
-			elseif canBuild == 1 then
-				local blockedByMobile = false
-				local nearbyUnits = Spring.GetUnitsInCylinder(wx, wz, 64)
-				if nearbyUnits then
-					for _, unitID in ipairs(nearbyUnits) do
-						local unitDefID = spFunc.GetUnitDefID(unitID)
-						if unitDefID and cache.canMove[unitDefID] and not cache.isBuilding[unitDefID] then
-							blockedByMobile = true
-							break
-						end
-					end
-				end
-				if blockedByMobile then
-					glFunc.Color(1, 1, 1, 0.5)
-				else
-					glFunc.Color(1, 1, 0, 0.5)
-				end
-			else
-				glFunc.Color(1, 0, 0, 0.5)
-			end
-
-			glFunc.Texture(buildIcon.bitmap)
-
-			-- Counter-rotate by minimap rotation to stay upright like GL4 icons
-			local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
-			if mapRotDeg ~= 0 then
-				glFunc.PushMatrix()
-				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(mapRotDeg, 0, 0, 1)
-				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
-				glFunc.PopMatrix()
-			else
-				glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
-			end
-
-			glFunc.Texture(false)
-		end
-	end
-end
-
 -- Helper function to draw build drag preview ghosts
 local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 	if not interactionState.areBuildDragging or #interactionState.buildDragPositions == 0 then
@@ -11686,9 +11437,9 @@ local function DrawBuildDragPreview(iconRadiusZoomDistMult)
 	end
 
 	local buildFacing = Spring.GetBuildFacing()
-	local buildWidth, buildHeight = GetBuildingDimensions(buildDefID, buildFacing)
-	local centerX, centerY = WorldToPipCoords(0, 0)
-	local edgeX, edgeY = WorldToPipCoords(buildWidth, 0)
+	local buildWidth = GetBuildingDimensions(buildDefID, buildFacing)
+	local centerX = WorldToPipCoords(0, 0)
+	local edgeX = WorldToPipCoords(buildWidth, 0)
 	local iconSize = math.abs(edgeX - centerX)
 
 	glFunc.Texture(buildIcon.bitmap)
@@ -14857,7 +14608,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	end
 
 	-- Draw build previews
-	-- NOTE: DrawBuildPreview is NOT called here because render.dim is overridden
+	-- NOTE: build preview is not drawn here because render.dim is overridden
 	-- in the R2T context (0,0,uW,uH), causing the mouse bounds check and
 	-- PipToWorldCoords to produce wrong results. Build preview is drawn
 	-- at full frame rate in DrawScreen via DrawBuildCursorWithRotation instead.
@@ -14914,30 +14665,6 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		)
 	end
 	tracy.ZoneEnd()
-end
-
--- Helper function to render PIP frame background (static)
-local function RenderFrameBackground()
-	-- Render panel at origin without accounting for padding (padding drawn separately)
-	local pipWidth = render.dim.r - render.dim.l
-	local pipHeight = render.dim.t - render.dim.b
-	glFunc.Color(0.6, 0.6, 0.6, 0.6)
-
-	-- Determine which corners to round based on screen edge proximity
-	-- Corners at screen edges should be sharp (0), others rounded (1)
-	local edgeTolerance = 2 -- Pixels from edge to consider "at edge"
-	local atLeft = render.dim.l <= edgeTolerance
-	local atRight = render.dim.r >= render.vsx - edgeTolerance
-	local atBottom = render.dim.b <= edgeTolerance
-	local atTop = render.dim.t >= render.vsy - edgeTolerance
-
-	-- RectRound params: tl, tr, br, bl (top-left, top-right, bottom-right, bottom-left)
-	local tl = (atLeft or atTop) and 0 or 1
-	local tr = (atRight or atTop) and 0 or 1
-	local br = (atRight or atBottom) and 0 or 1
-	local bl = (atLeft or atBottom) and 0 or 1
-
-	render.RectRound(0, 0, pipWidth, pipHeight, render.elementCorner * 0.4, tl, tr, br, bl)
 end
 
 -- Helper function to calculate maximize icon rotation angle based on expansion direction
@@ -15325,7 +15052,7 @@ local function DrawWaterAndLOSOverlays()
 	gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Draw LOS darkening overlay
-	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	local shouldShowLOS = ShouldShowLOS()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Only use scissor test if not rotated (scissor doesn't work with rotation)
 		if render.minimapRotation == 0 then
@@ -17117,151 +16844,6 @@ local function DrawAreaCommand()
 	glFunc.Color(1, 1, 1, 1)
 end
 
--- Draw build cursor (icon and placement grid) when holding a build command
-local function DrawBuildCursor()
-	local mx, my = spFunc.GetMouseState()
-
-	-- Check if mouse is over PIP
-	if mx < render.dim.l or mx > render.dim.r or my < render.dim.b or my > render.dim.t then
-		return
-	end
-
-	-- Get active command
-	local _, cmdID = Spring.GetActiveCommand()
-	if not cmdID or cmdID >= 0 then
-		return
-	end
-
-	-- Check if it's a build command
-	local buildDefID = -cmdID
-	local uDef = UnitDefs[buildDefID]
-	if not uDef then
-		return
-	end
-
-	-- Get world position under cursor
-	local wx, wz = PipToWorldCoords(mx, my)
-
-	-- Snap to build grid (16 elmos per cell, buildings snap to this grid)
-	local gridSize = 16
-	wx = math.floor(wx / gridSize + 0.5) * gridSize
-	wz = math.floor(wz / gridSize + 0.5) * gridSize
-
-	local wy = spFunc.GetGroundHeight(wx, wz)
-
-	-- Get build facing
-	local buildFacing = Spring.GetBuildFacing()
-
-	-- Test if building can be placed here (returns 0 if not buildable, or a positive value if buildable)
-	local buildTest = Spring.TestBuildOrder(buildDefID, wx, wy, wz, buildFacing)
-	local canBuild = (buildTest and buildTest > 0)
-
-	-- Draw unit icon at cursor position with 0.7 opacity
-	if cache.unitIcon[buildDefID] then
-		local iconData = cache.unitIcon[buildDefID]
-		local texture = iconData.bitmap
-
-		-- Effective rendered icon size (zoom cap etc.), so the placement ghost
-		-- matches the icons around it instead of outgrowing them when zoomed in
-		local iconSize = gl4Icons.GetEffectiveIconRadius() * iconData.size
-
-		local sx, sy = WorldToPipCoords(wx, wz)
-
-		glFunc.Texture(texture)
-		glFunc.Color(1, 1, 1, 0.7)
-		glFunc.TexRect(sx - iconSize, sy - iconSize, sx + iconSize, sy + iconSize)
-		glFunc.Texture(false)
-	end
-
-	-- Draw placement grid
-	local xsize = uDef.xsize * 4 -- Convert to elmos (each cell is 8 elmos)
-	local zsize = uDef.zsize * 4
-
-	-- Adjust for build facing (swap dimensions if rotated 90/270 degrees)
-	if buildFacing == 1 or buildFacing == 3 then
-		xsize, zsize = zsize, xsize
-	end
-
-	-- Calculate grid corners in world space
-	local halfX = xsize
-	local halfZ = zsize
-	local gridLeft = wx - halfX
-	local gridRight = wx + halfX
-	local gridTop = wz - halfZ
-	local gridBottom = wz + halfZ
-
-	-- Draw grid cells
-	local cellSize = 16 -- Each grid cell is 16 elmos (snap grid size)
-
-	glFunc.Texture(false)
-
-	-- We can't test individual cells, so use the overall buildability for the entire grid
-	-- The grid shows if the building footprint as a whole can be placed
-	local gridR, gridG, gridB, gridA
-	if canBuild then
-		gridR, gridG, gridB, gridA = 0.3, 1.0, 0.3, 0.3
-	else
-		gridR, gridG, gridB, gridA = 1.0, 0.3, 0.3, 0.3
-	end
-	glFunc.Color(gridR, gridG, gridB, gridA)
-
-	-- Draw filled grid cells
-	for gx = gridLeft, gridRight - cellSize, cellSize do
-		for gz = gridTop, gridBottom - cellSize, cellSize do
-			local x1, y1 = WorldToPipCoords(gx, gz)
-			local x2, y2 = WorldToPipCoords(gx + cellSize, gz + cellSize)
-
-			-- Only draw if within PIP bounds
-			if x2 >= render.dim.l and x1 <= render.dim.r and y2 >= render.dim.b and y1 <= render.dim.t then
-				pools.scratchQuad.x1 = x1
-				pools.scratchQuad.y1 = y1
-				pools.scratchQuad.x2 = x2
-				pools.scratchQuad.y2 = y2
-				glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
-			end
-		end
-	end
-
-	-- Draw grid lines with color based on overall buildability
-	local lineR, lineG, lineB, lineA
-	if canBuild then
-		lineR, lineG, lineB, lineA = 0.5, 1.0, 0.5, 0.9
-	else
-		lineR, lineG, lineB, lineA = 1.0, 0.5, 0.5, 0.9
-	end
-	glFunc.Color(lineR, lineG, lineB, lineA)
-	glFunc.LineWidth(1.5)
-
-	-- Vertical lines
-	for gx = gridLeft, gridRight, cellSize do
-		local x1, y1 = WorldToPipCoords(gx, gridTop)
-		local x2, y2 = WorldToPipCoords(gx, gridBottom)
-		if x1 >= render.dim.l and x1 <= render.dim.r then
-			pools.lineClamp.x1 = x1
-			pools.lineClamp.y1 = math.max(y1, render.dim.b)
-			pools.lineClamp.x2 = x2
-			pools.lineClamp.y2 = math.min(y2, render.dim.t)
-			glFunc.BeginEnd(glConst.LINES, pools.DrawLineClamp)
-		end
-	end
-
-	-- Horizontal lines
-	for gz = gridTop, gridBottom, cellSize do
-		local x1, y1 = WorldToPipCoords(gridLeft, gz)
-		local x2, y2 = WorldToPipCoords(gridRight, gz)
-		if y1 >= render.dim.b and y1 <= render.dim.t then
-			pools.lineClamp.x1 = math.max(x1, render.dim.l)
-			pools.lineClamp.y1 = y1
-			pools.lineClamp.x2 = math.min(x2, render.dim.r)
-			pools.lineClamp.y2 = y2
-			glFunc.BeginEnd(glConst.LINES, pools.DrawLineClamp)
-		end
-	end
-
-	glFunc.LineWidth(1.0)
-	glFunc.Color(1, 1, 1, 1)
-end
-
 -- Helper function to draw tracked player name (uses cached display list)
 local function DrawTrackedPlayerName()
 	if not (interactionState.trackingPlayerID and interactionState.isMouseOverPip) then
@@ -17367,7 +16949,6 @@ local function DrawTrackedPlayerResourceBars()
 
 	-- Calculate bar dimensions - compact version at top of PIP
 	local pipWidth = render.dim.r - render.dim.l
-	local pipHeight = render.dim.t - render.dim.b
 	local padding = math.floor(20 * render.widgetScale) * math.max(1, (render.vsx / 2700))
 	local barHeight = math.floor(math.max(5, 7 * render.widgetScale)) * math.max(1, (render.vsx / 2400))
 	local totalBarWidth = math.min(math.floor(pipWidth * 0.32), config.minPanelSize * 0.5) -- Each bar is 32% of PIP width
@@ -24316,7 +23897,7 @@ function widget:MousePress(mx, my, mButton)
 			if not interactionState.arePanning then
 				-- Check if alt is held - if so, don't start box selection (panning will be handled in MouseMove)
 				-- Also don't allow box selection when tracking a player's camera
-				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local alt = Spring.GetModKeyState()
 				if not alt and not interactionState.trackingPlayerID then
 					if IsLeftClickPanActive() and not interactionState.trackingPlayerID then
 						interactionState.arePanning = true
@@ -25035,7 +24616,6 @@ function widget:MouseRelease(mx, my, mButton)
 
 	-- Handle minimize button click/drag release (ALT+click to minimize, ALT/middle drag to move)
 	if (mButton == 1 or mButton == 2) and interactionState.minimizeButtonClickStartX ~= 0 then
-		local wasDragging = interactionState.minimizeButtonDragging
 		local dragThreshold = 8 -- Pixels before considering it a drag
 		local dragDistX = math.abs(mx - interactionState.minimizeButtonClickStartX)
 		local dragDistY = math.abs(my - interactionState.minimizeButtonClickStartY)
@@ -25484,7 +25064,6 @@ function widget:MouseRelease(mx, my, mButton)
 
 		local _, cmdID = Spring.GetActiveCommand()
 		if cmdID and cmdID < 0 then
-			local buildDefID = -cmdID
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 			if isDrag and #interactionState.buildDragPositions > 0 then

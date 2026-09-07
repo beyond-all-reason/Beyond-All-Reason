@@ -144,7 +144,6 @@ local fp = {
 	redoCount = 0,
 }
 
-local updateTimer = 0
 -- Cursor fade from the edge-extended resolver: 1 inside the map, falling to 0
 -- as the cursor recedes past the border. Scales every brush-cursor visual.
 local edgeFade = 1
@@ -713,10 +712,6 @@ local HEADING_TO_RAD = 2 * pi / 65536
 
 local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
-end
-
-local function yawToHeading(yaw)
-	return floor(-(yaw or 0) / HEADING_TO_RAD) % 65536
 end
 
 -- The uniform scale the gadget baked into a live feature's root piece matrix,

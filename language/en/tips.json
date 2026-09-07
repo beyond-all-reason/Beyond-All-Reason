@@ -123,7 +123,7 @@
 			"welcomeShort": "Welcome, Commander.",
 			"buildMetal": "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.",
 			"buildEnergy": "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ",
-			"buildFactory":"Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.",
+			"buildFactory":"Well done! Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.",
 			"buildRadar":"In BAR, radar can tell you the approximate location of enemy units. You should construct a radar tower to be aware of any enemies from a distance.",
 			"factoryAir": "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.",
 			"factorySeaplanes": "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land underwater.",

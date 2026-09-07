@@ -92,7 +92,6 @@ local CMDTYPE_ICON_MODE = CMDTYPE.ICON_MODE
 local isRecordPressed = false
 local isClearPressed = false
 local spawnInitialFrame = Game.spawnInitialFrame
-local spawnWarpInFrame = Game.spawnWarpInFrame
 local spectatingState = select(1, Spring.GetSpectatingState())
 local priorUserFirestateFunction = nil
 

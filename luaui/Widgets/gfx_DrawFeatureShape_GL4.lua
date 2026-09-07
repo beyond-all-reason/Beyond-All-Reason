@@ -264,7 +264,7 @@ end
 ---Callers own the lifetime of everything they submit: pair every call that
 ---creates a ghost with StopDrawFeatureShapeGL4, or batch-remove with
 ---StopDrawFeatureShapesGL4(ownerID).
----@param featureDefID number which featureDef to draw
+---@param featureDefID FeatureDefID which featureDef to draw
 ---@param px number world position
 ---@param py number world position
 ---@param pz number world position
@@ -277,7 +277,7 @@ end
 ---@param tintB number optional tint target colour
 ---@param tintAmount number optional how much to blend the tint in [0-1], default 0
 ---@param scale number optional uniform model scale, default 1 (matches the root-piece-matrix scale the feature placer applies)
----@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
+---@param updateID integer? optional a uniqueID returned earlier, to move that ghost instead of adding one
 ---@param ownerID any optional tag so a widget can batch-remove everything it submitted
 ---@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
 local function DrawFeatureShapeGL4(
@@ -344,7 +344,7 @@ local function DrawFeatureShapeGL4(
 	return updateID
 end
 
----@param handleID number a uniqueID returned by DrawFeatureShapeGL4
+---@param handleID integer a uniqueID returned by DrawFeatureShapeGL4
 ---@return any ownerID the owner the handle was registered under, if any
 local function StopDrawFeatureShapeGL4(handleID)
 	if handleID == nil then

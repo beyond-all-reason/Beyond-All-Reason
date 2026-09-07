@@ -29,7 +29,6 @@ local fontSize = 22 -- is calculated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
-local highLightColour = { 1, 1, 1, 0.1 }
 local sortHighLightColour = { 1, 0.87, 0.87, 0.22 }
 local sortHighLightColourDesc = { 0.9, 1, 0.9, 0.22 }
 local activeSortColour = { 1, 0.62, 0.62, 0.22 }
@@ -103,15 +102,12 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 local GetLocalTeamID = Spring.GetLocalTeamID
 local GetMouseState = spGetMouseState
 local GetGameFrame = Spring.GetGameFrame
-local min = mathMin
 local max = mathMax
-local clamp = math.clamp
 local floor = mathFloor
 local huge = math.huge
 local sort = table.sort
 local log10 = math.log10
 local round = math.round
-local char = string.char
 local borderRemap =
 	{ left = { "x", "min", -1 }, right = { "x", "max", 1 }, top = { "y", "max", 1 }, bottom = { "y", "min", -1 } }
 
@@ -661,9 +657,6 @@ function ReGenerateBackgroundDisplayList()
 		end
 		if lineCount > 2 and (lineCount + 1) % 2 == 0 then
 			colour = oddLineColour
-		end
-		if lineCount == selectedLine and selectedLine > 3 then
-			--colour = highLightColour
 		end
 		glColor(colour)
 		if evenLineColour and lineCount > 2 then

@@ -284,7 +284,7 @@ return {
 				firestarter = 0,
 				impulsefactor = 1.5,
 				intensity = 0.8,
-				name = "Rapid-fire anti-air machine guns",
+				name = "Rapid-fire Anti-Air Machine Guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
