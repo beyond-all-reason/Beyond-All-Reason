@@ -6,6 +6,10 @@
 
 //__DEFINES__
 
+#ifndef MASKPASS
+	#define MASKPASS 0 // 1: coverage mask pass, see gui_attackrange_gl4.lua
+#endif
+
 #line 20000
 
 uniform float selUnitCount = 1.0;
