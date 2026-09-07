@@ -164,7 +164,7 @@ COMPAIM1_Controller()
 				{
 					COMPAIM1yawVelocity = SIGN(COMPAIM1yawVelocity) * step;
 				}
-				if (((get ABS(COMPAIM1yawVelocity)) > (get ABS(delta))) AND ((COMPAIM1yawVelocity * SIGN(delta)) > 0))
+				if (((get ABS(COMPAIM1yawVelocity)) > (get ABS(delta))) AND ((COMPAIM1yawVelocity * SIGN(delta)) >= 0))
 				{
 					COMPAIM1yawVelocity = delta;
 				}
@@ -216,7 +216,7 @@ COMPAIM1_Controller()
 					{
 						COMPAIM1pitchVelocity = SIGN(COMPAIM1pitchVelocity) * step;
 					}
-					if (((get ABS(COMPAIM1pitchVelocity)) > (get ABS(delta))) AND ((COMPAIM1pitchVelocity * SIGN(delta)) > 0))
+					if (((get ABS(COMPAIM1pitchVelocity)) > (get ABS(delta))) AND ((COMPAIM1pitchVelocity * SIGN(delta)) >= 0))
 					{
 						COMPAIM1pitchVelocity = delta;
 					}
