@@ -2,7 +2,7 @@ return {
 	armdecom = {
 		activatewhenbuilt = true,
 		autoheal = 0,
-		builddistance = 145,
+		builddistance = 185,
 		builder = true,
 		buildpic = "ARMDECOM.DDS",
 		buildtime = 30000,
@@ -74,6 +74,7 @@ return {
 		customparams = {
 			canwearcosmetics = true,
 			decoyfor = "armcom",
+			mine_resistant = true,
 			firestateoncloak = 0,
 			isdecoycommander = true,
 			model_author = "FireStorm",

@@ -6,7 +6,7 @@ return {
 		maxdec = 1.125,
 		energycost = 13000,
 		metalcost = 750,
-		builddistance = 145,
+		builddistance = 185,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
 		buildtime = 32600,
@@ -73,6 +73,7 @@ return {
 		},
 		customparams = {
 			unitgroup = "buildert2",
+			mine_resistant = true,
 			canwearcosmetics = true,
 			decoyfor = "legcom",
 			firestateoncloak = 0,

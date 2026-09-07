@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 
 piece  	base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel, 
- 		nanosleeve, lnano, rnano, lflare, rflare; 
+ 		nanosleeve, lnano, rnano, lflare, rflare, link; 
 
 
 static-var  gun_2, oldHeading;
@@ -54,6 +54,20 @@ Create()
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
 	call-script TB_Init();
+}
+
+TransportPickup(unitid)
+{
+	set BUSY to 1;
+	attach-unit unitid to link;
+	set BUSY to 0;
+}
+
+TransportDrop(unitid, position)
+{
+	set BUSY to 1;
+	drop-unit unitid;
+	set BUSY to 0;
 }
 
 StartBuilding(heading, pitch)
