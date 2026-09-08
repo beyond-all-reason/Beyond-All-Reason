@@ -266,7 +266,9 @@ function widget:Initialize()
 		return
 	end
 
-	if VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
+	if (scenarioopts and scenarioopts.disablefactionpicker == true) or
+		VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
+
 		widgetHandler:RemoveWidget()
 		return
 	end
