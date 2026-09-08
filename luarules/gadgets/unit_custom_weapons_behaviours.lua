@@ -620,9 +620,15 @@ weaponCustomParamKeys.torpwaterpen = {
 	tracking_turn_radius = tonumber, -- proximity radius used to strengthen water-entry pitch correction
 }
 
--- Shared surface-depth limits
+-- Global torpedo trajectory tuning shared by every weapon using torpwaterpen.
+-- Depths and distances are in elmos, speeds are in elmos/frame, times are in frames,
+-- and correction strengths are normalized blends. Changes require broad torpedo testing.
+
+-- Surface-depth guidance
 local surfaceTargetDepth = -2
 local surfaceDepthCorrection = 0.025
+
+-- Velocity constraints
 local minSurfaceDiveSpeed = -0.12
 local maxUnderwaterSurfaceRiseSpeed = 1.25
 
@@ -652,25 +658,36 @@ local terrainAvoidanceTargetReleaseDistance = 36
 local terrainAvoidanceDepthLeadRatio = 2
 local terrainAvoidanceGroundTargetLeadRatio = 3
 
----@type table<integer, boolean?>
-local torpedoSurfaceTargets = {}
----@type table<integer, true?>
-local torpedoWaterEntryHeadingCorrected = {}
-
--- Shore-launcher breach protection
+-- Shore-launcher breach constraints
 local minShoreSurfaceDiveSpeed = -4
----@type table<integer, true?>
-local shoreTorpedoEnteredWater = {}
 local shoreTorpedoBreachCeiling = 2
 
-local function getTorpedoTargetPosition(projectileID, targetType, target)
+-- Per-projectile runtime state; these fields are not trajectory configuration.
+---@class TorpedoState
+---@field surfaceTarget boolean?
+---@field waterEntryHeadingCorrected boolean?
+---@field shoreEnteredWater boolean?
+---@type table<integer, TorpedoState>
+local torpedoStates = {}
+
+---@return TorpedoState
+local function getOrCreateTorpedoState(projectileID)
+	local state = torpedoStates[projectileID]
+	if not state then
+		state = {}
+		torpedoStates[projectileID] = state
+	end
+	return state
+end
+
+local function getTorpedoTargetPosition(projectileID, targetType, target, state)
 	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID, targetType, target)
 	if targetY ~= nil then
 		-- Retain only the target class when it leaves sensor coverage. The engine
 		-- continues horizontal homing; Lua only needs this for vertical guidance.
-		torpedoSurfaceTargets[projectileID] = targetY >= -10
+		state.surfaceTarget = targetY >= -10
 	end
-	return targetX, targetY, targetZ, torpedoSurfaceTargets[projectileID]
+	return targetX, targetY, targetZ, state.surfaceTarget
 end
 
 ---@return number?
@@ -784,8 +801,9 @@ local function setTorpedoPitchVelocity(
 end
 
 local function torpedoWaterPen(params, projectileID)
+	local state = getOrCreateTorpedoState(projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
-	local targetX, targetY, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, target)
+	local targetX, targetY, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, target, state)
 	if not isProjectileInWater(projectileID) then
 		return false
 	end
@@ -805,7 +823,7 @@ local function torpedoWaterPen(params, projectileID)
 	end
 	-- Airborne torpedoes do not home before entering the water. Reset their
 	-- horizontal bearing once so entry smoothing cannot amplify a stale heading.
-	if not torpedoWaterEntryHeadingCorrected[projectileID] and targetX ~= nil and targetZ ~= nil then
+	if not state.waterEntryHeadingCorrected and targetX ~= nil and targetZ ~= nil then
 		local targetDirectionX = targetX - positionX
 		local targetDirectionZ = targetZ - positionZ
 		local targetHorizontalDistance = math_diag(targetDirectionX, targetDirectionZ)
@@ -814,7 +832,7 @@ local function torpedoWaterPen(params, projectileID)
 			velocityX = targetDirectionX / targetHorizontalDistance * horizontalSpeed
 			velocityZ = targetDirectionZ / targetHorizontalDistance * horizontalSpeed
 			spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
-			torpedoWaterEntryHeadingCorrected[projectileID] = true
+			state.waterEntryHeadingCorrected = true
 		end
 	end
 	if surfaceTarget == nil then
@@ -899,14 +917,15 @@ local function torpedoWaterPen(params, projectileID)
 end
 
 local function torpedoSurfaceTrack(projectileID)
+	local state = getOrCreateTorpedoState(projectileID)
 	local projectileDefID = spGetProjectileDefID(projectileID)
 	local stayUnderwater = projectileDefID and torpedoStayUnderwaterDefs[projectileDefID]
 	local inWater = isProjectileInWater(projectileID)
 
 	if stayUnderwater and inWater then
-		shoreTorpedoEnteredWater[projectileID] = true
+		state.shoreEnteredWater = true
 	elseif not inWater then
-		if shoreTorpedoEnteredWater[projectileID] then
+		if state.shoreEnteredWater then
 			local _, positionY = spGetProjectilePosition(projectileID)
 			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 			if positionY == nil or velocityX == nil or velocityY == nil or velocityZ == nil then
@@ -927,7 +946,7 @@ local function torpedoSurfaceTrack(projectileID)
 		return false
 	end
 
-	local targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, targetID)
+	local targetX, _, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, targetID, state)
 	if surfaceTarget == false then
 		return true
 	end
@@ -1093,9 +1112,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	torpedoSurfaceTargets[projectileID] = nil
-	torpedoWaterEntryHeadingCorrected[projectileID] = nil
-	shoreTorpedoEnteredWater[projectileID] = nil
+	torpedoStates[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
