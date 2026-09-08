@@ -2,7 +2,10 @@
 --- Shared helpers for objective progress/completion and stage advancement.
 ---
 
+local stageChanges = 0
+
 local function changeStage(stageID)
+	stageChanges = stageChanges + 1
 	GG["MissionAPI"].CurrentStageID = stageID
 	Spring.Echo("Stage set to: " .. stageID)
 end
@@ -49,6 +52,27 @@ local function echoObjectiveUpdate(objectiveID, objective)
 			.. " | completed: "
 			.. tostring(objective.completed)
 	)
+end
+
+local function activateEventTrigger(triggerID)
+	if not triggerID then
+		return
+	end
+	GG["MissionAPI"].ActivateTrigger(GG["MissionAPI"].Triggers[triggerID])
+end
+
+--- Run the stage's exit routes for an objective that has just completed.
+--- This runs in a fixed order: the objective's event trigger, then nextStage.
+local function runExitRoutes(objective, eventTriggerID)
+	local stageChangesBefore = stageChanges
+	activateEventTrigger(eventTriggerID)
+	if stageChanges == stageChangesBefore then
+		tryAdvanceStage(objective)
+	end
+end
+
+local function onObjectiveCompleted(objective)
+	runExitRoutes(objective, objective.onCompleted)
 end
 
 --- Update objective progress for a managed (statistics-based) objective.
@@ -101,7 +125,9 @@ local function updateObjectiveProgress(
 	end
 
 	objective.completed = isComplete
-	tryAdvanceStage(objective)
+	if isComplete then
+		onObjectiveCompleted(objective)
+	end
 
 	echoObjectiveUpdate(objectiveID, objective)
 end
@@ -109,6 +135,7 @@ end
 return {
 	ChangeStage = changeStage,
 	TryAdvanceStage = tryAdvanceStage,
+	OnObjectiveCompleted = onObjectiveCompleted,
 	UpdateObjectiveProgress = updateObjectiveProgress,
 	EchoObjectiveUpdate = echoObjectiveUpdate,
 }
