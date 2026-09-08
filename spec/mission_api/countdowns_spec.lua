@@ -3,20 +3,34 @@ require("spec_helper")
 local countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 
 describe("mission_api.countdowns", function()
+	local currentFrame
+
 	before_each(function()
 		GG["MissionAPI"] = { Countdowns = {} }
+		currentFrame = 0
+		Spring.GetGameFrame = function()
+			return currentFrame
+		end
 	end)
 
 	local function get(countdownID)
 		return GG["MissionAPI"].Countdowns[countdownID]
 	end
 
+	-- Decrement() takes the current game frame, as the gadget passes it every
+	-- frame. tickSecond() advances the clock to the next whole second and ticks,
+	-- driving the shared cadence of displayed countdowns.
+	local function tickSecond()
+		currentFrame = currentFrame + Game.gameSpeed - (currentFrame % Game.gameSpeed)
+		return countdowns.Decrement(currentFrame)
+	end
+
 	-- Consume the one-tick buffer a newly added countdown starts with, so tests
-	-- about ticking proper don't each have to spell out the extra Decrement().
-	-- Only for a test's first countdown: the Decrement() ticks everything else.
+	-- about ticking proper don't each have to spell out the extra tick.
+	-- Only for a test's first countdown: the tickSecond() ticks everything else.
 	local function addTicking(countdownID, seconds)
 		countdowns.AddCountdown(countdownID, seconds)
-		countdowns.Decrement()
+		tickSecond()
 	end
 
 	describe("AddCountdown", function()
@@ -29,6 +43,14 @@ describe("mission_api.countdowns", function()
 			assert.is_false(countdown.paused)
 		end)
 
+		it("stores displayed, defaulting to true", function()
+			countdowns.AddCountdown("shown", 10)
+			countdowns.AddCountdown("hidden", 10, false)
+
+			assert.is_true(get("shown").displayed)
+			assert.is_false(get("hidden").displayed)
+		end)
+
 		it("rounds to whole seconds and clamps negative time to 0", function()
 			countdowns.AddCountdown("fractional", 9.6)
 			countdowns.AddCountdown("negative", -5)
@@ -39,13 +61,13 @@ describe("mission_api.countdowns", function()
 
 		it("replaces an existing countdown with the same ID, held again", function()
 			addTicking("timer", 10)
-			countdowns.Decrement()
+			tickSecond()
 			assert.are.equal(9, get("timer").timeRemaining)
 
 			countdowns.AddCountdown("timer", 30)
 
 			assert.are.equal(30, get("timer").timeRemaining)
-			countdowns.Decrement() -- consumed as the hold-back tick
+			tickSecond() -- consumed as the hold-back tick
 			assert.are.equal(30, get("timer").timeRemaining)
 		end)
 	end)
@@ -54,19 +76,19 @@ describe("mission_api.countdowns", function()
 		it("holds a new countdown for one tick before counting down", function()
 			countdowns.AddCountdown("fresh", 10)
 
-			countdowns.Decrement()
+			tickSecond()
 			assert.are.equal(10, get("fresh").timeRemaining)
 
-			countdowns.Decrement()
+			tickSecond()
 			assert.are.equal(9, get("fresh").timeRemaining)
 		end)
 
 		it("ticks every unpaused countdown down together", function()
 			countdowns.AddCountdown("first", 10)
 			countdowns.AddCountdown("second", 20)
-			countdowns.Decrement() -- consume both hold-back ticks
+			tickSecond() -- consume both hold-back ticks
 
-			countdowns.Decrement()
+			tickSecond()
 
 			assert.are.equal(9, get("first").timeRemaining)
 			assert.are.equal(19, get("second").timeRemaining)
@@ -75,10 +97,10 @@ describe("mission_api.countdowns", function()
 		it("does not tick paused countdowns", function()
 			countdowns.AddCountdown("paused", 10)
 			countdowns.AddCountdown("running", 10)
-			countdowns.Decrement() -- consume both hold-back ticks
+			tickSecond() -- consume both hold-back ticks
 			countdowns.PauseCountdown("paused")
 
-			countdowns.Decrement()
+			tickSecond()
 
 			assert.are.equal(10, get("paused").timeRemaining)
 			assert.are.equal(9, get("running").timeRemaining)
@@ -87,10 +109,10 @@ describe("mission_api.countdowns", function()
 		it("resumes ticking after unpausing", function()
 			addTicking("timer", 10)
 			countdowns.PauseCountdown("timer")
-			countdowns.Decrement()
+			tickSecond()
 			countdowns.UnpauseCountdown("timer")
 
-			countdowns.Decrement()
+			tickSecond()
 
 			assert.are.equal(9, get("timer").timeRemaining)
 		end)
@@ -98,20 +120,20 @@ describe("mission_api.countdowns", function()
 		it("keeps the hold-back tick while paused", function()
 			countdowns.AddCountdown("timer", 10)
 			countdowns.PauseCountdown("timer")
-			countdowns.Decrement()
+			tickSecond()
 			countdowns.UnpauseCountdown("timer")
 
-			countdowns.Decrement() -- consumes the buffer instead of ticking
+			tickSecond() -- consumes the buffer instead of ticking
 			assert.are.equal(10, get("timer").timeRemaining)
 
-			countdowns.Decrement()
+			tickSecond()
 			assert.are.equal(9, get("timer").timeRemaining)
 		end)
 
 		it("removes a countdown that reaches 0 and returns its ID", function()
 			addTicking("ending", 1)
 
-			local endedIDs = countdowns.Decrement()
+			local endedIDs = tickSecond()
 
 			assert.are.same({ "ending" }, endedIDs)
 			assert.is_nil(get("ending"))
@@ -121,9 +143,9 @@ describe("mission_api.countdowns", function()
 			countdowns.AddCountdown("first", 1)
 			countdowns.AddCountdown("second", 1)
 			countdowns.AddCountdown("later", 5)
-			countdowns.Decrement() -- consume the hold-back ticks
+			tickSecond() -- consume the hold-back ticks
 
-			local endedIDs = countdowns.Decrement()
+			local endedIDs = tickSecond()
 
 			table.sort(endedIDs)
 			assert.are.same({ "first", "second" }, endedIDs)
@@ -133,15 +155,15 @@ describe("mission_api.countdowns", function()
 		it("returns no IDs when nothing ended", function()
 			addTicking("timer", 10)
 
-			assert.are.same({}, countdowns.Decrement())
+			assert.are.same({}, tickSecond())
 		end)
 
 		it("returns each ticked countdown with its new time", function()
 			countdowns.AddCountdown("first", 10)
 			countdowns.AddCountdown("second", 20)
-			countdowns.Decrement() -- consume both hold-back ticks
+			tickSecond() -- consume both hold-back ticks
 
-			local _, ticks = countdowns.Decrement()
+			local _, ticks = tickSecond()
 
 			table.sort(ticks, function(a, b)
 				return a.id < b.id
@@ -157,7 +179,7 @@ describe("mission_api.countdowns", function()
 			countdowns.PauseCountdown("paused")
 			countdowns.AddCountdown("held", 5)
 
-			local _, ticks = countdowns.Decrement()
+			local _, ticks = tickSecond()
 
 			assert.are.same({}, ticks)
 		end)
@@ -165,10 +187,53 @@ describe("mission_api.countdowns", function()
 		it("reports an ending countdown ticking to zero", function()
 			addTicking("ending", 1)
 
-			local endedIDs, ticks = countdowns.Decrement()
+			local endedIDs, ticks = tickSecond()
 
 			assert.are.same({ "ending" }, endedIDs)
 			assert.are.same({ { id = "ending", timeRemaining = 0 } }, ticks)
+		end)
+	end)
+
+	describe("non-displayed countdowns", function()
+		it("tick relative to their creation frame, without the hold-back", function()
+			currentFrame = 47
+			countdowns.AddCountdown("hidden", 10, false)
+
+			for frame = 48, 76 do
+				countdowns.Decrement(frame)
+			end
+			assert.are.equal(10, get("hidden").timeRemaining)
+
+			countdowns.Decrement(77)
+			assert.are.equal(9, get("hidden").timeRemaining)
+		end)
+
+		it("end after exactly their duration", function()
+			currentFrame = 47
+			countdowns.AddCountdown("hidden", 3, false)
+
+			local endedIDs
+			for frame = 48, 47 + 3 * 30 do
+				endedIDs = countdowns.Decrement(frame)
+			end
+
+			assert.are.same({ "hidden" }, endedIDs)
+			assert.is_nil(get("hidden"))
+		end)
+
+		it("SetTime restarts their cadence from the set frame", function()
+			currentFrame = 47
+			countdowns.AddCountdown("hidden", 10, false)
+			countdowns.Decrement(77) -- first tick, 9 remaining
+
+			currentFrame = 85
+			countdowns.SetTime("hidden", 5)
+
+			countdowns.Decrement(107) -- the old cadence frame: no tick
+			assert.are.equal(5, get("hidden").timeRemaining)
+
+			countdowns.Decrement(115) -- one second after the set
+			assert.are.equal(4, get("hidden").timeRemaining)
 		end)
 	end)
 
@@ -179,7 +244,7 @@ describe("mission_api.countdowns", function()
 			countdowns.CancelCountdown("canceled")
 
 			assert.is_nil(get("canceled"))
-			assert.are.same({}, countdowns.Decrement())
+			assert.are.same({}, tickSecond())
 		end)
 	end)
 
@@ -194,10 +259,10 @@ describe("mission_api.countdowns", function()
 			addTicking("timer", 10)
 			countdowns.SetTime("timer", 5)
 
-			countdowns.Decrement() -- consumed as the hold-back tick
+			tickSecond() -- consumed as the hold-back tick
 			assert.are.equal(5, get("timer").timeRemaining)
 
-			countdowns.Decrement()
+			tickSecond()
 			assert.are.equal(4, get("timer").timeRemaining)
 		end)
 
@@ -218,7 +283,7 @@ describe("mission_api.countdowns", function()
 			countdowns.RemoveTime("timer", 99)
 
 			assert.are.equal(0, get("timer").timeRemaining)
-			assert.are.same({ "timer" }, countdowns.Decrement())
+			assert.are.same({ "timer" }, tickSecond())
 		end)
 	end)
 

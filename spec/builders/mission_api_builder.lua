@@ -177,7 +177,8 @@ end
 ---@param countdown table?
 ---@return MissionApiBuilder
 function MB:WithCountdown(countdownID, countdown)
-	self.countdowns[countdownID] = countdown or { id = countdownID, timeRemaining = 0, paused = false }
+	self.countdowns[countdownID] = countdown
+		or { id = countdownID, timeRemaining = 0, paused = false, displayed = true }
 	return self
 end
 

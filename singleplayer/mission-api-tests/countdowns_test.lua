@@ -4,12 +4,15 @@
 --- Countdowns tick down once per second, and a new countdown is held through
 --- its first tick, so a countdown added at 1s takes its first tick at 3s.
 --- SetTime restarts a countdown, so it is held through its next tick again.
+--- A countdown added with displayed = false skips the hold and ticks relative
+--- to its creation frame instead, so its duration is exact.
 ---
 --- Expected timeline:
----    1s: 'alpha' (5s), 'doomed' (20s), 'held' (10s) and 'adjusted' (30s) are added
+---    1s: 'alpha' (5s), 'doomed' (20s), 'held' (10s), 'adjusted' (30s) and 'hidden' (3s, displayed = false) are added
 ---    3s: 'held' is paused, at 9 seconds remaining
 ---    4s: 'doomed' is cancelled; its CountdownFinished message must never appear
 ---    4s: 'adjusted' is set to 10 seconds (held again through the 5s tick)
+---    4s: message: hidden finished (added at 1s without display hold, so exactly 3s later)
 ---    5s: message: alpha reached 2 seconds remaining
 ---    6s: 'held' is unpaused; 'adjusted' gets 5 seconds added (14 remaining)
 ---    7s: objective 'surviveAlpha' completes ('alpha' finished)
@@ -43,7 +46,7 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'addAlpha', 'addDoomed', 'addHeld', 'addAdjusted' },
+		actions = { 'addAlpha', 'addDoomed', 'addHeld', 'addAdjusted', 'addHidden' },
 	},
 
 	pauseHeld = {
@@ -144,6 +147,14 @@ local triggers = {
 		},
 		actions = { 'messageAdjustedFinished' },
 	},
+
+	hiddenFinished = {
+		type = triggerTypes.CountdownFinished,
+		parameters = {
+			countdownID = 'hidden',
+		},
+		actions = { 'messageHiddenFinished' },
+	},
 }
 
 local actions = {
@@ -177,6 +188,15 @@ local actions = {
 		parameters = {
 			countdownID = 'adjusted',
 			seconds = 30,
+		},
+	},
+
+	addHidden = {
+		type = actionTypes.AddCountdown,
+		parameters = {
+			countdownID = 'hidden',
+			seconds = 3,
+			displayed = false,
 		},
 	},
 
@@ -264,6 +284,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = '[Countdowns test] adjusted finished (expected at 11s: set to 10 at 4s, +5 at 6s, -9 at 8s)',
+		},
+	},
+
+	messageHiddenFinished = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = '[Countdowns test] hidden finished (expected at exactly 4s: not displayed, no hold)',
 		},
 	},
 }

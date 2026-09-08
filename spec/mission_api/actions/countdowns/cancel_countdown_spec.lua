@@ -19,7 +19,7 @@ describe("mission_api.actions.cancel_countdown", function()
 		missionApi = Builders.MissionApi
 			.new()
 			:WithModule("Countdowns", countdownsModule)
-			:WithCountdown("evacuate", { id = "evacuate", timeRemaining = 120, paused = false })
+			:WithCountdown("evacuate", { id = "evacuate", timeRemaining = 120, paused = false, displayed = true })
 			:Install()
 	end)
 
