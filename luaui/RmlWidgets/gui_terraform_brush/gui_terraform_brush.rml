@@ -6837,7 +6837,7 @@
 					</div>
 				</div><!-- /frame-ts-biome -->
 
-				<!-- HEIGHT TINT (tileset shader 0.27): world-height tinting as a system.
+				<!-- WORLDSPACE TINT (WIP), internally HEIGHT TINT (tileset shader 0.27): world-height tinting as a system.
 				     One shared tint axis (AXIS) feeds the three-stop GRADE, the STRATA beds
 				     (the canyon), the RAMP image, SATURATION, TIDE rings and the SNOW line.
 				     Colour chips (grade stops, beds, snow) select what the one shared
@@ -6846,7 +6846,7 @@
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-htint">
 					<div id="btn-toggle-ts-htint" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-htint" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-						<div class="tf-collapsible-title">HEIGHT TINT</div>
+						<div class="tf-collapsible-title">WORLDSPACE TINT (WIP)</div>
 						<div id="btn-ts-reset-htint" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('htint')">RESET</div>
 					</div>
 					<div id="section-ts-htint" class="hidden">
