@@ -22,6 +22,14 @@ An air-launched torpedo needs enough water depth to redirect its downward veloci
 
 The gadget cannot smooth an entry until the projectile is in the water. Its entry correction begins around -2 elmos and reaches full strength around -10, so very shallow water may place the seabed inside the correction window and cause an immediate terrain impact. This limit should normally be handled through the individual weapon's launch behavior or accepted as that weapon's minimum usable water depth rather than weakening the shared entry constraints for every torpedo.
 
+## Deep-water ground targets
+
+Manual seabed targets use the submerged-target path, so they receive no pull toward the surface. Native guidance remains responsible for reaching the selected point while the gadget looks four frames ahead for approaching terrain. Avoidance starts gradually within the configured clearance ramp, then fades near the intended impact point so the torpedo can strike the seabed instead of being forced to run parallel to it.
+
+The `/2` and `/3` behavior is represented by the 2:1 submerged-unit and 3:1 ground-target depth-lead ratios. The gadget multiplies the remaining vertical separation by the applicable ratio to produce a horizontal release distance, with a minimum of 36 elmos. For example, with 20 elmos of vertical separation remaining, terrain avoidance starts fading within 40 horizontal elmos of a submerged unit target and within 60 horizontal elmos of a ground target. The larger 3:1 ground ratio releases avoidance earlier and across a wider approach because a ground-targeted torpedo must be allowed to intersect the seabed. The 2:1 unit ratio retains more protection because a submerged unit can normally be hit without striking terrain.
+
+There is no hardcoded maximum supported water depth in the gadget. Water deeper than approximately **400 elmos** should generally be avoided because it begins to exceed the practical model and placement constraints of sea labs as well as the expected operating envelope of underwater weapons. At depths beyond approximately **600 elmos**, the vertical distance alone exceeds the range of most torpedoes. Native firing eligibility, weapon range, travel time, or projectile lifetime may therefore prevent a shot or cause it to expire before arrival. The ground-target controls are primarily a visual fallback for unusual manual seabed shots; they are not intended to override those engine, weapon, and map-design limits.
+
 ## Maintenance guidance
 
 Improve a specific weapon's general tracking accuracy in its weapon definition, normally by reviewing `turnrate` together with its speed, acceleration, and firing tolerance. The `tracking_turn_radius` custom parameter does not change engine turning strength; it changes the target-proximity range over which water-entry pitch correction becomes stronger.
