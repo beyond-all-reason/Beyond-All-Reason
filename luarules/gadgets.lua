@@ -317,6 +317,7 @@ local callInLists = {
 	"ScriptEndBurst",
 
 	-- LuaRules CallIns (note: the *PreDamaged calls belong here too)
+	"AttackCommandMovement",
 	"CommandFallback",
 	"AllowCommand",
 	"AllowStartPosition",
@@ -518,6 +519,15 @@ end
 local VFSMODE_OVERRIDE = {
 	["luagaia/gadgets/fp_featureplacer.lua"] = VFS.GAME,
 }
+
+function gadgetHandler:AttackCommandMovement(...)
+	for _, g in ipairs(self.AttackCommandMovementList) do
+		if g:AttackCommandMovement(...) == true then
+			return true
+		end
+	end
+	return false
+end
 
 function gadgetHandler:Initialize()
 	gadgetHandler:CreateQueuedReorderFuncs()
