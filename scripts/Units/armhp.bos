@@ -50,13 +50,9 @@ Activate()
 		turn nanor to y-axis <90.016484> speed <173.0>;
 		turn nanol to y-axis <-90.016484> speed <173.0>;
 		wait-for-turn nanor around y-axis;
-	}
-	FACTORY_OPEN_BUILD;
-	if( !hasOpened )
-	{
-		return (0);
 		hasOpened = 1;
 	}
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
