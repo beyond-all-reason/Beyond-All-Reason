@@ -981,12 +981,37 @@ local batchOpen = false
 -- Undo bbox of the tick, in cells; reset to +-huge by beginBatch.
 local batchMinXc, batchMinZc, batchMaxXc, batchMaxZc = math.huge, math.huge, -math.huge, -math.huge
 
+-- Pre-stroke heights: what every cell measured before the current stroke
+-- first wrote it, kept until STROKE_END. Clay planes are taken against these
+-- so a stroke lays ONE layer over the surface it started on. The old plane
+-- re-measured the live centre height, i.e. the disc the previous tick had
+-- just raised, and every tick stacked another disc one layer up: that is
+-- where the concentric rings on every clay stroke came from.
+---@type table<number, number>
+local strokeOrig = {}
+---@type number[]
+local strokeOrigList = {}
+local strokeOrigN = 0
+local STROKE_ORIG_LIMIT = 4000000
+
+local function clearStrokeOrigin()
+	for i = 1, strokeOrigN do
+		strokeOrig[strokeOrigList[i]] = nil
+	end
+	strokeOrigN = 0
+end
+
 local function beginBatch()
 	batchOpen = true
 	batchWriteN = 0
 	batchReadN = 0
 	batchMinXc, batchMinZc = math.huge, math.huge
 	batchMaxXc, batchMaxZc = -math.huge, -math.huge
+	-- A stroke that never got its STROKE_END (widget reload mid-drag) must not
+	-- pin the whole map's pre-stroke heights forever.
+	if strokeOrigN > STROKE_ORIG_LIMIT then
+		clearStrokeOrigin()
+	end
 end
 
 -- Height of a cell as this tick currently sees it: this tick's write if any,
@@ -1074,8 +1099,48 @@ local function flushBatch()
 	batchReadN = 0
 end
 
--- Dabs inside a STROKE batch get clayPlaneIn from handleStroke; a dab on its
--- own (per-dab BRUSH message, sticky replay) opens and commits a batch of one.
+-- Clay target plane for a dab. Measured on the pre-stroke surface (strokeOrig
+-- where this stroke already wrote, the live ground elsewhere) as the mean of
+-- the centre and four taps half a radius out, so the dabs of one stroke agree
+-- on a plane instead of each re-measuring the disc the previous one left.
+-- stack=true is the legacy per-tick build-up: the plane sits on the live
+-- centre height, so a held or slow drag keeps piling layers (and rings).
+local function clayPlaneFor(centerX, centerZ, radius, rise, stack)
+	if stack then
+		return GetGroundHeight(centerX, centerZ) + rise
+	end
+	local maxXc = floor(Game.mapSizeX / SQUARE_SIZE)
+	local maxZc = floor(Game.mapSizeZ / SQUARE_SIZE)
+	local cxc = floor(centerX / SQUARE_SIZE + 0.5)
+	local czc = floor(centerZ / SQUARE_SIZE + 0.5)
+	local r = max(1, floor(radius * 0.5 / SQUARE_SIZE))
+	local sum = 0.0
+	for t = 1, 5 do
+		local xc, zc = cxc, czc
+		if t == 2 then
+			xc = cxc - r
+		elseif t == 3 then
+			xc = cxc + r
+		elseif t == 4 then
+			zc = czc - r
+		elseif t == 5 then
+			zc = czc + r
+		end
+		xc = max(0, min(maxXc, xc))
+		zc = max(0, min(maxZc, zc))
+		local h = strokeOrig[zc * batchCols + xc + 1]
+		if h == nil then
+			h = GetGroundHeight(xc * SQUARE_SIZE, zc * SQUARE_SIZE)
+		end
+		sum = sum + h
+	end
+	return sum / 5 + rise
+end
+
+-- clayMode: false/nil off, 1 = clay (one layer per stroke), 2 = clay with
+-- per-tick build-up (legacy). Dabs inside a STROKE batch get clayPlaneIn from
+-- handleStroke; a dab on its own (per-dab BRUSH message, sticky replay) opens
+-- and commits a batch of one.
 local function applyTerraform(
 	centerX,
 	centerZ,
@@ -1107,14 +1172,10 @@ local function applyTerraform(
 		beginBatch()
 	end
 
-	-- Clay mode: target plane at centre height + full brush displacement.
-	-- clayPlaneIn is set when the dab arrives as part of a stroke batch, whose
-	-- planes were all derived from the pre-tick heightmap up front so dabs in
-	-- one tick cannot compound on each other (see handleStroke).
+	-- Clay mode: target plane at the reference height + full brush displacement.
 	local clayPlane = clayPlaneIn
 	if not clayPlane and clayMode and direction ~= 0 and direction ~= 2 then
-		local centerHeight = GetGroundHeight(centerX, centerZ)
-		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
+		clayPlane = clayPlaneFor(centerX, centerZ, radius, direction * HEIGHT_STEP * intensity, clayMode == 2)
 	end
 
 	opacity = opacity or 0.3
@@ -1410,8 +1471,8 @@ local function applyTerraform(
 							end
 						end
 
-						-- First write of this cell in the tick: list it and grow the
-						-- undo bbox.
+						-- First write of this cell in the tick: list it, grow the
+						-- undo bbox, and pin its pre-stroke height for the clay plane.
 						if bNew[idx] == nil then
 							batchWriteN = batchWriteN + 1
 							batchWriteList[batchWriteN] = idx
@@ -1430,10 +1491,16 @@ local function applyTerraform(
 							-- The blur path read this cell through blurBuf, so it may
 							-- lack its pre entry: pin it now so the snapshot and the
 							-- clear loop see it.
+							local pre = bPre[idx] or current
 							if bPre[idx] == nil then
 								bPre[idx] = current
 								batchReadN = batchReadN + 1
 								batchReadList[batchReadN] = idx
+							end
+							if strokeOrig[idx] == nil then
+								strokeOrig[idx] = pre
+								strokeOrigN = strokeOrigN + 1
+								strokeOrigList[strokeOrigN] = idx
 							end
 						end
 						bNew[idx] = newHeight
@@ -2274,7 +2341,9 @@ local function handleStroke(payload)
 	local heightMax = tonumber(parts[6])
 	local intensity = tonumber(parts[7]) or 1.0
 	local lengthScale = tonumber(parts[8]) or 1.0
-	local clayMode = parts[9] == "1"
+	-- Clay flag: "1" = clay (one layer per stroke), "2" = clay with per-tick
+	-- build-up (Settings > Stroke > Clay build-up), anything else = off.
+	local clayMode = (parts[9] == "1" and 1) or (parts[9] == "2" and 2) or false
 	local dustMode = parts[10] == "1"
 	local opacity = tonumber(parts[11]) or 0.3
 	local instant = parts[12] == "1"
@@ -2316,11 +2385,14 @@ local function handleStroke(payload)
 		return
 	end
 
+	-- Every plane of the tick is derived before any dab lands, so dabs in one
+	-- tick cannot compound on each other (see clayPlaneFor for the reference).
 	local doClay = clayMode and direction ~= 0 and direction ~= 2
 	if doClay then
 		local rise = direction * HEIGHT_STEP * intensity
+		local stack = clayMode == 2
 		for i = 1, count do
-			strokeClayPlane[i] = GetGroundHeight(strokeDabX[i], strokeDabZ[i]) + rise
+			strokeClayPlane[i] = clayPlaneFor(strokeDabX[i], strokeDabZ[i], radius, rise, stack)
 		end
 	end
 	-- One batch for the tick: a single heightmap commit and a single undo entry
@@ -2957,6 +3029,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if msg == STROKE_END_HEADER then
 		finalizeMerge()
 		currentStrokeId = currentStrokeId + 1
+		clearStrokeOrigin()
 		return true
 	end
 
@@ -3328,7 +3401,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local heightMax = tonumber(parts[9])
 	local intensity = tonumber(parts[10]) or 1.0
 	local lengthScale = tonumber(parts[11]) or 1.0
-	local clayMode = parts[12] == "1"
+	local clayMode = (parts[12] == "1" and 1) or (parts[12] == "2" and 2) or false
 	local dustMode = parts[13] == "1"
 	local opacity = tonumber(parts[14]) or 0.3
 	local instant = parts[15] == "1"

@@ -493,6 +493,11 @@ local extraState = {
 	heightColormap = false,
 	curveOverlay = false,
 	velocityIntensity = false,
+	-- Settings > Stroke > Clay build-up: legacy per-tick clay stacking (wire
+	-- clay flag "2"). Off = one layer per stroke over the surface it started
+	-- on, which is what stops the concentric rings.
+	---@type boolean
+	clayStack = false,
 	-- FOLLOW STROKE: rotate the brush shape to the stroke tangent while dragging.
 	-- followAngle is the EMA-smoothed tangent in degrees (nil until the cursor has
 	-- travelled far enough to define one); followManualRot parks the user's manual
@@ -1283,7 +1288,8 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 	local curveStr = string.format("%.1f", curve)
 	local intenStr = string.format("%.1f", effectiveIntensity)
 	local lenStr = string.format("%.1f", activeLengthScale)
-	local clayStr = clayMode and "1" or "0"
+	-- "1" = clay, one layer per stroke; "2" = clay with per-tick build-up.
+	local clayStr = clayMode and (extraState.clayStack and "2" or "1") or "0"
 	local dustStr = (djMode and dustEffects) and "1" or "0"
 	local opacityStr = string.format("%.2f", brushOpacity)
 	local ringStr = string.format("%.2f", ringInnerRatio)
@@ -1422,7 +1428,7 @@ extraState.sendStrokeDabs = function(direction, dabs, nDabs, radius, shape, curv
 		.. " "
 		.. string.format("%.1f", activeLengthScale)
 		.. " "
-		.. (clayMode and "1" or "0")
+		.. (clayMode and (extraState.clayStack and "2" or "1") or "0")
 		.. " "
 		.. ((djMode and dustEffects) and "1" or "0")
 		.. " "
@@ -2627,6 +2633,7 @@ local function getState()
 		curveOverlay = extraState.curveOverlay,
 		velocityIntensity = extraState.velocityIntensity,
 		followStroke = extraState.followStroke,
+		clayStack = extraState.clayStack,
 		dragVelocityFactor = extraState.dragVelocityFactor,
 		restoreStrength = extraState.restoreStrength,
 
@@ -3575,6 +3582,9 @@ function widget:Initialize()
 				extraState.lastDragScreenX = nil
 				extraState.lastDragScreenY = nil
 			end
+		end,
+		setClayStack = function(value)
+			extraState.clayStack = value and true or false
 		end,
 		setRestoreStrength = function(value)
 			extraState.restoreStrength = max(0.0, min(1.0, tonumber(value) or 1.0))
