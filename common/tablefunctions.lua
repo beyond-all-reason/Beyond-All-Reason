@@ -79,7 +79,7 @@ if not table.sortStable then
 	---This method preserves elements' original order when possible, unlike `table.sort`.
 	---@generic T
 	---@param tbl T[]
-	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	---@param compare? fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
 	table.sortStable = function(tbl, compare)
 		if not compare then
 			compare = compareDefault
