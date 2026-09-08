@@ -827,26 +827,57 @@ end
 --   lengthScale → 0.05 step
 --   ringRatio   → 0.02 step (only matters for "ring" shape)
 --
--- LRU eviction: keep at most FALLOFF_STAMP_LIMIT stamps. A radius-2000 stamp
--- is ~400 k floats ≈ 16 MB; 4 such = 64 MB max worst-case.
-local FALLOFF_STAMP_LIMIT = 4
+-- LRU eviction by cell budget: a stamp holds w*h table slots (a radius-2000
+-- stamp is ~500 k of them). Up to FALLOFF_STAMP_CELL_BUDGET slots stay
+-- resident, so a FOLLOW STROKE drag with a small or mid brush keeps every
+-- angle of its rotation cached instead of thrashing the old fixed 4-entry
+-- list and rebuilding one O(w*h) stamp (sin/cos/pow per cell) per dab.
+local FALLOFF_STAMP_CELL_BUDGET = 3000000
 local FALLOFF_EPSILON = 1 / 255 -- below this, treat as zero (sub-quantisation)
 local falloffStampCache = {}
 local falloffStampGen = {} -- key → last-use generation (monotonic clock)
-local falloffStampCount = 0
+local falloffStampSize = {} -- key → w*h, for the budget accounting
+---@type number
+local falloffStampCells = 0 -- data slots held by every cached stamp together
 local falloffStampClock = 0
 
-local function quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+-- Cells one stamp of this radius / length scale occupies at grid step ss
+-- (its bounding window; mirrors buildFalloffStamp's extent maths).
+local function stampCellCount(radius, lengthScale, ss)
+	local halfCells = floor(radius * max(1, lengthScale) * 1.42 / ss)
+	local size = halfCells * 2 + 1
+	return size * size
+end
+
+local function quantiseStampParams(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
 	local rQ = floor(radius)
-	-- Wrap angle to [0,360) before quantising so 359° and -1° share a stamp.
-	local aN = angleDeg % 360
-	local aQ = floor(aN / 2 + 0.5) * 2
-	if aQ >= 360 then
-		aQ = aQ - 360
-	end
 	local cQ = floor(curve / 0.05 + 0.5) * 0.05
 	local lQ = floor(lengthScale / 0.05 + 0.5) * 0.05
 	local rrQ = floor(ringRatio / 0.02 + 0.5) * 0.02
+	local aQ
+	if (shape == "circle" or shape == "ring") and lQ == 1 then
+		-- Rotation-invariant footprint: one stamp serves every angle. FOLLOW
+		-- STROKE with the default circle used to rebuild an identical stamp
+		-- every 2 degrees of tangent.
+		aQ = 0
+	else
+		-- 2 deg steps while a full rotation of stamps fits the cache with room
+		-- to spare; coarser for huge footprints so a FOLLOW drag cannot rebuild
+		-- a 100 k-cell stamp per dab (capped at 30 deg). The widget quantises
+		-- its tangent to 2 deg too, so previews and stamps agree for anything
+		-- but the biggest brushes.
+		local aStep = 2
+		local cells = stampCellCount(rQ, lQ, ss)
+		if cells > 40000 then
+			aStep = min(30, 2 * math.ceil(cells / 40000))
+		end
+		-- Wrap angle to [0,360) before quantising so 359° and -1° share a stamp.
+		local aN = angleDeg % 360
+		aQ = floor(aN / aStep + 0.5) * aStep
+		if aQ >= 360 then
+			aQ = aQ - 360
+		end
+	end
 	return rQ, aQ, cQ, lQ, rrQ
 end
 
@@ -876,7 +907,7 @@ local function buildFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ri
 end
 
 local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
-	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
 	local key = string.format("%s|%d|%d|%.2f|%.2f|%.2f|%d", shape, rQ, aQ, cQ, lQ, rrQ, ss)
 	falloffStampClock = falloffStampClock + 1
 	local stamp = falloffStampCache[key]
@@ -884,22 +915,30 @@ local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ring
 		falloffStampGen[key] = falloffStampClock
 		return stamp
 	end
-	stamp = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
-	falloffStampCache[key] = stamp
+	local built = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
+	falloffStampCache[key] = built
 	falloffStampGen[key] = falloffStampClock
-	falloffStampCount = falloffStampCount + 1
-	if falloffStampCount > FALLOFF_STAMP_LIMIT then
+	local builtCells = built.w * built.h
+	falloffStampSize[key] = builtCells
+	falloffStampCells = falloffStampCells + builtCells
+	-- Evict least-recently-used stamps until the budget holds; the one just
+	-- built stays whatever its size.
+	while falloffStampCells > FALLOFF_STAMP_CELL_BUDGET do
 		local oldKey, oldGen
 		for k, g in pairs(falloffStampGen) do
-			if oldGen == nil or g < oldGen then
+			if k ~= key and (oldGen == nil or g < oldGen) then
 				oldKey, oldGen = k, g
 			end
 		end
+		if not oldKey then
+			break
+		end
+		falloffStampCells = falloffStampCells - (falloffStampSize[oldKey] or 0)
 		falloffStampCache[oldKey] = nil
 		falloffStampGen[oldKey] = nil
-		falloffStampCount = falloffStampCount - 1
+		falloffStampSize[oldKey] = nil
 	end
-	return stamp
+	return built
 end
 
 local function applyTerraform(
