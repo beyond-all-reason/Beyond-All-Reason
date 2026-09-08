@@ -180,6 +180,8 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.FeatureCreated[T.FeatureCreated])
 			assert.is_function(C.FeatureDestroyed[T.FeatureReclaimed])
 			assert.is_function(C.FeatureDestroyed[T.FeatureDestroyed])
+			assert.is_function(C.UnitLoaded[T.TransportLoaded])
+			assert.is_function(C.UnitUnloaded[T.TransportUnloaded])
 		end)
 
 		it("registers no callins for statistics, mission-control, and event triggers", function()
