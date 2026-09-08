@@ -616,6 +616,14 @@ local function stepTileset()
 			lines[#lines + 1] = string.format("\tslot4_material = %q,", tostring(s4.material))
 		end
 	end
+	-- HEIGHT TINT ramp image (tileset shader 0.27): the gradient's basename,
+	-- Lua-side state like the biome key rather than a knob
+	if T.getRamp then
+		local rampFile = T.getRamp()
+		if rampFile and rampFile ~= "" then
+			lines[#lines + 1] = string.format("\tramp = %q,", tostring(rampFile))
+		end
+	end
 	-- per-texture albedo tints of painted variants (SURFACE > GRADING), sorted
 	if T.getSlotTints then
 		local tints = T.getSlotTints() or {}
@@ -2418,6 +2426,11 @@ local function phaseTileset(c)
 				T.setSlotTint(a, col[1], col[2], col[3])
 			end
 		end
+	end
+	-- HEIGHT TINT ramp image: an absent key clears any ramp left over from the
+	-- previous scene, so a project without one loads clean
+	if T.setRamp then
+		T.setRamp((type(d.ramp) == "string") and d.ramp or "")
 	end
 	local applied, unknown = 0, 0
 	if type(d.knobs) == "table" and T.setKnob then
