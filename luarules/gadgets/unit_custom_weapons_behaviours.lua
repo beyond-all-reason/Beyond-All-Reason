@@ -626,6 +626,7 @@ weaponCustomParamKeys.torpwaterpen = {
 -- Weapon definitions retain native homing and accuracy; tracking_turn_radius only adjusts
 -- entry-correction proximity. If the engine's native guidance model changes, these constraints
 -- may require a separate set of values.
+-- See doc/torpedo_motion_tuning.md for maintenance guidance.
 -- Depths and distances are in elmos, speeds are in elmos/frame, times are in frames,
 -- and correction strengths are normalized blends.
 
