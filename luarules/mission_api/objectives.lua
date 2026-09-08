@@ -93,7 +93,7 @@ local function exitStage(stageID, carriedOver)
 
 	for _, objectiveID in ipairs(stage.objectives) do
 		if carriedOver and carriedOver[objectiveID] then
-			-- Nothing to do?
+			-- continue
 		elseif GG["MissionAPI"].Objectives[objectiveID].completed then
 			setObjectiveActive(objectiveID, false)
 		else
