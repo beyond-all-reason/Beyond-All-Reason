@@ -794,6 +794,8 @@ end
 
 -- Objective fields that each name an Event trigger the objective raises.
 local objectiveEventFields = {
+	"onActivated",
+	"onCanceled",
 	"onCompleted",
 	"onFailed",
 }
