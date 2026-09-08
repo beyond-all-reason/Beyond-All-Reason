@@ -10,7 +10,7 @@ local stages = {
 		objectives = { 'buildBots' }
 	},
 	thirdStage = {
-		objectives = { 'buildBots', 'destroyBots' }
+		objectives = { 'buildBots', 'destroyBots', 'noLosses' }
 	}
 }
 
@@ -51,6 +51,12 @@ local objectives = {
 			},
 		},
 	},
+
+	-- Has no trigger of its own; an action fails it.
+	noLosses = {
+		textKey = "lose_no_units",
+		onFailed = 'reportFailure',
+	},
 }
 
 local triggers = {
@@ -72,6 +78,23 @@ local triggers = {
 	botsBuilt = {
 		type = triggerTypes.Event,
 		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
+	},
+
+	failOnLoss = {
+		type = triggerTypes.TotalUnitsLost,
+		settings = {
+			stages = { 'thirdStage' },
+		},
+		parameters = {
+			teamID = 0,
+			quantity = 1,
+		},
+		actions = { 'failNoLosses' },
+	},
+
+	reportFailure = {
+		type = triggerTypes.Event,
+		actions = { 'announceLoss' },
 	},
 }
 
@@ -99,6 +122,20 @@ local actions = {
 			unitLoadout = {
 				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, quantity = 2 },
 			},
+		},
+	},
+
+	failNoLosses = {
+		type = actionTypes.FailObjective,
+		parameters = {
+			objectiveID = 'noLosses',
+		},
+	},
+
+	announceLoss = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "A unit was lost. Objective failed.",
 		},
 	},
 }

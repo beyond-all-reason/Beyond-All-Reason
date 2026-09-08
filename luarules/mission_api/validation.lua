@@ -795,6 +795,7 @@ end
 -- Objective fields that each name an Event trigger the objective raises.
 local objectiveEventFields = {
 	"onCompleted",
+	"onFailed",
 }
 
 -- The TriggerID validator has already reported a trigger that does not exist.

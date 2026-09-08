@@ -285,6 +285,109 @@ describe("mission_api.objectives", function()
 		end)
 	end)
 
+	describe("FailObjective", function()
+		it("completes the objective and marks it failed", function()
+			install(mission():WithObjective("obj1", { completed = false }))
+
+			Objectives.FailObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_true(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { completed = true }))
+
+			Objectives.FailObjective("obj1")
+
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("does not mark a success as failed", function()
+			install(mission():WithObjective("obj1", { completed = false }))
+			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("activates the trigger the objective names in onFailed", function()
+			install(
+				mission()
+					:WithObjective("obj1", { completed = false, onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.failed, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("leaves the trigger named in onCompleted alone", function()
+			install(
+				mission()
+					:WithObjective("obj1", { completed = false, onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the trigger while the objective's stage is still current", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { completed = false, nextStage = "s2", onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("advances the stage through the gate, so a failure cannot softlock it", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithObjective("obj1", { completed = false, nextStage = "s2" })
+					:WithCurrentStage("s1")
+			)
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s2", missionApi.CurrentStageID)
+		end)
+
+		it("lets a stage change from the trigger stand instead of running the gate", function()
+			install(
+				mission()
+					:WithStage("s1", { objectives = { "obj1" } })
+					:WithStage("s2")
+					:WithStage("s9")
+					:WithObjective("obj1", { completed = false, nextStage = "s2", onFailed = "failed" })
+					:WithTrigger("failed", { type = T.Event })
+					:WithCurrentStage("s1")
+			)
+			missionApi.ActivateTrigger = function()
+				Objectives.ChangeStage("s9")
+			end
+
+			Objectives.FailObjective("obj1")
+
+			assert.are.equal("s9", missionApi.CurrentStageID)
+		end)
+	end)
+
 	describe("OnObjectiveCompleted", function()
 		it("activates the trigger the objective names in onCompleted", function()
 			install(
