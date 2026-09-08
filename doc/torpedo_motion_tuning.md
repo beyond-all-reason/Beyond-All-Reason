@@ -1,6 +1,6 @@
 # Torpedo motion constraints and tuning
 
-Torpedoes using `speceffect = "torpwaterpen"` retain the engine's native guidance. The weapon definition controls ordinary homing and accuracy through values such as `turnrate`, velocity, acceleration, and firing tolerance. The gadget in `luarules/gadgets/unit_custom_weapons_behaviours.lua` supplements that behavior by shaping the vertical path through water entry, surface travel, terrain avoidance, and breach protection. Its pitch corrections preserve total projectile speed and, after entry, preserve the current horizontal heading so the engine remains responsible for ongoing horizontal turns.
+Torpedoes using `speceffect = "torpwaterpen"` retain the engine's native guidance. The weapon definition controls ordinary homing and accuracy through standard weapon-control values such as `turnrate`, velocity, acceleration, and firing tolerance. The torpedo section of `luarules/gadgets/unit_custom_weapons_behaviours.lua` is primarily a visual trajectory supplement: it shapes the vertical path by smoothing water entry, leveling into surface travel, anticipating terrain, and limiting breaches. Its pitch corrections preserve total projectile speed and, after entry, preserve the current horizontal heading so the engine remains responsible for ongoing horizontal turns.
 
 ## Target depth and collision volumes
 
@@ -14,7 +14,7 @@ The target aim position decides which guidance path is selected, but the unit co
 
 Airborne torpedoes may enter the water with a horizontal bearing inherited from the launcher rather than a useful homing direction. On the first underwater update, the gadget points the horizontal velocity toward the target while preserving its horizontal speed and vertical velocity. This correction is recorded in the projectile's runtime state and happens only once. It does not add predictive horizontal lead or stronger continuous turning; subsequent horizontal homing remains engine-controlled.
 
-Surface-target arrival uses the target's horizontal velocity to estimate when the torpedo will arrive. That estimate controls only how quickly the torpedo moves vertically toward its running depth. Submerged targets receive no surface pull. Their native tracking is retained while the gadget looks ahead along the current trajectory, begins terrain avoidance gradually, and fades it near the intended target so the torpedo can complete a downward strike.
+Surface-target arrival uses the target's horizontal velocity to estimate when the torpedo will arrive. That estimate controls only how quickly the torpedo moves vertically toward its running depth. Submerged targets receive no surface pull. Their native tracking is retained while the gadget looks ahead along the current trajectory, begins terrain avoidance gradually, and fades it near the intended target so the torpedo can complete a downward strike if needed.
 
 ## Shallow-water limits
 
