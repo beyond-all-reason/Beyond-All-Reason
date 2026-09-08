@@ -616,51 +616,54 @@ end
 -- Water penetration (torpedo)
 -- Water entry and continuous surface-depth tracking are separate stages.
 
+-- Per-weapon configuration
 weaponCustomParamKeys.torpwaterpen = {
 	tracking_turn_radius = tonumber, -- proximity radius used to strengthen water-entry pitch correction
 }
 
--- Global torpedo trajectory tuning shared by every weapon using torpwaterpen.
+-- Shared torpedo motion constraints layered onto the engine's native guidance.
+-- These values form a coordinated set and are not independent per-weapon tuning controls.
+-- Weapon definitions retain native homing and accuracy; tracking_turn_radius only adjusts
+-- entry-correction proximity. If the engine's native guidance model changes, these constraints
+-- may require a separate set of values.
 -- Depths and distances are in elmos, speeds are in elmos/frame, times are in frames,
--- and correction strengths are normalized blends. Changes require broad torpedo testing.
+-- and correction strengths are normalized blends.
 
--- Surface-depth guidance
-local surfaceTargetDepth = -2
-local surfaceDepthCorrection = 0.025
+-- Surface-depth constraints
+local surfaceTargetDepth = -2 -- Desired running depth against surface targets.
+local surfaceDepthCorrection = 0.025 -- Converts depth error into vertical speed.
+local minSurfaceDiveSpeed = -0.12 -- Fastest permitted dive while tracking the surface.
+local maxUnderwaterSurfaceRiseSpeed = 1.25 -- Fastest permitted underwater rise.
 
--- Velocity constraints
-local minSurfaceDiveSpeed = -0.12
-local maxUnderwaterSurfaceRiseSpeed = 1.25
+-- Air-to-water entry constraints
+local surfaceTransitionStartDepth = -12 -- Running-depth target used far from the target.
+local minSurfaceEntryDiveSpeed = -0.3 -- Fastest permitted dive during entry smoothing.
+local defaultEntryCorrectionRadius = 180 -- Default proximity range for stronger entry correction.
+local surfaceEntryCorrectionDistance = 180 -- Range over which entry depth approaches surface depth.
+local waterEntryCorrectionStartDepth = -2 -- Depth where entry correction begins.
+local waterEntryCorrectionFullDepth = -10 -- Depth where entry correction reaches full strength.
+local minWaterEntryCorrection = 0.2 -- Entry-correction strength far from the target.
+local maxWaterEntryCorrection = 0.85 -- Entry-correction strength directly over the target.
 
--- Air-to-water entry
-local surfaceTransitionStartDepth = -12
-local minSurfaceEntryDiveSpeed = -0.3
-local defaultEntryCorrectionRadius = 180
-local surfaceEntryCorrectionDistance = 180
-local waterEntryCorrectionStartDepth = -2
-local waterEntryCorrectionFullDepth = -10
-local minWaterEntryCorrection = 0.2
-local maxWaterEntryCorrection = 0.85
+-- Surface-target arrival constraints
+local surfaceArrivalLeadFrames = 20 -- Lead time for reaching running depth before arrival.
+local minSurfaceCorrectionFrames = 8 -- Shortest permitted arrival-correction interval.
+local surfaceCorrectionRampStartFrames = 50 -- Arrival time where correction begins strengthening.
+local surfaceCorrectionRampEndFrames = 20 -- Arrival time where correction reaches full strength.
+local minSurfaceTrackingCorrection = 0.2 -- Long-range surface-tracking correction strength.
+local maxSurfaceTrackingCorrection = 0.5 -- Close-range surface-tracking correction strength.
 
--- Surface-target arrival
-local surfaceArrivalLeadFrames = 20
-local minSurfaceCorrectionFrames = 8
-local surfaceCorrectionRampStartFrames = 50
-local surfaceCorrectionRampEndFrames = 20
-local minSurfaceTrackingCorrection = 0.2
-local maxSurfaceTrackingCorrection = 0.5
-
--- Terrain avoidance
-local terrainAvoidanceClearance = 6
-local terrainAvoidanceLookaheadFrames = 4
-local terrainAvoidanceRampDepth = 12
-local terrainAvoidanceTargetReleaseDistance = 36
-local terrainAvoidanceDepthLeadRatio = 2
-local terrainAvoidanceGroundTargetLeadRatio = 3
+-- Terrain-avoidance constraints
+local terrainAvoidanceClearance = 6 -- Minimum desired clearance above terrain.
+local terrainAvoidanceLookaheadFrames = 4 -- Time projected ahead when checking terrain.
+local terrainAvoidanceRampDepth = 12 -- Clearance range over which avoidance strengthens.
+local terrainAvoidanceTargetReleaseDistance = 36 -- Minimum range for fading avoidance near the target.
+local terrainAvoidanceDepthLeadRatio = 2 -- Release-distance multiplier for submerged unit targets.
+local terrainAvoidanceGroundTargetLeadRatio = 3 -- Earlier avoidance release for ground targets.
 
 -- Shore-launcher breach constraints
-local minShoreSurfaceDiveSpeed = -4
-local shoreTorpedoBreachCeiling = 2
+local minShoreSurfaceDiveSpeed = -4 -- Fastest permitted dive for shore-launched torpedoes.
+local shoreTorpedoBreachCeiling = 2 -- Highest permitted position after entering the water.
 
 -- Per-projectile runtime state; these fields are not trajectory configuration.
 ---@class TorpedoState
