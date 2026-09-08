@@ -306,6 +306,15 @@ _G.inspect = (function()
 	end
 end)()
 
+_G.VFS.LoadFile = function(path)
+	local file = assert(io.open(path, "rb"))
+	local contents = file:read("*a")
+	file:close()
+	return contents
+end
+
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
 -- Busted runs every spec file in a single Lua process, so globals left behind by
 -- one file leak into the next. Clearing GG before each file means a spec cannot
 -- accidentally depend on state another file happened to leave behind -- such a
