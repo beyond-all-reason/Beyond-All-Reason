@@ -18,7 +18,9 @@ local actionHandler = {
 	keyReleaseActions = {},
 	syncActions = {},
 	-- Actions triggered by a currently held physical key, keyed by scancode and captured at press time.
-	-- The engine rebuilds the action list from the live modifier state at release time, so a modified bind (e.g. Shift+n) gets no matching release dispatch once the modifier is let go first. Capturing the press list is makes modified binds releasable.
+	-- The engine rebuilds the action list at release time from a single key only with the live modifier state.
+	-- So a modified bind (e.g. Shift+n) gets no matching release dispatch once the modifier is let go first.
+	-- Capturing the press list makes chained or modified binds releasable.
 	pressedKeyActions = {},
 }
 
