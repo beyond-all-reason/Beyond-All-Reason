@@ -8,7 +8,7 @@
 -- use VFS.LoadFile, which the test harness does not mock.
 
 local Json = VFS.Include("common/luaUtilities/json.lua")
-local JsonSchema = VFS.Include("spec/json_schema.lua")
+local JsonSchema = VFS.Include("spec/common/json_schema.lua")
 
 local function loadJson(path)
 	local f = assert(io.open(path, "r"), "cannot open " .. path)
