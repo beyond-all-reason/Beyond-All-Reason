@@ -1,0 +1,12 @@
+{
+	"$schema": "../../schemas/campaign.schema.json",
+	"campaignId": "cortex-main",
+	"authors": ["Rasoul"],
+	"titleKey": "cortex-main.title",
+	"descriptionKey": "cortex-main.description",
+	"backgroundImage": "BAR3-5K_Loadingscreen_2.jpg",
+	"logo": "cortex_faction.png",
+
+	"prerequisites": ["armada-main"],
+	"players": [1, 2, 3, 4]
+}

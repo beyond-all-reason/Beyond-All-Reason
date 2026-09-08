@@ -6,7 +6,7 @@ return {
 	type = 'ProductionStarted',
 	parameters = {
 		{ name = 'unitDefName',    required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',         required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',       required = false, type = ParameterTypes.TeamName },
 		{ name = 'factoryName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'factoryDefName', required = false, type = ParameterTypes.UnitDefName },
 	},

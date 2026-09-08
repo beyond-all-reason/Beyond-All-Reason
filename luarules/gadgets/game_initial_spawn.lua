@@ -21,6 +21,24 @@ end
 -- FFA start points config format is handled by `game_ffa_start_setup`.
 
 ----------------------------------------------------------------
+-- Shared (evaluated independently in both the synced and unsynced VMs)
+----------------------------------------------------------------
+
+local missionSpawnDisabled
+do
+	local raw = Spring.GetModOptions()
+	raw = raw.scenariooptions or raw.missionoptions
+	if not raw then
+		return {}
+	end
+
+	local missionOptions = Json.decode(string.base64Decode(raw)) or {}
+	--- True when a mission/scenario handles its own unit spawning.
+	missionSpawnDisabled = missionOptions.disableInitialCommanderSpawn == true
+		or not table.isNilOrEmpty(missionOptions.unitloadout)
+end
+
+----------------------------------------------------------------
 -- Synced
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
@@ -596,9 +614,11 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- spawn starting unit
 		local y = spGetGroundHeight(x, z)
-		scenarioSpawnsUnits = false
-
-		if Spring.GetModOptions().scenariooptions then
+		local scenarioSpawnsUnits = false
+		if missionSpawnDisabled then
+			Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
+			scenarioSpawnsUnits = false
+		elseif Spring.GetModOptions().scenariooptions then
 			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
@@ -835,7 +855,7 @@ else -- UNSYNCED
 	local spawnWarpInFrame = Game.spawnWarpInFrame
 
 	function gadget:GameFrame(n)
-		if n == spawnInitialFrame then
+		if n == spawnInitialFrame and not missionSpawnDisabled then
 			Spring.PlaySoundFile("commanderspawn", 0.6, "ui")
 			sendStartPositions()
 		end

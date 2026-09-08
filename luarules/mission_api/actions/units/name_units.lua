@@ -50,10 +50,10 @@ return {
 		type = 'NameUnits',
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-			{ name = 'teamID', required = false, type = ParameterTypes.Number },
+			{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
 			{ name = 'unitDefName', required = false, type = ParameterTypes.String },
 			{ name = 'area', required = false, type = ParameterTypes.Area },
-			requiresOneOf = { 'teamID', 'unitDefName', 'area' },
+			requiresOneOf = { 'teamName', 'unitDefName', 'area' },
 		},
 		actionFunction = nameUnits,
 	}

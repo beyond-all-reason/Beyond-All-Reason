@@ -5,6 +5,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here)
 -- and UnitDefs inside its handler. The gadget filters spawned units via WasUnderConstruction.
 Builders.MissionApi.new():Install()
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
@@ -39,7 +40,7 @@ describe("mission_api.triggers.construction_finished", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, constructionFinished.parameters.requiresOneOf)
 	end)
 
@@ -58,7 +59,7 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())
@@ -77,13 +78,13 @@ describe("mission_api.triggers.construction_finished", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("does not fire when finished on a team allied with teamID", function()
+	it("does not fire when finished on a team allied with the watched team", function()
 		local context, fired = newContext()
 		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 2) -- team 2 allied with 0
 		assert.are.equal(0, fired())
 	end)
 
-	it("does not fire when finished on a team hostile to teamID", function()
+	it("does not fire when finished on a team hostile to the watched team", function()
 		local context, fired = newContext()
 		finished(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 3)
 		assert.are.equal(0, fired())

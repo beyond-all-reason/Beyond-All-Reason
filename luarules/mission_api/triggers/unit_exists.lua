@@ -4,7 +4,7 @@ return {
 	type = 'UnitExists',
 	parameters = {
 		{ name = 'unitDefName', required = true,  type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',      required = false, type = ParameterTypes.TeamName },
 	},
 	callins = {
 		MetaUnitAdded = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)

@@ -6,11 +6,11 @@
 root = true
 
 # Set default charset
-[*.{lua,md}]
+[*.{lua,md,json}]
 charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.lua]
+[*.{lua,json}]
 indent_size = 4
 indent_style = tab

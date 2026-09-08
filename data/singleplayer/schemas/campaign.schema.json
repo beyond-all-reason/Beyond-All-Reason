@@ -1,0 +1,81 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "campaign.schema.json",
+	"title": "Campaign Definition",
+	"description": "Schema for a BAR campaign definition file in data/singleplayer/campaigns/<campaign>/campaign.json. The subfolders named in its 'missions' list are its missions.",
+	"type": "object",
+	"required": ["campaignId", "titleKey", "descriptionKey", "players"],
+	"additionalProperties": false,
+	"definitions": {
+		"identifier": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+$",
+			"description": "A non-empty string containing only letters, digits, underscores, and hyphens."
+		},
+		"i18nKey": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
+			"description": "A dotted I18N key, never literal text. Resolved against language/<lang>.json."
+		}
+	},
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "Path or URL to the JSON Schema for this file."
+		},
+		"campaignId": {
+			"$ref": "#/definitions/identifier"
+		},
+		"titleKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the display title of the campaign."
+		},
+		"descriptionKey": {
+			"allOf": [{ "$ref": "#/definitions/i18nKey" }],
+			"description": "I18N key for the short description shown in the campaign selection UI."
+		},
+		"authors": {
+			"type": "array",
+			"description": "People credited for this campaign.",
+			"minItems": 1,
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"backgroundImage": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9._-]+$",
+			"description": "Filename of the background image used on the campaign screen, relative to this campaign's folder."
+		},
+		"logo": {
+			"type": "string",
+			"pattern": "^[A-Za-z0-9._-]+$",
+			"description": "Filename of the campaign / faction logo image, relative to this campaign's folder."
+		},
+		"prerequisites": {
+			"type": "array",
+			"description": "List of campaign IDs that must be completed before this one is unlocked.",
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		},
+		"players": {
+			"type": "array",
+			"description": "Supported player counts.",
+			"minItems": 1,
+			"items": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		"missions": {
+			"type": "array",
+			"description": "Folders to load missions from, in display order. 'shared' and 'language' are reserved names and cannot be used.",
+			"uniqueItems": true,
+			"items": {
+				"$ref": "#/definitions/identifier"
+			}
+		}
+	}
+}

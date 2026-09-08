@@ -57,7 +57,7 @@ describe("mission_api.triggers.resource_income", function()
 		for _, parameter in ipairs(resourceIncome.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.is_true(names.sources)

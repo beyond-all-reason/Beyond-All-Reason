@@ -33,7 +33,7 @@ describe("mission_api.triggers.resource_stored", function()
 		for _, parameter in ipairs(resourceStored.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.metal)
 		assert.is_true(names.energy)
 		assert.are.same({ "metal", "energy" }, resourceStored.parameters.requiresOneOf)

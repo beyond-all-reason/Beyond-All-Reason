@@ -5,9 +5,9 @@ return {
 	parameters = {
 		{ name = 'featureName',    required = false, type = ParameterTypes.FeatureName },
 		{ name = 'featureDefName', required = false, type = ParameterTypes.FeatureDefName },
-		{ name = 'allyTeamID',     required = false, type = ParameterTypes.AllyTeamID },
+		{ name = 'allyTeamName',   required = false, type = ParameterTypes.AllyTeamName },
 		{ name = 'area',           required = false, type = ParameterTypes.Area },
-		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamID', 'area' },
+		requiresOneOf = { 'featureName', 'featureDefName', 'allyTeamName', 'area' },
 	},
 	callins = {
 		FeatureDestroyed = function(trigger, triggerID, context, featureID, featureDefID, attackerAllyTeamID, reclaimerTeamID, reclaimLeft)

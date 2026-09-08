@@ -38,10 +38,10 @@ describe("mission_api.triggers.feature_destroyed", function()
 		end
 		assert.is_true(names.featureName)
 		assert.is_true(names.featureDefName)
-		assert.is_true(names.allyTeamID)
+		assert.is_true(names.allyTeamName)
 		assert.is_true(names.area)
 		assert.are.same(
-			{ "featureName", "featureDefName", "allyTeamID", "area" },
+			{ "featureName", "featureDefName", "allyTeamName", "area" },
 			featureDestroyed.parameters.requiresOneOf
 		)
 	end)

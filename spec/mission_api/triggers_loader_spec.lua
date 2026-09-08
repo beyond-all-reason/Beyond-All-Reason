@@ -196,6 +196,33 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.Defeat], callinName)
 			end
 		end)
+
+		it("declares every parameter with a type that parameter_types defines", function()
+			local knownTypes = {}
+			for _, typeName in pairs(ParameterTypes) do
+				knownTypes[typeName] = true
+			end
+
+			local typeNameOf = {}
+			for triggerType, typeIndex in pairs(realDefinitions.Types) do
+				typeNameOf[typeIndex] = triggerType
+			end
+
+			local undefined = {}
+			for typeIndex, parameters in pairs(realDefinitions.Parameters) do
+				for _, parameter in ipairs(parameters) do
+					if parameter.type == nil or not knownTypes[parameter.type] then
+						undefined[#undefined + 1] = (typeNameOf[typeIndex] or "?")
+							.. "."
+							.. tostring(parameter.name)
+							.. " = "
+							.. tostring(parameter.type)
+					end
+				end
+			end
+
+			assert.are.same({}, undefined)
+		end)
 	end)
 
 	-- ── ProcessRawTriggers ────────────────────────────────────────────────────

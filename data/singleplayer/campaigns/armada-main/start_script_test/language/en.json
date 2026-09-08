@@ -1,0 +1,14 @@
+{
+	"briefing.alliesPresent.1": "Fortified Outpost",
+	"briefing.alliesPresent.2": "Reinforcements en route",
+	"briefing.knownHostiles.1": "Raptors - extremely likely",
+	"briefing.knownHostiles.2": "Unidentified raiders - inbound",
+	"briefing.newUnits.armcv": "Construction Vehicle - builds structures.",
+	"briefing.newUnits.armflash": "Blitz - a fast assault tank.",
+	"briefing.objectives.1": "Build a base.",
+	"briefing.objectives.2": "Obliterate their nukes.",
+	"description": "Tests start script options like difficulty and disabling comm. And also: Lorem Ipsum dolor sit amet, consectetur adipiscing elit.",
+	"teams.theEnemyTeam": "Mission Bots",
+	"teams.thePlayerTeam": "PlayerPawns",
+		"title": "Start Script Test"
+}

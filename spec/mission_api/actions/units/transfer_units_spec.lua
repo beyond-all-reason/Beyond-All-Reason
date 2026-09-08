@@ -34,7 +34,7 @@ describe("mission_api.actions.transfer_units", function()
 		assert.are.same({
 			type = "TransferUnits",
 			unitName = "UnitName!",
-			newTeam = "TeamID!",
+			newTeamName = "TeamName!",
 		}, summarizeSchema(action))
 	end)
 
