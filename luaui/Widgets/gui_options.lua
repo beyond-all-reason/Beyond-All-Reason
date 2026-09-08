@@ -5541,7 +5541,7 @@ function init()
 				BAR.I18N("ui.settings.option.select_terrain"),
 				BAR.I18N("ui.settings.option.select_smooth"),
 			},
-			value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1,
+			value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 2) + 1,
 			description = BAR.I18N("ui.settings.option.springcamheightmode_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
