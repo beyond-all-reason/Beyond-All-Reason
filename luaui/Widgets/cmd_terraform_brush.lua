@@ -987,12 +987,20 @@ local noiseSeed = 0
 local historyUndoCount = 0
 local historyRedoCount = 0
 
--- Tessellation refresh: force mesh re-tessellation for N frames after heightmap edits
-local TESS_DIRTY_FRAMES = 10
+-- Tessellation refresh: force the ground mesh to re-tessellate for a couple
+-- of frames after a heightmap edit has LANDED. Armed from
+-- widget:UnsyncedHeightMapUpdate, which the engine fires exactly when the
+-- unsynced heightmap changes. It used to be armed for 10 frames per brush
+-- tick from afterBrushTick, so a 20 Hz drag kept the whole visible mesh
+-- re-tessellating every single frame, on big maps a frame-rate lever of its
+-- own.
+local TESS_DIRTY_FRAMES = 2
 local tessellationDirtyFrames = 0
 
 local function markTessellationDirty()
-	tessellationDirtyFrames = TESS_DIRTY_FRAMES
+	if tessellationDirtyFrames < TESS_DIRTY_FRAMES then
+		tessellationDirtyFrames = TESS_DIRTY_FRAMES
+	end
 end
 
 -- Client-side follow-up every whole-map terrain change needs: the mesh
@@ -1014,6 +1022,7 @@ end
 -- when the ground actually moved — never on a timer.
 function widget:UnsyncedHeightMapUpdate()
 	extraState.terrainVersion = extraState.terrainVersion + 1
+	markTessellationDirty()
 end
 
 -- Per-tick MERGE_END: each tick creates one undo entry within the current stroke.
@@ -1021,7 +1030,7 @@ end
 -- UNDO_STROKE pops all entries for the latest stroke atomically.
 
 local function afterBrushTick()
-	markTessellationDirty()
+	-- The mesh refresh is armed by UnsyncedHeightMapUpdate when the edit lands.
 	SendLuaRulesMsg(MSG.MERGE_END)
 end
 
