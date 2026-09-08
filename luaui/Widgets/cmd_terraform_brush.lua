@@ -493,6 +493,11 @@ local extraState = {
 	heightColormap = false,
 	curveOverlay = false,
 	velocityIntensity = false,
+	-- Settings > Performance: wider dab spacing where the falloff allows it,
+	-- fewer dabs per tick, coarser FOLLOW STROKE angle steps, panel readouts
+	-- strided while dragging. Persisted by the panel (ui_prefs.lua).
+	---@type boolean
+	perfMode = false,
 	-- Settings > Stroke > Clay build-up: legacy per-tick clay stacking (wire
 	-- clay flag "2"). Off = one layer per stroke over the surface it started
 	-- on, which is what stops the concentric rings.
@@ -1900,8 +1905,10 @@ extraState.followAngleFor = function(dx, dz)
 	end
 	-- Quantise to 2 degrees, the same step the gadget's falloff-stamp cache keys
 	-- the angle at (quantiseStampParams): finer than this only costs cache misses,
-	-- coarser than this visibly steps the shape around on a curve.
-	return (floor(cur / 2 + 0.5) * 2) % 360
+	-- coarser than this visibly steps the shape around on a curve. Performance
+	-- mode steps 6 degrees: a third of the stamp builds on shaped brushes.
+	local q = extraState.perfMode and 6 or 2
+	return (floor(cur / q + 0.5) * q) % 360
 end
 
 local function setRotation(degrees)
@@ -2642,7 +2649,10 @@ local function getState()
 		curveOverlay = extraState.curveOverlay,
 		velocityIntensity = extraState.velocityIntensity,
 		followStroke = extraState.followStroke,
+		perfMode = extraState.perfMode,
 		clayStack = extraState.clayStack,
+		-- A sculpt drag is in progress (brush down on the world).
+		dragging = lockedWorldX ~= nil,
 		dragVelocityFactor = extraState.dragVelocityFactor,
 		restoreStrength = extraState.restoreStrength,
 
@@ -3591,6 +3601,9 @@ function widget:Initialize()
 				extraState.lastDragScreenX = nil
 				extraState.lastDragScreenY = nil
 			end
+		end,
+		setPerfMode = function(value)
+			extraState.perfMode = value and true or false
 		end,
 		setClayStack = function(value)
 			extraState.clayStack = value and true or false
@@ -4993,8 +5006,22 @@ function widget:Update(dt)
 		local endX, endZ = lockedWorldX, lockedWorldZ
 		if prevX and prevZ and not isStampMode() then
 			-- Denser overlap (~15% of radius) eliminates visible banding at
-			-- slow-to-mid drag speeds.
-			local stepSize = max(4, activeRadius * 0.15)
+			-- slow-to-mid drag speeds. Performance mode widens the spacing where
+			-- the falloff can take it: a soft curve (<= 1) sums smoothly at a
+			-- quarter radius, clay converges on one plane whatever the spacing,
+			-- hard curves keep the full density. It also caps the dabs a tick
+			-- may carry, so a saturated tick costs two thirds.
+			local spacing = 0.15
+			local dabCap = 48
+			if extraState.perfMode then
+				dabCap = 32
+				if clayMode or activeCurve <= 1.0 then
+					spacing = 0.24
+				elseif activeCurve <= 2.0 then
+					spacing = 0.2
+				end
+			end
+			local stepSize = max(4, activeRadius * spacing)
 			local path = extraState.strokePath
 			local head = extraState.strokePathHead
 			local pathN = extraState.strokePathN
@@ -5002,7 +5029,7 @@ function widget:Update(dt)
 			-- The cap bounds a saturated tick; whatever is left of the recorded path
 			-- stays in the buffer for the next tick, so the stroke lags the cursor
 			-- but never gaps and never spaces the dabs out past the brush.
-			while head <= pathN and nDabs < 48 do
+			while head <= pathN and nDabs < dabCap do
 				local o = (head - 1) * 2
 				local ddx = path[o + 1] - cx
 				local ddz = path[o + 2] - cz
