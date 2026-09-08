@@ -60,12 +60,13 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
+	local CMD_MANUALFIRE = CMD.MANUALFIRE
 	local OPT_INTERNAL = CMD.OPT_INTERNAL
 	local FIRESTATE_RETURNFIRE = CMD.FIRESTATE_RETURNFIRE
 
 	local isAttackCommand = {
 		[CMD_ATTACK] = true,
-		[CMD.MANUALFIRE] = true,
+		[CMD_MANUALFIRE] = true,
 		[CMD.AREA_ATTACK] = true,
 		[GameCMD.AREA_ATTACK_GROUND] = true,
 	}
@@ -241,11 +242,6 @@ if gadgetHandler:IsSyncedCode() then
 		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
 	end
 
-	local function inAttackCommand(unitID)
-		local inCommand = spGetUnitCurrentCommand(unitID)
-		return inCommand and isAttackCommand[inCommand]
-	end
-
 	local function inReturnFire(unitID)
 		return spGetUnitStates(unitID, false) == FIRESTATE_RETURNFIRE
 	end
@@ -259,16 +255,22 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
-	local function hasUserTarget(unitID, unitData)
-		for weaponNum, check in pairs(unitData.weapons) do
-			if check then
-				local _, isUserTarget = spGetUnitWeaponTarget(unitID, weaponNum)
-				if isUserTarget then
-					return true
-				end
+
+	local function restoreCommandTarget(unitID)
+		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
+		if not inCommand or not isAttackCommand[inCommand] then
+			return false
+		end
+		if inCommand == CMD_ATTACK or inCommand == CMD_MANUALFIRE then
+			local manualFire = inCommand == CMD_MANUALFIRE
+			local userTarget = not hasAutoTarget(options)
+			if param2 then
+				spSetUnitTarget(unitID, param1, param2, param3, manualFire, userTarget)
+			else
+				spSetUnitTarget(unitID, param1, manualFire, userTarget)
 			end
 		end
-		return false
+		return true
 	end
 
 	local function hasTargetPrecedence(unitID, unitData)
@@ -279,6 +281,8 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		elseif param2 or inCommand ~= CMD_ATTACK then
 			return false
+		elseif not param1 then
+			return true
 		end
 
 		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
@@ -293,7 +297,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		return hasAutoTarget(options) or not hasUserTarget(unitID, unitData)
+		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
 	end
 
 	local function setTargetActive(unitID, unitData, targetIndex)
@@ -318,7 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.activeTarget = false
 		unitData.currentIndex = 1
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
-		if not inAttackCommand(unitID) then
+		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
 		SendToUnsynced("targetIndex", unitID, 1, false)
@@ -360,7 +364,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not inAttackCommand(unitID) then
+		if activeTargets[unitID] and not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
 		activeTargets[unitID] = nil
@@ -373,6 +377,17 @@ if gadgetHandler:IsSyncedCode() then
 			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+	end
+
+	local function pauseTargetting(unitID)
+		pausedTargets[unitID] = activeTargets[unitID]
+		removeUnit(unitID, true)
+	end
+
+	local function unpauseTargetting(unitID)
+		activeTargets[unitID] = pausedTargets[unitID]
+		pausedTargets[unitID] = nil
+		addToQueue(unitID)
 	end
 
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
@@ -430,7 +445,9 @@ if gadgetHandler:IsSyncedCode() then
 		addToQueue(unitID)
 		sendTargetsToUnsynced(unitID)
 
-		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
+		if not hasTargetPrecedence(unitID, data) then
+			pauseTargetting(unitID)
+		elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
 		end
 	end
@@ -806,17 +823,6 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
-	local function pauseTargetting(unitID)
-		pausedTargets[unitID] = activeTargets[unitID]
-		removeUnit(unitID, true)
-	end
-
-	local function unpauseTargetting(unitID)
-		activeTargets[unitID] = pausedTargets[unitID]
-		pausedTargets[unitID] = nil
-		addToQueue(unitID)
-	end
-
 	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		if cmdID == CMD_STOP and setTargetData[unitID] then
 			removeWithStop(unitID)
@@ -965,8 +971,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Since v103 Attack commands override the unit target on any frame, not just slow updates.
-	-- So we try to override the target again, every single frame, to prevent target jittering.
+	-- Weapons re-read the unit target on any frame, and an Attack command will replace it whenever
+	-- the unit is able to fire. So we re-apply the target every frame to prevent target jittering.
 	function gadget:GameFrame(frame)
 		teamQueryCaches = {}
 		if frame % 15 == 0 then

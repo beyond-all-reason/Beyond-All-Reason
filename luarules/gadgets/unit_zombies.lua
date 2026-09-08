@@ -195,7 +195,6 @@ local ceil = math.ceil
 local teams = Spring.GetTeamList()
 local scavTeamID
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if teamLuaAI and string.find(teamLuaAI, "ScavengersAI") then

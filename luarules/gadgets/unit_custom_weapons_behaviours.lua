@@ -66,7 +66,6 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectilesData = {}
 
 local gameFrame = 0
 

@@ -2,7 +2,6 @@ local blueprintConfig =
 	VFS.Include("luarules/gadgets/ruins/Blueprints/" .. Game.gameShortName .. "/blueprint_tiers.lua")
 local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
-local UDN = UnitDefNames
 
 local function t1RadarOutpost()
 	return {
