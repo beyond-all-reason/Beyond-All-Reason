@@ -1,5 +1,5 @@
-[
-	"placeholderDifficulty1",
-	"placeholderDifficulty2",
-	"placeholderDifficulty3"
-]
+{
+	"placeholderDifficulty1": 1,
+	"placeholderDifficulty2": 2,
+	"placeholderDifficulty3": 3
+}
