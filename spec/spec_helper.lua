@@ -326,6 +326,15 @@ _G.inspect = (function()
 	end
 end)()
 
+_G.VFS.LoadFile = function(path)
+	local file = assert(io.open(path, "rb"))
+	local contents = file:read("*a")
+	file:close()
+	return contents
+end
+
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
 -- Every spec file is run in a single Lua process via busted, so their globals are
 -- left behind from one file to the next in the order they are run. Clearing GG is
 -- one way to protect against those leaks; guarded against reruns using a _G gate.
