@@ -65,21 +65,21 @@ local function decodeModoption(raw)
 	return parsed
 end
 
-local function getActiveAllyTeams()
+local function getActiveAllyTeamCount()
 	local gaiaAllyTeamID
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	if gaiaTeamID then
 		gaiaAllyTeamID = Spring.GetTeamAllyTeamID(gaiaTeamID)
 	end
 
-	local active = {}
+	local count = 0
 	for _, atID in ipairs(Spring.GetAllyTeamList()) do
 		if atID ~= gaiaAllyTeamID then
-			active[#active + 1] = atID
+			count = count + 1
 		end
 	end
 
-	return active
+	return count
 end
 
 -- Will match any spare boxes, but will not leave any teams without a box.
@@ -245,12 +245,10 @@ local function buildWholeMapEntry()
 	}
 end
 
--- resolveArrangement will settle for an arrangement covering fewer allyteams than the game
--- has, and a missing entry sends each consumer off to its own engine-rect fallback.
-local function fillUnboxedAllyTeams(config, activeAllyTeams)
-	for _, allyTeamID in ipairs(activeAllyTeams) do
-		local entry = config[allyTeamID]
-		if not (entry and entry.boxes and #entry.boxes > 0) then
+-- resolveArrangement settles for an arrangement covering fewer allyteams than the game has.
+local function fillUnboxedAllyTeams(config, numTeams)
+	for allyTeamID = 0, numTeams - 1 do
+		if not config[allyTeamID] then
 			config[allyTeamID] = buildWholeMapEntry()
 		end
 	end
@@ -322,18 +320,18 @@ local function buildFallback()
 end
 
 local function ParseBoxes()
-	local activeAllyTeams = getActiveAllyTeams()
+	local numTeams = getActiveAllyTeamCount()
 
 	local modoptions = Spring.GetModOptions()
 	local parsedOverride = decodeModoption(modoptions.mapmetadata_startbox_override)
 	local parsedSet = decodeModoption(modoptions.mapmetadata_startboxes_set)
 
-	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, #activeAllyTeams)
+	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, numTeams)
 
 	local startBoxConfig
 	if arrangement then
 		startBoxConfig = transformArrangement(arrangement)
-		fillUnboxedAllyTeams(startBoxConfig, activeAllyTeams)
+		fillUnboxedAllyTeams(startBoxConfig, numTeams)
 	else
 		startBoxConfig = buildFallback()
 		configSource = "fallback"
