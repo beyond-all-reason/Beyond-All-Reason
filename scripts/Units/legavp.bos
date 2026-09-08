@@ -18,7 +18,7 @@ piece 	base,
 		sprayL1B, sprayL2B, sprayL3B, sprayR1B, sprayR2B, sprayR3B,
 		pad;
 
-static-var  spray, issmoking;
+static-var  spray, issmoking, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -91,10 +91,7 @@ Create()
 	move doorC to y-axis [0] speed [5];
 	sleep 100;
 	move doorD to y-axis [0] speed [5];
-
-
-
-
+	hasOpened = 0;
 }
 
 
@@ -110,149 +107,96 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	move gateL1 to y-axis [15] speed [75];
-	move gateL2 to y-axis [15] speed [75];
-	move gateL3 to y-axis [15] speed [75];
+	if( !hasOpened )
+	{
+		move gateL1 to y-axis [15] speed [75];
+		move gateL2 to y-axis [15] speed [75];
+		move gateL3 to y-axis [15] speed [75];
 
-	move gateR1 to y-axis [15] speed [75];
-	move gateR2 to y-axis [15] speed [75];
-	move gateR3 to y-axis [15] speed [75];
+		move gateR1 to y-axis [15] speed [75];
+		move gateR2 to y-axis [15] speed [75];
+		move gateR3 to y-axis [15] speed [75];
 
-	wait-for-move gateR3 along y-axis;
+		wait-for-move gateR3 along y-axis;
 
-	turn gateR1 to z-axis <-70> speed <200>;
-	turn gateL1 to z-axis <70> speed <200>;
-	sleep 50;
-	turn gateR2 to z-axis <-70> speed <200>;
-	turn gateL2 to z-axis <70> speed <200>;
-	sleep 50;
-	turn gateR3 to z-axis <-70> speed <200>;
-	turn gateL3 to z-axis <70> speed <200>;
+		turn gateR1 to z-axis <-70> speed <200>;
+		turn gateL1 to z-axis <70> speed <200>;
+		sleep 50;
+		turn gateR2 to z-axis <-70> speed <200>;
+		turn gateL2 to z-axis <70> speed <200>;
+		sleep 50;
+		turn gateR3 to z-axis <-70> speed <200>;
+		turn gateL3 to z-axis <70> speed <200>;
 
-	sleep 50;
+		sleep 50;
 
-	move doorA to y-axis [-31] speed [130];
-	sleep 50;
-	move doorB to y-axis [-31] speed [130];
-	sleep 50;
-	move doorC to y-axis [-31] speed [130];
-	sleep 50;
-	move doorD to y-axis [-31] speed [130];
-	
-	wait-for-move doorD along y-axis;
+		move doorA to y-axis [-31] speed [130];
+		sleep 50;
+		move doorB to y-axis [-31] speed [130];
+		sleep 50;
+		move doorC to y-axis [-31] speed [130];
+		sleep 50;
+		move doorD to y-axis [-31] speed [130];
 
-	move platformA1 to z-axis [-6] speed [65];
-	move paltformA2 to z-axis [-6] speed [65];
-	sleep 50;
-	move platformB1 to z-axis [-6] speed [65];
-	move platformB2 to z-axis [-6] speed [65];
-	sleep 50;
-	move platformC1 to z-axis [-6] speed [65];
-	move platformC2 to z-axis [-6] speed [65];
+		wait-for-move doorD along y-axis;
 
-	wait-for-turn gateL3 around z-axis;
+		move platformA1 to z-axis [-6] speed [65];
+		move paltformA2 to z-axis [-6] speed [65];
+		sleep 50;
+		move platformB1 to z-axis [-6] speed [65];
+		move platformB2 to z-axis [-6] speed [65];
+		sleep 50;
+		move platformC1 to z-axis [-6] speed [65];
+		move platformC2 to z-axis [-6] speed [65];
 
-	move buildLightL to y-axis [0] speed [1];
-	move buildLightR to y-axis [0] speed [1];
-	
-	turn nanoarmR1 to z-axis <60> speed <65>;
-	turn nanoarmL1 to z-axis <-60> speed <65>;
-	sleep 10;
-	turn nanoarmR2 to z-axis <60> speed <65>;
-	turn nanoarmL2 to z-axis <-60> speed <65>;
-	sleep 10;
-	turn nanoarmR3 to z-axis <60> speed <65>;
-	turn nanoarmL3 to z-axis <-60> speed <65>;
-	sleep 50;
+		wait-for-turn gateL3 around z-axis;
 
+		move buildLightL to y-axis [0] speed [1];
+		move buildLightR to y-axis [0] speed [1];
+
+		turn nanoarmR1 to z-axis <60> speed <65>;
+		turn nanoarmL1 to z-axis <-60> speed <65>;
+		sleep 10;
+		turn nanoarmR2 to z-axis <60> speed <65>;
+		turn nanoarmL2 to z-axis <-60> speed <65>;
+		sleep 10;
+		turn nanoarmR3 to z-axis <60> speed <65>;
+		turn nanoarmL3 to z-axis <-60> speed <65>;
+		sleep 50;
+	}
 	FACTORY_OPEN_BUILD;
-	spin buildLightL around y-axis speed <200> accelerate <2>;
-	spin buildLightR around y-axis speed <200> accelerate <2>;
+	if( !hasOpened )
+	{
+		spin buildLightL around y-axis speed <200> accelerate <2>;
+		spin buildLightR around y-axis speed <200> accelerate <2>;
 
-	show buildlightLPoint;
-	show buildlightRPoint;
-	show cannisterLight;
-	show cannisterLight2;
-	show cannisterLight3;
-	show pipeLight1;
-	show pipeLight2;
-	show sprayL1A;
-	show sprayL2A;
-	show sprayL3A;
-	show sprayR1A;
-	show sprayR2A;
-	show sprayR3A;	
+		show buildlightLPoint;
+		show buildlightRPoint;
+		show cannisterLight;
+		show cannisterLight2;
+		show cannisterLight3;
+		show pipeLight1;
+		show pipeLight2;
+		show sprayL1A;
+		show sprayL2A;
+		show sprayL3A;
+		show sprayR1A;
+		show sprayR2A;
+		show sprayR3A;	
+		hasOpened = 1;
+	}
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
-	sleep 5000;
-	
-	turn nanoarmR3 to z-axis <0> speed <45>;
-	sleep 25;
-	turn nanoarmL3 to z-axis <0> speed <45>;
-	sleep 25;	
-	turn nanoarmR2 to z-axis <0> speed <45>;
-	sleep 25;
-	turn nanoarmL2 to z-axis <0> speed <45>;
-	sleep 25;
-	turn nanoarmR1 to z-axis <0> speed <45>;
-	sleep 25;
-	turn nanoarmL1 to z-axis <0> speed <45>;
-	sleep 25;
-	wait-for-turn nanoarmL1 around z-axis;
-
-	move platformC1 to z-axis [0] speed [25];
-	sleep 25;
-	move platformC2 to z-axis [0] speed [25];
-	sleep 25;
-	move platformB1 to z-axis [0] speed [25];
-	sleep 25;
-	move platformB2 to z-axis [0] speed [25];
-	sleep 25;
-	move platformA1 to z-axis [0] speed [25];
-	sleep 25;
-	move paltformA2 to z-axis [0] speed [25];
-	sleep 25;
-	wait-for-move paltformA2 along z-axis;
-
-	move doorD to y-axis [0] speed [40];
-	sleep 50;
-	move doorC to y-axis [0] speed [40];
-	sleep 50;
-	move doorB to y-axis [0] speed [40];
-	sleep 50;
-	move doorA to y-axis [0] speed [40];
-	//wait-for-move doorA along y-axis;
-
-	turn gateR1 to z-axis <0> speed <90>;
-	turn gateL1 to z-axis <0> speed <90>;
-	sleep 25;
-	turn gateR2 to z-axis <0> speed <90>;
-	turn gateL2 to z-axis <0> speed <90>;
-	sleep 25;
-	turn gateR3 to z-axis <0> speed <90>;
-	turn gateL3 to z-axis <0> speed <90>;
-	wait-for-turn gateL3 around z-axis;
-
-	move buildLightL to y-axis [-2] speed [2];
-	move buildLightR to y-axis [-2] speed [2];
-
-	move gateL1 to y-axis [0] speed [15];
-	move gateR1 to y-axis [0] speed [15];
-	sleep 25;
-	move gateL2 to y-axis [0] speed [15];
-	move gateR2 to y-axis [0] speed [15];
-	sleep 25;
-	move gateL3 to y-axis [0] speed [15];
-	move gateR3 to y-axis [0] speed [15];
-	
 	FACTORY_CLOSE_BUILD;
 }
 

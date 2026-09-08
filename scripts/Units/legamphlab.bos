@@ -44,7 +44,7 @@ piece
     buildFlare4,
     pad;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -104,7 +104,7 @@ Create()
 		emit-sfx 259 from backFan4;
 		sleep 50;
 	}
-
+	hasOpened = 0;
 }
 
 SmokeItUp()
@@ -184,43 +184,35 @@ StopBuilding()
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-    turn door to x-axis <0> speed <60>;
-    sleep 500;
-    turn nanoHousingL to x-axis <0> speed <100>;
-    turn nanoHousingR to x-axis <0> speed <100>;
-    sleep 100;
-    //wait-for-turn nanoHousingR around x-axis;
-    turn nanoArmL to x-axis <0> speed <90>;
-    turn nanoArmR to x-axis <0> speed <90>;
-    move buildLight1 to y-axis [0] speed [4];
-    move buildLight2 to y-axis [0] speed [4];
-    move buildLight3 to y-axis [0] speed [4];
-    move buildLight4 to y-axis [0] speed [4];
-	
+	if( !hasOpened )
+	{
+		    turn door to x-axis <0> speed <60>;
+		    sleep 500;
+		    turn nanoHousingL to x-axis <0> speed <100>;
+		    turn nanoHousingR to x-axis <0> speed <100>;
+		    sleep 100;
+		    //wait-for-turn nanoHousingR around x-axis;
+		    turn nanoArmL to x-axis <0> speed <90>;
+		    turn nanoArmR to x-axis <0> speed <90>;
+		    move buildLight1 to y-axis [0] speed [4];
+		    move buildLight2 to y-axis [0] speed [4];
+		    move buildLight3 to y-axis [0] speed [4];
+		    move buildLight4 to y-axis [0] speed [4];
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-    turn nanoArmL to x-axis <-65> speed <65>;
-    turn nanoArmR to x-axis <-65> speed <65>;
-    move buildLight1 to y-axis [-2] speed [2];
-    move buildLight2 to y-axis [-2] speed [2];
-    move buildLight3 to y-axis [-2] speed [2];
-    move buildLight4 to y-axis [-2] speed [2];
-    wait-for-turn nanoArmL around x-axis;
-    turn nanoHousingL to x-axis <-50> speed <50>;
-    turn nanoHousingR to x-axis <-50> speed <50>;
-    sleep 500;
-    turn door to x-axis <30> speed <30>;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 
