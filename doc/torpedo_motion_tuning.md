@@ -12,7 +12,9 @@ The target aim position decides which guidance path is selected, but the unit co
 
 ## Water entry and turning
 
-Airborne torpedoes may enter the water with a horizontal bearing inherited from the launcher rather than a useful homing direction. On the first underwater update, the gadget points the horizontal velocity toward the target while preserving its horizontal speed and vertical velocity. This correction is recorded in the projectile's runtime state and happens only once. It does not add predictive horizontal lead or stronger continuous turning; subsequent horizontal homing remains engine-controlled.
+Torpedoes fired by units configured with `hoverattack = true` may enter the water with a horizontal bearing inherited from the launcher's movement rather than a useful homing direction. The gadget records this eligibility when the projectile is created. On its first underwater update, it points the horizontal velocity toward the target while preserving horizontal speed and vertical velocity. The correction happens only once and does not add predictive horizontal lead or stronger continuous turning; subsequent horizontal homing remains engine-controlled.
+
+The correction is intentionally limited to hover-attack units. Their ability to fire without making an aligned attack run can produce entry headings that native underwater homing cannot repair smoothly. Torpedo bombers are expected to obtain their initial heading from their attack run, while ships and other non-hover launchers retain their launch heading. This avoids helping poorly aligned bomber drops reverse direction after passing a target. Projectiles without a valid unit owner also receive no heading correction.
 
 Surface-target arrival uses the target's horizontal velocity to estimate when the torpedo will arrive. That estimate controls only how quickly the torpedo moves vertically toward its running depth. Submerged targets receive no surface pull. Their native tracking is retained while the gadget looks ahead along the current trajectory, begins terrain avoidance gradually, and fades it near the intended target so the torpedo can complete a downward strike if needed.
 

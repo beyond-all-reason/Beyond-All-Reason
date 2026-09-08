@@ -41,6 +41,7 @@ local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -67,6 +68,8 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 ---@type table<number, true?>
 local torpedoStayUnderwaterDefs = {}
+---@type table<number, true?>
+local torpedoWaterPenDefs = {}
 
 local projectiles = {}
 local projectilesData = {}
@@ -668,6 +671,7 @@ local shoreTorpedoBreachCeiling = 2 -- Highest permitted position after entering
 
 -- Per-projectile runtime state; these fields are not trajectory configuration.
 ---@class TorpedoState
+---@field allowWaterEntryHeadingCorrection boolean?
 ---@field surfaceTarget boolean?
 ---@field waterEntryHeadingCorrected boolean?
 ---@field shoreEnteredWater boolean?
@@ -825,9 +829,15 @@ local function torpedoWaterPen(params, projectileID)
 	then
 		return true
 	end
-	-- Airborne torpedoes do not home before entering the water. Reset their
-	-- horizontal bearing once so entry smoothing cannot amplify a stale heading.
-	if not state.waterEntryHeadingCorrected and targetX ~= nil and targetZ ~= nil then
+	-- Hover-attack aircraft can fire without a bomber-style aligned attack run.
+	-- Reset their horizontal bearing once so entry smoothing cannot amplify a stale
+	-- heading; other launchers retain their entry heading and native guidance.
+	if
+		state.allowWaterEntryHeadingCorrection
+		and not state.waterEntryHeadingCorrected
+		and targetX ~= nil
+		and targetZ ~= nil
+	then
 		local targetDirectionX = targetX - positionX
 		local targetDirectionZ = targetZ - positionZ
 		local targetHorizontalDistance = math_diag(targetDirectionX, targetDirectionZ)
@@ -1081,6 +1091,10 @@ function gadget:Initialize()
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then
+				if effectName == "torpwaterpen" then
+					torpedoWaterPenDefs[weaponDefID] = true
+				end
+
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
@@ -1111,6 +1125,13 @@ end
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 	if weaponDefEffect[weaponDefID] then
 		projectiles[projectileID] = weaponDefEffect[weaponDefID]
+	end
+
+	if torpedoWaterPenDefs[weaponDefID] then
+		local ownerUnitDefID = proOwnerID and spGetUnitDefID(proOwnerID)
+		local ownerUnitDef = ownerUnitDefID and UnitDefs[ownerUnitDefID]
+		local state = getOrCreateTorpedoState(projectileID)
+		state.allowWaterEntryHeadingCorrection = ownerUnitDef and ownerUnitDef.hoverAttack or false
 	end
 end
 
