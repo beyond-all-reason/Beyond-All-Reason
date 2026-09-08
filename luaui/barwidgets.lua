@@ -1992,6 +1992,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
+			self.actionHandler:ClearPressedKey(scanCode)
 			tracy.ZoneEnd()
 			return true
 		end

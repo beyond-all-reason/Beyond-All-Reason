@@ -263,6 +263,13 @@ function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
 	return false
 end
 
+-- Drops a key's captured actions without dispatching them, for releases that never reach KeyAction: A textOwner can swallow the release of the key that installed it, which would otherwise leave the capture behind to be dispatched by some later release.
+function actionHandler:ClearPressedKey(scanCode)
+	if scanCode then
+		self.pressedKeyActions[scanCode] = nil
+	end
+end
+
 function actionHandler:TextAction(line)
 	local words = string.split(line)
 	local cmd = words[1]
