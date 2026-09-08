@@ -86,7 +86,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, canReclaim = canReclaim }
+	cachedUnitDefs[unitDefID] = {
+		radius = unitDef.radius,
+		canReclaim = canReclaim,
+		canFly = unitDef.canFly,
+	}
 	if unitDef.radius > maxUnitRadius then
 		maxUnitRadius = unitDef.radius
 	end
@@ -366,18 +370,23 @@ function widget:GameFrame(frame)
 			else
 				local unitDefID = spGetUnitDefID(info.targetID)
 				local unitDef = cachedUnitDefs[unitDefID]
-				-- Check if target has left leash radius
-				local tx, _, tz = spGetUnitPosition(info.targetID)
-				local dx, dz = tx - info.homeX, tz - info.homeZ
-				local distSq = dx * dx + dz * dz
-				local leash = getLeashRadius(builderID) + unitDef.radius
-				if distSq > leash * leash then
+				if unitDef and unitDef.canFly then
+					-- Do not chase air units for idle repair.
 					sendHome(builderID, info)
 				else
-					-- Check builder is still repairing (not overridden by player)
-					local cmdID = spGetUnitCurrentCommand(builderID, 1)
-					if cmdID ~= CMD_REPAIR then
-						activeRepairs[builderID] = nil
+					-- Check if target has left leash radius
+					local tx, _, tz = spGetUnitPosition(info.targetID)
+					local dx, dz = tx - info.homeX, tz - info.homeZ
+					local distSq = dx * dx + dz * dz
+					local leash = getLeashRadius(builderID) + unitDef.radius
+					if distSq > leash * leash then
+						sendHome(builderID, info)
+					else
+						-- Check builder is still repairing (not overridden by player)
+						local cmdID = spGetUnitCurrentCommand(builderID, 1)
+						if cmdID ~= CMD_REPAIR then
+							activeRepairs[builderID] = nil
+						end
 					end
 				end
 			end
@@ -420,10 +429,14 @@ function widget:GameFrame(frame)
 						local dx, dz = tx - homePos.homeX, tz - homePos.homeZ
 						local distSq = dx * dx + dz * dz
 						local candidateDefID = spGetUnitDefID(candidateID)
-						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
-						if distSq <= effectiveLeash * effectiveLeash and distSq < bestDistSq then
-							bestDistSq = distSq
-							bestTarget = candidateID
+						local candidateDef = cachedUnitDefs[candidateDefID]
+						-- Skip air units so builders do not chase them with repair orders.
+						if candidateDef and not candidateDef.canFly then
+							local effectiveLeash = leash + candidateDef.radius
+							if distSq <= effectiveLeash * effectiveLeash and distSq < bestDistSq then
+								bestDistSq = distSq
+								bestTarget = candidateID
+							end
 						end
 					end
 				end
