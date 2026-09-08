@@ -353,8 +353,7 @@ describe("mission_api.objectives", function()
 			Objectives.ActivateObjective("obj1")
 			assert.is_false(missionApi.Objectives.obj1.canceled)
 
-			missionApi.Objectives.obj1.completed = true
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
 	end)
@@ -622,6 +621,50 @@ describe("mission_api.objectives", function()
 
 			assert.are.equal(0, #missionApi.calls.activateTrigger)
 		end)
+		it("activates the trigger named by onProgress on progress that does not complete", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onProgress = "stepped" })
+					:WithTrigger("stepped", { type = T.Event })
+			)
+			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("does not activate the onProgress trigger while counting inactive", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, onProgress = "stepped" })
+					:WithTrigger("stepped", { type = T.Event })
+			)
+			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 2 }
+
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the onCompleted trigger and not onProgress on the completing event", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, onProgress = "stepped", onCompleted = "done" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+					:WithTrigger("done", { type = T.Event })
+			)
+			local metadata = { parameters = { teamID = 0 }, stages = {}, amount = 1 }
+
+			Objectives.UpdateObjectiveProgress("obj1", 0, "armwar", nil, 1, metadata)
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
+		end)
 	end)
 
 	describe("FailObjective", function()
@@ -736,16 +779,46 @@ describe("mission_api.objectives", function()
 		end)
 	end)
 
-	describe("OnObjectiveCompleted", function()
-		it("activates the trigger the objective names in onCompleted", function()
+	describe("CompleteObjective", function()
+		it("completes the objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_nil(missionApi.Objectives.obj1.failed)
+		end)
+
+		it("completes a canceled objective and clears the mark", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, canceled = true }))
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.is_false(missionApi.Objectives.obj1.canceled)
+		end)
+
+		it("is a no-op on a completed objective", function()
 			install(
 				mission()
 					:WithObjective("obj1", { active = true, completed = true, onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.CompleteObjective("obj1")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
+
+		it("activates the trigger the objective names in onCompleted", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = true, completed = false, onCompleted = "done" })
+					:WithTrigger("done", { type = T.Event })
 					:WithTrigger("other", { type = T.Event })
 			)
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal(1, #missionApi.calls.activateTrigger)
 			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
@@ -754,11 +827,11 @@ describe("mission_api.objectives", function()
 		it("activates nothing when the objective names no trigger", function()
 			install(
 				mission()
-					:WithObjective("obj1", { active = true, completed = true })
+					:WithObjective("obj1", { active = true, completed = false })
 					:WithTrigger("done", { type = T.Event })
 			)
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal(0, #missionApi.calls.activateTrigger)
 		end)
@@ -768,12 +841,12 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s1", missionApi.calls.activateTrigger[1].stageID)
 			assert.are.equal("s2", missionApi.CurrentStageID)
@@ -784,12 +857,12 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 					:WithCurrentStage("s1")
 			)
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s2", missionApi.CurrentStageID)
 		end)
@@ -800,7 +873,7 @@ describe("mission_api.objectives", function()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
 					:WithStage("s9")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 					:WithCurrentStage("s1")
 			)
@@ -809,7 +882,7 @@ describe("mission_api.objectives", function()
 				Objectives.ChangeStage("s9")
 			end
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s9", missionApi.CurrentStageID)
 		end)
@@ -819,7 +892,7 @@ describe("mission_api.objectives", function()
 				mission()
 					:WithStage("s1", { objectives = { "obj1" } })
 					:WithStage("s2")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
 					:WithTrigger("done", { type = T.Event })
 					:WithCurrentStage("s1")
 			)
@@ -827,7 +900,7 @@ describe("mission_api.objectives", function()
 				Objectives.ChangeStage("s1")
 			end
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s1", missionApi.CurrentStageID)
 		end)
@@ -838,19 +911,96 @@ describe("mission_api.objectives", function()
 					:WithStage("s1", { objectives = { "obj1", "obj2" } })
 					:WithStage("s2")
 					:WithStage("s3")
-					:WithObjective("obj1", { active = true, completed = true, nextStage = "s2", onCompleted = "done" })
-					:WithObjective("obj2", { active = true, completed = true, nextStage = "s3" })
+					:WithObjective("obj1", { active = true, completed = false, nextStage = "s2", onCompleted = "done" })
+					:WithObjective("obj2", { active = true, completed = false, nextStage = "s3" })
 					:WithTrigger("done", { type = T.Event })
 					:WithCurrentStage("s1")
 			)
 			-- obj1's trigger completes obj2, whose own gate moves the stage:
 			missionApi.ActivateTrigger = function()
-				Objectives.OnObjectiveCompleted(missionApi.Objectives.obj2)
+				Objectives.CompleteObjective("obj2")
 			end
 
-			Objectives.OnObjectiveCompleted(missionApi.Objectives.obj1)
+			Objectives.CompleteObjective("obj1")
 
 			assert.are.equal("s3", missionApi.CurrentStageID)
+		end)
+	end)
+	describe("UpdateObjective", function()
+		it("adds one to the progress and activates the trigger named by onProgress", function()
+			install(
+				mission()
+					:WithObjective(
+						"obj1",
+						{ active = true, completed = false, progress = 2, amount = 5, onProgress = "stepped" }
+					)
+					:WithTrigger("stepped", { type = T.Event })
+			)
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(3, missionApi.Objectives.obj1.progress)
+			assert.is_false(missionApi.Objectives.obj1.completed)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.stepped, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("completes the objective when the progress reaches the amount, without onProgress", function()
+			local objective = { active = true, completed = false, progress = 4, amount = 5 }
+			objective.onProgress = "stepped"
+			objective.onCompleted = "done"
+			install(
+				mission()
+					:WithObjective("obj1", objective)
+					:WithTrigger("stepped", { type = T.Event })
+					:WithTrigger("done", { type = T.Event })
+			)
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(5, missionApi.Objectives.obj1.progress)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.done, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("completes the objective on the first update when there is no amount", function()
+			install(mission():WithObjective("obj1", { active = true, completed = false }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(1, missionApi.Objectives.obj1.progress)
+			assert.is_true(missionApi.Objectives.obj1.completed)
+		end)
+
+		it("is a no-op on a completed objective", function()
+			install(mission():WithObjective("obj1", { active = true, completed = true, progress = 0 }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(0, missionApi.Objectives.obj1.progress)
+		end)
+
+		it("is a no-op on an inactive objective", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false, progress = 0, amount = 2 }))
+
+			Objectives.UpdateObjective("obj1")
+
+			assert.are.equal(0, missionApi.Objectives.obj1.progress)
+		end)
+	end)
+
+	describe("HideObjective and ShowObjective", function()
+		it("flip hidden and nothing else", function()
+			install(mission():WithObjective("obj1", { active = false, completed = false }))
+
+			Objectives.HideObjective("obj1")
+			assert.is_true(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
+
+			Objectives.ShowObjective("obj1")
+			assert.is_false(missionApi.Objectives.obj1.hidden)
+			assert.is_false(missionApi.Objectives.obj1.active)
 		end)
 	end)
 end)

@@ -43,8 +43,11 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field tryAdvanceStage table
 ---@field activateObjective table
 ---@field cancelObjective table
+---@field updateObjective table
+---@field completeObjective table
 ---@field failObjective table
----@field onObjectiveCompleted table
+---@field hideObjective table
+---@field showObjective table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
 ---@field activateTrigger table
@@ -318,8 +321,11 @@ function MB:Build()
 	local activateObjectiveCalls = {}
 	local updateProgressCalls = {}
 	local cancelObjectiveCalls = {}
+	local updateObjectiveCalls = {}
+	local completeObjectiveCalls = {}
 	local failObjectiveCalls = {}
-	local onObjectiveCompletedCalls = {}
+	local hideObjectiveCalls = {}
+	local showObjectiveCalls = {}
 	local echoCalls = {}
 	local activateTriggerCalls = {}
 
@@ -404,11 +410,20 @@ function MB:Build()
 		CancelObjective = function(objectiveID)
 			cancelObjectiveCalls[#cancelObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
+		UpdateObjective = function(objectiveID)
+			updateObjectiveCalls[#updateObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		CompleteObjective = function(objectiveID)
+			completeObjectiveCalls[#completeObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
 		FailObjective = function(objectiveID)
 			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
-		OnObjectiveCompleted = function(objective)
-			onObjectiveCompletedCalls[#onObjectiveCompletedCalls + 1] = { objective = objective }
+		HideObjective = function(objectiveID)
+			hideObjectiveCalls[#hideObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		ShowObjective = function(objectiveID)
+			showObjectiveCalls[#showObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		UpdateObjectiveProgress = function(
 			objectiveID,
@@ -493,8 +508,11 @@ function MB:Build()
 			tryAdvanceStage = tryAdvanceCalls,
 			activateObjective = activateObjectiveCalls,
 			cancelObjective = cancelObjectiveCalls,
+			updateObjective = updateObjectiveCalls,
+			completeObjective = completeObjectiveCalls,
 			failObjective = failObjectiveCalls,
-			onObjectiveCompleted = onObjectiveCompletedCalls,
+			hideObjective = hideObjectiveCalls,
+			showObjective = showObjectiveCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
 			activateTrigger = activateTriggerCalls,
@@ -512,9 +530,12 @@ function MB:Build()
 				tryAdvanceCalls,
 				activateObjectiveCalls,
 				updateProgressCalls,
+				updateObjectiveCalls,
 				cancelObjectiveCalls,
+				completeObjectiveCalls,
 				failObjectiveCalls,
-				onObjectiveCompletedCalls,
+				hideObjectiveCalls,
+				showObjectiveCalls,
 				echoCalls,
 				activateTriggerCalls,
 			}
