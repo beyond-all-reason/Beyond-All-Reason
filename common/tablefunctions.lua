@@ -84,10 +84,17 @@ if not table.sortStable then
 		if not compare then
 			compare = compareDefault
 		end
-		local index = table.getKeyOf -- local speedup
+
+		local originalIndex = {}
+		for index = 1, #tbl do
+			originalIndex[tbl[index]] = index
+		end
 		table.sort(tbl, function(a, b)
 			local comparison = compare(a, b)
-			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+			if comparison ~= nil then
+				return comparison
+			end
+			return originalIndex[a] < originalIndex[b]
 		end)
 	end
 end
