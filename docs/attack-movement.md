@@ -46,3 +46,20 @@ The shipped port deliberately does not activate that future policy. The engine
 companion includes a 56-case blocker/filter integration test and replay
 comparison instructions. The BAR spec is
 `spec/luarules/attack_movement_spec.lua`.
+
+## Command cleanup
+
+`UnitCommandEnded(unitID, cmdID, cmdTag, reason)` notifies gadgets when the
+front command finishes or a command-queue operation ends/interrupts it. Reasons
+are `completed`, `removed`, `targetLost` and `interrupted`. It runs before the
+next command executes. A front insertion retains the interrupted command for
+later resumption; an immediate replacement removes it. Removing an inactive
+queued command does not generate this notification. Internal command-AI
+subtasks are not a general suspension/resumption API.
+
+Use the tag to discard command-specific Lua state. `Spring.ClearUnitGoal(unitID,
+false)` stops movement without issuing `CMD_STOP` or discarding queued commands.
+Inspect the next queued command before stopping if it should continue moving.
+The shipped equivalent port installs no cleanup policy, so enabling it still
+preserves native behavior. The engine lifecycle test demonstrates stop cleanup
+for removed/dead attack targets and preserving a queued MOVE.
