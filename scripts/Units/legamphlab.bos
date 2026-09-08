@@ -58,6 +58,7 @@ Create()
     hide nanoFlareL1;
     hide nanoFlareL2;
 	spray = 0;
+	hasOpened = 0;
     turn nanoPivotR to z-axis <-40> now;
     turn nanoPivotL to z-axis <40> now;
     turn backFanPivotL to y-axis <20> now;
@@ -104,7 +105,6 @@ Create()
 		emit-sfx 259 from backFan4;
 		sleep 50;
 	}
-	hasOpened = 0;
 }
 
 SmokeItUp()

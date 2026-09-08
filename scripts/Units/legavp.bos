@@ -107,10 +107,12 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+	var justOpened;
 
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
+	justOpened = 0;
 	if( !hasOpened )
 	{
 		move gateL1 to y-axis [15] speed [75];
@@ -167,9 +169,11 @@ Activate()
 		turn nanoarmR3 to z-axis <60> speed <65>;
 		turn nanoarmL3 to z-axis <-60> speed <65>;
 		sleep 50;
+		hasOpened = 1;
+		justOpened = 1;
 	}
 	FACTORY_OPEN_BUILD;
-	if( !hasOpened )
+	if( justOpened )
 	{
 		spin buildLightL around y-axis speed <200> accelerate <2>;
 		spin buildLightR around y-axis speed <200> accelerate <2>;
@@ -186,8 +190,7 @@ Activate()
 		show sprayL3A;
 		show sprayR1A;
 		show sprayR2A;
-		show sprayR3A;	
-		hasOpened = 1;
+		show sprayR3A;
 	}
 }
 
