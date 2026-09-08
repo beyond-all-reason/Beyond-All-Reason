@@ -266,9 +266,16 @@ function widget:Initialize()
 		return
 	end
 
-	if (scenarioopts and scenarioopts.disablefactionpicker == true) or
-		VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
+	if Spring.GetModOptions().scenariooptions then
+		local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
+		scenarioopts = Json.decode(scenarioopts)
+		if scenarioopts and scenarioopts.disablefactionpicker == true then
+			widgetHandler:RemoveWidget()
+			return
+		end
+	end
 
+	if VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
 		widgetHandler:RemoveWidget()
 		return
 	end
