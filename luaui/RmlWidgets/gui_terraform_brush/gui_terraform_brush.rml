@@ -9188,6 +9188,14 @@
 					<div id="btn-curve-log" class="tf-inline-chip" style="margin-left: 2dp;" data-class-active="penCurveN == 5" data-event-mousedown="onGuideSetCurve(5)">Log</div>
 				</div>
 			</div>
+			<!-- Clay build-up -->
+			<div id="btn-clay-stack" class="tf-dj-activate-row" data-class-active="clayStackActive" data-event-mousedown="onGuideToggleClayStack()">
+				<div>
+					<div class="tf-dj-activate-name">Clay build-up</div>
+					<div class="tf-dj-activate-desc">OFF: a clay stroke lays one layer (INTENSITY x 8 elmos) over the surface it started on, so overlapping dabs never stack into rings. ON: every tick stacks another layer while you hold or drag (the old behaviour).</div>
+				</div>
+				<div id="pill-clay-stack" class="tf-dj-toggle-pill">{{clayStackStr}}</div>
+			</div>
 			<!-- Wiggle -->
 			<div id="btn-wiggle-toggle" class="tf-dj-activate-row" data-class-active="wiggleActive" data-event-mousedown="onGuideToggleWiggle()">
 				<div>
@@ -9216,6 +9224,14 @@
 
 		<!-- General tab content -->
 		<div id="settings-tab-general" class="tf-settings-tab-content" data-if="settingsTab == 'general'">
+			<!-- Performance mode: sculpting samples more economically; the gadget-side batching is always on -->
+			<div id="btn-perf-mode" class="tf-dj-activate-row" data-class-active="perfModeActive" data-event-mousedown="onGuideTogglePerfMode()">
+				<div>
+					<div class="tf-dj-activate-name">Performance mode</div>
+					<div class="tf-dj-activate-desc">For big maps and slower machines: wider dab spacing where the falloff allows it (soft curves, clay), fewer dabs per tick, coarser FOLLOW STROKE angle steps, panel readouts at a lower rate. Also cheap: pause the game while sculpting and use Focus mode (the eye icon).</div>
+				</div>
+				<div id="pill-perf-mode" class="tf-dj-toggle-pill">{{perfModeStr}}</div>
+			</div>
 			<div id="btn-ui-disable-tips" class="tf-dj-activate-row" data-class-active="disableTipsActive" data-event-mousedown="onGuideToggleDisableTips()">
 				<div>
 					<div class="tf-dj-activate-name">Disable tips/tool recommendations</div>

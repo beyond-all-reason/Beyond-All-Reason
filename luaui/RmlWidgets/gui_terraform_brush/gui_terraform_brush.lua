@@ -394,6 +394,8 @@ widgetState = { -- forward-declared above playSound so mute check works
 		seenLightsTypeHint = false,
 		seenCloneLayersHint = false,
 		seenSceneSkyboxHint = false,
+		perfMode = false, -- Settings > Performance
+		clayStack = false, -- Settings > Stroke > Clay build-up (legacy per-tick stacking)
 		heightmapExportRangeMode = "auto",
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
@@ -498,6 +500,12 @@ function loadUiPrefs()
 	if type(data.disableTips) == "boolean" then
 		widgetState.uiPrefs.disableTips = data.disableTips
 	end
+	if type(data.perfMode) == "boolean" then
+		widgetState.uiPrefs.perfMode = data.perfMode
+	end
+	if type(data.clayStack) == "boolean" then
+		widgetState.uiPrefs.clayStack = data.clayStack
+	end
 	if type(data.seenInstrumentsHint) == "boolean" then
 		widgetState.uiPrefs.seenInstrumentsHint = data.seenInstrumentsHint
 	end
@@ -571,7 +579,7 @@ function saveUiPrefs()
 	end
 	f:write(
 		string.format(
-			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
+			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tclayStack = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
 			tostring(widgetState.uiPrefs.disableTips and true or false),
 			tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 			tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
@@ -585,6 +593,8 @@ function saveUiPrefs()
 			tostring(widgetState.uiPrefs.seenLightsTypeHint and true or false),
 			tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
 			tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false),
+			tostring(widgetState.uiPrefs.perfMode and true or false),
+			tostring(widgetState.uiPrefs.clayStack and true or false),
 			widgetState.uiPrefs.heightmapExportRangeMode or "auto",
 			tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
 			tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1
@@ -605,6 +615,38 @@ function saveUiPrefs()
 end
 
 widgetState.saveUiPrefs = saveUiPrefs
+
+-- Settings > Performance and Stroke > Clay build-up live in ui_prefs and in
+-- the brush widget: mirror the prefs into the data model and push them to
+-- the widget. Idempotent; called on toggle, after the prefs load, and once
+-- from Update if the widget shows up after this panel (load order is not
+-- fixed between LuaUI widget folders).
+widgetState.pushPerfPrefs = function()
+	local up = widgetState.uiPrefs or {}
+	local perf = up.perfMode and true or false
+	local stack = up.clayStack and true or false
+	local d = widgetState.dmHandle
+	if d then
+		if d.perfModeActive ~= perf then
+			d.perfModeActive = perf
+			d.perfModeStr = perf and "ON" or "OFF"
+		end
+		if d.clayStackActive ~= stack then
+			d.clayStackActive = stack
+			d.clayStackStr = stack and "ON" or "OFF"
+		end
+	end
+	widgetState.perfMode = perf
+	---@type table?
+	local tb = WG.TerraformBrush
+	if tb and tb.setPerfMode then
+		tb.setPerfMode(perf)
+		tb.setClayStack(stack)
+		widgetState.perfPrefsPushed = true
+	else
+		widgetState.perfPrefsPushed = false
+	end
+end
 
 -- The terraform mirror in Update (900 lines of per-frame readout, slider
 -- and class syncing that dirties RmlUi) is not being read while the brush
@@ -3984,6 +4026,8 @@ local initialModel = {
 	seismicEffectsStr = "OFF",
 	penPressureStr = "OFF",
 	wiggleStr = "OFF",
+	perfModeStr = "OFF", -- Settings > Performance
+	clayStackStr = "OFF", -- Settings > Stroke > Clay build-up
 	disableTipsStr = "OFF",
 	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
 	penSensitivityStr = "100",
@@ -3993,6 +4037,8 @@ local initialModel = {
 	seismicActive = false,
 	penPressureActive = false,
 	wiggleActive = false,
+	perfModeActive = false,
+	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
 	-- Phase 2 step 6: sub-panel dj-disabled states (true = grayed out)
@@ -8592,6 +8638,26 @@ local initialModel = {
 		local d = widgetState.dmHandle
 		if d then
 			d.wiggleSpdIdx = i
+		end
+	end,
+	onGuideTogglePerfMode = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.perfMode
+		widgetState.uiPrefs.perfMode = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+	end,
+	onGuideToggleClayStack = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.clayStack
+		widgetState.uiPrefs.clayStack = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
 		end
 	end,
 	onGuideToggleDisableTips = function(_event)
@@ -15289,6 +15355,7 @@ function widget:Initialize()
 	if loadUiPrefs then
 		loadUiPrefs()
 	end
+	widgetState.pushPerfPrefs()
 	if WG.TerraformBrush then
 		local up = widgetState.uiPrefs
 		local state = WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
@@ -16701,6 +16768,12 @@ function widget:Update()
 			if not ensureDocument() then
 				return
 			end
+		end
+
+		-- Performance / clay prefs reach the brush widget once it exists (it may
+		-- load after this panel).
+		if not widgetState.perfPrefsPushed and WG.TerraformBrush and WG.TerraformBrush.setPerfMode then
+			widgetState.pushPerfPrefs()
 		end
 
 		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
