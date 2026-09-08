@@ -18,7 +18,7 @@ describe("mission_api.triggers.countdown_reached", function()
 		assert.are.same({
 			type = "CountdownReached",
 			countdownID = "CountdownID!",
-			timeRemaining = "Number!",
+			timeRemaining = "PositiveInteger!",
 		}, summarizeSchema(countdownReached))
 	end)
 
@@ -40,9 +40,4 @@ describe("mission_api.triggers.countdown_reached", function()
 		assert.are.equal(0, context.timesFired())
 	end)
 
-	it("fires at zero on the final tick", function()
-		local context = Builders.TriggerContext.new():Build()
-		onCountdownTick(trigger({ countdownID = "evacuate", timeRemaining = 0 }), "t", context, "evacuate", 0)
-		assert.are.equal(1, context.timesFired())
-	end)
 end)

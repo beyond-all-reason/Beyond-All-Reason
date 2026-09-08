@@ -467,6 +467,41 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("PositiveInteger", function()
+			local function reachedErrors(timeRemaining)
+				triggerErrors({
+					type = triggerTypes.CountdownReached,
+					parameters = { countdownID = "bomb", timeRemaining = timeRemaining },
+					actions = { "ok" },
+				})
+			end
+
+			it("rejects zero, which CountdownFinished covers", function()
+				reachedErrors(0)
+				assert.is_true(
+					hasError("PositiveInteger must be a whole number > 0, got 0. Trigger: t, Parameter: timeRemaining")
+				)
+			end)
+
+			it("rejects negative and fractional values", function()
+				reachedErrors(-5)
+				reachedErrors(2.5)
+				assert.is_true(
+					hasError("PositiveInteger must be a whole number > 0, got -5. Trigger: t, Parameter: timeRemaining")
+				)
+				assert.is_true(
+					hasError(
+						"PositiveInteger must be a whole number > 0, got 2.5. Trigger: t, Parameter: timeRemaining"
+					)
+				)
+			end)
+
+			it("accepts a whole number of seconds", function()
+				reachedErrors(1)
+				assert.are.same({}, logged)
+			end)
+		end)
+
 		describe("Fraction", function()
 			it("rejects wrong type", function()
 				triggerErrors({

@@ -614,6 +614,17 @@ validators[Types.Quantity] = function(quantity)
 	end
 end
 
+validators[Types.PositiveInteger] = function(value)
+	local luaTypeResult = validators[Types.Number](value)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if value <= 0 or value % 1 ~= 0 then
+		return { { message = "PositiveInteger must be a whole number > 0, got " .. value } }
+	end
+end
+
 validators[Types.Fraction] = function(fraction)
 	local luaTypeResult = validators[Types.Number](fraction)
 	if luaTypeResult then

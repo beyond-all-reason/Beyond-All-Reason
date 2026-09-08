@@ -34,6 +34,7 @@ local types = {
 	-- Number Validators:
 	Number = "Number",
 	Quantity = "Quantity",
+	PositiveInteger = "PositiveInteger",
 	Fraction = "Fraction",
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
