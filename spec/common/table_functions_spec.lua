@@ -1,5 +1,3 @@
-require("spec_helper")
-
 describe("common.tablefunctions", function()
 	describe("sortStable", function()
 		local function byKey(a, b)
@@ -65,13 +63,15 @@ describe("common.tablefunctions", function()
 
 			table.sortStable(elements, byKey)
 
-			local previous
-			for _, element in ipairs(elements) do
-				if previous and previous.key == element.key then
-					assert.is_true(previous.initialPosition < element.initialPosition)
+			local expected = {}
+			for _, sortedKey in ipairs({ "0", "1", "2" }) do
+				for position, key in ipairs(keys) do
+					if key == sortedKey then
+						expected[#expected + 1] = key .. ":" .. position
+					end
 				end
-				previous = element
 			end
+			assert.are.same(expected, toKeysAndInitialPositions(elements))
 		end)
 	end)
 end)
