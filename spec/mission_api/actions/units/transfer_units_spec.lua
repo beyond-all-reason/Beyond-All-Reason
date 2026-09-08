@@ -79,6 +79,19 @@ describe("mission_api.actions.transfer_units", function()
 			action.actionFunction("unit", 5)
 			assert.are.equal(5, Spring.calls.transferUnit[1].newTeam)
 		end)
+
+		it("raises the transferringUnits fence only while transferring", function()
+			seedUnits("unit", 8)
+			local fenceDuringTransfer
+			local transferUnit = Spring.TransferUnit
+			Spring.TransferUnit = function(...)
+				fenceDuringTransfer = GG["MissionAPI"].transferringUnits
+				return transferUnit(...)
+			end
+			action.actionFunction("unit", 5)
+			assert.is_true(fenceDuringTransfer)
+			assert.is_nil(GG["MissionAPI"].transferringUnits)
+		end)
 	end)
 
 end)

@@ -46,6 +46,7 @@ local constructionStarts = {}
 local underConstruction = {}
 local detections = {}
 local detectionCount = 0
+local capturedUnits = {}
 
 ----------------------------------------------------------------
 --- Utility Functions:
@@ -467,6 +468,17 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+end
+
+-- Only AllowUnitTransfer tells capture from gifts. We clear this flag in UnitGiven, below.
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	capturedUnits[unitID] = capture or nil -- TODO: Is clobbered with multiple g:AUT calls.
+	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	dispatchTriggerCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
+	capturedUnits[unitID] = nil
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)

@@ -8,7 +8,9 @@ local function transferUnits(unitName, newTeam)
 	local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
 	for unitID in pairs(trackedUnitIDs) do
 		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
+		GG['MissionAPI'].transferringUnits = true
 		Spring.TransferUnit(unitID, newTeam, given)
+		GG['MissionAPI'].transferringUnits = nil
 	end
 end
 
