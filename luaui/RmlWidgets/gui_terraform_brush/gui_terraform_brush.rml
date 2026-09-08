@@ -247,6 +247,12 @@
 			<div id="btn-st-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
+			<div id="btn-st-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-st-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
+			</div>
 		</div>
 		</div><!-- /section-st-overlays -->
 		</div><!-- /frame-st-overlays -->
@@ -566,6 +572,12 @@
 			</div>
 			<div id="btn-cl-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+			</div>
+			<div id="btn-cl-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-cl-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
 		</div><!-- /section-cl-overlays -->
@@ -956,6 +968,12 @@
 				</div>
 				<div id="btn-mb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+				</div>
+				<div id="btn-mb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+				</div>
+				<div id="btn-mb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 				</div>
 				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" data-event-mousedown="onMbToggleMapOverlay()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Metal Map</div>
@@ -1382,6 +1400,12 @@
 				</div>
 				<div id="btn-gb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+				</div>
+				<div id="btn-gb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+				</div>
+				<div id="btn-gb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 				</div>
 			</div>
 			</div><!-- /section-gb-overlays -->
@@ -2170,6 +2194,12 @@
 			<div id="btn-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
+			<div id="btn-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
+			</div>
 		</div>
 		</div><!-- /section-overlays -->
 		</div><!-- /frame-overlays -->
@@ -2723,6 +2753,12 @@
 			<div id="btn-fp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
+			<div id="btn-fp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-fp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
+			</div>
 		</div>
 		</div><!-- /section-fp-overlays -->
 		</div><!-- /frame-fp-overlays -->
@@ -3203,6 +3239,12 @@
 			<div id="btn-wb-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
+			<div id="btn-wb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-wb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
+			</div>
 		</div>
 		</div><!-- /section-wb-overlays -->
 		</div><!-- /frame-wb-overlays -->
@@ -3569,6 +3611,12 @@
 			</div>
 			<div id="btn-sp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+			</div>
+			<div id="btn-sp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-sp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" data-event-mousedown="onSplToggleSplatOverlay()">
 				<div class="tf-overlay-chip-label">Splat Map</div>
@@ -4038,6 +4086,12 @@
 			</div>
 			<div id="btn-dc-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+			</div>
+			<div id="btn-dc-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-dc-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
 		</div><!-- /section-dc-overlays -->
@@ -4852,6 +4906,12 @@
 			<div id="btn-lp-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
 			</div>
+			<div id="btn-lp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+			</div>
+			<div id="btn-lp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
+			</div>
 		</div>
 		</div><!-- /section-lp-overlays -->
 		</div><!-- /frame-lp-overlays -->
@@ -5325,6 +5385,12 @@
 					</div>
 					<div id="btn-sf-passability" class="tf-overlay-chip" data-class-active="tbPassActive" data-event-mousedown="onTbCyclePassability()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">{{tbPassLabelStr}}</div>
+					</div>
+					<div id="btn-sf-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
+						<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
+					</div>
+					<div id="btn-sf-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 					</div>
 					<div id="btn-sf-reveal" class="tf-overlay-chip" data-class-active="surfReveal" data-event-mousedown="onSurfRevealToggle()">
 						<div class="tf-overlay-chip-label">Sneak Peek</div>
@@ -7308,6 +7374,67 @@
 
 			</div><!-- /tf-tileset-controls -->
 		</div><!-- /tf-panel-body -->
+	</div>
+
+	<!-- ============ IMAGE OVERLAY (floating window, opened from the Image chip in any DISPLAY row) ============ -->
+	<div id="tf-imgov-root" class="tf-env-float-window widget-shadow rounded-md bg-darkest p-2-5" data-if="imgOvVisible" style="left: 30vw; top: 12vh;">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-imgov-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Image Overlay</div>
+			<div id="btn-imgov-close" class="tf-header-btn tf-quit-btn" data-event-mousedown="onImgOvClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-panel-body">
+			<div class="text-base text-light mb-1" style="opacity: 0.7;">Drop a PNG, JPG, TGA or DDS into <span class="font-bold">Terraform Brush/Overlays/</span> in the install folder and pick it below. It is laid over the whole map; alpha in the image is kept, so a transparent sheet of guide lines shows only the lines.</div>
+			<div class="text-base text-light mb-1" style="opacity: 0.85;" data-if="!imgOvSupported">AllowDeferredMapRendering is off in springsettings.cfg, so the overlay cannot draw.</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-imgov-show" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="tbImgActive" data-event-mousedown="onImgOvToggleShow()">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Show overlay</div>
+				</div>
+				<div id="btn-imgov-refresh" class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-event-mousedown="onImgOvRefresh()"><div class="tf-action-btn-text">Rescan folder</div></div>
+			</div>
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-lg text-light">IMAGE: <span class="text-xl font-bold">{{imgOvFileStr}}</span></div>
+				<div class="text-sm text-light" style="opacity: 0.7;">{{imgOvSizeStr}}</div>
+			</div>
+			<div id="imgov-list" class="tf-save-load-list tf-hm-browser tf-imgov-list"></div>
+			<div class="text-base text-light mb-1" style="opacity: 0.85;" data-if="imgOvError != ''">{{imgOvError}}</div>
+
+			<div class="tf-section-frame" id="frame-imgov-placement" style="margin-top: 6dp;">
+				<div class="tf-section-title-row">
+					<div class="tf-collapsible-title">PLACEMENT</div>
+					<div id="btn-imgov-reset" class="tf-env-reset-btn" data-event-mousedown="onImgOvReset()">RESET</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Opacity</div>
+					<input type="range" id="imgov-slider-opacity" class="tf-slider" min="0" max="100" step="1" value="50" data-event-change="onImgOvSlider('opacity')" />
+					<input type="text" id="imgov-slider-opacity-numbox" class="tf-slider-numbox" readonly value="50%" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Offset X</div>
+					<input type="range" id="imgov-slider-offx" class="tf-slider" min="-100" max="100" step="1" value="0" data-event-change="onImgOvSlider('offx')" />
+					<input type="text" id="imgov-slider-offx-numbox" class="tf-slider-numbox" readonly value="0%" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Offset Y</div>
+					<input type="range" id="imgov-slider-offy" class="tf-slider" min="-100" max="100" step="1" value="0" data-event-change="onImgOvSlider('offy')" />
+					<input type="text" id="imgov-slider-offy-numbox" class="tf-slider-numbox" readonly value="0%" />
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="tf-slider-label text-light">Scale</div>
+					<input type="range" id="imgov-slider-scale" class="tf-slider" min="10" max="400" step="1" value="100" data-event-change="onImgOvSlider('scale')" />
+					<input type="text" id="imgov-slider-scale-numbox" class="tf-slider-numbox" readonly value="100%" />
+				</div>
+				<div class="text-base text-light mb-1" style="opacity: 0.7;">Offsets are a share of the map (100% = one map width); scale 100% spans the map. Drags preview live on the ground.</div>
+				<div class="flex flex-row gap-1 items-center mb-1 tf-chip-row">
+					<div id="btn-imgov-fit-stretch" class="tf-overlay-chip" data-class-active="imgOvFit == 'stretch'" data-event-mousedown="onImgOvFit('stretch')"><div class="tf-overlay-chip-label">Stretch</div></div>
+					<div id="btn-imgov-fit-aspect" class="tf-overlay-chip" data-class-active="imgOvFit == 'fit'" data-event-mousedown="onImgOvFit('fit')"><div class="tf-overlay-chip-label">Keep aspect</div></div>
+					<div id="btn-imgov-flip-h" class="tf-overlay-chip" data-class-active="imgOvFlipH" data-event-mousedown="onImgOvFlip('h')"><div class="tf-overlay-chip-label">Flip H</div></div>
+					<div id="btn-imgov-flip-v" class="tf-overlay-chip" data-class-active="imgOvFlipV" data-event-mousedown="onImgOvFlip('v')"><div class="tf-overlay-chip-label">Flip V</div></div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1" style="margin-top: 4dp;">
+				<div id="btn-imgov-clear" class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-event-mousedown="onImgOvClear()"><div class="tf-action-btn-text">Unload image</div></div>
+			</div>
+		</div>
 	</div>
 
 	<!-- ============ SKYBOX LIBRARY (separate floating window) ============ -->

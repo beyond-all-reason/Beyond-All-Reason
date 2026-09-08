@@ -1505,6 +1505,204 @@ local function _tbMirrorToggle(P, stateKey, setter, dmKey)
 	end
 	playSound("tick")
 end
+-- ── IMAGE overlay (DISPLAY > Image) ──────────────────────────────────────────
+-- One overlay shared by every tool's DISPLAY row (WG.TerraformImageOverlay,
+-- cmd_terraform_image_overlay.lua). The chips toggle it or open the single
+-- IMAGE OVERLAY floating window (tf-imgov-root); the helpers sit on one table
+-- to stay clear of the main chunk's local budget.
+local _imgOv = {}
+-- { slider id suffix, state -> slider value, slider value -> overlay setter }
+_imgOv.SLIDERS = {
+	{
+		"opacity",
+		function(s)
+			return (s.opacity or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOpacity(v / 100)
+		end,
+	},
+	{
+		"offx",
+		function(s)
+			return (s.offsetX or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOffset(v / 100, nil)
+		end,
+	},
+	{
+		"offy",
+		function(s)
+			return (s.offsetZ or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOffset(nil, v / 100)
+		end,
+	},
+	{
+		"scale",
+		function(s)
+			return (s.scale or 1) * 100
+		end,
+		function(v, IO)
+			IO.setScale(v / 100)
+		end,
+	},
+}
+function _imgOv.active()
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	return (IO and IO.isEnabled()) or false
+end
+function _imgOv.esc(s)
+	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+-- Rebuild the file rows in the window (same row markup as the feature-map list).
+function _imgOv.rebuildList(rescan)
+	local doc = widgetState.document
+	if not doc then
+		return
+	end
+	local listEl = doc:GetElementById("imgov-list")
+	if not listEl then
+		return
+	end
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	listEl.inner_rml = ""
+	if not IO then
+		listEl.inner_rml = '<div class="tf-hm-empty">Image Overlay widget is not loaded (Settings &gt; Widgets).</div>'
+		return
+	end
+	local files = IO.list(rescan) or {}
+	if #files == 0 then
+		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
+			.. _imgOv.esc(IO.getDir())
+			.. " yet. Drop some in and hit Rescan folder.</div>"
+		return
+	end
+	local current = (IO.getState() or {}).file
+	for _, name in ipairs(files) do
+		local item = doc:CreateElement("div")
+		item:SetClass("tf-hm-row", true)
+		if name == current then
+			item:SetClass("imgov-current", true)
+		end
+		item.inner_rml = '<div class="tf-hm-row-line"><div class="tf-hm-mapname">' .. _imgOv.esc(name) .. "</div></div>"
+		item:AddEventListener("click", function(ev)
+			---@type table?
+			local api = WG.TerraformImageOverlay
+			if api then
+				local ok = api.select(name)
+				playSound(ok and "apply" or "toggleOff")
+			end
+			_imgOv.rebuildList(false)
+			ev:StopPropagation()
+		end, false)
+		listEl:AppendChild(item)
+	end
+end
+-- Push the overlay placement into the window sliders, skipping the one being
+-- dragged (the drag ids come from the SNAP_SLIDERS registration).
+function _imgOv.stamp(force)
+	local doc = widgetState.document
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	if not doc or not IO then
+		return
+	end
+	local s = IO.getState() or {}
+	local cache = widgetState.imgOvLastVal
+	if not cache then
+		cache = {}
+		widgetState.imgOvLastVal = cache
+	end
+	local ds = uiState.draggingSlider
+	local stamped = false
+	uiState.updatingFromCode = true
+	for _, row in ipairs(_imgOv.SLIDERS) do
+		local id = "imgov-slider-" .. row[1]
+		if ds ~= ("imgov-" .. row[1]) then
+			local str = tostring(math.floor(row[2](s) + 0.5))
+			if force or cache[id] ~= str then
+				cache[id] = str
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("value", str)
+					stamped = true
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", str .. "%")
+				end
+			end
+		end
+	end
+	uiState.updatingFromCode = false
+	-- The change events these stamps raise land on a later frame (see
+	-- onTilesetKnob); onImgOvSlider drops them by this timestamp.
+	if stamped then
+		uiState.imgOvStampFrame = Spring.GetDrawFrame()
+	end
+end
+-- Numbox readout next to one placement slider ("37%").
+function _imgOv.setNumbox(key, str)
+	local doc = widgetState.document
+	if not doc or not key then
+		return
+	end
+	local nb = doc:GetElementById("imgov-slider-" .. key .. "-numbox")
+	if nb then
+		nb:SetAttribute("value", str .. "%")
+	end
+end
+function _imgOv.setWindow(open)
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.imgOvVisible = open and true or false
+	end
+	if open then
+		_imgOv.rebuildList(true)
+		_imgOv.stamp(true)
+	end
+end
+-- Flip the overlay on/off; false when nothing is loaded yet.
+function _imgOv.toggleShow()
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	if not IO or not IO.hasImage() then
+		return false
+	end
+	local nv = not IO.isEnabled()
+	IO.setEnabled(nv)
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.tbImgActive = nv
+	end
+	playSound(nv and "toggleOn" or "toggleOff")
+	return true
+end
+-- Per frame: chip state for every DISPLAY row, window readouts while it is up.
+function _imgOv.sync(setDm)
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	local s = IO and IO.getState() or nil
+	setDm("tbImgActive", (s and s.enabled and s.hasImage) or false)
+	local dm = widgetState.dmHandle
+	if not (dm and dm.imgOvVisible) then
+		return
+	end
+	setDm("imgOvHasImage", (s and s.hasImage) or false)
+	setDm("imgOvFileStr", (s and s.file) or "none")
+	setDm("imgOvSizeStr", (s and s.hasImage) and (tostring(s.width) .. " x " .. tostring(s.height) .. " px") or "")
+	setDm("imgOvError", (s and s.error) or (IO and "" or "Image Overlay widget is not loaded"))
+	setDm("imgOvFit", (s and s.fit) or "stretch")
+	setDm("imgOvFlipH", (s and s.flipH) or false)
+	setDm("imgOvFlipV", (s and s.flipV) or false)
+	setDm("imgOvSupported", not (s and s.supported == false))
+	_imgOv.stamp(false)
+end
 local function _deactivateAllTools()
 	if WG.TerraformBrush then
 		WG.TerraformBrush.deactivate()
@@ -4085,6 +4283,17 @@ local initialModel = {
 	-- PASSABILITY overlay: one shared state across every DISPLAY row
 	tbPassActive = false,
 	tbPassLabelStr = "Passability",
+	-- IMAGE overlay (DISPLAY > Image): one shared state across every DISPLAY row
+	tbImgActive = false,
+	imgOvVisible = false,
+	imgOvHasImage = false,
+	imgOvFileStr = "none",
+	imgOvSizeStr = "",
+	imgOvError = "",
+	imgOvFit = "stretch",
+	imgOvFlipH = false,
+	imgOvFlipV = false,
+	imgOvSupported = true,
 	tfSymMirrorX = false,
 	tfSymMirrorY = false,
 	tfSymFlipped = false,
@@ -11463,6 +11672,102 @@ local initialModel = {
 		end
 		playSound(entry and "toggleOn" or "toggleOff")
 	end,
+	-- ── IMAGE overlay (DISPLAY > Image; chips and window shared by every tool) ──
+	onTbImageOverlay = function(event)
+		-- Left click toggles the overlay once an image is loaded; before that,
+		-- and on right click, it opens the IMAGE OVERLAY window instead.
+		local p = event and event.parameters
+		local rightClick = p and p.button == 1
+		if rightClick or not _imgOv.toggleShow() then
+			local dm = widgetState.dmHandle
+			local open = not (dm and dm.imgOvVisible)
+			_imgOv.setWindow(open)
+			playSound(open and "panelOpen" or "click")
+		end
+	end,
+	onImgOvOpen = function(_event)
+		local dm = widgetState.dmHandle
+		local open = not (dm and dm.imgOvVisible)
+		_imgOv.setWindow(open)
+		playSound(open and "panelOpen" or "click")
+	end,
+	onImgOvClose = function(_event)
+		_imgOv.setWindow(false)
+		playSound("click")
+	end,
+	onImgOvToggleShow = function(_event)
+		if not _imgOv.toggleShow() then
+			playSound("toggleOff")
+		end
+	end,
+	onImgOvRefresh = function(_event)
+		_imgOv.rebuildList(true)
+		playSound("tick")
+	end,
+	onImgOvSlider = function(_event, key)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if not IO or uiState.updatingFromCode then
+			return
+		end
+		-- Drop the deferred echo of a programmatic restamp (see onTilesetKnob).
+		if uiState.imgOvStampFrame and (Spring.GetDrawFrame() - uiState.imgOvStampFrame) < 3 then
+			return
+		end
+		for _, row in ipairs(_imgOv.SLIDERS) do
+			if row[1] == key then
+				local v = _elemSliderVal("imgov-slider-" .. key, nil)
+				if v ~= nil then
+					row[3](v, IO)
+					local str = tostring(math.floor(v + 0.5))
+					widgetState.imgOvLastVal = widgetState.imgOvLastVal or {}
+					widgetState.imgOvLastVal["imgov-slider-" .. key] = str
+					_imgOv.setNumbox(key, str)
+				end
+				return
+			end
+		end
+	end,
+	onImgOvFit = function(_event, mode)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.setFit(mode)
+			playSound("tick")
+		end
+	end,
+	onImgOvFlip = function(_event, axis)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if not IO then
+			return
+		end
+		local s = IO.getState() or {}
+		if axis == "h" then
+			IO.setFlip(not s.flipH, nil)
+		else
+			IO.setFlip(nil, not s.flipV)
+		end
+		playSound("tick")
+	end,
+	onImgOvReset = function(_event)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.resetPlacement()
+			_imgOv.stamp(true)
+			playSound("apply")
+		end
+	end,
+	onImgOvClear = function(_event)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.clear()
+			_imgOv.rebuildList(false)
+			playSound("toggleOff")
+		end
+	end,
 	onTfFollowStroke = function(_event)
 		if not WG.TerraformBrush or not WG.TerraformBrush.setFollowStroke then
 			return
@@ -13955,7 +14260,7 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	-- Warn chips on DISPLAY/INSTRUMENTS toggle headers: show when the section
 	-- is collapsed AND at least one mirrored control is engaged. Missing chips
 	-- (tools that never got a warn chip added in RML) silently no-op.
-	local dispActive = s.gridOverlay or s.heightColormap
+	local dispActive = s.gridOverlay or s.heightColormap or _imgOv.active()
 	local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
 	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-overlays", "section-" .. P .. "-overlays", dispActive)
 	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-instruments", "section-" .. P .. "-instruments", instActive)
@@ -14097,6 +14402,11 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "slider-ar-erosion", "ar-erosion" },
 		{ "slider-ar-talus", "ar-talus" },
 		{ "slider-erode-repose", "erode-repose" },
+		-- IMAGE OVERLAY window sliders: same pattern, drag ids match _imgOv.stamp.
+		{ "imgov-slider-opacity", "imgov-opacity" },
+		{ "imgov-slider-offx", "imgov-offx" },
+		{ "imgov-slider-offy", "imgov-offy" },
+		{ "imgov-slider-scale", "imgov-scale" },
 	}
 	for i = 1, #SNAP_SLIDERS do
 		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])
@@ -15167,6 +15477,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-project-handle", getCachedEl(doc, "tf-project-root"))
 		makeWindowDraggable("tf-project-open-handle", getCachedEl(doc, "tf-project-open-root"))
 		makeWindowDraggable("tf-capture-handle", getCachedEl(doc, "tf-capture-root"))
+		makeWindowDraggable("tf-imgov-handle", getCachedEl(doc, "tf-imgov-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====
@@ -17435,6 +17746,8 @@ function widget:Update()
 					setDm("envWaterVisible", widgetState.envWaterOpen or false)
 					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
 					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
+					-- IMAGE overlay: chip state on every DISPLAY row + the window readouts.
+					_imgOv.sync(setDm)
 					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with
 					-- the range they are about to change.
 					if widgetState.envDimensionsOpen and not widgetState.envDimWasOpen then

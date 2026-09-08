@@ -865,7 +865,7 @@ function M.attach(doc, ctx)
 		"img-toggle-overlays",
 		"section-overlays",
 		"warn-chip-overlays",
-		{ "btn-grid-overlay", "btn-height-colormap" },
+		{ "btn-grid-overlay", "btn-height-colormap", "btn-image-overlay" },
 		false
 	)
 	widgetState.warningToggle(

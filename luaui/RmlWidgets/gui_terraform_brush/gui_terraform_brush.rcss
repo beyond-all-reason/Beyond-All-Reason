@@ -4186,3 +4186,19 @@ margin-top: 3dp;
 .tf-capture-result-bad .tf-capture-result-head {
 	color: #fdc04c;
 }
+
+/* IMAGE overlay (DISPLAY > Image): the gear chip next to the Image chip and the
+   file list in the IMAGE OVERLAY window. */
+.tf-imgov-cfg {
+	padding: 3dp 6dp;
+}
+.tf-imgov-cfg.active {
+	border: 1dp #2ba5ea;
+}
+.tf-imgov-list {
+	max-height: 160dp;
+}
+.tf-hm-row.imgov-current {
+	background-color: #1d2a3a;
+	border: 1dp #2ba5eaa0;
+}
