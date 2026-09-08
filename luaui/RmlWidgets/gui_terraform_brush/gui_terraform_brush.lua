@@ -606,6 +606,21 @@ end
 
 widgetState.saveUiPrefs = saveUiPrefs
 
+-- The terraform mirror in Update (900 lines of per-frame readout, slider
+-- and class syncing that dirties RmlUi) is not being read while the brush
+-- is down on the world: stride it to every 4th draw frame during a sculpt
+-- drag, and always under performance mode. A hover over the panel ends the
+-- stride so its controls answer at frame rate.
+widgetState.mirrorStrided = function(tfState)
+	if not (tfState.dragging or widgetState.perfMode) then
+		return false
+	end
+	if widgetState.mouseOverPanel then
+		return false
+	end
+	return Spring.GetDrawFrame() % 4 ~= 0
+end
+
 function widgetState.restoreWindowPosition(rootId, rootEl)
 	local pos = widgetState.uiPrefs.windowPositions[rootId]
 	if not pos or not rootEl then
@@ -15203,11 +15218,13 @@ local function ensureDocument()
 		widgetState.rootElement:SetAttribute("style", buildRootStyle())
 		-- Pen pressure: suppress brush modulation when cursor is over the UI panel
 		widgetState.rootElement:AddEventListener("mouseover", function()
+			widgetState.mouseOverPanel = true
 			if WG.TerraformBrush then
 				WG.TerraformBrush.setPenOverUI(true)
 			end
 		end, false)
 		widgetState.rootElement:AddEventListener("mouseout", function()
+			widgetState.mouseOverPanel = false
 			if WG.TerraformBrush then
 				WG.TerraformBrush.setPenOverUI(false)
 			end
@@ -17886,8 +17903,9 @@ function widget:Update()
 					"btn-wb-persist-up",
 				}, remove)
 			end
-		elseif tfActive then
+		elseif tfActive and not widgetState.mirrorStrided(tfState) then
 			-- ===== Terraform mode: update terraform controls =====
+			-- (skipped on strided frames mid-drag, see widgetState.mirrorStrided)
 			local state = tfState
 
 			local effectiveMaxIntensity = getEffectiveMaxIntensity()
@@ -18081,12 +18099,12 @@ function widget:Update()
 
 				local sliderCapMax = getCachedEl(doc, "slider-cap-max")
 				if sliderCapMax and ds ~= "capmax" then
-					sliderCapMax:SetAttribute("value", tostring(capMaxValue))
+					setAttrValueIfChanged(sliderCapMax, "slider-cap-max", tostring(capMaxValue))
 				end
 
 				local sliderCapMin = getCachedEl(doc, "slider-cap-min")
 				if sliderCapMin and ds ~= "capmin" then
-					sliderCapMin:SetAttribute("value", tostring(capMinValue))
+					setAttrValueIfChanged(sliderCapMin, "slider-cap-min", tostring(capMinValue))
 				end
 				local dm = widgetState.dmHandle
 				if dm then
@@ -18106,7 +18124,7 @@ function widget:Update()
 						maxVal = 1
 					end
 					sliderHistory:SetAttribute("max", tostring(maxVal))
-					sliderHistory:SetAttribute("value", tostring(state.undoCount or 0))
+					setAttrValueIfChanged(sliderHistory, "slider-history", tostring(state.undoCount or 0))
 				end
 
 				local clayImg = getCachedEl(doc, "btn-clay-mode")
@@ -18133,7 +18151,11 @@ function widget:Update()
 				end
 				local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
 				if sliderSnapSizeSync and uiState.draggingSlider ~= "tf-grid-snap-size" then
-					sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
+					setAttrValueIfChanged(
+						sliderSnapSizeSync,
+						"slider-grid-snap-size",
+						tostring(state.gridSnapSize or 48)
+					)
 				end
 				if widgetState.dmHandle then
 					local v = tostring(state.gridSnapSize or 48)
@@ -18143,7 +18165,11 @@ function widget:Update()
 				end
 				local snapSizeNb = getCachedEl(doc, "slider-grid-snap-size-numbox")
 				if snapSizeNb then
-					snapSizeNb:SetAttribute("value", tostring(state.gridSnapSize or 48))
+					setAttrValueIfChanged(
+						snapSizeNb,
+						"slider-grid-snap-size-numbox",
+						tostring(state.gridSnapSize or 48)
+					)
 				end
 
 				-- Protractor state sync
@@ -18174,7 +18200,7 @@ function widget:Update()
 				local curStr = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
 				local sliderAngleStepSync = getCachedEl(doc, "slider-angle-snap-step")
 				if sliderAngleStepSync and uiState.draggingSlider ~= "tf-angle-snap-step" then
-					sliderAngleStepSync:SetAttribute("value", tostring(curIdx - 1))
+					setAttrValueIfChanged(sliderAngleStepSync, "slider-angle-snap-step", tostring(curIdx - 1))
 				end
 				if widgetState.dmHandle then
 					if widgetState.dmHandle.tbAngleSnapStepStr ~= curStr then
@@ -18183,7 +18209,7 @@ function widget:Update()
 				end
 				local angleStepNb = getCachedEl(doc, "slider-angle-snap-step-numbox")
 				if angleStepNb then
-					angleStepNb:SetAttribute("value", curStr)
+					setAttrValueIfChanged(angleStepNb, "slider-angle-snap-step-numbox", curStr)
 				end
 
 				-- Autosnap toggle + manual spoke sync
@@ -18286,7 +18312,11 @@ function widget:Update()
 					end
 					local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
 					if symCountSlider then
-						symCountSlider:SetAttribute("value", tostring(state.symmetryRadialCount or 2))
+						setAttrValueIfChanged(
+							symCountSlider,
+							"slider-symmetry-radial-count",
+							tostring(state.symmetryRadialCount or 2)
+						)
 					end
 					if widgetState.dmHandle then
 						local v = tostring(math.floor(state.symmetryMirrorAngle or 0))
@@ -18296,7 +18326,11 @@ function widget:Update()
 					end
 					local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
 					if mirrorAngleSlider then
-						mirrorAngleSlider:SetAttribute("value", tostring(state.symmetryMirrorAngle or 0))
+						setAttrValueIfChanged(
+							mirrorAngleSlider,
+							"slider-symmetry-mirror-angle",
+							tostring(state.symmetryMirrorAngle or 0)
+						)
 					end
 					local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
 					if widgetState.dmHandle then
@@ -18575,7 +18609,7 @@ function widget:Update()
 
 				local noiseSliderScale = getCachedEl(doc, "slider-noise-scale")
 				if noiseSliderScale and ds ~= "noise-scale" then
-					noiseSliderScale:SetAttribute("value", tostring(state.noiseScale))
+					setAttrValueIfChanged(noiseSliderScale, "slider-noise-scale", tostring(state.noiseScale))
 				end
 				if dm then
 					local v = tostring(state.noiseScale)
@@ -18586,7 +18620,7 @@ function widget:Update()
 
 				local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
 				if noiseSliderOctaves and ds ~= "noise-octaves" then
-					noiseSliderOctaves:SetAttribute("value", tostring(state.noiseOctaves))
+					setAttrValueIfChanged(noiseSliderOctaves, "slider-noise-octaves", tostring(state.noiseOctaves))
 				end
 				if dm then
 					local v = tostring(state.noiseOctaves)
@@ -18597,7 +18631,11 @@ function widget:Update()
 
 				local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
 				if noiseSliderPersist and ds ~= "noise-persistence" then
-					noiseSliderPersist:SetAttribute("value", tostring(math.floor(state.noisePersistence * 100 + 0.5)))
+					setAttrValueIfChanged(
+						noiseSliderPersist,
+						"slider-noise-persistence",
+						tostring(math.floor(state.noisePersistence * 100 + 0.5))
+					)
 				end
 				if dm then
 					local v = string.format("%.2f", state.noisePersistence)
@@ -18608,7 +18646,11 @@ function widget:Update()
 
 				local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
 				if noiseSliderLacun and ds ~= "noise-lacunarity" then
-					noiseSliderLacun:SetAttribute("value", tostring(math.floor(state.noiseLacunarity * 10 + 0.5)))
+					setAttrValueIfChanged(
+						noiseSliderLacun,
+						"slider-noise-lacunarity",
+						tostring(math.floor(state.noiseLacunarity * 10 + 0.5))
+					)
 				end
 				if dm then
 					local v = string.format("%.1f", state.noiseLacunarity)
@@ -18619,7 +18661,7 @@ function widget:Update()
 
 				local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
 				if noiseSliderSeed and ds ~= "noise-seed" then
-					noiseSliderSeed:SetAttribute("value", tostring(state.noiseSeed))
+					setAttrValueIfChanged(noiseSliderSeed, "slider-noise-seed", tostring(state.noiseSeed))
 				end
 				if dm then
 					local v = tostring(state.noiseSeed)
@@ -18770,12 +18812,12 @@ function widget:Update()
 			local exportMinInput = doc and getCachedEl(doc, "input-tf-export-min")
 			if exportMinInput and widgetState.focusedRmlInput ~= exportMinInput then
 				local minStr = string.format("%.2f", state.exportCustomMin or 0)
-				exportMinInput:SetAttribute("value", minStr)
+				setAttrValueIfChanged(exportMinInput, "input-tf-export-min", minStr)
 			end
 			local exportMaxInput = doc and getCachedEl(doc, "input-tf-export-max")
 			if exportMaxInput and widgetState.focusedRmlInput ~= exportMaxInput then
 				local maxStr = string.format("%.2f", state.exportCustomMax or 0)
-				exportMaxInput:SetAttribute("value", maxStr)
+				setAttrValueIfChanged(exportMaxInput, "input-tf-export-max", maxStr)
 			end
 		end
 		-- Slider wheel-lock pulse animation
