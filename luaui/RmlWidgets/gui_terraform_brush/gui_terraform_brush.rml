@@ -6837,6 +6837,356 @@
 					</div>
 				</div><!-- /frame-ts-biome -->
 
+				<!-- HEIGHT TINT (tileset shader 0.27): world-height tinting as a system.
+				     One shared tint axis (AXIS) feeds the three-stop GRADE, the STRATA beds
+				     (the canyon), the RAMP image, SATURATION, TIDE rings and the SNOW line.
+				     Colour chips (grade stops, beds, snow) select what the one shared
+				     palette + R/G/B trio edits; tf_tileset.sync paints them from the knobs.
+				     Every sub-group has its own RESET; the header RESET takes them all. -->
+				<div class="tf-section-frame tf-collapsed" id="frame-ts-htint">
+					<div id="btn-toggle-ts-htint" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-htint" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">HEIGHT TINT</div>
+						<div id="btn-ts-reset-htint" class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('htint')">RESET</div>
+					</div>
+					<div id="section-ts-htint" class="hidden">
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">AXIS</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('hgaxis')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Auto rides the map's height reference (a flat canvas stays untinted). Manual pins the axis to elmos.</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsHgRef == 0" data-event-mousedown="onTsHgRefMode(0)"><div class="tf-btn-text">Auto</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsHgRef == 1" data-event-mousedown="onTsHgRefMode(1)"><div class="tf-btn-text">Manual</div></div>
+						</div>
+						<div data-if="tsHgRef == 1">
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Base (elmo)</div>
+								<input type="range" id="ts-slider-hgRefMin" class="tf-slider" min="-500" max="2000" step="5" value="0" data-event-change="onTilesetKnob('hgRefMin')" />
+								<input type="text" id="ts-slider-hgRefMin-numbox" class="tf-slider-numbox" readonly value="0" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="tf-slider-label text-light">Span (elmo)</div>
+								<input type="range" id="ts-slider-hgRefSpan" class="tf-slider" min="32" max="4000" step="8" value="512" data-event-change="onTilesetKnob('hgRefSpan')" />
+								<input type="text" id="ts-slider-hgRefSpan-numbox" class="tf-slider-numbox" readonly value="512" />
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Tilt</div>
+							<input type="range" id="ts-slider-hgTiltDeg" class="tf-slider" min="-15" max="15" step="0.1" value="0.0" data-event-change="onTilesetKnob('hgTiltDeg')" />
+							<input type="text" id="ts-slider-hgTiltDeg-numbox" class="tf-slider-numbox" readonly value="0.0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Tilt dir</div>
+							<input type="range" id="ts-slider-hgTiltDirDeg" class="tf-slider" min="0" max="360" step="1" value="0" data-event-change="onTilesetKnob('hgTiltDirDeg')" />
+							<input type="text" id="ts-slider-hgTiltDirDeg-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Wobble</div>
+							<input type="range" id="ts-slider-hgWobble" class="tf-slider" min="0" max="200" step="1" value="0" data-event-change="onTilesetKnob('hgWobble')" />
+							<input type="text" id="ts-slider-hgWobble-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">GRADE</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('hgrade')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Three tint stops along the axis. Pick a stop, then edit it in COLOUR below.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-gradeStrength" class="tf-slider" min="0" max="1" step="0.005" value="1.00" data-event-change="onTilesetKnob('gradeStrength')" />
+							<input type="text" id="ts-slider-gradeStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Split</div>
+							<input type="range" id="ts-slider-gradeSplit" class="tf-slider" min="0.05" max="0.95" step="0.005" value="0.45" data-event-change="onTilesetKnob('gradeSplit')" />
+							<input type="text" id="ts-slider-gradeSplit-numbox" class="tf-slider-numbox" readonly value="0.45" />
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="ts-hg-chip-low" class="ts-hg-chip" data-class-active="tsHgTarget == 'low'" data-event-mousedown="onTsHgTarget('low')"><div class="ts-hg-chip-label">LOW</div></div>
+							<div id="ts-hg-chip-mid" class="ts-hg-chip" data-class-active="tsHgTarget == 'mid'" data-event-mousedown="onTsHgTarget('mid')"><div class="ts-hg-chip-label">MID</div></div>
+							<div id="ts-hg-chip-high" class="ts-hg-chip" data-class-active="tsHgTarget == 'high'" data-event-mousedown="onTsHgTarget('high')"><div class="ts-hg-chip-label">HIGH</div></div>
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">STRATA</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('strata')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Repeating tint beds along the axis (the canyon). Wobble needs the stagger mask on.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-strataStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.00" data-event-change="onTilesetKnob('strataStrength')" />
+							<input type="text" id="ts-slider-strataStrength-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Count</div>
+							<input type="range" id="ts-slider-strataCount" class="tf-slider" min="1" max="8" step="1" value="4" data-event-change="onTilesetKnob('strataCount')" />
+							<input type="text" id="ts-slider-strataCount-numbox" class="tf-slider-numbox" readonly value="4" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Period (elmo)</div>
+							<input type="range" id="ts-slider-strataPeriod" class="tf-slider" min="4" max="1000" step="1" value="48" data-event-change="onTilesetKnob('strataPeriod')" />
+							<input type="text" id="ts-slider-strataPeriod-numbox" class="tf-slider-numbox" readonly value="48" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Phase</div>
+							<input type="range" id="ts-slider-strataPhase" class="tf-slider" min="0" max="1" step="0.005" value="0.00" data-event-change="onTilesetKnob('strataPhase')" />
+							<input type="text" id="ts-slider-strataPhase-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Hardness</div>
+							<input type="range" id="ts-slider-strataHardness" class="tf-slider" min="0" max="1" step="0.005" value="0.70" data-event-change="onTilesetKnob('strataHardness')" />
+							<input type="text" id="ts-slider-strataHardness-numbox" class="tf-slider-numbox" readonly value="0.70" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Wobble</div>
+							<input type="range" id="ts-slider-strataWobble" class="tf-slider" min="0" max="200" step="1" value="12" data-event-change="onTilesetKnob('strataWobble')" />
+							<input type="text" id="ts-slider-strataWobble-numbox" class="tf-slider-numbox" readonly value="12" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Jitter</div>
+							<input type="range" id="ts-slider-strataJitter" class="tf-slider" min="0" max="0.6" step="0.005" value="0.15" data-event-change="onTilesetKnob('strataJitter')" />
+							<input type="text" id="ts-slider-strataJitter-numbox" class="tf-slider-numbox" readonly value="0.15" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Thick jitter</div>
+							<input type="range" id="ts-slider-strataThickJitter" class="tf-slider" min="0" max="0.8" step="0.005" value="0.00" data-event-change="onTilesetKnob('strataThickJitter')" />
+							<input type="text" id="ts-slider-strataThickJitter-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Layers that take the beds</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStrataBase" data-event-mousedown="onTsStrataMask(1)"><div class="tf-btn-text">Base</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStrataInter" data-event-mousedown="onTsStrataMask(2)"><div class="tf-btn-text">Inter</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStrataCliff" data-event-mousedown="onTsStrataMask(4)"><div class="tf-btn-text">Cliff</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStrataPlat" data-event-mousedown="onTsStrataMask(8)"><div class="tf-btn-text">Plat</div></div>
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="ts-hg-chip-s1" class="ts-hg-chip" data-if="tsStrataCount >= 1" data-class-active="tsHgTarget == 's1'" data-event-mousedown="onTsHgTarget('s1')"><div class="ts-hg-chip-label">1</div></div>
+							<div id="ts-hg-chip-s2" class="ts-hg-chip" data-if="tsStrataCount >= 2" data-class-active="tsHgTarget == 's2'" data-event-mousedown="onTsHgTarget('s2')"><div class="ts-hg-chip-label">2</div></div>
+							<div id="ts-hg-chip-s3" class="ts-hg-chip" data-if="tsStrataCount >= 3" data-class-active="tsHgTarget == 's3'" data-event-mousedown="onTsHgTarget('s3')"><div class="ts-hg-chip-label">3</div></div>
+							<div id="ts-hg-chip-s4" class="ts-hg-chip" data-if="tsStrataCount >= 4" data-class-active="tsHgTarget == 's4'" data-event-mousedown="onTsHgTarget('s4')"><div class="ts-hg-chip-label">4</div></div>
+							<div id="ts-hg-chip-s5" class="ts-hg-chip" data-if="tsStrataCount >= 5" data-class-active="tsHgTarget == 's5'" data-event-mousedown="onTsHgTarget('s5')"><div class="ts-hg-chip-label">5</div></div>
+							<div id="ts-hg-chip-s6" class="ts-hg-chip" data-if="tsStrataCount >= 6" data-class-active="tsHgTarget == 's6'" data-event-mousedown="onTsHgTarget('s6')"><div class="ts-hg-chip-label">6</div></div>
+							<div id="ts-hg-chip-s7" class="ts-hg-chip" data-if="tsStrataCount >= 7" data-class-active="tsHgTarget == 's7'" data-event-mousedown="onTsHgTarget('s7')"><div class="ts-hg-chip-label">7</div></div>
+							<div id="ts-hg-chip-s8" class="ts-hg-chip" data-if="tsStrataCount >= 8" data-class-active="tsHgTarget == 's8'" data-event-mousedown="onTsHgTarget('s8')"><div class="ts-hg-chip-label">8</div></div>
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">GRADIENT STOPS</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('stops')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">2 to 8 colours spread evenly from the bottom of the axis to its top, blended between. Pick a stop, then edit it in COLOUR below (the HSV rows).</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-stopsStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.00" data-event-change="onTilesetKnob('stopsStrength')" />
+							<input type="text" id="ts-slider-stopsStrength-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Count</div>
+							<input type="range" id="ts-slider-stopsCount" class="tf-slider" min="2" max="8" step="1" value="3" data-event-change="onTilesetKnob('stopsCount')" />
+							<input type="text" id="ts-slider-stopsCount-numbox" class="tf-slider-numbox" readonly value="3" />
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStopsMode == 1" data-event-mousedown="onTsStopsMode(1)"><div class="tf-btn-text">Multiply</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsStopsMode == 2" data-event-mousedown="onTsStopsMode(2)"><div class="tf-btn-text">Colorize</div></div>
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="ts-hg-chip-p1" class="ts-hg-chip" data-if="tsStopsCount >= 1" data-class-active="tsHgTarget == 'p1'" data-event-mousedown="onTsHgTarget('p1')"><div class="ts-hg-chip-label">1</div></div>
+							<div id="ts-hg-chip-p2" class="ts-hg-chip" data-if="tsStopsCount >= 2" data-class-active="tsHgTarget == 'p2'" data-event-mousedown="onTsHgTarget('p2')"><div class="ts-hg-chip-label">2</div></div>
+							<div id="ts-hg-chip-p3" class="ts-hg-chip" data-if="tsStopsCount >= 3" data-class-active="tsHgTarget == 'p3'" data-event-mousedown="onTsHgTarget('p3')"><div class="ts-hg-chip-label">3</div></div>
+							<div id="ts-hg-chip-p4" class="ts-hg-chip" data-if="tsStopsCount >= 4" data-class-active="tsHgTarget == 'p4'" data-event-mousedown="onTsHgTarget('p4')"><div class="ts-hg-chip-label">4</div></div>
+							<div id="ts-hg-chip-p5" class="ts-hg-chip" data-if="tsStopsCount >= 5" data-class-active="tsHgTarget == 'p5'" data-event-mousedown="onTsHgTarget('p5')"><div class="ts-hg-chip-label">5</div></div>
+							<div id="ts-hg-chip-p6" class="ts-hg-chip" data-if="tsStopsCount >= 6" data-class-active="tsHgTarget == 'p6'" data-event-mousedown="onTsHgTarget('p6')"><div class="ts-hg-chip-label">6</div></div>
+							<div id="ts-hg-chip-p7" class="ts-hg-chip" data-if="tsStopsCount >= 7" data-class-active="tsHgTarget == 'p7'" data-event-mousedown="onTsHgTarget('p7')"><div class="ts-hg-chip-label">7</div></div>
+							<div id="ts-hg-chip-p8" class="ts-hg-chip" data-if="tsStopsCount >= 8" data-class-active="tsHgTarget == 'p8'" data-event-mousedown="onTsHgTarget('p8')"><div class="ts-hg-chip-label">8</div></div>
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">COLOUR: <span id="ts-hg-target-label" class="font-bold">{{tsHgTargetName}}</span></div>
+						</div>
+						<div id="ts-hg-palette" class="lp-color-palette mb-1">
+							<div id="ts-hg-swatch-1" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(1)" style="background-color: #ffffff;"></div>
+							<div id="ts-hg-swatch-2" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(2)" style="background-color: #e0e0e0;"></div>
+							<div id="ts-hg-swatch-3" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(3)" style="background-color: #888888;"></div>
+							<div id="ts-hg-swatch-4" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(4)" style="background-color: #555555;"></div>
+							<div id="ts-hg-swatch-5" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(5)" style="background-color: #333333;"></div>
+							<div id="ts-hg-swatch-6" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(6)" style="background-color: #1d1d1d;"></div>
+							<div id="ts-hg-swatch-7" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(7)" style="background-color: #080606;"></div>
+							<div id="ts-hg-swatch-8" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(8)" style="background-color: #ff0000;"></div>
+							<div id="ts-hg-swatch-9" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(9)" style="background-color: #ff4400;"></div>
+							<div id="ts-hg-swatch-10" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(10)" style="background-color: #ff8800;"></div>
+							<div id="ts-hg-swatch-11" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(11)" style="background-color: #ffcc00;"></div>
+							<div id="ts-hg-swatch-12" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(12)" style="background-color: #ffee54;"></div>
+							<div id="ts-hg-swatch-13" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(13)" style="background-color: #88ff00;"></div>
+							<div id="ts-hg-swatch-14" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(14)" style="background-color: #00ff00;"></div>
+							<div id="ts-hg-swatch-15" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(15)" style="background-color: #00ffcc;"></div>
+							<div id="ts-hg-swatch-16" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(16)" style="background-color: #00ccff;"></div>
+							<div id="ts-hg-swatch-17" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(17)" style="background-color: #0088ff;"></div>
+							<div id="ts-hg-swatch-18" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(18)" style="background-color: #0000ff;"></div>
+							<div id="ts-hg-swatch-19" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(19)" style="background-color: #ffffcc;"></div>
+							<div id="ts-hg-swatch-20" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(20)" style="background-color: #ffe0b0;"></div>
+							<div id="ts-hg-swatch-21" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(21)" style="background-color: #ffc87c;"></div>
+							<div id="ts-hg-swatch-22" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(22)" style="background-color: #ffaa44;"></div>
+							<div id="ts-hg-swatch-23" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(23)" style="background-color: #cc6600;"></div>
+							<div id="ts-hg-swatch-24" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(24)" style="background-color: #884400;"></div>
+							<div id="ts-hg-swatch-25" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(25)" style="background-color: #442200;"></div>
+							<div id="ts-hg-swatch-26" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(26)" style="background-color: #ff0088;"></div>
+							<div id="ts-hg-swatch-27" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(27)" style="background-color: #ff00ff;"></div>
+							<div id="ts-hg-swatch-28" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(28)" style="background-color: #8800ff;"></div>
+							<div id="ts-hg-swatch-29" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(29)" style="background-color: #a41de2;"></div>
+							<div id="ts-hg-swatch-30" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(30)" style="background-color: #6644cc;"></div>
+							<div id="ts-hg-swatch-31" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(31)" style="background-color: #00ffff;"></div>
+							<div id="ts-hg-swatch-32" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(32)" style="background-color: #aaffcc;"></div>
+							<div id="ts-hg-swatch-33" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(33)" style="background-color: #ccddff;"></div>
+							<div id="ts-hg-swatch-34" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(34)" style="background-color: #ffccdd;"></div>
+							<div id="ts-hg-swatch-35" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(35)" style="background-color: #ddccff;"></div>
+							<div id="ts-hg-swatch-36" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(36)" style="background-color: #ccffdd;"></div>
+							<div id="ts-hg-swatch-37" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(37)" style="background-color: #2ba5ea;"></div>
+							<div id="ts-hg-swatch-38" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(38)" style="background-color: #fdc04c;"></div>
+							<div id="ts-hg-swatch-39" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(39)" style="background-color: #46ea2b;"></div>
+							<div id="ts-hg-swatch-40" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(40)" style="background-color: #6b5a00;"></div>
+							<div id="ts-hg-swatch-41" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(41)" style="background-color: #282828;"></div>
+							<div id="ts-hg-swatch-42" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(42)" style="background-color: #ffeedd;"></div>
+							<div id="ts-hg-swatch-43" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(43)" style="background-color: #ffd4a0;"></div>
+							<div id="ts-hg-swatch-44" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(44)" style="background-color: #ffbb77;"></div>
+							<div id="ts-hg-swatch-45" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(45)" style="background-color: #ff9944;"></div>
+							<div id="ts-hg-swatch-46" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(46)" style="background-color: #ff7722;"></div>
+							<div id="ts-hg-swatch-47" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(47)" style="background-color: #dd5500;"></div>
+							<div id="ts-hg-swatch-48" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(48)" style="background-color: #eeeeff;"></div>
+							<div id="ts-hg-swatch-49" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(49)" style="background-color: #ccccff;"></div>
+							<div id="ts-hg-swatch-50" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(50)" style="background-color: #aabbff;"></div>
+							<div id="ts-hg-swatch-51" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(51)" style="background-color: #8899dd;"></div>
+							<div id="ts-hg-swatch-52" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(52)" style="background-color: #6677bb;"></div>
+							<div id="ts-hg-swatch-53" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(53)" style="background-color: #445599;"></div>
+							<div id="ts-hg-swatch-54" class="lp-palette-swatch" data-event-mousedown="onTsHgSwatch(54)" style="background-color: #223377;"></div>
+						</div>
+						<div id="ts-hg-preview" class="lp-color-preview mb-1"></div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Red</div>
+							<input type="range" id="ts-hg-slider-r" class="tf-slider lp-slider-channel-r" min="0" max="1.8" step="0.005" value="1.0" data-event-change="onTsHgChannel('r')" />
+							<input type="text" id="ts-hg-slider-r-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Green</div>
+							<input type="range" id="ts-hg-slider-g" class="tf-slider lp-slider-channel-g" min="0" max="1.8" step="0.005" value="1.0" data-event-change="onTsHgChannel('g')" />
+							<input type="text" id="ts-hg-slider-g-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Blue</div>
+							<input type="range" id="ts-hg-slider-b" class="tf-slider lp-slider-channel-b" min="0" max="1.8" step="0.005" value="1.0" data-event-change="onTsHgChannel('b')" />
+							<input type="text" id="ts-hg-slider-b-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">The same colour as hue / saturation / value (MrBob's HSV struct; the stops are stored this way).</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Hue</div>
+							<input type="range" id="ts-hg-slider-h" class="tf-slider" min="0" max="1" step="0.002" value="0.000" data-event-change="onTsHgChannel('h')" />
+							<input type="text" id="ts-hg-slider-h-numbox" class="tf-slider-numbox" readonly value="0.000" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Sat</div>
+							<input type="range" id="ts-hg-slider-s" class="tf-slider" min="0" max="1" step="0.005" value="0.00" data-event-change="onTsHgChannel('s')" />
+							<input type="text" id="ts-hg-slider-s-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Value</div>
+							<input type="range" id="ts-hg-slider-v" class="tf-slider" min="0" max="2" step="0.005" value="1.00" data-event-change="onTsHgChannel('v')" />
+							<input type="text" id="ts-hg-slider-v-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">RAMP</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('ramp')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">A painted gradient image (256x1 is enough) sampled along the axis. Files go in Terraform Brush/Ramps/.</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsRampMode == 0" data-event-mousedown="onTsRampMode(0)"><div class="tf-btn-text">Off</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsRampMode == 1" data-event-mousedown="onTsRampMode(1)"><div class="tf-btn-text">Multiply</div></div>
+							<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsRampMode == 2" data-event-mousedown="onTsRampMode(2)"><div class="tf-btn-text">Tint</div></div>
+						</div>
+						<div class="flex flex-row justify-between items-center mb-1">
+							<div class="text-base text-light">RAMP: <span class="font-bold">{{tsRampFile}}</span></div>
+						</div>
+						<div id="ts-ramp-list" class="tf-save-load-list tf-hm-browser ts-ramp-list mb-1"></div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-ts-ramp-rescan" class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-event-mousedown="onTsRampRescan()"><div class="tf-action-btn-text">Rescan folder</div></div>
+							<div id="btn-ts-ramp-clear" class="tf-action-btn tf-action-btn-sm" style="flex: 1;" data-event-mousedown="onTsRampClear()"><div class="tf-action-btn-text">Clear</div></div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-rampStrength" class="tf-slider" min="0" max="1" step="0.005" value="1.00" data-event-change="onTilesetKnob('rampStrength')" />
+							<input type="text" id="ts-slider-rampStrength-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Repeat</div>
+							<input type="range" id="ts-slider-rampRepeat" class="tf-slider" min="1" max="16" step="0.5" value="1.0" data-event-change="onTilesetKnob('rampRepeat')" />
+							<input type="text" id="ts-slider-rampRepeat-numbox" class="tf-slider-numbox" readonly value="1.0" />
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">SATURATION</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('hgsat')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Saturation multiplier from the axis base to its top (1 = untouched).</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Low</div>
+							<input type="range" id="ts-slider-satLow" class="tf-slider" min="0" max="2" step="0.01" value="1.00" data-event-change="onTilesetKnob('satLow')" />
+							<input type="text" id="ts-slider-satLow-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">High</div>
+							<input type="range" id="ts-slider-satHigh" class="tf-slider" min="0" max="2" step="0.01" value="1.00" data-event-change="onTilesetKnob('satHigh')" />
+							<input type="text" id="ts-slider-satHigh-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">TIDE RINGS</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('tide')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Darker rings above the waterline, fading with height.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Rings</div>
+							<input type="range" id="ts-slider-tideRings" class="tf-slider" min="0" max="12" step="1" value="0" data-event-change="onTilesetKnob('tideRings')" />
+							<input type="text" id="ts-slider-tideRings-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Period (elmo)</div>
+							<input type="range" id="ts-slider-tidePeriod" class="tf-slider" min="0.5" max="60" step="0.5" value="6.0" data-event-change="onTilesetKnob('tidePeriod')" />
+							<input type="text" id="ts-slider-tidePeriod-numbox" class="tf-slider-numbox" readonly value="6.0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-tideStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.35" data-event-change="onTilesetKnob('tideStrength')" />
+							<input type="text" id="ts-slider-tideStrength-numbox" class="tf-slider-numbox" readonly value="0.35" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Wobble</div>
+							<input type="range" id="ts-slider-tideWobble" class="tf-slider" min="0" max="30" step="0.5" value="3.0" data-event-change="onTilesetKnob('tideWobble')" />
+							<input type="text" id="ts-slider-tideWobble-numbox" class="tf-slider-numbox" readonly value="3.0" />
+						</div>
+						<div class="flex flex-row items-center mb-1" style="margin-top: 6dp;">
+							<div class="text-base text-light font-bold" style="flex: 1;">SNOW LINE</div>
+							<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('snow')">RESET</div>
+						</div>
+						<div class="text-sm text-light mb-1" style="opacity: 0.7;">Snow above a height on the axis, shed off steep faces. The SNOW chip picks its colour.</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Strength</div>
+							<input type="range" id="ts-slider-snowStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.00" data-event-change="onTilesetKnob('snowStrength')" />
+							<input type="text" id="ts-slider-snowStrength-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Line (elmo)</div>
+							<input type="range" id="ts-slider-snowLine" class="tf-slider" min="-200" max="3000" step="5" value="400" data-event-change="onTilesetKnob('snowLine')" />
+							<input type="text" id="ts-slider-snowLine-numbox" class="tf-slider-numbox" readonly value="400" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Band (elmo)</div>
+							<input type="range" id="ts-slider-snowBand" class="tf-slider" min="1" max="300" step="1" value="40" data-event-change="onTilesetKnob('snowBand')" />
+							<input type="text" id="ts-slider-snowBand-numbox" class="tf-slider-numbox" readonly value="40" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Shed slope</div>
+							<input type="range" id="ts-slider-snowSlopeDeg" class="tf-slider" min="5" max="80" step="1" value="38" data-event-change="onTilesetKnob('snowSlopeDeg')" />
+							<input type="text" id="ts-slider-snowSlopeDeg-numbox" class="tf-slider-numbox" readonly value="38" />
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="ts-hg-chip-snow" class="ts-hg-chip" data-class-active="tsHgTarget == 'snow'" data-event-mousedown="onTsHgTarget('snow')"><div class="ts-hg-chip-label">SNOW</div></div>
+						</div>
+					</div>
+				</div><!-- /frame-ts-htint -->
+
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-tints">
 					<div id="btn-toggle-ts-tints" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-tints" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />

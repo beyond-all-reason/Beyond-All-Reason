@@ -597,6 +597,43 @@ body {
 	border-width: 1dp;
 }
 
+/* HEIGHT TINT colour chips (TILESET window): the chip IS the colour, painted
+   from the knob table by tf_tileset.sync; the selected chip is what the shared
+   palette + R/G/B trio edits. The label sits on a dark pill so it reads on any
+   colour. */
+.ts-hg-chip {
+	flex: 1;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1dp #33333380;
+	border-radius: 3dp;
+	cursor: pointer;
+	background-color: #808080;
+}
+.ts-hg-chip:hover {
+	border-color: #fdc04c80;
+}
+.ts-hg-chip.active {
+	border: 2dp #fdc04c;
+}
+.ts-hg-chip-label {
+	font-size: 0.75rem;
+	color: #ffffff;
+	background-color: #00000070;
+	padding: 0 4dp;
+	border-radius: 2dp;
+}
+/* HEIGHT TINT ramp file list (same row markup as the feature-map browser) */
+.ts-ramp-list {
+	max-height: 160dp;
+}
+.tf-hm-row.ts-ramp-current {
+	background-color: #1d2a3a;
+	border: 1dp #2ba5eaa0;
+}
+
 /* Environment skybox grid */
 .env-skybox-grid {
 	display: flex;

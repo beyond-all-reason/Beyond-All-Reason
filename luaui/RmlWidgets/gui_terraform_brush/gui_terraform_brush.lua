@@ -3503,6 +3503,22 @@ local initialModel = {
 	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	tsGlowOn = false, -- METAL SPOTS glow light master (grays the GLOW LIGHT block via data-class-disabled)
+	-- HEIGHT TINT (tileset shader 0.27): axis mode chips, the selected colour
+	-- chip (grade stops / strata beds / snow) the shared palette + trio edits,
+	-- strata chip visibility + layer-mask chips, ramp mode chips + file label.
+	-- Synced from the knob table in tf_tileset.sync (syncHeightTint).
+	tsHgRef = 0,
+	tsHgTarget = "low",
+	tsHgTargetName = "GRADE LOW",
+	tsStrataCount = 4,
+	tsStrataBase = true,
+	tsStrataInter = true,
+	tsStrataCliff = true,
+	tsStrataPlat = true,
+	tsRampMode = 0,
+	tsRampFile = "none",
+	tsStopsCount = 3, -- GRADIENT STOPS chips shown (data-if) and the Multiply / Colorize chips
+	tsStopsMode = 1,
 	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
 	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
 	surfPreset = "dot",
@@ -10933,6 +10949,129 @@ local initialModel = {
 		WG.TilesetTerrain.setKnob("metalGlowG", c[2])
 		WG.TilesetTerrain.setKnob("metalGlowB", c[3])
 		playSound("click")
+	end,
+	-- HEIGHT TINT (tileset shader 0.27). Axis mode chips, the colour target
+	-- chips (grade LOW / MID / HIGH, strata beds 1..8, SNOW) and the one shared
+	-- palette + R/G/B trio that edits whichever chip is selected. Everything
+	-- writes tileset knobs; tf_tileset.sync paints the chips and restamps the
+	-- trio from the knob table. The chip -> knob-prefix map comes from
+	-- tf_tileset (widgetState.tsHgTargets, set in its attach).
+	onTsHgRefMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("hgRefMode", tonumber(n) or 0)
+		end
+		playSound("click")
+	end,
+	onTsHgTarget = function(_event, t)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsHgTarget = tostring(t)
+		end
+		widgetState.tsHgTrioLast = nil -- restamp the trio from the new target
+		playSound("click")
+	end,
+	onTsHgSwatch = function(_event, idx)
+		local c = widgetState.lpPalette and widgetState.lpPalette[tonumber(idx) or 0]
+		local set = widgetState.tsHgSet
+		local dm = widgetState.dmHandle
+		if not (c and set and dm) then
+			return
+		end
+		-- tf_tileset converts to the chip's own storage (RGB, or HSV for the stops)
+		if set(dm.tsHgTarget, c[1], c[2], c[3]) then
+			playSound("click")
+		end
+	end,
+	onTsHgChannel = function(_event, ch)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then
+			return
+		end
+		-- same deferred-echo guard as onTilesetKnob: a programmatic restamp of
+		-- the trio raises change events frames later
+		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then
+			return
+		end
+		local get, set = widgetState.tsHgGet, widgetState.tsHgSet
+		local dm = widgetState.dmHandle
+		if not (get and set and dm) then
+			return
+		end
+		local k = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
+		if not k then
+			return
+		end
+		ch = tostring(ch):lower()
+		local val = _elemSliderVal("ts-hg-slider-" .. ch, nil)
+		if val == nil then
+			return
+		end
+		-- one slider moved: rebuild the colour in that slider's space from the
+		-- chip's current value and write it back through tf_tileset, which
+		-- converts to the chip's own storage (RGB, or HSV for the stops)
+		local r, g, b, h, s, v = get(k, dm.tsHgTarget)
+		if r == nil then
+			return
+		end
+		if ch == "r" or ch == "g" or ch == "b" then
+			if ch == "r" then
+				r = val
+			elseif ch == "g" then
+				g = val
+			else
+				b = val
+			end
+			set(dm.tsHgTarget, r, g, b)
+		else
+			if ch == "h" then
+				h = val
+			elseif ch == "s" then
+				s = val
+			else
+				v = val
+			end
+			set(dm.tsHgTarget, nil, nil, nil, h, s, v)
+		end
+	end,
+	onTsStrataMask = function(_event, bit)
+		local T = WG.TilesetTerrain
+		if not (T and T.getKnobs and T.setKnob) then
+			return
+		end
+		local k = T.getKnobs() or {}
+		local m = math.floor((k.strataLayerMask or 0) + 0.5)
+		bit = tonumber(bit) or 0
+		if bit <= 0 then
+			return
+		end
+		local has = (m % (bit * 2)) >= bit
+		T.setKnob("strataLayerMask", has and (m - bit) or (m + bit))
+		playSound(has and "toggleOff" or "toggleOn")
+	end,
+	onTsRampMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("rampMode", tonumber(n) or 0)
+		end
+		playSound("click")
+	end,
+	onTsStopsMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("stopsMode", tonumber(n) or 1)
+		end
+		playSound("click")
+	end,
+	onTsRampRescan = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.getRamps then
+			WG.TilesetTerrain.getRamps(true)
+		end
+		widgetState.tsRampListSig = nil
+		playSound("click")
+	end,
+	onTsRampClear = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setRamp then
+			WG.TilesetTerrain.setRamp("")
+		end
+		widgetState.tsRampListSig = nil
+		playSound("toggleOff")
 	end,
 	onTfSwitchLights = function(_event)
 		playSound("toolSwitch")
