@@ -250,7 +250,7 @@
 			<div id="btn-st-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-st-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-st-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -576,7 +576,7 @@
 			<div id="btn-cl-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-cl-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-cl-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -972,7 +972,7 @@
 				<div id="btn-mb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 				</div>
-				<div id="btn-mb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<div id="btn-mb-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 				</div>
 				<div id="btn-mb-mapoverlay" class="tf-overlay-chip" data-class-active="mbMapOverlay" data-event-mousedown="onMbToggleMapOverlay()">
@@ -1404,7 +1404,7 @@
 				<div id="btn-gb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 				</div>
-				<div id="btn-gb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+				<div id="btn-gb-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 					<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 				</div>
 			</div>
@@ -2197,7 +2197,7 @@
 			<div id="btn-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -2756,7 +2756,7 @@
 			<div id="btn-fp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-fp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-fp-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -3242,7 +3242,7 @@
 			<div id="btn-wb-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-wb-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-wb-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -3615,7 +3615,7 @@
 			<div id="btn-sp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-sp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-sp-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 			<div id="btn-sp-splat-overlay" class="tf-overlay-chip" data-class-active="spSplatOverlay" data-event-mousedown="onSplToggleSplatOverlay()">
@@ -4090,7 +4090,7 @@
 			<div id="btn-dc-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-dc-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-dc-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -4909,7 +4909,7 @@
 			<div id="btn-lp-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 				<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 			</div>
-			<div id="btn-lp-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+			<div id="btn-lp-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 			</div>
 		</div>
@@ -5389,7 +5389,7 @@
 					<div id="btn-sf-image-overlay" class="tf-overlay-chip" data-class-active="tbImgActive" data-event-mousedown="onTbImageOverlay()">
 						<div class="tf-overlay-chip-label" style="text-align: center;">Image</div>
 					</div>
-					<div id="btn-sf-image-cfg" class="tf-sm-btn tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
+					<div id="btn-sf-image-cfg" class="tf-overlay-chip tf-imgov-cfg" data-class-active="imgOvVisible" data-event-mousedown="onImgOvOpen()">
 						<img class="tf-icon-xs" src="/luaui/images/terraform_brush/settings.png" />
 					</div>
 					<div id="btn-sf-reveal" class="tf-overlay-chip" data-class-active="surfReveal" data-event-mousedown="onSurfRevealToggle()">

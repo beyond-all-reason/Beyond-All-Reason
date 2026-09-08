@@ -4189,7 +4189,14 @@ margin-top: 3dp;
 
 /* IMAGE overlay (DISPLAY > Image): the gear chip next to the Image chip and the
    file list in the IMAGE OVERLAY window. */
+/* The gear is a chip too (same gradient, border and active state as its
+   neighbours) and stretches to the row's chip height instead of the fixed
+   18dp of tf-sm-btn, which sat visibly shorter than the labelled chips. */
 .tf-imgov-cfg {
+	align-self: stretch;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	padding: 3dp 6dp;
 }
 .tf-imgov-cfg.active {
