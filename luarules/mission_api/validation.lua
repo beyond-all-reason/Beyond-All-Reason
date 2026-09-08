@@ -1191,12 +1191,9 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
 	}
-	local actionTypesReferencingUnitNames = {
-		[actionTypes.IssueOrders] = true,
-		[actionTypes.UnnameUnits] = true,
-		[actionTypes.TransferUnits] = true,
-		[actionTypes.DespawnUnits] = true,
-	}
+	-- every action with a UnitName parameter; the naming actions above are in this set
+	-- as well but are matched first where the sets are consulted
+	local actionTypesReferencingUnitNames = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
@@ -1298,9 +1295,8 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeatures] = true,
 	}
-	local actionTypesReferencingFeatureNames = {
-		[actionTypes.DestroyFeatures] = true,
-	}
+	-- every action with a FeatureName parameter, see validateUnitNameReferences
+	local actionTypesReferencingFeatureNames = getTypesWithParameterType(actionsSchemaParameters, Types.FeatureName)
 
 	local createdFeatureNames = {}
 	local referencedFeatureNames = {}
@@ -1444,14 +1440,9 @@ end
 
 local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
-	local referencingActionTypes = {
-		[actionTypes.CancelCountdown] = true,
-		[actionTypes.PauseCountdown] = true,
-		[actionTypes.UnpauseCountdown] = true,
-		[actionTypes.SetTime] = true,
-		[actionTypes.AddTime] = true,
-		[actionTypes.RemoveTime] = true,
-	}
+	-- AddCountdown declares a CountdownID parameter too, but it creates the ID and is
+	-- handled before this set is consulted below
+	local referencingActionTypes = getTypesWithParameterType(actionsSchemaParameters, Types.CountdownID)
 
 	local addedCountdownIDs = {}
 	local referencedCountdownIDs = {}
