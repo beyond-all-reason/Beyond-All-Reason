@@ -11,7 +11,7 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
 | `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
 
-Both are validated in CI by `spec/luaui/keybind_catalog_spec.lua`: each file against its schema,
+Both are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
 profile names unique across the shipped set, every purely modifier-only action marked
 read-only, and every action command written in lower case.
 
