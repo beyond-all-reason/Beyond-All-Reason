@@ -803,6 +803,33 @@ local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	end
 end
 
+-- Objective fields that each name an Event trigger the objective raises.
+local objectiveEventFields = {
+	"onActivated",
+	"onCanceled",
+	"onProgress",
+	"onCompleted",
+	"onFailed",
+}
+
+-- The TriggerID validator has already reported a trigger that does not exist.
+local function validateObjectiveEventTriggers(objective, objectiveIDText)
+	for _, fieldName in ipairs(objectiveEventFields) do
+		local triggerID = objective[fieldName]
+		local trigger = triggerID ~= nil and GG["MissionAPI"].Triggers[triggerID]
+		if trigger and trigger.type ~= triggerDefinitions.Types.Event then
+			logError(
+				"Objective event must name an Event trigger. Objective: "
+					.. objectiveIDText
+					.. ", Field: "
+					.. fieldName
+					.. ", Trigger: "
+					.. tostring(triggerID)
+			)
+		end
+	end
+end
+
 local function validateObjectiveInlineTrigger(objective, objectiveIDText)
 	if type(objective.trigger) ~= "table" then
 		return
@@ -854,6 +881,7 @@ local function validateObjective(objectiveID, objective)
 
 	validateObjectiveSchemaFields(objective, objectiveIDText)
 	validateObjectiveInlineTrigger(objective, objectiveIDText)
+	validateObjectiveEventTriggers(objective, objectiveIDText)
 end
 
 local function validateObjectives(objectives)
@@ -1449,6 +1477,25 @@ local function validateMarkerNameReferences(actionTypes, actions)
 	end
 end
 
+local function validateObjectiveEventReferences(objectives, triggers)
+	local namedTriggerIDs = {}
+	for _, objective in pairs(objectives) do
+		if type(objective) == "table" then
+			for _, fieldName in ipairs(objectiveEventFields) do
+				if objective[fieldName] ~= nil then
+					namedTriggerIDs[objective[fieldName]] = true
+				end
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == triggerDefinitions.Types.Event and not namedTriggerIDs[triggerID] then
+			logWarn("Event trigger has no owners, so it can never fire. Trigger: " .. triggerID)
+		end
+	end
+end
+
 local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
 	-- AddCountdown declares a CountdownID parameter too, but it creates the ID and is
@@ -1513,6 +1560,7 @@ local function validateReferences()
 
 	validateStagesReferences(stages, objectives)
 	validateObjectiveNextStageReferences(objectives)
+	validateObjectiveEventReferences(objectives, triggers)
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)

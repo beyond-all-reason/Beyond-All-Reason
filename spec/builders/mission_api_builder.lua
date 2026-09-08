@@ -19,11 +19,14 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field Triggers table
 ---@field Actions table
 ---@field CurrentStageID string?
+---@field ObjectiveTriggers table
+---@field ObjectiveStages table
 ---@field UnitLoadout table
 ---@field FeatureLoadout table
 ---@field ActionDefinitions table
 ---@field TriggerDefinitions table
 ---@field Modules table
+---@field ActivateTrigger fun(trigger: table): boolean
 ---@field calls MissionApiMockCalls
 ---@field clearCalls fun()
 
@@ -35,10 +38,19 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field playSound table
 ---@field enqueueSound table
 ---@field processSoundQueue table
+---@field activateStage table
 ---@field changeStage table
 ---@field tryAdvanceStage table
+---@field activateObjective table
+---@field cancelObjective table
+---@field updateObjective table
+---@field completeObjective table
+---@field failObjective table
+---@field hideObjective table
+---@field showObjective table
 ---@field updateObjectiveProgress table
 ---@field echoObjectiveUpdate table
+---@field activateTrigger table
 
 ---@class MissionApiBuilder
 local MB = {}
@@ -76,13 +88,13 @@ function MB.new()
 		featureLoadout = {},
 		actionDefinitions = {},
 		triggerDefinitions = {},
+		objectiveTriggers = {},
 		currentStageID = nil,
 		moduleOverrides = {},
 		realParameterTypes = true,
 	}, MB)
 end
 
----@param self MissionApiBuilder
 ---@param difficulty number
 ---@return MissionApiBuilder
 function MB:WithDifficulty(difficulty)
@@ -91,7 +103,6 @@ function MB:WithDifficulty(difficulty)
 end
 
 ---Seed a tracked unit; bidirectional maps are built for you.
----@param self MissionApiBuilder
 ---@param name string
 ---@param unitID number
 ---@return MissionApiBuilder
@@ -100,7 +111,6 @@ function MB:WithTrackedUnit(name, unitID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param name string
 ---@param featureID number
 ---@return MissionApiBuilder
@@ -109,7 +119,6 @@ function MB:WithTrackedFeature(name, featureID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param name string
 ---@param position table
 ---@return MissionApiBuilder
@@ -118,7 +127,6 @@ function MB:WithMarker(name, position)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param objectiveID string
 ---@param objective table
 ---@return MissionApiBuilder
@@ -127,7 +135,6 @@ function MB:WithObjective(objectiveID, objective)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param stageID string
 ---@param stage table
 ---@return MissionApiBuilder
@@ -136,7 +143,6 @@ function MB:WithStage(stageID, stage)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param stageID string
 ---@return MissionApiBuilder
 function MB:WithCurrentStage(stageID)
@@ -144,7 +150,6 @@ function MB:WithCurrentStage(stageID)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param triggerID string
 ---@param trigger table
 ---@return MissionApiBuilder
@@ -153,7 +158,17 @@ function MB:WithTrigger(triggerID, trigger)
 	return self
 end
 
----@param self MissionApiBuilder
+---Seed an objective's synthesized trigger, named and related as objectives_loader.lua does.
+---@param objectiveID string
+---@param trigger table?
+---@return MissionApiBuilder
+function MB:WithObjectiveTrigger(objectiveID, trigger)
+	local triggerID = "__objective_" .. objectiveID
+	self.triggers[triggerID] = trigger or { settings = { active = false } }
+	self.objectiveTriggers[objectiveID] = triggerID
+	return self
+end
+
 ---@param actionID string
 ---@param action table
 ---@return MissionApiBuilder
@@ -162,7 +177,6 @@ function MB:WithAction(actionID, action)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param objectiveID string
 ---@param metadata table
 ---@return MissionApiBuilder
@@ -172,7 +186,6 @@ function MB:WithManagedObjective(objectiveID, metadata)
 end
 
 ---Seed a countdown, shaped as countdowns.lua AddCountdown() creates them.
----@param self MissionApiBuilder
 ---@param countdownID string
 ---@param countdown table?
 ---@return MissionApiBuilder
@@ -182,7 +195,6 @@ function MB:WithCountdown(countdownID, countdown)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param soundfile string
 ---@param duration number
 ---@return MissionApiBuilder
@@ -191,7 +203,6 @@ function MB:WithSoundFile(soundfile, duration)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param loadout table
 ---@return MissionApiBuilder
 function MB:WithUnitLoadout(loadout)
@@ -199,7 +210,6 @@ function MB:WithUnitLoadout(loadout)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param loadout table
 ---@return MissionApiBuilder
 function MB:WithFeatureLoadout(loadout)
@@ -207,7 +217,6 @@ function MB:WithFeatureLoadout(loadout)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param definitions table
 ---@return MissionApiBuilder
 function MB:WithActionDefinitions(definitions)
@@ -215,7 +224,6 @@ function MB:WithActionDefinitions(definitions)
 	return self
 end
 
----@param self MissionApiBuilder
 ---@param definitions table
 ---@return MissionApiBuilder
 function MB:WithTriggerDefinitions(definitions)
@@ -224,7 +232,6 @@ function MB:WithTriggerDefinitions(definitions)
 end
 
 ---Replace a whole module, or merge individual functions into it.
----@param self MissionApiBuilder
 ---@param moduleName string e.g. 'Loadout', 'Sounds', 'Objectives', 'Tracking'
 ---@param moduleTable table
 ---@return MissionApiBuilder
@@ -237,18 +244,14 @@ function MB:WithModule(moduleName, moduleTable)
 end
 
 ---Leave Modules.ParameterTypes unset instead of loading the real module.
----@param self MissionApiBuilder
 ---@return MissionApiBuilder
 function MB:WithoutParameterTypes()
 	self.realParameterTypes = false
 	return self
 end
 
----@param self MissionApiBuilder
 ---@return MissionApiMock
 function MB:Build()
-	local instance = self
-
 	local trackedUnitIDs = {}
 	local trackedUnitNames = {}
 	local trackedFeatureIDs = {}
@@ -291,11 +294,20 @@ function MB:Build()
 		trackedIDs[name] = nil
 	end
 
-	for _, entry in ipairs(instance.trackedUnits) do
+	for _, entry in ipairs(self.trackedUnits) do
 		trackEntity(entry.name, entry.id, trackedUnitIDs, trackedUnitNames)
 	end
-	for _, entry in ipairs(instance.trackedFeatures) do
+	for _, entry in ipairs(self.trackedFeatures) do
 		trackEntity(entry.name, entry.id, trackedFeatureIDs, trackedFeatureNames)
+	end
+
+	-- Mirrors objectives_loader.lua so stages list their objectives.
+	local objectiveStages = {}
+	for stageID, stage in pairs(self.stages) do
+		for _, objectiveID in ipairs(stage.objectives or {}) do
+			local sequence = ensureTable(objectiveStages, objectiveID)
+			sequence[#sequence + 1] = stageID
+		end
 	end
 
 	local spawnUnitCalls = {}
@@ -304,10 +316,19 @@ function MB:Build()
 	local playSoundCalls = {}
 	local enqueueSoundCalls = {}
 	local processSoundQueueCalls = {}
+	local activateStageCalls = {}
 	local changeStageCalls = {}
 	local tryAdvanceCalls = {}
+	local activateObjectiveCalls = {}
 	local updateProgressCalls = {}
+	local cancelObjectiveCalls = {}
+	local updateObjectiveCalls = {}
+	local completeObjectiveCalls = {}
+	local failObjectiveCalls = {}
+	local hideObjectiveCalls = {}
+	local showObjectiveCalls = {}
 	local echoCalls = {}
+	local activateTriggerCalls = {}
 
 	local tracking = {
 		TrackUnit = function(name, unitID)
@@ -375,11 +396,35 @@ function MB:Build()
 	}
 
 	local objectives = {
+		ActivateStage = function(stageID)
+			activateStageCalls[#activateStageCalls + 1] = { stageID = stageID }
+		end,
 		ChangeStage = function(stageID)
 			changeStageCalls[#changeStageCalls + 1] = { stageID = stageID }
 		end,
 		TryAdvanceStage = function(objective)
 			tryAdvanceCalls[#tryAdvanceCalls + 1] = { objective = objective }
+		end,
+		ActivateObjective = function(objectiveID)
+			activateObjectiveCalls[#activateObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		CancelObjective = function(objectiveID)
+			cancelObjectiveCalls[#cancelObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		UpdateObjective = function(objectiveID)
+			updateObjectiveCalls[#updateObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		CompleteObjective = function(objectiveID)
+			completeObjectiveCalls[#completeObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		FailObjective = function(objectiveID)
+			failObjectiveCalls[#failObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		HideObjective = function(objectiveID)
+			hideObjectiveCalls[#hideObjectiveCalls + 1] = { objectiveID = objectiveID }
+		end,
+		ShowObjective = function(objectiveID)
+			showObjectiveCalls[#showObjectiveCalls + 1] = { objectiveID = objectiveID }
 		end,
 		UpdateObjectiveProgress = function(
 			objectiveID,
@@ -410,11 +455,11 @@ function MB:Build()
 		Objectives = objectives,
 	}
 
-	if instance.realParameterTypes then
+	if self.realParameterTypes then
 		modules.ParameterTypes = VFS.Include(PARAMETER_TYPES_PATH)
 	end
 
-	for moduleName, override in pairs(instance.moduleOverrides) do
+	for moduleName, override in pairs(self.moduleOverrides) do
 		local target = ensureTable(modules, moduleName)
 		for key, value in pairs(override) do
 			target[key] = value
@@ -423,27 +468,33 @@ function MB:Build()
 
 	---@type MissionApiMock
 	local mock = {
-		Difficulty = instance.difficulty,
+		Difficulty = self.difficulty,
 		trackedUnitIDs = trackedUnitIDs,
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,
 		trackedFeatureNames = trackedFeatureNames,
-		markerNames = instance.markerNames,
-		soundFiles = instance.soundFiles,
-		soundQueue = instance.soundQueue,
-		ManagedObjectives = instance.managedObjectives,
-		Countdowns = instance.countdowns,
-		Objectives = instance.objectives,
-		Stages = instance.stages,
-		Triggers = instance.triggers,
-		Actions = instance.actions,
-		CurrentStageID = instance.currentStageID,
-		UnitLoadout = instance.unitLoadout,
-		FeatureLoadout = instance.featureLoadout,
-		ActionDefinitions = instance.actionDefinitions,
-		TriggerDefinitions = instance.triggerDefinitions,
+		markerNames = self.markerNames,
+		soundFiles = self.soundFiles,
+		soundQueue = self.soundQueue,
+		ManagedObjectives = self.managedObjectives,
+		Countdowns = self.countdowns,
+		Objectives = self.objectives,
+		Stages = self.stages,
+		Triggers = self.triggers,
+		Actions = self.actions,
+		CurrentStageID = self.currentStageID,
+		UnitLoadout = self.unitLoadout,
+		FeatureLoadout = self.featureLoadout,
+		ObjectiveTriggers = self.objectiveTriggers,
+		ObjectiveStages = objectiveStages,
+		ActionDefinitions = self.actionDefinitions,
+		TriggerDefinitions = self.triggerDefinitions,
 		Modules = modules,
-
+		ActivateTrigger = function(trigger)
+			activateTriggerCalls[#activateTriggerCalls + 1] =
+				{ trigger = trigger, stageID = GG["MissionAPI"].CurrentStageID }
+			return true
+		end,
 		--- Recorded module calls, keyed by the stub they came from:
 		--- `calls.playSound` records `Modules.Sounds.PlaySound`.
 		calls = {
@@ -453,33 +504,50 @@ function MB:Build()
 			playSound = playSoundCalls,
 			enqueueSound = enqueueSoundCalls,
 			processSoundQueue = processSoundQueueCalls,
+			activateStage = activateStageCalls,
 			changeStage = changeStageCalls,
 			tryAdvanceStage = tryAdvanceCalls,
+			activateObjective = activateObjectiveCalls,
+			cancelObjective = cancelObjectiveCalls,
+			updateObjective = updateObjectiveCalls,
+			completeObjective = completeObjectiveCalls,
+			failObjective = failObjectiveCalls,
+			hideObjective = hideObjectiveCalls,
+			showObjective = showObjectiveCalls,
 			updateObjectiveProgress = updateProgressCalls,
 			echoObjectiveUpdate = echoCalls,
+			activateTrigger = activateTriggerCalls,
 		},
-	}
-
-	mock.clearCalls = function()
-		local tracked = {
-			spawnUnitCalls,
-			spawnFeatureCalls,
-			convertOrdersCalls,
-			playSoundCalls,
-			enqueueSoundCalls,
-			processSoundQueueCalls,
-			changeStageCalls,
-			tryAdvanceCalls,
-			updateProgressCalls,
-			echoCalls,
-		}
-		for i = 1, #tracked do
-			local list = tracked[i]
-			for j = #list, 1, -1 do
-				list[j] = nil
+		clearCalls = function()
+			local tracked = {
+				spawnUnitCalls,
+				spawnFeatureCalls,
+				convertOrdersCalls,
+				playSoundCalls,
+				enqueueSoundCalls,
+				processSoundQueueCalls,
+				activateStageCalls,
+				changeStageCalls,
+				tryAdvanceCalls,
+				activateObjectiveCalls,
+				updateProgressCalls,
+				updateObjectiveCalls,
+				cancelObjectiveCalls,
+				completeObjectiveCalls,
+				failObjectiveCalls,
+				hideObjectiveCalls,
+				showObjectiveCalls,
+				echoCalls,
+				activateTriggerCalls,
+			}
+			for i = 1, #tracked do
+				local list = tracked[i]
+				for j = #list, 1, -1 do
+					list[j] = nil
+				end
 			end
-		end
-	end
+		end,
+	}
 
 	return mock
 end
@@ -489,7 +557,6 @@ end
 local installedTable = nil
 
 ---Build the mock and install it as GG['MissionAPI'].
----@param self MissionApiBuilder
 ---@return MissionApiMock
 function MB:Install()
 	local mock = self:Build()

@@ -242,6 +242,68 @@ describe("mission_api.validation", function()
 			assert.are.same({}, logged)
 		end)
 
+		it("passes for an objective naming an Event trigger in onCompleted", function()
+			GG["MissionAPI"].Triggers = { done = { type = triggerTypes.Event, actions = { "ok" } } }
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onCompleted = "done" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when onCompleted names a trigger that does not exist", function()
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onCompleted = "nowhere" },
+			})
+			assert.is_true(hasError("Invalid triggerID: nowhere. Objective: withEvent, Field: onCompleted"))
+		end)
+
+		it("logs an error when onCompleted names a trigger that is not an Event", function()
+			GG["MissionAPI"].Triggers = {
+				timer = { type = triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onCompleted = "timer" },
+			})
+			assert.is_true(
+				hasError(
+					"Objective event must name an Event trigger. Objective: withEvent, Field: onCompleted, Trigger: timer"
+				)
+			)
+		end)
+
+		it("passes for an objective naming an Event trigger in onProgress", function()
+			GG["MissionAPI"].Triggers = { stepped = { type = triggerTypes.Event, actions = { "ok" } } }
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onProgress = "stepped" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("passes for an objective naming Event triggers in onActivated and onCanceled", function()
+			GG["MissionAPI"].Triggers = {
+				began = { type = triggerTypes.Event, actions = { "ok" } },
+				gone = { type = triggerTypes.Event, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvents = { textKey = "ok", onActivated = "began", onCanceled = "gone" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when onFailed names a trigger that is not an Event", function()
+			GG["MissionAPI"].Triggers = {
+				timer = { type = triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvent = { textKey = "ok", onFailed = "timer" },
+			})
+			assert.is_true(
+				hasError(
+					"Objective event must name an Event trigger. Objective: withEvent, Field: onFailed, Trigger: timer"
+				)
+			)
+		end)
+
 		it("logs an error for missing textKey", function()
 			validation.ValidateObjectives({ noText = {} })
 			assert.is_true(hasError("Objective missing textKey: noText"))
@@ -1145,6 +1207,24 @@ describe("mission_api.validation", function()
 			validation.ValidateReferences()
 
 			assert.are.same({}, logged)
+		end)
+
+		it("passes for an Event trigger that an objective names", function()
+			GG["MissionAPI"].Objectives = { done = { textKey = "ok", onCompleted = "onDone" } }
+			GG["MissionAPI"].Triggers = { onDone = { type = triggerTypes.Event, actions = { "ok" } } }
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
+		it("warns about an Event trigger that no objective names", function()
+			GG["MissionAPI"].Objectives = { done = { textKey = "ok" } }
+			GG["MissionAPI"].Triggers = { onDone = { type = triggerTypes.Event, actions = { "ok" } } }
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Event trigger has no owners, so it can never fire. Trigger: onDone"))
 		end)
 
 		it("treats inline objective triggers as unit and feature name references", function()
