@@ -40,7 +40,6 @@ return {
 			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			selectable_as_combat_unit = true,
 			subfolder = "CorAircraft",
 			unitgroup = "util",
 		},

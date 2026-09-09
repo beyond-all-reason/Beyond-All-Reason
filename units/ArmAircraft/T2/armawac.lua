@@ -38,7 +38,6 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			selectable_as_combat_unit = true,
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "util",

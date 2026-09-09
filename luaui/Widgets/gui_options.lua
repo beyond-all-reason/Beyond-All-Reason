@@ -9053,6 +9053,25 @@ function init()
 			end,
 		},
 		{
+			id = "smartselect_includescouts",
+			group = "game",
+			category = types.basic,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.smartselect_includescouts"),
+			type = "bool",
+			value = false,
+			description = BAR.I18N("ui.settings.option.smartselect_includescouts_descr"),
+			onload = function(i) end,
+			onchange = function(i, value)
+				saveOptionValue(
+					"SmartSelect",
+					"smartselect",
+					"setIncludeScouts",
+					{ "includeScouts" },
+					value
+				)
+			end,
+		},
+		{
 			id = "smartselect_includeantinuke",
 			group = "game",
 			category = types.basic,

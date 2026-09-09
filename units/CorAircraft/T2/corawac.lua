@@ -38,7 +38,6 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			selectable_as_combat_unit = true,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "util",
