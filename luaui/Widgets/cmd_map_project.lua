@@ -66,6 +66,7 @@ local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
 local job = nil -- active save job, nil when idle
 local loadJob = nil -- active load job, nil when idle (never both at once)
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
+local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
 
 -- The project this session IS: set when a load starts (the session exists to
 -- replay that project) and when a save completes. FILE > Save targets it.
@@ -166,10 +167,19 @@ end
 local function writeFile(path, content)
 	local f = io.open(path, "wb")
 	if not f then
+		if job then
+			job.uploadBlocked = true
+		end
 		return nil
 	end
-	f:write(content)
-	f:close()
+	local written = f:write(content)
+	local closed = f:close()
+	if not written or not closed then
+		if job then
+			job.uploadBlocked = true
+		end
+		return nil
+	end
 	return #content
 end
 
@@ -316,12 +326,18 @@ local function sectionOk(name, file, bytes, extra)
 	job.sections[#job.sections + 1] = { name = name, file = file, bytes = bytes or 0, extra = extra }
 end
 
-local function sectionSkip(name, reason)
+local function sectionSkip(name, reason, failed)
 	job.skipped[#job.skipped + 1] = { name = name, reason = reason }
+	if failed then
+		job.uploadBlocked = true
+	end
 end
 
-local function warn(msg)
+local function warn(msg, informational)
 	job.warnings[#job.warnings + 1] = msg
+	if not informational then
+		job.uploadBlocked = true
+	end
 	echoP("WARNING: " .. msg)
 end
 
@@ -349,7 +365,8 @@ local function stepPrepare()
 	local mo = job.mapOptions
 	if not (mo.blank_map_x or mo.blank_map_y) then
 		warn(
-			"current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas"
+			"current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas",
+			true
 		)
 	end
 	return true
@@ -415,7 +432,8 @@ local function stepHeightmap()
 					"terrain exceeded the recorded height range; widened to %d..%d (full heightmap diff this save)",
 					minH,
 					maxH
-				)
+				),
+				true
 			)
 		end
 	end
@@ -479,7 +497,7 @@ local function stepSplat()
 	if bytes then
 		sectionOk("splat", "splat.png", bytes)
 	else
-		sectionSkip("splat", "painter reported done but file missing")
+		sectionSkip("splat", "painter reported done but file missing", true)
 	end
 	return true
 end
@@ -520,7 +538,7 @@ local function stepSurface()
 	end
 	local bytes = fileSize(job.dir .. "surface.png")
 	if not bytes then
-		sectionSkip("surface", "painter reported done but file missing")
+		sectionSkip("surface", "painter reported done but file missing", true)
 		return true
 	end
 	local meta = (sp.getPersist and sp.getPersist()) or {}
@@ -687,6 +705,9 @@ end
 -- the old files; only a genuine "no paint state" marks the dir as deletable.
 local function diffuseFailSkip(reason)
 	local prev = job.prev and job.prev.sections and job.prev.sections.diffuse
+	if prev or reason ~= "diffuse painter widget not loaded" then
+		job.uploadBlocked = true
+	end
 	if prev and prev.dir then
 		warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
 		job.diffuse = {
@@ -1097,7 +1118,7 @@ end
 local function stepUnits()
 	if not job.saveUnits then
 		if job.prev and job.prev.sections and job.prev.sections.units then
-			warn("'save units loadout' was OFF — the previous save's units.lua will be removed")
+			warn("'save units loadout' was OFF — the previous save's units.lua will be removed", true)
 		end
 		sectionSkip("units", "'save units loadout' toggle off")
 		return true
@@ -1188,7 +1209,7 @@ local function stepDecals()
 	local path = job.dir .. "decals.lua"
 	local n = dp.saveProject(path)
 	if not n then
-		sectionSkip("decals", "save failed")
+		sectionSkip("decals", "save failed", true)
 	elseif n == 0 then
 		os.remove(path)
 		sectionSkip("decals", "no placed decals")
@@ -1229,7 +1250,7 @@ local function stepLabels()
 	local path = job.dir .. "labels.lua"
 	local n = ml.saveProject(path)
 	if not n then
-		sectionSkip("labels", "save failed")
+		sectionSkip("labels", "save failed", true)
 	elseif n == 0 then
 		os.remove(path)
 		sectionSkip("labels", "no comments placed")
@@ -1269,7 +1290,7 @@ local function stepEnvironment()
 	end
 	local content = ui.buildEnvConfigContent({ nodate = true })
 	if type(content) ~= "string" then
-		sectionSkip("environment", "snapshot failed")
+		sectionSkip("environment", "snapshot failed", true)
 		return true
 	end
 	local bytes = writeFile(job.dir .. "environment.lua", content)
@@ -1360,7 +1381,7 @@ local function stepGrass()
 	end
 	local tgaPath = job.dir .. "grass_dist.tga"
 	if not api.saveGrassTGA(tgaPath) then
-		sectionSkip("grass", "TGA write failed")
+		sectionSkip("grass", "TGA write failed", true)
 		return true
 	end
 	api.saveGrassConfig(job.dir .. "grass_config.lua", { nodate = true })
@@ -1758,15 +1779,18 @@ local STEPS = {
 ----------------------------------------------------------------
 
 local function finishSave()
+	-- The returned receipt belongs to THIS job, unlike an idle flag or old manifest.
+	job.result.done = true
+	job.result.ok = not job.failed
+	job.result.uploadReady = not job.failed and not job.uploadBlocked and findSection("heightmap") ~= nil
+	lastSaveInfo = job.result
 	if job.failed then
 		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
-		lastSaveInfo = { ok = false, slug = job.slug }
 		job = nil
 		return
 	end
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
 	currentSlug = job.slug
-	lastSaveInfo = { ok = true, slug = job.slug }
 	touchRecent(currentSlug)
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
@@ -1782,7 +1806,12 @@ end
 
 -- opts.saveUnits: record the unit loadout (position/team of every unit) into
 -- units.lua so a loaded project restores the drafted mission state.
+-- Returns accepted, receipt; receipt gains done/ok/uploadReady at completion.
 local function startSave(slug, opts)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot save while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("a save is already running")
 		return false
@@ -1802,6 +1831,7 @@ local function startSave(slug, opts)
 	end
 	job = {
 		slug = slug,
+		result = { slug = slug, done = false },
 		dir = PROJECTS_DIR .. slug .. "/",
 		step = 1,
 		cursor = {},
@@ -1811,7 +1841,7 @@ local function startSave(slug, opts)
 		saveUnits = (opts and opts.saveUnits) and true or false,
 	}
 	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
-	return true
+	return true, job.result
 end
 
 -- Does a project folder with a readable manifest exist? (UI overwrite guard:
@@ -1938,6 +1968,10 @@ end
 -- locked and the sweep leaves junk behind, the project has already stopped
 -- listing (both list paths need project.lua) instead of showing up half-deleted.
 local function deleteProject(slug)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot delete while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("cannot delete a project while a save is running")
 		return false
@@ -3116,6 +3150,10 @@ end
 ----------------------------------------------------------------
 
 local function openProject(slug)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot open while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("cannot open a project while a save is running")
 		return false
@@ -3210,7 +3248,7 @@ function widget:DrawScreenPost()
 		if step.name == "manifest" then
 			job.failed = "manifest step errored: " .. tostring(done)
 		else
-			sectionSkip(step.name, "error: " .. tostring(done))
+			sectionSkip(step.name, "error: " .. tostring(done), true)
 		end
 		done = true
 	end
@@ -3245,6 +3283,13 @@ local function mapProjectAction(_, optLine, params)
 end
 
 function widget:Initialize()
+	mapLibrary = VFS.Include("luaui/Include/map_library.lua").new({
+		validateSlug = validateSlug,
+		downloaded = touchRecent,
+		isProjectBusy = function()
+			return job ~= nil or loadJob ~= nil
+		end,
+	})
 	widgetHandler:AddAction("mapproject", mapProjectAction, nil, "t")
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
@@ -3265,7 +3310,9 @@ function widget:Initialize()
 		unitsRx = { batches = {}, done = true, denied = tostring(reason or "export denied") }
 	end)
 	WG.MapProject = {
+		library = mapLibrary,
 		save = startSave,
+		validateSlug = validateSlug,
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
@@ -3289,20 +3336,26 @@ function widget:Initialize()
 			local step = math.min(job.step, #STEPS)
 			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
 		end,
-		-- {ok, slug} of the most recent save (nil until one finishes).
+		-- Completed receipt {done, ok, slug, uploadReady}; same object returned by save.
 		lastSave = function()
 			return lastSaveInfo
 		end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
 		isBusy = function()
-			return job ~= nil or loadJob ~= nil
+			return job ~= nil or loadJob ~= nil or mapLibrary.isBusy()
 		end,
 		isLoading = function()
 			return loadJob ~= nil
 		end,
 	}
 	maybeStartLoad()
+end
+
+function widget:Update(dt)
+	if mapLibrary then
+		mapLibrary.update(dt)
+	end
 end
 
 function widget:Shutdown()
@@ -3314,6 +3367,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("mapproject_units_save_denied")
 	if job then
 		echoP("save aborted by widget shutdown — project may be incomplete (no manifest written)")
+		job.result.done = true
+		job.result.ok = false
+		job.result.uploadReady = false
 		job = nil
 	end
 	if loadJob then

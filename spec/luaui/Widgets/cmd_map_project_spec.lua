@@ -1,0 +1,233 @@
+-- Exercise the real widget/API/pump with in-memory files. Only rendering-bound
+-- section writers are skipped; prepare, heightmap, manifest and finish stay real.
+local function upvalue(fn, wanted)
+	for index = 1, 60 do
+		local name, value = debug.getupvalue(fn, index)
+		if name == wanted then
+			return value
+		end
+	end
+	error("missing upvalue " .. wanted)
+end
+
+local function fixture()
+	local f = { files = {}, writes = {}, requests = {} }
+	local function noop() end
+	f.client = {
+		state = { online = true, allow_push = true, session = "session", remote = "repo", branch = "main" },
+		isBusy = function()
+			return f.libraryBusy == true
+		end,
+		update = noop,
+		request = function(operation, source)
+			assert(not f.project.isBusy())
+			assert(f.files["MapProjects/" .. source .. "/project.lua"])
+			f.requests[#f.requests + 1] = operation
+			return true, "request"
+		end,
+	}
+	f.codec = {
+		encodeGray16 = function()
+			return "png-bytes"
+		end,
+	}
+	f.environment = setmetatable({
+		widget = {},
+		WG = {},
+		gl = {},
+		Game = { mapSizeX = 512, mapSizeZ = 512, squareSize = 512, mapName = "test" },
+		Spring = {
+			Echo = noop,
+			CreateDir = noop,
+			GetMapOptions = function()
+				return { blank_map_x = 1, blank_map_y = 1 }
+			end,
+			GetGroundHeight = function()
+				return 0
+			end,
+		},
+		widgetHandler = { AddAction = noop, RegisterGlobal = noop, RemoveAction = noop, DeregisterGlobal = noop },
+		VFS = {
+			Include = function(path)
+				if path == "luaui/Include/map_library.lua" then
+					return {
+						new = function()
+							return f.client
+						end,
+					}
+				end
+				assert(path == "luaui/Widgets/cmd_terraform_brush_png.lua")
+				return f.codec
+			end,
+		},
+		io = {
+			open = function(path, mode)
+				if not mode:find("w", 1, true) then
+					if not f.files[path] then
+						return nil
+					end
+					return {
+						read = function()
+							return f.files[path]
+						end,
+						close = function()
+							return true
+						end,
+						seek = function()
+							return #f.files[path]
+						end,
+					}
+				end
+				local fail = path == f.failPath and f.failMode
+				if fail == "open" then
+					return nil
+				end
+				return {
+					write = function(_, content)
+						if fail == "write" then
+							return nil
+						end
+						f.files[path] = content
+						f.writes[#f.writes + 1] = path
+						return true
+					end,
+					close = function()
+						return fail ~= "close"
+					end,
+				}
+			end,
+		},
+	}, { __index = _G })
+	VFS.Include("luaui/Widgets/cmd_map_project.lua", f.environment)
+	f.widget = f.environment.widget
+	f.widget:Initialize()
+	f.project = f.environment.WG.MapProject
+	assert(f.project)
+	f.steps = {}
+	for _, step in ipairs(upvalue(f.widget.DrawScreenPost, "STEPS")) do
+		f.steps[step.name] = { entry = step, original = step.run }
+		if step.name ~= "prepare" and step.name ~= "heightmap" and step.name ~= "manifest" then
+			step.run = function()
+				return true
+			end
+		end
+	end
+	f.pump = function()
+		for _ = 1, 100 do
+			if not f.project.saveProgress() then
+				return
+			end
+			f.widget:DrawScreenPost()
+		end
+		error("save did not finish")
+	end
+	return f
+end
+
+describe("map project completion receipts", function()
+	it("returns a unique normalized receipt and completes only after the real manifest write", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("/campaign/arena/")
+		assert(accepted and receipt.slug == "campaign/arena" and not receipt.done)
+		assert(f.project.lastSave() == nil)
+		f.pump()
+		assert(receipt.done and receipt.ok and receipt.uploadReady and f.project.lastSave() == receipt)
+		assert(f.files["MapProjects/campaign/arena/project.lua"]:find('kind = "bar-map-project"', 1, true))
+		local _, nextReceipt = f.project.save("campaign/arena")
+		assert(nextReceipt ~= receipt and not nextReceipt.done and f.project.lastSave() == receipt)
+	end)
+
+	it("manifest open, write and close failures cannot report save success", function()
+		for _, mode in ipairs({ "open", "write", "close" }) do
+			local f = fixture()
+			f.project.save("arena")
+			f.pump() -- an old successful manifest must not count as this save
+			f.failPath, f.failMode = "MapProjects/arena/project.lua", mode
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.done and not receipt.ok and not receipt.uploadReady)
+			assert(f.project.lastSave() == receipt)
+		end
+	end)
+
+	it("capture exceptions and reported section failures block automatic upload", function()
+		local f = fixture()
+		f.steps.decals.entry.run = function()
+			error("capture failed")
+		end
+		local _, receipt = f.project.save("arena")
+		f.pump()
+		assert(receipt.ok and not receipt.uploadReady)
+		f = fixture()
+		f.environment.WG.DecalPlacer = {
+			saveProject = function()
+				return nil
+			end,
+		}
+		f.steps.decals.entry.run = f.steps.decals.original
+		_, receipt = f.project.save("arena")
+		f.pump()
+		assert(receipt.ok and not receipt.uploadReady)
+	end)
+
+	it("heightmap encoding and write failures never qualify for upload", function()
+		for _, mode in ipairs({ "encode", "write", "close" }) do
+			local f = fixture()
+			if mode == "encode" then
+				f.codec.encodeGray16 = function()
+					return nil
+				end
+			else
+				f.failPath, f.failMode = "MapProjects/arena/heightmap.png", mode
+			end
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.done and not receipt.uploadReady)
+		end
+	end)
+
+	it("rejected starts have no receipt and shutdown marks the active receipt failed", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("../invalid")
+		assert(not accepted and not receipt)
+		accepted, receipt = f.project.save("arena")
+		assert(accepted)
+		local second, other = f.project.save("other")
+		assert(not second and not other)
+		f.widget:Shutdown()
+		assert(receipt.done and not receipt.ok and not receipt.uploadReady)
+	end)
+
+	it("chains the real save pump to the UI publication once, only on complete success", function()
+		for _, failure in ipairs({ false, "close" }) do
+			local f = fixture()
+			local model = { projectSaveOpen = true, libraryStage = "Design" }
+			local state = { dmHandle = model }
+			local ui = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua").newSave(state, model, {
+				getMapProject = function()
+					return f.project
+				end,
+				translate = function(key)
+					return key
+				end,
+			})
+			model.projectSaveSetUpload(nil, true)
+			assert(not ui.save("arena"))
+			assert(ui.save("arena"))
+			if failure then
+				f.failPath, f.failMode = "MapProjects/arena/project.lua", failure
+			end
+			for _ = 1, 100 do
+				if not f.project.saveProgress() then
+					break
+				end
+				ui.sync()
+				assert(#f.requests == 0)
+				f.widget:DrawScreenPost()
+			end
+			ui.sync()
+			ui.sync()
+			assert(#f.requests == (failure and 0 or 1))
+		end
+	end)
+end)

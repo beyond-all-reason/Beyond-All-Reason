@@ -2188,13 +2188,198 @@ body {
 	color: #ffffff;
 }
 
-/* The Open Project window is wider than the shared .tf-newmap-window and its
-   rows are set larger: project names and the folder tree need the room, and
-   the base row sizes (kept by the heightmap browser) read too small in a list
-   that is browsed rather than glanced at. Scoped to .tf-proj-row so the Save
-   Project list gets the same type. */
-#tf-project-open-root {
-	width: 440dp;
+/* Save and Open share dimensions, controls and row typography. */
+.tf-project-window {
+	max-width: 74vw;
+}
+
+.tf-project-window .tf-panel-body {
+	max-height: 75vh;
+	overflow-y: auto;
+}
+
+.tf-project-window .tf-project-tabs,
+.tf-project-window .tf-project-toolbar,
+.tf-project-window .tf-project-connection,
+.tf-project-window .tf-project-actions,
+.tf-project-window .tf-project-destination {
+	display: flex;
+	align-items: center;
+	gap: 4dp;
+}
+
+.tf-project-window .tf-project-icon {
+	width: 14dp;
+	height: 14dp;
+	flex-shrink: 0;
+	pointer-events: none;
+}
+
+.tf-project-window .tf-lp-compact-btn {
+	flex: 0 0 auto;
+	font-size: 1.05rem;
+	font-weight: bold;
+	text-align: center;
+	padding: 0 6dp;
+	height: auto;
+	min-height: 28dp;
+}
+
+.tf-project-window .tf-project-tab,
+.tf-project-window .tf-project-sort {
+	flex: 1;
+}
+
+.tf-project-window .tf-project-refresh {
+	height: 28dp;
+	flex: 0 0 72dp;
+}
+
+.tf-project-window .tf-project-connection {
+	flex-wrap: wrap;
+	padding: 5dp 0;
+}
+
+.tf-project-window .tf-project-repository {
+	flex: 1;
+	min-width: 120dp;
+	word-break: break-all;
+}
+
+.tf-project-window .tf-project-branch {
+	padding: 1dp 6dp;
+	border-radius: 4dp;
+	max-width: 130dp;
+	word-break: break-all;
+}
+
+.tf-project-window .tf-project-connection-state {
+	white-space: nowrap;
+}
+
+.tf-project-window .tf-project-toolbar {
+	flex-wrap: wrap;
+	margin: 4dp 0;
+}
+
+.tf-project-window .ll-search-input {
+	padding-right: 26dp;
+}
+
+.tf-project-window .ll-search-clear-btn {
+	width: 24dp;
+	height: 24dp;
+}
+
+.tf-project-window .ll-search-clear-icon {
+	width: 14dp;
+	height: 14dp;
+}
+
+#tf-project-open-list {
+	height: 24vh;
+	min-height: 120dp;
+	max-height: 260dp;
+	margin: 0;
+	padding: 3dp;
+}
+
+#tf-project-save-list {
+	max-height: 20vh;
+	padding: 3dp;
+}
+
+.tf-project-window .tf-hm-empty {
+	font-style: normal;
+	padding: 16dp 8dp;
+	text-align: center;
+}
+
+.tf-project-window .tf-project-row-heading,
+.tf-project-window .tf-project-row-meta {
+	display: flex;
+	align-items: center;
+	gap: 6dp;
+}
+
+.tf-project-window .tf-project-row-meta {
+	flex-wrap: wrap;
+	margin-top: 0;
+}
+
+.tf-project-window .tf-hm-mapname {
+	white-space: normal;
+	word-break: break-word;
+}
+
+.tf-project-window .tf-proj-path {
+	white-space: normal;
+	word-break: break-all;
+}
+
+.tf-project-window .tf-proj-folder {
+	min-height: 20dp;
+	padding: 2dp 6dp;
+	margin-top: 2dp;
+	gap: 6dp;
+}
+
+.tf-project-window .tf-proj-folder-name {
+	white-space: normal;
+	word-break: break-word;
+}
+
+.tf-project-window .tf-project-selection {
+	padding: 6dp 2dp 4dp;
+	word-break: break-all;
+}
+
+.tf-project-window .tf-project-caution {
+	margin: 2dp 0 6dp;
+}
+
+.tf-project-window .tf-project-status {
+	border-left-width: 3dp;
+	border-radius: 4dp;
+	padding: 4dp 6dp;
+	margin-bottom: 4dp;
+	word-break: break-word;
+}
+
+.tf-project-window .tf-action-btn {
+	gap: 4dp;
+}
+
+.tf-project-window .tf-action-btn-text {
+	white-space: normal;
+	text-align: center;
+}
+
+.tf-project-window .tf-project-secondary {
+	flex: 1;
+}
+
+.tf-project-window .tf-project-upload {
+	padding: 6dp;
+	border-left-width: 3dp;
+	border-radius: 6dp;
+	margin-top: 4dp;
+}
+
+.tf-project-window .tf-project-destination {
+	margin-bottom: 4dp;
+}
+
+.tf-project-window .tf-project-step {
+	flex: 0 0 28dp;
+	height: 28dp;
+	padding: 0;
+}
+
+.tf-project-window .tf-project-stage {
+	flex: 1;
+	text-align: center;
+	word-break: break-word;
 }
 
 .tf-proj-row {

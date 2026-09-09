@@ -3570,11 +3570,15 @@ widgetState.openProjectSaveDialog = function()
 	if d then
 		d.fileMenuOpen = false
 		d.projectSaveOpen = true
+		if widgetState.projectSaveUi and not widgetState.projectSaveUi.open() then
+			return
+		end
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.sync()
+		end
 		d.projectSaveHint = ""
 		d.projectSaveUnits = widgetState.projectSaveUnits and true or false
 	end
-	widgetState.projectUnitsDropArmed = nil
-	widgetState.projectOverwriteArmed = nil
 	local doc = widgetState.document
 	local mp = WG.MapProject
 	local inp = doc and doc:GetElementById("input-project-name")
@@ -3591,36 +3595,35 @@ widgetState.openProjectSaveDialog = function()
 		return
 	end
 	listEl.inner_rml = ""
+	local function esc(s)
+		return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+	end
 	if not (mp and mp.listDetailed) then
-		listEl.inner_rml = '<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
+		listEl.inner_rml = '<div class="tf-hm-empty">' .. esc(BAR.I18N("ui.mapLibrary.unavailable")) .. "</div>"
 		return
 	end
 	local projects = mp.listDetailed()
 	if #projects == 0 then
-		listEl.inner_rml = '<div class="tf-hm-empty">No projects yet — this save will create the first one.</div>'
+		listEl.inner_rml = '<div class="tf-hm-empty">' .. esc(BAR.I18N("ui.mapLibrary.localEmpty")) .. "</div>"
 		return
 	end
 	-- Same imperative row build and tf-hm-* styling as the Open Project list
 	-- (see onFileOpenProject for why the rows are not data-model driven).
-	local function esc(s)
-		return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
-	end
 	local parts = {}
 	local now = os.time()
 	for i, p in ipairs(projects) do
 		-- Nested projects show their path: that is what the NAME field receives.
 		local label = (p.folder and p.folder ~= "") and p.slug or (p.name or p.slug)
 		parts[#parts + 1] = string.format(
-			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
-				.. '<div class="tf-hm-date">%s</div>'
+			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-project-row-heading">'
 				.. '<div class="tf-hm-mapname">%s</div>'
 				.. '<div class="tf-hm-badge">%sx%s</div>'
-				.. "</div></div>",
+				.. '</div><div class="tf-project-row-meta"><div class="tf-hm-date">%s</div></div></div>',
 			i,
-			esc(widgetState.relativeAge(p.modified, now)),
 			esc(label),
 			esc(p.size_x or "?"),
-			esc(p.size_z or "?")
+			esc(p.size_z or "?"),
+			esc(widgetState.relativeAge(p.modified, now))
 		)
 	end
 	listEl.inner_rml = table.concat(parts)
@@ -3630,13 +3633,15 @@ widgetState.openProjectSaveDialog = function()
 			local slug = p.slug
 			row:AddEventListener("click", function(ev)
 				ev:StopPropagation()
+				if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
+					return
+				end
 				playSound("click")
 				-- The row fills the NAME field; SAVE still commits (and still
 				-- asks its overwrite/units questions). A new target voids any
 				-- armed second-click confirm.
 				widgetState.projectNameStr = slug
-				widgetState.projectOverwriteArmed = nil
-				widgetState.projectUnitsDropArmed = nil
+				widgetState.projectSaveUi.changed()
 				local doc2 = widgetState.document
 				local inp2 = doc2 and doc2:GetElementById("input-project-name")
 				if inp2 then
@@ -7604,19 +7609,19 @@ local initialModel = {
 	end,
 	onProjectSaveClose = function(_event)
 		playSound("click")
+		widgetState.projectSaveUi.close()
 		local d = widgetState.dmHandle
 		if d then
 			d.projectSaveOpen = false
 		end
-		-- Never leave a second-click confirm armed for the next open.
-		widgetState.projectOverwriteArmed = nil
-		widgetState.projectUnitsDropArmed = nil
 	end,
 	onProjectSaveUnitsToggle = function(_event)
+		if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
+			return
+		end
 		playSound("click")
 		widgetState.projectSaveUnits = not widgetState.projectSaveUnits
-		widgetState.projectUnitsDropArmed = nil
-		widgetState.projectOverwriteArmed = nil
+		widgetState.projectSaveUi.changed()
 		local d = widgetState.dmHandle
 		if d then
 			d.projectSaveUnits = widgetState.projectSaveUnits
@@ -7624,85 +7629,23 @@ local initialModel = {
 		end
 	end,
 	onProjectSaveConfirm = function(_event)
-		local d = widgetState.dmHandle
 		-- Read the input at click time (the change listener also tracks it, but
 		-- typed-and-not-yet-blurred text must not be lost).
 		local doc = widgetState.document
 		local inp = doc and doc:GetElementById("input-project-name")
 		local name = (inp and inp:GetAttribute("value")) or widgetState.projectNameStr or ""
-		name = name:gsub("^%s+", ""):gsub("%s+$", "")
-		if name == "" then
-			if d then
-				d.projectSaveHint = "Enter a project name first."
-			end
-			return
-		end
-		-- Coarse screen only; cmd_map_project's validateSlug is the rule (spaces
-		-- inside a segment are fine, / separates folders).
-		if not name:match("^[A-Za-z0-9_%- /]+$") then
-			if d then
-				d.projectSaveHint = "Only letters, digits, spaces, - and _; / for a folder."
-			end
-			return
-		end
-		if not (WG.MapProject and WG.MapProject.save) then
-			if d then
-				d.projectSaveHint = "Map Project widget is not enabled (Settings > Widgets)."
-			end
-			return
-		end
-		if WG.MapProject.isBusy and WG.MapProject.isBusy() then
-			if d then
-				d.projectSaveHint = "A save is already running (see console)."
-			end
-			return
-		end
 		widgetState.projectNameStr = name
-		-- Save As over an existing project that is NOT the session's current
-		-- one: overwrite is allowed (modern Save As), but never silently —
-		-- first SAVE arms, second commits.
-		local mp = WG.MapProject
-		local current = mp.current and mp.current() or nil
-		if name ~= current and widgetState.projectOverwriteArmed ~= name and mp.exists and mp.exists(name) then
-			widgetState.projectOverwriteArmed = name
-			if d then
-				d.projectSaveHint = "'" .. name .. "' already exists — press SAVE PROJECT again to overwrite it."
-			end
-			return
-		end
-		widgetState.projectOverwriteArmed = nil
-		-- Toggle-off re-save of a project that HAS a units loadout would silently
-		-- drop it (stale-section cleanup). Require a second SAVE click to confirm.
-		if
-			not widgetState.projectSaveUnits
-			and widgetState.projectUnitsDropArmed ~= name
-			and WG.MapProject.hasUnitsSection
-			and WG.MapProject.hasUnitsSection(name)
-		then
-			widgetState.projectUnitsDropArmed = name
-			if d then
-				d.projectSaveHint = "'"
-					.. name
-					.. "' includes a units loadout. Saving with the toggle OFF removes it — press SAVE PROJECT again to confirm."
-			end
-			return
-		end
-		widgetState.projectUnitsDropArmed = nil
-		if WG.MapProject.save(name, { saveUnits = widgetState.projectSaveUnits and true or false }) then
+		if widgetState.projectSaveUi.save(name) then
 			playSound("save")
-			-- Modern Save As: commit closes the dialog; progress is in console.
-			if d then
-				d.projectSaveOpen = false
-			end
-		else
-			if d then
-				d.projectSaveHint = "Save could not start (see console)."
-			end
 		end
 	end,
 	-- ===== Open Project dialog handlers (backed by WG.MapProject) =====
 	onFileOpenProject = function(_event)
 		playSound("click")
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.disarm()
+			widgetState.projectLibraryUi.sync()
+		end
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = false
@@ -7741,23 +7684,32 @@ local initialModel = {
 			end
 			listEl.inner_rml = ""
 			local dm = widgetState.dmHandle
-			if not (WG.MapProject and WG.MapProject.listDetailed) then
-				listEl.inner_rml =
-					'<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
-				if dm then
-					dm.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)."
-				end
-				return
-			end
-			local all = WG.MapProject.listDetailed()
-			if #all == 0 then
-				listEl.inner_rml = '<div class="tf-hm-empty">'
-					.. "No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache). "
-					.. "To browse a shared maps repository, clone it inside that folder: git clone &lt;url&gt; MapProjects/&lt;name&gt;.</div>"
-				return
-			end
 			local function esc(s)
 				return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+			end
+			if not (WG.MapProject and WG.MapProject.listDetailed) then
+				-- rml-dom-escape: existing imperative tree; Recoil cannot bind struct iterator children.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(BAR.I18N("ui.mapLibrary.unavailable"))
+					.. "</div>"
+				return
+			end
+			local all = widgetState.projectLibraryRemote and widgetState.projectLibraryUi.projects()
+				or WG.MapProject.listDetailed()
+			local hasLibraryFolders = widgetState.projectLibraryRemote and #widgetState.projectLibraryUi.folders() > 0
+			if #all == 0 and not hasLibraryFolders then
+				if widgetState.projectLibraryRemote then
+					-- rml-dom-escape: existing imperative tree; Recoil child bindings cannot resolve struct iterators.
+					listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+						.. esc(BAR.I18N("ui.mapLibrary.empty"))
+						.. "</div>"
+					return
+				end
+				-- rml-dom-escape: existing imperative tree; no model-bound row template.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(BAR.I18N("ui.mapLibrary.localEmpty"))
+					.. "</div>"
+				return
 			end
 			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
 			local sortMode = tostring(widgetState.projectOpenSort or "recent")
@@ -7802,10 +7754,11 @@ local initialModel = {
 					end
 				end
 			end
-			if #projects == 0 then
-				listEl.inner_rml = '<div class="tf-hm-empty">No project matches "'
-					.. esc(widgetState.projectOpenFilter)
-					.. '".</div>'
+			if #projects == 0 and (filter ~= "" or not hasLibraryFolders) then
+				-- rml-dom-escape: existing imperative tree; no model-bound row template.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(BAR.I18N("ui.mapLibrary.noMatches"))
+					.. "</div>"
 				return
 			end
 			table.sort(projects, less)
@@ -7818,18 +7771,18 @@ local initialModel = {
 					pathHtml = '<div class="tf-proj-path">' .. esc(p.folder .. "/") .. "</div>"
 				end
 				parts[#parts + 1] = string.format(
-					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row tf-proj-depth-%d"><div class="tf-hm-row-line">'
-						.. '<div class="tf-hm-date">%s</div>'
-						.. '<div class="tf-hm-mapname">%s</div>%s'
+					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row tf-proj-depth-%d"><div class="tf-project-row-heading">'
+						.. '<div class="tf-hm-mapname">%s</div>'
 						.. '<div class="tf-hm-badge">%sx%s</div>'
+						.. '</div><div class="tf-project-row-meta"><div class="tf-hm-date">%s</div>%s'
 						.. "</div></div>",
 					#rows,
 					depth,
-					esc(widgetState.relativeAge(touched(p), now)),
 					esc(p.name or p.slug),
-					pathHtml,
 					esc(p.size_x or "?"),
-					esc(p.size_z or "?")
+					esc(p.size_z or "?"),
+					esc(widgetState.relativeAge(touched(p), now)),
+					pathHtml
 				)
 			end
 			if filter ~= "" then
@@ -7855,6 +7808,11 @@ local initialModel = {
 					ensureFolder(parent)
 					children[parent] = children[parent] or {}
 					children[parent][#children[parent] + 1] = path
+				end
+				if widgetState.projectLibraryRemote then
+					for _, path in ipairs(widgetState.projectLibraryUi.folders()) do
+						ensureFolder(path)
+					end
 				end
 				for _, p in ipairs(projects) do
 					local f = p.folder or ""
@@ -7918,12 +7876,15 @@ local initialModel = {
 					-- Nested projects select by their path so "Selected:" and the
 					-- console echoes say exactly what will open.
 					local slug = p.slug
-					local label = (p.folder and p.folder ~= "") and slug or (p.name or slug)
+					local label = slug
 					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] =
 						{ slug = slug, label = label, el = row }
 					row:AddEventListener("click", function(ev)
 						ev:StopPropagation()
 						playSound("click")
+						if widgetState.projectLibraryUi then
+							widgetState.projectLibraryUi.disarm()
+						end
 						widgetState.projectOpenSelectedSlug = slug
 						-- Picking a different project must not inherit the armed DELETE.
 						widgetState.projectDeleteConfirmExpiry = 0
@@ -7975,6 +7936,9 @@ local initialModel = {
 	-- while nothing is selected (data-class-disabled), so neither needs its own
 	-- empty-selection branch beyond the guard below.
 	onProjectOpenLoad = function(_event)
+		if widgetState.projectLibraryRemote then
+			return
+		end
 		local slug = widgetState.projectOpenSelectedSlug
 		if not slug then
 			return
@@ -7998,6 +7962,9 @@ local initialModel = {
 	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
 	-- disarms after 3 s.
 	onProjectOpenDelete = function(_event)
+		if widgetState.projectLibraryRemote then
+			return
+		end
 		local slug = widgetState.projectOpenSelectedSlug
 		if not slug then
 			return
@@ -15009,9 +14976,7 @@ local function attachEventListeners()
 		widgetState.wireTextInput(projectNameInput)
 		projectNameInput:AddEventListener("change", function(event)
 			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
-			-- Editing the name retargets the save: any armed overwrite confirm
-			-- was for the previous text.
-			widgetState.projectOverwriteArmed = nil
+			widgetState.projectSaveUi.changed()
 		end, false)
 	end
 
@@ -15618,6 +15583,10 @@ function widget:Initialize()
 		return false
 	end
 
+	widgetState.projectLibraryRemote = false
+	local projectUi = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+	widgetState.projectLibraryUi = projectUi.new(widgetState, initialModel)
+	widgetState.projectSaveUi = projectUi.newSave(widgetState, initialModel)
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dm then
 		return false
@@ -17064,6 +17033,10 @@ end
 
 function widget:Update()
 	local ok, err = pcall(function()
+		-- A confirmed save/upload outlives either floating dialog and focus mode.
+		if widgetState.projectSaveUi then
+			widgetState.projectSaveUi.sync()
+		end
 		-- Lazy panel. While no tool is engaged there is no document, and nothing below
 		-- this point has anything to drive — the pumps and mirrors all feed panel state.
 		-- First engage builds the document (see ensureDocument) and the rest of the
@@ -19255,6 +19228,13 @@ function widget:Update()
 					d.projectDeleteConfirming = false
 				end
 			end
+		end
+		if
+			widgetState.projectLibraryUi
+			and widgetState.dmHandle
+			and (widgetState.dmHandle.projectOpenOpen or widgetState.dmHandle.projectSaveOpen)
+		then
+			widgetState.projectLibraryUi.sync(dt)
 		end
 		-- Deferred Open Project list refresh (queued by a delete, which cannot
 		-- destroy its own row from inside the click handler)

@@ -9385,81 +9385,121 @@
 	</div>
 
 	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
-	<div id="tf-project-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 30vh;" data-if="projectSaveOpen">
-		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project As</div>
+	<div id="tf-project-root" class="tf-newmap-window tf-project-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 38vw; top: 10vh;" data-if="projectSaveOpen">
+		<div class="flex flex-row justify-between items-center gap-1 mb-2">
+			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_saveTitle}}</div>
 			<div id="btn-project-close" class="tf-header-btn tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
-
-		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Type a new name, or pick an existing project below to overwrite it.</div>
-
-		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">NAME</div>
-			<div class="text-sm text-keybind">letters, digits, spaces, - and _; / for a folder</div>
-		</div>
-		<div class="flex flex-row gap-1 mb-2">
-			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="128" value="" />
-		</div>
-
-		<div id="tf-project-save-list" class="tf-hm-browser mb-2" style="max-height: 28vh;"></div>
-
-		<!-- Opt-in mission drafting: record position/team of every unit on the map -->
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-base text-light" style="flex: 1;">SAVE UNITS LOADOUT</div>
-			<div id="btn-project-units" class="tf-action-btn" style="flex: 0.9;" data-class-active="projectSaveUnits" data-event-mousedown="onProjectSaveUnitsToggle()">
-				<div class="tf-action-btn-text" data-if="projectSaveUnits">ON</div>
-				<div class="tf-action-btn-text" data-if="!projectSaveUnits">OFF</div>
+			<div class="tf-project-tabs mb-2">
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-tab" data-class-active="!projectSaveUpload" data-class-disabled="projectSavePending" data-event-click="projectSaveSetUpload(false)"><div>{{libraryLabel_localOnly}}</div></div>
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-tab" data-class-active="projectSaveUpload" data-class-disabled="projectSavePending" data-event-click="projectSaveSetUpload(true)"><div>{{libraryLabel_localAndTeam}}</div></div>
 			</div>
-		</div>
-		<div class="text-sm text-keybind mb-2">Records every unit's position and team so opening the project restores the drafted mission loadout.</div>
-
-		<div class="text-base text-keybind mb-2" data-if="projectSaveHint != ''">{{projectSaveHint}}</div>
-
-		<div class="flex flex-row gap-1 items-center">
-			<div id="btn-project-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onProjectSaveConfirm()">
-				<div class="tf-action-btn-text">SAVE PROJECT</div>
+			<div class="tf-project-connection text-medium" data-if="projectSaveUpload">
+				<div class="tf-project-repository" data-attr-title="libraryRemoteURL">{{libraryRepository}}</div>
+				<div class="tf-project-branch bg-darker" data-if="libraryBranch != ''">{{libraryBranch}}</div>
+				<div class="tf-project-connection-state" data-class-text-confirm="libraryOnline &amp;&amp; !libraryBusy" data-class-text-keybind="!libraryOnline || libraryBusy">{{libraryConnection}}</div>
 			</div>
-		</div>
+			<div class="text-lg mb-1">{{libraryLabel_name}}</div>
+			<div class="flex flex-row gap-1 mb-2">
+				<input type="text" id="input-project-name" class="tf-preset-input" maxlength="128" value="" data-attr-title="libraryLabel_nameHint" data-attrif-disabled="projectSavePending" />
+			</div>
+			<div id="tf-project-save-list" class="tf-hm-browser mb-2"></div>
+			<div class="flex flex-row gap-1 items-center mb-2" data-attr-title="libraryLabel_unitsHelp">
+				<div style="flex: 1;">{{libraryLabel_units}}</div>
+				<div id="btn-project-units" class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="projectSaveUnits" data-class-disabled="projectSavePending" data-event-mousedown="onProjectSaveUnitsToggle()">
+					<div data-if="projectSaveUnits">{{libraryLabel_on}}</div>
+					<div data-if="!projectSaveUnits">{{libraryLabel_off}}</div>
+				</div>
+			</div>
+			<div class="tf-project-upload bg-darker border-dark mb-2" data-if="projectSaveUpload">
+				<div class="tf-project-destination">
+					<div class="text-medium">{{libraryLabel_stage}}</div>
+					<div class="tf-action-btn tf-project-step" data-class-disabled="projectSavePending || libraryBusy" data-attr-title="libraryLabel_previousStage" data-event-click="libraryStageStep(-1)"><img class="tf-project-icon" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+					<div class="tf-project-stage font-bold">{{libraryStage}}</div>
+					<div class="tf-action-btn tf-project-step" data-class-disabled="projectSavePending || libraryBusy" data-attr-title="libraryLabel_nextStage" data-event-click="libraryStageStep(1)"><img class="tf-project-icon" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+				</div>
+				<div class="tf-project-caution text-medium">{{libraryLabel_saveCopyHint}}</div>
+			</div>
+			<div class="tf-project-status bg-darker" data-if="projectSaveHint != ''" data-class-border-warning="projectSaveConfirming" data-class-border-danger="projectSaveError" data-class-border-confirm="projectSaveSuccess">{{projectSaveHint}}</div>
+			<div class="tf-project-actions">
+				<div id="btn-project-save" class="tf-action-btn tf-save-btn" data-class-disabled="projectSavePending || libraryBusy || (projectSaveUpload &amp;&amp; (!libraryWritable || libraryStage == ''))" data-event-mousedown="onProjectSaveConfirm()">
+					<div class="tf-action-btn-text">{{projectSaveAction}}</div>
+				</div>
+			</div>
 		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ OPEN PROJECT WINDOW (floating, opened from FILE menu) ============ -->
-	<div id="tf-project-open-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 26vh;" data-if="projectOpenOpen">
-		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Open Project</div>
+	<div id="tf-project-open-root" class="tf-newmap-window tf-project-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 20vw; top: 10vh;" data-if="projectOpenOpen">
+		<div class="flex flex-row justify-between items-center gap-1 mb-2">
+			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_title}}</div>
 			<div id="btn-project-open-close" class="tf-header-btn tf-quit-btn" data-event-mousedown="onProjectOpenClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
-
-		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. Subfolders list as a tree, so a git clone of a maps repository can sit inside MapProjects/ and pull straight into this browser. Opening restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
-
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="ll-search-wrapper" style="flex: 1;">
-				<input type="text" id="tf-project-search" class="ll-search-input" placeholder="Search projects..." data-event-change="onProjectSearch()" />
+			<div class="tf-project-tabs">
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-tab" data-class-active="!libraryRemote" data-event-click="librarySetTab(false)"><div>{{libraryLabel_localTab}}</div></div>
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-tab" data-class-active="libraryRemote" data-event-click="librarySetTab(true)"><div>{{libraryLabel_teamTab}}</div></div>
+			</div>
+			<div class="tf-project-connection text-medium">
+				<div class="tf-project-repository" data-attr-title="libraryRemoteURL">{{libraryRepository}}</div>
+				<div class="tf-project-branch bg-darker" data-if="libraryBranch != ''">{{libraryBranch}}</div>
+				<div class="tf-project-connection-state" data-class-text-confirm="libraryOnline &amp;&amp; !libraryBusy" data-class-text-keybind="!libraryOnline || libraryBusy">{{libraryConnection}}</div>
+			</div>
+			<div class="tf-project-status bg-darker" data-if="libraryStatusVisible" data-class-border-confirm="libraryStatusSuccess" data-class-border-danger="libraryStatusError">
+				{{libraryStatus}}
+			</div>
+			<div class="ll-search-wrapper">
+				<input type="text" id="tf-project-search" class="ll-search-input tf-preset-input" data-attr-placeholder="libraryLabel_search" data-event-change="onProjectSearch()" />
 				<div id="btn-project-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 			</div>
-			<div class="tf-action-btn" style="flex: 0.42;" data-class-active="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')"><div class="tf-action-btn-text">RECENT</div></div>
-			<div class="tf-action-btn" style="flex: 0.36;" data-class-active="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')"><div class="tf-action-btn-text">NAME</div></div>
-			<div class="tf-action-btn" style="flex: 0.32;" data-class-active="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')"><div class="tf-action-btn-text">SIZE</div></div>
-		</div>
-
-		<div id="tf-project-open-list" class="tf-hm-browser mb-2" style="max-height: 55vh;"></div>
-
-		<div class="text-base text-keybind mb-1" data-if="projectOpenSelected == ''">Select a project above, then LOAD or DELETE it.</div>
-		<div class="text-base text-light mb-1" data-if="projectOpenSelected != ''">Selected: {{projectOpenSelected}}</div>
-
-		<div class="text-base text-keybind mb-1" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
-
-		<div class="flex flex-row gap-1 items-center">
-			<div id="btn-project-open-load" class="tf-action-btn tf-save-btn" style="flex: 1;" data-class-disabled="projectOpenSelected == ''" data-event-mousedown="onProjectOpenLoad()">
-				<div class="tf-action-btn-text">LOAD PROJECT</div>
+			<div class="tf-project-toolbar">
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-sort" data-class-active="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')"><div>{{libraryLabel_recent}}</div></div>
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-sort" data-class-active="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')"><div>{{libraryLabel_name}}</div></div>
+				<div class="tf-lp-compact-btn tf-ll-tab-btn tf-project-sort" data-class-active="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')"><div>{{libraryLabel_size}}</div></div>
+				<div class="tf-action-btn tf-project-refresh" data-class-disabled="!libraryOnline || libraryBusy" data-event-click="libraryPull()">
+					<img class="tf-project-icon" src="/luaui/images/terraform_brush/rot_cw.png" /><div class="tf-action-btn-text">{{libraryLabel_pull}}</div>
+				</div>
 			</div>
-			<div id="btn-project-open-delete" class="tf-action-btn" style="flex: 0.8;" data-class-disabled="projectOpenSelected == ''" data-class-confirming="projectDeleteConfirming" data-event-mousedown="onProjectOpenDelete()">
-				<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">DELETE</div>
-				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
+			<div id="tf-project-open-list" class="tf-hm-browser"></div>
+			<div class="tf-project-selection font-bold">
+				<div class="text-medium" data-if="projectOpenSelected == ''">{{libraryLabel_selectProject}}</div>
+				<div data-if="projectOpenSelected != ''">{{projectOpenSelected}}</div>
 			</div>
-		</div>
+			<div class="tf-project-status bg-darker border-warning" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
+			<div class="tf-project-upload bg-darker border-dark" data-if="libraryUploadOpen" data-class-border-warning="libraryConfirming">
+				<div class="tf-project-destination">
+					<div class="text-medium">{{libraryLabel_stage}}</div>
+					<div class="tf-action-btn tf-project-step" data-attr-title="libraryLabel_previousStage" data-event-click="libraryStageStep(-1)"><img class="tf-project-icon" src="/luaui/images/terraform_brush/transport_back.png" /></div>
+					<div class="tf-project-stage font-bold">{{libraryStage}}</div>
+					<div class="tf-action-btn tf-project-step" data-attr-title="libraryLabel_nextStage" data-event-click="libraryStageStep(1)"><img class="tf-project-icon" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
+				</div>
+				<div class="tf-project-caution text-medium" data-if="!libraryConfirming">{{libraryLabel_saveFirst}}</div>
+				<div class="tf-project-caution text-keybind" data-if="libraryConfirming">{{libraryStatus}}</div>
+				<div class="tf-project-actions">
+					<div class="tf-action-btn tf-project-secondary" data-event-click="libraryCancelUpload()"><div class="tf-action-btn-text">{{libraryLabel_cancel}}</div></div>
+					<div class="tf-action-btn tf-save-btn" data-class-disabled="!libraryWritable || libraryBusy || projectOpenSelected == '' || libraryStage == ''" data-event-click="libraryPublish()">
+						<div class="tf-action-btn-text" data-if="!libraryConfirming">{{libraryLabel_publish}}</div>
+						<div class="tf-action-btn-text" data-if="libraryConfirming">{{libraryLabel_confirmPublish}}</div>
+					</div>
+				</div>
+			</div>
+			<div data-if="!libraryUploadOpen">
+				<div class="tf-project-caution text-keybind" data-if="projectOpenSelected != '' &amp;&amp; !libraryRemote">{{libraryLabel_openWarning}}</div>
+				<div class="tf-project-caution text-keybind" data-if="libraryRemote">{{libraryLabel_downloadWarning}}</div>
+				<div class="tf-project-actions mb-1" data-if="!libraryRemote">
+					<div id="btn-project-open-delete" class="tf-action-btn tf-project-secondary" data-if="!libraryRemote" data-class-disabled="projectOpenSelected == '' || libraryBusy" data-class-confirming="projectDeleteConfirming" data-event-mousedown="onProjectOpenDelete()">
+						<img class="tf-project-icon" src="/luaui/images/terraform_brush/trash.png" />
+						<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">{{libraryLabel_delete}}</div>
+						<div class="tf-action-btn-text" data-if="projectDeleteConfirming">{{libraryLabel_confirmDelete}}</div>
+					</div>
+					<div class="tf-action-btn tf-project-secondary" data-if="!libraryRemote" data-class-disabled="!libraryWritable || libraryBusy || projectOpenSelected == ''" data-event-click="libraryToggleUpload()"><div class="tf-action-btn-text">{{libraryLabel_upload}}</div></div>
+				</div>
+				<div class="tf-project-actions">
+					<div id="btn-project-open-load" class="tf-action-btn tf-save-btn" data-if="!libraryRemote" data-class-disabled="projectOpenSelected == '' || libraryBusy" data-event-mousedown="onProjectOpenLoad()"><div class="tf-action-btn-text">{{libraryLabel_open}}</div></div>
+					<div class="tf-action-btn tf-load-btn" data-if="libraryRemote" data-class-disabled="!libraryOnline || libraryBusy || projectOpenSelected == ''" data-event-click="libraryDownload()"><div class="tf-action-btn-text">{{libraryLabel_download}}</div></div>
+				</div>
+			</div>
 		</div><!-- /tf-panel-body -->
 	</div>
 
