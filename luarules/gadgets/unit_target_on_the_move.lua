@@ -28,6 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitIsDead = Spring.GetUnitIsDead
+	local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -238,8 +239,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function isDeadOrCrashing(target)
+		if spGetUnitIsDead(target) ~= false then
+			return true
+		end
+		local moveTypeData = spGetUnitMoveTypeData(target)
+		return moveTypeData and moveTypeData.aircraftState == "crashing"
+	end
+
 	local function checkTarget(teamID, target)
-		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
+		return type(target) ~= "number" or (not isDeadOrCrashing(target) and not isAlliedUnit(teamID, target))
 	end
 
 	local function inReturnFire(unitID)
@@ -254,7 +263,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function hasAutoTarget(cmdOptions)
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
-
 
 	local function restoreCommandTarget(unitID)
 		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
@@ -331,9 +339,10 @@ if gadgetHandler:IsSyncedCode() then
 	local function wasTargetLost(target, alwaysSeen, allyTeam)
 		if type(target) ~= "number" then
 			return false, false
+		elseif isDeadOrCrashing(target) then
+			return true, true
 		elseif alwaysSeen then
-			local isDead = spGetUnitIsDead(target) ~= false
-			return isDead, isDead
+			return false, false
 		end
 		local los = spGetUnitLosState(target, allyTeam, true)
 		if not los then
