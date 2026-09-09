@@ -10,8 +10,8 @@ return {
 		{ name = 'transportName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'transportDefName', required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'teamID',           required = false, type = ParameterTypes.TeamID },
-		{ name = 'unitName',         required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',      required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'passengerName',    required = false, type = ParameterTypes.UnitName },
+		{ name = 'passengerDefName', required = false, type = ParameterTypes.UnitDefName },
 		requiresOneOf = { 'transportName', 'transportDefName' },
 	},
 	callins = {
@@ -31,10 +31,10 @@ return {
 			if parameters.teamID and parameters.teamID ~= transportTeam then
 				return
 			end
-			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
+			if parameters.passengerName and not context.DoesUnitHaveName(unitID, parameters.passengerName) then
 				return
 			end
-			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
+			if parameters.passengerDefName and parameters.passengerDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
 			context.ActivateTrigger(trigger)
