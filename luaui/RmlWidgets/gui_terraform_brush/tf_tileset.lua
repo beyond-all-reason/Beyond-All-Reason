@@ -265,6 +265,46 @@ local function rgbToHsv(r, g, b)
 	return h, s, maxc
 end
 
+-- Hue does not survive RGB storage: any gray reads back as h = 0, so dragging
+-- SAT down to 0 and back up used to snap the chip to red (Moose, 2026-09-09).
+-- Value 0 loses the saturation the same way. Remember the last well-defined
+-- H/S per chip and hand those back while the colour is degenerate, so a round
+-- trip through the sliders returns the colour the user picked.
+local hgHsvMem = {}
+
+-- forced: an explicit edit (a slider drag, a stored H/S/V chip), which always
+-- wins; otherwise the pair is only worth keeping while the colour carries it
+local function hgMemo(target, h, s, v, forced)
+	if not target then
+		return
+	end
+	h, s, v = tonumber(h) or 0, tonumber(s) or 0, tonumber(v) or 0
+	local m = hgHsvMem[target]
+	if not m then
+		m = { h = 0, s = 1 }
+		hgHsvMem[target] = m
+	end
+	if forced or (v > 0 and s > 0) then
+		m.h = h % 1.0
+	end
+	if forced or v > 0 then
+		m.s = s
+	end
+end
+
+local function hgRecall(target, h, s, v)
+	local m = target and hgHsvMem[target]
+	if not m then
+		return h, s
+	end
+	if v <= 0 then
+		return m.h, m.s -- black: the hue and the saturation are both gone
+	elseif s <= 0 then
+		return m.h, s -- gray: only the hue is gone
+	end
+	return h, s
+end
+
 -- A chip's colour in both spaces: r, g, b, h, s, v (nil when the knobs are missing).
 local function hgGet(knobs, target)
 	local t = HG_TARGETS[target]
@@ -277,9 +317,12 @@ local function hgGet(knobs, target)
 	end
 	if t.hsv then
 		local r, g, bb = hsvToRgb(a, b, c)
+		hgMemo(target, a, b, c, true) -- stored H/S/V: authoritative
 		return r, g, bb, a, b, c
 	end
 	local h, s, v = rgbToHsv(a, b, c)
+	hgMemo(target, h, s, v)
+	h, s = hgRecall(target, h, s, v)
 	return a, b, c, h, s, v
 end
 
@@ -296,10 +339,13 @@ local function hgSet(target, r, g, b, h, s, v)
 	if t.hsv then
 		if h == nil then
 			h, s, v = rgbToHsv(r, g, b)
+			h, s = hgRecall(target, h, s, v)
 		end
+		hgMemo(target, h, s, v, true)
 		a, bb, c = h, s, v
 	else
 		if r == nil then
+			hgMemo(target, h, s, v, true)
 			r, g, b = hsvToRgb(h, s, v)
 		end
 		a, bb, c = r, g, b

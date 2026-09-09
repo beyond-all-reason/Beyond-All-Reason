@@ -4,6 +4,12 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## Unreleased
+
+### Fixes
+
+- The WORLDSPACE TINT colour editor keeps a chip's hue while the colour is gray or black (reported by Moose). Most chips are stored as R/G/B, and a gray carries no hue at all, so dragging Sat down to 0 and back up read the colour back as hue 0 and turned the chip red. The editor now remembers the last hue and saturation each chip actually had and hands them back while the colour has none of its own, so a Sat or Value round trip returns the colour that was picked.
+
 ## 1.14 - 2026-09-04
 
 ### New
