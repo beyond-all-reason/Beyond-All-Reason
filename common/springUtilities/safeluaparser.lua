@@ -147,7 +147,6 @@ local function _safeLuaTableParserInternal(text)
 		end
 
 		-- Count the number of '=' characters between the brackets
-		local start = pos
 		pos = pos + 1
 		local equalCount = 0
 
@@ -375,7 +374,6 @@ local function _safeLuaTableParserInternal(text)
 
 		-- Find the matching closing parenthesis for the function call
 		local parenDepth = 1
-		local callStart = pos
 		pos = pos + 1
 		local inString = false
 		local stringChar = nil

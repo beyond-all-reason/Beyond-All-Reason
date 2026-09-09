@@ -39,6 +39,7 @@ local ContributorAINames = {
 	"EnderRobo",
 	"Endorphins",
 	"Errrrrrr",
+	"Eunice3x",
 	"Fireball",
 	"FireStorm",
 	"Flaka",

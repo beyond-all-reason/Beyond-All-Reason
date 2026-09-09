@@ -16,7 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
 local FRAMES_PER_SECOND = Game.gameSpeed
 
 local airTransports = {}
@@ -35,9 +34,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitSpeed[unitDefID] = unitDef.speed
 end
 
-local massUsageFraction = 0
 local allowedSpeed = 0
-local currentMassUsage = 0
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
@@ -68,41 +65,6 @@ local function updateAllowedSpeed(transportId)
 		airTransportMaxSpeeds[transportId] = allowedSpeed
 	end
 end
-
---Old complex weight calc for posterity:
---[[local function updateAllowedSpeed(transportId)
-	local uDefID = spGetUnitDefID(transportId)
-
-	-- get sum of mass and size for all transported units
-	currentMassUsage = 0
-	local units = spGetUnitIsTransporting(transportId)
-	local tunitdefid
-	local tunitdefcustom
-	local iscom = false
-	local transportspeedmult = 0.0
-	if units then
-			for _,tUnitId in pairs(units) do
-				tunitdefid = spGetUnitDefID(tUnitId)
-				tunitdefcustom = UnitDefs[tunitdefid].customParams		
-				if (tunitdefcustom ~=nil) then
-					transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
-					iscom = tunitdefcustom.iscommander=='1'
-				end
-				
-				currentMassUsage = currentMassUsage + unitMass[tunitdefid]
-			end
-			massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
-
-			if (iscom) then
-
-				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
-			else
-				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-				--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
-			end
-			airTransportMaxSpeeds[transportId] = allowedSpeed
-	end
-end]]
 
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)

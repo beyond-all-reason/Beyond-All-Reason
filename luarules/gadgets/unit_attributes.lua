@@ -27,7 +27,6 @@ local UPDATE_PERIOD = 3
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local floor = math.floor
 
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -53,8 +52,6 @@ local WACKY_CONVERSION_FACTOR_1 = 2184.53
 local HALF_FRAME = 1 / 60
 local mathMin = math.min
 local mathFloor = math.floor
-local mathCeil = math.ceil
-local mathMax = math.max
 
 local workingGroundMoveType = true -- not ((Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "classic") and true) or false)
 

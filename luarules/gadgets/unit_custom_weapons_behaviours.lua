@@ -72,7 +72,6 @@ local torpedoStayUnderwaterDefs = {}
 local torpedoWaterPenDefs = {}
 
 local projectiles = {}
-local projectilesData = {}
 
 ---@type number
 local gameFrame = 0

@@ -701,7 +701,7 @@ local function ScriptInclude(filename)
 	end
 end
 
--- memoize it so we don't need to decompress and parse the .lua file everytime..
+-- memoize it so we don't need to decompress and parse the .lua file every time..
 local function MemoizedInclude(filename, env)
 	local chunk = include_cache[filename] or ScriptInclude(filename)
 	if chunk then

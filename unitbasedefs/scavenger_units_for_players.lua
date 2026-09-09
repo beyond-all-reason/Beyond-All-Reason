@@ -2,24 +2,32 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	local buildoptions = unitDef.buildoptions
 
 	-- Armada T1 Land Constructors
+	--[[
 	if name == "armca" or name == "armck" or name == "armcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T1 Sea Constructors
+	--[[
 	if name == "armcs" or name == "armcsa" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T1 Vehicle Factory
+	--[[
 	if name == "armvp" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T1 Aircraft Plant
+	--[[
 	if name == "armap" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T2 Constructors
 	if name == "armaca" or name == "armack" or name == "armacv" then
@@ -80,14 +88,18 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	end
 
 	-- Cortex T2 Sea Constructors
+	--[[
 	if name == "coracsub" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Bots Factory
+	--[[
 	if name == "coralab" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Vehicle Factory
 	if name == "coravp" then
@@ -128,9 +140,11 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	end
 
 	-- Legion T1 Land Constructors
+	--[[
 	if name == "legca" or name == "legck" or name == "legcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca" or name == "legack" or name == "legacv" then
