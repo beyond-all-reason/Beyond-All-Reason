@@ -108,11 +108,14 @@ local currentZombieConfig = zombieModeConfigs.normal
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 local REZ_SPEED_UPDATE_INTERVAL = Game.gameSpeed * 60
 local WATER_DAMAGE_DEF_ID = Game.envDamageTypes.Water
+local CORPSE_RESET_CEG = "selfrepair-sparks-purple"
+local CORPSE_RESET_CEG_HEIGHT = 15
 local UNAUTHORIZED_TEXT = "You are not authorized to use zombie commands" --i18n library doesn't exist in gadget space.
 local spValidUnitID = spring.ValidUnitID
 local spGetGroundHeight = spring.GetGroundHeight
 local spGetUnitPosition = spring.GetUnitPosition
 local spGetFeaturePosition = spring.GetFeaturePosition
+local spGetFeatureResurrect = spring.GetFeatureResurrect
 local spGetUnitDefID = spring.GetUnitDefID
 local spGetUnitHealth = spring.GetUnitHealth
 local spGetUnitRulesParam = spring.GetUnitRulesParam
@@ -164,23 +167,26 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
-		local corpseDefData = { unitDefID = unitDefID }
-		local customRespawnTime = tonumber(unitDef.customParams and unitDef.customParams.zombie_respawn_time)
-		if customRespawnTime then
-			if customRespawnTime < 0 then
-				corpseDefData.neverRespawn = true
-			else
-				corpseDefData.customRespawnTime = customRespawnTime
+		local corpseFeatureDef = featureDefs[corpseDefID]
+		if corpseFeatureDef.resurrectable ~= 0 then
+			local corpseDefData = { unitDefID = unitDefID }
+			local customRespawnTime = tonumber(unitDef.customParams and unitDef.customParams.zombie_respawn_time)
+			if customRespawnTime then
+				if customRespawnTime < 0 then
+					corpseDefData.neverRespawn = true
+				else
+					corpseDefData.customRespawnTime = customRespawnTime
+				end
 			end
+			zombieCorpseDefs[corpseDefID] = corpseDefData
 		end
-		zombieCorpseDefs[corpseDefID] = corpseDefData
 
 		local zombieDefData = {}
 		local deathExplosionName = unitDef.deathExplosion
 		local explosionDefID = WeaponDefNames[deathExplosionName].id
 		zombieDefData.explosionDefID = explosionDefID
 
-		local heapDefName = featureDefs[corpseDefID].deathFeatureID
+		local heapDefName = corpseFeatureDef.deathFeatureID
 		if heapDefName then
 			zombieDefData.heapDefID = heapDefName
 		end
@@ -321,7 +327,7 @@ local function wasZombieCorpse(featureID, corpseData)
 	return wasZombieParam == 1
 end
 
-local function resetSpawn(featureID, featureData, featureDefData)
+local function resetSpawn(featureID, featureData, featureX, featureZ)
 	local newFrame = featureData.tamperedFrame + featureData.spawnDelayFrames
 	featureData.spawnFrame = newFrame
 	featureData.creationFrame = featureData.tamperedFrame
@@ -329,6 +335,15 @@ local function resetSpawn(featureID, featureData, featureDefData)
 	setCorpseRezRulesParam(featureID, newFrame)
 	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
+	spSpawnCEG(
+		CORPSE_RESET_CEG,
+		featureX,
+		spGetGroundHeight(featureX, featureZ) + CORPSE_RESET_CEG_HEIGHT,
+		featureZ,
+		0,
+		0,
+		0
+	)
 end
 
 local function getScavVariantUnitDefID(unitDefID)
@@ -536,7 +551,7 @@ function gadget:GameFrame(frame)
 			else --feature is still there
 				local featureDefData = zombieCorpseDefs[corpseData.featureDefID]
 				if corpseData.tamperedFrame then
-					resetSpawn(featureID, corpseData, featureDefData)
+					resetSpawn(featureID, corpseData, featureX, featureZ)
 				else
 					local healthReductionRatio = calculateHealthRatio(featureID)
 					spawnZombies(
@@ -581,6 +596,11 @@ function gadget:GameFrame(frame)
 	end
 end
 
+local function isCorpseResurrectable(featureID)
+	local resurrectUnitName = spGetFeatureResurrect(featureID)
+	return resurrectUnitName ~= nil and resurrectUnitName ~= ""
+end
+
 local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
 	if not override and not autoSpawningEnabled then
 		return
@@ -588,7 +608,7 @@ local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
 
 	local featureDefID = spring.GetFeatureDefID(featureID)
 	local corpseDefData = zombieCorpseDefs[featureDefID]
-	if not corpseDefData or corpseDefData.neverRespawn then
+	if not corpseDefData or corpseDefData.neverRespawn or not isCorpseResurrectable(featureID) then
 		return
 	end
 
@@ -788,10 +808,10 @@ end
 local function createZombieFromFeature(featureID)
 	if isIdleMode then
 		local featureDefID = spring.GetFeatureDefID(featureID)
-		if zombieCorpseDefs[featureDefID] then
+		local featureDefData = zombieCorpseDefs[featureDefID]
+		if featureDefData and not featureDefData.neverRespawn and isCorpseResurrectable(featureID) then
 			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 			if featureX then
-				local featureDefData = zombieCorpseDefs[featureDefID]
 				local healthReductionRatio = calculateHealthRatio(featureID)
 				local corpseData = corpsesData[featureID]
 				local wasZombie = wasZombieCorpse(featureID, corpseData)
