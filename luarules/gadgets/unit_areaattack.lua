@@ -40,11 +40,9 @@ if gadgetHandler:IsSyncedCode() then
 		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
 			local weaponDefID = unitDef.weapons[1].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
-			if weaponDef then
-				canAreaAttack[unitDefID] = weaponDef.range
-				areaAttackWeaponDefs[weaponDefID] = true
-				areaAttackWeaponDefByUnitDef[unitDefID] = weaponDefID
-			end
+			canAreaAttack[unitDefID] = weaponDef.range
+			areaAttackWeaponDefs[weaponDefID] = true
+			areaAttackWeaponDefByUnitDef[unitDefID] = weaponDefID
 		end
 	end
 	local range = canAreaAttack -- range per unitDefID, same data
@@ -67,7 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.GiveOrderToUnit(o.unit, CMD.INSERT, {
 					0,
 					CMD.ATTACK,
-					CMD.OPT_INTERNAL,
+					CMD_OPT_INTERNAL,
 					o.x + math_cos(phase) * amp,
 					o.y,
 					o.z + math_sin(phase) * amp,
@@ -167,7 +165,7 @@ if gadgetHandler:IsSyncedCode() then
 		if commandID ~= CMD_ATTACK or targetZ == nil or math_bit_and(commandOptions, CMD_OPT_INTERNAL) == 0 then
 			return
 		end
-		if not Spring.GetUnitCurrentCommand(ownerID, 2) then
+		if Spring.GetUnitCurrentCommand(ownerID, 2) ~= CMD_AREA_ATTACK_GROUND then
 			return
 		end
 

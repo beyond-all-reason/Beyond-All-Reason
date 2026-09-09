@@ -200,6 +200,25 @@ describe("unit_areaattack", function()
 		assert.equals(0, #orders)
 	end)
 
+	for _, nextCommandID in ipairs({ CMD_ATTACK, 10 }) do
+		it("ignores an internal ground attack followed by command " .. nextCommandID, function()
+			local commands = generatedAreaCommands()
+			table.insert(commands, 2, {
+				id = nextCommandID,
+				tag = 45,
+				params = { 100, 0, 200 },
+				options = { coded = 0 },
+			})
+			local gadget, orders, finishedUnits = loadGadget(commands, { salvoLeft = 0, nextSalvo = 1 })
+
+			gadget:ProjectileCreated(1, UNIT_ID, WEAPON_DEF_ID)
+			gadget:GameFramePost(1)
+
+			assert.equals(0, #finishedUnits)
+			assert.equals(0, #orders)
+		end)
+	end
+
 	it("marks generated area shots internal so repeat does not retain them", function()
 		local commands = {}
 		local gadget, orders = loadGadget(commands, {})
