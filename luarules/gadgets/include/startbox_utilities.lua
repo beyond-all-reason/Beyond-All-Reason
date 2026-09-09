@@ -202,6 +202,34 @@ local function transformArrangement(arrangement)
 	return config
 end
 
+local function buildWholeMapEntry()
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+
+	return {
+		boxes = {
+			{
+				{ 0, 0 },
+				{ 0, mapSizeZ },
+				{ mapSizeX, mapSizeZ },
+				{ mapSizeX, 0 },
+			},
+		},
+		startpoints = { { mapSizeX * 0.5, mapSizeZ * 0.5 } },
+		nameLong = "Anywhere",
+		nameShort = "Any",
+		wholeMap = true,
+	}
+end
+
+-- resolveArrangement settles for an arrangement covering fewer allyteams than the game has.
+local function fillUnboxedAllyTeams(config, numTeams)
+	for allyTeamID = 0, numTeams - 1 do
+		if not config[allyTeamID] then
+			config[allyTeamID] = buildWholeMapEntry()
+		end
+	end
+end
+
 local function buildFallback()
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -279,6 +307,7 @@ local function ParseBoxes()
 	local startBoxConfig
 	if arrangement then
 		startBoxConfig = transformArrangement(arrangement)
+		fillUnboxedAllyTeams(startBoxConfig, numTeams)
 	else
 		startBoxConfig = buildFallback()
 		configSource = "fallback"
@@ -389,8 +418,9 @@ end
 -- against the wrong axis. A box covering everything restricts nothing, which is what
 -- those callers were really asking about.
 local function HasStartbox(allyTeamID)
-	if GetEntry(allyTeamID) then
-		return true
+	local entry = GetEntry(allyTeamID)
+	if entry then
+		return not entry.wholeMap
 	end
 
 	local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
