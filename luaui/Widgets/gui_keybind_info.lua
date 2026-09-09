@@ -25,7 +25,7 @@ local doUpdate
 local vsx, vsy = spGetViewGeometry()
 
 local screenHeightOrg = 760
-local screenWidthOrg = 1320
+local screenWidthOrg = 1180
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -65,7 +65,7 @@ local function drawWindow()
 		screenY - screenHeight,
 		screenX + screenWidth,
 		screenY,
-		0,
+		1,
 		1,
 		1,
 		1,
