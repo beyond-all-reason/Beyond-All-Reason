@@ -290,6 +290,7 @@ local callInLists = {
 	-- "UnitFeatureCollision",
 	-- "UnitMoveFailed",
 	"StockpileChanged",
+	"UnitWeaponFired",
 
 	"ActiveCommandChanged",
 	"CameraRotationChanged",
@@ -2428,6 +2429,12 @@ function gadgetHandler:UnitFeatureCollision(colliderID, collideeID)
 		end
 	end
 	return false
+end
+
+function gadgetHandler:UnitWeaponFired(unitID, unitDefID, unitTeam, weaponNum)
+	for _, g in ipairs(self.UnitWeaponFiredList) do
+		g:UnitWeaponFired(unitID, unitDefID, unitTeam, weaponNum)
+	end
 end
 
 function gadgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
