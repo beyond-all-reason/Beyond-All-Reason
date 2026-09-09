@@ -16,9 +16,9 @@ local isAirTransport = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
 		if def.customParams.techlevel then
-			isAirTransport[udefID] = 30 -- 15 elmos
+			isAirTransport[udefID] = 30
 		else
-			isAirTransport[udefID] = 20 -- 10 elmos
+			isAirTransport[udefID] = 20
 		end
 	end
 end
@@ -52,15 +52,13 @@ if gadgetHandler:IsSyncedCode() then
 		goalZ
 	)
 		if isAirTransport[transporterUnitDefID] then
-			--local terDefs = UnitDefs[transporterUnitDefID]
-			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = { spGetUnitPosition(transporterID) }
 			local pos2 = { goalX, goalY, goalZ }
 			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
 				if
 					spAreTeamsAllied(spGetUnitTeam(transporterID), spGetUnitTeam(transporteeID))
 					or select(4, spGetUnitVelocity(transporteeID)) < 0.5
-				then -- make it hard for moving enemy units to be picked up
+				then
 					spSetUnitVelocity(transporterID, 0, 0, 0)
 					return true
 				else
@@ -86,8 +84,6 @@ if gadgetHandler:IsSyncedCode() then
 		goalZ
 	)
 		if isAirTransport[transporterUnitDefID] then
-			--local terDefs = UnitDefs[transporterUnitDefID]
-			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = { spGetUnitPosition(transporterID) }
 			local pos2 = { goalX, goalY, goalZ }
 			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
