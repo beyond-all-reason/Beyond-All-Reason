@@ -115,7 +115,7 @@ if gadgetHandler:IsSyncedCode() then
 					spSetPieceCollisionData(
 						unitID,
 						pieceIndex + 1,
-						true,
+						p[9] ~= false,
 						p[1],
 						p[2],
 						p[3],
@@ -141,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 					spSetPieceCollisionData(
 						unitID,
 						pieceIndex + 1,
-						true,
+						p[9] ~= false,
 						p[1],
 						p[2],
 						p[3],
@@ -282,7 +282,7 @@ if gadgetHandler:IsSyncedCode() then
 							spSetPieceCollisionData(
 								unitID,
 								pieceIndex + 1,
-								true,
+								p[9] ~= false,
 								p[1],
 								p[2],
 								p[3],
