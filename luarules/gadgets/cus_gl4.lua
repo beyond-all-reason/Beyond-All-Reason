@@ -899,6 +899,12 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 	return (compilationResult and luaShader) or nil
 end
 
+-- {shaderName : {textureUnit : true}}: the texture units the shadow pass has to bind for a
+-- material. The shadow shaders never sample anything except texture2 (alpha test, unit 1),
+-- and only when HASALPHASHADOWS is defined, so every other gl.Texture call in that pass
+-- (tex1, normal map, shadow map, reflection, info, BRDF LUT, noise) is wasted engine time.
+local shadowPassTextureUnits = {}
+
 local function compileMaterialShader(template, name, recompilation)
 	--Spring.Echo("Compiling", template, name)
 	local forwardShader = CompileLuaShader(
@@ -943,6 +949,14 @@ local function compileMaterialShader(template, name, recompilation)
 	shaders[0][name] = deferredShader
 	shaders[5][name] = reflectionShader
 	shaders[16][name] = shadowShader
+
+	local shadowNeedsAlphaTex = false
+	for _, defline in ipairs(template.shadowDefinitions or {}) do
+		if type(defline) == "string" and defline:find("#define%s+HASALPHASHADOWS") then
+			shadowNeedsAlphaTex = true
+		end
+	end
+	shadowPassTextureUnits[name] = shadowNeedsAlphaTex and { [1] = true } or {}
 	return true
 end
 
@@ -2366,6 +2380,8 @@ local function ExecuteDrawPass(drawPass)
 			tracy.ZoneEnd()
 
 			local shaderTable = shaders[drawPass][shaderName]
+			-- shadow pass: bind only the units its shader samples (see shadowPassTextureUnits)
+			local wantedTextureUnits = (drawPass == 16) and shadowPassTextureUnits[shaderName] or nil
 
 			if unitscountforthisshader > 0 then
 				tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:ShaderActivate")
@@ -2426,7 +2442,7 @@ local function ExecuteDrawPass(drawPass)
 									tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:BindTextures")
 								end
 								for bindPosition, tex in pairs(texAndObj.textures) do
-									if lastBoundTextures[bindPosition] ~= tex then
+									if (wantedTextureUnits == nil or wantedTextureUnits[bindPosition]) and lastBoundTextures[bindPosition] ~= tex then
 										gl.Texture(bindPosition, tex)
 										lastBoundTextures[bindPosition] = tex
 									end
