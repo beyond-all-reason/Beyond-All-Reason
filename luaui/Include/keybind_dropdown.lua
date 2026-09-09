@@ -147,7 +147,13 @@ function Dropdown:draw()
 	-- A profile name is free text and can outrun the control, which is fixed width so the
 	-- header does not reflow every time the selection changes.
 	local labelW = (arrowX - arrowH) - (x1 + inset) - inset * 2
-	font:Print(fittedLabel(fitted, 0, font, label, labelW, self.fontSize), x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
+	font:Print(
+		fittedLabel(fitted, 0, font, label, labelW, self.fontSize),
+		x1 + inset,
+		(y1 + y2) * 0.5,
+		self.fontSize,
+		"ov"
+	)
 	font:End()
 
 	if self.open and #self.optRects > 0 then
