@@ -57,7 +57,6 @@ function gadget:AllowCommand(
 	fromSynced,
 	fromLua
 )
-	-- accepts: CMD.LOAD_ONTO
 	local transportID = cmdParams[1]
 	toBeLoaded[unitID] = transportID
 	return true
@@ -93,7 +92,6 @@ local function TransportIsFull(transportID)
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	--Spring.Echo("UnitLoaded", unitID, unitDefID, transportID)
 	if not unitDefID or not transportID or not massLeft[transportID] then
 		return
 	end
@@ -109,7 +107,6 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-	--Spring.Echo("UnitUnloaded", unitID, unitDefID, transportID)
 	if not unitDefID or not transportID or not massLeft[transportID] then
 		return
 	end

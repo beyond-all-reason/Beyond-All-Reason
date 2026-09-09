@@ -27,7 +27,7 @@ end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	if leavesGhost[unitDefID] then
-		spSetUnitLeavesGhost(unitID, false, true) -- Old ghost persists until position re-enters LOS
+		spSetUnitLeavesGhost(unitID, false, true)
 	end
 end
 
