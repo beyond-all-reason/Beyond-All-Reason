@@ -1,71 +1,68 @@
 return {
-	legvcarry	= {
+	legvcarry = {
 		maxacc = 0.02,
-		maxdec = 0.04,
-		energycost = 6000,
-		metalcost = 300,
+		maxdec = 0.1,
+		energycost = 9000,
+		metalcost = 450,
 		buildpic = "LEGVCARRY.DDS",
-		buildtime = 6000,
+		buildtime = 11550,
 		canmove = true,
-		collisionvolumeoffsets = "0 10 0",
-		collisionvolumescales = "44 38 44",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "55 37 67",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
-		footprintx = 2,
-		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
+		footprintx = 4,
+		footprintz = 4,
 		leavetracks = true,
-		health = 1200,
+		health = 1400,
 		maxslope = 10,
 		speed = 45.0,
 		maxwaterdepth = 12,
-		movementclass = "TANK3",
-		name = "Gattling",
+		movementclass = "HTANK4",
+		name = "Mantis",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGVCARRY.s3o",
 		script = "Units/LEGVCARRY.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
-		trackoffset = 3,
+		trackoffset = 6,
 		trackstrength = 6,
 		tracktype = "armstump_tracks",
-		trackwidth = 38,
+		trackwidth = 56,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.952,
-		turnrate = 300,
+		turnrate = 360,
 		customparams = {
-			unitgroup = 'weapon',
 			basename = "base",
+			childreninheritxp = "DRONE",
 			firingceg = "barrelshot-small",
+			inheritxpratemultiplier = 1,
 			kickback = "-2.4",
 			lumamult = "1.2",
-			model_author = "Flaka",
-			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "ArmVehicles",
-			weapon1turretx = 45,
-			weapon1turrety = 80,
-			inheritxpratemultiplier = 1,
-			childreninheritxp = "DRONE",
+			model_author = "ZephyrSkies (model), Johnathan Crimson (concept)",
+			normaltex = "unittextures/leg_normal.dds",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
+			techlevel = 2,
+			unitgroup = 'weapon',
 		},
 		featuredefs = {
 			dead = {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "44 38 44",
+				collisionvolumescales = "55 37 67",
 				collisionvolumetype = "Box",
 				damage = 1056,
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				metal = 200,
+				metal = 210,
 				object = "Units/legvcarry_dead.s3o",
 				reclaimable = true,
 			},
@@ -87,10 +84,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -115,7 +108,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			targeting = {
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -126,45 +119,61 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Drone Targeting System",
 				noselfdamage = true,
-				range = 900,
+				metalpershot = 15,
+				energypershot = 500,
+				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
 				soundhitwet = "",
 				soundstart = "",
+				stockpile = true,
+				stockpiletime = 10,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 900,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 10, 			--Spawnrate roughly in seconds.
-					maxunits = 4,				--Will spawn units until this amount has been reached.
-					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1000,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 4,
+					carried_unit = "legdrone", --Name of the unit spawned by this carrier unit.
+					engagementrange = 1050,
+					spawns_surface = "LAND", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 10, --Spawnrate roughly in seconds.
+					maxunits = 6, --Will spawn units until this amount has been reached.
+					startingdronecount = 3,
+					energycost = 500, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 900, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
-					dockinghealrate = 16,
-					docktohealthreshold = 66,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					dockinghealrate = 20,
+					docktohealthreshold = 75,
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpieces = "5 7 9 11",
-					dockingradius = 120,			--The range at which the units snap to the carrier unit when docking.
-				}
+					dockingpieces = "8 10 12 14 16 18",
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
+					stockpilelimit = 6,
+					stockpilemetal = 15,
+					stockpileenergy = 500,
+					dronesusestockpile = true,
+					cobdockparam = 1,
+					cobundockparam = 1,
+					droneairtime = 60,
+					dronedocktime = 3,
+					droneammo = 12,
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "targeting",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

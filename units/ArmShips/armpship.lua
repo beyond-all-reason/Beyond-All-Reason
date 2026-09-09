@@ -1,6 +1,5 @@
 return {
 	armpship = {
-		autoheal = 1.5,
 		blocking = true,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4250,
@@ -15,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2150,
-		idleautoheal = 2,
-		idletime = 900,
 		maxacc = 0.04771,
 		maxdec = 0.04771,
 		metalcost = 380,
@@ -74,10 +71,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -123,6 +116,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 290,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 70,
 					subs = 70,

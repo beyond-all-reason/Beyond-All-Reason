@@ -1,39 +1,30 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, rfin, lfin, door, prop, turret, gun, nano1, nano2;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
 
 // Signal definitions
-#define SIG_MOVE		2
-#define SIG_BUILD		4	
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#include "../tilt_bank_submarine.h"
+
 
 Propcontrol()
 {
+	var currentSpeed;
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 33;
 	}
-}
-
-activatescr()
-{
-	move turret to y-axis [4.400000] speed [8.800000];
-	sleep 500;
-}
-
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	turn gun to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn gun around y-axis;
-	move turret to y-axis [0.000000] speed [8.800000];
-	sleep 500;
 }
 
 #define BASEPIECE base
@@ -41,140 +32,86 @@ deactivatescr()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
 
+#define SMOKEPROBABILITY 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	move door to y-axis [1.000000] speed [4.000000];
-	move lfin to x-axis [-5.600000] speed [5.600000];
-	move rfin to x-axis [5.600000] speed [5.600000];
-	while( TRUE )
-	{
-		emit-sfx 259 from prop;
-		sleep 250;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	move door to y-axis [1.0] speed [4.0];
+	move lfin to x-axis [-12.600000] speed [5.600000];
+	move rfin to x-axis [12.600000] speed [5.600000];
+	START_TILTBANK;
+	start-script Propcontrol();
 }
 
 StopMoving()
 {	
-	signal SIG_MOVE;
-	move door to y-axis [0.000000] speed [4.000000];
-	move lfin to x-axis [0.000000] speed [5.600000];
-	move rfin to x-axis [0.000000] speed [5.600000];
-
+	signal SIGNAL_MOVE;	
+	move door to y-axis [0.0] speed [4.0];
+	move lfin to x-axis [0.0] speed [5.600000];
+	move rfin to x-axis [0.0] speed [5.600000];
+	STOP_TILTBANK;
+	stop-spin prop around z-axis decelerate <10.0>;
 }
 
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
 	hide nano1;
 	hide nano2;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	moveSpeed = get MAX_SPEED;
-	start-script Propcontrol();
+	call-script TB_Init();
 }
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	move turret to y-axis [4.400000] speed [8.800000];
+	wait-for-move turret along y-axis;
+
+	turn gun to y-axis heading speed <160>;
+	wait-for-turn gun around y-axis;
+
 	show nano1;
 	show nano2;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn gun to y-axis heading speed <160.038462>;
-	wait-for-turn gun around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
 	hide nano1;
 	hide nano2;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+	
+	set INBUILDSTANCE to 0;
+	turn gun to y-axis <0.0> speed <160>;
+	wait-for-turn gun around y-axis;
+	move turret to y-axis [0.0] speed [8.800000];
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	piecenum = nano1;
+	pieceIndex = nano1;
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -187,9 +124,6 @@ Killed(severity, corpsetype)
 		explode prop type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano1 type BITMAPONLY | NOHEATCLOUD;
-		//explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		//explode lfin type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -201,9 +135,6 @@ Killed(severity, corpsetype)
 		explode prop type FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano1 type FALL | NOHEATCLOUD;
-		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfin type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -215,9 +146,6 @@ Killed(severity, corpsetype)
 		explode prop type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfin type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -227,8 +155,5 @@ Killed(severity, corpsetype)
 		explode prop type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

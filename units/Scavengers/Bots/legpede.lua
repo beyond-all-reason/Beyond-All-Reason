@@ -15,8 +15,6 @@ return {
 		explodeas = "explosiont3med",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 600,
 		mass = 200000,
 		health = 28000,
 		speed = 51.0,
@@ -35,7 +33,8 @@ return {
 		turnrate = 200,
 		usepiececollisionvolumes = 1,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
+			allow_set_target = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots/T2",
@@ -70,13 +69,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -175,13 +167,15 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 4.5,
 				sprayangle = 968,
 				thickness = 0.91,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 958,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 5,
 					default = 21,
@@ -216,7 +210,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "heavyrailgun",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,

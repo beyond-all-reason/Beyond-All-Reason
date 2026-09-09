@@ -14,8 +14,6 @@ return {
 		footprintz = 4,
 		health = 5600,
 		hidedamage = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -28,8 +26,8 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armuwfus_aoplane.dds",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -38,6 +36,7 @@ return {
 			subfolder = "ArmBuildings/SeaEconomy",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -67,13 +66,6 @@ return {
 				object = "Units/arm5X5C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

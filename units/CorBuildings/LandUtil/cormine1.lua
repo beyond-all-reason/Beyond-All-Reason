@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		health = 11,
-		idleautoheal = 10,
-		idletime = 300,
 		initcloaked = true,
 		levelground = false,
 		maxacc = 0,
@@ -27,7 +25,7 @@ return {
 		maxslope = 40,
 		maxwaterdepth = 0,
 		metalcost = 7,
-		mincloakdistance = 8,
+		mincloakdistance = 30,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMINE1.s3o",
 		script = "mines_lus.lua",
@@ -37,6 +35,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
+			cannot_capture_territory = true,
 			detonaterange = "64",
 			instantselfd = true,
 			mine = true,
@@ -46,13 +45,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandUtil",
 			unitgroup = "explo",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -90,7 +82,6 @@ return {
 				reloadtime = 1,
 				soundhit = "minexpl1",
 				soundhitwet = "",
-				soundhitwetvolume = 0,
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

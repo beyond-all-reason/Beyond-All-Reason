@@ -2,12 +2,13 @@ return {
 	leghp = {
 		maxacc = 0,
 		maxdec = 0,
-		energycost = 3000,
-		metalcost = 900,
+		energycost = 2000,
+		metalcost = 670,
 		builder = true,
 		buildpic = "LEGHP.DDS",
-		buildtime = 11000,
+		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 35 96",
 		collisionvolumetype = "Box",
@@ -16,8 +17,6 @@ return {
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3750,
 		maxslope = 15,
 		maxwaterdepth = 0,
@@ -28,7 +27,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
-		workertime = 100,
+		workertime = 150,
 		yardmap = "oeeeeo oeeeeo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "legch",
@@ -41,13 +40,15 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leghp_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -79,13 +80,6 @@ return {
 				object = "Units/cor7X7D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1,11 +1,11 @@
 return {
 	coruwgeo = {
-		acceleration = 0,
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 13000,
-		buildcostmetal = 540,
+		energycost = 13000,
+		metalcost = 540,
 		buildpic = "CORUWGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,
@@ -18,9 +18,7 @@ return {
 		explodeas = "geo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
-		maxdamage = 2050,
+		health = 2050,
 		maxslope = 15,
 		maxwaterdepth = 99999,
 		minwaterdepth = 6,
@@ -37,6 +35,7 @@ return {
 			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
@@ -79,11 +78,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -47,7 +47,7 @@ IdleHover()
 			//if (newIdleZ & 0x00008000) newIdleZ = newIdleZ & 0xffff0000; // If the number is negative, it must be padded with 1's for twos complement negative number
 			
 			// check if we are 'in map bounds'
-			// As the packed XZ cant really deal with negative numbers.
+			// As the packed XZ can't really deal with negative numbers.
 			if ((unitx>0) && (unitx < 16000) && (unitz>0) && (unitz < 16000)){
 				groundheight = (get GROUND_HEIGHT(unitxz)); // GROUND HEIGHT EXPECT PACKED COORDS!
 				if (((get UNIT_Y) - groundheight) > [32] ){
@@ -62,7 +62,7 @@ IdleHover()
 
 		if (isIdle){
 			IdleSpeed = Rand(IDLEHOVERSPEED,IDLEHOVERSPEED*3); 
-			if (IdleSpeed < 10) IdleSpeed = 10; //wierd div by zero error?
+			if (IdleSpeed < 10) IdleSpeed = 10; //weird div by zero error?
 			//get PRINT(newIdleX,newIdleY,newIdleZ,IdleSpeed);
 			
 			newIdle = Rand(-1*IDLEHOVERSCALE,IDLEHOVERSCALE);

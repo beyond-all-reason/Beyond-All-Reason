@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Norush Timer GL4",
@@ -10,105 +12,95 @@ function widget:GetInfo()
 	}
 end
 
--- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
-local scavengerAIAllyTeamID = 999
-local raptorsAIAllyTeamID = 999
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
-		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-		break
-	end
-end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-		break
-	end
-end
+-- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+
+local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
 
-local StartBoxes = {} -- list of xXyY 
-local noRushTime = Spring.GetModOptions().norushtimer*60*30
-if noRushTime == 0 then return end
+local StartPolygons = {} -- list of { team = teamID, poly = { {x, z}, ... } }
+local startPolygonBuffer
+local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
+local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
+if noRushTime == 0 then
+	return
+end
 
-local luaShaderDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-VFS.Include(luaShaderDir.."instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
 
 local minY, maxY = Spring.GetGroundExtremes()
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
-		fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
-		uniformInt = {
-			mapDepths = 0,
-			noRushTimer = Spring.GetModOptions().norushtimer*60*30,
-		},
-		uniformFloat = {
-		},
-		shaderName = "Norush Timer GL4",
-		shaderConfig = {
-			ALPHA = 0.5,
-			NUM_BOXES = NUM_BOXES,
-			MINY = minY,
-			MAXY = maxY,
-		}
-	}
-	
+	vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
+	uniformInt = {
+		mapDepths = 0,
+		noRushTimer = Spring.GetModOptions().norushtimer * 60 * 30,
+	},
+	uniformFloat = {},
+	shaderName = "Norush Timer GL4",
+	shaderConfig = {
+		ALPHA = 0.5,
+		NUM_POLYGONS = 0,
+		NUM_POINTS = 0,
+		MINY = minY,
+		MAXY = maxY,
+	},
+}
+
 local fullScreenRectVAO
 local norushTimerShader
 -- Locals for speedups
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local spIsGUIHidden			= Spring.IsGUIHidden
+local spIsGUIHidden = Spring.IsGUIHidden
 
 function widget:RecvLuaMsg(msg, playerID)
-	--Spring.Echo("widget:RecvLuaMsg",msg)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	--spEcho("widget:RecvLuaMsg",msg)
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
 function widget:DrawWorldPreUnit()
-	if Spring.GetGameFrame() > noRushTime+150 then return end
+	if Spring.GetGameFrame() > noRushTime + 150 then
+		return
+	end
 	if autoReload then
 		norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 	end
 
-	if chobbyInterface or spIsGUIHidden() then return end
+	if chobbyInterface or spIsGUIHidden() then
+		return
+	end
 
-	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	local _, advMapShading = Spring.HaveAdvShading()
 
-	if advMapShading then 
+	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
-			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			return
 		end
 	end
-	
+
+	startPolygonBuffer:BindBufferRange(4)
+
 	glCulling(true)
 	glDepthTest(false)
 	gl.DepthMask(false)
 
 	norushTimerShader:Activate()
-	for i, startBox in ipairs(StartBoxes) do
-		--Spring.Echo("startBoxes["..i.."]", startBox[1],startBox[2],startBox[3],startBox[4])
-		norushTimerShader:SetUniform("startBoxes["..( i-1) .."]", startBox[1],startBox[2],startBox[3],startBox[4])
-	end
 	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
@@ -121,30 +113,105 @@ function widget:GameFrame(n)
 	-- TODO: Remove the widget when the timer is up?
 end
 
-function widget:Initialize()
+-- teamColor in the shader is indexed by team, so each polygon carries a team from its
+-- allyteam rather than the allyteam id itself.
+local function ColourTeamOf(allyTeamID)
+	local teams = Spring.GetTeamList(allyTeamID)
+
+	return (teams and teams[1]) or 0
+end
+
+-- Must match map_startbox.lua
+local function BuildStartPolygons()
 	local gaiaAllyTeamID
-	if Spring.GetGaiaTeamID() then 
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
+	if Spring.GetGaiaTeamID() then
+		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	end
-	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
-			StartBoxes[#StartBoxes+1] = {xn, zn, xp, zp}
+
+	local polygons = {}
+
+	-- isExplicit is false for the hardcoded fallback, which the gadget does not enforce
+	-- either; the engine rectangles stay authoritative in that case.
+	local startBoxConfig, _, isExplicit = StartboxLib.GetConfig()
+	if startBoxConfig and isExplicit then
+		-- Walked in allyteam order rather than with pairs(): the buffer order decides which
+		-- colour each zone gets, and pairs() would let two clients disagree about it.
+		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+			local entry = startBoxConfig[allyTeamID]
+			if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
+				for _, polygon in ipairs(entry.boxes) do
+					polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
+				end
+			end
 		end
 	end
-	
-	-- MANUAL OVERRIDE FOR DEBUGGING:
-	-- StartBoxes = { {100, 200, 2000, 3000} , {2200, 3300, 5000, 4000}}
+	if #polygons > 0 then
+		return polygons
+	end
 
-	shaderSourceCache.shaderConfig.NUM_BOXES = #StartBoxes
+	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID then
+			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(allyTeamID)
+			if xn then
+				-- Expressed as a ring so the shader keeps a single code path.
+				polygons[#polygons + 1] =
+					{ team = ColourTeamOf(allyTeamID), poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
+			end
+		end
+	end
+
+	return polygons
+end
+
+function widget:Initialize()
+	StartPolygons = BuildStartPolygons()
+	if #StartPolygons == 0 then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	local bufferdata = {}
+	local numVertices = 0
+	for _, entry in ipairs(StartPolygons) do
+		local polygon = entry.poly
+		local numPoints = #polygon
+		for _, vertex in ipairs(polygon) do
+			bufferdata[#bufferdata + 1] = entry.team
+			bufferdata[#bufferdata + 1] = numPoints
+			bufferdata[#bufferdata + 1] = vertex[1]
+			bufferdata[#bufferdata + 1] = vertex[2]
+			numVertices = numVertices + 1
+		end
+	end
+
+	-- SHADER_STORAGE_BUFFER data has to be 64 byte aligned.
+	if numVertices % 4 ~= 0 then
+		local pad = 4 - (numVertices % 4)
+		for _ = 1, pad * 4 do
+			bufferdata[#bufferdata + 1] = -1
+		end
+		numVertices = numVertices + pad
+	end
+
+	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false)
+	if not startPolygonBuffer then
+		spEcho("Error: Norush Timer GL4 could not allocate its start polygon buffer")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	startPolygonBuffer:Define(numVertices, { { id = 0, name = "startpolygons", size = 4 } })
+	startPolygonBuffer:Upload(bufferdata)
+
+	shaderSourceCache.shaderConfig.NUM_POLYGONS = #StartPolygons
+	shaderSourceCache.shaderConfig.NUM_POINTS = numVertices
 
 	norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 
 	if not norushTimerShader then
-		Spring.Echo("Error: Norush Timer GL4 shader not initialized")
+		spEcho("Error: Norush Timer GL4 shader not initialized")
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
 end

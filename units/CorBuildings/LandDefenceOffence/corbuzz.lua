@@ -14,8 +14,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		health = 33500,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,
@@ -32,12 +30,14 @@ return {
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecalsizey = 11,
 			buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
+			islrpc = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -73,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -122,13 +118,12 @@ return {
 				reloadtime = 0.75,
 				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpcexplo",
-				soundhitvolume = 36,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
-				weaponvelocity = 1150,
+				weaponvelocity = 950,
 				damage = {
 					default = 2000,
 					shields = 1000,

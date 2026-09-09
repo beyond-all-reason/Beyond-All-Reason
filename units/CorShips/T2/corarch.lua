@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildpic = "CORARCH.DDS",
-		buildtime = 15000,
+		buildtime = 21000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",
@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.03127,
 		maxdec = 0.03127,
 		metalcost = 1000,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -179,12 +172,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					overrange_distance = 1001,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 125,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1001,
 				},
 			},
 			mobileflak = {
@@ -216,6 +209,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					vtol = 200,
 				},

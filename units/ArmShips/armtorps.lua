@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 940,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.07,
 		maxdec = 0.07,
 		metalcost = 300,
@@ -24,7 +22,7 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/ARMMLS.s3o",
-		script = "Units/ARMMLS.cob",
+		script = "Units/ARMTORPS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 500,
@@ -69,13 +67,6 @@ return {
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

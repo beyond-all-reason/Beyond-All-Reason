@@ -22,8 +22,6 @@ return {
 		explodeas = "tentacle_death",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 11100,
@@ -49,6 +47,7 @@ return {
 		workertime = 100,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",

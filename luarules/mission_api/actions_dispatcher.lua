@@ -1,8 +1,8 @@
-local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
-local actionFunctions = VFS.Include('luarules/mission_api/actions.lua')
+local actionsSchema = VFS.Include("luarules/mission_api/actions_schema.lua")
+local actionFunctions = VFS.Include("luarules/mission_api/actions.lua")
 local parameterSchema = actionsSchema.Parameters
-local types = GG['MissionAPI'].ActionTypes
-local actions = GG['MissionAPI'].Actions
+local types = GG.MissionAPI.ActionTypes
+local actions = GG.MissionAPI.Actions
 
 local typeMapping = {
 	[types.EnableTrigger] = actionFunctions.EnableTrigger,

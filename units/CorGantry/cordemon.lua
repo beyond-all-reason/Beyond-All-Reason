@@ -1,7 +1,7 @@
 return {
 	cordemon = {
 		buildpic = "CORDEMON.DDS",
-		buildtime = 120000,
+		buildtime = 160000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 18000,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 6000,
 		maxacc = 0.2208,
 		maxdec = 1,
@@ -24,7 +22,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/cordemon.s3o",
-		script = "Units/cordemon.COB",
+		script = "Units/cordemon.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 500,
@@ -38,6 +36,7 @@ return {
 			maxrange = "500",
 			model_author = "FireStorm, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 6,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -75,12 +74,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
+				[2] = "custom:pilotlightxl",
 			},
 		},
 		sounds = {
@@ -193,6 +187,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,
@@ -230,10 +227,8 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 1.1,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 9.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 7.3,
 				soundtrigger = false,
 				tolerance = 20000,
 				turret = true,

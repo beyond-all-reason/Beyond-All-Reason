@@ -1,10 +1,4 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
-#include "StateChg.h"
-
-#define SIG_ANIM 2
+#include "../recoil_common_includes.h"
 
 piece  base, cover, converter, light;
 
@@ -17,7 +11,7 @@ MMStatus(State)
 		hide cover;
 	    show light;
 		show converter;
-		move converter to y-axis [6] speed [12.000000];	
+		move converter to y-axis [6] speed [12.0];	
 	}
 	else
 	{
@@ -36,13 +30,10 @@ Create()
 	Active = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Killed(severity, corpsetype)
 {

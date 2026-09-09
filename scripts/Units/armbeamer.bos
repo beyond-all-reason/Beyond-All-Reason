@@ -1,17 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, turret, sleeve, barrel;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7;
-			
 static-var lastheading, lastpitch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 
 Create()
@@ -22,15 +17,15 @@ Create()
 	lastpitch=-1000000;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <500.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <250.000000>;
+	turn turret to y-axis heading speed <500.0>;
+	turn sleeve to x-axis <0.0> - pitch speed <250.0>;
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if ( (get ABS(lastheading-heading)<3000) AND (get ABS(lastpitch-pitch)<1500) )
 	{
@@ -54,27 +49,24 @@ AimPrimary(heading, pitch)
 #define UNITSIZE 5
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-FirePrimary()
+FireWeapon1()
 {
-	//sleep 150; // this sleep should not be necessary, no return is expected from FirePrimary and nothing is being done before or after the sleep
+	//sleep 150; // this sleep should not be necessary, no return is expected from FireWeapon1 and nothing is being done before or after the sleep
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

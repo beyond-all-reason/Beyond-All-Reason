@@ -9,7 +9,6 @@ return {
 		range = 400,
 		reloadtime = 3.6,
 		soundhit = "bugdie",
-		soundhitvolume = 6,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
@@ -26,7 +25,6 @@ return {
 		range = 400,
 		reloadtime = 3.6,
 		soundhit = "bugdie",
-		soundhitvolume = 6,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

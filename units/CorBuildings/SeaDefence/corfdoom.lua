@@ -16,8 +16,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 6700,
-		idleautoheal = 2,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1200,
@@ -69,13 +67,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -152,12 +143,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2.45,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					norangering = 1,
+				},
 				damage = {
 					default = 231,
 					vtol = 52,
@@ -190,12 +183,15 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2.1,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					norangering = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 40,
 				},

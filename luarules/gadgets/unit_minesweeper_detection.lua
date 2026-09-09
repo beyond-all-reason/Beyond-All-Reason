@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Minesweeper Detection",
@@ -17,12 +19,12 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local spSetUnitLosState		= Spring.SetUnitLosState
-local spSetUnitLosMask		= Spring.SetUnitLosMask
-local spGetUnitPosition		= Spring.GetUnitPosition
-local spGetUnitsInCylinder	= Spring.GetUnitsInCylinder
-local spGetUnitDefID		= Spring.GetUnitDefID
-local spGetUnitTeam			= Spring.GetUnitTeam
+local spSetUnitLosState = Spring.SetUnitLosState
+local spSetUnitLosMask = Spring.SetUnitLosMask
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local minesweeperRanges = {}
 local minesweepers = {}
@@ -43,7 +45,7 @@ end
 
 local teamIDs = {}
 for _, teamID in pairs(Spring.GetTeamList()) do
-	local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID)
+	local _, _, _, _, _, allyTeam = Spring.GetTeamInfo(teamID, false)
 	teamIDs[teamID] = allyTeam
 	revealedMines[teamID] = {}
 	minesweepers[teamID] = {}
@@ -64,7 +66,7 @@ end
 local function processTeamsSweepers(teamID)
 	local minesToReveal = {}
 
-	for sweeper, sweeperDef in pairs(minesweepers[teamID])  do
+	for sweeper, sweeperDef in pairs(minesweepers[teamID]) do
 		local x, y, z = spGetUnitPosition(sweeper)
 		if x and z then
 			local nearUnits = spGetUnitsInCylinder(x, z, minesweeperRanges[sweeperDef])

@@ -14,28 +14,27 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 900,
 		maxslope = 14,
 		speed = 43.5,
 		maxwaterdepth = 21,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGBAL.s3o",
 		script = "Units/LEGBAL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBots",
 		},
 		featuredefs = {
@@ -73,10 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -100,7 +95,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_bot_rocket = {
+			leg_bot_rocket = {
 				areaofeffect = 70,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
@@ -136,19 +131,19 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
-				damage = {
-					default = 250,
-				},
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 529,
+				},
+				damage = {
+					default = 250,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BOT_ROCKET",
+				def = "LEG_BOT_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

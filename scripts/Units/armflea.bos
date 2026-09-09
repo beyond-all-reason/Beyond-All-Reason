@@ -1,25 +1,23 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, flare, rrleg, rfleg, lrleg, lfleg, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead;
-#define SIG_AIM 2
+static-var  isMoving, isAiming, restore_delay, wpn1_lasthead;
+#define SIGNAL_AIM1 256
 
 // Signal definitions
 // Generated for N:\animations\armflea_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIGNAL_MOVE 1
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armflea_anim_walk.blend 
-	// (c) CC BY NC ND Beherith mysterme@gmail.com
-	set-signal-mask SIG_WALK;
-	if (bMoving) { //Frame:4
+	// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
 			turn lfleg to y-axis <66.599993> speed <1997.999789> / animSpeed; //delta=66.60 
 			turn lrleg to x-axis <1.400000> speed <41.999996> / animSpeed; //delta=-1.40 
 			turn lrleg to z-axis <0.400000> speed <11.999999> / animSpeed; //delta=-0.40 
@@ -30,8 +28,8 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rrleg to y-axis <42.599996> speed <1277.999872> / animSpeed; //delta=42.60 
 		sleep ((33*animSpeed) -1);
 	}
-	while(bMoving) {
-		if (bMoving) { //Frame:8
+	while(isMoving) {
+		if (isMoving) { //Frame:8
 			move base to y-axis [1.465000] speed [43.949997] / animSpeed; //delta=1.46 
 			turn base to x-axis <-14.099999> speed <422.999976> / animSpeed; //delta=14.10 
 			turn lfleg to y-axis <35.933328> speed <919.999946> / animSpeed; //delta=-30.67 
@@ -45,21 +43,21 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn turret to x-axis <22.299997> speed <668.999920> / animSpeed; //delta=-22.30 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:12
+		if (isMoving) { //Frame:12
 			move base to y-axis [2.930000] speed [43.949997] / animSpeed; //delta=1.46 
 			turn base to x-axis <-0.200000> speed <416.999979> / animSpeed; //delta=-13.90 
 			turn lfleg to y-axis <5.266663> speed <919.999946> / animSpeed; //delta=-30.67 
-			turn lrleg to x-axis <6.000000> speed <69.000001> / animSpeed; //delta=2.30 
+			turn lrleg to x-axis <6.0> speed <69.0> / animSpeed; //delta=2.30 
 			turn lrleg to z-axis <6.733333> speed <94.999906> / animSpeed; //delta=3.17 
 			turn lrleg to y-axis <27.866663> speed <1056.999880> / animSpeed; //delta=-35.23 
 			turn rfleg to y-axis <-5.266663> speed <919.999946> / animSpeed; //delta=30.67 
-			turn rrleg to x-axis <6.000000> speed <69.000001> / animSpeed; //delta=2.30 
+			turn rrleg to x-axis <6.0> speed <69.0> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-6.733333> speed <94.999906> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <-27.866663> speed <1056.999880> / animSpeed; //delta=35.23 
 			turn turret to x-axis <12.900000> speed <281.999924> / animSpeed; //delta=9.40 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (isMoving) { //Frame:16
 			move base to y-axis [1.350000] speed [47.399994] / animSpeed; //delta=-1.58 
 			turn base to x-axis <13.299999> speed <404.999960> / animSpeed; //delta=-13.50 
 			turn lfleg to y-axis <-25.399996> speed <919.999792> / animSpeed; //delta=-30.67 
@@ -70,38 +68,38 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			turn rrleg to x-axis <3.700001> speed <68.999963> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-3.566667> speed <94.999989> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <7.366666> speed <1056.999880> / animSpeed; //delta=35.23 
-			turn turret to x-axis <5.599998> speed <219.000061> / animSpeed; //delta=7.30 
+			turn turret to x-axis <5.599998> speed <219.0> / animSpeed; //delta=7.30 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:20
-			move base to y-axis [0.000000] speed [40.500001] / animSpeed; //delta=-1.35 
-			turn base to x-axis <-0.000000> speed <398.999963> / animSpeed; //delta=13.30 
+		if (isMoving) { //Frame:20
+			move base to y-axis [0.0] speed [40.500001] / animSpeed; //delta=-1.35 
+			turn base to x-axis <-0.0> speed <398.999963> / animSpeed; //delta=13.30 
 			turn lfleg to y-axis <66.599993> speed <2759.999684> / animSpeed; //delta=92.00 
-			turn lrleg to x-axis <1.400000> speed <69.000033> / animSpeed; //delta=2.30 
+			turn lrleg to x-axis <1.400000> speed <69.0> / animSpeed; //delta=2.30 
 			turn lrleg to z-axis <0.400000> speed <94.999996> / animSpeed; //delta=3.17 
 			turn lrleg to y-axis <-42.599996> speed <1056.999880> / animSpeed; //delta=-35.23 
 			turn rfleg to y-axis <-66.599993> speed <2759.999684> / animSpeed; //delta=-92.00 
-			turn rrleg to x-axis <1.400000> speed <69.000033> / animSpeed; //delta=2.30 
+			turn rrleg to x-axis <1.400000> speed <69.0> / animSpeed; //delta=2.30 
 			turn rrleg to z-axis <-0.400000> speed <94.999996> / animSpeed; //delta=-3.17 
 			turn rrleg to y-axis <42.599996> speed <1056.999880> / animSpeed; //delta=35.23 
-			turn turret to x-axis <-0.000000> speed <167.999935> / animSpeed; //delta=5.60 
+			turn turret to x-axis <-0.0> speed <167.999935> / animSpeed; //delta=5.60 
 		sleep ((33*animSpeed) -1);
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopWalking() {
-	move base to y-axis [0.000000] speed [11.849999];
-	turn base to x-axis <0.000000> speed <105.749994>;
-	turn lfleg to y-axis <0.000000> speed <689.999921>;
-	turn lrleg to x-axis <0.000000> speed <51.749999>;
-	turn lrleg to y-axis <0.000000> speed <792.749910>;
-	turn lrleg to z-axis <0.000000> speed <71.249973>;
-	turn rfleg to y-axis <0.000000> speed <689.999921>;
-	turn rrleg to x-axis <0.000000> speed <51.749999>;
-	turn rrleg to y-axis <0.000000> speed <792.749910>;
-	turn rrleg to z-axis <0.000000> speed <71.249973>;
-	turn turret to x-axis <0.000000> speed <167.249980>;
+	move base to y-axis [0.0] speed [11.849999];
+	turn base to x-axis <0.0> speed <105.749994>;
+	turn lfleg to y-axis <0.0> speed <689.999921>;
+	turn lrleg to x-axis <0.0> speed <51.749999>;
+	turn lrleg to y-axis <0.0> speed <792.749910>;
+	turn lrleg to z-axis <0.0> speed <71.249973>;
+	turn rfleg to y-axis <0.0> speed <689.999921>;
+	turn rrleg to x-axis <0.0> speed <51.749999>;
+	turn rrleg to y-axis <0.0> speed <792.749910>;
+	turn rrleg to z-axis <0.0> speed <71.249973>;
+	turn turret to x-axis <0.0> speed <167.249980>;
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -120,16 +118,16 @@ UnitSpeed(){
 }
 
 
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-  set-signal-mask SIG_WALK;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+  set-signal-mask SIGNAL_MOVE;
 	start-script UnitSpeed();
   start-script Walk();
 }
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	call-script StopWalking();
 }
 
@@ -139,29 +137,25 @@ StopMoving(){
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
 	hide flare;
 	hide aimy1;
 	hide flare;
-	bMoving = FALSE;
-	bAiming = FALSE;
-	Static_Var_3 = 1;
+	isMoving = FALSE;
+	isAiming = FALSE;
 	restore_delay = 3000;
 	animSpeed = 4;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -169,10 +163,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.000000> speed <300.000000>;
+	turn aimy1 to y-axis <0.0> speed <300.0>;
 	wait-for-turn aimy1 around y-axis;
-	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
+	wpn1_lasthead = 0xbadface;
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -183,33 +177,30 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
+	pieceIndex = turret;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	bAiming = TRUE;
-	turn aimy1 to y-axis heading speed <450.000000>;
-	while( !Static_Var_3 )
+	signal SIGNAL_AIM1;
+	isAiming = TRUE;
+	turn aimy1 to y-axis heading speed <450.0>;
+
+	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
-		return(0);
-	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	{
-		wpn1_lasthead = 1000000;
+		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 	}
 	wpn1_lasthead = heading;
@@ -217,7 +208,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 }
@@ -227,37 +218,25 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rrleg type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode flare type FALL | NOHEATCLOUD;
-		//explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfleg type FALL | NOHEATCLOUD;
-		//explode rrleg type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;

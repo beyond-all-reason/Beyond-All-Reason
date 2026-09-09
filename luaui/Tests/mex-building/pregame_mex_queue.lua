@@ -1,18 +1,18 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() > 0
 end
 
 -- Test whether mexes are able to clear queued buildings by shift-clicking
-function setup()
+local function setup()
 	Test.clearMap()
 
 	local widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
-	assert(widget_cmd_extractor_snap)
+	assert(widget_cmd_extractor_snap, "Extractor Snap (mex/geo) widget not found via FindWidget")
 
 	local widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
-	assert(widget_gui_pregame_build)
+	assert(widget_gui_pregame_build, "Pregame Queue widget not found via FindWidget")
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	initialCameraState = Spring.GetCameraState()
@@ -25,19 +25,19 @@ function setup()
 	Test.waitTime(10)
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
-	WG['pregame-build'].setBuildQueue({})
+	WG["pregame-build"].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
-function test()
-	local mexUnitDefId = UnitDefNames["armmex"].id
-	local metalSpots = WG['resource_spot_finder'].metalSpotsList
+local function test()
+	local mexUnitDefId = UnitDefNames.armmex.id
+	local metalSpots = WG.resource_spot_finder.metalSpotsList
 
 	local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local targetMex = nil
@@ -61,15 +61,18 @@ function test()
 	Test.waitTime(10)
 
 	-- did it snap?
-	assert(WG.ExtractorSnap.position ~= nil)
+	assert(
+		WG.ExtractorSnap.position ~= nil,
+		"ExtractorSnap.position should not be nil after setting mex blueprint and waiting"
+	)
 
 	-- did it snap to the closest mex?
-	assert(math.distance2d(
-		WG.ExtractorSnap.position.x,
-		WG.ExtractorSnap.position.z,
-		targetMex.x,
-		targetMex.z
-	) < 100)
+	local snapDistance =
+		math.distance2d(WG.ExtractorSnap.position.x, WG.ExtractorSnap.position.z, targetMex.x, targetMex.z)
+	assert(
+		snapDistance < 100,
+		string.format("Extractor snap distance %.0f from target mex, expected < 100", snapDistance)
+	)
 
 	local snappedPosition = table.copy(WG.ExtractorSnap.position)
 
@@ -105,6 +108,8 @@ function test()
 	assert(activeBlueprint == nil, "Active blueprint should be nil")
 
 	-- Did the mex get de-queued?
-	local buildQueue = WG['pregame-build'].getBuildQueue()
+	local buildQueue = WG["pregame-build"].getBuildQueue()
 	assert(#buildQueue == 0, "Build queue should be empty")
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

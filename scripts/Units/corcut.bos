@@ -1,34 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare1, flare2, thrusta, thrustb, fan1, fan2, duct1, duct2;
 
-static-var  Static_Var_1, bMoving, gun_1, statechg_DesiredState, statechg_StateChanging;
-
-
-Go()
-{
-	spin fan1 around y-axis speed <360>;
-	spin fan2 around y-axis speed <360>;
-	
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-Stop()
-{
-	stop-spin fan1 around y-axis;
-	stop-spin fan2 around y-axis;
-	return (0);
-}
+static-var  gun_1;
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
-
+#include "../idlehover.h"
 
 
 #define BASEPIECE base
@@ -37,41 +17,8 @@ Stop()
 #define UNITSIZE 1
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
@@ -79,14 +26,8 @@ Create()
 	hide thrusta;
 	hide flare1;
 	hide flare2;
-	Static_Var_1 = 0;
 	gun_1 = base;
-	bMoving = FALSE;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 	return (0);
 }
@@ -98,7 +39,7 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	turn base to x-axis <0.000000> speed <50.000000>;
+	turn base to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -113,97 +54,45 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-
-
 Activate()
 {
 	show thrustb;
 	show thrusta;
-	start-script RequestState(0);
-	return (0);
+	spin fan1 around y-axis speed <1080> accelerate <10>;
+	spin fan2 around y-axis speed <1080> accelerate <10>;
 }
 
 Deactivate()
 {
 	hide thrustb;
 	hide thrusta;
-	start-script RequestState(1);
-	return (0);
+	stop-spin fan1 around y-axis decelerate <5>;
+	stop-spin fan2 around y-axis decelerate <5>;
 }
 
-setSFXoccupy(Func_Var_1)
+FireWeapon1()
 {
-	Static_Var_1 = Func_Var_1;
-	return (0);
+	start-script RestoreAfterDelay();
+
+	gun_1 = !gun_1;
 }
 
-StartMoving()
-{
-	bMoving = TRUE;
-	return (0);
-}
-
-StopMoving()
-{
-	bMoving = FALSE;
-	return (0);
-}
-
-FirePrimary()
-{
-	turn base to x-axis <10.000000> speed <50.000000>;
-	if( gun_1 == 0 )
-	{
-		sleep 150;
-		gun_1 = 1;
-		start-script RestoreAfterDelay();
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		sleep 150;
-		gun_1 = 0;
-		start-script RestoreAfterDelay();
-		return (0);
-	}
-}
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare1;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare2;
-	}
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

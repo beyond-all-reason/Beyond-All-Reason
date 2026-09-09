@@ -1,7 +1,7 @@
 return {
 	armamph = {
 		buildpic = "ARMAMPH.DDS",
-		buildtime = 5200,
+		buildtime = 7000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
@@ -13,19 +13,17 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1170,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
 		metalcost = 260,
-		movementclass = "HOVER5",
+		movementclass = "AHOVER2",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
 		script = "Units/ARMAMPH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 90,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -35,6 +33,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weaponaa",
@@ -68,13 +67,6 @@ return {
 				object = "Units/arm3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,7 +132,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				customparams = {},
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},
@@ -168,7 +162,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 2,
 				turret = true,
 				weapontype = "BeamLaser",

@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4250,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -37,6 +35,7 @@ return {
 			buildinggrounddecaltype = "decals/cortoast_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -76,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -130,6 +124,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					default = 420,
 					hvyboats = 420,
@@ -137,10 +135,6 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			cortoast_gun_high = {
 				accuracy = 450,
@@ -165,6 +159,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 420,
 					hvyboats = 420,
@@ -172,10 +170,6 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 450,
@@ -200,13 +194,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					bogus = 1,
+					exclude_preaim = true,
+					smart_trajectory_checker = true,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true,
-				}
 			},
 		},
 		weapons = {

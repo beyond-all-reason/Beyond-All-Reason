@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Share Unit Command",
@@ -27,12 +29,12 @@ local range = 200
 --speedups
 --------------------------------------------------------------------------------
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local GetMyTeamID = Spring.GetMyTeamID
+local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
 local ShareResources = Spring.ShareResources
-local I18N = Spring.I18N
+local I18N = BAR.I18N
 local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local PlaySoundFile = Spring.PlaySoundFile
@@ -44,7 +46,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -67,14 +68,6 @@ local sqrt = math.sqrt
 local max = math.max
 
 local defaultColor
-
-local vsx, vsy = GetViewGeometry()
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfileScale = (0.5 + (vsx * vsy / 5700000))
-local fontfileSize = 50
-local fontfileOutlineSize = 8.5
-local fontfileOutlineStrength = 10
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local cmdQuickShareToTargetId = 455624
 local myTeamID = GetMyTeamID()
@@ -185,12 +178,12 @@ local function drawAoE(tx, ty, tz, selectedTeam)
 end
 
 local function findPlayerName(teamId)
-	local name = ''
-	if GetGameRulesParam('ainame_' .. teamId) then
-		name = I18N('ui.playersList.aiName', { name = GetGameRulesParam('ainame_' .. teamId) })
+	local name = ""
+	if GetGameRulesParam("ainame_" .. teamId) then
+		name = I18N("ui.playersList.aiName", { name = GetGameRulesParam("ainame_" .. teamId) })
 	else
 		local players = GetPlayerList(teamId)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+		name = (#players > 0) and GetPlayerInfo(players[1], false) or "------"
 
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
@@ -208,7 +201,7 @@ local function colourNames(teamId)
 		return ""
 	end
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
-	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function drawName(teamId)
@@ -219,10 +212,16 @@ local function drawName(teamId)
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({ 0, 0, 0, 1 })
-		font:Print(I18N("ui.quickShareToTarget.shareTo", {
-			playerColor = colourNames(teamId),
-			player = findPlayerName(teamId)
-		}), mouseX, textY, 24, "con")
+		font:Print(
+			I18N("ui.quickShareToTarget.shareTo", {
+				playerColor = colourNames(teamId),
+				player = findPlayerName(teamId),
+			}),
+			mouseX,
+			textY,
+			24,
+			"con"
+		)
 		font:End()
 	else
 		font:Begin()
@@ -231,7 +230,6 @@ local function drawName(teamId)
 		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, 24, "con")
 		font:End()
 	end
-
 end
 
 local function isAlly(unitTeamId)
@@ -289,7 +287,7 @@ local function getSelectedTeam()
 
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx and not targetUnitID) then
+	if not tx and not targetUnitID then
 		return nil
 	end
 
@@ -310,17 +308,17 @@ end
 function widget:DrawWorld()
 	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
-	drawAoE(targetX, targetY+10, targetZ, selectedTeam)
+	drawAoE(targetX, targetY + 10, targetZ, selectedTeam)
 end
 
 function widget:DrawScreen()
 	local targetX, _, _, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
@@ -348,7 +346,7 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		end
 
 		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, 'ui')
+		PlaySoundFile("beep4", 1, "ui")
 		return false
 	end
 end
@@ -358,33 +356,34 @@ function widget:CommandsChanged()
 		return
 	end
 
+	local teams = Spring.GetTeamList(myAllyTeamID)
+	if not teams or #teams <= 1 then
+		return -- no allied teams to share to
+	end
+
 	local selectedUnits = GetSelectedUnits()
 	if #selectedUnits > 0 then
 		local customCommands = widgetHandler.customCommands
 		customCommands[#customCommands + 1] = {
 			id = cmdQuickShareToTargetId,
 			type = CMDTYPE.ICON_UNIT_OR_MAP,
-			name = 'Share Unit To Target',
-			cursor = 'settarget',
-			action = 'quicksharetotarget',
+			name = "Share Unit To Target",
+			cursor = "settarget",
+			action = "quicksharetotarget",
 		}
 	end
 end
 
+function widget:ViewResize(vsx, vsy)
+	font = WG.fonts.getFont(2, 1.5)
+end
+
 function widget:Initialize()
+	widget:ViewResize()
 	defaultColor = { 0.88, 0.88, 0.88, 1 }
 	setupDisplayLists()
 end
 
 function widget:Shutdown()
 	deleteDisplayLists()
-end
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	end
 end

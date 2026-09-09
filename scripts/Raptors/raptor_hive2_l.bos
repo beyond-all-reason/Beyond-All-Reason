@@ -120,6 +120,19 @@ Create()
 {
 	shootflare = flare1;
 	move base to y-axis [-1] * HIVESIZE now;
+	hide base;
+	hide arm1;
+	hide arm2;
+	hide arm3;
+	hide arm4;
+	hide arm5;
+	sleep 30;
+	show base;
+	show arm1;
+	show arm2;
+	show arm3;
+	show arm4;
+	show arm5;
 	
 	move topflare to y-axis [3000.0] speed [10000.0];
 	move topflare to x-axis [0.0] speed [10000.0];

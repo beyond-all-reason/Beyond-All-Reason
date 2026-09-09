@@ -2,7 +2,7 @@ return {
 	armjam = {
 		activatewhenbuilt = true,
 		buildpic = "ARMJAM.DDS",
-		buildtime = 5930,
+		buildtime = 7000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -15,11 +15,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 510,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.02416,
-		maxdec = 0.04831,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 105,
@@ -33,7 +31,7 @@ return {
 		script = "Units/ARMJAM.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		speed = 33,
 		trackoffset = 8,
 		trackstrength = 10,
@@ -44,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			off_on_stun = "true",
@@ -80,13 +79,6 @@ return {
 				object = "Units/arm3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1,103 +1,68 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, turret, flare1, flare2 ;
 
-static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging, OpenedState;
+static-var  gun_1, OpenedState, restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_RESTORE			4
-
-Go()
-{
-	turn turret to x-axis <0.000000> now;
-	turn turret to x-axis <-90.000000> speed <45.395604>;
-	sleep 1983;
-	OpenedState = 1;
-	return (0);
-}
-
-Stop()
-{
-	OpenedState = 0;
-	turn turret to x-axis <-90.000000> now;
-	turn turret to x-axis <0.000000> speed <45.098901>;
-	sleep 1996;
-	return (0);
-}
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+#define SIGNAL_IDLE 8
 
 
 #define BASEPIECE base
-#define HITSPEED <55.0>
+#define HITSPEED <35.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
+#define RECOIL_POWER 100000
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#define TB_BASE base 
+#define TB_TURNRATE <11.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
 
 Create()
 {
 	hide flare1;
 	hide flare2;
-	hide flare1;
-	hide flare2;
 	OpenedState = 0;
 	restore_delay = 3000;
-	call-script InitState();
-	return (0);
+	set ARMORED to 0;
+	call-script TB_Init();
 }
 
-SetMaxReloadTime(Func_Var_1)
+StartMoving(reversing)
 {
-	restore_delay = Func_Var_1;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+}
+
+SetMaxReloadTime(reloadMS)
+{
+	restore_delay = reloadMS;
 	return (0);
 }
 
 static-var  Stunned;
+
+
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-	set-signal-mask 0;
-	start-script RequestState(1);
+	OpenedState = 0;
+	set ARMORED to 0;
+	turn turret to x-axis <0.0> speed <45>;
 }
 SetStunned(State)
 {
@@ -108,47 +73,39 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	signal SIG_RESTORE;
-	set-signal-mask SIG_RESTORE;
+	signal SIGNAL_IDLE;
+	set-signal-mask SIGNAL_IDLE;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	while( !OpenedState )
-	{
-		sleep 250;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+
+	if (!OpenedState){
+		set ARMORED to 1;
+		turn turret to x-axis <-90.0> speed <45>;
+		wait-for-turn turret around x-axis;
 	}
+	OpenedState = 1;
+
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-}
-
-QueryPrimary(piecenum)
-{
-	if (gun_1){
-		piecenum = flare1;
-	}
-	else
-	{
-		piecenum = flare2;
-	}
 	gun_1 = !gun_1;
-	return (0);
 }
 
-SweetSpot(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = flare1 + gun_1;
 }
+
+
 
 Killed(severity, corpsetype)
 {
@@ -158,7 +115,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
-		//explode flare2 type BITMAPONLY | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -167,7 +124,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
-		//explode flare2 type FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -176,13 +133,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	return corpsetype;
+	explode base type BITMAPONLY | NOHEATCLOUD;
+	explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
+	return (corpsetype);
 }

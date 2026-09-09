@@ -12,14 +12,11 @@ return {
 		damagemodifier = 0.5,
 		energycost = 0,
 		energystorage = 50,
-		-- negative energyupkeep means it's conditional so when unit is off won't produce
 		energyupkeep = -20,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
 		health = 355,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -73,13 +70,6 @@ return {
 				object = "Units/cor5X5C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

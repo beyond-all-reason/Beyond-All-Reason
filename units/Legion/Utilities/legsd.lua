@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2650,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -31,9 +29,9 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 2,
-			buildinggrounddecalsizey = 2,
-			buildinggrounddecaltype = "decals/corsd_aoplane.dds",
+			buildinggrounddecalsizex = 7,
+			buildinggrounddecalsizey = 7,
+			buildinggrounddecaltype = "decals/legsd_aoplane.dds",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -72,13 +70,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

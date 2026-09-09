@@ -16,8 +16,6 @@ return {
 		firestate = 0,
 		footprintx = 8,
 		footprintz = 8,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4450,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -31,10 +29,12 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armbotrail_aoplane.dds",
-			buildinggrounddecalsizey = 11,
-			buildinggrounddecalsizex = 11,
+			buildinggrounddecalsizey = 12,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			islrpc = true,
+			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -79,10 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,7 +136,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				waterbounce = true,
 				bounceSlip = 0.74,

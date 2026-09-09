@@ -1,36 +1,12 @@
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
 piece  base, pad, head1, head2, nano1, nano2, cagelight, cagelight2, cagelight_emit, cagelight2_emit;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis <-15> speed <45>;
-		turn head2 to y-axis <15> speed <45>;
-		wait-for-turn head1 around y-axis;
-	}
-	sleep 11;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis [0] speed <45>;
-		turn head2 to y-axis [0] speed <45>;
-		wait-for-turn head1 around y-axis;
-	}
-	sleep 7;
-}
+#define SIGNAL_TURNON 4
 
 StartBuilding()
 {
@@ -38,8 +14,8 @@ StartBuilding()
 	show nano2;
 	show cagelight_emit;
 	show cagelight2_emit;
-	spin cagelight_emit around z-axis speed <250>;
-	spin cagelight2_emit around z-axis speed <250>;
+	spin cagelight_emit around z-axis speed <250> accelerate <1>;
+	spin cagelight2_emit around z-axis speed <250> accelerate <1>;;
 	return (0);
 }
 
@@ -49,77 +25,11 @@ StopBuilding()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight2_emit;
-	turn cagelight_emit to z-axis <0> speed <1000>;
-	turn cagelight2_emit to z-axis <0> speed <1000>;
+	stop-spin cagelight_emit around z-axis decelerate <1>;
+	stop-spin cagelight2_emit around z-axis decelerate <1>;
 	return (0);
 }
 
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -128,61 +38,51 @@ Create()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight2_emit;
-	unitviewer = FALSE;
-	spray = base;
-	call-script InitState();
+	spray = 0;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	spray = spray+1;
-	if( spray >1  )
-	{
-		spray = 0;
-	}
-
+	spray = (spray + 1) % 2;
+	pieceIndex = nano1 + spray;
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn head1 to y-axis <-15> speed <45>;
+	turn head2 to y-axis <15> speed <45>;
+	wait-for-turn head1 around y-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn head1 to y-axis [0] speed <45>;
+	turn head2 to y-axis [0] speed <45>;
+	wait-for-turn head1 around y-axis;
+
+	FACTORY_CLOSE_BUILD;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {

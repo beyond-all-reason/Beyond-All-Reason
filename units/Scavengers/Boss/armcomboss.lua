@@ -28,8 +28,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		hidedamage = true,
-		idleautoheal = 2000,
-		idletime = 1800,
 		sightemitheight = 100,
 		mass = 500000,
 		health = 2800000,
@@ -62,7 +60,7 @@ return {
 			[2] = "corkorg",
 		},
 		customparams = {
-			unitgroup = 'buildert4',
+			unitgroup = "buildert4",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.01,
@@ -81,7 +79,7 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 55,
-				metal = "2500",
+				metal = 2500,
 				object = "Units/scavboss/armcomboss_dead.s3o",
 				reclaimable = true,
 			},
@@ -104,10 +102,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -164,7 +158,6 @@ return {
 				soundstart = "xplomas2",
 				soundtrigger = 1,
 				--sweepFire = true,
-				targetmoveerror = 0.05,
 				thickness = 12,
 				tolerance = 10000,
 				turret = true,
@@ -203,7 +196,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "xplomas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 12,
 				tolerance = 10000,
 				turret = true,

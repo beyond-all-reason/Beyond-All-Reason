@@ -1,0 +1,278 @@
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
+
+piece
+    door,
+    base,
+    nanoArmR,
+    nanoR,
+    nanoArmL,
+    nanoL,
+    nanoHousingR,
+    nanoHousingL,
+    fan1,
+    fan2,
+    fan3,
+    fan4,
+    fancontainer3,
+    backFan2,
+    fancontainer4,
+    backFan1,
+    fancontainer1,
+    backFan4,
+    fancontainer2,
+    backFan3,
+    backFanPivotR,
+    backFanPivotL,
+    nanoPivotR,
+    nanoPivotL,
+    nanoFlareR1,
+    nanoFlareR2,
+    nanoFlareL1,
+    nanoFlareL2,
+    cannisterLight1,
+    cannisterLight2,
+    cannisterLight3,
+    smokeFlare,
+    buildLight1,
+    buildLight2,
+    buildLight3,
+    buildLight4,
+    buildFlare1,
+    buildFlare2,
+    buildFlare3,
+    buildFlare4,
+    pad;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+Create()
+{
+	hide pad;
+	hide nanoFlareR1;
+    hide nanoFlareR2;
+    hide nanoFlareL1;
+    hide nanoFlareL2;
+	spray = 0;
+    turn nanoPivotR to z-axis <-40> now;
+    turn nanoPivotL to z-axis <40> now;
+    turn backFanPivotL to y-axis <20> now;
+    turn backFanPivotR to y-axis <-20> now;
+
+    turn nanoArmL to x-axis <-65> now;
+    turn nanoArmR to x-axis <-65> now;
+    move buildLight1 to y-axis [-4] now;
+    move buildLight2 to y-axis [-4] now;
+    move buildLight3 to y-axis [-4] now;
+    move buildLight4 to y-axis [-4] now;
+    turn nanoHousingL to x-axis <-50> now;
+    turn nanoHousingR to x-axis <-50> now;
+    turn door to x-axis <30> now;
+
+	SLEEP_UNTIL_UNITFINISHED;
+    spin fan1 around x-axis speed <50> accelerate <1>;
+    spin fan2 around x-axis speed <50> accelerate <1>;
+    spin fan3 around x-axis speed <50> accelerate <1>;
+    spin fan4 around x-axis speed <50> accelerate <1>;
+
+    spin backFan1 around x-axis speed <50> accelerate <1>;
+    spin backFan2 around x-axis speed <50> accelerate <1>;
+    spin backFan3 around x-axis speed <50> accelerate <1>;
+    spin backFan4 around x-axis speed <50> accelerate <1>;
+
+    while( TRUE )
+	{
+		emit-sfx 259 from fan1;
+		sleep 50;
+		emit-sfx 259 from fan2;
+		sleep 50;
+		emit-sfx 259 from fan3;
+		sleep 50;
+		emit-sfx 259 from fan4;
+		sleep 50;
+
+        emit-sfx 259 from backFan1;
+		sleep 50;
+		emit-sfx 259 from backFan2;
+		sleep 50;
+		emit-sfx 259 from backFan3;
+		sleep 50;
+		emit-sfx 259 from backFan4;
+		sleep 50;
+	}
+
+}
+
+SmokeItUp()
+{	while (TRUE) {
+		emit-sfx 259 from smokeFlare;
+		sleep 45;
+		emit-sfx 259 from smokeFlare;
+		sleep 500;
+	}
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn nanoArmR to x-axis <-15> speed <20>;
+		sleep 200;
+		turn nanoArmL to x-axis <-15> speed <20>;
+		sleep 200;
+		wait-for-turn nanoArmR around x-axis;
+		turn nanoArmR to x-axis <-60> speed <20>;
+		sleep 200;
+		turn nanoArmL to x-axis <-60> speed <20>;
+		sleep 200;
+		wait-for-turn nanoArmR around x-axis;
+	}
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	// spray = !spray;
+	// pieceIndex = nano1 + spray;
+    spray = (spray + 1) % 4;
+	pieceIndex = nanoFlareR1 + spray;
+}
+
+StartBuilding()
+{
+	show nanoFlareR1;
+    show nanoFlareR2;
+    show nanoFlareL1;
+    show nanoFlareL2;
+    show buildFlare1;
+    show buildFlare2;
+    show buildFlare3;
+    show buildFlare4;
+    spin buildLight1 around y-axis speed <100> accelerate <1>;
+    spin buildLight2 around y-axis speed <100> accelerate <1>;
+    spin buildLight3 around y-axis speed <100> accelerate <1>;
+    spin buildLight4 around y-axis speed <100> accelerate <1>;
+    signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+    wait-for-turn nanoArmR around x-axis;
+    start-script MoveCranes();
+	start-script SmokeItUp();
+}
+
+StopBuilding()
+{
+	hide nanoFlareR1;
+    hide nanoFlareR2;
+    hide nanoFlareL1;
+    hide nanoFlareL2;
+    hide buildFlare1;
+    hide buildFlare2;
+    hide buildFlare3;
+    hide buildFlare4;
+    stop-spin buildLight1 around y-axis decelerate <5>;
+    stop-spin buildLight2 around y-axis decelerate <5>;
+    stop-spin buildLight3 around y-axis decelerate <5>;
+    stop-spin buildLight4 around y-axis decelerate <5>;
+    signal SIGNAL_BUILD;
+    turn nanoArmR to x-axis <0> speed <20>;
+    turn nanoArmL to x-axis <0> speed <20>;
+
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+    turn door to x-axis <0> speed <60>;
+    sleep 500;
+    turn nanoHousingL to x-axis <0> speed <100>;
+    turn nanoHousingR to x-axis <0> speed <100>;
+    sleep 100;
+    //wait-for-turn nanoHousingR around x-axis;
+    turn nanoArmL to x-axis <0> speed <90>;
+    turn nanoArmR to x-axis <0> speed <90>;
+    move buildLight1 to y-axis [0] speed [4];
+    move buildLight2 to y-axis [0] speed [4];
+    move buildLight3 to y-axis [0] speed [4];
+    move buildLight4 to y-axis [0] speed [4];
+	
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+    turn nanoArmL to x-axis <-65> speed <65>;
+    turn nanoArmR to x-axis <-65> speed <65>;
+    move buildLight1 to y-axis [-4] speed [2];
+    move buildLight2 to y-axis [-4] speed [2];
+    move buildLight3 to y-axis [-4] speed [2];
+    move buildLight4 to y-axis [-4] speed [2];
+    wait-for-turn nanoArmL around x-axis;
+    turn nanoHousingL to x-axis <-50> speed <50>;
+    turn nanoHousingR to x-axis <-50> speed <50>;
+    sleep 500;
+    turn door to x-axis <30> speed <30>;
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+	return (0);
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoArmR type BITMAPONLY | NOHEATCLOUD;
+		explode nanoArmL type BITMAPONLY | NOHEATCLOUD;
+		explode backFan1 type BITMAPONLY | NOHEATCLOUD;
+		explode pad type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoArmR type FALL | NOHEATCLOUD;
+		explode nanoArmL type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode backFan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoArmR type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoArmL type SMOKE | FALL | NOHEATCLOUD;
+		explode backFan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode pad type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode door type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanoArmR type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanoArmL type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode backFan1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

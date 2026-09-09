@@ -1,8 +1,9 @@
 return {
-	["WhiteLight"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	WhiteLight = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,
@@ -24,10 +25,11 @@ return {
 		},
 	},
 
-	["IntelLight"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	IntelLight = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,
@@ -49,10 +51,11 @@ return {
 		},
 	},
 
-	["YellowLight"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	YellowLight = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,
@@ -74,10 +77,11 @@ return {
 		},
 	},
 
-	["PurpleLight"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	PurpleLight = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,
@@ -100,10 +104,11 @@ return {
 		},
 	},
 
-	["GantWhiteLight"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	GantWhiteLight = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,
@@ -124,10 +129,11 @@ return {
 			},
 		},
 	},
-		["LootboxLightGold"] = {
-		useAirLos = false,
-		usedefaultexplosions = false,
-		["CHeatCloudProjectile"] = {
+	LootboxLightGold = {
+		light = {
+			useAirLos = false,
+			usedefaultexplosions = false,
+			class = [[CHeatCloudProjectile]],
 			air = true,
 			water = true,
 			ground = true,

@@ -174,7 +174,7 @@ HoverCraftMotion()
 		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X + anglex speed HOVER_ROCK_SPEED1  * anglex / 500;
 		turn HOVER_ROCKBASE to z-axis HOVER_BANK_Z + anglez speed HOVER_ROCK_SPEED1  * anglez / 500;
 
-		// Should wait for both, as the speed here isnt trivial
+		// Should wait for both, as the speed here isn't trivial
 		wait-for-turn HOVER_ROCKBASE around z-axis;
 
 		turn HOVER_ROCKBASE to x-axis HOVER_BANK_X - anglex speed HOVER_ROCK_SPEED2 * anglex / 500;

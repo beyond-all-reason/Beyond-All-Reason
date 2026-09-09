@@ -2,10 +2,10 @@ return {
 	armllt = {
 		buildangle = 32768,
 		buildpic = "ARMLLT.DDS",
-		buildtime = 2660,
+		buildtime = 2400,
 		canrepeat = false,
 		cantbetransported = false,
-		collisionvolumeoffsets = "0 -31 0",
+		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 77 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 620,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 0,
@@ -72,12 +70,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			cloak = "kloak1",
@@ -126,21 +118,20 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 112.5,
 					default = 75,
 					subs = 5,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

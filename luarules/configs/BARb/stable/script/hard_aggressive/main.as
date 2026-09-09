@@ -2,23 +2,13 @@
 #include "manager/builder.as"
 #include "manager/factory.as"
 #include "manager/economy.as"
+#include "../common.as"
 
 
 namespace Main {
 
-void AiMain()
+void AiMain()  // Initialize config params
 {
-	// NOTE: Initialize config params
-// 	aiTerrainMgr.SetAllyZoneRange(600);  // returns 576: (multiples of 128) div 2
-// 	aiEconomyMgr.reclConvertEff = 2.f;
-// 	aiEconomyMgr.reclEnergyEff = 20.f;
-// 	for (Id defId = 1, count = ai.GetDefCount(); defId <= count; ++defId) {
-// 		CCircuitDef@ cdef = ai.GetCircuitDef(defId);
-// 		AiLog(cdef.GetName() + " | threat = " + cdef.threat + " | power = " + cdef.power +
-// 			" | air = " + cdef.GetAirThreat() + " | surf = " + cdef.GetSurfThreat() + " | water = " + cdef.GetWaterThreat());
-// 		cdef.SetThreatKernel((cdef.costM + cdef.costE * 0.02f) * 0.001f);
-// 	}
-
 	for (Id defId = 1, count = ai.GetDefCount(); defId <= count; ++defId) {
 		CCircuitDef@ cdef = ai.GetCircuitDef(defId);
 		if (cdef.costM >= 200.f && !cdef.IsMobile() && aiEconomyMgr.GetEnergyMake(cdef) > 1.f)
@@ -27,12 +17,21 @@ void AiMain()
 
 	// Example of user-assigned custom attributes
 	array<string> names = {Factory::armalab, Factory::coralab, Factory::armavp, Factory::coravp,
-		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy};
-	for (uint i = 0; i < names.length(); ++i)
-		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T2;
-	names = {Factory::armshltx, Factory::corgant};
-	for (uint i = 0; i < names.length(); ++i)
-		Factory::userData[ai.GetCircuitDef(names[i]).id].attr |= Factory::Attr::T3;
+		Factory::armaap, Factory::coraap, Factory::armasy, Factory::corasy, Factory::legadvshipyard,
+		Factory::legalab, Factory::legavp, Factory::legaap}; 
+	for (uint i = 0; i < names.length(); ++i) {
+		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
+		if (cdef !is null)
+			Factory::userData[cdef.id].attr |= Factory::Attr::T2;
+	}
+	names = {Factory::armshltx, Factory::corgant, Factory::leggant};
+	for (uint i = 0; i < names.length(); ++i) {
+		CCircuitDef@ cdef = ai.GetCircuitDef(names[i]);
+		if (cdef !is null)
+			Factory::userData[cdef.id].attr |= Factory::Attr::T3;
+	}
+
+	Init::EnableWallTargets();
 }
 
 void AiUpdate()  // SlowUpdate, every 30 frames with initial offset of skirmishAIId

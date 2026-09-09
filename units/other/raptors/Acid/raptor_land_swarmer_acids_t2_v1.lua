@@ -53,6 +53,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
@@ -118,6 +119,8 @@ return {
 					area_onhit_damage = 40,
 					area_onhit_range = 75,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua

@@ -5,6 +5,8 @@
 -- On metal maps, there is no spot value at all, so this is required to see how much mexes will produce
 -----------------------------------------------
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Prospector",
@@ -13,7 +15,7 @@ function widget:GetInfo()
 		date = "9 January 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1010,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -30,16 +32,9 @@ local GetGroundInfo = Spring.GetGroundInfo
 local GetGameFrame = Spring.GetGameFrame
 local GetMapDrawMode = Spring.GetMapDrawMode
 
-local glLineWidth = gl.LineWidth
 local glColor = gl.Color
 local glRect = gl.Rect
 local glPolygonMode = gl.PolygonMode
-local glDrawGroundCircle = gl.DrawGroundCircle
-local glUnitShape = gl.UnitShape
-
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
 
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL
@@ -65,7 +60,6 @@ local lastUnitDefID
 
 local TEXT_CORRECT_Y = 1.25
 
-local myTeamID
 local metalMap = false
 local METAL_MAP_SQUARE_SIZE = 16
 local MEX_RADIUS = Game.extractorRadius
@@ -98,7 +92,7 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	end
 
 	font:Begin()
-	font:SetOutlineColor(0,0,0, 0.5)
+	font:SetOutlineColor(0, 0, 0, 0.5)
 	font:SetTextColor(1, 1, 1, 0.85)
 	font:Print(text, x + 4, y, size, opt)
 	font:End()
@@ -107,10 +101,10 @@ end
 local function SetupMexDefInfos()
 	local minExtractsMetal
 
-	local armMexDef = UnitDefNames["armmex"]
+	local armMexDef = UnitDefNames.armmex
 
 	if armMexDef and armMexDef.extractsMetal > 0 then
-		defaultDefID = UnitDefNames["armmex"].id
+		defaultDefID = UnitDefNames.armmex.id
 		minExtractsMetal = 0
 	end
 
@@ -133,7 +127,6 @@ local function SetupMexDefInfos()
 			end
 		end
 	end
-
 end
 
 local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
@@ -175,7 +168,7 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 
 			if dist < MEX_RADIUS then
 				local _, metal, metal2 = GetGroundInfo(cx, cz)
-				if type(metal) == 'string' then
+				if type(metal) == "string" then
 					-- Spring > v104
 					metal = metal2
 				end
@@ -193,11 +186,9 @@ end
 
 function widget:Initialize()
 	SetupMexDefInfos()
-	myTeamID = Spring.GetMyTeamID()
 	once = true
-	metalMap = WG["resource_spot_finder"].isMetalMap
+	metalMap = WG.resource_spot_finder.isMetalMap
 end
-
 
 function widget:DrawScreen()
 	if once then
@@ -237,17 +228,24 @@ function widget:DrawScreen()
 		return
 	end
 	if not metalMap then
-		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
-		if not pos then return end
+		local pos = WG.resource_spot_finder.GetClosestMexSpot(coords[1], coords[3])
+		if not pos then
+			return
+		end
 		coords[1] = pos.x
 		coords[3] = pos.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground(Spring.I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
+	DrawTextWithBackground(
+		BAR.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }),
+		mx,
+		my,
+		textSize,
+		"do"
+	)
 	glColor(1, 1, 1, 1)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG.fonts.getFont(1, 1.5)
 end

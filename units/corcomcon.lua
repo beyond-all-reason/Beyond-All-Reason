@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 26000,
-		energymake = 25,
+		energymake = 30,
 		energystorage = 500,
 		explodeas = "commanderexplosion",
 		footprintx = 2,
@@ -27,8 +27,6 @@ return {
 		health = 3350,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.18,
 		maxdec = 1.125,
 		maxslope = 20,
@@ -68,12 +66,14 @@ return {
 			[7] = "corcv",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			i18nfromunit = "corcom",
 			iscommander = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
+			tombstone = "corstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {
@@ -111,10 +111,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -174,12 +170,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir1",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 5,
@@ -212,13 +210,15 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "uwlasrfir1",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 5,
 				tolerance = 10000,
 				turret = true,
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 200,
 					subs = 100,
@@ -246,10 +246,8 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitvolume = 36,
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -257,6 +255,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 99999,
 					scavboss = 1000,

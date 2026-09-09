@@ -1,4 +1,6 @@
 -- depends on gadget: unit_builder_priority
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Builder Priority",
@@ -8,17 +10,21 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		version = 8,
-		enabled = true
+		enabled = true,
 	}
 end
 
-local CMD_PRIORITY = 34571
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spEcho = Spring.Echo
+
+local CMD_PRIORITY = GameCMD.PRIORITY
 
 -- symbol localization optimization for engine calls
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 
 -- widget global settings and assigned defaults
 local lowpriorityLabs = true
@@ -89,9 +95,9 @@ local function declassifyUnit(unitID, unitDefID)
 end
 
 local function toggleCategory(builderIds, passive)
-	Spring.Echo("[passiveunits] Toggling category")
+	spEcho("[passiveunits] Toggling category")
 	for unitID, _ in pairs(builderIds) do
-		Spring.Echo("[passiveunits] Toggling " .. tostring(unitID) .. " to passive: " .. tostring(passive))
+		spEcho("[passiveunits] Toggling " .. tostring(unitID) .. " to passive: " .. tostring(passive))
 		toggleUnit(unitID, passive)
 	end
 end
@@ -109,7 +115,7 @@ local function toggleCons()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end

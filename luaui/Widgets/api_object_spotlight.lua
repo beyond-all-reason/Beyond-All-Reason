@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Object Spotlight API",
@@ -51,17 +53,17 @@ local spotlightTypes = {
 		isValid = function(position)
 			return true
 		end,
-		postProcessVBO = function(vbo)
-		end,
+		postProcessVBO = function(vbo) end,
 	},
 }
 
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Include/"
-local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
-VFS.Include(includeDir .. "instancevbotable.lua")
+local LuaShader = gl.LuaShader
+local InstanceVBOTable = gl.InstanceVBOTable
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 ---@language Glsl
 local vsSrc = [[
@@ -248,25 +250,19 @@ local function makeCylinderVBO(sections)
 
 	local numVertices = #vboData / 3
 
-	vbo:Define(
-		numVertices,
-		spotlightVBOLayout
-	)
+	vbo:Define(numVertices, spotlightVBOLayout)
 	vbo:Upload(vboData)
 
 	return vbo, numVertices
 end
 
+---Wraps a vertex buffer in an instance buffer for one spotlight shape.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
-	local vbo = makeInstanceVBOTable(
-		layout,
-		nil,
-		name,
-		6
-	)
+	local vbo = InstanceVBOTable.makeInstanceVBOTable(layout, nil, name, 6)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
-	vbo.VAO = makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
+	vbo.VAO = InstanceVBOTable.makeVAOandAttach(vbo.vertexVBO, vbo.instanceVBO)
 	return vbo
 end
 
@@ -275,12 +271,8 @@ local function initGL4()
 
 	instanceVBOs = {}
 	for spotlightType, spec in pairs(spotlightTypes) do
-		local vbo = makeInstanceVBO(
-			instanceVBOLayout,
-			cylinderVBO,
-			cylinderVertices,
-			"api_object_spotlight_" .. spotlightType
-		)
+		local vbo =
+			makeInstanceVBO(instanceVBOLayout, cylinderVBO, cylinderVertices, "api_object_spotlight_" .. spotlightType)
 
 		if spec.postProcessVBO then
 			spec.postProcessVBO(vbo)
@@ -290,13 +282,10 @@ local function initGL4()
 	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	shader = LuaShader(
-		{
-			vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-			fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-		},
-		"api_object_spotlight"
-	)
+	shader = LuaShader({
+		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+	}, "api_object_spotlight")
 	local shaderCompiled = shader:Initialize()
 	return shaderCompiled
 end
@@ -305,17 +294,16 @@ end
 -- ===========
 
 ---@alias ObjectType string
----@alias ObjectID number|number[]
 ---@alias OwnerID string
 ---@alias InstanceID number
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, InstanceID>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, InstanceID>>>
 local objectInstanceIDs = {}
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, boolean>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, boolean>>>
 local objectOwners = {}
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, number>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, number>>>
 local objectExpireTimes = {}
 
 for k in pairs(spotlightTypes) do
@@ -324,13 +312,20 @@ for k in pairs(spotlightTypes) do
 	objectOwners[k] = {}
 end
 
-local function isEmpty(tbl)
-	for _ in pairs(tbl) do
-		return false
-	end
-	return true
-end
-
+---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
+---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
+---removeSpotlight later is necessary to remove the spotlight.
+---@param objectType string "unit", "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@param objectID ObjectOrPosition
+---@param color table RGBA color used for the spotlight
+---@param options table extra optional parameters
+---@param options.duration number if specified, the spotlight will fade out over this period of seconds
+---@param options.radius number override the radius (default: the radius of the object, or 100 if that's not present)
+---@param options.radiusCoefficient number multiplicative factor for the radius (default: 1)
+---@param options.height number override the height (default: 300)
+---@param options.heightCoefficient number multiplicative factor for the height (default: 1)
+---@return nil
 local function addSpotlight(objectType, owner, objectID, color, options)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -344,8 +339,8 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	options = options or {}
 
 	-- radius
-	local radius = (options.radiusCoefficient or 1) *
-		(options.radius or spotlightTypes[objectType].getDefaultRadius(objectID) or DEFAULT_RADIUS)
+	local radius = (options.radiusCoefficient or 1)
+		* (options.radius or spotlightTypes[objectType].getDefaultRadius(objectID) or DEFAULT_RADIUS)
 
 	-- height
 	local height = (options.heightCoefficient or 1) * (options.height or DEFAULT_CYLINDER_HEIGHT)
@@ -384,24 +379,30 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	if not objectInstanceIDs[objectType][objectID] then
 		objectInstanceIDs[objectType][objectID] = {}
 	end
-	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(
-		instanceVBOs[objectType],
-		{
-			radius, -- { id = 1, name = "radius", size = 1 }
-			height, -- { id = 2, name = "height", size = 1 }
-			color[1], color[2], color[3], color[4], -- { id = 3, name = "color", size = 4 }
-			startTime or 0, -- { id = 4, name = "startTime", size = 1 },
-			expireTime or 0, -- { id = 5, name = "expireTime", size = 1 },
-			0, 0, 0, 0, -- { id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT }
-			instanceWorldPosOverride[1], instanceWorldPosOverride[2], instanceWorldPosOverride[3], -- { id = 7, name = "worldPosOverride", size = 3 },
-		},
-		objectInstanceIDs[objectType][objectID][owner],
-		true,
-		false,
-		instanceObjectID
-	)
+	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(instanceVBOs[objectType], {
+		radius, -- { id = 1, name = "radius", size = 1 }
+		height, -- { id = 2, name = "height", size = 1 }
+		color[1],
+		color[2],
+		color[3],
+		color[4], -- { id = 3, name = "color", size = 4 }
+		startTime or 0, -- { id = 4, name = "startTime", size = 1 },
+		expireTime or 0, -- { id = 5, name = "expireTime", size = 1 },
+		0,
+		0,
+		0,
+		0, -- { id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT }
+		instanceWorldPosOverride[1],
+		instanceWorldPosOverride[2],
+		instanceWorldPosOverride[3], -- { id = 7, name = "worldPosOverride", size = 3 },
+	}, objectInstanceIDs[objectType][objectID][owner], true, false, instanceObjectID)
 end
 
+---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
+---@param objectType string "unit" or "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@param objectID ObjectOrPosition
+---@return nil
 local function removeSpotlight(objectType, owner, objectID)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -413,7 +414,7 @@ local function removeSpotlight(objectType, owner, objectID)
 
 	-- owner
 	objectOwners[objectType][objectID][owner] = nil
-	if isEmpty(objectOwners[objectType][objectID]) then
+	if table.isEmpty(objectOwners[objectType][objectID]) then
 		objectOwners[objectType][objectID] = nil
 	end
 
@@ -422,55 +423,54 @@ local function removeSpotlight(objectType, owner, objectID)
 		popElementInstance(instanceVBOs[objectType], objectInstanceIDs[objectType][objectID][owner], false)
 	end
 	objectInstanceIDs[objectType][objectID][owner] = nil
-	if isEmpty(objectInstanceIDs[objectType][objectID]) then
+	if table.isEmpty(objectInstanceIDs[objectType][objectID]) then
 		objectInstanceIDs[objectType][objectID] = nil
 	end
 
 	-- duration
 	if objectExpireTimes[objectType][objectID] and objectExpireTimes[objectType][objectID][owner] then
 		objectExpireTimes[objectType][objectID][owner] = nil
-		if isEmpty(objectExpireTimes[objectType][objectID]) then
+		if table.isEmpty(objectExpireTimes[objectType][objectID]) then
 			objectExpireTimes[objectType][objectID] = nil
 		end
 	end
 end
 
+---Returns the objectID for all spotlights with the specified type and owner.
+---@param objectType string "unit" or "feature", or "ground"
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@return ObjectOrPosition[]
 local function getSpotlights(objectType, owner)
-	return table.reduce(
-		objectOwners[objectType],
-		function(acc, v, k)
-			if v[owner] then
-				acc[#acc + 1] = k
-			end
-			return acc
-		end,
-		{}
-	)
+	return table.reduce(objectOwners[objectType], function(acc, v, k)
+		if v[owner] then
+			acc[#acc + 1] = k
+		end
+		return acc
+	end, {})
 end
 
+---Removes all spotlights with the specified owner.
+---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+---@return nil
 local function removeAllSpotlights(owner)
 	for objectType in pairs(spotlightTypes) do
 		for _, id in ipairs(getSpotlights(objectType, owner)) do
-			removeSpotlight(
-				objectType,
-				owner,
-				id
-			)
+			removeSpotlight(objectType, owner, id)
 		end
 	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if objectOwners["unit"][unitID] then
-		for owner in pairs(objectOwners["unit"][unitID]) do
+	if objectOwners.unit[unitID] then
+		for owner in pairs(objectOwners.unit[unitID]) do
 			removeSpotlight("unit", owner, unitID)
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
-	if objectOwners["feature"][featureID] then
-		for owner in pairs(objectOwners["feature"][featureID]) do
+	if objectOwners.feature[featureID] then
+		for owner in pairs(objectOwners.feature[featureID]) do
 			removeSpotlight("feature", owner, featureID)
 		end
 	end
@@ -515,13 +515,7 @@ function widget:DrawWorld()
 
 	for spotlightType, vbo in pairs(instanceVBOs) do
 		if vbo.usedElements > 0 then
-			vbo.VAO:DrawArrays(
-				GL.TRIANGLE_STRIP,
-				vbo.numVertices,
-				0,
-				vbo.usedElements,
-				0
-			)
+			vbo.VAO:DrawArrays(GL.TRIANGLE_STRIP, vbo.numVertices, 0, vbo.usedElements, 0)
 		end
 	end
 
@@ -534,39 +528,10 @@ function widget:Initialize()
 		return
 	end
 
-	WG["ObjectSpotlight"] = {
-		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
-		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
-		---removeSpotlight later is necessary to remove the spotlight.
-		---@param objectType string "unit", "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
-		---@param color table RGBA color used for the spotlight
-		---@param options table extra optional parameters
-		---@param options.duration number if specified, the spotlight will fade out over this period of seconds
-		---@param options.radius number override the radius (default: the radius of the object, or 100 if that's not present)
-		---@param options.radiusCoefficient number multiplicative factor for the radius (default: 1)
-		---@param options.height number override the height (default: 300)
-		---@param options.heightCoefficient number multiplicative factor for the height (default: 1)
-		---@return nil
+	WG.ObjectSpotlight = {
 		addSpotlight = addSpotlight,
-
-		---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
-		---@param objectType string "unit" or "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
-		---@return nil
 		removeSpotlight = removeSpotlight,
-
-		---Returns the objectID for all spotlights with the specified type and owner.
-		---@param objectType string "unit" or "feature", or "ground"
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@return (number|number[])[]
 		getSpotlights = getSpotlights,
-
-		---Removes all spotlights with the specified owner.
-		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@return nil
 		removeAllSpotlights = removeAllSpotlights,
 	}
 end
@@ -582,5 +547,5 @@ function widget:Shutdown()
 		shader:Finalize()
 	end
 
-	WG["ObjectSpotlight"] = nil
+	WG.ObjectSpotlight = nil
 end

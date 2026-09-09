@@ -19,7 +19,6 @@ static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, cur
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIG_MOVE 4
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_walk.blend
-	// (c) CC BY NC ND Beherith mysterme@gmail.com 
 	set-signal-mask SIG_MOVE;
 	if (bMoving) { //Frame:2
 			turn head to z-axis <3.000000> speed <90.000003> / animSpeed; //delta=-3.00 

@@ -1,84 +1,33 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-#define SIG_BUILD		4	
-#define SIG_MOVE    2
+#define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 2
 
 piece  base, gun, nano1, nano2, smoke1, smoke2, cagelight, cagelight_emit, cagelight2, cagelight_emit2;
 
-static-var  bMoving, moveSpeed, animSpeed, terrain, notBuilding, statechg_DesiredState, statechg_StateChanging, nanob;
+static-var  nanob;
 
-activatescr()
-{
-	sleep 40;
-}
 
-deactivatescr()
-{
-	set INBUILDSTANCE to 0;
-	hide cagelight_emit;
-	hide cagelight_emit2;
-	turn cagelight_emit to y-axis <0> speed <1000>;
-	turn cagelight_emit2 to y-axis <0> speed <1000>;
-	sleep 70;
-}
-
-Smoke()
-{
-	while( TRUE )
-	{
-		animSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (animSpeed<4) animSpeed=4;
-		animSpeed = 1800 / animSpeed;
-
-		if( terrain == 4 )
-		{
-			emit-sfx 1024 + 0 from smoke1;
-			emit-sfx 1024 + 0 from smoke2;
-		}
-
-		sleep animSpeed;
-	}
-}
+#define VD_PIECE1 smoke1
+#define VD_PIECE2 smoke2
+#define VD_AMPHIBIOUS
+#define VD_DIRTCEG 1024 + 0
+#include "../vehicle_dirt_cegs.h"
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 3
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
 
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script deactivatescr();
-			notBuilding = 1;
-			currentstate = 1;
-		}
-		else
-		{
-			call-script activatescr();
-			notBuilding = 0;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
+#define TB_BASE base 
+#define TB_TURNRATE <12.0> 
+#define TB_TILT_X <0.10>
+#define TB_BANK_Z <0.10> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 Create()
 {
@@ -88,52 +37,44 @@ Create()
 	hide nano2;
 	hide cagelight_emit;
 	hide cagelight_emit2;
-	bMoving = FALSE;
-	moveSpeed = get (MAX_SPEED);
-	animSpeed = 100;
-	notBuilding = 1;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	call-script TB_Init();
 }
 
-setSFXoccupy(state)
+StartMoving(reversing)
 {
-	terrain = state;
-}
-
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	start-script Smoke();
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	start-script Vehicle_Dirt_Ceg();
+	START_TILTBANK;
 }
 
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 Activate()
 {
-	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
 }
 
 StartBuilding(heading, pitch)
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+
+	turn gun to y-axis heading speed <160>;
+	wait-for-turn gun around y-axis;
+
+	set INBUILDSTANCE to 1;
+	
 	show nano1;
 	show nano2;
-	start-script RequestState(0);
-	while( notBuilding ) sleep 100;
-	signal SIG_BUILD;
-	turn gun to y-axis heading speed <160.038462>;
-	wait-for-turn gun around y-axis;
-	set INBUILDSTANCE to 1;
 	show cagelight_emit;
 	show cagelight_emit2;
 	spin cagelight_emit around y-axis speed <400>;
@@ -142,43 +83,28 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	
 	hide nano1;
 	hide nano2;
-	signal SIG_BUILD;	
-	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;
 	hide cagelight_emit2;
 	turn cagelight_emit to y-axis <0> speed <1000>;
 	turn cagelight_emit2 to y-axis <0> speed <1000>;
+
 	sleep 6000;
-	set-signal-mask 0;
-	signal SIG_BUILD;	
-	start-script RequestState(1);
+
+	turn gun to y-axis <0> speed <160>;
+	set INBUILDSTANCE to 0;
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if (nanob){
-		piecenum = nano1;
-		
-	}
-	else{
-		piecenum = nano2;
-	}
+	pieceIndex = nano1 + nanob;
 	nanob= !nanob;
 }
 
-/*
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
-*/
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
@@ -188,7 +114,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano2 type BITMAPONLY | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -197,7 +123,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FALL | NOHEATCLOUD;
 		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -206,13 +132,13 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type SMOKE | FALL | NOHEATCLOUD;
-		//explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		
 	return corpsetype;
 }

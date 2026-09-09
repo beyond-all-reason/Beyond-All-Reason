@@ -1,10 +1,10 @@
 local widgetName = "Blueprint"
 
-function skip()
+local function skip()
 	return not Platform.gl
 end
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -21,33 +21,30 @@ function setup()
 	})
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-function test()
-	VFS.Include("luarules/configs/customcmds.h.lua")
-
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
-	while #(widget.blueprints) > 0 do
-		widget.deleteBlueprint(1)
-	end
+	widget.blueprints = {}
+	widget.setSelectedBlueprintIndex(nil)
 
 	local blueprintUnitDefName = "armsolar"
 	local builderUnitDefName = "armck"
 
 	local blueprintUnitDefID = UnitDefNames[blueprintUnitDefName].id
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 1
-	local bpW, bpH = WG["api_blueprint"].getBuildingDimensions(blueprintUnitDefID, facing)
+	local bpW, bpH = WG.api_blueprint.getBuildingDimensions(blueprintUnitDefID, facing)
 
 	local bpCount = 5
 
@@ -66,9 +63,9 @@ function test()
 
 	Test.waitFrames(delay)
 
-	widget:CommandNotify(CMD_BLUEPRINT_CREATE, {}, {})
+	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
-	assert(#(widget.blueprints) == 1)
+	assert(#widget.blueprints == 1)
 
 	Test.clearMap()
 
@@ -87,16 +84,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(
-		Spring.GetCmdDescIndex(CMD_BLUEPRINT_PLACE),
-		1,
-		true,
-		false,
-		false,
-		false,
-		false,
-		false
-	)
+	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
 
 	Test.waitFrames(delay)
 
@@ -121,7 +109,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	widget:CommandNotify(CMD_BLUEPRINT_PLACE, {}, {})
+	widget:CommandNotify(GameCMD.BLUEPRINT_PLACE, {}, {})
 	mockSpringGetMouseState.remove()
 
 	Test.waitFrames(delay)
@@ -129,5 +117,7 @@ function test()
 	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
 
 	assert(#builderQueue == bpCount, #builderQueue)
-	assert(builderQueue[1].id == -blueprintUnitDefID)
+	assertEqual(builderQueue[1].id, -blueprintUnitDefID)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

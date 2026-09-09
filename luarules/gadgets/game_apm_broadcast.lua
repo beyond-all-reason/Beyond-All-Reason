@@ -1,42 +1,45 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
-		name	= "APM Broadcast",
-		desc	= "Broadcasts ActionsPerMinute",
-		author	= "Floris",
-		date	= "May 2024",
-		license	= "GNU GPL, v2 or later",
-		layer	= 99999999,
+		name = "APM Broadcast",
+		desc = "Broadcasts ActionsPerMinute",
+		author = "Floris",
+		date = "May 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 99999999,
 		enabled = true,
 	}
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	local teamAddedActionFrame = {}
 	local ignoreUnits = {}
 	local gameFrame = Spring.GetGameFrame()
-	local startFrame = Spring.GetGameFrame()	-- used in case of luarules reload
+	local startFrame = Spring.GetGameFrame() -- used in case of luarules reload
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 	local totalTeamActions = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		totalTeamActions[teamID] = 0
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		totalTeamActions[teamList[i]] = 0
 	end
 	local ignoreUnitDefs = {}
 	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.customParams.drone then
+		if uDef.customParams and uDef.customParams.drone then
 			ignoreUnitDefs[uDefID] = true
 		end
 	end
 
+	---Excludes the unit's next order from the team's APM count for one game frame.
+	---@param unitID UnitID
 	local function addSkipOrder(unitID)
 		ignoreUnits[unitID] = gameFrame + 1
 	end
 
 	function gadget:Initialize()
-		GG['apm'] = {}
-		GG['apm'].addSkipOrder = addSkipOrder
+		GG.apm = {}
+		GG.apm.addSkipOrder = addSkipOrder
 
 		gadgetHandler:RegisterAllowCommand(CMD.ANY)
 	end
@@ -45,31 +48,47 @@ if gadgetHandler:IsSyncedCode() then
 		ignoreUnits[unitID] = gameFrame + 1
 	end
 
-	-- be aware that these arent exclusively user actioned commands
+	-- be aware that these aren't exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
-			if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then
+			if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then -- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
 				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
 				teamAddedActionFrame[teamID] = true
 			end
 		end
-		ignoreUnits[unitID] = gameFrame + 7	-- dont count severe cmd spam
+		ignoreUnits[unitID] = gameFrame + 7 -- dont count severe cmd spam
 		return true
 	end
+
+	local SendToUnsynced = SendToUnsynced
+	local mathFloor = math.floor
 
 	function gadget:GameFrame(gf)
 		gameFrame = gf
 		teamAddedActionFrame = {}
-		if gf % 300 == 1 then	-- every 10 secs
+		if gf % 300 == 1 then -- every 10 secs
+			local frameToMinute = 1 / ((gf - startFrame) / 1800)
 			for teamID, totalActions in pairs(totalTeamActions) do
-				local apm = totalActions / ((gf-startFrame)/1800)	-- 1800 frames = 1 min
-				SendToUnsynced("apmBroadcast", teamID, math.floor(apm+0.5))
+				local apm = mathFloor(totalActions * frameToMinute + 0.5)
+				SendToUnsynced("apmBroadcast", teamID, apm)
 			end
 		end
-		for unitID, frame in pairs(ignoreUnits) do
-			if frame == gf then
-				ignoreUnits[unitID] = nil
+		-- Batch cleanup: only iterate when necessary
+		if next(ignoreUnits) then
+			local expired
+			local expiredCount = 0
+			for unitID, frame in pairs(ignoreUnits) do
+				if frame <= gf then
+					if not expired then
+						expired = {}
+					end
+					expiredCount = expiredCount + 1
+					expired[expiredCount] = unitID
+				end
+			end
+			for i = 1, expiredCount do
+				ignoreUnits[expired[i]] = nil
 			end
 		end
 	end
@@ -77,11 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:TeamDied(teamID)
 		totalTeamActions[teamID] = nil
 	end
-
-
-else	-- unsynced
-
-
+else -- unsynced
 	local function handleApmEvent(_, teamID, apm)
 		if Script.LuaUI("ApmEvent") then
 			Script.LuaUI.ApmEvent(teamID, apm)
@@ -95,5 +110,4 @@ else	-- unsynced
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("apmBroadcast")
 	end
-
 end

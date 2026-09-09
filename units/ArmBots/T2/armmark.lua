@@ -2,7 +2,7 @@ return {
 	armmark = {
 		activatewhenbuilt = true,
 		buildpic = "ARMMARK.DDS",
-		buildtime = 3800,
+		buildtime = 5000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -1",
@@ -14,14 +14,12 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 355,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.05175,
-		maxdec = 0.0621,
+		maxdec = 0.2,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 100,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		objectname = "Units/ARMMARK.s3o",
 		onoffable = false,
@@ -37,6 +35,7 @@ return {
 		turninplacespeedlimit = 0.891,
 		turnrate = 580.75,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots/T2",
@@ -77,11 +76,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

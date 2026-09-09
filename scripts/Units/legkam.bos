@@ -147,9 +147,18 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
+	//get PRINT(severity);
 	if( severity >= 500 )
 	{
 		emit-sfx 2048 + 2 from firepoint; //Triggers kamikaze weapon after unit kills itself
+	}
+	if( severity == 200 )
+	{
+		emit-sfx 2048 + 2 from firepoint; //Triggers kamikaze weapon after unit kills itself
+		corpsetype = 1 ;
+		//emit-sfx 1024 from base;
+		//explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
 	}
 	if( severity <= 25 )
 	{

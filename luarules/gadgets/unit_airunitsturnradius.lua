@@ -1,12 +1,14 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
-		name      = "TurnRadius",
-		desc      = "Fixes TurnRadius Dynamically for bombers",
-		author    = "Doo",
-		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "TurnRadius",
+		desc = "Fixes TurnRadius Dynamically for bombers",
+		author = "Doo",
+		date = "Sept 19th 2017",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -18,7 +20,6 @@ local attackTurnRadius = 500
 
 local CMD_ATTACK = CMD.ATTACK
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
@@ -59,8 +60,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if Bombers[unitID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if Bombers[unitID] and GG.Crashing and GG.Crashing[unitID] then
+		Bombers[unitID] = nil
 	end
 end
 
@@ -69,11 +70,10 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	if curMoveCtrl then
 		spMoveCtrlDisable(unitID)
 	end
-	local success = pcall(function()
-		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID])
-	end)
+	local radius = (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID]
+	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
-		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef "..UnitDefs[unitDefID].name)
+		Bombers[unitID] = nil
 	end
 	if curMoveCtrl then
 		spMoveCtrlEnable(unitID)
@@ -88,7 +88,18 @@ function gadget:GameFrame(n)
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if Bombers[unitID] then
 		processNextCmd(unitID, unitDefID, cmdID)
 	end

@@ -16,8 +16,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1430,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03049,
 		maxdec = 0.12198,
@@ -30,7 +28,7 @@ return {
 		script = "Units/CORCV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 260,
+		sightdistance = 330,
 		speed = 51,
 		terraformspeed = 450,
 		trackoffset = 3,
@@ -41,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1979,
 		turnrate = 421,
-		workertime = 90,
+		workertime = 95,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",
@@ -109,13 +107,6 @@ return {
 				object = "Units/cor3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

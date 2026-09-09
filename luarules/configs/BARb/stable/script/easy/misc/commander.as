@@ -5,6 +5,7 @@ namespace Commander {
 
 string armcom("armcom");
 string corcom("corcom");
+string legcom("legcom");
 
 }
 
@@ -71,6 +72,21 @@ SOpener@ GetOpenInfo()
 			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
 		}},
 		{Factory::corap, array<SQueue> = {
+			SQueue(1.0f, {SO(RT::BUILDER), SO(RT::AA), SO(RT::RAIDER), SO(RT::BOMBER), SO(RT::SCOUT)})
+		}},
+		{Factory::leglab, array<SQueue> = {
+			SQueue(1.0f, {SO(RT::SKIRM), SO(RT::BUILDER)})
+		}},
+		{Factory::legalab, array<SQueue> = {
+			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::RAIDER, 3), SO(RT::BUILDER2), SO(RT::ARTY, 2), SO(RT::ASSAULT), SO(RT::BUILDER2), SO(RT::AA)})
+		}},
+		{Factory::legavp, array<SQueue> = {
+			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 3), SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::ASSAULT), SO(RT::AA), SO(RT::BUILDER2)})
+		}},
+		{Factory::legadvshipyard, array<SQueue> = {
+			SQueue(1.0f, {SO(RT::BUILDER2), SO(RT::SKIRM, 2), SO(RT::BUILDER2), SO(RT::SKIRM), SO(RT::BUILDER2), SO(RT::ARTY), SO(RT::AA), SO(RT::BUILDER2)})
+		}},
+		{Factory::legap, array<SQueue> = {
 			SQueue(1.0f, {SO(RT::BUILDER), SO(RT::AA), SO(RT::RAIDER), SO(RT::BOMBER), SO(RT::SCOUT)})
 		}}
 		}, {SO(RT::BUILDER), SO(RT::SKIRM)}

@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Commander Selector",
@@ -10,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetLocalTeamID
+
 local myTeamID
 
 local commanderDefIDs = {}
@@ -17,7 +25,7 @@ local commanderDefIDsList = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.iscommander then
 		commanderDefIDs[udid] = true
-		table.insert(commanderDefIDsList, udid)
+		tableInsert(commanderDefIDsList, udid)
 	end
 end
 
@@ -60,7 +68,7 @@ local function handleSelectComm(_, _, args)
 	local teamUnits = Spring.GetTeamUnitsByDefs(myTeamID, commanderDefIDsList)
 	for _, unitID in ipairs(teamUnits) do
 		if not selectedUnits[unitID] then
-			table.insert(units, unitID)
+			tableInsert(units, unitID)
 		end
 	end
 
@@ -99,7 +107,7 @@ local function handleSelectComm(_, _, args)
 end
 
 function widget:PlayerChanged()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:Shutdown()
@@ -113,7 +121,7 @@ function widget:Initialize()
 		return
 	end
 
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 
 	widgetHandler:AddAction("selectcomm", handleSelectComm, nil, "p")
 end

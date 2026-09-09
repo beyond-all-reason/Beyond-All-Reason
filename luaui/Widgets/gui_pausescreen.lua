@@ -1,5 +1,6 @@
 include("keysym.h.lua")
-local versionNumber = "1.34"
+
+local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
@@ -8,13 +9,16 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
+		version = "1.34",
 		layer = 999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local spGetGameSpeed = Spring.GetGameSpeed
-local spGetGameState = Spring.GetGameState
 local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
@@ -33,23 +37,22 @@ local glGetUniformLocation = gl.GetUniformLocation
 
 local osClock = os.clock
 
-
 ----------------------------------------------------------------------------------
 
 -- CONFIGURATION
 
-local fontfile = "fonts/unlisted/MicrogrammaDBold.ttf"
-local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+local fontfile = "fonts/unlisted/Xolonium.otf"
+local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.3
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local font =
+	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier = 1
-local maxAlpha = 0.65
 local maxShaderAlpha = 0.25
-local maxNonShaderAlpha = 0.12            --background alpha when shaders arent availible
+local maxNonShaderAlpha = 0.12 --background alpha when shaders aren't available
 local boxWidth = 200
 local boxHeight = 35
 local slideTime = 0.12
@@ -67,18 +70,21 @@ local textX = nil
 local textY = nil
 local usedSizeMultiplier = 1
 local widgetInitTime = osClock()
-local previousDrawScreenClock = osClock()
 local paused = false
 local lastGameFrame = spGetGameFrame()
-local lastGameFrameTime = os.clock() + 10
+local lastGameFrameTime = osClock() + 10
 
 local shaderAlpha = 0
 local screencopy, shaderProgram
 local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
+local cachedPauseText = nil
+local spIsGUIHidden = Spring.IsGUIHidden
 
-
+-- Pre-allocated color tables
+local textColor = { 1.0, 1.0, 1.0, 0 }
+local outlineColor = { 0.0, 0.0, 0.0, 0 }
 
 --intensity formula based on http://alienryderflex.com/hsp.html
 local fragmentShaderSource = [[
@@ -123,10 +129,13 @@ end
 function widget:Update(dt)
 	local now = osClock()
 	local gameFrame = spGetGameFrame()
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	previousDrawScreenClock = now
 
 	local diffPauseTime = (now - pauseTimestamp)
+
+	-- Early exit: not paused, not sliding, no freeze detection needed
+	if not paused and not lastPause and diffPauseTime > slideTime and (gameFrame == 0 or gameover) then
+		return
+	end
 
 	if (not paused and lastPause) or (paused and not lastPause) then
 		--pause switch
@@ -139,23 +148,20 @@ function widget:Update(dt)
 	if paused and not lastPause then
 		--new pause
 		if widgetInitTime + 5 > now then
-			-- so if you do /luaui reload when paused, it wont re-animate
+			-- so if you do /luaui reload when paused, it won't re-animate
 			pauseTimestamp = now - (slideTime + autoFadeTime)
 		end
 	end
 
 	lastPause = paused
 
+	local _, gameSpeed, isPaused = spGetGameSpeed()
 	if (not gameover and gameSpeed == 0) or isPaused then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
 		paused = false
 	end
-
-	--if spGetGameState and select(3, spGetGameState()) then	-- is locally paused? NOTE: returns true if you do /pause as spec regardless of game actually being paused of not
-	--	paused = true
-	--end
 
 	-- admin pause / game freeze
 	if not paused and gameFrame > 0 and not gameover then
@@ -178,12 +184,8 @@ function widget:Update(dt)
 	end
 end
 
-local function drawPause()
-	local now = osClock()
+local function drawPause(now)
 	local diffPauseTime = (now - pauseTimestamp)
-
-	local text = { 1.0, 1.0, 1.0, 0 * maxAlpha }
-	local outline = { 0.0, 0.0, 0.0, 0 * maxAlpha }
 
 	local progress
 	if paused then
@@ -197,8 +199,8 @@ local function drawPause()
 	if progress < 0 then
 		progress = 0
 	end
-	text[4] = (text[4] * (1 - progress)) + fadeToTextAlpha
-	outline[4] = (outline[4] * (1 - progress)) + (fadeToTextAlpha / 2.25)
+	textColor[4] = (0 * (1 - progress)) + fadeToTextAlpha
+	outlineColor[4] = (0 * (1 - progress)) + (fadeToTextAlpha / 2.25)
 
 	shaderAlpha = progress * maxShaderAlpha
 	nonShaderAlpha = progress * maxNonShaderAlpha
@@ -219,16 +221,19 @@ local function drawPause()
 			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (1.0 - (diffPauseTime / slideTime)), 0, 0)
 		else
 			--sliding out
-			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * ((diffPauseTime / slideTime)), 0, 0)
+			glTranslate(((vsx - wndX1) / usedSizeMultiplier) * (diffPauseTime / slideTime), 0, 0)
 		end
 	end
 
 	--draw text
 	if not gameover then
+		if not cachedPauseText then
+			cachedPauseText = BAR.I18N("ui.pauseScreen.paused")
+		end
 		font:Begin()
-		font:SetOutlineColor(outline)
-		font:SetTextColor(text)
-		font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
+		font:SetOutlineColor(outlineColor)
+		font:SetTextColor(textColor)
+		font:Print(cachedPauseText, textX, textY, fontSizeHeadline, "O")
 		font:End()
 	end
 
@@ -246,14 +251,12 @@ function widget:Initialize()
 	end
 
 	if gl.CreateShader then
-		shaderProgram = gl.CreateShader(
-			{
-				fragment = fragmentShaderSource,
-				uniformInt = {
-					screencopy = 0,
-				},
-			}
-		)
+		shaderProgram = gl.CreateShader({
+			fragment = fragmentShaderSource,
+			uniformInt = {
+				screencopy = 0,
+			},
+		})
 		if shaderProgram then
 			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
 		end
@@ -271,7 +274,7 @@ function widget:DrawScreen()
 
 	if paused or (now - pauseTimestamp) <= slideTime then
 		showPauseScreen = true
-		drawPause()
+		drawPause(now)
 	else
 		showPauseScreen = false
 	end
@@ -288,13 +291,18 @@ local function updateWindowCoords()
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+		font = gl.LoadFont(
+			fontfile,
+			fontfileSize * fontfileScale,
+			fontfileOutlineSize * fontfileScale,
+			fontfileOutlineStrength
+		)
 	end
 
 	updateWindowCoords()
@@ -307,12 +315,12 @@ function widget:ViewResize()
 end
 
 function widget:DrawScreenEffects()
-	if Spring.IsGUIHidden() then
+	if spIsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
-		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
+		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- can't get this method to work
 		glTexture(0, screencopy)
 		glUseShader(shaderProgram)
 		glUniform(alphaLoc, shaderAlpha)

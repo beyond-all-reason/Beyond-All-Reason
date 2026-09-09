@@ -2,7 +2,6 @@ return {
 	armuwmme = {
 		activatewhenbuilt = true,
 		buildangle = 32768,
-		buildingmask = 0,
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 14900,
 		canrepeat = false,
@@ -14,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 30,
@@ -36,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armuwmme_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 4,
+			standardextractor = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -72,13 +70,6 @@ return {
 				object = "Units/arm5X5C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

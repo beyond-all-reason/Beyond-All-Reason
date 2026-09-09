@@ -1,7 +1,7 @@
 return {
 	cormabm = {
 		buildpic = "CORMABM.DDS",
-		buildtime = 42000,
+		buildtime = 52000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 0",
@@ -14,11 +14,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 870,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03721,
-		maxdec = 0.07443,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 1250,
@@ -28,7 +26,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "Units/CORMABM.s3o",
 		radardistance = 50,
-		script = "Units/CORMABM.cob",
+		script = "Units/cormabm.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 450,
@@ -44,6 +42,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
@@ -77,13 +76,6 @@ return {
 				object = "Units/cor3X3D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

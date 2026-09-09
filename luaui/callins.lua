@@ -16,6 +16,8 @@ CallInsList = {
 	"LayoutButtons",
 	"ConfigureLayout",
 	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
 	"CommandNotify",
 
 	"KeyPress",
@@ -78,11 +80,6 @@ CallInsList = {
 	"FeatureDestroyed",
 
 	"DrawGenesis",
-	"DrawWater",
-	"DrawSky",
-	"DrawSun",
-	"DrawGrass",
-	"DrawTrees",
 	"DrawWorld",
 	"DrawWorldPreUnit",
 	"DrawWorldPreParticles",
@@ -99,6 +96,8 @@ CallInsList = {
 	"DrawScreenPost",
 	"DrawScreen",
 	"DrawInMiniMap",
+
+	"DrawBuildSquare",
 
 	"DrawOpaqueUnitsLua",
 	"DrawOpaqueFeaturesLua",
@@ -150,5 +149,5 @@ CallInsList = {
 
 CallInsMap = {}
 for _, callin in ipairs(CallInsList) do
-  CallInsMap[callin] = true
+	CallInsMap[callin] = true
 end

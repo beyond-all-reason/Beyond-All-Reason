@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Pregame UI",
@@ -6,33 +8,38 @@ function widget:GetInfo()
 		date = "July 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -3,
-		enabled = true
+		enabled = true,
 	}
 end
 
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGroundHeight = Spring.GetGroundHeight
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 local draftMode = Spring.GetModOptions().draft_mode
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx, vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx * vsy / 6200000))
-local fontfileSize = 50
-local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 1.4
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
-local myPlayerID = Spring.GetMyPlayerID()
-local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local myPlayerID = Spring.GetLocalPlayerID()
+local myPlayerName, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+myPlayerName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(myPlayerID))
+	or myPlayerName
+local isFFA = BAR.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
 
-local readyButtonColor = {0.05, 0.28, 0}
-local unreadyButtonColor = {0.28, 0.05, 0}
-local subButtonColor = {0.08, 0.22, 0}
-local unsubButtonColor = {0.22, 0.08, 0}
+local readyButtonColor = { 0.05, 0.28, 0 }
+local unreadyButtonColor = { 0.28, 0.05, 0 }
+local subButtonColor = { 0.08, 0.22, 0 }
+local unsubButtonColor = { 0.22, 0.08, 0 }
 
-local readied = false	-- send readystate (in widget:GameSetup)
-local pressedReady	-- pressed button
+local readied = false -- send readystate (in widget:GameSetup)
+local pressedReady -- pressed button
 local startPointChosen = false
 
 local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
@@ -41,114 +48,166 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 local auto_ready_timer = 120
-local auto_ready = not Spring.Utilities.Gametype.IsSinglePlayer()
+local auto_ready = not BAR.Utilities.Gametype.IsSinglePlayer()
 
 local buttonPosX = 0.8
 local buttonPosY = 0.76
-local buttonX = math.floor(vsx * buttonPosX)
-local buttonY = math.floor(vsy * buttonPosY)
+local buttonX = mathFloor(vsx * buttonPosX)
+local buttonY = mathFloor(vsy * buttonPosY)
 
 local orgbuttonH = 40
 local orgbuttonW = 115
 
-local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+local buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
-local buttonText = ''
+local buttonText = ""
 local buttonDrawn = false
-local lockText = ''
 local locked = false
+local isReadyBlocked = false
+local readyBlockedConditions = {}
+local cachedTooltipText = ""
 
-local RectRound, UiElement, UiButton, elementPadding, uiPadding
+local function updateReadyTooltip()
+	if not next(readyBlockedConditions) then
+		isReadyBlocked = false
+		cachedTooltipText = ""
+		for conditionKey, description in pairs(readyBlockedConditions) do
+			if description ~= nil then
+				if cachedTooltipText ~= "" then
+					cachedTooltipText = cachedTooltipText .. "\n"
+				end
+				cachedTooltipText = cachedTooltipText .. BAR.I18N(description)
+			end
+		end
+	else
+		cachedTooltipText = ""
+	end
+end
+
+local UiElement, UiButton, elementPadding, uiPadding
 
 local enableSubbing = false
 local eligibleAsSub = false
 local offeredAsSub = false
---local allowUnready = false	-- not enabled cause unreadying doesnt work, have to do workaroud
+--local allowUnready = false	-- not enabled cause unreadying doesn't work, have to do workaround
 local showLockButton = true
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = BAR.Utilities.GetPlayerCount()
 
 local shapeOpacity = 0.6
 local unitshapes = {}
 local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
-local uiElementRect = {0,0,0,0}
-local uiLockRect = {0,0,0,0}
-local buttonRect = {0,0,0,0}
-local lockRect = {0,0,0,0}
+local uiElementRect = { 0, 0, 0, 0 }
+local buttonRect = { 0, 0, 0, 0 }
 local blinkButton = false
 
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
 		if not locked then
-			color = readyButtonColor
+			if isReadyBlocked then
+				color = { 0.3, 0.3, 0.3 }
+			else
+				color = readyButtonColor
+			end
 		else
 			color = unreadyButtonColor
 		end
 	elseif eligibleAsSub then
 		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
-	uiElementRect = { buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding }
+	uiElementRect = {
+		buttonX - (buttonW / 2) - uiPadding,
+		buttonY - (buttonH / 2) - uiPadding,
+		buttonX + (buttonW / 2) + uiPadding,
+		buttonY + (buttonH / 2) + uiPadding,
+	}
 	buttonRect = { buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2) }
 
 	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
 		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
+		UiButton(
+			buttonRect[1],
+			buttonRect[2],
+			buttonRect[3],
+			buttonRect[4],
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			nil,
+			{ color[1] * 0.55, color[2] * 0.55, color[3] * 0.55, 1 },
+			{ color[1], color[2], color[3], 1 }
+		)
 	end)
 	gl.DeleteList(buttonHoverList)
 	buttonHoverList = gl.CreateList(function()
 		UiElement(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
+		UiButton(
+			buttonRect[1],
+			buttonRect[2],
+			buttonRect[3],
+			buttonRect[4],
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			nil,
+			{ color[1] * 0.85, color[2] * 0.85, color[3] * 0.85, 1 },
+			{ color[1] * 1.5, color[2] * 1.5, color[3] * 1.5, 1 }
+		)
 	end)
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	if mySpec then
 		if not offeredAsSub then
-			buttonText = Spring.I18N('ui.substitutePlayers.offer')
+			buttonText = BAR.I18N("ui.substitutePlayers.offer")
 		else
-			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
+			buttonText = BAR.I18N("ui.substitutePlayers.withdraw")
 		end
 	else
 		if readied then
 			if locked then
-				buttonText = Spring.I18N('ui.initialSpawn.unlock')
+				buttonText = BAR.I18N("ui.initialSpawn.unlock")
 			else
-				buttonText = Spring.I18N('ui.initialSpawn.lock')
+				buttonText = BAR.I18N("ui.initialSpawn.lock")
 			end
 		else
-			buttonText = Spring.I18N('ui.initialSpawn.ready')
+			buttonText = BAR.I18N("ui.initialSpawn.ready")
 		end
 	end
 
-	vsx, vsy = Spring.GetViewGeometry()
-	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * buttonPosX)
-	buttonY = math.floor(vsy * buttonPosY)
-	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
-	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
-	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+	vsx, vsy = spGetViewGeometry()
 
-	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	end
+	font = WG.fonts.getFont(2)
+
+	uiScale = (0.75 + (vsx * vsy / 6000000))
+	buttonX = mathFloor(vsx * buttonPosX)
+	buttonY = mathFloor(vsy * buttonPosY)
+	orgbuttonW = font:GetTextWidth("       " .. buttonText) * 24
+	buttonW = mathFloor(orgbuttonW * uiScale / 2) * 2
+	buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math.floor(elementPadding * 4.5)
+	uiPadding = mathFloor(elementPadding * 4.5)
 
 	createButton()
-
 end
 
 local ihavejoined = false
@@ -156,14 +215,18 @@ function widget:GameSetup(state, ready, playerStates)
 	local spec, fullview = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
-	if not spec and not ihavejoined and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil then
+	if
+		not spec
+		and not ihavejoined
+		and Spring.GetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil
+	then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true
 	end
 
 	-- check when the 3.2.1 countdown starts
 	if not gameStarting and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then
-		gameStarting = true		-- ugly but effective (can also detect by parsing state string)
+		gameStarting = true -- ugly but effective (can also detect by parsing state string)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
@@ -179,7 +242,7 @@ function widget:GameSetup(state, ready, playerStates)
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		auto_ready_timer = auto_ready_timer - Spring.GetLastUpdateSeconds()
 	end
-	if auto_ready_timer <=0 and auto_ready == true then
+	if auto_ready_timer <= 0 and auto_ready == true then
 		return true, true
 	end
 
@@ -187,10 +250,10 @@ function widget:GameSetup(state, ready, playerStates)
 	ready = true
 	local playerList = Spring.GetPlayerList()
 	for _, playerID in pairs(playerList) do
-		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID)
+		local _, _, spectator_flag = Spring.GetPlayerInfo(playerID, false)
 		if spectator_flag == false then
 			local is_player_ready = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
-			--Spring.Echo(#playerList, playerID, is_player_ready)
+			--spEcho(#playerList, playerID, is_player_ready)
 			if is_player_ready == 0 or is_player_ready == 4 then
 				ready = false
 			end
@@ -198,22 +261,21 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	return true, ready
-
 end
 
 function widget:MousePress(sx, sy)
 	if buttonDrawn then
-
 		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
 			-- pressing actual button
 			if sx > buttonRect[1] and sx < buttonRect[3] and sy > buttonRect[2] and sy < buttonRect[4] then
-
 				-- if not pressed on ready
 				if not readied then
 					if not mySpec then
 						if not readied then
-							if startPointChosen then
+							if isReadyBlocked then
+								return true
+							elseif startPointChosen then
 								pressedReady = true
 								readied = true
 								Spring.SendLuaRulesMsg("ready_to_start_game")
@@ -221,20 +283,19 @@ function widget:MousePress(sx, sy)
 								locked = true
 								Spring.SendLuaRulesMsg("locking_in_place")
 							else
-								Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+								spEcho(BAR.I18N("ui.initialSpawn.choosePoint"))
 							end
-
 						end
 
 					-- substitute
 					elseif eligibleAsSub then
 						offeredAsSub = not offeredAsSub
 						if offeredAsSub then
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+							spEcho(BAR.I18N("ui.substitutePlayers.substitutionMessage"))
 						else
-							Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+							spEcho(BAR.I18N("ui.substitutePlayers.offerWithdrawn"))
 						end
-						Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
+						Spring.SendLuaRulesMsg(offeredAsSub and "\144" or "\145")
 					end
 				-- lock position text showing
 				else
@@ -251,7 +312,6 @@ function widget:MousePress(sx, sy)
 			end
 			return true
 		end
-
 	end
 end
 
@@ -303,6 +363,29 @@ function widget:Initialize()
 
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
+
+	WG.pregameui = {}
+	WG.pregameui.addReadyCondition = function(conditionKey, description)
+		if conditionKey and description then
+			readyBlockedConditions[conditionKey] = description
+			isReadyBlocked = true
+			updateReadyTooltip()
+			createButton()
+		end
+	end
+	WG.pregameui.removeReadyCondition = function(conditionKey)
+		if conditionKey and readyBlockedConditions[conditionKey] then
+			readyBlockedConditions[conditionKey] = nil
+			updateReadyTooltip()
+			createButton()
+		end
+	end
+	WG.pregameui.clearAllReadyConditions = function()
+		readyBlockedConditions = {}
+		isReadyBlocked = false
+		updateReadyTooltip()
+		createButton()
+	end
 end
 
 function widget:DrawScreen()
@@ -310,8 +393,8 @@ function widget:DrawScreen()
 		checkStartPointChosen()
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+	if WG.guishader then
+		WG.guishader.RemoveRect("pregameui")
 	end
 
 	buttonDrawn = false
@@ -319,7 +402,8 @@ function widget:DrawScreen()
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, math.floor(auto_ready_timer)) })
+		local text = colorString
+			.. BAR.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, mathFloor(auto_ready_timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
@@ -342,13 +426,12 @@ function widget:DrawScreen()
 	if gameStarting then
 		timer = timer + Spring.GetLastUpdateSeconds()
 		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
+		local text = colorString
+			.. BAR.I18N("ui.initialSpawn.startCountdown", { time = mathMax(1, 3 - mathFloor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
-
 	elseif showbutton == true then
-
 		local playerList = Spring.GetPlayerList()
 		local numPlayers = #playerList
 		local numPlayersReady = 0
@@ -363,14 +446,8 @@ function widget:DrawScreen()
 		end
 
 		buttonDrawn = true
-		if WG['guishader'] then
-			WG['guishader'].InsertRect(
-				uiElementRect[1],
-				uiElementRect[2],
-				uiElementRect[3],
-				uiElementRect[4],
-				'pregameui'
-			)
+		if WG.guishader then
+			WG.guishader.InsertRect(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], "pregameui")
 		end
 
 		-- draw ready button and text
@@ -379,24 +456,43 @@ function widget:DrawScreen()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
+
+			if isReadyBlocked and WG.tooltip then
+				WG.tooltip.ShowTooltip("pregameui", cachedTooltipText)
+			end
 		else
 			gl.CallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
 				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				if isReadyBlocked then
+					colorString = "\255\150\150\150"
+				else
+					colorString = os.clock() % 0.75 <= 0.375 and "\255\255\255\255" or "\255\222\222\222"
+				end
 			end
 			if readied then
 				colorString = "\255\222\222\222"
 			end
-			if blinkButton and not readied and os.clock() % 0.75 <= 0.375 then
+			if blinkButton and not readied and not isReadyBlocked and os.clock() % 0.75 <= 0.375 then
 				local mult = 1.33
-				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, { readyButtonColor[1]*0.55*mult, readyButtonColor[2]*0.55*mult, readyButtonColor[3]*0.55*mult, 1 }, { readyButtonColor[1]*mult, readyButtonColor[2]*mult, readyButtonColor[3]*mult, 1 })
+				UiButton(buttonRect[1], buttonRect[2], buttonRect[3], buttonRect[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, {
+					readyButtonColor[1] * 0.55 * mult,
+					readyButtonColor[2] * 0.55 * mult,
+					readyButtonColor[3] * 0.55 * mult,
+					1,
+				}, { readyButtonColor[1] * mult, readyButtonColor[2] * mult, readyButtonColor[3] * mult, 1 })
 			end
 		end
 		font:Begin()
-		font:Print(colorString .. buttonText, buttonRect[1]+((buttonRect[3]-buttonRect[1])/2), (buttonRect[2]+((buttonRect[4]-buttonRect[2])/2)) - (buttonH * 0.16), 24 * uiScale, "co")
+		font:Print(
+			colorString .. buttonText,
+			buttonRect[1] + ((buttonRect[3] - buttonRect[1]) / 2),
+			(buttonRect[2] + ((buttonRect[4] - buttonRect[2]) / 2)) - (buttonH * 0.16),
+			24 * uiScale,
+			"co"
+		)
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
@@ -419,21 +515,28 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacit
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 then return end
+	if not WG.StopDrawUnitShapeGL4 then
+		return
+	end
 
 	-- draw pregamestart commander models at start positions
 	local id
 	for i = 1, #teamList do
 		local teamID = teamList[i]
-		local tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		local tsx, tsy, tsz
+		if WG.map_startbox and WG.map_startbox.GetEffectiveStartPosition then
+			tsx, tsy, tsz = WG.map_startbox.GetEffectiveStartPosition(teamID)
+		else
+			tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		end
 		if tsx and tsx > 0 then
-			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
+			local startUnitDefID = Spring.GetTeamRulesParam(teamID, "startUnit")
 			if startUnitDefID then
-				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				id = startUnitDefID .. "_" .. tsx .. "_" .. spGetGroundHeight(tsx, tsz) .. "_" .. tsz
 				if teamStartPositions[teamID] ~= id then
 					removeUnitShape(teamStartPositions[teamID])
 					teamStartPositions[teamID] = id
-					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+					addUnitShape(id, startUnitDefID, tsx, spGetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
 				end
 			end
 		end
@@ -443,13 +546,13 @@ end
 function widget:Shutdown()
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
-	gl.DeleteFont(font)
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui')
+	if WG.guishader then
+		WG.guishader.RemoveRect("pregameui")
 	end
 	if WG.StopDrawUnitShapeGL4 then
 		for id, _ in pairs(unitshapes) do
 			removeUnitShape(id)
 		end
 	end
+	WG.pregameui = nil
 end

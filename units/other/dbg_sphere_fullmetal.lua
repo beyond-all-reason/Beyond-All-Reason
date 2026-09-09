@@ -15,8 +15,6 @@ return {
 		explodeas = "blank",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 600,
 		health = 940,
 		speed = 71.55,
 		maxwaterdepth = 16,

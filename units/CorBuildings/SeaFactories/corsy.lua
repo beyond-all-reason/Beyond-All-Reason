@@ -2,23 +2,22 @@ return {
 	corsy = {
 		builder = true,
 		buildpic = "CORSY.DDS",
-		buildtime = 6600,
+		buildtime = 5100,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 59 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 1200,
+		energycost = 950,
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,
 		health = 4300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 600,
+		metalcost = 450,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/CORSY.s3o",
@@ -28,7 +27,7 @@ return {
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 1,
-		workertime = 165,
+		workertime = 150,
 		yardmap = "oyyyyo oeeeeo oeeeeo oeeeeo oeeeeo oyyyyo",
 		buildoptions = {
 			[1] = "corcs",
@@ -42,6 +41,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
 		},
@@ -64,10 +64,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -2,22 +2,20 @@ return {
 	corparrow = {
 		activatewhenbuilt = true,
 		buildpic = "CORPARROW.DDS",
-		buildtime = 22200,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -10 1",
 		collisionvolumescales = "44 35 53",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 29000,
+		energycost = 21000,
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
 		health = 6300,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.0266,
-		maxdec = 0.05321,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 255,
 		metalcost = 1050,
@@ -27,8 +25,8 @@ return {
 		script = "Units/CORPARROW.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 385,
-		sonardistance = 288.75,
+		sightdistance = 500,
+		sonardistance = 289,
 		speed = 51,
 		trackoffset = -6,
 		trackstrength = 10,
@@ -49,8 +47,6 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 35,
-			weapon1turrety = 55,
 		},
 		featuredefs = {
 			dead = {
@@ -86,11 +82,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:DUST_CLOUD",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -134,6 +125,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
+				customparams = {
+					turretspeedx = 35,
+					turretspeedy = 55,
+				},
 				damage = {
 					default = 370,
 					subs = 185,

@@ -1,4 +1,5 @@
 #version 420
+#extension GL_ARB_shader_storage_buffer_object : require
 #line 10000
 
 // This shader is Copyright (c) 2024 Beherith (mysterme@gmail.com) and licensed under the MIT License
@@ -14,14 +15,26 @@
 #define    FADESTART 2000
 #define    FADEEND 3000
 */
-layout (location = 0) in vec3 vertexPos;
-layout (location = 1) in vec3 vertexNormal;
-layout (location = 2) in vec3 stangent;
-layout (location = 3) in vec3 ttangent;
-layout (location = 4) in vec2 texcoords0;
-layout (location = 5) in vec2 texcoords1;
-layout (location = 6) in float pieceindex;
-layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+
+#if COMPACTVBO == 1
+
+  layout (location = 0) in vec4 pos_u;
+  layout (location = 1) in vec4 norm_v;
+
+  layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+  vec3 vertexPos = pos_u.xyz;
+  vec3 vertexNormal = norm_v.xyz;
+  vec2 texcoords0 = vec2(pos_u.w, norm_v.w);
+#else
+  layout (location = 0) in vec3 vertexPos;
+  layout (location = 1) in vec3 vertexNormal;
+  layout (location = 2) in vec3 stangent;
+  layout (location = 3) in vec3 ttangent;
+  layout (location = 4) in vec2 texcoords0;
+  layout (location = 5) in vec2 texcoords1;
+  layout (location = 6) in float pieceindex;
+  layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
+#endif
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
 uniform float distanceMult; //yes this is the additional distance multiplier
@@ -34,16 +47,26 @@ uniform sampler2DShadow shadowTex;
 uniform sampler2D losTex;
 uniform sampler2D heightmapTex;
 
+#if UNITBENDENABLED == 1
+layout(std430, binding = 6) readonly buffer UnitBendBuffer {
+    vec4 unitBendPositions[]; // xy = worldX/worldZ, z = radius, w = unused
+};
+uniform int unitBendCount;
+#endif
+
 out DataVS {
-	vec3 worldPos;
+	//vec3 worldPos;
   //vec3 Normal;
-  vec2 texCoord0;
+  vec4 texCoord0;
   //vec3 Tangent;
   //vec3 Bitangent;
   vec4 mapColor; //alpha contains fog factor
   //vec4 grassNoise;
   vec4 instanceParamsVS; // x is distance from camera
-  vec4 debuginfo;
+  
+	#if DEBUG == 1 
+    vec4 debuginfo;
+  #endif
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -52,18 +75,41 @@ out DataVS {
 
 // pre vs opt pure vs load is 182 -> 155 fps
 void main() {
+  // Early bail visibility culling, if instancePosRotSize.xyz is not in camera frustum, skip it:
 
+  vec4 worldPos = vec4(instancePosRotSize.x, 0.0, instancePosRotSize.z, 1.0);
+  vec4 clipPos = cameraViewProj * vec4(worldPos.xyz, 1.0);
+  float absW = abs(clipPos.w);
+  if (absW < 0.00001) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull unstable near-plane results
+    return;
+  }
 
-  vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
+  vec2 ndcXY = clipPos.xy / absW;
+  if (clipPos.z < -absW || clipPos.z > absW) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull by moving out of clip space
+    return;
+  }
+
+  // Early bail zero-size instances
+  if (instancePosRotSize.w <= 0.0) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    return;
+  }
+
+  float bladeScale = instancePosRotSize.w; // grassBladeScale is baked into the patch mesh at load time
+  vec3 grassVertWorldPos = vertexPos * bladeScale; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
   grassVertWorldPos.xz = (rotY * grassVertWorldPos).xz + instancePosRotSize.xz; // rotate Y and move to world pos
-
-  debuginfo.xyz = rotY*vertexNormal;
+  
+	#if DEBUG == 1 
+    debuginfo.xyz = rotY*vertexNormal;
+  #endif
   //--- Heightmap sampling
-  vec2 ts = vec2(textureSize(heightmapTex, 0));
-  vec2 uvHM =   vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
-  grassVertWorldPos.y = (vertexPos.y +0.5) *instancePosRotSize.w + textureLod(heightmapTex, uvHM, 0.0).x;
+  vec2 uvHM = vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0)) / mapSize.xy;
+  float groundHeight = textureLod(heightmapTex, uvHM, 0.0).x;
+  grassVertWorldPos.y = (vertexPos.y + 0.5) * bladeScale + groundHeight;
 
   //--- LOS tex
   vec4 losTexSample = texture(losTex, vec2(grassVertWorldPos.x / mapSize.z, grassVertWorldPos.z / mapSize.w)); // lostex is PO2
@@ -74,7 +120,7 @@ void main() {
   //--- SHADOWS ---
   float shadow = 1.0;
 
-  #ifdef HASSHADOWS
+  #if HASSHADOWS == 1
     #define SHADOWOFFSET 4.0
     vec4 shadowVertexPos;
     shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);
@@ -107,22 +153,55 @@ void main() {
   //Shade the patches to be darker when 'flattened' by noise
   float shadeamount = grassNoise.y *2.0; //0-1
   shadeamount = (shadeamount -0.66) *3.0;
-  grassNoise.y *2.0;
-
 
   grassNoise.y = grassNoise.y -0.4;
 
   instanceParamsVS.w = mix(vec3(0.0,1.0,0.0),vec3(0.0,shadeamount,0.0), texcoords0.y).y;
 
-  grassVertWorldPos = grassVertWorldPos.xyz +  grassNoise.rgb * vertexPos.y * instancePosRotSize.w * WINDSTRENGTH * grassuniforms.z; // wind is a factor of
+  grassVertWorldPos = grassVertWorldPos.xyz +  grassNoise.rgb * vertexPos.y * bladeScale * WINDSTRENGTH * grassuniforms.z; // wind is a factor of
+
+
+  //--- UNIT BENDING ---
+  #if UNITBENDENABLED == 1
+  {
+    vec2 totalBend = vec2(0.0);
+    float maxShrink = 0.0;
+    for (int i = 0; i < unitBendCount; i++) {
+      vec4 unit = unitBendPositions[i]; // xy = worldXZ, z = radius, w = strength
+      vec2 diff = instancePosRotSize.xz - unit.xy;
+      float distSq = dot(diff, diff);
+      float radius = unit.z;
+      float radiusSq = radius * radius;
+      if (distSq < radiusSq && distSq > 0.0001) {
+        float dist = sqrt(distSq);
+        float t = 1.0 - dist / radius;
+        float strength = pow(t, UNITBENDFALLOFF) * unit.w;
+        totalBend += (diff / dist) * strength;
+        maxShrink = max(maxShrink, strength);
+      }
+    }
+    // Shrink grass near units to reduce poking through models
+    float shrinkScale = 1.0 - clamp(maxShrink, 0.0, 1.0) * UNITBENDSHRINK;
+    grassVertWorldPos.y = (grassVertWorldPos.y - groundHeight) * shrinkScale + groundHeight;
+
+    float bendLen = length(totalBend);
+    if (bendLen > 0.001) {
+      // Clamp magnitude to prevent over-bending from overlapping sources
+      float clampedBend = min(bendLen, 1.0);
+      vec2 bendDir = totalBend / bendLen;
+      // Convert to rotation angle (0 to ~80 degrees) to preserve blade length
+      float bendAngle = clampedBend * UNITBENDSTRENGTH * 0.175;
+      float heightFromBase = max(0.0, vertexPos.y + 0.5) * bladeScale;
+      // Rotate blade outward: sin for horizontal displacement, 1-cos for height reduction
+      grassVertWorldPos.xz += bendDir * sin(bendAngle) * heightFromBase;
+      grassVertWorldPos.y -= heightFromBase * (1.0 - cos(bendAngle));
+    }
+  }
+  #endif
 
 
   //--- FOG ----
-
-  float fogDist = length((cameraView * vec4(grassVertWorldPos,1.0)).xyz);
-  float fogFactor = (fogParams.y - fogDist) * fogParams.w;
-  mapColor.a = smoothstep(0.0,1.0,fogFactor);
-  mapColor.a = 1.0; // DEBUG FOR NOW AS FOG IS BORKED
+  mapColor.a = 1.0; // FOG DISABLED FOR NOW
 
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];
@@ -131,12 +210,10 @@ void main() {
 
 
   //--- ALPHA CULLING BASED ON QUAD NORMAL
-  // float cosnormal = dot(normalize(grassVertWorldPos.xyz - camPos.xyz), rotY * vertexNormal);
-  //instanceParamsVS.x *= clamp(cosnormal,0.0,1.0);
-  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
+  texCoord0.w  = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
 
   // ------------ dump the stuff for FS --------------------
-  texCoord0 = texcoords0;
+  texCoord0.xy = texcoords0.xy;
   //Normal = rotY * vertexNormal;
   //Tangent = rotY * ttangent;
   gl_Position = cameraViewProj * vec4(grassVertWorldPos.xyz, 1.0);

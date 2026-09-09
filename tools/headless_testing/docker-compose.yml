@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ../..:/bar/games/BAR.sdd:ro
-      - ../../../../LuaUI/Widgets:/bar/LuaUI/Widgets:ro
-      - ./testlog:/bar/testlog:rw
+      - ../..:/bar/games/BAR.sdd:ro,z
+      - ../../../../LuaUI/Widgets:/bar/LuaUI/Widgets:ro,z
+      - ./testlog:/bar/testlog:rw,z
       - cache:/bar/cache:rw
 
 volumes:

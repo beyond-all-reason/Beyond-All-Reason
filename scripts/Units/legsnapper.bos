@@ -100,7 +100,7 @@ AimWeapon2()
 
 FireWeapon1()
 {
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
+	get KILL_UNIT(get MY_ID,TRUE,FALSE);
 }
 
 QueryWeapon1(pieceIndex)
@@ -112,22 +112,6 @@ AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = base;
 }
-
-QueryWeapon2(pieceIndex)
-{
-	pieceIndex = base;
-}
-
-AimFromWeapon2(pieceIndex)
-{
-	pieceIndex = base;
-}
-
-FireWeapon2()
-{
-}
-
-
 
 Killed(severity, corpsetype)
 {

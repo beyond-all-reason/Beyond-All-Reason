@@ -1,5 +1,6 @@
 return {
 	cornecro = {
+		autoheal = 5,
 		builddistance = 96,
 		builder = true,
 		buildpic = "CORNECRO.DDS",
@@ -16,14 +17,12 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 220,
-		idleautoheal = 5,
-		idletime = 60,
 		maxacc = 0.23,
 		maxdec = 0.8625,
 		maxslope = 14,
 		maxwaterdepth = 22,
 		metalcost = 130,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/CORNECRO.s3o",
 		radardistance = 50,
 		script = "Units/CORNECRO.cob",
@@ -74,13 +73,6 @@ return {
 				object = "Units/cor2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-builder",
-				[2] = "deathceg2-builder",
-				[3] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -7,7 +7,7 @@
 			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
 			// limit = random(<lower limit>..<upper limit>)
 			//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
-			//higer value => more efficient | e-output * e-output / mcost*x*y
+			//higher value => more efficient | e-output * e-output / mcost*x*y
 			"armwin": [30, 60],
 			"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
 			"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
@@ -59,7 +59,7 @@
 
 		"cost_ratio": 0.040, //0.43
 		// min. limit for energy to cost ratio to have access to next energy tier 
-		// (e.g. armfusion ecost (21000*0.04=1260 => 840e income neccessary to start building fusion)
+		// (e.g. armfusion ecost (21000*0.04=1260 => 840e income necessary to start building fusion)
 		// ratio 0.4 => armadvsol 200e, armfus 840e, armafus 2760e
 
         "em_ratio": 0.08,  // energy to metal ratio, used with UnitDef.build_speed
@@ -72,11 +72,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "armgeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "armmex"
 	},
 // buildpower -  Mobile buildpower to metal income ratio,
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
@@ -127,7 +129,8 @@
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "armwin"
 	}
 }
 }

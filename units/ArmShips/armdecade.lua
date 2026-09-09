@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 970,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1004,
 		maxdec = 0.1004,
 		metalcost = 175,
@@ -35,6 +33,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 6,
 			subfolder = "ArmShips",
 			unitgroup = "weapon",
 		},
@@ -74,11 +73,6 @@ return {
 				[1] = "custom:barrelshot-tiny",
 				[2] = "custom:waterwake-small-long",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -112,6 +106,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-small-yellow",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
 				name = "Light Rapid-Fire Gauss Cannons",
@@ -128,6 +123,9 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 9,
 					vtol = 2,

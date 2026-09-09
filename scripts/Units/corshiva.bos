@@ -526,7 +526,7 @@ StopMoving()
 #define CATT1_RESTORE_SPEED <3.0>
 #define CATT1_PITCH_SPEED <85>
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 
 RestoreAfterDelay()

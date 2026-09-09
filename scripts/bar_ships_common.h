@@ -52,7 +52,7 @@
 // [NOTNEEEDED] separate ground and base, like for all other ships anyway too
 //		[-] Movement physics based stuff should go onto base
 //		[-] Recoil and hitbyweapon can go onto ground
-//		[-] These could maybe use different speeds based on power, like missiles and stuff arent trivial
+//		[-] These could maybe use different speeds based on power, like missiles and stuff aren't trivial
 // [ ] Emit less wakes when decelerating
 // [X] Do NOT use RockUnit, as there is only one callin for all weapons, and boats usually have more than one
 // [X] Validate that updates every 2 frames are sufficient
@@ -110,7 +110,7 @@
 
 // RB_DAMPFACTOR is the velocity dependent damping, so faster moves are damped more.
 // Higher numbers mean less damping
-// This shouldnt ever be less than 1000
+// This shouldn't ever be less than 1000
 #define RB_DAMPFACTOR 2000
 
 // Constant damping factors, higher number more damping. 
@@ -284,7 +284,7 @@ BoatPhysics(){
 		torque_roll = RB_ROLL_ACCELERATION * (prevHeading_delta * currSpeed) / (4 * RB_FRAMES) ;
         //dbg(torque_roll,prevHeading_delta, currSpeed);
 
-		// Save the curr heading and speed, as we wont be using them again
+		// Save the curr heading and speed, as we won't be using them again
 		prevHeading_delta = currHeading;
 		prevSpeed_delta = currSpeed;
 
@@ -336,7 +336,7 @@ BoatPhysics(){
                 #endif
 			}
 			
-			// Calculate Bounce, be careful that your int doesnt overflow
+			// Calculate Bounce, be careful that your int doesn't overflow
 			// Start at the -1 point of the cosine with + <180>
 			cos_bounce = (get KCOS(RB_bounce_frame + <180>) + 1024);
 
@@ -401,9 +401,9 @@ HitByWeaponId(anglex, anglez, weaponid, damage)
 	RB_pitch_velocity = RB_pitch_velocity - (anglex * damage) ;
 	RB_roll_velocity  = RB_roll_velocity  + (anglez * damage) ;
 
-	// Dont start a damagedSmoke thread if we arent low health
+	// Dont start a damagedSmoke thread if we aren't low health
 	if ((get HEALTH) > 65){
-		// Start a thread if werent previously smoking
+		// Start a thread if weren't previously smoking
 		if (isSmoking == 0)	{ 
 			isSmoking = 1;
 			start-script DamagedSmoke();

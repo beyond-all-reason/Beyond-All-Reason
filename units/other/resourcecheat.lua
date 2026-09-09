@@ -15,11 +15,9 @@ return {
 		damagemodifier = 0.95,
 		energymake = 1000000,
 		energystorage = 1000000,
-		explodeas = "advancedFusionExplosion",
+		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 7900,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -34,8 +32,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armafus_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -73,13 +71,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -2,7 +2,7 @@ return {
 	armvang = {
 		activatewhenbuilt = false,
 		buildpic = "ARMVANG.DDS",
-		buildtime = 91000,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 -1 0",
@@ -14,15 +14,13 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 8500,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3300,
 		maxacc = 0.02645,
 		maxdec = 0.345,
 		maxslope = 17,
 		maxwaterdepth = 0,
 		metalcost = 3300,
-		movementclass = "HTBOT4",
+		movementclass = "HTBOT6",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVANG.s3o",
@@ -38,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -76,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -129,20 +123,19 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			vanguard_plasma_cannon = {
 				areaofeffect = 192,
@@ -168,20 +161,19 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
 					subs = 500,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				areaofeffect = 192,
@@ -207,17 +199,17 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
-				targetborder = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					bogus = 1,
+					exclude_preaim = true,
+					smart_trajectory_checker = true,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true,
-				}
 			},
 		},
 		weapons = {

@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Synced Proxy",
@@ -12,29 +14,25 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
-	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
+if not BAR.Utilities.IsDevMode() or not BAR.Utilities.Gametype.IsSinglePlayer() then
+	Spring.SetGameRulesParam("isSyncedProxyEnabled", false)
 	return
 end
 
-Spring.SetGameRulesParam('isSyncedProxyEnabled', true)
+Spring.SetGameRulesParam("isSyncedProxyEnabled", true)
 
 local LOG_LEVEL = LOG.INFO
 
-local Proxy = VFS.Include('common/testing/synced_proxy.lua')
+local Proxy = VFS.Include("common/testing/synced_proxy.lua")
 
-local rpc = VFS.Include('common/testing/rpc.lua'):new()
+local rpc = VFS.Include("common/testing/rpc.lua"):new()
 
 local function log(level, str, ...)
 	if level < LOG_LEVEL then
 		return
 	end
 
-	Spring.Log(
-		gadget:GetInfo().name,
-		LOG.NOTICE,
-		str
-	)
+	Spring.Log(gadget:GetInfo().name, LOG.NOTICE, str)
 end
 
 local function processFunctionCall(fn, returnID)
@@ -78,5 +76,5 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 function gadget:Shutdown()
-	Spring.SetGameRulesParam('isSyncedProxyEnabled', false)
+	Spring.SetGameRulesParam("isSyncedProxyEnabled", false)
 end

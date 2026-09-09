@@ -1,13 +1,15 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
-		name = 'Juno Damage',
-		desc = 'Handles Juno damage',
-		author = 'Niobium, Bluestone',
-		version = 'v2.0',
-		date = '05/2013',
-		license = 'GNU GPL, v2 or later',
+		name = "Juno Damage",
+		desc = "Handles Juno damage",
+		author = "Niobium, Bluestone",
+		version = "v2.0",
+		date = "05/2013",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = not Spring.GetModOptions().junorework
+		enabled = not Spring.GetModOptions().junorework,
 	}
 end
 
@@ -15,139 +17,84 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
-	local tokillUnitsNames = {
-		['armarad'] = true,
-		['armaser'] = true,
-		['armason'] = true,
-		['armeyes'] = true,
-		['armfrad'] = true,
-		['armjam'] = true,
-		['armjamt'] = true,
-		['armmark'] = true,
-		['armrad'] = true,
-		['armseer'] = true,
-		['armsjam'] = true,
-		['armsonar'] = true,
-		['armveil'] = true,
-		['corarad'] = true,
-		['corason'] = true,
-		['coreter'] = true,
-		['coreyes'] = true,
-		['corfrad'] = true,
-		['corjamt'] = true,
-		['corrad'] = true,
-		['legjam'] = true,
-		['legrad'] = true,
-		['corshroud'] = true,
-		['corsjam'] = true,
-		['corsonar'] = true,
-		['corspec'] = true,
-		['corvoyr'] = true,
-		['corvrad'] = true,
-		['legarad'] = true,
-		['legajam'] = true,
-		
-		['armmine1'] = true,
-		['armmine2'] = true,
-		['armmine3'] = true,
-		['armfmine3'] = true,	
-		['cormine1'] = true,
-		['cormine2'] = true,
-		['cormine3'] = true,		
-		['cormine4'] = true,		
-		['corfmine3'] = true,	
-		['legmine1'] = true,
-		['legmine2'] = true,
-		['legmine3'] = true,		
-
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
-	}
-	-- convert unitname -> unitDefID
+	-- customparams.juno_kill (or customparams.mine) marks units destroyed by the juno pulse;
+	-- customparams.juno_deny marks units also destroyed by the lingering denial ring
 	local tokillUnits = {}
-	for name, params in pairs(tokillUnitsNames) do
-		if UnitDefNames[name] then
-			tokillUnits[UnitDefNames[name].id] = params
-		end
-	end
-	tokillUnitsNames = nil
-
-	local todenyUnitsNames = {
-		['corfav'] = true,
-		['armfav'] = true,
-		['armflea'] = true,
-		['legscout'] = true,
-		['raptor_land_swarmer_brood_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t2_v1'] = true,
-		['raptor_land_kamikaze_emp_t2_v1'] = true,
-		['raptor_land_kamikaze_basic_t4_v1'] = true,
-		['raptor_land_kamikaze_emp_t4_v1'] = true,
-		['scavmist'] = true,
-		['scavmistxl'] = true,
-		['scavmistxxl'] = true,
-	}
-	-- convert unitname -> unitDefID
 	local todenyUnits = {}
-	for name, params in pairs(todenyUnitsNames) do
-		if UnitDefNames[name] then
-			todenyUnits[UnitDefNames[name].id] = params
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local cp = unitDef.customParams
+		if cp.juno_kill or cp.mine then
+			tokillUnits[unitDefID] = true
+		end
+		if cp.juno_deny then
+			todenyUnits[unitDefID] = true
 		end
 	end
-	todenyUnitsNames = nil
-
-
-	for udid, ud in pairs(UnitDefs) do
-		for id, v in pairs(tokillUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
-				tokillUnits[udid] = v
-			end
-		end
-		for id, v in pairs(todenyUnits) do
-			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
-			--if string.find(ud.name, UnitDefs[id].name) then
-				todenyUnits[udid] = v
-			end
-		end
-	end
-
 
 	--config -- see also in unsynced
-	local radius = 450 --outer radius of area denial ring
+	local radius = 450 --outer radius of area denial ring. This value is used in gui_attack_aoe.lua, make sure to keep them in sync
 	local width = 30 --width of area denial ring
 	local effectlength = 30 --how long area denial lasts, in seconds
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
 	local SpGetGameSeconds = Spring.GetGameSeconds
+	local SpGetGameFrame = Spring.GetGameFrame
 	local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
+	local SpGetUnitTeam = Spring.GetUnitTeam
 	local SpValidUnitID = Spring.ValidUnitID
+	local SpGetUnitPosition = Spring.GetUnitPosition
+	local SpGetGroundHeight = Spring.GetGroundHeight
+	local SpSpawnCEG = Spring.SpawnCEG
+	local SpAddUnitExperience = Spring.AddUnitExperience
 	local Mmin = math.min
+	local Mfloor = math.floor
+	local Msqrt = math.sqrt
+	local Msin = math.sin
+	local Mcos = math.cos
+	local Mpi = math.pi
 
+	-- DEBUG: spawn a fake juno impact once every (effectlength + 5) seconds at a fixed map position
+	local DEBUG_JUNO_IMPACT = false
+	local debugImpactX = 1300
+	local debugImpactZ = 2900
+	local debugIntervalFrames = (effectlength + 5) * 30 -- effectlength seconds + 5 idle seconds, at 30fps
+
+	local stormPulseIntervalFrames = 33
+	local stormPulseJitterFrames = 15
+	local stormOuterMargin = 24
+	local stormHeightOffset = 18
+	local stormSizeMin = 0.72
+	local stormSizeMax = 1.05
+	local stormIntensityMin = 0.82
+	local stormIntensityMax = 1.2
+
+	local function hash01(v)
+		local s = Msin(v) * 43758.5453
+		return s - Mfloor(s)
+	end
+
+	local function SpawnJunoDamageEffects(px, py, pz, ownerTeamID)
+		SpSpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+		if GG.SpawnEnvironmentalLightning then
+			GG.SpawnEnvironmentalLightning("junodamagezap", px, py + 10, pz, 1.0, 1.0, ownerTeamID)
+		end
+	end
 
 	-- kill appropriate things from initial juno blast --
 
 	local junoWeaponsNames = {
-		["armjuno_juno_pulse"] = true,
-		["corjuno_juno_pulse"] = true,
-		["armjuno_scav_juno_pulse"] = true,
-		["corjuno_scav_juno_pulse"] = true,
+		armjuno_juno_pulse = true,
+		legjuno_juno_pulse = true,
+		corjuno_juno_pulse = true,
+		armjuno_scav_juno_pulse = true,
+		legjuno_scav_juno_pulse = true,
+		corjuno_scav_juno_pulse = true,
 	}
 	-- convert unitname -> unitDefID
 	local junoWeapons = {}
@@ -158,14 +105,22 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	junoWeaponsNames = nil
 
+	local experienceMod = 0.3
+
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
-				local px, py, pz = Spring.GetUnitPosition(uID)
+				local px, py, pz = SpGetUnitPosition(uID)
 				if px then
-					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+					SpawnJunoDamageEffects(px, py, pz, aTeam)
 				end
 				if aID and SpValidUnitID(aID) then
+					local health, healthMax = Spring.GetUnitHealth(uID)
+					local attackerPower = UnitDefs[aDefID].power
+					local defenderPower = UnitDefs[uDefID].power
+					local scaledExpMod = 0.1 * experienceMod * (defenderPower / attackerPower)
+					local scaledDamage = math.max(health / healthMax, 0)
+					SpAddUnitExperience(aID, scaledExpMod * scaledDamage)
 					SpDestroyUnit(uID, false, false, aID)
 				else
 					SpDestroyUnit(uID, false, false) -- leavewreck, makeselfdexplosion
@@ -179,8 +134,12 @@ if gadgetHandler:IsSyncedCode() then
 	local counter = 1 --index each explosion of juno missile with this counter
 
 	function gadget:Initialize()
+		Spring.SetGameRulesParam("juno_area_denial_radius", radius) -- read by gui_attack_aoe.lua
 		if WeaponDefNames.armjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.armjuno_juno_pulse.id, true)
+		end
+		if WeaponDefNames.legjuno_juno_pulse then
+			Script.SetWatchExplosion(WeaponDefNames.legjuno_juno_pulse.id, true)
 		end
 		if WeaponDefNames.corjuno_juno_pulse then
 			Script.SetWatchExplosion(WeaponDefNames.corjuno_juno_pulse.id, true)
@@ -190,7 +149,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
 		if junoWeapons[weaponID] then
 			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
+			local ownerTeam = ownerID and SpGetUnitTeam(ownerID)
+			local junoExpl =
+				{ x = px, y = py, z = pz, t = curtime, f = SpGetGameFrame(), o = ownerID, ownerTeam = ownerTeam }
 			centers[counter] = junoExpl
 			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
 			counter = counter + 1
@@ -205,8 +166,27 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(frame)
 		--if frame == 10 then
 		--seems that SendToUnsynced has to happen after
-		--SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
+		--SendToUnsynced("ReceiveConstants", width, radius, effectlength, fadetime)
 		--end
+
+		if DEBUG_JUNO_IMPACT and frame % debugIntervalFrames == 0 then
+			local curtime = SpGetGameSeconds()
+			local debugY = Spring.GetGroundHeight(debugImpactX, debugImpactZ)
+			SpSpawnCEG("juno-explo", debugImpactX, debugY, debugImpactZ, 0, 1, 0)
+			local debugExpl = { x = debugImpactX, y = debugY, z = debugImpactZ, t = curtime, f = frame }
+			centers[counter] = debugExpl
+			counter = counter + 1
+			Spring.Echo(
+				"[juno_damage DEBUG] spawned juno impact at ("
+					.. debugImpactX
+					.. ", "
+					.. debugY
+					.. ", "
+					.. debugImpactZ
+					.. ") frame="
+					.. frame
+			)
+		end
 
 		local curtime = SpGetGameSeconds()
 
@@ -217,6 +197,42 @@ if gadgetHandler:IsSyncedCode() then
 					q = (1 / fadetime) * Mmin(curtime - expl.t, expl.t + effectlength - curtime)
 				end
 
+				if GG.SpawnEnvironmentalLightning then
+					expl.nextStormFrame = expl.nextStormFrame or ((expl.f or frame) + stormPulseIntervalFrames)
+					expl.pulseCount = expl.pulseCount or 0
+					if frame >= expl.nextStormFrame then
+						local ageFrames = frame - (expl.f or frame)
+						local stormRadius = q * radius + stormOuterMargin
+						local seed = (expl.f or frame) * 0.013 + counter * 3.173 + ageFrames * 0.071
+						local angle = hash01(seed) * (2 * Mpi)
+						local dist = Msqrt(hash01(seed + 19.19)) * stormRadius
+						local lx = expl.x + Mcos(angle) * dist
+						local lz = expl.z + Msin(angle) * dist
+						local ly = SpGetGroundHeight(lx, lz) + stormHeightOffset
+						local sizeScale = stormSizeMin + hash01(seed + 7.7) * (stormSizeMax - stormSizeMin)
+						local intensityScale = stormIntensityMin
+							+ hash01(seed + 11.3) * (stormIntensityMax - stormIntensityMin)
+						GG.SpawnEnvironmentalLightning(
+							"junoareastorm",
+							lx,
+							ly,
+							lz,
+							sizeScale,
+							intensityScale,
+							expl.ownerTeam
+						)
+
+						expl.pulseCount = expl.pulseCount + 1
+						local jitterSeed = (expl.f or frame) * 0.021 + counter * 4.913 + expl.pulseCount * 1.771
+						local signedJitter = (hash01(jitterSeed) * 2 - 1) * stormPulseJitterFrames
+						local nextInterval = Mfloor(stormPulseIntervalFrames + signedJitter)
+						if nextInterval < 8 then
+							nextInterval = 8
+						end
+						expl.nextStormFrame = frame + nextInterval
+					end
+				end
+
 				local unitIDsBig = SpGetUnitsInCylinder(expl.x, expl.z, q * radius)
 
 				for i = 1, #unitIDsBig do
@@ -224,12 +240,12 @@ if gadgetHandler:IsSyncedCode() then
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
 					if todenyUnits[unitDefID] then
-						local px, py, pz = Spring.GetUnitPosition(unitID)
+						local px, py, pz = SpGetUnitPosition(unitID)
 						local dx = expl.x - px
 						local dz = expl.z - pz
 						if (dx * dx + dz * dz) > (q * (radius - width)) * (q * (radius - width)) then
 							-- linear and not O(n^2)
-							Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
+							SpawnJunoDamageEffects(px, py, pz, expl.ownerTeam)
 							SpDestroyUnit(unitID, true, false)
 						end
 					end
@@ -239,7 +255,10 @@ if gadgetHandler:IsSyncedCode() then
 				table.remove(centers, counter)
 			end
 
-			if expl.t + fadetime >= curtime or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength then
+			if
+				expl.t + fadetime >= curtime
+				or expl.t + effectlength - fadetime <= curtime and curtime <= expl.t + effectlength
+			then
 				update = true -- fast update during fade in/out
 			end
 		end
@@ -512,7 +531,6 @@ else
 		end
 
 
-	]]--
-
+	]]
+	--
 end
-

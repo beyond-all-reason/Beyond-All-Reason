@@ -12,21 +12,19 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 740,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1242,
 		maxdec = 0.6486,
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 110,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
 		script = "Units/CORSTORM.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		speed = 47.7,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -34,8 +32,10 @@ return {
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "CorBots",
 			unitgroup = "weapon",
 		},
@@ -73,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -137,12 +133,12 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
+				customparams = {
+					overrange_distance = 547,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 157,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 547,
 				},
 			},
 		},

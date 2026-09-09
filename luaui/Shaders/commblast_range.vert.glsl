@@ -3,7 +3,9 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 #line 5000
 
 layout (location = 0) in vec4 position; // l w rot and maxalpha
@@ -15,10 +17,6 @@ layout (location = 4) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
-
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-	mat4 mat[];
-};
 
 struct SUniformsBuffer {
 	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -55,17 +53,17 @@ void main()
 {	
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 	vec4 teamCol = teamColor[teamIndex];
-	mat4 worldMatrix = mat[instData.x];
-	// if the unit is not visible, then just transform the sphere to 0
-	if ((uni[instData.y].composite & 0x00001fu) == 0u )  worldMatrix = mat4(0.0); 
-	
-	v_centerpos = worldMatrix[3].xyz;
-	vec4 worldPos = vec4(1.0);
-	
-	worldPos.xyz =  position.xyz * FULLRADIUS;
-	
-	worldPos = worldMatrix * worldPos;
+	v_centerpos = uni[instData.y].drawPos.xyz;
 
+	vec4 worldPos = vec4(1.0);
+
+	if ((uni[instData.y].composite & 0x00001fu) == 0u ){
+		// if the unit is not visible, then just transform the sphere to 0
+		v_centerpos = vec3(0.0); 
+	}
+	else{	
+		worldPos.xyz = v_centerpos + position.xyz * FULLRADIUS;
+	}
 	gl_Position = cameraViewProj * worldPos;
 	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	
@@ -80,7 +78,7 @@ void main()
 	// modulate alpha based on health
 	float damagedness = 1.0 - clamp( uni[instData.y].health/ uni[instData.y].maxHealth, 0, 1);
 	// modulate alpha based on distance from camera
-	float distanceToCamera = length(camPos - worldMatrix[3].xyz);
+	float distanceToCamera = length(camPos - v_centerpos.xyz);
 	distanceToCamera = clamp((distanceToCamera -2000)/1000,0,1);
 	v_teamcolor.rgb = vec3(1.0, 0.0, 0.0);
 	#if (TEAMCOLORED == 1)

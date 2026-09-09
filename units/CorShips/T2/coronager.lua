@@ -2,7 +2,7 @@ return {
 	coronager = {
 		activatewhenbuilt = true,
 		buildpic = "coronager.DDS",
-		buildtime = 20000,
+		buildtime = 26000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "18 18 60",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1400,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.03,
 		maxdec = 0.05,
 		metalcost = 950,
@@ -22,7 +20,7 @@ return {
 		movementclass = "UBOAT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/coronager.s3o",
-		script = "Units/coronager_clean.cob",
+		script = "Units/coronager.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 500,
@@ -84,11 +82,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 				[2] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -157,7 +150,6 @@ return {
 				weaponvelocity = 700,
 				damage = {
 					default = 360,
-					ship = 200,
 					subs = 150,
 				},
 			},

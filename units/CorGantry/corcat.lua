@@ -1,7 +1,7 @@
 return {
 	corcat = {
 		buildpic = "CORCAT.DDS",
-		buildtime = 127000,
+		buildtime = 160000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 2",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 6100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1242,
 		maxdec = 0.6486,
 		maxslope = 20,
@@ -24,7 +22,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAT.s3o",
-		script = "Units/CORCAT.cob",
+		script = "Units/corcat.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
 		sightdistance = 700,
@@ -37,6 +35,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -75,11 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -146,12 +140,12 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 530,
 				wobble = 2000,
+				customparams = {
+					overrange_distance = 1553,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 450,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1553,
 				},
 			},
 		},

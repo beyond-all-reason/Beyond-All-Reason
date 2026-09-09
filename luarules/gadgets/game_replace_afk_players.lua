@@ -2,9 +2,11 @@
 disabled because of these problems:
  * the original afk player can still return
  * openskill value will still change for the afk player and not for the replacement player
- * replacement player cant resign
- * replacement player cant give units/resources
+ * replacement player can't resign
+ * replacement player can't give units/resources
 ]]
+
+local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
@@ -14,11 +16,11 @@ function gadget:GetInfo()
 		date = "June 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 2, --run after game initial spawn and coop (because we use readyStates)
-		enabled = false
+		enabled = false,
 	}
 end
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = BAR.Utilities.GetPlayerCount()
 
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
@@ -26,37 +28,41 @@ if numPlayers <= 4 then
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	-- TS difference required for substitutions
 	-- idealDiff is used if possible, validDiff as fall-back, otherwise no
 	local validDiff = 6
 	local idealDiff = 3
+	local mathAbs = math.abs
+	local mathRandom = math.random
 
 	local substitutes = {}
 	local players = {}
 	local absent = {}
 	local replaced = false
-	local gameStarted = false
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local SpGetPlayerList = Spring.GetPlayerList
 	local SpIsCheatingEnabled = Spring.IsCheatingEnabled
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		local checkChange = (msg == '\144' or msg == '\145')
+		local checkChange = (msg == "\144" or msg == "\145")
 
-		if msg == '\145' then
+		if msg == "\145" then
 			substitutes[playerID] = nil
 		end
-		if msg == '\144' then
+		if msg == "\144" then
 			-- do the same eligibility check as in unsynced
 			local customtable = select(11, Spring.GetPlayerInfo(playerID))
-			if type(customtable) == 'table' then
+			if type(customtable) == "table" then
 				local tsMu = customtable.skill
 				local tsSigma = customtable.skilluncertainty
 				local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 				tsSigma = tonumber(tsSigma)
-				local eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")", nil, true)) and (not players[playerID])
+				local eligible = tsMu
+					and tsSigma
+					and (tsSigma <= 2)
+					and (not string.find(tsMu, ")", nil, true))
+					and not players[playerID]
 				if eligible then
 					substitutes[playerID] = ts
 				end
@@ -103,7 +109,7 @@ if gadgetHandler:IsSyncedCode() then
 			local _, active, spec = Spring.GetPlayerInfo(playerID, false)
 			local readyState = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
 			local noStartPoint = (readyState == 3) or (readyState == 0)
-			local present = active and (not spec) and (not noStartPoint)
+			local present = active and not spec and not noStartPoint
 			if not present then
 				local customtable = select(11, Spring.GetPlayerInfo(playerID)) or {}
 				local tsMu = customtable.skill
@@ -126,10 +132,11 @@ if gadgetHandler:IsSyncedCode() then
 			for subID, subts in pairs(substitutesLocal) do
 				local _, active, spec = Spring.GetPlayerInfo(subID, false)
 				if active and spec then
-					if math.abs(ts - subts) <= validDiff then
+					local tsDiff = mathAbs(ts - subts)
+					if tsDiff <= validDiff then
 						validSubs[#validSubs + 1] = subID
 					end
-					if math.abs(ts - subts) <= idealDiff then
+					if tsDiff <= idealDiff then
 						idealSubs[#idealSubs + 1] = subID
 					end
 				end
@@ -140,9 +147,9 @@ if gadgetHandler:IsSyncedCode() then
 				-- choose who
 				local sID
 				if #idealSubs > 0 then
-					sID = (#idealSubs > 1) and idealSubs[math.random(1, #idealSubs)] or idealSubs[1]
+					sID = (#idealSubs > 1) and idealSubs[mathRandom(1, #idealSubs)] or idealSubs[1]
 				else
-					sID = (#validSubs > 1) and validSubs[math.random(1, #validSubs)] or validSubs[1]
+					sID = (#validSubs > 1) and validSubs[mathRandom(1, #validSubs)] or validSubs[1]
 				end
 
 				if real then
@@ -163,11 +170,9 @@ if gadgetHandler:IsSyncedCode() then
 			-- tell luaui that if would substitute if the game started now
 			Spring.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
 		end
-
 	end
 
 	function gadget:GameStart()
-		gameStarted = true
 		FindSubs(true)
 	end
 
@@ -233,16 +238,15 @@ if gadgetHandler:IsSyncedCode() then
 		-- ForceSpec(jID)
 		-- currently this is no use, because players who joinas see themselves as always having been present, so it doesn't get called...
 	end
-
 else
 	-----------------------------
 	-- UNSYNCED
 	-----------------------------
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
-	local ColorString = Spring.Utilities.Color.ToString
+	local ColorString = BAR.Utilities.Color.ToString
 
 	local revealed = false
 
@@ -252,7 +256,7 @@ else
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)
-		local _, _, spec = Spring.GetPlayerInfo(myPlayerID)
+		local _, _, spec = Spring.GetPlayerInfo(myPlayerID, false)
 		if not spec then
 			Spring.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
 			revealed = true
@@ -260,13 +264,18 @@ else
 	end
 
 	local function substitutionOccurred(_, incoming, outgoing)
-		if Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }) )
+		if Script.LuaUI("GadgetMessageProxy") then
+			Spring.Echo(
+				Script.LuaUI.GadgetMessageProxy(
+					"ui.substitutePlayers.substitutedPlayers",
+					{ incoming = incoming, outgoing = outgoing }
+				)
+			)
 		end
 	end
 
 	function gadget:Initialize()
-		if isReplay or Spring.Utilities.Gametype.IsFFA() or Spring.GetGameFrame() > 6 then
+		if isReplay or BAR.Utilities.Gametype.IsFFA() or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
 		end
@@ -280,8 +289,8 @@ else
 		if n < 5 then
 			return
 		end
-		if revealed and Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substituted') )
+		if revealed and Script.LuaUI("GadgetMessageProxy") then
+			Spring.Echo(Script.LuaUI.GadgetMessageProxy("ui.substitutePlayers.substituted"))
 		end
 		gadgetHandler:RemoveGadget()
 	end
@@ -299,5 +308,4 @@ else
 		gadgetHandler:RemoveSyncAction("SubstitutionOccurred")
 		--gadgetHandler:RemoveSyncAction("ForceSpec")
 	end
-
 end

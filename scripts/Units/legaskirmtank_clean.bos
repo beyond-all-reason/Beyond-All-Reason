@@ -4,7 +4,7 @@
 //piece  base, flare, turret, sleeve, barrel, gun, turretl, barrell, flarel, turretr, barrelr, flarer;
 piece base, tracks, turretBase, barrelPivot, barrelBack, barrelMid, barrelAim, barrelA, barrelB, barrelC, turretTop, flare;
 
-static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunned, timeLeft;
+static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunned, timeLeft, last_primary_heading;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -41,6 +41,7 @@ Create()
 	// hide flarer;
 	// hide flarel;
 	restore_delay = 3000;
+	last_primary_heading = -1000000;
 	call-script TB_Init();
 	return (0);
 }
@@ -87,7 +88,7 @@ TimeToRestore(addTime){
     }
     // The restore section must be atomic :/
     timeLeft = 0;
-
+	last_primary_heading = -1000000;
 	turn turretBase to y-axis <0.000000> speed <40>;
 	turn barrelPivot to x-axis <0.000000> speed <40>;
 	//stop-spin barrelMid around z-axis decelerate <5>;
@@ -103,15 +104,17 @@ AimWeapon1(heading, pitch)
         start-script TimeToRestore();
     }
     timeLeft = restore_delay;
-
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-
-	turn turretBase to y-axis heading speed <85.005495>;
-	turn barrelPivot to x-axis <0.000000> - pitch speed <50.005495>;
-	wait-for-turn turretBase around y-axis;
-	wait-for-turn barrelPivot around x-axis;
-
+	turn turretBase to y-axis heading speed <120>;
+	turn barrelPivot to x-axis <0.000000> - pitch speed <60>;
+	if (get ABS(last_primary_heading - heading)> <20>)
+	{
+		// seems to take 3 frames for wait-for-turn to process
+        wait-for-turn turretBase around y-axis;
+		wait-for-turn barrelPivot around x-axis;
+	}
+	last_primary_heading = heading;
 	return (1);
 }
 

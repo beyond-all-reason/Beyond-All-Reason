@@ -1,6 +1,8 @@
 local smallTeamThreshold = 4
 local initialized = false
-local settings = { }
+local settings = {}
+
+local holidaysList = VFS.Include("common/holidays.lua")
 
 local function getSettings()
 	if initialized then
@@ -8,7 +10,10 @@ local function getSettings()
 	end
 
 	local allyTeamCount, playerCount = 0, 0
-	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
+	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox =
+		false, false, false, false, false, false, false, false, false, false, false
+	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
+	local isHoliday = {}
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
@@ -16,43 +21,47 @@ local function getSettings()
 	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
-	for _, allyTeam in ipairs(springAllyTeamList) do
-		local teamList = Spring.GetTeamList(allyTeam) or {}
+	for _, allyTeamID in ipairs(springAllyTeamList) do
+		local teamList = Spring.GetTeamList(allyTeamID) or {}
 		local allyteamEntirelyHuman = true
 
-		if #teamList > 0 and allyTeam ~= gaiaAllyTeamID then
+		if #teamList > 0 and allyTeamID ~= gaiaAllyTeamID then
 			local isAllyTeamValid = true
 
-			for _, team in ipairs(teamList) do
-				if select (4, Spring.GetTeamInfo(team, false)) then
+			for _, teamID in ipairs(teamList) do
+				if select(4, Spring.GetTeamInfo(teamID, false)) then
 					allyteamEntirelyHuman = false
 				else
-					local teamPlayers = Spring.GetPlayerList(team)
+					local teamPlayers = Spring.GetPlayerList(teamID)
 					for _, playerID in ipairs(teamPlayers) do
 						playerCount = playerCount + 1
 					end
 				end
 
-				local luaAI = Spring.GetTeamLuaAI(team)
+				local luaAI = Spring.GetTeamLuaAI(teamID)
 
 				if luaAI then
 					if luaAI:find("Raptors") then
 						isRaptors = true
 						isAllyTeamValid = false
+						raptorTeamID = teamID
+						raptorAllyTeamID = allyTeamID
 					elseif luaAI:find("Scavengers") then
 						isScavengers = true
 						isAllyTeamValid = false
+						scavTeamID = teamID
+						scavAllyTeamID = allyTeamID
 					end
 				end
 			end
 
 			if isAllyTeamValid then
-				allyTeamList[#allyTeamList+1] = allyTeam
-				allyTeamSizes[#allyTeamSizes+1] = #teamList
+				allyTeamList[#allyTeamList + 1] = allyTeamID
+				allyTeamSizes[#allyTeamSizes + 1] = #teamList
 			end
 
 			if allyteamEntirelyHuman then
-				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeam
+				entirelyHumanAllyTeams[#entirelyHumanAllyTeams + 1] = allyTeamID
 			end
 		end
 	end
@@ -85,6 +94,36 @@ local function getSettings()
 		isCoop = true
 	end
 
+	if holidaysList and Spring.GetModOptions and Spring.GetModOptions().date_day then
+		local currentDay = Spring.GetModOptions().date_day
+		local currentMonth = Spring.GetModOptions().date_month
+		local currentYear = Spring.GetModOptions().date_year
+
+		-- FIXME: This doesn't support events that start and end in different years.
+		for holiday, dates in pairs(holidaysList) do
+			local afterStart = false
+			local beforeEnd = false
+			if
+				(dates.firstDay.month == currentMonth and dates.firstDay.day <= currentDay)
+				or (dates.firstDay.month < currentMonth)
+			then
+				afterStart = true
+			end
+			if
+				(dates.lastDay.month == currentMonth and dates.lastDay.day >= currentDay)
+				or (dates.lastDay.month > currentMonth)
+			then
+				beforeEnd = true
+			end
+
+			if afterStart and beforeEnd then
+				isHoliday[holiday] = true
+			else
+				isHoliday[holiday] = false
+			end
+		end
+	end
+
 	initialized = true
 
 	settings = {
@@ -102,6 +141,11 @@ local function getSettings()
 		isCoop = isCoop,
 		isFFA = isFFA,
 		isSandbox = isSandbox,
+		scavTeamID = scavTeamID,
+		scavAllyTeamID = scavAllyTeamID,
+		raptorTeamID = raptorTeamID,
+		raptorAllyTeamID = raptorAllyTeamID,
+		isHoliday = isHoliday,
 	}
 
 	return settings
@@ -109,22 +153,83 @@ end
 
 return {
 	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
-	GetAllyTeamCount = function() return getSettings().allyTeamCount end,
+	GetAllyTeamCount = function()
+		return getSettings().allyTeamCount
+	end,
 	---Get ally team list (humans and AIs, but not Raptors and Scavengers).
 	---@return integer[] allyTeamList table[i] = allyTeamID
-	GetAllyTeamList  = function () return getSettings().allyTeamList end,
-	GetPlayerCount   = function () return getSettings().playerCount end,
+	GetAllyTeamList = function()
+		return getSettings().allyTeamList
+	end,
+	---@return integer? playerCount Get number of players in a game, nil If it's an AI only game.
+	GetPlayerCount = function()
+		return getSettings().playerCount
+	end,
 	Gametype = {
-		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
-		Is1v1          = function () return getSettings().is1v1          end,
-		IsTeams        = function () return getSettings().isTeams        end,
-		IsBigTeams     = function () return getSettings().isBigTeams     end,
-		IsSmallTeams   = function () return getSettings().isSmallTeams   end,
-		IsRaptors      = function () return getSettings().isRaptors      end,
-		IsScavengers   = function () return getSettings().isScavengers   end,
-		IsPvE          = function () return getSettings().isPvE          end,
-		IsCoop         = function () return getSettings().isCoop         end,
-		IsFFA          = function () return getSettings().isFFA          end,
-		IsSandbox      = function () return getSettings().isSandbox      end,
+		---@return boolean
+		IsSinglePlayer = function()
+			return getSettings().isSinglePlayer
+		end,
+		---@return boolean
+		Is1v1 = function()
+			return getSettings().is1v1
+		end,
+		---@return boolean
+		IsTeams = function()
+			return getSettings().isTeams
+		end,
+		---@return boolean
+		IsBigTeams = function()
+			return getSettings().isBigTeams
+		end,
+		---@return boolean
+		IsSmallTeams = function()
+			return getSettings().isSmallTeams
+		end,
+		---@return boolean
+		IsRaptors = function()
+			return getSettings().isRaptors
+		end,
+		---@return boolean
+		IsScavengers = function()
+			return getSettings().isScavengers
+		end,
+		---@return boolean
+		IsPvE = function()
+			return getSettings().isPvE
+		end,
+		---@return boolean
+		IsCoop = function()
+			return getSettings().isCoop
+		end,
+		---@return boolean
+		IsFFA = function()
+			return getSettings().isFFA
+		end,
+		---@return boolean
+		IsSandbox = function()
+			return getSettings().isSandbox
+		end,
+		---@return table? isHoliday Currently running holiday events.
+		---See common/holidays.lua for more information.
+		GetCurrentHolidays = function()
+			return getSettings().isHoliday
+		end,
 	},
+	---@return TeamID? scavTeamID
+	GetScavTeamID = function()
+		return getSettings().scavTeamID
+	end,
+	---@return AllyTeamID? scavAllyTeamID
+	GetScavAllyTeamID = function()
+		return getSettings().scavAllyTeamID
+	end,
+	---@return TeamID? raptorTeamID
+	GetRaptorTeamID = function()
+		return getSettings().raptorTeamID
+	end,
+	---@return AllyTeamID? raptorAllyTeamID
+	GetRaptorAllyTeamID = function()
+		return getSettings().raptorAllyTeamID
+	end,
 }

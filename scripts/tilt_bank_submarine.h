@@ -1,7 +1,7 @@
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // tilt_bank_submarine.h
-// This header defines wether a submarine should tilt up and down on terrian height changes
-// And wether it should lean bank left and right when turning
+// This header defines whether a submarine should tilt up and down on terrian height changes
+// And whether it should lean bank left and right when turning
 // NOTE: 
 //1.  Needs the following, with the defaults shown below. Redefine them if you want to change defaults
 /*
@@ -107,14 +107,14 @@ TiltBank(reversing)
 	#endif
 	while(1)
 	{
-		// Get unit hieght
+		// Get unit height
 		TB_currHeadingORHeight = get UNIT_Y;
 
 		// calc deltas
 		TB_prevHeightDelta  = (TB_currHeadingORHeight - TB_prevHeightDelta) / (TB_FRAMES * 1024); 
 		
 		#if TB_CANREVERSE == 1 
-			// Reversing isnt very reliable, but can be used here to flip directions
+			// Reversing isn't very reliable, but can be used here to flip directions
 			if (reversing){	TB_prevHeightDelta = -1 * TB_prevHeightDelta;}
 		#endif
 		// Tilt the unit if new target differs from old
@@ -133,7 +133,7 @@ TiltBank(reversing)
 		TB_prevHeadingDelta = TB_prevHeadingDelta * ((get CURRENT_SPEED) * TB_ACCURACY / (TB_maxSpeed)) / (TB_ACCURACY * 10);
   
 		#if TB_CANREVERSE == 1 
-			// Reversing isnt very reliable, but can be used here to flip directions
+			// Reversing isn't very reliable, but can be used here to flip directions
 			if (reversing){	TB_prevHeadingDelta = -1 * TB_prevHeadingDelta;	}
 		#endif
 		

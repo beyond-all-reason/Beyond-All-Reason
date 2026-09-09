@@ -2,15 +2,20 @@ if gl.CreateShader == nil then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
-		name	  = "Contrast Adaptive Sharpen",
-		desc	  = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
-		author	  = "martymcmodding, ivand",
-		layer	  = 2000,
-		enabled   = true,
+		name = "Contrast Adaptive Sharpen",
+		desc = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
+		author = "martymcmodding, ivand",
+		layer = 2000,
+		enabled = true,
 	}
 end
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -27,14 +32,12 @@ local version = 1.06
 -- Lua Shortcuts
 -----------------------------------------------------------------
 
-local glTexture		 = gl.Texture
-local glBlending	 = gl.Blending
+local glTexture = gl.Texture
+local glBlending = gl.Blending
 
 -----------------------------------------------------------------
 -- File path Constants
 -----------------------------------------------------------------
-
-local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -77,20 +80,24 @@ uniform float sharpness;
 in vec2 viewPos;
 out vec4 fragColor;
 
+#define SAMPLES 5 // 9 or 5
+
 vec3 CASPass(ivec2 tc) {
 	// fetch a 3x3 neighborhood around the pixel 'e',
 	//  a b c
 	//  d(e)f
 	//  g h i
-	vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
 	vec3 b = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0, -1)).rgb;
-	vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
 	vec3 d = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  0)).rgb;
 	vec3 e = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  0)).rgb;
 	vec3 f = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  0)).rgb;
-	vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
 	vec3 h = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 0,  1)).rgb;
-	vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	#if (SAMPLES == 9)
+		vec3 a = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1, -1)).rgb;
+		vec3 c = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1, -1)).rgb;
+		vec3 g = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2(-1,  1)).rgb;
+		vec3 i = TEXEL_FETCH_OFFSET(screenCopyTex, tc, 0, ivec2( 1,  1)).rgb;
+	#endif
 
 	// Soft min and max.
 	//  a b c			 b
@@ -98,12 +105,18 @@ vec3 CASPass(ivec2 tc) {
 	//  g h i			 h
 	// These are 2.0x bigger (factored out the extra multiply).
 	vec3 mnRGB = min(min(min(d, e), min(f, b)), h);
-	vec3 mnRGB2 = min(mnRGB, min(min(a, c), min(g, i)));
-	mnRGB += mnRGB2;
+	
 
 	vec3 mxRGB = max(max(max(d, e), max(f, b)), h);
-	vec3 mxRGB2 = max(mxRGB, max(max(a, c), max(g, i)));
-	mxRGB += mxRGB2;
+	#if (SAMPLES == 9)
+		vec3 mnRGB2 = min(mnRGB, min(min(a, c), min(g, i)));
+		mnRGB += mnRGB2;
+		vec3 mxRGB2 = max(mxRGB, max(max(a, c), max(g, i))); 
+		mxRGB += mxRGB2;
+	#else
+		mxRGB *= 2.0;
+		mnRGB *= 2.0; 
+	#endif 
 
 	// Smooth minimum distance to signal limit divided by smooth max.
 	vec3 rcpMRGB = vec3(1.0) / mxRGB;
@@ -136,7 +149,7 @@ void main() {
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local vpx, vpy
 local screenCopyTex
@@ -147,7 +160,6 @@ local fullTexQuad
 -----------------------------------------------------------------
 -- Local Functions
 -----------------------------------------------------------------
-
 
 -----------------------------------------------------------------
 -- Widget Functions
@@ -162,9 +174,8 @@ local function UpdateShader()
 end
 
 function widget:Initialize()
-
 	if gl.CreateShader == nil then
-		Spring.Echo("CAS: createshader not supported, removing")
+		spEcho("CAS: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -190,13 +201,13 @@ function widget:Initialize()
 		uniformInt = {
 			screenCopyTex = 0,
 		},
-	}, ": Contrast Adaptive Sharpen")
+	}, "Contrast Adaptive Sharpen")
 
 	local shaderCompiled = casShader:Initialize()
 	if not shaderCompiled then
-			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
-			widgetHandler:RemoveWidget()
-			return
+		spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	UpdateShader()
@@ -215,7 +226,6 @@ function widget:Initialize()
 	WG.cas.getSharpness = function()
 		return SHARPNESS
 	end
-
 end
 
 function widget:Shutdown()
@@ -235,15 +245,17 @@ end
 
 function widget:DrawScreenEffects()
 	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-	if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-		screenCopyTex = WG['screencopymanager'].GetScreenCopy()
+	if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+		screenCopyTex = WG.screencopymanager.GetScreenCopy()
 	else
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+		spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 		widgetHandler:RemoveWidget()
 		return false
 	end
-	if screenCopyTex == nil then return end
+	if screenCopyTex == nil then
+		return
+	end
 	glTexture(0, screenCopyTex)
 	glBlending(false)
 	casShader:Activate()
@@ -256,7 +268,7 @@ end
 function widget:GetConfigData()
 	return {
 		version = version,
-		SHARPNESS = SHARPNESS
+		SHARPNESS = SHARPNESS,
 	}
 end
 

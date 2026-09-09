@@ -1,22 +1,4 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     17
-// NumberOfPieces                      5
-// LengthOfScripts                     2f7
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        c08
-// OffsetToScriptNameOffsetArray       c4c
-// OffsetToPieceNameOffsetArray        c90
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   ca4
-
-// OffsetToFirstName                   ca4
-
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, door1, door2, flare, light1, light2, light3, light4;
 
@@ -29,11 +11,13 @@ static-var  silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM1 256
 
 Create()
 {
@@ -93,7 +77,7 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIG_AIM; // kill any OpenSilo threads
+	signal SIGNAL_AIM1; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
@@ -108,10 +92,10 @@ RestoreAfterDelay()
 	return (0);
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script OpenSilo();
 	start-script RestoreAfterDelay();
 	if (silo_state == 2)
@@ -121,7 +105,7 @@ AimPrimary(heading, pitch)
 	return (0);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -130,17 +114,13 @@ FirePrimary()
 	return (0);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
+	pieceIndex = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

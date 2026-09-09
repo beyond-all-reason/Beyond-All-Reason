@@ -1,0 +1,223 @@
+// Mono-space font required
+{
+	"porcupine": {
+		"unit": {
+		//              0           		1         					2        		3           	4          		5     			6				7				8				9   
+			"legion":  ["leglht",			"legtl",   					"legrl",  		"legmg", 		"leghive",  	"legdtr",		"legrhapsis",	"leglupara", 	"legapopupdef", "leghive",
+						"legflak",   		"legacluster",  			"legbastion", 	"legcluster", 	"legabm", 		"legrad",		"legjam",		"legestor", 	"legmstor", 	"legadvsol",
+						"legnanotc",		"legarad",					"legtarg",		"legadvestore", "legperdition",	"legajam",		"legfus",     	"legsolar",     "legdeflector", "legfmg",
+					
+					//Sea Defenses
+						"leganavalaaturret", "leganavalatorpturret", 	"leganavaldefturret"]
+		},
+		
+	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
+	"land":  [0, 3, 5, 6, 4, 8, 10, 12],
+	"water": [29, 29, 30, 31, 31, 32, 32, 32, 33, 33, 33],
+	"prevent": 1,  // number of preventive defences
+	"amount": {  // income bound factor
+		"offset": [-2.0, 2.0],
+		// Amount factor: 10x10 ~ 48.0, 20x20 ~ 32.0
+		"factor": [48.0, 32.0],
+		"map": [10, 20]
+	},
+	"point_range": 600.0,  // maximum distance between 2 points in hierarchical cluster within economy cluster
+
+	// Base defence and time to build it, in seconds
+	"superweapon": {
+		"unit": {
+			"legion": [ "leglrpc",  "legstarfall"] //"leglupara", "legperdition", "legabm", "legsilo"
+		},
+		"weight":     [    0.5,      0.1  ],
+
+		"condition": [40, 600]  // [<Minimum income>, <maximum seconds to build>]
+	},
+
+	// Fallback defence
+	"default": {
+		"legion": "leglht"
+	}
+},
+
+
+
+// Actions on building finished event
+"build_chain": {
+	// WARNING: Avoid recursion
+	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
+	"energy": {
+		// <UnitDef>: {<elements>}
+		"legadvsol": {
+			// Available elements:
+			// "energy": [max energy income, <"mex"|true>]
+			// "pylon": <boolean>
+			// "porc": <boolean>
+			// "terra": <boolean>
+			// "hub": [
+			//     // chain1
+			//     [{<unit1>, <category>, <offset>, <condition>}, {<unit2>, <category>, <offset>, <condition>}, ...],
+			//     // chain2
+			//     [{...}, {...}, ...],
+			//     ...
+			// ]
+			// <unit>: UnitDef
+			// <offset>:
+			//     1) [x, z] in South facing, elmos
+			//     2) {<direction>: <delta>} - left, right, front, back
+			// <condition>: air:<bool>, energy:<bool>, wind:<float>, sensor:<float>, chance:0.0~1.0
+			// <priority>: low, normal, high, now
+
+			// Build pylon in direction of nearby mex cluster
+//			"pylon": true,
+
+			// Build chain of units
+			"hub": [
+				[  // chain1
+					{"unit": "legmg", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+//				],
+//				[  // chain2
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+				]
+			]
+		},
+//		"legsolar": {
+//			"hub": [
+//				[  // chain1
+//					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
+//				]
+//			]
+//		},
+		"legfus": {
+			"hub": [
+				[ 
+					//{"unit": "legapopupdef", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
+					{"unit": "legnanotc", "category": "defence", "offset": {"front": 100}},
+					{"unit": "legsilo", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
+				]
+			]
+		},
+		"legafus": {
+			"hub": [
+				[  // chain1
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 120]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [150, 150]},
+//					{"unit": "legadveconv", "category": "convert", "offset": [120, -120]},
+					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+				]
+			]
+		},
+		"leganavalfusion": {
+			"hub": [
+				[  
+					{"unit": "leganavaleconv", "category": "convert", "offset": {"back": 5}, "priority": "normal"},
+					{"unit": "leganavaleconv", "category": "convert", "offset": {"back": 5}, "priority": "normal"},
+					{"unit": "leganavalaaturret", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
+					{"unit": "leganavalfusion", "category": "energy", "offset": {"back": 10}, "priority": "normal"},
+					{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+					{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+					{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+					{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"}
+				]
+			]
+		}
+	},
+
+
+
+
+	"geo": {
+		"leggeo": {
+			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
+		}
+	},
+
+
+
+
+	"factory": {
+		"leglab": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"legvp": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+
+		"legalab": {
+			"hub": [
+					//[{"unit": "legarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
+					[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}] 
+		]
+		},
+		"legavp": {
+			"hub": [
+				[{"unit": "legacluster", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+			]
+		},
+		"legadvshipyard": {
+			"hub": [[
+				{"unit": "legsplab", "category": "factory", "offset": {"back": 120}, "priority": "now"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "legnanotcplat", "category": "nano", "offset": {"back": 5}, "priority": "normal"},
+				{"unit": "leganavalfusion", "category": "energy", "offset": {"back": 40}, "priority": "normal"},
+				{"unit": "legadvestore", "category": "store", "offset": {"back": 40}, "priority": "normal"}
+			]]
+		},
+
+
+		"legap": {
+			//"hub": [[{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+		}
+
+	},
+
+
+
+
+
+
+	"mex": {
+		"legmex": {
+//			"terra": true,
+//			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
+			"porc": true
+		},
+		"leganavalmex": {
+//			"terra": true,
+//			"energy": [200, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
+			"porc": true
+		}
+	},
+
+
+
+
+
+	"radar":{
+		"legrad": {
+			"hub": [
+				[{"unit": "leglht", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "legrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
+				[{"unit": "legcluster", "category": "defence", "offset": [120, 100], "priority": "normal"}],
+				[
+					{"unit": "legacluster", "category": "defence", "offset": [120, -100], "priority": "high"},
+					{"unit": "legapopupdef", "category": "defence", "offset": [140, 100], "priority": "normal"}
+				],
+				[
+					//{"unit": "legbastion", "category": "defence", "offset": [70, -100], "priority": "normal"},
+					{"unit": "legbastion", "category": "defence", "offset": [70, 100], "condition": {"chance":0.5}, "priority": "low"}
+				],
+				[
+					{"unit": "legjam", "category": "defence", "offset": [-60, 0], "priority": "low"},
+					{"unit": "legarad", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.4}, "priority": "low"}, 
+					{"unit": "leglrpc", "category": "defence", "offset": [-100, 0], "condition": {"chance":0.3}, "priority": "low"}
+				]
+			]
+		}
+	}
+}
+}

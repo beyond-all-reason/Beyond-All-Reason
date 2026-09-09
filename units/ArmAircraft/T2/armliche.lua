@@ -2,7 +2,7 @@ return {
 	armliche = {
 		blocking = false,
 		buildpic = "ARMLICHE.DDS",
-		buildtime = 57400,
+		buildtime = 73000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1075,
 		maxaileron = 0.01325,
 		maxbank = 0.8,
@@ -39,26 +37,13 @@ return {
 		wingangle = 0.062,
 		wingdrag = 0.135,
 		customparams = {
+			attacksafetydistance = 3000,
 			lumamult = "1.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -114,6 +99,10 @@ return {
 				weaponacceleration = 40,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
+				customparams = {
+					norangering = 1,
+					nuclear = 1,
+				},
 				damage = {
 					commanders = 3150,
 					default = 5625,
@@ -155,6 +144,9 @@ return {
 					default = 5625,
 					subs = 1000,
 					vtol = 562,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},

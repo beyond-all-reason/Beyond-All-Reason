@@ -2,7 +2,9 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 #line 5000
 
@@ -57,10 +59,13 @@ out DataVS {
 	#endif
 };
 
-layout(std140, binding=0) readonly buffer MatrixBuffer {
-	mat4 UnitPieces[];
-};
-
+#if USEQUATERNIONS == 0
+	layout(std140, binding=0) readonly buffer MatrixBuffer {
+		mat4 UnitPieces[];
+	};
+#else
+	//__QUATERNIONDEFS__
+#endif
 
 bool vertexClipped(vec4 clipspace, float tolerance) {
   return any(lessThan(clipspace.xyz, -clipspace.www * tolerance)) ||
@@ -70,7 +75,12 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 void main()
 {
 	uint baseIndex = instData.x; // this tells us which unit matrix to find
-	mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
+	#if USEQUATERNIONS == 0	
+		mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
+	#else
+		Transform modelWorldTX = GetModelWorldTransform(instData.x);
+		mat4 modelMatrix = TransformToMatrix(modelWorldTX);
+	#endif
 
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
 	v_rotationY = atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
@@ -99,7 +109,7 @@ void main()
 	#if (FULL_ROTATION == 1)
 		v_fullrotation = mat3(modelMatrix);
 	#endif
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of whether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
 	POST_VERTEX
 }

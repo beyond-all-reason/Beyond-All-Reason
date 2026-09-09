@@ -1,4 +1,3 @@
-local unitName = "Epic Supporter"
 return {
 	coresuppt3 = {
 		maxacc = 0.015,
@@ -10,19 +9,17 @@ return {
 		buildtime = 400000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -14 -6",
-		collisionvolumescales = "84 84 246",--"19 19 58",
+		collisionvolumescales = "84 84 246", --"19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		explodeas = "bantha",
 		floater = true,
 		footprintx = 8,
 		footprintz = 8,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 89000,
 		speed = 75.0,
 		minwaterdepth = 12,
-		movementclass = "EPICSHIP",
+		movementclass = "BOAT9",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/scavboss/CORESUPPT3.s3o",
 		script = "Units/scavboss/CORESUPPT3.cob",
@@ -34,7 +31,7 @@ return {
 		turnrate = 120,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies & Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",
@@ -67,13 +64,6 @@ return {
 				object = "Units/cor4X4B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -124,12 +114,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",
 				soundtrigger = 1,
-				targetmoveerror = 0.1,
 				thickness = 6,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					commanders = 1200,
 					default = 5500,

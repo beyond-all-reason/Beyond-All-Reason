@@ -3,7 +3,6 @@ local impulsefactor = 0.123
 local unitDeaths = {
 
 	blank = {
-		weaponType = "Cannon",
 		areaofeffect = 0,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -13,7 +12,7 @@ local unitDeaths = {
 		},
 	},
 
-	empblast = {    -- for armamex
+	empblast = { -- for armamex
 		areaofeffect = 400,
 		commandfire = 1,
 		craterboost = 0,
@@ -31,11 +30,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	pyro = {
-		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 64,
 		impulsefactor = impulsefactor,
@@ -47,10 +45,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	pyroselfd = {
-		weaponType = "Cannon",
 		areaofeffect = 200,
 		camerashake = 200,
 		edgeeffectiveness = 0.5,
@@ -63,11 +60,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	flamethrower = {
-		weaponType = "Cannon",
 		areaofeffect = 48,
 		camerashake = 48,
 		impulsefactor = impulsefactor,
@@ -79,10 +75,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	flamethrowerSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 140,
 		camerashake = 140,
 		edgeeffectiveness = 0.5,
@@ -95,7 +90,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	tidal = {
@@ -112,7 +107,7 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	tidalSelfd = {
@@ -129,11 +124,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nanoboom = {
-		weaponType = "Cannon",
 		areaofeffect = 128,
 		camerashake = 128,
 		edgeeffectiveness = 0.75,
@@ -147,11 +141,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nanoselfd = {
-		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 64,
 		edgeeffectiveness = 0.75,
@@ -165,11 +158,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallbuilder = {
-		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 64,
 		impulsefactor = impulsefactor,
@@ -181,10 +173,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallbuilderSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 120,
 		camerashake = 120,
 		impulsefactor = impulsefactor,
@@ -196,11 +187,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	windboom = {
-		weaponType = "Cannon",
 		AreaOfEffect = 180,
 		cameraShake = 180,
 		edgeeffectiveness = 0.75,
@@ -213,11 +203,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	metalmaker = {
-		weaponType = "Cannon",
 		areaofeffect = 210,
 		camerashake = 210,
 		impulsefactor = impulsefactor,
@@ -229,10 +218,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	metalmakerSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 260,
 		camerashake = 260,
 		impulsefactor = impulsefactor,
@@ -244,11 +232,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advmetalmaker = {
-		weaponType = "Cannon",
 		areaofeffect = 320,
 		camerashake = 320,
 		impulsefactor = impulsefactor,
@@ -261,10 +248,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	advmetalmakerSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 480,
 		camerashake = 480,
 		impulsefactor = impulsefactor,
@@ -277,11 +263,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	energystorage = {
-		weaponType = "Cannon",
 		areaofeffect = 420,
 		camerashake = 420,
 		impulsefactor = impulsefactor,
@@ -293,10 +278,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	energystorageSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 520,
 		camerashake = 520,
 		impulsefactor = impulsefactor,
@@ -308,10 +292,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['energystorage-uw'] = {
-		weaponType = "Cannon",
+	["energystorage-uw"] = {
 		areaofeffect = 420,
 		camerashake = 420,
 		impulsefactor = impulsefactor,
@@ -323,10 +306,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['energystorageSelfd-uw'] = {
-		weaponType = "Cannon",
+	["energystorageSelfd-uw"] = {
 		areaofeffect = 520,
 		camerashake = 520,
 		impulsefactor = impulsefactor,
@@ -338,11 +320,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advenergystorage = {
-		weaponType = "Cannon",
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -355,10 +336,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	advenergystorageSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -371,10 +351,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['advenergystorage-uw'] = {
-		weaponType = "Cannon",
+	["advenergystorage-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -387,10 +366,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['advenergystorageSelfd-uw'] = {
-		weaponType = "Cannon",
+	["advenergystorageSelfd-uw"] = {
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -403,11 +381,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	geo = {
-		weaponType = "Cannon",
 		areaofeffect = 520,
 		camerashake = 210,
 		impulsefactor = impulsefactor,
@@ -419,11 +396,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	advgeo = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
 		impulsefactor = impulsefactor,
@@ -436,11 +412,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	nukeBuilding = {
-		weaponType = "Cannon",
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -453,10 +428,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	nukeBuildingSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
 		impulsefactor = impulsefactor,
@@ -469,10 +443,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	nukeSub = {
-		weaponType = "Cannon",
 		AreaOfEffect = 780,
 		cameraShake = 780,
 		impulsefactor = impulsefactor,
@@ -485,11 +458,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	penetrator = {
-		weaponType = "Cannon",
 		areaofeffect = 420,
 		camerashake = 420,
 		impulsefactor = impulsefactor,
@@ -501,10 +473,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	penetratorSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 520,
 		camerashake = 520,
 		impulsefactor = impulsefactor,
@@ -516,11 +487,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	deadeyeSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 520,
 		camerashake = 520,
 		impulsefactor = impulsefactor,
@@ -532,11 +502,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	bantha = {
-		weaponType = "Cannon",
 		areaofeffect = 500,
 		camerashake = 500,
 		impulsefactor = impulsefactor,
@@ -549,10 +518,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	banthaSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 800,
 		camerashake = 800,
 		impulsefactor = impulsefactor,
@@ -565,10 +533,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	korgExplosion = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
 		impulsefactor = impulsefactor,
@@ -581,10 +548,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	korgExplosionSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1920,
 		cameraShake = 1920,
 		impulsefactor = impulsefactor,
@@ -597,10 +563,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	juggernaut = {
-		weaponType = "Cannon",
 		areaofeffect = 280,
 		camerashake = 280,
 		impulsefactor = impulsefactor,
@@ -614,10 +579,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	juggernautSelfd = {
-		weaponType = "Cannon",
 		areaofeffect = 430,
 		camerashake = 430,
 		impulsefactor = impulsefactor,
@@ -631,11 +595,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	flagshipExplosion = {
-		weaponType = "Cannon",
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -648,10 +611,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	flagshipExplosionSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 700,
 		cameraShake = 700,
 		impulsefactor = impulsefactor,
@@ -664,12 +626,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-
 	decoycommander = {
-		weaponType = "Cannon",
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -681,10 +641,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	decoycommanderSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -696,10 +655,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	minifusionExplosion = {
-		weaponType = "Cannon",
 		AreaOfEffect = 320,
 		cameraShake = 320,
 		impulsefactor = impulsefactor,
@@ -712,10 +670,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	fusionExplosion = {
-		weaponType = "Cannon",
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -728,10 +685,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	fusionExplosionSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -744,11 +700,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	['fusionExplosion-uw'] = {
-		weaponType = "Cannon",
+	["fusionExplosion-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -761,10 +716,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['fusionExplosionSelfd-uw'] = {
-		weaponType = "Cannon",
+	["fusionExplosionSelfd-uw"] = {
 		AreaOfEffect = 768,
 		cameraShake = 768,
 		impulsefactor = impulsefactor,
@@ -777,11 +731,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	advancedFusionExplosion = {
-		weaponType = "Cannon",
+	advancedFusionExplosion = { --this explosion does not generate a distortion effect for unknown reasons
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
 		impulsefactor = impulsefactor,
@@ -794,10 +747,26 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
+
+	customfusionexplo = {
+		AreaOfEffect = 1280,
+		cameraShake = 1280,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:afusexpl",
+		damage = {
+			commanders = 2800,
+			default = 10600,
+		},
+		customparams = {
+			unitexplosion = 1,
+		},
+	},
+
 	advancedFusionExplosionSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1920,
 		cameraShake = 1920,
 		impulsefactor = impulsefactor,
@@ -810,11 +779,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	scavcomexplosion = {
-		weaponType = "Cannon",
 		areaofeffect = 500,
 		camerashake = 500,
 		impulsefactor = impulsefactor,
@@ -827,11 +795,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	ScavComBossExplo = {
-		weaponType = "Cannon",
 		AreaOfEffect = 3000,
 		cameraShake = 3000,
 		impulsefactor = impulsefactor,
@@ -845,14 +812,13 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
 
-	commanderexplosion = {
+	oldcommanderexplosion = {
 		name = "Matter/AntimatterExplosion",
-		weaponType = "Cannon",
 		AreaOfEffect = 700,
 		cameraShake = 510,
 		explosionSpeed = 725,
@@ -860,9 +826,6 @@ local unitDeaths = {
 		soundhitwet = "newboomuw",
 		soundhit = "newboom",
 		soundstart = "largegun",
-		soundstartvolume = 25,
-		soundhitvolume = 25,
-		soundhitwetvolume = 34,
 		explosiongenerator = "custom:COMMANDER_EXPLOSION",
 		craterboost = 4,
 		cratermult = 2,
@@ -872,13 +835,33 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
+	},
+
+	commanderexplosion = {
+		name = "Matter/AntimatterExplosion",
+		AreaOfEffect = 700,
+		cameraShake = 510,
+		explosionSpeed = 725,
+		impulsefactor = impulsefactor,
+		soundhitwet = "newboomuw",
+		soundhit = "newboom",
+		soundstart = "largegun",
+		explosiongenerator = "custom:shockwaveceg",
+		craterboost = 4,
+		cratermult = 2,
+		edgeeffectiveness = 0,
+		damage = {
+			default = 5000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		},
 	},
 
 	--BUILDING DEATHS--
 
 	WallExplosionMetal = {
-		weaponType = "Cannon",
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -893,7 +876,6 @@ local unitDeaths = {
 		},
 	},
 	WallExplosionMetalXL = {
-		weaponType = "Cannon",
 		AreaOfEffect = 38,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -908,7 +890,6 @@ local unitDeaths = {
 		},
 	},
 	WallExplosionConcrete = {
-		weaponType = "Cannon",
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -923,7 +904,6 @@ local unitDeaths = {
 		},
 	},
 	WallExplosionConcreteXL = {
-		weaponType = "Cannon",
 		AreaOfEffect = 38,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -938,7 +918,6 @@ local unitDeaths = {
 		},
 	},
 	WallExplosionWater = {
-		weaponType = "Cannon",
 		AreaOfEffect = 48,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -953,7 +932,6 @@ local unitDeaths = {
 		},
 	},
 	tinyBuildingExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 25,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -965,10 +943,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	tinyBuildingExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 40,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -980,10 +957,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyBuildingExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["tinyBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 25,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -995,10 +971,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyBuildingExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["tinyBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 40,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1010,11 +985,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallBuildingExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 180,
 		cameraShake = 180,
 		impulsefactor = impulsefactor,
@@ -1026,10 +1000,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallBuildingExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 240,
 		cameraShake = 240,
 		impulsefactor = impulsefactor,
@@ -1041,10 +1014,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallMex = {
-		weaponType = "Cannon",
 		AreaOfEffect = 240,
 		cameraShake = 240,
 		impulsefactor = impulsefactor,
@@ -1056,10 +1028,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallBuildingExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["smallBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 180,
 		cameraShake = 180,
 		impulsefactor = impulsefactor,
@@ -1071,10 +1042,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallBuildingExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["smallBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 240,
 		cameraShake = 240,
 		impulsefactor = impulsefactor,
@@ -1086,11 +1056,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	mediumBuildingExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 260,
 		cameraShake = 260,
 		impulsefactor = impulsefactor,
@@ -1102,10 +1071,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	mediumBuildingExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 360,
 		cameraShake = 360,
 		impulsefactor = impulsefactor,
@@ -1117,10 +1085,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumBuildingExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["mediumBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 260,
 		cameraShake = 260,
 		impulsefactor = impulsefactor,
@@ -1132,10 +1099,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumBuildingExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["mediumBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 360,
 		cameraShake = 360,
 		impulsefactor = impulsefactor,
@@ -1147,11 +1113,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	largeBuildingExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 340,
 		cameraShake = 340,
 		impulsefactor = impulsefactor,
@@ -1163,10 +1128,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	largeBuildingExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -1178,10 +1142,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeBuildingExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["largeBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 340,
 		cameraShake = 340,
 		impulsefactor = impulsefactor,
@@ -1193,10 +1156,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeBuildingExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["largeBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 480,
 		cameraShake = 480,
 		impulsefactor = impulsefactor,
@@ -1208,11 +1170,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	hugeBuildingExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 420,
 		cameraShake = 420,
 		impulsefactor = impulsefactor,
@@ -1224,10 +1185,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	hugeBuildingExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 580,
 		cameraShake = 580,
 		impulsefactor = impulsefactor,
@@ -1239,10 +1199,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeBuildingExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["hugeBuildingExplosionGeneric-uw"] = {
 		AreaOfEffect = 420,
 		cameraShake = 420,
 		impulsefactor = impulsefactor,
@@ -1254,10 +1213,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeBuildingExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["hugeBuildingExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 580,
 		cameraShake = 580,
 		impulsefactor = impulsefactor,
@@ -1269,14 +1227,12 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 
 	--UNIT DEATHS--
 
 	tinyExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1288,10 +1244,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	tinyExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1303,10 +1258,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-builder'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGeneric-builder"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1318,10 +1272,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-builder'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1333,10 +1286,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGeneric-uw"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1348,10 +1300,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1363,10 +1314,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGeneric-phib'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGeneric-phib"] = {
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1378,10 +1328,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['tinyExplosionGenericSelfd-phib'] = {
-		weaponType = "Cannon",
+	["tinyExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 44,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1393,11 +1342,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallExplosionGenericAir = {
-		weaponType = "Cannon",
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1409,11 +1357,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	smallExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1425,10 +1372,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	smallExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1440,10 +1386,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-builder'] = {
-		weaponType = "Cannon",
+	["smallExplosionGeneric-builder"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1455,10 +1400,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-builder'] = {
-		weaponType = "Cannon",
+	["smallExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1470,10 +1414,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["smallExplosionGeneric-uw"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1485,10 +1428,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["smallExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1500,10 +1442,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGeneric-phib'] = {
-		weaponType = "Cannon",
+	["smallExplosionGeneric-phib"] = {
 		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulsefactor = impulsefactor,
@@ -1515,10 +1456,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['smallExplosionGenericSelfd-phib'] = {
-		weaponType = "Cannon",
+	["smallExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 60,
 		cameraShake = 60,
 		impulsefactor = impulsefactor,
@@ -1530,11 +1470,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	mediumExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1546,10 +1485,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	mediumExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1561,10 +1499,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-builder'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGeneric-builder"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1576,10 +1513,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-builder'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1591,10 +1527,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGeneric-uw"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1606,10 +1541,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1621,10 +1555,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGeneric-phib'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGeneric-phib"] = {
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1636,10 +1569,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['mediumExplosionGenericSelfd-phib'] = {
-		weaponType = "Cannon",
+	["mediumExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1651,11 +1583,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	largeExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1667,10 +1598,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	largeExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1682,10 +1612,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-builder'] = {
-		weaponType = "Cannon",
+	["largeExplosionGeneric-builder"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1697,10 +1626,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-builder'] = {
-		weaponType = "Cannon",
+	["largeExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1712,10 +1640,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["largeExplosionGeneric-uw"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1727,10 +1654,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["largeExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1742,10 +1668,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGeneric-phib'] = {
-		weaponType = "Cannon",
+	["largeExplosionGeneric-phib"] = {
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulsefactor = impulsefactor,
@@ -1757,10 +1682,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['largeExplosionGenericSelfd-phib'] = {
-		weaponType = "Cannon",
+	["largeExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 120,
 		cameraShake = 120,
 		impulsefactor = impulsefactor,
@@ -1772,11 +1696,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
 	hugeExplosionGeneric = {
-		weaponType = "Cannon",
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1788,10 +1711,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3 = {
-		weaponType = "Cannon",
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1803,10 +1725,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3med = {
-		weaponType = "Cannon",
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulsefactor = impulsefactor,
@@ -1818,10 +1739,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3xl = {
-		weaponType = "Cannon",
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1833,10 +1753,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	explosiont3xxl = {
-		weaponType = "Cannon",
 		AreaOfEffect = 280,
 		cameraShake = 280,
 		impulsefactor = impulsefactor,
@@ -1848,10 +1767,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	hugeExplosionGenericSelfd = {
-		weaponType = "Cannon",
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1863,10 +1781,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-builder'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGeneric-builder"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1878,10 +1795,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-builder'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGenericSelfd-builder"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1893,10 +1809,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-uw'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGeneric-uw"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1908,10 +1823,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-uw'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGenericSelfd-uw"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1923,10 +1837,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGeneric-phib'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGeneric-phib"] = {
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulsefactor = impulsefactor,
@@ -1938,10 +1851,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-	['hugeExplosionGenericSelfd-phib'] = {
-		weaponType = "Cannon",
+	["hugeExplosionGenericSelfd-phib"] = {
 		AreaOfEffect = 160,
 		cameraShake = 160,
 		impulsefactor = impulsefactor,
@@ -1953,10 +1865,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion1 = {
-		weaponType = "Cannon",
 		AreaOfEffect = 340,
 		cameraShake = 340,
 		impulsefactor = impulsefactor,
@@ -1968,10 +1879,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion2 = {
-		weaponType = "Cannon",
 		AreaOfEffect = 620,
 		cameraShake = 620,
 		impulsefactor = impulsefactor,
@@ -1983,10 +1893,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion3 = {
-		weaponType = "Cannon",
 		AreaOfEffect = 920,
 		cameraShake = 920,
 		impulsefactor = impulsefactor,
@@ -1998,10 +1907,9 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 	lootboxExplosion4 = {
-		weaponType = "Cannon",
 		AreaOfEffect = 1280,
 		cameraShake = 1280,
 		impulsefactor = impulsefactor,
@@ -2013,10 +1921,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexplo = {    -- for scavmist
+	mistexplo = { -- for scavmist
 		areaofeffect = 200,
 		craterboost = 0,
 		cratermult = 0,
@@ -2034,10 +1942,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexploxl = {    -- for scavmist
+	mistexploxl = { -- for scavmist
 		areaofeffect = 350,
 		craterboost = 0,
 		cratermult = 0,
@@ -2055,10 +1963,10 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
 
-	mistexploxxl = {    -- for scavmist
+	mistexploxxl = { -- for scavmist
 		areaofeffect = 400,
 		craterboost = 0,
 		cratermult = 0,
@@ -2076,19 +1984,24 @@ local unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		}
+		},
 	},
-
 }
 
 local scavengerDefs = {}
 for name, def in pairs(unitDeaths) do
-	if string.find(string.lower(name), 'explosiont3') or string.find(string.lower(name), 'explosiongeneric') or string.find(string.lower(name), 'buildingexplosiongeneric') then
-		scavengerDefs[name .. '-purple'] = table.copy(def)
-		scavengerDefs[name .. '-purple'].explosiongenerator = scavengerDefs[name .. '-purple'].explosiongenerator .. '-purple'
-	elseif string.find(def.explosiongenerator, 't3unitexplosion') then
-		scavengerDefs[name .. '-purple'] = table.copy(def)
-		scavengerDefs[name .. '-purple'].explosiongenerator = scavengerDefs[name .. '-purple'].explosiongenerator .. '-purple'
+	if
+		string.find(string.lower(name), "explosiont3")
+		or string.find(string.lower(name), "explosiongeneric")
+		or string.find(string.lower(name), "buildingexplosiongeneric")
+	then
+		scavengerDefs[name .. "-purple"] = table.copy(def)
+		scavengerDefs[name .. "-purple"].explosiongenerator = scavengerDefs[name .. "-purple"].explosiongenerator
+			.. "-purple"
+	elseif string.find(def.explosiongenerator, "t3unitexplosion") then
+		scavengerDefs[name .. "-purple"] = table.copy(def)
+		scavengerDefs[name .. "-purple"].explosiongenerator = scavengerDefs[name .. "-purple"].explosiongenerator
+			.. "-purple"
 	end
 end
 for name, ud in pairs(scavengerDefs) do

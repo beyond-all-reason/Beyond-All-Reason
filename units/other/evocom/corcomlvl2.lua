@@ -9,6 +9,7 @@ return {
 		builddistance = 153,
 		builder = true,
 		buildpic = "CORCOM.DDS",
+		onoffable = true,
 		buildtime = 112500,
 		cancapture = true,
 		cancloak = true,
@@ -28,10 +29,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		icontype = "corcom",
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 6000,
@@ -43,7 +42,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/CORCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/CORCOM" .. (Spring.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
@@ -90,7 +89,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			area_mex_def = "cormex",
 			iscommander = true,
 			effigy_offset = 1,
@@ -101,6 +100,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "corstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl3",
 			evolution_condition = "timer",
@@ -109,12 +109,13 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			shield_color_mult = 0.8,
-			shield_power = 1000,
+			shield_power = 1900,
 			shield_radius = 100,
 			effigy = "comeffigylvl1",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
-			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			fall_damage_multiplier = 5, --this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -162,10 +163,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -229,12 +226,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 4.0,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 215,
 					subs = 85,
@@ -268,13 +267,15 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "uwlasrfir1",
 				soundtrigger = 1,
-				targetmoveerror = 0.05,
 				thickness = 5,
 				tolerance = 10000,
 				turret = true,
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 200,
 					subs = 100,
@@ -304,8 +305,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -313,11 +312,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor = {
@@ -336,15 +338,16 @@ return {
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
+					exterior = true,
 					force = 2.5,
 					intercepttype = 8191,
-					power = 1000,
-					powerregen = 33,
+					power = 1900,
+					powerregen = 83,
 					powerregenenergy = 6.6,
 					radius = 100,
 					repulser = false,
 					smart = true,
-					startingpower = 1000,
+					startingpower = 1900,
 					visiblerepulse = false,
 					badcolor = {
 						[1] = 1,
@@ -370,7 +373,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

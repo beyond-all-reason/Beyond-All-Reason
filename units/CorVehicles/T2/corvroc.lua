@@ -1,7 +1,7 @@
 return {
 	corvroc = {
 		buildpic = "CORVROC.DDS",
-		buildtime = 15000,
+		buildtime = 20000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "40 40 44",
@@ -12,11 +12,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1390,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02489,
-		maxdec = 0.04978,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 12,
 		metalcost = 880,
@@ -27,7 +25,7 @@ return {
 		script = "Units/CORVROC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 221,
+		sightdistance = 330,
 		speed = 33,
 		stealth = true,
 		trackstrength = 8,
@@ -73,13 +71,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,14 +131,14 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 415,
+				customparams = {
+					overrange_distance = 1507,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					commanders = 810,
 					default = 1700,
 					subs = 600,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1507,
 				},
 			},
 		},

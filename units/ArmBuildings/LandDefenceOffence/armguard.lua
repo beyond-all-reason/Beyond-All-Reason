@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = false,
 		buildangle = 8192,
 		buildpic = "ARMGUARD.DDS",
-		buildtime = 21400,
+		buildtime = 19300,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "48 40 48",
@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3050,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -35,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armguard_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
@@ -73,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -126,15 +120,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+					smart_priority = true,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			plasma_high = {
 				accuracy = 75,
@@ -159,15 +154,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 75,
@@ -191,13 +186,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
-				damage = {
-					default = 0
-				},
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
-					smart_trajectory_checker = true
-				}
+					smart_trajectory_checker = true,
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {

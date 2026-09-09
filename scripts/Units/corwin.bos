@@ -1,7 +1,5 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, fan, cradle;
 
@@ -35,20 +33,19 @@ Create()
 	WindDirection = 0;
 	LastDirection = 0;
 	Built = 0;	
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	Built = 1;
 	call-script Go();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-SetSpeed(windSpd) //called every 450 frames
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+SetSpeed(windOrMetal) //called every 450 frames
 {
-	WindSpeed = windSpd; //invert if desired
+	WindSpeed = windOrMetal; //invert if desired
 	if (!Stunned) {
 		if(Built)
 		{
@@ -57,7 +54,7 @@ SetSpeed(windSpd) //called every 450 frames
 	}
 }
 
-SetDirection(windDir) //called every 450 frames
+SetDirection(windDir, windStrength) //called every 450 frames
 {
 	LastDirection = WindDirection;
 	WindDirection = windDir;

@@ -2,7 +2,9 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 #line 10000
 
 //__DEFINES__
@@ -19,6 +21,8 @@ uniform float lineAlphaUniform = 1.0;
 uniform float cannonmode = 0.0;
 uniform float fadeDistOffset = 0.0;
 uniform float drawMode = 0.0;
+uniform float inMiniMap = 0.0;
+
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -140,10 +144,10 @@ void main() {
 	//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 	//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
 	
-	// rotate the circle into unit space, wierd that it has to be rotated on other direction
+	// rotate the circle into unit space, weird that it has to be rotated on other direction
 	float maxAngleDif = 1;
 	float mainDirDegrees = 0; 
-	if (MAXANGLEDIF != 0) {
+	if (MAXANGLEDIF > 0.0) {
 		maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
 		mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
 	}
@@ -233,7 +237,7 @@ void main() {
 	
 	
 	// -- HANDLE MAXANGLEDIFF
-	// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
+	// If the unit can't fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
 	// Also, dont 
 	// convert current circleprogress to relative heading:
 	float relheadingradians = abs(((circleprogress.w - 0.5)) * 2);
@@ -249,14 +253,22 @@ void main() {
 
 	//--- DISTANCE FADE ---
 	vec4 camPos = cameraViewInv[3];
+
+	// Note that this is not the same as the distance from the unit to the camera, but the distance from the circle to the camera
 	float distToCam = length(modelWorldPos.xyz - camPos.xyz); //dist from cam
 	// FadeStart, FadeEnd, StartAlpha, EndAlpha
 	float fadeDist = visibility.y - visibility.x;
+
 	if (ISDGUN > 0.5) {
 		FADEALPHA  = clamp((visibility.y + fadeDistOffset + 1000 - distToCam)/(fadeDist),visibility.w,visibility.z);
 	} else {
 		FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
 	}
+
+	if (inMiniMap> 0.5){
+		FADEALPHA = 1.0;
+	}
+	
 	//FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
 
 	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
@@ -290,14 +302,19 @@ void main() {
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
 	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
+	// Note that this doesn't really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
 	// ------------ dump the stuff for FS --------------------
 	//worldPos = circleWorldPos;
 	//worldPos.a = RANGE;
 	alphaControl.x = circlepointposition.z; // save circle progress here
-	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+
+	if (inMiniMap < 0.5) {
+		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+	} else {
+		gl_Position = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+	}
 
 	//lets blend the alpha here, and save work in FS:
 	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);

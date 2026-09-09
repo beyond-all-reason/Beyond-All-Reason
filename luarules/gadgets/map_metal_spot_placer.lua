@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Map Lua Metal Spot Placer",
@@ -11,7 +13,7 @@ function gadget:GetInfo()
 		date = "2017",
 		license = "PD",
 		layer = -10,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -46,7 +48,6 @@ function gadget:Initialize()
 	end
 
 	if not hasMetalmap and mapConfig and Spring.GetGameFrame() == 0 then
-
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading map-side lua metal spot configuration...")
 		local spots = mapConfig.spots
 		local metalFactor = 0.43 * 9 / 21
@@ -61,7 +62,6 @@ function gadget:Initialize()
 
 				-- place metal for spot
 				if px and pz and metal then
-
 					--Spring.Echo("metal set for x="..px.." z="..pz.." metal="..metal)
 					xIndex = math.floor(px / METAL_MAP_SQUARE_SIZE)
 					zIndex = math.floor(pz / METAL_MAP_SQUARE_SIZE)

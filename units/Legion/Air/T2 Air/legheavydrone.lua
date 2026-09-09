@@ -6,7 +6,7 @@ return {
 		energycost = 1000,
 		metalcost = 90,
 		buildpic = "legheavydrone.DDS",
-		buildtime = 5000,
+		buildtime = 5820,
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
@@ -16,9 +16,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		idleautoheal = 0,
-		idletime = 1800,
-		health = 2250,
+		health = 1650,
 		maxslope = 10,
 		speed = 180.5,
 		maxwaterdepth = 0,
@@ -35,14 +33,10 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -96,7 +90,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heliosfire",
 				soundtrigger = 1,
-				--targetmoveerror = 1,
 				thickness = 2.0,
 				tolerance = 10000,
 				turret = true,
@@ -105,6 +98,9 @@ return {
 				damage = {
 					default = 10,
 					vtol = 2,
+				},
+				customparams = {
+					noattackrangearc = 1,
 				},
 			},
 		},

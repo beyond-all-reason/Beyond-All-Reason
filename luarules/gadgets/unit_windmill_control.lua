@@ -1,3 +1,5 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Windmill Control",
@@ -6,7 +8,7 @@ function gadget:GetInfo()
 		date = "June 29, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -14,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
- -- Only apply these when resource multipliers are active, to save performance
+-- Only apply these when resource multipliers are active, to save performance
 local energyMultActive = false
 if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then
 	energyMultActive = true

@@ -62,6 +62,7 @@ SetMaxReloadTime(reloadMS)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
+	set-signal-mask SIGNAL_IDLE;
     if (Stunned) {
         return (1);
     }
@@ -101,7 +102,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-
+	signal SIGNAL_IDLE;
 	if (!OpenedState){
 		set ARMORED to 1;
 		move doorA to y-axis [1] speed [4];

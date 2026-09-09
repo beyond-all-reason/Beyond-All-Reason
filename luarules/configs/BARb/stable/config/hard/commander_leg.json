@@ -1,0 +1,30 @@
+// Mono-space font required
+{
+"commander": {
+	"prefix": "",
+	"suffix": "",
+	"unit": {
+		"legcom": {
+			// Choice importance, 0 by default
+			"importance": 0.5,
+
+			// Morph params
+			"upgrade": {
+//				"time": 120,  // Force-morph delay, in seconds
+				"module": []
+			},
+
+			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
+			"hide": {
+				"time": 420,  // seconds
+				"threat": 8,
+				"air": true,
+				"task_rad": [2000.0, 800.0]  // [<peace_radius>, <danger_radius>]
+			},
+
+			"assist_fac": 3,  // commander assists factory with high priority till number of constructors reached
+			"side": "legion"
+		}
+	}
+}
+} 

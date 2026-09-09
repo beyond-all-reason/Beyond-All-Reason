@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 415,
 		maxslope = 10,
 		speed = 165.0,
@@ -30,24 +28,11 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 1400,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "ArmAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -72,12 +57,13 @@ return {
 		},
 		weapondefs = {
 			cor_bot_rocket = {
-				areaofeffect = 70,
+				areaofeffect = 72,
 				avoidfeature = false,
 				collideFriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				cegtag = "missiletrailsmall-simple",
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
@@ -87,7 +73,7 @@ return {
 				model = "legsmallrocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
-				range = 400,
+				range = 380,
 				reloadtime = 0.8,
 				smoketrail = true,
 				smokePeriod = 7,
@@ -101,7 +87,7 @@ return {
 				soundstart = "rocklit1",
 				startvelocity = 300,
 				stockpile = true,
-				stockpiletime = 2.4,
+				stockpiletime = 1.8,
 				texture1 = "null",
 				texture2 = "smoketraildark",
 				tolerance = 4000,
@@ -113,7 +99,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 400,
 				customparams = {
-					stockpilelimit = 8,
+					stockpilelimit = 4,
 				},
 				damage = {
 					default = 44,

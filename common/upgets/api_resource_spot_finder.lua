@@ -1,4 +1,4 @@
-local upget = gadget or widget
+local upget = gadget or widget ---@type Addon
 local globalScope = gadget and GG or WG
 
 -- gadget side must be layered after gadgets/map_metal_spot_placer.lua
@@ -15,6 +15,7 @@ function upget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = layer,
 		enabled = true,
+		hidden = true, -- other upgets need this one, so it is not the player's to toggle
 	}
 end
 
@@ -30,11 +31,11 @@ local precision = Game.footprintScale * Game.squareSize -- (footprint 1 = 16 map
 
 -- Some of these maps have more than 2 metal spots, disable mex denier
 local metalMaps = {
-	["Oort_Cloud_V2"] = true,
+	Oort_Cloud_V2 = true,
 	["Asteroid_Mines_V2.1"] = true,
-	["Cloud9_V2"] = true,
-	["Iron_Isle_V1"] = true,
-	["Nine_Metal_Islands_V1"] = true,
+	Cloud9_V2 = true,
+	Iron_Isle_V1 = true,
+	Nine_Metal_Islands_V1 = true,
 	["SpeedMetal BAR V2"] = true,
 }
 local isMetalMap = false
@@ -79,7 +80,7 @@ local geoSpots
 -- Find geothermal spots
 ------------------------------------------------------------
 
-local function GetFootprintPos(value) -- not entirely acurate, unsure why
+local function GetFootprintPos(value) -- not entirely accurate, unsure why
 	return (math.round(value / precision) * precision)
 end
 
@@ -148,7 +149,6 @@ local function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
-
 local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
 	if facing == 0 or facing == 2 then
@@ -180,16 +180,18 @@ local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
-
 local function IsBuildingPositionValid(spot, x, z)
-	if z <= spot.maxZ - extractorRadius or z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
+	-- add an extra mapSquareSize to account for snapping behaviours from api users
+	local expandedRadius = extractorRadius + metalMapSquareSize
+	if z <= spot.maxZ - expandedRadius or z >= spot.minZ + expandedRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
 
+	local expandedRadiusSqr = expandedRadius * expandedRadius
 	local sLeft, sRight = spot.left, spot.right
 	for sz = spot.minZ, spot.maxZ, metalMapSquareSize do
 		local dz = sz - z
-		local maxXOffset = sqrt(extractorRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
+		local maxXOffset = sqrt(expandedRadiusSqr - dz * dz) -- Test for metal being included is dist < extractorRadius
 		if x <= sRight[sz] - maxXOffset or x >= sLeft[sz] + maxXOffset then
 			return false
 		end
@@ -359,14 +361,12 @@ local function GetSpotsMetal()
 	return spots, false
 end
 
-
-
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
 
 function upget:Initialize()
-	if(gadget) then
+	if gadget then
 		-- With armmex.extractsMetal=0.001 and armmoho.extractsMetal=0.004
 		-- base_extraction=0.001 is meant to say that T1 mex is baseline x1, and T2 is baseline x4
 		-- as opposed to T1 being x0.5 and T2 being x2.
@@ -381,16 +381,16 @@ function upget:Initialize()
 	end
 
 	geoSpots = GetSpotsGeo()
-	globalScope["resource_spot_finder"] = {}
-	globalScope["resource_spot_finder"].metalSpotsList = metalSpots
-	globalScope["resource_spot_finder"].geoSpotsList = geoSpots
-	globalScope["resource_spot_finder"].isMetalMap = isMetalMap
-	globalScope["resource_spot_finder"].GetClosestMexSpot = getClosestMex
-	globalScope["resource_spot_finder"].GetClosestGeoSpot = getClosestGeo
-	globalScope["resource_spot_finder"].GetBuildingPositions = GetBuildingPositions
-	globalScope["resource_spot_finder"].IsMexPositionValid = IsBuildingPositionValid
+	globalScope.resource_spot_finder = {}
+	globalScope.resource_spot_finder.metalSpotsList = metalSpots
+	globalScope.resource_spot_finder.geoSpotsList = geoSpots
+	globalScope.resource_spot_finder.isMetalMap = isMetalMap
+	globalScope.resource_spot_finder.GetClosestMexSpot = getClosestMex
+	globalScope.resource_spot_finder.GetClosestGeoSpot = getClosestGeo
+	globalScope.resource_spot_finder.GetBuildingPositions = GetBuildingPositions
+	globalScope.resource_spot_finder.IsMexPositionValid = IsBuildingPositionValid
 
-	if(gadget) then
+	if gadget then
 		setMexGameRules(metalSpots)
 	end
 end

@@ -1,12 +1,14 @@
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
 	return {
 		name = "Unally on demand",
-		desc = "Removes an alliance when a dynamic ally attemps to backstab",
+		desc = "Removes an alliance when a dynamic ally attempts to backstab",
 		author = "BrainDamage",
 		date = "-",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -15,7 +17,6 @@ if Spring.GetModOptions().fixedallies then
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local GetUnitDefID = Spring.GetUnitDefID
 	local AreTeamsAllied = Spring.AreTeamsAllied
 	local GetUnitsInSphere = Spring.GetUnitsInSphere
@@ -28,8 +29,8 @@ if gadgetHandler:IsSyncedCode() then
 	local ValidUnitID = Spring.ValidUnitID
 	local min = math.min
 
-	local CMD_UNIT_SET_TARGET = 34923
-	local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
+	local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
+	local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 	local CMD_ATTACK = CMD.ATTACK
 	local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
@@ -98,13 +99,38 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	function gadget:UnitCommand(
+		unitID,
+		unitDefID,
+		attackerTeam,
+		cmdID,
+		cmdParams,
+		cmdOpts,
+		cmdTag,
+		playerID,
+		fromSynced,
+		fromLua
+	)
 		if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
 			local targetID = cmdParams[1]
 			if ValidUnitID(targetID) then
-				checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), GetUnitAllyTeam(unitID), GetUnitAllyTeam(targetID))
+				checkAndBreakAlliance(
+					attackerTeam,
+					GetUnitTeam(targetID),
+					GetUnitAllyTeam(unitID),
+					GetUnitAllyTeam(targetID)
+				)
 			end
-		elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE) then
+		elseif
+			#cmdParams >= 3
+			and (
+				cmdID == CMD_ATTACK
+				or cmdID == CMD_LOOPBACKATTACK
+				or cmdID == CMD_UNIT_SET_TARGET
+				or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE
+				or cmdID == CMD_MANUALFIRE
+			)
+		then
 			local attackAOE = attackAOEs[unitDefID]
 			if not attackAOE then
 				return
@@ -116,7 +142,8 @@ if gadgetHandler:IsSyncedCode() then
 			for i = 1, #units do
 				local targetID = units[i]
 				local targetAllyTeam = GetUnitAllyTeam(targetID)
-				local targetDamage = min(GetUnitHealth(targetID), attackDamages[unitDefID][unitArmorType[GetUnitDefID(targetID)]])
+				local targetDamage =
+					min(GetUnitHealth(targetID), attackDamages[unitDefID][unitArmorType[GetUnitDefID(targetID)]])
 				totalDamageSum = totalDamageSum + targetDamage
 				targetAllyTeamIDs[targetAllyTeam] = (targetAllyTeamIDs[targetAllyTeam] or 0) + targetDamage
 			end
@@ -139,7 +166,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
 	----------------------------------------------------------------
 	-- Unsynced
@@ -151,26 +177,30 @@ else
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)
-		return GetPlayerInfo(select(2, GetTeamInfo(teamID, false)), false)
+		local leaderPlayerID = select(2, GetTeamInfo(teamID, false))
+		return GetPlayerInfo(leaderPlayerID, false)
 	end
 
 	local function allianceMade(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message =
+				Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.create", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function allianceBroken(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message =
+				Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.destroy", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function backstab(_, victimTeam, traitorTeam)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message =
+				Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.backstab", { player = getTeamLeaderName(traitorTeam) })
 			SendMessageToTeam(victimTeam, message)
 		end
 	end
@@ -180,5 +210,4 @@ else
 		gadgetHandler:AddSyncAction("AllianceBroken", allianceBroken)
 		gadgetHandler:AddSyncAction("Backstab", backstab)
 	end
-
 end

@@ -1,7 +1,7 @@
 return {
 	armthor = {
 		buildpic = "ARMTHOR.DDS",
-		buildtime = 250000,
+		buildtime = 320000,
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
@@ -14,8 +14,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 56000,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 9000,
 		maxacc = 0.015,
@@ -23,7 +21,7 @@ return {
 		maxslope = 14,
 		maxwaterdepth = 20,
 		metalcost = 9000,
-		movementclass = "HTANK5",
+		movementclass = "HTANK7",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
 		script = "Units/ARMTHOR.cob",
@@ -46,6 +44,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 4,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "emp",
@@ -84,11 +83,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -143,12 +137,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
-				targetmoveerror = 0,
 				thickness = 1.2,
 				tolerance = 1820,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 300,
 				},
@@ -170,6 +166,7 @@ return {
 				fixedlauncher = true,
 				flighttime = 12,
 				impulsefactor = 0,
+				interceptedbyshieldtype = 0,
 				metalpershot = 100,
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g EMP starburst rocket",
@@ -195,7 +192,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					shield_aoe_penetration = true,
 					stockpilelimit = 2,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 80000,
@@ -229,16 +228,17 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				targetmoveerror = 0,
 				thickness = 1.8,
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				customparams = {
+					noattackrangearc = 1,
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
 					spark_forkdamage = "0.25",
 					spark_maxunits = "5",
 					spark_range = "125",
+					weapons_group = 1,
 				},
 				damage = {
 					default = 300,

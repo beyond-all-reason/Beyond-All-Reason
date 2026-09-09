@@ -16,8 +16,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 6100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -36,8 +34,8 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armanni_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -81,11 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -136,7 +129,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				texture3 = "largebeam",
 				thickness = 4.5,
 				tilelength = 150,

@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = false,
 		buildangle = 8192,
 		buildpic = "CORPUN.DDS",
-		buildtime = 19300,
+		buildtime = 17400,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3250,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 12,
@@ -35,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/corpun_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
@@ -73,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -126,16 +120,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_priority = true,
+				},
 				damage = {
 					default = 350,
 					lboats = 350,
 					subs = 90,
 					vtol = 95,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			plasma_high = {
 				accuracy = 75,
@@ -160,16 +154,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 350,
 					lboats = 350,
 					subs = 90,
 					vtol = 95,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 75,
@@ -193,13 +187,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					bogus = 1,
+					exclude_preaim = true,
+					smart_trajectory_checker = true,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true
-				}
 			},
 		},
 		weapons = {
@@ -220,7 +215,7 @@ return {
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

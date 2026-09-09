@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 255,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.10226,
 		maxdec = 0.10226,
 		maxslope = 16,
@@ -74,10 +72,6 @@ return {
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -127,7 +121,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfast",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				thickness = 1.25,
 				turret = true,
 				weapontype = "BeamLaser",

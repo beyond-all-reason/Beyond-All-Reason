@@ -1,0 +1,179 @@
+
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
+
+piece  base, pad, exhaust1, exhaust2, nanofactory, buildlight, buildlight_emit, pivotfl, pivotfr, pivotbl, pivotbr, nanofl, nanofr, nanobl, nanobr, flare1, flare2, flare3, flare4;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+#define WATER_ROCK_UNITSIZE 27
+#define WATER_ROCK_AMPLITUDE <1.2>
+#include "../floatmotion.h"
+
+
+#define BASEPIECE base
+#define HITSPEED <10.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 15
+#define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Create()
+{
+	hide flare3;
+	hide flare1;
+	hide flare4;
+	hide flare2;
+	hide pivotfl;
+	hide pivotfr;
+	hide pivotbl;
+	hide pivotbr;
+	
+	turn pivotfl to y-axis <-45> now;
+	turn pivotfr to y-axis <30> now;
+	turn pivotbl to y-axis <45> now;
+	turn pivotbr to y-axis <-30> now;
+	
+	hide pad;
+	hide buildlight_emit;
+	spin nanofactory around y-axis speed <-30> accelerate <5>;
+
+	spray = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex=flare1+spray;
+	spray=spray+1;
+	if (spray>3) spray=0;
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn nanofl to z-axis rand(-3000, 3000) speed <45>;
+		turn nanobr to z-axis rand(-3000, 3000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from exhaust1;
+		sleep(400);
+		emit-sfx 257 from exhaust2;
+		
+		turn nanofr to z-axis rand(-3000, 3000) speed <45>;
+		turn nanobl to z-axis rand(-3000, 3000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from exhaust1;
+		sleep(400);
+		emit-sfx 257 from exhaust2;
+	}
+}
+
+StartBuilding()
+{
+	show flare1;
+	show flare2;
+	show flare3;
+	show flare4;
+	
+	show buildlight_emit;
+	move buildlight to y-axis [4] speed [8];
+	spin buildlight around y-axis speed <250> accelerate <2>;
+	spin nanofactory around y-axis speed <-240> accelerate <4>;
+	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	start-script MoveCranes();
+}
+
+StopBuilding()
+{
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	
+	hide buildlight_emit;
+	move buildlight to y-axis [0] speed [4];
+	stop-spin buildlight around y-axis decelerate <2>;
+	spin nanofactory around y-axis speed <-30> accelerate <6>;
+	
+	turn nanofl to z-axis <0> speed <45>;
+	turn nanofr to z-axis <0> speed <45>;
+	turn nanobl to z-axis <0> speed <45>;
+	turn nanobr to z-axis <0> speed <45>;
+	
+	signal SIGNAL_BUILD;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	FACTORY_OPEN_BUILD;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	sleep 5000;
+
+	FACTORY_CLOSE_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nanofl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofactory type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanobl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nanofl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofactory type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanobl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nanofl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofactory type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanobl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nanofl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofactory type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanofr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanobl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

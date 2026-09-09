@@ -1,70 +1,70 @@
 local LootboxSoundEffects = {
-        BaseSoundSelectType = "arm-bld-select",
-        --BaseSoundMovementType = "blanksound",
-        BaseSoundWeaponType = "arm-bld-nrg-fusion",
+	BaseSoundSelectType = "arm-bld-select",
+	--BaseSoundMovementType = "blanksound",
+	BaseSoundWeaponType = "arm-bld-nrg-fusion",
 }
 
 local LootboxNanoSoundEffects = {
-        BaseSoundSelectType = "arm-bld-select-small",
-        --BaseSoundMovementType = "blanksound",
-        BaseSoundWeaponType = "conalt-medium",
+	BaseSoundSelectType = "arm-bld-select-small",
+	--BaseSoundMovementType = "blanksound",
+	BaseSoundWeaponType = "conalt-medium",
 }
 
 GUIUnitSoundEffects = {
 	-- ARMADA COMMANDER
 	armcom = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl2 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl3 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl4 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl5 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl6 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl7 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl8 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl9 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armcomlvl10 = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	armdecom = {
 		BaseSoundSelectType = "arm-com-sel",
-		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4", },
+		BaseSoundMovementType = { "arm-com-ok-1", "arm-com-ok-2", "arm-com-ok-3", "arm-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 
@@ -74,8 +74,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armfrad = {
@@ -88,8 +88,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armjamt = {
@@ -102,32 +102,32 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 
 	armamex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 
 	armmakr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate   = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate   = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armwin = {
@@ -146,7 +146,7 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt",
-		BaseSoundActivate   = "arm-bld-solar-activate",
+		BaseSoundActivate = "arm-bld-solar-activate",
 		BaseSoundDeactivate = "arm-bld-solar-deactivate",
 	},
 
@@ -314,6 +314,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "bld-juno",
 	},
+	legjuno = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "bld-juno",
+	},
 
 	-- ARMADA T2 BUILDINGS
 
@@ -321,8 +326,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armveil = {
@@ -341,56 +346,56 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armfatf = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armmoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
 
 	armshockwave = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "emp-rocket",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
 
 	armuwmme = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
 
 	armmmkr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
-        BaseSoundActivate   = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armuwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
-        BaseSoundActivate   = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armuwadvms = {
@@ -517,8 +522,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	armgate = {
@@ -562,7 +567,6 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
-
 
 	-- ARMADA FACTORIES
 
@@ -609,21 +613,21 @@ GUIUnitSoundEffects = {
 	},
 
 	armsy = {
-		BaseSoundSelectType   = "arm-bld-factory",
+		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-water",
+		BaseSoundWeaponType = "arm-bld-factory-water",
 	},
 
 	armasy = {
-		BaseSoundSelectType   = "arm-bld-factory-t2",
+		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
+		BaseSoundWeaponType = "arm-bld-factory-water-t2",
 	},
 
 	armamsub = {
-		BaseSoundSelectType   = "arm-bld-factory-t2",
+		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+		BaseSoundWeaponType = "arm-bld-factory-t2-uw",
 	},
 
 	armhp = {
@@ -636,12 +640,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
-	},
-
-	armasp = {
-		BaseSoundSelectType = "arm-bld-factory-t2",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-repairpad",
 	},
 
 	armshltx = {
@@ -709,11 +707,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "plasma-small",
-	},
-	armthovr = {
-		BaseSoundSelectType = "arm-hov-large-sel",
-		BaseSoundMovementType = "arm-hov-large-ok",
-		BaseSoundWeaponType = "transport-large",
 	},
 	armlun = {
 		BaseSoundSelectType = "arm-hov-large-sel",
@@ -1018,11 +1011,6 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
 	},
-	armtship = {
-		BaseSoundSelectType = "arm-shp-medium-sel",
-		BaseSoundMovementType = "arm-shp-medium-ok",
-		BaseSoundWeaponType = "transport-large",
-	},
 	armpship = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
@@ -1230,57 +1218,57 @@ GUIUnitSoundEffects = {
 	-- CORTEX COMMANDER
 	corcom = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl2 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl3 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl4 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl5 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl6 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl7 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl8 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl9 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	corcomlvl10 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 	cordecom = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "laser-tiny",
 	},
 
@@ -1290,24 +1278,24 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corfrad = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corsonar = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corjamt = {
@@ -1320,40 +1308,40 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 
 	corexp = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "laser-small-cor",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 
 	coramex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 
 	cormakr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	corfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	corwin = {
@@ -1561,8 +1549,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
-        BaseSoundActivate = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corshroud = {
@@ -1581,55 +1569,55 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corfatf = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	cormoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
-    cormexp = {
-        BaseSoundSelectType = "arm-bld-metal",
-        --BaseSoundMovementType = "",
-        BaseSoundWeaponType = "laser-large",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
-    },
+	cormexp = {
+		BaseSoundSelectType = "arm-bld-metal",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-large",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
+	},
 
 	coruwmme = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
 
 	cormmkr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
-        BaseSoundActivate   = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	coruwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
-        BaseSoundActivate   = "cor-bld-mm-t2-activate",
-        BaseSoundDeactivate = "cor-bld-mm-t2-deactivate",
+		BaseSoundActivate = "cor-bld-mm-t2-activate",
+		BaseSoundDeactivate = "cor-bld-mm-t2-deactivate",
 	},
 
 	coruwadvms = {
@@ -1744,8 +1732,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
-        BaseSoundActivate = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 
 	corgate = {
@@ -1790,7 +1778,6 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-lolcannon",
 	},
 
-
 	-- CORTEX FACTORIES
 
 	corlab = {
@@ -1830,21 +1817,21 @@ GUIUnitSoundEffects = {
 	},
 
 	corsy = {
-		BaseSoundSelectType   = "arm-bld-factory",
+		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-water",
+		BaseSoundWeaponType = "arm-bld-factory-water",
 	},
 
 	corasy = {
-		BaseSoundSelectType   = "arm-bld-factory-t2",
+		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
+		BaseSoundWeaponType = "arm-bld-factory-water-t2",
 	},
 
 	coramsub = {
-		BaseSoundSelectType   = "arm-bld-factory-t2",
+		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+		BaseSoundWeaponType = "arm-bld-factory-t2-uw",
 	},
 
 	corhp = {
@@ -1863,12 +1850,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-sp",
-	},
-
-	corasp = {
-		BaseSoundSelectType = "arm-bld-factory-t2",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-repairpad",
 	},
 
 	corgant = {
@@ -1947,11 +1928,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-hov-large-sel",
 		BaseSoundMovementType = "cor-hov-large-ok",
 		BaseSoundWeaponType = "laser-medium",
-	},
-	corthovr = {
-		BaseSoundSelectType = "cor-hov-large-sel",
-		BaseSoundMovementType = "cor-hov-large-ok",
-		BaseSoundWeaponType = "transport-large",
 	},
 	corsok = {
 		BaseSoundSelectType = "cor-hov-large-sel",
@@ -2104,7 +2080,7 @@ GUIUnitSoundEffects = {
 	},
 	corkorg = {
 		BaseSoundSelectType = "cor-korg-sel",
-		BaseSoundMovementType = { "cor-korg-ok1", "cor-korg-ok2", "cor-korg-ok3", },
+		BaseSoundMovementType = { "cor-korg-ok1", "cor-korg-ok2", "cor-korg-ok3" },
 		BaseSoundWeaponType = "heatray-xl",
 	},
 	cordemon = {
@@ -2228,11 +2204,6 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "nuke-anti",
 	},
-	corintr = {
-		BaseSoundSelectType = "cor-tnk-large-sel",
-		BaseSoundMovementType = "cor-tnk-large-ok",
-		BaseSoundWeaponType = "transport-large",
-	},
 	corgol = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
@@ -2291,11 +2262,6 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-sub-small-sel",
 		BaseSoundMovementType = "cor-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
-	},
-	cortship = {
-		BaseSoundSelectType = "cor-shp-medium-sel",
-		BaseSoundMovementType = "cor-shp-medium-ok",
-		BaseSoundWeaponType = "transport-large",
 	},
 	corpship = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
@@ -2504,73 +2470,73 @@ GUIUnitSoundEffects = {
 	-- LEGION COMMANDER
 
 	legdecom = {
-		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3", },
-		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2", },
+		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3" },
+		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legdecomlvl3 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legdecomlvl6 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legdecomlvl10 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcom = {
-		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3", },
-		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2", },
+		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3" },
+		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl2 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl3 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl4 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl5 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl6 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl7 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl8 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl9 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl10 = {
 		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4" },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 
@@ -2642,8 +2608,13 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
+	},
+	legfdrag = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall-water",
 	},
 
 	legtide = {
@@ -2656,17 +2627,22 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 	legmext15 = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
-        BaseSoundActivate   = "mexon",
-        BaseSoundDeactivate = "mexoff",
+		BaseSoundActivate = "mexon",
+		BaseSoundDeactivate = "mexoff",
 	},
 	leghive = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},
+	legfhive = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-repairpad",
@@ -2697,8 +2673,8 @@ GUIUnitSoundEffects = {
 	legrad = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		BaseSoundWeaponType = "arm-bld-radar",
-        BaseSoundActivate   = "cmd-on",
-        BaseSoundDeactivate = "cmd-off",
+		BaseSoundActivate = "cmd-on",
+		BaseSoundDeactivate = "cmd-off",
 	},
 	legjam = {
 		BaseSoundSelectType = "arm-bld-select-small",
@@ -2732,8 +2708,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
-        BaseSoundActivate = "arm-bld-mm-activate",
-        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+		BaseSoundActivate = "arm-bld-mm-activate",
+		BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 	leggeo = {
 		BaseSoundSelectType = "arm-bld-select-medium",
@@ -2755,7 +2731,6 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "nuke-anti",
 	},
-
 
 	-- LEGION T2 BUILDINGS
 
@@ -2817,7 +2792,6 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
-
 	-- LEGION FACTORIES
 	leglab = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2830,9 +2804,9 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-lab-t2",
 	},
 	legamsub = {
-		BaseSoundSelectType   = "arm-bld-factory-t2",
+		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+		BaseSoundWeaponType = "arm-bld-factory-t2-uw",
 	},
 	legvp = {
 		BaseSoundSelectType = "arm-bld-factory",
@@ -2870,12 +2844,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-factory-hover-water",
 	},
 
-
 	legsolar = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt",
-		BaseSoundActivate   = "arm-bld-solar-activate",
+		BaseSoundActivate = "arm-bld-solar-activate",
 		BaseSoundDeactivate = "arm-bld-solar-deactivate",
 	},
 	legadvsol = {
@@ -2918,8 +2891,8 @@ GUIUnitSoundEffects = {
 
 	-- LEGION T2 BOTS
 	legack = {
-		BaseSoundSelectType = "cor-bot-medium-sel",
-		BaseSoundMovementType = "cor-bot-medium-ok",
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "conalt-medium",
 	},
 	leginfestor = {
@@ -2933,18 +2906,18 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "con-assist",
 	},
 	leginc = {
-		BaseSoundSelectType = "cor-bot-huge-sel",
-		BaseSoundMovementType = "cor-bot-huge-ok",
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legstr = {
-		BaseSoundSelectType = "cor-bot-medium-sel",
-		BaseSoundMovementType = "cor-bot-medium-ok",
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 	legbart = {
-		BaseSoundSelectType = "cor-bot-medium-sel",
-		BaseSoundMovementType = "cor-bot-medium-ok",
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legsrail = {
@@ -2967,6 +2940,26 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-tiny-ok",
 		BaseSoundWeaponType = "bomb",
 	},
+	leghrk = {
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
+	legaspy = {
+		BaseSoundSelectType = "cor-bot-small-sel",
+		BaseSoundMovementType = "cor-bot-small-ok",
+		BaseSoundWeaponType = "cloak",
+	},
+	legajamk = {
+		BaseSoundSelectType = "leg-bot-small-sel",
+		BaseSoundMovementType = "leg-bot-small-ok",
+		BaseSoundWeaponType = "jammer",
+	},
+	legaradk = {
+		BaseSoundSelectType = "leg-bot-small-sel",
+		BaseSoundMovementType = "leg-bot-small-ok",
+		BaseSoundWeaponType = "radar-t2",
+	},
 
 	-- LEGION T3 BOTS
 	legpede = {
@@ -2984,6 +2977,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legehovertank = {
+		BaseSoundSelectType = "cor-hov-large-sel",
+		BaseSoundMovementType = "cor-hov-large-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	leggobt3 = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-large-ok",
@@ -2993,6 +2991,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bot-huge-sel",
 		BaseSoundMovementType = "arm-bot-huge-ok",
 		BaseSoundWeaponType = "fastemg-medium",
+	},
+	legbunk = {
+		BaseSoundSelectType = "arm-bot-huge-sel",
+		BaseSoundMovementType = "arm-bot-huge-ok",
+		BaseSoundWeaponType = "plasma-large",
 	},
 
 	-- LEGION T1 VEHICLES
@@ -3024,6 +3027,11 @@ GUIUnitSoundEffects = {
 	legrail = {
 		BaseSoundSelectType = "leg-rail-small-sel",
 		BaseSoundMovementType = "leg-rail-small-ok",
+		BaseSoundWeaponType = "lance-weapon-type",
+	},
+	legerailtank = {
+		BaseSoundSelectType = "cor-tnk-huge-sel",
+		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "lance-weapon-type",
 	},
 	leggat = {
@@ -3104,17 +3112,30 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-medium-alt",
 	},
 
-
 	-- LEGION T3 UNITS
 
 	legeheatraymech = {
 		BaseSoundSelectType = "leg-t3u-mech-sel",
-		BaseSoundMovementType = { "leg-t3u-mech-ok-1", "leg-t3u-mech-ok-2", },
+		BaseSoundMovementType = { "leg-t3u-mech-ok-1", "leg-t3u-mech-ok-2" },
 		BaseSoundWeaponType = "heatray4burn",
 	},
+	legeshotgunmech = {
 
+		BaseSoundSelectType = "arm-banth-sel",
+		BaseSoundMovementType = "arm-bot-t3-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
+	legelrpcmech = {
 
-
+		BaseSoundSelectType = "arm-banth-sel",
+		BaseSoundMovementType = "arm-bot-t3-ok",
+		BaseSoundWeaponType = "lrpc",
+	},
+	legeallterrainmech = {
+		BaseSoundSelectType = "cor-bot-t3-at-sel",
+		BaseSoundMovementType = "cor-bot-t3-at-ok",
+		BaseSoundWeaponType = "lrpc",
+	},
 
 	-- LEGION AIRCRAFT
 	legca = {
@@ -3146,6 +3167,16 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "fastemg-small",
+	},
+	legdrone = {
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
+		BaseSoundMovementType = "arm-air-gunship-alt-ok",
+		BaseSoundWeaponType = "fastemg-small",
+	},
+	legheavydrone = {
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
+		BaseSoundMovementType = "arm-air-gunship-alt-ok",
+		BaseSoundWeaponType = "helios-weapon-type",
 	},
 	legmost3 = {
 		BaseSoundSelectType = "cor-air-gunship-large-sel",
@@ -3190,7 +3221,7 @@ GUIUnitSoundEffects = {
 	legstronghold = {
 		BaseSoundSelectType = "arm-air-transport-large-sel",
 		BaseSoundMovementType = "arm-air-transport-large-ok",
-		BaseSoundWeaponType = "fastemg-medium",--transport-large ?
+		BaseSoundWeaponType = "fastemg-medium", --transport-large ?
 	},
 	legwhisper = {
 		BaseSoundSelectType = "arm-air-medium-sel",
@@ -3198,6 +3229,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "radar",
 	},
 	legionnaire = {
+		BaseSoundSelectType = "arm-air-medium-sel",
+		BaseSoundMovementType = "arm-air-medium-ok",
+		BaseSoundWeaponType = "aarocket-air",
+	},
+	legafigdef = {
 		BaseSoundSelectType = "arm-air-medium-sel",
 		BaseSoundMovementType = "arm-air-medium-ok",
 		BaseSoundWeaponType = "aarocket-air",
@@ -3219,16 +3255,15 @@ GUIUnitSoundEffects = {
 	legmoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
 	legmohobp = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		BaseSoundWeaponType = "conalt-small",
-        BaseSoundActivate   = "mohorun1",
-        BaseSoundDeactivate = "mohooff1",
+		BaseSoundActivate = "mohorun1",
+		BaseSoundDeactivate = "mohooff1",
 	},
-
 
 	-- LEGION HOVERCRAFT
 
@@ -3284,8 +3319,6 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "mine-large",
 	},
 
-
-
 	--Various Random Units
 
 	freefusion = {
@@ -3336,7 +3369,6 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "heatray-xl",
 	},
 
-
 	armgplat = {},
 	corgplat = {},
 	dbg_sphere = {},
@@ -3378,35 +3410,34 @@ GUIUnitSoundEffects = {
 	scavmistxl = {},
 	scavmistxxl = {},
 
-
-	lootboxbronze		= LootboxSoundEffects,
-	lootboxsilver		= LootboxSoundEffects,
-	lootboxgold			= LootboxSoundEffects,
-	lootboxplatinum		= LootboxSoundEffects,
-	lootboxnano_t1_var1	= LootboxNanoSoundEffects,
-	lootboxnano_t1_var2	= LootboxNanoSoundEffects,
-	lootboxnano_t1_var3	= LootboxNanoSoundEffects,
-	lootboxnano_t1_var4	= LootboxNanoSoundEffects,
-	lootboxnano_t2_var1	= LootboxNanoSoundEffects,
-	lootboxnano_t2_var2	= LootboxNanoSoundEffects,
-	lootboxnano_t2_var3	= LootboxNanoSoundEffects,
-	lootboxnano_t2_var4	= LootboxNanoSoundEffects,
-	lootboxnano_t3_var1	= LootboxNanoSoundEffects,
-	lootboxnano_t3_var2	= LootboxNanoSoundEffects,
-	lootboxnano_t3_var3	= LootboxNanoSoundEffects,
-	lootboxnano_t3_var4	= LootboxNanoSoundEffects,
-	lootboxnano_t4_var1	= LootboxNanoSoundEffects,
-	lootboxnano_t4_var2	= LootboxNanoSoundEffects,
-	lootboxnano_t4_var3	= LootboxNanoSoundEffects,
-	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
-
-
-	coruwgeo = corgeo,
-	coruwageo = corageo,
-	armuwgeo = armgeo,
-	armuwageo = armageo,
-
+	lootboxbronze = LootboxSoundEffects,
+	lootboxsilver = LootboxSoundEffects,
+	lootboxgold = LootboxSoundEffects,
+	lootboxplatinum = LootboxSoundEffects,
+	lootboxnano_t1_var1 = LootboxNanoSoundEffects,
+	lootboxnano_t1_var2 = LootboxNanoSoundEffects,
+	lootboxnano_t1_var3 = LootboxNanoSoundEffects,
+	lootboxnano_t1_var4 = LootboxNanoSoundEffects,
+	lootboxnano_t2_var1 = LootboxNanoSoundEffects,
+	lootboxnano_t2_var2 = LootboxNanoSoundEffects,
+	lootboxnano_t2_var3 = LootboxNanoSoundEffects,
+	lootboxnano_t2_var4 = LootboxNanoSoundEffects,
+	lootboxnano_t3_var1 = LootboxNanoSoundEffects,
+	lootboxnano_t3_var2 = LootboxNanoSoundEffects,
+	lootboxnano_t3_var3 = LootboxNanoSoundEffects,
+	lootboxnano_t3_var4 = LootboxNanoSoundEffects,
+	lootboxnano_t4_var1 = LootboxNanoSoundEffects,
+	lootboxnano_t4_var2 = LootboxNanoSoundEffects,
+	lootboxnano_t4_var3 = LootboxNanoSoundEffects,
+	lootboxnano_t4_var4 = LootboxNanoSoundEffects,
 }
+
+-- Underwater geo variants share sound effects with their land counterparts.
+-- Cannot self-reference keys inside a table literal, so assign after construction.
+GUIUnitSoundEffects.coruwgeo = GUIUnitSoundEffects.corgeo
+GUIUnitSoundEffects.coruwageo = GUIUnitSoundEffects.corageo
+GUIUnitSoundEffects.armuwgeo = GUIUnitSoundEffects.armgeo
+GUIUnitSoundEffects.armuwageo = GUIUnitSoundEffects.armageo
 
 local scavCopies = {}
 for _, udef in pairs(UnitDefs) do
@@ -3434,7 +3465,7 @@ for _, udef in pairs(UnitDefs) do
 				BaseSoundMovementType = "cor-bot-medium-ok",
 			}
 		else
-			if math.random(0,1) == 0 then
+			if math.random(0, 1) == 0 then
 				--Spring.Echo("[RESPONSEDOUND FALLBACK]: OTHER, RANDOM ARMADA", udef.name)
 				GUIUnitSoundEffects[udef.name] = {
 					BaseSoundSelectType = "arm-bot-small-sel",

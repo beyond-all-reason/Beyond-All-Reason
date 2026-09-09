@@ -1,13 +1,18 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, dish, turret, eye, fwheel, rwheel;
+//piece  base, dish, turret, eye, fwheel, rwheel;
+piece 	chassis, dishTower, 
+		dishAStrut, dishA, dishATop1, dishATop2, dishABot1, dishABot2,
+		dishBStrut, dishB, dishBTop1, dishBTop2, dishBBot1, dishBBot2,
+		dishCStrut, dishC, dishCTop1, dishCTop2, dishCBot1, dishCBot2,
+		dishDStrut, dishD, dishDTop1, dishDTop2, dishDBot1, dishDBot2,
+		lTrack, rTrack, trackGuards;
 
 static-var  Stunned;
 
-#define SIG_ACTIVATE			2
+#define SIGNAL_MOVE 1
+#define SIGNAL_TURNON 4
 
 
 
@@ -16,8 +21,15 @@ static-var  Stunned;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 2
 #define MAXTILT 100
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-#include "unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <20.0> 
+#define TB_TILT_X <0.15>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 
 Lights()
 {
@@ -30,27 +42,30 @@ Lights()
 
 Create()
 {
-	dont-cache dish;
-	dont-shade dish;
-	return (0);
+	call-script TB_Init();
 }
-StartMoving()
+StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	spin fwheel around x-axis speed <50> accelerate <10>;
 	spin rwheel around x-axis speed <50> accelerate <10>;
+	START_TILTBANK;
 }
 
 StopMoving()
 {
 	stop-spin fwheel around x-axis;
 	stop-spin rwheel around x-axis;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
 }
 
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	spin dish around y-axis speed <100.021978> accelerate <10>;
 	start-script Lights();
 	return (0);
@@ -58,8 +73,8 @@ Activate()
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	stop-spin dish around y-axis decelerate <10>;
 	wait-for-turn dish around y-axis;
 	return (0);
@@ -75,11 +90,7 @@ SetStunned(State)
 	}
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -88,9 +99,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode fwheel type BITMAPONLY | NOHEATCLOUD;
-		//explode rwheel type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
-		//explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -101,7 +110,6 @@ Killed(severity, corpsetype)
 		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode eye type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -112,7 +120,6 @@ Killed(severity, corpsetype)
 		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode eye type SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -121,7 +128,6 @@ Killed(severity, corpsetype)
 		explode fwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode eye type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

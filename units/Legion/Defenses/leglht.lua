@@ -3,10 +3,10 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 32000,
-		energycost = 550,--700
-		metalcost = 70,--90
+		energycost = 550,
+		metalcost = 70,
 		buildpic = "LEGLHT.DDS",
-		buildtime = 2450,--2720
+		buildtime = 2200,
 		canrepeat = false,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 -7 0",
@@ -16,10 +16,8 @@ return {
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5100,
-		health = 550,--650
+		health = 550, --650
 		maxslope = 10,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
@@ -35,7 +33,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0.6",
@@ -76,12 +74,6 @@ return {
 				object = "Units/cor2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -134,7 +126,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 2.66,
 				tolerance = 10000,
 				turret = true,
@@ -146,8 +137,8 @@ return {
 					vtol = 25,
 				},
 				customparams = {
-					exclude_preaim = true
-				}
+					exclude_preaim = true,
+				},
 			},
 		},
 		weapons = {

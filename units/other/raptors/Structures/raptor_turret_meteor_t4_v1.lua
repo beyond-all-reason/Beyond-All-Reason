@@ -23,8 +23,6 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		hightrajectory = 1,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 30000,
@@ -52,6 +50,7 @@ return {
 		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo",
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -88,12 +87,11 @@ return {
 				name = "METEORLAUNCHER",
 				proximitypriority = -1,
 				range = 72000,
-				reloadtime = 30,
+				reloadtime = 120,
 				soundhit = "nukecor",
 				soundhitwet = "nukewater",
 				soundstart = "bugarty",
 				targetable = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponvelocity = 1500,
 				damage = {
@@ -101,7 +99,8 @@ return {
 				},
 				customparams = {
 					shield_aoe_penetration = true,
-				}
+					nuclear = 1,
+				},
 			},
 		},
 		weapons = {

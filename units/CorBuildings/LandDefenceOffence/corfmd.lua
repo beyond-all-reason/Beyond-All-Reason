@@ -13,9 +13,7 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		health = 3650,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 3300,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -24,7 +22,7 @@ return {
 		noautofire = true,
 		objectname = "Units/CORFMD.s3o",
 		radardistance = 50,
-		script = "Units/CORFMD.cob",
+		script = "Units/corfmd.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 195,
@@ -70,13 +68,6 @@ return {
 				object = "Units/cor5X5D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

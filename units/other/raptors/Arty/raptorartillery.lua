@@ -22,8 +22,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = 1,
-		idleautoheal = 20,
-		idletime = 300,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
@@ -55,6 +53,7 @@ return {
 		waterline = 10,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "Rubus",
 			normalmaps = "yes",
 			normaltex = "unittextures/raptorArtillery_n.png",

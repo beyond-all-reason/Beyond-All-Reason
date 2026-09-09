@@ -2,15 +2,20 @@ if gl.CreateShader == nil or Spring.GetSpectatingState() then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
-		name	  = "Stained Glass",
-		desc	  = "Very psychedelic",
-		author	  = "Beherith",
-		layer	  = 1900,
-		enabled   = true,
+		name = "Stained Glass",
+		desc = "Very psychedelic",
+		author = "Beherith",
+		layer = 1900,
+		enabled = true,
 	}
 end
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
 
 -- Shameless port from https://gist.github.com/martymcmodding/30304c4bffa6e2bd2eb59ff8bb09d135
 
@@ -22,14 +27,8 @@ end
 -- Lua Shortcuts
 -----------------------------------------------------------------
 
-local glTexture		 = gl.Texture
-local glBlending	 = gl.Blending
-
------------------------------------------------------------------
--- File path Constants
------------------------------------------------------------------
-
-local luaShaderDir = "LuaUI/Include/"
+local glTexture = gl.Texture
+local glBlending = gl.Blending
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -215,7 +214,7 @@ void main( )
 -- Global Variables
 -----------------------------------------------------------------
 
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local LuaShader = gl.LuaShader
 
 local screenCopyTex
 local glassShader
@@ -225,26 +224,27 @@ local fullTexQuad
 -- Local Functions
 -----------------------------------------------------------------
 
-
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
 
 local glasstriggerfeaturedefsids = {}
 for featureDefID, featureDef in pairs(FeatureDefs) do
-	if string.find(featureDef.name, "mushroom", nil, true) then 
+	if string.find(featureDef.name, "mushroom", nil, true) then
 		glasstriggerfeaturedefsids[featureDefID] = true
 	end
 end
-if next(glasstriggerfeaturedefsids) == nil then return end
+if next(glasstriggerfeaturedefsids) == nil then
+	return
+end
 
 function widget:Initialize()
-	if Spring.Utilities.Gametype.IsSinglePlayer ~= true then
+	if BAR.Utilities.Gametype.IsSinglePlayer ~= true then
 		widgetHandler:RemoveWidget()
-		return 
+		return
 	end
 	if gl.CreateShader == nil then
-		Spring.Echo("glass: createshader not supported, removing")
+		spEcho("glass: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -263,9 +263,9 @@ function widget:Initialize()
 
 	local shaderCompiled = glassShader:Initialize()
 	if not shaderCompiled then
-			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
-			widgetHandler:RemoveWidget()
-			return
+		spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	fullTexQuad = gl.GetVAO()
@@ -273,7 +273,6 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget() --no fallback for potatoes
 		return
 	end
-
 end
 
 function widget:Shutdown()
@@ -287,14 +286,13 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then 
-		widgetHandler:RemoveWidget() 
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
 	end
 end
 
-
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local myteamid = Spring.GetMyTeamID()
+local myteamid = Spring.GetLocalTeamID()
 local effectOn = false
 local effectStart = 0
 
@@ -302,19 +300,19 @@ function widget:FeatureDestroyed(featureID, allyTeam)
 	if allyTeam == gaiaTeamID and glasstriggerfeaturedefsids[Spring.GetFeatureDefID(featureID)] then
 		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 		local featureHealth = Spring.GetFeatureHealth(featureID)
-		local mr, mm, er, em, rl = Spring.GetFeatureResources(featureID) 
-		Spring.Echo("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl )
-		if featureHealth > 0 and er == 0 then 
-			local unitsnearby = Spring.GetUnitsInCylinder(fx,fz, 170, myteamid)
-			for i, unitID in ipairs(unitsnearby) do 
-				--Spring.Echo("nearby", unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID) 
-				--Spring.Echo("nearby", unitID, UnitDefs[unitDefID].name)
-				if UnitDefs[unitDefID].name == 'armcom' or UnitDefs[unitDefID].name == 'corcom' then
-					if effectOn == false then 
+		local mr, mm, er, em, rl = Spring.GetFeatureResources(featureID)
+		spEcho("Reclaiming that was probably not a good idea...", featureHealth, mr, mm, er, em, rl)
+		if featureHealth > 0 and er == 0 then
+			local unitsnearby = Spring.GetUnitsInCylinder(fx, fz, 170, myteamid)
+			for i, unitID in ipairs(unitsnearby) do
+				--spEcho("nearby", unitID)
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				--spEcho("nearby", unitID, UnitDefs[unitDefID].name)
+				if UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" then
+					if effectOn == false then
 						effectOn = true
 						effectStart = os.clock()
-						--Spring.Echo("Effect started")
+						--spEcho("Effect started")
 					end
 				end
 			end
@@ -323,28 +321,29 @@ function widget:FeatureDestroyed(featureID, allyTeam)
 end
 
 function widget:DrawScreenEffects()
-	if effectOn then 
+	if effectOn then
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-			screenCopyTex = WG['screencopymanager'].GetScreenCopy()
+		if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+			screenCopyTex = WG.screencopymanager.GetScreenCopy()
 		else
 			--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-			Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+			spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 			widgetHandler:RemoveWidget()
 			return false
 		end
-		if screenCopyTex == nil then return end
+		if screenCopyTex == nil then
+			return
+		end
 
 		local dt = os.clock() - effectStart
-		if dt > 15 then 
-			effectOn = false 
+		if dt > 15 then
+			effectOn = false
 			widgetHandler:RemoveWidget()
 			return false
 		end
 		local h = 0.33 * dt
-		local strength = h * math.exp(1.0 - h)  -- iq expimpulse, peaking at 3
+		local strength = h * math.exp(1.0 - h) -- iq expimpulse, peaking at 3
 
-		
 		glTexture(0, screenCopyTex)
 		glBlending(true)
 		glassShader:Activate()
@@ -356,4 +355,3 @@ function widget:DrawScreenEffects()
 		glTexture(0, false)
 	end
 end
-

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;;
+piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10, jetl1, jetr1, jetl2, jetr2, thrustl1, thrustr1, thrustl2, thrustr2;
 
 static-var  Static_Var_1, oldHead;
 static-var  Stunned;
@@ -177,7 +177,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	start-script RestoreAfterDelay();
-	return (1);
+	return (0);
 }
 
 FirePrimary()

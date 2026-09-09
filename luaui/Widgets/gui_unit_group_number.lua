@@ -1,3 +1,5 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Unit Group Number",
@@ -10,22 +12,15 @@ function widget:GetInfo()
 	}
 end
 
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local hideBelowGameframe = 100
 
 local GetGroupUnits = Spring.GetGroupUnits
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spIsGUIHidden = Spring.IsGUIHidden
-
-local crashing = {}
-
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local unitCanFly = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canFly then
-		unitCanFly[unitDefID] = true
-	end
-end
 
 local gameFrame = 0
 local maxNumGroups = 9
@@ -35,19 +30,25 @@ local minGroupID = 0
 -- GL4 notes
 -- use drawprimitiveatunit!
 
+local InstanceVBOTable = gl.InstanceVBOTable
+
+local popElementInstance = InstanceVBOTable.popElementInstance
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+
 -- Configurables:
 local groupNumberSize = 13
 local groupNumberHeight = 0
 local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 local debugmode = false
 
--- Managment:
+-- Management:
 local unitIDtoGroup = {} -- keys unitID's to group numbers
 local grouptounitID = {}
 for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
+---@type InstanceVBOTable?
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -153,7 +154,7 @@ end
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -174,7 +175,7 @@ function widget:GroupChanged(groupID)
 
 		unitsToBeRemoved[unitID] = nil
 
-		if not crashing[unitID] and previousUnitGroup ~= groupID then -- not same as previous
+		if previousUnitGroup ~= groupID then -- not same as previous
 			-- remove from old
 			if previousUnitGroup then
 				grouptounitID[previousUnitGroup][unitID] = nil
@@ -192,7 +193,7 @@ function widget:GroupChanged(groupID)
 end
 
 function widget:Initialize()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -228,30 +229,23 @@ function widget:Shutdown()
 	end
 end
 
--- function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-function widget:UnitDestroyed(unitID)
-	crashing[unitID] = nil
-end
-
--- widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-function widget:UnitDamaged(unitID, unitDefID)
-	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		crashing[unitID] = true
-		RemovePrimitive(unitID)
-	end
+function widget:CrashingAircraft(unitID, unitDefID, teamID)
+	RemovePrimitive(unitID)
 end
 
 function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so group numbers render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end
 
 	if unitGroupVBO.usedElements > 0 then
-		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
+		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesn't update :/
 		gl.Texture(0, healthbartexture)
 		unitGroupShader:Activate()
 		unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)

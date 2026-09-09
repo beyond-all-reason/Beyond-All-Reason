@@ -1,15 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, body, turret1, flare1, turret2, flare2;
 
 static-var  restore_delay;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 Create()
@@ -26,7 +24,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret2 to x-axis <0> speed <16.00000>;
+	turn turret2 to x-axis <0> speed <16.0>;
+	turn turret1 to x-axis <0> speed <16.0>;
 }
 
 SetStunned(State)
@@ -43,73 +42,61 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(reloadMS)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = reloadMS * 2;
 }
 
-
-SweetSpot(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = flare1;
 }
 
-QuerySecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = flare1;
+	pieceIndex = turret1;
 }
 
-AimFromSecondary(piecenum)
+AimWeapon2(heading, pitch)
 {
-	piecenum = turret1;
-}
-
-AimSecondary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret1 to y-axis heading speed <400.000000>;
-	turn turret1 to x-axis <0.000000> - pitch speed <400.000000>;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turret1 to y-axis heading speed <400.0>;
+	turn turret1 to x-axis <0.0> - pitch speed <400.0>;
 	wait-for-turn turret1 around y-axis;
 	return (1);
 }
 
-FireSecondary()
+FireWeapon2()
 {
-	show flare1;
-	sleep 140;
-	hide flare1;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare2;
+	pieceIndex = flare2;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret2;
+	pieceIndex = turret2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	turn turret2 to y-axis heading speed <300.000000>;
-	turn turret2 to x-axis <0.000000> - pitch speed <300.000000>;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	turn turret2 to y-axis heading speed <300.0>;
+	turn turret2 to x-axis <0.0> - pitch speed <300.0>;
 	wait-for-turn turret2 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	show flare2;
-	sleep 150;
-	hide flare2;
 }
 
 Killed(severity, corpsetype)

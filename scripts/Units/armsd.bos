@@ -1,36 +1,35 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, spinner, fan;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 static-var  Stunned;
 
 
 Create()
 {
-	spin spinner around y-axis speed <50.00000>;
-	spin fan around y-axis speed <200.00000>;
+	spin spinner around y-axis speed <50.0>;
+	spin fan around y-axis speed <200.0>;
 	return (0);
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 Activate()
 {
-	spin spinner around y-axis speed <50.00000>;
-	spin fan around y-axis speed <200.00000>;
+	spin spinner around y-axis speed <50.0>;
+	spin fan around y-axis speed <200.0>;
 	return (0);
 }
 
 Deactivate()
 {
-	spin spinner around y-axis speed <0.000000>;
-	spin fan around y-axis speed <0.000000>;
+	spin spinner around y-axis speed <0.0>;
+	spin fan around y-axis speed <0.0>;
 	return (0);
 }
 
@@ -45,11 +44,7 @@ SetStunned(State)
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {

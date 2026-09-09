@@ -25,24 +25,23 @@
 --  Example EngineOptions.lua
 --
 
-local options =
-{
+local options = {
 	{
-		key="engineoptions",
-		name="Engine Options",
-		desc="Engine Options",
-		type="section",
+		key = "engineoptions",
+		name = "Engine Options",
+		desc = "Engine Options",
+		type = "section",
 	},
 	{
-		key    = 'maxunits',
-		name   = 'Max units',
-		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
-		type   = 'number',
-		section= 'engineoptions',
-		def    = 2000,
-		min    = 1,
-		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
-		step   = 1,
+		key = "maxunits",
+		name = "Max units",
+		desc = "Maximum number of units (including buildings) for each team allowed at the same time",
+		type = "number",
+		section = "engineoptions",
+		def = 2000,
+		min = 1,
+		max = 10000, --- engine caps at lower limit if more than 3 team are ingame
+		step = 1,
 	},
 }
 

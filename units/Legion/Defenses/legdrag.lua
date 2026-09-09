@@ -1,7 +1,6 @@
 return {
 	legdrag = {
 		maxacc = 0,
-		autoheal = 4,
 		blocking = true,
 		maxdec = 0,
 		energycost = 0,
@@ -19,7 +18,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		health = 2800,
 		maxslope = 64,
@@ -34,7 +32,7 @@ return {
 		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legdtr_aoplane.dds",
+			buildinggrounddecaltype = "decals/legdrag_aoplane.dds",
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,

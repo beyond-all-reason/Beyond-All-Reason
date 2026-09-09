@@ -12,21 +12,19 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 720,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
 		maxwaterdepth = 12,
 		metalcost = 120,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",
 		script = "Units/ARMROCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 338,
+		sightdistance = 380,
 		speed = 50.7,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -34,8 +32,10 @@ return {
 		turnrate = 1271.90002,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 2,
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
 		},
@@ -73,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -135,12 +131,12 @@ return {
 				weaponacceleration = 120,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
+				customparams = {
+					overrange_distance = 547,
+					projectile_destruction_method = "descend",
+				},
 				damage = {
 					default = 157,
-				},
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 547,
 				},
 			},
 		},

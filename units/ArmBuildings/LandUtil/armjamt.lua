@@ -6,7 +6,6 @@ return {
 		buildtime = 9950,
 		canattack = false,
 		canrepeat = false,
-		cloakcost = 25,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 82 32",
 		collisionvolumetype = "CylY",
@@ -17,14 +16,11 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 790,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 240,
-		mincloakdistance = 35,
 		objectname = "Units/ARMJAMT.s3o",
 		onoffable = true,
 		radardistancejam = 500,
@@ -34,6 +30,7 @@ return {
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {
+			juno_kill = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -55,12 +52,6 @@ return {
 				metal = 147,
 				object = "Units/armjamt_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

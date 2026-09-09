@@ -70,3 +70,25 @@ Killed(severity, corpsetype)
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+
+Dronedocked(arg1, dockpiece, arg2, arg3)
+{
+	var piece_xz;
+	var piece_angle;
+	var base_xz;
+	
+	base_xz = get PIECE_XZ(base);
+	
+	if(dockpiece == 4){piece_xz = get PIECE_XZ(pad0);}
+	if(dockpiece == 5){piece_xz = get PIECE_XZ(pad1);}
+	if(dockpiece == 6){piece_xz = get PIECE_XZ(pad2);}
+	if(dockpiece == 7){piece_xz = get PIECE_XZ(pad3);}
+	if(dockpiece == 8){piece_xz = get PIECE_XZ(pad4);}
+	if(dockpiece == 9){piece_xz = get PIECE_XZ(pad5);}
+	
+	piece_angle = get XZ_ATAN(piece_xz-base_xz);
+	
+	arg1 = piece_angle + <180>;
+	return 1234;
+}

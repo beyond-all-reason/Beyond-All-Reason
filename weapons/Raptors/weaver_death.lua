@@ -11,7 +11,6 @@ return {
 		range = 450,
 		reloadtime = 3.6,
 		soundhit = "bugdie",
-		soundhitvolume = 5.5,
 		soundstart = "smallraptordead",
 		turret = 1,
 		weaponvelocity = 250,

@@ -59,6 +59,7 @@ return {
 		workertime = 450,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -104,6 +105,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 10000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 1,
 				},
@@ -124,7 +128,6 @@ return {
 				range = 200,
 				reloadtime = 3,
 				soundstart = "smallraptorattack",
-				targetborder = 1,
 				tolerance = 5000,
 				turret = true,
 				waterweapon = true,

@@ -1,19 +1,17 @@
 return {
 	armfboy = {
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 21000,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 11000,
+		energycost = 20000,
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		health = 7800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.43125,
 		maxslope = 20,
@@ -35,6 +33,7 @@ return {
 		customparams = {
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 2,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -73,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -102,12 +96,13 @@ return {
 		},
 		weapondefs = {
 			fatboy_plasma_cannon = {
-				areaofeffect = 240,
+				areaofeffect = 300,
 				avoidfeature = false,
+				cegtag = "Heavy-Plasma",
 				craterareaofeffect = 240,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.85,
+				edgeeffectiveness = 0.15,
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
@@ -115,13 +110,13 @@ return {
 				name = "Single-Fire Heavy Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 700,
-				reloadtime = 6.73333,
+				reloadtime = 7,
 				soundhit = "bertha6",
 				soundhitwet = "splslrg",
 				soundstart = "BERTHA1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 307.40851,
+				weaponvelocity = 307,
 				damage = {
 					default = 800,
 					subs = 100,

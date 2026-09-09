@@ -1,14 +1,12 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  flare, base, doorr, doorl, prop, aimpoint;
 
-static-var  restore_delay, currentSpeed, moveSpeed;
+static-var  restore_delay;
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE			2
+#define SIGNAL_AIM1 256
+#define SIGNAL_MOVE 1
 
 
 #define BASEPIECE base
@@ -17,14 +15,24 @@ static-var  restore_delay, currentSpeed, moveSpeed;
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
+
 
 Propcontrol()
 {
-	while(TRUE)
+	var currentSpeed;
+	while(1)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
-		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 100;
 	}
 }
@@ -34,48 +42,38 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 3000;
-	moveSpeed = get MAX_SPEED;
-	start-script Propcontrol();
+	call-script TB_Init();
 	return (0);
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from base;
-		sleep 250;
-		emit-sfx 1024 + 0 from base;
-		emit-sfx 1024 + 1 from base;
-		sleep 250;
-	}
-	return (0);
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+	start-script Propcontrol();
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+	stop-spin prop around z-axis decelerate <10.0>;
+}
+
+FireWeapon1()
+{
+	emit-sfx 1024 + 2 from flare;
 	return (0);
 }
 
-FirePrimary()
+QueryWeapon1(pieceIndex)
 {
+	pieceIndex = flare;
 	return (0);
 }
 
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
-	return (0);
-}
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
 
 
 static-var  Stunned;
@@ -102,15 +100,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = aimpoint;
+	pieceIndex = aimpoint;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	move doorr to x-axis [-2] speed [10];
 	move doorl to x-axis [2] speed [10];
 	
@@ -128,7 +126,6 @@ Killed(severity, corpsetype)
 		explode prop type FIRE | SMOKE | NOHEATCLOUD;
 		explode doorl type BITMAPONLY | NOHEATCLOUD;
 		explode doorr type BITMAPONLY | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -138,7 +135,6 @@ Killed(severity, corpsetype)
 		explode prop type FIRE | SMOKE | NOHEATCLOUD;
 		explode doorl type NOHEATCLOUD;
 		explode doorr type FIRE | SMOKE | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -148,7 +144,6 @@ Killed(severity, corpsetype)
 		explode prop type FIRE | SMOKE | NOHEATCLOUD;
 		explode doorl type FIRE | SMOKE | NOHEATCLOUD;
 		explode doorr type FIRE | SMOKE | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -156,6 +151,5 @@ Killed(severity, corpsetype)
 		explode prop type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
 		explode doorl type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
 		explode doorr type EXPLODE_ON_HIT | FIRE | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

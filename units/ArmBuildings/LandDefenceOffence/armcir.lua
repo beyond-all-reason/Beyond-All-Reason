@@ -1,6 +1,6 @@
 return {
 	armcir = {
-		airsightdistance = 1060,
+		airsightdistance = 1200,
 		buildangle = 65536,
 		buildpic = "ARMCIR.DDS",
 		buildtime = 12000,
@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4450,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -70,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			cloak = "kloak1",
@@ -123,7 +114,7 @@ return {
 				noselfdamage = true,
 				projectiles = 1,
 				proximitypriority = -0.5,
-				range = 1125,
+				range = 1200,
 				reloadtime = 1.6,
 				smokecolor = 0.95,
 				smokeperiod = 8,

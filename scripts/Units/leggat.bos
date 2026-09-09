@@ -132,9 +132,8 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <120.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <65.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if (get ABS(wpn1_lasthead - heading)> <20>)
 	{
-		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}

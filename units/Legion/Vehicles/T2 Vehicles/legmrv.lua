@@ -5,7 +5,7 @@ return {
 		energycost = 4100,
 		metalcost = 250,
 		buildpic = "LEGMRV.DDS",
-		buildtime = 4500,
+		buildtime = 5900,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 26 38",
@@ -14,8 +14,6 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 970,
 		maxslope = 12,
@@ -37,16 +35,17 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 600,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
+			weapon1turretx = 200,
+			weapon1turrety = 400,
 		},
 		featuredefs = {
 			dead = {
@@ -83,10 +82,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -134,7 +129,11 @@ return {
 				soundstart = "cannon3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 550,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 120,
 					vtol = 30,
@@ -147,7 +146,6 @@ return {
 				def = "quickshot_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
-
 			},
 		},
 	},

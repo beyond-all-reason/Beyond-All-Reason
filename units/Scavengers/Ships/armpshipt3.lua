@@ -1,9 +1,7 @@
-local unitName = "Epic Ellysaw"
 return {
 	armpshipt3 = {
 		maxacc = 0.04771,
 		airsightdistance = 470,
-		autoheal = 1.5,
 		blocking = true,
 		maxdec = 0.04771,
 		energycost = 200000,
@@ -19,8 +17,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 2,
-		idletime = 900,
 		health = 13900,
 		speed = 81.0,
 		minwaterdepth = 6,
@@ -36,7 +32,7 @@ return {
 		turnrate = 270,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips",
 			techlevel = 3,
@@ -75,10 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -134,12 +126,14 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasfirerc",
 				soundtrigger = 1,
-				targetborder = 0.2,
 				thickness = 2.4,
 				tolerance = 4500,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 116,
 					vtol = 87,

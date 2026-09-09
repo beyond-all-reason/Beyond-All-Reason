@@ -2,7 +2,7 @@ return {
 	armhlt = {
 		buildangle = 8192,
 		buildpic = "ARMHLT.DDS",
-		buildtime = 12500,
+		buildtime = 11300,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 11 0",
 		collisionvolumescales = "36 88 36",
@@ -13,8 +13,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 2600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -70,13 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			cloak = "kloak1",
@@ -125,7 +116,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
-				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,

@@ -1,16 +1,21 @@
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Attack and Move Notification",
-		desc = "v0.31 Notifes when a unit is attacked or a move command failed",
+		desc = "v0.31 Notifies when a unit is attacked or a move command failed",
 		author = "knorke & very_bad_soldier",
 		date = "Dec , 2011",
 		license = "GPLv2",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
-local alarmInterval = 15        --seconds
+-- Localized functions for performance
+local mathRandom = math.random
+
+local alarmInterval = 15 --seconds
 
 local spGetLocalTeamID = Spring.GetLocalTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
@@ -20,7 +25,7 @@ local spDiffTimers = Spring.DiffTimers
 local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSetLastMessagePosition = Spring.SetLastMessagePosition
-local random = math.random
+local random = mathRandom
 
 local lastAlarmTime = nil
 local lastCommanderAlarmTime = nil
@@ -91,7 +96,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	if unitHumanName[unitDefID] then
 		lastAlarmTime = now
-		spEcho( Spring.I18N('ui.moveAttackNotify.underAttack', { unit = unitHumanName[unitDefID] }) )
+		spEcho(BAR.I18N("ui.moveAttackNotify.underAttack", { unit = unitHumanName[unitDefID] }))
 
 		if unitUnderattackSounds[unitDefID] then
 			local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
@@ -109,7 +114,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	spEcho( Spring.I18N('ui.moveAttackNotify.cantMove', { unit = unitHumanName[unitDefID] }) )
+	spEcho(BAR.I18N("ui.moveAttackNotify.cantMove", { unit = unitHumanName[unitDefID] }))
 end
 
 function widget:LanguageChanged()

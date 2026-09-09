@@ -104,7 +104,7 @@ out Data {
 	vec3 worldNormal;
 	
 	vec4 modelVertexPos;
-	vec4 modelVertexPosOrig;
+	vec4 pieceVertexPosOrig;
 	vec4 worldVertexPos;
 	// TBN matrix components
 	vec3 worldTangent;
@@ -115,7 +115,7 @@ out Data {
 	// shadowPosition
 	vec4 shadowVertexPos;
 
-	// auxilary varyings
+	// auxiliary varyings
 	float aoTerm;
 	float selfIllumMod;
 	float fogFactor;
@@ -191,7 +191,7 @@ float simFrame = (timeInfo.x + timeInfo.w);
 #line 120000
 
 /***********************************************************************/
-	// Auxilary functions
+	// Auxiliary functions
 
 	vec2 GetWind(float period) {
 		vec2 wind;

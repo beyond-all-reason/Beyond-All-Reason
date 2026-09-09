@@ -1,0 +1,59 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, greebles, dish1, dish2, dish3, flare1, flare2, flare3;
+
+#define WATER_ROCK_UNITSIZE 8
+#include "../floatmotion.h"
+
+Create()
+{
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script Activate();
+	start-script FloatMotion();
+}
+
+Activate()
+{
+	spin dish1 around y-axis speed <60> accelerate <1>;
+    spin dish2 around y-axis speed <30> accelerate <0.5>;
+    spin dish3 around y-axis speed <45> accelerate <0.75>;
+}
+
+Deactivate()
+{
+	stop-spin dish1 around y-axis decelerate <1>;
+    stop-spin dish2 around y-axis decelerate <0.5>;
+    stop-spin dish3 around y-axis decelerate <0.75>;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish1 type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

@@ -18,8 +18,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 72,
 		health = 28000,
 		maxslope = 10,
@@ -41,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
@@ -82,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:tachyonshot",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -137,7 +130,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "annigun1",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				texture3 = "largebeam",
 				thickness = 10,
 				tilelength = 150,

@@ -16,8 +16,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -39,6 +37,7 @@ return {
 			buildinggrounddecaltype = "decals/armamb_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
@@ -79,11 +78,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-larger",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -133,15 +127,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					norangering = 1,
+					smart_priority = true,
+				},
 				damage = {
 					default = 350,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
 			},
 			armamb_gun_high = {
 				accuracy = 400,
@@ -166,15 +161,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					exclude_preaim = true,
+					smart_backup = true,
+				},
 				damage = {
 					default = 350,
 					subs = 150,
 					vtol = 90,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
-				}
 			},
 			smart_trajectory_dummy = {
 				accuracy = 400,
@@ -199,13 +194,15 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					bogus = 1,
+					exclude_preaim = true,
+					norangering = 1,
+					smart_trajectory_checker = true,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true,
-				}
 			},
 		},
 		weapons = {

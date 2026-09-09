@@ -16,8 +16,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 1940,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 20,
@@ -31,11 +29,12 @@ return {
 		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 6,
-			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 7,
+			buildinggrounddecalsizey = 7,
 			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -73,13 +72,6 @@ return {
 				object = "Units/arm4X4B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

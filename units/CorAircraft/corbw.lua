@@ -14,8 +14,6 @@ return {
 		footprintz = 2,
 		health = 83,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.25,
 		maxdec = 0.55,
 		maxslope = 10,
@@ -26,23 +24,18 @@ return {
 		script = "Units/CORBW.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
-		sightdistance = 364,
+		sightdistance = 430,
 		speed = 280.5,
 		turninplaceanglelimit = 360,
 		turnrate = 1100,
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "emp",
-			crashable = 0,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -102,6 +95,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 600,
 				},
