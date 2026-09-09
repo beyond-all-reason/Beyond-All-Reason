@@ -210,4 +210,76 @@ describe("mission_api.validation.references", function()
 				.. "Created in: action nameUnused, action spawnUnused (unitLoadout[1])"
 		)
 	end)
+
+	-- The on* fields name an Event trigger, raised when the objective reaches that state.
+	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
+	describe("objective events", function()
+		for _, fieldName in ipairs({ "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed" }) do
+			it("accepts " .. fieldName .. " naming an Event trigger", function()
+				local result = V.validate(
+					V.mission()
+						:WithObjective("obj", { textKey = "ok", [fieldName] = "raised" })
+						:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+						:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+						:WithInitialStageDefinition("stage", { objectives = { "obj" } })
+				)
+
+				V.assertValid(result)
+			end)
+
+			it("reports " .. fieldName .. " naming a trigger that is not an Event", function()
+				local result = V.validate(V.mission()
+					:WithObjective("obj", { textKey = "ok", [fieldName] = "timer" })
+					:WithTrigger("timer", {
+						type = V.triggerTypes.TimeElapsed,
+						parameters = { seconds = 1 },
+						actions = { "act" },
+					})
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithInitialStageDefinition("stage", { objectives = { "obj" } }))
+
+				V.assertMessage(
+					result,
+					"Objective event must name an Event trigger. Objective: obj, Field: "
+						.. fieldName
+						.. ", Trigger: timer"
+				)
+			end)
+		end
+
+		-- An unowned Event trigger is inert: nothing declares a callin that can fire it.
+		it("warns about an Event trigger no objective names", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("orphan", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+			)
+
+			V.assertMessage(result, "Event trigger has no owners, so it can never fire. Trigger: orphan")
+		end)
+
+		it("does not warn about an Event trigger an objective names", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("obj", { textKey = "ok", onCompleted = "raised" })
+					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
+			)
+
+			V.assertNoMessageContaining(result, "Event trigger has no owners")
+		end)
+
+		-- The existence check belongs to sections.lua, so this must not double report.
+		it("leaves a nonexistent trigger to the objective field validation", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("obj", { textKey = "ok", onCompleted = "nowhere" })
+					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
+			)
+
+			V.assertMessage(result, "Invalid triggerID: nowhere. Objective: obj, Field: onCompleted")
+			V.assertNoMessageContaining(result, "must name an Event trigger")
+		end)
+	end)
 end)
