@@ -123,6 +123,25 @@ local smartFilter = {
 	altMin = 0,
 	altMaxEnable = false,
 	altMax = 200,
+	-- INFLUENCE: soft altitude / slope bands that scale a stroke instead of
+	-- gating it, remembered per CHANNEL (the surface painter keeps the same
+	-- shape per texture). Inside this table on purpose: the paint pass runs
+	-- from DrawWorld, which sits at the Lua 5.1 upvalue ceiling, and this table
+	-- is already one of its upvalues. _uInf holds the uniform locations for the
+	-- same reason.
+	influenceDefault = {
+		altOn = false,
+		altMin = 0,
+		altMax = 200,
+		altFeatherLo = 40,
+		altFeatherHi = 40,
+		slopeOn = false,
+		slopeMin = 0,
+		slopeMax = 30,
+		slopeFeather = 10,
+	},
+	influence = {}, -- channel (1..4) -> profile
+	_uInf = { altOn = -1, alt = -1, slopeOn = -1, slope = -1 }, -- filled by createShaders
 }
 
 -- Texture state
@@ -368,10 +387,42 @@ local PAINT_FRAG_SRC = [[
 	uniform float sfAltMin;
 	uniform int sfAltMaxEnable;
 	uniform float sfAltMax;
+	// INFLUENCE (soft bands scaling the stroke; x = min, y = max, z = feather
+	// below min, w = feather above max; slope in degrees)
+	uniform int infAltOn;
+	uniform vec4 infAlt;
+	uniform int infSlopeOn;
+	uniform vec4 infSlope;
 
 	// ------ smart-filter helpers ------
 	float sampleHeight(vec2 uv) {
 		return texture2D(heightMap, uv).x;
+	}
+
+	float smoothBand(float v, float lo, float hi, float fLo, float fHi) {
+		float a = (fLo > 0.001) ? smoothstep(lo - fLo, lo, v) : step(lo, v);
+		float b = (fHi > 0.001) ? (1.0 - smoothstep(hi, hi + fHi, v)) : step(v, hi);
+		return clamp(a * b, 0.0, 1.0);
+	}
+
+	float influenceAt(vec2 uv) {
+		if (infAltOn == 0 && infSlopeOn == 0) return 1.0;
+		float w = 1.0;
+		if (infAltOn == 1) {
+			w *= smoothBand(sampleHeight(uv), infAlt.x, infAlt.y, infAlt.z, infAlt.w);
+		}
+		if (infSlopeOn == 1) {
+			vec2 hmTexel = 1.0 / vec2(textureSize(heightMap, 0));
+			float hL = sampleHeight(uv + vec2(-hmTexel.x, 0.0));
+			float hR = sampleHeight(uv + vec2( hmTexel.x, 0.0));
+			float hD = sampleHeight(uv + vec2(0.0, -hmTexel.y));
+			float hU = sampleHeight(uv + vec2(0.0,  hmTexel.y));
+			vec2 cellSize = mapSize * hmTexel;
+			vec3 n = normalize(vec3(hL - hR, 2.0 * cellSize.x, hD - hU));
+			float slopeDeg = degrees(acos(clamp(n.y, 0.0, 1.0)));
+			w *= smoothBand(slopeDeg, infSlope.x, infSlope.y, infSlope.z, infSlope.w);
+		}
+		return w;
 	}
 
 	bool passesSmartFilter(vec2 uv) {
@@ -499,6 +550,8 @@ local PAINT_FRAG_SRC = [[
 		// Falloff
 		float falloff = 1.0 - pow(dist, brushCurve);
 		float amount = brushStrength * falloff;
+		// INFLUENCE scales paint only; erase always lands at full strength
+		if (brushErase == 0) amount *= influenceAt(uv);
 
 		vec4 result = current;
 		if (brushErase == 1) {
@@ -585,6 +638,10 @@ local function createShaders()
 	uLocSfAltMin = glGetUniformLocation(paintShader, "sfAltMin")
 	uLocSfAltMaxEnable = glGetUniformLocation(paintShader, "sfAltMaxEnable")
 	uLocSfAltMax = glGetUniformLocation(paintShader, "sfAltMax")
+	smartFilter._uInf.altOn = glGetUniformLocation(paintShader, "infAltOn")
+	smartFilter._uInf.alt = glGetUniformLocation(paintShader, "infAlt")
+	smartFilter._uInf.slopeOn = glGetUniformLocation(paintShader, "infSlopeOn")
+	smartFilter._uInf.slope = glGetUniformLocation(paintShader, "infSlope")
 
 	copyShader = glCreateShader({
 		vertex = PAINT_VERT_SRC,
@@ -833,6 +890,13 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUniform(uLocSfAltMin, sf.altMin)
 		glUniformInt(uLocSfAltMaxEnable, sf.altMaxEnable and 1 or 0)
 		glUniform(uLocSfAltMax, sf.altMax)
+		-- INFLUENCE profile of the channel being painted
+		local inf = sf.influence[activeChannel] or sf.influenceDefault
+		local u = sf._uInf
+		glUniformInt(u.altOn, inf.altOn and 1 or 0)
+		glUniform(u.alt, inf.altMin, inf.altMax, inf.altFeatherLo, inf.altFeatherHi)
+		glUniformInt(u.slopeOn, inf.slopeOn and 1 or 0)
+		glUniform(u.slope, inf.slopeMin, inf.slopeMax, inf.slopeFeather, inf.slopeFeather)
 
 		-- Draw fullscreen quad
 		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
@@ -1096,6 +1160,9 @@ local function getState()
 		exportFormat = EXPORT_FORMATS[exportFormatIndex],
 		smartEnabled = smartFilterEnabled,
 		smartFilters = smartFilter,
+		-- INFLUENCE profile of the active channel (panel INFLUENCE section)
+		influenceKey = "channel " .. tostring(activeChannel),
+		influence = smartFilter.influence[activeChannel] or smartFilter.influenceDefault,
 		splatTexWidth = splatTexWidth,
 		splatTexHeight = splatTexHeight,
 		geoDecalMode = geoDecalMode,
@@ -1227,9 +1294,28 @@ local function setSmartEnabled(enabled)
 end
 
 local function setSmartFilter(key, val)
-	if smartFilter[key] ~= nil then
+	if key ~= "influence" and key ~= "influenceDefault" and key ~= "_uInf" and smartFilter[key] ~= nil then
 		smartFilter[key] = val
 	end
+end
+
+-- INFLUENCE: edit the ACTIVE channel's profile (created from the default on
+-- first touch); keys are those of smartFilter.influenceDefault.
+local function setInfluence(key, val)
+	local def = smartFilter.influenceDefault
+	if def[key] == nil then
+		return false
+	end
+	local p = smartFilter.influence[activeChannel]
+	if not p then
+		p = {}
+		for kk, vv in pairs(def) do
+			p[kk] = vv
+		end
+		smartFilter.influence[activeChannel] = p
+	end
+	p[key] = val
+	return true
 end
 
 -- ============ WIDGET CALLBACKS ============
@@ -1264,6 +1350,7 @@ function widget:Initialize()
 		setEraseMode = setEraseMode,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
+		setInfluence = setInfluence,
 		saveSplats = requestSaveSplats,
 		isSavePending = function()
 			return pendingSave
@@ -1977,7 +2064,14 @@ function widget:DrawWorld()
 					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
 				end
 			end
-			T.setSurfacePreview(mode, worldX, worldZ, activeRadius, activeCurve)
+			T.setSurfacePreview(
+				mode,
+				worldX,
+				worldZ,
+				activeRadius,
+				activeCurve,
+				smartFilter.influence[activeChannel] or smartFilter.influenceDefault
+			)
 		end
 	end
 	local groundY = GetGroundHeight(worldX, worldZ)
