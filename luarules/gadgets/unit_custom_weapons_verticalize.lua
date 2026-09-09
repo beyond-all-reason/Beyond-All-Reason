@@ -307,7 +307,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 
 	local aim = spawnParams["end"] -- must be known at spawn time for interceptors
 	aim[1] = projectile.target[1]
-	aim[1] = projectile.ascendHeight + weapon.ascentRadius
+	aim[2] = projectile.ascendHeight + weapon.ascentRadius
 	aim[3] = projectile.target[3]
 
 	Spring.DeleteProjectile(projectileID)
