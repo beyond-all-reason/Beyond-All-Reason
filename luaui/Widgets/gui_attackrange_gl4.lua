@@ -213,6 +213,7 @@ local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
 local unitDefRangeScale = {}
+local unitIsFighter = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -222,6 +223,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
+	unitIsFighter[udid] = ud.customParams.fighter ~= nil
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
@@ -364,8 +366,7 @@ local function initializeUnitDefRing(unitDefID)
 
 			local maxangledif = 0
 
-			-- customParams (note the case), is a table of strings always
-			local skipArc = weaponDef.customParams and weaponDef.customParams.noattackrangearc
+			local skipArc = weaponDef.customParams.noattackrangearc
 			if (weapons[weaponNum].maxAngleDif > -1) and not skipArc then
 				--spEcho(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
@@ -402,13 +403,11 @@ local function initializeUnitDefRing(unitDefID)
 				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
 			elseif
-				-- onlyForward weapons (!turret, non-starburst): fire cone comes from
-				-- weapondef tolerance, exposed to Lua as WeaponDefs.maxAngle (radians).
-				-- Pack the same way as maxangledif arcs: fractional half-angle/180°.
-				not skipArc
+				-- Fighters use weapondef tolerance (WeaponDefs.maxAngle, radians) as a forward fire cone.
+				unitIsFighter[unitDefID]
+				and not skipArc
 				and not weaponDef.turret
 				and weaponDef.type ~= "StarburstLauncher"
-				and weaponDef.maxAngle
 				and weaponDef.maxAngle > 0
 			then
 				local difffract = weaponDef.maxAngle / mathPi
