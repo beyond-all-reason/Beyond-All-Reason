@@ -1,0 +1,859 @@
+[
+	{
+		"hidden": [
+			"attack_range_dec",
+			"buildmenu_pregame_deselect",
+			"chat",
+			"chatswitchally",
+			"chatswitchspec",
+			"cloak",
+			"customgameinfo_close",
+			"dynamicsky",
+			"edit_backspace",
+			"edit_complete",
+			"edit_delete",
+			"edit_end",
+			"edit_escape",
+			"edit_home",
+			"edit_next_char",
+			"edit_next_line",
+			"edit_next_word",
+			"edit_prev_char",
+			"edit_prev_line",
+			"edit_prev_word",
+			"edit_return",
+			"losradar",
+			"luaui selector",
+			"movereset",
+			"moverotate",
+			"moveslow",
+			"movetilt",
+			"pastetext",
+			"quitforce",
+			"quitmenu",
+			"quitmessage",
+			"reloadforce",
+			"selectbox_any",
+			"selectbox_append",
+			"selectbox_deselect",
+			"selectbox_mobile",
+			"selectloop_add",
+			"selectloop_invert",
+			"teamstatus_close",
+			"toggle_allied_upgrade",
+			"togglecammode",
+			"togglelos",
+			"toggleoverview",
+			"track",
+			"trackmode",
+			"viewfps",
+			"viewfree",
+			"viewrot",
+			"viewspring",
+			"viewta"
+		]
+	},
+	{
+		"category": "categories.selection",
+		"items": [
+			{
+				"action": "selectcomm append",
+				"label": "actions.selection.commAppend"
+			},
+			{
+				"action": "selectcomm focus",
+				"label": "actions.selection.commFocus"
+			},
+			{
+				"action": "select AllMap++_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.all"
+			},
+			{
+				"action": "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+",
+				"label": "actions.massSelect.builders"
+			},
+			{
+				"action": "select AllMap+_InPrevSel+_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.sameType"
+			},
+			{
+				"action": "select Visible+_InPrevSel+_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.sameTypeVisible"
+			},
+			{
+				"action": "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.damaged"
+			},
+			{
+				"action": "select PrevSelection++_ClearSelection_SelectPart_50+",
+				"label": "actions.massSelect.half"
+			},
+			{
+				"action": "select AllMap+_Transport_Idle+_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.idleTransports"
+			},
+			{
+				"action": "select Visible+_Waiting+_ClearSelection_SelectAll+",
+				"label": "actions.massSelect.waitingVisible"
+			},
+			{
+				"action": "select AllMap++_ClearSelection_SelectNum_0+",
+				"label": "actions.massSelect.deselectAll"
+			},
+			{
+				"action": "selectbox_idle",
+				"label": "actions.selection.boxIdle",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "selectbox_same",
+				"label": "actions.selection.boxSame",
+				"alwaysModifier": "any"
+			}
+		]
+	},
+	{
+		"category": "categories.orders",
+		"items": [
+			{
+				"action": "move",
+				"label": "commands.move",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "attack",
+				"label": "commands.attack",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "settarget",
+				"label": "commands.settarget",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "repair",
+				"label": "commands.repair",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "reclaim",
+				"label": "commands.reclaim",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "resurrect",
+				"label": "commands.resurrect",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "fight",
+				"label": "commands.fight",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "patrol",
+				"label": "commands.patrol",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "wantcloak",
+				"label": "actions.orders.cloak",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "stop",
+				"label": "commands.stop",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "wait",
+				"label": "commands.wait"
+			},
+			{
+				"action": "wait queued",
+				"label": "actions.orders.waitQueued"
+			},
+			{
+				"action": "canceltarget",
+				"label": "commands.canceltarget"
+			},
+			{
+				"action": "manualfire",
+				"label": "commands.manualfire",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "selfd",
+				"label": "actions.orders.selfDestruct"
+			},
+			{
+				"action": "selfd queued",
+				"label": "actions.orders.selfDestructQueued"
+			},
+			{
+				"action": "areaattack",
+				"label": "commands.areaattack",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "guard",
+				"label": "commands.guard",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "capture",
+				"label": "commands.capture",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "restore",
+				"label": "commands.restore",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "settargetnoground",
+				"label": "actions.orders.setTargetNoGround",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "loadunits",
+				"label": "commands.loadunits",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "unloadunits",
+				"label": "commands.unloadunits",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "gatherwait",
+				"label": "actions.orders.gatherWait",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "manuallaunch",
+				"label": "commands.manuallaunch",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "stopproduction",
+				"label": "commands.stopproduction",
+				"alwaysModifier": "shift"
+			}
+		]
+	},
+	{
+		"category": "categories.queues",
+		"items": [
+			{
+				"action": "commandinsert prepend_between",
+				"label": "actions.queues.prepend",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "command_skip_current",
+				"label": "actions.queues.skipCurrent"
+			},
+			{
+				"action": "command_cancel_last",
+				"label": "actions.queues.cancelLast"
+			}
+		]
+	},
+	{
+		"category": "categories.unitStates",
+		"items": [
+			{
+				"action": "onoff",
+				"label": "actions.unitStates.onoffToggle"
+			},
+			{
+				"action": "onoff 0",
+				"label": "actions.unitStates.onoffOff"
+			},
+			{
+				"action": "onoff 1",
+				"label": "actions.unitStates.onoffOn"
+			},
+			{
+				"action": "repeat 0",
+				"label": "actions.unitStates.repeatOff"
+			},
+			{
+				"action": "repeat 1",
+				"label": "actions.unitStates.repeatOn"
+			},
+			{
+				"prefix": "trajectory_toggle ",
+				"label": "actions.unitStates.trajectory",
+				"members": [
+					"0",
+					"1",
+					"2"
+				]
+			},
+			{
+				"action": "firestate 0",
+				"label": "actions.unitStates.fireHold"
+			},
+			{
+				"action": "firestate 1",
+				"label": "actions.unitStates.fireReturn"
+			},
+			{
+				"action": "firestate 2",
+				"label": "actions.unitStates.fireAtWill"
+			},
+			{
+				"action": "movestate 0",
+				"label": "actions.unitStates.moveHold"
+			},
+			{
+				"action": "movestate 1",
+				"label": "actions.unitStates.moveManeuver"
+			},
+			{
+				"action": "movestate 2",
+				"label": "actions.unitStates.moveRoam"
+			}
+		]
+	},
+	{
+		"category": "categories.controlGroups",
+		"items": [
+			{
+				"prefix": "group select ",
+				"label": "actions.controlGroups.select",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "group focus ",
+				"label": "actions.controlGroups.focus",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "group set ",
+				"label": "actions.controlGroups.assign",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "group add ",
+				"label": "actions.controlGroups.add",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "group selectadd ",
+				"label": "actions.controlGroups.selectAdd",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "group selecttoggle ",
+				"label": "actions.controlGroups.selectToggle",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"action": "group unset",
+				"label": "actions.controlGroups.clear"
+			},
+			{
+				"prefix": "add_to_autogroup ",
+				"label": "actions.controlGroups.addAuto",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"action": "remove_from_autogroup",
+				"label": "actions.massSelect.removeAutoGroup"
+			},
+			{
+				"action": "remove_one_unit_from_group",
+				"label": "actions.controlGroups.removeOne"
+			},
+			{
+				"prefix": "load_autogroup_preset ",
+				"label": "actions.controlGroups.preset",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			}
+		]
+	},
+	{
+		"category": "categories.buildHotkeys",
+		"items": [
+			{
+				"action": "areamex",
+				"label": "commands.areamex"
+			},
+			{
+				"prefix": "buildunit_",
+				"label": "actions.buildHotkeys.unit",
+				"unit": true
+			},
+			{
+				"action": "buildfacing inc",
+				"label": "actions.buildOrders.rotate",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "buildfacing dec",
+				"label": "actions.buildOrders.rotateBack",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "buildspacing inc",
+				"label": "actions.issueBuildOrders.spacingUp",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "buildspacing dec",
+				"label": "actions.issueBuildOrders.spacingDown",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "buildsplit",
+				"label": "actions.buildHotkeys.split",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "factoryqueuemode",
+				"label": "actions.factory.queueMode"
+			},
+			{
+				"prefix": "factoryguard ",
+				"label": "commands.factoryguard",
+				"members": [
+					"0",
+					"1"
+				]
+			}
+		]
+	},
+	{
+		"category": "categories.gridMenu",
+		"items": [
+			{
+				"action": "gridmenu_category 1",
+				"label": "ui.buildMenu.category_econ",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "gridmenu_category 2",
+				"label": "ui.buildMenu.category_combat",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "gridmenu_category 3",
+				"label": "ui.buildMenu.category_utility",
+				"alwaysModifier": "shift"
+			},
+			{
+				"action": "gridmenu_category 4",
+				"label": "ui.buildMenu.category_production",
+				"alwaysModifier": "shift"
+			},
+			{
+				"prefix": "gridmenu_key",
+				"label": "actions.gridMenu.buildKey",
+				"alwaysModifier": "any",
+				"members": [
+					" 1 1",
+					" 1 2",
+					" 1 3",
+					" 1 4",
+					" 2 1",
+					" 2 2",
+					" 2 3",
+					" 2 4",
+					" 3 1",
+					" 3 2",
+					" 3 3",
+					" 3 4"
+				]
+			},
+			{
+				"action": "gridmenu_next_page",
+				"label": "actions.gridMenu.nextPage"
+			},
+			{
+				"action": "gridmenu_cycle_builder",
+				"label": "actions.gridMenu.cycleBuilder"
+			}
+		],
+		"layout": "grid"
+	},
+	{
+		"category": "categories.blueprints",
+		"items": [
+			{
+				"action": "blueprint_create",
+				"label": "commands.blueprint_create"
+			},
+			{
+				"action": "blueprint_place",
+				"label": "commands.blueprint_place"
+			},
+			{
+				"action": "blueprint_delete",
+				"label": "actions.blueprints.delete"
+			},
+			{
+				"action": "blueprint_next",
+				"label": "actions.blueprints.next"
+			},
+			{
+				"action": "blueprint_prev",
+				"label": "actions.blueprints.prev"
+			},
+			{
+				"prefix": "blueprint_"
+			}
+		]
+	},
+	{
+		"category": "categories.camera",
+		"items": [
+			{
+				"action": "cameraflip",
+				"label": "actions.camera.flip"
+			},
+			{
+				"action": "moveforward",
+				"label": "actions.camera.moveForward",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moveback",
+				"label": "actions.camera.moveBack",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moveleft",
+				"label": "actions.camera.moveLeft",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moveright",
+				"label": "actions.camera.moveRight",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "moveup",
+				"label": "actions.camera.moveUp",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movedown",
+				"label": "actions.camera.moveDown",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "movefast",
+				"label": "actions.camera.moveFast",
+				"alwaysModifier": "any"
+			},
+			{
+				"prefix": "set_camera_anchor ",
+				"label": "actions.camera.setAnchor",
+				"members": [
+					"1",
+					"2",
+					"3",
+					"4"
+				]
+			},
+			{
+				"prefix": "focus_camera_anchor ",
+				"label": "actions.camera.jumpAnchor",
+				"members": [
+					"1",
+					"2",
+					"3",
+					"4"
+				]
+			},
+			{
+				"action": "lastmsgpos",
+				"label": "actions.cameraModes.mapmarks"
+			},
+			{
+				"action": "cycleselected next",
+				"label": "actions.camera.cycleSelectedNext"
+			},
+			{
+				"action": "cycleselected prev",
+				"label": "actions.camera.cycleSelectedPrev"
+			},
+			{
+				"action": "pip1_switch",
+				"label": "actions.camera.pipSwitch"
+			},
+			{
+				"action": "pip1_copy",
+				"label": "actions.camera.pipCopy"
+			},
+			{
+				"action": "pip1_track",
+				"label": "actions.camera.pipTrack"
+			}
+		]
+	},
+	{
+		"category": "categories.mapViews",
+		"items": [
+			{
+				"action": "showelevation",
+				"label": "actions.cameraModes.heightmap"
+			},
+			{
+				"action": "showpathtraversability",
+				"label": "actions.cameraModes.traversability"
+			},
+			{
+				"action": "showmetalmap",
+				"label": "actions.cameraModes.resourceSpots"
+			}
+		]
+	},
+	{
+		"category": "categories.interfaceDisplay",
+		"items": [
+			{
+				"action": "options",
+				"label": "actions.interfaceDisplay.settings"
+			},
+			{
+				"action": "hideinterface",
+				"label": "actions.cameraModes.interface"
+			},
+			{
+				"action": "unit_stats",
+				"label": "actions.interfaceDisplay.unitStats"
+			},
+			{
+				"action": "savegame",
+				"label": "actions.interfaceDisplay.saveGame"
+			},
+			{
+				"action": "screenshot png",
+				"label": "actions.interfaceDisplay.screenshot"
+			},
+			{
+				"action": "attack_range_inc",
+				"label": "actions.interfaceDisplay.firingRange"
+			},
+			{
+				"action": "chain force forcestart | say !cv forcestart",
+				"label": "actions.gameControl.voteForcestart"
+			}
+		]
+	},
+	{
+		"category": "categories.drawing",
+		"items": [
+			{
+				"action": "drawinmap",
+				"label": "actions.drawing.drawInMap",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "drawlabel",
+				"label": "actions.drawing.drawLabel"
+			},
+			{
+				"action": "clearmapmarks",
+				"label": "actions.console.erase"
+			}
+		]
+	},
+	{
+		"category": "categories.sound",
+		"items": [
+			{
+				"action": "mutesound",
+				"label": "actions.sound.mute"
+			},
+			{
+				"action": "snd_volume_increase",
+				"label": "actions.sound.volumeUp"
+			},
+			{
+				"action": "snd_volume_decrease",
+				"label": "actions.sound.volumeDown"
+			}
+		]
+	},
+	{
+		"category": "categories.gameControl",
+		"items": [
+			{
+				"action": "pause",
+				"label": "actions.console.pause",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "increasespeed",
+				"label": "actions.gameControl.increaseSpeed"
+			},
+			{
+				"action": "decreasespeed",
+				"label": "actions.gameControl.decreaseSpeed"
+			},
+			{
+				"prefix": "specteam ",
+				"label": "actions.spectating.spectate",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8"
+				]
+			}
+		]
+	},
+	{
+		"category": "categories.other",
+		"items": [
+			{
+				"action": "selectloop",
+				"label": "actions.selection.loopActivate",
+				"alwaysModifier": "any"
+			},
+			{
+				"prefix": "factory_preset load ",
+				"label": "actions.factory.loadPreset",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "factory_preset save ",
+				"label": "actions.factory.savePreset",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"action": "factory_preset_show",
+				"label": "actions.factory.showPresets",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "fov_inc 5",
+				"label": "actions.camera.fovIncrease"
+			},
+			{
+				"action": "fov_dec 5",
+				"label": "actions.camera.fovDecrease"
+			}
+		]
+	}
+]
