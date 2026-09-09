@@ -13,6 +13,8 @@ local colorText = "\255\235\235\235"
 -- SelectHighlight defaults to 0.35 and the rest of the UI stays near it. At 1 the
 -- overlay is opaque and swallows the option label under it.
 local hoverOpacity = 0.25
+local white = { 1, 1, 1 }
+local listFill = { 0.09, 0.09, 0.09, 0.96 }
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
@@ -66,9 +68,25 @@ function Dropdown:setOptions(options)
 	if self.selected > #self.options then
 		self.selected = 1
 	end
+	-- Fitted captions belong to the old options.
+	self.optFitted = nil
 
 	local r = self.rect
 	self:setRect(r[1], r[2], r[3], r[4], self.fontSize)
+end
+
+-- The caption shortened to its box, measured once per text and width rather than per
+-- frame. The result is kept on the cache table under the key given.
+local function fittedLabel(cache, key, font, label, w, fs)
+	local hit = cache[key]
+	if hit and hit.label == label and hit.w == w then
+		return hit.text
+	end
+
+	local fitted = colorText .. text.fit(font, label, w, fs)
+	cache[key] = { label = label, w = w, text = fitted }
+
+	return fitted
 end
 
 -- Moves the selection without notifying the owner, for syncing from outside.
@@ -117,32 +135,33 @@ function Dropdown:draw()
 	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
 	gl.Color(1, 1, 1, 1)
 
+	local fitted = self.optFitted
+	if not fitted then
+		fitted = {}
+		self.optFitted = fitted
+	end
+
 	font:Begin()
 	local current = self.options[self.selected]
 	local label = self.placeholder or (current and optionLabel(current) or "")
 	-- A profile name is free text and can outrun the control, which is fixed width so the
 	-- header does not reflow every time the selection changes.
 	local labelW = (arrowX - arrowH) - (x1 + inset) - inset * 2
-	font:Print(
-		colorText .. text.fit(font, label, labelW, self.fontSize),
-		x1 + inset,
-		(y1 + y2) * 0.5,
-		self.fontSize,
-		"ov"
-	)
+	font:Print(fittedLabel(fitted, 0, font, label, labelW, self.fontSize), x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
 	font:End()
 
 	if self.open and #self.optRects > 0 then
 		local top = self.optRects[1].y2
 		local bottom = self.optRects[#self.optRects].y1
-		local cs = floor((y2 - y1) * 0.1)
-		R(x1, bottom, x2, top, cs, 1, 1, 1, 1, { 0.09, 0.09, 0.09, 0.96 })
+		-- Rounded like the rest of the panel's inner elements.
+		local cs = WG.FlowUI.elementCorner * 0.66
+		R(x1, bottom, x2, top, cs, 1, 1, 1, 1, listFill)
 
 		for i in ipairs(self.options) do
 			---@type table
 			local r = self.optRects[i]
 			if mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2 then
-				Highlight(r.x1, r.y1, r.x2, r.y2, cs, hoverOpacity, { 1, 1, 1 })
+				Highlight(r.x1, r.y1, r.x2, r.y2, cs, hoverOpacity, white)
 			end
 		end
 
@@ -151,7 +170,7 @@ function Dropdown:draw()
 			local r = self.optRects[i]
 			local w = (r.x2 - inset) - (r.x1 + inset)
 			font:Print(
-				colorText .. text.fit(font, optionLabel(opt), w, self.fontSize),
+				fittedLabel(fitted, i, font, optionLabel(opt), w, self.fontSize),
 				r.x1 + inset,
 				(r.y1 + r.y2) * 0.5,
 				self.fontSize,

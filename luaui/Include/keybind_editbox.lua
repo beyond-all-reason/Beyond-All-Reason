@@ -272,38 +272,57 @@ local function update(self)
 	end
 end
 
+-- Held rather than built per draw: a colour table a frame is an allocation a frame.
+local fieldFill = { 0, 0, 0, 0.35 }
+local caretFill = { 1, 1, 1, 0.85 }
+
 function Editbox:draw()
 	update(self)
 
 	local font = getFont()
 	local R = WG.FlowUI.Draw.RectRound
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
-	local cs = floor((y2 - y1) * 0.18)
+	-- Rounded like the rest of the panel's inner elements; the caret and selection sit
+	-- inside the field by their own inset.
+	local cs = WG.FlowUI.elementCorner * 0.66
+	local inset = floor((y2 - y1) * 0.18)
 	local tx = x1 + self.pad
 	local ty = (y1 + y2) * 0.5
 
-	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, { 0, 0, 0, 0.35 })
+	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
 
 	if self:hasSelection() then
 		local a, b = self:selRange()
 		local sa = font:GetTextWidth(utf8.sub(self.text, 1, a)) * self.fontSize
 		local sb = font:GetTextWidth(utf8.sub(self.text, 1, b)) * self.fontSize
 		gl.Color(0.4, 0.55, 0.85, 0.5)
-		gl.Rect(tx + sa, y1 + cs, tx + sb, y2 - cs)
+		gl.Rect(tx + sa, y1 + inset, tx + sb, y2 - inset)
 		gl.Color(1, 1, 1, 1)
 	end
 
-	font:Begin()
+	-- The coloured string is kept until the text changes, not rebuilt every frame.
+	local shown
 	if self.text == "" and not self.focused then
-		font:Print(colorDim .. self.placeholder, tx, ty, self.fontSize, "ov")
+		shown = self.placeholderShown
+		if not shown then
+			shown = colorDim .. self.placeholder
+			self.placeholderShown = shown
+		end
 	else
-		font:Print(colorText .. self.text, tx, ty, self.fontSize, "ov")
+		if self.shownFor ~= self.text then
+			self.shownFor = self.text
+			self.shown = colorText .. self.text
+		end
+		shown = self.shown
 	end
+
+	font:Begin()
+	font:Print(shown, tx, ty, self.fontSize, "ov")
 	font:End()
 
 	if self.focused then
 		local cw = font:GetTextWidth(utf8.sub(self.text, 1, self.caret)) * self.fontSize
-		R(tx + cw, y1 + cs, tx + cw + math.max(1, floor(cs * 0.5)), y2 - cs, 0, 0, 0, 0, 0, { 1, 1, 1, 0.85 })
+		R(tx + cw, y1 + inset, tx + cw + math.max(1, floor(inset * 0.5)), y2 - inset, 0, 0, 0, 0, 0, caretFill)
 	end
 end
 
