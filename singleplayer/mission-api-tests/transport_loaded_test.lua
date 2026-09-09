@@ -38,7 +38,7 @@ local triggers = {
 		parameters = {
 			transportDefName = 'armatlas',
 			teamID = 0,
-			unitDefName = 'armpw',
+			passengerDefName = 'armpw',
 		},
 		actions = { 'messageAtlasLoadedPawn' },
 	},
@@ -57,7 +57,7 @@ local triggers = {
 		type = triggerTypes.TransportLoaded,
 		parameters = {
 			transportDefName = 'corvac',
-			unitDefName = 'corvacct',
+			passengerDefName = 'corvacct',
 		},
 		actions = { 'messageConstructorAttachedTurret' },
 	},

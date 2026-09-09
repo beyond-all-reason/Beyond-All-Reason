@@ -52,8 +52,8 @@ describe("mission_api.triggers.transport_unloaded", function()
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
 		assert.is_true(names.teamID)
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
+		assert.is_true(names.passengerName)
+		assert.is_true(names.passengerDefName)
 		assert.are.same({ "transportName", "transportDefName" }, transportUnloaded.parameters.requiresOneOf)
 	end)
 
@@ -84,20 +84,20 @@ describe("mission_api.triggers.transport_unloaded", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitName", function()
+	it("filters by passengerName", function()
 		local context, fired = newContext()
 		context.DoesUnitHaveName = function(unitID)
 			return unitID == 50 -- the transport has the name, the passenger does not
 		end
-		unloaded(trigger({ transportName = "dropship", unitName = "passenger" }), context, 10, 0)
+		unloaded(trigger({ transportName = "dropship", passengerName = "passenger" }), context, 10, 0)
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitDefName", function()
+	it("filters by passengerDefName", function()
 		local context, fired = newContext()
-		unloaded(trigger({ transportDefName = "armatlas", unitDefName = "armck" }), context, 10, 0, 1) -- 1 = armpw
+		unloaded(trigger({ transportDefName = "armatlas", passengerDefName = "armck" }), context, 10, 0, 1) -- 1 = armpw
 		assert.are.equal(0, fired())
-		unloaded(trigger({ transportDefName = "armatlas", unitDefName = "armck" }), context, 10, 0, 2)
+		unloaded(trigger({ transportDefName = "armatlas", passengerDefName = "armck" }), context, 10, 0, 2)
 		assert.are.equal(1, fired())
 	end)
 
