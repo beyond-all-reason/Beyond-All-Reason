@@ -13,12 +13,14 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 	above syntax is for 0.83, for 0.82 compatibility repeat enabled 3 more times
 
    possible vType constants
-     DISABLED = -1  disables collision volume and collision detection for that unit, do not use
      ELLIPSOID = 0
      CYLINDER =  1
      BOX =       2
-     SPHERE =    3
-     FOOTPRINT = 4  intersection of sphere and footprint-prism, makes a sphere collision volume, default
+     SPHERE =    3  default
+   Values outside 0..3 are clamped by InitShape to an ellipsoid. Disabling a volume, defaulting
+   it to the footprint, and defaulting it to a model-radius sphere are all real, but they are
+   flags rather than vType values, and they are set from the unit def rather than from here:
+   see UnitDefCollisionVolume below.
 
    possible tType constants, for non-sphere collision volumes use 1
      COLVOL_TEST_DISC = 0
@@ -30,7 +32,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
      COLVOL_AXIS_Z = 2
 
    sample collision volume with detailed descriptions
-	unitCollisionVolume["arm_advanced_radar_tower"] = {
+	dynamicUnitCollisionVolume["arm_advanced_radar_tower"] = {
 		on=            -- Unit is active/open/poped-up
 		   {60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
 		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
@@ -38,15 +40,15 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 			0,0,0]}    -- Aimpoint X offset, Aimpoint Y offset, Aimpoint Z offset]},
 		off={32,48,32,0,-10,0,0,1,0},
 	}                  -- Aimpoint offsets are relative to unit's base position (aka unit coordinate space)
-	pieceCollisionVolume["arm_big_bertha"] = {
+	staticPieceCollisionVolume["arm_big_bertha"] = {
 		["0"]={true,       -- [pieceIndexNumber]={enabled,
 			   48,74,48,   --            Volume X scale, Volume Y scale, Volume Z scale,
 		       0,0,0,      --            Volume X offset, Volume Y offset, Volume Z offset,
 			   1,1},       --            vType, axis},
 		....               -- All undefined pieces will be treated as disabled for collision detection
 	}
-	dynamicPieceCollisionVolume["cor_viper"] = {	--same as with pieceCollisionVolume only uses "on" and "off" tables
-	
+	dynamicPieceCollisionVolume["cor_viper"] = { -- Same as with staticPieceCollisionVolume only uses "on" and "off" tables.
+
 	Warning 
 	Ensure that buildings/units do not have a unitdeff hitbox defined
 	It will break certain units being able to damage the relevant building/unit
@@ -164,6 +166,28 @@ local dynamicUnitCollisionVolume = {} ---@type table<string, ColVolUnitOnOff> wh
 local staticPieceCollisionVolume = {} ---@type table<string, ColVolPieceMap> per-piece volume definitions
 local dynamicPieceCollisionVolume = {} ---@type table<string, ColVolPieceMapOnOff> per-piece volume definitions, by armored state
 
+-- Lookup table to avoid probing for the base table type.
+---@alias ColVolConfigType 1|2|3|4 UNIT_STATIC|UNIT_DYNAMIC|PIECE_STATIC|PIECE_DYNAMIC
+local COLVOL_CONFIG = {
+	UNIT_STATIC = 1,
+	UNIT_DYNAMIC = 2,
+	PIECE_STATIC = 3,
+	PIECE_DYNAMIC = 4,
+}
+
+---Maps units to their collision volume data, organized by colvol types.
+---@class CollisionVolumeConfigs
+---@field [1] table<string, ColVolUnitDef> unitStaticColliders
+---@field [2] table<string, ColVolUnitOnOff> unitDynamicColliders
+---@field [3] table<string, ColVolPieceMap> pieceStaticColliders
+---@field [4] table<string, ColVolPieceMapOnOff> pieceDynamicColliders
+local colVolConfigs = {
+	[COLVOL_CONFIG.UNIT_STATIC] = staticUnitCollisionVolume,
+	[COLVOL_CONFIG.UNIT_DYNAMIC] = dynamicUnitCollisionVolume,
+	[COLVOL_CONFIG.PIECE_STATIC] = staticPieceCollisionVolume,
+	[COLVOL_CONFIG.PIECE_DYNAMIC] = dynamicPieceCollisionVolume,
+}
+
 -- Dynamic collision volumes ---------------------------------------------------
 
 dynamicPieceCollisionVolume.cormaw = {
@@ -242,6 +266,17 @@ dynamicPieceCollisionVolume.legapopupdef = {
 		offsets = { 0, 10, 0 },
 	},
 }
+dynamicPieceCollisionVolume.corvipe = {
+	on = {
+		["0"] = { 38, 26, 38, 0, 0, 0, 2, 0 },
+		["5"] = { 25, 45, 25, 0, 25, 0, 1, 1 }, -- changed to [1] so the cylinder collision is attached to the turret and not a door
+		offsets = { 0, 23, 0 },
+	},
+	off = {
+		["0"] = { 38, 26, 38, 0, 0, 0, 2, 0 },
+		offsets = { 0, 8, 0 }, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
+	},
+}
 
 dynamicUnitCollisionVolume.armanni = {
 	on = { 54, 81, 54, 0, -2, 0, 2, 1, 0 },
@@ -286,25 +321,6 @@ dynamicUnitCollisionVolume.legsolar = {
 
 	off = { 40, 76, 40, 0, -10, 1, 0, 1, 0 },
 }
-
--- copy each entry to its scavenger variants, matched via the customparams that scav def
--- generation stamps (isscavenger + fromunit backlink). The old substring propagation
--- corrupted units whose name merely contained another entry's name (armannit3/cordoomt3
--- got armanni/cordoom's whole-unit volumes, clobbering their per-piece definitions)
-local function propagateToScavCopies(tbl)
-	local scavCopies = {}
-	for _, unitDef in pairs(UnitDefs) do
-		local baseName = unitDef.customParams.isscavenger and unitDef.customParams.fromunit
-		if baseName and tbl[baseName] then
-			scavCopies[unitDef.name] = tbl[baseName]
-		end
-	end
-	for name, v in pairs(scavCopies) do
-		tbl[name] = v
-	end
-end
-
-propagateToScavCopies(dynamicUnitCollisionVolume)
 
 -- Static collision volumes ----------------------------------------------------
 
@@ -366,10 +382,6 @@ staticPieceCollisionVolume.legbastion = {
 	["2"] = { 48, 90, 48, 0, 30, 0, 2, 0 },
 	["10"] = { 36, 45, 36, 0, -8, 0, 1, 1 },
 }
----pieceCollisionVolume['legsrailt4'] = {
----	['0']={121,53,121,0,26,0,2,2},
----	['7']={26,26,132,0,7,20,2,4},
----}
 
 staticPieceCollisionVolume.armrad = {
 	["1"] = { 22, 58, 22, 0, 0, 0, 1, 1 },
@@ -561,42 +573,28 @@ staticPieceCollisionVolume.leggatet3 = staticPieceCollisionVolume.leggat
 staticPieceCollisionVolume.leginfestor = staticPieceCollisionVolume.leginf
 staticPieceCollisionVolume.legsrailt4 = staticPieceCollisionVolume.legsrail
 
+-- Processing collision volumes ------------------------------------------------
+
+-- copy each entry to its scavenger variants, matched via the customparams that scav def
+-- generation stamps (isscavenger + fromunit backlink). The old substring propagation
+-- corrupted units whose name merely contained another entry's name (armannit3/cordoomt3
+-- got armanni/cordoom's whole-unit volumes, clobbering their per-piece definitions)
+local function propagateToScavCopies(tbl)
+	local scavCopies = {}
+	for _, unitDef in pairs(UnitDefs) do
+		local baseName = unitDef.customParams.isscavenger and unitDef.customParams.fromunit
+		if baseName and tbl[baseName] then
+			scavCopies[unitDef.name] = tbl[baseName]
+		end
+	end
+	for name, v in pairs(scavCopies) do
+		tbl[name] = v
+	end
+end
+propagateToScavCopies(staticUnitCollisionVolume)
+propagateToScavCopies(dynamicUnitCollisionVolume)
 propagateToScavCopies(staticPieceCollisionVolume)
-
-dynamicPieceCollisionVolume.corvipe = {
-	on = {
-		["0"] = { 38, 26, 38, 0, 0, 0, 2, 0 },
-		["5"] = { 25, 45, 25, 0, 25, 0, 1, 1 }, -- changed to [1] so the cylinder collision is attached to the turret and not a door
-		offsets = { 0, 23, 0 },
-	},
-	off = {
-		["0"] = { 38, 26, 38, 0, 0, 0, 2, 0 },
-		offsets = { 0, 8, 0 }, --['offsets']={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
-	},
-}
 propagateToScavCopies(dynamicPieceCollisionVolume)
-
--- Lookup table to avoid probing for the base table type.
----@alias ColVolConfigType 1|2|3|4 UNIT_STATIC|UNIT_DYNAMIC|PIECE_STATIC|PIECE_DYNAMIC
-local COLVOL_CONFIG = {
-	UNIT_STATIC = 1,
-	UNIT_DYNAMIC = 2,
-	PIECE_STATIC = 3,
-	PIECE_DYNAMIC = 4,
-}
-
----Maps units to their collision volume data, organized by colvol types.
----@class CollisionVolumeConfigs
----@field [1] table<string, ColVolUnitDef> unitStaticColliders
----@field [2] table<string, ColVolUnitOnOff> unitDynamicColliders
----@field [3] table<string, ColVolPieceMap> pieceStaticColliders
----@field [4] table<string, ColVolPieceMapOnOff> pieceDynamicColliders
-local colVolConfigs = {
-	[COLVOL_CONFIG.UNIT_STATIC] = staticUnitCollisionVolume,
-	[COLVOL_CONFIG.UNIT_DYNAMIC] = dynamicUnitCollisionVolume,
-	[COLVOL_CONFIG.PIECE_STATIC] = staticPieceCollisionVolume,
-	[COLVOL_CONFIG.PIECE_DYNAMIC] = dynamicPieceCollisionVolume,
-}
 
 local unitColVolTypeIndex = {} ---@type table<string, ColVolConfigType>
 for configType = 1, #colVolConfigs do
