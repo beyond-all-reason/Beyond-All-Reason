@@ -13,9 +13,22 @@ local floor = math.floor
 local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 
+-- Caret look and blink taken from gui_chat's input, so the two fields read as the same
+-- control: a sharp bar that starts bright on a keystroke and fades over a second before
+-- snapping back, rather than a hard on/off blink.
+local cursorBlinkDuration = 1
+local cursorGrey = 0.7
+
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
 	return WG["fonts"].getFont()
+end
+
+-- Restarts the fade, so the caret is at its brightest right after an edit.
+local function resetBlink(self)
+	self.blinkStart = Spring.GetTimer()
+	self.blinkText = self.text
+	self.blinkCaret = self.caret
 end
 
 -- Single-line text field with a caret, selection and word motion.
@@ -62,6 +75,11 @@ end
 -- SDL text input is owned by the panel, not by this field: blurring the search box to
 -- click a keybind must not stop text events while the editor is still open.
 function Editbox:focus()
+	-- A field that just took focus shows a bright caret, not whatever phase the fade
+	-- happened to be in when it was last used.
+	if not self.focused then
+		resetBlink(self)
+	end
 	self.focused = true
 end
 
@@ -270,11 +288,37 @@ local function update(self)
 			self.dragging = false
 		end
 	end
+
+	-- Watched here rather than reset from each editing path: every way the caret can move
+	-- (typing, deleting, arrows, a click, a drag, setText) shows up as one of these two
+	-- changing, so none of them can be missed.
+	if not self.blinkStart or self.text ~= self.blinkText or self.caret ~= self.blinkCaret then
+		resetBlink(self)
+	end
+end
+
+-- Alpha of the caret this frame: full brightness at the last edit, fading to 0.15 over
+-- the blink duration, then starting over. Matches gui_chat's sawtooth exactly.
+local function caretAlpha(self)
+	local elapsed = Spring.DiffTimers(Spring.GetTimer(), self.blinkStart) % cursorBlinkDuration
+
+	return 1 - (elapsed * (1 / cursorBlinkDuration)) + 0.15
+end
+
+-- How far into the text the caret sits, in pixels. Measured only when the text, the caret
+-- or the size moved: the field is drawn live every frame so the blink can animate, and
+-- measuring the leading substring each of those frames is the one real cost in here.
+local function caretOffset(self, font)
+	if self.caretPxAt ~= self.caret or self.caretPxText ~= self.text or self.caretPxFs ~= self.fontSize then
+		self.caretPxAt, self.caretPxText, self.caretPxFs = self.caret, self.text, self.fontSize
+		self.caretPx = font:GetTextWidth(utf8.sub(self.text, 1, self.caret)) * self.fontSize
+	end
+
+	return self.caretPx
 end
 
 -- Held rather than built per draw: a colour table a frame is an allocation a frame.
 local fieldFill = { 0, 0, 0, 0.35 }
-local caretFill = { 1, 1, 1, 0.85 }
 
 function Editbox:draw()
 	update(self)
@@ -321,8 +365,15 @@ function Editbox:draw()
 	font:End()
 
 	if self.focused then
-		local cw = font:GetTextWidth(utf8.sub(self.text, 1, self.caret)) * self.fontSize
-		R(tx + cw, y1 + inset, tx + cw + math.max(1, floor(inset * 0.5)), y2 - inset, 0, 0, 0, 0, 0, caretFill)
+		-- Sharp bar rather than a rounded one, sized and placed off the font like chat's:
+		-- a fixed span around the text's middle, so it does not stretch with the field.
+		local cx = tx + caretOffset(self, font)
+		local cWidth = 1 + floor(self.fontSize / 14)
+		local cy1 = math.max(y1 + 1, ty - self.fontSize * 0.6)
+		local cy2 = math.min(y2 - 1, ty + self.fontSize * 0.64)
+		gl.Color(cursorGrey, cursorGrey, cursorGrey, caretAlpha(self))
+		gl.Rect(cx, cy1, cx + cWidth, cy2)
+		gl.Color(1, 1, 1, 1)
 	end
 end
 

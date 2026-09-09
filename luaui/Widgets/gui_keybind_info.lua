@@ -24,8 +24,8 @@ local doUpdate
 
 local vsx, vsy = spGetViewGeometry()
 
-local screenHeightOrg = 760
-local screenWidthOrg = 1180
+local screenHeightOrg = 640
+local screenWidthOrg = 1100
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 

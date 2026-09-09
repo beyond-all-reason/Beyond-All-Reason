@@ -107,6 +107,8 @@ local Scroller
 local UiElement
 ---@type function
 local Highlight
+---@type function
+local UiButton
 
 local colorAction = "\255\210\210\205"
 local colorKey = "\255\235\185\070"
@@ -127,14 +129,16 @@ local confirmFillHover = { 0.24, 0.52, 0.29, 1 }
 local confirmFillMuted = { 0.11, 0.20, 0.13, 1 }
 local pillFill = { 0.22, 0.22, 0.22, 1 }
 local sheenTop = { 1, 1, 1, 0.05 }
-local sheenNone = { 1, 1, 1, 0 }
 -- Fills and captions the list is painted with, in one table for the same reason as
 -- metrics above.
 local look = {
 	chipFill = { 0, 0, 0, 0.35 },
 	chipFillHover = { 0, 0, 0, 0.45 },
 	addFill = { 0.2, 0.45, 0.25, 0.4 },
-	addFillHover = { 0.2, 0.45, 0.25, 0.55 },
+	-- Lit rather than nudged: hovering used to lift the alpha alone, which on a green this
+	-- soft was hard to tell from resting. A tinted element brightens its own fill instead
+	-- of taking the white overlay, which would wash the green out to grey.
+	addFillHover = { 0.32, 0.74, 0.4, 0.6 },
 	selectedFill = { 1, 1, 1, 0.13 },
 	-- The category column sits on its own darker card, so it reads apart from the list.
 	sidebarFill = { 0, 0, 0, 0.24 },
@@ -146,8 +150,27 @@ local look = {
 	removeHot = colorDanger .. "x",
 	removeCold = colorDim .. "x",
 	plusText = colorText .. "+",
+	-- The glyph goes to full white with it, the way a chip's key does under the cursor.
+	plusTextHover = "\255\255\255\255" .. "+",
 	arrow = colorKey .. string.char(226, 128, 186),
 }
+
+-- FlowUI's Button gradients from a bottom stop to a top one. Left to its defaults it
+-- fades black up to near-transparent white, which washes a tinted button out to grey, so
+-- each fill becomes a darker bottom and itself on top - the same shape gui_pregameui
+-- gives its ready button. Derived once per fill and kept, since the pair is passed every
+-- draw and a table per button per frame is what the rest of this file avoids.
+look.gradients = setmetatable({}, {
+	__index = function(self, fill)
+		local pair = {
+			{ fill[1] * 0.55, fill[2] * 0.55, fill[3] * 0.55, fill[4] or 1 },
+			{ fill[1], fill[2], fill[3], fill[4] or 1 },
+		}
+		self[fill] = pair
+
+		return pair
+	end,
+})
 
 ---@type table
 local searchBox
@@ -897,6 +920,9 @@ local function startReset()
 	openDialog({
 		title = L.reset,
 		message = L.resetConfirm,
+		-- Named for what it does. Without this it falls back to the generic "Accept", which
+		-- says nothing about the edits being thrown away.
+		acceptLabel = L.discard,
 		accept = function()
 			discardStaged()
 		end,
@@ -1119,6 +1145,7 @@ function view.init()
 	Scroller = WG.FlowUI.Draw.Scroller
 	UiElement = WG.FlowUI.Draw.Element
 	Highlight = WG.FlowUI.Draw.SelectHighlight
+	UiButton = WG.FlowUI.Draw.Button
 	ensureControls()
 end
 
@@ -1156,7 +1183,7 @@ function view.setArea(x1, y1, x2, y2, s)
 
 	local pad = floor(6 * scale)
 
-	sidebarW = floor(260 * scale)
+	sidebarW = floor(240 * scale)
 	listX1 = area.x1 + sidebarW + floor(12 * scale)
 
 	layoutHeader()
@@ -1771,7 +1798,8 @@ local function rowLayout(row)
 		lay.arrow = look.arrow
 		lay.arrowX = listX1 + metrics.rowPad * 5 + floor(font:GetTextWidth(row.label) * metrics.rowFs) + metrics.rowPad * 2
 	else
-		lay.text = colorAction .. text.fit(font, row.label, keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad, metrics.rowFs)
+		local labelW = keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
+		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
 		local mets, cx, addW, rightGap = rowChipBand(row.action, metrics.rowFs, metrics.rowPad)
 		for i = 1, #mets do
 			local m = mets[i]
@@ -1941,15 +1969,32 @@ local function gridCellRect(row, col, x1, gridBottom, cell)
 	return cx, cy, cx + cell, cy + cell
 end
 
+-- Through FlowUI's Button so these carry the same border, gloss and corner as every other
+-- button in the UI. It serves a repeated draw from a display-list cache; the cached form
+-- was checked against the immediate one and is identical, so a button does not change as
+-- the cache takes over.
 local function drawButtonFace(r, base)
-	RectRound(r[1], r[2], r[3], r[4], metrics.csButton, 1, 1, 1, 1, base, base)
-	RectRound(r[1], r[2], r[3], (r[2] + r[4]) * 0.5, metrics.csButton, 0, 0, 1, 1, sheenTop, sheenNone)
+	local pair = look.gradients[base]
+
+	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 end
 
 -- The category column: its own card under the title, then one entry per category, with
 -- hoverIdx the entry under the cursor.
 local function drawSidebar(hoverIdx)
-	RectRound(area.x1, area.y1, area.x1 + sidebarW, area.y2 - floor(33 * scale), metrics.csPanel, 1, 1, 1, 1, look.sidebarFill, look.sidebarFillTop)
+	RectRound(
+		area.x1,
+		area.y1,
+		area.x1 + sidebarW,
+		area.y2 - floor(33 * scale),
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		look.sidebarFill,
+		look.sidebarFillTop
+	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - floor(17 * scale), floor(rowHeight * 0.85), "ov")
 
 	-- Laid out before the font existed, so the labels are still waiting to be fitted.
@@ -1968,7 +2013,7 @@ local function drawSidebar(hoverIdx)
 			elseif i == hoverIdx then
 				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
 			end
-			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, (y1 + y2) * 0.5, fs, "ov")
+			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, (y1 + y2) * 0.5, fs*0.85, "ov")
 		end
 	end
 end
@@ -2212,8 +2257,9 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if lay.showAdd then
 		local cx = lay.cx
-		RectRound(cx, c1, cx + lay.addW, c2, metrics.csSmall, 1, 1, 1, 1, zone == "add" and look.addFillHover or look.addFill)
-		queueText(look.plusText, (cx + cx + lay.addW) * 0.5, cyc, fs, "cov")
+		local overAdd = zone == "add"
+		RectRound(cx, c1, cx + lay.addW, c2, metrics.csSmall, 1, 1, 1, 1, overAdd and look.addFillHover or look.addFill)
+		queueText(overAdd and look.plusTextHover or look.plusText, (cx + cx + lay.addW) * 0.5, cyc, fs, "cov")
 	end
 end
 
@@ -2417,10 +2463,6 @@ local function drawButtons(hotId)
 				-- A tinted button loses its colour under the usual white hover overlay, so it
 				-- brightens its own fill instead.
 				local fill = b.fill and ((not enabled and b.fillMuted) or (hovered and b.fillHover) or b.fill)
-				-- Drawn here rather than through Draw.Button: that caches each distinct button
-				-- into a display list compiled mid-frame on a budget, and the immediate and
-				-- replayed forms do not match, so a button sized to its own label visibly
-				-- alternates between them.
 				drawButtonFace(r, fill or buttonFill)
 
 				if b.icon then
