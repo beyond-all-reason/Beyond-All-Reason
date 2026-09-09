@@ -29,6 +29,7 @@ local version = 1.5 -- used to toggle previously default enabled/disabled widget
 local newerVersion = false -- configdata will set this true if it's a newer version
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local UserFile = VFS.Include("common/user_files.lua")
 
 local languageCodes = { "en", "fr", "ru", "es" }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
@@ -5194,9 +5195,14 @@ function init()
 
 				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
 
-				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
+				if isCustom then
+					-- VFS might not list a file the engine wrote out earlier in the session,
+					-- but `keysave` will truncate its contents anyway; so guarantee a backup:
+					UserFile.Temp(keyFile)
+					if not VFS.FileExists(keyFile) then
+						Spring.SendCommands("keysave " .. keyFile)
+						Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
+					end
 				end
 
 				Spring.SetConfigString("KeybindingFile", keyFile)
