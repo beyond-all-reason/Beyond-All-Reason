@@ -926,11 +926,14 @@ end
 -- Cylinder radius (elmos) for perf heuristic.
 local SEARCH_RADIUS = 850
 
--- Squad-kind gate: "manual" keeps player-created squads, "reserve" (named "automatic" in the options) keeps per-factory + uncategorized reserves, "locked" keeps locked squads, nil keeps everything except locked squads.
+-- Squad-kind gate: "manual" keeps player-created squads, "reserve" (named "automatic" in the options) keeps per-factory + uncategorized reserves, "locked" keeps locked squads, "all" keeps every squad whatever its kind, nil keeps everything except locked squads.
 ---@param sq Squad
 ---@param squadKind SquadKind?
 ---@return boolean
 local function squadMatchesKind(sq, squadKind)
+	if squadKind == "all" then
+		return true
+	end
 	if squadKind == "locked" then
 		return sq.isLocked == true
 	end
@@ -1280,7 +1283,7 @@ end
 ---@field filterDefs table<number, boolean>? defID set; narrows the pool to matching unit types.
 ---@field groupSet table<number, boolean>? unitID set; narrows the pool to control-group members.
 ---@field maxDistance number? Cap the pool to units within this world distance of the cursor.
----@field squadKind SquadKind? Only consider manual squads, reserve squads, or locked squads; nil (default) considers manual and reserve.
+---@field squadKind SquadKind? Only consider manual squads, reserve squads, or locked squads, or "all" for every squad regardless of kind; nil (default) considers manual and reserve.
 ---@field cycleWhenFull boolean? When the closest squad's pool is already fully selected, re-pick a squad with those units excluded.
 ---@field useDomainFilter boolean? Restrict squad cycling to domains ("land"/"air"/"naval") present in the selection. Ignored when no tracked units are selected.
 ---@field isMousePress boolean? True for left-click-initiated selection, false for action/hotkey-initiated.
@@ -2033,6 +2036,7 @@ local function squadSetting(_, _, args)
 					or tok == "automatic"
 					or tok == "locked"
 					or tok == "any"
+					or tok == "all"
 				then
 					list[#list + 1] = tok
 				end
