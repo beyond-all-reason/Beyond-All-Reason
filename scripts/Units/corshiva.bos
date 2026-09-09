@@ -8,6 +8,10 @@ static-var  isMoving, isAiming, restore_delay, gun_left;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen, rocketswitch, bAnimate;
 
+// rocket spawn offsets inside the launch tubes, measured from the model
+#define ROCKET_SPAWN_DEPTH [-20.5]
+#define ROCKET_SPAWN_FORWARD [5.6]
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM3 1024
@@ -629,6 +633,17 @@ AimFromWeapon2(pieceIndex) //not needed?
 
 QueryWeapon2(pieceIndex)
 {
+	// rocket origin is at its tail: spawn inside the tube, or at the pod mouth if that point is underwater
+	move rocketflare1 to y-axis ROCKET_SPAWN_DEPTH now;
+	move rocketflare2 to y-axis ROCKET_SPAWN_DEPTH now;
+	move rocketflare1 to z-axis ROCKET_SPAWN_FORWARD now;
+	move rocketflare2 to z-axis ROCKET_SPAWN_FORWARD now;
+	if ((get PIECE_Y(rocketflare1 + rocketswitch)) <= 0) {
+		move rocketflare1 to y-axis [0] now;
+		move rocketflare2 to y-axis [0] now;
+		move rocketflare1 to z-axis [0] now;
+		move rocketflare2 to z-axis [0] now;
+	}
 	pieceIndex = rocketflare1 + rocketswitch;
 }
 
