@@ -17,7 +17,8 @@ param(
 	[string]$Author,
 	[string]$Email,
 	[string[]]$Stage = @(),
-	[switch]$AllowPush
+	[switch]$AllowPush,
+	[switch]$NoShader
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,8 +28,30 @@ if (-not (Test-Path -LiteralPath (Join-Path $dataPath 'MapProjects') -PathType C
 }
 
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$git = (Get-Command git -CommandType Application -ErrorAction Stop).Source
-$python = (Get-Command $PythonExecutable -CommandType Application -ErrorAction Stop).Source
+$git = @(Get-Command git -CommandType Application -ErrorAction Stop)[0].Source
+# PATH commonly holds several python.exe: a Microsoft Store stub that is not
+# Python, older versions, and real ones. Get-Command returns them all, so take
+# the first that actually reports 3.12+ instead of whichever comes first.
+$python = $null
+$rejected = @()
+foreach ($candidate in @(Get-Command $PythonExecutable -CommandType Application -ErrorAction SilentlyContinue)) {
+	$reported = $null
+	try { $reported = & $candidate.Source -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null } catch { }
+	if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($reported)) {
+		$rejected += ('{0} (not a working Python)' -f $candidate.Source)
+		continue
+	}
+	$parts = $reported.Trim().Split('.')
+	if ([int]$parts[0] -gt 3 -or ([int]$parts[0] -eq 3 -and [int]$parts[1] -ge 12)) {
+		$python = $candidate.Source
+		break
+	}
+	$rejected += ('{0} (Python {1}, needs 3.12+)' -f $candidate.Source, $reported.Trim())
+}
+if (-not $python) {
+	$detail = if ($rejected) { "`nChecked: `n  " + ($rejected -join "`n  ") } else { '' }
+	throw "No Python 3.12+ found. Install one, or pass -PythonExecutable with a full path.$detail"
+}
 if ([string]::IsNullOrWhiteSpace($Author)) {
 	$Author = & $git -C $repositoryRoot config user.name
 	if ($LASTEXITCODE -ne 0) {
@@ -55,6 +78,12 @@ foreach ($folder in $Stage) {
 }
 if ($AllowPush) {
 	$helperArgs += '--allow-push'
+}
+if (-not $NoShader) {
+	# Same companion, second repository: the tileset shader and its textures.
+	# Read only in both directions; -NoShader turns the in-game update row off.
+	$helperArgs += @('--shader-remote', 'https://github.com/beyond-all-reason/tileset-shader.git',
+		'--shader-branch', 'main')
 }
 
 if ($PSCmdlet.ShouldProcess('beyond-all-reason/CampaignMaps [main]', 'Start map-library companion')) {

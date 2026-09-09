@@ -1,6 +1,11 @@
 {
 	"ui": {
 		"mapLibrary": {
+			"shaderChecking": "Checking shader\u2026",
+			"shaderSynced": "Latest shader synced (%{version})",
+			"shaderUpdate": "Update shader to %{version} (%{size})",
+			"shaderMismatch": "Shader %{version} needs a newer Terraform Brush",
+			"shaderError": "Shader check failed. See the helper terminal.",
 			"title": "Projects",
 			"saveTitle": "Save Project As",
 			"localOnly": "Local only",

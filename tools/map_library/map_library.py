@@ -31,6 +31,14 @@ MAX_FILES = 10000
 MAX_CONTROL = 2 * 1024 * 1024
 RESERVED = {"con", "prn", "aux", "nul"} | {f"{p}{i}" for p in ("com", "lpt") for i in range(1, 10)}
 EXTENSIONS = {".lua", ".png", ".jpg", ".jpeg", ".tga", ".dds", ".bmp", ".json", ".txt", ".md"}
+# Shader library. Syncing writes widget code, so the write targets are an
+# allowlist rather than anything the manifest happens to name.
+SHADER_EXTENSIONS = EXTENSIONS | {".rml", ".rcss"}
+SHADER_ROOT = "LuaUI/Widgets/tileset_dev/"
+SHADER_SINGLES = ("LuaUI/Widgets/dev_tileset_terrain.lua", "LuaUI/Widgets/dev_surface_painter.lua")
+SHADER_MANIFEST = "manifest.json"
+SHADER_MAX_FILES = 5000
+SHADER_MAX_TOTAL = 4 * 1024 * 1024 * 1024
 LFS_HEADER = b"version https://git-lfs.github.com/spec/v1"
 
 
@@ -63,6 +71,33 @@ def asset_path(value: str) -> str:
     if Path(value).suffix.lower() not in EXTENSIONS:
         raise LibraryError("unsupported_file")
     return value
+
+
+def shader_path(value: str) -> str:
+    """A repository path a shader sync is allowed to write into the data dir."""
+    if not isinstance(value, str) or not value or len(value) > 220:
+        raise LibraryError("invalid_path")
+    if value not in SHADER_SINGLES and not value.startswith(SHADER_ROOT):
+        raise LibraryError("invalid_path")
+    parts = value.split("/")
+    if len(parts) > 8:
+        raise LibraryError("invalid_path")
+    for part in parts:
+        if (not re.fullmatch(r"[A-Za-z0-9_ .-]+", part) or part.startswith(".")
+                or part != part.strip() or part.endswith(".")
+                or part.split(".")[0].lower() in RESERVED):
+            raise LibraryError("invalid_path")
+    if Path(value).suffix.lower() not in SHADER_EXTENSIONS:
+        raise LibraryError("unsupported_file")
+    return value
+
+
+def file_digest(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def no_links(path: Path) -> None:
@@ -130,9 +165,10 @@ def exclusive_lock(path: Path):
         handle.close()
 
 
-class Library:
+class GitStore:
+    """Owned bare mirror of one branch of one remote. No working tree, ever."""
+
     def __init__(self, data: Path, state: Path, remote: str, branch: str,
-                 author: str, email: str, stages: list[str], allow_push: bool = False,
                  *, local_test_remote: bool = False):
         self.data, self.state = Path(os.path.abspath(data)), Path(os.path.abspath(state))
         no_links(self.data)
@@ -145,20 +181,10 @@ class Library:
             raise LibraryError("invalid_remote")
         if not re.fullmatch(r"[A-Za-z0-9_/-]+", branch) or "//" in branch:
             raise LibraryError("invalid_branch")
-        if (not re.fullmatch(r"[A-Za-z0-9_ -]{1,32}", author) or not author.strip()
-            or not re.fullmatch(r"[^\s<>@]+@[^\s<>@]+", email)):
-            raise LibraryError("invalid_identity")
-        self.remote, self.branch, self.author, self.email = remote, branch, author, email
-        self.stages = sorted(set(slug(stage, 3) for stage in stages))
-        if not self.stages:
-            raise LibraryError("invalid_stage")
-        self.allow_push = allow_push
-        self.bridge = self.data / "Terraform Brush" / "Map Library"
-        self.projects = self.data / "MapProjects"
+        self.remote, self.branch = remote, branch
         self.repo = self.state / "objects.git"
-        self.session = uuid.uuid4().hex
         self.local_test_remote = local_test_remote
-        for path in (self.bridge, self.projects, self.state, self.state / "empty-hooks"):
+        for path in (self.state, self.state / "empty-hooks"):
             no_links(path)
             path.mkdir(parents=True, exist_ok=True)
         # A state directory belongs to ONE remote/branch/data-dir, never silently retarget it.
@@ -175,6 +201,7 @@ class Library:
         if self.git("rev-parse", "--is-bare-repository").strip() != b"true":
             raise LibraryError("unsafe_repository")
         self.git("check-ref-format", "refs/heads/" + branch)
+
 
     def git(self, *args: str, input_data: bytes | None = None,
             extra_env: dict | None = None, outside: bool = False, check: bool = True) -> bytes:
@@ -236,6 +263,155 @@ class Library:
                 raise LibraryError("too_large")
         return entries
 
+    def blob(self, oid: str) -> bytes:
+        raw = self.git("cat-file", "blob", oid)
+        digest = hashlib.sha1 if len(oid) == 40 else hashlib.sha256
+        if digest(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() != oid:
+            raise LibraryError("blob_corrupted")
+        if raw.startswith(LFS_HEADER):
+            raise LibraryError("lfs_unsupported")
+        return raw
+
+
+class ShaderLibrary(GitStore):
+    """Read-only mirror of the tileset shader repository.
+
+    Sync is a per-file diff against what is already on disk, so a shader-only
+    release moves a few hundred kilobytes even though the library is ~1.2 GB.
+    Nothing is ever deleted: a file the manifest stops listing is left alone.
+    """
+
+    def __init__(self, data: Path, state: Path, remote: str, branch: str,
+                 *, local_test_remote: bool = False):
+        super().__init__(data, state, remote, branch, local_test_remote=local_test_remote)
+        self.cache_path = self.state / "disk-digests.json"
+        self.cache = read_json(self.cache_path) if self.cache_path.exists() else {}
+        self.report = {"configured": True, "remote": remote, "branch": branch,
+                       "code": "unchecked", "shader_version": "", "build": 0,
+                       "brush_versions": [], "changed": 0, "bytes": 0,
+                       "checked": 0, "revision": ""}
+
+    def local_digest(self, relative: str) -> str | None:
+        """SHA-256 of the installed file, memoised on (size, mtime)."""
+        target = self.data / relative
+        try:
+            info = target.stat()
+        except OSError:
+            return None
+        key = [info.st_size, info.st_mtime_ns]
+        cached = self.cache.get(relative)
+        if cached and cached[:2] == key:
+            return cached[2]
+        no_links(target)
+        digest = file_digest(target)
+        self.cache[relative] = [info.st_size, info.st_mtime_ns, digest]
+        return digest
+
+    def manifest(self, entries: dict) -> dict:
+        if SHADER_MANIFEST not in entries:
+            raise LibraryError("missing_manifest")
+        if entries[SHADER_MANIFEST][2] > MAX_CONTROL:
+            raise LibraryError("too_large")
+        try:
+            document = json.loads(self.blob(entries[SHADER_MANIFEST][1]).decode("utf-8"))
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise LibraryError("invalid_manifest") from exc
+        if not isinstance(document, dict) or document.get("version") != VERSION:
+            raise LibraryError("invalid_manifest")
+        files = document.get("files")
+        if not isinstance(files, list) or not files or len(files) > SHADER_MAX_FILES:
+            raise LibraryError("invalid_manifest")
+        if not re.fullmatch(r"[0-9]+\.[0-9]+", str(document.get("shader_version", ""))):
+            raise LibraryError("invalid_manifest")
+        return document
+
+    def plan(self, revision: str) -> tuple[dict, list, int]:
+        """(manifest, entries needing a write, total bytes of those entries)."""
+        entries = self.tree(revision)
+        document = self.manifest(entries)
+        delta, total, seen = [], 0, 0
+        for record in document["files"]:
+            if not isinstance(record, dict):
+                raise LibraryError("invalid_manifest")
+            relative = shader_path(str(record.get("path", "")))
+            digest = str(record.get("sha256", ""))
+            if not re.fullmatch(r"[0-9a-f]{64}", digest):
+                raise LibraryError("invalid_manifest")
+            if relative not in entries:
+                raise LibraryError("invalid_manifest")
+            _mode, oid, size = entries[relative]
+            if size != record.get("size") or size > MAX_FILE:
+                raise LibraryError("invalid_manifest")
+            seen += size
+            if seen > SHADER_MAX_TOTAL:
+                raise LibraryError("too_large")
+            if self.local_digest(relative) != digest:
+                delta.append((relative, oid, size, digest))
+                total += size
+        return document, delta, total
+
+    def check(self) -> dict:
+        revision = self.fetch()
+        document, delta, total = self.plan(revision)
+        self.report.update(
+            code="synced" if not delta else "update",
+            shader_version=str(document.get("shader_version", "")),
+            build=int(document.get("build") or 0),
+            brush_versions=[str(v) for v in document.get("brush_versions", []) if isinstance(v, (str, int))],
+            changed=len(delta), bytes=total, checked=time.time(), revision=revision,
+        )
+        atomic_json(self.cache_path, self.cache)
+        return dict(self.report)
+
+    def sync(self) -> dict:
+        revision = self.fetch()
+        document, delta, total = self.plan(revision)
+        written = 0
+        for relative, oid, _size, digest in delta:
+            raw = self.blob(oid)
+            if hashlib.sha256(raw).hexdigest() != digest:
+                raise LibraryError("blob_corrupted")
+            target = self.data / relative
+            no_links(target.parent)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_name(target.name + ".part")
+            no_links(temporary)
+            with temporary.open("wb") as handle:
+                handle.write(raw)
+            os.replace(temporary, target)
+            self.cache.pop(relative, None)
+            self.local_digest(relative)
+            written += 1
+        atomic_json(self.cache_path, self.cache)
+        self.report.update(code="synced", shader_version=str(document.get("shader_version", "")),
+                           build=int(document.get("build") or 0),
+                           brush_versions=[str(v) for v in document.get("brush_versions", [])
+                                           if isinstance(v, (str, int))],
+                           changed=0, bytes=0, checked=time.time(), revision=revision)
+        return {**self.report, "synced_files": written, "synced_bytes": total}
+
+
+class Library(GitStore):
+    def __init__(self, data: Path, state: Path, remote: str, branch: str,
+                 author: str, email: str, stages: list[str], allow_push: bool = False,
+                 *, local_test_remote: bool = False):
+        self.bridge = Path(os.path.abspath(data)) / "Terraform Brush" / "Map Library"
+        self.projects = Path(os.path.abspath(data)) / "MapProjects"
+        for path in (self.bridge, self.projects):
+            no_links(path)
+            path.mkdir(parents=True, exist_ok=True)
+        if (not re.fullmatch(r"[A-Za-z0-9_ -]{1,32}", author) or not author.strip()
+                or not re.fullmatch(r"[^\s<>@]+@[^\s<>@]+", email)):
+            raise LibraryError("invalid_identity")
+        self.author, self.email = author, email
+        self.stages = sorted(set(slug(stage, 3) for stage in stages))
+        if not self.stages:
+            raise LibraryError("invalid_stage")
+        self.allow_push = allow_push
+        self.session = uuid.uuid4().hex
+        self.shader = None
+        super().__init__(data, state, remote, branch, local_test_remote=local_test_remote)
+
     def project_files(self, entries: dict, project: str) -> dict:
         slug(project)
         prefix = project + "/"
@@ -247,15 +423,6 @@ class Library:
         if any(info[2] > MAX_FILE for info in result.values()):
             raise LibraryError("too_large")
         return result
-
-    def blob(self, oid: str) -> bytes:
-        raw = self.git("cat-file", "blob", oid)
-        digest = hashlib.sha1 if len(oid) == 40 else hashlib.sha256
-        if digest(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() != oid:
-            raise LibraryError("blob_corrupted")
-        if raw.startswith(LFS_HEADER):
-            raise LibraryError("lfs_unsupported")
-        return raw
 
     def catalog(self, revision: str) -> dict:
         entries = self.tree(revision)
@@ -474,16 +641,25 @@ class Library:
 
     def process(self, request: dict) -> dict:
         if (request.get("version") != VERSION or not re.fullmatch(r"[a-f0-9]{16,64}", str(request.get("id", "")))
-                or request.get("operation") not in {"pull", "publish", "download"}):
+                or request.get("operation") not in {"pull", "publish", "download",
+                                                    "shader_check", "shader_sync"}):
             raise LibraryError("invalid_request")
         completed = self.state / (request["id"] + "-result.json")
-        if completed.exists():
+        if completed.exists() and not str(request.get("operation", "")).startswith("shader_"):
             saved = read_json(completed)
             if saved["request"] != request:
                 raise LibraryError("invalid_request")
             return saved["result"]
         if request.get("session") != self.session:
             raise LibraryError("interrupted")
+        if request["operation"] in ("shader_check", "shader_sync"):
+            if self.shader is None:
+                raise LibraryError("shader_not_configured")
+            # Never cached as a completed result: the answer is about disk state,
+            # which moves on its own, so a replay must re-examine it.
+            report = (self.shader.check() if request["operation"] == "shader_check"
+                      else self.shader.sync())
+            return {"code": "shader_" + report["code"], "shader": report}
         if request["operation"] == "pull":
             result = self.refresh()
         elif request["operation"] == "publish":
@@ -493,14 +669,28 @@ class Library:
         atomic_json(completed, {"request": request, "result": result})
         return result
 
+    def _startup_shader_check(self) -> dict:
+        try:
+            self.shader.check()
+        except LibraryError as exc:
+            self.shader.report.update(code=str(exc), checked=time.time())
+        except Exception:
+            self.shader.report.update(code="helper_error", checked=time.time())
+        return {"code": "ready"}
+
     def serve(self, stop: threading.Event | None = None) -> None:
         status = {"version": VERSION, "session": self.session, "remote": self.remote,
                   "branch": self.branch, "allow_push": self.allow_push, "stages": self.stages,
-                  "busy": False, "code": "ready", "request_id": ""}
+                  "busy": False, "code": "ready", "request_id": "",
+                  "shader": dict(self.shader.report) if self.shader else {"configured": False}}
         request_path = self.bridge / "request.json"
         stop = stop or threading.Event()
         future = None
         with ThreadPoolExecutor(max_workers=1) as worker:
+            if self.shader is not None:
+                # Answer "is my shader current?" before the panel ever asks.
+                future = worker.submit(self._startup_shader_check)
+                status.update(busy=True, code="working")
             try:
                 while not stop.is_set():
                     if future is not None and future.done():
@@ -510,6 +700,8 @@ class Library:
                             status.update(code=str(exc))
                         except Exception:
                             status.update(code="helper_error")
+                        if self.shader is not None:
+                            status["shader"] = dict(self.shader.report)
                         status["busy"] = False
                         # Publish acknowledgement first; readers never see an idle gap
                         # between removing their request and receiving its outcome.
@@ -551,6 +743,8 @@ def main() -> None:
     parser.add_argument("--stage", action="append", help="Pipeline folder, repeatable; nested folders use /")
     parser.add_argument("--state-dir", type=Path, help="Dedicated private helper storage, OUTSIDE MapProjects and game repos")
     parser.add_argument("--allow-push", action="store_true", help="Explicitly allow confirmed in-game uploads for this helper session")
+    parser.add_argument("--shader-remote", help="Trusted private repository holding the tileset shader and its textures")
+    parser.add_argument("--shader-branch", default="main")
     args = parser.parse_args()
     key = hashlib.sha256((str(args.data_dir.absolute()) + args.remote + args.branch).encode()).hexdigest()[:16]
     state = args.state_dir or Path.home() / ".bar-map-library" / key
@@ -560,7 +754,15 @@ def main() -> None:
         with exclusive_lock(args.data_dir / "Terraform Brush" / "Map Library" / "service.lock"):
             library = Library(args.data_dir, state, args.remote, args.branch, args.author, args.email,
                               args.stage or ["01 Design pass", "02 Texture pass", "03 Gameplay pass", "04 Review"], args.allow_push)
-            print(f"Map library: {args.remote} [{args.branch}] — {'uploads enabled' if args.allow_push else 'read only'}")
+            if args.shader_remote:
+                shader_key = hashlib.sha256(
+                    (str(args.data_dir.absolute()) + args.shader_remote + args.shader_branch).encode()
+                ).hexdigest()[:16]
+                library.shader = ShaderLibrary(args.data_dir, Path.home() / ".bar-map-library" / shader_key,
+                                               args.shader_remote, args.shader_branch)
+            print(f"Map library: {args.remote} [{args.branch}] - {'uploads enabled' if args.allow_push else 'read only'}")
+            if args.shader_remote:
+                print(f"Shader library: {args.shader_remote} [{args.shader_branch}] - read only")
             print("Use Terraform Brush > File > Open Project. Ctrl+C stops the helper.")
             library.serve()
     except LibraryError as exc:

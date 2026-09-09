@@ -8,6 +8,14 @@ local MAX_JSON = 2 * 1024 * 1024
 local POLL_SECONDS = 1
 local HEARTBEAT_SECONDS = 10
 local RANDOM_WORD_MAX = 0xffff
+-- "project" operations carry a source slug; the rest address the repository.
+local OPERATIONS = {
+	pull = "library",
+	publish = "project",
+	download = "project",
+	shader_check = "shader",
+	shader_sync = "shader",
+}
 
 local function readJson(name)
 	local file = io.open(ROOT .. name .. ".json", "rb")
@@ -34,6 +42,13 @@ local function writeJson(name, value)
 	local written = file:write(Json.encode(value) .. "\n")
 	local closed = file:close()
 	return written ~= nil and closed ~= nil
+end
+
+-- LuaUI does not seed math.random, so without this the first request id after
+-- every reload is the same one, and ids only differ by the wall-clock second.
+math.randomseed((os.time() % 100000) * 1000 + math.floor((os.clock() * 1000) % 1000))
+for _ = 1, 8 do
+	math.random()
 end
 
 function M.new(options)
@@ -84,6 +99,15 @@ function M.new(options)
 		end
 	end
 
+	-- Shader distribution state as last reported by the companion.
+	function client.shader()
+		local shader = client.state.shader
+		if type(shader) ~= "table" or not shader.configured then
+			return nil
+		end
+		return shader
+	end
+
 	function client.isBusy()
 		return client.state.online and (client.state.busy or client.state.pending) or false
 	end
@@ -109,10 +133,11 @@ function M.new(options)
 		if state.busy or state.pending or options.isProjectBusy() then
 			return false, "busy"
 		end
-		if operation ~= "pull" and operation ~= "publish" and operation ~= "download" then
+		if not OPERATIONS[operation] then
 			return false, "invalid_request"
 		end
-		if operation ~= "pull" and not options.validateSlug(source) then
+		-- Only the project operations name a project; the shader ones address a whole repo.
+		if OPERATIONS[operation] == "project" and not options.validateSlug(source) then
 			return false, "invalid_path"
 		end
 		if operation == "publish" then

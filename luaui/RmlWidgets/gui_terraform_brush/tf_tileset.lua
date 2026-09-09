@@ -726,6 +726,75 @@ function M.syncDeposit(doc, ctx)
 	end
 end
 
+-- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: the row has
+-- to work when the shader widget is missing or stale, which is exactly when it
+-- is not loaded. Hidden outright without a companion, like the team library tab.
+local BRUSH_VERSION = "1.14"
+
+local function shaderFitsBrush(shader)
+	local wanted = shader.brush_versions
+	if type(wanted) ~= "table" or #wanted == 0 then
+		return true -- a manifest that names no brush release is treated as universal
+	end
+	for _, value in ipairs(wanted) do
+		if tostring(value) == BRUSH_VERSION then
+			return true
+		end
+	end
+	return false
+end
+
+local function shaderSize(bytes)
+	local count = tonumber(bytes) or 0
+	if count < 1024 * 1024 then
+		return string.format("%.0f KB", count / 1024)
+	end
+	return string.format("%.0f MB", count / (1024 * 1024))
+end
+
+function M.syncShader(doc, ctx)
+	local dm = ctx.widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	local project = WG.MapProject
+	local client = project and project.library
+	local shader = client and client.shader and client.shader()
+	if not shader or not client.state.online then
+		dm.tsShaderSyncShown = false
+		return
+	end
+	dm.tsShaderSyncShown = true
+	local code = tostring(shader.code or "")
+	local version = tostring(shader.shader_version or "")
+	local state, label
+	if client.isBusy() or code == "unchecked" or code == "" then
+		state = "checking"
+		label = BAR.I18N("ui.mapLibrary.shaderChecking")
+	elseif code == "synced" then
+		state = "synced"
+		label = BAR.I18N("ui.mapLibrary.shaderSynced", { version = version })
+	elseif code == "update" and shaderFitsBrush(shader) then
+		state = "update"
+		label = BAR.I18N("ui.mapLibrary.shaderUpdate", {
+			version = version,
+			size = shaderSize(shader.bytes),
+		})
+	elseif code == "update" then
+		state = "mismatch"
+		label = BAR.I18N("ui.mapLibrary.shaderMismatch", { version = version })
+	else
+		state = "error"
+		label = BAR.I18N("ui.mapLibrary.shaderError")
+	end
+	if dm.tsShaderSyncState ~= state then
+		dm.tsShaderSyncState = state
+	end
+	if dm.tsShaderSyncLabel ~= label then
+		dm.tsShaderSyncLabel = label
+	end
+end
+
 function M.sync(doc, ctx, setSummary)
 	if not doc or not WG.TilesetTerrain then
 		return

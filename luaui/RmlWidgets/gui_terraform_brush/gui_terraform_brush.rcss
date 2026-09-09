@@ -2382,6 +2382,29 @@ body {
 	word-break: break-word;
 }
 
+/* SHADER UPDATE row (TILESET window). The pending state is the only thing in
+   the panel that asks for attention, so it gets the warning colour and a
+   brighter border rather than the usual flat mode-button look. */
+.tf-ts-shader-sync-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.tf-ts-shader-sync {
+	flex: 1;
+	height: 26dp;
+}
+
+.tf-ts-shader-sync.pending {
+	background-color: #4a3a12;
+	border: 2dp #fdc04c;
+	color: #ffdd99;
+}
+
+.tf-ts-shader-sync.pending:hover {
+	background-color: #5d4917;
+}
+
 .tf-proj-row {
 	padding: 7dp 10dp;
 }

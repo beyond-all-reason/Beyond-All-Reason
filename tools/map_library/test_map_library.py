@@ -2,6 +2,8 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import hashlib
+import json
 import os
 import subprocess
 import tempfile
@@ -349,6 +351,187 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual([], errors)
         self.assertEqual(0, ml.read_json(self.alice.bridge / "status.json")["heartbeat"])
 
+
+
+class ShaderLibraryTests(unittest.TestCase):
+    """Shader distribution: a per-file diff, an allowlist, and no deletions."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.origin = self.root / "origin"
+        self.data = self.root / "data"
+        self.state = self.root / "state"
+        self.data.mkdir()
+        self.origin.mkdir()
+        git(self.origin, "init", "-b", "main")
+        git(self.origin, "config", "user.name", "Test")
+        git(self.origin, "config", "user.email", "test@example.invalid")
+        (self.origin / ".gitattributes").write_text("* -text\n", encoding="utf-8")
+        self.payload = {
+            "LuaUI/Widgets/dev_tileset_terrain.lua": b"-- shader 0.30\nreturn 1\n",
+            "LuaUI/Widgets/tileset_dev/tilesets/teizer.lua": b"return {}\n",
+            "LuaUI/Widgets/tileset_dev/mask.png": b"\x89PNG\r\n\x1a\n" + b"x" * 32,
+        }
+        self.publish("0.30", 12)
+
+    def publish(self, shader_version, build):
+        for relative, blob in self.payload.items():
+            target = self.origin / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(blob)
+        manifest = {
+            "version": 1, "shader_version": shader_version, "build": build,
+            "released": "2026-09-09", "brush_versions": ["1.14"], "install_root": "write-dir",
+            "files": [{"path": relative, "size": len(blob),
+                       "sha256": hashlib.sha256(blob).hexdigest()}
+                      for relative, blob in sorted(self.payload.items())],
+        }
+        (self.origin / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        git(self.origin, "add", "-A")
+        git(self.origin, "commit", "-m", "build %d" % build)
+
+    def library(self):
+        return ml.ShaderLibrary(self.data, self.state, self.origin.as_uri(), "main",
+                                local_test_remote=True)
+
+    def test_first_check_reports_everything_missing(self):
+        report = self.library().check()
+        self.assertEqual(report["code"], "update")
+        self.assertEqual(report["changed"], len(self.payload))
+        self.assertEqual(report["shader_version"], "0.30")
+        self.assertEqual(report["build"], 12)
+        self.assertEqual(report["brush_versions"], ["1.14"])
+
+    def test_sync_installs_then_settles(self):
+        library = self.library()
+        self.assertEqual(library.sync()["synced_files"], len(self.payload))
+        for relative, blob in self.payload.items():
+            self.assertEqual((self.data / relative).read_bytes(), blob)
+        self.assertEqual(library.check()["changed"], 0)
+        self.assertEqual(library.check()["code"], "synced")
+
+    def test_only_changed_files_transfer(self):
+        library = self.library()
+        library.sync()
+        changed = b"-- shader 0.31\nreturn 2\n"
+        self.payload["LuaUI/Widgets/dev_tileset_terrain.lua"] = changed
+        self.publish("0.31", 13)
+        report = library.check()
+        self.assertEqual(report["changed"], 1)
+        self.assertEqual(report["bytes"], len(changed))
+        self.assertEqual(library.sync()["synced_files"], 1)
+        self.assertEqual((self.data / "LuaUI/Widgets/dev_tileset_terrain.lua").read_bytes(), changed)
+
+    def test_sync_never_deletes(self):
+        library = self.library()
+        library.sync()
+        stray = self.data / "LuaUI/Widgets/tileset_dev/local_notes.md"
+        stray.write_bytes(b"mine\n")
+        library.sync()
+        self.assertTrue(stray.exists())
+
+    def test_corrupt_manifest_hash_is_refused(self):
+        document = json.loads((self.origin / "manifest.json").read_text(encoding="utf-8"))
+        document["files"][0]["sha256"] = "0" * 64
+        (self.origin / "manifest.json").write_text(json.dumps(document), encoding="utf-8")
+        git(self.origin, "add", "-A")
+        git(self.origin, "commit", "-m", "bad hash")
+        # The file is genuinely absent, so a write is planned and the blob then fails its hash.
+        with self.assertRaises(ml.LibraryError):
+            self.library().sync()
+
+    def test_write_targets_are_an_allowlist(self):
+        for bad in ("../escape.lua", "LuaUI/Widgets/gui_options.lua", "manifest.json",
+                    "LuaUI/Widgets/tileset_dev/../../x.lua", "LuaUI/Widgets/tileset_dev/run.exe",
+                    "LuaUI/Widgets/tileset_dev/.hidden.lua"):
+            with self.assertRaises(ml.LibraryError, msg=bad):
+                ml.shader_path(bad)
+        for good in ("LuaUI/Widgets/dev_tileset_terrain.lua",
+                     "LuaUI/Widgets/tileset_dev/tilesets/teizer.lua",
+                     "LuaUI/Widgets/tileset_dev/acg_grass001_diff.dds"):
+            self.assertEqual(ml.shader_path(good), good)
+
+    def test_manifest_may_not_name_a_file_outside_the_tree(self):
+        document = json.loads((self.origin / "manifest.json").read_text(encoding="utf-8"))
+        document["files"].append({"path": "LuaUI/Widgets/tileset_dev/ghost.lua",
+                                  "size": 3, "sha256": "a" * 64})
+        (self.origin / "manifest.json").write_text(json.dumps(document), encoding="utf-8")
+        git(self.origin, "add", "-A")
+        git(self.origin, "commit", "-m", "ghost entry")
+        with self.assertRaises(ml.LibraryError):
+            self.library().check()
+
+
+class ShaderMailboxTests(unittest.TestCase):
+    """The shader operations as the game actually reaches them."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.data = self.root / "data"
+        (self.data / "MapProjects").mkdir(parents=True)
+        maps = self.root / "maps"
+        maps.mkdir()
+        git(maps, "init", "-b", "main")
+        git(maps, "config", "user.name", "Test")
+        git(maps, "config", "user.email", "test@example.invalid")
+        (maps / "README.md").write_text("fixture\n", encoding="utf-8")
+        git(maps, "add", "-A")
+        git(maps, "commit", "-m", "seed")
+        shader = self.root / "shader"
+        shader.mkdir()
+        git(shader, "init", "-b", "main")
+        git(shader, "config", "user.name", "Test")
+        git(shader, "config", "user.email", "test@example.invalid")
+        (shader / ".gitattributes").write_text("* -text\n", encoding="utf-8")
+        self.blob = b"-- shader 0.40\n"
+        self.installed = self.data / "LuaUI/Widgets/dev_tileset_terrain.lua"
+        target = shader / "LuaUI/Widgets/dev_tileset_terrain.lua"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(self.blob)
+        (shader / "manifest.json").write_text(json.dumps({
+            "version": 1, "shader_version": "0.40", "build": 20, "released": "2026-09-09",
+            "brush_versions": ["1.14"], "install_root": "write-dir",
+            "files": [{"path": "LuaUI/Widgets/dev_tileset_terrain.lua", "size": len(self.blob),
+                       "sha256": hashlib.sha256(self.blob).hexdigest()}],
+        }), encoding="utf-8")
+        git(shader, "add", "-A")
+        git(shader, "commit", "-m", "build 20")
+        self.library = ml.Library(self.data, self.root / "state", maps.as_uri(), "main",
+                                  "Tester", "test@example.invalid", ["01 Design pass"], True,
+                                  local_test_remote=True)
+        self.library.shader = ml.ShaderLibrary(self.data, self.root / "shaderstate",
+                                               shader.as_uri(), "main", local_test_remote=True)
+
+    def request(self, operation, identifier):
+        return self.library.process({"version": 1, "id": identifier, "session": self.library.session,
+                                     "operation": operation, "source": "", "stage": "", "revision": ""})
+
+    def test_check_then_sync(self):
+        report = self.request("shader_check", "a" * 24)
+        self.assertEqual(report["code"], "shader_update")
+        self.assertEqual(report["shader"]["shader_version"], "0.40")
+        self.assertEqual(report["shader"]["changed"], 1)
+        report = self.request("shader_sync", "b" * 24)
+        self.assertEqual(report["code"], "shader_synced")
+        self.assertEqual(self.installed.read_bytes(), self.blob)
+
+    def test_repeat_request_is_re_examined(self):
+        # Project requests are idempotent by id. Shader requests describe disk
+        # state, which moves on its own, so a replay must look again.
+        self.request("shader_sync", "b" * 24)
+        self.installed.unlink()
+        self.request("shader_sync", "b" * 24)
+        self.assertTrue(self.installed.exists())
+
+    def test_unconfigured_helper_refuses(self):
+        self.library.shader = None
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.request("shader_check", "c" * 24)
+        self.assertEqual(str(caught.exception), "shader_not_configured")
 
 if __name__ == "__main__":
     unittest.main()

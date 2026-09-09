@@ -6134,6 +6134,12 @@
 		<div class="tf-panel-body">
 			<div id="tf-tileset-controls">
 
+				<div class="tf-ts-shader-sync-row mb-1" data-if="tsShaderSyncShown">
+					<div id="btn-ts-shader-sync" class="tf-mode-btn tf-ts-shader-sync" data-class-pending="tsShaderSyncState == 'update'" data-class-disabled="tsShaderSyncState == 'checking' || tsShaderSyncState == 'mismatch'" data-event-mousedown="onTsShaderSync()">
+						<div class="tf-btn-text">{{tsShaderSyncLabel}}</div>
+					</div>
+				</div>
+
 				<div class="flex flex-row gap-1 mb-1">
 					<div id="btn-ts-shader" class="tf-mode-btn tf-ts-row-btn" data-class-active="tsShaderOn" data-event-mousedown="onTsToggleShader()">
 						<div class="tf-btn-text">ACTIVATE SHADER</div>

@@ -3748,6 +3748,11 @@ local initialModel = {
 	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
 	tsShaderOn = false,
+	-- SHADER UPDATE row at the top of the TILESET window. Hidden unless the
+	-- map-library companion is running with a shader repository configured.
+	tsShaderSyncShown = false,
+	tsShaderSyncState = "checking",
+	tsShaderSyncLabel = "",
 	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off —
 	-- a button rather than a 0/1 slider); synced from WG.TilesetTerrain.
 	tsCliffProtectOn = true,
@@ -11142,6 +11147,22 @@ local initialModel = {
 	-- Master SHADER switch. Off releases the map shader (and the $minimap/$grass
 	-- overrides) back to the engine, so maps that ship hand-authored textures
 	-- render the way they were authored; the tuning sections gray out in M.sync.
+	-- One button, four meanings: sync when an update is waiting, re-check when it
+	-- is not, and do nothing while busy or when the update wants a newer brush.
+	onTsShaderSync = function(_event)
+		local project = WG.MapProject
+		local client = project and project.library
+		if not (client and client.shader and client.shader()) then
+			return
+		end
+		local d = widgetState.dmHandle
+		local state = d and d.tsShaderSyncState
+		if state == "checking" or state == "mismatch" then
+			return
+		end
+		playSound("click")
+		client.request(state == "update" and "shader_sync" or "shader_check")
+	end,
 	onTsToggleShader = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setActive) then
 			return
@@ -18074,6 +18095,9 @@ function widget:Update()
 		-- The module early-outs on dm.envTilesetVisible, so this is cheap when
 		-- closed. No setSummary: the status strip belongs to the active tool.
 		tfTileset.sync(doc, ctx, nil)
+		-- Separate call: the shader row must still update when the shader widget
+		-- is absent, and tfTileset.sync early-outs on exactly that.
+		tfTileset.syncShader(doc, ctx)
 
 		if mbActive then
 			-- Metal Brush sync (extracted to tf_metal.lua)
