@@ -78,12 +78,91 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 ]]
 --
 
+-- Engine types ----------------------------------------------------------------
+
+---Values outside the range become an ellipsoid.
+---@alias VolumeShapeIndex
+---|0 ELLIPSOID
+---|1 CYLINDER
+---|2 BOX
+---|3 SPHERE
+
+---@alias VolumeHitTestType
+---|0 DISCRETE
+---|1 CONTINUOUS
+
+---@alias VolumeAxisIndex
+---|0 X
+---|1 Y
+---|2 Z
+
+---See `LuaUtils::ParseColVolData`.
+---@class UnitCollisionVolumeData
+---@field [1] number scaleX
+---@field [2] number scaleY
+---@field [3] number scaleZ
+---@field [4] number offsetX
+---@field [5] number offsetY
+---@field [6] number offsetZ
+---@field [7] VolumeShapeIndex volumeType (default := `3`, SPHERE)
+---@field [8] VolumeHitTestType useContinuousHitTest (default := `1`, CONTINUOUS)
+---@field [9] VolumeAxisIndex primaryAxis (default := `2`, Z)
+---@field [10]? boolean ignoreHits Returned by the getter, ignored by the setter, which reads nine.
+---@field radius number?
+---@field height number?
+
+---See `LuaUtils::PushColVolTable`.
+---@class UnitDefCollisionVolume
+---@field type "ellipsoid"|"cylinder"|"box"|"sphere"
+---@field scaleX number
+---@field scaleY number
+---@field scaleZ number
+---@field offsetX number
+---@field offsetY number
+---@field offsetZ number
+---@field boundingRadius number
+---@field defaultToSphere boolean Every scale was at most 1, so the volume becomes a model-radius sphere.
+---@field defaultToFootPrint boolean From `useFootPrintCollisionVolume`. The volume becomes a footprint box.
+---@field defaultToPieceTree boolean From `usePieceCollisionVolumes`. Hit tests go to the pieces and skip this volume.
+
+---See `SetSolidObjectPieceCollisionVolumeData`.
+---Piece volumes are always continuous so they lack a hit test field.
+---@class PieceCollisionVolumeData
+---@field [1] number scaleX (default := `1`)
+---@field [2] number scaleY
+---@field [3] number scaleZ
+---@field [4] number offsetX (default := `0`)
+---@field [5] number offsetY
+---@field [6] number offsetZ
+---@field [7] VolumeShapeIndex volumeType (default := `3`, SPHERE)
+---@field [8] VolumeAxisIndex primaryAxis (default := `2`, Z)
+---@field [9]? number An unused value. -- TODO: Remove from colvol definitions and drop this field.
+
+-- Collision volume definitions --------------------------------------------------
+
+---Summary type for all unitDef collision volume configuration types. Unwieldy.
+---@alias UnitColVolConfig ColVolUnitDef|ColVolUnitOnOff|ColVolPieceMap|ColVolPieceMapOnOff
+
+---@alias ColVolUnitDef UnitCollisionVolumeData
+
+---@class ColVolUnitOnOff
+---@field on UnitCollisionVolumeData
+---@field off UnitCollisionVolumeData
+
+---@class ColVolPieceMap
+---@field [string] PieceCollisionVolumeData Numeric string keys "0"..."65535" -- TODO: Plainly should be an integer. Fix is planned.
+---@field offsets? number[] unit-space aimpoint offsets, `{ x, y, z }`
+
+---@class ColVolPieceMapOnOff
+---@field on ColVolPieceMap
+---@field off ColVolPieceMap
+
 -- A unit draws its collision volumes from exactly one of these four tables:
 
-local staticUnitCollisionVolume = {} -- whole-unit volume definitions
-local dynamicUnitCollisionVolume = {} -- whole-unit volume definitions, by armored state
-local staticPieceCollisionVolume = {} -- per piece volume definitions
-local dynamicPieceCollisionVolume = {} -- per piece volume definitions, by armored state
+local staticUnitCollisionVolume = {} ---@type table<string, ColVolUnitDef> whole-unit volume definitions
+local dynamicUnitCollisionVolume = {} ---@type table<string, ColVolUnitOnOff> whole-unit volume definitions, by armored state
+local staticPieceCollisionVolume = {} ---@type table<string, ColVolPieceMap> per-piece volume definitions
+local dynamicPieceCollisionVolume = {} ---@type table<string, ColVolPieceMapOnOff> per-piece volume definitions, by armored state
 
 -- Dynamic collision volumes ---------------------------------------------------
 
@@ -498,6 +577,7 @@ dynamicPieceCollisionVolume.corvipe = {
 propagateToScavCopies(dynamicPieceCollisionVolume)
 
 -- Lookup table to avoid probing for the base table type.
+---@alias ColVolConfigType 1|2|3|4 UNIT_STATIC|UNIT_DYNAMIC|PIECE_STATIC|PIECE_DYNAMIC
 local COLVOL_CONFIG = {
 	UNIT_STATIC = 1,
 	UNIT_DYNAMIC = 2,
@@ -505,6 +585,12 @@ local COLVOL_CONFIG = {
 	PIECE_DYNAMIC = 4,
 }
 
+---Maps units to their collision volume data, organized by colvol types.
+---@class CollisionVolumeConfigs
+---@field [1] table<string, ColVolUnitDef> unitStaticColliders
+---@field [2] table<string, ColVolUnitOnOff> unitDynamicColliders
+---@field [3] table<string, ColVolPieceMap> pieceStaticColliders
+---@field [4] table<string, ColVolPieceMapOnOff> pieceDynamicColliders
 local colVolConfigs = {
 	[COLVOL_CONFIG.UNIT_STATIC] = staticUnitCollisionVolume,
 	[COLVOL_CONFIG.UNIT_DYNAMIC] = dynamicUnitCollisionVolume,
@@ -512,7 +598,7 @@ local colVolConfigs = {
 	[COLVOL_CONFIG.PIECE_DYNAMIC] = dynamicPieceCollisionVolume,
 }
 
-local unitColVolTypeIndex = {}
+local unitColVolTypeIndex = {} ---@type table<string, ColVolConfigType>
 for configType = 1, #colVolConfigs do
 	for unitName in pairs(colVolConfigs[configType]) do
 		unitColVolTypeIndex[unitName] = configType
