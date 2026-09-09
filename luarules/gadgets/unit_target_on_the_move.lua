@@ -1639,11 +1639,7 @@ if gadgetHandler:IsSyncedCode() then
 					activeIsAttackable = attackable
 				end
 				---@diagnostic disable: unnecessary-if -- testTarget returns true or nil.
-				if
-					attackable
-					and (not activeIndex or index < activeIndex)
-					and (not candidateIndex or index < candidateIndex)
-				then
+				if attackable and (not candidateIndex or index < candidateIndex) then
 					candidateIndex = index
 				end
 				---@diagnostic enable: unnecessary-if
@@ -1658,7 +1654,13 @@ if gadgetHandler:IsSyncedCode() then
 			unitData.scanIndex = index > #unitData.targets and 1 or index
 		end
 
-		if candidateIndex then
+		-- Keep a fallback even when it follows the active target in the list.
+		-- If the active target becomes unattackable, switch without a targetless update.
+		if
+			candidateIndex
+			and (not activeIndex or candidateIndex <= activeIndex or (activeWasChecked and not activeIsAttackable))
+		then
+			-- The engine can replace an unchanged target between updates; re-apply it too.
 			setTargetActive(unitID, unitData, candidateIndex)
 		elseif activeWasChecked and not activeIsAttackable then
 			setTargetPassive(unitID, unitData)

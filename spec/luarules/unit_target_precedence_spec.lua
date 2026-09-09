@@ -217,6 +217,28 @@ describe("Set Target precedence after shared-list updates", function()
 end)
 
 describe("Set Target scan budgets", function()
+	it("switches to the next attackable target in the same update", function()
+		local g = loadTargetGadget()
+		g.set({ 10, 20, 30 }, false, true)
+		assert.are.equal(10, g.target())
+		g.canTarget(function(targetID)
+			return targetID ~= 10
+		end)
+		g.update(1)
+		assert.are.equal(20, g.target())
+		assert.same({ 10, 20, 30 }, g.checks)
+	end)
+
+	it("restores an unchanged Set Target after the engine replaces its weapon target", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		assert.are.equal(10, g.target())
+		-- Simulate automatic engine targeting between gadget updates.
+		g.env.Spring.SetUnitTarget(1, 20)
+		g.update(1)
+		assert.are.equal(10, g.target())
+	end)
+
 	it("checks a single target only once per update", function()
 		local g = loadTargetGadget()
 		g.set(10, false, true)
@@ -239,6 +261,21 @@ describe("Set Target scan budgets", function()
 		g.update(2)
 		assert.same({ 10, 20, 30 }, g.checks)
 		assert.are.equal(20, g.target())
+	end)
+
+	it("retains an unchecked active target instead of replacing it with a lower-priority scan result", function()
+		local g = loadTargetGadget()
+		local targets = {}
+		for i = 1, 300 do
+			targets[i] = 1000 + i
+		end
+		g.set(targets, false, true)
+		g.update(1)
+		assert.are.equal(1001, g.target())
+		g.update(2)
+		assert.are.equal(128, #g.checks)
+		assert.are.equal(1129, g.checks[1])
+		assert.are.equal(1001, g.target())
 	end)
 
 	it("continues a long scan across updates and eventually reacquires a higher-priority target", function()
