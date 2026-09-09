@@ -453,6 +453,15 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
+	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFS.ZIP)
+	ModuleHandler.ResetCaches()
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
