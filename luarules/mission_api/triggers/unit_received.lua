@@ -17,10 +17,9 @@ return {
 		UnitGiven = function(trigger, triggerID, context, unitID, unitDefID, newTeam, oldTeam, captured)
 			local parameters = trigger.parameters
 			if GG['MissionAPI'].transferringUnits then
-				if parameters.ignoreMissionActions ~= false then
+				if parameters.ignoreMissionActions ~= false or GG['MissionAPI'].capturingUnits then
 					return
 				end
-				-- Else we do not know the reason for the transfer so assume proceeding is wanted.
 			elseif captured then
 				return
 			end

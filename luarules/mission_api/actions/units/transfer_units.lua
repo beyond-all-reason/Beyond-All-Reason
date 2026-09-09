@@ -1,6 +1,6 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function transferUnits(unitName, newTeam)
+local function transferUnits(unitName, newTeam, captured)
 	local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
@@ -9,8 +9,10 @@ local function transferUnits(unitName, newTeam)
 	for unitID in pairs(trackedUnitIDs) do
 		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
 		GG['MissionAPI'].transferringUnits = true
+		GG['MissionAPI'].capturingUnits = captured or nil
 		Spring.TransferUnit(unitID, newTeam, given)
 		GG['MissionAPI'].transferringUnits = nil
+		GG['MissionAPI'].capturingUnits = nil
 	end
 end
 
@@ -20,6 +22,7 @@ return {
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
 			{ name = 'newTeam', required = true, type = ParameterTypes.TeamID },
+			{ name = 'captured', required = false, type = ParameterTypes.Boolean },
 		},
 		actionFunction = transferUnits,
 	}

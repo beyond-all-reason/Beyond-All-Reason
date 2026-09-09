@@ -37,6 +37,7 @@ describe("mission_api.triggers.unit_received", function()
 	local function given(trigger, context, unitDefID, opts)
 		opts = opts or {}
 		GG["MissionAPI"].transferringUnits = opts.transferringUnits
+		GG["MissionAPI"].capturingUnits = opts.capturingUnits
 		onUnitGiven(
 			trigger,
 			triggerID,
@@ -48,6 +49,7 @@ describe("mission_api.triggers.unit_received", function()
 			opts.captured == true
 		)
 		GG["MissionAPI"].transferringUnits = nil
+		GG["MissionAPI"].capturingUnits = nil
 	end
 
 	it("declares its type and parameters", function()
@@ -120,8 +122,7 @@ describe("mission_api.triggers.unit_received", function()
 		assert.are.equal(1, fired())
 	end)
 
-	-- ! We should fix this. Submitting the code as-is but with the question on how to resolve this part.
-	it("fires on a mission transfer flagged as a capture when ignoreMissionActions is false", function()
+	it("fires on a mission gift when ignoreMissionActions is false, whatever the engine flag says", function()
 		local context, fired = newContext()
 		given(
 			trigger({ unitDefName = "armwin", ignoreMissionActions = false }),
@@ -130,5 +131,16 @@ describe("mission_api.triggers.unit_received", function()
 			{ transferringUnits = true, captured = true }
 		)
 		assert.are.equal(1, fired())
+	end)
+
+	it("does not fire on a mission capture, even when ignoreMissionActions is false", function()
+		local context, fired = newContext()
+		given(
+			trigger({ unitDefName = "armwin", ignoreMissionActions = false }),
+			context,
+			1,
+			{ transferringUnits = true, capturingUnits = true }
+		)
+		assert.are.equal(0, fired())
 	end)
 end)

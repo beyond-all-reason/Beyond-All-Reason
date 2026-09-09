@@ -2,7 +2,8 @@ local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- The mission gives the player a wind generator, which UnitReceived sees only when asked to see
--- mission actions. A decoy commander captures a second one, which UnitReceived never sees.
+-- mission actions, and has the player capture another, which UnitCaptured sees the same way.
+-- A decoy commander captures a third one, which UnitReceived never sees.
 -- The start script needs a second team for the units the player receives.
 
 local triggers = {
@@ -12,7 +13,7 @@ local triggers = {
 		parameters = {
 			seconds = 1,
 		},
-		actions = { 'spawnGift', 'spawnPrize', 'spawnDecoy' },
+		actions = { 'spawnGift', 'spawnSpoils', 'spawnPrize', 'spawnDecoy' },
 	},
 
 	-- Split off the spawn, since an order does not take on the frame its target unit is spawned.
@@ -21,7 +22,7 @@ local triggers = {
 		parameters = {
 			seconds = 3,
 		},
-		actions = { 'transferGift', 'orderDecoyCapture' },
+		actions = { 'transferGift', 'transferSpoils', 'orderDecoyCapture' },
 	},
 
 	giftReceived = {
@@ -42,6 +43,35 @@ local triggers = {
 			unitName = 'gift',
 		},
 		actions = { 'messageGiftReceivedByDefault' },
+	},
+
+	-- Never fires: a mission gift is not a capture, however it passes the sharing rules.
+	giftCaptured = {
+		type = triggerTypes.UnitCaptured,
+		parameters = {
+			unitName = 'gift',
+			ignoreMissionActions = false,
+		},
+		actions = { 'messageGiftCaptured' },
+	},
+
+	spoilsCaptured = {
+		type = triggerTypes.UnitCaptured,
+		parameters = {
+			unitName = 'spoils',
+			ignoreMissionActions = false,
+		},
+		actions = { 'messageSpoilsCaptured' },
+	},
+
+	-- Never fires: a mission capture is not a gift.
+	spoilsReceived = {
+		type = triggerTypes.UnitReceived,
+		parameters = {
+			unitName = 'spoils',
+			ignoreMissionActions = false,
+		},
+		actions = { 'messageSpoilsReceived' },
 	},
 
 	prizeCaptured = {
@@ -84,6 +114,15 @@ local actions = {
 		},
 	},
 
+	spawnSpoils = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armwin', x = 2600, z = 2400, team = 1, unitName = 'spoils' },
+			},
+		},
+	},
+
 	spawnPrize = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
@@ -110,6 +149,15 @@ local actions = {
 		},
 	},
 
+	transferSpoils = {
+		type = actionTypes.TransferUnits,
+		parameters = {
+			unitName = 'spoils',
+			newTeam = 0,
+			captured = true,
+		},
+	},
+
 	orderDecoyCapture = {
 		type = actionTypes.IssueOrders,
 		parameters = {
@@ -131,6 +179,27 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "BUG: a mission transfer fired with ignoreMissionActions unset!",
+		},
+	},
+
+	messageGiftCaptured = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "BUG: a mission gift counted as a capture!",
+		},
+	},
+
+	messageSpoilsCaptured = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The mission had the player capture a wind generator!",
+		},
+	},
+
+	messageSpoilsReceived = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "BUG: a mission capture counted as a received unit!",
 		},
 	},
 

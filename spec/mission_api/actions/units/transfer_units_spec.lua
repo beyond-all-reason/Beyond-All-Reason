@@ -35,6 +35,7 @@ describe("mission_api.actions.transfer_units", function()
 			type = "TransferUnits",
 			unitName = "UnitName!",
 			newTeam = "TeamID!",
+			captured = "Boolean",
 		}, summarizeSchema(action))
 	end)
 
@@ -91,6 +92,21 @@ describe("mission_api.actions.transfer_units", function()
 			action.actionFunction("unit", 5)
 			assert.is_true(fenceDuringTransfer)
 			assert.is_nil(GG["MissionAPI"].transferringUnits)
+		end)
+
+		it("raises the capturingUnits fence only for a captured transfer", function()
+			seedUnits("unit", 9)
+			local fenceDuringTransfer
+			local transferUnit = Spring.TransferUnit
+			Spring.TransferUnit = function(...)
+				fenceDuringTransfer = GG["MissionAPI"].capturingUnits
+				return transferUnit(...)
+			end
+			action.actionFunction("unit", 5)
+			assert.is_nil(fenceDuringTransfer)
+			action.actionFunction("unit", 5, true)
+			assert.is_true(fenceDuringTransfer)
+			assert.is_nil(GG["MissionAPI"].capturingUnits)
 		end)
 	end)
 
