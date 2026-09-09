@@ -21,7 +21,7 @@ local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lu
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
-local SELECTOR_BASENAME = "selector.lua"
+local SELECTOR_BASENAME = "widget_selector.lua"
 
 local SAFEWRAP = 1
 -- 0: disabled
