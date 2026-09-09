@@ -49,38 +49,38 @@ describe("mission_api.triggers.unit_loaded", function()
 		for _, parameter in ipairs(unitLoaded.parameters) do
 			names[parameter.name] = true
 		end
-		assert.is_true(names.unitName)
-		assert.is_true(names.unitDefName)
+		assert.is_true(names.passengerName)
+		assert.is_true(names.passengerDefName)
 		assert.is_true(names.teamID)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
-		assert.are.same({ "unitName", "unitDefName" }, unitLoaded.parameters.requiresOneOf)
+		assert.are.same({ "passengerName", "passengerDefName" }, unitLoaded.parameters.requiresOneOf)
 	end)
 
 	it("fires when a unit is loaded into a transport", function()
 		local context, fired = newContext()
-		loaded(trigger({ unitDefName = "armpw", teamID = 0 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamID = 0 }), context, 1, 0)
 		assert.are.equal(1, fired())
 	end)
 
-	it("filters by unitDefName", function()
+	it("filters by passengerDefName", function()
 		local context, fired = newContext()
-		loaded(trigger({ unitDefName = "armpw" }), context, 2, 0) -- unitDefID 2 = armck
+		loaded(trigger({ passengerDefName = "armpw" }), context, 2, 0) -- unitDefID 2 = armck
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by teamID, which is the passenger's team", function()
 		local context, fired = newContext()
-		loaded(trigger({ unitDefName = "armpw", teamID = 9 }), context, 1, 0)
+		loaded(trigger({ passengerDefName = "armpw", teamID = 9 }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by unitName", function()
+	it("filters by passengerName", function()
 		local context, fired = newContext()
 		context.DoesUnitHaveName = function()
 			return false
 		end
-		loaded(trigger({ unitName = "passenger" }), context, 1, 0)
+		loaded(trigger({ passengerName = "passenger" }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
@@ -89,23 +89,23 @@ describe("mission_api.triggers.unit_loaded", function()
 		context.DoesUnitHaveName = function(unitID)
 			return unitID == 100 -- the passenger has the name, the transport does not
 		end
-		loaded(trigger({ unitName = "passenger", transportName = "dropship" }), context, 1, 0)
+		loaded(trigger({ passengerName = "passenger", transportName = "dropship" }), context, 1, 0)
 		assert.are.equal(0, fired())
 	end)
 
 	it("filters by transportDefName", function()
 		local context, fired = newContext()
-		loaded(trigger({ unitDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 10) -- 10 = armatlas
+		loaded(trigger({ passengerDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 10) -- 10 = armatlas
 		assert.are.equal(0, fired())
-		loaded(trigger({ unitDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 11)
+		loaded(trigger({ passengerDefName = "armpw", transportDefName = "corvalk" }), context, 1, 0, 11)
 		assert.are.equal(1, fired())
 	end)
 
 	-- Spring.UnitAttach raises UnitLoaded for docking drones, hats, and attached turrets.
 	it("does not fire when the loader is not a transport, even when named", function()
 		local context, fired = newContext()
-		loaded(trigger({ unitDefName = "armpw" }), context, 1, 0, 20) -- 20 = a drone carrier
-		loaded(trigger({ unitDefName = "armpw", transportDefName = "armdronecarryland" }), context, 1, 0, 20)
+		loaded(trigger({ passengerDefName = "armpw" }), context, 1, 0, 20) -- 20 = a drone carrier
+		loaded(trigger({ passengerDefName = "armpw", transportDefName = "armdronecarryland" }), context, 1, 0, 20)
 		assert.are.equal(0, fired())
 	end)
 end)
