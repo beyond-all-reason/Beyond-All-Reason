@@ -12,7 +12,7 @@ local SharedTargetListStore = {}
 ---@field allyTeam AllyTeamID
 ---@field entries UnitTargetEntry[]
 ---@field lookup table<number, integer>
----@field units table<integer, boolean>
+---@field units table<integer, table> Assignment owners, including both command kinds.
 ---@field unavailable table<any, integer?> Tracking-state reason; nil means available.
 ---@field unseenPasses table<any, integer?> Remaining slow-update passes before an unseen target is dropped
 ---@field validationIndex integer

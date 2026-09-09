@@ -66,11 +66,11 @@ local function getTargetability(locals)
 end
 
 local function getTargetList(unitID)
-	return SyncedProxy.gadgetHandler.GG.GetUnitTargetList(unitID)
+	return SyncedProxy.gadgetHandler.GG.GetUnitAttackTargetList(unitID)
 end
 
 local function getTargetListID(unitID)
-	return SyncedProxy.gadgetHandler.GG.GetUnitTargetListID(unitID)
+	return SyncedProxy.gadgetHandler.GG.GetUnitAttackTargetListID(unitID)
 end
 
 local function queueStartsWith(unitID, targetID)
@@ -91,35 +91,41 @@ function test()
 	assertEqual(shipCanTargetHover, true, "the ship must be able to target the hover")
 	assertEqual(shipCanTargetBoat, true, "the ship must be able to target the boat")
 
-	-- Both selected sources receive the exact same input list. The shared-list
-	-- backend must filter it independently before interning the result.
+	-- Both selected sources receive the exact same input list. Like a native
+	-- Attack queue, the compact list keeps every target regardless of which
+	-- weapons a unit has; the onlytargetcategory gadget rejects the submarine's
+	-- Attack on the hover when the controller issues it, exactly as it rejects
+	-- a native Attack order. The submarine therefore skips the hover and ends
+	-- on a plain Attack on the boat, the ship starts with the hover.
 	Spring.GiveOrderToUnitArray({ submarineID, shipID }, GameCMD.ATTACK_TARGETS, { hoverID, boatID }, 0)
 	Test.waitUntil(function()
-		return queueStartsWith(submarineID, boatID) and queueStartsWith(shipID, hoverID)
+		return queueStartsWith(shipID, hoverID)
+	end, 120)
+	Test.waitUntil(function()
+		local queue = Spring.GetUnitCommands(submarineID, -1)
+		return #queue == 1 and queue[1].id == CMD.ATTACK and queue[1].params[1] == boatID
 	end, 120)
 
-	local submarineList = getTargetList(submarineID)
 	local shipList = getTargetList(shipID)
-	local submarineListID = getTargetListID(submarineID)
 	local shipListID = getTargetListID(shipID)
-	assertEqual(#submarineList, 1, "the submarine should retain only one compatible target")
-	assertEqual(submarineList[1].target, boatID, "the submarine should skip the incompatible hover")
-	assertEqual(#shipList, 2, "the ship should retain both compatible targets")
-	assertEqual(shipList[1].target, hoverID, "the ship should preserve the shared input order")
-	assertEqual(shipList[2].target, boatID, "the ship should retain the boat after the hover")
-	assert(submarineListID ~= shipListID, "differently filtered target lists must not share an identity")
+	assertEqual(#shipList, 2, "the ship keeps both targets")
+	assertEqual(shipList[1].target, hoverID, "the ship preserves the shared input order")
+	assertEqual(shipList[2].target, boatID, "the ship retains the boat after the hover")
+	assertEqual(getTargetList(submarineID), nil, "the submarine released its list with the last target")
 
-	local submarineQueue = Spring.GetUnitCommands(submarineID, -1)
 	local shipQueue = Spring.GetUnitCommands(shipID, -1)
-	assertEqual(-submarineQueue[2].params[1], submarineListID, "submarine controller list reference")
 	assertEqual(-shipQueue[2].params[1], shipListID, "ship controller list reference")
 
 	-- Advancing the ship must use its own cursor and reveal the boat without
-	-- changing the submarine's already-active boat attack.
+	-- touching the submarine's plain Attack.
 	Spring.GiveOrderToUnit(shipID, CMD.REMOVE, { shipQueue[1].tag }, 0)
 	Test.waitUntil(function()
-		return queueStartsWith(submarineID, boatID) and queueStartsWith(shipID, boatID)
+		local queue = Spring.GetUnitCommands(shipID, -1)
+		return #queue == 1 and queue[1].id == CMD.ATTACK and queue[1].params[1] == boatID
 	end, 120)
+	local submarineQueue = Spring.GetUnitCommands(submarineID, -1)
+	assertEqual(#submarineQueue, 1, "the submarine keeps its single Attack")
+	assertEqual(submarineQueue[1].params[1], boatID, "the submarine still attacks the boat")
 
 	Spring.GiveOrderToUnitArray({ submarineID, shipID }, CMD.STOP, {}, 0)
 end
