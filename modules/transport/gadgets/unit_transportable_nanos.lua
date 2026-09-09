@@ -55,7 +55,7 @@ function gadget:AllowCommand(
 	end
 
 	if cmdID == CMD_LOAD_UNITS then
-		if #cmdParams == 1 then -- if unit is target
+		if #cmdParams == 1 then
 			local targetId = cmdParams[1]
 			local isValidId = spValidUnitID(targetId)
 			local isTeamTarget = isValidId and spGetUnitTeam(targetId) == teamID
@@ -64,11 +64,10 @@ function gadget:AllowCommand(
 				return false
 			end
 		end
-	else -- CMD_UNLOAD_UNITS
+	else
 		if cmdParams[1] and cmdParams[3] and spGetUnitIsTransporting(unitID) then
 			local intrans = spGetUnitIsTransporting(unitID)
 			if #intrans >= 1 then
-				-- no unloading underwater
 				local _, y, _ = spGetGroundNormal(cmdParams[1], cmdParams[3])
 				if Nanos[spGetUnitDefID(intrans[1])] and (cmdParams[2] < 0 or y < 0.9) then
 					return false
