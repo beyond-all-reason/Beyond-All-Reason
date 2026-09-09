@@ -1306,7 +1306,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 	local attackOrder = false
 	local fightOrder = false
 	local setTargetOrder = false
-	local agressiveDrones = false
+	local aggressiveDrones = false
 	local cachedFireState = carrierMetaData.cachedFireState or 2
 	local cachedMoveState = carrierMetaData.cachedMoveState or 1
 
@@ -1314,7 +1314,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 	if cachedFireState == 0 then
 		idleRadius = carrierMetaData.holdfireRadius
 	elseif cachedFireState == 2 then
-		agressiveDrones = true
+		aggressiveDrones = true
 	end
 	if cachedMoveState == 0 then
 		idleRadius = 0
@@ -1696,7 +1696,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 						-- return to carrier unless in combat (fighting only counts when not on hold fire)
 						local combatCmd, p1, p2, p3, p4 = findCombatCommand(subUnitID, cachedFireState > 0, true)
 						local engaged = combatCmd ~= nil
-						if combatCmd == CMD_ATTACK and agressiveDrones then
+						if combatCmd == CMD_ATTACK and aggressiveDrones then
 							idleTarget = packParams(p1, p2, p3, p4)
 						end
 						droneData.engaged = engaged
