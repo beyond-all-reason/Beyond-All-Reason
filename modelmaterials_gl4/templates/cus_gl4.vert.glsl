@@ -1,6 +1,8 @@
 // This shader is Copyright (c) 2025 Beherith (mysterme@gmail.com) and licensed under the MIT License
 //shader version is added via widget
 
+//__ENGINEUNIFORMBUFFERDEFS__
+
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
