@@ -213,7 +213,7 @@ local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
 local unitDefRangeScale = {}
-local unitIsFighter = {}
+local unitIsStrafingAir = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -223,7 +223,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
-	unitIsFighter[udid] = ud.customParams.fighter ~= nil
+	unitIsStrafingAir[udid] = ud.isStrafingAirUnit
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
@@ -403,8 +403,8 @@ local function initializeUnitDefRing(unitDefID)
 				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
 			elseif
-				-- Fighters use weapondef tolerance (WeaponDefs.maxAngle, radians) as a forward fire cone.
-				unitIsFighter[unitDefID]
+				-- Strafing aircraft use weapondef tolerance (WeaponDefs.maxAngle, radians) as a forward fire cone.
+				unitIsStrafingAir[unitDefID]
 				and not skipArc
 				and not weaponDef.turret
 				and weaponDef.type ~= "StarburstLauncher"
