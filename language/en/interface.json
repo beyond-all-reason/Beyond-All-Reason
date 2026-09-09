@@ -516,7 +516,7 @@
 				"cycleRecent": "Cycle through recently used squads",
 				"cycleIdle": "Cycle through idle squads",
 				"limitFlip": "Invert selection within a squad",
-				"lock": "Lock/unlock the selected squads",
+				"lock": "Lock/unlock the selected units",
 				"selectLocked": "Append nearest locked squad"
 			},
 			"drawing": {
