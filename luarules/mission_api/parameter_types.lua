@@ -32,6 +32,7 @@ local types = {
 	WeaponDefName = "WeaponDefName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	Difficulty = "Difficulty",
 
 	-- Number Validators:
 	Number = "Number",
@@ -51,6 +52,10 @@ local types = {
 
 }
 
+-- Difficulties are read by the client, so must be available in JSON
+local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
+local difficulties = Json.decode(difficultiesJSON)
+
 local enums = {
 	[types.Facing] = {
 		[0] = true,
@@ -66,6 +71,8 @@ local enums = {
 		east = true,
 		west = true,
 	},
+
+	[types.Difficulty] = difficulties,
 }
 
 local enumSets = {

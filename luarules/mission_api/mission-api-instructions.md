@@ -8,7 +8,8 @@ file in the same pull request.
 ## What it is
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
-**actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced.
+**actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
+the one thing synced code cannot do, pausing, goes through `GG.ScriptedPause` (see Runtime surfaces).
 
 ## Load order
 
@@ -136,6 +137,12 @@ breaking change to both the function and every mission using it.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
+- `GG.ScriptedPause` (`api_scripted_pause.lua`, synced + unsynced, not mission-specific) — `Pause()` / `Unpause()` /
+  `IsPaused()` behind the `Pause` and `Unpause` actions. Synced code cannot pause, so its unsynced half has one
+  client send the `pause` command and re-pause whenever a player unpauses. It publishes the game rules param
+  `scriptedPause` (1 while active); `gui_pausescreen.lua` reads it to hide the pause overlay for scripted pauses.
+  A scripted pause stops `GameFrame`, so `TimeElapsed` cannot end one — use a trigger that fires between frames
+  (`UnitOrdered`, for example) or an objective event.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 
