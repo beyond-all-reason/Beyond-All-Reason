@@ -6,14 +6,18 @@ local function transferUnits(unitName, newTeam, captured)
 
 	-- Copying table as UnitExists trigger with TransferUnits with the same name could cause infinite loop.
 	local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
+
+	local newAllyTeamID = Spring.GetTeamAllyTeamID(newTeam)
+
+	GG['MissionAPI'].transferringUnits = true
 	for unitID in pairs(trackedUnitIDs) do
-		local given = Spring.GetUnitAllyTeam(unitID) == Spring.GetTeamAllyTeamID(newTeam)
-		GG['MissionAPI'].transferringUnits = true
-		GG['MissionAPI'].capturingUnits = captured or nil
+		-- Gift units to allies even with captured=true to comply with sharing rules.
+		local given = Spring.GetUnitAllyTeam(unitID) == newAllyTeamID
+		GG['MissionAPI'].capturingUnits = captured
 		Spring.TransferUnit(unitID, newTeam, given)
-		GG['MissionAPI'].transferringUnits = nil
 		GG['MissionAPI'].capturingUnits = nil
 	end
+	GG['MissionAPI'].transferringUnits = nil
 end
 
 return {
