@@ -24,7 +24,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	)
 
 	-- Build objective-to-stages mapping from stages structure
-	local objectiveToStages = {}
+	local objectiveToStages = GG["MissionAPI"].ObjectiveStages
 	for stageID, stageData in pairs(stages) do
 		for _, objectiveID in ipairs(stageData.objectives) do
 			table.insert(table.ensureTable(objectiveToStages, objectiveID), stageID)
@@ -32,6 +32,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 	end
 
 	for objectiveID, objective in pairs(rawObjectives) do
+		objective.active = false
+
 		-- An objective without a trigger is completed by an UpdateObjective action instead.
 		if type(objective.trigger) == "table" then
 			local objectiveStages = objectiveToStages[objectiveID] or {}
@@ -63,6 +65,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 						stages = objectiveStages,
 						repeating = isRepeating,
 						maxRepeats = maxRepeats,
+						active = false,
 					},
 					actions = { actionID },
 				}
@@ -73,6 +76,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 						objectiveID = objectiveID,
 					},
 				}
+
+				GG["MissionAPI"].ObjectiveTriggers[objectiveID] = triggerID
 			end
 		end
 	end

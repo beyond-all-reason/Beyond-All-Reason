@@ -51,6 +51,47 @@ local function validateObjectiveNextStageReferences(context, report)
 	end
 end
 
+--- The objective fields that name an Event trigger, raised when the objective reaches
+--- that state. sections.lua checks each names an existing trigger; here we check the
+--- named trigger is an Event, and that every Event trigger has an owner to raise it.
+local objectiveEventFields = { "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed" }
+
+local function validateObjectiveEventReferences(context, report)
+	local namedTriggerIDs = {}
+
+	for objectiveID, objective in pairs(context.Objectives) do
+		if type(objective) == "table" then
+			for _, fieldName in ipairs(objectiveEventFields) do
+				local triggerID = objective[fieldName]
+				if type(triggerID) == "string" then
+					namedTriggerIDs[triggerID] = true
+
+					local trigger = context.Triggers[triggerID]
+					if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
+						report.Error(
+							SECTION,
+							"Objective",
+							objectiveID,
+							"Objective event must name an Event trigger",
+							"Field: " .. fieldName .. ", Trigger: " .. triggerID
+						)
+					end
+				end
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(context.Triggers) do
+		if
+			type(trigger) == "table"
+			and trigger.type == context.TriggerTypes.Event
+			and not namedTriggerIDs[triggerID]
+		then
+			report.Warn(SECTION, "Trigger", triggerID, "Event trigger has no owners, so it can never fire")
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Unit, feature and marker name references
 --------------------------------------------------------------------------------
@@ -205,6 +246,7 @@ local function validate(context, report)
 
 	validateStageObjectiveReferences(context, report)
 	validateObjectiveNextStageReferences(context, report)
+	validateObjectiveEventReferences(context, report)
 
 	local unitCreatingActionTypes = {
 		[actionTypes.SpawnUnits] = true,

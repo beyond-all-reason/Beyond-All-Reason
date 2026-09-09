@@ -101,7 +101,8 @@ local function validateStages(stages, report)
 					"Stage 'objectives' field must be a table, got " .. type(objectives)
 				)
 			elseif #objectives == 0 then
-				report.Warn(STAGE_SECTION, STAGE_LABEL, stageID, "Stage has empty 'objectives' table")
+				-- A stage with no objectives is legitimate: it can serve as a decoy or a
+				-- terminal stage, entered for its side effects rather than to be completed.
 			else
 				for index, objectiveID in ipairs(objectives) do
 					if type(objectiveID) ~= "string" then
@@ -144,13 +145,20 @@ local OBJECTIVE_SECTION = SECTIONS.Objectives
 local OBJECTIVE_LABEL = "Objective"
 
 --- Objective fields, by the parameter type each is validated as. nextStage points at
---- another entity, so references.lua checks it instead.
+--- another entity, so references.lua checks it instead. The on* fields name an Event
+--- trigger; references.lua additionally checks that the named trigger is an Event.
 local function getObjectiveFieldTypes(Types)
 	return {
 		textKey = Types.String,
 		trigger = Types.Table,
 		amount = Types.Quantity,
 		coop = Types.Boolean,
+		hidden = Types.Boolean,
+		onActivated = Types.TriggerID,
+		onCanceled = Types.TriggerID,
+		onProgress = Types.TriggerID,
+		onCompleted = Types.TriggerID,
+		onFailed = Types.TriggerID,
 	}
 end
 

@@ -71,10 +71,8 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(result, "Stage 'objectives' entry must be a string, got number. Stage: badEntry, Entry: 2")
 		end)
 
-		it("warns about an empty 'objectives' table", function()
-			local result = V.validate(V.mission():WithInitialStageDefinition("empty", { objectives = {} }))
-
-			V.assertMessage(result, "Stage has empty 'objectives' table. Stage: empty")
+		it("accepts an empty 'objectives' table, which a decoy or terminal stage may have", function()
+			V.assertValid(V.validate(V.mission():WithInitialStageDefinition("empty", { objectives = {} })))
 		end)
 	end)
 

@@ -19,6 +19,8 @@ describe("mission_api.objectives_loader", function()
 			ActionDefinitions = actionDefinitions,
 			TriggerDefinitions = triggerDefinitions,
 			ManagedObjectives = {},
+			ObjectiveTriggers = {},
+			ObjectiveStages = {},
 		}
 	end)
 

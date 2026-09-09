@@ -50,6 +50,7 @@ local function createValidationContext(mission, definitions, report)
 		EnumSets = parameterTypes.EnumSets,
 
 		-- Trigger definitions:
+		TriggerTypes = triggerDefinitions.Types,
 		TriggerParameters = triggerDefinitions.Parameters,
 		TriggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
 			triggerDefinitions.Parameters,
