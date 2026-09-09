@@ -78,13 +78,14 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 ]]
 --
 
---Collision volume definitions, ones entered here are for TA, for other mods modify apropriatly
-local unitCollisionVolume = {} --dynamic collision volume definitions
-local pieceCollisionVolume = {} --per piece collision volume definitions
-local dynamicPieceCollisionVolume = {} --dynamic per piece collision volume definitions
+-- A unit draws its collision volumes from exactly one of these four tables:
 
--- number of times this table had to be touched since 2022 ~45
--- increase this number eachtime this table gets touched
+local staticUnitCollisionVolume = {} -- whole-unit volume definitions
+local dynamicUnitCollisionVolume = {} -- whole-unit volume definitions, by armored state
+local staticPieceCollisionVolume = {} -- per piece volume definitions
+local dynamicPieceCollisionVolume = {} -- per piece volume definitions, by armored state
+
+-- Dynamic collision volumes ---------------------------------------------------
 
 dynamicPieceCollisionVolume.cormaw = {
 	on = {
@@ -163,44 +164,44 @@ dynamicPieceCollisionVolume.legapopupdef = {
 	},
 }
 
-unitCollisionVolume.armanni = {
+dynamicUnitCollisionVolume.armanni = {
 	on = { 54, 81, 54, 0, -2, 0, 2, 1, 0 },
 	off = { 54, 56, 54, 0, -15, 0, 2, 1, 0 },
 }
-unitCollisionVolume.armlab = {
+dynamicUnitCollisionVolume.armlab = {
 	on = { 95, 28, 95, 0, 2, 0, 2, 1, 0 },
 	off = { 95, 22, 95, 0, -1, 0, 1, 1, 1 },
 }
-unitCollisionVolume.armpb = {
+dynamicUnitCollisionVolume.armpb = {
 	on = { 32, 88, 32, 0, -8, 0, 1, 1, 1 },
 	off = { 40, 40, 40, 0, -8, 0, 3, 1, 1 },
 }
-unitCollisionVolume.armplat = {
+dynamicUnitCollisionVolume.armplat = {
 	on = { 96, 66, 96, 0, 33, 0, 1, 1, 1 },
 	off = { 96, 44, 96, 0, 0, 0, 1, 1, 1 },
 }
-unitCollisionVolume.armsolar = {
+dynamicUnitCollisionVolume.armsolar = {
 	on = { 73, 76, 73, 0, -18, 1, 0, 1, 0 },
 	off = { 50, 76, 50, 0, -18, 1, 0, 1, 0 },
 }
-unitCollisionVolume.armvp = {
+dynamicUnitCollisionVolume.armvp = {
 	on = { 96, 34, 96, 0, 0, 0, 2, 1, 0 },
 	off = { 96, 34, 96, 0, 0, 0, 2, 1, 0 },
 }
-unitCollisionVolume.cordoom = {
+dynamicUnitCollisionVolume.cordoom = {
 	on = { 63, 112, 63, 0, 0, 0, 1, 1, 1 },
 	off = { 45, 87, 45, 0, -12, 0, 2, 1, 0 },
 }
 
-unitCollisionVolume.corplat = {
+dynamicUnitCollisionVolume.corplat = {
 	on = { 96, 60, 96, 0, 28, 0, 1, 1, 1 },
 	off = { 96, 42, 96, 0, -20, 0, 1, 1, 1 },
 }
-unitCollisionVolume.legsplab = {
+dynamicUnitCollisionVolume.legsplab = {
 	on = { 96, 76, 96, 0, 24, 0, 1, 1, 1 },
 	off = { 96, 46, 96, 0, -12, 0, 1, 1, 1 },
 }
-unitCollisionVolume.legsolar = {
+dynamicUnitCollisionVolume.legsolar = {
 
 	on = { 70, 70, 70, 0, -12, 1, 0, 1, 0 },
 
@@ -224,16 +225,18 @@ local function propagateToScavCopies(tbl)
 	end
 end
 
-propagateToScavCopies(unitCollisionVolume)
+propagateToScavCopies(dynamicUnitCollisionVolume)
 
-pieceCollisionVolume.corhrk = {
+-- Static collision volumes ----------------------------------------------------
+
+staticPieceCollisionVolume.corhrk = {
 	["2"] = { 35, 40, 30, 0, -8, 0, 2, 1 },
 }
-pieceCollisionVolume.legpede = {
+staticPieceCollisionVolume.legpede = {
 	["0"] = { 26, 28, 90, 0, 5, -23, 2, 1 },
 	["32"] = { 26, 28, 86, 0, 0, 7, 2, 1 },
 }
-pieceCollisionVolume.legelrpcmech = {
+staticPieceCollisionVolume.legelrpcmech = {
 	["0"] = { 48, 48, 80, 0, -10, 0, 2, 0 },
 	["10"] = { 24, 36, 24, -4, -6, 1, 1, 1 },
 	["22"] = { 24, 36, 24, -2, 2, 1, 1, 1 },
@@ -241,45 +244,45 @@ pieceCollisionVolume.legelrpcmech = {
 	["28"] = { 28, 36, 28, 6, -6, 2, 1, 1 },
 	["29"] = { 28, 20, 40, 0, 2, 0, 2, 0 },
 }
-pieceCollisionVolume.legrail = {
+staticPieceCollisionVolume.legrail = {
 	["2"] = { 29, 20, 34, -0.5, -4, -4, 2, 1 },
 	["5"] = { 10, 10, 36, 0, 0, 9, 1, 2 },
 }
-pieceCollisionVolume.legsrail = {
+staticPieceCollisionVolume.legsrail = {
 	["0"] = { 55, 24, 55, 0, 12, 0, 1, 1 },
 	["7"] = { 12, 12, 60, 0, 3, 9, 1, 2 },
 }
-pieceCollisionVolume.leghelios = {
+staticPieceCollisionVolume.leghelios = {
 	["0"] = { 30, 11, 25, 0, -4, 1, 2, 0 },
 	["2"] = { 16, 10, 18, 0, 3.5, 2, 2, 0 },
 }
-pieceCollisionVolume.leggat = {
+staticPieceCollisionVolume.leggat = {
 	["0"] = { 33, 12, 43, 0, 0, 2, 2, 1 },
 	["5"] = { 20, 20, 20, 0, 2, 0, 3, 0 },
 }
-pieceCollisionVolume.legaskirmtank = {
+staticPieceCollisionVolume.legaskirmtank = {
 	["0"] = { 40, 20, 42, 0, -2, -1, 0, 2 },
 	["1"] = { 37, 8, 31, 0, 0, 6, 2, 1 },
 	["2"] = { 24, 24, 24, 0, 0, 0, 3, 1 },
 }
-pieceCollisionVolume.legamcluster = {
+staticPieceCollisionVolume.legamcluster = {
 	["0"] = { 37, 16, 50, 0, 0, 0, 2, 1 },
 	["2"] = { 16, 12, 24, 0, 7.5, -2, 2, 1 },
 }
-pieceCollisionVolume.legaheattank = {
+staticPieceCollisionVolume.legaheattank = {
 	["0"] = { 46, 17, 56, 0, 0, 0, 2, 1 },
 	["2"] = { 20, 20, 27, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.legerailtank = {
+staticPieceCollisionVolume.legerailtank = {
 	["0"] = { 65, 20, 75, 0, -4, 0, 2, 1 },
 	["4"] = { 31, 21, 36, 0, 0, 0, 2, 1 },
 	--['10']={50,50,50,0,0,0,2,1},
 }
-pieceCollisionVolume.leginf = {
+staticPieceCollisionVolume.leginf = {
 	["1"] = { 28, 20, 76, 0, 24, 14, 2, 1 },
 	["0"] = { 35, 20, 80, 0, 8, 16, 2, 1 },
 }
-pieceCollisionVolume.legbastion = {
+staticPieceCollisionVolume.legbastion = {
 	["0"] = { 80, 32, 80, 0, 15, 0, 2, 0 },
 	["2"] = { 48, 90, 48, 0, 30, 0, 2, 0 },
 	["10"] = { 36, 45, 36, 0, -8, 0, 1, 1 },
@@ -289,196 +292,197 @@ pieceCollisionVolume.legbastion = {
 ---	['7']={26,26,132,0,7,20,2,4},
 ---}
 
-pieceCollisionVolume.armrad = {
+staticPieceCollisionVolume.armrad = {
 	["1"] = { 22, 58, 22, 0, 0, 0, 1, 1 },
 	["3"] = { 60, 13, 13, 11, 0, 0, 1, 0 },
 }
-pieceCollisionVolume.armamb = {
+staticPieceCollisionVolume.armamb = {
 	["3"] = { 22, 22, 22, 0, 0, -10, 1, 1 },
 	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1, 0 },
 }
-pieceCollisionVolume.cortoast = {
+staticPieceCollisionVolume.cortoast = {
 	["3"] = { 22, 22, 22, 0, 10, 0, 1, 1 },
 	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1, 0 },
 }
-pieceCollisionVolume.armbrtha = {
+staticPieceCollisionVolume.armbrtha = {
 	["1"] = { 32, 84, 32, 0, -20, 0, 1, 1 },
 	["3"] = { 13, 0, 75, 0, 0, 20, 1, 2 },
 }
-pieceCollisionVolume.corint = {
+staticPieceCollisionVolume.corint = {
 	["1"] = { 72, 84, 72, 0, 28, 0, 1, 1 },
 	["3"] = { 13, 13, 34, 0, 1, 28, 1, 2 },
 }
-pieceCollisionVolume.armvulc = {
+staticPieceCollisionVolume.armvulc = {
 	["0"] = { 98, 140, 98, 0, 40, 0, 1, 1 },
 	["5"] = { 55, 55, 174, 0, 18, 0, 1, 2 },
 }
-pieceCollisionVolume.corgator = {
+staticPieceCollisionVolume.corgator = {
 	["0"] = { 23, 14, 33, 0, 0, 0, 2, 1 },
 	["3"] = { 15, 5, 25, 0, 0, 2, 2, 1 },
 }
-pieceCollisionVolume.corsala = {
+staticPieceCollisionVolume.corsala = {
 	["0"] = { 34, 20, 34, 0, 3.5, 0, 2, 1 },
 	["1"] = { 13.5, 6.2, 17, 0, 1.875, 1.5, 2, 1 },
 }
-pieceCollisionVolume.cortermite = {
+staticPieceCollisionVolume.cortermite = {
 	["3"] = { 22, 10, 22, 0, 2, 0, 1, 1 },
 	["1"] = { 48, 25, 48, 0, 0, 0, 1, 1, 0 },
 }
 
-pieceCollisionVolume.correap = {
+staticPieceCollisionVolume.correap = {
 	["1"] = { 35, 20, 46, 0, 1, 0, 2, 1 },
 	["9"] = { 19, 14, 20, 0, 2, 0, 2, 1 },
 }
-pieceCollisionVolume.corlevlr = {
+staticPieceCollisionVolume.corlevlr = {
 	["0"] = { 31, 17, 31, 0, 3.5, 0, 2, 1 },
 	["1"] = { 16, 10, 15, 0, 1.875, 1.5, 2, 1 },
 }
-pieceCollisionVolume.corraid = {
+staticPieceCollisionVolume.corraid = {
 	["0"] = { 33, 18, 39, 0, 3.5, 0, 2, 1 },
 	["4"] = { 16, 7, 15, 0, 0, 1, 2, 1 },
 }
-pieceCollisionVolume.cormist = {
+staticPieceCollisionVolume.cormist = {
 	["0"] = { 34, 18, 43, 0, 3.5, 0, 2, 1 },
 	["1"] = { 20, 28, 24, 0, 0, 1.5, 2, 1 },
 }
-pieceCollisionVolume.corgarp = {
+staticPieceCollisionVolume.corgarp = {
 	["0"] = { 30, 21, 42, 0, 0, 6, 2, 1 },
 	["6"] = { 16, 7, 15, 0, -2, 1.5, 2, 1 },
 }
-pieceCollisionVolume.armstump = {
+staticPieceCollisionVolume.armstump = {
 	["0"] = { 34, 18, 40, 0, -5, 0, 2, 1 },
 	["18"] = { 17, 16, 16, 1, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armsam = {
+staticPieceCollisionVolume.armsam = {
 	["0"] = { 26, 26, 43, 0, 0, -2, 2, 1 },
 	["8"] = { 16, 16, 20, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armpincer = {
+staticPieceCollisionVolume.armpincer = {
 	["0"] = { 31, 13, 31, 0, 5, 0, 2, 1 },
 	["1"] = { 16, 12, 20, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armjanus = {
+staticPieceCollisionVolume.armjanus = {
 	["0"] = { 26, 12, 35, 0, 0, 0, 2, 1 },
 	["1"] = { 20, 10, 20, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armanac = {
+staticPieceCollisionVolume.armanac = {
 	["0"] = { 40, 19, 40, 0, 4, 0, 1, 1 },
 	["3"] = { 16, 10, 16, 0, 5, 0, 2, 1 },
 }
-pieceCollisionVolume.corah = {
+staticPieceCollisionVolume.corah = {
 	["0"] = { 28, 16, 35, 0, 5, 0, 2, 1 },
 	["2"] = { 10, 20, 10, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corhal = {
+staticPieceCollisionVolume.corhal = {
 	["0"] = { 42, 12, 42, 0, 0, 0, 2, 1 },
 	["1"] = { 14, 10, 14, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corsnap = {
+staticPieceCollisionVolume.corsnap = {
 	["0"] = { 32, 16, 38, 0, 4, 0, 2, 1 },
 	["3"] = { 12, 10, 12, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corsumo = {
+staticPieceCollisionVolume.corsumo = {
 	["0"] = { 42, 32, 45, 0, 0, 0, 2, 1 },
 	["2"] = { 22, 10, 22, 0, 0, 0, 1, 1 },
 }
-pieceCollisionVolume.armfboy = {
+staticPieceCollisionVolume.armfboy = {
 	["0"] = { 34, 40, 42, 0, -5, 0, 2, 1 },
 	["8"] = { 16, 16, 16, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armfido = {
+staticPieceCollisionVolume.armfido = {
 	["1"] = { 26, 32, 34, 0, -10, 10, 2, 1 },
 	["15"] = { 12, 30, 12, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corgol = {
+staticPieceCollisionVolume.corgol = {
 	["0"] = { 48, 44, 56, 0, 0, 0, 2, 1 },
 	["3"] = { 24, 24, 24, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.cortrem = {
+staticPieceCollisionVolume.cortrem = {
 	["0"] = { 40, 32, 44, 0, 0, 0, 2, 1 },
 	["1"] = { 24, 64, 24, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corseal = {
+staticPieceCollisionVolume.corseal = {
 	["0"] = { 28, 25, 34, 0, 0, 0, 2, 1 },
 	["1"] = { 12, 16, 12, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.corban = {
+staticPieceCollisionVolume.corban = {
 	["0"] = { 44, 32, 44, 0, 0, 0, 2, 1 },
 	["3"] = { 24, 16, 24, 0, 8, 0, 2, 1 },
 }
-pieceCollisionVolume.cormart = {
+staticPieceCollisionVolume.cormart = {
 	["0"] = { 30, 28, 34, 0, 0, 0, 2, 1 },
 	["5"] = { 12, 25, 12, 0, 2, 0, 2, 1 },
 }
-pieceCollisionVolume.armmart = {
+staticPieceCollisionVolume.armmart = {
 	["0"] = { 44, 24, 50, 0, 0, 0, 2, 1 },
 	["1"] = { 16, 32, 16, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armbull = {
+staticPieceCollisionVolume.armbull = {
 	["0"] = { 44, 23, 52, 0, 5, 0, 2, 1 },
 	["4"] = { 24, 18, 24, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armlatnk = {
+staticPieceCollisionVolume.armlatnk = {
 	["0"] = { 30, 26, 34, 0, 0, 0, 2, 1 },
 	["5"] = { 16, 16, 16, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armmanni = {
+staticPieceCollisionVolume.armmanni = {
 	["0"] = { 48, 34, 38, 0, 10, 0, 2, 1 },
 	["1"] = { 24, 52, 24, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.armthor = {
+staticPieceCollisionVolume.armthor = {
 	["0"] = { 80, 25, 80, 0, 10, 0, 2, 1 },
 	["15"] = { 55, 25, 40, 0, 0, 0, 2, 1 },
 }
-pieceCollisionVolume.legfloat = {
+staticPieceCollisionVolume.legfloat = {
 	["0"] = { 40, 18, 50, 0, -1.5, 0, 2, 1 },
 	["8"] = { 18, 9, 30, 0, 1, -5, 2, 1 },
 }
-pieceCollisionVolume.legnavyfrigate = {
+staticPieceCollisionVolume.legnavyfrigate = {
 	["0"] = { 30, 18, 52, -1, -4, 1, 1, 1 },
 	["3"] = { 11, 13, 20, 0, 5, 0, 2, 1 },
 }
-pieceCollisionVolume.legcar = {
+staticPieceCollisionVolume.legcar = {
 	["0"] = { 34, 16, 46, 0, -2.5, 1, 2, 1 },
 	["4"] = { 14, 12, 20, 0, -2, -6, 2, 1 },
 }
 
-pieceCollisionVolume.legmed = {
+staticPieceCollisionVolume.legmed = {
 	["0"] = { 48, 31, 69, 0, 0, 0, 2, 1 },
 	["1"] = { 7, 35, 15, 0, 40, -5, 2, 1 },
 }
 
-pieceCollisionVolume.legehovertank = {
+staticPieceCollisionVolume.legehovertank = {
 	["0"] = { 63, 32, 63, 0, -15, 0, 1, 1 },
 	["20"] = { 25, 12, 37, 0, 0, -6, 2, 1 },
 }
 
-pieceCollisionVolume.corsiegebreaker = {
+staticPieceCollisionVolume.corsiegebreaker = {
 	["0"] = { 36, 18, 64, 0, 4, 8, 2, 2 },
 	["1"] = { 19, 12, 24, 0, -2.5, -2.5, 2, 1 },
 }
 
-pieceCollisionVolume.armshockwave = {
+staticPieceCollisionVolume.armshockwave = {
 	["2"] = { 22, 22, 22, 0, 10, 0, 1, 1 },
 	["0"] = { 60, 65, 60, 0, 20, 0, 1, 1, 0 },
 }
-pieceCollisionVolume.legmohoconct = {
+staticPieceCollisionVolume.legmohoconct = {
 	["0"] = { 70, 30, 70, 0, -3, 0, 1, 1 },
 	["1"] = { 21, 16, 30, 0, -3, -1, 2, 1 },
 }
-pieceCollisionVolume['legkeres'] = {
-	['0']={58,22,68,0,-6,1,2,0},
-	['2']={44,19,48,0,9.5,2,2,0},
+staticPieceCollisionVolume.legkeres = {
+	["0"] = { 58, 22, 68, 0, -6, 1, 2, 0 },
+	["2"] = { 44, 19, 48, 0, 9.5, 2, 2, 0 },
 }
 
--- variants that previously inherited their base unit's volumes via substring matching
-pieceCollisionVolume.corgolt4 = pieceCollisionVolume.corgol
-pieceCollisionVolume.corhalab = pieceCollisionVolume.corhal
-pieceCollisionVolume.leggatet3 = pieceCollisionVolume.leggat
-pieceCollisionVolume.leginfestor = pieceCollisionVolume.leginf
-pieceCollisionVolume.legsrailt4 = pieceCollisionVolume.legsrail
+-- TODO: copied collision volumes should be declarative
 
-propagateToScavCopies(pieceCollisionVolume)
+staticPieceCollisionVolume.corgolt4 = staticPieceCollisionVolume.corgol
+staticPieceCollisionVolume.corhalab = staticPieceCollisionVolume.corhal
+staticPieceCollisionVolume.leggatet3 = staticPieceCollisionVolume.leggat
+staticPieceCollisionVolume.leginfestor = staticPieceCollisionVolume.leginf
+staticPieceCollisionVolume.legsrailt4 = staticPieceCollisionVolume.legsrail
+
+propagateToScavCopies(staticPieceCollisionVolume)
 
 dynamicPieceCollisionVolume.corvipe = {
 	on = {
@@ -493,4 +497,39 @@ dynamicPieceCollisionVolume.corvipe = {
 }
 propagateToScavCopies(dynamicPieceCollisionVolume)
 
+-- Lookup table to avoid probing for the base table type.
+local COLVOL_CONFIG = {
+	UNIT_STATIC = 1,
+	UNIT_DYNAMIC = 2,
+	PIECE_STATIC = 3,
+	PIECE_DYNAMIC = 4,
+}
+
+local colVolConfigs = {
+	[COLVOL_CONFIG.UNIT_STATIC] = staticUnitCollisionVolume,
+	[COLVOL_CONFIG.UNIT_DYNAMIC] = dynamicUnitCollisionVolume,
+	[COLVOL_CONFIG.PIECE_STATIC] = staticPieceCollisionVolume,
+	[COLVOL_CONFIG.PIECE_DYNAMIC] = dynamicPieceCollisionVolume,
+}
+
+local unitColVolTypeIndex = {}
+for configType = 1, #colVolConfigs do
+	for unitName in pairs(colVolConfigs[configType]) do
+		unitColVolTypeIndex[unitName] = configType
+	end
+end
+
+-- TODO: For now, we reunify the config tables into the consumer's tables. Later these should not merge.
+local unitCollisionVolume = {}
+local pieceCollisionVolume = {}
+
+for unitName, configType in pairs(unitColVolTypeIndex) do
+	if configType == COLVOL_CONFIG.UNIT_STATIC or configType == COLVOL_CONFIG.UNIT_DYNAMIC then
+		unitCollisionVolume[unitName] = colVolConfigs[configType][unitName]
+	elseif configType == COLVOL_CONFIG.PIECE_STATIC then
+		pieceCollisionVolume[unitName] = colVolConfigs[configType][unitName]
+	end
+end
+
+-- Lacks an explicit unit + dynamic table:
 return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
