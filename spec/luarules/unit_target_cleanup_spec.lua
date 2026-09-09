@@ -11,7 +11,7 @@ local function loadTargetGadget()
 	end
 	local env = {
 		gadget = {},
-		GG = {},
+		GG = { Crashing = crashingTargets },
 		gadgetHandler = {
 			IsSyncedCode = function()
 				return true
@@ -71,8 +71,8 @@ local function loadTargetGadget()
 			GetUnitLosState = function()
 				return 3
 			end,
-			GetUnitMoveTypeData = function(unitID)
-				return crashingTargets[unitID] and { aircraftState = "crashing" } or {}
+			GetUnitMoveTypeData = function()
+				error("target selection must not allocate movement data")
 			end,
 			GetUnitWeaponTryTarget = function(_, _, targetID)
 				checks[#checks + 1] = targetID
@@ -209,5 +209,93 @@ describe("Set Target invalid-target cleanup", function()
 		g.update(1)
 		assert.is_nil(g.target())
 		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+	end)
+end)
+
+-- Load the real controller alongside the targeting gadget, sharing only GG.
+local function loadCrashController(shared)
+	local destroyed = {}
+	local controller
+	local spring = setmetatable({
+		GetUnitHealth = function()
+			return 100
+		end,
+		GetGameFrame = function()
+			return 10
+		end,
+		GetUnitMoveTypeData = function()
+			return {}
+		end,
+		MoveCtrl = {},
+		DestroyUnit = function(id)
+			destroyed[#destroyed + 1] = id
+			controller:UnitDestroyed(id)
+		end,
+	}, {
+		__index = function()
+			return function() end
+		end,
+	})
+	local env = setmetatable({
+		gadget = {},
+		gadgetHandler = {
+			IsSyncedCode = function()
+				return true
+			end,
+		},
+		GG = shared,
+		Spring = spring,
+		COB = { CRASHING = 1 },
+		CMD = { STOP = 0 },
+		WeaponDefNames = { commanderexplosion = { id = 99 } },
+		UnitDefs = { { id = 1, canFly = true, buildSpeed = 0, customParams = {}, weapons = {} } },
+		SendToUnsynced = function() end,
+	}, { __index = _G })
+	local chunk = assert(loadfile("luarules/gadgets/unit_crashing_aircraft.lua"))
+	setfenv(chunk, env)
+	chunk()
+	controller = env.gadget
+	return controller, destroyed
+end
+
+describe("Shared crashing membership", function()
+	it("publishes controller damage to an already loaded target consumer", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.set(20, true)
+		local shared = g.env.GG.Crashing
+		local controller = loadCrashController(g.env.GG)
+		assert.is_true(shared == g.env.GG.Crashing)
+		controller:UnitPreDamaged(10, 1, 2, 101, false, 1)
+		assert.are.equal(460, shared[10])
+		g.update(1)
+		assert.are.equal(20, g.target())
+		controller:UnitDestroyed(10)
+		assert.is_nil(shared[10])
+		-- Reusing the ID for a live unit must not retain crashing membership.
+		g.set(10)
+		assert.are.equal(10, g.env.GG.GetUnitTargetList(1)[1].target)
+	end)
+
+	it("lets later consumers acquire the same table and preserves deadlines on reload", function()
+		local shared = {}
+		local controller = loadCrashController(shared)
+		controller:UnitPreDamaged(10, 1, 2, 101, false, 1)
+		local membership = table.ensureTable(shared, "Crashing")
+		assert.are.equal(460, membership[10])
+		local reloaded, destroyed = loadCrashController(shared)
+		assert.is_true(membership == shared.Crashing)
+		reloaded:GameFrame(485)
+		assert.same({ 10 }, destroyed)
+		assert.is_nil(membership[10])
+	end)
+
+	it("does not publish nonlethal, paralyzing or excluded damage", function()
+		local shared = {}
+		local controller = loadCrashController(shared)
+		controller:UnitPreDamaged(10, 1, 2, 50, false, 1)
+		controller:UnitPreDamaged(11, 1, 2, 101, true, 1)
+		controller:UnitPreDamaged(12, 1, 2, 101, false, 99)
+		assert.same({}, shared.Crashing)
 	end)
 end)

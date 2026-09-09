@@ -43,7 +43,8 @@ local function test()
 	end, 60)
 
 	SyncedRun(function(locals)
-		Spring.SetUnitCrashing(locals.targetA, true)
+		-- Exercise the actual damage/controller path, which publishes shared membership.
+		Spring.AddUnitDamage(locals.targetA, Spring.GetUnitHealth(locals.targetA) + 1, 0, locals.sourceID)
 		assert(Spring.GetUnitIsDead(locals.targetA) == false, "crashing target must still exist")
 		assert(Spring.GetUnitMoveTypeData(locals.targetA).aircraftState == "crashing")
 	end)

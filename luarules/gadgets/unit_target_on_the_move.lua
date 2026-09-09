@@ -28,7 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitIsDead = Spring.GetUnitIsDead
-	local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+	local crashing = table.ensureTable(GG, "Crashing")
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -243,8 +243,7 @@ if gadgetHandler:IsSyncedCode() then
 		if spGetUnitIsDead(target) ~= false then
 			return true
 		end
-		local moveTypeData = spGetUnitMoveTypeData(target)
-		return moveTypeData and moveTypeData.aircraftState == "crashing"
+		return crashing[target] ~= nil
 	end
 
 	local function checkTarget(teamID, target)

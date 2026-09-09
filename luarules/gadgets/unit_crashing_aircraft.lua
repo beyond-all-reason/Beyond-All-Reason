@@ -40,9 +40,13 @@ if gadgetHandler:IsSyncedCode() then
 	local COM_BLAST = WeaponDefNames.commanderexplosion.id -- used to prevent them being boosted and flying far away
 	local CMD_STOP = CMD.STOP
 
-	local crashing = {}
-	GG.Crashing = crashing -- read-only reference for other gadgets
+	-- Shared membership; values are destruction deadlines, not booleans.
+	-- Consumers can acquire this table before the controller loads.
+	local crashing = table.ensureTable(GG, "Crashing")
 	local crashingCount = 0
+	for _ in pairs(crashing) do
+		crashingCount = crashingCount + 1
+	end
 
 	local isAircon = {}
 	local crashable = {}
