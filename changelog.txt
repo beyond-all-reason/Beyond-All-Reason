@@ -1,3 +1,12 @@
+# September
+• [Scavenger Zombies]
+	- After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
+	- Zombies spawn with XP skewed to the minimum veterancy so they aren't so tanky so often. 
+	- When zombie revive timer has been reset, a purple poof now appears above it.
+	- Units that don't leave corpses like the Fiend will no longer respawn as zombies.
+	- Zombie constructors get a boosted capture range of a minimum of 300. This makes them capable of capturing aircraft.
+	- Zombies now can control aircraft when they're captured or produced.
+
 # August
 • [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
 • [T1, Seaplane Air Constructors] -35% energycost, -35% buildtime, -35% speed 
