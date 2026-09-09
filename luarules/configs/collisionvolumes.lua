@@ -138,7 +138,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 ---@field [6] number offsetZ
 ---@field [7] VolumeShapeIndex volumeType (default := `3`, SPHERE)
 ---@field [8] VolumeAxisIndex primaryAxis (default := `2`, Z)
----@field [9]? number An unused value. -- TODO: Remove from colvol definitions and drop this field.
+---@field [9]? boolean enabled (default := `true`)
 
 -- Collision volume definitions --------------------------------------------------
 
@@ -192,48 +192,48 @@ local colVolConfigs = {
 
 dynamicPieceCollisionVolume.cormaw = {
 	on = {
-		["0"] = { 32, 70, 32, 0, 5, 0, 1, 1, 1 },
+		["0"] = { 32, 70, 32, 0, 5, 0, 1, 1 },
 		offsets = { 0, 27, 0 },
 	},
 	off = {
-		["0"] = { 32, 22, 32, 0, 10, 0, 1, 1, 1 },
+		["0"] = { 32, 22, 32, 0, 10, 0, 1, 1 },
 		offsets = { 0, 0, 0 },
 	},
 }
 dynamicPieceCollisionVolume.armclaw = {
 	on = {
-		["0"] = { 32, 85, 32, 0, 5, 0, 1, 1, 1 },
+		["0"] = { 32, 85, 32, 0, 5, 0, 1, 1 },
 		offsets = { 0, 30, 0 },
 	},
 	off = {
-		["0"] = { 32, 22, 32, 0, 10, 0, 1, 1, 1 },
+		["0"] = { 32, 22, 32, 0, 10, 0, 1, 1 },
 		offsets = { 0, 0, 0 },
 	},
 }
 dynamicPieceCollisionVolume.legdtr = {
 	on = {
-		["0"] = { 32, 90, 32, 0, 5, 0, 1, 1, 1 },
+		["0"] = { 32, 90, 32, 0, 5, 0, 1, 1 },
 		offsets = { 0, 45, 0 },
 	},
 	off = {
-		["0"] = { 32, 22, 32, 0, 11, 0, 1, 1, 1 },
+		["0"] = { 32, 22, 32, 0, 11, 0, 1, 1 },
 		offsets = { 0, 0, 0 },
 	},
 }
 dynamicPieceCollisionVolume.armannit3 = {
 	on = {
-		["1"] = { 96, 140, 96, 0, 5, 0, 2, 1, 0 },
+		["1"] = { 96, 140, 96, 0, 5, 0, 2, 1 },
 	},
 	off = {
-		["0"] = { 96, 80, 96, 0, 10, 0, 2, 1, 0 },
+		["0"] = { 96, 80, 96, 0, 10, 0, 2, 1 },
 	},
 }
 dynamicPieceCollisionVolume.cordoomt3 = {
 	on = {
-		["1"] = { 112, 180, 112, 0, 5, 0, 1, 1, 0 },
+		["1"] = { 112, 180, 112, 0, 5, 0, 1, 1 },
 	},
 	off = {
-		["0"] = { 96, 80, 96, 0, 10, 0, 2, 1, 0 },
+		["0"] = { 96, 80, 96, 0, 10, 0, 2, 1 },
 	},
 }
 dynamicPieceCollisionVolume.leganavybattleship = {
@@ -389,11 +389,11 @@ staticPieceCollisionVolume.armrad = {
 }
 staticPieceCollisionVolume.armamb = {
 	["3"] = { 22, 22, 22, 0, 0, -10, 1, 1 },
-	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1, 0 },
+	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1 },
 }
 staticPieceCollisionVolume.cortoast = {
 	["3"] = { 22, 22, 22, 0, 10, 0, 1, 1 },
-	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1, 0 },
+	["0"] = { 60, 30, 15, 0, 0, 0, 1, 1 },
 }
 staticPieceCollisionVolume.armbrtha = {
 	["1"] = { 32, 84, 32, 0, -20, 0, 1, 1 },
@@ -417,7 +417,7 @@ staticPieceCollisionVolume.corsala = {
 }
 staticPieceCollisionVolume.cortermite = {
 	["3"] = { 22, 10, 22, 0, 2, 0, 1, 1 },
-	["1"] = { 48, 25, 48, 0, 0, 0, 1, 1, 0 },
+	["1"] = { 48, 25, 48, 0, 0, 0, 1, 1 },
 }
 
 staticPieceCollisionVolume.correap = {
@@ -554,7 +554,7 @@ staticPieceCollisionVolume.corsiegebreaker = {
 
 staticPieceCollisionVolume.armshockwave = {
 	["2"] = { 22, 22, 22, 0, 10, 0, 1, 1 },
-	["0"] = { 60, 65, 60, 0, 20, 0, 1, 1, 0 },
+	["0"] = { 60, 65, 60, 0, 20, 0, 1, 1 },
 }
 staticPieceCollisionVolume.legmohoconct = {
 	["0"] = { 70, 30, 70, 0, -3, 0, 1, 1 },
