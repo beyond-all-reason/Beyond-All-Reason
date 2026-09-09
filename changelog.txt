@@ -1,3 +1,8 @@
+# September
+• [Legion changes]
+	- Perdition doesn't gain extra range from elevation
+	- Range rings, graphics, blueprints, and other housekeeping
+
 # August
 • [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
 • [T1, Seaplane Air Constructors] -35% energycost, -35% buildtime, -35% speed 
