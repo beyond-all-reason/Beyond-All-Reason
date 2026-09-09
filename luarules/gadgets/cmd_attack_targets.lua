@@ -76,8 +76,8 @@ if gadgetHandler:IsSyncedCode() then
 		if not state then
 			return
 		end
-		if GG.ClearUnitTargetList then
-			GG.ClearUnitTargetList(unitID, state)
+		if GG.ClearUnitAttackTargetList then
+			GG.ClearUnitAttackTargetList(unitID, state)
 		end
 		targetListStates[unitID] = nil
 	end
@@ -117,7 +117,21 @@ if gadgetHandler:IsSyncedCode() then
 	-- after every explicit list change, and restart it when a prepend changes
 	-- which target belongs at the front.
 	local function recheckController(unitID, state, restartFromFront)
-		state.targets = GG.GetUnitTargetList and GG.GetUnitTargetList(unitID)
+		local targets = GG.GetUnitAttackTargetList and GG.GetUnitAttackTargetList(unitID)
+		if targets and state.targets and targets ~= state.targets and not restartFromFront then
+			local remaining = {}
+			for index = state.nextTargetIndex, #state.targets do
+				remaining[state.targets[index].target] = true
+			end
+			state.nextTargetIndex = #targets + 1
+			for index, entry in ipairs(targets) do
+				if remaining[entry.target] then
+					state.nextTargetIndex = index
+					break
+				end
+			end
+		end
+		state.targets = targets
 		if not state.targets then
 			return false
 		end
@@ -136,7 +150,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function appendToActiveController(unitID, unitDefID, cmdParams)
 		local state = targetListStates[unitID]
-		if not state or not GG.AppendUnitTargetList then
+		if not state or not GG.AppendUnitAttackTargetList then
 			return false
 		end
 
@@ -144,17 +158,21 @@ if gadgetHandler:IsSyncedCode() then
 		if not isControllerReference(commands[#commands], state) then
 			return false
 		end
-		local listID = GG.AppendUnitTargetList(unitID, unitDefID, cmdParams, state)
+		if not recheckController(unitID, state, false) then
+			return false
+		end
+		local listID = GG.AppendUnitAttackTargetList(unitID, unitDefID, cmdParams, state)
 		if not listID then
 			return false
 		end
 		state.listID = listID
-		return recheckController(unitID, state, false)
+		state.targets = GG.GetUnitAttackTargetList(unitID)
+		return state.targets ~= nil
 	end
 
 	local function prependToActiveController(unitID, unitDefID)
 		local state = targetListStates[unitID]
-		if not state or not GG.SetUnitTargetList then
+		if not state or not GG.SetUnitAttackTargetList then
 			return false
 		end
 		local commands = getControllerAttackCommands(unitID, state)
@@ -179,7 +197,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		local listID = GG.SetUnitTargetList(unitID, unitDefID, targetIDs, state)
+		local listID = GG.SetUnitAttackTargetList(unitID, unitDefID, targetIDs, state)
 		if not listID then
 			return false
 		end
@@ -327,7 +345,12 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 		local isReference = #cmdParams == 1 and cmdParams[1] < 0
-		if not isReference and not cmdOptions.internal and canAttack[unitDefID] and Spring.GetUnitIsBeingBuilt(unitID) then
+		if
+			not isReference
+			and not cmdOptions.internal
+			and canAttack[unitDefID]
+			and Spring.GetUnitIsBeingBuilt(unitID)
+		then
 			giveNativeAttacks(unitID, cmdParams, cmdOptions)
 			return false
 		end
@@ -369,13 +392,13 @@ if gadgetHandler:IsSyncedCode() then
 				nextTargetIndex = 1,
 			}
 			targetListStates[unitID] = state
-			if not GG.SetUnitTargetList then
+			if not GG.SetUnitAttackTargetList then
 				clearState(unitID)
 				---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
 				return true, true
 			end
 			local targetIDs = collectAdjacentTargetCommands(unitID, cmdParams, cmdTag)
-			state.listID = GG.SetUnitTargetList(unitID, unitDefID, targetIDs, state)
+			state.listID = GG.SetUnitAttackTargetList(unitID, unitDefID, targetIDs, state)
 			if not state.listID or not recheckController(unitID, state, false) then
 				clearState(unitID)
 				---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
@@ -407,6 +430,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
 			return true, false
+		end
+
+		if not recheckController(unitID, state, false) then
+			clearState(unitID)
+			---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
+			return true, true
 		end
 
 		if issueNextTarget(unitID, state, cmdTag) then
