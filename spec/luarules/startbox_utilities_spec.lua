@@ -1,5 +1,5 @@
 -- Arrangement resolution and the whole-map fill for allyteams the arrangement does not
--- reach. Modoptions are base64 of raw JSON here, with the zlib step stubbed out.
+-- reach. Modoptions use the shared test helper's compressed-payload round trip.
 
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
@@ -43,19 +43,16 @@ local SHORT_SET = set({
 	{ "4", evenArrangement(4) },
 })
 
-local savedSpring = {
-	GetAllyTeamList = Spring.GetAllyTeamList,
-	GetGaiaTeamID = Spring.GetGaiaTeamID,
-	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
-	GetAllyTeamStartBox = Spring.GetAllyTeamStartBox,
-	GetModOptions = Spring.GetModOptions,
+local springMocks = {
+	"GetAllyTeamList",
+	"GetGaiaTeamID",
+	"GetTeamAllyTeamID",
+	"GetAllyTeamStartBox",
+	"GetModOptions",
 }
-
-Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
-_G.Json = VFS.Include("common/luaUtilities/json.lua")
-VFS.ZlibDecompress = function(data)
-	return data
-end
+---@type table<string, any>
+local savedSpring = {}
+local savedMapSizeX, savedMapSizeZ
 
 local function setUpGame(numAllyTeams, modoptions)
 	local allyTeamList = {}
@@ -83,7 +80,7 @@ local function setUpGame(numAllyTeams, modoptions)
 	Spring.GetModOptions = function()
 		local encoded = {}
 		for key, json in pairs(modoptions) do
-			encoded[key] = base64.Encode(json)
+			encoded[key] = base64.Encode(VFS.ZlibCompress(json))
 		end
 
 		return encoded
@@ -99,10 +96,20 @@ local function load(numAllyTeams, modoptions)
 end
 
 describe("startbox_utilities", function()
-	after_each(function()
-		for key, value in pairs(savedSpring) do
-			Spring[key] = value
+	before_each(function()
+		savedSpring = {}
+		for _, key in ipairs(springMocks) do
+			savedSpring[key] = Spring[key]
 		end
+		savedMapSizeX, savedMapSizeZ = Game.mapSizeX, Game.mapSizeZ
+		Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
+	end)
+
+	after_each(function()
+		for _, key in ipairs(springMocks) do
+			Spring[key] = savedSpring[key]
+		end
+		Game.mapSizeX, Game.mapSizeZ = savedMapSizeX, savedMapSizeZ
 	end)
 
 	describe("an arrangement that covers every allyteam", function()
