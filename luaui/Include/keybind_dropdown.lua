@@ -110,7 +110,8 @@ local chevronX, chevronY, chevronH = 0, 0, 0
 local function chevronVertices()
 	gl.Vertex(chevronX - chevronH, chevronY)
 	gl.Vertex(chevronX + chevronH, chevronY)
-	gl.Vertex(chevronX, chevronY - chevronH * 1.2)
+	-- Floored with the rest: a vertex between two pixels softens the whole glyph.
+	gl.Vertex(chevronX, floor(chevronY - chevronH * 1.2))
 end
 
 function Dropdown:draw()
@@ -129,7 +130,7 @@ function Dropdown:draw()
 	-- makes both flicker.
 	local arrowH = floor((y2 - y1) * 0.16)
 	local arrowX = x2 - inset - arrowH
-	local arrowY = (y1 + y2) * 0.5 + arrowH * 0.5
+	local arrowY = floor((y1 + y2) * 0.5 + arrowH * 0.5)
 	gl.Color(1, 1, 1, self.open and 0.9 or 0.55)
 	chevronX, chevronY, chevronH = arrowX, arrowY, arrowH
 	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
@@ -150,7 +151,7 @@ function Dropdown:draw()
 	font:Print(
 		fittedLabel(fitted, 0, font, label, labelW, self.fontSize),
 		x1 + inset,
-		(y1 + y2) * 0.5,
+		floor((y1 + y2) * 0.5),
 		self.fontSize,
 		"ov"
 	)
@@ -160,7 +161,7 @@ function Dropdown:draw()
 		local top = self.optRects[1].y2
 		local bottom = self.optRects[#self.optRects].y1
 		-- Rounded like the rest of the panel's inner elements.
-		local cs = WG.FlowUI.elementCorner * 0.66
+		local cs = floor(WG.FlowUI.elementCorner * 0.66)
 		R(x1, bottom, x2, top, cs, 1, 1, 1, 1, listFill)
 
 		for i in ipairs(self.options) do
@@ -178,7 +179,7 @@ function Dropdown:draw()
 			font:Print(
 				fittedLabel(fitted, i, font, optionLabel(opt), w, self.fontSize),
 				r.x1 + inset,
-				(r.y1 + r.y2) * 0.5,
+				floor((r.y1 + r.y2) * 0.5),
 				self.fontSize,
 				"ov"
 			)
