@@ -1,12 +1,12 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
--- Gifted units go to UnitReceived.
+-- Captures belong to UnitCaptured.
 
--- The TransferUnits action marks captures between allyTeams as gifts to comply with sharing rules.
--- The `capturingUnits` fence is checked in addition to dispatch's synthesized `captured` argument.
+-- The TransferUnits action marks its transfers between allyTeams as captures as a lazy hack;
+-- this bypasses potential modoption sharing limits but leads to the fence around the action.
 
 return {
-	type = 'UnitCaptured',
+	type = 'UnitReceived',
 	parameters = {
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
@@ -17,14 +17,14 @@ return {
 	},
 	callins = {
 		-- This additional `captured` argument is synthesized via the dispatch:
-		UnitTaken = function(trigger, triggerID, context, unitID, unitDefID, oldTeam, newTeam, captured)
+		UnitGiven = function(trigger, triggerID, context, unitID, unitDefID, newTeam, oldTeam, captured)
 			local parameters = trigger.parameters
 			-- By default, mission actions are ignored, so `nil` must compare as `true`:
 			if parameters.ignoreMissionActions ~= false and GG['MissionAPI'].transferringUnits then
 				return
 			end
 			-- The mission action gifts allied units even when captured=true is passed:
-			if not (captured or GG['MissionAPI'].capturingUnits) then
+			if captured or GG['MissionAPI'].capturingUnits then
 				return
 			end
 			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
