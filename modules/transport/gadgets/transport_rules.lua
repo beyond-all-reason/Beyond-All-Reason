@@ -223,36 +223,4 @@ function gadget:Initialize()
 			unstacking[unitID] = unitDefID
 		end
 	end
-	GG.Transport = {
-		---@param unitID integer
-		---@return boolean
-		IsCarried = function(unitID)
-			return Spring.GetUnitTransporter(unitID) ~= nil
-		end,
-		---@param unitID integer
-		---@return integer|nil
-		CarrierOf = function(unitID)
-			return Spring.GetUnitTransporter(unitID)
-		end,
-		---@param transportID integer
-		---@return integer[]
-		Cargo = function(transportID)
-			return Spring.GetUnitIsTransporting(transportID) or {}
-		end,
-		---@param transportDefID integer
-		---@param unitDefID integer
-		---@param carriedMass number|nil
-		---@param carriedCount integer|nil
-		---@return boolean
-		CanCarry = function(transportDefID, unitDefID, carriedMass, carriedCount)
-			local transportDef, unitDef = UnitDefs[transportDefID], UnitDefs[unitDefID]
-			return transportDef ~= nil
-				and unitDef ~= nil
-				and Rules.CanCarry(transportDef, unitDef, carriedMass, carriedCount)
-		end,
-	}
-end
-
-function gadget:Shutdown()
-	GG.Transport = nil
 end

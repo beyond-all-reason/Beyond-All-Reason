@@ -4,14 +4,6 @@ local TransportEnums = VFS.Include("modules/transport/enums.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local Modules = VFS.Include("modules/enums.lua").Modules
 
----@param name string
----@return table
-local function gadgetSurface(name)
-	local surface = GG.Transport
-	assert(surface ~= nil, "Transport." .. name .. " called before the transport_rules gadget initialized")
-	return surface
-end
-
 ---@class TransportApi
 ---@field IsCarried fun(unitID: integer): boolean
 ---@field CarrierOf fun(unitID: integer): integer|nil
@@ -68,19 +60,19 @@ return {
 	---@param unitID integer
 	---@return boolean
 	IsCarried = function(unitID)
-		return gadgetSurface("IsCarried").IsCarried(unitID)
+		return Spring.GetUnitTransporter(unitID) ~= nil
 	end,
 
 	---@param unitID integer
 	---@return integer|nil transportID
 	CarrierOf = function(unitID)
-		return gadgetSurface("CarrierOf").CarrierOf(unitID)
+		return Spring.GetUnitTransporter(unitID)
 	end,
 
 	---@param transportID integer
 	---@return integer[]
 	Cargo = function(transportID)
-		return gadgetSurface("Cargo").Cargo(transportID)
+		return Spring.GetUnitIsTransporting(transportID) or {}
 	end,
 
 	---@param transportDefID integer
