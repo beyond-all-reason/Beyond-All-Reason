@@ -19,6 +19,8 @@ static-var  restore_delay, shotcount, fired1, fired2, aiming, oldheading;
 #define COMPAIM1_RESTORE_SPEED <50>
 #define COMPAIM1_RESTORE_PITCH_SPEED <50>
 #define COMPAIM1_YAW_LIMIT <105>
+#define COMPAIM1_FIRE_ANGLE <25>
+#define COMPAIM1_FIRE_ANGLE_PITCH <25>
 #include "../compensated_turret_aim.h"
 
 #define BASEPIECE base

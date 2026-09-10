@@ -32,18 +32,24 @@
 		#define COMPAIM1_REST_PITCH <0>
 	#endif
 	#ifndef COMPAIM1_RESTORE_PITCH_SPEED
-		#define COMPAIM1_RESTORE_PITCH_SPEED COMPAIM1_PITCH_SPEED
+		#define COMPAIM1_RESTORE_PITCH_SPEED COMPAIM1_PITCH_SPEED*2
 	#endif
 #endif
 
 // Yaw speed when returning to rest
 #ifndef COMPAIM1_RESTORE_SPEED
-	#define COMPAIM1_RESTORE_SPEED COMPAIM1_YAW_SPEED
+	#define COMPAIM1_RESTORE_SPEED COMPAIM1_YAW_SPEED*5
 #endif
 
 // Yaw piece angle when not aiming
 #ifndef COMPAIM1_REST_YAW
 	#define COMPAIM1_REST_YAW <0>
+#endif
+
+// Define COMPAIM1_REST_STEP as an angle to rest at the nearest multiple of it instead of COMPAIM1_REST_YAW,
+// for example <90> rests at the nearest cardinal direction
+#ifdef COMPAIM1_REST_STEP
+	static-var COMPAIM1restYaw;
 #endif
 
 // Set COMPAIM1_IDLE_SPIN to 1 to keep the yaw piece turning at the restore speed while idle
@@ -56,7 +62,7 @@
 
 // Fire is withheld while the turret is further than this from the target
 #ifndef COMPAIM1_FIRE_ANGLE
-	#define COMPAIM1_FIRE_ANGLE <25>
+	#define COMPAIM1_FIRE_ANGLE COMPAIM1_YAW_SPEED/15
 #endif
 
 // Define COMPAIM1_YAW_LIMIT to keep the turret within that angle either side of forward,
@@ -73,7 +79,7 @@
 #endif
 #ifdef COMPAIM1_PIECE_X
 	#ifndef COMPAIM1_FIRE_ANGLE_PITCH
-		#define COMPAIM1_FIRE_ANGLE_PITCH COMPAIM1_FIRE_ANGLE
+		#define COMPAIM1_FIRE_ANGLE_PITCH COMPAIM1_PITCH_SPEED/25
 	#endif
 #endif
 
@@ -126,6 +132,9 @@ COMPAIM1_Controller()
 				COMPAIM1lastAimHeading = WRAPDELTA(COMPAIM1lastAimHeading - hullDelta);
 				COMPAIM1belief = WRAPDELTA(COMPAIM1belief - hullDelta);
 				step = (COMPAIM1_YAW_SPEED / 30);
+				#if COMPAIM1_IDLE_SPIN
+					COMPAIM1idleYaw = COMPAIM1goalHeading;
+				#endif
 			}
 			else
 			{
@@ -133,7 +142,11 @@ COMPAIM1_Controller()
 					COMPAIM1idleYaw = WRAPDELTA(COMPAIM1idleYaw + (COMPAIM1_RESTORE_SPEED / 30));
 					COMPAIM1goalHeading = WRAPDELTA(COMPAIM1_REST_YAW + COMPAIM1idleYaw);
 				#else
-					COMPAIM1goalHeading = COMPAIM1_REST_YAW;
+					#ifdef COMPAIM1_REST_STEP
+						COMPAIM1goalHeading = COMPAIM1restYaw;
+					#else
+						COMPAIM1goalHeading = COMPAIM1_REST_YAW;
+					#endif
 				#endif
 				step = (COMPAIM1_RESTORE_SPEED / 30);
 			}
@@ -310,6 +323,13 @@ COMPAIM1_Aim(heading)
 
 COMPAIM1_StopAiming()
 {
+	#ifdef COMPAIM1_REST_STEP
+		if (COMPAIM1active)
+		{
+			COMPAIM1restYaw = COMPAIM1belief + SIGN(COMPAIM1belief) * (COMPAIM1_REST_STEP / 2);
+			COMPAIM1restYaw = WRAPDELTA(COMPAIM1restYaw - (COMPAIM1restYaw % COMPAIM1_REST_STEP));
+		}
+	#endif
 	COMPAIM1active = 0;
 }
 

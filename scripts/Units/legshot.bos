@@ -35,6 +35,7 @@ static-var  animSpeed, maxSpeed, animFramesPerKeyframe, isMoving;
 #define COMPAIM1_PIECE_Y torsoPivot
 #define COMPAIM1_YAW_SPEED <200.000000>
 #define COMPAIM1_RESTORE_SPEED <90.000000>
+#define COMPAIM1_FIRE_ANGLE <25>
 #include "../compensated_turret_aim.h"
 // Signal definitions
 #define SIG_AIM				4
