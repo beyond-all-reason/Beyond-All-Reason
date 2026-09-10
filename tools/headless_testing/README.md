@@ -36,3 +36,35 @@ Some tests exist in
 
 ## CICD
 Note: these tests are run as part of GitHub Actions on every PR.
+
+## Attack and Set Target regressions
+
+The normal CI suite includes the twelve tests in `luaui/Tests/target_lists`.
+They exercise target order and Stop, append/prepend, ground-attack boundaries,
+queue skipping, the Stop the Command Queue Manager issues when the last listed
+target is skipped, independent Attack and Set Target state, pending Attack
+weapon behavior, and command packet boundaries. Team 0 is the issuing team and team 1
+is the enemy (the standard one-team startscript supplies Gaia as team 1).
+A missing enemy team fails setup instead of silently skipping the tests.
+Wait/resume, manual Attack precedence, short-list scan costs and both widgets'
+packet delivery are also covered by the Busted suite (`lx --lua-version 5.1 test`).
+
+For a focused engine run, replace `runtestsheadless` in a copy of the startscript
+with `runtestsheadless target_lists`. Use a disposable data/write directory with
+`games/BAR.sdd` pointing at the checkout, the required map under `maps`, and a
+`testlog` directory. Run the engine with `--isolation --write-dir` pointing there.
+The result is `testlog/results.json`; check its failures as well as the engine
+exit status. Add `Name=TestRunner;` under `[PLAYER0]` to avoid the extra spectator
+connection on engines that no longer infer that name.
+
+The larger combat and memory measurements remain in `luaui/Scenarios/stresstest`:
+`attack_shared_set_target_combat`, `set_target_ground_combat_scaling`, and
+`set_target_shared_scaling`. Run them explicitly with `/runscenario <name>`.
+They are benchmarks, not part of the CI integration result. The other target-list
+scenarios there cover extended mutations, capture/alliance changes and sensor loss.
+
+For performance comparisons, use the same engine, map, placements and orders
+on the base and PR commits. Report the two game SHAs and the engine version;
+measure command-issue time, simulation frame time and peak synced-Lua memory.
+Include both a short target list and a large selection. Historical recordings
+from earlier revisions do not establish the behavior or timings of the current PR.
