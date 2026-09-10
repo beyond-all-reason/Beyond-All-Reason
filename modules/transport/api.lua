@@ -17,6 +17,8 @@ local Modules = VFS.Include("modules/enums.lua").Modules
 ---@field MayOrderLoad fun(carrierID: integer, carrierDefID: integer, teamID: integer, targetID: integer): boolean a player's load order: the command question, with who owns the target
 ---@field MayOrderUnload fun(goalX: number, goalY: number, goalZ: number): boolean a player's order to set a nano turret down at the goal
 ---@field LoadedSpeed fun(carrierID: integer): number|nil elmos per frame the loaded carrier may fly; nil when it carries nothing
+---@field Loaded fun(unitID: integer, unitDefID: integer, transportID: integer) a passenger came aboard: the loaded action
+---@field Unloaded fun(unitID: integer, unitDefID: integer, transportID: integer) a passenger was set down: the unloaded action
 ---@field DefTraits fun(unitDefID: integer): TransportDefTraits a known def; the id must name one
 ---@field UnitTraits fun(unitID: integer|nil): TransportDefTraits|nil the live unit's def traits
 
@@ -44,6 +46,25 @@ local function pipelines()
 	return ModuleHandler.LoadPolicies(Modules.Transport)
 end
 
+---@param name string action file name under actions/
+---@param request table
+---@return any result
+local function perform(name, request)
+	local action = ModuleHandler.LoadActions(Modules.Transport).byName[name]
+	if action == nil then
+		Spring.Log("transport", LOG.ERROR, "transport has no action named " .. tostring(name))
+		return nil
+	end
+	if action.validate then
+		local allowed, reason = action.validate(request)
+		if not allowed then
+			Spring.Log("transport", LOG.WARNING, "transport." .. name .. " refused: " .. tostring(reason))
+			return nil
+		end
+	end
+	return action.execute(request)
+end
+
 ---@param unitID integer
 ---@param goalX number
 ---@param goalY number
@@ -56,7 +77,7 @@ local function distanceToGoal(unitID, goalX, goalY, goalZ)
 end
 
 ---@type TransportApi
-return {
+local TransportApi = {
 	---@param unitID integer
 	---@return boolean
 	IsCarried = function(unitID)
@@ -138,7 +159,7 @@ return {
 	---@return boolean
 	MayLoad = function(carrierID, carrierDefID, passengerID, passengerDefID, goalX, goalY, goalZ)
 		local reach = Traits.Of(carrierDefID).reach
-		return ModuleHandler.Evaluate(pipelines().load, {
+		local allowed = ModuleHandler.Evaluate(pipelines().load, {
 			carrierDef = UnitDefs[carrierDefID],
 			passengerDef = UnitDefs[passengerDefID],
 			goalY = goalY,
@@ -148,6 +169,10 @@ return {
 			allied = Spring.AreTeamsAllied(Spring.GetUnitTeam(carrierID), Spring.GetUnitTeam(passengerID)),
 			passengerSpeed = select(4, Spring.GetUnitVelocity(passengerID)),
 		}) == true
+		if allowed and reach then
+			perform("halt", { carrierID = carrierID })
+		end
+		return allowed
 	end,
 
 	---@param carrierID integer
@@ -159,12 +184,16 @@ return {
 	---@return boolean
 	MayUnload = function(carrierID, carrierDefID, passengerID, goalX, goalY, goalZ)
 		local reach = Traits.Of(carrierDefID).reach
-		return ModuleHandler.Evaluate(pipelines().unload, {
+		local allowed = ModuleHandler.Evaluate(pipelines().unload, {
 			goalY = goalY,
 			height = Spring.GetUnitHeight(passengerID),
 			reach = reach,
 			distance = reach and distanceToGoal(carrierID, goalX, goalY, goalZ) or 0,
 		}) == true
+		if allowed and reach then
+			perform("halt", { carrierID = carrierID })
+		end
+		return allowed
 	end,
 
 	---@param carrierID integer
@@ -203,6 +232,42 @@ return {
 		}) == true
 	end,
 
+	---@param unitID integer
+	---@param unitDefID integer
+	---@param transportID integer
+	Loaded = function(unitID, unitDefID, transportID)
+		local carrier = Traits.OfUnit(transportID)
+		if carrier == nil then
+			return
+		end
+		perform("loaded", {
+			unitID = unitID,
+			transportID = transportID,
+			carrier = carrier,
+			passenger = Traits.Of(unitDefID),
+			loadedSpeed = carrier.canFly and TransportApi.LoadedSpeed(transportID) or nil,
+		})
+	end,
+
+	---@param unitID integer
+	---@param unitDefID integer
+	---@param transportID integer
+	Unloaded = function(unitID, unitDefID, transportID)
+		local carrier = Traits.OfUnit(transportID)
+		if carrier == nil then
+			return
+		end
+		perform("unloaded", {
+			unitID = unitID,
+			unitDefID = unitDefID,
+			transportID = transportID,
+			carrier = carrier,
+			passenger = Traits.Of(unitDefID),
+			loadedSpeed = carrier.canFly and (TransportApi.LoadedSpeed(transportID) or false) or nil,
+			frame = Spring.GetGameFrame(),
+		})
+	end,
+
 	---@param carrierID integer
 	---@return number|nil
 	LoadedSpeed = function(carrierID)
@@ -225,3 +290,5 @@ return {
 		})
 	end,
 }
+
+return TransportApi
