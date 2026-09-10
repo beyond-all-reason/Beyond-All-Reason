@@ -888,19 +888,28 @@ local function middleDialog()
 	end
 end
 
+-- A name already in use would be renumbered on the way into the store, handing back a
+-- profile nobody asked for.
+local function dialogName()
+	if not dialog or dialog.message then
+		return "", false
+	end
+
+	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
+	local taken = name ~= dialog.allow and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
+
+	return name, name == "" or taken
+end
+
 -- Confirmation path; only a dialog with a name field has text to read.
 local function acceptDialog()
-	local name = dialog and not dialog.message and nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "") or ""
-	local d = closeDialog()
-	if not d then
+	local name, blocked = dialogName()
+	if blocked then
 		return
 	end
 
-	-- An empty name would make the profile unselectable, so treat it as a cancel.
-	if not d.message and name == "" then
-		if d.cancel then
-			d.cancel()
-		end
+	local d = closeDialog()
+	if not d then
 		return
 	end
 
@@ -1064,6 +1073,7 @@ local function startEdit()
 	openDialog({
 		title = L.editTitle,
 		initial = name,
+		allow = name,
 		accept = function(newName)
 			profiles.rename(name, newName)
 			refreshPicker()
@@ -1713,6 +1723,8 @@ local function startCapture(action, label, oldRaws)
 		end
 	end
 
+	local fakeMeta = activeFakeMeta()
+
 	capturing = {
 		action = action,
 		label = label,
@@ -1727,6 +1739,7 @@ local function startCapture(action, label, oldRaws)
 		-- Matches the engine's KeyChainTimeout default; BAR ships a tighter 333ms.
 		timeout = 750,
 		any = actionUsesAny(action, oldRaw),
+		fakeMetaCode = fakeMeta and Spring.GetKeyCode(fakeMeta) or nil,
 	}
 end
 
@@ -1768,8 +1781,13 @@ local function captureCanAccept()
 	return c ~= nil and #c.elems > 0 and not c.seeded
 end
 
--- Scancode to keyset symbol, refusing modifier keys so they cannot bind alone.
-local function pressSym(scanCode)
+-- Scancode to keyset symbol, refusing modifier keys and the stand-in Meta key so they
+-- cannot bind alone; the latter is held down while the player picks what goes with it.
+local function pressSym(key, scanCode)
+	if capturing and key == capturing.fakeMetaCode then
+		return nil
+	end
+
 	local sym = scanCode and spGetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
@@ -2604,10 +2622,11 @@ local function drawProfileDialog(mx, my)
 
 	-- Anything whose accept saves is green, anything destructive is red, wherever it
 	-- appears; a tinted button brightens on hover instead of taking the white overlay.
-	local acceptSaves = dialog.save or (not dialog.message and not dialog.danger)
+	local _, blocked = dialogName()
+	local acceptSaves = not blocked and (dialog.save or (not dialog.message and not dialog.danger))
 	local buttons = {
 		{ r = cancel },
-		{ r = ok, danger = dialog.danger, confirm = acceptSaves },
+		{ r = ok, danger = not blocked and dialog.danger, confirm = acceptSaves, inert = blocked },
 	}
 	if dialog.middle then
 		buttons[#buttons + 1] = { r = discard, danger = dialog.middle.danger }
@@ -2619,7 +2638,7 @@ local function drawProfileDialog(mx, my)
 		local lift = (b.danger and dangerFillHover) or (b.confirm and confirmFillHover)
 		local fill = base and (hovered and lift or base)
 		drawButtonFace(r, fill or buttonFill)
-		if not fill and hovered then
+		if not fill and hovered and not b.inert then
 			Highlight(r[1], r[2], r[3], r[4], cs, hoverOpacity, { 1, 1, 1 })
 		end
 	end
@@ -2661,7 +2680,7 @@ local function drawProfileDialog(mx, my)
 		"cov"
 	)
 	font:Print(
-		colorText .. acceptLabelFor(dialog),
+		(blocked and colorDim or colorText) .. acceptLabelFor(dialog),
 		floor((ok[1] + ok[3]) * 0.5),
 		floor((ok[2] + ok[4]) * 0.5),
 		sfs,
@@ -3139,7 +3158,7 @@ function view.keyPress(key, scanCode)
 			capturing = nil
 		else
 			-- Skip auto-repeat; only the initial press adds an element (release clears pressed).
-			local sym = pressSym(scanCode)
+			local sym = pressSym(key, scanCode)
 			if sym and not capturing.pressed[scanCode] then
 				capturing.pressed[scanCode] = true
 				appendChain({ sym = sym, mods = modPrefix() })
