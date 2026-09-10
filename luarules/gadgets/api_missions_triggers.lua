@@ -46,6 +46,7 @@ local constructionStarts = {}
 local underConstruction = {}
 local detections = {}
 local detectionCount = 0
+local capturedUnits = {}
 
 ----------------------------------------------------------------
 --- Utility Functions:
@@ -461,12 +462,23 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	untrackUnitID(unitID)
 end
 
+-- AllowUnitTransfer can tell captured units from shared ones; UnitGiven, UnitTaken cannot.
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	capturedUnits[unitID] = capture or nil
+	return true
+end
+
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	dispatchTriggerCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam)
+	dispatchTriggerCallin("UnitTaken", unitID, unitDefID, oldTeam, newTeam, capturedUnits[unitID] == true)
 
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = trackedUnitNames[unitID] or {}
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	dispatchTriggerCallin("UnitGiven", unitID, unitDefID, newTeam, oldTeam, capturedUnits[unitID] == true)
+	capturedUnits[unitID] = nil
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
