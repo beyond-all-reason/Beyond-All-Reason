@@ -16,22 +16,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 local Unstack = VFS.Include("modules/transport/lib/unstack.lua") ---@type TransportUnstack
-
-local loadedSpeed = {} ---@type table<integer, number> air transport -> allowed elmos per frame
-local settling = {} ---@type table<integer, table> unloaded unit -> where it landed, and when to pin it
-local maybeDead = {} ---@type table<integer, integer> cargo -> the carrier that just let go
-local unstacking = {} ---@type table<integer, integer> a nano turret -> its def, nudged until clear of any immobile ally
-
----@param transportID integer
-local function updateLoadedSpeed(transportID)
-	local allowed = Transport.LoadedSpeed(transportID)
-	if allowed ~= nil then
-		loadedSpeed[transportID] = allowed
-	end
-end
+local state = VFS.Include("modules/transport/state.lua") ---@type TransportState
 
 ---@param unitID integer
 ---@return boolean
@@ -54,20 +41,11 @@ function gadget:AllowUnitTransportLoad(
 	goalY,
 	goalZ
 )
-	local allowed =
-		Transport.MayLoad(transporterID, transporterDefID, transporteeID, transporteeDefID, goalX, goalY, goalZ)
-	if allowed and Transport.DefTraits(transporterDefID).reach then
-		Spring.SetUnitVelocity(transporterID, 0, 0, 0)
-	end
-	return allowed
+	return Transport.MayLoad(transporterID, transporterDefID, transporteeID, transporteeDefID, goalX, goalY, goalZ)
 end
 
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, _, transporteeID, _, _, goalX, goalY, goalZ)
-	local allowed = Transport.MayUnload(transporterID, transporterDefID, transporteeID, goalX, goalY, goalZ)
-	if allowed and Transport.DefTraits(transporterDefID).reach then
-		Spring.SetUnitVelocity(transporterID, 0, 0, 0)
-	end
-	return allowed
+	return Transport.MayUnload(transporterID, transporterDefID, transporteeID, goalX, goalY, goalZ)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
@@ -91,94 +69,32 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, _, transportID)
-	local carrier = Transport.DefTraits(Spring.GetUnitDefID(transportID))
-	local passenger = Transport.DefTraits(unitDefID)
-	if carrier.canFly then
-		updateLoadedSpeed(transportID)
-	end
-	if carrier.stealthsPassengers and not passenger.isStealthy then
-		Spring.SetUnitStealth(unitID, true)
-	end
-	if passenger.leavesGhost then
-		Spring.SetUnitLeavesGhost(unitID, false, true)
-	end
+	Transport.Loaded(unitID, unitDefID, transportID)
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then
 		return
 	end
-	local carrier = Transport.DefTraits(Spring.GetUnitDefID(transportID))
-	local passenger = Transport.DefTraits(unitDefID)
-	if carrier.canFly then
-		local cargo = Spring.GetUnitIsTransporting(transportID)
-		if cargo == nil or cargo[1] == nil then
-			loadedSpeed[transportID] = nil
-		else
-			updateLoadedSpeed(transportID)
-		end
-	end
-	if carrier.stealthsPassengers and not passenger.isStealthy then
-		Spring.SetUnitStealth(unitID, false)
-	end
-	if passenger.leavesGhost then
-		Spring.SetUnitLeavesGhost(unitID, true)
-	end
-	if not passenger.canMove then
-		for turretID, turretDefID in pairs(Unstack.TurretsUnder(unitID)) do
-			unstacking[turretID] = turretDefID
-		end
-	end
-
-	if passenger.isParatrooper then
-		local vx, vy, vz = Spring.GetUnitVelocity(transportID)
-		vx, vz = Rules.ClampParatrooperVelocity(vx), Rules.ClampParatrooperVelocity(vz)
-		local x, y, z = Spring.GetUnitPosition(unitID)
-		if y - Spring.GetGroundHeight(x, z) < Rules.PARATROOPER_GROUND_MARGIN then
-			vx, vy, vz = 0, 0, 0
-		end
-		Spring.SetUnitVelocity(unitID, vx, vy, vz)
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-		return
-	end
-
-	local px, py, pz = Spring.GetUnitPosition(unitID)
-	local dx, dy, dz, rx, ry, rz = Spring.GetUnitDirection(unitID)
-	settling[unitID] = {
-		px = px,
-		py = py,
-		pz = pz,
-		dx = dx,
-		dy = dy,
-		dz = dz,
-		rx = rx,
-		ry = ry,
-		rz = rz,
-		frame = Spring.GetGameFrame() + Rules.UNLOAD_SETTLE_FRAMES,
-	}
-	Spring.SetUnitVelocity(unitID, 0, 0, 0)
-
-	if not Spring.GetUnitRulesParam(unitID, "unit_effigy") then
-		maybeDead[unitID] = transportID
-	end
+	Transport.Unloaded(unitID, unitDefID, transportID)
 end
 
 function gadget:GameFrame(frame)
-	for transportID, allowed in pairs(loadedSpeed) do
+	for transportID, allowed in pairs(state.loadedSpeed) do
 		local vx, vy, vz, vw = Spring.GetUnitVelocity(transportID)
 		if vw and vw > allowed then
 			local factor = allowed / vw
 			Spring.SetUnitVelocity(transportID, vx * factor, vy * factor, vz * factor)
 		end
 	end
-	for unitID, unitDefID in pairs(unstacking) do
+	for unitID, unitDefID in pairs(state.unstacking) do
 		if not Spring.ValidUnitID(unitID) or Unstack.Step(unitID, unitDefID) then
-			unstacking[unitID] = nil
+			state.unstacking[unitID] = nil
 		end
 	end
-	for unitID, landing in pairs(settling) do
+	for unitID, landing in pairs(state.settling) do
 		if landing.frame <= frame then
-			settling[unitID] = nil
+			state.settling[unitID] = nil
 			if Spring.ValidUnitID(unitID) then
 				Spring.SetUnitPhysics(unitID, landing.px, landing.py, landing.pz, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 				Spring.SetUnitDirection(unitID, landing.dx, landing.dy, landing.dz, landing.rx, landing.ry, landing.rz)
@@ -188,30 +104,28 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:GameFramePost()
-	if next(maybeDead) == nil then
+	if next(state.maybeDead) == nil then
 		return
 	end
-	for unitID, transportID in pairs(maybeDead) do
+	for unitID, transportID in pairs(state.maybeDead) do
 		if deadOrCrashing(transportID) and not deadOrCrashing(unitID) then
 			Spring.UnitDetach(unitID)
 			Spring.AddUnitDamage(unitID, 1e6, nil, nil, Game.envDamageTypes.TransportKilled)
 		end
 	end
-	maybeDead = {}
+	state.maybeDead = {}
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if not Transport.DefTraits(unitDefID).canMove then
-		for turretID, turretDefID in pairs(Unstack.TurretsUnder(unitID)) do
-			unstacking[turretID] = turretDefID
-		end
+		Unstack.Wake(state.unstacking, unitID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID)
-	loadedSpeed[unitID] = nil
-	settling[unitID] = nil
-	unstacking[unitID] = nil
+	state.loadedSpeed[unitID] = nil
+	state.settling[unitID] = nil
+	state.unstacking[unitID] = nil
 end
 
 function gadget:Initialize()
@@ -220,7 +134,7 @@ function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		if Transport.DefTraits(unitDefID).isNano then
-			unstacking[unitID] = unitDefID
+			state.unstacking[unitID] = unitDefID
 		end
 	end
 end
