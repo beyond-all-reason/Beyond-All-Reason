@@ -328,17 +328,18 @@ function Editbox:draw()
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
 	-- Rounded like the rest of the panel's inner elements; the caret and selection sit
 	-- inside the field by their own inset.
-	local cs = WG.FlowUI.elementCorner * 0.66
+	-- Whole pixels: an edge on a fraction is blended across two of them and reads soft.
+	local cs = floor(WG.FlowUI.elementCorner * 0.66)
 	local inset = floor((y2 - y1) * 0.18)
 	local tx = x1 + self.pad
-	local ty = (y1 + y2) * 0.5
+	local ty = floor((y1 + y2) * 0.5)
 
 	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
 
 	if self:hasSelection() then
 		local a, b = self:selRange()
-		local sa = font:GetTextWidth(utf8.sub(self.text, 1, a)) * self.fontSize
-		local sb = font:GetTextWidth(utf8.sub(self.text, 1, b)) * self.fontSize
+		local sa = floor(font:GetTextWidth(utf8.sub(self.text, 1, a)) * self.fontSize)
+		local sb = floor(font:GetTextWidth(utf8.sub(self.text, 1, b)) * self.fontSize)
 		gl.Color(0.4, 0.55, 0.85, 0.5)
 		gl.Rect(tx + sa, y1 + inset, tx + sb, y2 - inset)
 		gl.Color(1, 1, 1, 1)
@@ -367,10 +368,10 @@ function Editbox:draw()
 	if self.focused then
 		-- Sharp bar rather than a rounded one, sized and placed off the font like chat's:
 		-- a fixed span around the text's middle, so it does not stretch with the field.
-		local cx = tx + caretOffset(self, font)
+		local cx = floor(tx + caretOffset(self, font))
 		local cWidth = 1 + floor(self.fontSize / 14)
-		local cy1 = math.max(y1 + 1, ty - self.fontSize * 0.6)
-		local cy2 = math.min(y2 - 1, ty + self.fontSize * 0.64)
+		local cy1 = math.max(y1 + 1, floor(ty - self.fontSize * 0.6))
+		local cy2 = math.min(y2 - 1, floor(ty + self.fontSize * 0.64))
 		gl.Color(cursorGrey, cursorGrey, cursorGrey, caretAlpha(self))
 		gl.Rect(cx, cy1, cx + cWidth, cy2)
 		gl.Color(1, 1, 1, 1)

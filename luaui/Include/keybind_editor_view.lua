@@ -52,6 +52,30 @@ local metrics = {
 	catInset = 4,
 	-- Chips sit inside their row by this much, top and bottom.
 	chipInset = 3,
+	-- A category heading stands taller than the bindings under it and is set larger, so it
+	-- reads as a divider rather than another row.
+	headerRowHeight = 32,
+	headerFs = 14,
+	catFs = 13,
+	-- The line along the bottom of a heading and of the selected category.
+	underlineH = 2,
+	-- Everything that sits against the panel's right edge - the header icons, the footer
+	-- buttons and the scrollbar - is held off it by this much, matching the inset the
+	-- header and footer already use vertically, so a button clears all three edges equally.
+	edgeInset = 4,
+	-- Clearance between the bottom of the list band and the footer, so the scrollbar does
+	-- not run down into the buttons.
+	footerGap = 8,
+	-- Clearance between the right edge of the rows and the scrollbar beside them.
+	listGap = 12,
+	-- How far the category card rises above the first entry in it.
+	cardLip = 5,
+	-- The panel title: its baseline below the top edge, and its size.
+	titleY = 17,
+	titleFs = 20,
+	-- How far the category column starts below the keybind rows beside it, to leave the
+	-- title room to breathe.
+	sidebarDrop = 8,
 	-- Corner radii, taken from FlowUI's so the panel rounds like the rest of the UI.
 	csSmall = 2,
 	csButton = 3,
@@ -109,11 +133,16 @@ local UiElement
 local Highlight
 ---@type function
 local UiButton
+---@type function
+local UiUnitFrame
 
 local colorAction = "\255\210\210\205"
 local colorKey = "\255\235\185\070"
 local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
+-- A button that cannot be pressed: dimmer than the dim used for ordinary secondary text,
+-- since here it has to read as unavailable rather than merely quiet.
+local colorFaded = "\255\115\115\115"
 local colorHeader = "\255\255\200\130"
 local colorDanger = "\255\235\090\090"
 -- SelectHighlight defaults to 0.35 and the rest of the UI stays near it. At 1 the
@@ -124,9 +153,13 @@ local buttonFill = { 0.18, 0.18, 0.18, 1 }
 -- overlay washes a tinted button out to grey, so these brighten instead.
 local dangerFill = { 0.46, 0.10, 0.10, 1 }
 local dangerFillHover = { 0.66, 0.14, 0.14, 1 }
+-- With nothing staged there is nothing to discard or save, so both footer buttons drop
+-- most of their colour and go part transparent, sinking into the panel instead of sitting
+-- on it as a slightly darker version of the live button.
+local dangerFillMuted = { 0.17, 0.12, 0.12, 0.45 }
 local confirmFill = { 0.17, 0.38, 0.21, 1 }
 local confirmFillHover = { 0.24, 0.52, 0.29, 1 }
-local confirmFillMuted = { 0.11, 0.20, 0.13, 1 }
+local confirmFillMuted = { 0.12, 0.17, 0.13, 0.45 }
 local pillFill = { 0.22, 0.22, 0.22, 1 }
 local sheenTop = { 1, 1, 1, 0.05 }
 -- Fills and captions the list is painted with, in one table for the same reason as
@@ -147,6 +180,14 @@ local look = {
 	-- Rows, categories and grid cells hover with the same FlowUI highlight the settings
 	-- list uses, at the strength it gives a plain row.
 	rowHoverOpacity = 0.14,
+	-- Underlines are drawn as a thin bar that fades upward out of the bottom edge, each in
+	-- the hue of the text above it: warm under a category heading, plain under the selected
+	-- category in the column.
+	headerLine = { 1, 0.78, 0.51, 0.4 },
+	headerLineFade = { 1, 0.78, 0.51, 0 },
+	-- Border strength for a tile that is only being shown, not offered. FlowUI's own
+	-- default for a live one is 0.1.
+	idleBorder = 0.02,
 	removeHot = colorDanger .. "x",
 	removeCold = colorDim .. "x",
 	plusText = colorText .. "+",
@@ -190,8 +231,10 @@ local headerButtons = {
 	{ id = "edit", icon = "LuaUI/Images/keybinds/edit.png", tooltipId = "keybind_edit" },
 }
 
+-- Discarding is destructive and saving is not, so the two footer buttons are coloured for
+-- what they do rather than left to read alike.
 local footerButtons = {
-	{ id = "reset" },
+	{ id = "reset", fill = dangerFill, fillHover = dangerFillHover, fillMuted = dangerFillMuted },
 	{ id = "save", fill = confirmFill, fillHover = confirmFillHover, fillMuted = confirmFillMuted },
 }
 
@@ -277,17 +320,87 @@ end
 ----------------------------------------------------------------
 
 local function listBottom()
-	return area.y1 + footerH
+	return area.y1 + footerH + metrics.footerGap
 end
 
 -- Whole rows the band can paint.
-local function visibleRows()
-	return math.max(1, floor((listTop - listBottom()) / rowHeight))
+-- A category heading is taller than the bindings under it, so a row's position is a sum of
+-- what is above it rather than its index times one height. The running total is stamped
+-- onto the rows, which rebuildRows replaces wholesale, and redone when the layout moves.
+local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
+
+local function rowHeightOf(row)
+	return row.type == "header" and metrics.headerRowHeight or rowHeight
 end
 
--- Furthest offset that still fills the band.
+local function ensureRowMetrics()
+	if rowMetrics.gen == layoutGen and rowMetrics.rows == rowsGen then
+		return
+	end
+
+	local off = 0
+	for i = 1, #rows do
+		local row = rows[i]
+		row.off = off
+		off = off + rowHeightOf(row)
+	end
+	rowMetrics.totalH = off
+	rowMetrics.gen, rowMetrics.rows = layoutGen, rowsGen
+end
+
+-- Pixels of content above the first painted row.
+local function scrollOffset()
+	ensureRowMetrics()
+	local first = rows[scroll + 1]
+
+	return first and first.off or 0
+end
+
+-- Furthest offset that still fills the band. Walked from the end, so it does not depend on
+-- where the list is scrolled to now.
 local function maxScroll()
-	return math.max(0, #rows - visibleRows())
+	ensureRowMetrics()
+	local band = listTop - listBottom()
+	local used = 0
+	local i = #rows
+	while i > 0 do
+		local h = rowHeightOf(rows[i])
+		if used + h > band then
+			break
+		end
+		used = used + h
+		i = i - 1
+	end
+
+	return i
+end
+
+-- The painted row under y, as its offset from the first painted one, plus the edges it was
+-- painted with. Every hover test, click and the panel signature go through this, so none of
+-- them can disagree with what was drawn. nil when y is outside the band or past the last
+-- whole row the band can hold.
+local function rowAt(y)
+	ensureRowMetrics()
+	local lb = listBottom()
+	if y > listTop or y <= lb then
+		return nil
+	end
+
+	local base = scrollOffset()
+	for i = scroll + 1, #rows do
+		local top = listTop - (rows[i].off - base)
+		local bottom = top - rowHeightOf(rows[i])
+		if bottom < lb then
+			break
+		end
+		-- Half-open on the shared edge: rows stack, so one row's top is the next one's
+		-- bottom and a closed test would put the cursor in both.
+		if y <= top and y > bottom then
+			return i - scroll, top, bottom
+		end
+	end
+
+	return nil
 end
 
 local function clampScroll()
@@ -889,6 +1002,7 @@ local function guardDirty(proceed, onCancel)
 		end,
 		middle = {
 			label = L.discard,
+			danger = true,
 			action = function()
 				discardStaged()
 				proceed()
@@ -921,8 +1035,9 @@ local function startReset()
 		title = L.reset,
 		message = L.resetConfirm,
 		-- Named for what it does. Without this it falls back to the generic "Accept", which
-		-- says nothing about the edits being thrown away.
+		-- says nothing about the edits being thrown away, and coloured for it.
 		acceptLabel = L.discard,
+		danger = true,
 		accept = function()
 			discardStaged()
 		end,
@@ -1027,26 +1142,27 @@ local function layoutHeader()
 	local rowTop = area.y2 - floor(4 * scale)
 	local rowBottom = area.y2 - headerH + floor(4 * scale)
 	local presetW = floor(240 * scale)
-	local btnFs = (rowTop - rowBottom) * 0.5
+	local btnFs = floor((rowTop - rowBottom) * 0.5)
 
 	-- Right to left: the edit dialog opener, duplicate, then the picker they act on.
 	local iconW = rowTop - rowBottom
 	local editW, dupW = iconW, iconW
-	local editX1 = area.x2 - editW
+	local rightEdge = area.x2 - metrics.edgeInset
+	local editX1 = rightEdge - editW
 	local dupX1 = editX1 - gap - dupW
 	local pickerX1 = dupX1 - gap - presetW
 
 	headerButtons[1].rect = { dupX1, rowBottom, dupX1 + dupW, rowTop }
-	headerButtons[2].rect = { editX1, rowBottom, area.x2, rowTop }
+	headerButtons[2].rect = { editX1, rowBottom, rightEdge, rowTop }
 	presetDropdown:setRect(pickerX1, rowBottom, pickerX1 + presetW, rowTop, btnFs)
 	searchBox:setRect(listX1, rowBottom, pickerX1 - gap, rowTop, btnFs)
 
 	local fTop = area.y1 + footerH - floor(4 * scale)
 	local fBottom = area.y1 + floor(4 * scale)
-	local fFs = (fTop - fBottom) * 0.5
+	local fFs = floor((fTop - fBottom) * 0.5)
 	local fPad = floor(14 * scale)
 	local bfs = floor(rowHeight * 0.55)
-	local x2 = area.x2
+	local x2 = area.x2 - metrics.edgeInset
 	for i = #footerButtons, 1, -1 do
 		local b = footerButtons[i]
 		local label = L[b.id] or b.id
@@ -1057,7 +1173,7 @@ local function layoutHeader()
 		if font then
 			local fitted = text.fit(font, label, w - metrics.rowPad * 2, bfs)
 			b.textOn = colorText .. fitted
-			b.textOff = colorDim .. fitted
+			b.textOff = colorFaded .. fitted
 		end
 	end
 
@@ -1082,7 +1198,7 @@ local function dialogGeometry()
 	local bh = floor(28 * scale)
 	local pad = floor(16 * scale)
 	local btnY1 = by1 + pad
-	local bfs = bh * 0.5
+	local bfs = floor(bh * 0.5)
 	local bpad = floor(14 * scale)
 
 	local cancelW = labelWidth(L.cancel, bfs, bpad)
@@ -1126,9 +1242,10 @@ local function fitCategories()
 	end
 
 	local labelW = sidebarW - metrics.sidePad * 2
-	local fs = metrics.catRowHeight * 0.55
+	-- Fitted at the size they are actually drawn at, so a label is not shortened for a
+	-- size the column never uses.
 	for _, c in ipairs(categories) do
-		local fitted = text.fit(font, c.label, labelW, fs)
+		local fitted = text.fit(font, c.label, labelW, metrics.catFs)
 		c.textSel = colorAction .. fitted
 		c.textDim = colorDim .. fitted
 	end
@@ -1146,6 +1263,7 @@ function view.init()
 	UiElement = WG.FlowUI.Draw.Element
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiButton = WG.FlowUI.Draw.Button
+	UiUnitFrame = WG.FlowUI.Draw.UnitFrame
 	ensureControls()
 end
 
@@ -1169,19 +1287,32 @@ function view.setArea(x1, y1, x2, y2, s)
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
-	metrics.rowFs = rowHeight * 0.55
+	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
+	-- rectangle edges between pixels, which the renderer then blends across both.
+	metrics.rowFs = floor(rowHeight * 0.55)
+	metrics.headerRowHeight = floor(rowHeight * 1.35)
+	-- The heading was set at 0.95 of a row's size; 13% up from there.
+	metrics.headerFs = floor(metrics.rowFs * 0.95 * 1.13)
+	metrics.catFs = floor(metrics.catRowHeight * 0.55 * 0.85)
+	metrics.underlineH = math.max(1, floor(2 * scale))
 	metrics.rowPad = floor(6 * scale)
 	metrics.sidePad = floor(12 * scale)
 	metrics.catInset = floor(4 * scale)
 	metrics.chipInset = floor(3 * scale)
+	-- Set before layoutHeader below, which places the header and footer buttons against it.
+	metrics.edgeInset = floor(4 * scale)
+	metrics.footerGap = floor(8 * scale)
+	metrics.listGap = floor(12 * scale)
+	metrics.cardLip = floor(5 * scale)
+	metrics.titleY = floor(17 * scale)
+	metrics.sidebarDrop = floor(8 * scale)
+	metrics.titleFs = floor(rowHeight * 0.85)
 
 	-- Rounded like the settings panel's inner elements, which take a share of this too.
 	local corner = WG.FlowUI.elementCorner
-	metrics.csPanel = corner
-	metrics.csButton = corner * 0.8
-	metrics.csSmall = corner * 0.66
-
-	local pad = floor(6 * scale)
+	metrics.csPanel = floor(corner)
+	metrics.csButton = floor(corner * 0.8)
+	metrics.csSmall = floor(corner * 0.66)
 
 	sidebarW = floor(240 * scale)
 	listX1 = area.x1 + sidebarW + floor(12 * scale)
@@ -1189,8 +1320,13 @@ function view.setArea(x1, y1, x2, y2, s)
 	layoutHeader()
 
 	listTop = area.y2 - headerH - floor(4 * scale)
-	listRight = area.x2 - floor(12 * scale) - pad
-	barX1 = listRight + floor(4 * scale)
+	-- The scrollbar owns a column of its own: its right edge lines up with the buttons
+	-- above it, and the list stops a clear gap short of it rather than running up against
+	-- it. That gap matches the one the bar keeps from the panel edge on its other side, so
+	-- the bar sits in a channel rather than hugging the rows.
+	local barW = floor(14 * scale)
+	barX1 = area.x2 - metrics.edgeInset - barW
+	listRight = barX1 - metrics.listGap
 	keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
 
 	-- Shortened here rather than in the draw loop: the column width and the font size are
@@ -1621,6 +1757,17 @@ local function modPrefix()
 	return prefix
 end
 
+-- Whether the capture is holding something worth committing. The Accept button is shown
+-- only when this is true and acts only when this is true, so a button that is not on screen
+-- cannot be clicked. Seeded means the modal is still showing the binding it was opened on
+-- and nothing has been pressed yet: accepting that would rewrite a keyset to itself, so
+-- there is nothing to offer and the way out is Cancel.
+local function captureCanAccept()
+	local c = capturing
+
+	return c ~= nil and #c.elems > 0 and not c.seeded
+end
+
 -- Scancode to keyset symbol, refusing modifier keys so they cannot bind alone.
 local function pressSym(scanCode)
 	local sym = scanCode and spGetScanSymbol(scanCode)
@@ -1657,7 +1804,7 @@ end
 local function chipMetrics(display, fs, pad, rightGap, chipArea)
 	local tw = font:GetTextWidth(display) * fs
 	if pad + tw + rightGap <= chipArea then
-		return display, fs, pad + tw + rightGap
+		return display, fs, floor(pad + tw + rightGap)
 	end
 
 	-- Keep inner positive, since a tiny share can drive it negative and the fit would then
@@ -1666,7 +1813,7 @@ local function chipMetrics(display, fs, pad, rightGap, chipArea)
 	local chipFs = math.max(floor(fs * 0.75), floor(fs * inner / math.max(1, tw)))
 	local disp = text.fit(font, display, inner, chipFs)
 
-	return disp, chipFs, pad + font:GetTextWidth(disp) * chipFs + rightGap
+	return disp, chipFs, floor(pad + font:GetTextWidth(disp) * chipFs + rightGap)
 end
 
 -- Chain tokens over two lines at most; the second truncates rather than a third appearing.
@@ -1805,7 +1952,7 @@ local function rowLayout(row)
 			local m = mets[i]
 			m.textKey = colorKey .. m.disp
 			m.textHover = colorText .. m.disp
-			m.removeCx = m.removeX1 + rightGap * 0.5
+			m.removeCx = floor(m.removeX1 + rightGap * 0.5)
 		end
 		lay.mets = mets
 		lay.cx = cx
@@ -1890,8 +2037,14 @@ end
 
 -- Rows are laid out from the top of the list band down, so the column lines up with the
 -- keybind rows beside it.
+-- The category column starts below where the keybind rows do, so the title above it is not
+-- crowded by the first entry. Everything in the column measures from here.
+local function sidebarTop()
+	return listTop - metrics.sidebarDrop
+end
+
 local function categoryRect(i)
-	local top = listTop - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
 
 	return area.x1, top - metrics.catRowHeight, area.x1 + sidebarW, top
 end
@@ -1899,11 +2052,12 @@ end
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
 -- one point never lands in two entries.
 local function sidebarIndexAt(x, y)
-	if x < area.x1 or x > area.x1 + sidebarW or y > listTop or y <= listBottom() then
+	local top = sidebarTop()
+	if x < area.x1 or x > area.x1 + sidebarW or y > top or y <= listBottom() then
 		return nil
 	end
 
-	local i = floor((listTop - y) / metrics.catRowHeight) + 1
+	local i = floor((top - y) / metrics.catRowHeight) + 1
 	if not categories[i] then
 		return nil
 	end
@@ -1936,7 +2090,9 @@ end
 -- is picked, which is where Back and Next page live. Sized to roughly what the menu
 -- occupies in game - 0.2125 of screen width over four columns - rather than stretched.
 local function gridGeometry()
-	local headH = rowHeight
+	-- The heading here is the list's heading, so it takes the taller heading row rather
+	-- than an ordinary one.
+	local headH = metrics.headerRowHeight
 	local top = listTop - headH - floor(8 * scale)
 	local bottom = listBottom() + floor(8 * scale)
 	local strip = floor(rowHeight * 1.2)
@@ -1979,14 +2135,39 @@ local function drawButtonFace(r, base)
 	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 end
 
+-- The band a category heading sits on: the sheen, the line closing it off underneath, and
+-- the caption. Shared, so the grid view's heading is the same object as the list's rather
+-- than a second one that has to be kept looking like it.
+local function drawHeaderBand(top, bottom, caption)
+	RectRound(listX1, bottom, listRight, top - metrics.csSmall, metrics.csSmall, 1, 1, 0, 0, sheenTop, sheenTop)
+	-- Underline: a thin bar fading up out of the bottom edge, so the heading closes off the
+	-- block above it rather than floating in the middle of the list.
+	RectRound(
+		listX1,
+		bottom,
+		listRight,
+		bottom + metrics.underlineH,
+		0,
+		0,
+		0,
+		0,
+		0,
+		look.headerLine,
+		look.headerLineFade
+	)
+	queueText(caption, listX1 + metrics.rowPad, floor((top + bottom) * 0.5), metrics.headerFs, "ov")
+end
+
 -- The category column: its own card under the title, then one entry per category, with
 -- hoverIdx the entry under the cursor.
 local function drawSidebar(hoverIdx)
+	-- Derived from the first category rather than measured from the panel top, so the card
+	-- keeps its lip above the entries wherever the column starts.
 	RectRound(
 		area.x1,
 		area.y1,
 		area.x1 + sidebarW,
-		area.y2 - floor(33 * scale),
+		sidebarTop() + metrics.cardLip,
 		metrics.csPanel,
 		1,
 		1,
@@ -1995,46 +2176,55 @@ local function drawSidebar(hoverIdx)
 		look.sidebarFill,
 		look.sidebarFillTop
 	)
-	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - floor(17 * scale), floor(rowHeight * 0.85), "ov")
+	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
 	-- Laid out before the font existed, so the labels are still waiting to be fitted.
 	if categories[1] and not categories[1].textDim then
 		fitCategories()
 	end
 
-	local fs = metrics.catRowHeight * 0.55
 	local lb = listBottom()
 	for i, c in ipairs(categories) do
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 >= lb then
 			local selected = selectedCategory == c.key
 			if selected then
-				RectRound(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
+				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
 			elseif i == hoverIdx then
 				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
 			end
-			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, (y1 + y2) * 0.5, fs*0.85, "ov")
+			local ty = floor((y1 + y2) * 0.5)
+			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
 		end
 	end
 end
 
 -- Label left, key right, sized like a category button. Used for every pill in this view.
 local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, hovered, dim)
-	RectRound(x1, y1, x2, y2, metrics.csSmall, 1, 1, 1, 1, pillFill, pillFill)
+	-- Through FlowUI's Button, the way gui_gridmenu draws these same category and page
+	-- buttons: the cells above them are unit slots and carry a tile frame, so these need
+	-- the raised button face to not read as more of the same.
+	local pair = look.gradients[pillFill]
+	UiButton(x1, y1, x2, y2, 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 	if hovered and not dim then
-		Highlight(x1, y1, x2, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+		Highlight(x1, y1, x2, y2, metrics.csButton, hoverOpacity, look.white)
 	end
-	-- Key is right aligned and gets only the width it needs, so the label keeps the rest
-	-- and stays readable.
+	-- Key is right aligned and gets only the width it needs; the label is centred in
+	-- whatever is left over. With no key bound that is the whole button, which is why an
+	-- unbound category reads as a plain centred caption rather than one pushed to the left.
 	local keyW = floor(font:GetTextWidth(key) * fs)
+	local lx1 = x1 + pad * 2
+	local lx2 = x2 - pad * 2 - (keyW > 0 and keyW + pad * 2 or 0)
+	local ty = floor((y1 + y2) * 0.5)
 	queueText(
-		(dim and colorDim or colorAction) .. text.fit(font, label, (x2 - x1) - keyW - pad * 5, fs),
-		x1 + pad * 2,
-		(y1 + y2) * 0.5,
+		(dim and colorDim or colorAction) .. text.fit(font, label, lx2 - lx1, fs),
+		floor((lx1 + lx2) * 0.5),
+		ty,
 		fs,
-		"ov"
+		"cov"
 	)
-	queueText((dim and colorDim or colorKey) .. key, x2 - pad * 2, (y1 + y2) * 0.5, fs, "rov")
+	queueText((dim and colorDim or colorKey) .. key, x2 - pad * 2, ty, fs, "rov")
 end
 
 -- The raw keyset a grid action carries, for seeding a rebind. nil when it has none.
@@ -2113,9 +2303,15 @@ local function drawGridMenu(zone, zoneA, zoneB)
 	local keyFs = floor(cell * 0.2)
 	local stripFs = floor(strip * 0.45)
 
-	-- Same header the list puts above a category, so the two views read alike.
-	RectRound(listX1, listTop - headH, listRight, listTop, 0, 0, 0, 0, 0, sheenTop, sheenTop)
-	queueText(colorHeader .. gridGroup.title, listX1 + metrics.rowPad, listTop - headH * 0.5, metrics.rowFs * 0.95, "ov")
+	-- The same heading the list puts above a category, drawn by the same code.
+	drawHeaderBand(listTop, listTop - headH, colorHeader .. gridGroup.title)
+
+	-- These stand in for the build menu's unit tiles, so they take the same frame FlowUI
+	-- puts around a unit picture, minus the picture. Every cell is the same size, so the
+	-- corner is derived once and shared with the fill under it; left to itself the frame
+	-- would derive its own and the two would not quite line up.
+	local cellInner = cell - pad * 2
+	local frameCs = math.max(1, floor(cellInner * 0.024))
 
 	for pass = 1, 2 do
 		local gx = (pass == 1) and x1 or x2
@@ -2124,12 +2320,13 @@ local function drawGridMenu(zone, zoneA, zoneB)
 				local cx1, cy1, cx2, cy2 = gridCellRect(row, col, gx, gridBottom, cell)
 				-- Solid enough to read against the panel on its own, so the cells need no
 				-- container or outline behind them.
-				RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, metrics.csSmall, 1, 1, 1, 1, pillFill, pillFill)
+				RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, 1, 1, 1, 1, pillFill, pillFill)
 				-- Only the first grid carries the build keys; the second is the category view,
 				-- whose cells hold the same bindings and would just repeat them.
 				if pass == 1 then
+					-- Under the frame, so the hover lifts the tile without softening its edge.
 					if zone == "cell" and zoneA == row and zoneB == col then
-						Highlight(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, metrics.csSmall, look.rowHoverOpacity, look.white)
+						Highlight(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, look.rowHoverOpacity, look.white)
 					end
 					queueText(
 						colorKey .. gridKeyText(gridKeyActions[row][col]),
@@ -2139,6 +2336,13 @@ local function drawGridMenu(zone, zoneA, zoneB)
 						"ro"
 					)
 				end
+				-- Last, so the border and shine sit over the fill and the hover rather than
+				-- under them. Plain: a group icon would name a group these cells do not have.
+				-- The second grid is the same keys seen from the category view and binds
+				-- nothing, so its frames are drawn faint: it is there to show the layout, not
+				-- to be clicked, and a full-strength frame invites the click.
+				local border = (pass == 1) and nil or look.idleBorder
+				UiUnitFrame(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, 1, 1, 1, 1, nil, border)
 			end
 		end
 	end
@@ -2221,13 +2425,12 @@ end
 -- One list row. hovered says the cursor is on it; zone and zoneIdx are then which chip
 -- or button of it, in rowZone's terms.
 local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
-	local cyc = (top + bottom) * 0.5
+	local cyc = floor((top + bottom) * 0.5)
 	local lay = rowLayout(row)
 	local fs = metrics.rowFs
 
 	if row.type == "header" then
-		RectRound(listX1, bottom, listRight, top, 0, 0, 0, 0, 0, sheenTop, sheenTop)
-		queueText(lay.text, listX1 + metrics.rowPad, cyc, fs * 0.95, "ov")
+		drawHeaderBand(top, bottom, lay.text)
 		return
 	end
 
@@ -2259,7 +2462,7 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		local cx = lay.cx
 		local overAdd = zone == "add"
 		RectRound(cx, c1, cx + lay.addW, c2, metrics.csSmall, 1, 1, 1, 1, overAdd and look.addFillHover or look.addFill)
-		queueText(overAdd and look.plusTextHover or look.plusText, (cx + cx + lay.addW) * 0.5, cyc, fs, "cov")
+		queueText(overAdd and look.plusTextHover or look.plusText, floor(cx + lay.addW * 0.5), cyc, fs, "cov")
 	end
 end
 
@@ -2268,19 +2471,10 @@ end
 local function drawCaptureModal(mx, my)
 	local bx1, by1, bx2, by2, ok, cancel = captureGeometry()
 	local cs = metrics.csButton
-	local cx = (bx1 + bx2) * 0.5
+	local cx = floor((bx1 + bx2) * 0.5)
 
 	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
-
-	drawButtonFace(cancel, buttonFill)
-	drawButtonFace(ok, buttonFill)
-	if isInRect(mx, my, cancel[1], cancel[2], cancel[3], cancel[4]) then
-		Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, hoverOpacity, { 1, 1, 1 })
-	end
-	if isInRect(mx, my, ok[1], ok[2], ok[3], ok[4]) then
-		Highlight(ok[1], ok[2], ok[3], ok[4], cs, hoverOpacity, { 1, 1, 1 })
-	end
 
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
@@ -2291,7 +2485,23 @@ local function drawCaptureModal(mx, my)
 	-- is part-way through a replacement - and letting go puts the original back.
 	local heldRaw = modPrefix()
 	local held = heldRaw ~= "" and keybindModel.displayKeyset(heldRaw, working.layout) or ""
+	-- What the big line in the middle shows: the keyset formed so far, which includes the
+	-- one the modal opened on. Whether that is worth committing is a separate question.
 	local hasChain = #capturing.elems > 0 and not (capturing.seeded and held ~= "")
+	local canAccept = captureCanAccept()
+
+	drawButtonFace(cancel, buttonFill)
+	if isInRect(mx, my, cancel[1], cancel[2], cancel[3], cancel[4]) then
+		Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, hoverOpacity, look.white)
+	end
+	-- Absent until there is a change to accept, rather than present and dead: a greyed
+	-- button invites a click that does nothing. Green like the other commits, and
+	-- brightening its own fill on hover, which the white overlay would wash out.
+	if canAccept then
+		local overOk = isInRect(mx, my, ok[1], ok[2], ok[3], ok[4])
+		drawButtonFace(ok, overOk and confirmFillHover or confirmFill)
+	end
+
 	local chainStr
 	if hasChain then
 		chainStr = keybindModel.displayKeyset(chainRaw(), working.layout)
@@ -2329,7 +2539,7 @@ local function drawCaptureModal(mx, my)
 	-- Bar draining over the chain window: time left to extend before it resets. The
 	-- track is always drawn so the modal does not gain a row the moment a key lands.
 	local barW = floor((bx2 - bx1) * 0.5)
-	local barX = cx - barW * 0.5
+	local barX = floor(cx - barW * 0.5)
 	local barY = by1 + floor(88 * scale)
 	local barH = floor(4 * scale)
 	RectRound(barX, barY, barX + barW, barY + barH, floor(2 * scale), 1, 1, 1, 1, { 1, 1, 1, 0.1 })
@@ -2366,24 +2576,26 @@ local function drawCaptureModal(mx, my)
 		"cov"
 	)
 	for li = 1, #chainLines do
-		local ly = chainCy + (#chainLines - 1) * lineStep * 0.5 - (li - 1) * lineStep
+		local ly = floor(chainCy + (#chainLines - 1) * lineStep * 0.5 - (li - 1) * lineStep)
 		font:Print((hasContent and colorKey or colorDim) .. chainLines[li], cx, ly, chainFs, "cov")
 	end
-	font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
 	font:Print(
-		(hasChain and colorText or colorDim) .. L.accept,
-		(ok[1] + ok[3]) * 0.5,
-		(ok[2] + ok[4]) * 0.5,
+		colorText .. L.cancel,
+		floor((cancel[1] + cancel[3]) * 0.5),
+		floor((cancel[2] + cancel[4]) * 0.5),
 		sfs,
 		"cov"
 	)
+	if canAccept then
+		font:Print(colorText .. L.accept, floor((ok[1] + ok[3]) * 0.5), floor((ok[2] + ok[4]) * 0.5), sfs, "cov")
+	end
 	font:End()
 end
 
 local function drawProfileDialog(mx, my)
 	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep = dialogGeometry()
 	local cs = metrics.csButton
-	local cx = (bx1 + bx2) * 0.5
+	local cx = floor((bx1 + bx2) * 0.5)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 
@@ -2423,14 +2635,14 @@ local function drawProfileDialog(mx, my)
 	if dialog.middle then
 		font:Print(
 			colorText .. dialog.middle.label,
-			(discard[1] + discard[3]) * 0.5,
-			(discard[2] + discard[4]) * 0.5,
+			floor((discard[1] + discard[3]) * 0.5),
+			floor((discard[2] + discard[4]) * 0.5),
 			sfs,
 			"cov"
 		)
 	end
 	if messageLines then
-		local top = (field[2] + field[4]) * 0.5 + (#messageLines - 1) * messageStep * 0.5
+		local top = floor((field[2] + field[4]) * 0.5 + (#messageLines - 1) * messageStep * 0.5)
 		for i = 1, #messageLines do
 			font:Print(
 				colorDim .. text.fit(font, messageLines[i], bx2 - bx1 - floor(32 * scale), sfs),
@@ -2441,8 +2653,20 @@ local function drawProfileDialog(mx, my)
 			)
 		end
 	end
-	font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
-	font:Print(colorText .. acceptLabelFor(dialog), (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+	font:Print(
+		colorText .. L.cancel,
+		floor((cancel[1] + cancel[3]) * 0.5),
+		floor((cancel[2] + cancel[4]) * 0.5),
+		sfs,
+		"cov"
+	)
+	font:Print(
+		colorText .. acceptLabelFor(dialog),
+		floor((ok[1] + ok[3]) * 0.5),
+		floor((ok[2] + ok[4]) * 0.5),
+		sfs,
+		"cov"
+	)
 	font:End()
 
 	if not dialog.message then
@@ -2488,8 +2712,8 @@ local function drawButtons(hotId)
 					end
 					queueText(
 						(enabled and b.textOn or b.textOff) or L[b.id],
-						(r[1] + r[3]) * 0.5,
-						(r[2] + r[4]) * 0.5,
+						floor((r[1] + r[3]) * 0.5),
+						floor((r[2] + r[4]) * 0.5),
 						bfs,
 						"cov"
 					)
@@ -2517,16 +2741,14 @@ local function panelSignature(mx, my)
 			local kind, a, b = gridZone(mx, my)
 			h.gk, h.ga, h.gb = kind or "", a or 0, b or 0
 		end
-	elseif mx >= listX1 and mx <= listRight and my <= listTop and my > listBottom() then
-		-- Half-open on the shared edge: rows stack, so one row's top is the next one's
-		-- bottom and a closed test would put the cursor in both.
-		local r = floor((listTop - my) / rowHeight) + 1
-		local row = r <= visibleRows() and rows[scroll + r] or nil
+	elseif mx >= listX1 and mx <= listRight then
+		local r, top, bottom = rowAt(my)
+		local row = r and rows[scroll + r]
 		if row then
 			h.row = r
 			if row.type == "editable" then
-				local top = listTop - (r - 1) * rowHeight
-				local zone, idx = rowZone(rowLayout(row), mx, my, top - rowHeight + metrics.chipInset, top - metrics.chipInset)
+				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
+				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
 			end
 		end
@@ -2580,19 +2802,26 @@ local function drawPanel()
 		drawGridMenu(h.gk, h.ga, h.gb)
 		flushText()
 	else
-		local rowCount = visibleRows()
-		for r = 1, rowCount do
+		-- Whole rows only: the band can end mid-row, and a row painted across the footer
+		-- would be clipped by nothing.
+		local base = scrollOffset()
+		local lb = listBottom()
+		for r = 1, #rows - scroll do
 			local row = rows[scroll + r]
 			if not row then
 				break
 			end
-			local top = listTop - (r - 1) * rowHeight
+			local top = listTop - (row.off - base)
+			local bottom = top - rowHeightOf(row)
+			if bottom < lb then
+				break
+			end
 			local hovered = h.row == r
-			drawRow(row, top, top - rowHeight, hovered, hovered and h.zone or "", h.idx)
+			drawRow(row, top, bottom, hovered, hovered and h.zone or "", h.idx)
 		end
 		flushText()
 
-		Scroller(barX1, listBottom(), area.x2, listTop, #rows * rowHeight, scroll * rowHeight)
+		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base)
 	end
 
 	drawButtons(h.btn)
@@ -2718,7 +2947,7 @@ end
 -- Returns true when the click landed in the column, selected or not, so it never falls
 -- through to the list behind it.
 local function sidebarPress(x, y)
-	if x < area.x1 or x > area.x1 + sidebarW or y < listBottom() or y > listTop then
+	if x < area.x1 or x > area.x1 + sidebarW or y < listBottom() or y > sidebarTop() then
 		return false
 	end
 
@@ -2779,12 +3008,10 @@ function view.mousePress(x, y, button)
 	if capturing then
 		local bx1, by1, bx2, by2, ok, cancel = captureGeometry()
 		if button == 1 then
-			if isInRect(x, y, ok[1], ok[2], ok[3], ok[4]) then
-				if #capturing.elems > 0 then
-					commitCapture(chainRaw())
-				else
-					capturing = nil
-				end
+			-- Only while Accept is actually on screen; where it would be is otherwise just
+			-- part of the modal and swallows the click.
+			if captureCanAccept() and isInRect(x, y, ok[1], ok[2], ok[3], ok[4]) then
+				commitCapture(chainRaw())
 			elseif
 				(isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
 				or x < bx1
@@ -2861,10 +3088,10 @@ function view.mousePress(x, y, button)
 	end
 
 	if isInRect(x, y, listX1, listBottom(), listRight, listTop) then
-		-- The band can end in a partial row that draw never paints, so clamp to the
-		-- painted count or a click in that strip would edit an unseen row.
-		local r = floor((listTop - y) / rowHeight) + 1
-		local row = r <= visibleRows() and rows[scroll + r] or nil
+		-- Through the same lookup the drawing uses, so the band's last partial row - which
+		-- is never painted - cannot be clicked either.
+		local r = rowAt(y)
+		local row = r and rows[scroll + r]
 		if row and row.type == "editable" then
 			local kind, raw = hitTestRow(row, x)
 			if kind then

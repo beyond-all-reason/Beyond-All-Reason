@@ -2842,6 +2842,80 @@ WG.FlowUI.Draw.Unit = function(
 	gl.PopMatrix()
 end
 
+---Draws the frame of a unit tile on its own: the outline, depth gradient, top shine and
+---feathered border that `Unit` lays over a unit picture, with no picture under it. For a
+---tile that should read as a unit slot without naming a unit, such as an empty build slot
+---or a preview of the grid menu. Draw the tile's own background first; this only frames
+---it. Repeated identical draws are served from the same display list cache `Unit` uses.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size. Defaults to a size derived from the tile width
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param borderSize number? Defaults to a size derived from the tile width
+---@param borderOpacity number? Defaults to `0.1`
+---@param groupTexture string? Group icon drawn in a corner
+WG.FlowUI.Draw.UnitFrame = function(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	local width = sx - px
+	local height = sy - py
+	-- Same defaults Unit derives, so a frame drawn on its own matches one drawn over a
+	-- picture at the same size.
+	local resolvedBorderSize = borderSize ~= nil and borderSize
+		or mathMin(mathMax(1, mathFloor(width * 0.024)), mathFloor((WG.FlowUI.vsy * 0.0015) + 0.5))
+	local resolvedCs = cs ~= nil and cs or mathMax(1, mathFloor(width * 0.024))
+	local resolvedBorderOpacity = borderOpacity or 0.1
+
+	if
+		width <= 0
+		or height <= 0
+		or width ~= width
+		or height ~= height
+		or resolvedCs ~= resolvedCs
+		or resolvedBorderSize ~= resolvedBorderSize
+		or resolvedBorderOpacity ~= resolvedBorderOpacity
+	then
+		return
+	end
+
+	local record = GetUnitFrameRecord(
+		width,
+		height,
+		resolvedCs,
+		tl,
+		tr,
+		br,
+		bl,
+		resolvedBorderSize,
+		resolvedBorderOpacity,
+		groupTexture
+	)
+	if record and record.list then
+		gl.PushMatrix()
+		gl.Translate(px, py, 0)
+		gl.CallList(record.list)
+		gl.PopMatrix()
+	else
+		DrawUnitFrame(
+			px,
+			py,
+			sx,
+			sy,
+			resolvedCs,
+			tl,
+			tr,
+			br,
+			bl,
+			resolvedBorderSize,
+			resolvedBorderOpacity,
+			groupTexture
+		)
+	end
+end
+
 ---Draws a vertical scrollbar.
 ---@param px number Left
 ---@param py number Bottom
