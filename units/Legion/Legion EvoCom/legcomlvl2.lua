@@ -33,7 +33,7 @@ return {
 		mass = 4999,
 		health = 6000,
 		maxslope = 20,
-		speed = 37.5,
+		speed = 375,
 		maxwaterdepth = 35,
 		metalmake = 2,
 		metalstorage = 500,

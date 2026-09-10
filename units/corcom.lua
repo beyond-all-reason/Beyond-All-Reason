@@ -51,7 +51,7 @@ return {
 		sightdistance = 450,
 		sightemitheight = 40,
 		sonardistance = 450,
-		speed = 37.5,
+		speed = 375,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
