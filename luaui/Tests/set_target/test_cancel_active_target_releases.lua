@@ -17,7 +17,8 @@ end
 local function createScenario()
 	local centerX = Game.mapSizeX / 2
 	local centerZ = Game.mapSizeZ / 2
-	local sourceID = assert(Spring.CreateUnit("armflak", centerX, Spring.GetGroundHeight(centerX, centerZ), centerZ, "east", 0))
+	local sourceID =
+		assert(Spring.CreateUnit("armflak", centerX, Spring.GetGroundHeight(centerX, centerZ), centerZ, "east", 0))
 	local nearID = assert(Spring.CreateUnit("corhurc", centerX + 200, 500, centerZ, "west", 1))
 	local farID = assert(Spring.CreateUnit("corhurc", centerX + 3000, 500, centerZ, "west", 1))
 	Spring.SetUnitArmored(nearID, true, 0)
@@ -42,27 +43,49 @@ local function listedTargets(sourceID)
 	return table.concat(ids, ",")
 end
 
-function test()
+local function checkRelease(stop)
 	local sourceID, nearID, farID = SyncedRun(createScenario)
 	Test.waitFrames(32)
 
-	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_SET_TARGET, { farID }, 0)
+	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_SET_TARGET, { farID }, CMD.OPT_CTRL)
 	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_SET_TARGET, { nearID }, CMD.OPT_SHIFT)
 	Test.waitUntil(function()
 		return Spring.GetUnitRulesParam(sourceID, "unitTargetID") == nearID and weaponTarget(sourceID) == nearID
 	end, 120)
 	assertEqual(listedTargets(sourceID), farID .. "," .. nearID, "both targets are listed, the near one is active")
 
-	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_CANCEL_TARGET, { nearID }, 0)
+	if stop then
+		Spring.GiveOrderToUnit(sourceID, CMD.STOP, {}, 0)
+	else
+		Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_CANCEL_TARGET, { nearID }, 0)
+	end
 	Test.waitFrames(2)
-	assertEqual(listedTargets(sourceID), tostring(farID), "Cancel Target removes only the cancelled entry")
-	assertEqual(Spring.GetUnitRulesParam(sourceID, "unitTargetID"), nil, "the cancelled target is no longer the priority target")
+	assertEqual(
+		listedTargets(sourceID),
+		tostring(farID),
+		"only the active entry is removed; the ignoreStop target remains"
+	)
+	assertEqual(
+		Spring.GetUnitRulesParam(sourceID, "unitTargetID"),
+		nil,
+		"the cancelled target is no longer the priority target"
+	)
 	assertEqual(weaponTarget(sourceID), nil, "the cancelled target is no longer the weapon target")
-	assertEqual(Spring.GetUnitRulesParam(sourceID, "hasPriorityTarget"), 1, "the remaining far target keeps the list alive")
+	assertEqual(
+		Spring.GetUnitRulesParam(sourceID, "hasPriorityTarget"),
+		1,
+		"the remaining far target keeps the list alive"
+	)
 
 	-- It stays released: the far target is out of range, nothing else is listed.
 	Test.waitFrames(60)
 	assertEqual(weaponTarget(sourceID), nil, "the unit does not resume firing at the cancelled target")
+end
+
+function test()
+	checkRelease(false)
+	Test.clearMap()
+	checkRelease(true)
 end
 
 return {

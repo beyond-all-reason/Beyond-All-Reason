@@ -49,7 +49,7 @@ local function weaponTarget(sourceID)
 	return nil, false
 end
 
-function test()
+local function checkRelease(cancelLast)
 	local sourceID, targetID, otherID = SyncedRun(createScenario)
 	Test.waitFrames(32)
 
@@ -64,21 +64,66 @@ function test()
 	Test.waitUntil(function()
 		return automaticAttackOn(sourceID, targetID)
 	end, 120)
-	assertEqual(Spring.GetUnitRulesParam(sourceID, "unitTargetID"), targetID, "the Set Target stays active on Fire at Will")
+	assertEqual(
+		Spring.GetUnitRulesParam(sourceID, "unitTargetID"),
+		targetID,
+		"the Set Target stays active on Fire at Will"
+	)
 
-	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_CANCEL_TARGET, {}, 0)
+	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_CANCEL_TARGET, cancelLast and { targetID } or {}, 0)
 	Test.waitFrames(2)
 	assertEqual(Spring.GetUnitRulesParam(sourceID, "unitTargetID"), nil, "Clear Target removes the priority target")
 	assertEqual(Spring.GetUnitRulesParam(sourceID, "hasPriorityTarget"), nil, "Clear Target removes the list")
-	assertEqual(automaticAttackOn(sourceID, targetID), false, "Clear Target drops the automatic Attack on the cleared target")
+	assertEqual(
+		automaticAttackOn(sourceID, targetID),
+		false,
+		"Clear Target drops the automatic Attack on the cleared target"
+	)
 	local _, isUserTarget = weaponTarget(sourceID)
 	assertEqual(isUserTarget, false, "no user target remains after Clear Target")
 
 	-- The unit is free to pick an opportunity target; it must not be re-issued
 	-- an automatic Attack on the cleared target by leftover Set Target state.
 	Test.waitFrames(60)
-	assertEqual(Spring.GetUnitRulesParam(sourceID, "unitTargetID"), nil, "the cleared target does not come back as priority target")
+	assertEqual(
+		Spring.GetUnitRulesParam(sourceID, "unitTargetID"),
+		nil,
+		"the cleared target does not come back as priority target"
+	)
 	assert(Spring.ValidUnitID(otherID), "the other enemy is still there")
+end
+
+local function checkExplicitAttack()
+	local sourceID, targetID = SyncedRun(createScenario)
+	Test.waitFrames(32)
+	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_SET_TARGET, { targetID }, 0)
+	Test.waitUntil(function()
+		return Spring.GetUnitRulesParam(sourceID, "unitTargetID") == targetID and weaponTarget(sourceID) == targetID
+	end, 120)
+	Spring.GiveOrderToUnit(sourceID, CMD.ATTACK, { targetID }, 0)
+	Test.waitFrames(2)
+	local commandID, options, tag, commandTarget = Spring.GetUnitCurrentCommand(sourceID)
+	assertEqual(commandID, CMD.ATTACK, "explicit Attack is current")
+	assertEqual(math.bit_and(options, CMD.OPT_INTERNAL), 0, "Attack belongs to the player")
+	assertEqual(commandTarget, targetID, "explicit Attack owns the same target")
+
+	Spring.GiveOrderToUnit(sourceID, GameCMD.UNIT_CANCEL_TARGET, {}, 0)
+	Test.waitFrames(2)
+	local currentID, _, currentTag = Spring.GetUnitCurrentCommand(sourceID)
+	assertEqual(currentID, CMD.ATTACK, "Clear Target preserves explicit Attack")
+	assertEqual(currentTag, tag, "the original explicit command survives")
+	local target, isUserTarget = weaponTarget(sourceID)
+	assertEqual(target, targetID, "explicit Attack retains its weapon target")
+	assertEqual(isUserTarget, true, "explicit Attack retains user target ownership")
+	assertEqual(Spring.GetUnitRulesParam(sourceID, "hasPriorityTarget"), nil, "Set Target list is cleared")
+end
+
+function test()
+	checkRelease(false)
+	Test.clearMap()
+	checkRelease(true)
+	Test.clearMap()
+	checkExplicitAttack()
 end
 
 return {
