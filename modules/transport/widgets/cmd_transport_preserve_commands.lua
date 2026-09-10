@@ -13,9 +13,7 @@ function widget:GetInfo()
 end
 
 local orders = {}
-local distToIgnore = 500 -- any initial commands outside of this distance from the unload point will be ignored, to stop units walking back to their origin
-
----------------------------------------------------------------
+local distToIgnore = 500
 
 function widget:UnitLoaded(unitID)
 	orders[unitID] = Spring.GetUnitCommands(unitID, -1)
@@ -28,7 +26,7 @@ function widget:UnitUnloaded(unitID)
 		for i, command in ipairs(orders[unitID]) do
 			if #command.params >= 3 then
 				local dist = math.huge
-				if i == 1 then -- ditch first command if it's not near the starting point
+				if i == 1 then
 					local x, y, z = Spring.GetUnitPosition(unitID)
 					dist = math.distance3d(x, y, z, command.params[1], command.params[2], command.params[3])
 				else
@@ -47,10 +45,6 @@ function widget:UnitUnloaded(unitID)
 	end
 end
 
----------------------------------------------------------------
---- Housekeeping to manage the widget state
----------------------------------------------------------------
-
 local function maybeRemoveSelf()
 	if Spring.IsReplay() or Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0) then
 		widgetHandler:RemoveWidget()
@@ -68,5 +62,3 @@ end
 function widget:PlayerChanged()
 	maybeRemoveSelf()
 end
-
----------------------------------------------------------------
