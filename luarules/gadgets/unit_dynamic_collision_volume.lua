@@ -13,9 +13,8 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	-- Pop-up style unit and per piece collision volume definitions
 	local popupUnits = {} --list of pop-up style units
-	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
+	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume
 
 	-- Localization and speedups
 	local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
@@ -54,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume =
+		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume =
 			include("LuaRules/Configs/CollisionVolumes.lua")
 
 		local allFeatures = Spring.GetAllFeatures()
@@ -155,53 +154,15 @@ if gadgetHandler:IsSyncedCode() then
 					spSetPieceCollisionData(unitID, pieceIndex, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
 			end
-		elseif unitModeltype[unitDefID] == "3do" then
-			local rs, hs, ws
-			local r = spGetUnitRadius(unitID)
-			if r > 47 and not canFly[unitDefID] then
-				rs, hs, ws = 0.68, 0.68, 0.68
-			elseif not canFly[unitDefID] then
-				rs, hs, ws = 0.73, 0.73, 0.73
-			else
-				rs, hs, ws = 0.53, 0.17, 0.53
+		elseif modelUnitCollisionVolume[unitName[unitDefID]] then
+			local v = modelUnitCollisionVolume[unitName[unitDefID]]
+			if v[9] == nil then
+				-- The first unit created of a given model provides the missing primaryAxis value.
+				v[9] = select(9, spGetUnitCollisionData(unitID))
 			end
-			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-			if vtype >= 3 and xs == ys and ys == zs then
-				if ys * hs < 13 and canFly[unitDefID] then -- Limit Max V height
-					spSetUnitCollisionData(unitID, xs * ws, 13, zs * rs, xo, yo, zo, 1, htype, 1)
-				elseif canFly[unitDefID] then
-					spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, 1, htype, 1)
-				else
-					spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, vtype, htype, axis)
-				end
-			end
-
-			-- set aircraft size
-			if canFly[unitDefID] and UnitDefs[unitDefID].transportCapacity > 0 then
-				spSetUnitRadiusAndHeight(unitID, 16, 16)
-			else
-				spSetUnitRadiusAndHeight(unitID, spGetUnitRadius(unitID) * rs, spGetUnitHeight(unitID) * hs)
-			end
-
-			-- make sure underwater units are really underwater (need midpoint + model radius <0)
-			local h = spGetUnitHeight(unitID)
-			local wd = UnitDefs[unitDefID].minWaterDepth
-			if UnitDefs[unitDefID].modCategories.underwater and wd and wd + r > 0 then
-				spSetUnitRadiusAndHeight(unitID, wd - 1, h)
-			end
-		elseif unitModeltype[unitDefID] == "s3o" then
-			if canFly[unitDefID] then
-				local rs, hs, ws = 1.15, 0.33, 1.15 -- dont know why 3do uses: 0.53, 0.17, 0.53
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					if ys * hs < 13 then -- Limit Max V height
-						spSetUnitCollisionData(unitID, xs * ws, 13, zs * rs, xo, yo, zo, 3, htype, 0)
-					elseif canFly[unitDefID] then
-						spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, 3, htype, 0)
-					else
-						spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, vtype, htype, axis)
-					end
-				end
+			spSetUnitCollisionData(unitID, v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9])
+			if v.radius then
+				spSetUnitRadiusAndHeight(unitID, v.radius, v.height)
 			end
 		end
 
