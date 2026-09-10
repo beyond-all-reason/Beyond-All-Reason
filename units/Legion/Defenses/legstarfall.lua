@@ -105,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			starfire = {
+			starfall_plasma_cannon = {
 				accuracy = 0,
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -183,7 +183,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "starfire",
+				def = "starfall_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 				--engine bug?
 				burstControlWhenOutOfArc = 1,

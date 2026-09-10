@@ -109,7 +109,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Pop-up heavy g2g gauss cannon",
+				name = "Medium Rapid-Fire Gauss Cannon",
 				nogap = false,
 				noselfdamage = true,
 				range = 730,

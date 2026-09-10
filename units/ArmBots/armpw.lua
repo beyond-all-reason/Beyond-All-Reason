@@ -98,7 +98,7 @@ return {
 			},
 		},
 		weapondefs = {
-			emg = {
+			pawn_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				burst = 3,
@@ -114,7 +114,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "Rapid-fire close-quarters g2g plasma guns",
+				name = "Light Rapid-Fire Gauss Cannons",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.3,
@@ -141,7 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "EMG",
+				def = "pawn_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

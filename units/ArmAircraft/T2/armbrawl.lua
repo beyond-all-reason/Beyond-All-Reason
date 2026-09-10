@@ -62,7 +62,7 @@ return {
 			},
 		},
 		weapondefs = {
-			vtol_emg = {
+			roughneck_plasma_cannon = {
 				areaofeffect = 40,
 				avoidfeature = false,
 				burst = 4,
@@ -75,7 +75,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.8,
-				name = "Rapid-fire a2g plasma guns",
+				name = "Light Rapid-Fire Gauss Cannons",
 				noselfdamage = true,
 				range = 380,
 				reloadtime = 0.6,
@@ -98,7 +98,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "VTOL_EMG",
+				def = "roughneck_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

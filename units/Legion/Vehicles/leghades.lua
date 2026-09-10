@@ -154,7 +154,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
 				impulsefactor = 0.123,
-				name = "Close-quarters g2g gauss-cannon",
+				name = "Light Gauss Cannon",
 				noselfdamage = true,
 				predictboost = 1,
 				range = 210,

@@ -106,7 +106,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_parrow = {
+			parrow_plasma_cannon = {
 				areaofeffect = 160,
 				avoidfeature = false,
 				craterboost = 0,
@@ -115,7 +115,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.7,
-				name = "PoisonArrowCannon",
+				name = "Medium Blast Cannon",
 				noselfdamage = true,
 				range = 575,
 				reloadtime = 1.8,
@@ -139,7 +139,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_PARROW",
+				def = "parrow_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

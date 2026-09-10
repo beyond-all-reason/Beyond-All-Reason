@@ -136,7 +136,7 @@ return {
 					default = 225,
 				},
 			},
-			gauss = {
+			paladin_plasma_cannon = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -146,7 +146,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Long-range g2g gauss cannon",
+				name = "Standard Gauss Cannons",
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 1.666,
@@ -203,7 +203,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "GAUSS",
+				def = "paladin_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

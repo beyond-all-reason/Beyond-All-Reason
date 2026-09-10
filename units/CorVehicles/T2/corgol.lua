@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_gol = {
+			tzar_plasma_cannon = {
 				areaofeffect = 292,
 				avoidfeature = false,
 				cegtag = "Heavy-Plasma",
@@ -121,7 +121,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
 				impulsefactor = 0.9,
-				name = "HeavyCannon",
+				name = "Heavy Blast Cannon",
 				noselfdamage = true,
 				range = 650,
 				reloadtime = 3.5,
@@ -144,7 +144,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "COR_GOL",
+				def = "tzar_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},

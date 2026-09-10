@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armanac_weapon = {
+			cayman_plasma_cannon = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -107,7 +107,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "MediumPlasmaCannon",
+				name = "Light Cannon",
 				noselfdamage = true,
 				range = 370,
 				reloadtime = 1.4,
@@ -126,7 +126,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMANAC_WEAPON",
+				def = "cayman_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -140,7 +140,7 @@ return {
 					vtol = 35,
 				},
 			},
-			cannon = {
+			lunkhead_plasma_cannon = {
 				areaofeffect = 160,
 				avoidfeature = false,
 				cegtag = "missiletrailcorroyspecial",
@@ -153,7 +153,7 @@ return {
 				impulsefactor = 0.123,
 				interceptedbyshieldtype = 4,
 				model = "airbombt2.s3o",
-				name = "Heavy ballistic underwater cannon",
+				name = "Medium Blast Cannon",
 				noselfdamage = true,
 				range = 575,
 				reloadtime = 1.8,
@@ -243,7 +243,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CANNON",
+				def = "lunkhead_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
