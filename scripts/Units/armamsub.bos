@@ -4,7 +4,7 @@
 
 piece  base, pad, main1, main2,main3,mid1,mid2,mid3,end1,end3,end2,nano1,nano2,nano3,beam1,beam2,beam3,cover1,cover2;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -17,6 +17,7 @@ Create()
 	hide beam1;
 
 	spray = 0;
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -41,41 +42,33 @@ StopBuilding()
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn mid1 to z-axis <60> speed <60>;
-	turn mid3 to z-axis <-60> speed <60>;
-	
-	turn end1 to z-axis <-80> speed <80>;
-	turn end3 to z-axis <80> speed <80>;
-	
-	turn cover1 to z-axis <45> speed <45>;
-	turn cover2 to z-axis <-45> speed <45>;
-	
-	turn end2 to x-axis <-90> speed <90>;
-	wait-for-turn end2 around x-axis;
-	
+	if( !hasOpened )
+	{
+		turn mid1 to z-axis <60> speed <60>;
+		turn mid3 to z-axis <-60> speed <60>;
+
+		turn end1 to z-axis <-80> speed <80>;
+		turn end3 to z-axis <80> speed <80>;
+
+		turn cover1 to z-axis <45> speed <45>;
+		turn cover2 to z-axis <-45> speed <45>;
+
+		turn end2 to x-axis <-90> speed <90>;
+		wait-for-turn end2 around x-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn mid1 to z-axis <0> speed <60>;
-	turn mid3 to z-axis <0> speed <60>;
-	
-	turn end1 to z-axis <0> speed <80>;
-	turn end3 to z-axis <0> speed <80>;
-	
-	turn cover1 to z-axis <0> speed <45>;
-	turn cover2 to z-axis <0> speed <45>;
-	
-	turn end2 to x-axis <0> speed <90>;
-	wait-for-turn end2 around x-axis;
 
 	FACTORY_CLOSE_BUILD;
 }
