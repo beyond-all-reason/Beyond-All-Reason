@@ -499,6 +499,12 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function mouseEvent(mx, my, button, release)
+	-- A press on a top bar button is the top bar's to handle: it closes the open windows
+	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+		return false
+	end
+
 	local boxType = isAbove({ x = mx, y = my }, guiData)
 	if not boxType and guiData.mainPanel.visible then
 		if release then

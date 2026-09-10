@@ -3174,24 +3174,34 @@ function widget:MouseMove(x, y)
 	adjustSliders(x, y)
 end
 
+-- Second return value: the window refused to close (the keybind editor raises a guard
+-- when there are unsaved edits) and is still up.
 local function closeWindow(name)
 	if WG[name] ~= nil and WG[name].isvisible() then
 		WG[name].toggle(false)
-		return true
+		return true, WG[name].isvisible() == true
 	end
-	return false
+	return false, false
 end
 
 local function hideWindows()
 	local closedWindow = false
-	closedWindow = closeWindow("options") or closedWindow
-	closedWindow = closeWindow("scavengerinfo") or closedWindow
-	closedWindow = closeWindow("missioninfo") or closedWindow
-	closedWindow = closeWindow("keybinds") or closedWindow
-	closedWindow = closeWindow("changelog") or closedWindow
-	closedWindow = closeWindow("gameinfo") or closedWindow
-	closedWindow = closeWindow("teamstats") or closedWindow
-	closedWindow = closeWindow("widgetselector") or closedWindow
+	local stillOpen = false
+
+	local function hide(name)
+		local closed, blocked = closeWindow(name)
+		closedWindow = closed or closedWindow
+		stillOpen = blocked or stillOpen
+	end
+
+	hide("options")
+	hide("scavengerinfo")
+	hide("missioninfo")
+	hide("keybinds")
+	hide("changelog")
+	hide("gameinfo")
+	hide("teamstats")
+	hide("widgetselector")
 	if showQuitscreen then
 		closedWindow = true
 	end
@@ -3208,7 +3218,7 @@ local function hideWindows()
 		graphsWindowVisible = false
 	end
 
-	return closedWindow
+	return closedWindow, stillOpen
 end
 
 local function toggleWindow(name)
@@ -3216,11 +3226,31 @@ local function toggleWindow(name)
 	if WG[name] ~= nil then
 		isvisible = WG[name].isvisible()
 	end
-	hideWindows()
+	local _, stillOpen = hideWindows()
+	-- Opening another window on top of a window that refused to close would bury its guard.
+	if stillOpen then
+		return isvisible
+	end
 	if WG[name] ~= nil and isvisible ~= true then
 		WG[name].toggle()
 	end
 	return isvisible
+end
+
+-- Which menu button, if any, sits under these screen coords.
+-- Exposed as WG.topbar.buttonAt so the window widgets (which sit on a lower layer and
+-- therefore see the click first) can tell a click on the top bar apart from a click that
+-- dismisses them: closing themselves there would eat the click meant to open another window.
+local function buttonAt(x, y)
+	if not buttonsArea.buttons then
+		return nil
+	end
+	for name, pos in pairs(buttonsArea.buttons) do
+		if mathIsInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+			return name
+		end
+	end
+	return nil
 end
 
 local function applyButtonAction(button)
@@ -3255,6 +3285,7 @@ local function applyButtonAction(button)
 	elseif button == "options" then
 		toggleWindow("options")
 	elseif button == "save" then
+		hideWindows()
 		if isSinglePlayer and cfg.allowSavegame and WG.savegame then
 			local time = os.date("%Y%m%d_%H%M%S")
 			Spring.SendCommands("savegame " .. time)
@@ -3458,13 +3489,10 @@ function widget:MousePress(x, y, button)
 			end
 		end
 
-		if buttonsArea.buttons then
-			for button, pos in pairs(buttonsArea.buttons) do
-				if mathIsInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					applyButtonAction(button)
-					return true
-				end
-			end
+		local clickedButton = buttonAt(x, y)
+		if clickedButton then
+			applyButtonAction(clickedButton)
+			return true
 		end
 	else
 		if showQuitscreen and quitscreenArea then
@@ -3596,6 +3624,10 @@ function widget:Initialize()
 
 	WG.topbar.hideWindows = function()
 		hideWindows()
+	end
+
+	WG.topbar.buttonAt = function(x, y)
+		return buttonAt(x, y)
 	end
 
 	WG.topbar.setAutoHideButtons = function(value)
