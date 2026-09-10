@@ -40,9 +40,24 @@ local gameover = false
 local currentIcon = nil -- Track currently desired icon for periodic reapplication
 
 local faction = "_a"
-if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
-	faction = "_c"
+
+-- The "startUnit" rules param isn't set yet during pregame (and never for spectators),
+-- so it can be nil or point at a nonexistent unitdef. Keep the previous faction then.
+local function UpdateFaction()
+	local startUnit = Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")
+	local unitDef = startUnit and UnitDefs[startUnit]
+	if not unitDef then
+		return false
+	end
+	local newFaction = unitDef.name == "corcom" and "_c" or "_a"
+	if newFaction == faction then
+		return false
+	end
+	faction = newFaction
+	return true
 end
+
+UpdateFaction()
 
 local mouseOffscreen = select(6, spGetMouseState())
 
@@ -64,13 +79,7 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
-	local prevFaction = faction
-	if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
-		faction = "_c"
-	else
-		faction = "_a"
-	end
-	if prevFaction ~= faction then
+	if UpdateFaction() then
 		SetIcon(imgPrefix .. faction .. imageBattle)
 	end
 end
@@ -115,16 +124,8 @@ function widget:Update(dt)
 					paused = false
 				end
 			end
-		else
-			local prevFaction = faction
-			if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "corcom" then
-				faction = "_c"
-			else
-				faction = "_a"
-			end
-			if prevFaction ~= faction then
-				SetIcon(imgPrefix .. faction .. imageBattle)
-			end
+		elseif UpdateFaction() then
+			SetIcon(imgPrefix .. faction .. imageBattle)
 		end
 		previousGameFrame = gameFrame
 

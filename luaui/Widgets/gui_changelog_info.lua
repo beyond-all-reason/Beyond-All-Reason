@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local Markdown = VFS.Include("luaui/Include/markdown.lua")
+
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathMax = math.max
@@ -28,11 +30,9 @@ local math_isInRect = math.isInRect
 
 local vsx, vsy = spGetViewGeometry()
 
-local changelogFile = VFS.LoadFile("changelog.txt")
--- Convert tabs to 4 spaces
-changelogFile = string.gsub(changelogFile, "\t", "    ")
-local changelogFileHash = VFS.CalculateHash(changelogFile, 0)
-local changelogFileLength = string.len(changelogFile)
+local changelogFile = VFS.LoadFile("changelog.md")
+local changelogFileHash = changelogFile and VFS.CalculateHash(changelogFile, 0) or ""
+local changelogFileLength = changelogFile and string.len(changelogFile) or 0
 local lastviewedHash = ""
 local lastviewedChangelogLength = 0
 
@@ -50,9 +50,12 @@ local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local widgetScale = (vsy / 1080)
 
-local versions = {} -- version k -> index of the changelog line its heading is on
-local versionLabels = {} -- version k -> the heading text shown in the month column
-local changelogLines = {}
+-- The changelog is markdown: the month column lists its chapter headings (the
+-- shallowest heading level the file uses), and the text is rendered by the shared
+-- markdown include, so bold, lists, code and links look the way they do anywhere else.
+local doc
+local versions = {} -- chapter k -> index of the row its heading starts on
+local versionLabels = {} -- chapter k -> the heading text shown in the month column
 
 local showOnceMore = false -- used because of GUI shader delay
 
@@ -65,7 +68,7 @@ local UiScroller
 ---@type function
 local Highlight
 local elementCorner
-local font, loadedFontSize
+local font, fontBold, fontMono
 local panelList, sidebarList, backgroundGuishader, show
 local titleText = ""
 
@@ -94,15 +97,8 @@ local metrics = {
 	sidebarDrop = 8,
 	sidebarW = 200,
 	barW = 14,
-	-- Text rows: the heading size plus a separator, shared by every kind of line so the
-	-- scrollbar can count rows.
-	lineH = 19,
-	fsTitle = 17,
-	fsDate = 13,
-	fsLine = 15,
-	-- Body lines and dates sit this far in from the headings; bullet text a further step.
-	bodyX = 9,
-	bulletX = 26,
+	-- Rows the wheel moves per notch.
+	wheelRows = 3,
 	-- Corner radii, taken from FlowUI's so the panel rounds like the rest of the UI.
 	csSmall = 2,
 	csPanel = 4,
@@ -117,7 +113,6 @@ local look = {
 	-- strength it gives a plain row.
 	rowHoverOpacity = 0.14,
 	colorTitle = { 1, 1, 1, 1 },
-	colorDate = { 0.66, 0.88, 0.66, 1 },
 	colorLine = { 0.8, 0.77, 0.74, 1 },
 }
 local colorText = "\255\235\235\235"
@@ -130,14 +125,16 @@ local listX1 = 0
 local listRight = 0
 local barX1 = 0
 
--- One entry per changelog line: the rows it wraps into, where they print and how, so
--- the draw loop and the scroll math count the same rows.
-local layout = {}
--- Rows above each line, so the scrollbar knows where a line sits in the whole text.
-local lineOff = {}
-local totalRows = 0
-local startLine = 1
--- The highest startLine that still fills the band with whole entries.
+-- The markdown layout: sizes, faces and colours the include renders with. Rebuilt on
+-- resize, since every size in it is in pixels.
+local ctx
+-- The laid-out text, one entry per wrapped row, and where each row's top sits in the
+-- whole text so the scrollbar can place its thumb exactly.
+local rows = {}
+local rowTop = {}
+local totalH = 0
+local startRow = 1
+-- The highest startRow that still fills the band.
 local maxStart = 1
 local dragging = false
 -- Month column state: the entry under the cursor and the one lit as current. The
@@ -167,14 +164,14 @@ local function deleteGuishader()
 	end
 end
 
--- The version whose section holds the given line: the last heading at or above it.
-local function versionAt(line)
+-- The chapter whose section holds the given row: the last heading at or above it.
+local function versionAt(row)
 	if not versions[1] then
 		return nil
 	end
 	local k = 1
 	for i = 2, #versions do
-		if versions[i] <= line then
+		if versions[i] <= row then
 			k = i
 		else
 			break
@@ -183,19 +180,19 @@ local function versionAt(line)
 	return k
 end
 
--- Moves the text so the given line is the first one shown. The current month follows
--- the top line unless a click chose one explicitly, in which case that one stays lit
+-- Moves the text so the given row is the first one shown. The current month follows
+-- the top row unless a click chose one explicitly, in which case that one stays lit
 -- until the text is scrolled again.
-local function setStartLine(n, chosen)
+local function setStartRow(n, chosen)
 	n = mathMax(1, mathMin(maxStart, n))
-	if n ~= startLine then
-		startLine = n
+	if n ~= startRow then
+		startRow = n
 		if panelList then
 			glDeleteList(panelList)
 			panelList = nil
 		end
 	end
-	selectedIdx = chosen or versionAt(startLine)
+	selectedIdx = chosen or versionAt(startRow)
 end
 
 -- Cursor height in the band mapped straight onto the scroll range, as the keybind
@@ -207,87 +204,96 @@ local function scrollFromY(y)
 	elseif f > 1 then
 		f = 1
 	end
-	setStartLine(1 + mathFloor(f * (maxStart - 1) + 0.5))
+	setStartRow(1 + mathFloor(f * (maxStart - 1) + 0.5))
 end
 
-local function splitRows(s)
-	local rows = {}
-	for row in string.gmatch(s .. "\n", "([^\n]*)\n") do
-		rows[#rows + 1] = row
-	end
-	if #rows == 0 then
-		rows[1] = ""
-	end
-	return rows
+-- The space a row takes below its text box: the gap to the next block. The last row
+-- on a page may let that gap spill past the band, since nothing is drawn in it.
+local function rowTail(row)
+	return row.h - row.pad - row.box
 end
 
--- Wraps every line once against the text width, so drawing prints ready rows and the
--- scrollbar can measure the whole text instead of guessing one row per line.
-local function layoutLines()
-	layout = {}
-	lineOff = {}
-	local off = 0
-	local fsLine = metrics.fsLine
-	local scaleToFont = loadedFontSize / fsLine
-	local textW = listRight - listX1 - metrics.sidePad
-	local wrapBullet = (textW - metrics.bodyX - metrics.bulletX) * scaleToFont
-	local wrapPlain = (textW - metrics.bodyX) * scaleToFont
+-- The last row that fits on a page starting at `first`. The first row's top padding
+-- is not drawn, so it does not count.
+local function lastRowFrom(first)
+	local band = listTop - listBottom
+	local used = -rows[first].pad
+	local i = first
+	while rows[i] and used + rows[i].h - rowTail(rows[i]) <= band do
+		used = used + rows[i].h
+		i = i + 1
+	end
+	return mathMax(first, i - 1)
+end
 
-	for i, line in ipairs(changelogLines) do
-		local entry
-		if
-			string.find(line, "^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])")
-			or string.find(line, "^([0-9][/][0-9][0-9][/][0-9][0-9])")
-		then
-			-- date line
-			entry = { rows = { line }, x = metrics.bodyX, fs = metrics.fsDate, color = look.colorDate }
-		elseif string.find(line, "^# ") then
-			-- version line
-			entry = { rows = { string.sub(line, 3) }, x = 0, fs = metrics.fsTitle, color = look.colorTitle }
-		elseif string.find(line, "^(-)") then
-			-- bulletpointed line
-			local firstLetterPos = 2
-			if string.find(line, "^(- )") then
-				firstLetterPos = 3
-			end
-			local text = string.upper(string.sub(line, firstLetterPos, firstLetterPos))
-				.. string.sub(line, firstLetterPos + 1)
-			entry = {
-				rows = splitRows((font:WrapText(text, wrapBullet))),
-				x = metrics.bodyX + metrics.bulletX,
-				fs = fsLine,
-				color = look.colorLine,
-				bullet = true,
-			}
-		else
-			entry = {
-				rows = splitRows((font:WrapText(line, wrapPlain))),
-				x = metrics.bodyX,
-				fs = fsLine,
-				color = look.colorLine,
-			}
+-- Shortens a heading to the month column's width, since the column clips nothing.
+local function fitLabel(text)
+	local maxW = metrics.sidebarW - metrics.sidePad * 2
+	if font:GetTextWidth(text) * metrics.catFs <= maxW then
+		return text
+	end
+	local chars = {}
+	for ch in string.gmatch(text, "[%z\1-\127\194-\244][\128-\191]*") do
+		chars[#chars + 1] = ch
+	end
+	local n = #chars
+	while n > 1 do
+		n = n - 1
+		local short = table.concat(chars, "", 1, n) .. "..."
+		if font:GetTextWidth(short) * metrics.catFs <= maxW then
+			return short
 		end
-		layout[i] = entry
-		lineOff[i] = off
-		off = off + #entry.rows
 	end
-	totalRows = off
+	return "..."
+end
 
-	-- Walked back from the end so the last page is full of whole entries, the way the
-	-- keybind editor finds its own last page.
-	local rowsFit = mathFloor((listTop - listBottom) / metrics.lineH)
-	local used = 0
-	local i = #layout
+-- Lays the whole text out against the text width, so drawing prints ready rows and the
+-- scrollbar can measure the text instead of guessing one row per line.
+local function layoutRows()
+	ctx.width = listRight - listX1 - metrics.sidePad
+	rows = Markdown.layout(doc, ctx)
+	rowTop = {}
+	local off = 0
+	for i = 1, #rows do
+		rowTop[i] = off
+		off = off + rows[i].h
+	end
+	totalH = off
+
+	versions = {}
+	versionLabels = {}
+	for _, h in ipairs(doc.headings) do
+		if h.level == doc.chapterLevel then
+			versions[#versions + 1] = doc.blocks[h.block].firstRow
+			versionLabels[#versionLabels + 1] = fitLabel(h.text)
+		end
+	end
+	-- The first row always heads the column, so the latest entry is reachable even
+	-- when the file does not open with a heading.
+	if rows[1] and versions[1] ~= 1 then
+		local first = doc.blocks[1]
+		local label = first.inline and Markdown.plainText(first.inline) or ""
+		if label == "" then
+			label = "..."
+		end
+		table.insert(versions, 1, 1)
+		table.insert(versionLabels, 1, fitLabel(label))
+	end
+
+	-- Walked back from the end so the last page is full, the way the keybind editor
+	-- finds its own last page. The final row's trailing gap is not part of the text.
+	local band = listTop - listBottom
+	local i = #rows
+	local acc = rows[i] and -rowTail(rows[i]) or 0
 	while i > 0 do
-		local n = #layout[i].rows
-		if used + n > rowsFit then
+		if acc + rows[i].h - rows[i].pad > band then
 			break
 		end
-		used = used + n
+		acc = acc + rows[i].h
 		i = i - 1
 	end
 	maxStart = mathMax(1, i + 1)
-	setStartLine(startLine)
+	setStartRow(startRow)
 end
 
 -- Rebuilds every rect against the panel size. Whole pixels throughout, so glyph and
@@ -314,12 +320,6 @@ local function setLayout()
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(200 * s)
 	metrics.barW = mathFloor(14 * s)
-	metrics.fsTitle = mathFloor(17 * s)
-	metrics.fsDate = mathFloor(13 * s)
-	metrics.fsLine = mathFloor(15 * s)
-	metrics.lineH = metrics.fsTitle + mathFloor(2 * s)
-	metrics.bodyX = mathFloor(9 * s)
-	metrics.bulletX = mathFloor(26 * s)
 	metrics.csPanel = mathFloor(elementCorner)
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
 
@@ -330,6 +330,14 @@ local function setLayout()
 	-- a clear gap short of it, so the bar sits in a channel rather than hugging the rows.
 	barX1 = area.x2 - metrics.edgeInset - metrics.barW
 	listRight = barX1 - metrics.listGap
+
+	-- The markdown sizes scale with the panel; its palette follows the panel's look.
+	ctx = Markdown.defaultContext(s)
+	ctx.fonts = { regular = font, bold = fontBold, mono = fontMono }
+	ctx.rectRound = RectRound
+	ctx.corner = metrics.csSmall
+	ctx.colors.text = look.colorLine
+	ctx.colors.heading = look.colorTitle
 end
 
 -- The month column starts below where the text does, so the title above it is not
@@ -430,33 +438,16 @@ local function drawPanel()
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:Print(titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
-
-	-- Whole entries only: the band can end mid-entry, and a row painted below it would
-	-- be clipped by nothing.
-	local lineH = metrics.lineH
-	local rowsFit = mathFloor((listTop - listBottom) / lineH)
-	local r = 0
-	local i = startLine
-	while layout[i] do
-		local e = layout[i]
-		local rows = e.rows
-		if r + #rows > rowsFit then
-			break
-		end
-		local x = listX1 + e.x
-		font:SetTextColor(e.color)
-		if e.bullet then
-			font:Print("   - ", listX1 + metrics.bodyX, listTop - (r + 1) * lineH, e.fs, "n")
-		end
-		for k = 1, #rows do
-			font:Print(rows[k], x, listTop - (r + k) * lineH, e.fs, "n")
-		end
-		r = r + #rows
-		i = i + 1
-	end
 	font:End()
 
-	UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalRows * lineH, lineOff[startLine] * lineH)
+	-- Whole rows only: the band can end mid-paragraph, and a row painted below it would
+	-- be clipped by nothing.
+	if rows[startRow] then
+		Markdown.draw(rows, startRow, lastRowFrom(startRow), listX1, listTop, ctx)
+	end
+
+	local pos = rows[startRow] and (rowTop[startRow] + rows[startRow].pad) or 0
+	UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, pos)
 end
 
 function widget:ViewResize()
@@ -468,7 +459,10 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG.fonts.getFont()
+	-- Bold text takes the heavier weight of the UI face; code takes the monospaced one.
+	font = WG.fonts.getFont()
+	fontBold = WG.fonts.getFont("fonts/Poppins-Medium.otf")
+	fontMono = WG.fonts.getFont(3)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -479,7 +473,7 @@ function widget:ViewResize()
 	titleText = colorText .. BAR.I18N("ui.changelog.title")
 
 	setLayout()
-	layoutLines()
+	layoutRows()
 	dropLists()
 	deleteGuishader()
 end
@@ -550,7 +544,7 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	setStartLine(startLine + (up and -3 or 3))
+	setStartRow(startRow + (up and -metrics.wheelRows or metrics.wheelRows))
 	return true
 end
 
@@ -568,7 +562,7 @@ local function mouseEvent(x, y, button, release)
 		if not release and button == 1 then
 			local i = sidebarIndexAt(x, y)
 			if i then
-				setStartLine(versions[i], i)
+				setStartRow(versions[i], i)
 				if playSounds then
 					Spring.PlaySoundFile(buttonclick, 0.6, "ui")
 				end
@@ -625,20 +619,7 @@ function widget:Initialize()
 		return lastviewedHash ~= changelogFileHash and lastviewedChangelogLength < changelogFileLength
 	end
 
-	-- store changelog into array
-	changelogLines = string.lines(changelogFile)
-
-	-- The first line always heads the column, so the latest entry is reachable even
-	-- when the file does not open with a heading.
-	local versionKey = 0
-	for i, line in ipairs(changelogLines) do
-		if versionKey == 0 or string.match(line, "^# ") then
-			versionKey = versionKey + 1
-			versions[versionKey] = i
-			versionLabels[versionKey] = string.match(line, "^# (.*)") or line
-		end
-	end
-	selectedIdx = versionAt(startLine)
+	doc = Markdown.parse(changelogFile)
 
 	widget:ViewResize()
 end
