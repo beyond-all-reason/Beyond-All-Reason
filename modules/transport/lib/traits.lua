@@ -19,6 +19,10 @@
 ---@field stealthsPassengers boolean a carrier that hides what it carries
 ---@field isNano boolean a nano turret: loads and sets down under its own rules
 ---@field leavesGhost boolean
+---@field canMove boolean
+---@field unstackRadius number elmos around a set-down nano within which an immobile ally counts as stacked
+---@field minWaterDepth number
+---@field maxWaterDepth number
 
 local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 
@@ -56,6 +60,10 @@ function Traits.Of(unitDefID)
 			stealthsPassengers = def.customParams.stealths_passengers ~= nil,
 			isNano = def.customParams.isnanoturret ~= nil,
 			leavesGhost = def.leavesGhost == true,
+			canMove = def.canMove == true,
+			unstackRadius = math.floor((def.xsize + def.zsize) * 0.5 * 6),
+			minWaterDepth = def.minWaterDepth,
+			maxWaterDepth = def.maxWaterDepth,
 		}
 		cache[unitDefID] = traits
 	end
