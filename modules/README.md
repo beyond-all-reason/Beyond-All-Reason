@@ -24,6 +24,7 @@ The loader expects code in the following subdirectories:
 `scripts/`
 
 It'll load the stuff in `<module>/gadgets/` as a gadget, `widgets/` as a widget, and so on.
+It will only load unit scripts from `scripts/`. .cob files won't be loaded.
 
 If you make a `modoptions.lua`, the loader will add its contents to the base modoptions.
 
@@ -42,11 +43,22 @@ local Modules = VFS.Include("modules/enums.lua").Modules
 ---@class MyModuleState
 ---@field MyField table<integer, number> description of my field
 ... other fields...
-local state = ModuleHandler.State(Modules.Transport) ---@type MyModuleState
+local state = ModuleHandler.State(Modules.MyModule) ---@type MyModuleState
 
 -- This gets run every time someone gets the state, so use previously set value, if there is one
 state.MyField = state.MyField or {}
 ... initialize other fields
 
 return state
+```
+
+**`modules/enums.lua`**
+
+This file defines the enums for all the modules. You'll want to add an entry for yours as here.
+```
+local Modules = {
+	Defs = "defs",
+	Game = "game",
+	MyModule = "MyModule",
+}
 ```
