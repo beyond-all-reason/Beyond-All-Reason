@@ -11,6 +11,14 @@
 ---@field transportMass number|nil
 ---@field minTransportMass number|nil
 ---@field footprintX number the engine-scaled xsize
+---@field canFly boolean
+---@field reach number|nil load reach in elmos; nil for anything that is not an air transport
+---@field isCommander boolean
+---@field isParatrooper boolean drops with momentum instead of settling
+---@field isStealthy boolean
+---@field stealthsPassengers boolean a carrier that hides what it carries
+---@field isNano boolean a nano turret: loads and sets down under its own rules
+---@field leavesGhost boolean
 
 local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 
@@ -39,6 +47,15 @@ function Traits.Of(unitDefID)
 			transportMass = def.transportMass,
 			minTransportMass = def.minTransportMass,
 			footprintX = def.xsize / Rules.FOOTPRINT_SCALE,
+			canFly = def.canFly == true,
+			reach = Rules.Reach(def),
+			isCommander = def.customParams.iscommander == "1",
+			isParatrooper = (def.customParams.paratrooper or def.customParams.subfolder == "other/hats") and true
+				or false,
+			isStealthy = def.stealth == true,
+			stealthsPassengers = def.customParams.stealths_passengers ~= nil,
+			isNano = def.customParams.isnanoturret ~= nil,
+			leavesGhost = def.leavesGhost == true,
 		}
 		cache[unitDefID] = traits
 	end

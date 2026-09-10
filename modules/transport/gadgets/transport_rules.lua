@@ -17,91 +17,18 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
-local TransportEnums = VFS.Include("modules/transport/enums.lua")
-local ModuleHandler = VFS.Include("modules/module_handler.lua")
-local Modules = VFS.Include("modules/enums.lua").Modules
-
-local pipelines = ModuleHandler.LoadPolicies(Modules.Transport) ---@type TransportPipelines
-
----@param ctx TransportLoadContext
----@return boolean
-local function decideLoad(ctx)
-	return ModuleHandler.Evaluate(pipelines.load, ctx)
-end
-
----@param ctx TransportUnloadContext
----@return boolean
-local function decideUnload(ctx)
-	return ModuleHandler.Evaluate(pipelines.unload, ctx)
-end
-
----@param ctx TransportLoadedSpeedContext
----@return number
-local function decideLoadedSpeed(ctx)
-	return ModuleHandler.Evaluate(pipelines.loaded_speed, ctx)
-end
-
-local modOptions = Spring.GetModOptions()
-local commanderDrag = modOptions[TransportEnums.ModOptions.CommanderTransportSlow] == true
-local FRAMES_PER_SECOND = Game.gameSpeed
-
-local reach = {} ---@type table<integer, number> air transport def -> elmos
-local canFly = {} ---@type table<integer, boolean>
-local speed = {} ---@type table<integer, number>
-local isCommander = {} ---@type table<integer, boolean>
-local isParatrooper = {} ---@type table<integer, boolean>
-local isStealthy = {} ---@type table<integer, boolean>
-local stealthyTransport = {} ---@type table<integer, boolean>
-local isNano = {} ---@type table<integer, boolean>
-local leavesGhost = {} ---@type table<integer, boolean>
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	reach[unitDefID] = Rules.Reach(unitDef)
-	canFly[unitDefID] = unitDef.canFly or nil
-	speed[unitDefID] = unitDef.speed
-	isCommander[unitDefID] = unitDef.customParams.iscommander == "1" or nil
-	isParatrooper[unitDefID] = (unitDef.customParams.paratrooper or unitDef.customParams.subfolder == "other/hats")
-			and true
-		or nil
-	isStealthy[unitDefID] = unitDef.stealth or nil
-	stealthyTransport[unitDefID] = unitDef.customParams.stealths_passengers ~= nil or nil
-	isNano[unitDefID] = unitDef.customParams.isnanoturret ~= nil or nil
-	leavesGhost[unitDefID] = unitDef.leavesGhost == true or nil
-end
+local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 
 local loadedSpeed = {} ---@type table<integer, number> air transport -> allowed elmos per frame
 local settling = {} ---@type table<integer, table> unloaded unit -> where it landed, and when to pin it
 local maybeDead = {} ---@type table<integer, integer> cargo -> the carrier that just let go
 
 ---@param transportID integer
----@param goalX number
----@param goalY number
----@param goalZ number
----@return number
-local function distanceToGoal(transportID, goalX, goalY, goalZ)
-	local x, y, z = Spring.GetUnitPosition(transportID)
-	local dx, dy, dz = x - goalX, y - goalY, z - goalZ
-	return math.sqrt(dx * dx + dy * dy + dz * dz)
-end
-
----@param transportID integer
 local function updateLoadedSpeed(transportID)
-	local cargo = Spring.GetUnitIsTransporting(transportID)
-	if cargo == nil then
-		return
+	local allowed = Transport.LoadedSpeed(transportID)
+	if allowed ~= nil then
+		loadedSpeed[transportID] = allowed
 	end
-	local carriesCommander = false
-	for _, unitID in ipairs(cargo) do
-		if isCommander[Spring.GetUnitDefID(unitID)] then
-			carriesCommander = true
-		end
-	end
-	loadedSpeed[transportID] = decideLoadedSpeed({
-		carriesCommander = carriesCommander,
-		transportSpeed = speed[Spring.GetUnitDefID(transportID)] or 0,
-		dragEnabled = commanderDrag,
-		framesPerSecond = FRAMES_PER_SECOND,
-	})
 end
 
 ---@param unitID integer
@@ -111,13 +38,7 @@ local function deadOrCrashing(unitID)
 end
 
 function gadget:AllowUnitTransport(_, transporterDefID, _, transporteeID, transporteeDefID)
-	local _, y = Spring.GetUnitPosition(transporteeID)
-	return decideLoad({
-		goalY = y,
-		height = Spring.GetUnitHeight(transporteeID),
-		carrierDef = UnitDefs[transporterDefID],
-		passengerDef = UnitDefs[transporteeDefID],
-	})
+	return Transport.MayCarry(transporterDefID, transporteeID, transporteeDefID)
 end
 
 function gadget:AllowUnitTransportLoad(
@@ -131,80 +52,52 @@ function gadget:AllowUnitTransportLoad(
 	goalY,
 	goalZ
 )
-	local airReach = reach[transporterDefID]
-	local allowed = decideLoad({
-		carrierDef = UnitDefs[transporterDefID],
-		passengerDef = UnitDefs[transporteeDefID],
-		goalY = goalY,
-		height = Spring.GetUnitHeight(transporteeID),
-		reach = airReach,
-		distance = airReach and distanceToGoal(transporterID, goalX, goalY, goalZ) or 0,
-		allied = Spring.AreTeamsAllied(Spring.GetUnitTeam(transporterID), Spring.GetUnitTeam(transporteeID)),
-		passengerSpeed = select(4, Spring.GetUnitVelocity(transporteeID)),
-	})
-	if allowed and airReach then
+	local allowed =
+		Transport.MayLoad(transporterID, transporterDefID, transporteeID, transporteeDefID, goalX, goalY, goalZ)
+	if allowed and Transport.DefTraits(transporterDefID).reach then
 		Spring.SetUnitVelocity(transporterID, 0, 0, 0)
 	end
 	return allowed
 end
 
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, _, transporteeID, _, _, goalX, goalY, goalZ)
-	local airReach = reach[transporterDefID]
-	local allowed = decideUnload({
-		goalY = goalY,
-		height = Spring.GetUnitHeight(transporteeID),
-		reach = airReach,
-		distance = airReach and distanceToGoal(transporterID, goalX, goalY, goalZ) or 0,
-	})
-	if allowed and airReach then
+	local allowed = Transport.MayUnload(transporterID, transporterDefID, transporteeID, goalX, goalY, goalZ)
+	if allowed and Transport.DefTraits(transporterDefID).reach then
 		Spring.SetUnitVelocity(transporterID, 0, 0, 0)
 	end
 	return allowed
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
-	if not UnitDefs[unitDefID].isTransport then
+	if not Transport.DefTraits(unitDefID).isTransport then
 		return false
 	end
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 1 then
 			local targetID = cmdParams[1]
 			if Spring.ValidUnitID(targetID) then
-				local targetTeam = Spring.GetUnitTeam(targetID)
-				local targetDefID = Spring.GetUnitDefID(targetID)
-				local _, y = Spring.GetUnitPosition(targetID)
-				return decideLoad({
-					goalY = y,
-					height = Spring.GetUnitHeight(targetID),
-					carrierDef = UnitDefs[unitDefID],
-					passengerDef = UnitDefs[targetDefID],
-					allied = Spring.AreTeamsAllied(teamID, targetTeam),
-					ownTeam = targetTeam == teamID,
-					nano = isNano[targetDefID] == true,
-					distance = 0,
-					passengerSpeed = 0,
-				})
+				return Transport.MayOrderLoad(unitID, unitDefID, teamID, targetID)
 			end
 		end
 	elseif cmdParams[1] and cmdParams[3] then
 		local cargo = Spring.GetUnitIsTransporting(unitID)
-		if cargo and cargo[1] and isNano[Spring.GetUnitDefID(cargo[1])] then
-			local _, normalY = Spring.GetGroundNormal(cmdParams[1], cmdParams[3])
-			return decideUnload({ goalY = cmdParams[2], height = 0, nano = true, groundNormalY = normalY })
+		if cargo and cargo[1] and Transport.DefTraits(Spring.GetUnitDefID(cargo[1])).isNano then
+			return Transport.MayOrderUnload(cmdParams[1], cmdParams[2], cmdParams[3])
 		end
 	end
 	return true
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, _, transportID)
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	if canFly[transportDefID] then
+	local carrier = Transport.DefTraits(Spring.GetUnitDefID(transportID))
+	local passenger = Transport.DefTraits(unitDefID)
+	if carrier.canFly then
 		updateLoadedSpeed(transportID)
 	end
-	if stealthyTransport[transportDefID] and not isStealthy[unitDefID] then
+	if carrier.stealthsPassengers and not passenger.isStealthy then
 		Spring.SetUnitStealth(unitID, true)
 	end
-	if leavesGhost[unitDefID] then
+	if passenger.leavesGhost then
 		Spring.SetUnitLeavesGhost(unitID, false, true)
 	end
 end
@@ -213,8 +106,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then
 		return
 	end
-	local transportDefID = Spring.GetUnitDefID(transportID)
-	if canFly[transportDefID] then
+	local carrier = Transport.DefTraits(Spring.GetUnitDefID(transportID))
+	local passenger = Transport.DefTraits(unitDefID)
+	if carrier.canFly then
 		local cargo = Spring.GetUnitIsTransporting(transportID)
 		if cargo == nil or cargo[1] == nil then
 			loadedSpeed[transportID] = nil
@@ -222,14 +116,14 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 			updateLoadedSpeed(transportID)
 		end
 	end
-	if stealthyTransport[transportDefID] and not isStealthy[unitDefID] then
+	if carrier.stealthsPassengers and not passenger.isStealthy then
 		Spring.SetUnitStealth(unitID, false)
 	end
-	if leavesGhost[unitDefID] then
+	if passenger.leavesGhost then
 		Spring.SetUnitLeavesGhost(unitID, true)
 	end
 
-	if isParatrooper[unitDefID] then
+	if passenger.isParatrooper then
 		local vx, vy, vz = Spring.GetUnitVelocity(transportID)
 		vx, vz = Rules.ClampParatrooperVelocity(vx), Rules.ClampParatrooperVelocity(vz)
 		local x, y, z = Spring.GetUnitPosition(unitID)

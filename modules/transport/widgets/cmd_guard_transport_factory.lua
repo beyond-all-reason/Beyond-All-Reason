@@ -266,17 +266,7 @@ local function canTransport(transportID, unitID)
 		return false
 	end
 
-	local _, y = Spring.GetUnitPosition(unitID)
-	return y ~= nil
-		and Transport.MayLoad({
-			goalY = y,
-			height = Spring.GetUnitHeight(unitID),
-			carrierDef = UnitDefs[tdef],
-			passengerDef = UnitDefs[udef],
-			distance = 0,
-			allied = true,
-			passengerSpeed = 0,
-		})
+	return Transport.MayCarry(tdef, unitID, udef)
 end
 
 local function removePreDestinationMoveCommands(unitID, destination)
