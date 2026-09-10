@@ -84,7 +84,8 @@ end
 local function processParameters(actionsOrTriggers, schemaParameters)
 	for _, actionOrTrigger in pairs(actionsOrTriggers) do
 		local parameters = actionOrTrigger.parameters or {}
-		for _, parameter in ipairs(schemaParameters[actionOrTrigger.type]) do
+		local schema = schemaParameters[actionOrTrigger.type] or {}
+		for _, parameter in ipairs(schema) do
 			local value = parameters[parameter.name]
 			local processor = processors[parameter.type]
 			if value ~= nil and processor then
