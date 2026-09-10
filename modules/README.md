@@ -1,49 +1,51 @@
 # Modules
 
-**A module** is a directory under `modules/` that owns one concern and ships its own game files: gadgets, widgets, unit scripts, modoptions. The game's own handlers load them from there, so a module is a place to put things, not a new kind of thing.
+**A module** is a collection of all the code related to a particular area. It includes everything - gadgets, widgets, unit scripts, and modoptions.
 
-This is the loader. What a module *decides*, the policy pipelines, contracts and actions, lands in the next PR on top of it; nothing here changes how the game behaves.
+## Creating a module
 
-## The layout
+The loader reads the module's manifest.lua to decide whether to load it or not. Directories in `modules/` that don't have one are ignored by the module loader.
 
-A module is one directory under `modules/`. The loader knows these files and folders and nothing else. Every entry is optional except the manifest.
-
-**`module.lua`**
-
-The manifest. Names the module (it must match the directory), describes it, and lists what it requires. No manifest, no module: any other directory under `modules/` is ignored.
+An example of a manifest.lua:
 ```lua
-return { name = "transport", description = "What a carrier may pick up, and how it flies loaded", requires = { "defs" } }
+return { name = "transport", 
+		 description = "Code governing transports, such as loading rules or passenger state", 
+		 requires = { "defs" } } // The loader won't load this module if the "defs" module isn't loaded.
 ```
 
-**`gadgets/`, `widgets/`, `rml_widgets/`, `scripts/`**
+`name` is a required field, and must match the name of the module directory.
 
-The game's own kinds of file, loaded the way the game already loads their loose equivalents. Gadgets and widgets are added to the handler's list; unit scripts join the script loader's registry under their `modules/` path, so a def names one as `modules/<module>/scripts/<file>.lua`.
+**Directory structure**
 
-**`modoptions.lua`**
+The loader expects code in the following subdirectories:
+`gadgets/`, 
+`widgets/`, 
+`rml_widgets/`, 
+`scripts/`
 
-The module's fragment of the game's options. The root `modoptions.lua` appends every module's fragment, so a module that ships options needs no change to the root file.
+It'll load the stuff in `<module>/gadgets/` as a gadget, `widgets/` as a widget, and so on.
 
-**`state.lua`**
+If you make a `modoptions.lua`, the loader will add its contents to the base modoptions.
 
-What the module keeps in memory, declared once as a class and anchored once per Lua state through `ModuleHandler.State`. A file-level table that is written after load lives here, never in a `local`: `VFS.Include` is uncached, so a local is one copy per includer.
+**`<module>/state.lua`**
 
+Module-scoped state and variables should be placed here. This file should declare a big struct with all the module's state and return it.
+Consumers access this state by including state.lua, like so:
+`local MyModuleState = VFS.Include("modules/<module>/state.lua")`
+
+A state.lua looks like this:
 ```lua
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local Modules = VFS.Include("modules/enums.lua").Modules
 
----@class TransportState
----@field carriers table<integer, integer>
-local state = ModuleHandler.State(Modules.Transport) ---@type TransportState
+---@class MyModuleState
+---@field MyField table<integer, number> description of my field
+... other fields...
+
+// This object is initialized according to the field descriptions above 
+local state = ModuleHandler.State(Modules.Transport) ---@type MyModuleState
+state.MyField = state.MyField or {}  // Use previously defined value, if there is one
+... initialize other fields
 
 return state
 ```
-
-Readers include `state.lua` and never call `State` themselves.
-
-## What the loader refuses
-
-- a directory under `modules/` with no `module.lua` is ignored
-- a manifest whose name does not match its directory is an error naming both
-- a `requires` entry that names no discovered module is an error
-
-Every file under `modules/` is loaded by the game's own handlers, in the same Lua state as the loose file it stands beside, with the same VFS mode. Synced code sees the archive only.
