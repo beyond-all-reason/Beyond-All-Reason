@@ -459,6 +459,14 @@ local function migrate()
 	end
 
 	M.save()
+
+	-- A keyload naming a retired preset resolves to that profile's bindings here and to
+	-- nothing engine-side, so hand it the store rather than the file the store came from.
+	local active = M.getActive()
+	local file = active and M.materialize(active)
+	if file then
+		Spring.SetConfigString("KeybindingFile", file)
+	end
 end
 
 -- Reads the store once, migrating an older layout on the way in.
