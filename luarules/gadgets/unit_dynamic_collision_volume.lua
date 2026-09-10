@@ -14,7 +14,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local popupUnits = {} --list of pop-up style units
-	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume
+	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume, modelToVolume
 
 	-- Localization and speedups
 	local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
@@ -23,22 +23,15 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCollisionData = Spring.GetUnitCollisionVolumeData
 	local spSetUnitCollisionData = Spring.SetUnitCollisionVolumeData
 	local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
-	local spGetUnitRadius = Spring.GetUnitRadius
 	local spGetUnitHeight = Spring.GetUnitHeight
 	local spSetUnitMidAndAimPos = Spring.SetUnitMidAndAimPos
-	local spGetFeatureCollisionData = Spring.GetFeatureCollisionVolumeData
-	local spSetFeatureCollisionData = Spring.SetFeatureCollisionVolumeData
-	local spSetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
-	local spGetFeatureRadius = Spring.GetFeatureRadius
-	local spGetFeatureHeight = Spring.GetFeatureHeight
+	local spGetFeatureDefID = Spring.GetFeatureDefID
 
 	local spArmor = Spring.GetUnitArmored
 	local pairs = pairs
-	local is3doFeature = {}
+	local featureModelType = {}
 	for featureDefID, def in pairs(FeatureDefs) do
-		if def.modelpath:lower():find(".3do") then
-			is3doFeature[featureDefID] = true
-		end
+		featureModelType[featureDefID] = def.modeltype
 	end
 
 	local unitName = {}
@@ -53,42 +46,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume =
+		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume, modelToVolume =
 			include("LuaRules/Configs/CollisionVolumes.lua")
 
 		local allFeatures = Spring.GetAllFeatures()
 		for i = 1, #allFeatures do
 			local featID = allFeatures[i]
-			local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
-			local featureModel = modelpath:lower()
-			if featureModel:find(".3do") then
-				local rs, hs
-				if spGetFeatureRadius(featID) > 47 then
-					rs, hs = 0.68, 0.60
-				else
-					rs, hs = 0.75, 0.67
-				end
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					spSetFeatureCollisionData(
-						featID,
-						xs * rs,
-						ys * hs,
-						zs * rs,
-						xo,
-						yo - ys * 0.1323529 * rs,
-						zo,
-						vtype,
-						htype,
-						axis
-					)
-				end
-				spSetFeatureRadiusAndHeight(featID, spGetFeatureRadius(featID) * rs, spGetFeatureHeight(featID) * hs)
-			elseif featureModel:find(".s3o") then
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					spSetFeatureCollisionData(featID, xs, ys * 0.75, zs, xo, yo - ys * 0.09, zo, vtype, htype, axis)
-				end
+			if featureModelType[spGetFeatureDefID(featID)] == "s3o" then
+				modelToVolume.FEATURE["s3o"].rescale(featID)
 			end
 		end
 		local allUnits = Spring.GetAllUnits()
@@ -179,36 +144,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
-		local featureDefID = Spring.GetFeatureDefID(featureID)
-		if is3doFeature[featureDefID] then
-			local rs, hs
-			if spGetFeatureRadius(featureID) > 47 then
-				rs, hs = 0.68, 0.60
-			else
-				rs, hs = 0.75, 0.67
-			end
-			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featureID)
-			if vtype >= 3 and xs == ys and ys == zs then
-				spSetFeatureCollisionData(
-					featureID,
-					xs * rs,
-					ys * hs,
-					zs * rs,
-					xo,
-					yo - ys * 0.09,
-					zo,
-					vtype,
-					htype,
-					axis
-				)
-			end
-			spSetFeatureRadiusAndHeight(
-				featureID,
-				spGetFeatureRadius(featureID) * rs,
-				spGetFeatureHeight(featureID) * hs
-			)
+		if featureModelType[spGetFeatureDefID(featureID)] == "3do" then
+			modelToVolume.FEATURE["3do"].rescale(featureID)
 		end
 	end
 
