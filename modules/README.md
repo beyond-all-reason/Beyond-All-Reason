@@ -55,7 +55,8 @@ return state
 **`modules/enums.lua`**
 
 This file defines the enums for all the modules. You'll want to add an entry for yours here. The module handler uses the enum to refer to the module, and you need to provide the mapping from that to the directory name.
-```
+
+```lua
 local Modules = {
 	Defs = "defs",
 	Game = "game",
