@@ -1,9 +1,56 @@
 ---
---- Checks references: objectives in a stage, nextStage, and unit, feature, and marker names.
+--- Checks references: objectives in a stage, nextStage, objective events, and unit, feature and marker names.
+--- Malformed entries are skipped, as sections.lua already reports them.
 ---
 
 local SECTION = VFS.Include("luarules/mission_api/validation/report.lua").Sections.References
 local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
+
+--------------------------------------------------------------------------------
+-- Shared helpers
+--------------------------------------------------------------------------------
+
+local function parametersOf(actionOrTrigger)
+	if type(actionOrTrigger) ~= "table" or type(actionOrTrigger.parameters) ~= "table" then
+		return nil
+	end
+	return actionOrTrigger.parameters
+end
+
+local function recordSource(sourcesByName, name, source)
+	local sources = table.ensureTable(sourcesByName, name)
+	sources[#sources + 1] = source
+end
+
+local function reportUnmatchedNames(report, label, createdNames, referencedNames)
+	local function describeSources(sources)
+		table.sort(sources)
+		return table.concat(sources, ", ")
+	end
+
+	for name, sources in pairs(referencedNames) do
+		if not createdNames[name] then
+			report.Warn(
+				SECTION,
+				label,
+				name,
+				label .. " is referenced, but never created",
+				"Referenced in: " .. describeSources(sources)
+			)
+		end
+	end
+	for name, sources in pairs(createdNames) do
+		if not referencedNames[name] then
+			report.Warn(
+				SECTION,
+				label,
+				name,
+				label .. " is created, but never referenced",
+				"Created in: " .. describeSources(sources)
+			)
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Stage and objective references
@@ -92,6 +139,10 @@ local function validateObjectiveEventReferences(context, report)
 	end
 end
 
+--------------------------------------------------------------------------------
+-- Marker name references
+--------------------------------------------------------------------------------
+
 local function validateMarkerNameReferences(context, report)
 	local actionTypes = context.ActionTypes
 	local createdNames = {}
@@ -99,8 +150,8 @@ local function validateMarkerNameReferences(context, report)
 
 	--- Only actions use marker names
 	for actionID, action in pairs(context.Actions) do
-		local parameters = type(action) == "table" and action.parameters
-		if type(parameters) == "table" and type(parameters.name) == "string" then
+		local parameters = parametersOf(action)
+		if parameters and type(parameters.name) == "string" then
 			if action.type == actionTypes.AddMarker then
 				recordSource(createdNames, parameters.name, "action " .. actionID)
 			elseif action.type == actionTypes.EraseMarker then
@@ -113,77 +164,53 @@ local function validateMarkerNameReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
--- Unit, feature and marker name references
+-- Unit and feature name references
 --------------------------------------------------------------------------------
 
-local function recordSource(sourcesByName, name, source)
-	local sources = table.ensureTable(sourcesByName, name)
-	sources[#sources + 1] = source
-end
-
-local function reportUnmatchedNames(report, label, createdNames, referencedNames)
-	-- Sources are collected while walking tables, so they are sorted to keep the
-	-- message the same from one run to the next.
-	local function describeSources(sources)
-		table.sort(sources)
-		return table.concat(sources, ", ")
-	end
-
-	for name, sources in pairs(referencedNames) do
-		if not createdNames[name] then
-			report.Warn(
-				SECTION,
-				label,
-				name,
-				label .. " is referenced, but never created",
-				"Referenced in: " .. describeSources(sources)
-			)
-		end
-	end
-	for name, sources in pairs(createdNames) do
-		if not referencedNames[name] then
-			report.Warn(
-				SECTION,
-				label,
-				name,
-				label .. " is created, but never referenced",
-				"Created in: " .. describeSources(sources)
-			)
-		end
-	end
-end
+--- One kind of name a mission creates and refers to. Unit names and feature names
+--- differ only in the fields below, so a single walker checks both.
+---@class NameKind
+---@field label string how the name is described in messages, e.g. "Unit name"
+---@field nameKey string the key holding the name, on loadout entries and parameters alike
+---@field nameType string the parameter type, used to find the action and trigger types taking one
+---@field loadout table the mission's top level loadout for this kind
+---@field loadoutLabel string how a top level loadout entry is cited, e.g. "UnitLoadout"
+---@field loadoutParameter string the inline loadout parameter on the action creating from one
+---@field loadoutActionType string the action type carrying an inline loadout
+---@field creatingActionTypes table<string, boolean> action types creating the name, rather than referring to it
 
 --- Shared walker for unit and feature names, which can be created and referenced by
 --- loadouts, actions, triggers and the inline triggers of objectives.
-local function validateNameReferences(context, report, spec)
-	local nameKey = spec.nameKey
+---@param nameKind NameKind
+local function validateNameReferences(context, report, nameKind)
+	local nameKey = nameKind.nameKey
 	local createdNames = {}
 	local referencedNames = {}
 
 	-- Any action taking the name as a parameter references it, unless it creates it.
-	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, spec.nameType)
-	for actionType in pairs(spec.creatingActionTypes) do
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, nameKind.nameType)
+	for actionType in pairs(nameKind.creatingActionTypes) do
 		referencingActionTypes[actionType] = nil
 	end
 
 	-- Loadout entries with a name count as creating that name.
-	for index, entry in ipairs(spec.loadout) do
+	for index, entry in ipairs(nameKind.loadout) do
 		if type(entry) == "table" and type(entry[nameKey]) == "string" then
-			recordSource(createdNames, entry[nameKey], spec.loadoutLabel .. "[" .. index .. "]")
+			recordSource(createdNames, entry[nameKey], nameKind.loadoutLabel .. "[" .. index .. "]")
 		end
 	end
 
 	for actionID, action in pairs(context.Actions) do
-		local parameters = type(action) == "table" and action.parameters
-		if type(parameters) == "table" then
+		local parameters = parametersOf(action)
+		if parameters then
 			-- Actions with an inline loadout also create names.
-			if action.type == spec.loadoutActionType and type(parameters[spec.loadoutParameter]) == "table" then
-				for index, entry in ipairs(parameters[spec.loadoutParameter]) do
+			if action.type == nameKind.loadoutActionType and type(parameters[nameKind.loadoutParameter]) == "table" then
+				for index, entry in ipairs(parameters[nameKind.loadoutParameter]) do
 					if type(entry) == "table" and type(entry[nameKey]) == "string" then
 						recordSource(
 							createdNames,
 							entry[nameKey],
-							"action " .. actionID .. " (" .. spec.loadoutParameter .. "[" .. index .. "])"
+							"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
 						)
 					end
 				end
@@ -201,7 +228,7 @@ local function validateNameReferences(context, report, spec)
 
 			local name = parameters[nameKey]
 			if type(name) == "string" then
-				if spec.creatingActionTypes[action.type] then
+				if nameKind.creatingActionTypes[action.type] then
 					recordSource(createdNames, name, "action " .. actionID)
 				elseif referencingActionTypes[action.type] then
 					recordSource(referencedNames, name, "action " .. actionID)
@@ -211,28 +238,23 @@ local function validateNameReferences(context, report, spec)
 	end
 
 	-- Triggers only ever reference names.
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, spec.nameType)
+	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, nameKind.nameType)
 	for triggerID, trigger in pairs(context.Triggers) do
-		local parameters = type(trigger) == "table" and trigger.parameters
-		if
-			type(parameters) == "table"
-			and referencingTriggerTypes[trigger.type]
-			and type(parameters[nameKey]) == "string"
-		then
+		local parameters = parametersOf(trigger)
+		if parameters and referencingTriggerTypes[trigger.type] and type(parameters[nameKey]) == "string" then
 			recordSource(referencedNames, parameters[nameKey], "trigger " .. triggerID)
 		end
 	end
 
 	-- Objective inline triggers can also refer to names.
 	for objectiveID, objective in pairs(context.Objectives) do
-		local trigger = type(objective) == "table" and objective.trigger
-		local parameters = type(trigger) == "table" and trigger.parameters
-		if type(parameters) == "table" and type(parameters[nameKey]) == "string" then
+		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
+		if parameters and type(parameters[nameKey]) == "string" then
 			recordSource(referencedNames, parameters[nameKey], "objective " .. objectiveID .. " (trigger)")
 		end
 	end
 
-	reportUnmatchedNames(report, spec.label, createdNames, referencedNames)
+	reportUnmatchedNames(report, nameKind.label, createdNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
