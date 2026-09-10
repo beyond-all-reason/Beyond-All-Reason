@@ -5,44 +5,69 @@
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
 
 --------------------------------------------------------------------------------
+-- Shared helpers
+--------------------------------------------------------------------------------
+
+local function reporterFor(report, section, label)
+	return {
+		Error = function(id, message, details)
+			report.Error(section, label, id, message, details)
+		end,
+		Warn = function(id, message, details)
+			report.Warn(section, label, id, message, details)
+		end,
+		--- For a problem with the section as a whole, belonging to no single entity.
+		SectionError = function(message)
+			report.Error(section, nil, nil, message)
+		end,
+	}
+end
+
+local function validateTypedFields(reporter, id, parameterValidators, fieldTypes, values, valueLabel)
+	for fieldName, fieldType in pairs(fieldTypes) do
+		local value = values[fieldName]
+		if value ~= nil then
+			for _, result in ipairs(parameterValidators[fieldType](value) or {}) do
+				local details = valueLabel .. ": " .. fieldName .. (result.parameterNameSuffix or "")
+				reporter.Error(id, result.message, details)
+			end
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Schema driven parameter validation, shared by triggers, actions and objective triggers
 --------------------------------------------------------------------------------
 
-local function createSchemaValidator(context, report, parameterValidators)
+local function createSchemaValidator(context, parameterValidators)
 	local validateTableType = parameterValidators[context.Types.Table]
 
-	--- @param entity table { section, label, id, name }, where name is what the entity is
-	---        called in messages, defaulting to its label. An objective's inline trigger is
-	---        labelled 'Objective', since that is the entity, but named 'Objective trigger'.
+	--- @param name string what the entity is called in messages. An objective's inline
+	---        trigger is reported against the objective, but named 'Objective trigger'.
 	--- @param schemaParameters table parameter schemas indexed by entity type
-	return function(entity, schemaParameters, entityType, parameters)
-		local section, label, id = entity.section, entity.label, entity.id
-		local name = entity.name or entity.label
-
+	return function(reporter, id, name, schemaParameters, entityType, parameters)
 		if not entityType then
-			return report.Error(section, label, id, name .. " missing type")
+			return reporter.Error(id, name .. " missing type")
 		end
-		if not schemaParameters[entityType] then
-			return report.Error(section, label, id, name .. " has invalid type")
+
+		local schema = schemaParameters[entityType]
+		if not schema then
+			return reporter.Error(id, name .. " has invalid type")
 		end
 
 		local parametersTypeResult = validateTableType(parameters)
 		if parametersTypeResult then
-			report.Error(section, label, id, parametersTypeResult[1].message, "Parameter: parameters")
+			reporter.Error(id, parametersTypeResult[1].message, "Parameter: parameters")
 			parameters = nil
 		end
 		parameters = parameters or {}
 
-		local requiresOneOf = schemaParameters[entityType].requiresOneOf
-		if
-			requiresOneOf
-			and table.all(requiresOneOf, function(parameterName)
-				return parameters[parameterName] == nil
-			end)
-		then
-			report.Error(
-				section,
-				label,
+		local requiresOneOf = schema.requiresOneOf
+		local function isMissing(parameterName)
+			return parameters[parameterName] == nil
+		end
+		if requiresOneOf and table.all(requiresOneOf, isMissing) then
+			reporter.Error(
 				id,
 				name
 					.. " is missing required parameter, at least one of "
@@ -51,23 +76,17 @@ local function createSchemaValidator(context, report, parameterValidators)
 			)
 		end
 
-		for _, parameter in ipairs(schemaParameters[entityType]) do
+		for _, parameter in ipairs(schema) do
 			local value = parameters[parameter.name]
 			if value == nil then
 				if parameter.required then
-					report.Error(
-						section,
-						label,
-						id,
-						name .. " missing required parameter",
-						"Parameter: " .. parameter.name
-					)
+					reporter.Error(id, name .. " missing required parameter", "Parameter: " .. parameter.name)
 				end
 			else
 				for _, result in ipairs(parameterValidators[parameter.type](value) or {}) do
 					local details = "Parameter: " .. parameter.name .. (result.parameterNameSuffix or "")
-					local reportResult = result.isWarning and report.Warn or report.Error
-					reportResult(section, label, id, result.message, details)
+					local reportResult = result.isWarning and reporter.Warn or reporter.Error
+					reportResult(id, result.message, details)
 				end
 			end
 		end
@@ -78,39 +97,28 @@ end
 -- Stages: stage shape and the mission's initial stage
 --------------------------------------------------------------------------------
 
-local STAGE_SECTION = SECTIONS.Stages
-local STAGE_LABEL = "Stage"
-
-local function validateStages(stages, report)
+local function validateStages(stages, stageReport)
 	for stageID, stageData in pairs(stages) do
 		if type(stageID) ~= "string" then
-			report.Error(STAGE_SECTION, STAGE_LABEL, stageID, "Stage ID must be a string, got " .. type(stageID))
+			stageReport.Error(stageID, "Stage ID must be a string, got " .. type(stageID))
 		end
 
 		if type(stageData) ~= "table" then
-			report.Error(STAGE_SECTION, STAGE_LABEL, stageID, "Stage data must be a table, got " .. type(stageData))
+			stageReport.Error(stageID, "Stage data must be a table, got " .. type(stageData))
 		else
 			local objectives = stageData.objectives
 			if objectives == nil then
-				report.Error(STAGE_SECTION, STAGE_LABEL, stageID, "Stage missing 'objectives' field")
+				stageReport.Error(stageID, "Stage missing 'objectives' field")
 			elseif type(objectives) ~= "table" then
-				report.Error(
-					STAGE_SECTION,
-					STAGE_LABEL,
-					stageID,
-					"Stage 'objectives' field must be a table, got " .. type(objectives)
-				)
-			elseif #objectives == 0 then
-				-- A stage with no objectives is legitimate: it can serve as a decoy or a
-				-- terminal stage, entered for its side effects rather than to be completed.
+				stageReport.Error(stageID, "Stage 'objectives' field must be a table, got " .. type(objectives))
 			else
+				-- A stage with no objectives is valid
 				for index, objectiveID in ipairs(objectives) do
 					if type(objectiveID) ~= "string" then
-						report.Error(
-							STAGE_SECTION,
-							STAGE_LABEL,
+						local got = type(objectiveID)
+						stageReport.Error(
 							stageID,
-							"Stage 'objectives' entry must be a string, got " .. type(objectiveID),
+							"Stage 'objectives' entry must be a string, got " .. got,
 							"Entry: " .. index
 						)
 					end
@@ -120,33 +128,29 @@ local function validateStages(stages, report)
 	end
 end
 
-local function validateInitialStage(stages, initialStage, report)
+local function validateInitialStage(stages, initialStage, stageReport)
 	if next(stages) then
 		if not initialStage then
-			report.Error(STAGE_SECTION, nil, nil, "Stages are defined, but initialStage is not provided")
+			stageReport.SectionError("Stages are defined, but initialStage is not provided")
 		elseif stages[initialStage] == nil then
-			report.Error(STAGE_SECTION, STAGE_LABEL, initialStage, "Initial stage does not exist in stages")
+			stageReport.Error(initialStage, "Initial stage does not exist in stages")
 		end
 	elseif initialStage then
-		report.Warn(STAGE_SECTION, STAGE_LABEL, initialStage, "initialStage is set, but no stages are defined")
+		stageReport.Warn(initialStage, "initialStage is set, but no stages are defined")
 	end
 end
 
 local function validateStagesSection(context, report)
-	validateStages(context.Stages, report)
-	validateInitialStage(context.Stages, context.InitialStage, report)
+	local stageReport = reporterFor(report, SECTIONS.Stages, "Stage")
+
+	validateStages(context.Stages, stageReport)
+	validateInitialStage(context.Stages, context.InitialStage, stageReport)
 end
 
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
 
-local OBJECTIVE_SECTION = SECTIONS.Objectives
-local OBJECTIVE_LABEL = "Objective"
-
---- Objective fields, by the parameter type each is validated as. nextStage points at
---- another entity, so references.lua checks it instead. The on* fields name an Event
---- trigger; references.lua additionally checks that the named trigger is an Event.
 local function getObjectiveFieldTypes(Types)
 	return {
 		textKey = Types.String,
@@ -162,113 +166,61 @@ local function getObjectiveFieldTypes(Types)
 	}
 end
 
-local function validateObjectiveFields(report, parameterValidators, fieldTypes, objective, objectiveID)
-	for fieldName, fieldType in pairs(fieldTypes) do
-		if objective[fieldName] ~= nil then
-			for _, result in ipairs(parameterValidators[fieldType](objective[fieldName]) or {}) do
-				report.Error(
-					OBJECTIVE_SECTION,
-					OBJECTIVE_LABEL,
-					objectiveID,
-					result.message,
-					"Field: " .. fieldName .. (result.parameterNameSuffix or "")
-				)
-			end
-		end
-	end
-end
-
-local function validateObjectiveInlineTrigger(context, report, validateSchema, objective, objectiveID)
-	if type(objective.trigger) ~= "table" then
+local function validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
+	local trigger = objective.trigger
+	if type(trigger) ~= "table" then
 		return
 	end
 
-	if objective.trigger.settings ~= nil then
-		report.Error(
-			OBJECTIVE_SECTION,
-			OBJECTIVE_LABEL,
-			objectiveID,
-			"Objective trigger must not have a 'settings' field"
-		)
+	if trigger.settings ~= nil then
+		objectiveReport.Error(objectiveID, "Objective trigger must not have a 'settings' field")
 	end
-	if objective.trigger.actions ~= nil then
-		report.Error(
-			OBJECTIVE_SECTION,
-			OBJECTIVE_LABEL,
-			objectiveID,
-			"Objective trigger must not have an 'actions' field"
-		)
+	if trigger.actions ~= nil then
+		objectiveReport.Error(objectiveID, "Objective trigger must not have an 'actions' field")
 	end
 
 	-- Statistics triggers require a quantity, but an objective tracks its progress with its
-	-- own 'amount' instead: the loader registers a managed objective, which never reads
-	-- quantity. Inject it into a copy so the required-parameter check passes, and warn if
-	-- the mission set one, since it is ignored.
-	local parameters = objective.trigger.parameters
-	if context.TriggerTypesWithQuantity[objective.trigger.type] and type(parameters) == "table" then
+	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
+	local parameters = trigger.parameters
+	if context.TriggerTypesWithQuantity[trigger.type] and type(parameters) == "table" then
 		if parameters.quantity ~= nil then
-			report.Warn(
-				OBJECTIVE_SECTION,
-				OBJECTIVE_LABEL,
-				objectiveID,
-				"Objective trigger 'quantity' is not supported and will be ignored"
-			)
+			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
 		end
 		parameters = table.copy(parameters)
 		parameters.quantity = 1
 	end
 
 	validateSchema(
-		{ section = OBJECTIVE_SECTION, label = OBJECTIVE_LABEL, id = objectiveID, name = "Objective trigger" },
+		objectiveReport,
+		objectiveID,
+		"Objective trigger",
 		context.TriggerParameters,
-		objective.trigger.type,
+		trigger.type,
 		parameters
 	)
 end
 
-local function validateObjective(
-	context,
-	report,
-	parameterValidators,
-	validateSchema,
-	fieldTypes,
-	objectiveID,
-	objective
-)
-	if type(objectiveID) ~= "string" then
-		report.Error(
-			OBJECTIVE_SECTION,
-			OBJECTIVE_LABEL,
-			objectiveID,
-			"Objective ID must be a string, got " .. type(objectiveID)
-		)
-	end
-
-	if type(objective) ~= "table" then
-		report.Error(
-			OBJECTIVE_SECTION,
-			OBJECTIVE_LABEL,
-			objectiveID,
-			"Objective data must be a table, got " .. type(objective)
-		)
-		return
-	end
-
-	if not objective.textKey then
-		report.Error(OBJECTIVE_SECTION, OBJECTIVE_LABEL, objectiveID, "Objective missing textKey")
-	elseif objective.textKey == "" then
-		report.Error(OBJECTIVE_SECTION, OBJECTIVE_LABEL, objectiveID, "Objective has empty textKey")
-	end
-
-	validateObjectiveFields(report, parameterValidators, fieldTypes, objective, objectiveID)
-	validateObjectiveInlineTrigger(context, report, validateSchema, objective, objectiveID)
-end
-
 local function validateObjectivesSection(context, report, parameterValidators, validateSchema)
+	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 	local fieldTypes = getObjectiveFieldTypes(context.Types)
 
 	for objectiveID, objective in pairs(context.Objectives) do
-		validateObjective(context, report, parameterValidators, validateSchema, fieldTypes, objectiveID, objective)
+		if type(objectiveID) ~= "string" then
+			objectiveReport.Error(objectiveID, "Objective ID must be a string, got " .. type(objectiveID))
+		end
+
+		if type(objective) ~= "table" then
+			objectiveReport.Error(objectiveID, "Objective data must be a table, got " .. type(objective))
+		else
+			if not objective.textKey then
+				objectiveReport.Error(objectiveID, "Objective missing textKey")
+			elseif objective.textKey == "" then
+				objectiveReport.Error(objectiveID, "Objective has empty textKey")
+			end
+
+			validateTypedFields(objectiveReport, objectiveID, parameterValidators, fieldTypes, objective, "Field")
+			validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
+		end
 	end
 end
 
@@ -276,11 +228,6 @@ end
 -- Triggers: actions, settings and parameters
 --------------------------------------------------------------------------------
 
-local TRIGGER_SECTION = SECTIONS.Triggers
-local TRIGGER_LABEL = "Trigger"
-
---- The shared trigger settings (global, not per trigger type), by the parameter type each
---- is validated as. Their defaults are applied by ProcessRawTriggers in triggers_loader.lua.
 local function getTriggerSettingTypes(Types)
 	return {
 		prerequisites = Types.TriggerIDs,
@@ -293,39 +240,35 @@ local function getTriggerSettingTypes(Types)
 	}
 end
 
-local function validateTriggerActions(context, report, trigger, triggerID)
+local function validateTriggerActions(context, triggerReport, trigger, triggerID)
 	if trigger.actions ~= nil and type(trigger.actions) ~= "table" then
-		report.Error(
-			TRIGGER_SECTION,
-			TRIGGER_LABEL,
-			triggerID,
-			"Trigger 'actions' field must be a table, got " .. type(trigger.actions)
-		)
+		triggerReport.Error(triggerID, "Trigger 'actions' field must be a table, got " .. type(trigger.actions))
 		return
 	end
 
 	if table.isNilOrEmpty(trigger.actions) then
-		report.Error(TRIGGER_SECTION, TRIGGER_LABEL, triggerID, "Trigger has no actions")
+		triggerReport.Error(triggerID, "Trigger has no actions")
 		return
 	end
 
 	for _, actionID in pairs(trigger.actions) do
 		if actionID == "" then
-			report.Error(TRIGGER_SECTION, TRIGGER_LABEL, triggerID, "Trigger has empty action ID")
+			triggerReport.Error(triggerID, "Trigger has empty action ID")
 		elseif not context.Actions[actionID] then
-			report.Error(
-				TRIGGER_SECTION,
-				TRIGGER_LABEL,
-				triggerID,
-				"Trigger has invalid action ID",
-				"Action: " .. tostring(actionID)
-			)
+			triggerReport.Error(triggerID, "Trigger has invalid action ID", "Action: " .. tostring(actionID))
 		end
 	end
 end
 
 --- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
-local function validateTriggerSettings(report, parameterValidators, settingTypes, validateTableType, trigger, triggerID)
+local function validateTriggerSettings(
+	triggerReport,
+	parameterValidators,
+	settingTypes,
+	validateTableType,
+	trigger,
+	triggerID
+)
 	local settings = trigger.settings
 	if settings == nil then
 		return
@@ -333,53 +276,40 @@ local function validateTriggerSettings(report, parameterValidators, settingTypes
 
 	local settingsTypeResult = validateTableType(settings)
 	if settingsTypeResult then
-		report.Error(TRIGGER_SECTION, TRIGGER_LABEL, triggerID, settingsTypeResult[1].message, "Setting: settings")
+		triggerReport.Error(triggerID, settingsTypeResult[1].message, "Setting: settings")
 		return
 	end
 
-	-- Validate the type of each setting. The TriggerIDs and StageIDs types also check
-	-- that every listed prerequisite trigger and stage exists.
-	for setting, settingType in pairs(settingTypes) do
-		if settings[setting] ~= nil then
-			for _, result in ipairs(parameterValidators[settingType](settings[setting]) or {}) do
-				report.Error(
-					TRIGGER_SECTION,
-					TRIGGER_LABEL,
-					triggerID,
-					result.message,
-					"Setting: " .. setting .. (result.parameterNameSuffix or "")
-				)
-			end
-		end
-	end
+	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
+	validateTypedFields(triggerReport, triggerID, parameterValidators, settingTypes, settings, "Setting")
 
 	if settings.maxRepeats and not settings.repeating then
-		report.Error(
-			TRIGGER_SECTION,
-			TRIGGER_LABEL,
-			triggerID,
-			"Trigger has maxRepeats setting but is not set to repeating"
-		)
+		triggerReport.Error(triggerID, "Trigger has maxRepeats setting but is not set to repeating")
 	end
 end
 
 local function validateTriggersSection(context, report, parameterValidators, validateSchema)
+	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
 	local settingTypes = getTriggerSettingTypes(context.Types)
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		if type(trigger) ~= "table" then
-			report.Error(
-				TRIGGER_SECTION,
-				TRIGGER_LABEL,
-				triggerID,
-				"Trigger data must be a table, got " .. type(trigger)
-			)
+			triggerReport.Error(triggerID, "Trigger data must be a table, got " .. type(trigger))
 		else
-			validateTriggerActions(context, report, trigger, triggerID)
-			validateTriggerSettings(report, parameterValidators, settingTypes, validateTableType, trigger, triggerID)
+			validateTriggerActions(context, triggerReport, trigger, triggerID)
+			validateTriggerSettings(
+				triggerReport,
+				parameterValidators,
+				settingTypes,
+				validateTableType,
+				trigger,
+				triggerID
+			)
 			validateSchema(
-				{ section = TRIGGER_SECTION, label = TRIGGER_LABEL, id = triggerID },
+				triggerReport,
+				triggerID,
+				"Trigger",
 				context.TriggerParameters,
 				trigger.type,
 				trigger.parameters
@@ -391,9 +321,6 @@ end
 --------------------------------------------------------------------------------
 -- Actions: parameters and whether a trigger uses them
 --------------------------------------------------------------------------------
-
-local ACTION_SECTION = SECTIONS.Actions
-local ACTION_LABEL = "Action"
 
 local function getAllActionIDsReferencedByTriggers(triggers)
 	local allActionIDsReferencedByTriggers = {}
@@ -408,6 +335,7 @@ local function getAllActionIDsReferencedByTriggers(triggers)
 end
 
 local function validateActionsSection(context, report, parameterValidators, validateSchema)
+	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local allActionIDsReferencedByTriggers = getAllActionIDsReferencedByTriggers(context.Triggers)
 
 	local unreferencedActionIDs = {}
@@ -417,23 +345,15 @@ local function validateActionsSection(context, report, parameterValidators, vali
 		end
 
 		if type(action) ~= "table" then
-			report.Error(ACTION_SECTION, ACTION_LABEL, actionID, "Action data must be a table, got " .. type(action))
+			actionReport.Error(actionID, "Action data must be a table, got " .. type(action))
 		else
-			validateSchema(
-				{ section = ACTION_SECTION, label = ACTION_LABEL, id = actionID },
-				context.ActionParameters,
-				action.type,
-				action.parameters
-			)
+			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 		end
 	end
 
 	if not table.isEmpty(unreferencedActionIDs) then
 		table.sort(unreferencedActionIDs)
-		report.Error(
-			ACTION_SECTION,
-			nil,
-			nil,
+		actionReport.SectionError(
 			"Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", ")
 		)
 	end
@@ -445,10 +365,8 @@ end
 -- Loadouts in actions are validated as action parameters instead.
 --------------------------------------------------------------------------------
 
-local LOADOUT_SECTION = SECTIONS.Loadouts
-local LOADOUT_LABEL = "Loadout"
-
 local function validateLoadoutsSection(context, report, parameterValidators)
+	local loadoutReport = reporterFor(report, SECTIONS.Loadouts, "Loadout")
 	local Types = context.Types
 	local loadouts = {
 		{ name = "UnitLoadout", value = context.UnitLoadout, type = Types.UnitLoadout },
@@ -457,12 +375,7 @@ local function validateLoadoutsSection(context, report, parameterValidators)
 
 	for _, loadout in ipairs(loadouts) do
 		for _, result in ipairs(parameterValidators[loadout.type](loadout.value) or {}) do
-			report.Error(
-				LOADOUT_SECTION,
-				LOADOUT_LABEL,
-				loadout.name .. (result.parameterNameSuffix or ""),
-				result.message
-			)
+			loadoutReport.Error(loadout.name .. (result.parameterNameSuffix or ""), result.message)
 		end
 	end
 end
@@ -470,7 +383,7 @@ end
 --------------------------------------------------------------------------------
 
 local function validate(context, report, parameterValidators)
-	local validateSchema = createSchemaValidator(context, report, parameterValidators)
+	local validateSchema = createSchemaValidator(context, parameterValidators)
 
 	-- Same order here as in the report:
 	validateStagesSection(context, report)
