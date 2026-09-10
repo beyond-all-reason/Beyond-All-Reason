@@ -1,0 +1,51 @@
+# Builds rapid package and deploys to CDN.
+#
+# Automatically builds `byar:test` version on push to `stable` branch and
+# allows to create `byar:pr:{number}` and `byar:br:{branch_name}` custom
+# rapid branches via manual workflow trigger.
+#
+# The policy controling what are the allowed rapid branches based on triggers
+# is configured in
+# https://github.com/beyond-all-reason/rapid-hosting/blob/main/playbook/group_vars/prod/vars.yml
+name: Rapid build
+on:
+  push:
+    branches:
+      - stable
+  workflow_dispatch:
+    inputs:
+      pr-or-branch:
+        description: PR number or branch name to build
+        required: true
+        type: string
+concurrency:
+  group: rapid-build
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'beyond-all-reason/Beyond-All-Reason'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Resolve the dispatch input
+        id: resolve
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_OR_BRANCH: ${{ inputs.pr-or-branch }}
+        run: |
+          if [ -z "${PR_OR_BRANCH//[0-9]/}" ]; then
+            commit="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_OR_BRANCH" --jq .head.sha)"
+            echo "branch=pr:$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            commit="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$PR_OR_BRANCH" --jq .object.sha)"
+            echo "branch=br:$PR_OR_BRANCH" >> "$GITHUB_OUTPUT"
+          fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+      - uses: beyond-all-reason/rapid-hosting/action@main
+        with:
+          url: https://repos.beyondallreason.dev/build
+          repo: byar
+          branch: ${{ steps.resolve.outputs.branch || 'test' }}
+          commit: ${{ steps.resolve.outputs.commit || github.sha }}

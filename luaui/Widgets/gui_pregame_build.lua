@@ -282,6 +282,12 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
+
+	if VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")

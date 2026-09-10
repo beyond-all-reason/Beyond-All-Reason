@@ -39,6 +39,13 @@ local KNOBS = {
 	{ "intermediateBlend", "%.2f" },
 	{ "intermediateEvidence", "%.2f" },
 	{ "cavityFloor", "%.2f" },
+	-- DEPOSIT section (automatic sand slot: lee side + pockets)
+	{ "depositSlot", "%d" },
+	{ "depositStrength", "%.2f" },
+	{ "depositLee", "%.2f" },
+	{ "depositCavity", "%.2f" },
+	{ "windDirDeg", "%.0f" },
+	{ "depositSlopeDeg", "%.1f" },
 	{ "intermediateScatter", "%.2f" },
 	{ "intermediateStartDeg", "%.1f" },
 	{ "intermediateFullDeg", "%.1f" },
@@ -121,12 +128,187 @@ local KNOBS = {
 	-- 2 cliff, 3 plateau) and how much it darkens
 	{ "metalApronLayer", "%d" },
 	{ "metalApronTone", "%.2f" },
+	{ "metalApronWidth", "%.2f" },
 	{ "metalTintR", "%.2f" },
 	{ "metalTintG", "%.2f" },
 	{ "metalTintB", "%.2f" },
+	-- GLOW LIGHT rows (the LIGHTS tool's point-light controls on every spot's
+	-- light); the on/off knob is a checkbox, mirrored by hand in M.sync below
+	{ "metalGlowBright", "%.2f" },
+	{ "metalGlowRadius", "%.0f" },
+	{ "metalGlowHeight", "%.0f" },
+	{ "metalGlowR", "%.2f" },
+	{ "metalGlowG", "%.2f" },
+	{ "metalGlowB", "%.2f" },
+	-- HEIGHT TINT (tileset shader 0.27). The colour scalars (gradeLow*,
+	-- strataColorN*, snow*) have no rows of their own: the selected chip edits
+	-- them through the shared ts-hg-slider-r/g/b trio (stampHgEditor below).
+	{ "hgRefMin", "%.0f" },
+	{ "hgRefSpan", "%.0f" },
+	{ "hgTiltDeg", "%.1f" },
+	{ "hgTiltDirDeg", "%.0f" },
+	{ "hgWobble", "%.0f" },
+	{ "gradeStrength", "%.2f" },
+	{ "gradeSplit", "%.2f" },
+	{ "strataStrength", "%.2f" },
+	{ "strataCount", "%d" },
+	{ "strataPeriod", "%.0f" },
+	{ "strataPhase", "%.2f" },
+	{ "strataHardness", "%.2f" },
+	{ "strataWobble", "%.0f" },
+	{ "strataJitter", "%.2f" },
+	{ "strataThickJitter", "%.2f" },
+	{ "stopsStrength", "%.2f" },
+	{ "stopsCount", "%d" },
+	{ "rampStrength", "%.2f" },
+	{ "rampRepeat", "%.1f" },
+	{ "satLow", "%.2f" },
+	{ "satHigh", "%.2f" },
+	{ "tideRings", "%d" },
+	{ "tidePeriod", "%.1f" },
+	{ "tideStrength", "%.2f" },
+	{ "tideWobble", "%.1f" },
+	{ "snowStrength", "%.2f" },
+	{ "snowLine", "%.0f" },
+	{ "snowBand", "%.0f" },
+	{ "snowSlopeDeg", "%.0f" },
 	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
 }
+
+-- The AUTOMATIC DEPOSIT rows live in the SURFACE panel (FILL AND SEED), not in
+-- the TILESET window, so M.syncDeposit stamps just these keys from the SURFACE
+-- sync (M.sync early-outs while the TILESET window is closed). A separate set
+-- rather than a flag on the KNOBS rows: the analyzer types every row from the
+-- first one, so a tagged row reads as a type mismatch.
+local DEPOSIT_KNOBS = {
+	depositSlot = true,
+	depositStrength = true,
+	depositLee = true,
+	depositCavity = true,
+	windDirDeg = true,
+	depositSlopeDeg = true,
+}
+
+-- HEIGHT TINT colour chips -> the three knobs behind them. Grade stops, strata
+-- beds and snow are stored as R/G/B; the GRADIENT STOPS are stored as H/S/V
+-- (MrBob's struct), so a chip carries its key list and a storage flag, and
+-- the shared editor converts either way (hgGet / hgSet below). Shared with the
+-- gui handlers through widgetState.tsHgGet / tsHgSet (set in M.attach), the
+-- same cross-file bridge tf_lights uses for its palette.
+local function hgTarget(hsv, k1, k2, k3)
+	return { hsv = hsv, keys = { k1, k2, k3 } }
+end
+local function rgbTarget(prefix)
+	return hgTarget(false, prefix .. "R", prefix .. "G", prefix .. "B")
+end
+local HG_TARGETS = {
+	low = rgbTarget("gradeLow"),
+	mid = rgbTarget("gradeMid"),
+	high = rgbTarget("gradeHigh"),
+	snow = rgbTarget("snow"),
+}
+for n = 1, 8 do
+	HG_TARGETS["s" .. n] = rgbTarget("strataColor" .. n)
+	HG_TARGETS["p" .. n] = hgTarget(true, "stopH" .. n, "stopS" .. n, "stopV" .. n)
+end
+local HG_TARGET_NAMES = {
+	low = "GRADE LOW",
+	mid = "GRADE MID",
+	high = "GRADE HIGH",
+	snow = "SNOW",
+}
+for n = 1, 8 do
+	HG_TARGET_NAMES["s" .. n] = "BED " .. n
+	HG_TARGET_NAMES["p" .. n] = "STOP " .. n
+end
+local HG_CHANNELS = { "R", "G", "B", "H", "S", "V" }
+
+-- HSV (0..1, hue around the wheel; value may exceed 1) <-> RGB
+local function hsvToRgb(h, s, v)
+	h = (tonumber(h) or 0) % 1.0
+	s = math.max(0, math.min(1, tonumber(s) or 0))
+	v = math.max(0, tonumber(v) or 1)
+	local i = math.floor(h * 6) % 6
+	local f = h * 6 - math.floor(h * 6)
+	local p, q, t = v * (1 - s), v * (1 - f * s), v * (1 - (1 - f) * s)
+	if i == 0 then
+		return v, t, p
+	elseif i == 1 then
+		return q, v, p
+	elseif i == 2 then
+		return p, v, t
+	elseif i == 3 then
+		return p, q, v
+	elseif i == 4 then
+		return t, p, v
+	end
+	return v, p, q
+end
+
+local function rgbToHsv(r, g, b)
+	r, g, b = tonumber(r) or 0, tonumber(g) or 0, tonumber(b) or 0
+	local maxc, minc = math.max(r, g, b), math.min(r, g, b)
+	local d = maxc - minc
+	local h = 0.0
+	if d > 0 then
+		if maxc == r then
+			h = ((g - b) / d) % 6
+		elseif maxc == g then
+			h = (b - r) / d + 2
+		else
+			h = (r - g) / d + 4
+		end
+		h = h / 6
+	end
+	local s = (maxc > 0) and (d / maxc) or 0
+	return h, s, maxc
+end
+
+-- A chip's colour in both spaces: r, g, b, h, s, v (nil when the knobs are missing).
+local function hgGet(knobs, target)
+	local t = HG_TARGETS[target]
+	if not (t and knobs) then
+		return nil
+	end
+	local a, b, c = knobs[t.keys[1]], knobs[t.keys[2]], knobs[t.keys[3]]
+	if a == nil or b == nil or c == nil then
+		return nil
+	end
+	if t.hsv then
+		local r, g, bb = hsvToRgb(a, b, c)
+		return r, g, bb, a, b, c
+	end
+	local h, s, v = rgbToHsv(a, b, c)
+	return a, b, c, h, s, v
+end
+
+-- Write a chip's colour from either space: pass r, g, b (h, s, v nil) or
+-- h, s, v (r, g, b nil); the target's own storage decides what is converted.
+local function hgSet(target, r, g, b, h, s, v)
+	local t = HG_TARGETS[target]
+	---@type table?
+	local T = WG.TilesetTerrain
+	if not (t and T and T.setKnob) then
+		return false
+	end
+	local a, bb, c
+	if t.hsv then
+		if h == nil then
+			h, s, v = rgbToHsv(r, g, b)
+		end
+		a, bb, c = h, s, v
+	else
+		if r == nil then
+			r, g, b = hsvToRgb(h, s, v)
+		end
+		a, bb, c = r, g, b
+	end
+	T.setKnob(t.keys[1], a)
+	T.setKnob(t.keys[2], bb)
+	T.setKnob(t.keys[3], c)
+	return true
+end
 
 -- Every section under the SHADER switch: grayed out while the switch is off,
 -- because nothing in them affects an engine-rendered map.
@@ -146,6 +328,7 @@ local TUNING_FRAMES = {
 	"frame-ts-oldmap",
 	"frame-ts-biome",
 	"frame-ts-tints",
+	"frame-ts-htint",
 	"frame-ts-debug",
 	"frame-ts-presets",
 }
@@ -165,6 +348,8 @@ function M.attach(doc, ctx)
 	ctx.widgetState.ts4PaletteSig = nil
 	ctx.widgetState.ts4PaletteEls = nil
 	ctx.widgetState.ts4SectionEl = nil
+	-- glow colour preview bar: repaint from the knobs on a fresh document
+	ctx.widgetState.tsGlowPrevLast = nil
 	-- same for the METAL SPOTS suite toggle's gray-out
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
@@ -172,6 +357,20 @@ function M.attach(doc, ctx)
 		local el = doc:GetElementById("ts-slider-" .. k[1])
 		if el and trackSliderDrag then
 			trackSliderDrag(el, "ts-" .. k[1])
+		end
+	end
+	-- HEIGHT TINT: the shared colour trio tracks drags like the knob rows; the
+	-- chip / trio / ramp-list caches restart on a fresh document
+	ctx.widgetState.tsHgTargets = HG_TARGETS
+	ctx.widgetState.tsHgGet = hgGet
+	ctx.widgetState.tsHgSet = hgSet
+	ctx.widgetState.tsHgChipLast = {}
+	ctx.widgetState.tsHgTrioLast = nil
+	ctx.widgetState.tsRampListSig = nil
+	for _, ch in ipairs({ "r", "g", "b", "h", "s", "v" }) do
+		local el = doc:GetElementById("ts-hg-slider-" .. ch)
+		if el and trackSliderDrag then
+			trackSliderDrag(el, "ts-hg-" .. ch)
 		end
 	end
 end
@@ -287,6 +486,243 @@ local function rebuildBiomePalette(doc, ctx, rows, activeKey)
 			pad:SetClass("tf-biome-pad", true)
 			row:AppendChild(pad)
 		end
+	end
+end
+
+-- Push the knob values into the ts-slider-* rows (slider + numbox), skipping
+-- the slider being dragged. `only` = nil for every row, or a key set (see
+-- DEPOSIT_KNOBS) to stamp just those rows.
+local function stampKnobRows(doc, ctx, knobs, only)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	local cache = widgetState.tsLastVal
+	local ds = uiState.draggingSlider
+	uiState.updatingFromCode = true
+	local stamped = false
+	for _, k in ipairs(KNOBS) do
+		local key = k[1]
+		local v = knobs[key]
+		-- Skip the slider the user is dragging so we don't fight the drag.
+		if v ~= nil and ds ~= ("ts-" .. key) and (only == nil or only[key]) then
+			local id = "ts-slider-" .. key
+			local slStr = tostring(v)
+			if cache[id] ~= slStr then
+				cache[id] = slStr
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("value", slStr)
+					stamped = true
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", string.format(k[2], v))
+				end
+			end
+		end
+	end
+	uiState.updatingFromCode = false
+	-- RmlUi delivers the change events these SetAttribute stamps raise on a
+	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
+	-- this timestamp to drop that deferred echo — otherwise every programmatic
+	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
+	-- values into the knob table, compounding per swap (the "red intermediate area
+	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	if stamped then
+		uiState.tsStampFrame = Spring.GetDrawFrame()
+	end
+end
+
+-- HEIGHT TINT editor sync: paint every colour chip from its knobs, restamp the
+-- shared R/G/B trio from the SELECTED chip's knobs (skipping a dragged
+-- channel, with the same deferred-echo guard stampKnobRows uses), mirror the
+-- chip / mode state into the data model, and keep the RAMP file list honest.
+local function cssColor(r, g, b)
+	local function ch(v)
+		return math.floor(math.max(0, math.min(1, v or 1)) * 255 + 0.5)
+	end
+	return string.format("background-color: #%02x%02x%02x;", ch(r), ch(g), ch(b))
+end
+
+local function rebuildRampList(doc, ctx, T)
+	local widgetState = ctx.widgetState
+	local listEl = doc:GetElementById("ts-ramp-list")
+	if not (listEl and T.getRamps and T.getRamp) then
+		return
+	end
+	local files = T.getRamps(false) or {}
+	local current = T.getRamp() or ""
+	local sig = current .. "|" .. table.concat(files, "|")
+	if widgetState.tsRampListSig == sig then
+		return
+	end
+	widgetState.tsRampListSig = sig
+	listEl.inner_rml = ""
+	if #files == 0 then
+		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
+			.. tostring(T.getRampDir and T.getRampDir() or "Terraform Brush/Ramps/")
+			.. " yet. Drop a gradient PNG in and hit Rescan folder.</div>"
+		return
+	end
+	for _, name in ipairs(files) do
+		local item = doc:CreateElement("div")
+		item:SetClass("tf-hm-row", true)
+		if name == current then
+			item:SetClass("ts-ramp-current", true)
+		end
+		local safe = tostring(name):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
+		item.inner_rml = '<div class="tf-hm-row-line"><div class="tf-hm-mapname">' .. safe .. "</div></div>"
+		item:AddEventListener("click", function(ev)
+			---@type table?
+			local api = WG.TilesetTerrain
+			if api and api.setRamp then
+				api.setRamp(name)
+				-- a pick with the ramp off would show nothing: switch it on
+				local k = api.getKnobs and api.getKnobs()
+				if k and (k.rampMode or 0) == 0 and api.setKnob then
+					api.setKnob("rampMode", 1)
+				end
+				if ctx.playSound then
+					ctx.playSound("apply")
+				end
+			end
+			widgetState.tsRampListSig = nil
+			ev:StopPropagation()
+		end, false)
+		listEl:AppendChild(item)
+	end
+end
+
+local function syncHeightTint(doc, ctx, knobs, dm)
+	local widgetState = ctx.widgetState
+	local uiState = ctx.uiState
+	if knobs.hgRefMode == nil then
+		return
+	end
+	local ref = math.floor((knobs.hgRefMode or 0) + 0.5)
+	if dm.tsHgRef ~= ref then
+		dm.tsHgRef = ref
+	end
+	local cnt = math.floor((knobs.strataCount or 4) + 0.5)
+	if dm.tsStrataCount ~= cnt then
+		dm.tsStrataCount = cnt
+	end
+	local m = math.floor((knobs.strataLayerMask or 0) + 0.5)
+	local bits = {
+		tsStrataBase = (m % 2) >= 1,
+		tsStrataInter = (m % 4) >= 2,
+		tsStrataCliff = (m % 8) >= 4,
+		tsStrataPlat = (m % 16) >= 8,
+	}
+	for k, v in pairs(bits) do
+		if dm[k] ~= v then
+			dm[k] = v
+		end
+	end
+	local rm = math.floor((knobs.rampMode or 0) + 0.5)
+	if dm.tsRampMode ~= rm then
+		dm.tsRampMode = rm
+	end
+	local sc = math.floor((knobs.stopsCount or 3) + 0.5)
+	if dm.tsStopsCount ~= sc then
+		dm.tsStopsCount = sc
+	end
+	local sm = math.floor((knobs.stopsMode or 1) + 0.5)
+	if dm.tsStopsMode ~= sm then
+		dm.tsStopsMode = sm
+	end
+	local target = dm.tsHgTarget
+	if not HG_TARGETS[target] then
+		target = "low"
+		dm.tsHgTarget = target
+	end
+	local tname = HG_TARGET_NAMES[target] or target
+	if dm.tsHgTargetName ~= tname then
+		dm.tsHgTargetName = tname
+	end
+
+	-- chips
+	local chipCache = widgetState.tsHgChipLast
+	if not chipCache then
+		chipCache = {}
+		widgetState.tsHgChipLast = chipCache
+	end
+	for t in pairs(HG_TARGETS) do
+		local cr, cg, cb = hgGet(knobs, t)
+		local css = cr and cssColor(cr, cg, cb) or nil
+		if css and chipCache[t] ~= css then
+			chipCache[t] = css
+			local el = doc:GetElementById("ts-hg-chip-" .. t)
+			if el then
+				el:SetAttribute("style", css)
+			end
+		end
+	end
+
+	-- shared editor (R/G/B + H/S/V sliders) + preview bar from the selected chip
+	local r, g, b, h, s, v = hgGet(knobs, target)
+	if r and g and b then
+		local css = cssColor(r, g, b)
+		if widgetState.tsHgPrevLast ~= css then
+			widgetState.tsHgPrevLast = css
+			local el = doc:GetElementById("ts-hg-preview")
+			if el then
+				el:SetAttribute("style", css)
+			end
+		end
+		local sig =
+			table.concat({ target, tostring(r), tostring(g), tostring(b), tostring(h), tostring(s), tostring(v) }, "|")
+		if widgetState.tsHgTrioLast ~= sig then
+			widgetState.tsHgTrioLast = sig
+			local vals = { R = r, G = g, B = b, H = h, S = s, V = v }
+			local ds = uiState.draggingSlider
+			uiState.updatingFromCode = true
+			local stamped = false
+			for _, C in ipairs(HG_CHANNELS) do
+				local c = C:lower()
+				if ds ~= ("ts-hg-" .. c) then
+					local sl = doc:GetElementById("ts-hg-slider-" .. c)
+					if sl then
+						sl:SetAttribute("value", tostring(vals[C]))
+						stamped = true
+					end
+					local nb = doc:GetElementById("ts-hg-slider-" .. c .. "-numbox")
+					if nb then
+						nb:SetAttribute("value", string.format((C == "H") and "%.3f" or "%.2f", vals[C]))
+					end
+				end
+			end
+			uiState.updatingFromCode = false
+			if stamped then
+				uiState.tsStampFrame = Spring.GetDrawFrame()
+			end
+		end
+	end
+
+	-- ramp file label + list
+	---@type table?
+	local T = WG.TilesetTerrain
+	if T and T.getRamp then
+		local cur, err = T.getRamp()
+		local label = (cur and cur ~= "") and cur or "none"
+		if err and err ~= "" then
+			label = label .. " (" .. err .. ")"
+		end
+		if dm.tsRampFile ~= label then
+			dm.tsRampFile = label
+		end
+		rebuildRampList(doc, ctx, T)
+	end
+end
+
+-- SURFACE sync hook: the AUTOMATIC DEPOSIT rows (FILL AND SEED) are tileset
+-- knobs by id, so keep them honest while the TILESET window is closed.
+function M.syncDeposit(doc, ctx)
+	if not doc or not WG.TilesetTerrain or not ctx.widgetState.tsLastVal then
+		return
+	end
+	local knobs = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
+	if knobs then
+		stampKnobRows(doc, ctx, knobs, DEPOSIT_KNOBS)
 	end
 end
 
@@ -434,6 +870,9 @@ function M.sync(doc, ctx, setSummary)
 	end
 	if WG.TilesetTerrain.getMetalLights then
 		local glow = WG.TilesetTerrain.getMetalLights() and true or false
+		if dm.tsGlowOn ~= glow then
+			dm.tsGlowOn = glow -- grays the GLOW LIGHT block while the light is off
+		end
 		if widgetState.tsGlowLast ~= glow then
 			widgetState.tsGlowLast = glow
 			local el = doc:GetElementById("btn-ts-metal-glow")
@@ -452,42 +891,32 @@ function M.sync(doc, ctx, setSummary)
 		return
 	end
 
-	local uiState = ctx.uiState
-	local cache = widgetState.tsLastVal
-	local ds = uiState.draggingSlider
-	uiState.updatingFromCode = true
-	local stamped = false
-	for _, k in ipairs(KNOBS) do
-		local key = k[1]
-		local v = knobs[key]
-		-- Skip the slider the user is dragging so we don't fight the drag.
-		if v ~= nil and ds ~= ("ts-" .. key) then
-			local id = "ts-slider-" .. key
-			local slStr = tostring(v)
-			if cache[id] ~= slStr then
-				cache[id] = slStr
-				local sl = doc:GetElementById(id)
-				if sl then
-					sl:SetAttribute("value", slStr)
-					stamped = true
-				end
-				local nb = doc:GetElementById(id .. "-numbox")
-				if nb then
-					nb:SetAttribute("value", string.format(k[2], v))
-				end
+	stampKnobRows(doc, ctx, knobs, nil)
+
+	-- GLOW LIGHT: the colour knobs paint the preview bar (borrowed from the
+	-- LIGHTS tool). Knob-driven, so a style swap, a section RESET or a project
+	-- load land here too.
+	if knobs.metalGlowR and knobs.metalGlowG and knobs.metalGlowB then
+		local function ch(v)
+			return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5)
+		end
+		local css = string.format(
+			"background-color: #%02x%02x%02x;",
+			ch(knobs.metalGlowR),
+			ch(knobs.metalGlowG),
+			ch(knobs.metalGlowB)
+		)
+		if widgetState.tsGlowPrevLast ~= css then
+			widgetState.tsGlowPrevLast = css
+			local el = doc:GetElementById("ts-glow-preview")
+			if el then
+				el:SetAttribute("style", css)
 			end
 		end
 	end
-	uiState.updatingFromCode = false
-	-- RmlUi delivers the change events these SetAttribute stamps raise on a
-	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
-	-- this timestamp to drop that deferred echo — otherwise every programmatic
-	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
-	-- values into the knob table, compounding per swap (the "red intermediate area
-	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
-	if stamped then
-		uiState.tsStampFrame = Spring.GetDrawFrame()
-	end
+
+	-- HEIGHT TINT chips, shared colour trio, mode chips and the ramp list
+	syncHeightTint(doc, ctx, knobs, dm)
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
 	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).
