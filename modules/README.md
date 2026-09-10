@@ -10,7 +10,7 @@ An example of a manifest.lua:
 ```lua
 return { name = "transport", 
 		 description = "Code governing transports, such as loading rules or passenger state", 
-		 requires = { "defs" } } // The loader won't load this module if the "defs" module isn't loaded.
+		 requires = { "defs" } } -- The loader will raise a warning if the "defs" module isn't loaded.
 ```
 
 `name` is a required field, and must match the name of the module directory.
@@ -38,13 +38,14 @@ A state.lua looks like this:
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local Modules = VFS.Include("modules/enums.lua").Modules
 
+-- Type annotations for the type checker
 ---@class MyModuleState
 ---@field MyField table<integer, number> description of my field
 ... other fields...
-
-// This object is initialized according to the field descriptions above 
 local state = ModuleHandler.State(Modules.Transport) ---@type MyModuleState
-state.MyField = state.MyField or {}  // Use previously defined value, if there is one
+
+-- This gets run every time someone gets the state, so use previously set value, if there is one
+state.MyField = state.MyField or {}
 ... initialize other fields
 
 return state
