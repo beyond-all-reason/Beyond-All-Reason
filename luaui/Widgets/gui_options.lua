@@ -132,8 +132,8 @@ local pauseGameWhenSingleplayerExecuted = false
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 
-local screenHeightOrg = 520
-local screenWidthOrg = 1050
+local screenHeightOrg = 550
+local screenWidthOrg = 1100
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
