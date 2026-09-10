@@ -115,6 +115,7 @@ local COLVOL_AXIS = { X = 0, Y = 1, Z = 2 } ---@type table<string, VolumeAxisInd
 ---@field [10]? boolean ignoreHits Returned by the getter, ignored by the setter, which reads nine.
 ---@field radius number?
 ---@field height number?
+---@field offsets? xyz aimpoint offsets, unit-space coordinates `{ x, y, z }`
 
 ---See `LuaUtils::PushColVolTable`.
 ---@class UnitDefCollisionVolume
@@ -593,6 +594,23 @@ for _, colvol in pairs(dynamicPieceCollisionVolume) do
 	shiftPieceIndex(colvol.off)
 end
 
+-- Unit volumes can append aimpoint offsets to their volume data arrays, but pieces cannot.
+-- Move all offsets to the `offsets` subtable so we can reference them clearly with pieces.
+local function shiftAimOffsets(colvol)
+	if colvol[10] then
+		colvol.offsets = { colvol[10], colvol[11], colvol[12] }
+		colvol[10], colvol[11], colvol[12] = nil, nil, nil
+	end
+end
+
+for _, colvol in pairs(staticUnitCollisionVolume) do
+	shiftAimOffsets(colvol)
+end
+for _, colvol in pairs(dynamicUnitCollisionVolume) do
+	shiftAimOffsets(colvol.on)
+	shiftAimOffsets(colvol.off)
+end
+
 -- Copies have to come after the shift to prevent double-shifting them.
 -- TODO: copied collision volumes should be declarative
 
@@ -840,33 +858,53 @@ local function getModelUnitCollisionVolume(unitDef)
 	return colvol
 end
 
--- Model-based volume applied when a unit is created, then overridden after. Piece colvols ignore this.
-local modelUnitCollisionVolume = {} ---@type table<string, ColVolUnitDef>
-
-for unitName, unitDef in pairs(UnitDefNames) do
-	if not unitDef.collisionVolume.defaultToPieceTree then
-		modelUnitCollisionVolume[unitName] = getModelUnitCollisionVolume(unitDef)
-	end
-end
-
-local unitColVolTypeIndex = {} ---@type table<string, ColVolConfigType>
+local unitColVolTypeIndex = {} ---@type table<string, ColVolConfigType?>
 for configType = 1, #colVolConfigs do
 	for unitName in pairs(colVolConfigs[configType]) do
 		unitColVolTypeIndex[unitName] = configType
 	end
 end
 
--- TODO: For now, we reunify the config tables into the consumer's tables. Later these should not merge.
-local unitCollisionVolume = {}
-local pieceCollisionVolume = {}
+-- Export module ---------------------------------------------------------------
 
-for unitName, configType in pairs(unitColVolTypeIndex) do
-	if configType == COLVOL_CONFIG.UNIT_STATIC or configType == COLVOL_CONFIG.UNIT_DYNAMIC then
-		unitCollisionVolume[unitName] = colVolConfigs[configType][unitName]
-	elseif configType == COLVOL_CONFIG.PIECE_STATIC then
-		pieceCollisionVolume[unitName] = colVolConfigs[configType][unitName]
+-- The tables above are keyed by unit name for configuration. Runtime code reads by unitDefID.
+local unitDefColVolType = {} ---@type table<integer, ColVolConfigType?>
+local unitDefColVolData = {} ---@type table<integer, UnitColVolConfig?>
+-- Model-based volume applied when a unit is created, then overridden by config. Piece colvols ignore this.
+local unitDefModelColVol = {} ---@type table<integer, UnitCollisionVolumeData?>
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local configType = unitColVolTypeIndex[unitDef.name]
+	if configType then
+		unitDefColVolType[unitDefID] = configType
+		unitDefColVolData[unitDefID] = colVolConfigs[configType][unitDef.name]
+	end
+	local usesPieces = unitDef.collisionVolume.defaultToPieceTree
+		or configType == COLVOL_CONFIG.PIECE_STATIC
+		or configType == COLVOL_CONFIG.PIECE_DYNAMIC
+	if not usesPieces then
+		unitDefModelColVol[unitDefID] = getModelUnitCollisionVolume(unitDef)
 	end
 end
 
--- Lacks an explicit unit + dynamic table:
-return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume, modelVolumes
+---@class CollisionVolumes
+---@field COLVOL { SHAPE: table<string, VolumeShapeIndex>, AXIS: table<string, VolumeAxisIndex>, TEST: table<string, VolumeHitTestType>, CONFIG: table<string, ColVolConfigType> }
+---@field ColVolConfigs CollisionVolumeConfigs
+---@field UnitDefColVolType table<integer, ColVolConfigType?>
+---@field UnitDefColVolData table<integer, UnitColVolConfig?>
+---@field UnitDefModelColVol table<integer, UnitCollisionVolumeData?>
+---@field PieceColVolDisabled PieceCollisionVolumeData
+---@field ModelVolumes table
+
+---@type CollisionVolumes
+local CollisionVolumes = {
+	COLVOL = { SHAPE = COLVOL_SHAPE, AXIS = COLVOL_AXIS, TEST = COLVOL_TEST, CONFIG = COLVOL_CONFIG },
+	ColVolConfigs = colVolConfigs,
+	UnitDefColVolType = unitDefColVolType,
+	UnitDefColVolData = unitDefColVolData,
+	UnitDefModelColVol = unitDefModelColVol,
+	PieceColVolDisabled = pieceColVolDisabled,
+	ModelVolumes = modelVolumes,
+}
+
+return CollisionVolumes
