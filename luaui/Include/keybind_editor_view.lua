@@ -1723,6 +1723,8 @@ local function startCapture(action, label, oldRaws)
 		end
 	end
 
+	local fakeMeta = activeFakeMeta()
+
 	capturing = {
 		action = action,
 		label = label,
@@ -1737,6 +1739,7 @@ local function startCapture(action, label, oldRaws)
 		-- Matches the engine's KeyChainTimeout default; BAR ships a tighter 333ms.
 		timeout = 750,
 		any = actionUsesAny(action, oldRaw),
+		fakeMetaCode = fakeMeta and Spring.GetKeyCode(fakeMeta) or nil,
 	}
 end
 
@@ -1778,8 +1781,13 @@ local function captureCanAccept()
 	return c ~= nil and #c.elems > 0 and not c.seeded
 end
 
--- Scancode to keyset symbol, refusing modifier keys so they cannot bind alone.
-local function pressSym(scanCode)
+-- Scancode to keyset symbol, refusing modifier keys and the stand-in Meta key so they
+-- cannot bind alone; the latter is held down while the player picks what goes with it.
+local function pressSym(key, scanCode)
+	if capturing and key == capturing.fakeMetaCode then
+		return nil
+	end
+
 	local sym = scanCode and spGetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
@@ -3150,7 +3158,7 @@ function view.keyPress(key, scanCode)
 			capturing = nil
 		else
 			-- Skip auto-repeat; only the initial press adds an element (release clears pressed).
-			local sym = pressSym(scanCode)
+			local sym = pressSym(key, scanCode)
 			if sym and not capturing.pressed[scanCode] then
 				capturing.pressed[scanCode] = true
 				appendChain({ sym = sym, mods = modPrefix() })

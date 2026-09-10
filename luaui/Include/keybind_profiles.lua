@@ -130,13 +130,15 @@ local function generatedName(text)
 	return (name ~= nil and name ~= "") and name or nil
 end
 
--- uikeys.txt only needs the bind lines; keyreload clears and sets fakemeta itself.
+-- A whole keymap: keyreload clears the bindings before it loads, but not the meta key.
 local function toBindFile(profile)
 	local out = { GENERATED_PREFIX .. tostring(profile.name) }
-	-- One token only: anything longer emits a fakemeta directive the engine cannot parse.
-	if profile.fakeMeta and profile.fakeMeta ~= "" and not profile.fakeMeta:find("%s") then
-		out[#out + 1] = "fakemeta " .. profile.fakeMeta
+	-- One token only: anything longer emits a directive the engine cannot parse; "none" clears.
+	local fakeMeta = profile.fakeMeta
+	if not fakeMeta or fakeMeta == "" or fakeMeta:find("%s") then
+		fakeMeta = "none"
 	end
+	out[#out + 1] = "fakemeta " .. fakeMeta
 	-- The store is writable by the player and by other surfaces, so a malformed entry is
 	-- reachable here. Dropping one costs a keybind; letting it through takes the whole
 	-- hotkey loader down with it.
