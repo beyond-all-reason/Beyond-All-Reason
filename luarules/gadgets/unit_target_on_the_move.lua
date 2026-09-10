@@ -417,6 +417,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function setTargetActive(unitID, unitData, targetIndex)
 		unitData.activeTarget = true
+		unitData.releasePending = nil
 		unitData.currentIndex = targetIndex
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
@@ -435,6 +436,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		unitData.activeTarget = false
+		unitData.releasePending = nil
 		unitData.currentIndex = 1
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		if not restoreCommandTarget(unitID) then
@@ -1029,7 +1031,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- native Attack on any enemy, and the materialized Attack goes through the
 	-- same AllowCommand checks a native one does.
 	local function getExplicitTargetList(unitID, unitDefID, unitTeam, targetIDs, ignoreStop, userTarget, weaponTest)
-		local cacheKey = table.concat({ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0, weaponTest and 1 or 0 }, ":")
+		local cacheKey = table.concat(
+			{ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0, weaponTest and 1 or 0 },
+			":"
+		)
 		local cached = explicitTargetListCache[cacheKey]
 		if cached and #cached.targetIDs == #targetIDs then
 			local matches = true
@@ -1174,7 +1179,8 @@ if gadgetHandler:IsSyncedCode() then
 			local ignoreStop = cmdOptions.ctrl
 
 			if cmdID == CMD_UNIT_SET_TARGETS then
-				addTargetList = getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget, true)
+				addTargetList =
+					getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget, true)
 			elseif nParams > 3 then
 				if not cmdOptions.internal then
 					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
@@ -1440,10 +1446,14 @@ if gadgetHandler:IsSyncedCode() then
 			elseif unitData.targetList == oldList then
 				local newCurrentIndex = oldToNewIndex[unitData.currentIndex]
 				local newScanIndex = nextRetainedIndex(unitData.scanIndex or 1)
-				if not newCurrentIndex then
-					-- Like per-unit lists: forget the active entry but leave the engine
-					-- target alone until the next update picks a new one.
+				if not newCurrentIndex and unitData.activeTarget then
+					-- Per-unit lists dropped a dead, captured or unseen active target
+					-- during the unit's own update and released the engine target in that
+					-- same update when nothing else was attackable. Keep that timing: leave
+					-- the engine target alone now and let the unit's next update either
+					-- pick a new target or release it.
 					unitData.activeTarget = false
+					unitData.releasePending = true
 				end
 				assignTargetList(unitData, newList)
 				unitData.currentIndex = newCurrentIndex or 1
@@ -1662,7 +1672,7 @@ if gadgetHandler:IsSyncedCode() then
 		then
 			-- The engine can replace an unchanged target between updates; re-apply it too.
 			setTargetActive(unitID, unitData, candidateIndex)
-		elseif activeWasChecked and not activeIsAttackable then
+		elseif (activeWasChecked and not activeIsAttackable) or unitData.releasePending then
 			setTargetPassive(unitID, unitData)
 		end
 

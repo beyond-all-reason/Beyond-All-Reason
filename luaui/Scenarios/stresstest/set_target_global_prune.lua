@@ -30,6 +30,12 @@ local function createScenario()
 	for index = 3, 8 do
 		targetIDs[index] = assert(Spring.CreateUnit("corhurc", centerX + 3000, 300, centerZ + index * 60, "west", 1))
 	end
+	-- The scenario scripts every removal itself: keep the targets where they are
+	-- created and immune to the sources' fire so no target dies on its own.
+	for _, targetID in ipairs(targetIDs) do
+		Spring.SetUnitArmored(targetID, true, 0)
+		Spring.MoveCtrl.Enable(targetID)
+	end
 	Spring.GiveOrderToUnitArray(sourceIDs, CMD.FIRE_STATE, { 0 }, 0)
 	Spring.GiveOrderToUnitArray(targetIDs, CMD.FIRE_STATE, { 0 }, 0)
 	return sourceIDs, targetIDs
@@ -102,8 +108,12 @@ function test()
 		return Spring.GetUnitRulesParam(sourceIDs[2], "unitTargetID") == targetID
 			and Spring.GetUnitRulesParam(sourceIDs[#sourceIDs], "unitTargetID") == targetID
 	end, 120)
+	-- Like the per-unit lists, the unseen counter is kept in slow updates (every
+	-- 15 frames) and only resets when the target is visible during one of them,
+	-- so keep the target in sight across a slow update before it leaves.
+	Test.waitFrames(16)
 	SyncedRun(moveTargetOutOfSight)
-	-- Return before the documented two-second (60-frame) unseen grace expires.
+	-- Return before the 1.5 s grace (three slow updates) expires.
 	Test.waitFrames(30)
 	SyncedRun(moveTargetNearSources)
 	Test.waitUntil(function()
