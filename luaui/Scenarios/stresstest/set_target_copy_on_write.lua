@@ -111,10 +111,16 @@ function test()
 		"appending to a subset must not mutate the unselected unit's list"
 	)
 
+	-- Cancel Target removes the entry from the first unit's list. Like the
+	-- per-unit lists, the engine target of the cancelled entry is only replaced
+	-- once the unit's next update finds another attackable listed target (see
+	-- #9176); the far target is out of range, so that happens when it is moved
+	-- close below.
 	Spring.GiveOrderToUnit(sourceIDs[1], cancelTargetCommandID, { targetIDs[2] }, 0)
-	Test.waitUntil(function()
-		return Spring.GetUnitRulesParam(sourceIDs[1], "unitTargetID") == nil
-	end, 120)
+	Test.waitFrames(20)
+	local remaining = SyncedProxy.gadgetHandler.GG.GetUnitTargetList(sourceIDs[1])
+	assertEqual(#remaining, 1, "Cancel Target leaves the far target in the first unit's list")
+	assertEqual(remaining[1].target, targetIDs[1], "the far target remains")
 	assertEqual(
 		Spring.GetUnitRulesParam(sourceIDs[2], "unitTargetID"),
 		targetIDs[2],

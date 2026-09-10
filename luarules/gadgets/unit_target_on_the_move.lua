@@ -1081,7 +1081,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- native Attack on any enemy, and the materialized Attack goes through the
 	-- same AllowCommand checks a native one does.
 	local function getExplicitTargetList(unitID, unitDefID, unitTeam, targetIDs, ignoreStop, userTarget, weaponTest)
-		local cacheKey = table.concat({ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0, weaponTest and 1 or 0 }, ":")
+		local cacheKey = table.concat(
+			{ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0, weaponTest and 1 or 0 },
+			":"
+		)
 		local cached = explicitTargetListCache[cacheKey]
 		if cached and #cached.targetIDs == #targetIDs then
 			local matches = true
@@ -1226,7 +1229,8 @@ if gadgetHandler:IsSyncedCode() then
 			local ignoreStop = cmdOptions.ctrl
 
 			if cmdID == CMD_UNIT_SET_TARGETS then
-				addTargetList = getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget, true)
+				addTargetList =
+					getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget, true)
 			elseif nParams > 3 then
 				if not cmdOptions.internal then
 					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
@@ -1500,9 +1504,7 @@ if gadgetHandler:IsSyncedCode() then
 				local newCurrentIndex = oldToNewIndex[unitData.currentIndex]
 				local newScanIndex = nextRetainedIndex(unitData.scanIndex or 1)
 				if not newCurrentIndex then
-					-- Like per-unit lists: forget the active entry but leave the engine
-					-- target alone until the next update picks a new one.
-					unitData.activeTarget = nil
+					setTargetPassive(unitID, unitData)
 				end
 				assignTargetList(unitData, newList)
 				unitData.currentIndex = newCurrentIndex or 1
@@ -1724,7 +1726,7 @@ if gadgetHandler:IsSyncedCode() then
 		then
 			-- The engine can replace an unchanged target between updates; re-apply it too.
 			setTargetActive(unitID, unitData, candidateIndex)
-		elseif activeWasChecked and not activeIsAttackable then
+		elseif (activeWasChecked and not activeIsAttackable) then
 			setTargetPassive(unitID, unitData)
 		end
 
