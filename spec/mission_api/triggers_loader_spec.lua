@@ -159,6 +159,7 @@ describe("mission_api.triggers_loader", function()
 			-- Event-driven triggers:
 			assert.is_function(C.MetaUnitAdded[T.UnitExists])
 			assert.is_function(C.MetaUnitRemoved[T.UnitNotExists])
+			assert.is_function(C.UnitDamaged[T.UnitAttacked])
 			assert.is_function(C.UnitDestroyed[T.UnitKilled])
 			assert.is_function(C.UnitDestroyed[T.UnitReclaimed])
 			assert.is_function(C.UnitTaken[T.UnitCaptured])

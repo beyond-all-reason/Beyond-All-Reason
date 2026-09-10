@@ -308,6 +308,12 @@ function gadget:Initialize()
 			or (trigger.parameters and (trigger.parameters.builderName or trigger.parameters.builderDefName))
 			or (trigger.parameters and (trigger.parameters.factoryName or trigger.parameters.factoryDefName))
 	end)
+
+	if not table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.UnitAttacked
+	end) then
+		gadgetHandler:RemoveCallIn("UnitDamaged")
+	end
 end
 
 function gadget:GameFrame(frameNumber)
@@ -440,6 +446,33 @@ end
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	local transportDefID = Spring.GetUnitDefID(transportID)
 	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
+	dispatchTriggerCallin(
+		"UnitDamaged",
+		unitID,
+		unitDefID,
+		unitTeam,
+		damage,
+		paralyzer,
+		weaponDefID,
+		projectileID,
+		attackerID,
+		attackerDefID,
+		attackerTeam
+	)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
