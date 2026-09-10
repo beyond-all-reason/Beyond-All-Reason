@@ -79,7 +79,6 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 	A: You need to edit the unit script and set ARMORED status to on or off depending on the
 	   unit's on/off status, unarmored for on and armored for off
 ]]
---
 
 -- Engine types ----------------------------------------------------------------
 
@@ -89,15 +88,18 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 ---|1 CYLINDER
 ---|2 BOX
 ---|3 SPHERE
+local COLVOL_SHAPE = { ELLIPSOID = 0, CYLINDER = 1, BOX = 2, SPHERE = 3 } ---@type table<string, VolumeShapeIndex>
 
 ---@alias VolumeHitTestType
 ---|0 DISCRETE
 ---|1 CONTINUOUS
+local COLVOL_TEST = { DISCRETE = 0, CONTINUOUS = 1 } ---@type table<string, VolumeHitTestType>
 
 ---@alias VolumeAxisIndex
 ---|0 X
 ---|1 Y
 ---|2 Z
+local COLVOL_AXIS = { X = 0, Y = 1, Z = 2 } ---@type table<string, VolumeAxisIndex>
 
 ---See `LuaUtils::ParseColVolData`.
 ---@class UnitCollisionVolumeData
@@ -638,6 +640,141 @@ propagateToScavCopies(dynamicUnitCollisionVolume)
 propagateToScavCopies(staticPieceCollisionVolume)
 propagateToScavCopies(dynamicPieceCollisionVolume)
 
+-- Model conversions -----------------------------------------------------------
+
+-- Units with no config volume would assume one the engine derives from their model.
+-- It does not do an adequate job for many cases, all of which are corrected below.
+
+local MODEL_TO_VOLUME = {
+	["3DO"] = {
+		SCALE = 0.68,
+		SMALL_RADIUS = 47,
+		SMALL_SCALE = 0.73,
+		VTOL_SCALE_XZ = 0.53,
+		VTOL_SCALE_Y = 0.17,
+		VTOL_HEIGHT_MIN = 13,
+		VTOL_TRANSPORT_SIZE = 16,
+		VTOL_VOLUME_TYPE = COLVOL_SHAPE.CYLINDER,
+		VTOL_VOLUME_AXIS = COLVOL_AXIS.Y,
+	},
+	["S3O"] = {
+		VTOL_SCALE_XZ = 1.15,
+		VTOL_SCALE_Y = 0.33,
+		VTOL_HEIGHT_MIN = 13,
+		VTOL_VOLUME_TYPE = COLVOL_SHAPE.SPHERE,
+		VTOL_VOLUME_AXIS = COLVOL_AXIS.X,
+	},
+}
+
+local isSphereShape = {
+	[COLVOL_SHAPE.ELLIPSOID] = true,
+	[COLVOL_SHAPE.SPHERE] = true,
+}
+
+local function isDefaultSphere(colvol)
+	return isSphereShape[colvol[7]] and colvol[1] == colvol[2] and colvol[2] == colvol[3]
+end
+
+local function waterDepth(unitDef)
+	return unitDef.moveDef and unitDef.moveDef.depth or unitDef.maxWaterDepth
+end
+
+local function rescaleUnitFrom3DO(colvol, model, unitDef)
+	local unitCanFly = unitDef.canFly
+	local unitRadius = unitDef.radius
+
+	local scaleXZ, scaleY
+	if unitCanFly then
+		scaleXZ, scaleY = model.VTOL_SCALE_XZ, model.VTOL_SCALE_Y
+	elseif unitRadius > model.SMALL_RADIUS then
+		scaleXZ, scaleY = model.SCALE, model.SCALE
+	else
+		scaleXZ, scaleY = model.SMALL_SCALE, model.SMALL_SCALE
+	end
+
+	if isDefaultSphere(colvol) then
+		colvol[1] = colvol[1] * scaleXZ
+		colvol[2] = colvol[2] * scaleY
+		colvol[3] = colvol[3] * scaleXZ
+		if unitCanFly then
+			colvol[2] = math.max(colvol[2], model.VTOL_HEIGHT_MIN)
+			colvol[7] = model.VTOL_VOLUME_TYPE
+			colvol[9] = model.VTOL_VOLUME_AXIS
+		end
+	end
+
+	if unitCanFly and unitDef.transportCapacity > 0 then
+		colvol.radius = model.VTOL_TRANSPORT_SIZE
+		colvol.height = model.VTOL_TRANSPORT_SIZE
+	else
+		colvol.radius = unitRadius * scaleXZ
+		colvol.height = unitDef.height * scaleY
+	end
+
+	-- Underwater units need their midpoint plus model radius below the surface.
+	local depth = waterDepth(unitDef)
+	if unitDef.modCategories.underwater and depth and depth + unitRadius > 0 then
+		colvol.radius = depth - 1
+		colvol.height = unitDef.height
+	end
+end
+
+local function rescaleUnitFromS3O(colvol, model, unitDef)
+	if unitDef.canFly and isDefaultSphere(colvol) then
+		colvol[1] = colvol[1] * model.VTOL_SCALE_XZ
+		colvol[2] = math.max(colvol[2] * model.VTOL_SCALE_Y, model.VTOL_HEIGHT_MIN)
+		colvol[3] = colvol[3] * model.VTOL_SCALE_XZ
+		colvol[7] = model.VTOL_VOLUME_TYPE
+		colvol[9] = model.VTOL_VOLUME_AXIS
+	end
+end
+
+local rescaleUnit = {
+	["3DO"] = rescaleUnitFrom3DO,
+	["S3O"] = rescaleUnitFromS3O,
+}
+
+-- The unitdef does not give the primaryAxis value, yet (see engine unitdefs-collisionvolume-primaryaxis).
+-- Also, accessing unitDef.model has to preload the model, which is an enormous load-time performance cost.
+
+local function getModelUnitCollisionVolume(unitDef)
+	local defVolume = unitDef.collisionVolume
+
+	---@type UnitCollisionVolumeData
+	local colvol = {
+		defVolume.scaleX,
+		defVolume.scaleY,
+		defVolume.scaleZ,
+		defVolume.offsetX,
+		defVolume.offsetY,
+		defVolume.offsetZ,
+		COLVOL_SHAPE[defVolume.type:upper()] or COLVOL_SHAPE.SPHERE,
+		COLVOL_TEST.CONTINUOUS,
+		COLVOL_AXIS.Z,
+	}
+
+	local modelType = unitDef.modelType and unitDef.modelType:upper()
+	local model = modelType and MODEL_TO_VOLUME[modelType] ---@as any
+	if model then
+		rescaleUnit[modelType](colvol, model, unitDef)
+	end
+
+	if colvol[7] == COLVOL_SHAPE.CYLINDER then
+		colvol[9] = nil -- Not known with accuracy until the first unitdef is created for each model.
+	end
+
+	return colvol
+end
+
+-- Model-based volume applied when a unit is created, then overridden after. Piece colvols ignore this.
+local modelUnitCollisionVolume = {} ---@type table<string, ColVolUnitDef>
+
+for unitName, unitDef in pairs(UnitDefNames) do
+	if not unitDef.collisionVolume.defaultToPieceTree then
+		modelUnitCollisionVolume[unitName] = getModelUnitCollisionVolume(unitDef)
+	end
+end
+
 local unitColVolTypeIndex = {} ---@type table<string, ColVolConfigType>
 for configType = 1, #colVolConfigs do
 	for unitName in pairs(colVolConfigs[configType]) do
@@ -658,4 +795,4 @@ for unitName, configType in pairs(unitColVolTypeIndex) do
 end
 
 -- Lacks an explicit unit + dynamic table:
-return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
+return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume
