@@ -1,6 +1,7 @@
 # September
 • [Legion changes]
 	- Perdition doesn't gain extra range from elevation
+	- Disable Air Units now removes and refunds drone spawners
 	- Range rings, graphics, blueprints, and other housekeeping
 • [Scavenger Zombies]
 	- After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
