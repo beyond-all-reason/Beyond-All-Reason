@@ -205,15 +205,17 @@ end
 -- MODULE FUNCTIONS
 -------------------------
 
-local function spawnsAirUnit(carriedUnits)
+local function spawnedAirUnit(carriedUnits)
+	if not carriedUnits then
+		return
+	end
 	for carriedName in string.gmatch(carriedUnits, "%S+") do
 		-- Scav units still have the base unit here but check against both sets anyway.
 		local carriedDef = UnitDefs[carriedName] or UnitDefs[(string.gsub(carriedName, "_scav$", ""))] ---@as table
 		if carriedDef and carriedDef.canfly then
-			return true
+			return carriedDef
 		end
 	end
-	return false
 end
 
 local function unitDef_Post(name, uDef)
@@ -328,15 +330,15 @@ local function unitDef_Post(name, uDef)
 			local strippedDrones = false
 			for weaponName, weaponDef in pairs(weapondefs) do
 				local carriedUnit = weaponDef.customparams and weaponDef.customparams.carried_unit
-				if carriedUnit and spawnsAirUnit(carriedUnit) then
+				local carriedDef = spawnedAirUnit(carriedUnit)
+				if carriedDef then
 					weapondefs[weaponName] = nil
 					strippedDrones = true
-
 					-- Make a minimal effort toward cost adjustments:
 					local count = weaponDef.customparams.startingdronecount
-					if count then
-						uDef.metalcost = (uDef.metalcost or 0) - count * (carriedUnit.metalcost or 0)
-						uDef.energycost = (uDef.energycost or 0) - count * (carriedUnit.energycost or 0)
+					if count and tonumber(count) then
+						uDef.metalcost = (uDef.metalcost or 0) - count * (carriedDef.metalcost or 0)
+						uDef.energycost = (uDef.energycost or 0) - count * (carriedDef.energycost or 0)
 					end
 					uDef.metalcost = (uDef.metalcost or 0) * 0.95
 					uDef.energycost = (uDef.energycost or 0) * 0.95
