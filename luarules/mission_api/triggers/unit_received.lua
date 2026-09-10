@@ -24,7 +24,11 @@ return {
 				return
 			end
 			-- The mission action gifts allied units even when captured=true is passed:
-			if captured or GG['MissionAPI'].capturingUnits then
+			local isCapture = captured
+			if GG['MissionAPI'].transferringUnits then
+				isCapture = GG['MissionAPI'].capturingUnits
+			end
+			if isCapture then
 				return
 			end
 			if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
