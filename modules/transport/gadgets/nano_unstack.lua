@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Anti Stacking Hax",
-		desc = "Nudges nano turrets apart when they end up stacked on top of another structure",
+		name = "Nano Unstack",
+		desc = "A set-down nano turret is nudged off any immobile ally it was stacked onto",
 		author = "Damgam",
 		date = "2021",
 		license = "GNU GPL, v2 or later",
@@ -28,17 +28,11 @@ local mathRandom = math.random
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 
--- Fully event driven: turrets are static and only end up stacked when a
--- structure is created or unloaded on top of them, so those events put the
--- turrets around the new unit on a "hot" list. Hot turrets are nudged every
--- frame until no immobile ally is left inside their search radius. GameFrame
--- is switched off entirely while the hot list is empty, so an idle base costs
--- nothing per frame.
 local WAKE_MARGIN = 32
 
-local searchRadius = {} -- unitDefID -> search radius (nano turrets only)
-local minDepthLimit = {} -- unitDefID -> -minWaterDepth (target ground height must be below this)
-local maxDepthLimit = {} -- unitDefID -> -maxWaterDepth (target ground height must be above this)
+local searchRadius = {}
+local minDepthLimit = {}
+local maxDepthLimit = {}
 local canMove = {}
 local maxSearchRadius = 0
 for udid, ud in pairs(UnitDefs) do
@@ -57,11 +51,11 @@ for udid, ud in pairs(UnitDefs) do
 end
 local wakeRadius = maxSearchRadius + WAKE_MARGIN
 
-local turretDefID = {} -- unitID -> unitDefID for every live nano turret
+local turretDefID = {}
 
-local hot = {} -- array of unitIDs checked every frame
+local hot = {}
 local hotCount = 0
-local hotPos = {} -- unitID -> index inside hot, nil when not hot
+local hotPos = {}
 
 local function addHot(unitID)
 	if hotPos[unitID] then
@@ -88,8 +82,6 @@ local function removeHot(unitID)
 	hotPos[unitID] = nil
 end
 
--- Nudges the turret away from the nearest immobile ally inside its search
--- radius. Returns true when such an ally exists, i.e. recheck next frame.
 local function checkTurret(unitID, unitDefID)
 	local x, _, z = spGetUnitPosition(unitID)
 	local radius = searchRadius[unitDefID]
@@ -150,7 +142,6 @@ local function checkTurret(unitID, unitDefID)
 	return true
 end
 
--- An immobile unit that just appeared may be sitting on top of a turret.
 local function wakeTurretsNear(unitID, unitDefID)
 	if canMove[unitDefID] or next(turretDefID) == nil then
 		return
@@ -203,7 +194,6 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:GameFrame()
-	-- iterate backwards so swap-removal never skips an entry
 	for i = hotCount, 1, -1 do
 		local unitID = hot[i]
 		if not checkTurret(unitID, turretDefID[unitID]) then

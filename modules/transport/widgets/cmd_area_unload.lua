@@ -12,17 +12,15 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
 local mathPi = math.pi
 
--- Localized Spring API for performance
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local math_sqrt = math.sqrt
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local function CanUnitExecute(uID, cmdID)
-	if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
+	if cmdID == CMD.UNLOAD_UNIT then
 		cmdID = CMD_UNLOAD_UNITS
 	end
 	return (Spring.FindUnitCmdDesc(uID, cmdID) ~= nil)
@@ -56,7 +54,6 @@ function widget:CommandNotify(id, params, options)
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
-			--if (2 * mathPi * ray*ray)/(#units) >= 128*128 then -- Surface check to prevent clumping (needs GUI before enabling check)
 			local alpha = 1
 			local b = math.floor(alpha * math_sqrt(#units))
 			local phi = (math_sqrt(5) + 1) / 2
@@ -72,7 +69,6 @@ function widget:CommandNotify(id, params, options)
 				y = Spring.GetGroundHeight(x, z)
 				spGiveOrderToUnit(units[k], CMD.UNLOAD_UNIT, { x, y, z }, { "shift" })
 			end
-			--end
 			return true
 		else
 			return false

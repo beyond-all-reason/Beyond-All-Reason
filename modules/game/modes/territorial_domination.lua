@@ -1,6 +1,7 @@
 local ModeDSL = VFS.Include("modules/game/mode_dsl.lua") ---@type GameModeDSL
 local Mode = ModeDSL.Mode
 local DeathMode, DraftMode, AnonymousMode = ModeDSL.DeathMode, ModeDSL.DraftMode, ModeDSL.AnonymousMode
+local TransportEnemy = VFS.Include("modules/transport/enums.lua").TransportEnemy
 
 return Mode("Territorial Domination")
 	.Desc(
@@ -19,4 +20,6 @@ return Mode("Territorial Domination")
 	.MapDeformation(true)
 	.FogOfWar(true)
 	.NoRush(0)
+	.SlowComTransport(false)
+	.EnemyTransporting(TransportEnemy.NotCommanders)
 	.UnitRestrictions()

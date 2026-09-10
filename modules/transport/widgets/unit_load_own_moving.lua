@@ -13,24 +13,17 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 
--------------------------------------------------------------------
--- Globals
--------------------------------------------------------------------
-local watchList = {} -- watchList[uID] = tID
+local watchList = {}
 
-local isTransport = {} -- isTransport[uDefID] = UnitDefs[uDefID].isTransport
+local isTransport = {}
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.isTransport and uDef.canFly then
 		isTransport[uDefID] = true
 	end
 end
 
--------------------------------------------------------------------
--- Speedups
--------------------------------------------------------------------
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
@@ -44,9 +37,6 @@ local CMD_OPT_ALT = CMD.OPT_ALT
 
 local gameStarted
 
--------------------------------------------------------------------
--- Local functions
--------------------------------------------------------------------
 local function GetTransportTarget(uID)
 	local uCmd, _, _, cmdParam1, cmdParam2 = spGetUnitCurrentCommand(uID)
 	if not uCmd then
@@ -59,9 +49,6 @@ local function GetTransportTarget(uID)
 	end
 end
 
--------------------------------------------------------------------
--- Callins
--------------------------------------------------------------------
 function widget:UnitCommand(uID, uDefID, uTeam)
 	if isTransport[uDefID] and uTeam == spGetMyTeamID() and GetTransportTarget(uID) then
 		local wasEmpty = not next(watchList)
@@ -76,25 +63,20 @@ function widget:UnitCmdDone(uID, uDefID, uTeam)
 end
 
 function widget:GameFrame(n)
-	-- Limit command rate to 3/sec (Sufficient for coms)
 	if n % 10 > 0 then
 		return
 	end
 
 	for uID, _ in pairs(watchList) do
-		-- Re-get transports target
 		local tID = GetTransportTarget(uID)
 		if tID then
-			-- Only issue if transport is close
 			if spGetUnitSeparation(uID, tID, true) < 100 then
-				-- Only issue if target is moving
 				local vx, _, vz = spGetUnitVelocity(tID)
 				if vx ~= 0 or vz ~= 0 then
 					spGiveOrderToUnit(uID, CMD_INSERT, { 0, CMD_LOAD_UNITS, 0, tID }, CMD_OPT_ALT)
 				end
 			end
 		else
-			-- No trans or no valid target, stop watching
 			watchList[uID] = nil
 		end
 	end
