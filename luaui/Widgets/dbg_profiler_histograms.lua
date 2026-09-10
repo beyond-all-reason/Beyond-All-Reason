@@ -236,25 +236,6 @@ function widget:Initialize()
 	end
 end
 
-local function PrintRecord(name)
-	local total, current, maxdt, time, peak = Spring.GetProfilerTimeRecord(name, false)
-	-- where total is in milliseconds
-	-- current gets reset ever 33 frames, and is a running tally
-	-- maxdt is the peak value
-	-- time is lag?
-	-- peak is unknown?
-
-	-- so last frame dt ===
-
-	local gf = spGetGameFrame()
-	spEcho(gf, "P:", name, total, current, maxdt, time, peak)
-end
-
-local function GetRecordCurrent(name)
-	local total, current = Spring.GetProfilerTimeRecord(name, false)
-	return current
-end
-
 function widget:Shutdown()
 	widgetHandler:RemoveAction("histogram", "t")
 	if histShader then

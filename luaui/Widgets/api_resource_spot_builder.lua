@@ -10,6 +10,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1, -- load before all widgets that need these mex/geo building tools
 		enabled = true,
+		hidden = true, -- other widgets need this one, so it is not the player's to toggle
 	}
 end
 
@@ -45,14 +46,32 @@ local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 ------------------------------------------------------------
 -- unit tables
 ------------------------------------------------------------
+
+--- What one builder can put on a resource spot. Every unit of a given unit def
+--- shares one of these, so the instance and the def registries below hold the
+--- same tables under different keys.
+---@class ResourceSpotConstructor
+---@field buildings integer How many entries `building` holds, and the cursor the fill loop appends at.
+---@field building (-UnitDefID)[] Build commands, i.e. negated extractor unit def IDs.
+
+---@type table<UnitID, ResourceSpotConstructor?>
 local mexConstructors = {}
+---@type table<UnitDefID, ResourceSpotConstructor?>
 local mexConstructorsDef = {}
+--- Extractors, by how much metal each one pulls from a spot.
+---@type table<UnitDefID, number?>
 local mexBuildings = {}
 
+---@type table<UnitID, ResourceSpotConstructor?>
 local geoConstructors = {}
+---@type table<UnitDefID, ResourceSpotConstructor?>
 local geoConstructorsDef = {}
+--- Geothermal plants and how much energy each one makes.
+---@type table<UnitDefID, number?>
 local geoBuildings = {}
 
+--- Extractors that only produce metal or energy, so every faction has one.
+---@type table<UnitDefID, true?>
 local standardExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
@@ -182,8 +201,8 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 end
 
 ---Whether an allied extractor can be replaced: higher techlevel or same-tier higher yield always upgrades; otherwise specialty extractors (does more than just produce metal/energy) may replace standard extractors/other specialty extractors.
----@param currentExtractorUuid number uuid of current extractor
----@param newExtractorId number unitDefID of new extractor
+---@param currentExtractorUuid UnitID
+---@param newExtractorId UnitDefID
 ---@return boolean
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
@@ -534,4 +553,8 @@ function widget:Initialize()
 	WG.resource_spot_builder.GetGeoBuildings = function()
 		return geoBuildings
 	end
+end
+
+function widget:Shutdown()
+	WG.resource_spot_builder = nil
 end

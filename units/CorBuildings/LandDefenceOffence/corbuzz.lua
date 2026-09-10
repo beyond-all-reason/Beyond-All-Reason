@@ -30,6 +30,7 @@ return {
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecalsizey = 11,
 			buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
+			islrpc = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

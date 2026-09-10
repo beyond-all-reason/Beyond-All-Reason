@@ -31,8 +31,12 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaim_spam = true,
+			reaimtime = 2,
+			stompable = true,
 			subfolder = "ArmBots",
 			unitgroup = "weapon",
 		},

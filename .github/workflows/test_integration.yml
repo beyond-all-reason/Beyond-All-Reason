@@ -48,3 +48,78 @@ jobs:
           name: Integration Test Results
           path: |
             tools/headless_testing/testlog/results.json
+
+      # The engine exits 0 as long as it shut down cleanly, whatever the tests
+      # inside it did, so the job used to pass with failing tests. The verdict
+      # comes from the report instead.
+      - name: Check integration test results
+        if: always()
+        env:
+          RESULTS: tools/headless_testing/testlog/results.json
+        run: |
+          set -euo pipefail
+
+          # A missing or unparseable report means the run did not get far
+          # enough to produce one, which is a failure however the engine exited.
+          if [ ! -s "$RESULTS" ] || ! jq -e . "$RESULTS" > /dev/null 2>&1; then
+            echo "::error title=No integration test report::$RESULTS is missing or unreadable, so the suite did not run to completion. Check the Run Tests step above."
+            echo "### Integration tests" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "No readable report was produced, so the suite did not run to completion." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          # `err` is an empty Lua table for a passing test, which encodes as []
+          # rather than {}, so the failures have to be selected by type.
+          jq '[ .tests[]? | select((.err | type) == "object" and (.err.message // null) != null) ]' \
+            "$RESULTS" > failures.json
+
+          failed=$(jq length failures.json)
+          passed=$(jq -r '.stats.passes // 0' "$RESULTS")
+          skipped=$(jq -r '.stats.skipped // 0' "$RESULTS")
+          total=$(jq -r '.stats.tests // 0' "$RESULTS")
+          secs=$(jq -r '((.stats.duration // 0) / 1000) | floor' "$RESULTS")
+
+          echo "$total test(s): $passed passed, $failed failed, $skipped skipped, in ${secs}s."
+
+          # Written for the CI Results comment to pick up as well as for the
+          # job summary, so both tell the same story from the same source.
+          {
+            if [ "$failed" -eq 0 ]; then
+              echo "### Integration tests passed"
+              echo
+              echo "$passed passed, $skipped skipped, in ${secs}s."
+            else
+              echo "### Integration tests failed"
+              echo
+              echo "$failed of $total failed. $passed passed, $skipped skipped, in ${secs}s."
+              echo
+              echo "| Test | Error |"
+              echo "| --- | --- |"
+              jq -r '.[0:50][]
+                     | "| `\(.fullTitle | gsub("\\|"; "\\|"))` | \(.err.message | gsub("\\|"; "\\|") | gsub("[\r\n]+"; " ")) |"' \
+                failures.json
+              if [ "$failed" -gt 50 ]; then
+                echo
+                echo "_Showing 50 of $failed; the artifact holds every one._"
+              fi
+            fi
+          } > ci-report.md
+          cat ci-report.md >> "$GITHUB_STEP_SUMMARY"
+
+          # Ten is the annotation cap per pool; the rest stay in the report.
+          jq -r '.[0:10][]
+                 | "::error title=Integration test failed::\(.fullTitle): \(.err.message | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A"))"' \
+            failures.json
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

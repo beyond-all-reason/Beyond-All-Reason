@@ -13,9 +13,6 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
-local spEcho = Spring.Echo
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- fix seams?
@@ -45,7 +42,6 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
 local realTex = "$grass"
 local colorTex = (mapBorderStyle == "texture" and realTex) or gridTex
-local normalTex = "$ssmf_normals"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -731,7 +727,6 @@ function widget:Initialize()
 	planeVAO:AttachInstanceBuffer(terrainInstanceVBODeferred)
 
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
-	--spEcho(gsSrc)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -1010,7 +1005,6 @@ end
 -- Note that the performance of this draw call is somehow much greater than the screen space one. Very sad :?
 
 function widget:DrawGroundDeferred()
-	--spEcho("widget:DrawGroundDeferred")
 	if #mirrorParams == 0 then
 		return
 	end

@@ -45,7 +45,6 @@ if UnitDefs[Spring.GetTeamRulesParam(spGetMyTeamID(), "startUnit")].name == "cor
 end
 
 local mouseOffscreen = select(6, spGetMouseState())
-local prevMouseOffscreen = mouseOffscreen
 
 local function SetIcon(path)
 	currentIcon = path

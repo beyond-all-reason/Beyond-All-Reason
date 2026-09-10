@@ -19,7 +19,6 @@ local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetViewGeometry = Spring.GetViewGeometry
 local GetMapSize = Spring.GetMapSize or function()
 	return Game.mapSizeX, Game.mapSizeZ
 end
@@ -33,8 +32,6 @@ local glDrawGroundCircle = gl.DrawGroundCircle
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
-local glRotate = gl.Rotate
-local glScale = gl.Scale
 local glBillboard = gl.Billboard
 local glText = gl.Text
 local glBeginEnd = gl.BeginEnd
@@ -73,7 +70,6 @@ local math_pi = math.pi
 local math_max = math.max
 local math_min = math.min
 local math_random = math.random
-local math_atan2 = math.atan2
 
 -- ============================================================
 -- Constants
@@ -145,19 +141,24 @@ local shapeType = "circle" -- "circle"|"square"|"hexagon"|"octagon"|"triangle"
 local shapeRadius = 2000
 local shapeRotation = 0 -- degrees
 local shapeCount = 4 -- number of positions to place with shape
-local shapePreview = {} -- preview positions for shape mode
-local shapeCenterX = nil -- shape center (set on click)
-local shapeCenterZ = nil
 
 -- Startbox state
 local startboxes = {} -- { {vertices={{x=,z=}, ...}, allyTeam=}, ... }
 -- Forward declarations for cached-fill-list helpers defined further down in the drawing section.
 -- Needed because removeLastStartbox / clearAllStartboxes / drag handlers reference them from
 -- this upper part of the file.
-local ensureBoxFillList, invalidateBoxFill, freeBoxFillList
+-- Forward declarations (defined further down); typed so the calls that sit
+-- above the definitions are not read as calls on nil.
+---@type fun(box: any): any
+local ensureBoxFillList
+---@type fun(box: any)
+local invalidateBoxFill
+---@type fun(box: any)
+local freeBoxFillList
 -- Forward decl: world radius needed for a constant on-screen pixel size at (wx, wz).
 -- Used by DrawWorld for handles/arrows so they keep size while zooming. Defined alongside
 -- getScreenMarker further down in the rendering section.
+---@type fun(wx: number, wz: number, screenPx: number): number
 local worldRadiusForScreenPx
 local startboxMode = "polygon" -- "polygon" | "box" | "freedraw"
 local drawingBox = false
@@ -166,7 +167,19 @@ local boxDragIdx = nil -- which vertex is being dragged
 local boxDragBoxIdx = nil -- which box
 local boxEdgeDrag = nil -- { bi = <box index>, edge = "L"/"R"/"T"/"B" } for box-kind edge drag
 local hoverBoxEdge = nil -- { bi, edge } for hover highlight of the edge currently under cursor
-local nextBoxAllyTeam = 1
+-- Anchor selected for curvature editing. Clicking a handle (press and release without
+-- moving) selects it and raises a gizmo along its outward normal; dragging along that
+-- gizmo sets the anchor strength between 0 and 1.
+-- Curvature editing hangs off one table rather than a dozen file-level locals: the main
+-- chunk of this widget sits on Lua's 200-local ceiling and each new one costs a slot.
+-- selBox / selVert (the selected anchor: box index, vertex index) are assigned
+-- below rather than listed here: a `= nil` in the constructor makes the
+-- analyzer read them as never set.
+local strengthEdit = {
+	dragging = false,
+	GIZMO_LEN = 240, -- world units from anchor to the strength-1 end of the gizmo
+	scratch = {}, -- reused anchor ring, see buildRing
+}
 -- Whole-box drag (mouse pressed inside a startbox body, not on a handle/edge). Records the
 -- world-space cursor delta between frames and offsets every vertex (and spline control point
 -- when applicable). Separate from vertex-drag so hover hit-tests stay simple.
@@ -191,8 +204,6 @@ local dragging = false
 local dragIdx = nil -- which position index is being dragged
 local dragStartX = nil
 local dragStartY = nil -- screen coords at mouse-down
-local mouseDownWorldX = nil
-local mouseDownWorldZ = nil
 
 -- Hover state (drives cursor + marker highlight)
 local hoverPosIdx = nil -- index of position currently hovered (express mode)
@@ -207,6 +218,15 @@ local hoverPolyEdge = nil
 -- Means: the last N entries in `positions` were added in one action;
 -- restoring removes them and rewinds nextAllyTeam to M.
 local undoHistory = {}
+-- Startbox undo/redo. Entries carry the submode that produced them because start positions
+-- and startboxes coexist: Ctrl+Z in one must not reach into the other's work. Startbox
+-- entries snapshot just the box they touch, which avoids needing an inverse for every
+-- operation (a vertex drag has none once insert and delete exist too). Functions are
+-- assigned further down, after retessellateSpline is in scope.
+local boxUndo = { redo = {} }
+-- Override-modoption export. Libs are pulled in on first use rather than at include time:
+-- this runs on a button press, and the widget is at Lua's file-local ceiling.
+local boxExport = {}
 
 -- ============================================================
 -- Helper Functions
@@ -286,7 +306,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 	-- If we need more, add midpoints between each pair of vertices
 	local level = 1
 	while #allPoints < count do
-		local newPoints = {}
 		local prevPoints = {}
 		-- Collect edge endpoints at current subdivision level
 		-- At level 1: midpoints between vertices
@@ -311,10 +330,6 @@ local function generatePolygonPositions(cx, cz, radius, sides, count, rotation)
 		pts[i] = { x = x, z = z }
 	end
 	return pts
-end
-
-local function generateSquarePositions(cx, cz, radius, count, rotation)
-	return generatePolygonPositions(cx, cz, radius, 4, count, rotation)
 end
 
 local function generateShapePositions(cx, cz)
@@ -597,6 +612,7 @@ local function addStartboxVertex(x, z)
 	-- Honour the shared brush "instruments": when the grid-snap toggle is on,
 	-- snap polygon vertices to the same world grid the shape/express placement
 	-- paths use, so the Snap instrument actually affects startbox drawing.
+	---@type table?
 	local tb = WG.TerraformBrush
 	local stb = tb and tb.getState and tb.getState() or nil
 	if stb and stb.gridSnap and tb.snapWorld then
@@ -606,16 +622,23 @@ local function addStartboxVertex(x, z)
 	currentBoxVerts[#currentBoxVerts + 1] = { x = x, z = z }
 end
 
+-- Ally team is the box's position in the list, never a running counter: that is what the
+-- modoption format means by order (box 1 is allyTeam 0) and it makes a delete impossible to
+-- desync. One box per team falls out of it.
+local function renumberBoxAllyTeams()
+	for i = 1, #startboxes do
+		startboxes[i].allyTeam = i
+	end
+end
+
 local function finishStartbox()
 	if #currentBoxVerts >= 3 then
 		startboxes[#startboxes + 1] = {
 			vertices = currentBoxVerts,
-			allyTeam = nextBoxAllyTeam,
+			allyTeam = #startboxes + 1,
 		}
-		nextBoxAllyTeam = nextBoxAllyTeam + 1
-		if nextBoxAllyTeam > numAllyTeams then
-			nextBoxAllyTeam = 1
-		end
+		renumberBoxAllyTeams()
+		boxUndo.push("add", #startboxes, startboxes[#startboxes])
 	end
 	currentBoxVerts = {}
 	drawingBox = false
@@ -689,85 +712,357 @@ end
 -- Closed centripetal Catmull-Rom tessellation. Writes into `out` (reused when provided) and
 -- truncates to the required length. Returning a fresh table each mousemove during drag was
 -- the dominant source of GC pressure -> LuaRAM warnings on large freedraw splines.
-local function tessellateClosedCatmullRom(ctrls, samplesPerSegment, out)
-	samplesPerSegment = samplesPerSegment or 12
-	local n = #ctrls
-	out = out or {}
-	if n < 3 then
-		for i = 1, n do
-			local v = out[i]
-			if v then
-				v.x, v.z = ctrls[i].x, ctrls[i].z
-			else
-				out[i] = { x = ctrls[i].x, z = ctrls[i].z }
-			end
-		end
-		for i = #out, n + 1, -1 do
-			out[i] = nil
-		end
-		return out
-	end
-	local total = n * samplesPerSegment
-	local idx = 0
-	for i = 1, n do
-		local p0 = ctrls[((i - 2) % n) + 1]
-		local p1 = ctrls[((i - 1) % n) + 1]
-		local p2 = ctrls[(i % n) + 1]
-		local p3 = ctrls[((i + 1) % n) + 1]
-		for s = 0, samplesPerSegment - 1 do
-			local t = s / samplesPerSegment
-			local t2 = t * t
-			local t3 = t2 * t
-			local a = -0.5 * t3 + t2 - 0.5 * t
-			local b = 1.5 * t3 - 2.5 * t2 + 1.0
-			local c = -1.5 * t3 + 2.0 * t2 + 0.5 * t
-			local d = 0.5 * t3 - 0.5 * t2
-			idx = idx + 1
-			local x = a * p0.x + b * p1.x + c * p2.x + d * p3.x
-			local z = a * p0.z + b * p1.z + c * p2.z + d * p3.z
-			local v = out[idx]
-			if v then
-				v.x, v.z = x, z
-			else
-				out[idx] = { x = x, z = z }
-			end
-		end
-	end
-	for i = #out, total + 1, -1 do
-		out[i] = nil
-	end
-	return out
-end
+-- The game tessellates startbox anchors through this same module, so a preview built with
+-- it matches what the match will enforce vertex for vertex.
+strengthEdit.spline = VFS.Include("common/lib_spline.lua")
 
 -- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
 -- Mutates box.vertices in place and only flags a *pending* fill rebuild — the actual fill
 -- display list is regenerated on drag release (see isDraggingBox gate in ensureBoxFillList).
+-- Anchor ring in the {x, z, strength} shape strengthEdit.spline wants. Reused across calls: a control
+-- drag retessellates on every mousemove and this sits on that path.
+function strengthEdit.buildRing(handles)
+	local n = #handles
+	for i = 1, n do
+		local h = handles[i]
+		local a = strengthEdit.scratch[i]
+		if a then
+			a[1], a[2], a[3] = h.x, h.z, h.strength or 0
+		else
+			strengthEdit.scratch[i] = { h.x, h.z, h.strength or 0 }
+		end
+	end
+	for i = #strengthEdit.scratch, n + 1, -1 do
+		strengthEdit.scratch[i] = nil
+	end
+
+	return strengthEdit.scratch
+end
+
 local function retessellateSpline(box)
 	if box.kind ~= "spline" or not box.controls then
 		return
 	end
-	box.vertices = tessellateClosedCatmullRom(box.controls, 12, box.vertices)
+
+	local ring = strengthEdit.spline.TessellateRing(strengthEdit.buildRing(box.controls))
+	local out = box.vertices or {}
+	for i = 1, #ring do
+		local p = ring[i]
+		local v = out[i]
+		if v then
+			v.x, v.z = p[1], p[2]
+		else
+			out[i] = { x = p[1], z = p[2] }
+		end
+	end
+	for i = #out, #ring + 1, -1 do
+		out[i] = nil
+	end
+	box.vertices = out
 	box._fillNeedsRebuild = true
+end
+
+-- A polygon keeps its vertices as its anchors until a corner is first curved; only then does
+-- it need a control ring with a derived outline. Axis-aligned rects never curve.
+function strengthEdit.ensureCurvable(box)
+	if box.kind == "spline" then
+		return box.controls
+	end
+	if box.kind == "box" or not box.vertices or #box.vertices < 3 then
+		return nil
+	end
+
+	box.controls = box.vertices
+	box.vertices = {}
+	box.kind = "spline"
+	retessellateSpline(box)
+
+	return box.controls
+end
+
+-- Strength 0 is stored as absent, which is what the schema and Rowy both write.
+function strengthEdit.applyOne(handle, s)
+	if s < 0 then
+		s = 0
+	elseif s > 1 then
+		s = 1
+	end
+	handle.strength = (s > 0) and s or nil
+end
+
+function strengthEdit.setVertex(box, vi, s)
+	local handles = strengthEdit.ensureCurvable(box)
+	if not handles or not handles[vi] then
+		return false
+	end
+	strengthEdit.applyOne(handles[vi], s)
+	retessellateSpline(box)
+	invalidateBoxFill(box)
+
+	return true
+end
+
+function strengthEdit.setBox(box, s)
+	local handles = strengthEdit.ensureCurvable(box)
+	if not handles then
+		return false
+	end
+	for i = 1, #handles do
+		strengthEdit.applyOne(handles[i], s)
+	end
+	retessellateSpline(box)
+	invalidateBoxFill(box)
+
+	return true
 end
 
 local function removeLastStartbox()
 	if #startboxes > 0 then
+		boxUndo.push("remove", #startboxes, startboxes[#startboxes])
 		freeBoxFillList(startboxes[#startboxes])
 		table.remove(startboxes, #startboxes)
-		if nextBoxAllyTeam > 1 then
-			nextBoxAllyTeam = nextBoxAllyTeam - 1
-		end
+		renumberBoxAllyTeams()
 	end
 end
 
 local function clearAllStartboxes()
+	strengthEdit.selBox = nil
+	strengthEdit.selVert = nil
+	strengthEdit.dragging = false
 	for i = 1, #startboxes do
 		freeBoxFillList(startboxes[i])
 	end
 	startboxes = {}
+	-- Entries indexed into the list we just emptied are not reversible, so drop them rather
+	-- than let Ctrl+Z act on stale positions. Clearing is not itself undoable.
+	for i = #undoHistory, 1, -1 do
+		if undoHistory[i].mode == "startbox" then
+			table.remove(undoHistory, i)
+		end
+	end
+	boxUndo.redo = {}
 	currentBoxVerts = {}
 	drawingBox = false
-	nextBoxAllyTeam = 1
+end
+
+function boxUndo.snap(box)
+	if not box then
+		return nil
+	end
+	local anchors = box.controls or box.vertices or {}
+	local out = { kind = box.kind, allyTeam = box.allyTeam, anchors = {} }
+	for k = 1, #anchors do
+		local a = anchors[k]
+		out.anchors[k] = { x = a.x, z = a.z, strength = a.strength }
+	end
+
+	return out
+end
+
+function boxUndo.build(snap)
+	local anchors = {}
+	for k = 1, #snap.anchors do
+		local a = snap.anchors[k]
+		anchors[k] = { x = a.x, z = a.z, strength = a.strength }
+	end
+	local box = { kind = snap.kind, allyTeam = snap.allyTeam }
+	if snap.kind == "spline" then
+		box.controls = anchors
+		box.vertices = {}
+		retessellateSpline(box)
+	else
+		box.vertices = anchors
+	end
+
+	return box
+end
+
+-- op is what the user just did, so undo knows how to reverse it: "add" drops the box at idx,
+-- "remove" puts it back, "edit" swaps the stored anchors in.
+function boxUndo.push(op, idx, box)
+	undoHistory[#undoHistory + 1] = {
+		mode = "startbox",
+		op = op,
+		idx = idx,
+		box = boxUndo.snap(box),
+	}
+	boxUndo.redo = {}
+end
+
+-- A drag fires MouseMove continuously, so the snapshot is taken once on press and only
+-- committed on release if the gesture actually changed something. One Ctrl+Z per gesture.
+function boxUndo.begin(idx)
+	boxUndo.pending = { idx = idx, box = boxUndo.snap(startboxes[idx]) }
+end
+
+function boxUndo.commit()
+	local pend = boxUndo.pending
+	boxUndo.pending = nil
+	if not pend or not pend.box then
+		return
+	end
+	-- A click that only selects a handle must not leave a no-op entry behind, or Ctrl+Z
+	-- appears to do nothing.
+	local now = boxUndo.snap(startboxes[pend.idx])
+	if now and #now.anchors == #pend.box.anchors then
+		local same = now.kind == pend.box.kind
+		for k = 1, #now.anchors do
+			local a = now.anchors[k]
+			local b = pend.box.anchors[k]
+			if not a or not b or a.x ~= b.x or a.z ~= b.z or a.strength ~= b.strength then
+				same = false
+				break
+			end
+		end
+		if same then
+			return
+		end
+	end
+	undoHistory[#undoHistory + 1] = {
+		mode = "startbox",
+		op = "edit",
+		idx = pend.idx,
+		box = pend.box,
+	}
+	boxUndo.redo = {}
+end
+
+-- Applies one entry and returns its mirror, so undo and redo share this and the caller just
+-- moves the mirror onto the other stack.
+function boxUndo.apply(entry)
+	local mirror = { mode = "startbox", op = entry.op, idx = entry.idx }
+	if entry.op == "add" then
+		mirror.box = boxUndo.snap(startboxes[entry.idx])
+		mirror.op = "remove"
+		if startboxes[entry.idx] then
+			freeBoxFillList(startboxes[entry.idx])
+			table.remove(startboxes, entry.idx)
+		end
+	elseif entry.op == "remove" then
+		mirror.op = "add"
+		local at = entry.idx
+		if at < 1 then
+			at = 1
+		elseif at > #startboxes + 1 then
+			at = #startboxes + 1
+		end
+		mirror.idx = at
+		table.insert(startboxes, at, boxUndo.build(entry.box))
+	else
+		mirror.box = boxUndo.snap(startboxes[entry.idx])
+		if startboxes[entry.idx] then
+			freeBoxFillList(startboxes[entry.idx])
+			startboxes[entry.idx] = boxUndo.build(entry.box)
+		end
+	end
+	renumberBoxAllyTeams()
+
+	return mirror
+end
+
+-- 0-200 normalised integers, the space the modoption and maps-metadata both use.
+function boxExport.toNorm(v, size)
+	local n = math_floor(v * 200 / math_max(1, size) + 0.5)
+	if n < 0 then
+		n = 0
+	elseif n > 200 then
+		n = 200
+	end
+
+	return n
+end
+
+-- Anchors, never the tessellated ring: the game re-tessellates from these through the same
+-- lib_spline this tool previews with. Strength is snapped to 0.025 like Rowy does and
+-- omitted at zero, which the schema reads as a sharp corner.
+function boxExport.arrangement()
+	local sizeX, sizeZ = Game.mapSizeX, Game.mapSizeZ
+	local out = {}
+	for bi = 1, #startboxes do
+		local box = startboxes[bi]
+		-- Not getEditHandles: this runs above its declaration. The only thing it adds is a nil
+		-- for rect kinds, and box.vertices is the right answer for those anyway.
+		local anchors = box.controls or box.vertices
+		local poly = {}
+		if box.kind == "box" and #anchors >= 3 then
+			-- Axis-aligned rects ship as the 2-point shorthand every consumer already handles.
+			local minX, minZ, maxX, maxZ = math.huge, math.huge, -math.huge, -math.huge
+			for k = 1, #anchors do
+				local a = anchors[k]
+				if a.x < minX then
+					minX = a.x
+				end
+				if a.x > maxX then
+					maxX = a.x
+				end
+				if a.z < minZ then
+					minZ = a.z
+				end
+				if a.z > maxZ then
+					maxZ = a.z
+				end
+			end
+			poly[1] = { x = boxExport.toNorm(minX, sizeX), y = boxExport.toNorm(minZ, sizeZ) }
+			poly[2] = { x = boxExport.toNorm(maxX, sizeX), y = boxExport.toNorm(maxZ, sizeZ) }
+		else
+			for k = 1, #anchors do
+				local a = anchors[k]
+				local pt = { x = boxExport.toNorm(a.x, sizeX), y = boxExport.toNorm(a.z, sizeZ) }
+				-- Snap first, then test: a strength small enough to round to zero must be omitted
+				-- rather than written as an explicit zero.
+				local st = a.strength and (math_floor(a.strength * 40 + 0.5) / 40)
+				if st and st > 0 then
+					pt.strength = st
+				end
+				poly[k] = pt
+			end
+		end
+		if #poly >= 2 then
+			out[#out + 1] = { poly = poly }
+		end
+	end
+
+	return out
+end
+
+function boxExport.encode()
+	local arrangement = boxExport.arrangement()
+	if #arrangement == 0 then
+		return nil
+	end
+
+	-- Json is a LuaUI global (luaui/system.lua). Including the module directly fails in this
+	-- sandbox: it opens with `local base = _G`, and _G is not exposed here.
+	if not Json then
+		Echo("[StartPos Tool] Json unavailable; cannot encode.")
+		return nil
+	end
+	boxExport.b64 = boxExport.b64 or VFS.Include("common/luaUtilities/base64.lua")
+	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
+	if not ok or not raw then
+		return nil
+	end
+	local packed = VFS.ZlibCompress(raw)
+	if not packed then
+		return nil
+	end
+
+	return (boxExport.b64.Encode(packed):gsub("=+$", "")), #arrangement
+end
+
+-- The value is only useful pasted into lobby chat, and the server truncates that, so the
+-- length is reported alongside it rather than left for the user to discover.
+local function copyStartboxOverride()
+	local value, boxes = boxExport.encode()
+	if not value then
+		Echo("[StartPos Tool] No startboxes to copy.")
+		return false
+	end
+
+	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
+	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value))
+
+	return true
 end
 
 local function findNearestBoxVertex(wx, wz)
@@ -863,23 +1158,28 @@ local function findNearestBoxEdge(wx, wz)
 				local dR = math.abs(wx - maxX) -- right  edge
 				local dT = math.abs(wz - minZ) -- top    edge (min Z)
 				local dB = math.abs(wz - maxZ) -- bottom edge
-				local best, which = EDGE_PICK_DIST, nil
+				local best = EDGE_PICK_DIST
+				local which = nil
 				-- Left/right edges only valid within Z span
 				if wz >= minZ - EDGE_PICK_DIST and wz <= maxZ + EDGE_PICK_DIST then
 					if dL < best then
-						best, which = dL, "L"
+						best = dL
+						which = "L"
 					end
 					if dR < best then
-						best, which = dR, "R"
+						best = dR
+						which = "R"
 					end
 				end
 				-- Top/bottom edges only valid within X span
 				if wx >= minX - EDGE_PICK_DIST and wx <= maxX + EDGE_PICK_DIST then
 					if dT < best then
-						best, which = dT, "T"
+						best = dT
+						which = "T"
 					end
 					if dB < best then
-						best, which = dB, "B"
+						best = dB
+						which = "B"
 					end
 				end
 				if which then
@@ -910,9 +1210,187 @@ local function getEditHandles(box)
 	return nil
 end
 
+-- Outward direction for the strength gizmo: anchor centroid -> anchor, so the gizmo always
+-- points away from the box body and never crosses it.
+function strengthEdit.axis(box, vi)
+	local handles = getEditHandles(box)
+	local v = handles and handles[vi]
+	if not v or #handles < 3 then
+		return nil
+	end
+
+	local cx, cz = 0, 0
+	for i = 1, #handles do
+		cx = cx + handles[i].x
+		cz = cz + handles[i].z
+	end
+	cx, cz = cx / #handles, cz / #handles
+
+	local dx, dz = v.x - cx, v.z - cz
+	local len = math.sqrt(dx * dx + dz * dz)
+	if len < 1 then
+		dx, dz, len = 1, 0, 1
+	end
+
+	return v.x, v.z, dx / len, dz / len
+end
+
+function strengthEdit.knob(box, vi)
+	local vx, vz, ux, uz = strengthEdit.axis(box, vi)
+	if not vx then
+		return nil
+	end
+	local handles = getEditHandles(box)
+	local s = (handles[vi].strength or 0) * strengthEdit.GIZMO_LEN
+
+	return vx + ux * s, vz + uz * s, vx, vz, ux, uz
+end
+
+-- Lifted out of DrawWorld: that function sits right on Lua's 60-upvalue ceiling, and the
+-- gizmo's own references were enough to push it over.
+-- The height the gizmo floats at. Shared with the hit test: if these ever computed it
+-- separately, the knob would be pickable somewhere other than where it is drawn.
+function strengthEdit.gizmoY(box, vi)
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
+	if not kx then
+		return nil
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	local gy = math_max(GetGroundHeight(vx, vz) or 0, GetGroundHeight(ex, ez) or 0)
+
+	return math_max(gy, GetGroundHeight(kx, kz) or 0) + 48
+end
+
+-- Picked in screen space because the knob floats: tracing the cursor to the ground would
+-- test against its shadow, which is not where it appears at any shallow camera angle.
+function strengthEdit.knobHit(box, vi, mx, my)
+	local kx, kz = strengthEdit.knob(box, vi)
+	local gy = kx and strengthEdit.gizmoY(box, vi)
+	if not gy or not mx then
+		return false
+	end
+
+	local sx, sy, sz = WorldToScreenCoords(kx, gy, kz)
+	if not sz or sz <= 0 or sz >= 1 then
+		return false
+	end
+	local dx, dy = mx - sx, my - sy
+
+	return (dx * dx + dy * dy) <= 18 * 18
+end
+
+-- Strength from where the cursor sits along the track as drawn. Projecting the ground
+-- cursor onto the world axis instead would drift from the floating knob by the same offset
+-- that made picking wrong.
+function strengthEdit.fromMouse(box, vi, mx, my)
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, vi)
+	local gy = kx and strengthEdit.gizmoY(box, vi)
+	if not gy or not mx then
+		return nil
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	local ax, ay, az = WorldToScreenCoords(vx, gy, vz)
+	local bx, by, bz = WorldToScreenCoords(ex, gy, ez)
+	if not az or not bz or az <= 0 or az >= 1 or bz <= 0 or bz >= 1 then
+		return nil
+	end
+
+	local dx, dy = bx - ax, by - ay
+	local lenSq = dx * dx + dy * dy
+	if lenSq < 1 then
+		return nil
+	end
+
+	return ((mx - ax) * dx + (my - ay) * dy) / lenSq
+end
+
+function strengthEdit.draw(box, bi)
+	if strengthEdit.selBox ~= bi or not strengthEdit.selVert then
+		return
+	end
+
+	local kx, kz, vx, vz, ux, uz = strengthEdit.knob(box, strengthEdit.selVert)
+	if not kx then
+		return
+	end
+
+	local ex, ez = vx + ux * strengthEdit.GIZMO_LEN, vz + uz * strengthEdit.GIZMO_LEN
+	-- One height for the whole track, clear of the tallest ground beneath it, so the gizmo
+	-- reads as a straight ruler instead of draping over whatever slope it crosses.
+	local gy = strengthEdit.gizmoY(box, strengthEdit.selVert)
+	if not gy then
+		return
+	end
+
+	-- Drawn without depth so a hill between the camera and the anchor cannot bury it.
+	glDepthTest(false)
+
+	glColor(0, 0, 0, 0.55)
+	glLineWidth(6.0)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(ex, gy, ez)
+	end)
+	glColor(1, 1, 1, 0.85)
+	glLineWidth(2.5)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(ex, gy, ez)
+	end)
+
+	-- Stem down to the anchor, so a track floating above uneven ground still reads as its.
+	glColor(1, 1, 1, 0.35)
+	glLineWidth(1.5)
+	glBeginEnd(GL_LINES, function()
+		glVertex(vx, gy, vz)
+		glVertex(vx, (GetGroundHeight(vx, vz) or 0) + 4, vz)
+	end)
+
+	local hot = strengthEdit.hoverKnob or strengthEdit.dragging
+	local kr = worldRadiusForScreenPx(kx, kz, hot and 15 or 10)
+	glColor(0, 0, 0, 0.60)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(kx, gy, kz)
+		for s = 0, 18 do
+			local a = (s / 18) * 2 * math.pi
+			glVertex(kx + math_cos(a) * kr * 1.4, gy, kz + math_sin(a) * kr * 1.4)
+		end
+	end)
+	glColor(1, 1, 1, hot and 1.0 or 0.95)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		glVertex(kx, gy, kz)
+		for s = 0, 18 do
+			local a = (s / 18) * 2 * math.pi
+			glVertex(kx + math_cos(a) * kr, gy, kz + math_sin(a) * kr)
+		end
+	end)
+	if hot then
+		-- Ring drawn flat at the gizmo height, not on the ground, so it tracks the knob.
+		glColor(1, 1, 1, 0.55)
+		glLineWidth(2.0)
+		glBeginEnd(GL_LINE_LOOP, function()
+			for s = 0, 22 do
+				local a = (s / 22) * 2 * math.pi
+				glVertex(kx + math_cos(a) * kr * 1.7, gy, kz + math_sin(a) * kr * 1.7)
+			end
+		end)
+	end
+
+	glDepthTest(true)
+
+	glColor(1, 1, 1, 0.75)
+	glLineWidth(2.0)
+	glDrawGroundCircle(vx, GetGroundHeight(vx, vz) or 0, vz, worldRadiusForScreenPx(vx, vz, 26), 24)
+end
+
 local function findNearestPolygonEdgeMid(wx, wz)
 	local bestD = VERTEX_PICK_DIST_SQ
-	local bestBi, bestEi, bestMx, bestMz = nil, nil, nil, nil
+	local bestBi = nil
+	local bestEi = nil
+	local bestMx = nil
+	local bestMz = nil
 	for bi, box in ipairs(startboxes) do
 		local handles = getEditHandles(box)
 		if handles and #handles >= 3 then
@@ -925,7 +1403,10 @@ local function findNearestPolygonEdgeMid(wx, wz)
 				local d = distSq(wx, wz, mx, mz)
 				if d < bestD then
 					bestD = d
-					bestBi, bestEi, bestMx, bestMz = bi, i, mx, mz
+					bestBi = bi
+					bestEi = i
+					bestMx = mx
+					bestMz = mz
 				end
 			end
 		end
@@ -1026,9 +1507,19 @@ local function saveStartboxes(name, explicitPath)
 	for i, box in ipairs(startboxes) do
 		lines[#lines + 1] = string.format("  [%d] = {", i)
 		lines[#lines + 1] = string.format("    allyTeam = %d,", box.allyTeam)
-		lines[#lines + 1] = "    vertices = {"
-		for _, v in ipairs(box.vertices) do
-			lines[#lines + 1] = string.format("      { x = %d, z = %d },", math_floor(v.x), math_floor(v.z))
+		lines[#lines + 1] = string.format("    kind = %q,", box.kind or "polygon")
+		-- Anchors, never the tessellated ring: the ring is derived and a curve cannot be
+		-- recovered from it. Strength is omitted when zero, matching the shared schema.
+		lines[#lines + 1] = "    anchors = {"
+		local anchors = getEditHandles(box) or box.vertices
+		for _, v in ipairs(anchors) do
+			local s = v.strength
+			if s and s > 0 then
+				lines[#lines + 1] =
+					string.format("      { x = %d, z = %d, strength = %.3f },", math_floor(v.x), math_floor(v.z), s)
+			else
+				lines[#lines + 1] = string.format("      { x = %d, z = %d },", math_floor(v.x), math_floor(v.z))
+			end
 		end
 		lines[#lines + 1] = "    },"
 		lines[#lines + 1] = "  },"
@@ -1058,11 +1549,28 @@ local function loadStartboxes(name, explicitPath)
 	if ok and data then
 		clearAllStartboxes()
 		for i, box in ipairs(data) do
-			startboxes[i] = {
-				vertices = box.vertices,
-				allyTeam = box.allyTeam or i,
-			}
+			-- anchors is the current shape; vertices is what older saves hold, and those had no
+			-- curvature to lose, so loading them as plain polygons is faithful.
+			local anchors = box.anchors
+			if anchors and box.kind ~= "box" then
+				startboxes[i] = {
+					controls = anchors,
+					vertices = {},
+					kind = "spline",
+					allyTeam = box.allyTeam or i,
+				}
+				retessellateSpline(startboxes[i])
+			else
+				-- Axis-aligned rects never curve, so their anchors are their vertices.
+				local verts = box.vertices or anchors
+				startboxes[i] = {
+					vertices = verts,
+					allyTeam = box.allyTeam or i,
+					kind = box.kind,
+				}
+			end
 		end
+		renumberBoxAllyTeams()
 		Echo("[StartPos Tool] Loaded startboxes from: " .. filename)
 		return true
 	else
@@ -1395,16 +1903,23 @@ local function decimatePoints(pts, minDistSq)
 end
 
 local function getState()
+	-- Startbox submode derives its ally-team count from the boxes drawn; the panel disables
+	-- the slider there and shows it as dynamic, so reporting the stale slider value would lie.
+	local allyCount = numAllyTeams
+	if subMode == "startbox" and #startboxes > 0 then
+		allyCount = #startboxes
+	end
+
 	return {
 		active = active,
 		subMode = subMode,
 		positions = positions,
-		numAllyTeams = numAllyTeams,
+		numAllyTeams = allyCount,
 		numTeamsPerAlly = numTeamsPerAlly,
 		nextAllyTeam = nextAllyTeam,
 		nextTeamSlot = nextTeamSlot,
 		placementMode = placementMode,
-		totalPlayers = numAllyTeams * numTeamsPerAlly,
+		totalPlayers = allyCount * numTeamsPerAlly,
 		maxAllyTeams = MAX_ALLYTEAMS,
 		maxTeamsPerAlly = MAX_TEAMS_PER_ALLY,
 		maxPositions = MAX_POSITIONS,
@@ -1432,6 +1947,7 @@ function widget:MousePress(mx, my, button)
 
 	-- Defer to measure tool when active
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		if stb and stb.measureActive then
@@ -1463,6 +1979,7 @@ function widget:MousePress(mx, my, button)
 			end
 			-- Place new position; smart-assign teams across symmetric copies when symmetry is active
 			do
+				---@type table?
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				local prevNext = nextAllyTeam
@@ -1480,6 +1997,7 @@ function widget:MousePress(mx, my, button)
 				local added = #positions - prevCount
 				if added > 0 then
 					undoHistory[#undoHistory + 1] = {
+						mode = subMode,
 						count = added,
 						prevNextAllyTeam = prevNext,
 						prevNextTeamSlot = prevNextSlot,
@@ -1488,17 +2006,28 @@ function widget:MousePress(mx, my, button)
 			end
 			return true
 		elseif button == 3 then
-			-- RMB: Undo last placement (remove most recently placed player/shape-batch)
-			local entry = undoHistory[#undoHistory]
-			if entry then
-				for i = 1, entry.count do
+			-- RMB: Undo last placement (remove most recently placed player/shape-batch).
+			-- The history is shared with the startbox editor and its entries carry no
+			-- count, so take the newest POSITION entry rather than the newest entry:
+			-- after drawing boxes the top of the stack is a box edit, and rewinding by
+			-- its missing count crashed the widget.
+			local at
+			for i = #undoHistory, 1, -1 do
+				if (undoHistory[i].mode or "express") ~= "startbox" then
+					at = i
+					break
+				end
+			end
+			local entry = at and undoHistory[at] or nil
+			if entry and at then
+				for _ = 1, (entry.count or 0) do
 					if #positions > 0 then
 						positions[#positions] = nil
 					end
 				end
-				nextAllyTeam = entry.prevNextAllyTeam
+				nextAllyTeam = entry.prevNextAllyTeam or 1
 				nextTeamSlot = entry.prevNextTeamSlot or 1
-				undoHistory[#undoHistory] = nil
+				table.remove(undoHistory, at)
 			end
 			if #positions == 0 then
 				nextAllyTeam = 1
@@ -1509,6 +2038,7 @@ function widget:MousePress(mx, my, button)
 	elseif subMode == "shape" then
 		if button == 1 then
 			-- LMB: Place positions using current shape at click location
+			---@type table?
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			local sx, sz = wx, wz
@@ -1534,6 +2064,7 @@ function widget:MousePress(mx, my, button)
 			local added = #positions - prevCount
 			if added > 0 then
 				undoHistory[#undoHistory + 1] = {
+					mode = subMode,
 					count = added,
 					prevNextAllyTeam = prevNext,
 					prevNextTeamSlot = prevNextSlot,
@@ -1547,9 +2078,20 @@ function widget:MousePress(mx, my, button)
 		end
 	elseif subMode == "startbox" then
 		if button == 1 then
+			-- Strength gizmo of the selected anchor wins over vertex picking: it is deliberately
+			-- placed outside the box so it cannot collide with anything else worth grabbing.
+			if strengthEdit.selBox and strengthEdit.selVert and startboxes[strengthEdit.selBox] then
+				if strengthEdit.knobHit(startboxes[strengthEdit.selBox], strengthEdit.selVert, mx, my) then
+					boxUndo.begin(strengthEdit.selBox)
+					strengthEdit.dragging = true
+					return true
+				end
+			end
+
 			-- Check for vertex drag first (polygon/freedraw boxes — placed boxes are always editable)
 			local bi, vi = findNearestBoxVertex(wx, wz)
 			if bi and vi then
+				boxUndo.begin(bi)
 				boxDragIdx = vi
 				boxDragBoxIdx = bi
 				dragStartX = mx
@@ -1564,6 +2106,7 @@ function widget:MousePress(mx, my, button)
 				local box = startboxes[pbi]
 				local handles = box and getEditHandles(box)
 				if handles then
+					boxUndo.begin(pbi)
 					local insertAt = pei + 1
 					table.insert(handles, insertAt, { x = pmx, z = pmz })
 					if box.kind == "spline" then
@@ -1603,14 +2146,17 @@ function widget:MousePress(mx, my, button)
 			if startboxMode == "box" then
 				-- Drag rectangle: press to start, release to finish (like copy tool's box)
 				local sx, sz = wx, wz
+				---@type table?
 				local tb = WG.TerraformBrush
 				local stb = tb and tb.getState and tb.getState() or nil
 				if stb and stb.gridSnap and tb.snapWorld then
 					sx, sz = tb.snapWorld(wx, wz, 0)
 				end
 				boxRectActive = true
-				boxRectStartX, boxRectStartZ = sx, sz
-				boxRectEndX, boxRectEndZ = sx, sz
+				boxRectStartX = sx
+				boxRectStartZ = sz
+				boxRectEndX = sx
+				boxRectEndZ = sz
 				dragStartX, dragStartY = mx, my
 				return true
 			elseif startboxMode == "freedraw" then
@@ -1674,6 +2220,25 @@ function widget:MouseMove(mx, my, dx, dy, button)
 		return false
 	end
 
+	if strengthEdit.dragging and strengthEdit.selBox and strengthEdit.selVert then
+		-- No ground trace here on purpose: the knob floats, so a cursor over sky is still a
+		-- legitimate drag position.
+		local box = startboxes[strengthEdit.selBox]
+		if box then
+			local s = strengthEdit.fromMouse(box, strengthEdit.selVert, mx, my)
+			if s then
+				-- Ctrl drives every anchor at once, the same meaning Ctrl+A has.
+				local _, ctrlHeld = Spring.GetModKeyState()
+				if ctrlHeld then
+					strengthEdit.setBox(box, s)
+				else
+					strengthEdit.setVertex(box, strengthEdit.selVert, s)
+				end
+			end
+		end
+		return true
+	end
+
 	if subMode == "express" and dragIdx then
 		local moved = (mx - dragStartX) ^ 2 + (my - dragStartY) ^ 2
 		if moved > DRAG_THRESHOLD_SQ then
@@ -1702,8 +2267,8 @@ function widget:MouseMove(mx, my, dx, dy, button)
 			isDraggingBox = true
 			pendingFillRebuildIdx = boxDragBoxIdx
 			local wx, wz = getWorldMousePosition()
-			if wx and startboxes[boxDragBoxIdx] then
-				local box = startboxes[boxDragBoxIdx]
+			local box = wx and startboxes[boxDragBoxIdx] or nil
+			if box then
 				if box.kind == "spline" and box.controls then
 					local v = box.controls[boxDragIdx]
 					if v then
@@ -1895,12 +2460,14 @@ function widget:MouseMove(mx, my, dx, dy, button)
 	if subMode == "startbox" and boxRectActive then
 		local wx, wz = getWorldMousePosition()
 		if wx then
+			---@type table?
 			local tb = WG.TerraformBrush
 			local stb = tb and tb.getState and tb.getState() or nil
 			if stb and stb.gridSnap and tb.snapWorld then
 				wx, wz = tb.snapWorld(wx, wz, 0)
 			end
-			boxRectEndX, boxRectEndZ = wx, wz
+			boxRectEndX = wx
+			boxRectEndZ = wz
 		end
 		return true
 	end
@@ -1936,11 +2503,22 @@ function widget:MouseRelease(mx, my, button)
 		return true
 	end
 
+	if strengthEdit.dragging then
+		strengthEdit.dragging = false
+		boxUndo.commit()
+		return true
+	end
+
 	-- Consolidated release for all startbox drag kinds (vertex / edge / body). Trigger the
 	-- deferred fill-list rebuild here so the translucent fill catches up after the user
 	-- lets go. During the drag itself ensureBoxFillList returned the stale list to avoid
 	-- O(N^2) rebuilds per mousemove.
 	if subMode == "startbox" and (boxDragIdx or boxEdgeDrag or boxBodyDrag) then
+		-- Press and release on a handle without moving is a selection, not a drag.
+		if boxDragIdx and boxDragBoxIdx and not dragging then
+			strengthEdit.selBox = boxDragBoxIdx
+			strengthEdit.selVert = boxDragIdx
+		end
 		if pendingFillRebuildIdx and startboxes[pendingFillRebuildIdx] then
 			invalidateBoxFill(startboxes[pendingFillRebuildIdx])
 		end
@@ -1951,6 +2529,7 @@ function widget:MouseRelease(mx, my, button)
 		boxEdgeDrag = nil
 		boxBodyDrag = nil
 		dragging = false
+		boxUndo.commit()
 		return true
 	end
 
@@ -1996,7 +2575,7 @@ function widget:MouseRelease(mx, my, button)
 					local a = smoothed[i]
 					local b = smoothed[(i % #smoothed) + 1]
 					local dx, dz = b.x - a.x, b.z - a.z
-					perim = perim + math.sqrt(dx * dx + dz * dz)
+					perim = perim + math_sqrt(dx * dx + dz * dz)
 				end
 				local targetCtrls = math_floor(perim / 400 + 0.5)
 				if targetCtrls < 6 then
@@ -2008,17 +2587,21 @@ function widget:MouseRelease(mx, my, button)
 				-- Fit a minimal set of control points from the smoothed trace, then store as
 				-- a spline-kind box so the user can reshape via curve handles (not raw verts).
 				local controls = fitControlPoints(smoothed, targetCtrls)
-				local vertices = tessellateClosedCatmullRom(controls, 12)
+				-- A drawn outline is smooth by intent, so every fitted handle starts fully curved.
+				-- Sharpening individual corners afterwards is what the strength gizmo is for.
+				for _, c in ipairs(controls) do
+					c.strength = 1
+				end
 				startboxes[#startboxes + 1] = {
-					vertices = vertices,
+					vertices = {},
 					controls = controls,
 					kind = "spline",
-					allyTeam = nextBoxAllyTeam,
+					allyTeam = #startboxes + 1,
 				}
-				nextBoxAllyTeam = nextBoxAllyTeam + 1
-				if nextBoxAllyTeam > numAllyTeams then
-					nextBoxAllyTeam = 1
-				end
+				-- Same path a control drag takes, so what is drawn matches what editing produces.
+				retessellateSpline(startboxes[#startboxes])
+				renumberBoxAllyTeams()
+				boxUndo.push("add", #startboxes, startboxes[#startboxes])
 			end
 		end
 		freeDrawPts = {}
@@ -2039,6 +2622,7 @@ function widget:MouseWheel(up, value)
 		if altHeld then
 			-- Alt+Scroll: rotate shape (snap to TB protractor step when angleSnap on)
 			local step = 5
+			---@type table?
 			local tb = WG.TerraformBrush
 			local tbs = tb and tb.getState and tb.getState() or nil
 			if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2063,18 +2647,55 @@ function widget:KeyPress(key, mods, isRepeat)
 		return false
 	end
 	-- Ctrl+Z: undo last placement
+	-- Ctrl+A: give every anchor in the selected box the selected anchor's strength.
+	if key == 97 and mods.ctrl and strengthEdit.selBox and strengthEdit.selVert then -- 97 = 'a'
+		local box = startboxes[strengthEdit.selBox]
+		local handles = box and getEditHandles(box)
+		if handles and handles[strengthEdit.selVert] then
+			boxUndo.push("edit", strengthEdit.selBox, box)
+			strengthEdit.setBox(box, handles[strengthEdit.selVert].strength or 0)
+			return true
+		end
+	end
+
+	-- Ctrl+Z undoes, Ctrl+Shift+Z redoes: the editor's convention (the clone tool and the
+	-- terraform brush bind redo the same way). Only entries from the current submode are
+	-- eligible: positions and startboxes coexist, so undoing in one submode must not
+	-- silently rewind the other.
 	if key == 122 and mods.ctrl then -- 122 = 'z'
-		local entry = undoHistory[#undoHistory]
-		if entry then
-			for i = 1, entry.count do
+		local isUndo = not mods.shift
+		local fromStack = isUndo and undoHistory or boxUndo.redo
+		local toStack = isUndo and boxUndo.redo or undoHistory
+		local at
+		for i = #fromStack, 1, -1 do
+			if (fromStack[i].mode or "express") == subMode then
+				at = i
+				break
+			end
+		end
+		if not at then
+			return true
+		end
+
+		local entry = fromStack[at]
+		table.remove(fromStack, at)
+		if not entry then
+			return true
+		end
+		if entry.mode == "startbox" then
+			table.insert(toStack, boxUndo.apply(entry))
+		else
+			-- Positions rewind by count, the way they always have; the counter pair is
+			-- restored from the snapshot rather than guessed at.
+			for _ = 1, (entry.count or 0) do
 				if #positions > 0 then
 					positions[#positions] = nil
 				end
 			end
-			nextAllyTeam = entry.prevNextAllyTeam
+			nextAllyTeam = entry.prevNextAllyTeam or 1
 			nextTeamSlot = entry.prevNextTeamSlot or 1
-			undoHistory[#undoHistory] = nil
 		end
+
 		return true
 	end
 	return false
@@ -2411,6 +3032,7 @@ function widget:Update()
 	hoverPosIdx = nil
 	hoverBoxIdx = nil
 	hoverVertIdx = nil
+	strengthEdit.hoverKnob = false
 	hoverBoxEdge = nil
 	hoverPolyEdge = nil
 	if not active then
@@ -2440,8 +3062,19 @@ function widget:Update()
 			end
 			hoverPosIdx = bestIdx
 		elseif subMode == "startbox" then
-			hoverBoxIdx, hoverVertIdx = findNearestBoxVertex(wx, wz)
-			if not hoverBoxIdx then
+			-- Knob first, mirroring MousePress: it wins over vertex picking, so hover has to
+			-- agree or the highlight would point at something the click will not hit.
+			local selBox = strengthEdit.selBox and startboxes[strengthEdit.selBox]
+			if selBox and strengthEdit.selVert then
+				local hmx, hmy = GetMouseState()
+				if strengthEdit.knobHit(selBox, strengthEdit.selVert, hmx, hmy) then
+					strengthEdit.hoverKnob = true
+				end
+			end
+			if not strengthEdit.hoverKnob then
+				hoverBoxIdx, hoverVertIdx = findNearestBoxVertex(wx, wz)
+			end
+			if not strengthEdit.hoverKnob and not hoverBoxIdx then
 				local ebi, edge = findNearestBoxEdge(wx, wz)
 				if ebi and edge then
 					hoverBoxEdge = { bi = ebi, edge = edge }
@@ -2455,7 +3088,11 @@ function widget:Update()
 		end
 	end
 
-	local shouldMove = (hoverPosIdx ~= nil) or (hoverVertIdx ~= nil) or (hoverBoxEdge ~= nil) or (hoverPolyEdge ~= nil)
+	local shouldMove = (hoverPosIdx ~= nil)
+		or (hoverVertIdx ~= nil)
+		or (hoverBoxEdge ~= nil)
+		or (hoverPolyEdge ~= nil)
+		or strengthEdit.hoverKnob
 	if WG.StartPosTool then
 		WG.StartPosTool.hoveringDraggable = shouldMove
 	end
@@ -2474,6 +3111,7 @@ function widget:DrawWorld()
 	-- table: DrawWorld is at LuaJIT's 60-upvalue limit, so no new module locals.
 	self.frameTraceX, self.frameTraceZ, self.frameTraceDF = wx, wz, drawFrame
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -2542,6 +3180,7 @@ function widget:DrawWorld()
 
 	-- Express mode: ghost-cursor preview of the next position (or all symmetric copies)
 	if subMode == "express" and wx and not dragIdx and hoverPosIdx == nil then
+		---@type table?
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
 		local numSlot = math_max(1, numTeamsPerAlly)
@@ -2588,7 +3227,7 @@ function widget:DrawWorld()
 				for i = 1, #verts do
 					local v = verts[i]
 					local vn = verts[(i % #verts) + 1]
-					local segLen = math.sqrt((vn.x - v.x) ^ 2 + (vn.z - v.z) ^ 2)
+					local segLen = math_sqrt((vn.x - v.x) ^ 2 + (vn.z - v.z) ^ 2)
 					local steps = math_max(1, math.ceil(segLen / 48))
 					for s = 0, steps - 1 do
 						local t = s / steps
@@ -2709,7 +3348,7 @@ function widget:DrawWorld()
 						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
 						glVertex(v.x, cy - 0.1, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
 						end
 					end)
@@ -2718,7 +3357,7 @@ function widget:DrawWorld()
 						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
 						glVertex(v.x, cy, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
 						end
 					end)
@@ -2742,7 +3381,7 @@ function widget:DrawWorld()
 						glColor(0, 0, 0, isHoverVert and 0.85 or 0.70)
 						glVertex(v.x, cy - 0.1, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * (vertR + rim), cy - 0.1, v.z + math_sin(a) * (vertR + rim))
 						end
 					end)
@@ -2750,7 +3389,7 @@ function widget:DrawWorld()
 						glColor(color[1], color[2], color[3], isHoverVert and 1.0 or 0.92)
 						glVertex(v.x, cy, v.z)
 						for s = 0, segs do
-							local a = (s / segs) * 2 * math.pi
+							local a = (s / segs) * 2 * math_pi
 							glVertex(v.x + math_cos(a) * vertR, cy, v.z + math_sin(a) * vertR)
 						end
 					end)
@@ -2760,6 +3399,7 @@ function widget:DrawWorld()
 						glDrawGroundCircle(v.x, vy, v.z, vertR + worldRadiusForScreenPx(v.x, v.z, 4), 24)
 					end
 				end
+				strengthEdit.draw(box, bi)
 				-- Polygon / spline edge-midpoint ghost handle: faint circle at the edge midpoint
 				-- under the cursor; clicking it inserts a new vertex / control point there and
 				-- starts a drag (spline retessellates on each move).
@@ -2790,7 +3430,7 @@ function widget:DrawWorld()
 
 	-- Draw current box being drawn
 	if drawingBox and #currentBoxVerts > 0 then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.6)
 		glLineWidth(2.0)
 		if #currentBoxVerts >= 2 then
@@ -2821,7 +3461,7 @@ function widget:DrawWorld()
 
 	-- Draw drag-rect preview (startboxMode == "box")
 	if subMode == "startbox" and boxRectActive and boxRectStartX and boxRectEndX then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		local x1, x2 = math_min(boxRectStartX, boxRectEndX), math_max(boxRectStartX, boxRectEndX)
 		local z1, z2 = math_min(boxRectStartZ, boxRectEndZ), math_max(boxRectStartZ, boxRectEndZ)
 		glColor(color[1], color[2], color[3], 0.75)
@@ -2853,7 +3493,7 @@ function widget:DrawWorld()
 
 	-- Draw freedraw in-progress path
 	if subMode == "startbox" and freeDrawActive and #freeDrawPts >= 2 then
-		local color = getColorForAllyTeam(nextBoxAllyTeam)
+		local color = getColorForAllyTeam(#startboxes + 1)
 		glColor(color[1], color[2], color[3], 0.85)
 		glLineWidth(2.2)
 		glBeginEnd(GL_LINE_STRIP, function()
@@ -3059,7 +3699,7 @@ function widget:DrawScreenEffects()
 			end
 			if not bestVis then
 				-- Fallback: centroid (e.g. all corners off-screen but center on-screen)
-				local ccx, ccz = 0, 0
+				local ccx, ccz = 0.0, 0.0
 				for _, v in ipairs(box.vertices) do
 					ccx = ccx + v.x
 					ccz = ccz + v.z
@@ -3157,9 +3797,12 @@ function widget:Initialize()
 		loadStartPositions = loadStartPositions,
 		listSavedConfigs = listSavedConfigs,
 		saveStartboxes = saveStartboxes,
+		copyStartboxOverride = copyStartboxOverride,
 		loadStartboxes = loadStartboxes,
 		listSavedStartboxConfigs = listSavedStartboxConfigs,
 		clearAllStartboxes = clearAllStartboxes,
+		setVertexStrength = strengthEdit.setVertex,
+		setBoxStrength = strengthEdit.setBox,
 		finishStartbox = finishStartbox,
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,

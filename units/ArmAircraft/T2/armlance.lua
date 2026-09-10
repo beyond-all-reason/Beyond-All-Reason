@@ -36,6 +36,7 @@ return {
 		wingangle = 0.06259,
 		wingdrag = 0.185,
 		customparams = {
+			areaattack_unlimited = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft/T2",
@@ -100,6 +101,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					land_damage_mult = 0.2,
 					norangering = 1,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 500,
