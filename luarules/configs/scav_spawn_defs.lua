@@ -21,8 +21,6 @@ economyScale = math.min(5, (economyScale * 0.33) + 0.67)
 
 local teams = Spring.GetTeamList()
 local humanTeamCount = -1 -- starts at -1 to disregard gaia
-local scavTeamCount
-local scavTeamID
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if not (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
@@ -3173,7 +3171,7 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 local highValueTargets = {}
 for unitName, params in pairs(highValueTargetsNames) do
 	if not UnitDefNames[unitName] then
-		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldnt find unit name: " .. unitName)
+		Spring.Log(gadget:GetInfo().name, LOG.ERROR, "couldn't find unit name: " .. unitName)
 	else
 		highValueTargets[UnitDefNames[unitName].id] = params
 	end

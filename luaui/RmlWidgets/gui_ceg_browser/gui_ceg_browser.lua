@@ -109,7 +109,6 @@ local hoveredCEG = ""
 local SCALE_PRESETS = { 0.75, 0.875, 1.0, 1.125, 1.25 }
 local scaleIndex = Spring.GetConfigInt("ceg_browser_scale_index", 3)
 scaleIndex = math.max(1, math.min(#SCALE_PRESETS, scaleIndex))
-local uiScale = SCALE_PRESETS[scaleIndex]
 local scaleNeedsApply = true -- apply on first Update
 
 ----------------------------------------------------------------
@@ -1252,7 +1251,6 @@ local init_model = {
 	scaleDown = function(ev)
 		if scaleIndex > 1 then
 			scaleIndex = scaleIndex - 1
-			uiScale = SCALE_PRESETS[scaleIndex]
 			scaleNeedsApply = true
 			UpdateScaleModel()
 		end
@@ -1261,7 +1259,6 @@ local init_model = {
 	scaleUp = function(ev)
 		if scaleIndex < #SCALE_PRESETS then
 			scaleIndex = scaleIndex + 1
-			uiScale = SCALE_PRESETS[scaleIndex]
 			scaleNeedsApply = true
 			UpdateScaleModel()
 		end

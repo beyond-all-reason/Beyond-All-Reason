@@ -134,7 +134,6 @@ local glTexture = gl.Texture
 local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local LuaShader = gl.LuaShader
-local glDeleteShader = gl.DeleteShader
 local glResetState = gl.ResetState
 
 --------------------------------------------------------------------------------

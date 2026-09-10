@@ -275,6 +275,11 @@ function widget:Initialize()
 		end
 	end
 
+	if VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	if WG.ordermenu then
 		stickToBottom = WG.ordermenu.getBottomPosition()
 	end

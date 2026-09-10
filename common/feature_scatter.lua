@@ -140,6 +140,23 @@ local function insideLocal(dx, dz, radius, shape, lengthScale)
 end
 
 ----------------------------------------------------------------
+-- Scale variation
+----------------------------------------------------------------
+-- Bottom-heavy roll: skewing a uniform draw by t^1.5 lands most features near
+-- scaleMin with a thinning tail toward scaleMax, which is the size distribution
+-- of a natural stand -- many small trees, few large ones.
+local function rollScale(rng, smin, smax)
+	smin = smin or 1
+	smax = smax or smin
+	if smax <= smin then
+		return smin
+	end
+	local t = rng:next()
+	t = t * sqrt(t)
+	return smin + (smax - smin) * t
+end
+
+----------------------------------------------------------------
 -- Distribution: random
 ----------------------------------------------------------------
 local function generateRandom(radius, shape, lengthScale, count, rng)
@@ -227,7 +244,15 @@ end
 -- Gaussian offset, ~25% scatter freely. A minimum separation derived from the
 -- selected defs' own collision radii prevents exact overlaps, so large features
 -- naturally space out while small ones pack tightly.
-local function generateClustered(radius, shape, lengthScale, count, defNames, rng)
+--
+-- When a scale range is set, scale is correlated with distance to the nearest
+-- nucleus -- large features in the clump core, saplings at the fringe -- and the
+-- pair-separation test uses the two candidates' scales, so small features pack
+-- tighter than large ones. Both are what makes a scatter read as a grown stand
+-- rather than dice rolls.
+local function generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
+	scaleMin = scaleMin or 1
+	scaleMax = scaleMax or 1
 	local minSpacing = 4
 	for i = 1, #defNames do
 		local def = FeatureDefNames[defNames[i]]
@@ -244,7 +269,6 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 		minSpacing = radius / sqrt(count * 2)
 	end
 	minSpacing = max(4, minSpacing)
-	local minSq = minSpacing * minSpacing
 
 	local numClusters = max(2, min(6, floor(sqrt(count) * 0.7 + 0.5)))
 	local clusterCenters = {}
@@ -264,13 +288,16 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 	local sigma = radius / max(1, #clusterCenters) * 1.2
 	local RANDOM_FRAC = 0.25
 
+	local hasScale = scaleMax > scaleMin
+	local scaleRange = scaleMax - scaleMin
+
 	local positions = {}
 	local maxAttempts = count * 15
 	local tries = 0
 
 	while #positions < count and tries < maxAttempts do
 		tries = tries + 1
-		local px, pz
+		local px, pz, ps
 		local valid = false
 
 		if rng:next() < RANDOM_FRAC then
@@ -278,6 +305,7 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 			local rz = (rng:next() * 2 - 1) * radius * lengthScale
 			if insideLocal(rx, rz, radius, shape, lengthScale) then
 				px, pz = rx, rz
+				ps = hasScale and rollScale(rng, scaleMin, scaleMax) or 1
 				valid = true
 			end
 		else
@@ -288,19 +316,32 @@ local function generateClustered(radius, shape, lengthScale, count, defNames, rn
 			local ang = rng:next() * TAU
 			px, pz = cc[1] + mag * cos(ang), cc[2] + mag * sin(ang)
 			valid = insideLocal(px, pz, radius, shape, lengthScale)
+			if valid then
+				if hasScale then
+					-- Core of the clump = big, fringe = small, plus jitter so the
+					-- gradient does not read as concentric rings.
+					local closeness = 1 - min(1, mag / (sigma * 1.5))
+					local t = closeness + (rng:next() - 0.5) * 0.4
+					t = max(0, min(1, t))
+					ps = scaleMin + scaleRange * t
+				else
+					ps = 1
+				end
+			end
 		end
 
 		if valid then
 			local tooClose = false
 			for i = 1, #positions do
 				local ddx, ddz = px - positions[i][1], pz - positions[i][2]
-				if ddx * ddx + ddz * ddz < minSq then
+				local need = hasScale and minSpacing * 0.5 * (ps + positions[i][3]) or minSpacing
+				if ddx * ddx + ddz * ddz < need * need then
 					tooClose = true
 					break
 				end
 			end
 			if not tooClose then
-				positions[#positions + 1] = { px, pz }
+				positions[#positions + 1] = { px, pz, ps }
 			end
 		end
 	end
@@ -312,9 +353,9 @@ end
 -- Public: layout generation
 ----------------------------------------------------------------
 ---Build a brush-relative layout. Deterministic for a given (seed, params).
----@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale
+---@param params table shape, radius, rotation, count, distribution, rotRandom, defNames, lengthScale, scaleMin, scaleMax
 ---@param seed number
----@return table layout array of { dx, dz, defName, heading }
+---@return table layout array of { dx, dz, defName, heading, scale }
 local function generateLocal(params, seed)
 	local defNames = params.defNames or {}
 	if #defNames == 0 then
@@ -327,12 +368,20 @@ local function generateLocal(params, seed)
 	local lengthScale = params.lengthScale or 1.0
 	local count = max(1, floor(params.count or 1))
 	local distribution = params.distribution or "random"
+	local scaleMin = params.scaleMin or 1
+	local scaleMax = params.scaleMax or 1
+	if scaleMax < scaleMin then
+		scaleMin, scaleMax = scaleMax, scaleMin
+	end
+	-- Entries only carry a scale when the brush actually varies it, so the wire
+	-- format (and save files) of a never-scaled map stay byte-identical.
+	local hasScale = scaleMin ~= 1 or scaleMax ~= 1
 
 	local positions
 	if distribution == "regular" then
 		positions = generateRegular(radius, shape, lengthScale, count, rng)
 	elseif distribution == "clustered" then
-		positions = generateClustered(radius, shape, lengthScale, count, defNames, rng)
+		positions = generateClustered(radius, shape, lengthScale, count, defNames, rng, scaleMin, scaleMax)
 	else
 		positions = generateRandom(radius, shape, lengthScale, count, rng)
 	end
@@ -348,11 +397,18 @@ local function generateLocal(params, seed)
 	local layout = {}
 	for i = 1, #positions do
 		local wx, wz = rotatePoint(positions[i][1], positions[i][2], angleDeg)
+		-- Clustered rolled its scales during generation (clump-correlated); the
+		-- other distributions roll here.
+		local s = nil
+		if hasScale then
+			s = positions[i][3] or rollScale(rng, scaleMin, scaleMax)
+		end
 		layout[#layout + 1] = {
 			dx = wx,
 			dz = wz,
 			defName = defNames[rng:int(1, numDefs)],
 			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
+			scale = s,
 		}
 	end
 
@@ -368,7 +424,7 @@ end
 ---@param centerZ number brush centre
 ---@param params table smartEnabled and smartFilters
 ---@param extraRotDeg number|nil additional rotation for this copy of the brush
----@return table placements array of { defName, x, y, z, heading, pitch, roll }
+---@return table placements array of { defName, x, y, z, heading, pitch, roll, scale }
 --
 -- `extraRotDeg` exists for symmetry. getSymmetricPositions hands back a per-copy
 -- `rot` that differs from the brush's own rotation (radial copies are turned by
@@ -442,6 +498,7 @@ local function resolve(layout, centerX, centerZ, params, extraRotDeg)
 				heading = (entry.heading + headingOffset) % 65536,
 				pitch = 0,
 				roll = 0,
+				scale = entry.scale,
 			}
 		end
 	end
@@ -454,4 +511,5 @@ return {
 	generateLocal = generateLocal,
 	resolve = resolve,
 	rotatePoint = rotatePoint,
+	rollScale = rollScale,
 }

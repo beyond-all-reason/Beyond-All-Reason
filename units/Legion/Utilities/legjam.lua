@@ -36,6 +36,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = "util",
+			juno_kill = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

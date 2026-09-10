@@ -1096,7 +1096,6 @@ function DrawWindow()
 
 	-- draw options
 	local yPos
-	local prevGroup = ""
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
@@ -1838,7 +1837,6 @@ function widget:DrawScreen()
 			showOnceMore = false
 
 			-- mouseover (highlight and tooltip)
-			local description = ""
 			if
 				not (devMode or devUI)
 				and titleRect ~= nil
@@ -3218,7 +3216,6 @@ function init()
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 	local displayNames = {}
-	local hasMultiDisplayOption = false
 	for index, display in ipairs(displays) do
 		if display.width > 0 then
 			displayNames[index] = index
@@ -3241,7 +3238,6 @@ function init()
 			end
 		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
-			hasMultiDisplayOption = true
 		end
 	end
 	local selectedDisplay = currentDisplay
@@ -5160,70 +5156,6 @@ function init()
 				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
 					WG.bar_hotkeys.reloadBindings()
 				end
-			end,
-		},
-
-		{
-			id = "keybindings",
-			group = "control",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.keybindings"),
-			type = "select",
-			options = keyLayouts.keybindingLayouts,
-			value = 1,
-			description = BAR.I18N("ui.settings.option.keybindings_descr"),
-			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile")
-				local value = 1
-
-				if (not keyFile) or (keyFile == "") or (not VFS.FileExists(keyFile)) then
-					keyFile = keyLayouts.keybindingLayoutFiles[1]
-				end
-
-				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
-					if v == keyFile then
-						value = i
-						break
-					end
-				end
-
-				options[getOptionByID("keybindings")].value = value
-			end,
-			onchange = function(_, value)
-				local keyFile = keyLayouts.keybindingLayoutFiles[value]
-
-				if not keyFile or keyFile == "" then
-					return
-				end
-
-				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
-
-				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
-				end
-
-				Spring.SetConfigString("KeybindingFile", keyFile)
-				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
-				end
-				-- enable grid menu for grid keybinds
-				local preset = options[getOptionByID("keybindings")].options[value]
-				Spring.Echo(preset)
-				if string.find(string.lower(preset), "grid", nil, true) then
-					widgetHandler:DisableWidget("Build menu")
-					widgetHandler:EnableWidget("Grid menu")
-				elseif preset == "Custom" then
-				-- do stuff with custom preset
-				else
-					widgetHandler:DisableWidget("Grid menu")
-					widgetHandler:EnableWidget("Build menu")
-				end
-
-				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
-					WG.bar_hotkeys.reloadBindings()
-				end
-				scheduleInit = true
 			end,
 		},
 
@@ -10249,7 +10181,7 @@ function init()
 				options[getOptionByID("fog_b")].value = defaultMapFog.fogColor[3]
 				options[getOptionByID("fog_color_reset")].value = false
 				Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
-				Spring.Echo("resetted map fog color defaults")
+				Spring.Echo("reset map fog color defaults")
 			end,
 		},
 
@@ -11043,7 +10975,7 @@ function init()
 				options[getOptionByID("sunlighting_reset")].value = false
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting(defaultSunLighting)
-				Spring.Echo("resetted ground/unit coloring")
+				Spring.Echo("reset ground/unit coloring")
 				init()
 			end,
 		},
@@ -11147,7 +11079,7 @@ function init()
 			onchange = function(i, value)
 				options[getOptionByID("skyaxisangle_reset")].value = false
 				Spring.SetAtmosphere({ skyAxisAngle = defaultSkyAxisAngle })
-				Spring.Echo("resetted skyAxisAngle atmosphere")
+				Spring.Echo("reset skyAxisAngle atmosphere")
 				init()
 			end,
 		},
@@ -12254,7 +12186,6 @@ function init()
 	else
 		local cursorsets = {}
 		local cursor = 1
-		local cursoroption
 		cursorsets = WG.cursors.getcursorsets()
 		local cursorname = WG.cursors.getcursor()
 		for i, c in pairs(cursorsets) do

@@ -1449,13 +1449,56 @@ end
 --------------------------------------------------------------------------------
 -- Public spawn helpers (also drive GG.Fire)
 --------------------------------------------------------------------------------
+
+---A live fire emitter. Returned by the spawn functions and accepted by `GG.Fire.StopFire`.
+---@class GG.Fire.Handle
+---@field unitID UnitID? Unit the emitter was spawned for, if any.
+---@field mappedUnit UnitID? Unit the emitter position follows, if any.
+---@field keepAfterUnitGone true? Keep burning after the followed unit disappears.
+---@field scavenger true? Set when the effect uses the scavenger palette.
+---@field x number
+---@field y number
+---@field z number
+---@field yOffset number
+---@field radius number
+---@field scale number
+---@field intensity number
+---@field lightIntensity number
+---@field lightRadiusMult number
+---@field fireRate number Particles per frame; `0` disables flames.
+---@field smokeRate number Particles per frame; `0` disables smoke.
+---@field emberRate number Particles per frame; `0` disables embers.
+---@field fireEnd integer Game frame at which flames stop spawning.
+---@field smokeEnd integer Game frame at which smoke stops spawning.
+---@field emberEnd integer Game frame at which embers stop spawning.
+
+---Options accepted by `GG.Fire.SpawnFire`.
+---@class GG.Fire.SpawnOpts
+---@field duration integer? Frames of flame. Defaults to the configured unit fire duration.
+---@field smokeDuration integer? Frames of smoke. Defaults to `duration` plus the configured extra.
+---@field emberDuration integer? Frames of embers. Defaults to `duration`.
+---@field unitID UnitID? Unit to associate the emitter with.
+---@field scavenger boolean? Use the scavenger palette.
+---@field yOffset number? Defaults to `0`.
+---@field radius number? Defaults to `14`.
+---@field scale number? Defaults to `1.0`.
+---@field intensity number? Defaults to `1.0`.
+---@field lightIntensity number? Defaults to `1.0`.
+---@field lightRadiusMult number? Defaults to `1.0`.
+---@field fire boolean? Set to `false` to suppress flames.
+---@field fireRate number? Particles per frame.
+---@field smoke boolean? Set to `false` to suppress smoke.
+---@field smokeRate number? Particles per frame.
+---@field embers boolean? Set to `false` to suppress embers.
+---@field emberRate number? Particles per frame.
+
 -- Spawn a free-standing fire effect. Returns an opaque handle usable with
--- StopFire. opts (all optional):
---   duration, smokeDuration, emberDuration (frames)
---   radius, scale, intensity
---   unitID  (attach to a unit; position follows it)
---   yOffset (vertical emit offset, default 0 / unit param)
---   fire, smoke, embers (booleans to enable each, default all true)
+-- StopFire.
+---@param x number?
+---@param y number?
+---@param z number?
+---@param opts GG.Fire.SpawnOpts?
+---@return GG.Fire.Handle
 local function spawnFire(x, y, z, opts)
 	opts = opts or {}
 	local now = cachedGameFrame
@@ -1961,12 +2004,18 @@ function gadget:Initialize()
 	gadgetHandler:AddSyncAction("treefire_fade", syncTreeFireFade)
 
 	GG.Fire = {
-		-- SpawnFire(x, y, z, opts) -> handle. See spawnFire above for opts.
+		---Spawns a fire emitter at a world position.
+		---@param x number?
+		---@param y number?
+		---@param z number?
+		---@param opts GG.Fire.SpawnOpts?
+		---@return GG.Fire.Handle
 		SpawnFire = function(x, y, z, opts)
 			return spawnFire(x, y, z, opts)
 		end,
 		-- StopFire(handle): immediately stop spawning new particles (existing
 		-- ones fade out naturally).
+		---@param handle GG.Fire.Handle
 		StopFire = function(handle)
 			if type(handle) == "table" then
 				handle.fireEnd = cachedGameFrame
@@ -1976,6 +2025,9 @@ function gadget:Initialize()
 		end,
 		-- AddUnitFire(unitID[, durationFrames]): attach a burning effect that
 		-- follows the unit. Refreshes the timer if already burning.
+		---@param unitID UnitID
+		---@param durationFrames integer? Frames of flame. Defaults to the configured unit fire duration.
+		---@return GG.Fire.Handle? handle `nil` if the unit no longer exists.
 		AddUnitFire = function(unitID, durationFrames)
 			local udid = Spring.GetUnitDefID(unitID)
 			if udid then
@@ -1983,15 +2035,23 @@ function gadget:Initialize()
 			end
 		end,
 		-- SpawnWreck(x, y, z[, scale]): short fire + long smoke at a position.
+		---@param x number
+		---@param y number
+		---@param z number
+		---@param scale number? Defaults to `1.0`.
+		---@return GG.Fire.Handle? handle `nil` when the position is not visible to the local player.
 		SpawnWreck = function(x, y, z, scale)
 			return spawnVisibleWreckageFire(x, y, z, scale)
 		end,
+		---@return integer count Particles currently alive.
 		GetParticleCount = function()
 			return particleVBO and particleVBO.usedElements or 0
 		end,
+		---@return integer count Particle budget for the whole system.
 		GetMaxParticles = function()
 			return MAX_PARTICLES
 		end,
+		---@return table<string, any> config The live tuning table, including nested colour tables; treat as read-only.
 		GetConfig = function()
 			return CONFIG
 		end,

@@ -249,10 +249,12 @@ local function preProcessTweakOptions()
 	end
 
 	table.sort(tweaks, function(a, b)
-		if a.type == "defs" and b.type == "units" then
-			return true
-		elseif a.type == "units" and b.type == "defs" then
+		-- Ensure that tweakunits are processed before tweakdefs
+		-- This allows fine-tuning of tweaks using extended capabilities of tweakdefs
+		if a.type == 'defs' and b.type == 'units' then
 			return false
+		elseif a.type == 'units' and b.type == 'defs' then
+			return true
 		end
 		return a.index < b.index
 	end)

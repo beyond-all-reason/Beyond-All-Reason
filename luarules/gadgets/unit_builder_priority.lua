@@ -52,13 +52,15 @@ local costID = {} -- costID[unitID] (contains all non-finished units)
 
 local ruleName = "builderPriority"
 local CMD_PRIORITY = GameCMD.PRIORITY
+local PRIORITY_LOW = 0
+local PRIORITY_HIGH = 1
 local cmdPassiveDesc = {
 	id = CMD_PRIORITY,
 	name = "priority",
 	action = "priority",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "Builder Mode: Low Priority restricts build when stalling on resources",
-	params = { 1, "Low Prio", "High Prio" },
+	params = { PRIORITY_HIGH, "Low Prio", "High Prio" },
 }
 
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -155,8 +157,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 		-- Only units that can build other units can use passive build priority.
 		if canPassive[unitDefID] then
 			spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
-			local isPassive = (spGetUnitRulesParam(unitID, ruleName) == 1)
-			if isPassive then
+			if spGetUnitRulesParam(unitID, ruleName) == PRIORITY_LOW then
 				passiveCons[teamID][unitID] = true
 				passiveConsCount[teamID] = (passiveConsCount[teamID] or 0) + 1
 			end
@@ -224,7 +225,7 @@ function gadget:AllowCommand(
 			cmdDesc.params[1] = cmdParams[1]
 			spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
 			spSetUnitRulesParam(unitID, ruleName, cmdParams[1])
-			if cmdParams[1] == 0 then
+			if cmdParams[1] == PRIORITY_LOW then
 				if not passiveCons[teamID][unitID] then
 					passiveCons[teamID][unitID] = true
 					passiveConsCount[teamID] = (passiveConsCount[teamID] or 0) + 1
@@ -343,13 +344,13 @@ local function UpdatePassiveBuilders(
 	local teamStallingMetal = mCur
 		- mathMax(mInc * stallMarginInc, mStorEff * stallMarginSto)
 		- 1
-		+ interval * (nonPassiveConsTotalExpenseMetal + mInc + mRec - mSent) / simSpeed
+		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
 		- 1
-		+ interval * (nonPassiveConsTotalExpenseEnergy + eInc + eRec - eSent) / simSpeed
+		+ intervalOverSpeed * (eInc + eRec - eSent - nonPassiveConsTotalExpenseEnergy)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do

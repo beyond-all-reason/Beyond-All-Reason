@@ -38,7 +38,6 @@ end
 
 local mx, my
 local active = false
-local drawing = false
 
 function widget:Update(dt)
 	if active then

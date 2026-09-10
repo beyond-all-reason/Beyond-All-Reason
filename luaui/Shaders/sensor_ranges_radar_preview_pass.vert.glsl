@@ -12,6 +12,8 @@
 
 layout (location = 0) in vec4 pos; // xy = clip space position, zw = uv (unused)
 
+uniform vec4 passRect = vec4(-1.0, -1.0, 1.0, 1.0); // clip-space rectangle the quad is drawn into (whole target by default)
+
 void main() {
-	gl_Position = vec4(pos.xy, 0.0, 1.0);
+	gl_Position = vec4(mix(passRect.xy, passRect.zw, pos.xy * 0.5 + 0.5), 0.0, 1.0);
 }

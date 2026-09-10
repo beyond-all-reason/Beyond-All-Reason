@@ -153,8 +153,6 @@ local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glScale = gl.Scale
-local glTranslate = gl.Translate
 local glLoadIdentity = gl.LoadIdentity
 
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -165,7 +163,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGiveOrder = Spring.GiveOrder
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight

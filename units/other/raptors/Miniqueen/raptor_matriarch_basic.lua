@@ -60,6 +60,7 @@ return {
 		workertime = 5000,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			normaltex = "unittextures/chicken_m_normals.png",
 		},
 		sfxtypes = {

@@ -120,8 +120,6 @@ local glUseShader = gl.UseShader
 ---@field positions ModOptionPositions
 ---@field team ModOptionTeams[]
 
----@alias AllyTeamID number
-
 ---@class WidgetMapPosition
 ---@field x number
 ---@field z number
@@ -258,9 +256,7 @@ local function invalidateCircleDisplayList()
 	end
 end
 
-local reusePositionTable = { 0, 0, 0 }
 local reuseColorTable = { 0, 0, 0, 0 }
-local reuseColorTable2 = { 0, 0, 0, 0 }
 local reuseColorsArray = {}
 local reuseGlowColorsArray = {}
 

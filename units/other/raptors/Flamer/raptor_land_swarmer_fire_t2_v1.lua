@@ -53,6 +53,7 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",

@@ -26,7 +26,6 @@ local MoveCtrlEnable = Spring.MoveCtrl.Enable
 local MoveCtrlDisable = Spring.MoveCtrl.Disable
 local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
-local DestroyUnit = Spring.DestroyUnit
 local GetUnitTeam = Spring.GetUnitTeam
 local math_random = math.random
 

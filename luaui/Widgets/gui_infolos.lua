@@ -20,7 +20,6 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- About:
@@ -90,8 +89,6 @@ local fullScreenQuadVAO = nil
 
 local vsSrcPath = "LuaUI/Shaders/infolos.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/infolos.frag.glsl"
-
-local miplevels = { 2 ^ 3, 2 ^ 4, 2 ^ 3, 1 } -- los, airlos and radar mip levels
 
 local shaderSourceCache = {
 	vssrcpath = vsSrcPath,

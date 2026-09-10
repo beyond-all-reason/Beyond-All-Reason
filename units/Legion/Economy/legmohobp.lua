@@ -32,6 +32,8 @@ return {
 		workertime = 1,
 		yardmap = "h cbbbbbbc bssssssb bsssossb bsobbssb bssbbosb bssosssb bssssssb cbbbbbbc",
 		customparams = {
+			attached_con_turret = "legmohobpct",
+			attached_con_turret_piece = "rotor",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohobp_aoplane.dds",
 			buildinggrounddecalsizey = 8,

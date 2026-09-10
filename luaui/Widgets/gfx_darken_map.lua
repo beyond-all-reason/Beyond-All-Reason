@@ -24,8 +24,6 @@ local maxDarkness = 0.6
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local features
-
 local camX, camY, camZ = spGetCameraPosition()
 local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 
