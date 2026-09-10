@@ -92,6 +92,26 @@ local function validateObjectiveEventReferences(context, report)
 	end
 end
 
+local function validateMarkerNameReferences(context, report)
+	local actionTypes = context.ActionTypes
+	local createdNames = {}
+	local referencedNames = {}
+
+	--- Only actions use marker names
+	for actionID, action in pairs(context.Actions) do
+		local parameters = type(action) == "table" and action.parameters
+		if type(parameters) == "table" and type(parameters.name) == "string" then
+			if action.type == actionTypes.AddMarker then
+				recordSource(createdNames, parameters.name, "action " .. actionID)
+			elseif action.type == actionTypes.EraseMarker then
+				recordSource(referencedNames, parameters.name, "action " .. actionID)
+			end
+		end
+	end
+
+	reportUnmatchedNames(report, "Marker name", createdNames, referencedNames)
+end
+
 --------------------------------------------------------------------------------
 -- Unit, feature and marker name references
 --------------------------------------------------------------------------------
@@ -140,6 +160,12 @@ local function validateNameReferences(context, report, spec)
 	local createdNames = {}
 	local referencedNames = {}
 
+	-- Any action taking the name as a parameter references it, unless it creates it.
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, spec.nameType)
+	for actionType in pairs(spec.creatingActionTypes) do
+		referencingActionTypes[actionType] = nil
+	end
+
 	-- Loadout entries with a name count as creating that name.
 	for index, entry in ipairs(spec.loadout) do
 		if type(entry) == "table" and type(entry[nameKey]) == "string" then
@@ -177,7 +203,7 @@ local function validateNameReferences(context, report, spec)
 			if type(name) == "string" then
 				if spec.creatingActionTypes[action.type] then
 					recordSource(createdNames, name, "action " .. actionID)
-				elseif spec.referencingActionTypes[action.type] then
+				elseif referencingActionTypes[action.type] then
 					recordSource(referencedNames, name, "action " .. actionID)
 				end
 			end
@@ -209,35 +235,6 @@ local function validateNameReferences(context, report, spec)
 	reportUnmatchedNames(report, spec.label, createdNames, referencedNames)
 end
 
---- Marker names are simpler: only actions create and reference them.
-local function validateMarkerNameReferences(context, report)
-	local actionTypes = context.ActionTypes
-	local createdNames = {}
-	local referencedNames = {}
-
-	for actionID, action in pairs(context.Actions) do
-		local parameters = type(action) == "table" and action.parameters
-		if type(parameters) == "table" and type(parameters.name) == "string" then
-			if action.type == actionTypes.AddMarker then
-				recordSource(createdNames, parameters.name, "action " .. actionID)
-			elseif action.type == actionTypes.EraseMarker then
-				recordSource(referencedNames, parameters.name, "action " .. actionID)
-			end
-		end
-	end
-
-	reportUnmatchedNames(report, "Marker name", createdNames, referencedNames)
-end
-
---- Any action taking a unit/feature name parameter references that name, unless it creates it.
-local function getReferencingActionTypes(context, nameType, creatingActionTypes)
-	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, nameType)
-	for actionType in pairs(creatingActionTypes) do
-		referencingActionTypes[actionType] = nil
-	end
-	return referencingActionTypes
-end
-
 --------------------------------------------------------------------------------
 
 local function validate(context, report)
@@ -247,11 +244,8 @@ local function validate(context, report)
 	validateStageObjectiveReferences(context, report)
 	validateObjectiveNextStageReferences(context, report)
 	validateObjectiveEventReferences(context, report)
+	validateMarkerNameReferences(context, report)
 
-	local unitCreatingActionTypes = {
-		[actionTypes.SpawnUnits] = true,
-		[actionTypes.NameUnits] = true,
-	}
 	validateNameReferences(context, report, {
 		label = "Unit name",
 		nameKey = "unitName",
@@ -260,13 +254,9 @@ local function validate(context, report)
 		loadoutLabel = "UnitLoadout",
 		loadoutParameter = "unitLoadout",
 		loadoutActionType = actionTypes.SpawnUnits,
-		creatingActionTypes = unitCreatingActionTypes,
-		referencingActionTypes = getReferencingActionTypes(context, Types.UnitName, unitCreatingActionTypes),
+		creatingActionTypes = { [actionTypes.SpawnUnits] = true, [actionTypes.NameUnits] = true },
 	})
 
-	local featureCreatingActionTypes = {
-		[actionTypes.CreateFeatures] = true,
-	}
 	validateNameReferences(context, report, {
 		label = "Feature name",
 		nameKey = "featureName",
@@ -275,11 +265,8 @@ local function validate(context, report)
 		loadoutLabel = "FeatureLoadout",
 		loadoutParameter = "featureLoadout",
 		loadoutActionType = actionTypes.CreateFeatures,
-		creatingActionTypes = featureCreatingActionTypes,
-		referencingActionTypes = getReferencingActionTypes(context, Types.FeatureName, featureCreatingActionTypes),
+		creatingActionTypes = { [actionTypes.CreateFeatures] = true },
 	})
-
-	validateMarkerNameReferences(context, report)
 end
 
 return {
