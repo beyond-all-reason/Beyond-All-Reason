@@ -179,54 +179,66 @@ end
 ---@field loadoutActionType string the action type carrying an inline loadout
 ---@field creatingActionTypes table<string, boolean> action types creating the name, rather than referring to it
 
---- Shared walker for unit and feature names, which can be created and referenced by
---- loadouts, actions, triggers and the inline triggers of objectives.
----@param nameKind NameKind
-local function validateNameReferences(context, report, nameKind)
-	local nameKey = nameKind.nameKey
-	local createdNames = {}
-	local referencedNames = {}
+--- A top level loadout entry creates every name it gives.
+local function collectLoadoutNames(nameKind, createdNames)
+	for index, entry in ipairs(nameKind.loadout) do
+		if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
+			recordSource(createdNames, entry[nameKind.nameKey], nameKind.loadoutLabel .. "[" .. index .. "]")
+		end
+	end
+end
 
+--- An action can carry a loadout inline, which creates names just as a top level one does.
+local function collectInlineLoadoutNames(nameKind, actionID, parameters, createdNames)
+	local entries = parameters[nameKind.loadoutParameter]
+	if type(entries) ~= "table" then
+		return
+	end
+
+	for index, entry in ipairs(entries) do
+		if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
+			recordSource(
+				createdNames,
+				entry[nameKind.nameKey],
+				"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
+			)
+		end
+	end
+end
+
+--- IssueOrders action can name an order's target.
+local function collectOrderNames(nameKind, actionID, parameters, referencedNames)
+	if type(parameters.orders) ~= "table" then
+		return
+	end
+
+	for _, order in ipairs(parameters.orders) do
+		local orderParameters = order[2]
+		if type(orderParameters) == "table" and type(orderParameters[nameKind.nameKey]) == "string" then
+			recordSource(referencedNames, orderParameters[nameKind.nameKey], "action " .. actionID .. " (orders)")
+		end
+	end
+end
+
+--- An action either creates a name or refers to one, never both.
+local function collectActionNames(context, nameKind, createdNames, referencedNames)
 	-- Any action taking the name as a parameter references it, unless it creates it.
 	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, nameKind.nameType)
 	for actionType in pairs(nameKind.creatingActionTypes) do
 		referencingActionTypes[actionType] = nil
 	end
 
-	-- Loadout entries with a name count as creating that name.
-	for index, entry in ipairs(nameKind.loadout) do
-		if type(entry) == "table" and type(entry[nameKey]) == "string" then
-			recordSource(createdNames, entry[nameKey], nameKind.loadoutLabel .. "[" .. index .. "]")
-		end
-	end
-
 	for actionID, action in pairs(context.Actions) do
 		local parameters = parametersOf(action)
 		if parameters then
-			-- Actions with an inline loadout also create names.
-			if action.type == nameKind.loadoutActionType and type(parameters[nameKind.loadoutParameter]) == "table" then
-				for index, entry in ipairs(parameters[nameKind.loadoutParameter]) do
-					if type(entry) == "table" and type(entry[nameKey]) == "string" then
-						recordSource(
-							createdNames,
-							entry[nameKey],
-							"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
-						)
-					end
-				end
+			if action.type == nameKind.loadoutActionType then
+				collectInlineLoadoutNames(nameKind, actionID, parameters, createdNames)
+			end
+			if action.type == context.ActionTypes.IssueOrders then
+				collectOrderNames(nameKind, actionID, parameters, referencedNames)
 			end
 
-			-- Orders on IssueOrders actions can also refer to names.
-			if action.type == context.ActionTypes.IssueOrders and type(parameters.orders) == "table" then
-				for _, order in ipairs(parameters.orders) do
-					local orderParameters = order[2]
-					if type(orderParameters) == "table" and type(orderParameters[nameKey]) == "string" then
-						recordSource(referencedNames, orderParameters[nameKey], "action " .. actionID .. " (orders)")
-					end
-				end
-			end
-
-			local name = parameters[nameKey]
+			local name = parameters[nameKind.nameKey]
 			if type(name) == "string" then
 				if nameKind.creatingActionTypes[action.type] then
 					recordSource(createdNames, name, "action " .. actionID)
@@ -236,23 +248,40 @@ local function validateNameReferences(context, report, nameKind)
 			end
 		end
 	end
+end
 
-	-- Triggers only ever reference names.
+--- Triggers only ever refer to names, never create them.
+local function collectTriggerNames(context, nameKind, referencedNames)
 	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, nameKind.nameType)
+
 	for triggerID, trigger in pairs(context.Triggers) do
 		local parameters = parametersOf(trigger)
-		if parameters and referencingTriggerTypes[trigger.type] and type(parameters[nameKey]) == "string" then
-			recordSource(referencedNames, parameters[nameKey], "trigger " .. triggerID)
+		if parameters and referencingTriggerTypes[trigger.type] and type(parameters[nameKind.nameKey]) == "string" then
+			recordSource(referencedNames, parameters[nameKind.nameKey], "trigger " .. triggerID)
 		end
 	end
+end
 
-	-- Objective inline triggers can also refer to names.
+--- An objective can hold a trigger inline, which refers to names as any other trigger does.
+local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 	for objectiveID, objective in pairs(context.Objectives) do
 		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		if parameters and type(parameters[nameKey]) == "string" then
-			recordSource(referencedNames, parameters[nameKey], "objective " .. objectiveID .. " (trigger)")
+		if parameters and type(parameters[nameKind.nameKey]) == "string" then
+			recordSource(referencedNames, parameters[nameKind.nameKey], "objective " .. objectiveID .. " (trigger)")
 		end
 	end
+end
+
+--- For both unit and feature names
+---@param nameKind NameKind
+local function validateNameReferences(context, report, nameKind)
+	local createdNames = {}
+	local referencedNames = {}
+
+	collectLoadoutNames(nameKind, createdNames)
+	collectActionNames(context, nameKind, createdNames, referencedNames)
+	collectTriggerNames(context, nameKind, referencedNames)
+	collectObjectiveTriggerNames(context, nameKind, referencedNames)
 
 	reportUnmatchedNames(report, nameKind.label, createdNames, referencedNames)
 end
