@@ -34,6 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -57,6 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
+	local CMD_REMOVE = CMD.REMOVE
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
@@ -315,16 +317,38 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
-	local function setTargetPassive(unitID, unitData)
-		if not unitData then
-			return
+	-- A mobile unit turns its weapon target into an automatic (internal) Attack
+	-- command that lives for a few seconds. When the Set Target that produced it
+	-- is released, that command would keep re-applying the old target (directly
+	-- and through restoreCommandTarget), so drop it first.
+	local function dropAutomaticAttack(unitID, targetID)
+		local inCommand, options, tag, param1, param2 = spGetUnitCurrentCommand(unitID)
+		if inCommand == CMD_ATTACK and not param2 and param1 == targetID and hasAutoTarget(options) then
+			spGiveOrderToUnit(unitID, CMD_REMOVE, { tag }, 0)
 		end
-		unitData.activeTarget = false
-		unitData.currentIndex = 1
-		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+	end
+
+	local function releaseEngineTarget(unitID, unitData, releasedTarget)
+		if releasedTarget == nil and unitData and unitData.activeTarget then
+			local targetData = unitData.targets[unitData.currentIndex]
+			releasedTarget = targetData and targetData.target
+		end
+		if type(releasedTarget) == "number" then
+			dropAutomaticAttack(unitID, releasedTarget)
+		end
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
+	end
+
+	local function setTargetPassive(unitID, unitData, releasedTarget)
+		if not unitData then
+			return
+		end
+		releaseEngineTarget(unitID, unitData, releasedTarget)
+		unitData.activeTarget = false
+		unitData.currentIndex = 1
+		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
@@ -364,8 +388,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not restoreCommandTarget(unitID) then
-			spSetUnitTarget(unitID, nil)
+		local unitData = activeTargets[unitID]
+		if unitData and not keeptrack then
+			releaseEngineTarget(unitID, unitData)
 		end
 		activeTargets[unitID] = nil
 		removeFromQueue(unitID)
@@ -480,8 +505,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				unitData.currentIndex = 1
-				unitData.activeTarget = false
+				if unitData.activeTarget then
+					-- Cancelling the target the unit is firing at must stop that fire now;
+					-- the next update picks another listed target if one is attackable.
+					setTargetPassive(unitID, unitData, removed.target)
+				else
+					unitData.currentIndex = 1
+				end
 			elseif index < unitData.currentIndex then
 				unitData.currentIndex = unitData.currentIndex - 1
 			end
