@@ -117,6 +117,8 @@ for lvl, stats in pairs(lvlParams) do
 		workertime = stats.workertime,
 		unitname = stats.unitname,
 		customparams = {
+			juno_deny = true,
+			juno_kill = true,
 			model_author = "SethDGamre",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.001,

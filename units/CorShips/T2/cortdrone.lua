@@ -92,6 +92,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					land_damage_mult = 0.2,
 					norangering = 1,
 				},
 				damage = {

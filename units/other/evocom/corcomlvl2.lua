@@ -100,6 +100,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "corstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl3",
 			evolution_condition = "timer",

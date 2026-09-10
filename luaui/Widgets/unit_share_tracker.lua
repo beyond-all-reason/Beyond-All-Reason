@@ -17,7 +17,6 @@ end
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetViewGeometry = Spring.GetViewGeometry
-local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMyPlayerID = Spring.GetLocalPlayerID
@@ -130,14 +129,6 @@ local minimapVertices = {
 ----------------------------------------------------------------
 -- local functions
 ----------------------------------------------------------------
-
-local function GetPlayerColor(playerID)
-	local _, _, _, teamID = spGetPlayerInfo(playerID, false)
-	if not teamID then
-		return nil
-	end
-	return spGetTeamColor(teamID)
-end
 
 local function StartTime()
 	timeNow = 0

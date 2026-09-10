@@ -1,4 +1,3 @@
-local unitName = "Epic Serpent"
 return {
 	armserpt3 = {
 		maxacc = 0.02,

@@ -27,7 +27,6 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glDepthTest = gl.DepthTest
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINES = GL.LINES
 
 local CreateGroundDecal = Spring.CreateGroundDecal
 local DestroyGroundDecal = Spring.DestroyGroundDecal

@@ -82,6 +82,16 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local rushTimerComplete = false
+
+	-- Environmental damage is not an attack, so it is never negated inside the startbox:
+	-- lava (map_lava.lua), drowning and water fall damage (unit_water_depth_damage.lua) use the
+	-- engine water damage type, and ground/object collisions are fall damage.
+	local environmentalDamageTypes = {
+		[Game.envDamageTypes.Water] = true,
+		[Game.envDamageTypes.GroundCollision] = true,
+		[Game.envDamageTypes.ObjectCollision] = true,
+	}
+
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 
@@ -176,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 		attackerDefID,
 		attackerTeam
 	)
-		if not isNoRushRestricted() then
+		if not isNoRushRestricted() or environmentalDamageTypes[weaponID] then
 			return
 		end
 		-- compare (damaged) unit location to allyTeam startboxes and negate damage if they are in their box

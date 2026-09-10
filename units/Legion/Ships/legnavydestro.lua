@@ -37,6 +37,7 @@ return {
 			customrange = 700,
 			model_author = "Phill-Art (Concept Art), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 4,
 			subfolder = "Legion/Ships",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

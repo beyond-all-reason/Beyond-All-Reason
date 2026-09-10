@@ -121,7 +121,6 @@ local mouseDownPos
 
 local updateRate = 0.1
 local lastUpdateTime = 0
-local gameStarted
 
 local function maybeRemoveSelf()
 	if waterIsLava or voidWater or waterLevel < minHeight then
@@ -130,7 +129,6 @@ local function maybeRemoveSelf()
 end
 
 function widget:GameStart()
-	gameStarted = true
 	maybeRemoveSelf()
 end
 

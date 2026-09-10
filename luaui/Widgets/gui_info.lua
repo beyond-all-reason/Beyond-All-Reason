@@ -1242,7 +1242,6 @@ local function drawSelection()
 	tracy.ZoneEnd()
 
 	-- draw selection totals
-	local numLines
 	--local stats = getSelectionTotals(selectionCells)
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
 	local heightVar = 0
@@ -1684,8 +1683,6 @@ local function drawUnitInfo()
 		end
 	end
 	local descriptionColor = "\255\240\240\240"
-	local metalColor = "\255\245\245\245"
-	local energyColor = "\255\255\255\000"
 	local healthColor = "\255\100\255\100"
 
 	local labelColor = "\255\205\205\205"
@@ -1848,8 +1845,6 @@ local function drawUnitInfo()
 			end
 		end
 	else
-		--valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
-		--valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
 		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
 	tracy.ZoneEnd()

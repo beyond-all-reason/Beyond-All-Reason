@@ -52,6 +52,7 @@ return {
 			isairbase = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",

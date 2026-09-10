@@ -35,6 +35,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Protar, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 1,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 		},

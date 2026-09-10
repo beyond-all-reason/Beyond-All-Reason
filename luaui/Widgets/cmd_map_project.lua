@@ -33,6 +33,10 @@ end
 -- matches the recorded map (blank-map name, exact size, map damage enabled,
 -- local singleplayer); on mismatch it deletes the pointer and explains itself.
 
+-- Engine globals as chunk locals: the CI analyzer counts every bare engine
+-- global as an undefined-global finding (same table objects, no behaviour change).
+local Spring = Spring
+local VFS = VFS
 local Echo = Spring.Echo
 
 local PROJECTS_DIR = "MapProjects/"
@@ -106,18 +110,48 @@ local RESERVED_NAMES = {
 	lpt9 = true,
 }
 
+-- A project name may carry folders ("campaign/cm09", "maps-repo/teizer/duel"):
+-- each segment follows the single-name rules, the depth is capped and the whole
+-- path stays short. Folders are what let a git clone of a maps repository sit
+-- inside MapProjects/ and list as a tree in the Open Project dialog. Returns
+-- the normalized slug (forward slashes, no leading or trailing separator);
+-- callers must use the returned value, not their argument.
+local MAX_SLUG_DEPTH = 4
 local function validateSlug(slug)
 	if type(slug) ~= "string" or slug == "" then
 		return nil, "missing project name"
 	end
-	if #slug > 64 then
-		return nil, "project name too long (max 64)"
+	slug = slug:gsub("\\", "/"):gsub("^/+", ""):gsub("/+$", "")
+	if slug == "" then
+		return nil, "missing project name"
 	end
-	if not slug:match("^[A-Za-z0-9_%-]+$") then
-		return nil, "project name may only contain letters, digits, _ and - (no spaces)"
+	if #slug > 128 then
+		return nil, "project path too long (max 128)"
 	end
-	if RESERVED_NAMES[slug:lower()] then
-		return nil, "'" .. slug .. "' is a reserved Windows device name"
+	if slug:find("//", 1, true) then
+		return nil, "project path has an empty folder segment"
+	end
+	local depth = 0
+	for seg in slug:gmatch("[^/]+") do
+		depth = depth + 1
+		if #seg > 64 then
+			return nil, "project name segment too long (max 64)"
+		end
+		-- Spaces are allowed inside a segment (a git clone of a maps repository
+		-- keeps its folder names), never at either end: Windows strips trailing
+		-- spaces from folder names, so such a slug would never round-trip.
+		if not seg:match("^[A-Za-z0-9_%- ]+$") then
+			return nil, "project names may only contain letters, digits, spaces, _ and -; / separates folders"
+		end
+		if seg:sub(1, 1) == " " or seg:sub(-1) == " " then
+			return nil, "a folder or project name cannot start or end with a space"
+		end
+		if rawget(RESERVED_NAMES, seg:lower()) then
+			return nil, "'" .. seg .. "' is a reserved Windows device name"
+		end
+	end
+	if depth > MAX_SLUG_DEPTH then
+		return nil, "project path too deep (max " .. MAX_SLUG_DEPTH .. " levels)"
 	end
 	return slug
 end
@@ -181,6 +215,57 @@ local function readPrevManifest(dir)
 		return nil
 	end
 	return data
+end
+
+-- Recently opened or saved projects, newest first: written by raw io to the
+-- write dir, read back by the Open Project list. Two jobs: RECENT ordering by
+-- last touch rather than last save, and a second discovery path for folders
+-- the VFS snapshot cannot see yet (a project saved this session, a fresh git
+-- clone): a manifest raw io can read gets listed even when VFS.SubDirs misses
+-- its folder.
+local RECENT_PATH = "Terraform Brush/recent_projects.lua"
+local RECENT_MAX = 40
+
+local function readRecent()
+	local f = io.open(RECENT_PATH, "rb")
+	if not f then
+		return {}
+	end
+	local raw = f:read("*a")
+	f:close()
+	raw = raw:gsub("^\239\187\191", "")
+	local chunk = loadstring(raw)
+	if not chunk then
+		return {}
+	end
+	local ok, data = pcall(chunk)
+	if not ok or type(data) ~= "table" then
+		return {}
+	end
+	local out = {}
+	for _, e in ipairs(data) do
+		local slug = type(e) == "table" and validateSlug(e.slug) or nil
+		if slug then
+			out[#out + 1] = { slug = slug, at = tostring(e.at or "") }
+		end
+	end
+	return out
+end
+
+local function touchRecent(slug)
+	local kept = { { slug = slug, at = isoNow() } }
+	for _, e in ipairs(readRecent()) do
+		if e.slug ~= slug and #kept < RECENT_MAX then
+			kept[#kept + 1] = e
+		end
+	end
+	local parts = { "-- Recently opened or saved map projects, newest first (Terraform Brush).", "return {" }
+	for _, e in ipairs(kept) do
+		parts[#parts + 1] = string.format("\t{ slug = %q, at = %q },", e.slug, e.at)
+	end
+	parts[#parts + 1] = "}"
+	Spring.CreateDir("Terraform Brush")
+	writeFile(RECENT_PATH, table.concat(parts, "\n") .. "\n")
 end
 
 -- Generic `return {...}` section file reader (raw io, same VFS-staleness rule).
@@ -399,10 +484,18 @@ local function stepSplat()
 	return true
 end
 
+-- How many SURFACE variant slots the manifest carries. The painter owns the
+-- real number (getState().slotCount); this only has to be >= it, since empty
+-- slots serialize as "" and load back as nil.
+local MAX_SURFACE_SLOTS = 8
+
 -- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
 -- mask PNG like the splat, plus a small surface.lua carrying biome + slot
 -- assignment — the mask channels are meaningless without knowing WHICH top
 -- variants they weight. Same request/poll shape as the splat step.
+-- The painter writes a second "surface_v4.png" beside the first whenever
+-- variant 4 carries paint (its weights do not fit the first mask's RGBA); it
+-- needs no manifest entry — the loader looks for the sibling itself.
 local function stepSurface()
 	local sp = WG.SurfacePainter
 	local c = job.cursor
@@ -431,14 +524,47 @@ local function stepSurface()
 		return true
 	end
 	local meta = (sp.getPersist and sp.getPersist()) or {}
+	-- every slot the painter reports, so this keeps working as slots are added
 	local lines = {
 		"return {",
 		string.format("\tbiome = %q,", tostring(meta.biome or "")),
-		string.format("\tslot1 = %q,", tostring(meta.slot1 or "")),
-		string.format("\tslot2 = %q,", tostring(meta.slot2 or "")),
-		"}",
-		"",
 	}
+	for i = 1, MAX_SURFACE_SLOTS do
+		lines[#lines + 1] = string.format("\tslot%d = %q,", i, tostring(meta["slot" .. i] or ""))
+	end
+	-- INFLUENCE profiles (soft altitude / slope bands the painter remembers per
+	-- texture), keyed by asset name, sorted for a stable file.
+	if type(meta.influence) == "table" and next(meta.influence) then
+		local names = {}
+		for n, p in pairs(meta.influence) do
+			if type(n) == "string" and type(p) == "table" then
+				names[#names + 1] = n
+			end
+		end
+		table.sort(names)
+		lines[#lines + 1] = "\tinfluence = {"
+		for _, n in ipairs(names) do
+			local p = meta.influence[n]
+			lines[#lines + 1] = string.format(
+				"\t\t[%q] = { altOn = %s, altMin = %s, altMax = %s, altFeatherLo = %s, altFeatherHi = %s, "
+					.. "slopeOn = %s, slopeMin = %s, slopeMax = %s, slopeFeather = %s },",
+				n,
+				tostring(p.altOn and true or false),
+				fmtNum(tonumber(p.altMin) or 0),
+				fmtNum(tonumber(p.altMax) or 0),
+				fmtNum(tonumber(p.altFeatherLo) or 0),
+				fmtNum(tonumber(p.altFeatherHi) or 0),
+				tostring(p.slopeOn and true or false),
+				fmtNum(tonumber(p.slopeMin) or 0),
+				fmtNum(tonumber(p.slopeMax) or 0),
+				fmtNum(tonumber(p.slopeFeather) or 0)
+			)
+		end
+		lines[#lines + 1] = "\t},"
+	end
+	lines[#lines + 1] = "}"
+	lines[#lines + 1] = ""
+
 	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
 		warn("surface.lua write failed — the mask will load without slot assignments")
 	end
@@ -446,9 +572,106 @@ local function stepSurface()
 		"surface",
 		"surface.png",
 		bytes,
-		(meta.slot1 or meta.slot2) and ("slots " .. tostring(meta.slot1 or "-") .. " / " .. tostring(meta.slot2 or "-"))
-			or "no slots assigned"
+		(function()
+			local n = 0
+			for i = 1, MAX_SURFACE_SLOTS do
+				if meta["slot" .. i] then
+					n = n + 1
+				end
+			end
+			return (n > 0) and (n .. " slot" .. ((n == 1) and "" or "s") .. " assigned") or "no slots assigned"
+		end)()
 	)
+	return true
+end
+
+-- Full tileset configuration. surface.lua records only biome + variant slot
+-- picks, and only when a mask was ever painted; this section owns the rest of
+-- the scene setup — every tuning knob, the metal-spot style and glow lights,
+-- and the slot-4 EXTRA LAYER material — so a project round-trips the whole
+-- TILESET window. Deliberately NOT in SECTION_FILES: a save run without the
+-- write-dir tileset widget must keep the previous tileset.lua (the state it
+-- describes cannot have changed without the widget), not delete it as stale.
+local function stepTileset()
+	local T = WG.TilesetTerrain
+	if not (T and T.getKnobs and T.getActiveBiome) then
+		sectionSkip("tileset", "tileset widget not loaded")
+		return true
+	end
+	local _, _, biomeKey = T.getActiveBiome()
+	local lines = {
+		"return {",
+		string.format("\tbiome = %q,", tostring(biomeKey or "")),
+	}
+	if T.getActiveMetalStyle then
+		local _, _, msKey = T.getActiveMetalStyle()
+		lines[#lines + 1] = string.format("\tmetal_style = %q,", tostring(msKey or ""))
+	end
+	if T.getMetalLights then
+		lines[#lines + 1] = string.format("\tmetal_lights = %s,", tostring(T.getMetalLights() and true or false))
+	end
+	if T.getSlot4State then
+		local s4 = T.getSlot4State()
+		if s4 and s4.material then
+			lines[#lines + 1] = string.format("\tslot4_material = %q,", tostring(s4.material))
+		end
+	end
+	-- HEIGHT TINT ramp image (tileset shader 0.27): the gradient's basename,
+	-- Lua-side state like the biome key rather than a knob
+	if T.getRamp then
+		local rampFile = T.getRamp()
+		if rampFile and rampFile ~= "" then
+			lines[#lines + 1] = string.format("\tramp = %q,", tostring(rampFile))
+		end
+	end
+	-- per-texture albedo tints of painted variants (SURFACE > GRADING), sorted
+	if T.getSlotTints then
+		local tints = T.getSlotTints() or {}
+		local names = {}
+		for a, c in pairs(tints) do
+			if type(a) == "string" and type(c) == "table" then
+				names[#names + 1] = a
+			end
+		end
+		table.sort(names)
+		if #names > 0 then
+			lines[#lines + 1] = "\tslot_tints = {"
+			for _, a in ipairs(names) do
+				local c = tints[a]
+				lines[#lines + 1] = string.format(
+					"\t\t[%q] = { %s, %s, %s },",
+					a,
+					fmtNum(tonumber(c[1]) or 1),
+					fmtNum(tonumber(c[2]) or 1),
+					fmtNum(tonumber(c[3]) or 1)
+				)
+			end
+			lines[#lines + 1] = "\t},"
+		end
+	end
+	-- keys sorted so repeated saves of unchanged state serialize identically
+	-- (project files live in git)
+	local knobs = T.getKnobs() or {}
+	local keys = {}
+	for k, v in pairs(knobs) do
+		if type(k) == "string" and type(v) == "number" then
+			keys[#keys + 1] = k
+		end
+	end
+	table.sort(keys)
+	lines[#lines + 1] = "\tknobs = {"
+	for _, k in ipairs(keys) do
+		lines[#lines + 1] = string.format("\t\t%s = %s,", k, fmtNum(knobs[k]))
+	end
+	lines[#lines + 1] = "\t},"
+	lines[#lines + 1] = "}"
+	lines[#lines + 1] = ""
+	local bytes = writeFile(job.dir .. "tileset.lua", table.concat(lines, "\n"))
+	if bytes then
+		sectionOk("tileset", "tileset.lua", bytes, #keys .. " knobs, biome '" .. tostring(biomeKey) .. "'")
+	else
+		sectionSkip("tileset", "write failed")
+	end
 	return true
 end
 
@@ -746,7 +969,10 @@ local function stepFeatures()
 		if num(a.pitch) ~= num(b.pitch) then
 			return num(a.pitch) < num(b.pitch)
 		end
-		return num(a.roll) < num(b.roll)
+		if num(a.roll) ~= num(b.roll) then
+			return num(a.roll) < num(b.roll)
+		end
+		return (a.scale or 1) < (b.scale or 1)
 	end)
 
 	local lines = {
@@ -757,22 +983,25 @@ local function stepFeatures()
 	}
 	local format = string.format
 	for _, e in ipairs(entries) do
-		-- The tail is present exactly when the gadget decided this feature was
-		-- transformed, so an unedited map writes the same 4-field records it
-		-- always did.
+		-- The tails are present exactly when the gadget decided this feature was
+		-- transformed or scaled, so an unedited map writes the same 4-field
+		-- records it always did.
+		local scaleField = e.scale and format(", scale = %.3f", e.scale) or ""
 		if e.pitch and e.roll and e.y then
 			lines[#lines + 1] = format(
-				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f },",
+				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f%s },",
 				e.name,
 				e.x,
 				e.z,
 				e.rot,
 				e.pitch,
 				e.roll,
-				e.y
+				e.y,
+				scaleField
 			)
 		else
-			lines[#lines + 1] = format("		{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+			lines[#lines + 1] =
+				format("		{ name = %q, x = %.1f, z = %.1f, rot = %d%s },", e.name, e.x, e.z, e.rot, scaleField)
 		end
 	end
 	lines[#lines + 1] = "	},"
@@ -1365,8 +1594,14 @@ local function stepManifest()
 	if job.heightRange then
 		add(string.format("\t\theight_range = { min = %d, max = %d },", job.heightRange.min, job.heightRange.max))
 	end
-	if mo.blank_map_skybox and mo.blank_map_skybox ~= "" then
-		add(string.format("\t\tskybox = %q,", basename(mo.blank_map_skybox)))
+	-- Prefer the runtime pick from the ENVIRONMENT panel over the skybox the
+	-- blank canvas was booted with: SetSkyBoxTexture never touches mapOptions,
+	-- so mapOptions alone would round-trip the boot skybox forever.
+	local ui = WG.TerraformBrushUI
+	local liveSkybox = ui and ui.getCurrentSkybox and ui.getCurrentSkybox() or nil
+	local skyboxSrc = (liveSkybox and liveSkybox ~= "" and liveSkybox) or mo.blank_map_skybox
+	if skyboxSrc and skyboxSrc ~= "" then
+		add(string.format("\t\tskybox = %q,", basename(skyboxSrc)))
 	end
 	add(string.format("\t\tsource_map = %q,", Game.mapName or "unknown"))
 	if job.dnts then
@@ -1409,6 +1644,7 @@ local function stepManifest()
 		"heightmap",
 		"splat",
 		"surface",
+		"tileset",
 		"diffuse",
 		"metal",
 		"features",
@@ -1500,6 +1736,7 @@ local STEPS = {
 	{ name = "heightmap", run = stepHeightmap },
 	{ name = "splat", run = stepSplat },
 	{ name = "surface", run = stepSurface },
+	{ name = "tileset", run = stepTileset },
 	{ name = "diffuse", run = stepDiffuse },
 	{ name = "metal", run = stepMetal },
 	{ name = "features", run = stepFeatures },
@@ -1530,6 +1767,7 @@ local function finishSave()
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
 	currentSlug = job.slug
 	lastSaveInfo = { ok = true, slug = job.slug }
+	touchRecent(currentSlug)
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1558,6 +1796,7 @@ local function startSave(slug, opts)
 		echoP("cannot save: " .. err)
 		return false
 	end
+	slug = ok
 	if not heightmapPNG then
 		heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
 	end
@@ -1578,10 +1817,11 @@ end
 -- Does a project folder with a readable manifest exist? (UI overwrite guard:
 -- Save As over an existing project asks for a second click first.)
 local function projectExists(slug)
-	if not validateSlug(slug) then
+	local ok = validateSlug(slug)
+	if not ok then
 		return false
 	end
-	return readPrevManifest(PROJECTS_DIR .. slug .. "/") ~= nil
+	return readPrevManifest(PROJECTS_DIR .. ok .. "/") ~= nil
 end
 
 -- Does a saved project include a units section? (UI confirm guard: warns
@@ -1591,32 +1831,74 @@ local function projectHasUnits(slug)
 	if not ok then
 		return false
 	end
-	local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+	local manifest = readPrevManifest(PROJECTS_DIR .. ok .. "/")
 	return (manifest and manifest.sections and manifest.sections.units) and true or false
 end
 
--- Enumerate projects with manifest details for the Open Project dialog.
--- VFS.SubDirs sees the folders; manifests are read via raw io (same-session
--- folders may be invisible/stale in the VFS view — SubDirs RAW semantics for
--- folders created THIS session are unpinned, so a just-saved project may need
--- an engine restart to appear; the dialog says so when the list is empty).
-local function listProjectsDetailed()
-	local out = {}
-	local dirs = VFS.SubDirs(PROJECTS_DIR, "*", VFS.RAW) or {}
+-- One Open Project row. `folder` is the slug's parent path ("" at the root);
+-- `last_touched` comes from the recent-projects journal (nil when never
+-- opened or saved through this widget).
+local function projectEntry(slug, manifest, touchedAt)
+	local m = manifest.map or {}
+	return {
+		slug = slug,
+		folder = slug:match("^(.*)/[^/]+$") or "",
+		name = manifest.name or slug:match("([^/]+)$") or slug,
+		size_x = tonumber(m.size_x),
+		size_z = tonumber(m.size_z),
+		created = manifest.created,
+		modified = manifest.modified or manifest.created,
+		last_touched = touchedAt,
+		format_version = tonumber(manifest.format_version),
+	}
+end
+
+-- Folder walk for the listing, MAX_SLUG_DEPTH deep: a folder with project.lua
+-- is a project and is not descended into; one without is a container. Hidden
+-- folders (".git" in a cloned repository) and names validateSlug rejects are
+-- skipped.
+local function walkProjects(rel, depth, out, seen, touchedAt)
+	local dirs = VFS.SubDirs(PROJECTS_DIR .. (rel ~= "" and (rel .. "/") or ""), "*", VFS.RAW) or {}
 	for _, d in ipairs(dirs) do
-		local slug = d:match("([^/\\]+)[/\\]*$")
-		if slug then
-			local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+		local seg = d:match("([^/\\]+)[/\\]*$")
+		if seg and seg:sub(1, 1) ~= "." then
+			local slug = rel == "" and seg or (rel .. "/" .. seg)
+			if validateSlug(slug) then
+				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+				if manifest and manifest.kind == "bar-map-project" then
+					seen[slug] = true
+					out[#out + 1] = projectEntry(slug, manifest, touchedAt[slug])
+				elseif not manifest and depth < MAX_SLUG_DEPTH then
+					walkProjects(slug, depth + 1, out, seen, touchedAt)
+				end
+			end
+		end
+	end
+end
+
+-- Enumerate projects with manifest details for the Open Project dialog.
+-- VFS.SubDirs sees the folders (walked as a tree, see walkProjects); manifests
+-- are read via raw io (same-session folders may be invisible/stale in the VFS
+-- view — SubDirs RAW semantics for folders created THIS session are unpinned).
+-- The recent-projects journal then adds any project the snapshot missed whose
+-- manifest raw io can read, so a project saved this session or a fresh clone
+-- that was opened once still lists. Sorted newest-modified first; the dialog
+-- re-sorts per its own control.
+local function listProjectsDetailed()
+	local out, seen, touchedAt = {}, {}, {}
+	local recent = readRecent()
+	for _, e in ipairs(recent) do
+		touchedAt[e.slug] = e.at
+	end
+	walkProjects("", 1, out, seen, touchedAt)
+	for _, e in ipairs(recent) do
+		if not seen[e.slug] then
+			local manifest = readPrevManifest(PROJECTS_DIR .. e.slug .. "/")
 			if manifest and manifest.kind == "bar-map-project" then
-				local m = manifest.map or {}
-				out[#out + 1] = {
-					slug = slug,
-					name = manifest.name or slug,
-					size_x = tonumber(m.size_x),
-					size_z = tonumber(m.size_z),
-					modified = manifest.modified,
-					format_version = tonumber(manifest.format_version),
-				}
+				seen[e.slug] = true
+				local p = projectEntry(e.slug, manifest, e.at)
+				p.discovered = "recent"
+				out[#out + 1] = p
 			end
 		end
 	end
@@ -1648,12 +1930,13 @@ local function listProjects()
 	return #found
 end
 
--- Delete a project folder. validateSlug already rejects anything with a path
--- separator, so the target can only ever be one directory under PROJECTS_DIR,
--- and a readable manifest is required — never delete a folder this widget did
--- not write. The manifest goes first on purpose: if a file is locked and the
--- sweep leaves junk behind, the project has already stopped listing (both list
--- paths need project.lua) instead of showing up half-deleted.
+-- Delete a project folder. validateSlug only admits letter/digit/_/- segments
+-- joined by "/", so the target is always a folder under PROJECTS_DIR (never
+-- "..", never an absolute path), and a readable manifest is required — never
+-- delete a folder this widget did not write. Parent folders of a nested
+-- project are left alone. The manifest goes first on purpose: if a file is
+-- locked and the sweep leaves junk behind, the project has already stopped
+-- listing (both list paths need project.lua) instead of showing up half-deleted.
 local function deleteProject(slug)
 	if job then
 		echoP("cannot delete a project while a save is running")
@@ -1668,6 +1951,7 @@ local function deleteProject(slug)
 		echoP("cannot delete: " .. err)
 		return false
 	end
+	slug = ok
 	local dir = PROJECTS_DIR .. slug .. "/"
 	if not readPrevManifest(dir) then
 		echoP("cannot delete '" .. slug .. "': no readable project.lua in " .. dir)
@@ -2047,10 +2331,16 @@ local function phaseSurface(c)
 				T.setBiome(meta.biome)
 			end
 			if sp.applySlots then
-				sp.applySlots(
-					(meta.slot1 and meta.slot1 ~= "") and meta.slot1 or nil,
-					(meta.slot2 and meta.slot2 ~= "") and meta.slot2 or nil
-				)
+				local picks = {}
+				for i = 1, MAX_SURFACE_SLOTS do
+					local a = meta["slot" .. i]
+					picks[i] = (a and a ~= "") and a or nil
+				end
+				sp.applySlots(picks)
+			end
+			-- per-texture INFLUENCE profiles (absent in older projects = none)
+			if sp.setInfluenceTable then
+				sp.setInfluenceTable(meta.influence)
 			end
 		elseif not T then
 			echoP(
@@ -2081,6 +2371,92 @@ local function phaseSurface(c)
 	else
 		loadSkip("surface", tostring(result or "no result reported"))
 	end
+	return true
+end
+
+-- Tileset tuning (tileset.lua). Runs after the surface phase because setBiome
+-- resets every biome-tuned knob to the recipe and clears the slot-4 material —
+-- the saved values must land on top. Apply order matters for the same reason
+-- WITHIN the phase: biome and metal style both reseed knobs, so they go first
+-- and the knob table is restored over them.
+local function phaseTileset(c)
+	local path = sectionFile("tileset")
+	if not path then
+		return true
+	end
+	local T = WG.TilesetTerrain
+	if not T then
+		loadSkip("tileset", "tileset widget not loaded")
+		return true
+	end
+	if not c.cfg then
+		local data, err = readLuaFile(path)
+		if type(data) ~= "table" then
+			loadSkip("tileset", "unreadable tileset.lua (" .. tostring(err) .. ")")
+			return true
+		end
+		c.cfg = data
+		c.ticks = 0
+	end
+	local d = c.cfg
+	-- setSlot4Material attaches lazily from the tileset widget's DrawGenesis;
+	-- give it a few ticks before applying without it
+	if d.slot4_material and d.slot4_material ~= "" and not T.setSlot4Material then
+		c.ticks = c.ticks + 1
+		if c.ticks < 90 then
+			return false
+		end
+	end
+	if d.biome and d.biome ~= "" and T.setBiome then
+		local activeKey
+		if T.getActiveBiome then
+			local _, _, k = T.getActiveBiome()
+			activeKey = k
+		end
+		if activeKey ~= d.biome then
+			T.setBiome(d.biome)
+		end
+	end
+	if d.metal_style and d.metal_style ~= "" and T.setMetalStyle then
+		T.setMetalStyle(d.metal_style)
+	end
+	if type(d.slot_tints) == "table" and T.setSlotTint then
+		for a, col in pairs(d.slot_tints) do
+			if type(a) == "string" and type(col) == "table" then
+				T.setSlotTint(a, col[1], col[2], col[3])
+			end
+		end
+	end
+	-- HEIGHT TINT ramp image: an absent key clears any ramp left over from the
+	-- previous scene, so a project without one loads clean
+	if T.setRamp then
+		T.setRamp((type(d.ramp) == "string") and d.ramp or "")
+	end
+	local applied, unknown = 0, 0
+	if type(d.knobs) == "table" and T.setKnob then
+		local live = T.getKnobs() or {}
+		for k, v in pairs(d.knobs) do
+			if type(v) == "number" then
+				if T.setKnob(k, v) then
+					applied = applied + 1
+				elseif live[k] ~= nil then
+					-- knob without a slider spec (setKnob refuses those): write it
+					-- straight into the live table; its uniform reads the table
+					live[k] = v
+					applied = applied + 1
+				else
+					unknown = unknown + 1
+				end
+			end
+		end
+	end
+	if d.metal_lights ~= nil and T.setMetalLights then
+		T.setMetalLights(d.metal_lights)
+	end
+	if d.slot4_material and d.slot4_material ~= "" and T.setSlot4Material then
+		T.setSlot4Material(d.slot4_material)
+	end
+	loadOk("tileset", applied .. " knobs" .. ((unknown > 0) and (", " .. unknown .. " unknown skipped") or ""))
 	return true
 end
 
@@ -2520,6 +2896,7 @@ local LOAD_PHASES = {
 	{ name = "heightmap", run = phaseHeightmap },
 	{ name = "dnts+splat", run = phaseDntsSplat },
 	{ name = "surface", run = phaseSurface },
+	{ name = "tileset", run = phaseTileset },
 	{ name = "diffuse", run = phaseDiffuse },
 	{ name = "metal", run = phaseMetal },
 	{ name = "features", run = phaseFeatures },
@@ -2561,6 +2938,14 @@ local function finishLoad()
 			"starting the game: terrain taller than the canvas base is unclickable in pregame (engine clips ground rays at the last known max height, which only updates once sim frames run)"
 		)
 		Spring.SendCommands("forcestart")
+	end
+
+	-- A loaded project is there to be edited: bring the Terraformer up
+	-- (requested by PtaQ 2026-09-04). The panel widget owns the how.
+	---@type table?
+	local ui = WG.TerraformBrushUI
+	if ui and ui.openEditor then
+		ui.openEditor()
 	end
 end
 
@@ -2744,6 +3129,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
+	slug = ok
 	if not isLocalSession() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false
@@ -2793,11 +3179,17 @@ local function openProject(slug)
 		return false
 	end
 	echoP(string.format("restarting into a blank %dx%d map for project '%s'...", m.size_x, m.size_z, slug))
+	touchRecent(slug)
 	Spring.Restart("", script)
 	return true
 end
 
-function widget:DrawScreen()
+-- Job driver. DrawScreenPost, NOT DrawScreen: the widget handler skips
+-- DrawScreen while the interface is hidden and the Terraformer's FOCUS MODE
+-- hides it on purpose, so a Save / Open started there would sit until the HUD
+-- came back. Nothing here grabs the screen (the thumbnail step renders to its
+-- own FBO), so running after the UI pass changes nothing.
+function widget:DrawScreenPost()
 	if unitsWaiter then
 		pollUnitsWaiter()
 	end
@@ -2877,6 +3269,9 @@ function widget:Initialize()
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		-- { {slug, at}, ... } newest first: projects opened or saved through
+		-- this widget (the journal behind the dialog's RECENT order).
+		recent = readRecent,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
 		exists = projectExists,

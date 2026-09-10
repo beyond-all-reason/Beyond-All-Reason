@@ -34,7 +34,6 @@ end
 local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
 
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetAllyTeamList = Spring.GetAllyTeamList
 local spGetTeamList = Spring.GetTeamList
@@ -45,7 +44,6 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetAIInfo = Spring.GetAIInfo
-local ColorString = BAR.Utilities.Color.ToString
 
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
@@ -345,7 +343,6 @@ local function buildLeaderboardRow(team, rank, isEliminated, isDead)
 	local totalScore = previousScore + gains
 	totalDiv.inner_rml = tostring(totalScore) .. "pts"
 
-	local dataModel = widgetState.dmHandle
 	local territoryCount = team.territoryCount or 0
 
 	local territoriesDiv = widgetState.document:CreateElement("div")
