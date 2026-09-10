@@ -354,7 +354,7 @@ Undeploy()
 DelayAimMeasurement()
 {
 	delayAimMeasurement = TRUE;
-	sleep 200;
+	// sleep 200;
 	delayAimMeasurement = FALSE;
 }
 
