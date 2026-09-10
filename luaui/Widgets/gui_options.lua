@@ -2488,6 +2488,12 @@ function mouseEvent(mx, my, button, release)
 	end
 
 	if show then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+			return false
+		end
+
 		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
 		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
 		local chatinputClick = (

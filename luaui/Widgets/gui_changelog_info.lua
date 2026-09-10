@@ -558,6 +558,12 @@ local function mouseEvent(x, y, button, release)
 		return false
 	end
 
+	-- A press on a top bar button is the top bar's to handle: it closes the open windows
+	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
+		return false
+	end
+
 	if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 		if not release and button == 1 then
 			local i = sidebarIndexAt(x, y)
