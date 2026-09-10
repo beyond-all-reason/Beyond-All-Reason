@@ -18,10 +18,12 @@ end
 
 local Rules = VFS.Include("modules/transport/lib/rules.lua") ---@type TransportRules
 local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
+local Unstack = VFS.Include("modules/transport/lib/unstack.lua") ---@type TransportUnstack
 
 local loadedSpeed = {} ---@type table<integer, number> air transport -> allowed elmos per frame
 local settling = {} ---@type table<integer, table> unloaded unit -> where it landed, and when to pin it
 local maybeDead = {} ---@type table<integer, integer> cargo -> the carrier that just let go
+local unstacking = {} ---@type table<integer, integer> a nano turret -> its def, nudged until clear of any immobile ally
 
 ---@param transportID integer
 local function updateLoadedSpeed(transportID)
@@ -122,6 +124,11 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 	if passenger.leavesGhost then
 		Spring.SetUnitLeavesGhost(unitID, true)
 	end
+	if not passenger.canMove then
+		for turretID, turretDefID in pairs(Unstack.TurretsUnder(unitID)) do
+			unstacking[turretID] = turretDefID
+		end
+	end
 
 	if passenger.isParatrooper then
 		local vx, vy, vz = Spring.GetUnitVelocity(transportID)
@@ -164,6 +171,11 @@ function gadget:GameFrame(frame)
 			Spring.SetUnitVelocity(transportID, vx * factor, vy * factor, vz * factor)
 		end
 	end
+	for unitID, unitDefID in pairs(unstacking) do
+		if not Spring.ValidUnitID(unitID) or Unstack.Step(unitID, unitDefID) then
+			unstacking[unitID] = nil
+		end
+	end
 	for unitID, landing in pairs(settling) do
 		if landing.frame <= frame then
 			settling[unitID] = nil
@@ -188,14 +200,29 @@ function gadget:GameFramePost()
 	maybeDead = {}
 end
 
+function gadget:UnitCreated(unitID, unitDefID)
+	if not Transport.DefTraits(unitDefID).canMove then
+		for turretID, turretDefID in pairs(Unstack.TurretsUnder(unitID)) do
+			unstacking[turretID] = turretDefID
+		end
+	end
+end
+
 function gadget:UnitDestroyed(unitID)
 	loadedSpeed[unitID] = nil
 	settling[unitID] = nil
+	unstacking[unitID] = nil
 end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.LOAD_UNITS)
 	gadgetHandler:RegisterAllowCommand(CMD.UNLOAD_UNITS)
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if Transport.DefTraits(unitDefID).isNano then
+			unstacking[unitID] = unitDefID
+		end
+	end
 	GG.Transport = {
 		---@param unitID integer
 		---@return boolean
