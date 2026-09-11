@@ -1020,7 +1020,8 @@ function widget:DrawScreen()
 				local pointed = (pointedName == name)
 				local order = widgetHandler.orderList[name]
 				local enabled = order and (order > 0)
-				local active = data.active
+				local known = widgetHandler.knownWidgets[name] -- live lookup
+				local active = known and known.active
 				if pointed and not activescrollbar then
 					pointedY = posy
 					if not pagestepped and (lmb or mmb or rmb) then
@@ -1418,9 +1419,11 @@ function widget:MouseRelease(x, y, mb)
 			return -1
 		end
 		if buttonID == 2 then
-			-- disable all widgets, but don't reload
+			-- disable loaded widgets, but don't reload
 			for _, namedata in ipairs(fullWidgetsList) do
-				widgetHandler:DisableWidget(namedata[1])
+				if widgetHandler:FindWidget(namedata[1]) then
+					widgetHandler:DisableWidget(namedata[1])
+				end
 			end
 			widgetHandler:SaveConfigData()
 			return -1
