@@ -437,7 +437,7 @@ local function updateButtons()
 		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
 	end
 	-- only shown when settings differ from their default, the amount of them is put in the badge
-	if WG.gameinfo and not isSinglePlayer then
+	if WG.gameinfo and (not isSinglePlayer or BAR.Utilities.ShowDevUI()) then
 		local changedCount = WG.gameinfo.getChangedModoptionsCount and WG.gameinfo.getChangedModoptionsCount() or 0
 		if changedCount > 0 then
 			addButton("info", BAR.I18N("ui.topbar.button.info"), tostring(changedCount))

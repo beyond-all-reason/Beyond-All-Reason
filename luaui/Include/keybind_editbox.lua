@@ -1,4 +1,5 @@
--- Single-line text input for the keybind editor's search field.
+-- Single-line text input, written for the keybind editor's search field and shared with
+-- the game info panel's.
 -- Active only while focused, so it is safe to host alongside game input.
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")

@@ -1,6 +1,6 @@
--- Text measuring shared by the keybind editor's controls, so a label clipped in one
--- control clips the same way in the next. The font is passed in because each control
--- draws with its own.
+-- Text measuring shared by the keybind editor's controls and the game info panel's rows,
+-- so a label clipped in one control clips the same way in the next. The font is passed in
+-- because each control draws with its own.
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 

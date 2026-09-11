@@ -228,6 +228,54 @@ local function createScavengerUnitDefs()
 	end
 end
 
+-- A tweak that fails is only reported here, in the defs environment, which has no way to
+-- reach LuaUI except through the defs it produces. Each failure is stashed on the
+-- commander defs - the ones present in every game - so the game info panel can say a tweak
+-- was not applied rather than listing it as a setting that took effect.
+local tweakFailures = {}
+local tweakErrorCarriers = { "armcom", "corcom", "legcom" }
+
+local function recordTweakFailure(name, message)
+	-- Tab between the option and its message, newline between records: a Lua error message
+	-- carries neither, so the panel can split them apart again.
+	tweakFailures[#tweakFailures + 1] = name .. "\t" .. (string.gsub(tostring(message), "%s+", " "))
+end
+
+local function publishTweakFailures()
+	if #tweakFailures == 0 then
+		return
+	end
+
+	local text = table.concat(tweakFailures, "\n")
+	for _, name in ipairs(tweakErrorCarriers) do
+		local unitDef = UnitDefs[name]
+		if unitDef then
+			unitDef.customparams = unitDef.customparams or {}
+			unitDef.customparams.tweak_errors = text
+		end
+	end
+end
+
+-- What a tweakunits overwrote, so the game info panel can say what a value used to be
+-- rather than only what it is now. This is the one case where the before is knowable
+-- cheaply: the tweak is a table, so the paths it sets are the paths to read first.
+--
+-- It rides on the unit's own customparams because that is where per-unit data belongs and
+-- because the defs are the only thing this environment can hand to LuaUI at all.
+local function recordOverwritten(unitDef, tweak, path, out)
+	for key, value in pairs(tweak) do
+		local here = path == "" and tostring(key) or (path .. "." .. tostring(key))
+		local current = unitDef and unitDef[key]
+		if type(value) == "table" then
+			-- A path that opens a sub-table is not a value anyone set; its leaves are.
+			recordOverwritten(type(current) == "table" and current or nil, value, here, out)
+		elseif type(current) ~= "table" then
+			-- Empty means there was nothing there before, which the panel reads as new.
+			out[#out + 1] = here .. "\t" .. (current == nil and "" or tostring(current))
+		end
+	end
+end
+
 local function preProcessTweakOptions()
 	local modOptions = {}
 	if BAR.GetModOptionsCopy then
@@ -270,6 +318,7 @@ local function preProcessTweakOptions()
 				local postfunc, err = loadstring(postsFuncStr)
 				if err then
 					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
+					recordTweakFailure(name, err)
 				else
 					Spring.Echo("Loading " .. name .. " modoption")
 					Spring.Echo(postsFuncStr)
@@ -279,11 +328,13 @@ local function preProcessTweakOptions()
 							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
 						else
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+							recordTweakFailure(name, result)
 						end
 					end
 				end
 			else
 				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
+				recordTweakFailure(name, postsFuncStr)
 			end
 		else
 			local success, tweakunits = pcall(BAR.Utilities.CustomKeyToUsefulTable, modOptions[name])
@@ -293,13 +344,24 @@ local function preProcessTweakOptions()
 					for unitName, ud in pairs(UnitDefs) do
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
-							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							local lowered = system.lowerkeys(tweakunits[unitName])
+							local overwritten = {}
+							recordOverwritten(ud, lowered, "", overwritten)
+							table.mergeInPlace(ud, lowered, true)
 							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
+							if #overwritten > 0 then
+								-- Appended, not replaced: a later slot can set a path an earlier one
+								-- already did, and the first record is the one that predates them all.
+								local was = ud.customparams.tweaked_from
+								ud.customparams.tweaked_from = (was and was .. "\n" or "")
+									.. table.concat(overwritten, "\n")
+							end
 						end
 					end
 				end
 			else
 				Spring.Echo("Failed to parse modoption", name, "with value", modOptions[name])
+				recordTweakFailure(name, tweakunits)
 			end
 		end
 	end
@@ -354,3 +416,4 @@ postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
 exportYardmaps()
+publishTweakFailures()
