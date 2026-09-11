@@ -1,4 +1,5 @@
 local gadget = gadget ---@type Gadget
+local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 
 function gadget:GetInfo()
 	return {
@@ -20,7 +21,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
 	local spGetUnitHealth = Spring.GetUnitHealth
-	local spGetUnitTransporter = Spring.GetUnitTransporter
 
 	local spGetTeamList = Spring.GetTeamList
 	local spGetUnitExperience = Spring.GetUnitExperience
@@ -444,7 +444,7 @@ if gadgetHandler:IsSyncedCode() then
 		local face = Spring.GetFacingFromHeading(heading)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
 		local commandQueue = Spring.GetUnitCommands(unitID, -1)
-		local transporter = Spring.GetUnitTransporter(unitID)
+		local transporter = Transport.CarrierOf(unitID)
 
 		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution)
 		local targetUnitDef = UnitDefNames[toUnitNameSkipped]
@@ -807,7 +807,7 @@ if gadgetHandler:IsSyncedCode() then
 			if
 				evolution
 				and not combatCheckUpdate(unitID, evolution, currentTime)
-				and not spGetUnitTransporter(unitID)
+				and not Transport.IsCarried(unitID)
 				and (
 					isEvolutionTimePassed(evolution, currentTime)
 					or isEvolutionPowerPassed(evolution)

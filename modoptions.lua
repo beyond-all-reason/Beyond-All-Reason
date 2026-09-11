@@ -293,21 +293,6 @@ local options = {
 
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
-		key = "transportenemy",
-		name = "Enemy Transporting",
-		desc = "Toggle which enemy units you can kidnap with an air transport",
-		hidden = true,
-		type = "list",
-		def = "notcoms",
-		section = "options_main",
-		items = {
-			{ key = "notcoms", name = "All But Commanders", desc = "Only commanders are immune to napping" },
-			{ key = "none", name = "Disallow All", desc = "No enemy units can be napped" },
-		},
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
 		key = "teamffa_start_boxes_shuffle",
 		name = "Shuffle TeamFFA Start Boxes",
 		desc = "In TeamFFA games (more than 2 teams, excluding Raptors / Scavengers), start boxes will be randomly assigned to each team: team 1 might be assigned any start box rather than team 1 always being assigned start box 1.",
@@ -377,15 +362,6 @@ local options = {
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "comm_trans_slow",
-		name = "Slow Commander Transport",
-		desc = "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished.",
-		type = "bool",
-		section = "options_main",
-		def = false,
-	},
-
 	{
 		key = "sub_header",
 		section = "options_main",

@@ -12,19 +12,12 @@ function widget:GetInfo()
 	}
 end
 
--- Localized functions for performance
 local mathSin = math.sin
 local mathCos = math.cos
 
--- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- Changelog
--- Sep 2025 SuperKitowiec - Show indicators when one or more transports are selected
 
 local circlePieces = 3
 local circlePieceDetail = 14
@@ -32,7 +25,6 @@ local circleSpaceUsage = 0.8
 local circleInnerOffset = 0
 local rotationSpeed = 8
 
--- outerSize - innerSize = circle width
 local innerSize = 1.85
 local outerSize = 2.02
 
@@ -40,34 +32,14 @@ local alphaFalloffDistance = 750
 local maxAlpha = 0.55
 local indicatorSizeMultiplier = 6
 
--- Multiplier to convert footprints sizes
--- see SPRING_FOOTPRINT_SCALE in GlobalConstants.h in recoil engine repo for details
--- https://github.com/beyond-all-reason/RecoilEngine/blob/master/rts%2FSim%2FMisc%2FGlobalConstants.h
-local springFootprintScale = 2
+local Transport = VFS.Include("modules/transport/api.lua") ---@type TransportApi
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local unitsToDraw = {}
 local activeTransportDefs = {}
-
-local validTrans = {}
 local math_sqrt = math.sqrt
 
-local transDefs = {}
-local cantBeTransported = {}
-local unitMass = {}
-local unitXSize = {}
-
 local circleList, chobbyInterface
-
-for defID, def in pairs(UnitDefs) do
-	if def.transportSize and def.transportSize > 0 then
-		validTrans[defID] = true
-		transDefs[defID] = { def.transportMass, def.transportCapacity, def.transportSize }
-	end
-	unitMass[defID] = def.mass
-	unitXSize[defID] = def.xsize
-	cantBeTransported[defID] = def.cantBeTransported
-end
 
 local function DrawCircleLine()
 	gl.BeginEnd(GL.QUADS, function()
@@ -84,10 +56,8 @@ local function DrawCircleLine()
 				a3 = ((i + circleInnerOffset + detailPartWidth - (width / detail)) * radStep)
 				a4 = ((i + circleInnerOffset + detailPartWidth) * radStep)
 
-				--outer (fadein)
 				gl.Vertex(mathSin(a4) * innerSize, 0, mathCos(a4) * innerSize)
 				gl.Vertex(mathSin(a3) * innerSize, 0, mathCos(a3) * innerSize)
-				--outer (fadeout)
 				gl.Vertex(mathSin(a1) * outerSize, 0, mathCos(a1) * outerSize)
 				gl.Vertex(mathSin(a2) * outerSize, 0, mathCos(a2) * outerSize)
 			end
@@ -135,9 +105,10 @@ function widget:GameFrame(n)
 		local transID = selectedUnits[i]
 		local transDefID = spGetUnitDefID(transID)
 
-		if validTrans[transDefID] then
+		local traits = Transport.UnitTraits(transID)
+		if traits and traits.isTransport then
 			local transportedUnits = Spring.GetUnitIsTransporting(transID)
-			local transCapacity = transDefs[transDefID][2]
+			local transCapacity = traits.transportCapacity or math.huge
 			if not transportedUnits or #transportedUnits < transCapacity then
 				activeTransportDefs[transDefID] = true
 			end
@@ -160,15 +131,11 @@ function widget:GameFrame(n)
 
 	for _, unitID in ipairs(visibleUnits) do
 		local passengerDefID = spGetUnitDefID(unitID)
-		if not cantBeTransported[passengerDefID] and not Spring.IsUnitIcon(unitID) then
-			local passengerFootprintX = unitXSize[passengerDefID] / springFootprintScale
+		local passengerTraits = Transport.UnitTraits(unitID)
+		if passengerTraits and not Spring.IsUnitIcon(unitID) then
 			local canBePickedUp = false
 			for transDefID, _ in pairs(activeTransportDefs) do
-				local transDef = transDefs[transDefID]
-				local transMassLimit = transDef[1]
-				local transportSizeLimit = transDef[3]
-
-				if unitMass[passengerDefID] <= transMassLimit and passengerFootprintX <= transportSizeLimit then
+				if Transport.CanEverCarry(transDefID, passengerDefID) then
 					canBePickedUp = true
 					break
 				end
@@ -177,8 +144,10 @@ function widget:GameFrame(n)
 			if canBePickedUp then
 				local x, y, z = Spring.GetUnitBasePosition(unitID)
 				if x then
-					-- we have to scale up passengerFootprintX otherwise indicator would be under the unit instead of around it
-					unitsToDraw[unitID] = { pos = { x, y, z }, size = (passengerFootprintX * indicatorSizeMultiplier) }
+					unitsToDraw[unitID] = {
+						pos = { x, y, z },
+						size = (passengerTraits.footprintX * indicatorSizeMultiplier),
+					}
 				end
 			end
 		end
