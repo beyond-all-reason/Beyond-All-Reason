@@ -1,20 +1,21 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function addMarker(position, label, name)
-	if name then
-		GG['MissionAPI'].markerNames[name] = position
-	end
-	Spring.MarkerAddPoint(position.x, position.y, position.z, label, false)
+-- Drawing is stubbed on the engine's map marks, which pin themselves to the terrain and cannot be
+-- styled, so markerType is taken and kept until we draw the marker types ourselves.
+
+local function addMapMarker(markerID, position, markerType)
+	GG['MissionAPI'].markerNames[markerID] = position
+	Spring.MarkerAddPoint(position.x, position.y, position.z, nil, false)
 end
 
 return {
 	{
-		type = 'AddMarker',
+		type = 'AddMapMarker',
 		parameters = {
-			{ name = 'position', required = true, type = ParameterTypes.Position },
-			{ name = 'label', required = false, type = ParameterTypes.String },
-			{ name = 'name', required = false, type = ParameterTypes.String },
+			{ name = 'markerID',   required = true,  type = ParameterTypes.String },
+			{ name = 'position',   required = true,  type = ParameterTypes.Position },
+			{ name = 'markerType', required = false, type = ParameterTypes.String },
 		},
-		actionFunction = addMarker,
+		actionFunction = addMapMarker,
 	}
 }

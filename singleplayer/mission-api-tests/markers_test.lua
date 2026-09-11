@@ -7,7 +7,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerWithLabel', 'addMarkerWithoutLabel' },
+		actions = { 'addMarkerToErase', 'addMarkerToKeep', 'messageAddMarkers' },
 	},
 
 	drawLines = {
@@ -36,19 +36,27 @@ local triggers = {
 }
 
 local actions = {
-	addMarkerWithLabel = {
-		type = actionTypes.AddMarker,
+	addMarkerToErase = {
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerID = 'markerToErase',
 			position = { x = 1900, z = 2200 },
-			label = 'This marker will be erased soon.',
-			name = 'markerWithLabel',
+			markerType = 'mapmark',
 		},
 	},
 
-	addMarkerWithoutLabel = {
-		type = actionTypes.AddMarker,
+	addMarkerToKeep = {
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerID = 'markerToKeep',
 			position = { x = 1500, z = 2200 },
+		},
+	},
+
+	messageAddMarkers = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = 'Two markers: one to erase by ID, one to leave until the end.',
 		},
 	},
 
@@ -75,14 +83,14 @@ local actions = {
 	eraseMarker = {
 		type = actionTypes.EraseMarker,
 		parameters = {
-			name = 'markerWithLabel',
+			name = 'markerToErase',
 		},
 	},
 
 	messageEraseMarker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's erase a marker.",
+			message = "Let's erase one marker by its ID.",
 		},
 	},
 
