@@ -20,6 +20,7 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
@@ -121,6 +122,29 @@ local function getLeashRadius(unitID)
 	local buildDist = builderBuildDist[unitDefID] or 0
 	local states = spGetUnitStates(unitID)
 	return buildDist + (LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA)
+end
+
+local function isOutsideLeash(unitID, homeX, homeZ, leash)
+	local tx, _, tz = spGetUnitPosition(unitID)
+	if not tx then
+		return true
+	end
+
+	local leashSq = leash * leash
+	local dx, dz = tx - homeX, tz - homeZ
+	if dx * dx + dz * dz > leashSq then
+		return true
+	end
+
+	local vx, _, vz = spGetUnitVelocity(unitID)
+	if vx then
+		local px, pz = dx + vx * POLL_INTERVAL, dz + vz * POLL_INTERVAL
+		if px * px + pz * pz > leashSq then
+			return true
+		end
+	end
+
+	return false
 end
 
 local function sendHome(builderID, info)
@@ -366,12 +390,9 @@ function widget:GameFrame(frame)
 			else
 				local unitDefID = spGetUnitDefID(info.targetID)
 				local unitDef = cachedUnitDefs[unitDefID]
-				-- Check if target has left leash radius
-				local tx, _, tz = spGetUnitPosition(info.targetID)
-				local dx, dz = tx - info.homeX, tz - info.homeZ
-				local distSq = dx * dx + dz * dz
+				-- Check if target will leave leash radius before the next poll
 				local leash = getLeashRadius(builderID) + unitDef.radius
-				if distSq > leash * leash then
+				if isOutsideLeash(info.targetID, info.homeX, info.homeZ, leash) then
 					sendHome(builderID, info)
 				else
 					-- Check builder is still repairing (not overridden by player)
@@ -421,7 +442,10 @@ function widget:GameFrame(frame)
 						local distSq = dx * dx + dz * dz
 						local candidateDefID = spGetUnitDefID(candidateID)
 						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
-						if distSq <= effectiveLeash * effectiveLeash and distSq < bestDistSq then
+						if
+							distSq < bestDistSq
+							and not isOutsideLeash(candidateID, homePos.homeX, homePos.homeZ, effectiveLeash)
+						then
 							bestDistSq = distSq
 							bestTarget = candidateID
 						end
