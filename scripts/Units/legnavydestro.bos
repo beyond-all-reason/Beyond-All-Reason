@@ -260,6 +260,7 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	sleep 150;
+	return (1);
 }
 
 QueryWeapon2(piecenum)
