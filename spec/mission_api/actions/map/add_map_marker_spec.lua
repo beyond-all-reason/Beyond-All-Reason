@@ -4,7 +4,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 
 Builders.MissionApi.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/map/add_marker.lua")
+local actions = VFS.Include("luarules/mission_api/actions/map/add_map_marker.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
