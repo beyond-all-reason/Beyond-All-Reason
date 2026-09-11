@@ -4,6 +4,7 @@ local parameters = {
 	id = Types.String,
 	timeRemaining = Types.Quantity,
 	paused = Types.Boolean,
+	displayed = Types.Boolean,
 }
 
 return {

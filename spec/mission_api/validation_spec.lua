@@ -529,6 +529,41 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("PositiveInteger", function()
+			local function reachedErrors(timeRemaining)
+				triggerErrors({
+					type = triggerTypes.CountdownReached,
+					parameters = { countdownID = "bomb", timeRemaining = timeRemaining },
+					actions = { "ok" },
+				})
+			end
+
+			it("rejects zero, which CountdownFinished covers", function()
+				reachedErrors(0)
+				assert.is_true(
+					hasError("PositiveInteger must be a whole number > 0, got 0. Trigger: t, Parameter: timeRemaining")
+				)
+			end)
+
+			it("rejects negative and fractional values", function()
+				reachedErrors(-5)
+				reachedErrors(2.5)
+				assert.is_true(
+					hasError("PositiveInteger must be a whole number > 0, got -5. Trigger: t, Parameter: timeRemaining")
+				)
+				assert.is_true(
+					hasError(
+						"PositiveInteger must be a whole number > 0, got 2.5. Trigger: t, Parameter: timeRemaining"
+					)
+				)
+			end)
+
+			it("accepts a whole number of seconds", function()
+				reachedErrors(1)
+				assert.are.same({}, logged)
+			end)
+		end)
+
 		describe("Fraction", function()
 			it("rejects wrong type", function()
 				triggerErrors({
@@ -1290,6 +1325,69 @@ describe("mission_api.validation", function()
 				)
 			end
 		)
+
+		it("passes countdown ID references that are added, and countdowns left to run out", function()
+			GG["MissionAPI"].Actions = {
+				addBomb = { type = actionTypes.AddCountdown, parameters = { countdownID = "bomb", seconds = 60 } },
+				pauseBomb = { type = actionTypes.PauseCountdown, parameters = { countdownID = "bomb" } },
+				addLone = { type = actionTypes.AddCountdown, parameters = { countdownID = "lone", seconds = 10 } },
+			}
+			GG["MissionAPI"].Triggers = {
+				bombDone = { type = triggerTypes.CountdownFinished, parameters = { countdownID = "bomb" } },
+			}
+			GG["MissionAPI"].Objectives = {
+				surviveBomb = {
+					textKey = "survive",
+					trigger = { type = triggerTypes.CountdownFinished, parameters = { countdownID = "bomb" } },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
+		it("warns for a countdown ID that is not added in any action", function()
+			GG["MissionAPI"].Actions = {
+				cancelGhost = { type = actionTypes.CancelCountdown, parameters = { countdownID = "ghost" } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Countdown 'ghost' is not added in any action. Referenced in: action cancelGhost"))
+		end)
+
+		it("warns for time adjustments on countdown IDs that are not added", function()
+			GG["MissionAPI"].Actions = {
+				setGhost = { type = actionTypes.SetTime, parameters = { countdownID = "setID", seconds = 5 } },
+				addGhost = { type = actionTypes.AddTime, parameters = { countdownID = "addID", seconds = 5 } },
+				removeGhost = {
+					type = actionTypes.RemoveTime,
+					parameters = { countdownID = "removeID", seconds = 5 },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Countdown 'setID' is not added in any action. Referenced in: action setGhost"))
+			assert.is_true(hasError("Countdown 'addID' is not added in any action. Referenced in: action addGhost"))
+			assert.is_true(
+				hasError("Countdown 'removeID' is not added in any action. Referenced in: action removeGhost")
+			)
+		end)
+
+		it("warns for a countdown ID referenced by a trigger but not added", function()
+			GG["MissionAPI"].Triggers = {
+				watchGhost = {
+					type = triggerTypes.CountdownReached,
+					parameters = { countdownID = "ghost", timeRemaining = 10 },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Countdown 'ghost' is not added in any action. Referenced in: trigger watchGhost"))
+		end)
 
 		it("logs an error when a stage refers to a non-existent objective", function()
 			GG["MissionAPI"].Objectives = {

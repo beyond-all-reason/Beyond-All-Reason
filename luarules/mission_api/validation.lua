@@ -614,6 +614,17 @@ validators[Types.Quantity] = function(quantity)
 	end
 end
 
+validators[Types.PositiveInteger] = function(value)
+	local luaTypeResult = validators[Types.Number](value)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if value <= 0 or value % 1 ~= 0 then
+		return { { message = "PositiveInteger must be a whole number > 0, got " .. value } }
+	end
+end
+
 validators[Types.Fraction] = function(fraction)
 	local luaTypeResult = validators[Types.Number](fraction)
 	if luaTypeResult then
@@ -1219,12 +1230,9 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		[actionTypes.SpawnUnits] = true,
 		[actionTypes.NameUnits] = true,
 	}
-	local actionTypesReferencingUnitNames = {
-		[actionTypes.IssueOrders] = true,
-		[actionTypes.UnnameUnits] = true,
-		[actionTypes.TransferUnits] = true,
-		[actionTypes.DespawnUnits] = true,
-	}
+	-- every action with a UnitName parameter; the naming actions above are in this set
+	-- as well but are matched first where the sets are consulted
+	local actionTypesReferencingUnitNames = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
 
 	local createdUnitNames = {}
 	local referencedUnitNames = {}
@@ -1326,9 +1334,8 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeatures] = true,
 	}
-	local actionTypesReferencingFeatureNames = {
-		[actionTypes.DestroyFeatures] = true,
-	}
+	-- every action with a FeatureName parameter, see validateUnitNameReferences
+	local actionTypesReferencingFeatureNames = getTypesWithParameterType(actionsSchemaParameters, Types.FeatureName)
 
 	local createdFeatureNames = {}
 	local referencedFeatureNames = {}
@@ -1489,6 +1496,58 @@ local function validateObjectiveEventReferences(objectives, triggers)
 	end
 end
 
+local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
+	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
+	-- AddCountdown declares a CountdownID parameter too, but it creates the ID and is
+	-- handled before this set is consulted below
+	local referencingActionTypes = getTypesWithParameterType(actionsSchemaParameters, Types.CountdownID)
+
+	local addedCountdownIDs = {}
+	local referencedCountdownIDs = {}
+
+	for actionID, action in pairs(actions) do
+		local countdownID = action.parameters and action.parameters.countdownID
+		if countdownID then
+			if action.type == actionTypes.AddCountdown then
+				addedCountdownIDs[countdownID] = true
+			elseif referencingActionTypes[action.type] then
+				local references = table.ensureTable(referencedCountdownIDs, countdownID)
+				references[#references + 1] = "action " .. actionID
+			end
+		end
+	end
+
+	for triggerID, trigger in pairs(triggers) do
+		local countdownID = trigger.parameters and trigger.parameters.countdownID
+		if countdownID and triggerTypesReferencingCountdownIDs[trigger.type] then
+			local references = table.ensureTable(referencedCountdownIDs, countdownID)
+			references[#references + 1] = "trigger " .. triggerID
+		end
+	end
+
+	-- Objective inline triggers can also refer to countdown IDs.
+	for objectiveID, objective in pairs(objectives or {}) do
+		local countdownID = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.countdownID
+		if countdownID then
+			local references = table.ensureTable(referencedCountdownIDs, countdownID)
+			references[#references + 1] = "objective " .. objectiveID .. " (trigger)"
+		end
+	end
+
+	-- A countdown that is added and simply left to run out is fine, so unlike
+	-- marker names there is no warning in the other direction.
+	for countdownID, labels in pairs(referencedCountdownIDs) do
+		if not addedCountdownIDs[countdownID] then
+			logWarn(
+				"Countdown '"
+					.. countdownID
+					.. "' is not added in any action. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1505,6 +1564,7 @@ local function validateReferences()
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
+	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
