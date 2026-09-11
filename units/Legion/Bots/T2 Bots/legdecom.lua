@@ -80,7 +80,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			reaimtime = 5,
-			subfolder = "CorBots/T2",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			isdecoycommander = true,
 		},

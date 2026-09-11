@@ -44,7 +44,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "Legion/utilities",
+			subfolder = "Legion/Utilities",
 		},
 		featuredefs = {
 			dead = {

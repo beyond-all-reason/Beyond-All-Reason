@@ -69,7 +69,7 @@ return {
 			unitgroup = "builder",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			subfolder = "Legion/Constructors",
 		},
 		sounds = {
 			build = "nanlath2",

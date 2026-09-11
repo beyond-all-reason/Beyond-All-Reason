@@ -122,7 +122,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			reaimtime = 5,
-			subfolder = "",
+			subfolder = "Legion/Legion EvoCom",
 			tombstone = "legstone",
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",

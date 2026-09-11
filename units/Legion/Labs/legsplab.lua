@@ -58,7 +58,7 @@ return {
 				footprintz = 7,
 				height = 20,
 				metal = 930,
-				object = "Units/legsplab_dead.s3o",
+				object = "Units/legsy_dead.s3o", -- placeholder, legsplab has no wreck model
 				reclaimable = true,
 			},
 		},

@@ -39,7 +39,7 @@ return { --costs should be same as legmohocon and legmohoconct
 			removewait = true,
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			scav_swap_override_captured = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		sounds = {
