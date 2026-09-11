@@ -1894,7 +1894,7 @@ local icontypes = {
 	},
 	corgatr = {
 		bitmap = "icons/corgatr.png",
-		size = 1.89999998,
+		size = 1.89999997,
 	},
 	cormist = {
 		bitmap = "icons/vehicle_t1_missile.png",
