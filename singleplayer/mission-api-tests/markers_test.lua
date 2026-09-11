@@ -42,6 +42,7 @@ local actions = {
 			markerID = 'markerToErase',
 			position = { x = 1900, z = 2200 },
 			markerType = 'mapmark',
+			label = 'This marker will be erased soon.',
 		},
 	},
 
@@ -56,7 +57,7 @@ local actions = {
 	messageAddMarkers = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Two markers: one to erase by ID, one to leave until the end.',
+			message = 'Two markers: a labelled one to erase by ID, a bare one to leave until the end.',
 		},
 	},
 

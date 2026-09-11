@@ -91,6 +91,7 @@ return {
 			{ name = 'markerID',   required = true,  type = ParameterTypes.String },
 			{ name = 'position',   required = true,  type = ParameterTypes.Position },
 			{ name = 'markerType', required = false, type = ParameterTypes.String },
+			{ name = 'label',      required = false, type = ParameterTypes.String },
 		},
 		actionFunction = addMapMarker,
 	},
