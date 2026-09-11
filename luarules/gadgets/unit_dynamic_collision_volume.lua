@@ -16,16 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local CollisionVolumes = include("LuaRules/Configs/CollisionVolumes.lua") ---@type CollisionVolumes
-
-local COLVOL_CONFIG = CollisionVolumes.COLVOL.CONFIG
-local unitDefColVolType = CollisionVolumes.UnitDefColVolType
-local unitDefColVolData = CollisionVolumes.UnitDefColVolData
-local unitDefModelColVol = CollisionVolumes.UnitDefModelColVol
-local pieceColVolDisabled = CollisionVolumes.PieceColVolDisabled
-local rescaleFeature3DO = CollisionVolumes.ModelVolumes.FEATURE["3do"].rescale
-local rescaleFeatureS3O = CollisionVolumes.ModelVolumes.FEATURE["s3o"].rescale
-
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitArmored = Spring.GetUnitArmored
 local spGetUnitCollisionData = Spring.GetUnitCollisionVolumeData
@@ -37,7 +27,16 @@ local spSetUnitCollisionData = Spring.SetUnitCollisionVolumeData
 local spSetUnitMidAndAimPos = Spring.SetUnitMidAndAimPos
 local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
 
-local featureModelType = {}
+local CollisionVolumes = include("LuaRules/Configs/CollisionVolumes.lua") ---@type CollisionVolumes
+
+local COLVOL_CONFIG = CollisionVolumes.COLVOL.CONFIG
+local unitDefColVolType = CollisionVolumes.UnitDefColVolType
+local unitDefColVolData = CollisionVolumes.UnitDefColVolData
+local unitDefModelColVol = CollisionVolumes.UnitDefModelColVol
+local pieceColVolDisabled = CollisionVolumes.PieceColVolDisabled
+local rescaleFeature3DO = CollisionVolumes.ModelVolumes.FEATURE["3do"].rescale
+
+local featureModelType = {} ---@type {[FeatureDefID?]:("3do"|"s3o")?}
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	featureModelType[featureDefID] = featureDef.modeltype
 end
@@ -101,7 +100,6 @@ local function setAimOffsets(unitID, unitHeight, offsets)
 	spSetUnitMidAndAimPos(unitID, 0, unitHeight / 2, 0, offsets[1], offsets[2], offsets[3], true)
 end
 
--- Applied after the model volume when a unit is created.
 local setConfigVolume = {
 	[COLVOL_CONFIG.UNIT_STATIC] = function(unitID, colvol)
 		setUnitVolume(unitID, colvol)
@@ -127,20 +125,16 @@ local setConfigVolume = {
 -- Engine callins --------------------------------------------------------------
 
 function gadget:Initialize()
-	local allFeatures = Spring.GetAllFeatures()
-	for i = 1, #allFeatures do
-		local featureID = allFeatures[i]
-		if featureModelType[spGetFeatureDefID(featureID)] == "s3o" then
-			rescaleFeatureS3O(featureID)
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		local modelType = featureModelType[spGetFeatureDefID(featureID)]
+		local modelData = modelType and CollisionVolumes.ModelVolumes.FEATURE[modelType]
+		if modelData and modelData.rescale then
+			modelData.rescale(featureID)
 		end
 	end
-	local allUnits = Spring.GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
-	end
-	for i = 1, #allFeatures do
-		gadget:FeatureCreated(allFeatures[i])
 	end
 end
 
@@ -163,14 +157,14 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
+function gadget:UnitDestroyed(unitID)
+	popupUnits[unitID] = nil
+end
+
 function gadget:FeatureCreated(featureID)
 	if featureModelType[spGetFeatureDefID(featureID)] == "3do" then
 		rescaleFeature3DO(featureID)
 	end
-end
-
-function gadget:UnitDestroyed(unitID)
-	popupUnits[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
@@ -182,15 +176,15 @@ function gadget:GameFrame(frame)
 		local armored = spGetUnitArmored(unitID) == true
 		if popup.armored ~= armored then
 			local unitHeight = spGetUnitHeight(unitID)
-			if unitHeight == nil then
-				popupUnits[unitID] = nil
-			else
+			if unitHeight then
 				popup.armored = armored
 				local colvol = armored and popup.colvol.off or popup.colvol.on
 				popup.setVolume(unitID, colvol)
 				if colvol.offsets then
 					setAimOffsets(unitID, unitHeight, colvol.offsets)
 				end
+			else
+				popupUnits[unitID] = nil
 			end
 		end
 	end
