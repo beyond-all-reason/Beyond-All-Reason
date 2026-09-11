@@ -10,6 +10,7 @@ function widget:GetInfo()
 		layer = -95000,
 		enabled = true,
 		handler = true,
+		modalExempt = true, -- chat stays readable and usable while a window is open
 	}
 end
 
@@ -1186,7 +1187,7 @@ function state.updateChatInputGuishader(left, bottom, right, top)
 		RectRound(left, bottom, right, top, elementCorner)
 	end)
 	WG.guishader.RemoveDlist("chatinput")
-	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput")
+	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput", nil, widget)
 end
 
 function state.drawEmojiPickerButton(rect, iconSize)
@@ -1245,7 +1246,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	glColor(0, 0, 0, inputAlpha * 1.12)
 	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner * 0.7, 0, 0, 1, 1)
 	if WG.guishader then
-		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker")
+		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker", widget)
 	end
 	for i = 1, #emojiAutocompleteAliases do
 		local col = (i - 1) % pickerColumns
@@ -2534,7 +2535,8 @@ drawChatInput = function()
 						yPos - height,
 						x2 - elementPadding,
 						yPos,
-						"chatinputautocomplete"
+						"chatinputautocomplete",
+						widget
 					)
 				end
 				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
@@ -2587,7 +2589,7 @@ drawChatInput = function()
 					"o"
 				)
 				if WG.guishader then
-					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo")
+					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo", widget)
 				end
 			else
 				if WG.guishader then
@@ -2985,7 +2987,8 @@ function widget:DrawScreen()
 					activationArea[2] + chatlogHeightDiff,
 					activationArea[3],
 					activationArea[4],
-					"chat"
+					"chat",
+					widget
 				)
 			end
 

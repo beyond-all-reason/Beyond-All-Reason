@@ -1618,6 +1618,8 @@
 				"catchupminfps_descr": " ",
 				"widgetselector": "Widget selector interface",
 				"widgetselector_descr": "Allow the toggling of the widget selector interface (via F11)",
+				"windows_hideinterface": "Windows hide the interface",
+				"windows_hideinterface_descr": "While a window such as Settings, Keys or Stats is open, hide the rest of the interface and block its input. The top bar menu buttons, chat, votes and the pause overlay stay.",
 				"devmode": "Developer UI",
 				"devmode_descr": "Toggle between how a developer or player see the UI",
 				"customwidgets": "Allow custom widgets",
