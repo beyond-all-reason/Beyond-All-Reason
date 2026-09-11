@@ -436,6 +436,16 @@ function gadget:UnitIdlePost(unitID, idled)
 	dispatchTriggerCallin("UnitIdlePost", unitID, idled)
 end
 
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitLoaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	local transportDefID = Spring.GetUnitDefID(transportID)
+	dispatchTriggerCallin("UnitUnloaded", unitID, unitDefID, unitTeam, transportID, transportDefID, transportTeam)
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	dispatchTriggerCallin(
 		"UnitDestroyed",

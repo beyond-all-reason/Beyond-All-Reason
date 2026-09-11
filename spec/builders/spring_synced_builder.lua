@@ -338,7 +338,6 @@ function SB:BuildSpring()
 	local sendCommandsCalls = {}
 	local destroyFeatureCalls = {}
 	local destroyUnitCalls = {}
-	local resourceSetCalls = {}
 
 	---@type SpringSyncedMock
 	local mock = {
