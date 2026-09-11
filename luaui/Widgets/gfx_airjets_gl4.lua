@@ -78,7 +78,12 @@ local lightMult = 1.4
 local teamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
 
 local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
-local texture2 = ":c:bitmaps/gpl/jet2.bmp" -- shape
+local texture2 = ":c:bitmaps/gpl/jet_atlas.tga" -- R=opacity(shape), G=perlin displacement strength (per jetType)
+
+-- jet2 atlas: 8 columns of 32x64; per-effect overrides below (defaults preserve the old look)
+local defaultJetType = 0         -- atlas column (0..7)
+local defaultXZVelSizeMult = 0.0 -- XZ velocity -> jet length multiplier (0 = off, keeps old look)
+local defaultYVelSizeMult = 1.0  -- Y  velocity -> jet length multiplier (1 = current behaviour)
 
 local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
@@ -122,6 +127,15 @@ for name, effects in pairs(effectDefs) do
 		for fx, data in pairs(effects) do
 			if not effectDefs[name][fx].emitVector then
 				effectDefs[name][fx].emitVector = { 0, 0, -1 }
+			end
+			if not effectDefs[name][fx].jetType then
+				effectDefs[name][fx].jetType = defaultJetType
+			end
+			if not effectDefs[name][fx].xzVelSizeMult then
+				effectDefs[name][fx].xzVelSizeMult = defaultXZVelSizeMult
+			end
+			if not effectDefs[name][fx].yVelSizeMult then
+				effectDefs[name][fx].yVelSizeMult = defaultYVelSizeMult
 			end
 			if effectDefs[name][fx].xzVelocity then
 				xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
@@ -196,6 +210,7 @@ layout (location = 2) in vec3 emitdir;
 layout (location = 3) in vec3 color;
 layout (location = 4) in uint pieceIndex;
 layout (location = 5) in uvec4 instData; // unitID, teamID, ??
+layout (location = 6) in vec3 jetParams; // x: xzVelSizeMult, y: yVelSizeMult, z: jetType (atlas column)
 
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -203,6 +218,7 @@ layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 out DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+	float jetAtlas;
 
 	#if (DEBUG == 1)
 		vec4 debug0;
@@ -292,7 +308,8 @@ void main()
 	vec4 speedvector = uni[instData.y].speed;
 
 	vec2 modulatedsize = widthlengthtime.xy * 1.5;
-	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
+	modulatedsize.y *= clamp(speedvector.y * 0.5 * jetParams.y + 1.0 , 0.66, 2.0); // Y velocity -> length
+	modulatedsize.y *= clamp(length(speedvector.xz) * 0.5 * jetParams.x + 1.0, 0.66, 2.0); // XZ velocity -> length
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
@@ -325,6 +342,7 @@ void main()
 	texCoords.st = position_xy_uv.zw;
 	texCoords.pq = position_xy_uv.zw;
 	texCoords.q += (timeInfo.x + timeInfo.w) * 0.1;
+	jetAtlas = jetParams.z;
 
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x + timeInfo.w - widthlengthtime.z)*0.053, 0.0, 1.0);
@@ -362,9 +380,11 @@ uniform sampler2D mask;
 uniform int reflectionPass = 0;
 
 #define DISTORTION 0.01
+#define JET_ATLAS_COLS 8.0 // 256px / 32px per cell
 in DataVS {
 	vec4 texCoords;
 	vec4 jetcolor;
+	float jetAtlas;
 	#if DEBUG == 1
 		vec4 debug0;
 		vec4 debug1;
@@ -376,10 +396,17 @@ out vec4 fragColor;
 void main(void)
 {
 		vec2 displacement = texCoords.pq;
-		vec2 txCoord = texCoords.st;
-		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
-		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
-		float opac = texture(mask,txCoord.st).r;
+		vec2 cellUV = texCoords.st;
+
+		// per-cell perlin displacement strength from the GREEN channel (g=1.0 => baseline DISTORTION)
+		float distortion = texture(mask, vec2((jetAtlas + cellUV.s) / JET_ATLAS_COLS, cellUV.t)).g * DISTORTION;
+
+		vec2 txCoord = cellUV;
+		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * distortion;
+		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-cellUV.t)         * 15.0 * distortion;
+
+		vec2 atlasUV = vec2((jetAtlas + clamp(txCoord, 0.0, 1.0)) / JET_ATLAS_COLS, txCoord.t);
+		float opac = texture(mask, atlasUV).r;
 
 		fragColor.rgb  = opac * jetcolor.rgb; //color
 		fragColor.rgb += pow(opac, 5.0 );     //white flame
@@ -433,6 +460,7 @@ local function initGL4()
 		{ id = 3, name = "color", size = 3 }, --- color
 		{ id = 4, name = "pieceIndex", type = GL.UNSIGNED_INT, size = 1 },
 		{ id = 5, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
+		{ id = 6, name = "jetParams", size = 3 }, -- x: xzVelSizeMult, y: yVelSizeMult, z: jetType
 	}
 	jetInstanceVBO = gl.InstanceVBOTable.makeInstanceVBOTable(jetInstanceVBOLayout, 256, "jetInstanceVBO", 5)
 	jetInstanceVBO.numVertices = numVertices
@@ -588,6 +616,9 @@ local function Activate(unitID, unitDefID, who, when)
 			0,
 			0,
 			0, -- this is needed to keep the lua copy of the vbo the correct size
+			effectDef.xzVelSizeMult,
+			effectDef.yVelSizeMult,
+			effectDef.jetType,
 		}
 		pushElementInstance(
 			jetInstanceVBO,
@@ -829,7 +860,7 @@ function widget:Initialize()
 
 	WG.airjets = {}
 
-	WG.airjets.addAirJet = function(unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
+	WG.airjets.addAirJet = function(unitID, piecenum, width, length, color3, emitVector, xzVelSizeMult, yVelSizeMult, jetType) -- for WG external calls
 		local airjetkey = tostring(unitID) .. "_" .. tostring(piecenum)
 		if emitVector == nil then
 			emitVector = { 0, 0, -1 }
@@ -851,6 +882,9 @@ function widget:Initialize()
 				0,
 				0,
 				0, -- this is needed to keep the lua copy of the vbo the correct size
+				xzVelSizeMult or defaultXZVelSizeMult,
+				yVelSizeMult or defaultYVelSizeMult,
+				jetType or defaultJetType,
 			},
 			airjetkey,
 			true, -- update existing
