@@ -805,6 +805,15 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
 	end
+	wh.HideInterface = function(_, reason, keep)
+		return self:HideInterface(reason, keep)
+	end
+	wh.ShowInterface = function(_, reason)
+		return self:ShowInterface(reason)
+	end
+	wh.IsInterfaceHidden = function(_)
+		return self:IsInterfaceHidden()
+	end
 	tracy.ZoneEnd()
 	return widget
 end
@@ -1499,6 +1508,15 @@ end
 --  Registered windows stay in the allowed set while closed, so a window that closes
 --  while another is open can still run its own cleanup frame.
 --
+--  The same hiding can also be asked for outright, with no window involved and
+--  regardless of the springsetting, for a cutscene or a tool:
+--      widgetHandler:HideInterface("cutscene")             -- keeps the menu buttons
+--      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps only chat
+--      widgetHandler:HideInterface("cutscene", {})         -- keeps nothing
+--      widgetHandler:ShowInterface("cutscene")
+--  Requests are named so two callers cannot switch each other off, and the
+--  interface returns once the last one is released.
+--
 local modalWindows = {} -- widget -> is-open predicate
 local modalExempt = {} -- widget -> true
 local modalAllowed = {} -- widget -> true (exempt widgets and registered windows)
@@ -1507,6 +1525,26 @@ local modalRevision = 0
 local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+-- The same hiding, asked for outright rather than driven by an open window: for a
+-- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
+-- switch each other off, and each names the widgets it wants kept. Unlike the window
+-- case this ignores the springsetting: a caller that asks for it means it.
+local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
+local interfaceHidden = false
+local interfaceAllowedNames = {} -- union of the names every active reason keeps
+-- what a caller gets when it names nothing: the menu buttons, so there is always a
+-- way back out. Pass an explicit (possibly empty) list to keep something else.
+local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
+
+-- The single question every filtered call-in asks. Kept cheap: two upvalue reads
+-- when nothing is hiding anything.
+local function allowedWidget(widget)
+	if interfaceHidden then
+		return interfaceAllowedNames[widget.whInfo.name] == true
+	end
+	return (not modalActive) or (modalAllowed[widget] == true)
+end
 
 local function ModalAllowWidget(widget, allowed)
 	if (modalAllowed[widget] or false) ~= allowed then
@@ -1549,16 +1587,68 @@ function widgetHandler:IsModalActive()
 	return modalActive
 end
 
+local function rebuildInterfaceAllowed()
+	local hidden = false
+	local names = {}
+	for _, allow in pairs(interfaceHiddenReasons) do
+		hidden = true
+		for name in pairs(allow) do
+			names[name] = true
+		end
+	end
+	interfaceAllowedNames = names
+	interfaceHidden = hidden
+	-- cached visibility elsewhere (the guishader stencil) has to be rebuilt
+	modalRevision = modalRevision + 1
+end
+
+---Hide every widget except the ones named, until the same reason is released.
+---@param reason string caller-chosen key; pass the same one to ShowInterface
+---@param keep string[]? widget names to keep drawing and clickable.
+---Defaults to the menu buttons; pass {} to keep nothing at all.
+function widgetHandler:HideInterface(reason, keep)
+	if type(reason) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
+		return false
+	end
+	local names = {}
+	for _, name in ipairs(keep or DEFAULT_INTERFACE_ALLOW) do
+		names[name] = true
+	end
+	interfaceHiddenReasons[reason] = names
+	rebuildInterfaceAllowed()
+	return true
+end
+
+---Release one reason. The interface comes back once no reason is left.
+---@param reason string
+function widgetHandler:ShowInterface(reason)
+	if interfaceHiddenReasons[reason] == nil then
+		return false
+	end
+	interfaceHiddenReasons[reason] = nil
+	rebuildInterfaceAllowed()
+	return true
+end
+
+function widgetHandler:IsInterfaceHidden()
+	return interfaceHidden
+end
+
 -- Bumped whenever the allowed set changes, so cached state elsewhere (the guishader's
 -- stencil) can tell it needs rebuilding.
 function widgetHandler:GetModalRevision()
 	return modalRevision
 end
 
--- Widgets the modal window lets through. A nil widget (e.g. an unowned guishader
+-- Whether a widget is drawing and taking input right now, whether it is a window
+-- or an outright hide that is covering it. A nil widget (e.g. an unowned guishader
 -- region) counts as not allowed, which is the wanted default.
 function widgetHandler:ModalAllows(widget)
-	return (not modalActive) or (modalAllowed[widget] == true)
+	if widget == nil then
+		return (not modalActive) and (not interfaceHidden)
+	end
+	return allowedWidget(widget)
 end
 
 function widgetHandler:SetWindowsHideInterface(enabled)
@@ -1786,7 +1876,7 @@ function widgetHandler:DrawScreen()
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				if not modalActive or modalAllowed[w] then
+				if allowedWidget(w) then
 					tracy.ZoneBeginN(w._tracyDrawScreenName)
 					w:DrawScreen()
 					tracy.ZoneEnd()
@@ -2136,7 +2226,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	end
 
 	for _, w in ipairs(self.KeyPressList) do
-		if not modalActive or modalAllowed[w] then
+		if allowedWidget(w) then
 			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 				tracy.ZoneEnd()
 				return true
@@ -2188,7 +2278,7 @@ function widgetHandler:TextInput(utf8, ...)
 
 	local list = self.TextInputList
 	for i = #list, 1, -1 do
-		if not modalActive or modalAllowed[list[i]] then
+		if allowedWidget(list[i]) then
 			if list[i]:TextInput(utf8, ...) then
 				tracy.ZoneEnd()
 				return true
@@ -2208,7 +2298,7 @@ end
 function widgetHandler:WidgetAt(x, y)
 	tracy.ZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if (not modalActive or modalAllowed[w]) and w:IsAbove(x, y) then
+		if allowedWidget(w) and w:IsAbove(x, y) then
 			tracy.ZoneEnd()
 			return w
 		end
@@ -2224,7 +2314,7 @@ function widgetHandler:MousePress(x, y, button)
 		self.mouseOwner:MousePress(x, y, button)
 	else
 		for _, w in ipairs(self.MousePressList) do
-			if not modalActive or modalAllowed[w] then
+			if allowedWidget(w) then
 				if w:MousePress(x, y, button) then
 					self.mouseOwner = w
 					break
@@ -2236,7 +2326,7 @@ function widgetHandler:MousePress(x, y, button)
 	-- While a window is open the click is consumed even when nothing claimed it, so it
 	-- never reaches the engine and orders no units. No mouseOwner is taken for that:
 	-- there is nothing to route the follow-up move/release to.
-	local consumed = (self.mouseOwner ~= nil) or modalActive
+	local consumed = (self.mouseOwner ~= nil) or modalActive or interfaceHidden
 	if widgetHandler.WG.SmartSelect_MousePress2 then
 		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, consumed)
 	end
@@ -2277,7 +2367,7 @@ function widgetHandler:MouseWheel(up, value)
 	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
-		if (not modalActive or modalAllowed[w]) and w:MouseWheel(up, value) then
+		if allowedWidget(w) and w:MouseWheel(up, value) then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2390,7 +2480,7 @@ end
 function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if (not modalActive or modalAllowed[w]) and w:IsAbove(x, y) then
+		if allowedWidget(w) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == "string" and #tip > 0 then
 				tracy.ZoneEnd()
