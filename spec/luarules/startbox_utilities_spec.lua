@@ -1,5 +1,5 @@
 -- Arrangement resolution and the whole-map fill for allyteams the arrangement does not
--- reach. Modoptions are base64 of raw JSON here, with the zlib step stubbed out.
+-- reach. Modoptions go through the spec helper's zlib and base64 stubs.
 
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
@@ -53,9 +53,6 @@ local savedSpring = {
 
 Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
 _G.Json = VFS.Include("common/luaUtilities/json.lua")
-VFS.ZlibDecompress = function(data)
-	return data
-end
 
 local function setUpGame(numAllyTeams, modoptions)
 	local allyTeamList = {}
@@ -83,7 +80,7 @@ local function setUpGame(numAllyTeams, modoptions)
 	Spring.GetModOptions = function()
 		local encoded = {}
 		for key, json in pairs(modoptions) do
-			encoded[key] = base64.Encode(json)
+			encoded[key] = base64.Encode(VFS.ZlibCompress(json))
 		end
 
 		return encoded
