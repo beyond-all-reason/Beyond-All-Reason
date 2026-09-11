@@ -32,7 +32,7 @@ function gadget:GetInfo()
 		author  = "TheDujin. DGun ally detection code by kroIya/Color",
 		date    = "2026-05-01",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer   = -1,
 		enabled = true,
 	}
 end
@@ -46,6 +46,7 @@ local CallAsTeam = CallAsTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitsInPlanes = Spring.GetUnitsInPlanes
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -67,6 +68,8 @@ local ENEMY_UNITS = Spring.ENEMY_UNITS
 local isCommander = {}
 local unitPower = {}
 local unitDisplayName = {}
+local armcomDGunRange = 250 -- hardcoded fallback, we'll replace this later
+local armcomDGunRadius = 18 -- hardcoded fallback, we'll replace this later
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local customParams = unitDef.customParams
@@ -74,21 +77,29 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		isCommander[unitDefID] = true
 	end
 
+	if unitDef.name == "armcom" and unitDef.weapons then
+		for i = 1, #unitDef.weapons do
+			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+			if wDef.type == "DGun" then
+				armcomDGunRange = wDef.range
+				armcomDGunRadius = wDef.damageAreaOfEffect
+			end
+		end
+	end
+
 	unitPower[unitDefID] = unitDef.power or 0
 	unitDisplayName[unitDefID] = unitDef.name or ("unit #" .. tostring(unitDefID))
 end
 
 local CMD_DGUN = CMD.DGUN
-local DGUN_RANGE = 280
 
-local function GetDGunWidth()
-	local armcomDef = UnitDefNames.armcom
-	local disintegratorDef = armcomDef and armcomDef.weapondefs and armcomDef.weapondefs.disintegrator
-	return (disintegratorDef and disintegratorDef.areaofeffect) or 36 -- hardcoded fallback
-end
+-- Derived from armcom's dgun weapon
+local DGUN_WIDTH = armcomDGunRadius * 2 -- convert radius into diameter
 
--- Width derived from armcom's disintegrator weapon definition.
-local DGUN_WIDTH = GetDGunWidth()
+-- Derived from armcom's dgun weapon
+-- Note that effective range also must account for the weapon AOE and some (undocumented?) overshoot. This is roughly correct based on experimental verification
+local DGUN_RANGE = armcomDGunRange + armcomDGunRadius
+
 
 local function GetConstructionTurretPower()
 	local unitDef = UnitDefNames.armnanotc or UnitDefNames.cornanotc or UnitDefNames.legnanotc
@@ -331,10 +342,11 @@ local function BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 	end
 
 	local dirX, dirY, dirZ = deltaX / dist, deltaY / dist, deltaZ / dist
-	if dist <= DGUN_RANGE then
+	if dist <= DGUN_RANGE then -- Build line segment starting from unit, extending past the target location (DGUN overshoot)
 		return unitX, unitY, unitZ, unitX + dirX * DGUN_RANGE, unitY + dirY * DGUN_RANGE, unitZ + dirZ * DGUN_RANGE
 	end
 
+	-- Else, build line segment ending at the target location, extending backwards (DGUN out of range; comm must walk nearby)
 	return targetX - dirX * DGUN_RANGE, targetY - dirY * DGUN_RANGE, targetZ - dirZ * DGUN_RANGE, targetX, targetY, targetZ
 end
 
@@ -562,12 +574,8 @@ function gadget:PlayerChanged(playerID)
 	RefreshPlayerState()
 end
 
--- Observe DGun commands and write analytics
-function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if not (cmdID == CMD_DGUN and teamID == myTeamID and isCommander[unitDefID]) then
-		return -- only care about DGUN commands issued by this player fired from non-decoy comms
-	end
-
+local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
+	-- FIXME some commands seem to be getting consumed first by cmd_dgun_no_ally...
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
 		return
@@ -595,7 +603,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 			position = { targetX, targetY, targetZ },
 			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(playerID),
+			player = GetPlayerName(myPlayerID),
 			reason = "No allies threatened",
 		})
 		return
@@ -607,7 +615,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 			position = { targetX, targetY, targetZ },
 			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(playerID),
+			player = GetPlayerName(myPlayerID),
 			reason = explanation,
 		})
 		return
@@ -619,7 +627,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 			position = { targetX, targetY, targetZ },
 			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(playerID),
+			player = GetPlayerName(myPlayerID),
 			reason = allyThreatInfo,
 		})
 		return
@@ -630,7 +638,26 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		position = { targetX, targetY, targetZ },
 		time = spGetGameFrame(),
 		gameID = GetGameID(),
-		player = GetPlayerName(playerID),
+		player = GetPlayerName(myPlayerID),
 		reason = allyThreatInfo,
 	})
+end
+
+-- Observe DGun commands and write analytics. This always returns false
+function gadget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	Spring.Echo("Hello this command did not get dropped :)")
+	if cmdID ~= CMD_DGUN then
+		return false
+	end
+
+	local selectedUnits = spGetSelectedUnits()
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if spGetUnitTeam(unitID) == myTeamID and isCommander[unitDefID] then
+			ProcessDGunCommand(unitID, unitDefID, cmdParams)
+		end
+	end
+
+	return false
 end
