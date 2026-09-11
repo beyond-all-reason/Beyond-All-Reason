@@ -10,6 +10,7 @@ function widget:GetInfo()
 		layer = -95000,
 		enabled = true,
 		handler = true, --can use widgetHandler:x()
+		modalExempt = true, -- its menu buttons are how the player switches/closes windows
 	}
 end
 
@@ -211,6 +212,10 @@ local cache = {
 	warningCleared = { metal = false, energy = false },
 	prevShowButtons = showButtons,
 	showIndicators = true,
+	-- A window (or the quit dialog) is open and the handler is hiding the rest of the
+	-- interface: draw the menu buttons only, they are how the player leaves it again.
+	---@type boolean
+	modalActive = false,
 }
 
 -- Reused scratch tables for DrawScreen to avoid per-frame allocations.
@@ -1830,6 +1835,13 @@ local function updateAllyTeamOverflowing()
 end
 
 local function hoveringElement(x, y)
+	-- only the buttons are drawn while a window is open, so only they can be hovered
+	if cache.modalActive then
+		if buttonsArea[1] and mathIsInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+			return "menu"
+		end
+		return false
+	end
 	if
 		resbarArea.metal[1]
 		and mathIsInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4])
@@ -2574,7 +2586,7 @@ local function drawQuitScreen()
 end
 
 local function drawUiBackground()
-	if showResourceBars then
+	if showResourceBars and not cache.modalActive then
 		if resbarArea.energy[1] then
 			local energySkew = cfg.useSkew and { brx = -((resbarArea.energy[4] - resbarArea.energy[2]) * skewTan) }
 				or nil
@@ -2623,7 +2635,7 @@ local function drawUiBackground()
 			)
 		end
 	end
-	if cache.showIndicators and comsArea[1] then
+	if cache.showIndicators and not cache.modalActive and comsArea[1] then
 		local H = comsArea[4] - comsArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2647,7 +2659,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if cache.showIndicators and windArea[1] then
+	if cache.showIndicators and not cache.modalActive and windArea[1] then
 		local H = windArea[4] - windArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2671,7 +2683,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if cache.showIndicators and displayTidalSpeed and tidalarea[1] then
+	if cache.showIndicators and not cache.modalActive and displayTidalSpeed and tidalarea[1] then
 		local H = tidalarea[4] - tidalarea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2721,7 +2733,7 @@ local function drawUi()
 	if showButtons and dlist.buttons then
 		glCallList(dlist.buttons)
 	end
-	if showResourceBars and dlist.resbar.energy and dlist.resbar.energy[1] then
+	if showResourceBars and not cache.modalActive and dlist.resbar.energy and dlist.resbar.energy[1] then
 		glCallList(dlist.resbar.energy[1])
 		glCallList(dlist.resbar.metal[1])
 	end
@@ -2730,7 +2742,7 @@ local function drawUi()
 	local windH = windArea[4] - windArea[2]
 	local fontsize = windH / 3.2
 	local windSkewCX = windArea[1] + ((windArea[3] - windArea[1]) / 2) - (cfg.useSkew and windH * skewTan * 0.5 or 0)
-	if cache.showIndicators and noWind then
+	if cache.showIndicators and not cache.modalActive and noWind then
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print(
@@ -2751,7 +2763,7 @@ local function drawUi()
 	end
 
 	-- tidal speed
-	if cache.showIndicators and displayTidalSpeed then
+	if cache.showIndicators and not cache.modalActive and displayTidalSpeed then
 		local fontSize = (tidalarea[4] - tidalarea[2]) / 2.3
 		local skewCenterOffset = cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0
 		font2:Begin(true)
@@ -2843,6 +2855,14 @@ function widget:DrawScreen()
 		refreshUi = true
 	end
 
+	-- Read here rather than in Update: the handler recomputes the modal state at the top
+	-- of its own DrawScreen, so this sees it in the same frame and rebakes right away.
+	local modal = widgetHandler:IsModalActive()
+	if modal ~= cache.modalActive then
+		cache.modalActive = modal
+		refreshUi = true
+	end
+
 	if refreshUi then
 		if uiBgTex then
 			gl.DeleteTexture(uiBgTex)
@@ -2909,7 +2929,8 @@ function widget:DrawScreen()
 				gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 				gl.Texture(false)
 			end)
-			WG.guishader.InsertDlist(uiBgList, "topbar_background")
+			-- 'self' rather than 'widget': this function sits at the Lua 5.1 upvalue cap
+			WG.guishader.InsertDlist(uiBgList, "topbar_background", nil, self)
 		end
 	end
 
@@ -2917,7 +2938,7 @@ function widget:DrawScreen()
 		glCallList(dlist.blendBg)
 	end
 
-	if cache.showIndicators and dlist.wind1 then
+	if cache.showIndicators and not cache.modalActive and dlist.wind1 then
 		glPushMatrix()
 		glCallList(dlist.wind1)
 		glRotate(windRotation, 0, 0, 1)
@@ -2925,7 +2946,7 @@ function widget:DrawScreen()
 		glPopMatrix()
 	end
 
-	if cache.showIndicators and displayTidalSpeed and dlist.tidal2 then
+	if cache.showIndicators and not cache.modalActive and displayTidalSpeed and dlist.tidal2 then
 		local tidalSkewCX = tidalarea[1]
 			+ ((tidalarea[3] - tidalarea[1]) / 2)
 			- (cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0)
@@ -2948,6 +2969,7 @@ function widget:DrawScreen()
 	-- cleared since drawResbarStorage skips drawing while the warning is showing.
 	if
 		uiTex
+		and not cache.modalActive
 		and (
 			(showingWarning.metal and not cache.warningCleared.metal)
 			or (showingWarning.energy and not cache.warningCleared.energy)
@@ -2986,7 +3008,7 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if cache.showIndicators and not noWind then
+	if cache.showIndicators and not cache.modalActive and not noWind then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
 			windTextScissor[1] = windArea[1] - topbarArea[1]
@@ -2998,10 +3020,12 @@ function widget:DrawScreen()
 		end
 	end
 
-	drawResBars()
+	if not cache.modalActive then
+		drawResBars()
+	end
 
 	glPushMatrix()
-	if cache.showIndicators and displayComCounter and dlist.coms then
+	if cache.showIndicators and not cache.modalActive and displayComCounter and dlist.coms then
 		-- commander counter
 		if
 			refreshUi
@@ -3438,7 +3462,8 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 
-		if not spec then
+		-- the bars aren't drawn while a window is open, so their sliders aren't there to grab
+		if not spec and not cache.modalActive then
 			if not isSingle then
 				if
 					mathIsInRect(
@@ -3615,6 +3640,13 @@ function widget:Initialize()
 			commanderUnitDefIDs[#commanderUnitDefIDs + 1] = unitDefID
 		end
 	end
+
+	-- The quit/resign dialog counts as a window: while it is up the handler hides the
+	-- rest of the interface, and this widget draws only its menu buttons.
+	-- (this widget holds the real widgetHandler, so it passes itself)
+	widgetHandler:RegisterModalWindow(widget, function()
+		return showQuitscreen ~= nil
+	end)
 
 	WG.topbar = {}
 

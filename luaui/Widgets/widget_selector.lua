@@ -276,7 +276,8 @@ function drawChatInput()
 					activationArea[2] + chatlogHeightDiff - distance - inputHeight,
 					x2,
 					activationArea[2] + chatlogHeightDiff - distance,
-					"selectorinput"
+					"selectorinput",
+					widget
 				)
 			end
 
@@ -429,6 +430,12 @@ function widget:Initialize()
 
 	widgetHandler.knownChanged = true
 	Spring.SendCommands("unbindkeyset f11")
+
+	-- lets the handler hide the rest of the interface while the list is open
+	-- (this widget holds the real widgetHandler, so it passes itself)
+	widgetHandler:RegisterModalWindow(widget, function()
+		return show == true
+	end)
 
 	WG.widgetselector = {}
 	WG.widgetselector.toggle = function(state)
@@ -968,8 +975,8 @@ function widget:DrawScreen()
 	if WG.guishader and not activeGuishader then
 		activeGuishader = true
 		if dlistGuishader then
-			WG.guishader.InsertDlist(dlistGuishader, "widgetselector")
-			WG.guishader.InsertDlist(dlistGuishader2, "widgetselector2")
+			WG.guishader.InsertDlist(dlistGuishader, "widgetselector", nil, widget)
+			WG.guishader.InsertDlist(dlistGuishader2, "widgetselector2", nil, widget)
 		end
 	end
 
