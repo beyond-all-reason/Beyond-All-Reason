@@ -96,6 +96,8 @@ local font2
 -- quit:       the quit/resign dialog, rebuilt every frame while it is up
 ---@type table<string, integer>
 local dlist = {}
+-- whether the strip's shape is currently registered with the blur
+local guishaderShown = false
 
 -- Interactions
 ---@type any
@@ -275,6 +277,27 @@ local function updateButtons()
 	end)
 end
 
+-- The blur follows the strip rather than its geometry: with auto hide on, a region
+-- left registered would keep blurring a rectangle of map where the buttons no longer
+-- are. Re-checked every frame, which also picks the blur back up if the guishader
+-- widget is enabled mid-game.
+local function applyGuishader()
+	if not WG.guishader then
+		guishaderShown = false
+		return
+	end
+	local wanted = showButtons and dlist.background ~= nil
+	if wanted == guishaderShown then
+		return
+	end
+	if wanted then
+		WG.guishader.InsertDlist(dlist.background, "topbar_buttons", nil, widget)
+	else
+		WG.guishader.RemoveDlist("topbar_buttons")
+	end
+	guishaderShown = wanted
+end
+
 -- The strip's panel chrome. Baked once per layout change and also handed to the blur,
 -- which only reads its coverage.
 local function rebuildBackground()
@@ -282,6 +305,7 @@ local function rebuildBackground()
 		if WG.guishader then
 			WG.guishader.RemoveDlist("topbar_buttons")
 		end
+		guishaderShown = false
 		dlist.background = glDeleteList(dlist.background)
 	end
 	if not buttonsArea[1] then
@@ -308,9 +332,7 @@ local function rebuildBackground()
 			nil
 		)
 	end)
-	if WG.guishader then
-		WG.guishader.InsertDlist(dlist.background, "topbar_buttons", nil, widget)
-	end
+	applyGuishader()
 end
 
 -- Mirrors the Top Bar's own geometry so the strip lines up with the bar, without
@@ -837,6 +859,8 @@ function widget:DrawScreen()
 			showButtons = false
 		end
 	end
+
+	applyGuishader()
 
 	if showButtons then
 		if dlist.background then
