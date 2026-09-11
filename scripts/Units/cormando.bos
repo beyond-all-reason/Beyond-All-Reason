@@ -9,6 +9,7 @@ piece  turret, sleeve, barrel, torso, rnano,
 
 #define SIGNAL_AIM1 2
 #define SIGNAL_BUILD 4
+#define SIGNAL_AIM_TRACKER 8
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -16,7 +17,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 static-var  NOT_DEPLOYED, DEPLOYED, DEPLOYING;
-static-var  isMoving, spray, restore_delay, torsoRotation, lastHeading, lastPitch, deploy_state, delayAimMeasurement;
+static-var  isMoving, spray, restore_delay, torsoRotation, lastHeading, lastPitch, lastWorldHeading, lastTargetID, deploy_state, aimReady;
 // Generated for N:\animations\cormando_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -328,34 +329,13 @@ Lights()
 	}
 }
 
-Deploy(heading, pitch)
+AimReadyAfterDelay(aimDelay)
 {
-	deploy_state = DEPLOYING;
-	move turret to y-axis [5.5] speed [20.0];
-	turn turret to y-axis heading - torsoRotation speed <300.0>;
-	turn sleeve to x-axis <270.0>-pitch speed <225>;
-	wait-for-move turret along y-axis;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+	set-signal-mask SIGNAL_AIM_TRACKER;
+	sleep aimDelay;
+
 	deploy_state = DEPLOYED;
-}
-
-Undeploy()
-{
-	deploy_state = NOT_DEPLOYED;
-	turn turret to y-axis <0.0> speed <300.0>;
-	turn sleeve to x-axis <0.0> speed <225>;
-	move turret to y-axis [0.0] speed [20.0];
-	wait-for-move turret along y-axis;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-}
-
-DelayAimMeasurement()
-{
-	delayAimMeasurement = TRUE;
-	sleep 200;
-	delayAimMeasurement = FALSE;
+	aimReady = TRUE;
 }
 
 Create()
@@ -370,8 +350,12 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	torsoRotation = 0;
-	lastHeading = -1000000;
-	lastPitch = -1000000;
+	lastHeading = 0;
+	lastPitch = 0;
+	lastWorldHeading = -1000000;
+	lastTargetID = -4;
+	deploy_state = NOT_DEPLOYED;
+	aimReady = FALSE;
 	// turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
@@ -428,61 +412,118 @@ AimFromWeapon1(pieceIndex)
 	pieceIndex = sleeve;
 }
 
-ExecuteRestoreAfterDelay()
-{
-	set-signal-mask 0;
-	start-script Undeploy();
-	lastHeading = -1000000;
-	lastPitch = -1000000;
-}
-
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
+
+	signal SIGNAL_AIM_TRACKER;
+	aimReady = FALSE;
+	deploy_state = NOT_DEPLOYED;
+	lastHeading = 0;
+	lastPitch = 0;
+	lastWorldHeading = -1000000;
+	lastTargetID = -4;
+
+	turn turret to y-axis <0.0> speed <300.0>;
+	turn sleeve to x-axis <0.0> speed <225.0>;
+	move turret to y-axis [0.0] speed [20.0];
 }
 
 AimWeapon1(heading, pitch)
 {
+	var turretHeading;
+	var sleevePitch;
+	var worldHeading;
+	var targetID;
+	var targetChanged;
+	var headingDelta;
+	var pitchDelta;
+	var worldHeadingDelta;
+	var yawDelay;
+	var pitchDelay;
+	var aimDelay;
+
+	// customparams.reaimtime = 2 requires this call-in to return immediately.
+	// Cancel the old restore timer, but do not block on any piece animation.
+	signal SIGNAL_AIM1;
+
+	turretHeading = heading - torsoRotation;
+	sleevePitch = <270.0> - pitch;
+	worldHeading = (heading + (get HEADING)) % 65536;
+	targetID = get TARGET_ID(1);
+
+	headingDelta = (get ABS(turretHeading - lastHeading)) % 65536;
+	if (headingDelta > 32768)
+	{
+		headingDelta = 65536 - headingDelta;
+	}
+
+	pitchDelta = (get ABS(sleevePitch - lastPitch)) % 65536;
+	if (pitchDelta > 32768)
+	{
+		pitchDelta = 65536 - pitchDelta;
+	}
+
+	worldHeadingDelta = (get ABS(worldHeading - lastWorldHeading)) % 65536;
+	if (worldHeadingDelta > 32768)
+	{
+		worldHeadingDelta = 65536 - worldHeadingDelta;
+	}
+
+	targetChanged = FALSE;
+	if (targetID != lastTargetID)
+	{
+		targetChanged = TRUE;
+	}
+	// Ground and projectile targets use negative sentinel IDs. For those,
+	// compare world-space aim so body rotation is not mistaken for retargeting.
+	else if ((targetID < 0) AND ((worldHeadingDelta > 3000) OR (pitchDelta > 3000)))
+	{
+		targetChanged = TRUE;
+	}
+
+	// These turns are refreshed on every reaim call, including while walking.
+	turn turret to y-axis turretHeading speed <300.0>;
+	turn sleeve to x-axis sleevePitch speed <225.0>;
+
 	if( deploy_state == NOT_DEPLOYED )
 	{
-		call-script Deploy(heading, pitch);
-		return (0);
+		deploy_state = DEPLOYING;
+		aimReady = FALSE;
+		targetChanged = TRUE;
+		move turret to y-axis [5.5] speed [20.0];
 	}
-	else if ( deploy_state == DEPLOYING )
+
+	if (targetChanged)
 	{
-		return (0);
-	}
-	var canShoot;
-	canShoot = FALSE;
-	if( delayAimMeasurement == FALSE)
-	{
-		start-script DelayAimMeasurement();
-		if (((get ABS(lastHeading - heading)) < 3000) AND ((get ABS(lastPitch - pitch)) < 3000))
+		aimReady = FALSE;
+
+		// Convert COB angular units into milliseconds at the commanded speeds.
+		// 300 degrees/sec is about 54613 units/sec; 225 degrees/sec is 40960.
+		yawDelay = (headingDelta * 1000) / 54613;
+		pitchDelay = (pitchDelta * 1000) / 40960;
+		aimDelay = get MAX(yawDelay, pitchDelay);
+
+		// Raising 5.5 units at 20 units/sec takes 275 milliseconds.
+		if (deploy_state == DEPLOYING)
 		{
-			canShoot = TRUE;
+			aimDelay = get MAX(aimDelay, 275);
 		}
-		lastHeading = heading;
-		lastPitch = pitch;
+
+		signal SIGNAL_AIM_TRACKER;
+		start-script AimReadyAfterDelay(aimDelay);
 	}
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	
-	turn turret to y-axis heading - torsoRotation speed <300.0>;
-	turn sleeve to x-axis <270.0>-pitch speed <225.0>;
+
+	lastHeading = turretHeading;
+	lastPitch = sleevePitch;
+	lastWorldHeading = worldHeading;
+	lastTargetID = targetID;
 
 	start-script RestoreAfterDelay();
-	if (canShoot == TRUE)
-	{
-		return (1);
-	}
-	else
-	{
-		wait-for-turn turret around y-axis;
-		wait-for-turn sleeve around x-axis;	
-		return (0);
-	}
+
+	// No sleep, wait-for-turn, or blocking call-script is allowed here.
+	return (aimReady);
 }
 
 FireWeapon1()
