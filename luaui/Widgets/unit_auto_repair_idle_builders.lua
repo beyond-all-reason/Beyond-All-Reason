@@ -50,8 +50,8 @@ local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 local LEASH_EXTRA = {
 	[-1] = 0, -- Structure
 	[0] = 0, -- hold position
-	[1] = 100, -- maneuver
-	[2] = 200, -- roam
+	[1] = 110, -- maneuver
+	[2] = 210, -- roam
 }
 local DEFAULT_LEASH_EXTRA = 100
 local POLL_INTERVAL = Game.gameSpeed
