@@ -1729,7 +1729,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		end
 
-		line = colorConsoleStr .. lineColor .. line
+		if string.byte(line, 1) ~= 255 then
+			line = (lineColor ~= "" and lineColor or colorConsoleStr) .. line
+		end
 	end
 
 	if not bypassThisMessage then
