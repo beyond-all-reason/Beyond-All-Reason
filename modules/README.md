@@ -10,7 +10,7 @@ An example of a manifest.lua:
 ```lua
 return { name = "transport", 
 		 description = "Code governing transports, such as loading rules or passenger state", 
-		 requires = { "defs" } } -- The loader will raise a warning if the "defs" module isn't loaded.
+		 requires = { "defs" } } -- Naming a module that is not discovered refuses this module, and whatever required it, with an error naming both.
 ```
 
 `name` is a required field, and must match the name of the module directory.
