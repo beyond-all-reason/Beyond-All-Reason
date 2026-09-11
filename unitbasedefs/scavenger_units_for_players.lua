@@ -85,6 +85,7 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		buildoptions[numBuildoptions + 4] = "cordoomt3" -- Epic Bulwark
 		buildoptions[numBuildoptions + 5] = "corafust3" -- Epic Fusion Reactor
 		buildoptions[numBuildoptions + 6] = "cormmkrt3" -- Epic Energy Converter
+		buildoptions[numBuildoptions + 7] = "corgatr" -- Obligator
 	end
 
 	-- Cortex T2 Sea Constructors
