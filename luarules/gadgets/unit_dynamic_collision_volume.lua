@@ -35,38 +35,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spArmor = Spring.GetUnitArmored
 	local pairs = pairs
-	local pieceIndexStr = {}
-	for i = 0, 99 do
-		pieceIndexStr[i] = tostring(i)
-	end
-
-	local unitDefMidAndAimPos = {} -- {unitDefID = {aimx, aimz, aimy, midx, midy, midz}}
-	local featureDefMidAndAimPos = {} -- same, keyed by featureDefID
-	local function parseMidAndAimPos(defID, def, midAimPosTable, prefix)
-		if def.customParams then
-			if def.customParams["unit" .. prefix .. "pos"] then
-				if midAimPosTable[defID] == nil then
-					midAimPosTable[defID] = {}
-				end
-				local midaimpossplit = string.split(def.customParams["unit" .. prefix .. "pos"], " ")
-				if midaimpossplit[1] and tonumber(midaimpossplit[1]) then
-					midAimPosTable[defID][prefix .. "x"] = tonumber(midaimpossplit[1])
-				end
-				if midaimpossplit[2] and tonumber(midaimpossplit[2]) then
-					midAimPosTable[defID][prefix .. "y"] = tonumber(midaimpossplit[2])
-				end
-				if midaimpossplit[3] and tonumber(midaimpossplit[3]) then
-					midAimPosTable[defID][prefix .. "z"] = tonumber(midaimpossplit[3])
-				end
-				--Spring.Echo("Setting", 'unit'..prefix..'pos','to', midaimpossplit[1],midaimpossplit[2],midaimpossplit[3])
-			end
-		end
-	end
-
 	local is3doFeature = {}
 	for featureDefID, def in pairs(FeatureDefs) do
-		parseMidAndAimPos(featureDefID, def, featureDefMidAndAimPos, "aim")
-		parseMidAndAimPos(featureDefID, def, featureDefMidAndAimPos, "mid")
 		if def.modelpath:lower():find(".3do") then
 			is3doFeature[featureDefID] = true
 		end
@@ -76,19 +46,14 @@ if gadgetHandler:IsSyncedCode() then
 	local unitModeltype = {}
 	local canFly = {}
 	for unitDefID, def in pairs(UnitDefs) do
-		parseMidAndAimPos(unitDefID, def, unitDefMidAndAimPos, "aim")
-		parseMidAndAimPos(unitDefID, def, unitDefMidAndAimPos, "mid")
 		unitName[unitDefID] = def.name
 		unitModeltype[unitDefID] = def.modeltype
 		if def.canFly then
 			canFly[unitDefID] = def.canFly
 		end
 	end
-	--unitDefMidAndAimPos[UnitDefNames['armllt'].id] = { midx = -5, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
-	--unitDefMidAndAimPos[UnitDefNames['corak'].id] = { midx = 0, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
-	--Process all initial map features
+
 	function gadget:Initialize()
-		--loading the file here allows to have /luarules reload dyn reload it as necessary
 		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume =
 			include("LuaRules/Configs/CollisionVolumes.lua")
 
@@ -131,7 +96,6 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
-			--gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
 		end
 		for i = 1, #allFeatures do
 			gadget:FeatureCreated(allFeatures[i])
@@ -143,19 +107,6 @@ if gadgetHandler:IsSyncedCode() then
 	--also handles per piece collision volume definitions
 	--also makes sure subs are underwater
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitDefMidAndAimPos[unitDefID] then
-			local midAndAimPos = unitDefMidAndAimPos[unitDefID]
-			Spring.SetUnitMidAndAimPos(
-				unitID,
-				midAndAimPos.midx or 0,
-				midAndAimPos.midy or 0,
-				midAndAimPos.midz or 0,
-				(midAndAimPos.aimx or 0) * -1, -- because engine is bugged
-				midAndAimPos.aimy or 0,
-				midAndAimPos.aimz or 0, -- relative?
-				true
-			)
-		end
 		if pieceCollisionVolume[unitName[unitDefID]] then
 			local t = pieceCollisionVolume[unitName[unitDefID]]
 			for pieceIndex = 0, #spGetPieceList(unitID) - 1 do
@@ -177,10 +128,10 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					spSetPieceCollisionData(unitID, pieceIndex + 1, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
-				if t.offsets then
-					p = t.offsets
-					spSetUnitMidAndAimPos(unitID, 0, spGetUnitHeight(unitID) / 2, 0, p[1], p[2], p[3], true)
-				end
+			end
+			if t.offsets then
+				local o = t.offsets
+				spSetUnitMidAndAimPos(unitID, 0, spGetUnitHeight(unitID) / 2, 0, o[1], o[2], o[3], true)
 			end
 		elseif dynamicPieceCollisionVolume[unitName[unitDefID]] then
 			local t = dynamicPieceCollisionVolume[unitName[unitDefID]].on
@@ -270,18 +221,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
 		local featureDefID = Spring.GetFeatureDefID(featureID)
-		local midAndAimPos = featureDefMidAndAimPos[featureDefID]
-		if midAndAimPos then
-			Spring.SetFeatureMidAndAimPos(
-				featureID,
-				midAndAimPos.midx or 0,
-				midAndAimPos.midy or 0,
-				midAndAimPos.midz or 0,
-				(midAndAimPos.aimx or 0) * -1, -- because engine is bugged
-				midAndAimPos.aimy or 0,
-				midAndAimPos.aimz or 0
-			)
-		end
 		if is3doFeature[featureDefID] then
 			local rs, hs
 			if spGetFeatureRadius(featureID) > 47 then
@@ -338,7 +277,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defs.perPiece then
 					t = dynamicPieceCollisionVolume[defs.name][stateString]
 					for pieceIndex = 0, defs.numPieces do
-						p = t[pieceIndexStr[pieceIndex]]
+						p = t[tostring(pieceIndex)]
 						if p then
 							spSetPieceCollisionData(
 								unitID,
