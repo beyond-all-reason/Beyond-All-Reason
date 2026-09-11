@@ -13,6 +13,7 @@ local countdownsModule = VFS.Include("luarules/mission_api/countdowns.lua")
 
 describe("mission_api.actions.cancel_countdown", function()
 
+	---@type { Countdowns: table<string, MissionCountdown> }
 	local missionApi
 
 	before_each(function()

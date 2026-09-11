@@ -3,13 +3,16 @@ require("spec_helper")
 local countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 
 describe("mission_api.countdowns", function()
+	---@type number
 	local currentFrame
 
 	before_each(function()
 		GG["MissionAPI"] = { Countdowns = {} }
 		currentFrame = 0
+		-- GetGameFrame returns frameNum % dayFrames and frameNum / dayFrames; a
+		-- spec never reaches a second day, so the day count is always 0.
 		Spring.GetGameFrame = function()
-			return currentFrame
+			return currentFrame, 0
 		end
 	end)
 

@@ -13,12 +13,15 @@ local countdownsModule = VFS.Include("luarules/mission_api/countdowns.lua")
 
 describe("mission_api.actions.add_countdown", function()
 
+	---@type { Countdowns: table<string, MissionCountdown> }
 	local missionApi
 
 	before_each(function()
 		missionApi = Builders.MissionApi.new():WithModule("Countdowns", countdownsModule):Install()
+		-- GetGameFrame returns frameNum % dayFrames and frameNum / dayFrames; a
+		-- spec never reaches a second day, so the day count is always 0.
 		Spring.GetGameFrame = function()
-			return 0
+			return 0, 0
 		end
 	end)
 

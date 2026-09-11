@@ -7,6 +7,15 @@ local function sanitizeSeconds(seconds)
 	return math.max(0, math.floor(seconds + 0.5))
 end
 
+---A live countdown, as it is held in GG['MissionAPI'].Countdowns.
+---@class MissionCountdown
+---@field id string
+---@field timeRemaining integer whole seconds, never negative
+---@field paused boolean
+---@field displayed boolean
+---@field buffered boolean? displayed only; held through its first tick
+---@field tickPhase integer? non-displayed only; the frame % gameSpeed it ticks on
+
 -- Displayed countdowns (the default) tick on the shared whole-second cadence;
 -- non-displayed ones tick relative to their creation frame. See Decrement().
 local function addCountdown(countdownID, seconds, displayed)

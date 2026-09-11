@@ -3,6 +3,10 @@
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 
+--- Only a name for readers: .emmyrc.json keeps spec/builders out of the
+--- workspace, so emmylua cannot resolve this class from a spec. A spec that
+--- wants its mock typed spells out the slice it reads, e.g.
+--- ---@type { Countdowns: table<string, MissionCountdown> }
 ---@class MissionApiMock
 ---@field Difficulty number
 ---@field trackedUnitIDs table<string, table<number, boolean>>
@@ -13,7 +17,7 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
 ---@field ManagedObjectives table
----@field Countdowns table
+---@field Countdowns table<string, MissionCountdown>
 ---@field Objectives table
 ---@field Stages table
 ---@field Triggers table
@@ -187,7 +191,7 @@ end
 
 ---Seed a countdown, shaped as countdowns.lua AddCountdown() creates them.
 ---@param countdownID string
----@param countdown table?
+---@param countdown MissionCountdown?
 ---@return MissionApiBuilder
 function MB:WithCountdown(countdownID, countdown)
 	self.countdowns[countdownID] = countdown
