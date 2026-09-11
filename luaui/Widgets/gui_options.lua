@@ -6955,12 +6955,12 @@ function init()
 				"ui.settings.option.topbar_hidebuttons"
 			),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons() or 0),
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons()) or false,
 			onload = function(i)
-				loadWidgetData("Top Bar", "topbar_hidebuttons", { "autoHideButtons" })
+				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
 			onchange = function(i, value)
-				saveOptionValue("Top Bar", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
+				saveOptionValue("Top Bar Buttons", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
 			end,
 		},
 

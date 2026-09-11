@@ -3,14 +3,13 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Top Bar",
-		desc = "Shows Resources, wind speed, commander counter, and various options.",
+		desc = "Shows resources, wind speed and the commander counter.",
 		author = "Floris",
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
 		layer = -95000,
 		enabled = true,
 		handler = true, --can use widgetHandler:x()
-		modalExempt = true, -- its menu buttons are how the player switches/closes windows
 	}
 end
 
@@ -60,7 +59,6 @@ local skewTan = math.tan(math.rad(cfg.skewAngleDeg))
 
 -- System
 local guishaderEnabled = false
-local gameinfoEnabled = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = sp.GetSpectatingState()
 local myAllyTeamID = sp.GetMyAllyTeamID()
@@ -70,16 +68,8 @@ local myAllyTeamList = sp.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
 -- Game mode / state
-local numPlayers = BAR.Utilities.GetPlayerCount()
-local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
-local _modOpts = Spring.GetModOptions()
-local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
-local chobbyLoaded = false
 local isSingle = false
-local gameStarted = (sp.GetGameFrame() > 0)
 local gameFrame = sp.GetGameFrame()
-local gameIsOver = false
-local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
@@ -166,7 +156,6 @@ local shareIndicatorArea = { metal = {}, energy = {} }
 local windArea = {}
 local tidalarea = {}
 local comsArea = {}
-local buttonsArea = {}
 
 -- UI State
 local orgHeight = 46
@@ -178,11 +167,8 @@ local mx = -1
 local my = -1
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = mathFloor(vsx * cfg.relXpos)
-local showButtons = true
-local autoHideButtons = false
 local showResourceBars = true
-local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiButton, UiSliderKnob
-local RectRoundCircle
+local widgetSpaceMargin, bgpadding, RectRound, RectRoundOutline, TexturedRectRound, UiElement, UiSliderKnob
 local updateRes = { metal = { false, false, false, false }, energy = { false, false, false, false } }
 
 -- Display Lists (consolidated into table to save local slots)
@@ -210,12 +196,7 @@ local cache = {
 	lastResbarValueWidth = { metal = 1, energy = 1 },
 	lastDrawnValue = { metal = "", energy = "" },
 	warningCleared = { metal = false, energy = false },
-	prevShowButtons = showButtons,
 	showIndicators = true,
-	-- A window (or the quit dialog) is open and the handler is hiding the rest of the
-	-- interface: draw the menu buttons only, they are how the player leaves it again.
-	---@type boolean
-	modalActive = false,
 }
 
 -- Reused scratch tables for DrawScreen to avoid per-frame allocations.
@@ -246,12 +227,11 @@ end
 -- Interactions
 local draggingShareIndicatorValue = {}
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
-local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, quitscreenTeamResignArea, hoveringTopbar, hideQuitWindow
-local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover, teamResign
+local conversionIndicatorArea, hoveringTopbar
+local font2, fontSize, comcountChanged, resbarHover
 
 -- Audio
 local playSounds = true
-local leftclick = "LuaUI/Sounds/tock.wav"
 local resourceclick = "LuaUI/Sounds/buildbar_click.wav"
 
 -- Timers + intervals (consolidated into table to save local slots)
@@ -275,18 +255,6 @@ local blinkDirection = true
 local blinkProgress = 0
 --------------------------------------------------------------------------------
 
-local function getPlayerLiveAllyCount()
-	local nAllies = 0
-	for _, teamID in ipairs(myAllyTeamList) do
-		if teamID ~= myTeamID then
-			local _, _, isDead, hasAI = Spring.GetTeamInfo(teamID, false)
-			if not isDead and not hasAI then
-				nAllies = nAllies + 1
-			end
-		end
-	end
-	return nAllies
-end
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
@@ -314,11 +282,8 @@ function widget:ViewResize()
 	RectRoundOutline = WG.FlowUI.Draw.RectRoundOutline
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
-	RectRoundCircle = WG.FlowUI.Draw.RectRoundCircle
 
-	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
 
 	for n, _ in pairs(dlist.windText) do
@@ -367,147 +332,6 @@ local function short(n, f)
 	return result
 end
 
-local function updateButtons()
-	local fontsize = (height * widgetScale) / 3
-	local prevButtonsArea = buttonsArea
-
-	-- if not buttonsArea['buttons'] then -- With this condition it doesn't actually update buttons if they were already added
-	buttonsArea.buttons = {}
-
-	local margin = bgpadding
-	local textPadding = mathFloor(fontsize * 0.8)
-	local sidePadding = textPadding
-	local offset = sidePadding
-	local lastbutton
-	local badgeMinRadius = fontsize * 0.47
-	local badgeFontsize = fontsize * 0.69
-
-	-- badge: optional number shown in a circle at the bottom right of the button text
-	local function addButton(name, text, badge)
-		local textWidth = font2:GetTextWidth(text) * fontsize
-		-- the circle grows along with the amount of characters the number has
-		local badgeRadius = 0
-		if badge then
-			local badgeTextWidth = font2:GetTextWidth(badge) * badgeFontsize
-			badgeRadius = mathMax(badgeMinRadius, (badgeTextWidth / 2) + (fontsize * 0.25))
-		end
-		local badgeWidth = badgeRadius * 2
-		local width = mathFloor(textWidth + badgeWidth + textPadding)
-		local textCenter = buttonsArea[3] - offset - (width / 2) - (badgeWidth / 2)
-		buttonsArea.buttons[name] = {
-			buttonsArea[3] - offset - width,
-			buttonsArea[2] + margin,
-			buttonsArea[3] - offset,
-			buttonsArea[4],
-			text,
-			textCenter,
-		}
-		if badge then
-			local button = buttonsArea.buttons[name]
-			button[7] = {
-				text = badge,
-				x = textCenter + (textWidth / 2) + badgeRadius + (1.5 * widgetScale),
-				-- slightly below the center of the button text, so it sits at its bottom right
-				y = button[2] + ((button[4] - button[2]) * 0.5) - (fontsize / 5) + (fontsize * 0.15),
-				radius = badgeRadius,
-				fontsize = badgeFontsize,
-			}
-		end
-		if not lastbutton then
-			buttonsArea.buttons[name][3] = buttonsArea[3]
-		end
-		offset = mathFloor(offset + width + 0.5)
-		lastbutton = name
-	end
-
-	if not gameIsOver and chobbyLoaded then
-		addButton("quit", BAR.I18N("ui.topbar.button.lobby"))
-	else
-		addButton("quit", BAR.I18N("ui.topbar.button.quit"))
-	end
-	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
-		addButton("resign", BAR.I18N("ui.topbar.button.resign"))
-	end
-
-	if WG.options then
-		addButton("options", BAR.I18N("ui.topbar.button.settings"))
-	end
-	if WG.keybinds then
-		addButton("keybinds", BAR.I18N("ui.topbar.button.keys"))
-	end
-	if WG.changelog and not isScenario then
-		addButton("changelog", BAR.I18N("ui.topbar.button.changes"))
-	end
-	if WG.teamstats and not isScenario then
-		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
-	end
-	-- only shown when settings differ from their default, the amount of them is put in the badge
-	if WG.gameinfo and (not isSinglePlayer or BAR.Utilities.ShowDevUI()) then
-		local changedCount = WG.gameinfo.getChangedModoptionsCount and WG.gameinfo.getChangedModoptionsCount() or 0
-		if changedCount > 0 then
-			addButton("info", BAR.I18N("ui.topbar.button.info"), tostring(changedCount))
-		end
-	end
-	if gameIsOver then
-		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
-	end
-	if WG.scavengerinfo then
-		addButton("scavengers", BAR.I18N("ui.topbar.button.scavengers"))
-	end
-	if isScenario and WG.missioninfo then
-		addButton("mission", BAR.I18N("ui.topbar.button.mission"))
-	end
-	if isSinglePlayer and cfg.allowSavegame and WG.savegame then
-		addButton("save", BAR.I18N("ui.topbar.button.save"))
-	end
-
-	buttonsArea.buttons[lastbutton][1] = buttonsArea.buttons[lastbutton][1] - sidePadding
-	offset = offset + sidePadding
-	buttonsArea[1] = buttonsArea[3] - offset - margin
-
-	-- sometimes its gets wider when (stats) button gets added
-	if prevButtonsArea[1] and buttonsArea[1] ~= prevButtonsArea[1] then
-		refreshUi = true
-	end
-	prevButtonsArea = buttonsArea
-
-	if dlist.buttons then
-		glDeleteList(dlist.buttons)
-	end
-	dlist.buttons = glCreateList(function()
-		for _, params in pairs(buttonsArea.buttons) do
-			local badge = params[7]
-			if badge then
-				-- corner size 0.586 x radius makes it a regular octagon, which reads as a circle at this size
-				-- the dark circle below the smaller colored one acts as its outline
-				local outlineColor = { 0.18, 0.18, 0.18, 1 }
-				local badgeColor = { 0.66, 0.66, 0.66, 1 }
-				local innerRadius = badge.radius - mathMax(1, badge.radius * 0.15)
-				RectRoundCircle(badge.x, badge.y, badge.radius, badge.radius * 0.586, 0, outlineColor, outlineColor)
-				RectRoundCircle(badge.x, badge.y, innerRadius, innerRadius * 0.586, 0, badgeColor, badgeColor)
-			end
-		end
-		font2:Begin(true)
-		font2:SetTextColor(0.92, 0.92, 0.92, 1)
-		font2:SetOutlineColor(0, 0, 0, 1)
-		for name, params in pairs(buttonsArea.buttons) do
-			font2:Print(
-				params[5],
-				params[6],
-				params[2] + ((params[4] - params[2]) * 0.5) - (fontsize / 5),
-				fontsize,
-				"co"
-			)
-			local badge = params[7]
-			if badge then
-				font2:SetTextColor(0.08, 0.08, 0.08, 1)
-				font2:Print(badge.text, badge.x, badge.y - (badge.fontsize * 0.32), badge.fontsize, "c")
-				font2:SetTextColor(0.92, 0.92, 0.92, 1)
-			end
-		end
-		font2:End()
-	end)
-end
 
 local function updateComs(forceText)
 	local area = comsArea
@@ -725,6 +549,12 @@ local function drawResbarStorage(res)
 		resbarDrawinfo[res].textStorage[5]
 	)
 	font2:End()
+end
+
+-- The quit dialog lives in the Top Bar Buttons widget; the resource bars stop
+-- reacting to hover while it is up.
+local function showingQuitscreen()
+	return WG.topbar ~= nil and WG.topbar.showingQuit ~= nil and WG.topbar.showingQuit() ~= nil
 end
 
 local function updateResbarText(res, force)
@@ -1055,7 +885,7 @@ local function updateResbar(res)
 	local glowSize = barHeight * 7
 	local edgeWidth = mathMax(1, mathFloor(vsy / 1100))
 
-	if not showQuitscreen and resbarHover and resbarHover == res then
+	if not showingQuitscreen() and resbarHover and resbarHover == res then
 		sliderHeightAdd = barHeight / 0.75
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
@@ -1669,10 +1499,10 @@ function init()
 		updateComs()
 	end
 
-	-- buttons
+	-- the button strip is drawn by the Top Bar Buttons widget; this is the width it
+	-- reserves on the right, which GetFreeArea and GetPosition below report
 	width = mathFloor(totalWidth / 4)
-	buttonsArea = { topbarArea[3] - width, topbarArea[2] + smallVPad, topbarArea[3], topbarArea[4] }
-	updateButtons()
+	local buttonsBottom = topbarArea[2] + smallVPad
 
 	if WG.topbar then
 		WG.topbar.GetPosition = function()
@@ -1683,7 +1513,7 @@ function init()
 				topbarArea[3],
 				topbarArea[4],
 				widgetScale,
-				buttonsArea[2],
+				buttonsBottom,
 			}
 		end
 
@@ -1758,7 +1588,6 @@ local function countComs(forceUpdate)
 end
 
 function widget:GameStart()
-	gameStarted = true
 	checkSelfStatus()
 	if displayComCounter then
 		countComs(true)
@@ -1835,13 +1664,6 @@ local function updateAllyTeamOverflowing()
 end
 
 local function hoveringElement(x, y)
-	-- only the buttons are drawn while a window is open, so only they can be hovered
-	if cache.modalActive then
-		if buttonsArea[1] and mathIsInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
-			return "menu"
-		end
-		return false
-	end
 	if
 		resbarArea.metal[1]
 		and mathIsInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4])
@@ -1867,15 +1689,58 @@ local function hoveringElement(x, y)
 	if displayComCounter and comsArea[1] and mathIsInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
 		return "com"
 	end
-	if buttonsArea[1] and mathIsInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
-		return "menu"
-	end
-
 	return false
+end
+
+-- WG.topbar is shared with the Top Bar Buttons widget. Consumers guard on the table,
+-- not on the individual functions, so when that widget is not running its half of the
+-- API has to answer "there are no buttons" rather than be missing. Checked from Update,
+-- which runs after every widget's Initialize and again if it is disabled mid-game.
+local fallback = {}
+
+local function provide(name, fn)
+	local current = WG.topbar[name]
+	if current == nil then
+		fallback[name] = fn
+		WG.topbar[name] = fn
+	elseif fallback[name] ~= nil and current ~= fallback[name] then
+		fallback[name] = nil -- the buttons widget took over
+	end
+end
+
+local function returnNil() end
+local function returnFalse()
+	return false
+end
+
+local function provideButtonFallbacks()
+	if not WG.topbar then
+		return
+	end
+	provide("showingQuit", returnNil)
+	provide("hideWindows", returnNil)
+	provide("buttonAt", returnNil)
+	provide("GetButtonsPosition", returnNil)
+	provide("setAutoHideButtons", returnNil)
+	provide("getAutoHideButtons", returnFalse)
+	provide("getShowButtons", returnFalse)
+end
+
+local function removeButtonFallbacks()
+	if not WG.topbar then
+		return
+	end
+	for name, fn in pairs(fallback) do
+		if WG.topbar[name] == fn then
+			WG.topbar[name] = nil
+		end
+	end
 end
 
 function widget:Update(dt)
 	now = osClock()
+
+	provideButtonFallbacks()
 	timers.deferResourceUpdate = timers.gameFrameHappened and now - timers.lastUpdateTime < (1 / 30)
 	timers.gameFrameHappened = false
 	timers.lastUpdateTime = now
@@ -1929,19 +1794,11 @@ function widget:Update(dt)
 		elseif not guishaderActive and guishaderEnabled then
 			guishaderEnabled = guishaderActive
 		end
-
-		-- the gameinfo widget loads after the topbar, so its button gets added once it is there
-		local gameinfoActive = WG.gameinfo ~= nil and not isSinglePlayer
-		if gameinfoActive ~= gameinfoEnabled then
-			gameinfoEnabled = gameinfoActive
-			refreshUi = true
-			updateButtons()
-		end
 	end
 
 	if now > timers.nextResBarUpdate then
 		timers.nextResBarUpdate = now + 0.05
-		if not spec and not showQuitscreen then
+		if not spec and not showingQuitscreen() then
 			if hoveringTopbar == "energy" then
 				if not resbarHover then
 					resbarHover = "energy"
@@ -2252,341 +2109,9 @@ local function drawResBars()
 	end
 end
 
-local function drawQuitScreen()
-	local fadeTime = 0.2
-	local fadeProgress = (now - showQuitscreen) / fadeTime
-	if fadeProgress > 1 then
-		fadeProgress = 1
-	end
-
-	Spring.SetMouseCursor("cursornormal")
-
-	dlist.quit = glCreateList(function()
-		if WG.guishader then
-			glColor(0, 0, 0, (0.18 * fadeProgress))
-		else
-			glColor(0, 0, 0, (0.35 * fadeProgress))
-		end
-
-		gl.Rect(0, 0, vsx, vsy)
-
-		if not hideQuitWindow then
-			-- when terminating spring, keep the faded screen
-
-			local w = mathFloor(320 * widgetScale)
-			local h = mathFloor(w / 3.5)
-
-			local fontSize = h / 6
-			local text = BAR.I18N("ui.topbar.quit.reallyQuit")
-			teamResign = false
-
-			if not spec then
-				text = BAR.I18N("ui.topbar.quit.reallyQuitResign")
-				if not gameIsOver and chobbyLoaded then
-					if numPlayers < 3 then
-						text = BAR.I18N("ui.topbar.quit.reallyResign")
-					else
-						if getPlayerLiveAllyCount() >= 1 then
-							teamResign = true
-						end
-						text = BAR.I18N("ui.topbar.quit.reallyResignSpectate")
-					end
-				end
-			end
-
-			local padding = mathFloor(w / 90)
-			local textTopPadding = padding + padding + padding + padding + padding + fontSize
-			local txtWidth = font:GetTextWidth(text) * fontSize
-			w = mathMax(w, txtWidth + textTopPadding + textTopPadding)
-
-			local x = mathFloor((vsx / 2) - (w / 2))
-			local y = mathFloor((vsy / 1.8) - (h / 2))
-			local maxButtons = teamResign and 5 or 4
-			local buttonMargin = mathFloor(h / 9)
-			local buttonWidth = mathFloor((w - buttonMargin * maxButtons) / (maxButtons - 1)) -- maxButtons+1 margins for maxButtons buttons
-			local buttonHeight = mathFloor(h * 0.30)
-
-			quitscreenArea = { x, y, x + w, y + h }
-
-			if teamResign then
-				quitscreenArea[2] = quitscreenArea[2] - mathFloor(fontSize * 1.7)
-			end
-
-			quitscreenStayArea = {
-				x + buttonMargin + 0 * (buttonWidth + buttonMargin),
-				y + buttonMargin,
-				x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth,
-				y + buttonMargin + buttonHeight,
-			}
-			quitscreenResignArea = {
-				x + buttonMargin + 1 * (buttonWidth + buttonMargin),
-				y + buttonMargin,
-				x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth,
-				y + buttonMargin + buttonHeight,
-			}
-			local nextButton = 2
-			if teamResign then
-				quitscreenTeamResignArea = {
-					x + buttonMargin + nextButton * (buttonWidth + buttonMargin),
-					y + buttonMargin,
-					x + buttonMargin + nextButton * (buttonWidth + buttonMargin) + buttonWidth,
-					y + buttonMargin + buttonHeight,
-				}
-				nextButton = nextButton + 1
-			end
-			quitscreenQuitArea = {
-				x + buttonMargin + nextButton * (buttonWidth + buttonMargin),
-				y + buttonMargin,
-				x + buttonMargin + nextButton * (buttonWidth + buttonMargin) + buttonWidth,
-				y + buttonMargin + buttonHeight,
-			}
-
-			-- window
-			UiElement(
-				quitscreenArea[1],
-				quitscreenArea[2],
-				quitscreenArea[3],
-				quitscreenArea[4],
-				1,
-				1,
-				1,
-				1,
-				1,
-				1,
-				1,
-				1,
-				nil,
-				{ 1, 1, 1, 0.6 + (0.34 * fadeProgress) },
-				{ 0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress) },
-				nil
-			)
-			local color1, color2
-
-			font:Begin(true)
-			font:SetTextColor(0, 0, 0, 1)
-			font:Print(
-				text,
-				quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2),
-				quitscreenArea[4] - textTopPadding,
-				fontSize,
-				"cn"
-			)
-			font:End()
-
-			font2:Begin(true)
-			font2:SetTextColor(1, 1, 1, 1)
-			font2:SetOutlineColor(0, 0, 0, 0.23)
-
-			fontSize = fontSize * 0.92
-
-			-- stay button
-			if gameIsOver or not chobbyLoaded then
-				if
-					mathIsInRect(
-						mx,
-						my,
-						quitscreenStayArea[1],
-						quitscreenStayArea[2],
-						quitscreenStayArea[3],
-						quitscreenStayArea[4]
-					)
-				then
-					color1 = { 0, 0.4, 0, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.05, 0.6, 0.05, 0.4 + (0.5 * fadeProgress) }
-				else
-					color1 = { 0, 0.25, 0, 0.35 + (0.5 * fadeProgress) }
-					color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
-				end
-				UiButton(
-					quitscreenStayArea[1],
-					quitscreenStayArea[2],
-					quitscreenStayArea[3],
-					quitscreenStayArea[4],
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					nil,
-					color1,
-					color2,
-					padding * 0.5
-				)
-				font2:Print(
-					BAR.I18N("ui.topbar.quit.stay"),
-					quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2),
-					quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3),
-					fontSize,
-					"con"
-				)
-			end
-
-			-- resign button
-			if not spec and not gameIsOver then
-				local mouseOver = false
-				if
-					mathIsInRect(
-						mx,
-						my,
-						quitscreenResignArea[1],
-						quitscreenResignArea[2],
-						quitscreenResignArea[3],
-						quitscreenResignArea[4]
-					)
-				then
-					color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
-					mouseOver = "resign"
-				else
-					color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
-					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
-				end
-				UiButton(
-					quitscreenResignArea[1],
-					quitscreenResignArea[2],
-					quitscreenResignArea[3],
-					quitscreenResignArea[4],
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					nil,
-					color1,
-					color2,
-					padding * 0.5
-				)
-				font2:Print(
-					BAR.I18N("ui.topbar.quit.resign"),
-					quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2),
-					quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3),
-					fontSize,
-					"con"
-				)
-
-				if teamResign then
-					if
-						mathIsInRect(
-							mx,
-							my,
-							quitscreenTeamResignArea[1],
-							quitscreenTeamResignArea[2],
-							quitscreenTeamResignArea[3],
-							quitscreenTeamResignArea[4]
-						)
-					then
-						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
-						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
-						mouseOver = "teamResign"
-					else
-						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
-						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
-					end
-					UiButton(
-						quitscreenTeamResignArea[1],
-						quitscreenTeamResignArea[2],
-						quitscreenTeamResignArea[3],
-						quitscreenTeamResignArea[4],
-						1,
-						1,
-						1,
-						1,
-						1,
-						1,
-						1,
-						1,
-						nil,
-						color1,
-						color2,
-						padding * 0.5
-					)
-					font2:Print(
-						BAR.I18N("ui.topbar.quit.teamResign"),
-						quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2),
-						quitscreenTeamResignArea[2]
-							+ ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2)
-							- (fontSize / 3),
-						fontSize,
-						"con"
-					)
-				end
-				if mouseOver and teamResign then
-					font:Print(
-						BAR.I18N("ui.topbar.hint." .. mouseOver),
-						quitscreenTeamResignArea[1] - buttonMargin,
-						quitscreenArea[2] + (2.5 * fontSize / 3),
-						fontSize * 0.9,
-						"cn"
-					)
-				end
-			end
-
-			-- quit button
-			if gameIsOver or not chobbyLoaded then
-				if
-					mathIsInRect(
-						mx,
-						my,
-						quitscreenQuitArea[1],
-						quitscreenQuitArea[2],
-						quitscreenQuitArea[3],
-						quitscreenQuitArea[4]
-					)
-				then
-					color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
-					color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
-				else
-					color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
-					color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
-				end
-				UiButton(
-					quitscreenQuitArea[1],
-					quitscreenQuitArea[2],
-					quitscreenQuitArea[3],
-					quitscreenQuitArea[4],
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					1,
-					nil,
-					color1,
-					color2,
-					padding * 0.5
-				)
-				font2:Print(
-					BAR.I18N("ui.topbar.quit.quit"),
-					quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2),
-					quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3),
-					fontSize,
-					"con"
-				)
-			end
-
-			font2:End()
-		end
-	end)
-
-	-- background
-	if WG.guishader then
-		WG.guishader.setScreenBlur(true)
-		WG.guishader.insertRenderDlist(dlist.quit)
-	else
-		glCallList(dlist.quit)
-	end
-end
 
 local function drawUiBackground()
-	if showResourceBars and not cache.modalActive then
+	if showResourceBars then
 		if resbarArea.energy[1] then
 			local energySkew = cfg.useSkew and { brx = -((resbarArea.energy[4] - resbarArea.energy[2]) * skewTan) }
 				or nil
@@ -2635,7 +2160,7 @@ local function drawUiBackground()
 			)
 		end
 	end
-	if cache.showIndicators and not cache.modalActive and comsArea[1] then
+	if cache.showIndicators and comsArea[1] then
 		local H = comsArea[4] - comsArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2659,7 +2184,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if cache.showIndicators and not cache.modalActive and windArea[1] then
+	if cache.showIndicators and windArea[1] then
 		local H = windArea[4] - windArea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2683,7 +2208,7 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if cache.showIndicators and not cache.modalActive and displayTidalSpeed and tidalarea[1] then
+	if cache.showIndicators and displayTidalSpeed and tidalarea[1] then
 		local H = tidalarea[4] - tidalarea[2]
 		local smallSkew = cfg.useSkew and { blx = -(H * skewTan), brx = -(H * skewTan) } or nil
 		UiElement(
@@ -2707,33 +2232,10 @@ local function drawUiBackground()
 			smallSkew
 		)
 	end
-	if showButtons and buttonsArea[1] then
-		UiElement(
-			buttonsArea[1],
-			buttonsArea[2],
-			buttonsArea[3],
-			buttonsArea[4],
-			0,
-			0,
-			0,
-			1,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil
-		)
-	end
 end
 
 local function drawUi()
-	if showButtons and dlist.buttons then
-		glCallList(dlist.buttons)
-	end
-	if showResourceBars and not cache.modalActive and dlist.resbar.energy and dlist.resbar.energy[1] then
+	if showResourceBars and dlist.resbar.energy and dlist.resbar.energy[1] then
 		glCallList(dlist.resbar.energy[1])
 		glCallList(dlist.resbar.metal[1])
 	end
@@ -2742,7 +2244,7 @@ local function drawUi()
 	local windH = windArea[4] - windArea[2]
 	local fontsize = windH / 3.2
 	local windSkewCX = windArea[1] + ((windArea[3] - windArea[1]) / 2) - (cfg.useSkew and windH * skewTan * 0.5 or 0)
-	if cache.showIndicators and not cache.modalActive and noWind then
+	if cache.showIndicators and noWind then
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
 		font2:Print(
@@ -2763,7 +2265,7 @@ local function drawUi()
 	end
 
 	-- tidal speed
-	if cache.showIndicators and not cache.modalActive and displayTidalSpeed then
+	if cache.showIndicators and displayTidalSpeed then
 		local fontSize = (tidalarea[4] - tidalarea[2]) / 2.3
 		local skewCenterOffset = cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0
 		font2:Begin(true)
@@ -2850,19 +2352,6 @@ function widget:DrawScreen()
 		sp.SetMouseCursor("cursornormal")
 	end
 
-	if showButtons ~= cache.prevShowButtons then
-		cache.prevShowButtons = showButtons
-		refreshUi = true
-	end
-
-	-- Read here rather than in Update: the handler recomputes the modal state at the top
-	-- of its own DrawScreen, so this sees it in the same frame and rebakes right away.
-	local modal = widgetHandler:IsModalActive()
-	if modal ~= cache.modalActive then
-		cache.modalActive = modal
-		refreshUi = true
-	end
-
 	if refreshUi then
 		if uiBgTex then
 			gl.DeleteTexture(uiBgTex)
@@ -2938,7 +2427,7 @@ function widget:DrawScreen()
 		glCallList(dlist.blendBg)
 	end
 
-	if cache.showIndicators and not cache.modalActive and dlist.wind1 then
+	if cache.showIndicators and dlist.wind1 then
 		glPushMatrix()
 		glCallList(dlist.wind1)
 		glRotate(windRotation, 0, 0, 1)
@@ -2946,7 +2435,7 @@ function widget:DrawScreen()
 		glPopMatrix()
 	end
 
-	if cache.showIndicators and not cache.modalActive and displayTidalSpeed and dlist.tidal2 then
+	if cache.showIndicators and displayTidalSpeed and dlist.tidal2 then
 		local tidalSkewCX = tidalarea[1]
 			+ ((tidalarea[3] - tidalarea[1]) / 2)
 			- (cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0)
@@ -2969,7 +2458,6 @@ function widget:DrawScreen()
 	-- cleared since drawResbarStorage skips drawing while the warning is showing.
 	if
 		uiTex
-		and not cache.modalActive
 		and (
 			(showingWarning.metal and not cache.warningCleared.metal)
 			or (showingWarning.energy and not cache.warningCleared.energy)
@@ -3008,7 +2496,7 @@ function widget:DrawScreen()
 	end
 
 	-- current wind
-	if cache.showIndicators and not cache.modalActive and not noWind then
+	if cache.showIndicators and not noWind then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
 			windTextScissor[1] = windArea[1] - topbarArea[1]
@@ -3020,12 +2508,10 @@ function widget:DrawScreen()
 		end
 	end
 
-	if not cache.modalActive then
-		drawResBars()
-	end
+	drawResBars()
 
 	glPushMatrix()
-	if cache.showIndicators and not cache.modalActive and displayComCounter and dlist.coms then
+	if cache.showIndicators and displayComCounter and dlist.coms then
 		-- commander counter
 		if
 			refreshUi
@@ -3044,116 +2530,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if autoHideButtons then
-		if buttonsArea[1] and hoveringTopbar == "menu" then
-			if not showButtons then
-				showButtons = true
-			end
-		elseif showButtons then
-			showButtons = false
-		end
-	end
 
-	if showButtons and dlist.buttons and buttonsArea.buttons then
-		-- changelog changes highlight
-		if WG.changelog and WG.changelog.haschanges() then
-			local button = "changelog"
-			if buttonsArea.buttons[button] then
-				local paddingsize = 1
-				RectRound(
-					buttonsArea.buttons[button][1] + paddingsize,
-					buttonsArea.buttons[button][2] + paddingsize,
-					buttonsArea.buttons[button][3] - paddingsize,
-					buttonsArea.buttons[button][4] - paddingsize,
-					3.5 * widgetScale,
-					0,
-					0,
-					0,
-					button == firstButton and 1 or 0,
-					{ 1, 1, 1, 0.1 * blinkProgress }
-				)
-			end
-		end
-
-		-- hovered?
-		if not showQuitscreen and buttonsArea.buttons and hoveringTopbar == "menu" then
-			for button, pos in pairs(buttonsArea.buttons) do
-				if mathIsInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
-					local paddingsize = 1
-					RectRound(
-						buttonsArea.buttons[button][1] + paddingsize,
-						buttonsArea.buttons[button][2] + paddingsize,
-						buttonsArea.buttons[button][3] - paddingsize,
-						buttonsArea.buttons[button][4] - paddingsize,
-						3.5 * widgetScale,
-						0,
-						0,
-						0,
-						button == firstButton and 1 or 0,
-						{ 0, 0, 0, 0.06 }
-					)
-					glBlending(GL.SRC_ALPHA, GL.ONE)
-					local mb = buttonsArea.buttons[button][9]
-					RectRound(
-						buttonsArea.buttons[button][1],
-						buttonsArea.buttons[button][2],
-						buttonsArea.buttons[button][3],
-						buttonsArea.buttons[button][4],
-						3.5 * widgetScale,
-						0,
-						0,
-						0,
-						button == firstButton and 1 or 0,
-						{ 1, 1, 1, mb and 0.13 or 0.03 },
-						{ 0.44, 0.44, 0.44, mb and 0.4 or 0.2 }
-					)
-					local mult = 1
-					RectRound(
-						buttonsArea.buttons[button][1],
-						buttonsArea.buttons[button][4]
-							- ((buttonsArea.buttons[button][4] - buttonsArea.buttons[button][2]) * 0.4),
-						buttonsArea.buttons[button][3],
-						buttonsArea.buttons[button][4],
-						3.3 * widgetScale,
-						0,
-						0,
-						0,
-						0,
-						{ 1, 1, 1, 0 },
-						{ 1, 1, 1, 0.18 * mult }
-					)
-					RectRound(
-						buttonsArea.buttons[button][1],
-						buttonsArea.buttons[button][2],
-						buttonsArea.buttons[button][3],
-						buttonsArea.buttons[button][2]
-							+ ((buttonsArea.buttons[button][4] - buttonsArea.buttons[button][2]) * 0.25),
-						3.3 * widgetScale,
-						0,
-						0,
-						0,
-						button == firstButton and 1 or 0,
-						{ 1, 1, 1, 0.045 * mult },
-						{ 1, 1, 1, 0 }
-					)
-					glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-					break
-				end
-			end
-		end
-	end
-
-	if dlist.quit then
-		if WG.guishader then
-			WG.guishader.removeRenderDlist(dlist.quit)
-		end
-		glDeleteList(dlist.quit)
-		dlist.quit = nil
-	end
-
-	if showQuitscreen then
-		drawQuitScreen()
-	end
 
 	glColor(1, 1, 1, 1)
 	glPopMatrix()
@@ -3198,272 +2575,13 @@ function widget:MouseMove(x, y)
 	adjustSliders(x, y)
 end
 
--- Second return value: the window refused to close (the keybind editor raises a guard
--- when there are unsaved edits) and is still up.
-local function closeWindow(name)
-	if WG[name] ~= nil and WG[name].isvisible() then
-		WG[name].toggle(false)
-		return true, WG[name].isvisible() == true
-	end
-	return false, false
-end
 
-local function hideWindows()
-	local closedWindow = false
-	local stillOpen = false
 
-	local function hide(name)
-		local closed, blocked = closeWindow(name)
-		closedWindow = closed or closedWindow
-		stillOpen = blocked or stillOpen
-	end
-
-	hide("options")
-	hide("scavengerinfo")
-	hide("missioninfo")
-	hide("keybinds")
-	hide("changelog")
-	hide("gameinfo")
-	hide("teamstats")
-	hide("widgetselector")
-	if showQuitscreen then
-		closedWindow = true
-	end
-
-	showQuitscreen = nil
-
-	if WG.guishader then
-		WG.guishader.setScreenBlur(false)
-	end
-
-	if gameIsOver then -- Graphs window can only be open after game end
-		-- Closing Graphs window if open, no way to tell if it was open or not
-		Spring.SendCommands("endgraph 0")
-		graphsWindowVisible = false
-	end
-
-	return closedWindow, stillOpen
-end
-
-local function toggleWindow(name)
-	local isvisible = false
-	if WG[name] ~= nil then
-		isvisible = WG[name].isvisible()
-	end
-	local _, stillOpen = hideWindows()
-	-- Opening another window on top of a window that refused to close would bury its guard.
-	if stillOpen then
-		return isvisible
-	end
-	if WG[name] ~= nil and isvisible ~= true then
-		WG[name].toggle()
-	end
-	return isvisible
-end
-
--- Which menu button, if any, sits under these screen coords.
--- Exposed as WG.topbar.buttonAt so the window widgets (which sit on a lower layer and
--- therefore see the click first) can tell a click on the top bar apart from a click that
--- dismisses them: closing themselves there would eat the click meant to open another window.
-local function buttonAt(x, y)
-	if not buttonsArea.buttons then
-		return nil
-	end
-	for name, pos in pairs(buttonsArea.buttons) do
-		if mathIsInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-			return name
-		end
-	end
-	return nil
-end
-
-local function applyButtonAction(button)
-	if playSounds then
-		Spring.PlaySoundFile(leftclick, 0.8, "ui")
-	end
-
-	local isvisible = false
-	if button == "quit" or button == "resign" then
-		if not gameIsOver and chobbyLoaded and button == "quit" then
-			Spring.SendLuaMenuMsg("showLobby")
-		else
-			local oldShowQuitscreen
-			if showQuitscreen then
-				oldShowQuitscreen = showQuitscreen
-				isvisible = true
-			end
-
-			hideWindows()
-
-			if oldShowQuitscreen then
-				if isvisible ~= true then
-					showQuitscreen = oldShowQuitscreen
-					if WG.guishader then
-						WG.guishader.setScreenBlur(true)
-					end
-				end
-			else
-				showQuitscreen = now
-			end
-		end
-	elseif button == "options" then
-		toggleWindow("options")
-	elseif button == "save" then
-		hideWindows()
-		if isSinglePlayer and cfg.allowSavegame and WG.savegame then
-			local time = os.date("%Y%m%d_%H%M%S")
-			Spring.SendCommands("savegame " .. time)
-		end
-	elseif button == "scavengers" then
-		toggleWindow("scavengerinfo")
-	elseif button == "mission" then
-		toggleWindow("missioninfo")
-	elseif button == "keybinds" then
-		toggleWindow("keybinds")
-	elseif button == "changelog" then
-		toggleWindow("changelog")
-	elseif button == "stats" then
-		toggleWindow("teamstats")
-	elseif button == "info" then
-		toggleWindow("gameinfo")
-	elseif button == "graphs" then
-		isvisible = graphsWindowVisible
-		hideWindows()
-		if gameIsOver and not isvisible then
-			Spring.SendCommands("endgraph 2")
-			graphsWindowVisible = true
-		end
-	end
-end
-
-function widget:GameOver()
-	refreshUi = true
-	gameIsOver = true
-	updateButtons()
-end
-
-function widget:MouseWheel(up, value) -- up = true/false , value = -1/1
-	if showQuitscreen and quitscreenArea then
-		return true
-	end
-end
-
-function widget:KeyPress(key)
-	if key == 27 then -- ESC
-		if not WG.options or (WG.options.disallowEsc and not WG.options.disallowEsc()) then
-			local escDidSomething = hideWindows()
-			if cfg.escapeKeyPressesQuit and not escDidSomething then
-				applyButtonAction("quit")
-			end
-		end
-	end
-	if showQuitscreen and quitscreenArea then
-		return true
-	end
-end
 
 function widget:MousePress(x, y, button)
 	if button == 1 then
-		if showQuitscreen and quitscreenArea then
-			if mathIsInRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
-				if
-					(gameIsOver or not chobbyLoaded or not spec)
-					and mathIsInRect(
-						x,
-						y,
-						quitscreenStayArea[1],
-						quitscreenStayArea[2],
-						quitscreenStayArea[3],
-						quitscreenStayArea[4]
-					)
-				then
-					if playSounds then
-						Spring.PlaySoundFile(leftclick, 0.75, "ui")
-					end
 
-					showQuitscreen = nil
-					if WG.guishader then
-						WG.guishader.setScreenBlur(false)
-					end
-				end
-				if
-					(gameIsOver or not chobbyLoaded)
-					and mathIsInRect(
-						x,
-						y,
-						quitscreenQuitArea[1],
-						quitscreenQuitArea[2],
-						quitscreenQuitArea[3],
-						quitscreenQuitArea[4]
-					)
-				then
-					if playSounds then
-						Spring.PlaySoundFile(leftclick, 0.75, "ui")
-					end
-
-					if not chobbyLoaded then
-						Spring.SendCommands("QuitForce") -- Exit the game completely
-					else
-						Spring.SendCommands("ReloadForce") -- Exit to the lobby
-					end
-
-					showQuitscreen = nil
-					hideQuitWindow = now
-				end
-				if
-					not spec
-					and not gameIsOver
-					and mathIsInRect(
-						x,
-						y,
-						quitscreenResignArea[1],
-						quitscreenResignArea[2],
-						quitscreenResignArea[3],
-						quitscreenResignArea[4]
-					)
-				then
-					if playSounds then
-						Spring.PlaySoundFile(leftclick, 0.75, "ui")
-					end
-					Spring.SendCommands("spectator")
-					showQuitscreen = nil
-					if WG.guishader then
-						WG.guishader.setScreenBlur(false)
-					end
-				end
-				if
-					not spec
-					and not gameIsOver
-					and teamResign
-					and mathIsInRect(
-						x,
-						y,
-						quitscreenTeamResignArea[1],
-						quitscreenTeamResignArea[2],
-						quitscreenTeamResignArea[3],
-						quitscreenTeamResignArea[4]
-					)
-				then
-					if playSounds then
-						Spring.PlaySoundFile(leftclick, 0.75, "ui")
-					end
-					Spring.SendCommands("say !cv resign")
-					showQuitscreen = nil
-					if WG.guishader then
-						WG.guishader.setScreenBlur(false)
-					end
-				end
-			else
-				showQuitscreen = nil
-				if WG.guishader then
-					WG.guishader.setScreenBlur(false)
-				end
-			end
-			return true
-		end
-
-		-- the bars aren't drawn while a window is open, so their sliders aren't there to grab
-		if not spec and not cache.modalActive then
+		if not spec then
 			if not isSingle then
 				if
 					mathIsInRect(
@@ -3514,26 +2632,12 @@ function widget:MousePress(x, y, button)
 			end
 		end
 
-		local clickedButton = buttonAt(x, y)
-		if clickedButton then
-			applyButtonAction(clickedButton)
-			return true
-		end
-	else
-		if showQuitscreen and quitscreenArea then
-			return true
-		end
-	end
 
 	if hoveringTopbar then
 		return true
 	end
 end
 
-function widget:MouseRelease(x, y, button)
-	if showQuitscreen and quitscreenArea then
-		return true
-	end
 
 	if draggingShareIndicator then
 		adjustSliders(x, y)
@@ -3624,11 +2728,6 @@ function widget:Initialize()
 		end
 	end
 
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") then
-		chobbyLoaded = true
-		Spring.SendLuaMenuMsg("disableLobbyButton")
-	end
-
 	if not spec then
 		local teamList = Spring.GetTeamList(myAllyTeamID) or {}
 		isSingle = #teamList == 1
@@ -3641,41 +2740,9 @@ function widget:Initialize()
 		end
 	end
 
-	-- The quit/resign dialog counts as a window: while it is up the handler hides the
-	-- rest of the interface, and this widget draws only its menu buttons.
-	-- (this widget holds the real widgetHandler, so it passes itself)
-	widgetHandler:RegisterModalWindow(widget, function()
-		return showQuitscreen ~= nil
-	end)
-
-	WG.topbar = {}
-
-	WG.topbar.showingQuit = function()
-		return showQuitscreen
-	end
-
-	WG.topbar.hideWindows = function()
-		hideWindows()
-	end
-
-	WG.topbar.buttonAt = function(x, y)
-		return buttonAt(x, y)
-	end
-
-	WG.topbar.setAutoHideButtons = function(value)
-		refreshUi = true
-		autoHideButtons = value
-		showButtons = not value
-		updateButtons()
-	end
-
-	WG.topbar.getAutoHideButtons = function()
-		return autoHideButtons
-	end
-
-	WG.topbar.getShowButtons = function()
-		return showButtons
-	end
+	-- Shared with the Top Bar Buttons widget, which fills in the button and quit
+	-- dialog half of this API. Either widget can run without the other.
+	WG.topbar = WG.topbar or {}
 
 	WG.topbar.updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
@@ -3746,13 +2813,11 @@ end
 function widget:Shutdown()
 	--Spring.SendCommands("resbar 1")
 
-	if dlist.buttons then
+	if dlist.blendBg then
 		dlist.wind1 = glDeleteList(dlist.wind1)
 		dlist.wind2 = glDeleteList(dlist.wind2)
 		dlist.tidal2 = glDeleteList(dlist.tidal2)
 		dlist.coms = glDeleteList(dlist.coms)
-		dlist.buttons = glDeleteList(dlist.buttons)
-		dlist.quit = glDeleteList(dlist.quit)
 		dlist.blendBg = glDeleteList(dlist.blendBg)
 		dlist.blendUi = glDeleteList(dlist.blendUi)
 
@@ -3813,15 +2878,20 @@ function widget:Shutdown()
 		WG.tooltip.RemoveTooltip(res .. "_current")
 	end
 
-	WG.topbar = nil
-end
-
-function widget:GetConfigData()
-	return { autoHideButtons = autoHideButtons }
-end
-
-function widget:SetConfigData(data)
-	if data.autoHideButtons then
-		autoHideButtons = data.autoHideButtons
+	removeButtonFallbacks()
+	if WG.topbar then
+		WG.topbar.GetPosition = nil
+		WG.topbar.GetFreeArea = nil
+		WG.topbar.GetSkewConfig = nil
+		WG.topbar.updateTopBarEnergy = nil
+		WG.topbar.setResourceBarsVisible = nil
+		WG.topbar.getResourceBarsVisible = nil
+		WG.topbar.setIndicatorsVisible = nil
+		WG.topbar.getIndicatorsVisible = nil
+		-- the Top Bar Buttons widget may still be using the table for its own half
+		if next(WG.topbar) == nil then
+			WG.topbar = nil
+		end
 	end
 end
+
