@@ -270,6 +270,9 @@ end
 
 -- CreateUnit does not snap; Pos2BuildPos uses even vs odd grid from footprint parity.
 local function createSnappedUnit(defID, x, y, z, facing, teamID)
+	if UnitDefs[defID].customParams.modoption_blocked then
+		return nil
+	end
 	x, y, z = Spring.Pos2BuildPos(defID, x, y, z, facing)
 	return Spring.CreateUnit(defID, x, y, z, facing, teamID)
 end
