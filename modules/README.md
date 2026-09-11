@@ -502,9 +502,59 @@ Every file under `modules/` is loaded by the game's own handlers, in the same Lu
 
 - A module is an opinionated directory that encapsulates game behavior.
 - A policy is a file that contains many decisions, each one a pipeline.
-- A pipeline is one statement chain of stages, each a guard or an Answer, with one Refusal saying what a no looks like. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies.
+- A pipeline is one statement chain of stages, each a guard or an Answer, with one Refusal saying what a no looks like. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies.
 - Read a pipeline top to bottom, and place your stage where the precedence says. No stage is the rule; the chain is.
 - A guard can only refuse, and only an Answer can answer. Loosening touches the rule by name; tightening never does.
 - Facts inform a decision and are filled before it runs; an Answer makes the decision. The mode decides whose fact is live.
 - The contract is the map: every stage and every fact is a name there, and every wiring mistake is a load error that points at it.
 - A gadget is the engine's callin and nothing more: it hands the ids to the api, which gathers, asks and acts. State a module must keep lives in `state.lua`, once per Lua state.
+
+## Game
+
+`mode_builder` turns a preset file into a ModeConfig. It has no runtime of its own; each module binds its own vocabulary over it, and preset files read as a dot-only chain. A preset is a whitelist: it claims the options it needs and says which are shown, hidden or locked, and the lobby shows exactly what it claims.
+
+### In a preset
+
+Every verb is documented where the editor shows it, `modules/game/types/mode_policy.lua`, with the option it writes. The ones every module shares:
+
+| Thing | Why | Example |
+|---|---|---|
+| `Mode(name)` | Starts a preset. The category is not a parameter: the grammar binds every chain from a module to that module's axis, and the name only names it. | `return Mode("FFA")` |
+| `.Desc(text)` | The sentence the lobby shows under the mode's name. | `.Desc("Free for all: every player for themselves.")` |
+| `.Ranked()` | Whether the mode may count for rating. Never saying it means unranked, and the pin is written either way, so the lobby never has to pin it itself. | `.Ranked()` |
+| a claim verb | Writes one option. Verbs that pick from a list take an enum, not a string. A bare claim is a suggestion and leaves its option open. | `.End(DeathMode.OwnCommander)`, `.MaxUnits(2000)` |
+| `.Locked()` | Pins the last claim's noun; its dials stay editable. | `.Wreckage(true).Locked()` |
+| `.Sealed()` | Pins the last claim outright, dials included. | `.UnitRestrictions().Sealed()` |
+| `.Hidden()` | Keeps the last claim out of the lobby UI; its pin still applies. | `.FogOfWar(true).Hidden()` |
+| `.Unlocked()` | The last claim is fully editable. Rule verbs come back pinned, so this is how a preset opens one. | `.Allow(Transfer.Units).Unlocked()` |
+| `.Uses(contract)` | A module whose fact providers this preset makes live, besides the one that ships it. Named by its contract, never a string. | `.Uses(TechModule)` |
+| `.RetainValues()` | A non-sticky preset: picking it exposes and unlocks its claims but keeps the current values as the starting point. | `.RetainValues()` |
+
+The FFA preset, whole:
+
+```lua
+local ModeDSL = VFS.Include("modules/game/mode_dsl.lua") ---@type GameModeDSL
+local Mode = ModeDSL.Mode
+local DeathMode, DraftMode, AnonymousMode = ModeDSL.DeathMode, ModeDSL.DraftMode, ModeDSL.AnonymousMode
+
+return Mode("FFA")
+	.Desc("Free for all: every player for themselves. Losing your commander resigns you, and the fallen leave wreckage behind.")
+	.Ranked()
+	.End(DeathMode.OwnCommander)
+	.Wreckage(true).Locked()
+	.MaxUnits(2000)
+	.Draft(DraftMode.Random)
+	.Anonymous(AnonymousMode.Disabled)
+	.EnemyTransporting(TransportEnemy.NotCommanders)
+	.UnitRestrictions()
+```
+
+### The game axis
+
+A match is exactly one way of being played, so there is one selector, `game_mode`, owned by the mode infrastructure rather than any flavor. The presets are Standard, FFA, Team FFA and Territorial Domination.
+
+- Section entries in a module's `modoptions.lua` can declare `mode_category` (which axis governs their options) and `mode_key` (which preset reveals them).
+- A module adds verbs to an axis's grammar by shipping `mode_verbs.lua`: `{ category = "game", verbs = { Name = ModeBuilder.Verb(parse, write) } }`. The loader hands them to the axis's grammar, so a preset claims the module's options in the module's own words and the grammar never names the module.
+- The root `modoptions.lua` appends every module's fragment through `ModuleHandler.ModOptions()`, so a module that ships options needs no change to the root file.
+- `modules/game/lib/values.lua` is the one formatter for a mode value on the wire (booleans as `1`/`0`, numbers at float32 precision). The export widget bakes `modes.json` with it and the lobby includes it out of the game archive, so neither side carries a copy. `tools/headless_testing/startscript_modes_export.txt` runs that export headless.
+- A preset says what it makes live. The runtime walks every combination of presets at load and refuses one that leaves two providers live for one fact.
