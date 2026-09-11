@@ -553,7 +553,8 @@ function updateInputDlist()
 				activationArea[2] + chatlogHeightDiff - distance - inputHeight,
 				x2,
 				activationArea[2] + chatlogHeightDiff - distance,
-				"optionsinput"
+				"optionsinput",
+				widget
 			)
 		end
 
@@ -1831,7 +1832,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
-					WG.guishader.InsertDlist(backgroundGuishader, "options")
+					-- 'self' rather than 'widget': this function sits at the Lua 5.1 upvalue cap
+					WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
 				end
 			end
 			showOnceMore = false
@@ -2229,14 +2231,16 @@ function widget:DrawScreen()
 						optionButtons[showSelectOptions][2],
 						optionButtons[showSelectOptions][3],
 						optionButtons[showSelectOptions][4],
-						"options_select"
+						"options_select",
+						self
 					)
 					WG.guishader.InsertScreenRect(
 						optionButtons[showSelectOptions][1],
 						yPos - oHeight - oPadding,
 						optionButtons[showSelectOptions][1] + maxWidth,
 						optionButtons[showSelectOptions][2],
-						"options_select_options"
+						"options_select_options",
+						self
 					)
 					WG.guishader.insertRenderDlist(selectOptionsList)
 				else
@@ -7028,6 +7032,21 @@ function init()
 			description = BAR.I18N("ui.settings.option.widgetselector_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+			end,
+		},
+
+		{
+			id = "windows_hideinterface",
+			group = "ui",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.windows_hideinterface"),
+			type = "bool",
+			value = Spring.GetConfigInt("WindowsHideInterface", 0) == 1,
+			description = BAR.I18N("ui.settings.option.windows_hideinterface_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("WindowsHideInterface", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsHideInterface(value)
 			end,
 		},
 
@@ -12671,6 +12690,12 @@ function widget:Initialize()
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring won't remember what you set with '/minimap iconssize #'
+
+	-- lets the handler hide the rest of the interface while the window is open
+	-- (this widget holds the real widgetHandler, so it passes itself)
+	widgetHandler:RegisterModalWindow(widget, function()
+		return show == true
+	end)
 
 	WG.options = {}
 	WG.options.toggle = function(state)

@@ -429,6 +429,7 @@ function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
+	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -784,6 +785,26 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.SetGlobal = function(_, name, value)
 		return self:SetGlobal(widget, name, value)
 	end
+
+	-- Modal windows (see the "Modal windows" block further down)
+	wh.RegisterModalWindow = function(_, isOpen)
+		return self:RegisterModalWindow(widget, isOpen)
+	end
+	wh.DeregisterModalWindow = function(_)
+		return self:DeregisterModalWindow(widget)
+	end
+	wh.IsModalActive = function(_)
+		return self:IsModalActive()
+	end
+	wh.ModalAllows = function(_, owner)
+		return self:ModalAllows(owner)
+	end
+	wh.GetModalRevision = function(_)
+		return self:GetModalRevision()
+	end
+	wh.SetWindowsHideInterface = function(_, enabled)
+		return self:SetWindowsHideInterface(enabled)
+	end
 	tracy.ZoneEnd()
 	return widget
 end
@@ -805,6 +826,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.license = info.license or ""
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
+		wi.modalExempt = info.modalExempt or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -1078,6 +1100,8 @@ function widgetHandler:InsertWidgetRaw(widget)
 
 	SafeWrapWidget(widget)
 
+	self:ApplyModalExempt(widget)
+
 	ArrayInsert(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
 		local func = widget[listname]
@@ -1113,6 +1137,7 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		widget:Shutdown()
 	end
 	ArrayRemove(self.widgets, widget)
+	self:ForgetModalWidget(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
@@ -1448,6 +1473,130 @@ function widgetHandler:BlankOut()
 	end
 end
 
+--------------------------------------------------------------------------------
+--
+--  Modal windows
+--
+--  Optional behaviour (springsetting "WindowsHideInterface", default off): while one
+--  of the big central windows is open, the rest of the screen interface is neither
+--  drawn nor clickable, so the window is the only thing the player can interact with.
+--
+--  A window widget opts in from its Initialize with an is-open predicate:
+--      widgetHandler:RegisterModalWindow(function() return show end)
+--  (widgets with handler = true get the real handler, so they pass themselves first:
+--   widgetHandler:RegisterModalWindow(widget, function() return show end))
+--
+--  A widget that must stay visible and usable regardless declares it in GetInfo:
+--      modalExempt = true,
+--
+--  Filtered while a window is open: DrawScreen, KeyPress, TextInput, MousePress,
+--  MouseWheel, IsAbove and GetTooltip, and a MousePress nothing claimed is swallowed
+--  so clicks never reach the engine (no unit orders under an open window).
+--  Deliberately not filtered: KeyRelease/MouseRelease (a hidden widget must still see
+--  the release of a press it got before the window opened), Update, the world and
+--  effects draw passes, and the action handler, so keybinds keep working.
+--
+--  Registered windows stay in the allowed set while closed, so a window that closes
+--  while another is open can still run its own cleanup frame.
+--
+local modalWindows = {} -- widget -> is-open predicate
+local modalExempt = {} -- widget -> true
+local modalAllowed = {} -- widget -> true (exempt widgets and registered windows)
+local modalActive = false
+local modalRevision = 0
+local modalEnabled = false
+local modalConfigTimer = 0
+local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+local function ModalAllowWidget(widget, allowed)
+	if (modalAllowed[widget] or false) ~= allowed then
+		modalAllowed[widget] = allowed or nil
+		modalRevision = modalRevision + 1
+	end
+end
+
+function widgetHandler:RegisterModalWindow(widget, isOpen)
+	if type(isOpen) ~= "function" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "RegisterModalWindow: expected an is-open function")
+		return false
+	end
+	modalWindows[widget] = isOpen
+	ModalAllowWidget(widget, true)
+	return true
+end
+
+function widgetHandler:DeregisterModalWindow(widget)
+	modalWindows[widget] = nil
+	ModalAllowWidget(widget, modalExempt[widget] == true)
+end
+
+-- Called from InsertWidgetRaw/RemoveWidgetRaw, which are defined above this block and
+-- so reach the state through the handler rather than as upvalues.
+function widgetHandler:ApplyModalExempt(widget)
+	if widget.whInfo and widget.whInfo.modalExempt then
+		modalExempt[widget] = true
+		ModalAllowWidget(widget, true)
+	end
+end
+
+function widgetHandler:ForgetModalWidget(widget)
+	modalWindows[widget] = nil
+	modalExempt[widget] = nil
+	ModalAllowWidget(widget, false)
+end
+
+function widgetHandler:IsModalActive()
+	return modalActive
+end
+
+-- Bumped whenever the allowed set changes, so cached state elsewhere (the guishader's
+-- stencil) can tell it needs rebuilding.
+function widgetHandler:GetModalRevision()
+	return modalRevision
+end
+
+-- Widgets the modal window lets through. A nil widget (e.g. an unowned guishader
+-- region) counts as not allowed, which is the wanted default.
+function widgetHandler:ModalAllows(widget)
+	return (not modalActive) or (modalAllowed[widget] == true)
+end
+
+function widgetHandler:SetWindowsHideInterface(enabled)
+	modalEnabled = enabled and true or false
+	modalConfigTimer = 0
+	self:UpdateModalState()
+end
+
+function widgetHandler:UpdateModalState(deltaTime)
+	if deltaTime then
+		modalConfigTimer = modalConfigTimer + deltaTime
+		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
+			modalConfigTimer = 0
+			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+		end
+	end
+
+	local active = false
+	if modalEnabled then
+		for w, isOpen in pairs(modalWindows) do
+			local ok, open = pcall(isOpen)
+			if not ok then
+				Spring.Log(
+					"barwidgets.lua",
+					LOG.ERROR,
+					"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
+				)
+				modalWindows[w] = nil -- removing the current key mid-traversal is allowed
+				ModalAllowWidget(w, modalExempt[w] == true)
+			elseif open then
+				active = true
+				break
+			end
+		end
+	end
+	modalActive = active
+end
+
 local gcCheckCounter = 0
 
 function widgetHandler:Update()
@@ -1463,6 +1612,11 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+
+	-- before the widgets run, so a widget asking IsModalActive this frame sees the
+	-- window that was opened by the input events just handled
+	self:UpdateModalState(deltaTime)
+
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
 		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
@@ -1624,14 +1778,19 @@ end
 
 function widgetHandler:DrawScreen()
 	tracy.ZoneBeginN("W:DrawScreen")
+	-- catches a window opened from another widget's Update, which ran after the
+	-- recompute at the top of widgetHandler:Update
+	self:UpdateModalState()
 	if not Spring.IsGUIHidden() then
 		if not self.chobbyInterface then
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				tracy.ZoneBeginN(w._tracyDrawScreenName)
-				w:DrawScreen()
-				tracy.ZoneEnd()
+				if not modalActive or modalAllowed[w] then
+					tracy.ZoneBeginN(w._tracyDrawScreenName)
+					w:DrawScreen()
+					tracy.ZoneEnd()
+				end
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
 			tracy.ZoneBeginN("W:DrawScreen:guishader")
@@ -1977,9 +2136,11 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	end
 
 	for _, w in ipairs(self.KeyPressList) do
-		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
-			return true
+		if not modalActive or modalAllowed[w] then
+			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+				tracy.ZoneEnd()
+				return true
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -2027,9 +2188,11 @@ function widgetHandler:TextInput(utf8, ...)
 
 	local list = self.TextInputList
 	for i = #list, 1, -1 do
-		if list[i]:TextInput(utf8, ...) then
-			tracy.ZoneEnd()
-			return true
+		if not modalActive or modalAllowed[list[i]] then
+			if list[i]:TextInput(utf8, ...) then
+				tracy.ZoneEnd()
+				return true
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -2045,7 +2208,7 @@ end
 function widgetHandler:WidgetAt(x, y)
 	tracy.ZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if w:IsAbove(x, y) then
+		if (not modalActive or modalAllowed[w]) and w:IsAbove(x, y) then
 			tracy.ZoneEnd()
 			return w
 		end
@@ -2057,23 +2220,29 @@ end
 function widgetHandler:MousePress(x, y, button)
 	tracy.ZoneBeginN("W:MousePress")
 	if self.mouseOwner then
+		-- unfiltered: a drag that started before the window opened has to finish
 		self.mouseOwner:MousePress(x, y, button)
 	else
 		for _, w in ipairs(self.MousePressList) do
-			if w:MousePress(x, y, button) then
-				self.mouseOwner = w
-				break
+			if not modalActive or modalAllowed[w] then
+				if w:MousePress(x, y, button) then
+					self.mouseOwner = w
+					break
+				end
 			end
 		end
 	end
 
-	local hasMouseOwner = self.mouseOwner ~= nil
+	-- While a window is open the click is consumed even when nothing claimed it, so it
+	-- never reaches the engine and orders no units. No mouseOwner is taken for that:
+	-- there is nothing to route the follow-up move/release to.
+	local consumed = (self.mouseOwner ~= nil) or modalActive
 	if widgetHandler.WG.SmartSelect_MousePress2 then
-		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, consumed)
 	end
 
 	tracy.ZoneEnd()
-	return hasMouseOwner
+	return consumed
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
@@ -2108,7 +2277,7 @@ function widgetHandler:MouseWheel(up, value)
 	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
-		if w:MouseWheel(up, value) then
+		if (not modalActive or modalAllowed[w]) and w:MouseWheel(up, value) then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2221,7 +2390,7 @@ end
 function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if w:IsAbove(x, y) then
+		if (not modalActive or modalAllowed[w]) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == "string" and #tip > 0 then
 				tracy.ZoneEnd()

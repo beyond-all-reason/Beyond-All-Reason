@@ -281,6 +281,11 @@ function widget:Initialize()
 		widget:GameFrame(GetGameFrame(), true)
 	end
 
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return guiData.mainPanel.visible == true
+	end)
+
 	WG.teamstats = {}
 	WG.teamstats.toggle = function(state)
 		if state ~= nil then
@@ -614,7 +619,7 @@ local function DrawBackground()
 		backgroundGuishader = glCreateList(function()
 			RectRound(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, elementCorner)
 		end)
-		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window")
+		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window", nil, widget)
 	end
 
 	if backgroundDisplayList then

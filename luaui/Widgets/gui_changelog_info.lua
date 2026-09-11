@@ -516,7 +516,7 @@ function widget:DrawScreen()
 		backgroundGuishader = glCreateList(function()
 			RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 1, 1, 1, 1)
 		end)
-		WG.guishader.InsertDlist(backgroundGuishader, "changelog")
+		WG.guishader.InsertDlist(backgroundGuishader, "changelog", nil, widget)
 	end
 	showOnceMore = false
 
@@ -603,6 +603,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
+	end)
 
 	WG.changelog = {}
 	WG.changelog.toggle = function(state)
