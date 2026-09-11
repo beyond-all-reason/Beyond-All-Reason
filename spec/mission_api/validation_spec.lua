@@ -840,21 +840,24 @@ describe("mission_api.validation", function()
 
 		describe("Position", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.AddMapMarker, parameters = { markerID = "m", position = "bad" } })
+				actionErrors({ type = actionTypes.AddMapMarker, parameters = { markerName = "m", position = "bad" } })
 				assert.is_true(
 					hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: position")
 				)
 			end)
 
 			it("rejects missing coordinate", function()
-				actionErrors({ type = actionTypes.AddMapMarker, parameters = { markerID = "m", position = { z = 0 } } })
+				actionErrors({
+					type = actionTypes.AddMapMarker,
+					parameters = { markerName = "m", position = { z = 0 } },
+				})
 				assert.is_true(hasError("Missing required parameter. Action: a, Parameter: position.x"))
 			end)
 
 			it("rejects non-number coordinate", function()
 				actionErrors({
 					type = actionTypes.AddMapMarker,
-					parameters = { markerID = "m", position = { x = "bad", z = 0 } },
+					parameters = { markerName = "m", position = { x = "bad", z = 0 } },
 				})
 				assert.is_true(
 					hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: position.x")
@@ -1168,7 +1171,7 @@ describe("mission_api.validation", function()
 					},
 				},
 				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = "rock" } },
-				addMapMarker = { type = actionTypes.AddMapMarker, parameters = { markerID = "beacon" } },
+				addMapMarker = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
 				eraseMapMarker = { type = actionTypes.EraseMarker, parameters = { name = "beacon" } },
 			}
 
@@ -1292,7 +1295,7 @@ describe("mission_api.validation", function()
 
 		it("does not warn for a map marker that is never erased", function()
 			GG["MissionAPI"].Actions = {
-				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerID = "beacon" } },
+				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
 			}
 
 			validation.ValidateReferences()
@@ -1302,7 +1305,7 @@ describe("mission_api.validation", function()
 
 		it("logs an error for erasing a map marker that no action creates", function()
 			GG["MissionAPI"].Actions = {
-				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerID = "beacon" } },
+				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
 				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = "noSuchBeacon" } },
 			}
 

@@ -1436,7 +1436,7 @@ local function validateMarkerNameReferences(actionTypes, actions)
 	local referencedMarkerNames = {}
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.AddMapMarker then
-			local markerName = action.parameters.markerID
+			local markerName = action.parameters.markerName
 			if markerName then
 				createdMarkerNames[markerName] = true
 			end

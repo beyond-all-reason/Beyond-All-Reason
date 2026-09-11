@@ -20,7 +20,7 @@ describe("mission_api.actions.add_map_marker", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "AddMapMarker",
-			markerID = "String!",
+			markerName = "String!",
 			position = "Position!",
 			markerType = "String",
 			label = "String",

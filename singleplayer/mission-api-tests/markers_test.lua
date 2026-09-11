@@ -39,7 +39,7 @@ local actions = {
 	addMarkerToErase = {
 		type = actionTypes.AddMapMarker,
 		parameters = {
-			markerID = 'markerToErase',
+			markerName = 'markerToErase',
 			position = { x = 1900, z = 2200 },
 			markerType = 'mapmark',
 			label = 'This marker will be erased soon.',
@@ -49,7 +49,7 @@ local actions = {
 	addMarkerToKeep = {
 		type = actionTypes.AddMapMarker,
 		parameters = {
-			markerID = 'markerToKeep',
+			markerName = 'markerToKeep',
 			position = { x = 1500, z = 2200 },
 		},
 	},
