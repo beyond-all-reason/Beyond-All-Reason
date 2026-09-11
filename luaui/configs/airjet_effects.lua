@@ -118,10 +118,10 @@ return {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 1 },
 	},
 	corhvytrans = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfl", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfr", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbl", emitVector = { 0, 1, 0 }, light = 1 },
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbr", emitVector = { 0, 1, 0 }, light = 1 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfl", emitVector = { 0, 1, 0 }, light = 1 , xzVelSizeMult = 1.0},
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustfr", emitVector = { 0, 1, 0 }, light = 1 , xzVelSizeMult = 1.0},
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbl", emitVector = { 0, 1, 0 }, light = 1 , xzVelSizeMult = 1.0 },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 17, piece = "thrustbr", emitVector = { 0, 1, 0 }, light = 1 , xzVelSizeMult = 1.0},
 	},
 	armdfly = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", xzVelocity = 1.5, light = 1 },
