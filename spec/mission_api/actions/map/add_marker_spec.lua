@@ -1,0 +1,56 @@
+require("spec_helper")
+
+local Builders = VFS.Include("spec/builders/index.lua")
+
+Builders.MissionApi.new():Install()
+
+local actions = VFS.Include("luarules/mission_api/actions/map/add_marker.lua")
+local action = actions[1]
+local summarizeSchema = require("mission_api.schema_spec_helper")
+
+local missionApi = GG["MissionAPI"]
+
+describe("mission_api.actions.add_marker", function()
+
+	before_each(function()
+		Builders.MissionApi.new():Install()
+		_G.Spring = Builders.Spring.new():Build()
+	end)
+
+	it("declares its type and parameters", function()
+		assert.are.same({
+			type = "AddMarker",
+			position = "Position!",
+			label = "String",
+			name = "String",
+		}, summarizeSchema(action))
+	end)
+
+	describe("actionFunction", function()
+		it("calls Spring.MarkerAddPoint with the given position and label", function()
+			action.actionFunction({ x = 10, y = 20, z = 30 }, "hello", nil)
+			assert.are.equal(1, #Spring.calls.markerAddPoint)
+			assert.are.equal(10, Spring.calls.markerAddPoint[1].x)
+			assert.are.equal(20, Spring.calls.markerAddPoint[1].y)
+			assert.are.equal(30, Spring.calls.markerAddPoint[1].z)
+			assert.are.equal("hello", Spring.calls.markerAddPoint[1].label)
+		end)
+
+		it("stores the position in markerNames when a name is given", function()
+			local pos = { x = 1, y = 2, z = 3 }
+			action.actionFunction(pos, "label", "myMarker")
+			assert.are.same(pos, missionApi.markerNames["myMarker"])
+		end)
+
+		it("does not store anything in markerNames when name is nil", function()
+			action.actionFunction({ x = 0, y = 0, z = 0 }, "label", nil)
+			assert.are.same({}, missionApi.markerNames)
+		end)
+
+		it("passes false as the local flag to MarkerAddPoint", function()
+			action.actionFunction({ x = 0, y = 0, z = 0 }, nil, nil)
+			assert.is_false(Spring.calls.markerAddPoint[1].local_)
+		end)
+	end)
+
+end)
