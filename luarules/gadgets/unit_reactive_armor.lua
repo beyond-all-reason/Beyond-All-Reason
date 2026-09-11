@@ -352,7 +352,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if not paralyzer and damage > 0 and armoredUnitDefs[unitDefID] then
+	if not armoredUnitDefs[unitDefID] then
+		return
+	end
+	---@cast paralyzer boolean -- todo: odd
+	if paralyzer then
+		regenerateFrame[unitID] = combatEndFrame
+	elseif damage > 0 then
 		doArmorDamage(unitID, armoredUnitDefs[unitDefID], damage)
 	end
 end
