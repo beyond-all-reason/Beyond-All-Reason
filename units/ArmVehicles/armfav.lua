@@ -50,6 +50,7 @@ return {
 			stompable = true,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
+			has_surfing_colvol = true,
 		},
 		featuredefs = {
 			dead = {
