@@ -162,10 +162,8 @@ _G.VFS.Include = function(path, env, mode)
 		_G.VFS._sources[realPath] = source
 	end
 
-	-- The file exists, so a compile or run failure is a real bug (usually missing
-	-- setup, e.g. GG['MissionAPI'] not initialised yet). Surface it here rather
-	-- than falling through to the require fallback and returning {}, which lets
-	-- the caller fail later with a confusing "index a nil value" far from the cause.
+	-- Missing source is a real error. Larger feature tests will try to fallback and
+	-- tend to throw confusing "index a nil value" or etc. in code long after loading.
 	if source then
 		local chunk, compileError = loadstring(source, "@" .. realPath)
 		if not chunk then
@@ -337,18 +335,9 @@ end
 
 _G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
 
--- Busted runs every spec file in a single Lua process, so globals left behind by
--- one file leak into the next. Clearing GG before each file means a spec cannot
--- accidentally depend on state another file happened to leave behind -- such a
--- dependency now fails in every ordering instead of intermittently.
---
--- This only clears state, it never provides it: each spec is still responsible
--- for its own load-time setup (e.g. GG['MissionAPI'].Modules.ParameterTypes must
--- exist before including an action file, which reads it at load time).
---
--- Guarded because this file executes more than once per run (it is both
--- require'd by specs and, for some tasks, loaded by busted as `helper`), which
--- would otherwise register the subscriber repeatedly.
+-- Every spec file is run in a single Lua process via busted, so their globals are
+-- left behind from one file to the next in the order they are run. Clearing GG is
+-- one way to protect against those leaks; guarded against reruns using a _G gate.
 if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
 	local ok, busted = pcall(require, "busted")
 	if ok and type(busted) == "table" and busted.subscribe then
