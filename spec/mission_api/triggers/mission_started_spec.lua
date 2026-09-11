@@ -10,7 +10,7 @@ describe("mission_api.triggers.mission_started", function()
 	it("declares its type and takes no parameters", function()
 		assert.are.same({ type = "MissionStarted" }, summarizeSchema(missionStarted))
 	end)
-	
+
 	it("fires when the game starts", function()
 		local context = Builders.TriggerContext.new():Build()
 		onGameStart(Builders.Trigger.new():Build(), "t", context)
