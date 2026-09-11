@@ -290,15 +290,26 @@ if gadgetHandler:IsSyncedCode() then
 				-- INTERNAL flag: the engine treats internal attacks as automatic
 				-- targets (weapons may swap them and Set Target overrides them),
 				-- which is not how a player's queued Attack behaves.
+				local queueLength = Spring.GetUnitCommandCount(unitID) or 0
 				issuingControllerAttack = true
 				spGiveOrderToUnit(unitID, CMD.INSERT, { 0, CMD.ATTACK, 0, targetID }, CMD.OPT_ALT)
-				registerTargetDependency(unitID, targetID)
 				issuingControllerAttack = false
-				if state.nextTargetIndex > lastAttackableIndex(state.targets) then
-					spGiveOrderToUnit(unitID, CMD.REMOVE, { referenceTag }, CMD.OPT_INTERNAL)
-					clearState(unitID)
+				if targetListStates[unitID] ~= state then
+					-- The Attack ended in the same call and a nested CommandFallback
+					-- already moved on or removed the controller.
+					return true
 				end
-				return true
+				if (Spring.GetUnitCommandCount(unitID) or 0) > queueLength then
+					registerTargetDependency(unitID, targetID)
+					if state.nextTargetIndex > lastAttackableIndex(state.targets) then
+						spGiveOrderToUnit(unitID, CMD.REMOVE, { referenceTag }, CMD.OPT_INTERNAL)
+						clearState(unitID)
+					end
+					return true
+				end
+				-- AllowCommand rejected the Attack (for example the only-target-category
+				-- gadget). A native queue never held that order, so continue with the
+				-- next entry now instead of at the unit's next SlowUpdate.
 			end
 		end
 		return false

@@ -7,7 +7,10 @@
 -- that order. The compact list keeps the target like the native input and lets
 -- the same rejection skip it when the controller issues it. Two identical
 -- submarines receive the same hover and boat targets, one as a compact list
--- and one as native queued Attacks; their queues must stay equal.
+-- and one as native queued Attacks; their queues must stay equal. The
+-- rejected entries must also cost no time: the native queue never held them,
+-- so the compact list has to reach the boat in the same frame instead of
+-- spending one SlowUpdate per rejected entry.
 
 function setup()
 	assert(select(1, Spring.GetTeamInfo(1, false)) ~= nil, "target-list tests require enemy team 1")
@@ -43,13 +46,18 @@ local function createScenario()
 	local targetX = waterX + 300
 	local compactID = assert(Spring.CreateUnit("armsub", sourceX, 0, waterZ - 150, "east", 0))
 	local nativeID = assert(Spring.CreateUnit("armsub", sourceX, 0, waterZ + 150, "east", 0))
+	-- Three hovers ahead of the boat: every one of them is rejected for the
+	-- submarine, and each rejection must not delay the boat.
 	local hoverID = assert(Spring.CreateUnit("armsh", targetX, 0, waterZ - 150, "west", 1))
+	local secondHoverID = assert(Spring.CreateUnit("armsh", targetX - 100, 0, waterZ - 150, "west", 1))
+	local thirdHoverID = assert(Spring.CreateUnit("armsh", targetX - 200, 0, waterZ - 150, "west", 1))
 	local boatID = assert(Spring.CreateUnit("armpt", targetX, 0, waterZ + 150, "west", 1))
-	for _, unitID in ipairs({ compactID, nativeID, hoverID, boatID }) do
+	local units = { compactID, nativeID, hoverID, secondHoverID, thirdHoverID, boatID }
+	for _, unitID in ipairs(units) do
 		Spring.MoveCtrl.Enable(unitID)
 	end
-	Spring.GiveOrderToUnitArray({ compactID, nativeID, hoverID, boatID }, CMD.FIRE_STATE, { 0 }, 0)
-	return compactID, nativeID, hoverID, boatID
+	Spring.GiveOrderToUnitArray(units, CMD.FIRE_STATE, { 0 }, 0)
+	return compactID, nativeID, hoverID, secondHoverID, thirdHoverID, boatID
 end
 
 local function getTargetability(locals)
@@ -88,25 +96,35 @@ local function weaponTarget(unitID)
 end
 
 function test()
-	local compactID, nativeID, hoverID, boatID = SyncedRun(createScenario)
+	local compactID, nativeID, hoverID, secondHoverID, thirdHoverID, boatID = SyncedRun(createScenario)
 	Test.waitFrames(32)
 	local subCanTargetHover, subCanTargetBoat = SyncedRun(getTargetability)
 	assertEqual(subCanTargetHover, false, "the submarine must not be able to target the hover")
 	assertEqual(subCanTargetBoat, true, "the submarine must be able to target the boat")
 
 	Spring.GiveOrderToUnit(nativeID, CMD.ATTACK, { hoverID }, 0)
+	Spring.GiveOrderToUnit(nativeID, CMD.ATTACK, { secondHoverID }, CMD.OPT_SHIFT)
+	Spring.GiveOrderToUnit(nativeID, CMD.ATTACK, { thirdHoverID }, CMD.OPT_SHIFT)
 	Spring.GiveOrderToUnit(nativeID, CMD.ATTACK, { boatID }, CMD.OPT_SHIFT)
-	Spring.GiveOrderToUnit(compactID, GameCMD.ATTACK_TARGETS, { hoverID, boatID }, 0)
+	Spring.GiveOrderToUnit(compactID, GameCMD.ATTACK_TARGETS, { hoverID, secondHoverID, thirdHoverID, boatID }, 0)
 
-	-- The hover Attack is rejected for the native queue; the compact list must
-	-- reach the same plain Attack on the boat.
+	-- The hover Attacks are rejected for the native queue in the frame the
+	-- orders arrive. The compact list must reach the same plain Attack on the
+	-- boat in that same frame, not one SlowUpdate per rejected entry later.
 	Test.waitUntil(function()
-		return attackQueue(nativeID) == "A" .. boatID and attackQueue(compactID) == "A" .. boatID
+		return attackQueue(nativeID) == "A" .. boatID
 	end, 120)
+	assertEqual(
+		attackQueue(compactID),
+		"A" .. boatID,
+		"the compact list skips the rejected hovers in the same frame as the native queue"
+	)
 	Test.waitFrames(60)
 	assertEqual(attackQueue(compactID), attackQueue(nativeID), "queues stay equal while attacking the boat")
 	assertEqual(weaponTarget(compactID), weaponTarget(nativeID), "weapon targets stay equal")
-	assertEqual(Spring.ValidUnitID(hoverID), true, "the hover was skipped, not destroyed")
+	for _, skippedID in ipairs({ hoverID, secondHoverID, thirdHoverID }) do
+		assertEqual(Spring.ValidUnitID(skippedID), true, "the hovers were skipped, not destroyed")
+	end
 
 	SyncedRun(destroyBoat)
 	Test.waitUntil(function()
