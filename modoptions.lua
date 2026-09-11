@@ -369,48 +369,6 @@ local options = {
 	},
 	{
 		key = "sub_header",
-		name = "-- Sharing and Taxes",
-		section = "options_main",
-		type = "subheader",
-		def = true,
-	},
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "tax_resource_sharing_amount",
-		name = "Resource Sharing Tax",
-		desc = "Taxes resource sharing"
-			.. "\255\128\128\128"
-			.. " and overflow (engine TODO:)\n"
-			.. "Set to [0] to turn off. Recommended: [0.4].",
-		type = "number",
-		def = 0,
-		min = 0,
-		max = 0.99,
-		step = 0.01,
-		section = "options_main",
-		column = 1,
-	},
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "disable_unit_sharing",
-		name = "Disable Unit Sharing",
-		desc = "Disable sharing units and structures to allies",
-		type = "bool",
-		section = "options_main",
-		def = false,
-	},
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "disable_assist_ally_construction",
-		name = "Disable Assist Ally Construction",
-		desc = "Disables assisting allied blueprints and labs.",
-		type = "bool",
-		section = "options_main",
-		def = false,
-		column = 1.66,
-	},
-	{
-		key = "sub_header",
 		section = "options_main",
 		type = "separator",
 	},
@@ -1846,30 +1804,6 @@ local options = {
 		type = "link",
 		link = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
 		width = 275,
-		column = 1.65,
-		linkheight = 325,
-		linkwidth = 350,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "easytax",
-		name = "Easy Tax v2",
-		desc = "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
-		type = "bool",
-		section = "options_experimental",
-		def = false,
-	},
-
-	-- NOTE: update language/en/interface.json when you change name or desc
-	{
-		key = "easytax_link",
-		name = "Changelog",
-		desc = "Easy Tax v2 description.",
-		section = "options_experimental",
-		type = "link",
-		link = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
-		width = 215,
 		column = 1.65,
 		linkheight = 325,
 		linkwidth = 350,
