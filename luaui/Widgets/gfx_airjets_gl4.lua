@@ -78,12 +78,12 @@ local lightMult = 1.4
 local teamColorMode = Spring.GetConfigInt("AirjetsTeamColored", 1)
 
 local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
-local texture2 = ":c:bitmaps/gpl/jet_atlas.tga" -- R=opacity(shape), G=perlin displacement strength (per jetType)
+local texture2 = "luaui/images/jet_atlas.tga" -- R=opacity(shape), G=perlin displacement strength (per jetType)
 
 -- jet2 atlas: 8 columns of 32x64; per-effect overrides below (defaults preserve the old look)
 local defaultJetType = 0         -- atlas column (0..7)
 local defaultXZVelSizeMult = 0.0 -- XZ velocity -> jet length multiplier (0 = off, keeps old look)
-local defaultYVelSizeMult = 1.0  -- Y  velocity -> jet length multiplier (1 = current behaviour)
+local defaultYVelSizeMult = 1.0   -- Y  velocity -> jet length multiplier (1 = current behaviour)
 
 local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
@@ -308,8 +308,8 @@ void main()
 	vec4 speedvector = uni[instData.y].speed;
 
 	vec2 modulatedsize = widthlengthtime.xy * 1.5;
-	modulatedsize.y *= clamp(speedvector.y * 0.5 * jetParams.y + 1.0 , 0.66, 2.0); // Y velocity -> length
-	modulatedsize.y *= clamp(length(speedvector.xz) * 0.5 * jetParams.x + 1.0, 0.66, 2.0); // XZ velocity -> length
+	modulatedsize.y *= clamp(speedvector.y * 0.5 * jetParams.y + 1.0 , 0.33, 4.0); // Y velocity -> length
+	modulatedsize.y *= clamp(length(speedvector.xz) * 0.5 * jetParams.x + 1.0, 0.33, 4.0); // XZ velocity -> length
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
@@ -405,7 +405,7 @@ void main(void)
 		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * distortion;
 		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-cellUV.t)         * 15.0 * distortion;
 
-		vec2 atlasUV = vec2((jetAtlas + clamp(txCoord, 0.0, 1.0)) / JET_ATLAS_COLS, txCoord.t);
+		vec2 atlasUV = vec2((jetAtlas + clamp(txCoord.s, 0.0, 1.0)) / JET_ATLAS_COLS, txCoord.t);
 		float opac = texture(mask, atlasUV).r;
 
 		fragColor.rgb  = opac * jetcolor.rgb; //color
