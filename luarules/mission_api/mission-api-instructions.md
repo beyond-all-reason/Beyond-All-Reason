@@ -86,12 +86,14 @@ One file per action group in `luarules/mission_api/actions/<category>/` — the 
 ```lua
 return {
 	{
-		type = 'AddMarker',
+		type = 'AddMapMarker',
 		parameters = {
-			{ name = 'position', required = true,  type = ParameterTypes.Position },
-			{ name = 'label',    required = false, type = ParameterTypes.String },
+			{ name = 'markerName', required = true,  type = ParameterTypes.String },
+			{ name = 'position',   required = true,  type = ParameterTypes.Position },
+			{ name = 'markerType', required = false, type = ParameterTypes.String },
+			{ name = 'label',      required = false, type = ParameterTypes.String },
 		},
-		actionFunction = addMarker,
+		actionFunction = addMapMarker,
 	},
 }
 ```
