@@ -6,6 +6,7 @@ local UnitDefBuilder = VFS.Include("spec/builders/unit_def_builder.lua")
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local FeatureDefsBuilder = VFS.Include("spec/builders/feature_defs_builder.lua")
 local MissionApiBuilder = VFS.Include("spec/builders/mission_api_builder.lua")
+local MissionBuilder = VFS.Include("spec/builders/mission_builder.lua")
 local TriggerBuilder = VFS.Include("spec/builders/trigger_builder.lua")
 local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder.lua")
 
@@ -17,6 +18,7 @@ local TriggerContextBuilder = VFS.Include("spec/builders/trigger_context_builder
 ---@field UnitDefs UnitDefsBuilder
 ---@field FeatureDefs FeatureDefsBuilder
 ---@field MissionApi MissionApiBuilder
+---@field Mission MissionBuilder
 ---@field Trigger TriggerBuilder
 ---@field TriggerContext TriggerContextBuilder
 local Builders = {
@@ -28,6 +30,7 @@ local Builders = {
 	UnitDefs = UnitDefsBuilder,
 	FeatureDefs = FeatureDefsBuilder,
 	MissionApi = MissionApiBuilder,
+	Mission = MissionBuilder,
 	Trigger = TriggerBuilder,
 	TriggerContext = TriggerContextBuilder,
 }

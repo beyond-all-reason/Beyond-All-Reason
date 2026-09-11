@@ -83,6 +83,37 @@ local triggers = {
 		type = 'invalidType',
 	},
 
+	-- Valid: settings are optional in raw missions, the loader applies the defaults.
+	triggerWithoutSettings = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	-- error: settings must be a table
+	triggerWithNonTableSettings = {
+		type = triggerTypes.TimeElapsed,
+		settings = 'notATable',
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	-- error: maxRepeats without repeating
+	triggerWithMaxRepeatsButNotRepeating = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			maxRepeats = 3,
+		},
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
 	triggerWithInvalidActionID = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -100,6 +131,7 @@ local triggers = {
 			difficulties = 0,
 			coop = 0,
 			active = 0,
+			stages = { 123 },   -- error: stage list entries must be stageID strings
 		},
 		parameters = {
 			seconds = 100000000,
@@ -108,9 +140,9 @@ local triggers = {
 	},
 
 	triggerWithInvalidAllyTeamID = {
-		type = triggerTypes.UnitSpotted,
+		type = triggerTypes.UnitDetected,
 		parameters = {
-			spottingAllyTeamID = 777,
+			sensorAllyTeam = 777,
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -139,6 +171,26 @@ local triggers = {
 			teamID = 0,
 			metal = 10,
 			sources = { 'invalidSource1', false, 123 },
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithFractionOutOfRange = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 5.0, -- error: a fraction must be between 0 and 1
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidFractionType = {
+		type = triggerTypes.ConstructionProgress,
+		parameters = {
+			teamID = 0,
+			unitDefName = 'armcom',
+			progress = 'notANumber',
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -453,6 +505,38 @@ local actions = {
 		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'loadoutCom',
+		},
+	},
+
+	actionWithInvalidDirectionAngle = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 'north' }, -- error: an angle must be a number
+		},
+	},
+
+	actionWithAmbiguousDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { angle = 90, x = 1, z = 1 }, -- error: an angle and a vector are mutually exclusive
+		},
+	},
+
+	actionWithEmptyDirection = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = {}, -- error: neither an angle nor a vector
+		},
+	},
+
+	actionWithInvalidDirectionVector = {
+		type = actionTypes.RotateUnits,
+		parameters = {
+			unitName = 'validName',
+			direction = { x = 'notANumber', z = 1 },
 		},
 	},
 }
