@@ -27,12 +27,12 @@ validated through analytics, however; that's what this gadget gathers.
 
 function gadget:GetInfo()
 	return {
-		name    = "DGun Griefing Detection",
-		desc    = "Logs DGun commands to analytics based on whether they classify as griefing or not.",
-		author  = "TheDujin. DGun ally detection code by kroIya/Color",
-		date    = "2026-05-01",
+		name = "DGun Griefing Detection",
+		desc = "Logs DGun commands to analytics based on whether they classify as griefing or not.",
+		author = "TheDujin. DGun ally detection code by kroIya/Color",
+		date = "2026-05-01",
 		license = "GNU GPL, v2 or later",
-		layer   = -1,
+		layer = -1,
 		enabled = true,
 	}
 end
@@ -100,7 +100,6 @@ local DGUN_WIDTH = armcomDGunRadius * 2 -- convert radius into diameter
 -- Note that effective range also must account for the weapon AOE and some (undocumented?) overshoot. This is roughly correct based on experimental verification
 local DGUN_RANGE = armcomDGunRange + armcomDGunRadius
 
-
 local function GetConstructionTurretPower()
 	local unitDef = UnitDefNames.armnanotc or UnitDefNames.cornanotc or UnitDefNames.legnanotc
 	return (unitDef and unitPower[unitDef.id]) or 0
@@ -140,7 +139,6 @@ local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
 
-
 -- Called if player becomes spec (or god forbid, player changes teams or ally-teams somehow? Shouldn't be possible in real game?)
 local function RefreshPlayerState()
 	myTeamID = spGetMyTeamID()
@@ -172,7 +170,7 @@ local function GetUnitDisplayName(unitDefID)
 end
 
 local function MakePlane(normalX, normalY, normalZ, pointX, pointY, pointZ)
-	return {normalX, normalY, normalZ, -(normalX * pointX + normalY * pointY + normalZ * pointZ)}
+	return { normalX, normalY, normalZ, -(normalX * pointX + normalY * pointY + normalZ * pointZ) }
 end
 
 local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, halfWidth)
@@ -213,8 +211,22 @@ local function BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, ha
 	local planes = {
 		MakePlane(-axisX, -axisY, -axisZ, startX, startY, startZ), -- excludes units behind dgun
 		MakePlane(axisX, axisY, axisZ, endX, endY, endZ), -- excludes units ahead of dgun
-		MakePlane(sideX, sideY, sideZ, centerX + sideX * halfWidth, centerY + sideY * halfWidth, centerZ + sideZ * halfWidth), -- excludes units to the "right side" of dgun
-		MakePlane(-sideX, -sideY, -sideZ, centerX - sideX * halfWidth, centerY - sideY * halfWidth, centerZ - sideZ * halfWidth), -- excludes units to the "left side" of dgun
+		MakePlane(
+			sideX,
+			sideY,
+			sideZ,
+			centerX + sideX * halfWidth,
+			centerY + sideY * halfWidth,
+			centerZ + sideZ * halfWidth
+		), -- excludes units to the "right side" of dgun
+		MakePlane(
+			-sideX,
+			-sideY,
+			-sideZ,
+			centerX - sideX * halfWidth,
+			centerY - sideY * halfWidth,
+			centerZ - sideZ * halfWidth
+		), -- excludes units to the "left side" of dgun
 		MakePlane(upX, upY, upZ, centerX + upX * halfWidth, centerY + upY * halfWidth, centerZ + upZ * halfWidth), -- excludes units "above" the dgun
 		MakePlane(-upX, -upY, -upZ, centerX - upX * halfWidth, centerY - upY * halfWidth, centerZ - upZ * halfWidth), -- excludes units "below" the dgun
 	}
@@ -347,7 +359,12 @@ local function BuildDGunSegment(unitX, unitY, unitZ, targetX, targetY, targetZ)
 	end
 
 	-- Else, build line segment ending at the target location, extending backwards (DGUN out of range; comm must walk nearby)
-	return targetX - dirX * DGUN_RANGE, targetY - dirY * DGUN_RANGE, targetZ - dirZ * DGUN_RANGE, targetX, targetY, targetZ
+	return targetX - dirX * DGUN_RANGE,
+		targetY - dirY * DGUN_RANGE,
+		targetZ - dirZ * DGUN_RANGE,
+		targetX,
+		targetY,
+		targetZ
 end
 
 -- Returns True and explanation of most powerful threatened ally if DGUN threatens too much allied stuff (see: MIN_THREATENED_ALLY_POWER)
@@ -357,7 +374,11 @@ local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 	-- Build a prism around the beam, then filter allied units manually.
 	-- Note: we would rather use the allegiance parameter with ALLY_UNITS. However, as of 2026-08-20, there is an engine-side bug that throws uncaught exception when trying to use it.
 	-- TODO use allegiance parameter once sprunk's fix is published in live engine version
-	local candidates = CallAsTeam(myTeamID, spGetUnitsInPlanes, BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_WIDTH / 2))
+	local candidates = CallAsTeam(
+		myTeamID,
+		spGetUnitsInPlanes,
+		BuildBeamPrismPlanes(startX, startY, startZ, endX, endY, endZ, DGUN_WIDTH / 2)
+	)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
@@ -368,12 +389,21 @@ local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 
 		-- Exclude self-owned units (should always be allowed to shoot those)
 		-- Exclude non-allied units and allied comms (you can't DGun grief an allied comm)
-		if unitTeam and unitTeam ~= myTeamID and spAreTeamsAllied(unitTeam, myTeamID) and not isCommander[unitDefID] then
+		if
+			unitTeam
+			and unitTeam ~= myTeamID
+			and spAreTeamsAllied(unitTeam, myTeamID)
+			and not isCommander[unitDefID]
+		then
 			local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
 			if (captureProgress or 0) > 0 then
 				-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
 				-- It is ok to dgun to prevent unit capture.
-				return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
+				return false,
+					string.format(
+						"DGun is targeting allied %s, which is currently being captured",
+						GetUnitDisplayName(unitDefID)
+					)
 			end
 
 			-- Partially built units only contribute proportional power to threat.
@@ -390,14 +420,24 @@ local function HandleDGunAllyRisk(startX, startY, startZ, endX, endY, endZ)
 	end
 
 	if threatenedAllyPower >= MIN_THREATENED_ALLY_POWER then
-		return true, string.format("DGun threatens %d allied power, including %s", threatenedAllyPower, mostPowerfulThreatenedUnitName or "unknown_unit")
+		return true,
+			string.format(
+				"DGun threatens %d allied power, including %s",
+				threatenedAllyPower,
+				mostPowerfulThreatenedUnitName or "unknown_unit"
+			)
 	end
 
 	if threatenedAllyPower == 0 then
 		return false
 	end
-	
-	return false, string.format("Only %d allied power threatened, including %s. Ignored as inconsequential", threatenedAllyPower, mostPowerfulThreatenedUnitName or "unknown_unit")
+
+	return false,
+		string.format(
+			"Only %d allied power threatened, including %s. Ignored as inconsequential",
+			threatenedAllyPower,
+			mostPowerfulThreatenedUnitName or "unknown_unit"
+		)
 end
 
 -- If DGun target location is near a visible enemy, it can be fired indiscriminately (it won't be classified as griefing)
@@ -405,7 +445,8 @@ local function HasKnownEnemyNearby(targetX, targetY, targetZ)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
 
-	local candidates = CallAsTeam(myTeamID, spGetUnitsInSphere, targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
+	local candidates =
+		CallAsTeam(myTeamID, spGetUnitsInSphere, targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
@@ -457,7 +498,18 @@ function gadget:Initialize()
 	RefreshPlayerState()
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDamaged(
+	unitID,
+	unitDefID,
+	unitTeam,
+	damage,
+	paralyzer,
+	weaponDefID,
+	projectileID,
+	attackerID,
+	attackerDefID,
+	attackerTeam
+)
 	if GetAllyTeamID(unitTeam) ~= myAllyTeamID then
 		return -- not one of our allies that was damaged
 	end

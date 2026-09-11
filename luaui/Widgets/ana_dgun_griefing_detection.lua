@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "DGun Griefing Detection Bridge",
-		desc    = "Receives DGun griefing events from LuaRules and forwards them to analytics.",
-		author  = "TheDujin, Codex",
-		date    = "2026-05-09",
+		name = "DGun Griefing Detection Bridge",
+		desc = "Receives DGun griefing events from LuaRules and forwards them to analytics.",
+		author = "TheDujin, Codex",
+		date = "2026-05-09",
 		license = "GNU GPL, v2 or later",
-		layer   = -1,
+		layer = -1,
 		enabled = true,
 	}
 end
