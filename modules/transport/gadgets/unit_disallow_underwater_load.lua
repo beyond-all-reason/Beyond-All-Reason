@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 		x,
 		y,
 		z
-	) -- disallow unloading underwater
+	)
 		local height = Spring.GetUnitHeight(transporteeID)
 		if not height or y + height < 0 then
 			return false
@@ -59,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 		x,
 		y,
 		z
-	) -- disallow unloading underwater
+	)
 		local height = Spring.GetUnitHeight(transporteeID)
 		if not height or y + height < 0 then
 			return false
