@@ -40,9 +40,9 @@ if gadgetHandler:IsSyncedCode() then
 	local COM_BLAST = WeaponDefNames.commanderexplosion.id -- used to prevent them being boosted and flying far away
 	local CMD_STOP = CMD.STOP
 
-	local crashing = {}
-	GG.Crashing = crashing -- read-only reference for other gadgets
-	local crashingCount = 0
+	-- Shared membership; values are destruction deadlines, not booleans.
+	-- Consumers can acquire this table before the controller loads.
+	local crashing = table.ensureTable(GG, "Crashing")
 
 	local isAircon = {}
 	local crashable = {}
@@ -86,7 +86,6 @@ if gadgetHandler:IsSyncedCode() then
 				SetAirMoveTypeData(unitID, "myGravity", moveTypeData.myGravity * gravityMult)
 			end
 			-- make it crash
-			crashingCount = crashingCount + 1
 			crashing[unitID] = GetGameFrame() + 450
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID, true)
@@ -134,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	local crashDestroyCount = 0
 
 	function gadget:GameFrame(gf)
-		if crashingCount > 0 and gf % 44 == 1 then
+		if gf % 44 == 1 and next(crashing) then
 			-- Collect first: DestroyUnit triggers UnitDestroyed synchronously,
 			-- which nils entries from 'crashing', invalidating the pairs() iterator
 			crashDestroyCount = 0
@@ -152,10 +151,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		if crashing[unitID] then
-			crashingCount = crashingCount - 1
-			crashing[unitID] = nil
-		end
+		crashing[unitID] = nil
 	end
 else -- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState
