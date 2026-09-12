@@ -1564,8 +1564,7 @@ local pools = {
 -- each of which allocates a new Lua table with N entries (N = selected unit count).
 local frameSel = nil -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
 local frameSelCount = 0 -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
--- The per-frame cache sits atop the shared unit selections api, also.
-local getSelectedUnits
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced at init
 
 -- Tracked-player selected-unit cache for PIP.
 -- Filled incrementally by selectedUnits call-ins; seeded once from WG allyselectedunits
