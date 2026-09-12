@@ -132,8 +132,8 @@ local pauseGameWhenSingleplayerExecuted = false
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 
-local screenHeightOrg = 520
-local screenWidthOrg = 1050
+local screenHeightOrg = 550
+local screenWidthOrg = 1100
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -553,7 +553,8 @@ function updateInputDlist()
 				activationArea[2] + chatlogHeightDiff - distance - inputHeight,
 				x2,
 				activationArea[2] + chatlogHeightDiff - distance,
-				"optionsinput"
+				"optionsinput",
+				widget
 			)
 		end
 
@@ -1831,7 +1832,8 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
-					WG.guishader.InsertDlist(backgroundGuishader, "options")
+					-- 'self' rather than 'widget': this function sits at the Lua 5.1 upvalue cap
+					WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
 				end
 			end
 			showOnceMore = false
@@ -2229,14 +2231,16 @@ function widget:DrawScreen()
 						optionButtons[showSelectOptions][2],
 						optionButtons[showSelectOptions][3],
 						optionButtons[showSelectOptions][4],
-						"options_select"
+						"options_select",
+						self
 					)
 					WG.guishader.InsertScreenRect(
 						optionButtons[showSelectOptions][1],
 						yPos - oHeight - oPadding,
 						optionButtons[showSelectOptions][1] + maxWidth,
 						optionButtons[showSelectOptions][2],
-						"options_select_options"
+						"options_select_options",
+						self
 					)
 					WG.guishader.insertRenderDlist(selectOptionsList)
 				else
@@ -2488,6 +2492,12 @@ function mouseEvent(mx, my, button, release)
 	end
 
 	if show then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+			return false
+		end
+
 		local windowClick = (math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]))
 		local titleClick = (titleRect and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]))
 		local chatinputClick = (
@@ -5160,70 +5170,6 @@ function init()
 		},
 
 		{
-			id = "keybindings",
-			group = "control",
-			category = types.basic,
-			name = BAR.I18N("ui.settings.option.keybindings"),
-			type = "select",
-			options = keyLayouts.keybindingLayouts,
-			value = 1,
-			description = BAR.I18N("ui.settings.option.keybindings_descr"),
-			onload = function()
-				local keyFile = Spring.GetConfigString("KeybindingFile")
-				local value = 1
-
-				if (not keyFile) or (keyFile == "") or (not VFS.FileExists(keyFile)) then
-					keyFile = keyLayouts.keybindingLayoutFiles[1]
-				end
-
-				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
-					if v == keyFile then
-						value = i
-						break
-					end
-				end
-
-				options[getOptionByID("keybindings")].value = value
-			end,
-			onchange = function(_, value)
-				local keyFile = keyLayouts.keybindingLayoutFiles[value]
-
-				if not keyFile or keyFile == "" then
-					return
-				end
-
-				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
-
-				if isCustom and not VFS.FileExists(keyFile) then
-					Spring.SendCommands("keysave " .. keyFile)
-					Spring.Echo("Preset Custom selected, file saved at: " .. keyFile)
-				end
-
-				Spring.SetConfigString("KeybindingFile", keyFile)
-				if isCustom then
-					Spring.Echo("To test your custom bindings after changes type in chat: /keyreload")
-				end
-				-- enable grid menu for grid keybinds
-				local preset = options[getOptionByID("keybindings")].options[value]
-				Spring.Echo(preset)
-				if string.find(string.lower(preset), "grid", nil, true) then
-					widgetHandler:DisableWidget("Build menu")
-					widgetHandler:EnableWidget("Grid menu")
-				elseif preset == "Custom" then
-				-- do stuff with custom preset
-				else
-					widgetHandler:DisableWidget("Grid menu")
-					widgetHandler:EnableWidget("Build menu")
-				end
-
-				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
-					WG.bar_hotkeys.reloadBindings()
-				end
-				scheduleInit = true
-			end,
-		},
-
-		{
 			id = "gridmenu",
 			group = "control",
 			category = types.basic,
@@ -7009,12 +6955,12 @@ function init()
 				"ui.settings.option.topbar_hidebuttons"
 			),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons() or 0),
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons()) or false,
 			onload = function(i)
-				loadWidgetData("Top Bar", "topbar_hidebuttons", { "autoHideButtons" })
+				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
 			onchange = function(i, value)
-				saveOptionValue("Top Bar", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
+				saveOptionValue("Top Bar Buttons", "topbar", "setAutoHideButtons", { "autoHideButtons" }, value)
 			end,
 		},
 
@@ -7086,6 +7032,21 @@ function init()
 			description = BAR.I18N("ui.settings.option.widgetselector_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+			end,
+		},
+
+		{
+			id = "windows_hideinterface",
+			group = "ui",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.windows_hideinterface"),
+			type = "bool",
+			value = Spring.GetConfigInt("WindowsHideInterface", 0) == 1,
+			description = BAR.I18N("ui.settings.option.windows_hideinterface_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("WindowsHideInterface", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsHideInterface(value)
 			end,
 		},
 
@@ -12729,6 +12690,12 @@ function widget:Initialize()
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring won't remember what you set with '/minimap iconssize #'
+
+	-- lets the handler hide the rest of the interface while the window is open
+	-- (this widget holds the real widgetHandler, so it passes itself)
+	widgetHandler:RegisterModalWindow(widget, function()
+		return show == true
+	end)
 
 	WG.options = {}
 	WG.options.toggle = function(state)
