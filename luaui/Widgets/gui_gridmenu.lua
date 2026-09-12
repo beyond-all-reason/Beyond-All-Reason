@@ -3213,10 +3213,10 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 		return
 	end
 
-	-- If factory is in repeat, queue does not change, except if it is alt-queued
+	-- The queue does not change under repeat because the order is recycled to the back.
 	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
-
-	if factoryRepeat and not options.alt then
+	-- Internal orders are the exception; see `CFactoryCAI::DecreaseQueueCount`.
+	if factoryRepeat and not options.internal then
 		return
 	end
 
