@@ -30,7 +30,9 @@ local SAFEWRAP = 0
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
-local GADGETS_DIR = Script.GetName():gsub("US$", "") .. "/Gadgets/"
+local HANDLER_BASE_NAME = Script.GetName():gsub("US$", "") -- "LuaRules" or "LuaGaia" (unused)
+local IS_LUARULES = HANDLER_BASE_NAME == "LuaRules"
+local GADGETS_DIR = HANDLER_BASE_NAME .. "/Gadgets/"
 local SCRIPT_DIR = Script.GetName() .. "/"
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
@@ -529,8 +531,8 @@ function gadgetHandler:Initialize()
 	--  table.sort(gadgetFiles)
 
 	-- Game-side shim until the engine loads module subdirectories natively.
-	if Script.GetName():gsub("US$", "") == "LuaRules" then
-		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+	if IS_LUARULES then
+		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE) ---@type ModuleHandler
 		-- Manifests, apis, actions and policies are memoised; a file added since the last
 		-- load is invisible until they are dropped.
 		ModuleHandler.ResetCaches()
