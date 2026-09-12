@@ -23,6 +23,7 @@ local LAYOUT = {
 	state = "state.lua",
 }
 
+--- @class ModuleHandler
 local ModuleHandler = {}
 
 ---modoptions.lua pulls this file into lobby/unitsync contexts where the Spring global does not exist.
