@@ -86,7 +86,7 @@ function customFirestateDefs.getUnitUserFirestate(unitID)
 		return nil
 	end
 	if Spring.GetModOptions().experimental_defend_firestate then
-		local rulesState = Spring.GetUnitRulesParam(unitID, customFirestateDefs.RULES_PARAM)
+		local rulesState = tonumber(Spring.GetUnitRulesParam(unitID, customFirestateDefs.RULES_PARAM))
 		if rulesState ~= nil then
 			return rulesState
 		end
