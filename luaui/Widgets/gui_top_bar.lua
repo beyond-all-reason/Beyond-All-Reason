@@ -2580,7 +2580,6 @@ end
 
 function widget:MousePress(x, y, button)
 	if button == 1 then
-
 		if not spec then
 			if not isSingle then
 				if
@@ -2631,14 +2630,14 @@ function widget:MousePress(x, y, button)
 				return true
 			end
 		end
-
+	end
 
 	if hoveringTopbar then
 		return true
 	end
 end
 
-
+function widget:MouseRelease(x, y, button)
 	if draggingShareIndicator then
 		adjustSliders(x, y)
 		draggingShareIndicator = nil
