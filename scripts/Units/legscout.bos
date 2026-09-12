@@ -1,15 +1,16 @@
 #define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading;
+static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading, wpnheading, aimBelief, lastAimFrame;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE 			4
+
+#define AIM_SPEED_YAW <300>
 
 
 #define BASEPIECE body
@@ -42,7 +43,6 @@ Steering(heading, steery, currentSpeed)
 	{
 		heading = get HEADING;
 		steery = (heading - oldheading)*3/2;
-		turn body to y-axis steery speed <120>;
 		turn body to z-axis steery speed <15>;		
 		currentSpeed = <5.5> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
@@ -77,8 +77,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn mount to y-axis <0> speed <150.000000>;
+	// home at the aim turn rate and restart the frame clock so the belief model stays true
+	lastAimFrame = get GAME_FRAME;
+	turn mount to y-axis <0> speed AIM_SPEED_YAW;
 	turn gun to x-axis <0> speed <150.000000>;
+	wpnheading = 0;
 }
 SetStunned(State)
 {
@@ -89,6 +92,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
@@ -97,11 +101,33 @@ AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn mount to y-axis heading speed <300.000000>;
+
+	var frame;
+	var step;
+	var delta;
+	frame = get GAME_FRAME;
+	step = (frame - lastAimFrame) * (AIM_SPEED_YAW / 30);
+	lastAimFrame = frame;
+	delta = WRAPDELTA(wpnheading - aimBelief);
+	if ((get ABS(delta)) > step)
+	{
+		aimBelief = WRAPDELTA(aimBelief + SIGN(delta) * step);
+	}
+	else
+	{
+		aimBelief = wpnheading;
+	}
+
+	turn mount to y-axis heading speed AIM_SPEED_YAW;
 	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
-	wait-for-turn mount around y-axis;
-	wait-for-turn gun around x-axis;
+	wpnheading = heading;
 	start-script RestoreAfterDelay();
+
+	delta = WRAPDELTA(heading - aimBelief);
+	if ((get ABS(delta)) > <25>)
+	{
+		return (0);
+	}
 	return (1);
 }
 

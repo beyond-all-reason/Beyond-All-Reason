@@ -46,6 +46,7 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 2,
 			subfolder = "Legion",
 		},
 		featuredefs = {
@@ -148,6 +149,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
+				burstcontrolwhenoutofarc = 2,
 				def = "GUN",
 				onlytargetcategory = "NOTSUB",
 			},
