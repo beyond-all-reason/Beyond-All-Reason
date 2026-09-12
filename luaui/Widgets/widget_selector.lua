@@ -32,6 +32,10 @@ local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
 local text = VFS.Include("luaui/Include/keybind_text.lua")
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
 local Search = VFS.Include("luaui/Include/search.lua")
+-- Wrapping every callin to time it is global and does not nest, so one thing owns it and
+-- everything else reads what it measured. Subscribing is what puts the wrappers in, so
+-- nothing is paid for until the column is switched on.
+local profiling = VFS.Include("luaui/Include/widget_profiling.lua")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -172,6 +176,23 @@ local colorText = "\255\235\235\235"
 local colorPending = "\255\255\210\135"
 local colorLocal = "\255\130\175\230"
 local colorDanger = "\255\255\190\190"
+-- How the two cost columns read. Quiet while a widget is cheap and warm once it is not,
+-- on the thresholds the profiler overlay marks a widget red at; `sample` is the widest
+-- each column ever prints and what its width is measured from.
+--
+-- One table rather than eight locals, for the same reason `metrics` and `look` are
+-- tables: this chunk is at Lua's ceiling of 200.
+local cost = {
+	cool = "\255\140\140\140",
+	warm = "\255\225\195\130",
+	hot = "\255\255\150\110",
+	cpuWarn = 0.5,
+	cpuHot = 2,
+	memWarn = 20,
+	memHot = 100,
+	sampleCpu = "99.9%",
+	sampleMem = "9999k",
+}
 
 -- Filename prefixes, spelled out. Everything the game ships carries one; a widget with a
 -- prefix that is not here - which is most of what a player writes - falls into Other, so
@@ -208,7 +229,7 @@ local OTHER = "other"
 local L = {}
 
 local show, showOnceMore
-local panelList, windowList, backgroundGuishader, panelSig
+local panelList, windowList, backgroundGuishader
 local listTop, listBottom, listX1, listRight, descX1, barX1 = 0, 0, 0, 0, 0, 0
 local switchX1, orderX1, nameX1, clearX1 = 0, 0, 0, 0
 -- The sets block at the foot of the category column: a caption, the picker, and the
@@ -229,6 +250,10 @@ local switches = {
 	{ key = "localOnly" },
 	{ key = "enabledOnly" },
 	{ key = "byOrder" },
+	{ key = "profiler" },
+	-- Only offered while the column it orders by is showing. `sub` is what keeps it out
+	-- of the header the rest of the time.
+	{ key = "byLoad", sub = "profiler" },
 }
 
 -- Every widget the panel can show, as rows; and the categories they fall into.
@@ -252,7 +277,7 @@ local selectedCategory
 -- `localOnly` keeps the player's own files. `enabledOnly` keeps anything the config says
 -- to load, whether or not it is running. `byOrder` sorts by where each widget sits in the
 -- handler's list rather than by name, which is the only way the load order can be seen.
-local filters = { localOnly = false, enabledOnly = false, byOrder = false }
+local filters = { localOnly = false, enabledOnly = false, byOrder = false, profiler = false, byLoad = false }
 ---@type table
 local searchBox
 ---@type table
@@ -340,10 +365,23 @@ local function stateOf(name, data)
 	return 0
 end
 
+-- The rolling check for anything that changed behind the panel's back, and where it has
+-- got to. One table rather than four locals, for the same reason `metrics` and `cost` are
+-- tables: this chunk is at Lua's ceiling of 200. `moved` is filled in further down, once
+-- there is a row layout for it to read.
+-- `dirty` is set whenever this panel asks the handler for something. Those changes do
+-- not have to be discovered by looking: the panel already knows it asked, and the answer
+-- lands once the queued operation has run, which is before the next Update.
+local sweep = { at = 1, order = 1, slice = 16, dirty = false, now = {}, was = {} }
+
+-- `now` and `was` are the other half of the same job: what the baked panel is painted
+-- from this frame against what it was painted from last frame. Filled in place and never
+-- replaced, so deciding whether to repaint costs nothing to collect either.
+
 -- Whether the handler is holding anything this widget saved. An empty table is nothing
 -- to clear: a widget with a GetConfigData that returns `{}` would otherwise offer a
 -- button that does nothing.
-local function hasConfigData(name)
+function sweep.hasConfig(name)
 	local d = widgetHandler.configData[name]
 
 	return type(d) == "table" and next(d) ~= nil
@@ -400,7 +438,7 @@ local function buildEntries()
 				data = data,
 				group = groupOf(data),
 				state = stateOf(name, data),
-				hasConfig = hasConfigData(name),
+				hasConfig = sweep.hasConfig(name),
 				order = order[name],
 				layer = layer[name],
 				desc = desc,
@@ -503,6 +541,36 @@ local function sortEntries(a, b)
 	return a.name < b.name
 end
 
+-- Heaviest first, on exactly the figure the row shows. Ordering on some other average of
+-- the same widget puts a row reading 0.4% above one reading 2.0%, and a list a reader
+-- cannot check is worse than no order at all. What keeps it from reshuffling under the
+-- cursor is the hold in Update, not a slower number.
+--
+-- Anything not running has nothing measured and sorts to the bottom.
+local function sortByLoad(a, b)
+	local sa = profiling.stats[a.name]
+	local sb = profiling.stats[b.name]
+	if sa and sb then
+		if sa.load ~= sb.load then
+			return sa.load > sb.load
+		end
+		return a.name < b.name
+	end
+	if sa or sb then
+		return sa ~= nil
+	end
+
+	return a.name < b.name
+end
+
+local function rowOrder()
+	if filters.byLoad and filters.profiler then
+		return sortByLoad
+	end
+
+	return filters.byOrder and sortByOrder or sortEntries
+end
+
 -- The rows the list shows: what the column, the search box and the filter toggle left.
 -- A search ranks what it finds, so the closest answer is at the top; with no search the
 -- authored order stands, since a list that reshuffles as it is read loses the reader.
@@ -543,13 +611,13 @@ rebuildRows = function()
 				return a.score > b.score
 			end
 
-			return (filters.byOrder and sortByOrder or sortEntries)(a.e, b.e)
+			return rowOrder()(a.e, b.e)
 		end)
 		for i = 1, #scored do
 			rows[i] = scored[i].e
 		end
 	else
-		table.sort(rows, filters.byOrder and sortByOrder or sortEntries)
+		table.sort(rows, rowOrder())
 	end
 end
 
@@ -731,8 +799,10 @@ local function applySet(name)
 		local want = set.widgets[e.name] == true
 		if want and e.state == 0 then
 			widgetHandler:EnableWidget(e.name)
+			sweep.dirty = true
 		elseif not want and e.state > 0 then
 			widgetHandler:DisableWidget(e.name)
+			sweep.dirty = true
 		end
 	end
 end
@@ -775,6 +845,7 @@ end
 local function disableAll()
 	for i = 1, #entries do
 		widgetHandler:DisableWidget(entries[i].name)
+		sweep.dirty = true
 	end
 	widgetHandler:SaveConfigData()
 end
@@ -813,6 +884,7 @@ local function clearConfigData(name)
 	local known = widgetHandler.knownWidgets[name]
 	if known and known.active then
 		widgetHandler:DisableWidget(name)
+		sweep.dirty = true
 		pendingClear = { name = name, restart = true }
 
 		return
@@ -871,6 +943,26 @@ local function confirm(title, message, accept, danger, field, initial)
 	if field and nameBox then
 		nameBox:setText(initial or "")
 		nameBox:focus()
+	end
+end
+
+-- Turns the measurement on and off with the column that shows it. Subscribing is what puts
+-- the wrappers into every widget's callins, so a player who never opens this column never
+-- pays for it; unsubscribing takes them out again, unless the profiler widget is also up.
+local function applyProfiling()
+	if filters.profiler then
+		-- A third as often as the profiler panel asks for. The sweep that turns the raw
+		-- counters into averages walks every widget and all of its callins, and a column being
+		-- glanced at down a list does not need it ten times a second - three is still quicker
+		-- than anyone reads a number, and the figures are smoothed over two seconds anyway, so
+		-- nothing is lost between samples. With the profiler panel up as well its faster rate
+		-- wins and both are satisfied.
+		profiling.subscribe(widget, 0.3)
+	else
+		profiling.unsubscribe(widget)
+		-- Nothing left to order by, so the sub-switch goes with it rather than sitting on
+		-- with a list it can no longer arrange.
+		filters.byLoad = false
 	end
 end
 
@@ -987,11 +1079,25 @@ setLayout = function()
 	-- The switch owns a column at the head of the row, and the name starts after it.
 	metrics.switchH = mathFloor(metrics.rowHeight * 0.46)
 	metrics.switchW = mathFloor(metrics.switchH * 2.2)
+
+	-- What each widget costs, ahead of the control that turns it off: the number is the
+	-- reason for reaching for the switch, so it is read first. Both columns are measured
+	-- from the widest they can print and the figures are right-aligned in them, so the
+	-- decimal points line up down the list instead of wandering with the digits.
+	metrics.loadFs = mathFloor(metrics.rowFs * 0.95)
+	metrics.cpuW = cost.font and mathFloor(cost.font:GetTextWidth(cost.sampleCpu) * metrics.loadFs) or mathFloor(34 * s)
+	metrics.memW = cost.font and mathFloor(cost.font:GetTextWidth(cost.sampleMem) * metrics.loadFs) or mathFloor(30 * s)
 	-- What the switch leaves above and below itself inside the row. It is held the same
 	-- distance from the accent bar down the left edge, so the air around it reads as even
 	-- rather than pinched on one side.
 	metrics.switchGap = mathFloor((metrics.rowHeight - metrics.switchH) * 0.5)
-	switchX1 = listX1 + metrics.accentW + metrics.switchGap
+	metrics.cpuX1 = listX1 + metrics.accentW + metrics.switchGap
+	metrics.memX1 = metrics.cpuX1 + metrics.cpuW + metrics.rowPad
+	if filters.profiler then
+		switchX1 = metrics.memX1 + metrics.memW + metrics.rowPad * 2
+	else
+		switchX1 = metrics.cpuX1
+	end
 	-- The rank gets a column of its own only while the list is in that order: a number
 	-- nobody is reading is clutter, and the name is worth the room.
 	orderX1 = switchX1 + metrics.switchW + metrics.rowPad * 2
@@ -1023,20 +1129,29 @@ setLayout = function()
 	metrics.captionBleed = mathFloor(metrics.toggleFs * 0.2 + 0.5)
 
 	local x2 = area.x2 - metrics.edgeInset
+	local lastSwitch
 	for i = 1, #switches do
 		local sw = switches[i]
 		sw.label = L[sw.key]
-		local w = font and mathFloor(font:GetTextWidth(sw.label) * metrics.toggleFs) or mathFloor(90 * s)
-		sw.draw = { x2 - togW, togY1, x2, togY1 + togH }
-		-- The caption is part of the control: a switch this small is a poor click target on
-		-- its own, and the words beside it are what names the thing being switched.
-		sw.hit = { sw.draw[1] - metrics.rowPad * 2 - w - metrics.captionBleed, rowBottom, x2 + metrics.rowPad, rowTop }
-		x2 = sw.hit[1] - mathFloor(14 * s)
+		-- A sub-switch is only there while what it qualifies is on. No rect means it is not
+		-- drawn and cannot be hit, so nothing else has to know about it.
+		if sw.sub and not filters[sw.sub] then
+			sw.draw, sw.hit = nil, nil
+		else
+			local w = font and mathFloor(font:GetTextWidth(sw.label) * metrics.toggleFs) or mathFloor(90 * s)
+			sw.draw = { x2 - togW, togY1, x2, togY1 + togH }
+			-- The caption is part of the control: a switch this small is a poor click target on
+			-- its own, and the words beside it are what names the thing being switched.
+			sw.hit =
+				{ sw.draw[1] - metrics.rowPad * 2 - w - metrics.captionBleed, rowBottom, x2 + metrics.rowPad, rowTop }
+			x2 = sw.hit[1] - mathFloor(14 * s)
+			lastSwitch = sw
+		end
 	end
 
 	-- Wider than the gaps inside a switch, so the last caption reads as belonging to the
 	-- switch beside it rather than to the field it would otherwise sit against.
-	searchBox:setRect(listX1, rowBottom, switches[#switches].hit[1] - mathFloor(28 * s), rowTop, fs)
+	searchBox:setRect(listX1, rowBottom, lastSwitch.hit[1] - mathFloor(28 * s), rowTop, fs)
 
 	-- The sets block, measured up from the foot of the category card.
 	local setsPad = mathFloor(8 * s)
@@ -1238,6 +1353,58 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear)
 	end
 end
 
+-- The two cost columns, drawn live rather than baked into the panel list with the rest of
+-- the row. They change several times a second, and re-baking three hundred rows at that
+-- rate would cost more than the numbers are worth; everything else on the row is static
+-- between hovers, so it stays in the list.
+--
+-- Nothing is drawn behind them. A plate per row would put two hundred small boxes down
+-- the panel and turn a column of figures into a table nobody asked for.
+local function drawCostColumns()
+	if not (filters.profiler and cost.font) then
+		return
+	end
+
+	cost.font:Begin()
+	for i = 1, #rows - scroll do
+		local row = rows[scroll + i]
+		if not row then
+			break
+		end
+		local top = listTop - (i - 1) * metrics.rowHeight
+		if top - metrics.rowHeight < listBottom then
+			break
+		end
+		local stat = profiling.stats[row.name]
+		if stat then
+			local ty = mathFloor(top - metrics.rowHeight * 0.5)
+			-- Each figure is coloured by itself, not by some other average of the same widget:
+			-- a row reading 0.4% in the warning colour beside one reading 2.0% in the quiet one
+			-- says the colour means nothing.
+			local cpu = stat.load
+			local mem = stat.space
+			-- Right-aligned in its own column, so the figures line up down the list.
+			cost.font:Print(
+				(cpu >= cost.cpuHot and cost.hot or cpu >= cost.cpuWarn and cost.warm or cost.cool)
+					.. string.format("%.1f%%", cpu),
+				metrics.cpuX1 + metrics.cpuW,
+				ty,
+				metrics.loadFs,
+				"rov"
+			)
+			cost.font:Print(
+				(mem >= cost.memHot and cost.hot or mem >= cost.memWarn and cost.warm or cost.cool)
+					.. string.format("%.0fk", mem),
+				metrics.memX1 + metrics.memW,
+				ty,
+				metrics.loadFs,
+				"rov"
+			)
+		end
+	end
+	cost.font:End()
+end
+
 local function drawRows()
 	for i = 1, #rows - scroll do
 		local row = rows[scroll + i]
@@ -1369,7 +1536,9 @@ end
 local function drawHeader()
 	for i = 1, #switches do
 		local sw = switches[i]
-		drawSwitch(sw.draw, sw.hit, sw.label, filters[sw.key], hover.tog == i)
+		if sw.draw then
+			drawSwitch(sw.draw, sw.hit, sw.label, filters[sw.key], hover.tog == i)
+		end
 	end
 end
 
@@ -1511,7 +1680,6 @@ local function dropLists()
 	if panelList then
 		glDeleteList(panelList)
 		panelList = nil
-		panelSig = nil
 	end
 	if windowList then
 		glDeleteList(windowList)
@@ -1622,7 +1790,7 @@ local function rowClearable(i)
 	return (row and row.hasConfig) and row or nil
 end
 
-local function panelSignature(mx, my)
+local function panelChanged(mx, my)
 	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.clr = 0, 0, 0, 0, 0, 0
 	hover.btn, hover.dlg = "", ""
 
@@ -1662,45 +1830,55 @@ local function panelSignature(mx, my)
 				hover.bar = 1
 			end
 		end
-		for _, set in ipairs({ buttons, setButtons }) do
-			for _, b in ipairs(set) do
-				local r = b.rect
-				if r and math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
-					hover.btn = b.id
-				end
+		-- Written out rather than looped over a { buttons, setButtons } literal: that literal
+		-- is a table built and thrown away on every frame the panel is open.
+		for i = 1, #buttons do
+			local r = buttons[i].rect
+			if r and math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
+				hover.btn = buttons[i].id
+			end
+		end
+		for i = 1, #setButtons do
+			local r = setButtons[i].rect
+			if r and math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
+				hover.btn = setButtons[i].id
 			end
 		end
 	end
 
-	return hover.sb
-		.. "|"
-		.. hover.row
-		.. "|"
-		.. hover.sw
-		.. "|"
-		.. hover.tog
-		.. "|"
-		.. hover.bar
-		.. "|"
-		.. hover.clr
-		.. "|"
-		.. hover.btn
-		.. "|"
-		.. hover.dlg
-		.. "|"
-		.. scroll
-		.. "|"
-		.. rowsGen
-		.. "|"
-		.. layoutGen
-		.. "|"
-		.. catScroll
-		.. "|"
-		.. (dragging and 1 or 0)
-		.. "|"
-		.. (dialog and 1 or 0)
-		.. "|"
-		.. (select(2, dialogName()) and 1 or 0)
+	-- Compared one value at a time against the last frame's rather than joined into a
+	-- string. This runs on every frame the panel is open, and a string built every frame
+	-- is a string collected every frame; the two tables here are filled in place and
+	-- never replaced.
+	local now, was = sweep.now, sweep.was
+	now[1] = hover.sb
+	now[2] = hover.row
+	now[3] = hover.sw
+	now[4] = hover.tog
+	now[5] = hover.bar
+	now[6] = hover.clr
+	now[7] = filters.profiler
+	now[8] = hover.btn
+	now[9] = hover.dlg
+	now[10] = scroll
+	now[11] = rowsGen
+	now[12] = layoutGen
+	now[13] = catScroll
+	now[14] = dragging
+	now[15] = dialog ~= nil
+	-- Only asked while a dialog is actually up: answering it trims the field with a gsub,
+	-- and a gsub on every frame the panel is open is a string on every frame.
+	now[16] = dialog ~= nil and select(2, dialogName()) or false
+
+	local changed = false
+	for i = 1, 16 do
+		if was[i] ~= now[i] then
+			was[i] = now[i]
+			changed = true
+		end
+	end
+
+	return changed
 end
 
 ----------------------------------------------------------------
@@ -1709,29 +1887,74 @@ end
 
 -- Has anything been switched on or off since the rows were built?
 --
--- Asking every frame the panel is open is what it takes. The handler queues Toggle,
--- Enable and Disable and runs them once the callin that asked has returned, so the state
--- cannot be read back on the click itself; and a widget can be switched from somewhere
--- else entirely - the settings panel, a /luaui command, one erroring out on load - which
--- nothing here would otherwise hear about. `knownChanged` does not cover it: the handler
--- raises that only when a widget it has never seen registers.
+-- Asking is what it takes. The handler queues Toggle, Enable and Disable and runs them
+-- once the callin that asked has returned, so the state cannot be read back on the click
+-- itself; and a widget can be switched from somewhere else entirely - the settings panel,
+-- a /luaui command, one erroring out on load - which nothing here would otherwise hear
+-- about. `knownChanged` does not cover it: the handler raises that only when a widget it
+-- has never seen registers.
 --
--- A few hundred table lookups on a frame where a panel is being looked at.
+-- Asking about all three hundred of them every frame, though, made this panel one of the
+-- most expensive widgets in the game while it was open - it was ninety per cent of what
+-- the panel cost. So the sweep is spread. The rows actually on screen are checked every
+-- frame, because those are the ones being looked at and a click has to show in the row it
+-- landed on; the rest of the list and the load order are swept a slice at a time, which
+-- finds a widget switched from somewhere else within a few frames instead of within one.
+-- Nobody can see the difference, and it is several times cheaper.
+function sweep.moved(e)
+	return e.state ~= stateOf(e.name, e.data) or e.hasConfig ~= sweep.hasConfig(e.name)
+end
+
 local function contentMoved()
-	for i = 1, #entries do
-		local e = entries[i]
-		if e.state ~= stateOf(e.name, e.data) or e.hasConfig ~= hasConfigData(e.name) then
+	-- Anything this panel asked for, first and without looking for it.
+	if sweep.dirty then
+		sweep.dirty = false
+
+		return true
+	end
+
+	-- Then what is on screen, which is what is being looked at.
+	local page = mathFloor((listTop - listBottom) / metrics.rowHeight)
+	for i = 1, page do
+		local e = rows[scroll + i]
+		if not e then
+			break
+		end
+		if sweep.moved(e) then
 			return true
+		end
+	end
+
+	-- Then a slice of the whole list, carrying on from where the last frame stopped.
+	local n = #entries
+	if n > 0 then
+		for _ = 1, (sweep.slice < n and sweep.slice or n) do
+			if sweep.at > n then
+				sweep.at = 1
+			end
+			local e = entries[sweep.at]
+			sweep.at = sweep.at + 1
+			if e and sweep.moved(e) then
+				return true
+			end
 		end
 	end
 
 	-- And the load order, which moves without any state changing: raising or lowering a
 	-- widget only shifts it within the handler's list, and that is queued like the rest.
-	for i = 1, #widgetHandler.widgets do
-		local w = widgetHandler.widgets[i]
-		local e = w.whInfo and entryByName[w.whInfo.name]
-		if e and e.order ~= i then
-			return true
+	local live = widgetHandler.widgets
+	local m = #live
+	if m > 0 then
+		for _ = 1, (sweep.slice < m and sweep.slice or m) do
+			if sweep.order > m then
+				sweep.order = 1
+			end
+			local w = live[sweep.order]
+			local e = w and w.whInfo and entryByName[w.whInfo.name]
+			if e and e.order ~= sweep.order then
+				return true
+			end
+			sweep.order = sweep.order + 1
 		end
 	end
 
@@ -1823,6 +2046,9 @@ local function loadLabels()
 	-- never leave that band.
 	L.hint = tr("hint", "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.")
 	L.order = tr("order", "Load order")
+	L.total = tr("total", "total")
+	L.profiler = tr("profiler", "Cost")
+	L.byLoad = tr("byload", "By cost")
 	L.cleardata = tr("cleardata", "Reset")
 	L.cleardataTitle = tr("cleardatatitle", "Clear saved settings")
 	-- The fallbacks only. These two carry the widget's name, and i18n fills a %{...} in
@@ -1834,6 +2060,45 @@ local function loadLabels()
 	L.cleardataRestartWarnFallback =
 		"Throws away everything %{name} has saved - its options, its window position, whatever it remembers. It is running, so it is switched off and on again to start from its defaults. Nothing else in the list is touched."
 	L.layer = tr("layer", "Layer")
+
+	-- What every control on the panel does, keyed the way the control names itself. The
+	-- destructive ones point at the wording their own confirmation uses, so what the
+	-- tooltip promises and what the dialog asks cannot drift apart.
+	L.desc = {
+		localOnly = tr(
+			"localonlydesc",
+			"Show only the widgets in your own LuaUI folder, leaving out the ones the game ships."
+		),
+		enabledOnly = tr(
+			"enabledonlydesc",
+			"Show only the widgets the config says to load - running or not - so what is off stays out of the way."
+		),
+		byOrder = tr(
+			"byorderdesc",
+			"Order the list the way the widgets load, which is the order their call-ins run in. Anything not running has no place in that order and follows at the end."
+		),
+		profiler = tr(
+			"profilerdesc",
+			"Show what each widget costs: processor time as a share of the frame, and memory allocated per second. Measuring it means timing every call-in of every widget, so this is only paid for while it is switched on."
+		),
+		byLoad = tr(
+			"byloaddesc",
+			"Order the list by what each widget costs, heaviest first. The order stands still while the cursor is over the list, so nothing slides out from under a click, and catches up when the cursor leaves."
+		),
+		reload = tr(
+			"reloaddesc",
+			"Loads every widget again from disk, keeping what is switched on. The quickest way to pick up a widget you have just edited."
+		),
+		disableall = L.disableAllWarn,
+		reset = L.resetWarn,
+		factory = L.factoryWarn,
+		loadset = tr(
+			"loadsetdesc",
+			"Switches on every widget in the chosen set and switches off everything else, so the list ends up exactly as the set describes it."
+		),
+		saveset = L.saveSetWarn,
+		deleteset = L.deleteSetWarn,
+	}
 end
 
 -- What clearing this widget would do, in the words the confirmation uses. Looked up
@@ -1874,6 +2139,11 @@ local function bindUi()
 	end
 
 	font = WG.fonts.getFont()
+	-- The monospaced face, for the cost columns alone. Figures that change several times
+	-- a second wander sideways in a proportional face as the digits under them change,
+	-- which turns a column that should be read at a glance into one that has to be
+	-- re-read. Fixed widths hold the decimal point still.
+	cost.font = WG.fonts.getFont(3)
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
@@ -2026,6 +2296,9 @@ end
 function widget:Shutdown()
 	deleteGuishader()
 	dropLists()
+	-- Or every widget in the game keeps a wrapper round every callin for the rest of the
+	-- session, measuring into a table nobody is left to read.
+	profiling.unsubscribe(widget)
 	if WG.tooltip then
 		WG.tooltip.RemoveTooltip("widgetselector")
 	end
@@ -2054,6 +2327,35 @@ function widget:LanguageChanged()
 end
 
 function widget:Update()
+	-- Kept up whether or not the panel is open: the averages are a running figure, and one
+	-- that starts from nothing every time the panel is opened would read as every widget
+	-- being free for the first few seconds. The include only does the work on a tick.
+	-- The column may have been switched on by the config, before there was a handler far
+	-- enough along to wrap. Anything that leaves the two disagreeing is settled here.
+	if filters.profiler ~= profiling.subscribes(widget) then
+		applyProfiling()
+	end
+
+	-- Only the row under the cursor is broken down per callin: the include smooths one
+	-- widget at a time, and nothing reads more than one at once.
+	if filters.profiler then
+		local over = show and hover.row > 0 and rows[scroll + hover.row]
+		profiling.setDetail(over and over.name or nil)
+	end
+
+	if filters.profiler and profiling.sample() and filters.byLoad and show then
+		-- Ordering by cost means the list moves under the cursor, and a row that slides
+		-- away between aiming at it and clicking it is how the wrong widget gets switched
+		-- off. So while the cursor is anywhere over the list the order is held exactly as
+		-- it is, and catches up the moment the cursor leaves. The figures on each row keep
+		-- moving throughout: it is the order that is frozen, not the reading.
+		local mx, my = spGetMouseState()
+		if not math_isInRect(mx, my, listX1, listBottom, listRight, listTop) then
+			rebuildRows()
+			clampScroll()
+		end
+	end
+
 	-- The disable asked for on the click has run by now, so the widget has already handed
 	-- its settings back and this is the one moment they can be dropped for good.
 	if pendingClear then
@@ -2062,6 +2364,7 @@ function widget:Update()
 		widgetHandler.configData[p.name] = nil
 		if p.restart then
 			widgetHandler:EnableWidget(p.name)
+			sweep.dirty = true
 		end
 		widgetHandler:SaveConfigData()
 		refreshContent()
@@ -2117,10 +2420,84 @@ function widget:Update()
 	end
 end
 
--- What the cursor is over, said in words. Its own function rather than a block inside
--- DrawScreen: the clear button answers with something else entirely and bows out early,
--- and an early return in a draw callin would quietly skip whatever is added after it.
-local function rowTooltip(row)
+-- What the cursor is over, said in words: a switch or button over the panel, or failing
+-- that the row under it. One function rather than two, and its own rather than a block
+-- inside DrawScreen, where an early return would quietly skip whatever is added after it.
+-- What the last tooltip was built from, and what it came out as. gui_tooltip wants the
+-- strings on every frame the tooltip is up, and building them again each time is a wrapped,
+-- substituted string per frame for a reading nobody changed - and gui_tooltip throws its
+-- own display list away whenever the text it is handed differs.
+--
+-- Compared field by field rather than through a key, since building a key would be the very
+-- string this is avoiding.
+local tipCache = {}
+
+function tipCache.same(a, b, c, d)
+	return tipCache.title ~= nil and tipCache.a == a and tipCache.b == b and tipCache.c == c and tipCache.d == d
+end
+
+function tipCache.keep(a, b, c, d, title, text)
+	tipCache.a, tipCache.b, tipCache.c, tipCache.d, tipCache.title, tipCache.text = a, b, c, d, title, text
+end
+
+local function showTooltip(row)
+	local caption, body
+
+	if hover.tog > 0 and switches[hover.tog] and switches[hover.tog].draw then
+		local sw = switches[hover.tog]
+		caption, body = sw.label, L.desc[sw.key]
+	elseif hover.btn ~= "" then
+		-- The user-widgets button says two different things depending on which way it is
+		-- pointing, so its wording is picked here rather than baked into the table.
+		if hover.btn == "userwidgets" then
+			caption = widgetHandler.allowUserWidgets and L.disallowUser or L.allowUser
+			body = widgetHandler.allowUserWidgets and L.disallowUserWarn or L.allowUserWarn
+		else
+			body = L.desc[hover.btn]
+			for _, b in ipairs(buttons) do
+				if b.id == hover.btn then
+					caption = b.label
+				end
+			end
+			caption = caption or L[hover.btn]
+		end
+	end
+
+	if caption and body then
+		if not tipCache.same("control", caption, body, false) then
+			tipCache.keep(
+				"control",
+				caption,
+				body,
+				false,
+				colorTitle .. caption .. "\n",
+				"\255\255\255\255"
+					.. string.gsub(font:WrapText(body, WG.tooltip.getFontsize() * 90), "[\n]", "\n\255\255\255\255")
+			)
+		end
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
+
+		return
+	end
+
+	-- Nothing over the panel, so whatever row is under the cursor has it; with no row
+	-- either, nothing is being pointed at that has anything to say.
+	if not row then
+		return
+	end
+
+	-- Everything below builds two strings with a wrap and a substitution in them, and none
+	-- of what they are built from moves while the cursor rests on one row. Held until the
+	-- row, its state or its place in the order changes.
+	-- With the breakdown showing, the reading changes once per sample rather than never,
+	-- so the sample counter joins what the cache is keyed on.
+	local gen = filters.profiler and profiling.gen or 0
+	if tipCache.same("row", row.name, row.state, (row.order or 0) + gen * 100000) then
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
+
+		return
+	end
+
 	local d = row.data
 	-- The same three states the row is painted in, said in words: green is running,
 	-- amber is enabled but not running, red is off.
@@ -2139,14 +2516,18 @@ local function rowTooltip(row)
 	-- settings away should say so before it is pressed rather than only after. Word for
 	-- word what the confirmation asks, so nothing new turns up at the last step.
 	if hover.clr == 1 then
-		local warn = clearDataWarning(row.name, row.state == 1)
-		WG.tooltip.ShowTooltip(
-			"widgetselector",
-			"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255"),
-			nil,
-			nil,
-			colorDanger .. L.cleardataTitle .. "\n"
-		)
+		if not tipCache.same("clear", row.name, row.state, false) then
+			local warn = clearDataWarning(row.name, row.state == 1)
+			tipCache.keep(
+				"clear",
+				row.name,
+				row.state,
+				false,
+				colorDanger .. L.cleardataTitle .. "\n",
+				"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255")
+			)
+		end
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
 
 		return
 	end
@@ -2181,7 +2562,42 @@ local function rowTooltip(row)
 		.. (row.isLocal and "   (" .. L.islocal .. ")" or "")
 		.. "\n\255\130\130\130"
 		.. L.hint
-	WG.tooltip.ShowTooltip("widgetselector", tip, nil, nil, title)
+	-- With the cost column on, what the widget is spending it on, broken down the way the
+	-- profiler breaks it down: time, allocations, callin. A tooltip is one string in a
+	-- proportional face, so the columns are padded to a fixed number of characters rather
+	-- than measured - digits are the same width in most faces, which is what carries it.
+	if filters.profiler then
+		local detail = profiling.callins(row.name)
+		if detail then
+			local list = {}
+			local sumT, sumS = 0, 0
+			for cname, c in pairs(detail) do
+				sumT = sumT + c[1]
+				sumS = sumS + c[2]
+				-- A callin that costs nothing either way is noise; its cost still counts towards
+				-- the total, so that stays honest.
+				if c[1] >= 0.003 or c[2] >= 0.1 then
+					list[#list + 1] = { name = cname, t = c[1], s = c[2] }
+				end
+			end
+			table.sort(list, function(x, y)
+				return x.t > y.t
+			end)
+
+			-- The heading sits at the head of its column rather than right-aligned with the
+			-- figures under it: a heading shorter than the numbers below would otherwise float
+			-- off to the right of them, which is what a reader sees as the column being indented.
+			tip = tip .. "\n" .. "\255\160\255\160" .. string.format("%-7s %-13s %s", "time", "allocs", "callin")
+			for i = 1, #list do
+				local e = list[i]
+				tip = tip .. "\n\255\175\175\175" .. string.format("%6.2f%% %9.1fkB/s %s", e.t, e.s, e.name)
+			end
+			tip = tip .. "\n\255\160\255\160" .. string.format("%6.2f%% %9.1fkB/s %s", sumT, sumS, L.total)
+		end
+	end
+
+	tipCache.keep("row", row.name, row.state, (row.order or 0) + gen * 100000, title, tip)
+	WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
 end
 
 function widget:DrawScreen()
@@ -2212,13 +2628,13 @@ function widget:DrawScreen()
 		end
 	end
 
-	local sig = panelSignature(show and mx or -1, show and my or -1)
-	if sig ~= panelSig then
+	-- Answers whether anything painted into the baked panel moved. It has to run even
+	-- when nothing did, since that is how it finds out.
+	if panelChanged(show and mx or -1, show and my or -1) or not panelList then
 		if panelList then
 			glDeleteList(panelList)
 		end
 		panelList = glCreateList(drawPanel)
-		panelSig = sig
 	end
 
 	if not windowList then
@@ -2226,6 +2642,9 @@ function widget:DrawScreen()
 	end
 	glCallList(windowList)
 	glCallList(panelList)
+	if show and not dialog then
+		drawCostColumns()
+	end
 	-- Live, over the baked panel: a text field's caret blinks and its contents change as
 	-- it is typed into, and the picker's list opens over the rows.
 	if show then
@@ -2265,9 +2684,8 @@ function widget:DrawScreen()
 	if math_isInRect(mx, my, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 		Spring.SetMouseCursor("cursornormal")
 
-		local row = not dialog and hover.row > 0 and rows[scroll + hover.row]
-		if row and WG.tooltip then
-			rowTooltip(row)
+		if WG.tooltip and not dialog then
+			showTooltip(hover.row > 0 and rows[scroll + hover.row] or nil)
 		end
 	end
 end
@@ -2490,6 +2908,14 @@ local function mouseEvent(x, y, button, release)
 			end
 			if hitSwitch then
 				filters[hitSwitch] = not filters[hitSwitch]
+				-- Two ways of ordering the same list, so switching one on takes the other off
+				-- rather than leaving the header claiming both.
+				if hitSwitch == "byLoad" and filters.byLoad then
+					filters.byOrder = false
+				elseif hitSwitch == "byOrder" and filters.byOrder then
+					filters.byLoad = false
+				end
+				applyProfiling()
 				-- The rank column appears and disappears with the sort, so the columns move.
 				setLayout()
 				-- The column counts what the filters leave, so they still say what clicking one
@@ -2546,6 +2972,7 @@ local function mouseEvent(x, y, button, release)
 				end
 			elseif button == 1 then
 				widgetHandler:ToggleWidget(overRow.name)
+				sweep.dirty = true
 
 				click()
 			elseif button == 2 or button == 3 then
@@ -2553,8 +2980,10 @@ local function mouseEvent(x, y, button, release)
 				if w then
 					if button == 2 then
 						widgetHandler:LowerWidget(w)
+						sweep.dirty = true
 					else
 						widgetHandler:RaiseWidget(w)
+						sweep.dirty = true
 					end
 					widgetHandler:SaveConfigData()
 				end
@@ -2588,6 +3017,8 @@ function widget:GetConfigData()
 		localOnly = filters.localOnly,
 		enabledOnly = filters.enabledOnly,
 		byOrder = filters.byOrder,
+		profiler = filters.profiler,
+		byLoad = filters.byLoad,
 		category = selectedCategory,
 		sets = sets,
 		pickedSet = pickedSet,
@@ -2618,5 +3049,13 @@ function widget:SetConfigData(data)
 	pickedSet = type(data.pickedSet) == "string" and data.pickedSet or nil
 	filters.enabledOnly = data.enabledOnly == true
 	filters.byOrder = data.byOrder == true
+	-- Restored like the rest of the switches. It is not free - the column costs every
+	-- widget in the game a wrapper round every callin for as long as it is on - but a
+	-- switch that quietly forgets itself every session is worse than one that costs
+	-- something, and the switch says plainly what it does. Acting on it waits for the
+	-- first Update: this runs while the handler is still loading widgets, which is no
+	-- time to start wrapping their callins.
+	filters.profiler = data.profiler == true
+	filters.byLoad = filters.profiler and data.byLoad == true
 	selectedCategory = type(data.category) == "string" and data.category or nil
 end
