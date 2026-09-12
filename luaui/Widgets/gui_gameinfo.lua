@@ -25,6 +25,7 @@ end
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local text = VFS.Include("luaui/Include/keybind_text.lua")
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 -- Tweaks arrive minified, as one enormous line; this lays them out again. Wanted rather
 -- than required: the engine lists the game's files once at start, so a file added since is
 -- invisible until the next one, and a hard include would take the whole panel down on a
@@ -1152,20 +1153,19 @@ rebuildRows = function()
 	-- The selection is a span of row numbers, and these are about to be different rows.
 	clearSelection()
 
-	local query = searchBox and string.lower(searchBox:getText()) or ""
+	local query = Search.query(searchBox and searchBox:getText())
 	for _, block in ipairs(blocks) do
 		if not selectedCategory or block.category == selectedCategory then
-			local blockMatch = query ~= "" and string.find(block.titleLower, query, 1, true) ~= nil
+			-- A block whose own heading matches keeps every row under it, so searching for a
+			-- section's name shows the section rather than emptying it.
+			local blockMatch = Search.claims(query, block.titleLower)
 			local first = #rows
 			-- The unit whose opening line is the last one shown. A line still under that one
 			-- needs no introduction; a line whose opening was filtered away has to name the
 			-- unit itself, since on its own it is a value with nothing to belong to.
 			local shownOwner
 			for _, entry in ipairs(block.entries) do
-				if
-					(not changedOnly or entry.changed)
-					and (query == "" or blockMatch or string.find(entry.search, query, 1, true))
-				then
+				if (not changedOnly or entry.changed) and (blockMatch or Search.matches(query, entry.search)) then
 					if entry.unitDefID then
 						shownOwner = entry.ownerUnitDefID
 						entry.needsOwner = nil
