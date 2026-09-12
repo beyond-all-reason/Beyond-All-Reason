@@ -30,6 +30,23 @@ local capabilityTests = {
 	attack = function(unitDef)
 		return unitDef.canAttack and unitDef.maxWeaponRange > 0
 	end,
+	setTarget = function(unitDef)
+		-- TODO: can_set_target seems like a good customparam to verify at alldefs.
+		if (unitDef.canAttack or unitDef.customParams.allow_set_target) and unitDef.maxWeaponRange > 0 then
+			for _, weapon in pairs(unitDef.weapons) do
+				local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
+				if
+					weapon.slavedTo == 0
+					and weaponDef.type ~= "Shield"
+					and not (unitDef.canManualFire and weaponDef.manualFire)
+					and weaponDef.range > 10
+				then
+					return true
+				end
+			end
+		end
+		return false
+	end,
 	capture = function(unitDef)
 		return unitDef.canCapture
 	end,
@@ -38,7 +55,7 @@ local capabilityTests = {
 	end,
 	repairs = function(unitDef)
 		-- Assist without repair is buildframes only, so has to check its target.
-		return unitDef.canRepair or unitDef.canAssist
+		return not unitDef.isFactory and (unitDef.canRepair or unitDef.canAssist)
 	end,
 	reclaim = function(unitDef)
 		return unitDef.canReclaim
