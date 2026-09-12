@@ -5,6 +5,7 @@
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+local text = VFS.Include("luaui/Include/keybind_text.lua")
 
 local Editbox = {}
 Editbox.__index = Editbox
@@ -19,6 +20,11 @@ local colorDim = "\255\160\160\160"
 -- snapping back, rather than a hard on/off blink.
 local cursorBlinkDuration = 1
 local cursorGrey = 0.7
+
+-- What the panels light a row with under the cursor. The field takes the same, so it
+-- reads as something you can click into rather than a plate with text on it.
+local hoverOpacity = 0.14
+local white = { 1, 1, 1 }
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
@@ -55,7 +61,7 @@ end
 function Editbox:setRect(x1, y1, x2, y2, fontSize, pad)
 	self.rect = { x1, y1, x2, y2 }
 	self.fontSize = fontSize or (y2 - y1) * 0.5
-	self.pad = pad or floor((y2 - y1) * 0.2)
+	self.pad = pad or floor((y2 - y1) * 0.3)
 end
 
 function Editbox:getText()
@@ -333,9 +339,17 @@ function Editbox:draw()
 	local cs = floor(WG.FlowUI.elementCorner * 0.66)
 	local inset = floor((y2 - y1) * 0.18)
 	local tx = x1 + self.pad
-	local ty = floor((y1 + y2) * 0.5)
+	-- The middle of the field, for the caret and the selection, which are box-shaped and
+	-- want the box; and the baseline the text is drawn from, which wants the font.
+	local cy = floor((y1 + y2) * 0.5)
+	local ty = text.baseline(font, y1, y2, self.fontSize)
 
 	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
+
+	local mx, my = Spring.GetMouseState()
+	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+		WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+	end
 
 	if self:hasSelection() then
 		local a, b = self:selRange()
@@ -363,7 +377,7 @@ function Editbox:draw()
 	end
 
 	font:Begin()
-	font:Print(shown, tx, ty, self.fontSize, "ov")
+	font:Print(shown, tx, ty, self.fontSize, "o")
 	font:End()
 
 	if self.focused then
@@ -371,8 +385,8 @@ function Editbox:draw()
 		-- a fixed span around the text's middle, so it does not stretch with the field.
 		local cx = floor(tx + caretOffset(self, font))
 		local cWidth = 1 + floor(self.fontSize / 14)
-		local cy1 = math.max(y1 + 1, floor(ty - self.fontSize * 0.6))
-		local cy2 = math.min(y2 - 1, floor(ty + self.fontSize * 0.64))
+		local cy1 = math.max(y1 + 1, floor(cy - self.fontSize * 0.6))
+		local cy2 = math.min(y2 - 1, floor(cy + self.fontSize * 0.64))
 		gl.Color(cursorGrey, cursorGrey, cursorGrey, caretAlpha(self))
 		gl.Rect(cx, cy1, cx + cWidth, cy2)
 		gl.Color(1, 1, 1, 1)

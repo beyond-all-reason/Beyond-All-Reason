@@ -2709,10 +2709,16 @@ local function drawButtons(hotId)
 				local fill = b.fill and ((not enabled and b.fillMuted) or (hovered and b.fillHover) or b.fill)
 				drawButtonFace(r, fill or buttonFill)
 
+				-- The face lights under the cursor the way a row or the search field does. A
+				-- tinted button is the exception: it would lose its colour under the overlay, so
+				-- it brightens its own fill above instead.
+				if hovered and not fill then
+					Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
+				end
+
 				if b.icon then
-					-- Square inset so the 64x64 art keeps its aspect inside a wider button.
-					-- Hover only lifts the tint, matching the search box and picker, which
-					-- carry no hover treatment of their own.
+					-- Square inset so the 64x64 art keeps its aspect inside a wider button. The
+					-- icon brightens with the face, so the whole button reads as one control.
 					local inset = floor((r[4] - r[2]) * 0.22)
 					local side = (r[4] - r[2]) - inset * 2
 					local ix = floor((r[1] + r[3] - side) * 0.5)
@@ -2727,9 +2733,6 @@ local function drawButtons(hotId)
 					glTexture(false)
 					glColor(1, 1, 1, 1)
 				else
-					if hovered and not fill then
-						Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
-					end
 					queueText(
 						(enabled and b.textOn or b.textOff) or L[b.id],
 						floor((r[1] + r[3]) * 0.5),
@@ -3225,6 +3228,23 @@ function view.keyPress(key, scanCode)
 			presetDropdown:close()
 		end
 		return true
+	end
+
+	-- Escape empties the search before it closes the panel: the list being read is the one
+	-- the search made, and the first Escape is asking for that back. With nothing left to
+	-- clear it goes unclaimed, and the widget above closes the panel on it.
+	if key == KEYSYMS.ESCAPE then
+		if searchBox and searchBox:getText() ~= "" then
+			-- Focus stays, so the next thing typed starts a new search.
+			searchBox:setText("")
+
+			return true
+		end
+		if searchBox then
+			searchBox:blur()
+		end
+
+		return false
 	end
 
 	if searchBox and searchBox:isFocused() then
