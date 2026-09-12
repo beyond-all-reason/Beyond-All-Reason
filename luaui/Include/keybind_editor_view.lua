@@ -16,6 +16,7 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
@@ -29,7 +30,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local isInRect = math.isInRect
-local spGetScanSymbol = Spring.GetScanSymbol
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -579,7 +579,7 @@ local function rebuildRows()
 
 		return
 	end
-	local query = searchBox and searchBox:getText():lower() or ""
+	local query = Search.query(searchBox and searchBox:getText())
 	local catalogActions = {}
 	local otherGroupEnd
 
@@ -597,7 +597,9 @@ local function rebuildRows()
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
 		local inCategory = not selectedCategory or group.category == selectedCategory
-		local categoryMatch = query ~= "" and group.titleLower:find(query, 1, true)
+		-- A group whose own title matches keeps every row under it, so searching for a
+		-- category's name shows the category rather than emptying it.
+		local categoryMatch = Search.claims(query, group.titleLower)
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
@@ -648,10 +650,9 @@ local function rebuildRows()
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
 					if
-						query == ""
-						or categoryMatch
-						or action:lower():find(query, 1, true)
-						or label:lower():find(query, 1, true)
+						categoryMatch
+						or Search.matches(query, action:lower())
+						or Search.matches(query, label:lower())
 					then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
@@ -663,10 +664,9 @@ local function rebuildRows()
 					catalogActions[item.action] = true
 				end
 				if
-					query == ""
-					or categoryMatch
-					or item.labelLower:find(query, 1, true)
-					or (item.actionLower and item.actionLower:find(query, 1, true))
+					categoryMatch
+					or Search.matches(query, item.labelLower)
+					or Search.matches(query, item.actionLower)
 				then
 					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 				end
@@ -691,10 +691,10 @@ local function rebuildRows()
 		end
 	end
 
-	local otherMatch = query ~= "" and L.otherLower:find(query, 1, true)
+	local otherMatch = Search.claims(query, L.otherLower)
 	local others = {}
 	for action in pairs(working.byAction) do
-		if not catalogActions[action] and (query == "" or otherMatch or action:lower():find(query, 1, true)) then
+		if not catalogActions[action] and (otherMatch or Search.matches(query, action:lower())) then
 			others[#others + 1] = action
 		end
 	end
@@ -1787,7 +1787,9 @@ local function pressSym(key, scanCode)
 		return nil
 	end
 
-	local sym = scanCode and spGetScanSymbol(scanCode)
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local sym = scanCode and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end

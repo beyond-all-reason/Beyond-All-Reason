@@ -133,6 +133,7 @@ local buttonHeight = 24
 local buttonTop = 40 -- offset between top of buttons and bottom of widget
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 local textInputDlist
 local uiList
 local updateTextInputDlist = true
@@ -499,82 +500,6 @@ function widget:MouseWheel(up, value)
 	return true
 end
 
--- Fuzzy subsequence match: characters of query appear in order within target.
--- Returns a score > 0 on match, or 0 on no match.
--- Bonuses: consecutive chars, word boundary matches, start-of-string match.
--- Penalties: large gaps between matched characters.
-local function fuzzyScore(query, target)
-	local qi = 1
-	local qlen = #query
-	local tlen = #target
-	if qlen == 0 then
-		return 0
-	end
-	if qlen > tlen then
-		return 0
-	end
-
-	local score = 0
-	local consecutive = 0
-	local prevMatched = false
-	local firstMatchPos = nil
-	local lastMatchPos = 0
-
-	for ti = 1, tlen do
-		if qi > qlen then
-			break
-		end
-		local tc = string.byte(target, ti)
-		local qc = string.byte(query, qi)
-		if tc == qc then
-			if not firstMatchPos then
-				firstMatchPos = ti
-			end
-			qi = qi + 1
-			-- Gap penalty
-			if lastMatchPos > 0 then
-				local gap = ti - lastMatchPos - 1
-				if gap > 0 then
-					score = score - gap * 0.5
-				end
-			end
-			lastMatchPos = ti
-			-- Consecutive character bonus
-			if prevMatched then
-				consecutive = consecutive + 1
-				score = score + 3 + consecutive
-			else
-				consecutive = 0
-				score = score + 1
-			end
-			-- Word boundary bonus
-			if ti == 1 then
-				score = score + 5
-			else
-				local prev = string.byte(target, ti - 1)
-				if prev == 32 or prev == 95 or prev == 45 then
-					score = score + 4
-				end
-			end
-			prevMatched = true
-		else
-			prevMatched = false
-			consecutive = 0
-		end
-	end
-
-	if qi <= qlen then
-		return 0
-	end
-
-	if firstMatchPos then
-		score = score + math.max(0, 6 - firstMatchPos)
-	end
-	score = score + math.max(0, 3 - (tlen - qlen) * 0.1)
-
-	return score
-end
-
 local function SortWidgetListFunc(nd1, nd2)
 	--does nd1 come before nd2?
 	-- widget profiler on top
@@ -603,71 +528,27 @@ function UpdateList(force)
 	--maxWidth = 0
 	widgetsList = {}
 	fullWidgetsList = {}
-	local lowerInput = inputText and inputText ~= "" and string.lower(inputText) or nil
-	local queryWords, queryNoSpaces
-	if lowerInput then
-		queryWords = {}
-		for word in lowerInput:gmatch("%S+") do
-			queryWords[#queryWords + 1] = word
-		end
-		queryNoSpaces = lowerInput:gsub("%s+", "")
-	end
-	local scoredList = lowerInput and {} or nil
+	local query = Search.query(inputText)
+	-- Filled once and rewritten per widget rather than allocated for each of them: a
+	-- keystroke walks every known widget.
+	local primary, secondary = { "" }, { "", "", "" }
+	local scoredList = not query.empty and {} or nil
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if name ~= myName and name ~= "Write customparam.__def to files" and not data.hidden then
-			if not lowerInput then
+			if query.empty then
 				fullWidgetsList[#fullWidgetsList + 1] = { name, data }
 				local width = fontSize * font:GetTextWidth(name)
 				if width > maxWidth then
 					maxWidth = width
 				end
 			else
-				local lowerName = string.lower(name)
-				local lowerDesc = data.desc and string.lower(data.desc) or ""
-				local lowerBase = data.basename and string.lower(data.basename) or ""
-				local lowerAuthor = data.author and string.lower(data.author) or ""
-				local score = 0
-
-				-- Tier 1: Exact substring in name (score 300+)
-				local exactPos = string.find(lowerName, lowerInput, nil, true)
-				if exactPos then
-					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
-				end
-
-				-- Tier 2: Multi-word AND matching (score 100-299)
-				if score == 0 and #queryWords > 1 then
-					local allMatch = true
-					local nameMatches = 0
-					local posSum = 0
-					for _, word in ipairs(queryWords) do
-						local inName = string.find(lowerName, word, nil, true)
-						local inOther = string.find(lowerDesc, word, nil, true)
-							or string.find(lowerBase, word, nil, true)
-							or string.find(lowerAuthor, word, nil, true)
-						if not inName and not inOther then
-							allMatch = false
-							break
-						end
-						if inName then
-							nameMatches = nameMatches + 1
-							posSum = posSum + inName
-						end
-					end
-					if allMatch then
-						local base = (nameMatches == #queryWords) and 200 or 100
-						score = base + math.max(0, 50 - posSum / #queryWords)
-					end
-				end
-
-				-- Tier 3: Fuzzy subsequence on name only (score 1-99, min 3 chars)
-				if score == 0 and #queryNoSpaces >= 3 then
-					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
-					local minThreshold = #queryNoSpaces * 2
-					if nameScore >= minThreshold then
-						score = math.min(99, nameScore)
-					end
-				end
-
+				primary[1] = string.lower(name)
+				secondary[1] = data.desc and string.lower(data.desc) or ""
+				secondary[2] = data.basename and string.lower(data.basename) or ""
+				secondary[3] = data.author and string.lower(data.author) or ""
+				-- Named by its name alone: a widget found only through its description or author
+				-- is a guess, and a list of guesses is worse than a short list.
+				local score = Search.score(query, primary, secondary)
 				if score > 0 then
 					scoredList[#scoredList + 1] = { name, data, score = score }
 					local width = fontSize * font:GetTextWidth(name)
