@@ -104,10 +104,10 @@ local renderPresets = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local boxWidth
-local boxHeight
-local boxHeightTitle
-local boxIconBorder
+local boxWidth = 0
+local boxHeight = 0
+local boxHeightTitle = 0
+local boxIconBorder = 0
 
 local fontSizeTitle
 local fontSizeGroup
