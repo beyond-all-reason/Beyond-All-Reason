@@ -504,7 +504,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	invalidateContent()
 end
 
-
 local function computeContent(uDefID, uID, shiftBool)
 	local shift = shiftBool
 
