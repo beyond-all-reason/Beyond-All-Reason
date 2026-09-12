@@ -1032,7 +1032,7 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
-		if wDef.impactonly == 1 then
+		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
 			wDef.impactonly = nil
 			wDef.areaofeffect = 11
 			wDef.edgeeffectiveness = 1
