@@ -80,12 +80,11 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "coraca" or name == "corack" or name == "coracv" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corapt3" -- T3 Aircraft Gantry
-		buildoptions[numBuildoptions + 2] = "corminibuzz" -- Mini Calamity
+		buildoptions[numBuildoptions + 2] = "corgatr" -- Obligator
 		buildoptions[numBuildoptions + 3] = "corhllllt" -- Quad Guard - Quad Light Laser Turret
 		buildoptions[numBuildoptions + 4] = "cordoomt3" -- Epic Bulwark
 		buildoptions[numBuildoptions + 5] = "corafust3" -- Epic Fusion Reactor
 		buildoptions[numBuildoptions + 6] = "cormmkrt3" -- Epic Energy Converter
-		buildoptions[numBuildoptions + 7] = "corgatr" -- Obligator
 	end
 
 	-- Cortex T2 Sea Constructors
