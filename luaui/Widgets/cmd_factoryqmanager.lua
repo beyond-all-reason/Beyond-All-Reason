@@ -382,9 +382,27 @@ function saveQueue(unitId, unitDef, groupNo)
 		unitQuotaIdx = WG.Quotas.isOnQuotaMode(unitId)
 	end
 
+	-- Quota-issued orders are saved separately but can't be distinguished from some player orders.
+	-- When a player alt-enqueues a build order to the front, then, we distinguish it by counting.
+	local quotaOrdersLeft = {}
+	local function isQuotaOrder(cmd)
+		if not (WG.Quotas and cmd.options.internal and cmd.options.alt) then
+			return false
+		end
+		local quotaDefID = -cmd.id
+		if not quotaOrdersLeft[quotaDefID] then
+			quotaOrdersLeft[quotaDefID] = WG.Quotas.getQuotaOrderCount(unitId, quotaDefID)
+		end
+		if quotaOrdersLeft[quotaDefID] > 0 then
+			quotaOrdersLeft[quotaDefID] = quotaOrdersLeft[quotaDefID] - 1
+			return true
+		end
+		return false
+	end
+
 	for i = #unitQ, 1, -1 do
-		if unitQ[i].id >= 0 or unitQ[i].options.internal and not unitQ[i].options.alt then -- We don't want to save these commands
-			table.remove(unitQ, i)
+		if unitQ[i].id >= 0 or (unitQ[i].options.internal and not unitQ[i].options.alt) or isQuotaOrder(unitQ[i]) then
+			table.remove(unitQ, i) -- We don't want to save these commands
 		else
 			unitQ[i].name = orderToName(unitQ[i].id)
 			unitQ[i].id = nil
