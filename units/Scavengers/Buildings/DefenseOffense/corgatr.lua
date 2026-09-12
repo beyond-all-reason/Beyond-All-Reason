@@ -19,7 +19,7 @@ return {
 		maxwaterdepth = 0,
 		metalcost = 2250,
 		objectname = "Units/corgatr.s3o",
-		script = "Units/corgatr.lua",
+		script = "Units/corgatr.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 700,

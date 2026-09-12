@@ -1366,7 +1366,7 @@ local Turrets = {
 		legsilo_scav = { type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3 },
 		-- misc t3 turrets
 		armminivulc_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
-		corminibuzz_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
+		corgatr_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
 		legministarfall_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3 },
 		armbotrail_scav = { type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1 },
 		--Eco
