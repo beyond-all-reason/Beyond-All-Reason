@@ -693,6 +693,7 @@ local unitOrderTable = {
    leglrpc		  = 110300,
    armminivulc    = 120100, --scavengers
    corminibuzz    = 120200, --scavengers
+   corgatr        = 120220, --scavengers
    legministarfall= 120250, --scavengers
    armvulc        = 120300,
    corbuzz        = 120400,
