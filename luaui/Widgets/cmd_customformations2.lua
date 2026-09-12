@@ -14,10 +14,6 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-
 -- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
@@ -193,8 +189,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local selectedUnits = spGetSelectedUnits()
-local selectedUnitsCount = spGetSelectedUnitsCount()
+-- replaced in init via selections api:
+local getSelectedUnits, getSelectedUnitsCount = Spring.GetSelectedUnits, Spring.GetSelectedUnitsCount
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -271,7 +267,8 @@ end
 
 local function GetExecutingUnits(cmdID)
 	local units = {}
-	for i = 1, selectedUnitsCount do
+	local selectedUnits = getSelectedUnits()
+	for i = 1, getSelectedUnitsCount() do
 		local uID = selectedUnits[i]
 		if CanUnitExecute(uID, cmdID) then
 			units[#units + 1] = uID
@@ -403,11 +400,6 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
 	return
 end
 
-function widget:SelectionChanged(sel)
-	selectedUnits = sel
-	selectedUnitsCount = spGetSelectedUnitsCount()
-end
-
 --------------------------------------------------------------------------------
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
@@ -490,7 +482,7 @@ function widget:MousePress(mx, my, mButton)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	-- Is this line a path candidate (We don't do a path off an overridden command)
-	pathCandidate = (not overriddenCmd) and selectedUnitsCount == 1 and (not shift or repeatForSingleUnit)
+	pathCandidate = (not overriddenCmd) and getSelectedUnitsCount() == 1 and (not shift or repeatForSingleUnit)
 
 	-- Initialize path positions tracking
 	pathPositions = {}
@@ -596,7 +588,7 @@ function widget:MouseRelease(mx, my, mButton)
 		end
 	end
 
-	if selectedUnitsCount == 1 and not shift then
+	if getSelectedUnitsCount() == 1 and not shift then
 		spSetActiveCommand(0) -- Deselect command
 	end
 
@@ -653,7 +645,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 		if
 			fDists[#fNodes] < adjustedMinFormationLength
-			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
+			or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (getSelectedUnitsCount() - 1))
 		then
 			-- We should check if any units are able to execute it,
 			-- but the order is small enough network-wise that the tiny bug potential isn't worth it.
@@ -805,7 +797,7 @@ local function DrawFormationDotQuads(dotSize, lengthPerUnit)
 end
 
 local function DrawFormationDots(zoomY)
-	local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
+	local lengthPerUnit = lineLength / (getSelectedUnitsCount() - 1)
 	local dotSize = sqrt(zoomY * 0.24)
 	SetColor(usingCmd, 1)
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
@@ -847,7 +839,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
-	if chobbyInterface or #fNodes <= 1 or selectedUnitsCount <= 1 or lineLength <= 0 then
+	if chobbyInterface or #fNodes <= 1 or getSelectedUnitsCount() <= 1 or lineLength <= 0 then
 		return
 	end
 
@@ -1375,6 +1367,14 @@ function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
 end
 
 function widget:Initialize()
+	if WG.UnitSelection then
+		getSelectedUnits = WG.UnitSelection.GetUnits
+		getSelectedUnitsCount = WG.UnitSelection.GetCount
+	else
+		getSelectedUnits = Spring.GetSelectedUnits
+		getSelectedUnitsCount = Spring.GetSelectedUnitsCount
+	end
+
 	WG.customformations = {}
 	WG.customformations.getRepeatForSingleUnit = function()
 		return repeatForSingleUnit
@@ -1408,7 +1408,7 @@ function widget:Initialize()
 		-- Add first node
 		if AddFNode(worldPos) then
 			local alt, ctrl, meta, shift = spGetModKeyState()
-			pathCandidate = selectedUnitsCount == 1 and (not shift or repeatForSingleUnit)
+			pathCandidate = getSelectedUnitsCount() == 1 and (not shift or repeatForSingleUnit)
 			return true
 		end
 		return false
@@ -1506,7 +1506,7 @@ function widget:Initialize()
 
 			if
 				fDists[#fNodes] < adjustedMinFormationLength
-				or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (selectedUnitsCount - 1))
+				or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64 * (getSelectedUnitsCount() - 1))
 			then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then
@@ -1604,7 +1604,7 @@ function widget:Initialize()
 	end
 
 	WG.customformations.GetSelectedUnitsCount = function()
-		return selectedUnitsCount
+		return getSelectedUnitsCount()
 	end
 
 	WG.customformations.GetFormationOrders = function()

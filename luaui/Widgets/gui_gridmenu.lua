@@ -30,7 +30,6 @@ local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local math_floor = math.floor
@@ -44,6 +43,8 @@ local GL_ONE = GL.ONE
 
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+
+local getSelectedUnitsByDefID = Spring.GetSelectedUnitsSorted -- replaced in init
 
 -------------------------------------------------------------------------------
 --- STATIC VALUES
@@ -635,7 +636,7 @@ local function updateQuotaNumber(unitDefID, quantity)
 	end
 	local cellRect = cellRects[cellId]
 	if WG.Quotas then
-		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+		for _, builderID in ipairs(getSelectedUnitsByDefID()[activeBuilder]) do
 			local quotas = WG.Quotas.getQuotas()
 			quotas[builderID] = quotas[builderID] or {}
 			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
@@ -1209,7 +1210,7 @@ local function setPregameBlueprint(uDefID)
 end
 
 local function queueUnit(uDefID, opts, quantity)
-	local sel = spGetSelectedUnitsSorted()
+	local sel = getSelectedUnitsByDefID()
 	for unitDefID, unitIds in pairs(sel) do
 		if units.isFactory[unitDefID] then
 			for _, uid in ipairs(unitIds) do
@@ -1366,7 +1367,7 @@ end
 ---@param index number
 ---@return nil
 local function setActiveBuilder(index, selectedUnitsSorted)
-	selectedUnitsSorted = selectedUnitsSorted or spGetSelectedUnitsSorted()
+	selectedUnitsSorted = selectedUnitsSorted or getSelectedUnitsByDefID()
 
 	for i = 1, maxBuilderRects do
 		local rect = builderRects[i]
@@ -1414,6 +1415,8 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	getSelectedUnitsByDefID = WG.unit_selection and WG.unit_selection.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
+
 	refreshUnitDefs()
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
@@ -3241,7 +3244,7 @@ function widget:SelectionChanged(newSel)
 
 	-- Here we do selected sorted to save the GetUnitDefIDs we would have to do
 	-- if we used the newSel
-	local selectedUnitsSorted = spGetSelectedUnitsSorted()
+	local selectedUnitsSorted = getSelectedUnitsByDefID()
 	for unitDefID, unitIDs in pairs(selectedUnitsSorted) do
 		if units.isBuilder[unitDefID] then
 			selectedBuilders[unitDefID] = #unitIDs

@@ -210,8 +210,6 @@ local function refreshUnitDefs()
 end
 
 local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
@@ -221,7 +219,9 @@ local spGetMouseState = Spring.GetMouseState
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
-local SelectedUnitsCount = spGetSelectedUnitsCount()
+local selectedUnitsCount = 0
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init
+local getSelectedUnitsCount = Spring.GetSelectedUnitsCount -- replaced in init
 
 local string_sub = string.sub
 local os_clock = os.clock
@@ -582,7 +582,7 @@ local function RefreshCommands()
 	if WG.Quotas then
 		tracy.ZoneBeginN("W:BuildMenu:RefreshCommands:Quotas")
 		local quotas = WG.Quotas.getQuotas()
-		for _, factoryID in ipairs(spGetSelectedUnits()) do
+		for _, factoryID in ipairs(getSelectedUnits()) do
 			if quotas[factoryID] then
 				for uDefID, quotaValue in pairs(quotas[factoryID]) do
 					cellQuotas[uDefID] = {
@@ -743,9 +743,9 @@ function widget:Update(dt)
 				or selBuilderDefsTemp1
 			clearTable(currentSelBuilderDefs)
 
-			SelectedUnitsCount = spGetSelectedUnitsCount()
-			if SelectedUnitsCount > 0 then
-				local sel = Spring.GetSelectedUnits()
+			selectedUnitsCount = getSelectedUnitsCount()
+			if selectedUnitsCount > 0 then
+				local sel = getSelectedUnits()
 				for _, unitID in ipairs(sel) do
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
@@ -1259,7 +1259,7 @@ function drawBuildmenu()
 	tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu:Buildable")
 	local finishedBuildable = {}
 	if selectedFactoryCount > 0 then
-		for _, unitID in ipairs(spGetSelectedUnits()) do
+		for _, unitID in ipairs(getSelectedUnits()) do
 			local defID = spGetUnitDefID(unitID)
 			if units.isFactory and units.isFactory[defID] and not spGetUnitIsBeingBuilt(unitID) then
 				local opts = unitBuildOptions[defID]
@@ -1899,7 +1899,7 @@ function widget:GameFrame(n)
 		return
 	end
 	local finishedCount = 0
-	for _, unitID in ipairs(spGetSelectedUnits()) do
+	for _, unitID in ipairs(getSelectedUnits()) do
 		local defID = spGetUnitDefID(unitID)
 		if units.isFactory and units.isFactory[defID] then
 			if not spGetUnitIsBeingBuilt(unitID) then
@@ -1921,7 +1921,7 @@ local function setPreGamestartDefID(uDefID)
 end
 
 local function isOnQuotaBuildMode(targetDefID)
-	for _, unitID in ipairs(spGetSelectedUnits()) do
+	for _, unitID in ipairs(getSelectedUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
 		if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], targetDefID) then
 			return WG.Quotas and WG.Quotas.isOnQuotaMode(unitID)
@@ -1933,7 +1933,7 @@ end
 local function updateQuotaNumber(unitDefID, count)
 	if WG.Quotas then
 		local quotaChanged = false
-		for _, builderID in ipairs(Spring.GetSelectedUnits()) do
+		for _, builderID in ipairs(getSelectedUnits()) do
 			local uDefID = spGetUnitDefID(builderID)
 			if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], unitDefID) then
 				local quotas = WG.Quotas.getQuotas()
@@ -2228,6 +2228,9 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+	getSelectedUnitsCount = WG.UnitSelection and WG.UnitSelection.GetCount or Spring.GetSelectedUnitsCount
+
 	refreshUnitDefs()
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
@@ -2258,7 +2261,7 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
+	widget:SelectionChanged(getSelectedUnits())
 
 	WG.buildmenu = {}
 	WG.buildmenu.getGroups = function()
