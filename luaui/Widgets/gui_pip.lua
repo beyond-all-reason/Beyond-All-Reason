@@ -9,7 +9,7 @@ pipNumber = pipNumber or 1
 
 -- Special mode flags
 local isMinimapMode = (pipNumber == 0) -- When pipNumber == 0, act as minimap replacement
-local minimapModeMinZoom = nil -- Calculated zoom to fit entire map (only used in minimap mode)
+local minimapModeMinZoom = nil ---@type boolean? Calculated zoom to fit entire map (only used in minimap mode)
 local pipModeMinZoom = nil -- Dynamic min zoom calculated from PIP/map dimensions (normal PIP mode)
 
 -- Minimap mode API state (updated each frame, avoids per-frame closure allocations)
@@ -97,7 +97,7 @@ local function getActionHotkey(action)
 		return ""
 	end
 	-- Find shortest hotkey
-	local key = hotkeys[1]
+	local key = hotkeys[1] ---@type string
 	for i = 2, #hotkeys do
 		if hotkeys[i]:len() < key:len() then
 			key = hotkeys[i]
@@ -305,7 +305,7 @@ local state = {
 
 -- Consolidated rendering state
 local render = {
-	uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1),
+	uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1.0)) or 1.0,
 	vsx = nil,
 	vsy = nil,
 	widgetScale = nil,
@@ -644,6 +644,7 @@ local pipTV = {
 -- TV Mode: Add an event to the ring buffer
 -- type: 'combat', 'explosion', 'death', 'finished', 'marker'
 function pipTV.AddEvent(x, z, weight, eventType)
+	---@cast miscState.tvEnabled boolean
 	if not miscState.tvEnabled then
 		return
 	end
@@ -663,6 +664,7 @@ function pipTV.AddEvent(x, z, weight, eventType)
 	ev.weight = weight or 1
 	ev.time = os.clock()
 	ev.type = eventType or "combat"
+	---@cast pipTV.eventCount integer
 	if pipTV.eventCount < maxEv then
 		pipTV.eventCount = pipTV.eventCount + 1
 	end
@@ -688,7 +690,7 @@ function pipTV.BuildHotspots(now)
 	-- Process each event, merge into nearby hotspot or create new one
 	local events = pipTV.events
 	for i = 1, pipTV.eventCount do
-		local ev = events[i]
+		local ev = events[i] ---@type table?
 		if ev then
 			local age = now - ev.time
 			if age < decayTime and (not losFilter or Spring.IsPosInLos(ev.x, 0, ev.z, losFilter)) then
@@ -745,7 +747,7 @@ function pipTV.GetVarietyBonus(x, z, now)
 	local varietyRadius = config.tvHotspotRadius * 2
 	local varietyRadiusSq = varietyRadius * varietyRadius
 	for i = 1, pipTV.director.visitedCount do
-		local v = visited[i]
+		local v = visited[i] ---@type table?
 		if v then
 			local age = now - v.time
 			if age < 30 then -- 30s memory for visited areas
@@ -780,6 +782,7 @@ function pipTV.RecordVisit(x, z)
 	v.x = x
 	v.z = z
 	v.time = os.clock()
+	---@cast dir.visitedCount integer
 	if dir.visitedCount < 20 then
 		dir.visitedCount = dir.visitedCount + 1
 	end
@@ -933,11 +936,11 @@ function pipTV.ScanAnticipation(now)
 	-- Weight scales with target cost: T1 buildings (200-500) → 1.5, T2 eco/factories (1000+) → 3.0+
 	tracy.ZoneBeginN("W:PIP:TV:AirRaidPairs")
 	for i = 1, airAttackerCount do
-		local aa = airAttackers[i]
+		local aa = airAttackers[i] ---@type table
 		local bestWeight = 0
 		local bestX, bestZ
 		for j = 1, hvbCount do
-			local hv = highValueBuildings[j]
+			local hv = highValueBuildings[j] ---@type table
 			if hv.ally ~= aa.ally then -- Different alliance = enemy
 				local dx = aa.x - hv.x
 				local dz = aa.z - hv.z
@@ -962,9 +965,9 @@ function pipTV.ScanAnticipation(now)
 	-- Check low-HP commanders near enemy ground units
 	tracy.ZoneBeginN("W:PIP:TV:CommanderDanger")
 	for i = 1, lowHPCommanderCount do
-		local lc = lowHPCommanders[i]
+		local lc = lowHPCommanders[i] ---@type table
 		for j = 1, groundCount do
-			local gp = groundUnitPositions[j]
+			local gp = groundUnitPositions[j] ---@type table
 			if gp.ally ~= lc.ally then
 				local dx = lc.x - gp.x
 				local dz = lc.z - gp.z
@@ -982,9 +985,9 @@ function pipTV.ScanAnticipation(now)
 	-- Check low-HP expensive eco buildings near enemy ground units
 	tracy.ZoneBeginN("W:PIP:TV:EcoDanger")
 	for i = 1, lowHPEcoCount do
-		local le = lowHPEcoBuildings[i]
+		local le = lowHPEcoBuildings[i] ---@type table
 		for j = 1, groundCount do
-			local gp = groundUnitPositions[j]
+			local gp = groundUnitPositions[j] ---@type table
 			if gp.ally ~= le.ally then
 				local dx = le.x - gp.x
 				local dz = le.z - gp.z
