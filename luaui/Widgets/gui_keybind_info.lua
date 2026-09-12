@@ -147,7 +147,7 @@ function widget:DrawScreen()
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 			end)
-			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo", nil, widget)
 		end
 		showOnceMore = false
 
@@ -357,6 +357,11 @@ function widget:Initialize()
 			Spring.SendCommands("luaui disablewidget Grid menu")
 			Spring.SendCommands("luaui enablewidget Build menu")
 		end
+	end)
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
 	end)
 
 	WG.keybinds = {}

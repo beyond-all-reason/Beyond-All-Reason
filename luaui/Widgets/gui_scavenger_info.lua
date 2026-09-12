@@ -232,7 +232,7 @@ function widget:DrawScreen()
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG.guishader.InsertDlist(backgroundGuishader, "text")
+			WG.guishader.InsertDlist(backgroundGuishader, "text", nil, widget)
 		end
 		showOnceMore = false
 
@@ -313,6 +313,11 @@ end
 
 function widget:Initialize()
 	if textFile then
+		-- lets the handler hide the rest of the interface while the panel is open
+		widgetHandler:RegisterModalWindow(function()
+			return show == true
+		end)
+
 		WG.scavengerinfo = {}
 		WG.scavengerinfo.toggle = function(state)
 			if state ~= nil then
