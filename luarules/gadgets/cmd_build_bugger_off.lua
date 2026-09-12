@@ -208,11 +208,7 @@ local function clearGuardsFromBuilderPath(builderID, bx, by, bz, tx, tz, builder
 		if unitID ~= builderID and not visitedUnits[unitID] then
 			local unitDefID = spGetUnitDefID(unitID)
 			local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
-			if
-				unitDefData
-				and not ignoreBuggeroff(unitID, unitDefData)
-				and isGuardingBuilder(unitID, builderID)
-			then
+			if unitDefData and not ignoreBuggeroff(unitID, unitDefData) and isGuardingBuilder(unitID, builderID) then
 				local ux, _, uz = spGetUnitPosition(unitID)
 				if ux then
 					local toX, toZ = ux - bx, uz - bz
