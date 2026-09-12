@@ -1755,7 +1755,15 @@ local function drawHeader()
 	-- being laid over it: at the plate's opacity the switch has one of its own bright enough
 	-- to swallow it, and painting over the switch only dulls it.
 	if hover.tog == 1 then
-		Highlight(toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4], metrics.csSmall, look.rowHoverOpacity, look.white)
+		Highlight(
+			toggleHit[1],
+			toggleHit[2],
+			toggleHit[3],
+			toggleHit[4],
+			metrics.csSmall,
+			look.rowHoverOpacity,
+			look.white
+		)
 	end
 	UiToggle(toggleDraw[1], toggleDraw[2], toggleDraw[3], toggleDraw[4], changedOnly, hover.tog == 1)
 	queueText(
@@ -1861,15 +1869,24 @@ local function panelSignature(mx, my)
 	end
 
 	return hover.sb
-		.. "|" .. hover.row
-		.. "|" .. hover.tog
-		.. "|" .. hover.bar
-		.. "|" .. scroll
-		.. "|" .. rowsGen
-		.. "|" .. layoutGen
-		.. "|" .. selFrom
-		.. "|" .. selTo
-		.. "|" .. (dragging and 1 or 0)
+		.. "|"
+		.. hover.row
+		.. "|"
+		.. hover.tog
+		.. "|"
+		.. hover.bar
+		.. "|"
+		.. scroll
+		.. "|"
+		.. rowsGen
+		.. "|"
+		.. layoutGen
+		.. "|"
+		.. selFrom
+		.. "|"
+		.. selTo
+		.. "|"
+		.. (dragging and 1 or 0)
 end
 
 ----------------------------------------------------------------

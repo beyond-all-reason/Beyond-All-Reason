@@ -2985,18 +2985,7 @@ WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position, hove
 	elseif hovered then
 		alpha = 0.26
 	end
-	WG.FlowUI.Draw.RectRound(
-		px + padding,
-		top - thumbHeight,
-		sx - padding,
-		top,
-		cs,
-		1,
-		1,
-		1,
-		1,
-		{ 1, 1, 1, alpha }
-	)
+	WG.FlowUI.Draw.RectRound(px + padding, top - thumbHeight, sx - padding, top, cs, 1, 1, 1, 1, { 1, 1, 1, alpha })
 end
 
 ---Draws a toggle switch.
