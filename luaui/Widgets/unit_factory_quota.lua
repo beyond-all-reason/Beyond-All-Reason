@@ -24,6 +24,16 @@ local quotas = {} -- {[factoryID] = {[unitDefID] = amount, ...}, ...}
 local builtUnits = {} -- {[factoryID] = {[unitDefID] = {[unitID] = true, ...}, ...}, ...}
 local unitToFactoryID = {} -- {[unitID] = factoryID, ...}
 
+-- Quota orders cannot be told apart from player orders by their options alone.
+-- - The engine marks an alt-queued factory build order internal, but only while repeat is on.
+-- - With repeat off, the internal bit reads as "quota order".
+-- - With repeat on, the internal bit reads as "quota or player priority order".
+-- Track the tags of the orders we issue, instead.
+local quotaOrderTags = {}
+local quotaOrderCounts = {}
+local seenOrderTags = {}
+local unclaimedOrders = {}
+
 local possibleFactories = {}
 local factoryDefIDs = {}
 local metalcosts = {}
@@ -86,6 +96,57 @@ local function getMostNeedQuota(quota, factoryID)
 	return minimumQuota, minimumUnitDefID
 end
 
+local function trackQuotaOrders(factoryID)
+	local commandQueue = spGetFactoryCommands(factoryID, -1)
+	if not commandQueue then
+		quotaOrderTags[factoryID] = nil
+		quotaOrderCounts[factoryID] = nil
+		seenOrderTags[factoryID] = nil
+		unclaimedOrders[factoryID] = nil
+		return
+	end
+
+	local ownedTags = quotaOrderTags[factoryID]
+	local seenTags = seenOrderTags[factoryID]
+	local unclaimed = unclaimedOrders[factoryID]
+
+	local liveOwnedTags = {}
+	local liveSeenTags = {}
+	local counts = {}
+
+	for i = 1, #commandQueue do
+		local command = commandQueue[i]
+		local unitDefID = -command.id
+		if unitDefID > 0 and command.options.internal then
+			local tag = command.tag
+			liveSeenTags[tag] = true
+
+			local isOurs = ownedTags and ownedTags[tag]
+			if not isOurs and not (seenTags and seenTags[tag]) and unclaimed and (unclaimed[unitDefID] or 0) > 0 then
+				unclaimed[unitDefID] = unclaimed[unitDefID] - 1
+				isOurs = true
+			end
+
+			if isOurs then
+				liveOwnedTags[tag] = unitDefID
+				counts[unitDefID] = (counts[unitDefID] or 0) + 1
+			end
+		end
+	end
+
+	quotaOrderTags[factoryID] = liveOwnedTags
+	quotaOrderCounts[factoryID] = counts
+	seenOrderTags[factoryID] = liveSeenTags
+	unclaimedOrders[factoryID] = nil
+end
+
+-- Number of build orders in the factory's queue that this widget placed.
+-- Subtract from the engine's queued count to get the count of orders by the player.
+local function getQuotaOrderCount(factoryID, unitDefID)
+	local counts = quotaOrderCounts[factoryID]
+	return (counts and counts[unitDefID]) or 0
+end
+
 local function isFactoryUsable(factoryID)
 	local commandQueue = spGetFactoryCommands(factoryID, 2)
 	if not commandQueue then
@@ -123,10 +184,15 @@ local function appendToFactoryQueue(factoryID, unitDefID)
 		{ insertPosition, -unitDefID, CMD_OPT_ALT + CMD_OPT_INTERNAL },
 		CMD_OPT_ALT + CMD_OPT_CTRL
 	)
+
+	-- Claimed by tag on the next pass, once the order has reached the queue.
+	unclaimedOrders[factoryID] = unclaimedOrders[factoryID] or {}
+	unclaimedOrders[factoryID][unitDefID] = (unclaimedOrders[factoryID][unitDefID] or 0) + 1
 end
 
 local function fillQuotas()
 	for factoryID, quota in pairs(quotas) do
+		trackQuotaOrders(factoryID)
 		if isFactoryUsable(factoryID) then
 			for unitDefID, num in pairs(quota) do
 				if num == 0 then
@@ -174,6 +240,10 @@ local function removeUnit(unitID, unitDefID, unitTeam)
 		elseif builtUnits[unitID] then
 			builtUnits[unitID] = nil
 			quotas[unitID] = nil
+			quotaOrderTags[unitID] = nil
+			quotaOrderCounts[unitID] = nil
+			seenOrderTags[unitID] = nil
+			unclaimedOrders[unitID] = nil
 		end
 	end
 end
@@ -207,6 +277,9 @@ function widget:Initialize()
 	end
 	WG.Quotas.isOnQuotaMode = function(unitID)
 		return isOnQuotaBuildMode(unitID)
+	end
+	WG.Quotas.getQuotaOrderCount = function(factoryID, unitDefID)
+		return getQuotaOrderCount(factoryID, unitDefID)
 	end
 end
 
