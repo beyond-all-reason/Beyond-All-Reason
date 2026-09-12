@@ -503,7 +503,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	invalidateContent()
 end
 
-
 local function computeContent(uDefID, uID, shiftBool)
 	local shift = shiftBool
 
@@ -868,10 +867,11 @@ local function computeContent(uDefID, uID, shiftBool)
 		end
 
 		if range > 0 then
-			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
-			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or
-				       spGetUnitWeaponState(uID, weaponNumber, "reloadTime")   or oRld
+			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime / 30 or uWep.reload)
+			if uID and useExp and not (uWep.stockpile and uWep.stockpileTime) then
+				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP")
+					or spGetUnitWeaponState(uID, weaponNumber, "reloadTime")
+					or oRld
 			end
 
 			local wpnName = uWep.description
@@ -989,12 +989,21 @@ local function computeContent(uDefID, uID, shiftBool)
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / dpsCycle)
 					end
-					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					damageString = texts.dps
+						.. " = "
+						.. (format(yellow .. "%d", dps))
+						.. white
+						.. "; "
+						.. texts.burst
+						.. " = "
+						.. (format(yellow .. "%d", burstDamage))
+						.. white
+						.. (wepCount > 1 and (" (" .. texts.each .. ").") or ".")
 					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
 					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
 					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
-						totaldps = totaldps + wepCount*dps
-						totalbDamages = totalbDamages + wepCount* burstDamage
+						totaldps = totaldps + wepCount * dps
+						totalbDamages = totalbDamages + wepCount * burstDamage
 					end
 				end
 				DrawText(texts.dmg .. ":", damageString)
