@@ -127,7 +127,9 @@ function Dropdown:draw()
 	local inset = floor((y2 - y1) * 0.3)
 
 	Selector(x1, y1, x2, y2)
-	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+	-- A control with nothing to choose from does not light under the cursor. Lighting is
+	-- what tells a player something will happen when they press, and here nothing will.
+	if not self.disabled and mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
 		Highlight(x1, y1, x2, y2, floor(WG.FlowUI.elementCorner * 0.66), controlHoverOpacity, white)
 	end
 
@@ -137,7 +139,7 @@ function Dropdown:draw()
 	local arrowH = floor((y2 - y1) * 0.16)
 	local arrowX = x2 - inset - arrowH
 	local arrowY = floor((y1 + y2) * 0.5 + arrowH * 0.5)
-	gl.Color(1, 1, 1, self.open and 0.9 or 0.55)
+	gl.Color(1, 1, 1, self.disabled and 0.25 or (self.open and 0.9 or 0.55))
 	chevronX, chevronY, chevronH = arrowX, arrowY, arrowH
 	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
 	gl.Color(1, 1, 1, 1)
@@ -195,6 +197,12 @@ function Dropdown:draw()
 end
 
 function Dropdown:mousePress(x, y)
+	if self.disabled then
+		self.open = false
+
+		return false
+	end
+
 	if self.open then
 		for i, r in ipairs(self.optRects) do
 			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then

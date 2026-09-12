@@ -630,6 +630,10 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
 		knownInfo.hidden = widget.whInfo.hidden
+		-- Whether the widget ships switched on. Kept here because this is the only place it is
+		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
+		-- a widget that is off has no instance.
+		knownInfo.enabled = widget.whInfo.enabled
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true

@@ -182,6 +182,21 @@ local colorDanger = "\255\255\190\190"
 --
 -- One table rather than eight locals, for the same reason `metrics` and `look` are
 -- tables: this chunk is at Lua's ceiling of 200.
+-- The colours gui_gameinfo lists source in, so stored settings read the same way there
+-- and here. A kind with no entry falls back to plain text.
+local codeColors = {
+	comment = "\255\125\140\155",
+	keyword = "\255\198\146\234",
+	string = "\255\180\215\140",
+	number = "\255\240\165\125",
+	call = "\255\130\170\245",
+	op = "\255\135\185\205",
+	-- Commas, dots and brackets are most of any source; tinting them like the arithmetic
+	-- turns the highlighting into noise, so they stay close to the plain text.
+	punct = "\255\140\148\156",
+	name = "\255\205\205\205",
+}
+
 local cost = {
 	cool = "\255\140\140\140",
 	warm = "\255\225\195\130",
@@ -322,7 +337,7 @@ local dialogBox = {}
 ---@type string?
 local pressedRow
 local pressedButton = 0
-local pressedClear = false
+local pressedClear, pressedData = false, false
 
 local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, btn = "", dlg = "" }
 
@@ -515,7 +530,11 @@ end
 -- By where they load, when the switch asks for it: what runs first is what draws first
 -- and gets the call-ins first, and reading it off the list is the only way to see it.
 -- Anything not running has no place in that order, so it follows, alphabetically.
-local function sortByOrder(a, b)
+-- The orderings the list can be in. One table rather than four locals: this chunk is at
+-- Lua's ceiling of 200, and they belong together anyway.
+local sortBy = {}
+
+function sortBy.order(a, b)
 	if a.order and b.order then
 		return a.order < b.order
 	end
@@ -528,7 +547,7 @@ end
 
 -- Mod widgets first and then the player's own, each alphabetical, with the profiler on
 -- top: it is the one a player opens this panel to reach in a hurry.
-local function sortEntries(a, b)
+function sortBy.name(a, b)
 	if a.name == "Widget Profiler" then
 		return true
 	elseif b.name == "Widget Profiler" then
@@ -547,7 +566,7 @@ end
 -- cursor is the hold in Update, not a slower number.
 --
 -- Anything not running has nothing measured and sorts to the bottom.
-local function sortByLoad(a, b)
+function sortBy.cost(a, b)
 	local sa = profiling.stats[a.name]
 	local sb = profiling.stats[b.name]
 	if sa and sb then
@@ -563,12 +582,12 @@ local function sortByLoad(a, b)
 	return a.name < b.name
 end
 
-local function rowOrder()
+function sortBy.pick()
 	if filters.byLoad and filters.profiler then
-		return sortByLoad
+		return sortBy.cost
 	end
 
-	return filters.byOrder and sortByOrder or sortEntries
+	return filters.byOrder and sortBy.order or sortBy.name
 end
 
 -- The rows the list shows: what the column, the search box and the filter toggle left.
@@ -611,13 +630,13 @@ rebuildRows = function()
 				return a.score > b.score
 			end
 
-			return rowOrder()(a.e, b.e)
+			return sortBy.pick()(a.e, b.e)
 		end)
 		for i = 1, #scored do
 			rows[i] = scored[i].e
 		end
 	else
-		table.sort(rows, rowOrder())
+		table.sort(rows, sortBy.pick())
 	end
 end
 
@@ -753,6 +772,10 @@ local function refreshSets()
 		end
 	end
 	setPicker.placeholder = (not pickedSet or #names == 0) and L.noSet or nil
+	-- With nothing saved there is nothing to pick, so the control does not light under the
+	-- cursor and does not open: a list that drops open empty is worse than one that does not
+	-- move at all.
+	setPicker.disabled = #names == 0
 	setPicker:setOptions(names)
 	setPicker:setSelected(selected)
 	-- Load and Delete come and go with the pick, and the block is a row shorter without
@@ -922,6 +945,335 @@ local function dialogName()
 	return name, name == ""
 end
 
+-- What a widget has actually saved, shown as the Lua it is stored as.
+--
+-- The same lexer gui_gameinfo lists tweakdefs through, so stored settings read the way
+-- source does everywhere else in the UI. The line breaks are this file's own: the formatter
+-- breaks on statements and blocks, and a table constructor is neither, so a config of any
+-- size would come back as one very long line. Each line is handed to it separately for the
+-- colours, which is all that is wanted from it here.
+--
+-- One table rather than a function and half a dozen state locals, for the reason every
+-- other table in this file is one: the chunk is at Lua's ceiling of 200.
+-- `indentChars` is how far one level of nesting steps in, in characters: the listing is
+-- drawn in a monospaced face, so everything about its layout is arithmetic on that.
+local dataView = { scroll = 0, lines = {}, rows = {}, rect = {}, close = {}, indentChars = 4 }
+
+-- The same lexer gui_gameinfo lists tweakdefs through. Optional, and kept on the table
+-- rather than in a local of its own: a /luaui reload runs without a file that was added
+-- since the game started, and a viewer without colours beats a panel that will not load.
+do
+	local ok, mod = pcall(VFS.Include, "luaui/Include/lua_source.lua")
+	dataView.source = ok and mod or nil
+end
+
+-- Strings before numbers and each in order, so the same settings read the same way twice.
+function dataView.keys(t)
+	local out = {}
+	for k in pairs(t) do
+		out[#out + 1] = k
+	end
+	table.sort(out, function(a, b)
+		local ta, tb = type(a), type(b)
+		if ta ~= tb then
+			return ta == "string"
+		end
+		if ta == "string" or ta == "number" then
+			return a < b
+		end
+
+		return tostring(a) < tostring(b)
+	end)
+
+	return out
+end
+
+-- A key as it would be written: a plain name bare, anything else in brackets.
+function dataView.key(k)
+	if type(k) == "string" and string.find(k, "^[%a_][%w_]*$") then
+		return k
+	end
+	if type(k) == "string" then
+		return "[" .. dataView.quote(k) .. "]"
+	end
+
+	return "[" .. tostring(k) .. "]"
+end
+
+-- A string as it would be written, on one line.
+--
+-- Not string.format("%q"): that escapes a newline as a backslash followed by a real one,
+-- which is valid Lua but ends the line here - and a setting holding a few lines of text
+-- then draws all of them on top of each other.
+function dataView.quote(v)
+	local out = string.gsub(v, '[\\"]', "\\%0")
+	out = string.gsub(out, "\n", "\\n")
+	out = string.gsub(out, "\r", "\\r")
+	out = string.gsub(out, "\t", "\\t")
+	-- Anything else unprintable goes by its number, the way Lua writes it.
+	out = string.gsub(out, "%c", function(c)
+		return string.format("\\%d", string.byte(c))
+	end)
+
+	return '"' .. out .. '"'
+end
+function dataView.value(v)
+	local t = type(v)
+	if t == "string" then
+		return dataView.quote(v)
+	end
+	if t == "number" or t == "boolean" then
+		return tostring(v)
+	end
+
+	-- A function or a userdata cannot be written back out, so it is said rather than shown.
+	return "<" .. t .. ">"
+end
+
+-- Appends one line, lexed for its colours. Anything the lexer cannot read is kept as plain
+-- text: this is a viewer, and half a reading beats an error.
+function dataView.emit(depth, text)
+	local parts
+	if dataView.source then
+		local ok, lines = pcall(dataView.source.format, text)
+		if ok and lines[1] then
+			parts = lines[1].parts
+		end
+	end
+	dataView.lines[#dataView.lines + 1] = { depth = depth, parts = parts or { { s = text, k = "name" } } }
+end
+
+function dataView.write(value, depth, prefix)
+	if type(value) ~= "table" then
+		dataView.emit(depth, prefix .. dataView.value(value) .. ",")
+
+		return
+	end
+	if not next(value) then
+		dataView.emit(depth, prefix .. "{},")
+
+		return
+	end
+	dataView.emit(depth, prefix .. "{")
+	for _, k in ipairs(dataView.keys(value)) do
+		dataView.write(value[k], depth + 1, dataView.key(k) .. " = ")
+	end
+	dataView.emit(depth, "},")
+end
+
+function dataView.open(name)
+	dataView.name = name
+	dataView.scroll = 0
+	dataView.lines = {}
+	dataView.rows = {}
+	-- The flow is keyed on the width and the widget; the settings themselves can have
+	-- changed under both, so opening always flows again.
+	dataView.wrappedFor = nil
+	local data = widgetHandler.configData[name]
+	if type(data) ~= "table" then
+		return
+	end
+	-- Written as the chunk it is stored as, so what is on screen is what is on disk.
+	dataView.emit(0, "return {")
+	for _, k in ipairs(dataView.keys(data)) do
+		dataView.write(data[k], 1, dataView.key(k) .. " = ")
+	end
+	dataView.emit(0, "}")
+end
+
+function dataView.shut()
+	dataView.name = nil
+	dataView.lines = {}
+end
+-- Where the window sits: most of the panel, since the whole point is to see a lot of it at
+-- once, but inside it rather than over the screen - it belongs to the panel it was opened
+-- from.
+function dataView.geometry()
+	local w = mathFloor(screenWidth * 0.6)
+	local h = mathFloor(screenHeight * 0.8)
+	local cx = mathFloor(screenX + screenWidth * 0.5)
+	local cy = mathFloor(screenY - screenHeight * 0.5)
+	local x1, y1 = cx - mathFloor(w * 0.5), cy - mathFloor(h * 0.5)
+	dataView.rect[1], dataView.rect[2], dataView.rect[3], dataView.rect[4] = x1, y1, x1 + w, y1 + h
+
+	local pad = mathFloor(14 * widgetScale)
+	local bh = mathFloor(28 * widgetScale)
+	local bw = mathFloor(110 * widgetScale)
+	dataView.pad = pad
+	dataView.close[1], dataView.close[2] = x1 + w - pad - bw, y1 + pad
+	dataView.close[3], dataView.close[4] = x1 + w - pad, y1 + pad + bh
+
+	-- The title takes a band of its own across the top, and the listing starts a whole line
+	-- below it: the lines are drawn from their baselines, so one starting level with the
+	-- bottom of the title band would have its ascenders run up into the title.
+	dataView.titleFs = mathFloor(metrics.rowHeight * 0.72)
+	dataView.titleY = y1 + h - pad - mathFloor(dataView.titleFs * 0.5)
+	dataView.lineH = mathFloor(metrics.rowHeight * 0.62)
+	dataView.fs = mathFloor(dataView.lineH * 0.78)
+	dataView.top = y1 + h - pad - dataView.titleFs - dataView.lineH
+	dataView.bottom = y1 + pad * 2 + bh
+	dataView.page = mathFloor((dataView.top - dataView.bottom) / dataView.lineH) + 1
+
+	-- The bar runs the height of the reading area, against the right edge. Same width as
+	-- the list's, so the two read as the same control.
+	dataView.barX1 = x1 + w - pad - metrics.barW
+	dataView.barX2 = x1 + w - pad
+	dataView.textX1 = x1 + pad
+
+	-- How many characters fit across. The face is monospaced, so a width in characters is
+	-- exact and the wrapping below is arithmetic rather than measurement per part.
+	local code = look.mono or font
+	dataView.charW = code:GetTextWidth("0") * dataView.fs
+	local room = dataView.barX1 - pad - dataView.textX1
+	dataView.chars = mathMax(16, mathFloor(room / mathMax(1, dataView.charW)))
+
+	-- The lines only need flowing again when the width they were flowed to changes, or when
+	-- a different widget's settings are being shown.
+	if dataView.wrappedAt ~= dataView.chars or dataView.wrappedFor ~= dataView.name then
+		dataView.wrappedAt = dataView.chars
+		dataView.wrappedFor = dataView.name
+		dataView.wrap()
+	end
+
+	return x1, y1, x1 + w, y1 + h
+end
+
+-- Flows the stored lines into the width there is, keeping each token's kind so a line that
+-- had to be broken is still coloured. A wrapped line carries on one indent further in, so
+-- it reads as a continuation rather than as the next setting.
+function dataView.wrap()
+	local rows = {}
+	dataView.rows = rows
+
+	for _, line in ipairs(dataView.lines) do
+		local indent = line.depth * dataView.indentChars
+		local room = mathMax(8, dataView.chars - indent)
+		local parts, used = {}, 0
+
+		local function flush(depth)
+			rows[#rows + 1] = { indent = depth, parts = parts }
+			parts, used = {}, 0
+		end
+
+		for _, part in ipairs(line.parts) do
+			local text = part.s
+			while text ~= "" do
+				local left = room - used
+				if #text <= left then
+					parts[#parts + 1] = { s = text, k = part.k }
+					used = used + #text
+					break
+				end
+				-- Break at the last space that fits, so words survive; if there is no space
+				-- to break at - a long string or path - it is cut where the room runs out,
+				-- which is still better than running off the edge.
+				local cut = left
+				for i = left, 1, -1 do
+					if string.sub(text, i, i) == " " then
+						cut = i
+						break
+					end
+				end
+				if cut < 1 or (used == 0 and cut < 1) then
+					cut = left
+				end
+				if cut > 0 then
+					parts[#parts + 1] = { s = string.sub(text, 1, cut), k = part.k }
+				end
+				text = string.sub(text, cut + 1)
+				flush(indent)
+				-- Continuations sit one step further in, and get that step back in room.
+				indent = line.depth * dataView.indentChars + dataView.indentChars
+				room = mathMax(8, dataView.chars - indent)
+			end
+		end
+		if #parts > 0 then
+			flush(indent)
+		end
+	end
+end
+
+function dataView.maxScroll()
+	local over = #(dataView.rows or {}) - dataView.page
+
+	return over > 0 and over or 0
+end
+
+-- Where the thumb is, in the same terms the list's bar answers in.
+function dataView.thumb()
+	return UiScrollerAt(
+		dataView.barX1,
+		dataView.bottom,
+		dataView.barX2,
+		dataView.top + dataView.lineH,
+		#dataView.rows * dataView.lineH,
+		dataView.scroll * dataView.lineH
+	)
+end
+
+-- Taking hold of the bar. On the thumb it is taken where it was grabbed, so the listing
+-- does not jump before the drag starts; on the bare track it goes there at once, which is
+-- what a press away from the thumb is asking for.
+function dataView.grab(y)
+	local top, height = dataView.thumb()
+	if not top then
+		return
+	end
+
+	dataView.dragging = true
+	if y <= top and y >= top - height then
+		dataView.grabAt = y - top
+	else
+		dataView.grabAt = -mathFloor(height * 0.5)
+		dataView.dragTo(y)
+	end
+end
+
+function dataView.dragTo(y)
+	local _, _, trackTop, travel = dataView.thumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - dataView.grabAt)) / travel
+	if f < 0 then
+		f = 0
+	elseif f > 1 then
+		f = 1
+	end
+	dataView.setScroll(mathFloor(f * dataView.maxScroll() + 0.5))
+end
+
+function dataView.setScroll(v)
+	local max = dataView.maxScroll()
+	dataView.scroll = (v < 0 and 0) or (v > max and max) or v
+end
+
+-- A press inside the window is the window's, whether or not it lands on anything: a click
+-- meant for the settings must not reach the rows behind it.
+function dataView.press(x, y)
+	if not dataView.name then
+		return false
+	end
+	local r = dataView.rect
+	if not math_isInRect(x, y, r[1], r[2], r[3], r[4]) then
+		-- Pressing outside it is how a window like this is dismissed.
+		dataView.shut()
+
+		return true
+	end
+	local c = dataView.close
+	if math_isInRect(x, y, c[1], c[2], c[3], c[4]) then
+		dataView.shut()
+	elseif
+		dataView.maxScroll() > 0
+		and math_isInRect(x, y, dataView.barX1, dataView.bottom, dataView.barX2, dataView.top + dataView.lineH)
+	then
+		dataView.grab(y)
+	end
+
+	return true
+end
 local function closeDialog()
 	local d = dialog
 	dialog = nil
@@ -1065,6 +1417,10 @@ setLayout = function()
 	metrics.buttonGap = mathFloor(6 * s)
 	metrics.listGap = mathFloor(12 * s)
 	metrics.cardLip = mathFloor(5 * s)
+	-- The gap between the category card and the sets block below it. The two were one
+	-- card, which left the sets reading as the last few categories rather than as a
+	-- different thing that happens to sit in the same column.
+	metrics.setsGap = mathFloor(7 * s)
 	metrics.titleY = mathFloor(17 * s)
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
@@ -1085,8 +1441,8 @@ setLayout = function()
 	-- from the widest they can print and the figures are right-aligned in them, so the
 	-- decimal points line up down the list instead of wandering with the digits.
 	metrics.loadFs = mathFloor(metrics.rowFs * 0.95)
-	metrics.cpuW = cost.font and mathFloor(cost.font:GetTextWidth(cost.sampleCpu) * metrics.loadFs) or mathFloor(34 * s)
-	metrics.memW = cost.font and mathFloor(cost.font:GetTextWidth(cost.sampleMem) * metrics.loadFs) or mathFloor(30 * s)
+	metrics.cpuW = look.mono and mathFloor(look.mono:GetTextWidth(cost.sampleCpu) * metrics.loadFs) or mathFloor(34 * s)
+	metrics.memW = look.mono and mathFloor(look.mono:GetTextWidth(cost.sampleMem) * metrics.loadFs) or mathFloor(30 * s)
 	-- What the switch leaves above and below itself inside the row. It is held the same
 	-- distance from the accent bar down the left edge, so the air around it reads as even
 	-- rather than pinched on one side.
@@ -1214,6 +1570,12 @@ setLayout = function()
 	metrics.clearW = font and (mathFloor(font:GetTextWidth(L.cleardata) * metrics.clearFs) + metrics.rowPad * 3)
 		or mathFloor(46 * s)
 	clearX1 = listRight - metrics.rowPad - metrics.clearW
+	-- And beside it, the button that shows what the widget has actually saved. Same
+	-- reservation: it appears and disappears with the settings, and a description that
+	-- reflowed when one was saved would read worse than the gap.
+	metrics.dataW = font and (mathFloor(font:GetTextWidth(L.showdata) * metrics.clearFs) + metrics.rowPad * 3)
+		or mathFloor(66 * s)
+	metrics.dataX1 = clearX1 - metrics.rowPad - metrics.dataW
 	-- What the tag at the end of a local row takes, so a description can be kept out of it.
 	metrics.localTagW = font and mathFloor(font:GetTextWidth(L.islocal) * metrics.rowFs) or mathFloor(30 * s)
 
@@ -1265,7 +1627,7 @@ local function fitRow(row)
 	if row.desc ~= "" then
 		-- A local row ends with its tag, so the description stops short of it rather than
 		-- running underneath.
-		local descW = clearX1 - descX1 - metrics.rowPad * 2
+		local descW = metrics.dataX1 - descX1 - metrics.rowPad * 2
 		if row.isLocal then
 			descW = descW - metrics.localTagW - metrics.rowPad
 		end
@@ -1303,7 +1665,7 @@ local function drawButtonFace(r, fill)
 
 	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 end
-local function drawRow(row, top, bottom, hovered, overSwitch, overClear)
+local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overData)
 	fitRow(row)
 
 	local fill = (row.state == 1 and look.activeFill) or (row.state == 0.5 and look.pendingFill)
@@ -1333,7 +1695,7 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear)
 	if row.isLocal then
 		-- The one thing about a widget that is not in its name or its description, and the
 		-- thing a player most needs to tell apart: their own files from the game's.
-		queueText(colorLocal .. L.islocal, clearX1 - metrics.rowPad, ty, metrics.rowFs, "rov")
+		queueText(colorLocal .. L.islocal, metrics.dataX1 - metrics.rowPad, ty, metrics.rowFs, "rov")
 	end
 
 	-- Only where there is something to clear. Quiet until it is pointed at, and red then:
@@ -1350,6 +1712,21 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear)
 			metrics.clearFs,
 			"cov"
 		)
+
+		-- And beside it, what the widget has saved. Plain rather than red: reading settings
+		-- takes nothing away, and only the button that does should look like it might.
+		local d = { metrics.dataX1, cy1, metrics.dataX1 + metrics.dataW, cy1 + metrics.clearH }
+		drawButtonFace(d, look.buttonFill)
+		if overData then
+			Highlight(d[1], d[2], d[3], d[4], metrics.csButton, look.hoverOpacity, look.white)
+		end
+		queueText(
+			(overData and colorText or colorDim) .. L.showdata,
+			mathFloor((d[1] + d[3]) * 0.5),
+			ty,
+			metrics.clearFs,
+			"cov"
+		)
 	end
 end
 
@@ -1361,11 +1738,11 @@ end
 -- Nothing is drawn behind them. A plate per row would put two hundred small boxes down
 -- the panel and turn a column of figures into a table nobody asked for.
 local function drawCostColumns()
-	if not (filters.profiler and cost.font) then
+	if not (filters.profiler and look.mono) then
 		return
 	end
 
-	cost.font:Begin()
+	look.mono:Begin()
 	for i = 1, #rows - scroll do
 		local row = rows[scroll + i]
 		if not row then
@@ -1384,7 +1761,7 @@ local function drawCostColumns()
 			local cpu = stat.load
 			local mem = stat.space
 			-- Right-aligned in its own column, so the figures line up down the list.
-			cost.font:Print(
+			look.mono:Print(
 				(cpu >= cost.cpuHot and cost.hot or cpu >= cost.cpuWarn and cost.warm or cost.cool)
 					.. string.format("%.1f%%", cpu),
 				metrics.cpuX1 + metrics.cpuW,
@@ -1392,7 +1769,7 @@ local function drawCostColumns()
 				metrics.loadFs,
 				"rov"
 			)
-			cost.font:Print(
+			look.mono:Print(
 				(mem >= cost.memHot and cost.hot or mem >= cost.memWarn and cost.warm or cost.cool)
 					.. string.format("%.0fk", mem),
 				metrics.memX1 + metrics.memW,
@@ -1402,7 +1779,7 @@ local function drawCostColumns()
 			)
 		end
 	end
-	cost.font:End()
+	look.mono:End()
 end
 
 local function drawRows()
@@ -1416,7 +1793,100 @@ local function drawRows()
 		if bottom < listBottom then
 			break
 		end
-		drawRow(row, top, bottom, hover.row == i, hover.row == i and hover.sw == 1, hover.row == i and hover.clr == 1)
+		drawRow(
+			row,
+			top,
+			bottom,
+			hover.row == i,
+			hover.row == i and hover.sw == 1,
+			hover.row == i and hover.clr == 1,
+			hover.row == i and hover.dat == 1
+		)
+	end
+end
+
+function dataView.draw()
+	local x1, y1, x2, y2 = dataView.geometry()
+	local mx, my, lmb = spGetMouseState()
+	local pad = dataView.pad
+
+	-- A drag runs for as long as the button is held, wherever the cursor goes: letting go
+	-- is the only thing that ends it.
+	if dataView.dragging then
+		if lmb then
+			dataView.dragTo(my)
+		else
+			dataView.dragging = false
+		end
+	end
+
+	-- Everything behind it dims, the same as a confirmation does: this is the only thing
+	-- that will answer while it is up.
+	RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 1, 1, 1, 1, look.scrim)
+	UiElement(x1, y1, x2, y2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
+
+	local overClose = math_isInRect(mx, my, dataView.close[1], dataView.close[2], dataView.close[3], dataView.close[4])
+	drawButtonFace(dataView.close, look.buttonFill)
+	if overClose then
+		Highlight(
+			dataView.close[1],
+			dataView.close[2],
+			dataView.close[3],
+			dataView.close[4],
+			metrics.csButton,
+			look.hoverOpacity,
+			look.white
+		)
+	end
+
+	font:Begin()
+	font:Print(colorTitle .. dataView.name, x1 + pad, dataView.titleY, dataView.titleFs, "ov")
+	font:Print(
+		colorText .. L.close,
+		mathFloor((dataView.close[1] + dataView.close[3]) * 0.5),
+		mathFloor((dataView.close[2] + dataView.close[4]) * 0.5),
+		metrics.setsFs,
+		"cov"
+	)
+	font:End()
+
+	-- The listing, in the monospaced face: this is source, and source whose columns do not
+	-- line up is harder to read than source with no colour at all. Already flowed to the
+	-- width by geometry, so a row here is a row on screen.
+	local code = look.mono or font
+	code:Begin()
+	for i = 1, dataView.page do
+		local row = dataView.rows[dataView.scroll + i]
+		if not row then
+			break
+		end
+		local ly = dataView.top - (i - 1) * dataView.lineH
+		local lx = dataView.textX1 + row.indent * dataView.charW
+		for _, part in ipairs(row.parts) do
+			code:Print((codeColors[part.k] or codeColors.name) .. part.s, lx, ly, dataView.fs, "o")
+			lx = lx + #part.s * dataView.charW
+		end
+	end
+	code:End()
+
+	-- How much is off the bottom, and how to get at it. A bar rather than a count: a count
+	-- says there is more without saying where, and this panel scrolls everything else with
+	-- a bar you can take hold of.
+	if dataView.maxScroll() > 0 then
+		-- Lit under the cursor and again while it is being dragged, the same as the list's
+		-- bar: a bar that does not react is a bar nobody tries to take hold of.
+		local top, height = dataView.thumb()
+		local onThumb = top and my <= top and my >= top - height and mx >= dataView.barX1 and mx <= dataView.barX2
+		UiScroller(
+			dataView.barX1,
+			dataView.bottom,
+			dataView.barX2,
+			dataView.top + dataView.lineH,
+			#dataView.rows * dataView.lineH,
+			dataView.scroll * dataView.lineH,
+			onThumb or false,
+			dataView.dragging or false
+		)
 	end
 end
 
@@ -1446,11 +1916,28 @@ local function drawSetsBlock()
 end
 
 local function drawSidebar()
+	-- The categories get their own card, ending where the sets block begins.
+	RectRound(
+		area.x1,
+		setsTop,
+		area.x1 + metrics.sidebarW,
+		sidebarTop() + metrics.cardLip,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		look.sidebarFill,
+		look.sidebarFillTop
+	)
+
+	-- And the sets get theirs, with air between them. One card holding both made the
+	-- sets read as the tail of the category list rather than as their own thing.
 	RectRound(
 		area.x1,
 		listBottom,
 		area.x1 + metrics.sidebarW,
-		sidebarTop() + metrics.cardLip,
+		setsTop - metrics.setsGap,
 		metrics.csPanel,
 		1,
 		1,
@@ -1748,7 +2235,9 @@ local function drawFloating(name, fn)
 end
 
 local function updateShading()
-	if dialog and dialogBox[1] then
+	if dataView.name and dataView.rect[1] then
+		shadeRect("dialog", dataView.rect[1], dataView.rect[2], dataView.rect[3], dataView.rect[4])
+	elseif dialog and dialogBox[1] then
 		shadeRect("dialog", dialogBox[1], dialogBox[2], dialogBox[3], dialogBox[4])
 	else
 		shadeRect("dialog")
@@ -1791,10 +2280,14 @@ local function rowClearable(i)
 end
 
 local function panelChanged(mx, my)
-	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.clr = 0, 0, 0, 0, 0, 0
+	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.clr, hover.dat = 0, 0, 0, 0, 0, 0, 0
 	hover.btn, hover.dlg = "", ""
 
-	if dialog then
+	if dataView.name then
+		-- The settings window takes the cursor outright, the same as a modal does: nothing
+		-- behind it lights, because nothing behind it will answer a click. The hover fields
+		-- are already cleared above, so there is nothing more to do here.
+	elseif dialog then
 		-- A modal takes the cursor outright: lighting anything behind it would say it could
 		-- still be clicked.
 		local _, blocked = dialogName()
@@ -1823,6 +2316,8 @@ local function panelChanged(mx, my)
 				hover.sw = 1
 			elseif hover.row > 0 and mx >= clearX1 and rowClearable(hover.row) then
 				hover.clr = 1
+			elseif hover.row > 0 and mx >= metrics.dataX1 and rowClearable(hover.row) then
+				hover.dat = 1
 			end
 		elseif mx >= barX1 and mx <= area.x2 then
 			local top, height = scrollerThumb()
@@ -1857,6 +2352,7 @@ local function panelChanged(mx, my)
 	now[4] = hover.tog
 	now[5] = hover.bar
 	now[6] = hover.clr
+	now[17] = hover.dat
 	now[7] = filters.profiler
 	now[8] = hover.btn
 	now[9] = hover.dlg
@@ -1871,7 +2367,7 @@ local function panelChanged(mx, my)
 	now[16] = dialog ~= nil and select(2, dialogName()) or false
 
 	local changed = false
-	for i = 1, 16 do
+	for i = 1, 17 do
 		if was[i] ~= now[i] then
 			was[i] = now[i]
 			changed = true
@@ -1899,7 +2395,10 @@ end
 -- the panel cost. So the sweep is spread. The rows actually on screen are checked every
 -- frame, because those are the ones being looked at and a click has to show in the row it
 -- landed on; the rest of the list and the load order are swept a slice at a time, which
--- finds a widget switched from somewhere else within a few frames instead of within one.
+-- finds a widget switched from somewhere else within about a fifth of a second instead of
+-- within a frame. Nothing this panel does itself waits on that - `dirty` answers those
+-- outright - and doubling the slice to halve that wait costs a third more for a delay
+-- nobody can see.
 -- Nobody can see the difference, and it is several times cheaper.
 function sweep.moved(e)
 	return e.state ~= stateOf(e.name, e.data) or e.hasConfig ~= sweep.hasConfig(e.name)
@@ -2047,9 +2546,13 @@ local function loadLabels()
 	L.hint = tr("hint", "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.")
 	L.order = tr("order", "Load order")
 	L.total = tr("total", "total")
+	L.defaultOn = tr("defaulton", "default enabled")
+	L.defaultOff = tr("defaultoff", "default disabled")
 	L.profiler = tr("profiler", "Cost")
 	L.byLoad = tr("byload", "By cost")
 	L.cleardata = tr("cleardata", "Reset")
+	L.showdata = tr("showdata", "Show data")
+	L.close = tr("close", "Close")
 	L.cleardataTitle = tr("cleardatatitle", "Clear saved settings")
 	-- The fallbacks only. These two carry the widget's name, and i18n fills a %{...} in
 	-- as the string is looked up - so looking one up here, with no name to hand, would
@@ -2139,11 +2642,11 @@ local function bindUi()
 	end
 
 	font = WG.fonts.getFont()
-	-- The monospaced face, for the cost columns alone. Figures that change several times
+	-- The monospaced face, for the cost columns and the stored-settings listing. Figures that change several times
 	-- a second wander sideways in a proportional face as the digits under them change,
 	-- which turns a column that should be read at a glance into one that has to be
 	-- re-read. Fixed widths hold the decimal point still.
-	cost.font = WG.fonts.getFont(3)
+	look.mono = WG.fonts.getFont(3)
 	elementCorner = WG.FlowUI.elementCorner
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
@@ -2379,9 +2882,13 @@ function widget:Update()
 
 	-- While a dialog is asking for a name it owns the keyboard too, or nothing typed
 	-- into it arrives.
+	-- widgetHandler:KeyPress tries the text owner first, then the action bindings, and only
+	-- then the widgets. So a panel that does not own the keyboard never sees Escape: the
+	-- binding has already closed something by the time its own KeyPress would run. Anything
+	-- here that has to answer Escape itself therefore has to own it.
 	local wantsInput = show
 		and uiBound
-		and ((dialog and dialog.field) or (not dialog and searchBox and searchBox:isFocused()))
+		and (dataView.name ~= nil or (dialog and dialog.field) or (not dialog and searchBox and searchBox:isFocused()))
 	if wantsInput then
 		if not fieldHasInput then
 			fieldHasInput = true
@@ -2507,6 +3014,11 @@ local function showTooltip(row)
 	elseif row.state == 0.5 then
 		stateColor, stateWord = "\255\255\240\160", L.statePending
 	end
+	-- Said on the state line rather than a line of its own: what matters about the shipped
+	-- default is how it sits against the state now, and "Off  (on by default)" is that whole
+	-- story in one reading.
+	stateWord = stateWord .. "  \255\140\140\140(" .. (d.enabled and L.defaultOn or L.defaultOff) .. ")"
+
 	local title = stateColor .. row.name .. "\n"
 
 	local maxWidth = WG.tooltip.getFontsize() * 90
@@ -2648,7 +3160,10 @@ function widget:DrawScreen()
 	-- Live, over the baked panel: a text field's caret blinks and its contents change as
 	-- it is typed into, and the picker's list opens over the rows.
 	if show then
-		if dialog then
+		if dataView.name then
+			dropFloat("picker")
+			drawFloating("dialog", dataView.draw)
+		elseif dialog then
 			dropFloat("picker")
 			drawFloating("dialog", function()
 				drawDialog(dialog)
@@ -2697,6 +3212,16 @@ end
 function widget:KeyPress(key)
 	if not show or not uiBound then
 		return false
+	end
+
+	-- Innermost first: the settings window is over everything, so Escape closes it before
+	-- anything else is considered.
+	if dataView.name then
+		if key == KEYSYMS.ESCAPE then
+			dataView.shut()
+		end
+
+		return true
 	end
 
 	if dialog then
@@ -2751,8 +3276,11 @@ function widget:KeyRelease(key)
 	if not show or not uiBound then
 		return false
 	end
-	-- A dialog swallows releases as well as presses: the key that was typed into it must
-	-- not fire whatever it is bound to on the way back up.
+	-- The window and a dialog swallow releases as well as presses: the key answered by
+	-- either must not fire whatever it is bound to on the way back up.
+	if dataView.name then
+		return true
+	end
 	if dialog then
 		return dialog.field == true
 	end
@@ -2772,6 +3300,11 @@ end
 function widget:TextInput(utf8char)
 	if not (show and uiBound) then
 		return false
+	end
+	-- The settings window owns the keyboard while it is up, so nothing typed at it leaks
+	-- into the search field behind it.
+	if dataView.name then
+		return true
 	end
 	if dialog then
 		return dialog.field and nameBox:textInput(utf8char) or false
@@ -2795,6 +3328,12 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 	if dialog then
+		return true
+	end
+	-- The settings window takes the wheel while it is up: it is the thing being read.
+	if dataView.name then
+		dataView.setScroll(dataView.scroll + (up and -3 or 3))
+
 		return true
 	end
 
@@ -2953,13 +3492,21 @@ local function mouseEvent(x, y, button, release)
 		-- was under the cursor: releasing over the row after pressing the button would
 		-- otherwise toggle the widget.
 		local onClear = overRow and overRow.hasConfig and x >= clearX1 and x <= listRight or false
+		local onData = overRow and overRow.hasConfig and x >= metrics.dataX1 and x < clearX1 or false
 		if not release then
 			pressedRow = overRow and overRow.name or nil
 			pressedButton = button
 			pressedClear = onClear
+			pressedData = onData
 		elseif overRow and overRow.name == pressedRow and button == pressedButton then
 			-- A click, rather than a drag that happened to finish over a row.
-			if button == 1 and (onClear or pressedClear) then
+			if button == 1 and (onData or pressedData) then
+				-- Both halves on the button, the same as the one beside it.
+				if onData and pressedData then
+					dataView.open(overRow.name)
+					click()
+				end
+			elseif button == 1 and (onClear or pressedClear) then
 				-- Both halves of the click have to be on the button. Pressing it and sliding off
 				-- before letting go is how a player takes an accidental press back.
 				if onClear and pressedClear then
@@ -2990,7 +3537,7 @@ local function mouseEvent(x, y, button, release)
 			end
 		end
 		if release then
-			pressedRow, pressedButton, pressedClear = nil, 0, false
+			pressedRow, pressedButton, pressedClear, pressedData = nil, 0, false, false
 		end
 
 		return true
@@ -3005,10 +3552,24 @@ local function mouseEvent(x, y, button, release)
 end
 
 function widget:MousePress(x, y, button)
+	-- The settings window is over everything, so it answers first: a press meant for it
+	-- must not fall through to the rows underneath.
+	if dataView.name and dataView.press(x, y) then
+		return true
+	end
+
 	return mouseEvent(x, y, button, false)
 end
 
 function widget:MouseRelease(x, y, button)
+	-- The window owns the release as well as the press: a drag down its bar can end with
+	-- the cursor anywhere, and that must not read as a click on a row behind it.
+	if dataView.name then
+		dataView.dragging = false
+
+		return true
+	end
+
 	return mouseEvent(x, y, button, true)
 end
 
