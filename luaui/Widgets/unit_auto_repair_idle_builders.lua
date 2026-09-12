@@ -124,7 +124,7 @@ local function getLeashRadius(unitID)
 	return buildDist + (LEASH_EXTRA[states.movestate] or DEFAULT_LEASH_EXTRA)
 end
 
-local function isOutsideLeash(unitID, homeX, homeZ, leash)
+local function willExitLeash(unitID, homeX, homeZ, leash)
 	local tx, _, tz = spGetUnitPosition(unitID)
 	if not tx then
 		return true
@@ -392,7 +392,7 @@ function widget:GameFrame(frame)
 				local unitDef = cachedUnitDefs[unitDefID]
 				-- Check if target will leave leash radius before the next poll
 				local leash = getLeashRadius(builderID) + unitDef.radius
-				if isOutsideLeash(info.targetID, info.homeX, info.homeZ, leash) then
+				if willExitLeash(info.targetID, info.homeX, info.homeZ, leash) then
 					sendHome(builderID, info)
 				else
 					-- Check builder is still repairing (not overridden by player)
@@ -444,7 +444,7 @@ function widget:GameFrame(frame)
 						local effectiveLeash = leash + cachedUnitDefs[candidateDefID].radius
 						if
 							distSq < bestDistSq
-							and not isOutsideLeash(candidateID, homePos.homeX, homePos.homeZ, effectiveLeash)
+							and not willExitLeash(candidateID, homePos.homeX, homePos.homeZ, effectiveLeash)
 						then
 							bestDistSq = distSq
 							bestTarget = candidateID
