@@ -71,6 +71,8 @@ local UiElement
 ---@type function
 local UiScroller
 ---@type function
+local UiScrollerAt
+---@type function
 local Highlight
 ---@type function
 local UiToggle
@@ -218,6 +220,10 @@ local layoutGen = 0
 local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
 local scroll = 0
 local dragging = false
+-- Where the thumb was taken hold of, as the distance from the cursor to its top edge. The
+-- thumb then follows the cursor by that much, instead of jumping its middle to wherever
+-- the press landed.
+local dragGrab = 0
 -- Rows of decoded tweak the cursor has dragged over, as indices into `rows`. Source is the
 -- one thing in here worth taking somewhere else, so it is the one thing that selects.
 local selFrom, selTo = 0, 0
@@ -234,7 +240,7 @@ local changedOnly = false
 local searchBox
 -- What the cursor is over, in the terms the baked panel is painted with. Refilled in
 -- place each frame rather than allocated.
-local hover = { sb = 0, row = 0, tog = 0 }
+local hover = { sb = 0, row = 0, tog = 0, bar = 0 }
 
 -- Input ownership is taken once when the search field takes focus and given back when it
 -- loses it, rather than every frame, so chat's handling is restored exactly as it was
@@ -1096,16 +1102,45 @@ local function selectAllCode()
 	return true
 end
 
--- Cursor height in the band mapped straight onto the scroll range, as the keybind
--- editor's bar does: the top of the bar is the start, the bottom the end.
+-- The thumb, where it is now. Nil when everything fits and no bar is drawn.
+local function scrollerThumb()
+	return UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, scrollOffset())
+end
+
+-- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
+-- grab is what keeps this relative: the thumb moves with the cursor rather than centring
+-- itself on it, so taking hold of it does not shift the view before the drag begins.
 local function scrollFromY(y)
-	local f = (listTop - y) / mathMax(1, listTop - listBottom)
+	local _, _, trackTop, travel = scrollerThumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - dragGrab)) / travel
 	if f < 0 then
 		f = 0
 	elseif f > 1 then
 		f = 1
 	end
 	setScroll(mathFloor(f * maxScroll() + 0.5))
+end
+
+-- Takes hold of the bar. On the thumb that is a grab, and the view stays where it is; on
+-- the track either side of it the thumb jumps to the cursor first and is then dragged from
+-- its middle, which is what a press on empty track is asking for.
+local function grabScroller(y)
+	local top, height = scrollerThumb()
+	if not top then
+		return
+	end
+
+	dragging = true
+	if y <= top and y >= top - height then
+		dragGrab = y - top
+	else
+		dragGrab = -mathFloor(height * 0.5)
+		scrollFromY(y)
+	end
 end
 
 -- Rebuilds the list from the blocks, honouring the category column, the search box and
@@ -1239,7 +1274,6 @@ local function setLayout()
 	valueX1 = listX1 + mathFloor((listRight - listX1) * 0.55)
 
 	-- The header band: the search field takes the width the filter toggle leaves it.
-	local gap = mathFloor(8 * s)
 	local rowTop = area.y2 - mathFloor(4 * s)
 	local rowBottom = area.y2 - metrics.headerH + mathFloor(4 * s)
 	local fs = mathFloor((rowTop - rowBottom) * 0.5)
@@ -1248,10 +1282,27 @@ local function setLayout()
 	local togY = mathFloor((rowTop + rowBottom) * 0.5)
 	local togX2 = area.x2 - metrics.edgeInset
 	toggleDraw = { togX2 - togW, togY - mathFloor(togH * 0.5), togX2, togY - mathFloor(togH * 0.5) + togH }
-	local labelW = font and mathFloor(font:GetTextWidth(L.changedOnly) * fs) or mathFloor(90 * s)
-	-- The caption is part of the control: a toggle this small is a poor click target on
-	-- its own, and the words beside it are what names the thing being switched.
-	toggleHit = { togX2 - togW - gap - labelW, rowBottom, togX2, rowTop }
+	-- Measured at the size it is drawn at, not at the header's: the rect below is built off
+	-- this, and a caption measured at one size and drawn at another puts it out by whatever
+	-- the two happen to differ by.
+	metrics.toggleFs = mathFloor(metrics.rowFs * 1.05)
+	local labelW = font and mathFloor(font:GetTextWidth(L.changedOnly) * metrics.toggleFs) or mathFloor(90 * s)
+	-- Outlined text spreads past the box it is measured in: gui_fonthandler builds the faces
+	-- with an outline of 0.22 * 0.9 of the em, so the caption's first glyph already sits that
+	-- much left of where its advance box starts. The toggle at the other end has no such
+	-- bleed, so matching the two boxes does not read as matching - this buys the caption side
+	-- back the room its outline took.
+	metrics.captionBleed = mathFloor(metrics.toggleFs * 0.2 + 0.5)
+	-- The caption is part of the control: a toggle this small is a poor click target on its
+	-- own, and the words beside it are what names the thing being switched. This is also what
+	-- the hover paints, so it keeps the same room in front of the caption as it does after
+	-- the toggle, rather than opening wider on one side than the other.
+	toggleHit = {
+		toggleDraw[1] - metrics.rowPad * 2 - labelW - metrics.captionBleed,
+		rowBottom,
+		togX2 + metrics.rowPad,
+		rowTop,
+	}
 	-- Wider than the gaps inside the control, so the caption reads as belonging to the
 	-- toggle beside it rather than to the field it would otherwise sit against.
 	searchBox:setRect(listX1, rowBottom, toggleHit[1] - mathFloor(28 * s), rowTop, fs)
@@ -1700,23 +1751,26 @@ end
 -- The filter toggle and its caption. The search field draws itself, live, so its caret
 -- can blink without the panel being baked again every frame.
 local function drawHeader()
+	-- The plate goes behind the switch and the switch lights itself, rather than the plate
+	-- being laid over it: at the plate's opacity the switch has one of its own bright enough
+	-- to swallow it, and painting over the switch only dulls it.
 	if hover.tog == 1 then
 		Highlight(
-			toggleHit[1] - metrics.rowPad,
+			toggleHit[1],
 			toggleHit[2],
-			toggleHit[3] + metrics.rowPad,
+			toggleHit[3],
 			toggleHit[4],
 			metrics.csSmall,
 			look.rowHoverOpacity,
 			look.white
 		)
 	end
-	UiToggle(toggleDraw[1], toggleDraw[2], toggleDraw[3], toggleDraw[4], changedOnly)
+	UiToggle(toggleDraw[1], toggleDraw[2], toggleDraw[3], toggleDraw[4], changedOnly, hover.tog == 1)
 	queueText(
 		(changedOnly and colorSelected or colorDim) .. L.changedOnly,
 		toggleDraw[1] - metrics.rowPad,
 		mathFloor((toggleHit[2] + toggleHit[4]) * 0.5),
-		mathFloor(metrics.rowFs * 1.05),
+		metrics.toggleFs,
 		"rov",
 		1
 	)
@@ -1732,7 +1786,16 @@ local function drawPanel()
 
 	local base = scrollOffset()
 	if rowMetrics.totalH > 0 then
-		UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base)
+		UiScroller(
+			barX1,
+			listBottom,
+			area.x2 - metrics.edgeInset,
+			listTop,
+			rowMetrics.totalH,
+			base,
+			hover.bar == 1,
+			dragging
+		)
 	end
 
 	flushText(1, font)
@@ -1790,21 +1853,40 @@ local function panelSignature(mx, my)
 	hover.sb = sidebarIndexAt(mx, my) or 0
 	hover.row = 0
 	hover.tog = 0
+	hover.bar = 0
 
 	if toggleHit[1] and math_isInRect(mx, my, toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4]) then
 		hover.tog = 1
 	elseif mx >= listX1 and mx <= listRight then
 		hover.row = rowAt(my) or 0
+	elseif mx >= barX1 and mx <= area.x2 then
+		-- The thumb itself, not the track: it is the part that can be taken hold of, so it
+		-- is the part that lights up.
+		local top, height = scrollerThumb()
+		if top and my <= top and my >= top - height then
+			hover.bar = 1
+		end
 	end
 
 	return hover.sb
-		.. "|" .. hover.row
-		.. "|" .. hover.tog
-		.. "|" .. scroll
-		.. "|" .. rowsGen
-		.. "|" .. layoutGen
-		.. "|" .. selFrom
-		.. "|" .. selTo
+		.. "|"
+		.. hover.row
+		.. "|"
+		.. hover.tog
+		.. "|"
+		.. hover.bar
+		.. "|"
+		.. scroll
+		.. "|"
+		.. rowsGen
+		.. "|"
+		.. layoutGen
+		.. "|"
+		.. selFrom
+		.. "|"
+		.. selTo
+		.. "|"
+		.. (dragging and 1 or 0)
 end
 
 ----------------------------------------------------------------
@@ -1855,6 +1937,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
+	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiToggle = WG.FlowUI.Draw.Toggle
 	UiUnit = WG.FlowUI.Draw.Unit
@@ -2106,8 +2189,7 @@ local function mouseEvent(x, y, button, release)
 					-- The strip between the bar and the panel edge stays grabbable too. The
 					-- selection survives it: scrolling to reach more of the source is part of
 					-- selecting it, not a change of mind.
-					dragging = true
-					scrollFromY(y)
+					grabScroller(y)
 				elseif math_isInRect(x, y, listX1, listBottom, listRight, listTop) then
 					-- Source is the only thing here worth taking elsewhere, so it is the only
 					-- thing that selects; a press on any other row puts the selection down.

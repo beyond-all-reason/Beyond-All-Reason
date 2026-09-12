@@ -101,7 +101,6 @@ local otherCategoryKey = generatedOtherKey
 ---@type table?
 local gridGroup
 local listRight = 0
-local keyAreaX1 = 0
 
 ---@type table
 local working
@@ -1337,7 +1336,7 @@ function view.setArea(x1, y1, x2, y2, s)
 	local barW = floor(14 * scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
-	keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
+	metrics.keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
 
 	-- Shortened here rather than in the draw loop: the column width and the font size are
 	-- both settled by now, and this runs on a resize where the loop runs every frame.
@@ -1903,7 +1902,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 	local n = #groups
 	local mets = {}
 	if n == 0 then
-		return mets, keyAreaX1
+		return mets, metrics.keyAreaX1
 	end
 
 	local total = 0
@@ -1921,7 +1920,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 		end
 	end
 
-	local cx = keyAreaX1
+	local cx = metrics.keyAreaX1
 	for i = 1, n do
 		mets[i].x = cx
 		mets[i].removeX1 = cx + mets[i].w - rightGap
@@ -1939,7 +1938,7 @@ local function rowChipBand(action, fs, pad)
 	local rightGap = pad + floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
 	-- Room reserved on the right so "+" always fits.
-	local chipArea = listRight - addW - floor(8 * scale) - keyAreaX1
+	local chipArea = listRight - addW - floor(8 * scale) - metrics.keyAreaX1
 	local mets, cx = layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 
 	return mets, cx, addW, rightGap
@@ -1963,7 +1962,7 @@ local function rowLayout(row)
 		lay.arrow = look.arrow
 		lay.arrowX = listX1 + metrics.rowPad * 5 + floor(font:GetTextWidth(row.label) * metrics.rowFs) + metrics.rowPad * 2
 	else
-		local labelW = keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
+		local labelW = metrics.keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
 		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
 		local mets, cx, addW, rightGap = rowChipBand(row.action, metrics.rowFs, metrics.rowPad)
 		for i = 1, #mets do
@@ -2744,7 +2743,25 @@ end
 
 -- What the cursor is over, in the terms the panel paints hover with. Refilled in place
 -- each frame rather than allocated.
-local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "" }
+-- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
+-- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
+-- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
+-- 200 locals, which is why the sizes above share `metrics` too.
+local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0 }
+
+-- The thumb, where it is now. Nil when the list fits and no bar is drawn. Reached through
+-- WG rather than a local of its own, this chunk being at the 200-local ceiling; it is only
+-- asked for on a press or a hover test, so the lookup costs nothing that matters.
+local function scrollerThumb()
+	return WG.FlowUI.Draw.ScrollerGeometry(
+		barX1,
+		listBottom(),
+		area.x2 - metrics.edgeInset,
+		listTop,
+		rowMetrics.totalH,
+		scrollOffset()
+	)
+end
 
 -- Reads the hover state and answers a signature of everything the baked panel is painted
 -- from. Same signature, same picture, so the display list is replayed as it is.
@@ -2754,6 +2771,16 @@ local function panelSignature(mx, my)
 	h.row, h.zone, h.idx = 0, "", 0
 	h.gk, h.ga, h.gb = "", 0, 0
 	h.btn = ""
+	h.bar = 0
+
+	-- Over the thumb itself, which lights it. The track either side is not part of this:
+	-- only the thumb is something to take hold of.
+	if mx >= barX1 and mx <= area.x2 - metrics.edgeInset then
+		local top, height = scrollerThumb()
+		if top and my <= top and my >= top - height then
+			h.bar = 1
+		end
+	end
 
 	if gridGroup then
 		if isInRect(mx, my, listX1, listBottom(), area.x2, listTop) then
@@ -2808,6 +2835,10 @@ local function panelSignature(mx, my)
 		.. (dirty and 1 or 0)
 		.. "|"
 		.. (activeIsOwn() and 1 or 0)
+		.. "|"
+		.. h.bar
+		.. "|"
+		.. (dragging and 1 or 0)
 end
 
 -- Everything under the header controls and above the modals: the sidebar, the list or
@@ -2840,7 +2871,7 @@ local function drawPanel()
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base)
+		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, dragging)
 	end
 
 	drawButtons(h.btn)
@@ -2923,9 +2954,16 @@ function view.draw()
 	end
 end
 
+-- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at
+-- the grab is what keeps this relative: the thumb moves with the cursor rather than
+-- centring itself on it, so taking hold of it does not shift the list before the drag.
 scrollFromY = function(y)
-	local lb = listBottom()
-	local f = (listTop - y) / math.max(1, listTop - lb)
+	local _, _, trackTop, travel = scrollerThumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - hover.grab)) / travel
 	if f < 0 then
 		f = 0
 	elseif f > 1 then
@@ -3097,8 +3135,21 @@ function view.mousePress(x, y, button)
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		dragging = true
-		scrollFromY(y)
+		-- Taking hold of the bar. On the thumb that is a grab and the list stays put; on the
+		-- track either side the thumb jumps to the cursor first and is then dragged from its
+		-- middle, which is what a press on bare track is asking for. Inline because this chunk
+		-- is at Lua's ceiling of 200 locals and a function of its own would need a slot.
+		local top, height = scrollerThumb()
+		if top then
+			dragging = true
+			if y <= top and y >= top - height then
+				hover.grab = y - top
+			else
+				hover.grab = -floor(height * 0.5)
+				scrollFromY(y)
+			end
+		end
+
 		return true
 	end
 

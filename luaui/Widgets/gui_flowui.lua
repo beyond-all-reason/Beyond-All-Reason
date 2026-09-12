@@ -2916,6 +2916,42 @@ WG.FlowUI.Draw.UnitFrame = function(px, py, sx, sy, cs, tl, tr, br, bl, borderSi
 	end
 end
 
+---Where a scrollbar's thumb sits, for a bar drawn with these bounds and this content.
+---
+---Shared with `Scroller` so a panel hit-testing the thumb can never disagree with what was
+---drawn: grabbing the thumb has to move the view by how far the thumb is dragged, while a
+---press on the track either side of it is the one that jumps.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param contentHeight number Height of the scrolled content, in pixels
+---@param position number? Current scroll position. Defaults to `0`
+---@return number? top Top edge of the thumb, or nil when the content fits and none is drawn
+---@return number? height Height of the thumb
+---@return number? trackTop Where the thumb's top sits at position `0`
+---@return number? travel How far down from `trackTop` the thumb's top can move
+WG.FlowUI.Draw.ScrollerGeometry = function(px, py, sx, sy, contentHeight, position)
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+	local trackHeight = (sy - py) - padding - padding
+
+	if not contentHeight or contentHeight <= 0 or trackHeight <= 0 then
+		return nil
+	end
+
+	local fraction = trackHeight / contentHeight
+	if fraction >= 1 then
+		return nil
+	end
+
+	local thumbHeight = mathFloor((fraction * trackHeight) + 0.5)
+	local trackTop = sy - padding
+	local top = trackTop - mathFloor((trackHeight * ((position or 0) / contentHeight)) + 0.5)
+
+	return top, thumbHeight, trackTop, trackHeight - thumbHeight
+end
+
 ---Draws a vertical scrollbar.
 ---@param px number Left
 ---@param py number Bottom
@@ -2923,39 +2959,33 @@ end
 ---@param sy number Top
 ---@param contentHeight number Height of the scrolled content, in pixels
 ---@param position number? Current scroll position. Defaults to `0`
-WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
-	local width = sx - px
-	local height = sy - py
-	local padding = mathFloor((width * 0.25) + 0.5)
-	local sliderAreaHeight = height - padding - padding
-	local sliderHeight = sliderAreaHeight / contentHeight
-
-	if sliderHeight < 1 then
-		position = position or 0
-		sliderHeight = mathFloor((sliderHeight * sliderAreaHeight) + 0.5)
-		local sliderPos = sy - padding - mathFloor((sliderAreaHeight * (position / contentHeight)) + 0.5)
-
-		-- background
-		WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
-
-		-- slider
-		local cs = (width - padding - padding) * 0.2
-		if cs > sliderHeight * 0.5 then
-			cs = sliderHeight * 0.5
-		end
-		WG.FlowUI.Draw.RectRound(
-			px + padding,
-			sliderPos - sliderHeight,
-			sx - padding,
-			sliderPos,
-			cs,
-			1,
-			1,
-			1,
-			1,
-			{ 1, 1, 1, 0.16 }
-		)
+---@param hovered boolean? Cursor is over the thumb
+---@param active boolean? The thumb is being dragged
+WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position, hovered, active)
+	local top, thumbHeight = WG.FlowUI.Draw.ScrollerGeometry(px, py, sx, sy, contentHeight, position)
+	if not top then
+		return
 	end
+
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+
+	-- background
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
+
+	-- slider, lit while the cursor is on it and lit further while it is being dragged, so
+	-- it reads as something to take hold of rather than a mark of where you are
+	local cs = (width - padding - padding) * 0.2
+	if cs > thumbHeight * 0.5 then
+		cs = thumbHeight * 0.5
+	end
+	local alpha = 0.16
+	if active then
+		alpha = 0.38
+	elseif hovered then
+		alpha = 0.26
+	end
+	WG.FlowUI.Draw.RectRound(px + padding, top - thumbHeight, sx - padding, top, cs, 1, 1, 1, 1, { 1, 1, 1, alpha })
 end
 
 ---Draws a toggle switch.
@@ -2964,11 +2994,16 @@ end
 ---@param sx number Right
 ---@param sy number Top
 ---@param state number? `0`, `0.5` or `1`. Defaults to `0`
-WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
+---@param hovered boolean? Cursor is over the switch, which lights it
+WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state, hovered)
 	local height = sy - py
 	local width = sx - px
 	local cs = height * 0.1
 	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
+	-- A hover plate laid over the whole row reads as the row lighting up rather than the
+	-- switch: the switch has a plate of its own, and at those opacities it barely moves.
+	-- So the switch brightens itself, and the light its knob gives off with it.
+	local lit = hovered and 2.4 or 1
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(
@@ -2984,7 +3019,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		{ 0, 0, 0, 0.05 }
 	)
 	-- top
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 * lit }, { 1, 1, 1, 0.12 * lit })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -3000,7 +3035,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.035 }
+		{ 1, 1, 1, 0.035 * lit }
 	)
 	-- bottom
 	WG.FlowUI.Draw.RectRound(
@@ -3013,7 +3048,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		1,
-		{ 1, 1, 1, 0.025 },
+		{ 1, 1, 1, 0.025 * lit },
 		{ 1, 1, 1, 0 }
 	)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -3038,6 +3073,9 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	end
 	WG.FlowUI.Draw.SliderKnob(x, y, radius, color)
 
+	if hovered then
+		glowMult = glowMult * 1.8
+	end
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
