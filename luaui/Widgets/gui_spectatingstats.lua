@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
-local fps = Game.gameSpeed
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsGUIHidden = Spring.IsGUIHidden
 local glCreateList = gl.CreateList
@@ -23,7 +22,6 @@ local glTranslate = gl.Translate
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local ceil = math.ceil
-local floor = math.floor
 local subString = string.sub
 local flowUIDrawElement
 local exo2Font
