@@ -21,8 +21,6 @@ local tableSort = table.sort
 local tableSortStable = table.sortStable
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local texts = {}
@@ -105,6 +103,7 @@ include("keysym.h.lua")
 -- Globals
 ------------------------------------------------------------------------------------
 local useSelection = true
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init
 
 local customFontSize = 14
 local fontSize = customFontSize
@@ -444,6 +443,12 @@ local function disableStats()
 end
 
 function widget:Initialize()
+	if WG.UnitSelection then
+		getSelectedUnits = WG.UnitSelection.GetUnits
+	else
+		getSelectedUnits = Spring.GetSelectedUnits
+	end
+
 	texts = BAR.I18N("ui.unitstats")
 
 	widget:ViewResize(vsx, vsy)
@@ -498,14 +503,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	invalidateContent()
 end
 
-local selectedUnits = spGetSelectedUnits()
-local selectedUnitsCount = spGetSelectedUnitsCount()
-if useSelection then
-	function widget:SelectionChanged(sel)
-		selectedUnits = sel
-		selectedUnitsCount = spGetSelectedUnitsCount()
-	end
-end
 
 local function computeContent(uDefID, uID, shiftBool)
 	local shift = shiftBool
@@ -1269,7 +1266,8 @@ function widget:DrawScreen()
 		uID = unitID
 	end
 	if useSelection then
-		if selectedUnitsCount >= 1 then
+		local selectedUnits = getSelectedUnits()
+		if selectedUnits[1] then
 			uID = selectedUnits[1]
 		end
 	end

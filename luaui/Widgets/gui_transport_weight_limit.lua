@@ -18,8 +18,9 @@ local mathCos = math.cos
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
+-- Replaced in init via selection api
+local getSelectedUnits, getSelectedUnitsCount = Spring.GetSelectedUnits, Spring.GetSelectedUnitsCount
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -95,12 +96,14 @@ local function DrawCircleLine()
 	end)
 end
 
-local selectedUnits = {}
-local selectedUnitsCount = 0
-
 function widget:Initialize()
-	selectedUnits = spGetSelectedUnits()
-	selectedUnitsCount = spGetSelectedUnitsCount()
+	if WG.UnitSelection then
+		getSelectedUnits = WG.UnitSelection.GetUnits
+		getSelectedUnitsCount = WG.UnitSelection.GetCount
+	else
+		getSelectedUnits = Spring.GetSelectedUnits
+		getSelectedUnitsCount = Spring.GetSelectedUnitsCount
+	end
 	circleList = gl.CreateList(DrawCircleLine)
 end
 
@@ -108,9 +111,7 @@ function widget:Shutdown()
 	gl.DeleteList(circleList)
 end
 
-function widget:SelectionChanged(sel)
-	selectedUnits = sel
-	selectedUnitsCount = spGetSelectedUnitsCount()
+function widget:SelectionChanged()
 	unitsToDraw = {}
 end
 
@@ -119,6 +120,7 @@ function widget:GameFrame(n)
 		return
 	end
 
+	local selectedUnitsCount = getSelectedUnitsCount()
 	if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
 		return
 	end
@@ -131,7 +133,8 @@ function widget:GameFrame(n)
 	end
 
 	activeTransportDefs = {}
-	for i = 1, #selectedUnits do
+	local selectedUnits = getSelectedUnits()
+	for i = 1, selectedUnitsCount do
 		local transID = selectedUnits[i]
 		local transDefID = spGetUnitDefID(transID)
 

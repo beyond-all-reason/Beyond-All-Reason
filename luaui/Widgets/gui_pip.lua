@@ -1564,6 +1564,8 @@ local pools = {
 -- each of which allocates a new Lua table with N entries (N = selected unit count).
 local frameSel = nil -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
 local frameSelCount = 0 -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
+-- The per-frame cache sits atop the shared unit selections api, also.
+local getSelectedUnits
 
 -- Tracked-player selected-unit cache for PIP.
 -- Filled incrementally by selectedUnits call-ins; seeded once from WG allyselectedunits
@@ -2386,7 +2388,6 @@ local spFunc = {
 	GetUnitWorkerTask = Spring.GetUnitWorkerTask,
 	GetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower,
 	ValidUnitID = Spring.ValidUnitID,
-	GetSelectedUnitsCount = Spring.GetSelectedUnitsCount,
 }
 
 -- Map/game constants
@@ -2628,7 +2629,7 @@ local buttons = {
 		tooltipActiveKey = "ui.pip.untrack",
 		command = "pip_track",
 		OnPress = function()
-			local selectedUnits = Spring.GetSelectedUnits()
+			local selectedUnits = getSelectedUnits()
 			if #selectedUnits > 0 then
 				-- Add selected units to tracking (or start tracking if not already)
 				if interactionState.areTracking then
@@ -8443,7 +8444,7 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 	if id then
 		-- For LOAD_UNITS command, give order only to transport units
 		if cmdID == CMD.LOAD_UNITS then
-			local selectedUnits = Spring.GetSelectedUnits()
+			local selectedUnits = getSelectedUnits()
 			local transports = {}
 
 			-- Collect all transport units (using cache)
@@ -8485,7 +8486,7 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 			if radius and radius > 0 then
 				-- For area LOAD_UNITS command, give order only to transport units individually
 				if cmdID == CMD.LOAD_UNITS then
-					local selectedUnits = Spring.GetSelectedUnits()
+					local selectedUnits = getSelectedUnits()
 
 					-- Give order to each transport unit individually (using cache)
 					-- This allows the engine to distribute targets naturally across multiple transports
@@ -9003,6 +9004,8 @@ function RegisterPipGlobalApis(pipApi)
 end
 
 function widget:Initialize()
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+
 	RebuildAllUnitsCache()
 
 	-- Avoid lazy texture loads stalling the first button-strip draw on hover.
@@ -14185,7 +14188,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		if interactionState.trackingPlayerID then
 			selectedSet = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
 		else
-			local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
+			local selUnits2 = cachedSelectedUnits or getSelectedUnits()
 			local set = pools.selectedSet
 			if not set then
 				set = {}
@@ -15534,7 +15537,7 @@ local function DrawBuildCursorWithRotation()
 			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
-					frameSel = Spring.GetSelectedUnits()
+					frameSel = getSelectedUnits
 				end
 				local selectedUnits = frameSel
 				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
@@ -16626,7 +16629,7 @@ end
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
 	if not frameSel then
-		frameSel = Spring.GetSelectedUnits()
+		frameSel = getSelectedUnits
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -16716,7 +16719,7 @@ end
 local function RenderPipContents()
 	-- Use frame-cached selected units to avoid redundant API call
 	if not frameSel then
-		frameSel = Spring.GetSelectedUnits()
+		frameSel = getSelectedUnits
 	end
 	local cachedSelectedUnits = frameSel
 
@@ -19045,7 +19048,7 @@ local function HandleHoverAndCursor(mx, my)
 			if not defaultCmd or defaultCmd == 0 then
 				if frameSelCount > 0 then
 					if not frameSel then
-						frameSel = Spring.GetSelectedUnits()
+						frameSel = getSelectedUnits
 					end
 					local selectedUnits = frameSel
 					-- Check if hovering over an enemy unit with units that can attack
@@ -19095,7 +19098,7 @@ local function HandleHoverAndCursor(mx, my)
 			elseif defaultCmd == CMD.ATTACK and lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
 				-- Hovering over enemy unit with units that can attack
 				if not frameSel then
-					frameSel = Spring.GetSelectedUnits()
+					frameSel = getSelectedUnits
 				end
 				if CanSelectedUnitsAttackTarget(frameSel, lastHoveredUnitID) then
 					Spring.SetMouseCursor("Attack")
@@ -19766,8 +19769,8 @@ function widget:DrawScreen()
 		pools.RunDeferredPipMaintenance(maintenanceDt)
 	end
 
-	-- Cache selected units count once per frame (avoids 5+ redundant GetSelectedUnits calls)
-	frameSelCount = spFunc.GetSelectedUnitsCount()
+	-- Cache unit selection once per frame: The draw path below reads it several times.
+	frameSelCount = getSelectedUnitsCount()
 	frameSel = nil -- Lazy: full array fetched only when needed
 
 	HandleHoverAndCursor(mx, my)
@@ -21286,10 +21289,7 @@ function widget:Update(dt)
 			end
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
-			if not frameSel then
-				frameSel = Spring.GetSelectedUnits()
-			end
-			local selectedUnits = frameSel
+			local selectedUnits = FrameSelectedUnits()
 			local shouldHighlight = false
 			local isAlly = Spring.IsUnitAllied(unitID)
 
@@ -22914,7 +22914,7 @@ function widget:DefaultCommand()
 			if Spring.IsUnitAllied(uID) then
 				return CMD.GUARD
 			else
-				if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+				if CanSelectedUnitsAttackTarget(getSelectedUnits(), uID) then
 					return CMD.ATTACK
 				end
 				return CMD.MOVE
@@ -23790,7 +23790,7 @@ function widget:MousePress(mx, my, mButton)
 			-- Button row
 			if my <= render.dim.b + render.usedButtonSize then
 				-- Calculate visible buttons
-				local selectedUnits = Spring.GetSelectedUnits()
+				local selectedUnits = getSelectedUnits()
 				local hasSelection = #selectedUnits > 0
 				local isTracking = interactionState.areTracking ~= nil
 				local isTrackingPlayer = interactionState.trackingPlayerID ~= nil
@@ -24001,7 +24001,7 @@ function widget:MousePress(mx, my, mButton)
 					else
 						-- Start box selection instead
 						-- Save current selection before starting box selection
-						interactionState.selectionBeforeBox = Spring.GetSelectedUnits()
+						interactionState.selectionBeforeBox = Spring.GetSelectedUnits() -- copied to outlive the event
 
 						interactionState.areBoxSelecting = true
 						interactionState.boxSelectStartX = mx
@@ -24053,7 +24053,7 @@ function widget:MousePress(mx, my, mButton)
 					if uID then
 						if Spring.IsUnitAllied(uID) then
 							-- Check if we should use LOAD_UNITS command
-							local selectedUnits = Spring.GetSelectedUnits()
+							local selectedUnits = getSelectedUnits()
 							local canLoadTarget = false
 
 							-- Check if any transport in selection can load this target unit
@@ -24082,7 +24082,7 @@ function widget:MousePress(mx, my, mButton)
 								overrideTarget = uID
 							end
 						else
-							if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+							if CanSelectedUnitsAttackTarget(getSelectedUnits(), uID) then
 								cmdID = CMD.ATTACK
 								overrideTarget = uID
 							else
@@ -24114,7 +24114,7 @@ function widget:MousePress(mx, my, mButton)
 						-- Start formation with world position
 						-- Note: third parameter is fromMinimap, not shift behavior
 						-- Check if we should queue commands (only for single unit)
-						local selectedUnits = Spring.GetSelectedUnits()
+						local selectedUnits = getSelectedUnits()
 						local shouldQueue = selectedUnits and #selectedUnits == 1
 
 						-- Don't set pipForceShift yet - first command should replace, not queue
@@ -24596,7 +24596,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				local _, ctrl, _, shift = Spring.GetModKeyState()
 				if ctrl then
 					-- Deselect mode
-					local currentSelection = Spring.GetSelectedUnits()
+					local currentSelection = getSelectedUnits()
 					local newSelection = {}
 					local unitsToDeselect = {}
 					local boxCount = #unitsInBox
@@ -24847,7 +24847,7 @@ function widget:MouseRelease(mx, my, mButton)
 				if ctrl then
 					-- Ctrl+click: toggle selection
 					if spFunc.IsUnitSelected(uID) then
-						local currentSelection = Spring.GetSelectedUnits()
+						local currentSelection = getSelectedUnits()
 						local newSelection = {}
 						for i = 1, #currentSelection do
 							if currentSelection[i] ~= uID then
@@ -24908,7 +24908,7 @@ function widget:MouseRelease(mx, my, mButton)
 
 			if interactionState.areBoxDeselecting then
 				-- Final deselection - remove units in box from current selection
-				local currentSelection = Spring.GetSelectedUnits()
+				local currentSelection = getSelectedUnits()
 				local newSelection = {}
 				-- Create a set for fast lookup of units to deselect
 				local unitsToDeselect = {}
@@ -24950,7 +24950,7 @@ function widget:MouseRelease(mx, my, mButton)
 					-- Ctrl+click: toggle selection (add if not selected, remove if selected)
 					if spFunc.IsUnitSelected(uID) then
 						-- Deselect it
-						local currentSelection = Spring.GetSelectedUnits()
+						local currentSelection = getSelectedUnits()
 						local newSelection = {}
 						for i = 1, #currentSelection do
 							if currentSelection[i] ~= uID then
@@ -25105,7 +25105,7 @@ function widget:MouseRelease(mx, my, mButton)
 			if uID then
 				if Spring.IsUnitAllied(uID) then
 					-- Check if we should use LOAD_UNITS command
-					local selectedUnits = Spring.GetSelectedUnits()
+					local selectedUnits = getSelectedUnits()
 					local canLoadTarget = false
 
 					-- Check if any transport in selection can load this target unit
@@ -25122,7 +25122,7 @@ function widget:MouseRelease(mx, my, mButton)
 						cmdID = CMD.GUARD
 					end
 				else
-					if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+					if CanSelectedUnitsAttackTarget(getSelectedUnits(), uID) then
 						cmdID = CMD.ATTACK
 					else
 						cmdID = CMD.MOVE
