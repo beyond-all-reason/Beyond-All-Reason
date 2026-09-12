@@ -189,7 +189,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local getSelectedUnits, getSelectedUnitsCount
+-- replaced in init via selections api:
+local getSelectedUnits, getSelectedUnitsCount = Spring.GetSelectedUnits, Spring.GetSelectedUnitsCount
 
 --------------------------------------------------------------------------------
 -- Helper Functions
