@@ -138,6 +138,10 @@ local look = {
 	-- out or its conditions were not met.
 	pendingFill = { 1, 0.8, 0.35, 0.09 },
 	pendingAccent = { 1, 0.78, 0.3, 0.9 },
+	-- Asked for and it would not load. The same three marks the other states get, in the
+	-- colour the panel uses for everything that has gone wrong.
+	errorFill = { 1, 0.35, 0.35, 0.12 },
+	errorAccent = { 1, 0.35, 0.35, 0.95 },
 	buttonFill = { 0.18, 0.18, 0.18, 1 },
 	-- Anything that cannot be undone without a reload. The same stops the keybind
 	-- editor's destructive buttons use, so the two panels read alike.
@@ -174,7 +178,13 @@ local colorText = "\255\235\235\235"
 -- A widget the player wrote or dropped in themselves, rather than one the game ships.
 -- Enabled but not running: warm, because nothing is actually happening.
 local colorPending = "\255\255\210\135"
-local colorLocal = "\255\130\175\230"
+-- The tags at the end of a row: whose file the widget is, and which UI it draws
+-- through. One table rather than one local each - this chunk is at Lua's 200.
+local tagColors = {
+	islocal = "\255\130\175\230",
+	isrml = "\255\200\150\235",
+	iserror = "\255\255\120\120",
+}
 local colorDanger = "\255\255\190\190"
 -- How the two cost columns read. Quiet while a widget is cheap and warm once it is not,
 -- on the thresholds the profiler overlay marks a widget red at; `sample` is the widest
@@ -262,7 +272,6 @@ local setCatScroll
 -- was last laid out with, so adding one is an entry here rather than another pair of
 -- locals threaded through the layout, the draw, the hover test and the press.
 local switches = {
-	{ key = "localOnly" },
 	{ key = "enabledOnly" },
 	{ key = "byOrder" },
 	{ key = "profiler" },
@@ -289,10 +298,10 @@ local selectedCategory
 -- What the header switches are set to, keyed the way they name themselves so a switch is
 -- one entry in the list above and one field here.
 --
--- `localOnly` keeps the player's own files. `enabledOnly` keeps anything the config says
+-- `enabledOnly` keeps anything the config says
 -- to load, whether or not it is running. `byOrder` sorts by where each widget sits in the
 -- handler's list rather than by name, which is the only way the load order can be seen.
-local filters = { localOnly = false, enabledOnly = false, byOrder = false, profiler = false, byLoad = false }
+local filters = { enabledOnly = false, byOrder = false, profiler = false, byLoad = false }
 ---@type table
 local searchBox
 ---@type table
@@ -458,6 +467,18 @@ local function buildEntries()
 				layer = layer[name],
 				desc = desc,
 				isLocal = not data.fromZip,
+				-- Whether it draws through RmlUi, which barwidgets reads out of the source at load:
+				-- where the file sits does not answer it, since a player's own RmlUi widget can live
+				-- anywhere. Worth saying on the row, and said alongside `local` rather than instead
+				-- of it - a widget can be both.
+				isRml = data.rml == true or (data.filename or ""):find("RmlWidgets", 1, true) ~= nil,
+				-- Switched to something other than what it ships as. `enabled` is what the GetInfo
+				-- block asked for, which barwidgets keeps for every widget it has ever seen.
+				changed = (stateOf(name, data) > 0) ~= (data.enabled == true),
+				-- Why it did not load, if it did not. Until barwidgets kept this the panel could
+				-- say a widget was asked for and is not running, and nothing about why - the reason
+				-- was in infolog.txt and nowhere else.
+				loadError = widgetHandler.loadErrors and widgetHandler.loadErrors[data.basename] or nil,
 				-- Lowercased once here rather than per keystroke: a search walks every one of
 				-- these on every letter typed.
 				searchName = string.lower(name),
@@ -481,19 +502,47 @@ end
 -- every letter typed is noise rather than information.
 local function buildCategories()
 	local counts, active, total, on = {}, {}, 0, 0
+	local changed, changedOn = 0, 0
+	local mine, mineOn = 0, 0
 	for i = 1, #entries do
 		local e = entries[i]
-		if (not filters.localOnly or e.isLocal) and (not filters.enabledOnly or e.state > 0) then
+		if not filters.enabledOnly or e.state > 0 then
 			counts[e.group] = (counts[e.group] or 0) + 1
 			total = total + 1
 			if e.data.active then
 				active[e.group] = (active[e.group] or 0) + 1
 				on = on + 1
 			end
+			if e.changed then
+				changed = changed + 1
+				if e.data.active then
+					changedOn = changedOn + 1
+				end
+			end
+			if e.isLocal then
+				mine = mine + 1
+				if e.data.active then
+					mineOn = mineOn + 1
+				end
+			end
 		end
 	end
 
 	categories = { { key = nil, label = L.all, count = total, active = on } }
+	-- Everything switched to something other than what it ships as: what this game has
+	-- been customised into, which is the question the panel is usually opened with. It
+	-- sits at the head of the column rather than as a sixth header switch, which is more
+	-- than the header holds at 1280 - and it is a view of the whole list rather than a
+	-- filter on one part of it, so it belongs with All.
+	if changed > 0 then
+		categories[#categories + 1] = { key = "changed", label = L.changed, count = changed, active = changedOn }
+	end
+	-- The player's own files, which was a header switch until the column turned out to be
+	-- the better home for it: it is a view of the whole list like the two above it, and
+	-- the header had no room to spare.
+	if mine > 0 then
+		categories[#categories + 1] = { key = "local", label = L.mine, count = mine, active = mineOn }
+	end
 	for _, g in ipairs(GROUP_ORDER) do
 		if counts[g] then
 			categories[#categories + 1] = { key = g, label = L[g] or g, count = counts[g], active = active[g] or 0 }
@@ -605,9 +654,14 @@ rebuildRows = function()
 	for i = 1, #entries do
 		local e = entries[i]
 		if
-			(not selectedCategory or e.group == selectedCategory)
-			and (not filters.localOnly or e.isLocal)
-			and (not filters.enabledOnly or e.state > 0)
+			-- `changed` and `local` are views of the whole list rather than filename prefixes, so
+			-- each is matched on what it means instead of on the group.
+			(
+				not selectedCategory
+				or (selectedCategory == "changed" and e.changed)
+				or (selectedCategory == "local" and e.isLocal)
+				or e.group == selectedCategory
+			) and (not filters.enabledOnly or e.state > 0)
 		then
 			if query.empty then
 				rows[#rows + 1] = e
@@ -1345,26 +1399,36 @@ local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
--- `i` is the entry's place in `categories`, not its place on screen: the two differ by
--- however far the column is scrolled.
-local function categoryRect(i)
-	local top = sidebarTop() - (i - 1 - catScroll) * metrics.catRowHeight
-
-	return area.x1, top - metrics.catRowHeight, area.x1 + metrics.sidebarW, top
-end
-
--- The column runs from the title down to whatever the sets block leaves it.
-local function categoryBottom()
-	return setsTop
-end
-
--- How many entries the column has room for, and how far it can be scrolled.
+-- How many entries fit between the title and the sets block below.
 local function catPageRows()
-	return mathMax(1, mathFloor((sidebarTop() - categoryBottom()) / metrics.catRowHeight))
+	return mathMax(1, mathFloor((sidebarTop() - setsTop) / metrics.catRowHeight))
+end
+
+-- Where the column stops: a whole number of entries below the title, not wherever the
+-- sets block happens to begin. The leftover is never a full row, and a card and a
+-- scrollbar drawn over it read as a column with dead space at the foot of it.
+local function categoryBottom()
+	return sidebarTop() - catPageRows() * metrics.catRowHeight
 end
 
 local function maxCatScroll()
 	return mathMax(0, #categories - catPageRows())
+end
+
+-- Where an entry sits. `i` is its place in `categories`, not its place on screen: the two
+-- differ by however far the column is scrolled.
+--
+-- The right edge gives way to the bar when there is one. Without that the count reads
+-- right up against it and the hover plate runs underneath it, which looks like the plate
+-- is behind the bar rather than the bar being beside the row.
+local function categoryRect(i)
+	local top = sidebarTop() - (i - 1 - catScroll) * metrics.catRowHeight
+	local right = area.x1 + metrics.sidebarW
+	if maxCatScroll() > 0 then
+		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
+
+	return area.x1, top - metrics.catRowHeight, right, top
 end
 
 setCatScroll = function(n)
@@ -1578,6 +1642,8 @@ setLayout = function()
 	metrics.dataX1 = clearX1 - metrics.rowPad - metrics.dataW
 	-- What the tag at the end of a local row takes, so a description can be kept out of it.
 	metrics.localTagW = font and mathFloor(font:GetTextWidth(L.islocal) * metrics.rowFs) or mathFloor(30 * s)
+	-- And what the RmlUi tag takes beside it. Both can be on the same row.
+	metrics.rmlTagW = font and mathFloor(font:GetTextWidth(L.isrml) * metrics.rowFs) or mathFloor(22 * s)
 
 	if dialog then
 		dialogGeometry()
@@ -1631,6 +1697,9 @@ local function fitRow(row)
 		if row.isLocal then
 			descW = descW - metrics.localTagW - metrics.rowPad
 		end
+		if row.isRml then
+			descW = descW - metrics.rmlTagW - metrics.rowPad
+		end
 		row.fitDesc = descColor .. text.fit(font, row.desc, descW, metrics.rowFs)
 	else
 		row.fitDesc = nil
@@ -1668,8 +1737,15 @@ end
 local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overData)
 	fitRow(row)
 
-	local fill = (row.state == 1 and look.activeFill) or (row.state == 0.5 and look.pendingFill)
-	local accent = (row.state == 1 and look.activeAccent) or (row.state == 0.5 and look.pendingAccent)
+	-- A widget that was asked for and would not load reads as its own state rather than
+	-- as the amber one: it is not waiting for anything, it is broken, and the panel knows
+	-- what is wrong with it.
+	local fill = (row.loadError and look.errorFill)
+		or (row.state == 1 and look.activeFill)
+		or (row.state == 0.5 and look.pendingFill)
+	local accent = (row.loadError and look.errorAccent)
+		or (row.state == 1 and look.activeAccent)
+		or (row.state == 0.5 and look.pendingAccent)
 	if fill then
 		RectRound(listX1, bottom, listRight, top, metrics.csSmall, 1, 1, 1, 1, fill)
 		RectRound(listX1, bottom + 1, listX1 + metrics.accentW, top - 1, metrics.csSmall, 1, 1, 1, 1, accent)
@@ -1692,10 +1768,20 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overDat
 	if row.fitDesc then
 		queueText(row.fitDesc, descX1, ty, metrics.rowFs, "ov")
 	end
+	-- The two things about a widget that are not in its name or its description: whose
+	-- file it is, and whether it draws through RmlUi rather than through this UI. Both
+	-- right to left from the buttons, so a row with both still reads in order.
+	local tagX = metrics.dataX1 - metrics.rowPad
 	if row.isLocal then
-		-- The one thing about a widget that is not in its name or its description, and the
-		-- thing a player most needs to tell apart: their own files from the game's.
-		queueText(colorLocal .. L.islocal, metrics.dataX1 - metrics.rowPad, ty, metrics.rowFs, "rov")
+		queueText(tagColors.islocal .. L.islocal, tagX, ty, metrics.rowFs, "rov")
+		tagX = tagX - metrics.localTagW - metrics.rowPad
+	end
+	if row.isRml then
+		queueText(tagColors.isrml .. L.isrml, tagX, ty, metrics.rowFs, "rov")
+		tagX = tagX - metrics.rmlTagW - metrics.rowPad
+	end
+	if row.loadError then
+		queueText(tagColors.iserror .. L.iserror, tagX, ty, metrics.rowFs, "rov")
 	end
 
 	-- Only where there is something to clear. Quiet until it is pointed at, and red then:
@@ -1916,10 +2002,12 @@ local function drawSetsBlock()
 end
 
 local function drawSidebar()
-	-- The categories get their own card, ending where the sets block begins.
+	-- The categories get their own card, with the same lip below the last entry as it has
+	-- above the first. Ending exactly on the last row leaves it sitting on the edge, and a
+	-- selected or hovered last entry then has its plate flush with the card's own border.
 	RectRound(
 		area.x1,
-		setsTop,
+		categoryBottom() - metrics.cardLip,
 		area.x1 + metrics.sidebarW,
 		sidebarTop() + metrics.cardLip,
 		metrics.csPanel,
@@ -2488,7 +2576,7 @@ local function loadLabels()
 	L.other = tr("category.other", "Other")
 
 	L.search = tr("search", "Search...")
-	L.localOnly = tr("localonly", "Local only")
+	L.mine = tr("category.local", "Your own")
 	L.enabledOnly = tr("enabledonly", "Enabled only")
 	L.byOrder = tr("byorder", "By load order")
 	L.sets = tr("sets", "Widget sets")
@@ -2545,6 +2633,9 @@ local function loadLabels()
 	-- never leave that band.
 	L.hint = tr("hint", "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.")
 	L.order = tr("order", "Load order")
+	L.changed = tr("category.changed", "Changed")
+	L.isrml = tr("isrml", "rml")
+	L.iserror = tr("iserror", "error")
 	L.total = tr("total", "total")
 	L.defaultOn = tr("defaulton", "default enabled")
 	L.defaultOff = tr("defaultoff", "default disabled")
@@ -2568,9 +2659,21 @@ local function loadLabels()
 	-- destructive ones point at the wording their own confirmation uses, so what the
 	-- tooltip promises and what the dialog asks cannot drift apart.
 	L.desc = {
-		localOnly = tr(
-			"localonlydesc",
-			"Show only the widgets in your own LuaUI folder, leaving out the ones the game ships."
+		-- The column. What a full-word category actually collects is the one thing its label
+		-- deliberately does not say.
+		all = tr("alldesc", "Every widget the game knows about, whether it is running or not."),
+		changed = tr(
+			"changeddesc",
+			"Every widget switched to something other than what it ships as - on when it ships off, or off when it ships on. What this game has been customised into, and exactly what Factory defaults would undo."
+		),
+		-- The fallback only: see where it is used. Fetching it here would fill the
+		-- placeholder in with nothing.
+		prefix = "Widgets whose file begins with %{prefix}.",
+		other = tr("otherdesc", "Widgets whose file begins with something this panel has no category for."),
+		counts = tr("countsdesc", "The count reads how many are running out of how many there are."),
+		mine = tr(
+			"localdesc",
+			"The widgets in your own LuaUI folder rather than the ones the game ships. They carry a local tag on the row too."
 		),
 		enabledOnly = tr(
 			"enabledonlydesc",
@@ -2950,7 +3053,41 @@ end
 local function showTooltip(row)
 	local caption, body
 
-	if hover.tog > 0 and switches[hover.tog] and switches[hover.tog].draw then
+	if hover.sb > 0 and categories[hover.sb] then
+		local c = categories[hover.sb]
+		caption = c.label
+		if c.key == nil then
+			body = L.desc.all
+		elseif c.key == "changed" then
+			body = L.desc.changed
+		elseif c.key == "local" then
+			body = L.desc.mine
+		else
+			-- Which filename prefix this one collects. The full-word label deliberately does
+			-- not say it, and it is the one thing about a category worth knowing.
+			local prefix
+			for p, g in pairs(GROUPS) do
+				if g == c.key then
+					prefix = p
+				end
+			end
+			if prefix then
+				-- Looked up here with the prefix in hand rather than taken from L: i18n fills a
+				-- %{...} in as the string is looked up, and looking it up without one bakes the
+				-- word nil into the sentence. The gsub covers the other path, where the key is
+				-- missing and the fallback is handed back untouched.
+				body = BAR.I18N("ui.widgetselector.prefixdesc", { prefix = prefix .. "_", default = L.desc.prefix })
+				body = (body:gsub("%%{prefix}", prefix .. "_"))
+			else
+				body = L.desc.other
+			end
+		end
+		-- A category with nothing to say shows nothing rather than taking the panel down with
+		-- it: the tooltip is not worth a crash.
+		if body then
+			body = body .. "\n" .. L.desc.counts
+		end
+	elseif hover.tog > 0 and switches[hover.tog] and switches[hover.tog].draw then
 		local sw = switches[hover.tog]
 		caption, body = sw.label, L.desc[sw.key]
 	elseif hover.btn ~= "" then
@@ -3044,6 +3181,11 @@ local function showTooltip(row)
 		return
 	end
 	local tip = stateColor .. stateWord .. "\n"
+	-- Straight after the state, because for a widget that would not load it is the only
+	-- thing worth reading: what the handler said when it tried.
+	if row.loadError then
+		tip = tip .. "\255\255\120\120" .. L.iserror .. ":  " .. row.loadError .. "\n"
+	end
 	if d.desc and d.desc ~= "" then
 		tip = tip
 			.. "\255\255\255\255"
@@ -3575,7 +3717,6 @@ end
 
 function widget:GetConfigData()
 	return {
-		localOnly = filters.localOnly,
 		enabledOnly = filters.enabledOnly,
 		byOrder = filters.byOrder,
 		profiler = filters.profiler,
@@ -3590,7 +3731,6 @@ function widget:SetConfigData(data)
 	if type(data) ~= "table" then
 		return
 	end
-	filters.localOnly = data.localOnly == true
 	-- Rebuilt rather than taken as read: this comes off disk, and a malformed entry here
 	-- would otherwise reach the picker and the apply.
 	sets = {}

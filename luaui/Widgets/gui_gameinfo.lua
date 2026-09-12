@@ -1198,12 +1198,24 @@ local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
+-- How many entries the column has room for, and how far it can be scrolled.
+local function catPageRows()
+	return mathMax(1, mathFloor((sidebarTop() - listBottom) / metrics.catRowHeight))
+end
+
 -- `i` is the entry's place in `categories`, not its place on screen: the two differ by
 -- however far the column is scrolled.
 local function categoryRect(i)
 	local top = sidebarTop() - (i - 1 - catScroll) * metrics.catRowHeight
+	-- The right edge gives way to the bar when there is one. Without that the count reads
+	-- right up against it and the hover plate runs underneath it, which looks like the
+	-- plate is behind the bar rather than the bar being beside the row.
+	local right = area.x1 + metrics.sidebarW
+	if #categories > catPageRows() then
+		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
 
-	return area.x1, top - metrics.catRowHeight, area.x1 + metrics.sidebarW, top
+	return area.x1, top - metrics.catRowHeight, right, top
 end
 
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
@@ -1225,11 +1237,6 @@ local function sidebarIndexAt(x, y)
 	end
 
 	return i
-end
-
--- How many entries the column has room for, and how far it can be scrolled.
-local function catPageRows()
-	return mathMax(1, mathFloor((sidebarTop() - listBottom) / metrics.catRowHeight))
 end
 
 local function maxCatScroll()
@@ -1789,9 +1796,12 @@ local function drawSidebar()
 	-- there are more categories than the card has room for.
 	if maxCatScroll() > 0 then
 		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+		-- Over the entries, not over the whole card: the last row rarely lands exactly on the
+		-- bottom, and a bar running past it reads as a column with dead space at its foot -
+		-- and makes the thumb say more fits than does.
 		UiScroller(
 			bx2 - metrics.catBarW,
-			listBottom,
+			sidebarTop() - catPageRows() * metrics.catRowHeight,
 			bx2,
 			sidebarTop(),
 			#categories * metrics.catRowHeight,

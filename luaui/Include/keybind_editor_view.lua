@@ -2165,8 +2165,15 @@ end
 -- `grab` does - this chunk is at Lua's ceiling of 200 locals.
 local function categoryRect(i)
 	local top = sidebarTop() - (i - 1 - hover.cat) * metrics.catRowHeight
+	-- The right edge gives way to the bar when there is one. Without that an entry runs
+	-- under it and its hover plate disappears beneath the bar rather than stopping beside
+	-- it. The page count is worked out inline: this chunk is at Lua's 200.
+	local right = area.x1 + sidebarW
+	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
+		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
 
-	return area.x1, top - metrics.catRowHeight, area.x1 + sidebarW, top
+	return area.x1, top - metrics.catRowHeight, right, top
 end
 
 -- Scrolls the category column by `delta` entries and answers how far it can be scrolled
@@ -2316,7 +2323,11 @@ local function drawSidebar(hoverIdx)
 		local bx2 = area.x1 + sidebarW - metrics.catInset
 		Scroller(
 			bx2 - metrics.catBarW,
-			listBottom(),
+			-- Over the entries rather than the whole card: the last row rarely lands exactly on
+			-- the bottom, and a bar running past it reads as dead space at the foot of the column
+			-- - and its thumb then says more fits than does.
+			sidebarTop()
+				- math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) * metrics.catRowHeight,
 			bx2,
 			sidebarTop(),
 			#categories * metrics.catRowHeight,

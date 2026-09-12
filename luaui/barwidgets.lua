@@ -70,6 +70,8 @@ widgetHandler = {
 	widgets = {},
 
 	configData = {},
+	-- Why each widget that failed to load did, keyed by its file. See loadFailed.
+	loadErrors = {},
 	orderList = {},
 
 	knownWidgets = {},
@@ -522,6 +524,19 @@ function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	return w
 end
 
+-- Why a widget did not load, keyed by its file.
+--
+-- These used to be echoed and forgotten, which left the widget selector able to say a
+-- widget was asked for and is not running, but not why - and the reason was sitting in
+-- infolog.txt the whole time. Keyed by basename because most of the ways loading can fail
+-- happen before the widget has told anyone its name.
+local function loadFailed(basename, reason)
+	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
+	widgetHandler.loadErrors[basename] = reason
+
+	return nil
+end
+
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(
@@ -529,8 +544,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
 	if text == nil then
-		Spring.Echo("Failed to load: " .. basename .. "  (missing file: " .. filename .. ")")
-		return nil
+		return loadFailed(basename, "missing file: " .. filename)
 	end
 
 	if enableLocalsAccess then
@@ -544,16 +558,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
-			return nil
+			return loadFailed(basename, err)
 		end
 
 		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
-			return nil
+			return loadFailed(basename, err)
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
@@ -566,16 +578,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
-		return nil
+		return loadFailed(basename, err)
 	end
 
 	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
-		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
-		return nil
+		return loadFailed(basename, err)
 	end
 	if err == false then
 		return nil -- widget asked for a silent death
@@ -591,13 +601,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
-			Spring.Echo(
-				"Failed to load: " .. basename .. "  (user widgets may not access widgetHandler)",
-				fromZip,
-				filename,
-				allowuserwidgets
-			)
-			return nil
+			return loadFailed(basename, "user widgets may not access widgetHandler")
 		end
 	end
 
@@ -611,15 +615,13 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	err = self:ValidateWidget(widget)
 	if err then
-		Spring.Echo("Failed to load: " .. basename .. "  (" .. err .. ")")
-		return nil
+		return loadFailed(basename, err)
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
-			Spring.Echo("Failed to load: " .. basename .. "  (duplicate name)")
-			return nil
+			return loadFailed(basename, "duplicate name")
 		end
 	else
 		-- create a knownInfo table
@@ -634,6 +636,12 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
 		-- a widget that is off has no instance.
 		knownInfo.enabled = widget.whInfo.enabled
+		-- And whether it draws through RmlUi, which nothing else records. Read out of the
+		-- source, because where the file sits does not answer it: most RmlUi widgets live
+		-- under LuaUI/RmlWidgets but a player's own can sit anywhere and still use the API.
+		-- Matched on the API being reached for rather than the word appearing, so a widget
+		-- that only mentions RmlUi in a comment is not mistaken for one.
+		knownInfo.rml = string.find(text, "RmlUi%s*[%.%[]") ~= nil or string.find(text, "not%s+RmlUi") ~= nil
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -642,8 +650,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
-		Spring.Echo("Failed to load: " .. basename .. "  (no GetInfo() call)")
-		return nil
+		return loadFailed(basename, "no GetInfo() call")
 	end
 
 	-- Get widget information
@@ -680,6 +687,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	if widget.SetConfigData and config then
 		widget:SetConfigData(config)
 	end
+
+	-- It loaded, so whatever was wrong with it last time no longer is.
+	self.loadErrors[basename] = nil
 
 	return widget
 end
@@ -1100,6 +1110,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
+		self.loadErrors[widget.whInfo.basename] = "missing capabilities"
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
@@ -1107,6 +1118,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
+			self.loadErrors[widget.whInfo.basename] = "user 'unit control' widgets are disabled for this game"
 		end
 		return
 	end
