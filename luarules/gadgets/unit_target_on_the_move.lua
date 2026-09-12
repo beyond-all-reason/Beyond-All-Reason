@@ -328,20 +328,6 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
-	local function wasTargetLost(target, alwaysSeen, allyTeam)
-		if type(target) ~= "number" then
-			return false, false
-		elseif alwaysSeen then
-			local isDead = spGetUnitIsDead(target) ~= false
-			return isDead, isDead
-		end
-		local los = spGetUnitLosState(target, allyTeam, true)
-		if not los then
-			return true, true
-		end
-		return los % 4 == 0, false
-	end
-
 	--------------------------------------------------------------------------------
 	-- Unit adding/removal
 
@@ -552,6 +538,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@field alwaysSeen boolean? Target does not need to stay in sensor range to be kept.
 	---@field ignoreStop boolean? Target survives a Stop command.
 	---@field userTarget boolean? Target was set by the player rather than by Lua.
+	---@field unseen integer Number of slow updates an unseen unit remains tracked.
 	---@field sent boolean? Target has already been pushed to the unit's weapons.
 
 	---Returns the unit's currently active target.
@@ -866,18 +853,48 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	-- Target update
 
+	local TARGET_AVAILABLE = 1
+	local TARGET_UNSEEN = 2
+	local TARGET_GONE = 3
+
+	local function getTargetTrackingState(target, alwaysSeen, allyTeam)
+		if type(target) ~= "number" then
+			-- Target is a ground attack
+			return TARGET_AVAILABLE
+		end
+		if alwaysSeen then
+			-- Target is a building or stationary unit and does not require sensor contact
+			if spGetUnitIsDead(target) ~= false then
+				return TARGET_GONE
+			end
+			return TARGET_AVAILABLE
+		end
+
+		-- Target is a mobile unit (!building and speed > 0)
+		local losState = spGetUnitLosState(target, allyTeam, true)
+		if not losState then
+			-- Target does not exist
+			return TARGET_GONE
+		end
+		if losState % 4 == 0 then
+			-- Target not visible and not in radar (neither LOS_INLOS nor LOS_INRADAR is set)
+			return TARGET_UNSEEN
+		end
+		return TARGET_AVAILABLE
+	end
+
 	local function processSlowListUpdates()
 		for unitID, unitData in pairsNext, setTargetData do
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
 				local targetData = targets[index]
-				local isLost, isDead = wasTargetLost(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
-				if not isLost then
+				local targetState = getTargetTrackingState(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
+				if targetState == TARGET_AVAILABLE then
 					targetData.unseen = unseenGracePasses
-				elseif not isDead and targetData.unseen > 0 then
-					targetData.unseen = targetData.unseen - 1
-				else
+				elseif targetState == TARGET_GONE or targetData.unseen == 0 then
 					removeTarget(unitID, unitData, index)
+				else -- TARGET_UNSEEN
+					targetData.unseen = targetData.unseen - 1
 				end
 			end
 			if not targets[1] then
