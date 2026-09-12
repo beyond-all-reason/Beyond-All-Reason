@@ -4,7 +4,7 @@ return {
 		blocking = false,
 		maxdec = 0.4275,
 		energycost = 2200,
-		metalcost = 105,
+		metalcost = 100,
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGCA.DDS",
@@ -32,7 +32,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 55,
+		workertime = 45,
 		buildoptions = {
 			"legsolar",
 			"legadvsol",
