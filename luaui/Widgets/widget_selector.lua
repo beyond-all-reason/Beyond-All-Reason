@@ -210,7 +210,7 @@ local L = {}
 local show, showOnceMore
 local panelList, windowList, backgroundGuishader, panelSig
 local listTop, listBottom, listX1, listRight, descX1, barX1 = 0, 0, 0, 0, 0, 0
-local switchX1, orderX1, nameX1 = 0, 0, 0
+local switchX1, orderX1, nameX1, clearX1 = 0, 0, 0, 0
 -- The sets block at the foot of the category column: a caption, the picker, and the
 -- two buttons that make and unmake a set. It lives there rather than in the header
 -- because the column already has the room and the header has none left.
@@ -297,6 +297,7 @@ local dialogBox = {}
 ---@type string?
 local pressedRow
 local pressedButton = 0
+local pressedClear = false
 
 local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, btn = "", dlg = "" }
 
@@ -318,6 +319,7 @@ local uiBound = false
 
 local rebuildRows
 local setLayout
+local refreshContent
 
 ----------------------------------------------------------------
 -- Content
@@ -336,6 +338,15 @@ local function stateOf(name, data)
 	end
 
 	return 0
+end
+
+-- Whether the handler is holding anything this widget saved. An empty table is nothing
+-- to clear: a widget with a GetConfigData that returns `{}` would otherwise offer a
+-- button that does nothing.
+local function hasConfigData(name)
+	local d = widgetHandler.configData[name]
+
+	return type(d) == "table" and next(d) ~= nil
 end
 
 -- Which column a widget belongs in, from the prefix on its filename.
@@ -389,6 +400,7 @@ local function buildEntries()
 				data = data,
 				group = groupOf(data),
 				state = stateOf(name, data),
+				hasConfig = hasConfigData(name),
 				order = order[name],
 				layer = layer[name],
 				desc = desc,
@@ -786,6 +798,30 @@ local function factoryReset()
 	widgetHandler.__blankOutConfig = true
 	reloadLuaUI()
 end
+-- Waiting on the handler to actually let go of a widget. Enable and Disable are queued
+-- and run after the callin that asked has returned, so the clear cannot happen on the
+-- click itself; Update picks this up on the next frame, by which time the widget is gone.
+local pendingClear
+
+-- Drops what the handler has saved under a widget's name.
+--
+-- A running widget hands its settings back the instant it is removed, and SaveConfigData
+-- asks every running widget for them again, so clearing one on the spot writes itself
+-- straight back. The only way it sticks is with the widget already gone: switch it off,
+-- drop the entry, switch it on, and it loads with nothing to read.
+local function clearConfigData(name)
+	local known = widgetHandler.knownWidgets[name]
+	if known and known.active then
+		widgetHandler:DisableWidget(name)
+		pendingClear = { name = name, restart = true }
+
+		return
+	end
+
+	widgetHandler.configData[name] = nil
+	widgetHandler:SaveConfigData()
+	refreshContent()
+end
 
 -- What the wrapper's OwnText/DisownText do, against the real handler's own field.
 local function ownText()
@@ -1054,6 +1090,15 @@ setLayout = function()
 		end
 	end
 	metrics.buttonFs = mathFloor(metrics.rowHeight * 0.55)
+	-- The clear-data button's column at the right end of the row. Reserved on every row
+	-- whether or not one is drawn there: a widget saves its first settings the moment it
+	-- is switched on, and a description that reflowed under the cursor reads worse than
+	-- the gap does.
+	metrics.clearFs = mathFloor(metrics.rowFs * 0.92)
+	metrics.clearH = mathFloor(metrics.rowHeight * 0.62)
+	metrics.clearW = font and (mathFloor(font:GetTextWidth(L.cleardata) * metrics.clearFs) + metrics.rowPad * 3)
+		or mathFloor(46 * s)
+	clearX1 = listRight - metrics.rowPad - metrics.clearW
 	-- What the tag at the end of a local row takes, so a description can be kept out of it.
 	metrics.localTagW = font and mathFloor(font:GetTextWidth(L.islocal) * metrics.rowFs) or mathFloor(30 * s)
 
@@ -1105,7 +1150,7 @@ local function fitRow(row)
 	if row.desc ~= "" then
 		-- A local row ends with its tag, so the description stops short of it rather than
 		-- running underneath.
-		local descW = listRight - descX1 - metrics.rowPad * 2
+		local descW = clearX1 - descX1 - metrics.rowPad * 2
 		if row.isLocal then
 			descW = descW - metrics.localTagW - metrics.rowPad
 		end
@@ -1138,7 +1183,12 @@ local function flushText()
 	textQueue = {}
 end
 
-local function drawRow(row, top, bottom, hovered, overSwitch)
+local function drawButtonFace(r, fill)
+	local pair = look.gradients[fill]
+
+	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
+end
+local function drawRow(row, top, bottom, hovered, overSwitch, overClear)
 	fitRow(row)
 
 	local fill = (row.state == 1 and look.activeFill) or (row.state == 0.5 and look.pendingFill)
@@ -1168,7 +1218,23 @@ local function drawRow(row, top, bottom, hovered, overSwitch)
 	if row.isLocal then
 		-- The one thing about a widget that is not in its name or its description, and the
 		-- thing a player most needs to tell apart: their own files from the game's.
-		queueText(colorLocal .. L.islocal, listRight - metrics.rowPad, ty, metrics.rowFs, "rov")
+		queueText(colorLocal .. L.islocal, clearX1 - metrics.rowPad, ty, metrics.rowFs, "rov")
+	end
+
+	-- Only where there is something to clear. Quiet until it is pointed at, and red then:
+	-- a column of red buttons down a list of two hundred rows would read as a warning
+	-- about the list rather than an action on one row of it.
+	if row.hasConfig then
+		local cy1 = ty - mathFloor(metrics.clearH * 0.5)
+		local r = { clearX1, cy1, clearX1 + metrics.clearW, cy1 + metrics.clearH }
+		drawButtonFace(r, overClear and look.dangerFillHover or look.buttonFill)
+		queueText(
+			(overClear and colorDanger or colorDim) .. L.cleardata,
+			mathFloor((r[1] + r[3]) * 0.5),
+			ty,
+			metrics.clearFs,
+			"cov"
+		)
 	end
 end
 
@@ -1183,14 +1249,8 @@ local function drawRows()
 		if bottom < listBottom then
 			break
 		end
-		drawRow(row, top, bottom, hover.row == i, hover.row == i and hover.sw == 1)
+		drawRow(row, top, bottom, hover.row == i, hover.row == i and hover.sw == 1, hover.row == i and hover.clr == 1)
 	end
-end
-
-local function drawButtonFace(r, fill)
-	local pair = look.gradients[fill]
-
-	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 end
 
 -- The sets block at the foot of the column. The picker draws itself, live, since it can
@@ -1344,7 +1404,10 @@ local function drawDialog(d)
 	local sfs = mathFloor(metrics.rowHeight * 0.5)
 
 	-- Everything behind it dims, so the modal is plainly the only thing that will answer.
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, look.scrim)
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it. Rounded like the panel so it does not
+	-- square off its corners.
+	RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 1, 1, 1, 1, look.scrim)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- With nothing typed there is nothing to save, so the accept is not drawn at all: a
@@ -1551,8 +1614,16 @@ end
 -- from. Same signature, same picture, so the display list is replayed as it is.
 -- The accept button in a dialog appears the moment there is a name to save under, and
 -- it is painted into the baked panel, so whether the field is empty is part of this.
+-- The row at a visible index, and whether it has anything to clear. Both the hit test
+-- and the click ask this, and a row can scroll out from under the cursor between them.
+local function rowClearable(i)
+	local row = i > 0 and rows[scroll + i]
+
+	return (row and row.hasConfig) and row or nil
+end
+
 local function panelSignature(mx, my)
-	hover.sb, hover.row, hover.sw, hover.tog, hover.bar = 0, 0, 0, 0, 0
+	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.clr = 0, 0, 0, 0, 0, 0
 	hover.btn, hover.dlg = "", ""
 
 	if dialog then
@@ -1578,9 +1649,12 @@ local function panelSignature(mx, my)
 		elseif mx >= listX1 and mx <= listRight then
 			hover.row = rowAt(my) or 0
 			-- The switch lights on its own, so it is plain that it is the thing being pointed
-			-- at rather than the row behind it.
+			-- at rather than the row behind it. The clear button at the other end the same, and
+			-- only on the rows that have one.
 			if hover.row > 0 and mx >= switchX1 - metrics.rowPad and mx <= nameX1 - metrics.rowPad then
 				hover.sw = 1
+			elseif hover.row > 0 and mx >= clearX1 and rowClearable(hover.row) then
+				hover.clr = 1
 			end
 		elseif mx >= barX1 and mx <= area.x2 then
 			local top, height = scrollerThumb()
@@ -1607,6 +1681,8 @@ local function panelSignature(mx, my)
 		.. hover.tog
 		.. "|"
 		.. hover.bar
+		.. "|"
+		.. hover.clr
 		.. "|"
 		.. hover.btn
 		.. "|"
@@ -1644,7 +1720,7 @@ end
 local function contentMoved()
 	for i = 1, #entries do
 		local e = entries[i]
-		if e.state ~= stateOf(e.name, e.data) then
+		if e.state ~= stateOf(e.name, e.data) or e.hasConfig ~= hasConfigData(e.name) then
 			return true
 		end
 	end
@@ -1662,7 +1738,7 @@ local function contentMoved()
 	return false
 end
 
-local function refreshContent()
+refreshContent = function()
 	buildContent()
 	-- The picker follows: a set can be saved or forgotten between one build and the next.
 	refreshSets()
@@ -1747,7 +1823,30 @@ local function loadLabels()
 	-- never leave that band.
 	L.hint = tr("hint", "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.")
 	L.order = tr("order", "Load order")
+	L.cleardata = tr("cleardata", "Reset")
+	L.cleardataTitle = tr("cleardatatitle", "Clear saved settings")
+	-- The fallbacks only. These two carry the widget's name, and i18n fills a %{...} in
+	-- as the string is looked up - so looking one up here, with no name to hand, would
+	-- bake tostring(nil) into the sentence and every use of it would read "everything nil
+	-- has saved". clearDataWarning does the lookup instead, once it has a name.
+	L.cleardataWarnFallback =
+		"Throws away everything %{name} has saved - its options, its window position, whatever it remembers - and it starts again from its defaults. Nothing else in the list is touched."
+	L.cleardataRestartWarnFallback =
+		"Throws away everything %{name} has saved - its options, its window position, whatever it remembers. It is running, so it is switched off and on again to start from its defaults. Nothing else in the list is touched."
 	L.layer = tr("layer", "Layer")
+end
+
+-- What clearing this widget would do, in the words the confirmation uses. Looked up
+-- with the name rather than taken from L: see the fallbacks above. The gsub covers the
+-- other path, where the key is missing entirely and i18n hands the fallback back
+-- untouched rather than interpolating it.
+local function clearDataWarning(name, running)
+	local text = BAR.I18N(
+		"ui.widgetselector." .. (running and "cleardatarestartwarn" or "cleardatawarn"),
+		{ name = name, default = running and L.cleardataRestartWarnFallback or L.cleardataWarnFallback }
+	)
+
+	return (text:gsub("%%{name}", name))
 end
 
 local function buildButtons()
@@ -1955,6 +2054,19 @@ function widget:LanguageChanged()
 end
 
 function widget:Update()
+	-- The disable asked for on the click has run by now, so the widget has already handed
+	-- its settings back and this is the one moment they can be dropped for good.
+	if pendingClear then
+		local p = pendingClear
+		pendingClear = nil
+		widgetHandler.configData[p.name] = nil
+		if p.restart then
+			widgetHandler:EnableWidget(p.name)
+		end
+		widgetHandler:SaveConfigData()
+		refreshContent()
+	end
+
 	if widgetHandler.knownChanged then
 		widgetHandler.knownChanged = false
 		refreshContent()
@@ -2003,6 +2115,73 @@ function widget:Update()
 			end
 		end
 	end
+end
+
+-- What the cursor is over, said in words. Its own function rather than a block inside
+-- DrawScreen: the clear button answers with something else entirely and bows out early,
+-- and an early return in a draw callin would quietly skip whatever is added after it.
+local function rowTooltip(row)
+	local d = row.data
+	-- The same three states the row is painted in, said in words: green is running,
+	-- amber is enabled but not running, red is off.
+	local stateColor, stateWord = "\255\255\160\160", L.stateOff
+	if row.state == 1 then
+		stateColor, stateWord = "\255\130\255\160", L.stateOn
+	elseif row.state == 0.5 then
+		stateColor, stateWord = "\255\255\240\160", L.statePending
+	end
+	local title = stateColor .. row.name .. "\n"
+
+	local maxWidth = WG.tooltip.getFontsize() * 90
+
+	-- Over the clear button the tooltip is about the button, not the widget: the row's
+	-- details are what the rest of the row already answers, and a button that throws
+	-- settings away should say so before it is pressed rather than only after. Word for
+	-- word what the confirmation asks, so nothing new turns up at the last step.
+	if hover.clr == 1 then
+		local warn = clearDataWarning(row.name, row.state == 1)
+		WG.tooltip.ShowTooltip(
+			"widgetselector",
+			"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255"),
+			nil,
+			nil,
+			colorDanger .. L.cleardataTitle .. "\n"
+		)
+
+		return
+	end
+	local tip = stateColor .. stateWord .. "\n"
+	if d.desc and d.desc ~= "" then
+		tip = tip
+			.. "\255\255\255\255"
+			.. string.gsub(font:WrapText(d.desc, maxWidth), "[\n]", "\n\255\255\255\255")
+			.. "\n"
+	end
+	if d.author and d.author ~= "" then
+		tip = tip .. "\255\175\175\175" .. L.author .. ":  " .. d.author .. "\n"
+	end
+	if row.order then
+		tip = tip
+			.. "\255\175\175\175"
+			.. L.order
+			.. ":  "
+			.. row.order
+			.. "   ("
+			.. L.layer
+			.. " "
+			.. tostring(row.layer)
+			.. ")"
+			.. "\n"
+	end
+	tip = tip
+		.. "\255\175\175\175"
+		.. L.file
+		.. ":  "
+		.. (d.basename or "")
+		.. (row.isLocal and "   (" .. L.islocal .. ")" or "")
+		.. "\n\255\130\130\130"
+		.. L.hint
+	WG.tooltip.ShowTooltip("widgetselector", tip, nil, nil, title)
 end
 
 function widget:DrawScreen()
@@ -2088,50 +2267,7 @@ function widget:DrawScreen()
 
 		local row = not dialog and hover.row > 0 and rows[scroll + hover.row]
 		if row and WG.tooltip then
-			local d = row.data
-			-- The same three states the row is painted in, said in words: green is running,
-			-- amber is enabled but not running, red is off.
-			local stateColor, stateWord = "\255\255\160\160", L.stateOff
-			if row.state == 1 then
-				stateColor, stateWord = "\255\130\255\160", L.stateOn
-			elseif row.state == 0.5 then
-				stateColor, stateWord = "\255\255\240\160", L.statePending
-			end
-			local title = stateColor .. row.name .. "\n"
-
-			local maxWidth = WG.tooltip.getFontsize() * 90
-			local tip = stateColor .. stateWord .. "\n"
-			if d.desc and d.desc ~= "" then
-				tip = tip
-					.. "\255\255\255\255"
-					.. string.gsub(font:WrapText(d.desc, maxWidth), "[\n]", "\n\255\255\255\255")
-					.. "\n"
-			end
-			if d.author and d.author ~= "" then
-				tip = tip .. "\255\175\175\175" .. L.author .. ":  " .. d.author .. "\n"
-			end
-			if row.order then
-				tip = tip
-					.. "\255\175\175\175"
-					.. L.order
-					.. ":  "
-					.. row.order
-					.. "   ("
-					.. L.layer
-					.. " "
-					.. tostring(row.layer)
-					.. ")"
-					.. "\n"
-			end
-			tip = tip
-				.. "\255\175\175\175"
-				.. L.file
-				.. ":  "
-				.. (d.basename or "")
-				.. (row.isLocal and "   (" .. L.islocal .. ")" or "")
-				.. "\n\255\130\130\130"
-				.. L.hint
-			WG.tooltip.ShowTooltip("widgetselector", tip, nil, nil, title)
+			rowTooltip(row)
 		end
 	end
 end
@@ -2387,12 +2523,28 @@ local function mouseEvent(x, y, button, release)
 			overRow = r and rows[scroll + r] or nil
 		end
 
+		-- The clear button is part of the row, so the press has to remember which of the two
+		-- was under the cursor: releasing over the row after pressing the button would
+		-- otherwise toggle the widget.
+		local onClear = overRow and overRow.hasConfig and x >= clearX1 and x <= listRight or false
 		if not release then
 			pressedRow = overRow and overRow.name or nil
 			pressedButton = button
+			pressedClear = onClear
 		elseif overRow and overRow.name == pressedRow and button == pressedButton then
 			-- A click, rather than a drag that happened to finish over a row.
-			if button == 1 then
+			if button == 1 and (onClear or pressedClear) then
+				-- Both halves of the click have to be on the button. Pressing it and sliding off
+				-- before letting go is how a player takes an accidental press back.
+				if onClear and pressedClear then
+					local name = overRow.name
+					local running = overRow.state == 1
+					confirm(L.cleardataTitle, clearDataWarning(name, running), function()
+						clearConfigData(name)
+					end, true)
+					click()
+				end
+			elseif button == 1 then
 				widgetHandler:ToggleWidget(overRow.name)
 
 				click()
@@ -2409,7 +2561,7 @@ local function mouseEvent(x, y, button, release)
 			end
 		end
 		if release then
-			pressedRow, pressedButton = nil, 0
+			pressedRow, pressedButton, pressedClear = nil, 0, false
 		end
 
 		return true

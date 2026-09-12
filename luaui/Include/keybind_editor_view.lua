@@ -121,9 +121,81 @@ local scroll = 0
 -- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
 -- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
 -- 200 locals, which is why the sizes above share `metrics` too.
-local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0, cat = 0 }
-local dragging = false
+local hover =
+	{ sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0, cat = 0, drag = false }
 local dirty = false
+
+-- Blur behind whatever floats over the panel, and the floating content drawn back on top
+-- of it.
+--
+-- The panel's own backdrop is registered with InsertDlist, which is the *world* set: it
+-- blurs the map behind the panel and leaves the UI alone. A popup has to blur UI - the
+-- rows and buttons it covers - so it goes into the screen set instead.
+--
+-- That set is drawn by gfx_guishader, which copies the screen as it stands and blurs it
+-- inside those rects. widgetHandler walks DrawScreen in reverse layer order, so this
+-- panel (-99990) draws well before guishader (-990000) and a popup of ours inside one of
+-- those rects would be blurred along with what it covers. Handing the drawing to
+-- insertRenderDlist gets it replayed after the blur, which is how gui_options keeps its
+-- select list crisp.
+--
+-- One table rather than a handful of locals, and for the same reason as `hover` above:
+-- this chunk is at Lua's ceiling of 200.
+local shade = { owner = nil, rects = {}, lists = {} }
+
+-- Only touched when the rect actually moves: every insert marks the stencil dirty, so
+-- doing it per frame has it rebuilt per frame.
+function shade.rect(name, x1, y1, x2, y2)
+	if not WG.guishader then
+		return
+	end
+	local was = shade.rects[name]
+	if x1 then
+		if not (was and was[1] == x1 and was[2] == y1 and was[3] == x2 and was[4] == y2) then
+			WG.guishader.InsertScreenRect(x1, y1, x2, y2, "keybindeditor_" .. name, shade.owner)
+			shade.rects[name] = { x1, y1, x2, y2 }
+		end
+	elseif was then
+		WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		shade.rects[name] = nil
+	end
+end
+
+function shade.drop(name)
+	local list = shade.lists[name]
+	if list then
+		if WG.guishader then
+			WG.guishader.removeRenderDlist(list)
+		end
+		gl.DeleteList(list)
+		shade.lists[name] = nil
+	end
+end
+
+-- Rebuilt per frame: a modal carries a blinking caret and the picker lights the option
+-- under the cursor, so there is nothing static to hold on to.
+function shade.float(name, fn)
+	if not (WG.guishader and WG.guishader.insertRenderDlist) then
+		-- No blur will be drawn over it, so there is nothing to hand over.
+		fn()
+		return
+	end
+	shade.drop(name)
+	shade.lists[name] = gl.CreateList(fn)
+	WG.guishader.insertRenderDlist(shade.lists[name])
+end
+
+function shade.clear()
+	for name in pairs(shade.rects) do
+		if WG.guishader then
+			WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		end
+		shade.rects[name] = nil
+	end
+	for name in pairs(shade.lists) do
+		shade.drop(name)
+	end
+end
 ---@type table?
 local capturing
 
@@ -1297,13 +1369,17 @@ function view.refresh()
 end
 
 -- Takes the panel rect from the host; every band and column is derived from it.
-function view.setArea(x1, y1, x2, y2, s)
+-- `wx1..wy2` is the window the area sits inside; without it a modal can only dim as far
+-- as the area goes, leaving the panel's own border lit. Kept in `metrics` rather than a
+-- local of its own, this chunk being at Lua's ceiling of 200.
+function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	ensureControls()
 	area.x1, area.y1, area.x2, area.y2 = x1, y1, x2, y2
+	metrics.winX1, metrics.winY1 = wx1 or x1, wy1 or y1
+	metrics.winX2, metrics.winY2 = wx2 or x2, wy2 or y2
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
-	metrics.catBarW = math.max(3, floor(6 * scale))
 	metrics.catBarW = math.max(3, floor(6 * scale))
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
@@ -1379,6 +1455,9 @@ function view.blur()
 	end
 	capturing = nil
 
+	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
+	shade.clear()
+
 	-- Through cancel rather than dropped: a live modal is holding a rollback, and the picker
 	-- names a profile that was never switched to until that runs.
 	cancelDialog()
@@ -1390,6 +1469,11 @@ function view.confirmClose(proceed)
 	return guardDirty(proceed)
 end
 
+-- The host widget, handed over so guishader can drop this panel's blur rects with it when
+-- the widget goes away. Optional: with no owner the rects are simply always allowed.
+function view.setOwner(w)
+	shade.owner = w
+end
 -- Host hook for swapping the build menu when a profile implies one.
 function view.setMenuToggle(fn)
 	menuToggle = fn
@@ -2544,7 +2628,20 @@ local function drawCaptureModal(mx, my)
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	local tfs = floor(rowHeight * 0.6)
@@ -2670,7 +2767,20 @@ local function drawProfileDialog(mx, my)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- Anything whose accept saves is green, anything destructive is red, wherever it
@@ -2889,7 +2999,7 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. h.cat
 		.. "|"
-		.. (dragging and 1 or 0)
+		.. (hover.drag and 1 or 0)
 end
 
 -- Everything under the header controls and above the modals: the sidebar, the list or
@@ -2922,7 +3032,7 @@ local function drawPanel()
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, dragging)
+		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
 	end
 
 	drawButtons(h.btn)
@@ -2942,6 +3052,31 @@ end
 
 -- Paints the whole panel. The header controls and the modals draw live; the body is
 -- replayed from its display list until panelSignature says something in it moved.
+-- Which of the popups is up, and where. Defined down here rather than beside the rest of
+-- `shade`: it reads the popup state and geometry, none of which exists that far up.
+function shade.update()
+	if capturing then
+		local bx1, by1, bx2, by2 = captureGeometry()
+		shade.rect("capture", bx1, by1, bx2, by2)
+	else
+		shade.rect("capture")
+	end
+
+	if dialog then
+		local bx1, by1, bx2, by2 = dialogGeometry()
+		shade.rect("dialog", bx1, by1, bx2, by2)
+	else
+		shade.rect("dialog")
+	end
+
+	-- The list the picker drops, which stands clear of the control and over the rows.
+	local opts = presetDropdown and presetDropdown:isOpen() and presetDropdown.optRects
+	if opts and opts[1] then
+		shade.rect("picker", opts[1].x1, opts[#opts].y1, opts[1].x2, opts[1].y2)
+	else
+		shade.rect("picker")
+	end
+end
 function view.draw()
 	if not font then
 		view.init()
@@ -2962,11 +3097,11 @@ function view.draw()
 	gl.DepthTest(false)
 
 	local rawMx, rawMy, lmb = spGetMouseState()
-	if dragging then
+	if hover.drag then
 		if lmb then
 			scrollFromY(rawMy)
 		else
-			dragging = false
+			hover.drag = false
 		end
 	end
 
@@ -2993,16 +3128,37 @@ function view.draw()
 		registerTooltips()
 	end
 
-	presetDropdown:draw()
+	-- Each of these covers UI rather than map, so it takes the blur with it and is drawn
+	-- back on top of it. See `shade` for why that is two steps and not one.
+	if presetDropdown:isOpen() then
+		shade.float("picker", function()
+			presetDropdown:draw()
+		end)
+	else
+		shade.drop("picker")
+		presetDropdown:draw()
+	end
 
 	-- Real cursor: these are the overlay, so the hover is theirs to detect.
 	if capturing then
-		drawCaptureModal(rawMx, rawMy)
+		shade.float("capture", function()
+			drawCaptureModal(rawMx, rawMy)
+		end)
+	else
+		shade.drop("capture")
 	end
 
 	if dialog then
-		drawProfileDialog(rawMx, rawMy)
+		shade.float("dialog", function()
+			drawProfileDialog(rawMx, rawMy)
+		end)
+	else
+		shade.drop("dialog")
 	end
+
+	-- After they have laid themselves out, so the blur behind one is the right size on
+	-- the frame it appears rather than the one after.
+	shade.update()
 end
 
 -- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at
@@ -3196,7 +3352,7 @@ function view.mousePress(x, y, button)
 		-- is at Lua's ceiling of 200 locals and a function of its own would need a slot.
 		local top, height = scrollerThumb()
 		if top then
-			dragging = true
+			hover.drag = true
 			if y <= top and y >= top - height then
 				hover.grab = y - top
 			else

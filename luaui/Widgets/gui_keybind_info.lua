@@ -97,13 +97,21 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 
 	keybindEditor.init()
+	-- So guishader drops the popups' blur rects along with this widget.
+	keybindEditor.setOwner(widget)
 	local pad = mathFloor(8 * widgetScale)
+	-- The inset area the panel lays out in, and after it the window it sits in: a modal
+	-- dims the whole window, border and all, not just the area inside it.
 	keybindEditor.setArea(
 		screenX + pad,
 		screenY - screenHeight + pad,
 		screenX + screenWidth - pad,
 		screenY - pad,
-		widgetScale
+		widgetScale,
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY
 	)
 
 	if keybinds then
