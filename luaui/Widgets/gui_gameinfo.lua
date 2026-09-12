@@ -2050,9 +2050,26 @@ function widget:KeyPress(key)
 		return false
 	end
 
+	-- Escape, before the field gets a look at it: it undoes the most recent thing first
+	-- and closes the panel only when there is nothing left to undo. The selection is the
+	-- thing most recently picked up, and closing over it would throw away what was about
+	-- to be copied. A search comes next: the list being read is the one the search made,
+	-- and the first Escape is asking for that back rather than for the panel to go.
+	if key == 27 then
+		if selectionRange() then
+			clearSelection()
+		elseif searchBox:getText() ~= "" then
+			-- Focus stays, so the next thing typed starts a new search.
+			searchBox:setText("")
+		else
+			showOnceMore = true
+			closePanel()
+		end
+
+		return true
+	end
+
 	if searchBox:isFocused() then
-		-- Escape in the field drops the focus rather than closing the panel out from under
-		-- whoever was typing; the next one closes it.
 		searchBox:keyPress(key)
 
 		return true
@@ -2070,19 +2087,6 @@ function widget:KeyPress(key)
 
 			return true
 		end
-	end
-
-	if key == 27 then
-		-- Escape puts the selection down first: it is the thing most recently picked up, and
-		-- closing the panel over it would throw away what was about to be copied.
-		if selectionRange() then
-			clearSelection()
-		else
-			showOnceMore = true
-			closePanel()
-		end
-
-		return true
 	end
 
 	return false

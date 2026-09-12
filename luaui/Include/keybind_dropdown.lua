@@ -13,6 +13,9 @@ local colorText = "\255\235\235\235"
 -- SelectHighlight defaults to 0.35 and the rest of the UI stays near it. At 1 the
 -- overlay is opaque and swallows the option label under it.
 local hoverOpacity = 0.25
+-- Lighter for the control itself than for a row of the open list: one says the cursor
+-- is on it, the other says this is the option a click would take.
+local controlHoverOpacity = 0.14
 local white = { 1, 1, 1 }
 local listFill = { 0.09, 0.09, 0.09, 0.96 }
 
@@ -124,6 +127,9 @@ function Dropdown:draw()
 	local inset = floor((y2 - y1) * 0.3)
 
 	Selector(x1, y1, x2, y2)
+	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+		Highlight(x1, y1, x2, y2, floor(WG.FlowUI.elementCorner * 0.66), controlHoverOpacity, white)
+	end
 
 	-- Chevron in the gap already reserved at the right edge, so the control reads as a
 	-- select rather than a button. Drawn before the text: geometry inside a font batch
@@ -151,9 +157,9 @@ function Dropdown:draw()
 	font:Print(
 		fittedLabel(fitted, 0, font, label, labelW, self.fontSize),
 		x1 + inset,
-		floor((y1 + y2) * 0.5),
+		text.baseline(font, y1, y2, self.fontSize),
 		self.fontSize,
-		"ov"
+		"o"
 	)
 	font:End()
 
@@ -179,9 +185,9 @@ function Dropdown:draw()
 			font:Print(
 				fittedLabel(fitted, i, font, optionLabel(opt), w, self.fontSize),
 				r.x1 + inset,
-				floor((r.y1 + r.y2) * 0.5),
+				text.baseline(font, r.y1, r.y2, self.fontSize),
 				self.fontSize,
-				"ov"
+				"o"
 			)
 		end
 		font:End()

@@ -6,6 +6,39 @@ local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local M = {}
 
+local mathFloor = math.floor
+
+-- Body height per font, in em. Asked of the font once: it does not change with the size
+-- the text is drawn at, and `baseline` is called for every label on every frame.
+local bodyHeight = setmetatable({}, { __mode = "k" })
+
+-- Where a line's baseline goes for the text to sit centred in a box, whatever it says.
+--
+-- Printing with "v" centres the glyphs the string happens to have: "Search..." has no
+-- descenders and so centres on its capitals, while "Legacy (2)" centres on a box that
+-- reaches below the baseline, which lifts everything you actually read. Two controls
+-- side by side then disagree with each other.
+--
+-- Centred on the font's x-height instead, so every label sits alike. A UI label is
+-- mostly lowercase, and that band is where the eye puts the middle of a line: centring
+-- the capitals leaves the text reading low, because little of it reaches that high.
+-- Ascenders and descenders then sit above and below, the way type intends.
+--
+-- Print with "o" rather than "ov": with no vertical option the y is the baseline.
+function M.baseline(font, y1, y2, size)
+	local body = bodyHeight[font]
+	if not body then
+		-- A lowercase x sits on the baseline and reaches neither above nor below the band,
+		-- so the height of its ink is the x-height.
+		body = font:GetTextHeight("x")
+		bodyHeight[font] = body
+	end
+
+	-- Rounded, not floored: a whole pixel keeps the glyphs off a fraction, but always
+	-- taking the lower one leaves every label sitting up to a pixel low.
+	return mathFloor((y1 + y2) * 0.5 - size * body * 0.5 + 0.5)
+end
+
 -- Shortens text until it draws inside maxWidth, marking the cut with "..".
 function M.fit(font, text, maxWidth, size)
 	-- Callers derive the width by subtracting, so it can come through negative. Returning
