@@ -26,7 +26,6 @@ local view = {}
 
 local floor = math.floor
 local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local isInRect = math.isInRect
@@ -115,6 +114,14 @@ local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
 local rowsGen = 0
 local scroll = 0
+
+-- What the cursor is over, in the terms the panel paints hover with. Refilled in place
+-- each frame rather than allocated.
+-- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
+-- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
+-- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
+-- 200 locals, which is why the sizes above share `metrics` too.
+local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0, cat = 0 }
 local dragging = false
 local dirty = false
 ---@type table?
@@ -1296,6 +1303,8 @@ function view.setArea(x1, y1, x2, y2, s)
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
+	metrics.catBarW = math.max(3, floor(6 * scale))
+	metrics.catBarW = math.max(3, floor(6 * scale))
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
 	metrics.rowFs = floor(rowHeight * 0.55)
@@ -1749,7 +1758,9 @@ local function modPrefix()
 		return ""
 	end
 
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local prefix = ""
 	if alt then
 		prefix = prefix .. "Alt+"
@@ -1962,7 +1973,10 @@ local function rowLayout(row)
 	elseif row.type == "link" then
 		lay.text = colorAction .. row.label
 		lay.arrow = look.arrow
-		lay.arrowX = listX1 + metrics.rowPad * 5 + floor(font:GetTextWidth(row.label) * metrics.rowFs) + metrics.rowPad * 2
+		lay.arrowX = listX1
+			+ metrics.rowPad * 5
+			+ floor(font:GetTextWidth(row.label) * metrics.rowFs)
+			+ metrics.rowPad * 2
 	else
 		local labelW = metrics.keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
 		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
@@ -2062,10 +2076,25 @@ local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
+-- `i` is the entry's place in `categories`, not its place on screen: the two differ by
+-- however far the column is scrolled. That offset rides in `hover` for the same reason
+-- `grab` does - this chunk is at Lua's ceiling of 200 locals.
 local function categoryRect(i)
-	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1 - hover.cat) * metrics.catRowHeight
 
 	return area.x1, top - metrics.catRowHeight, area.x1 + sidebarW, top
+end
+
+-- Scrolls the category column by `delta` entries and answers how far it can be scrolled
+-- at all, so nought means everything fits. One function rather than the usual three,
+-- this chunk being at the local ceiling; passing 0 just clamps.
+local function catScrolled(delta)
+	local page = math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight))
+	local most = math.max(0, #categories - page)
+	local n = hover.cat + delta
+	hover.cat = (n < 0 and 0) or (n > most and most) or n
+
+	return most
 end
 
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
@@ -2076,7 +2105,7 @@ local function sidebarIndexAt(x, y)
 		return nil
 	end
 
-	local i = floor((top - y) / metrics.catRowHeight) + 1
+	local i = floor((top - y) / metrics.catRowHeight) + 1 + hover.cat
 	if not categories[i] then
 		return nil
 	end
@@ -2197,13 +2226,28 @@ local function drawSidebar(hoverIdx)
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
+	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
+	-- there are more categories than the card has room for.
+	if catScrolled(0) > 0 then
+		local bx2 = area.x1 + sidebarW - metrics.catInset
+		Scroller(
+			bx2 - metrics.catBarW,
+			listBottom(),
+			bx2,
+			sidebarTop(),
+			#categories * metrics.catRowHeight,
+			hover.cat * metrics.catRowHeight
+		)
+	end
+
 	-- Laid out before the font existed, so the labels are still waiting to be fitted.
 	if categories[1] and not categories[1].textDim then
 		fitCategories()
 	end
 
 	local lb = listBottom()
-	for i, c in ipairs(categories) do
+	for i = hover.cat + 1, #categories do
+		local c = categories[i]
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 >= lb then
 			local selected = selectedCategory == c.key
@@ -2211,7 +2255,15 @@ local function drawSidebar(hoverIdx)
 				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
 				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
 			elseif i == hoverIdx then
-				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+				Highlight(
+					x1 + metrics.catInset,
+					y1,
+					x2 - metrics.catInset,
+					y2,
+					metrics.csSmall,
+					look.rowHoverOpacity,
+					look.white
+				)
 			end
 			local ty = floor((y1 + y2) * 0.5)
 			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
@@ -2746,14 +2798,6 @@ local function drawButtons(hotId)
 	end
 end
 
--- What the cursor is over, in the terms the panel paints hover with. Refilled in place
--- each frame rather than allocated.
--- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
--- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
--- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
--- 200 locals, which is why the sizes above share `metrics` too.
-local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0 }
-
 -- The thumb, where it is now. Nil when the list fits and no bar is drawn. Reached through
 -- WG rather than a local of its own, this chunk being at the 200-local ceiling; it is only
 -- asked for on a press or a hover test, so the lookup costs nothing that matters.
@@ -2842,6 +2886,8 @@ local function panelSignature(mx, my)
 		.. (activeIsOwn() and 1 or 0)
 		.. "|"
 		.. h.bar
+		.. "|"
+		.. h.cat
 		.. "|"
 		.. (dragging and 1 or 0)
 end
@@ -2988,8 +3034,12 @@ function view.mouseWheel(up, value)
 		return
 	end
 
-	local _, my = spGetMouseState()
-	if my >= listBottom() and my <= listTop then
+	local mx, my = spGetMouseState()
+	-- Over the column it scrolls the column, over anything else the list. A wheel that
+	-- moved the list while the cursor was on the categories would read as broken.
+	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
+		catScrolled(up and -1 or 1)
+	elseif my >= listBottom() and my <= listTop then
 		scroll = scroll + (up and -3 or 3)
 		clampScroll()
 	end
@@ -3227,6 +3277,17 @@ function view.keyPress(key, scanCode)
 		if key == 27 then
 			presetDropdown:close()
 		end
+		return true
+	end
+
+	-- A grid category replaces the list outright, and picking another category in the
+	-- column is otherwise the only way back out of it. Escape is the other way, and it
+	-- has to come before the panel closes: leaving a view is what the key is for.
+	if gridGroup and key == 27 then
+		selectedCategory = nil
+		scroll = 0
+		rebuildRows()
+
 		return true
 	end
 

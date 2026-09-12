@@ -220,6 +220,9 @@ local rowsGen = 0
 local layoutGen = 0
 local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
 local scroll = 0
+-- How far the category column is scrolled, in whole entries. A game with enough
+-- modoption sections, or a short enough panel, has more of them than the column holds.
+local catScroll = 0
 local dragging = false
 -- Where the thumb was taken hold of, as the distance from the cursor to its top edge. The
 -- thumb then follows the cursor by that much, instead of jumping its middle to wherever
@@ -378,7 +381,8 @@ end
 -- normally has
 local function getModoptionTooltipText(key, showDefault)
 	local option = optionDefs[key]
-	local str = BAR.I18N("modoptions." .. key .. ".desc", { default = option and stripColorCodes(option.desc or "") or "" })
+	local str =
+		BAR.I18N("modoptions." .. key .. ".desc", { default = option and stripColorCodes(option.desc or "") or "" })
 	if option then
 		if option.min and option.max then
 			str = appendTooltipLine(
@@ -1194,8 +1198,10 @@ local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
+-- `i` is the entry's place in `categories`, not its place on screen: the two differ by
+-- however far the column is scrolled.
 local function categoryRect(i)
-	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1 - catScroll) * metrics.catRowHeight
 
 	return area.x1, top - metrics.catRowHeight, area.x1 + metrics.sidebarW, top
 end
@@ -1208,7 +1214,7 @@ local function sidebarIndexAt(x, y)
 		return nil
 	end
 
-	local i = mathFloor((top - y) / metrics.catRowHeight) + 1
+	local i = mathFloor((top - y) / metrics.catRowHeight) + 1 + catScroll
 	if not categories[i] then
 		return nil
 	end
@@ -1219,6 +1225,20 @@ local function sidebarIndexAt(x, y)
 	end
 
 	return i
+end
+
+-- How many entries the column has room for, and how far it can be scrolled.
+local function catPageRows()
+	return mathMax(1, mathFloor((sidebarTop() - listBottom) / metrics.catRowHeight))
+end
+
+local function maxCatScroll()
+	return mathMax(0, #categories - catPageRows())
+end
+
+local function setCatScroll(n)
+	local m = maxCatScroll()
+	catScroll = (n < 0 and 0) or (n > m and m) or n
 end
 
 -- Rebuilds every rect against the panel size. Whole pixels throughout, so glyph and
@@ -1259,6 +1279,7 @@ local function setLayout()
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(240 * s)
 	metrics.barW = mathFloor(14 * s)
+	metrics.catBarW = mathMax(3, mathFloor(6 * s))
 	-- Rounded like the settings panel's inner elements, which take a share of this too.
 	metrics.csPanel = mathFloor(elementCorner)
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
@@ -1307,10 +1328,10 @@ local function setLayout()
 	-- toggle beside it rather than to the field it would otherwise sit against.
 	searchBox:setRect(listX1, rowBottom, toggleHit[1] - mathFloor(28 * s), rowTop, fs)
 
+	setCatScroll(catScroll)
 	layoutGen = layoutGen + 1
 	clampScroll()
 end
-
 
 -- A unit's name, cut to the column reserved for it and padded out to it, so the source
 -- beside it starts at the same place on every line however long the names are.
@@ -1503,8 +1524,7 @@ local function fitRow(row)
 		end
 		row.fitName = (row.changed and colorNameOn or colorName)
 			.. text.fit(font, row.name, valueX1 - listX1 - metrics.rowPad * 3, metrics.rowFs)
-		row.fitValue = valueColor
-			.. text.fit(font, row.value, listRight - valueX1 - metrics.rowPad * 2, metrics.rowFs)
+		row.fitValue = valueColor .. text.fit(font, row.value, listRight - valueX1 - metrics.rowPad * 2, metrics.rowFs)
 	end
 end
 
@@ -1553,21 +1573,7 @@ local function drawIcons()
 		-- over the picture is a gradient, and it leaves its last colour behind. Setting white
 		-- once outside the loop leaves every picture after the first modulated by that.
 		glColor(1, 1, 1, 1)
-		UiUnit(
-			x,
-			y - size,
-			x + size,
-			y,
-			nil,
-			1,
-			1,
-			1,
-			1,
-			iconZoom,
-			nil,
-			nil,
-			"#" .. pendingIcons[at + 3]
-		)
+		UiUnit(x, y - size, x + size, y, nil, 1, 1, 1, 1, iconZoom, nil, nil, "#" .. pendingIcons[at + 3])
 	end
 	gl.Scissor(false)
 	glColor(1, 1, 1, 1)
@@ -1605,7 +1611,19 @@ end
 -- The band a category heading sits on: the sheen and the line closing it off underneath,
 -- so the heading closes off the block above it rather than floating in the middle.
 local function drawHeaderBand(top, bottom, caption, failed)
-	RectRound(listX1, bottom, listRight, top - metrics.csSmall, metrics.csSmall, 1, 1, 0, 0, look.sheenTop, look.sheenTop)
+	RectRound(
+		listX1,
+		bottom,
+		listRight,
+		top - metrics.csSmall,
+		metrics.csSmall,
+		1,
+		1,
+		0,
+		0,
+		look.sheenTop,
+		look.sheenTop
+	)
 	RectRound(
 		listX1,
 		bottom,
@@ -1729,22 +1747,56 @@ local function drawSidebar()
 		fitCategories()
 	end
 
-	for i, c in ipairs(categories) do
+	for i = catScroll + 1, #categories do
+		local c = categories[i]
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 < listBottom then
 			break
 		end
 		local selected = selectedCategory == c.key
 		if selected then
-			RectRound(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+			RectRound(
+				x1 + metrics.catInset,
+				y1,
+				x2 - metrics.catInset,
+				y2,
+				metrics.csSmall,
+				1,
+				1,
+				1,
+				1,
+				look.selectedFill
+			)
 		elseif i == hover.sb then
-			Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+			Highlight(
+				x1 + metrics.catInset,
+				y1,
+				x2 - metrics.catInset,
+				y2,
+				metrics.csSmall,
+				look.rowHoverOpacity,
+				look.white
+			)
 		end
 		local ty = mathFloor((y1 + y2) * 0.5)
 		queueText(selected and c.textSel or c.textDim, x1 + metrics.sidePad, ty, metrics.catFs, "ov", 1)
 		if c.countText then
 			queueText(c.countText, x2 - metrics.sidePad, ty, metrics.catFs, "rov", 1)
 		end
+	end
+
+	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
+	-- there are more categories than the card has room for.
+	if maxCatScroll() > 0 then
+		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+		UiScroller(
+			bx2 - metrics.catBarW,
+			listBottom,
+			bx2,
+			sidebarTop(),
+			#categories * metrics.catRowHeight,
+			catScroll * metrics.catRowHeight
+		)
 	end
 end
 
@@ -1882,6 +1934,8 @@ local function panelSignature(mx, my)
 		.. "|"
 		.. layoutGen
 		.. "|"
+		.. catScroll
+		.. "|"
 		.. selFrom
 		.. "|"
 		.. selTo
@@ -1943,10 +1997,13 @@ function widget:ViewResize()
 	UiUnit = WG.FlowUI.Draw.Unit
 
 	if not searchBox then
-		searchBox = Editbox.new({ placeholder = L.search, onChange = function()
-			setScroll(0)
-			rebuildRows()
-		end })
+		searchBox = Editbox.new({
+			placeholder = L.search,
+			onChange = function()
+				setScroll(0)
+				rebuildRows()
+			end,
+		})
 	end
 
 	setLayout()
@@ -2137,7 +2194,13 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	setScroll(scroll + (up and -metrics.wheelRows or metrics.wheelRows))
+	-- Over the column it scrolls the column, over anything else the list. A wheel that
+	-- moved the list while the cursor was on the categories would read as broken.
+	if x <= area.x1 + metrics.sidebarW and y > listBottom and y <= sidebarTop() then
+		setCatScroll(catScroll + (up and -1 or 1))
+	else
+		setScroll(scroll + (up and -metrics.wheelRows or metrics.wheelRows))
+	end
 
 	return true
 end

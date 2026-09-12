@@ -716,7 +716,50 @@
 			"button_factoryresetluaui": "Factory Reset LuaUI",
 			"file": "File",
 			"author": "Author",
-			"islocal": "local"
+			"islocal": "local",
+			"category": {
+				"all": "All",
+				"interface": "Interface",
+				"commands": "Commands",
+				"units": "Units",
+				"camera": "Camera",
+				"graphics": "Graphics",
+				"sound": "Sound",
+				"map": "Map",
+				"minimap": "Minimap",
+				"api": "API",
+				"debug": "Debug",
+				"other": "Other"
+			},
+			"search": "Search...",
+			"localonly": "Local only",
+			"factorydefaults": "Factory defaults",
+			"cancel": "Cancel",
+			"confirm": "Confirm",
+			"hint": "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.",
+			"factorydefaultswarn": "This throws away every interface setting you have: which widgets are on, their positions, and anything you have configured in them. LuaUI reloads immediately. It cannot be undone.",
+			"unloadallwarn": "Switches off every widget in the list at once. Your settings are kept, and you can switch them back on one at a time.",
+			"disallowuserwarn": "Stops loading widgets from your own LuaUI folder, leaving only the ones the game ships. LuaUI reloads immediately.",
+			"allowuserwarn": "Loads widgets from your own LuaUI folder again alongside the ones the game ships. LuaUI reloads immediately.",
+			"resetwarn": "Puts every widget back to the set the game enables by default. Widgets you added stay on disk. LuaUI reloads immediately.",
+			"state": {
+				"on": "Running",
+				"pending": "Enabled, but not running",
+				"off": "Off"
+			},
+			"enabledonly": "Enabled only",
+			"byorder": "By load order",
+			"order": "Load order",
+			"layer": "Layer",
+			"sets": "Widget sets",
+			"noset": "No set",
+			"saveset": "Save",
+			"deleteset": "Delete",
+			"savesettitle": "Save widget set",
+			"savesetwarn": "Remembers which widgets are switched on right now under this name. Saving over a name you already have replaces it.",
+			"deletesettitle": "Delete widget set",
+			"deletesetwarn": "Forgets this set. The widgets it switched on stay as they are.",
+			"loadset": "Load"
 		},
 		"unitstats": {
 			"prog": "Prog",
@@ -3688,5 +3731,4 @@
 			"desc": "A base64 encoded snippet of code that modifies game definitions."
 		}
 	}
-
 }

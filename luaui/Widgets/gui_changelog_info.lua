@@ -147,7 +147,14 @@ local barHover = false
 -- Month column state: the entry under the cursor and the one lit as current. The
 -- sidebar list is rebuilt whenever either changes.
 local hoverIdx, selectedIdx
-local sidebarHover, sidebarSelected
+local sidebarHover, sidebarSelected, sidebarScroll
+
+-- How far the month column is scrolled, in whole entries. A changelog gathers versions
+-- for as long as the game has been going, so this one overflows as a matter of course.
+local catScroll = 0
+-- Declared here because setStartRow keeps the month being read in view and setLayout
+-- clamps the column, and both run well before the column measures itself below.
+local revealCategory, setCatScroll
 
 local function dropLists()
 	if panelList then
@@ -200,6 +207,10 @@ local function setStartRow(n, chosen)
 		end
 	end
 	selectedIdx = chosen or versionAt(startRow)
+	-- The month being read stays in view, however far the text has been scrolled.
+	if selectedIdx then
+		revealCategory(selectedIdx)
+	end
 end
 
 -- Where the text currently sits, in the pixels the scrollbar is drawn against.
@@ -350,6 +361,7 @@ local function setLayout()
 	metrics.sidePad = mathFloor(12 * s)
 	metrics.catInset = mathFloor(4 * s)
 	metrics.catRowHeight = mathFloor(29 * s)
+	metrics.catBarW = mathMax(3, mathFloor(6 * s))
 	metrics.catFs = mathFloor(metrics.catRowHeight * 0.55 * 0.85)
 	metrics.headerH = mathFloor(34 * s)
 	metrics.headerGap = mathFloor(4 * s)
@@ -372,6 +384,9 @@ local function setLayout()
 	barX1 = area.x2 - metrics.edgeInset - metrics.barW
 	listRight = barX1 - metrics.listGap
 
+	-- A shorter panel holds fewer months, so the column can be left past its own end.
+	setCatScroll(catScroll)
+
 	-- The markdown sizes scale with the panel; its palette follows the panel's look.
 	ctx = Markdown.defaultContext(s)
 	ctx.fonts = { regular = font, bold = fontBold, mono = fontMono }
@@ -383,12 +398,15 @@ end
 
 -- The month column starts below where the text does, so the title above it is not
 -- crowded by the first entry. Everything in the column measures from here.
+
 local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
+-- `i` is the entry's place in `versions`, not its place on screen: the two differ by
+-- however far the column is scrolled.
 local function categoryRect(i)
-	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1 - catScroll) * metrics.catRowHeight
 
 	return area.x1, top - metrics.catRowHeight, area.x1 + metrics.sidebarW, top
 end
@@ -401,7 +419,7 @@ local function sidebarIndexAt(x, y)
 		return nil
 	end
 
-	local i = mathFloor((top - y) / metrics.catRowHeight) + 1
+	local i = mathFloor((top - y) / metrics.catRowHeight) + 1 + catScroll
 	if not versions[i] then
 		return nil
 	end
@@ -414,31 +432,87 @@ local function sidebarIndexAt(x, y)
 	return i
 end
 
+-- How many entries the column has room for, and how far it can be scrolled.
+local function catPageRows()
+	return mathMax(1, mathFloor((sidebarTop() - listBottom) / metrics.catRowHeight))
+end
+
+local function maxCatScroll()
+	return mathMax(0, #versions - catPageRows())
+end
+
+setCatScroll = function(n)
+	local m = maxCatScroll()
+	catScroll = (n < 0 and 0) or (n > m and m) or n
+end
+
+-- Keeps the month being read in view. The column is scrolled by the reader as well, so
+-- this only moves it when the entry has actually gone off one end.
+revealCategory = function(i)
+	if i <= catScroll then
+		setCatScroll(i - 1)
+	elseif i > catScroll + catPageRows() then
+		setCatScroll(i - catPageRows())
+	end
+end
+
 -- The month column's entries: the lit current one, the hover, then the labels. The card
 -- itself is part of the panel list, since it never changes with the cursor.
 local function drawSidebar()
-	local n = #versions
 	local shown = 0
-	for i = 1, n do
+	for i = catScroll + 1, #versions do
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 < listBottom then
 			break
 		end
 		shown = i
 		if i == selectedIdx then
-			RectRound(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+			RectRound(
+				x1 + metrics.catInset,
+				y1,
+				x2 - metrics.catInset,
+				y2,
+				metrics.csSmall,
+				1,
+				1,
+				1,
+				1,
+				look.selectedFill
+			)
 		elseif i == hoverIdx then
-			Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+			Highlight(
+				x1 + metrics.catInset,
+				y1,
+				x2 - metrics.catInset,
+				y2,
+				metrics.csSmall,
+				look.rowHoverOpacity,
+				look.white
+			)
 		end
 	end
 
 	font:Begin()
-	for i = 1, shown do
+	for i = catScroll + 1, shown do
 		local x1, y1, _, y2 = categoryRect(i)
 		local label = (i == selectedIdx and colorSelected or colorDim) .. versionLabels[i]
 		font:Print(label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.catFs, "ov")
 	end
 	font:End()
+
+	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
+	-- there are more months than the card has room for.
+	if maxCatScroll() > 0 then
+		local bx2 = area.x1 + metrics.sidebarW - metrics.catInset
+		UiScroller(
+			bx2 - metrics.catBarW,
+			listBottom,
+			bx2,
+			sidebarTop(),
+			#versions * metrics.catRowHeight,
+			catScroll * metrics.catRowHeight
+		)
+	end
 end
 
 -- The panel: its backdrop, the title, the month card, the text and the scrollbar. Baked
@@ -556,13 +630,14 @@ function widget:DrawScreen()
 	if not panelList then
 		panelList = glCreateList(drawPanel)
 	end
-	if not sidebarList or hoverIdx ~= sidebarHover or selectedIdx ~= sidebarSelected then
+	if not sidebarList or hoverIdx ~= sidebarHover or selectedIdx ~= sidebarSelected or catScroll ~= sidebarScroll then
 		if sidebarList then
 			glDeleteList(sidebarList)
 		end
 		sidebarList = glCreateList(drawSidebar)
 		sidebarHover = hoverIdx
 		sidebarSelected = selectedIdx
+		sidebarScroll = catScroll
 	end
 
 	glCallList(panelList)
@@ -600,7 +675,13 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	setStartRow(startRow + (up and -metrics.wheelRows or metrics.wheelRows))
+	-- Over the column it scrolls the column, over anything else the text. A wheel that
+	-- moved the text while the cursor was on the months would read as broken.
+	if x <= area.x1 + metrics.sidebarW and y > listBottom and y <= sidebarTop() then
+		setCatScroll(catScroll + (up and -1 or 1))
+	else
+		setStartRow(startRow + (up and -metrics.wheelRows or metrics.wheelRows))
+	end
 	return true
 end
 
