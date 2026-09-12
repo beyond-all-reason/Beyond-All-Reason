@@ -28,6 +28,7 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitInView = Spring.IsUnitInView
 local spGetCameraDirection = Spring.GetCameraDirection
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init
 
 local drawList
 local givenUnits = {}
@@ -83,6 +84,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	getSelectedUnits = WG.UnitSelection and WG.UnitSelection.GetUnits or Spring.GetSelectedUnits
+
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
@@ -99,25 +102,23 @@ function widget:Update(dt)
 		sec = 0
 		if selectionChanged then
 			selectionChanged = nil
-			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
-			for uDID, unit in pairs(selectedUnitsCount) do
-				for i = 1, #unit do
-					local unitID = unit[i]
-					if givenUnits[unitID] then
-						local currentAlpha = 1
-							- (
-								(os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime)))
-								/ timeoutFadeTime
-							)
-						if currentAlpha > 1 then
-							currentAlpha = 1
-						end
-						givenUnits[unitID].selected = os.clock() - (selectedFadeTime * (1 - currentAlpha))
-						--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
-					else
-						-- uncomment line below for testing
-						-- AddGivenUnit(unitID)
+			local selectedUnits = getSelectedUnits()
+			for i = 1, #selectedUnits do
+				local unitID = selectedUnits[i]
+				if givenUnits[unitID] then
+					local currentAlpha = 1
+						- (
+							(os.clock() - (givenUnits[unitID].osClock + (timeoutTime - timeoutFadeTime)))
+							/ timeoutFadeTime
+						)
+					if currentAlpha > 1 then
+						currentAlpha = 1
 					end
+					givenUnits[unitID].selected = os.clock() - (selectedFadeTime * (1 - currentAlpha))
+					--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
+				else
+					-- uncomment line below for testing
+					-- AddGivenUnit(unitID)
 				end
 			end
 		end
