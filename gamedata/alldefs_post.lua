@@ -1009,6 +1009,12 @@ local function weaponDef_Post(name, wDef)
 	local damage = wDef.damage
 	local shield = wDef.shield
 
+	-- Apply continuous surface-target depth tracking to torpedo weapons.
+	-- Preserve weapons that define their own projectile behavior.
+	if wDef.weapontype == "TorpedoLauncher" and not customparams.speceffect then
+		customparams.speceffect = "torpsurfacetrack"
+	end
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 
