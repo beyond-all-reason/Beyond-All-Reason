@@ -3,19 +3,10 @@
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
 
-local mathBitOr = math.bit_or
-local mathFloor = math.floor
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetModKeyState = Spring.GetModKeyState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetLocalTeamID = Spring.GetLocalTeamID
-local spIsGodModeEnabled = Spring.IsGodModeEnabled
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetSpectatingState = Spring.GetSpectatingState
 
 local CYCLE_COUNT = 3
 local PIP_COUNT = 3
@@ -23,7 +14,6 @@ local DIRECT_BIND_MAX = 5
 
 local remappingFirestate = false
 local onOrderGiven
-local cachedUnitDefsHaveCommand = {}
 
 local descrByState = {
 	["Hold fire"] = "firestate_hold_fire_descr",
@@ -81,53 +71,8 @@ local labelByVirtualIndexEnabled = {
 	[5] = "Fire at all",
 }
 
-local function unitIsControllable(unitID)
-	local unitTeam = spGetUnitTeam(unitID)
-	if unitTeam == nil then
-		return false
-	end
-	if unitTeam == spGetLocalTeamID() then
-		return true
-	end
-	if spGetSpectatingState() then
-		return true
-	end
-	local godMode, controlAllies, controlEnemies = spIsGodModeEnabled()
-	if not godMode then
-		return false
-	end
-	if controlAllies == nil and controlEnemies == nil then
-		return true
-	end
-	if spAreTeamsAllied(unitTeam, spGetLocalTeamID()) then
-		return controlAllies == true
-	end
-	return controlEnemies == true
-end
-
-local function unitHasCommand(unitID, cmdID)
-	if not unitIsControllable(unitID) then
-		return false
-	end
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID == nil then
-		return false
-	end
-	local byDef = cachedUnitDefsHaveCommand[cmdID]
-	if byDef == nil then
-		byDef = {}
-		cachedUnitDefsHaveCommand[cmdID] = byDef
-	end
-	local hasCommand = byDef[unitDefID]
-	if hasCommand == nil then
-		hasCommand = spFindUnitCmdDesc(unitID, cmdID) ~= nil
-		byDef[unitDefID] = hasCommand
-	end
-	return hasCommand
-end
-
 local function resolveVirtualIndex(unitID)
-	local userFirestate = tonumber(CustomFirestateDefs.getUnitUserFirestate(unitID))
+	local userFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
 	if userFirestate == nil then
 		return nil
 	end
@@ -136,83 +81,43 @@ local function resolveVirtualIndex(unitID)
 	return virtualIndexByState[userFirestate]
 end
 
-local function pipBit(pipIndex)
-	return mathFloor(2 ^ (pipIndex - 1))
-end
-
-local function pipMaskFromVirtualIndex(virtualIndex)
+local function pipFill(virtualIndex)
 	if virtualIndex == 1 then
-		return pipBit(1)
+		return 1, 1
 	elseif virtualIndex == 2 then
-		return pipBit(2)
+		return 2, 2
 	elseif virtualIndex == 3 then
-		return pipBit(3)
+		return 3, 3
 	elseif virtualIndex == 4 then
-		return mathBitOr(pipBit(2), pipBit(3))
+		return 2, 3
+	elseif virtualIndex == 5 then
+		return 1, 3
 	end
-	return 0
+	return 1, 1
 end
 
-local function resolveSelection(unitIDs)
-	if not unitIDs then
-		return nil, 0, false
-	end
-	local sharedVirtualIndex
-	local isMixed = false
-	local pipMask = 0
-	for index = 1, #unitIDs do
-		local unitID = unitIDs[index]
-		if unitHasCommand(unitID, CMD_FIRE_STATE) then
-			local virtualIndex = resolveVirtualIndex(unitID)
-			if virtualIndex ~= nil then
-				if sharedVirtualIndex == nil then
-					sharedVirtualIndex = virtualIndex
-				elseif virtualIndex ~= sharedVirtualIndex then
-					isMixed = true
-				end
-				pipMask = mathBitOr(pipMask, pipMaskFromVirtualIndex(virtualIndex))
-			end
-		end
-	end
-	if sharedVirtualIndex == nil then
-		return nil, 0, false
-	end
-	if isMixed then
-		return nil, pipMask, true
-	end
-	return sharedVirtualIndex, pipMask, false
-end
-
-local function buildCmdDesc(command, virtualIndex, pipMask, isMixed)
+local function buildCmdDesc(command, virtualIndex)
 	local cmdDesc = table.copy(command)
 	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
 		or labelByVirtualIndexDisabled
 	cmdDesc.params = {
-		virtualIndex and (virtualIndex - 1) or -1,
+		virtualIndex - 1,
 		labels[1],
 		labels[2],
 		labels[3],
 	}
 	cmdDesc.virtualIndex = virtualIndex
-	cmdDesc.pipMask = pipMask or pipMaskFromVirtualIndex(virtualIndex)
-	cmdDesc.pipCount = PIP_COUNT
-	cmdDesc.isMixed = isMixed
+	cmdDesc.pipFillMin, cmdDesc.pipFillMax = pipFill(virtualIndex)
 	return cmdDesc
 end
 
-local function buildSelectionCmdDesc(command, unitIDs)
-	local virtualIndex, pipMask, isMixed = resolveSelection(unitIDs)
-	return buildCmdDesc(command, virtualIndex, pipMask, isMixed)
-end
-
 local function stateLabel(cmd)
-	local virtualIndex = cmd.virtualIndex
-	if cmd.isMixed or virtualIndex == nil or virtualIndex < 1 then
-		return nil
+	if cmd.virtualIndex then
+		local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
+			or labelByVirtualIndexDisabled
+		return labels[cmd.virtualIndex]
 	end
-	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled
-		or labelByVirtualIndexDisabled
-	return labels[cmd.virtualIndex]
+	return nil
 end
 
 local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
@@ -240,20 +145,19 @@ local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
 end
 
 local function nextCycledVirtualIndex(virtualIndex, reverse)
-	if virtualIndex and virtualIndex > CYCLE_COUNT then
+	if virtualIndex > CYCLE_COUNT then
 		return reverse and CYCLE_COUNT or 1
 	end
-	local currentPip = virtualIndex or 0
 	if reverse then
-		if currentPip <= 1 then
+		if virtualIndex <= 1 then
 			return CYCLE_COUNT
 		end
-		return currentPip - 1
+		return virtualIndex - 1
 	end
-	if currentPip >= CYCLE_COUNT then
+	if virtualIndex >= CYCLE_COUNT then
 		return 1
 	end
-	return currentPip + 1
+	return virtualIndex + 1
 end
 
 local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
@@ -267,8 +171,8 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if #selectedUnits == 0 then
 		return false
 	end
-	local virtualIndex, _, isMixed = resolveSelection(selectedUnits)
-	if not isMixed and virtualIndex == nil then
+	local virtualIndex = resolveVirtualIndex(selectedUnits[1])
+	if virtualIndex == nil then
 		return false
 	end
 	local param = optWords[1] and tonumber(optWords[1])
@@ -319,12 +223,16 @@ local function commandNotify(cmdID, cmdParams, cmdOptions)
 end
 
 return {
+	CYCLE_COUNT = CYCLE_COUNT,
+	PIP_COUNT = PIP_COUNT,
 	descrByState = descrByState,
 	init = function(opts)
 		onOrderGiven = opts.onOrderGiven
 	end,
-	buildSelectionCmdDesc = buildSelectionCmdDesc,
+	buildCmdDesc = buildCmdDesc,
 	stateLabel = stateLabel,
+	pipFill = pipFill,
+	resolveVirtualIndex = resolveVirtualIndex,
 	nextCycledVirtualIndex = nextCycledVirtualIndex,
 	giveVirtualIndex = giveVirtualIndex,
 	hotkeyHandler = hotkeyHandler,

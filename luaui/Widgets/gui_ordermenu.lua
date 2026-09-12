@@ -15,33 +15,49 @@ end
 -- Localized functions for performance
 local mathCeil = math.ceil
 local mathFloor = math.floor
-local mathBitOr = math.bit_or
-local mathBitAnd = math.bit_and
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitDefID = Spring.GetUnitDefID
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetUnitTeam = Spring.GetUnitTeam
-local spGetLocalTeamID = Spring.GetLocalTeamID
-local spIsGodModeEnabled = Spring.IsGodModeEnabled
-local spAreTeamsAllied = Spring.AreTeamsAllied
-local spGetUnitCommands = Spring.GetUnitCommands
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
 local CANCEL_TARGET_CMD_ID = 34924
-local WAIT_PIP_COUNT = 2
-local cachedUnitDefsHaveCommand = {}
 local currentLayout
+
+local function resolveHotkeyTargetVirtualIndex(optWords)
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 then
+		return nil
+	end
+	local param = optWords[1] and tonumber(optWords[1])
+	if param ~= nil then
+		return param + 1
+	end
+	local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(selectedUnits[1])
+	if virtualIndex == nil then
+		return nil
+	end
+	local _, _, shift = Spring.GetModKeyState()
+	return OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, shift)
+end
+
+local function installFirestateNotifyHooks()
+	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
+	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
+		if not release then
+			local targetIndex = resolveHotkeyTargetVirtualIndex(optWords)
+			if targetIndex then
+				OrderMenuFirestate.giveVirtualIndex(targetIndex, 0)
+				return false
+			end
+		end
+		return originalHotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
+	end
+end
 
 local cellZoom = 1
 local cellClickedZoom = 1.05
@@ -120,10 +136,8 @@ local cellMarginPx2 = 0
 ---@field params string[]
 ---@field cachedText string?
 ---@field virtualIndex integer?
----@field pipMask integer?
----@field pipCount integer?
----@field pipIndex integer?
----@field isMixed boolean?
+---@field pipFillMin integer?
+---@field pipFillMax integer?
 
 ---@type OrderMenuCommand[]
 local commands = {}
@@ -161,20 +175,6 @@ local function getCachedTranslation(key, params)
 	return translationCache[key]
 end
 
-local function getStateCommandLabelKey(cmd)
-	if cmd.isMixed and cmd.action then
-		local mixedKey = cmd.action .. "_mixed"
-		local mixedText = BAR.I18N("commands." .. mixedKey, { default = "" })
-		if mixedText ~= "" then
-			return mixedKey, mixedText
-		end
-	end
-	if cmd.id == CMD.FIRE_STATE then
-		return OrderMenuFirestate.stateLabel(cmd)
-	end
-	return CustomFirestateDefs.stateLabel(cmd)
-end
-
 -- Throttling for command refresh
 ---@type number
 local lastCommandRefreshTime = 0
@@ -191,8 +191,10 @@ local otherCommandsTemp = {}
 -- Persistent cache for command display text (survives across refreshCommands calls)
 local commandTextCache = {}
 
--- Cached selection (provided by SelectionChanged)
-local cachedSelectedUnits = {}
+-- Cached WAIT command state (computed once per refresh, not per drawCell call)
+local cachedWaitState = nil
+local hasWaitCommand = false
+local cachedFirstUnit = nil -- first selected unit, avoids spGetSelectedUnits() table alloc
 
 -- Cancel target button visibility tracking
 ---@type number
@@ -212,7 +214,7 @@ end
 local prevCmdCount = 0
 local prevCmdIDs = {}
 local prevCmdStates = {}
-local prevCmdPips = {}
+local prevCmdModes = {}
 local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
@@ -410,224 +412,28 @@ local function setupCellGrid(force)
 	tracy.ZoneEnd()
 end
 
-local function pipBit(pipIndex)
-	if not pipIndex or pipIndex < 1 then
-		return 0
+local function computeWaitState()
+	if not hasWaitCommand then
+		cachedWaitState = nil
+		return
 	end
-	return mathFloor(2 ^ (pipIndex - 1))
-end
-
-local function isPipFilled(pipMask, pipIndex)
-	local bit = pipBit(pipIndex)
-	if bit == 0 then
-		return false
-	end
-	return mathBitAnd(pipMask or 0, bit) ~= 0
-end
-
-local function nextPip(currentPip, pipCount, reverse)
-	if currentPip == nil then
-		currentPip = 0
-	end
-	if reverse then
-		if currentPip <= 1 then
-			return pipCount
+	-- Use cached first unit instead of calling spGetSelectedUnits() which allocates a large table
+	local ref = cachedFirstUnit
+	if ref and Spring.ValidUnitID(ref) and Spring.FindUnitCmdDesc(ref, CMD.WAIT) then
+		local commandQueue
+		if isFactory[Spring.GetUnitDefID(ref)] then
+			commandQueue = Spring.GetFactoryCommands(ref, 1)
+		else
+			commandQueue = Spring.GetUnitCommands(ref, 1)
 		end
-		return currentPip - 1
-	end
-	if currentPip >= pipCount then
-		return 1
-	end
-	return currentPip + 1
-end
-
-local function nextWaitPip(pipIndex, isMixed, reverseClick)
-	if isMixed or pipIndex == 0 then
-		if reverseClick then
-			return 1
+		if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+			cachedWaitState = 2
+		else
+			cachedWaitState = 1
 		end
-		return 2
-	end
-	return nextPip(pipIndex, WAIT_PIP_COUNT, reverseClick)
-end
-
-local function commandPipCount(command)
-	if not command or not command.params then
-		return 0
-	end
-	return #command.params - 1
-end
-
-local function unitIsControllable(unitID)
-	local unitTeam = spGetUnitTeam(unitID)
-	if unitTeam == nil then
-		return false
-	end
-	if unitTeam == spGetLocalTeamID() then
-		return true
-	end
-	if isSpectating then
-		return true
-	end
-	local godMode, controlAllies, controlEnemies = spIsGodModeEnabled()
-	if not godMode then
-		return false
-	end
-	if controlAllies == nil and controlEnemies == nil then
-		return true
-	end
-	if spAreTeamsAllied(unitTeam, spGetLocalTeamID()) then
-		return controlAllies == true
-	end
-	return controlEnemies == true
-end
-
-local function unitHasCommand(unitID, cmdID)
-	if not unitIsControllable(unitID) then
-		return false
-	end
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID == nil then
-		return false
-	end
-	local byDef = cachedUnitDefsHaveCommand[cmdID]
-	if byDef == nil then
-		byDef = {}
-		cachedUnitDefsHaveCommand[cmdID] = byDef
-	end
-	local hasCommand = byDef[unitDefID]
-	if hasCommand == nil then
-		hasCommand = spFindUnitCmdDesc(unitID, cmdID) ~= nil
-		byDef[unitDefID] = hasCommand
-	end
-	return hasCommand
-end
-
-local function unitHasWaitCommand(unitID)
-	local unitTeam = spGetUnitTeam(unitID)
-	local localTeamID = spGetLocalTeamID()
-	if unitTeam == nil or localTeamID == nil then
-		return false
-	end
-	if unitTeam ~= localTeamID and not spAreTeamsAllied(unitTeam, localTeamID) then
-		return false
-	end
-	return unitHasCommand(unitID, CMD.WAIT)
-end
-
-local function resolveSelectionPipMask(unitIDs, pipCount, getUnitPipMask)
-	if not unitIDs or not getUnitPipMask or not pipCount or pipCount < 1 then
-		return 0, false
-	end
-	local pipMask = 0
-	local sharedMask
-	local isMixed = false
-	for index = 1, #unitIDs do
-		local unitMask = getUnitPipMask(unitIDs[index])
-		if unitMask ~= nil then
-			pipMask = mathBitOr(pipMask, unitMask)
-			if sharedMask == nil then
-				sharedMask = unitMask
-			elseif unitMask ~= sharedMask then
-				isMixed = true
-			end
-		end
-	end
-	return pipMask, isMixed
-end
-
-local function getUnitIconModePipMask(unitID, cmdID)
-	if not unitHasCommand(unitID, cmdID) then
-		return nil
-	end
-	local cmdIndex = spFindUnitCmdDesc(unitID, cmdID)
-	if cmdIndex == nil then
-		return nil
-	end
-	local cmdDescs = spGetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
-	local params = cmdDescs and cmdDescs[1] and cmdDescs[1].params
-	local stateIndex = params and tonumber(params[1])
-	if stateIndex == nil or stateIndex < 0 then
-		return nil
-	end
-	return pipBit(stateIndex + 1)
-end
-
-local function applyCommandPipMask(command, unitIDs)
-	local pipCount = commandPipCount(command)
-	if pipCount < 2 then
-		return command
-	end
-	local pipMask, isMixed = resolveSelectionPipMask(unitIDs, pipCount, function(unitID)
-		return getUnitIconModePipMask(unitID, command.id)
-	end)
-	command.pipMask = pipMask
-	command.isMixed = isMixed
-	command.pipCount = pipCount
-	return command
-end
-
-local function getUnitWaitPip(unitID, isFactoryByDef)
-	if not unitHasWaitCommand(unitID) then
-		return nil
-	end
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID == nil then
-		return nil
-	end
-	local commandQueue
-	if isFactoryByDef and isFactoryByDef[unitDefID] then
-		commandQueue = spGetFactoryCommands(unitID, 1)
 	else
-		commandQueue = spGetUnitCommands(unitID, 1)
+		cachedWaitState = nil
 	end
-	if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
-		return 2
-	end
-	return 1
-end
-
-local function applyWaitPipMask(command, unitIDs, isFactoryByDef)
-	local pipMask = 0
-	local sharedPip
-	local isMixed = false
-	if unitIDs then
-		for index = 1, #unitIDs do
-			local unitPip = getUnitWaitPip(unitIDs[index], isFactoryByDef)
-			if unitPip then
-				pipMask = mathBitOr(pipMask, pipBit(unitPip))
-				if sharedPip == nil then
-					sharedPip = unitPip
-				elseif unitPip ~= sharedPip then
-					isMixed = true
-				end
-			end
-		end
-	end
-	command.pipMask = pipMask
-	command.isMixed = isMixed
-	command.pipCount = WAIT_PIP_COUNT
-	command.pipIndex = isMixed and 0 or (sharedPip or 0)
-	return command
-end
-
-local function giveWaitPip(targetPip, unitIDs, isFactoryByDef)
-	if (targetPip ~= 1 and targetPip ~= 2) or not unitIDs then
-		return false
-	end
-	local unitArray = {}
-	for index = 1, #unitIDs do
-		local unitID = unitIDs[index]
-		local unitPip = getUnitWaitPip(unitID, isFactoryByDef)
-		if unitPip and unitPip ~= targetPip then
-			unitArray[#unitArray + 1] = unitID
-		end
-	end
-	if #unitArray == 0 then
-		return false
-	end
-	spGiveOrderToUnitArray(unitArray, CMD.WAIT, {}, 0)
-	return true
 end
 
 local function refreshCommands()
@@ -669,16 +475,17 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
-					if command.id == CMD.FIRE_STATE then
-						stateCommandsTemp[stateCommandsCount] =
-							OrderMenuFirestate.buildSelectionCmdDesc(command, cachedSelectedUnits)
+					if command.id == CMD.FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
+						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(cachedFirstUnit)
+						stateCommandsTemp[stateCommandsCount] = virtualIndex
+								and OrderMenuFirestate.buildCmdDesc(command, virtualIndex)
+							or command
 					else
-						stateCommandsTemp[stateCommandsCount] =
-							applyCommandPipMask(command, cachedSelectedUnits)
+						stateCommandsTemp[stateCommandsCount] = command
 					end
 				elseif command.id == CMD.WAIT then
 					waitCommandCount = 1
-					waitCommand = applyWaitPipMask(command, cachedSelectedUnits, isFactory)
+					waitCommand = command
 				else
 					otherCommandsCount = otherCommandsCount + 1
 					otherCommandsTemp[otherCommandsCount] = command
@@ -709,10 +516,9 @@ local function refreshCommands()
 	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
 		if isStateCommand[cmd.id] then
-			local commandState, mixedText = getStateCommandLabelKey(cmd)
-			if mixedText then
-				cmd.cachedText = mixedText
-			elseif commandState then
+			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd)
+				or CustomFirestateDefs.stateLabel(cmd)
+			if commandState then
 				if not commandTextCache[commandState] then
 					commandTextCache[commandState] = getCachedTranslation("commands." .. commandState)
 				end
@@ -735,6 +541,10 @@ local function refreshCommands()
 	end
 	tracy.ZoneEnd()
 
+	hasWaitCommand = (waitCommand ~= nil)
+
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:WaitState")
+	computeWaitState()
 	tracy.ZoneEnd()
 
 	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
@@ -750,12 +560,14 @@ local function refreshCommands()
 				break
 			end
 			if isStateCommand[cmd.id] then
-				if cmd.cachedText ~= prevCmdStates[i] or (cmd.pipMask or 0) ~= (prevCmdPips[i] or 0) then
+				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1)
+					or ((tonumber(cmd.params[1]) or 0) + 1)
+				if cmd.cachedText ~= prevCmdStates[i] or mode ~= prevCmdModes[i] then
 					commandsVisuallyChanged = true
 					break
 				end
 			elseif cmd.id == CMD.WAIT then
-				if (cmd.pipMask or 0) ~= (prevCmdPips[i] or 0) then
+				if cachedWaitState ~= prevCmdStates[i] then
 					commandsVisuallyChanged = true
 					break
 				end
@@ -772,23 +584,24 @@ local function refreshCommands()
 			prevCmdIDs[i] = cmd.id
 			if isStateCommand[cmd.id] then
 				prevCmdStates[i] = cmd.cachedText
-				prevCmdPips[i] = cmd.pipMask or 0
+				prevCmdModes[i] = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1)
+					or ((tonumber(cmd.params[1]) or 0) + 1)
 			elseif cmd.id == CMD.WAIT then
-				prevCmdStates[i] = nil
-				prevCmdPips[i] = cmd.pipMask or 0
+				prevCmdStates[i] = cachedWaitState
+				prevCmdModes[i] = nil
 			elseif cmd.action == "stockpile" then
 				prevCmdStates[i] = cmd.cachedText
-				prevCmdPips[i] = nil
+				prevCmdModes[i] = nil
 			else
 				prevCmdStates[i] = nil
-				prevCmdPips[i] = nil
+				prevCmdModes[i] = nil
 			end
 		end
 		-- Clear excess fingerprint entries
 		for i = cmdCount + 1, #prevCmdIDs do
 			prevCmdIDs[i] = nil
 			prevCmdStates[i] = nil
-			prevCmdPips[i] = nil
+			prevCmdModes[i] = nil
 		end
 		-- Invalidate print text cache since display changed
 		for k in pairs(printTextCache) do
@@ -904,6 +717,7 @@ function widget:Initialize()
 			doUpdate = true
 		end,
 	})
+	installFirestateNotifyHooks()
 	reloadBindings()
 	activeCommand = select(4, spGetActiveCommand())
 	widget:ViewResize()
@@ -1193,12 +1007,10 @@ local function drawStateLights(
 	cellInnerWidth,
 	cellInnerHeight,
 	statecount,
-	desiredState,
-	pipMask
+	fillMin,
+	fillMax,
+	desiredState
 )
-	if not statecount or statecount < 1 then
-		return
-	end
 	local padding2 = padding
 	local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
 	local stateHeight = math_floor(cellInnerHeight * 0.14)
@@ -1207,7 +1019,7 @@ local function drawStateLights(
 	---@type number, number, number, number
 	local r, g, b, a = 0, 0, 0, 0
 	for i = 1, statecount do
-		if isPipFilled(pipMask, i) or i == desiredState then
+		if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
 			if i == 1 then
 				r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
 			elseif i == 2 then
@@ -1256,7 +1068,7 @@ local function drawStateLights(
 		else
 			glRect(x1, y1, x2, y2)
 		end
-		if rows < 6 and isPipFilled(pipMask, i) then
+		if rows < 6 and fillMin and fillMax and i >= fillMin and i <= fillMax then
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			glColor(r, g, b, 0.09)
 			glTexture(barGlowCenterTexture)
@@ -1484,68 +1296,74 @@ local function drawCell(cell, zoom)
 		if isStateCommand[cmd.id] or cmd.id == CMD.WAIT then
 			tracy.ZoneBeginN("W:OrderMenu:DrawCell:StateLights")
 			local statecount, curstate
-			local pipMask = cmd.pipMask
+			local fillMin, fillMax
 			if cmd.id == CMD.FIRE_STATE then
-				statecount = cmd.pipCount or commandPipCount(cmd)
-				curstate = cmd.virtualIndex
+				statecount = OrderMenuFirestate.PIP_COUNT
+				curstate = cmd.virtualIndex or 1
+				fillMin, fillMax = OrderMenuFirestate.pipFill(curstate)
 			elseif isStateCommand[cmd.id] then
-				statecount = cmd.pipCount or commandPipCount(cmd)
+				statecount = #cmd.params - 1
 				curstate = (tonumber(cmd.params[1]) or 0) + 1
+				fillMin = cmd.pipFillMin or curstate
+				fillMax = cmd.pipFillMax or curstate
 			else
-				statecount = cmd.pipCount or WAIT_PIP_COUNT
-				curstate = cmd.pipIndex
+				statecount = 2
+				curstate = cachedWaitState
+				fillMin = curstate
+				fillMax = curstate
 			end
-			if statecount and statecount >= 1 then
-				local desiredState = nil
-				if clickedCellDesiredState and cell == clickedCell then
-					if cmd.id == CMD.FIRE_STATE or cmd.id == CMD.WAIT then
-						desiredState = clickedCellDesiredState
-					else
-						desiredState = clickedCellDesiredState + 1
-					end
+			local desiredState = nil
+			if clickedCellDesiredState and cell == clickedCell then
+				if cmd.id == CMD.FIRE_STATE then
+					desiredState = clickedCellDesiredState
+				else
+					desiredState = clickedCellDesiredState + 1
 				end
-				if cmd.id == CMD.FIRE_STATE or cmd.id == CMD.WAIT then
-					if curstate == desiredState then
-						clickedCellDesiredState = nil
-						desiredState = nil
-					end
-				elseif curstate ~= nil and curstate == desiredState then
+			end
+			if cmd.id == CMD.FIRE_STATE then
+				if curstate == desiredState then
 					clickedCellDesiredState = nil
 					desiredState = nil
 				end
-				local cache = stateLightDisplayLists[cell]
-				if
-					cache
-					and cache.statecount == statecount
-					and cache.pipMask == pipMask
-					and cache.desiredState == desiredState
-				then
-					glCallList(cache.list)
+			elseif curstate == desiredState then
+				clickedCellDesiredState = nil
+				desiredState = nil
+			end
+			local cache = stateLightDisplayLists[cell]
+			if
+				cache
+				and cache.statecount == statecount
+				and cache.fillMin == fillMin
+				and cache.fillMax == fillMax
+				and cache.desiredState == desiredState
+			then
+				glCallList(cache.list)
+			else
+				if cache then
+					glDeleteList(cache.list)
 				else
-					if cache then
-						glDeleteList(cache.list)
-					else
-						cache = {}
-						stateLightDisplayLists[cell] = cache
-					end
-					cache.statecount = statecount
-					cache.pipMask = pipMask
-					cache.desiredState = desiredState
-					cache.list = glCreateList(
-						drawStateLights,
-						cell,
-						leftMargin,
-						rightMargin,
-						bottomMargin,
-						padding,
-						cellInnerWidth,
-						cellInnerHeight,
-						statecount,
-						desiredState,
-						pipMask
-					)
-					glCallList(cache.list)
+					cache = {}
+					stateLightDisplayLists[cell] = cache
 				end
+				cache.statecount = statecount
+				cache.fillMin = fillMin
+				cache.fillMax = fillMax
+				cache.desiredState = desiredState
+				cache.list = glCreateList(
+					drawStateLights,
+					cell,
+					leftMargin,
+					rightMargin,
+					bottomMargin,
+					padding,
+					cellInnerWidth,
+					cellInnerHeight,
+					statecount,
+					fillMin,
+					fillMax,
+					desiredState
+				)
+				glCallList(cache.list)
 			end
 			tracy.ZoneEnd()
 		end
@@ -1656,7 +1474,12 @@ function widget:DrawScreen()
 							if tooltip ~= "" then
 								local title
 								if isStateCommand[cmd.id] then
-									title = cmd.cachedText
+									local commandState = (cmd.id == CMD.FIRE_STATE)
+											and OrderMenuFirestate.stateLabel(cmd)
+										or CustomFirestateDefs.stateLabel(cmd)
+									if commandState then
+										title = getCachedTranslation("commands." .. commandState)
+									end
 								else
 									title = getCachedTranslation("commands." .. cmd.action)
 								end
@@ -1958,12 +1781,9 @@ function widget:MousePress(x, y, button)
 							clickedCellTime = os_clock()
 
 							if cmd.id == CMD.FIRE_STATE then
+								local virtualIndex = cmd.virtualIndex or 1
 								clickedCellDesiredState =
-									OrderMenuFirestate.nextCycledVirtualIndex(cmd.virtualIndex, button ~= 1)
-								doUpdate = true
-							elseif cmd.id == CMD.WAIT then
-								local reverseClick = button ~= 1
-								clickedCellDesiredState = nextWaitPip(cmd.pipIndex, cmd.isMixed, reverseClick)
+									OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, button ~= 1)
 								doUpdate = true
 							elseif isStateCommand[cmd.id] then
 								local currentStateIndex = tonumber(cmd.params[1]) or 0
@@ -1986,12 +1806,6 @@ function widget:MousePress(x, y, button)
 							end
 							if cmd.id == CMD.FIRE_STATE and clickedCellDesiredState ~= nil then
 								OrderMenuFirestate.giveVirtualIndex(clickedCellDesiredState, 0)
-							elseif cmd.id == CMD.WAIT and clickedCellDesiredState ~= nil then
-								giveWaitPip(
-									clickedCellDesiredState,
-									cachedSelectedUnits,
-									isFactory
-								)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(
 									Spring.GetCmdDescIndex(cmd.id),
@@ -2039,7 +1853,8 @@ function widget:SelectionChanged(sel)
 	clickCountDown = 2
 	clickedCellDesiredState = nil
 
-	cachedSelectedUnits = sel
+	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
+	cachedFirstUnit = sel[1] or nil
 
 	-- Update cancel target state using the selection already provided here
 	cancelTargetLastState = selectionHasPriorityTarget(sel)
