@@ -19770,7 +19770,7 @@ function widget:DrawScreen()
 	end
 
 	-- Cache unit selection once per frame: The draw path below reads it several times.
-	frameSelCount = getSelectedUnitsCount()
+	frameSelCount = Spring.GetSelectedUnitsCount()
 	frameSel = nil -- Lazy: full array fetched only when needed
 
 	HandleHoverAndCursor(mx, my)
@@ -21289,7 +21289,10 @@ function widget:Update(dt)
 			end
 		-- No active command - check if we should highlight for transport loading or attack
 		elseif unitID then
-			local selectedUnits = FrameSelectedUnits()
+			if not frameSel then
+				frameSel = getSelectedUnits
+			end
+			local selectedUnits = frameSel
 			local shouldHighlight = false
 			local isAlly = Spring.IsUnitAllied(unitID)
 
