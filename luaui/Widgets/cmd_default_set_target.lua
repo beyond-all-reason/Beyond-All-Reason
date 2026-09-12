@@ -20,9 +20,9 @@ local rebindKeys = false
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 
 local IsUnitAllied = Spring.IsUnitAllied
-local GetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local GetActionHotKeys = Spring.GetActionHotKeys
 local SendCommmands = Spring.SendCommands
+local getCapableUnits
 
 local hotKeys = {}
 local gameStarted
@@ -35,6 +35,16 @@ for udid, ud in pairs(UnitDefs) do
 	then
 		hasSetTarget[udid] = true
 	end
+end
+
+local function selectionCanSetTarget()
+	-- Fallback for no selection api:
+	for unitDefID in pairs(Spring.GetSelectedUnitsSorted()) do
+		if hasSetTarget[unitDefID] then
+			return true
+		end
+	end
+	return false
 end
 
 local function maybeRemoveSelf()
@@ -54,6 +64,14 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	if WG.UnitSelection then
+		WG.UnitSelection.RegisterCapability("settarget", hasSetTarget)
+		getCapableUnits = WG.UnitSelection.GetCapableUnits
+		selectionCanSetTarget = function()
+			return getCapableUnits("settarget") ~= nil
+		end
+	end
+
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		if maybeRemoveSelf() then
 			return
@@ -78,9 +96,7 @@ function widget:DefaultCommand(type, id, cmd)
 	if type ~= "unit" or IsUnitAllied(id) then
 		return
 	end
-	for unitDefID in pairs(GetSelectedUnitsCounts()) do
-		if hasSetTarget[unitDefID] then
-			return CMD_UNIT_SET_TARGET
-		end
+	if selectionCanSetTarget() then
+		return CMD_UNIT_SET_TARGET
 	end
 end
