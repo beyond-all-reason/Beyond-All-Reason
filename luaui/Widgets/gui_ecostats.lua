@@ -365,12 +365,21 @@ local function updateButtons()
 	end
 
 	if cfgSticktotopbar and WG.topbar ~= nil then
-		local topbarArea = WG.topbar.GetPosition()
-		if not topbarShowButtons then
-			topbarArea[2] = topbarArea[4]
+		-- Hang under the menu button strip, right-aligned with it. Its widget owns that
+		-- rect; without it fall back to the top bar, and to the screen top without that.
+		local buttonsArea = WG.topbar.GetButtonsPosition and WG.topbar.GetButtonsPosition()
+		local topbarArea = WG.topbar.GetPosition and WG.topbar.GetPosition()
+		if buttonsArea and topbarShowButtons then
+			widgetPosX = buttonsArea[3] - widgetWidth
+			widgetPosY = buttonsArea[2] - widgetHeight
+		elseif topbarArea then
+			-- no buttons in the way, so sit right under the bar itself
+			widgetPosX = topbarArea[3] - widgetWidth
+			widgetPosY = topbarArea[2] - widgetHeight
+		elseif buttonsArea then
+			widgetPosX = buttonsArea[3] - widgetWidth
+			widgetPosY = buttonsArea[2] - widgetHeight
 		end
-		widgetPosX = topbarArea[3] - widgetWidth
-		widgetPosY = (topbarArea[6] or topbarArea[2]) - widgetHeight
 	end
 
 	if widgetPosX + widgetWidth / 2 > vsx / 2 then

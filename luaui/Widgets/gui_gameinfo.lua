@@ -1931,7 +1931,7 @@ function widget:DrawScreen()
 		backgroundGuishader = glCreateList(function()
 			RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 1, 1, 1, 1)
 		end)
-		WG.guishader.InsertDlist(backgroundGuishader, "gameinfo")
+		WG.guishader.InsertDlist(backgroundGuishader, "gameinfo", nil, widget)
 	end
 	showOnceMore = false
 
@@ -2238,6 +2238,11 @@ function widget:Initialize()
 			return true
 		end
 	end, nil, "p")
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
+	end)
 
 	WG.gameinfo = {}
 	WG.gameinfo.toggle = function(state)
