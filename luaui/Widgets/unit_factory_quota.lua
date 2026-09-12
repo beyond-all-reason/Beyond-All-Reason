@@ -15,8 +15,8 @@ end
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetLocalTeamID
 
-local maxBuildProg = 0.075 -- maximum build progress that gets replaced in a repeat queue
-local maxMetal = 500 -- maximum metal cost that gets replaced in a repeat queue(7.5% of a juggernaut is still over 2k metal)
+local maxBuildProg = 0.075 -- maximum build progress that gets replaced
+local maxMetal = 500 -- maximum metal cost that gets replaced (7.5% of a juggernaut is still over 2k metal)
 
 -- factoryID is unitID of the factory
 local quotas = {} -- {[factoryID] = {[unitDefID] = amount, ...}, ...}
