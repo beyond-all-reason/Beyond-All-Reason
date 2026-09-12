@@ -130,7 +130,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 720,
 				customparams = {
-					overrange_distance = 1200,
+					overrange_distance = 1020,
 					projectile_destruction_method = "descend",
 				},
 				damage = {
