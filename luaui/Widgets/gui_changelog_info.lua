@@ -66,6 +66,8 @@ local UiElement
 ---@type function
 local UiScroller
 ---@type function
+local UiScrollerAt
+---@type function
 local Highlight
 local elementCorner
 local font, fontBold, fontMono
@@ -137,6 +139,11 @@ local startRow = 1
 -- The highest startRow that still fills the band.
 local maxStart = 1
 local dragging = false
+-- Where the thumb was taken hold of, as the distance from the cursor to its top edge, so
+-- the thumb follows the cursor instead of jumping its middle to wherever the press landed.
+local dragGrab = 0
+-- Lit while the cursor is on the thumb, and lit further while it is held.
+local barHover = false
 -- Month column state: the entry under the cursor and the one lit as current. The
 -- sidebar list is rebuilt whenever either changes.
 local hoverIdx, selectedIdx
@@ -195,16 +202,50 @@ local function setStartRow(n, chosen)
 	selectedIdx = chosen or versionAt(startRow)
 end
 
--- Cursor height in the band mapped straight onto the scroll range, as the keybind
--- editor's bar does: the top of the bar is the start, the bottom the end.
+-- Where the text currently sits, in the pixels the scrollbar is drawn against.
+local function scrollPos()
+	return rows[startRow] and (rowTop[startRow] + rows[startRow].pad) or 0
+end
+
+-- The thumb, where it is now. Nil when the whole text fits and no bar is drawn.
+local function scrollerThumb()
+	return UiScrollerAt(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, scrollPos())
+end
+
+-- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at the
+-- grab is what keeps this relative: the thumb moves with the cursor rather than centring
+-- itself on it, so taking hold of it does not shift the text before the drag begins.
 local function scrollFromY(y)
-	local f = (listTop - y) / mathMax(1, listTop - listBottom)
+	local _, _, trackTop, travel = scrollerThumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - dragGrab)) / travel
 	if f < 0 then
 		f = 0
 	elseif f > 1 then
 		f = 1
 	end
 	setStartRow(1 + mathFloor(f * (maxStart - 1) + 0.5))
+end
+
+-- Takes hold of the bar. On the thumb that is a grab and the text stays put; on the track
+-- either side the thumb jumps to the cursor first and is then dragged from its middle,
+-- which is what a press on bare track is asking for.
+local function grabScroller(y)
+	local top, height = scrollerThumb()
+	if not top then
+		return
+	end
+
+	dragging = true
+	if y <= top and y >= top - height then
+		dragGrab = y - top
+	else
+		dragGrab = -mathFloor(height * 0.5)
+		scrollFromY(y)
+	end
 end
 
 -- The space a row takes below its text box: the gap to the next block. The last row
@@ -446,8 +487,7 @@ local function drawPanel()
 		Markdown.draw(rows, startRow, lastRowFrom(startRow), listX1, listTop, ctx)
 	end
 
-	local pos = rows[startRow] and (rowTop[startRow] + rows[startRow].pad) or 0
-	UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, pos)
+	UiScroller(barX1, listBottom, area.x2 - metrics.edgeInset, listTop, totalH, scrollPos(), barHover, dragging)
 end
 
 function widget:ViewResize()
@@ -468,6 +508,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
+	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 
 	titleText = colorText .. BAR.I18N("ui.changelog.title")
@@ -496,6 +537,21 @@ function widget:DrawScreen()
 	end
 
 	hoverIdx = show and sidebarIndexAt(mx, my) or nil
+
+	-- Only the thumb, not the track: it is the part that can be taken hold of, so it is the
+	-- part that lights up.
+	local wasHovered, wasDragging = barHover, dragging
+	barHover = false
+	if show and mx >= barX1 and mx <= area.x2 then
+		local top, height = scrollerThumb()
+		barHover = top ~= nil and my <= top and my >= top - height
+	end
+
+	-- The bar is painted into the panel list, so a change in how it is lit is a change to
+	-- what that list holds.
+	if panelList and (barHover ~= wasHovered or dragging ~= wasDragging) then
+		panelList = glDeleteList(panelList)
+	end
 
 	if not panelList then
 		panelList = glCreateList(drawPanel)
@@ -574,8 +630,7 @@ local function mouseEvent(x, y, button, release)
 				end
 			elseif math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
 				-- The strip between the bar and the panel edge stays grabbable too.
-				dragging = true
-				scrollFromY(y)
+				grabScroller(y)
 			end
 		end
 
