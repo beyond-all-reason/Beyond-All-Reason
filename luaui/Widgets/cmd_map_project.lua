@@ -82,6 +82,12 @@ local lastSaveInfo = nil
 -- the engine's own heightmap updates are still trickling in.
 local dirtyCount = 0
 local dirtyGraceUntil = 0.0
+-- The project whose diffuse/ squares the painter is known to hold: set when a
+-- load's diffuse phase delivered them (or the project had none) and when a
+-- save's capture left the folder exact. A save over a project whose squares
+-- this session never loaded (the phase skipped, failed or timed out) must not
+-- treat the painter's empty state as "no paint" and delete them.
+local diffuseLoadedSlug = nil
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -709,13 +715,17 @@ end
 -- delete the diffuse dir or drop the section — hours of paint could live
 -- there. Carry the previous manifest section forward so the loader still sees
 -- the old files; only a genuine "no paint state" marks the dir as deletable.
-local function diffuseFailSkip(reason)
+local function diffuseFailSkip(reason, notLoaded)
 	local prev = job.prev and job.prev.sections and job.prev.sections.diffuse
 	if prev or reason ~= "diffuse painter widget not loaded" then
 		job.uploadBlocked = true
 	end
 	if prev and prev.dir then
-		warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
+		if notLoaded then
+			warn(reason .. "; keeping the previous save's diffuse files")
+		else
+			warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
+		end
 		job.diffuse = {
 			full = prev.full or false,
 			channels = prev.channels or {},
@@ -736,11 +746,30 @@ local function stepDiffuse()
 		if not (dp and dp.saveProject) then
 			return diffuseFailSkip("diffuse painter widget not loaded")
 		end
+		-- Saving over the open project while its diffuse squares on disk were
+		-- never loaded this session (the load phase skipped, failed or timed
+		-- out). A Save As over some other project is that project being
+		-- replaced on purpose, so only the session's own project is guarded.
+		local prevDiffuse = job.prev and job.prev.sections and job.prev.sections.diffuse
+		local guarded = prevDiffuse and prevDiffuse.dir and job.slug == currentSlug
+		job.diffuseOnDiskUnloaded = (guarded and diffuseLoadedSlug ~= job.slug) and true or false
 		local mo = job.mapOptions
 		local isBlank = (mo.blank_map_x or mo.blank_map_y) and true or false
 		if isBlank and not (dp.hasProjectState and dp.hasProjectState()) then
+			if job.diffuseOnDiskUnloaded then
+				-- The project on disk has squares this session never loaded;
+				-- the painter's empty state says nothing about them, and the
+				-- cleanup step would delete them. Carry the section forward.
+				return diffuseFailSkip(
+					"diffuse/ holds "
+						.. (tonumber(job.prev.sections.diffuse.squares) or 0)
+						.. " square(s) this session never loaded",
+					true
+				)
+			end
 			sectionSkip("diffuse", "no diffuse paint state")
 			job.diffuseStateEmpty = true -- the ONE case where cleanup may wipe diffuse/
+			diffuseLoadedSlug = job.slug -- an empty painter now matches an empty folder
 			return true
 		end
 		Spring.CreateDir(job.dir .. "diffuse")
@@ -775,12 +804,24 @@ local function stepDiffuse()
 		writtenSet["channel_" .. key .. ".png"] = true
 	end
 	local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
+	local kept = 0
 	for _, p in ipairs(existing) do
 		local name = basename(p)
 		if not writtenSet[name] then
-			os.remove(job.dir .. "diffuse/" .. name)
-			echoP("removed stale diffuse/" .. name)
+			if job.diffuseOnDiskUnloaded then
+				-- Squares this session never loaded are not stale, they are
+				-- unseen: leave them for the next load's glob to pick up.
+				kept = kept + 1
+			else
+				os.remove(job.dir .. "diffuse/" .. name)
+				echoP("removed stale diffuse/" .. name)
+			end
 		end
+	end
+	if kept > 0 then
+		warn(string.format("kept %d unloaded diffuse square(s) beside the %d captured", kept, #res.squares))
+	else
+		diffuseLoadedSlug = job.slug -- the folder is exactly what the painter holds
 	end
 	local bytes = 0
 	for name in pairs(writtenSet) do
@@ -2895,6 +2936,7 @@ end
 local function phaseDiffuse(c)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections.diffuse
 	if not (sec and sec.dir) then
+		diffuseLoadedSlug = loadJob.slug -- nothing on disk for the painter to be missing
 		return true
 	end
 	local dp = WG.DiffusePainter
@@ -2961,6 +3003,7 @@ local function phaseDiffuse(c)
 	if not res or res.error or ((res.loaded or 0) == 0 and (res.channels or 0) == 0) then
 		loadSkip("diffuse", (res and (res.error or ((res.failed or 0) .. " square(s) failed"))) or "no result reported")
 	else
+		diffuseLoadedSlug = loadJob.slug
 		loadOk(
 			"diffuse",
 			(res.loaded or 0)
