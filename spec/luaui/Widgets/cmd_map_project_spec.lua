@@ -202,7 +202,19 @@ describe("map project completion receipts", function()
 		for _, failure in ipairs({ false, "close" }) do
 			local f = fixture()
 			local model = { projectSaveOpen = true, libraryStage = "Design" }
-			local state = { dmHandle = model }
+			-- The widget's seams the controller reads: the team's folders, the
+			-- team catalogue (empty, so no confirmation stands in the way), and
+			-- the switch the widget would have offered for "Design/".
+			local state = {
+				dmHandle = model,
+				projectTeamDestinations = function()
+					return { Design = true }
+				end,
+				projectTeamBySlug = function()
+					return {}
+				end,
+				projectSyncTarget = function() end,
+			}
 			local ui = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua").newSave(state, model, {
 				getMapProject = function()
 					return f.project
@@ -211,11 +223,11 @@ describe("map project completion receipts", function()
 					return key
 				end,
 			})
+			model.projectSaveUploadAllowed = true
 			model.projectSaveSetUpload(nil, true)
-			assert(not ui.save("arena"))
-			assert(ui.save("arena"))
+			assert(ui.save("Design/arena"))
 			if failure then
-				f.failPath, f.failMode = "MapProjects/arena/project.lua", failure
+				f.failPath, f.failMode = "MapProjects/Design/arena/project.lua", failure
 			end
 			for _ = 1, 100 do
 				if not f.project.saveProgress() then

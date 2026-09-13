@@ -105,6 +105,11 @@ describe("map library queue", function()
 		local environment = setmetatable({
 			math = setmetatable({
 				random = function(lower, upper)
+					if lower == nil then
+						-- The module warms the generator with argument-less draws
+						-- at load; those are floats and never become an id.
+						return 0.5
+					end
 					lower, upper = engineInteger(lower), engineInteger(upper)
 					assert(lower <= upper, "[spring_lua_unsynced_rand(lower, upper)] empty interval")
 					draws = draws + 1
