@@ -1,8 +1,3 @@
---- One instance per Lua state. VFS.Include is uncached, so without this every
---- gadget and widget that includes the handler would get its own copy and its
---- own caches, and the manifests would be read once per includer instead of
---- once per state. Anchored in the state's root the way State() anchors a
---- module's state; the spec harness resets that root between files.
 local root = GG or WG or _G
 if root.__moduleHandler then
 	return root.__moduleHandler
@@ -12,7 +7,6 @@ local LOG_TAG = "module_handler.lua"
 
 local MODULES_DIR = "modules/"
 
----What a module directory may contain; the loader knows nothing else.
 local LAYOUT = {
 	manifest = "manifest.lua",
 	widgets = "widgets/",
@@ -26,7 +20,6 @@ local LAYOUT = {
 --- @class ModuleHandler
 local ModuleHandler = {}
 
----modoptions.lua pulls this file into lobby/unitsync contexts where the Spring global does not exist.
 ---@param message string
 local function logError(message)
 	---@diagnostic disable-next-line: unnecessary-if -- Spring IS nil in lobby LuaParser; the analyzer can't know
@@ -43,7 +36,6 @@ local function dirBasename(dir)
 	return dir:gsub("/+$", ""):match("([^/]+)$") --[[@as string]]
 end
 
----Native VFS.SubDirs returns entries with a trailing slash; keep any source normalized.
 ---@param dir string
 ---@return string
 local function ensureSlash(dir)
@@ -76,8 +68,6 @@ local function reduce(list, step, acc)
 	return acc
 end
 
----A directory under modules/ is a module only if it ships a manifest.lua that
----names itself; anything else there is ignored.
 ---@param moduleDir string
 ---@param vfsMode string?
 ---@return ModuleManifest|nil
@@ -187,8 +177,6 @@ function ModuleHandler.RmlWidgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.rmlWidgets, vfsMode)
 end
 
----Lua unit scripts a module ships; the unit script loader lists these next
----to scripts/, and a def names one by its full modules/ path.
 ---@param vfsMode string?
 ---@return string[]
 function ModuleHandler.ScriptDirs(vfsMode)
@@ -201,8 +189,6 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.gadgets, vfsMode)
 end
 
----A module's in-memory state: one table per module that every include
----instance in this Lua environment sees alike.
 ---@param name string a Modules entry (modules/enums.lua)
 ---@return table
 function ModuleHandler.State(name)

@@ -516,13 +516,6 @@ Format: {
 --]]
 local scripts = {}
 
---[[
-Every script file the loader may hand out, by every name it may be asked for:
-its path, its basename, and for a module's file the scripts/-prefixed name the
-engine reports. Built once in Initialize from UNITSCRIPT_DIR and each module's
-scripts/; the resolver and include() both look here, nothing sniffs a path.
-Format: { [lowercased name] = filename }
---]]
 local scriptFiles = {}
 
 -- Creates a new prototype environment for a unit script.
@@ -574,18 +567,16 @@ function gadget:Initialize()
 	--  * exact path can be specified to resolve ambiguous basenames
 	--  * engine default scriptName (with .cob extension) works
 
-	-- Recursively collect files below UNITSCRIPT_DIR and each module's scripts/.
 	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
 	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
-		scriptFiles[filename:lower()] = filename -- for exact match
-		scriptFiles[Basename(filename):lower()] = filename -- for basename match
+		scriptFiles[filename:lower()] = filename
+		scriptFiles[Basename(filename):lower()] = filename
 	end
 	for _, dir in ipairs(ModuleHandler.ScriptDirs(VFSMODE)) do
 		for _, filename in ipairs(VFS.DirList(dir, "*.lua", VFSMODE, true)) do
 			local name = filename:lower()
 			scriptFiles[name] = filename
 			scriptFiles[Basename(filename):lower()] = filename
-			-- a module's script is named by its modules/ path; the engine reports it with scripts/ in front
 			scriptFiles[UNITSCRIPT_DIR .. name] = filename
 		end
 	end
@@ -715,7 +706,6 @@ local include_cache = {}
 
 -- core of include() function for unit scripts
 local function ScriptInclude(filename)
-	-- a registered file by any of its names; otherwise the classic scripts/ path
 	local path = scriptFiles[filename:lower()] or UNITSCRIPT_DIR .. filename
 	local chunk = LoadChunk(path)
 	if chunk then

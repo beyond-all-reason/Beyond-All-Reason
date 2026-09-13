@@ -10,7 +10,6 @@ describe("ModuleHandler", function()
 		end)
 
 		it("every directory that ships a manifest is discovered under its own name", function()
-			-- a manifest the loader refuses is a module that silently vanishes from the game
 			for _, dir in ipairs(VFS.SubDirs("modules/", "*")) do
 				local name = dir:gsub("/+$", ""):match("([^/]+)$")
 				if VFS.FileExists("modules/" .. name .. "/manifest.lua") then

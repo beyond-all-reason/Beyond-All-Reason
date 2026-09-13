@@ -453,9 +453,7 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
-	-- Game-side shim until the engine loads module subdirectories natively.
 	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFS.ZIP)
-	-- /luaui reload re-reads the module surface, so drop the memoised view of it first.
 	ModuleHandler.ResetCaches()
 	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
 		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)

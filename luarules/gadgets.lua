@@ -530,11 +530,8 @@ function gadgetHandler:Initialize()
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
 
-	-- Game-side shim until the engine loads module subdirectories natively.
 	if IS_LUARULES then
 		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE) ---@type ModuleHandler
-		-- Manifests, apis, actions and policies are memoised; a file added since the last
-		-- load is invisible until they are dropped.
 		ModuleHandler.ResetCaches()
 		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
 			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
