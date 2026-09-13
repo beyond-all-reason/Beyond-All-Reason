@@ -30,31 +30,35 @@ local MODEL_NAME = "territorial_score_model"
 local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
 local PANEL_POSITION_X_KEY = "td_posX"
 local PANEL_POSITION_Y_KEY = "td_posY"
+local PANEL_DOCKED_KEY = "td_docked"
+local PANEL_DOCKED_VALUE = 1
+local PANEL_UNDOCKED_VALUE = 0
 local EMOJI_FONT_PATH = "fonts/fallbacks/NotoEmoji-VariableFont_wght.ttf"
 local PANEL_WIDTH_DP = 240
-local PANEL_COLLAPSED_HEIGHT_DP = 110
+local PANEL_COLLAPSED_HEIGHT_DP = 98
 local PANEL_EXPANDED_HEIGHT_DP = 204
 local PANEL_MARGIN_DP = 10
-local DISTRIBUTION_LEFT_DP = 10
-local DISTRIBUTION_WIDTH_DP = 218
+local DISTRIBUTION_LEFT_DP = 7
+local DISTRIBUTION_WIDTH_DP = 222
+local DISTRIBUTION_HEIGHT_DP = 10
 local DISTRIBUTION_BORDER_DP = 1
+local DISTRIBUTION_HEIGHT = tostring(DISTRIBUTION_HEIGHT_DP) .. "dp"
 local PANEL_ORIGIN_SNAP_DISTANCE_DP = 36
 local REVERT_TO_ORIGIN_POSITION = false
 local VERTICAL_SLOT_WIDTH_DP = 26
-local VERTICAL_CONTENT_MINIMUM_WIDTH_DP = 218
+local VERTICAL_CONTENT_MINIMUM_WIDTH_DP = 222
 local VERTICAL_CONTENT_PADDING_DP = 6
 local VERTICAL_TRACK_HEIGHT_DP = 124
 local VERTICAL_TRACK_BOTTOM_DP = 12
-local TOOLTIP_WIDTH_DP = 300
-local TOOLTIP_VERTICAL_PADDING_DP = 16
-local TOOLTIP_ROW_HEIGHT_DP = 22
-local TOOLTIP_CURRENT_SCORE_WIDTH_DP = 145
-local TOOLTIP_COUNTDOWN_WIDTH_DP = 310
-local TOOLTIP_TARGET_WIDTH_DP = 520
-local TOOLTIP_DANGER_WIDTH_DP = 360
-local TOOLTIP_DEADLINE_WIDTH_DP = 360
 local TOOLTIP_OFFSET_X = 16
 local TOOLTIP_OFFSET_Y = 22
+local TOOLTIP_FONT_SIZE_DP = 17
+local TOOLTIP_CHAR_WIDTH_DP = 8
+local TOOLTIP_PADDING_X_DP = 20
+local TOOLTIP_MIN_WIDTH_DP = 80
+local TOOLTIP_TEAM_EXTRA_DP = 24
+local TOOLTIP_ROW_HEIGHT_DP = 22
+local TOOLTIP_VERTICAL_PADDING_DP = 16
 local POSITION_SCALE = 10000
 local COLOR_BYTE_MAXIMUM = 255
 local DARK_COLOR_MULTIPLIER = 0.48
@@ -147,7 +151,7 @@ local widgetState = {
 	tooltipAllyTeamID = nil,
 	tooltipSimpleSource = nil,
 	tooltipRowCount = 1,
-	tooltipWidthDp = TOOLTIP_WIDTH_DP,
+	tooltipWidthDp = TOOLTIP_MIN_WIDTH_DP,
 	popupActive = false,
 	popupStartClock = 0,
 	hasObservedDeadline = false,
@@ -192,6 +196,59 @@ end
 
 local function formatScore(value)
 	return tostring(roundNumber(tonumber(value) or 0))
+end
+
+local function getTooltipTextLength(value)
+	local text = tostring(value or "")
+	if utf8 and utf8.len then
+		return utf8.len(text) or #text
+	end
+	local length = 0
+	local index = 1
+	local textLength = #text
+	while index <= textLength do
+		local byte = string.byte(text, index)
+		if byte < 128 then
+			index = index + 1
+		elseif byte < 224 then
+			index = index + 2
+		elseif byte < 240 then
+			index = index + 3
+		else
+			index = index + 4
+		end
+		length = length + 1
+	end
+	return length
+end
+
+local function getTooltipFont()
+	if not WG or not WG.fonts or not WG.fonts.getFont then
+		return nil
+	end
+	return WG.fonts.getFont(2)
+end
+
+local function getTooltipTextWidthDp(value)
+	local text = tostring(value or "")
+	local font = getTooltipFont()
+	if font and font.GetTextWidth then
+		return font:GetTextWidth(text) * TOOLTIP_FONT_SIZE_DP
+	end
+	return getTooltipTextLength(text) * TOOLTIP_CHAR_WIDTH_DP
+end
+
+local function applyTooltipSize(dataModel, lineWidths)
+	local widestLineDp = 0
+	for lineIndex = 1, #lineWidths do
+		if lineWidths[lineIndex] > widestLineDp then
+			widestLineDp = lineWidths[lineIndex]
+		end
+	end
+	local tooltipWidthDp = math.max(TOOLTIP_MIN_WIDTH_DP, math.ceil(widestLineDp + TOOLTIP_PADDING_X_DP))
+	widgetState.tooltipWidthDp = tooltipWidthDp
+	widgetState.tooltipRowCount = math.max(1, #lineWidths)
+	dataModel.tooltipWidth = tostring(tooltipWidthDp) .. "dp"
 end
 
 local function formatPercentage(value)
@@ -546,9 +603,10 @@ local function buildDistributionData(allyTeams)
 			width = math.max(0, 100 - startPercentage)
 		end
 		fillParts[#fillParts + 1] = string.format(
-			'<div class="td-distribution-segment" style="flex: %.6f; width: %.3f%%; height: 100%%; background-color: %s; box-shadow: inset 0px 0px 0px 1px %s;"></div>',
+			'<div class="td-distribution-segment" style="flex: %.6f; width: %.3f%%; height: %s; background-color: %s; box-shadow: inset 0px 0px 0px 1px %s;"></div>',
 			flexGrow,
 			width,
+			DISTRIBUTION_HEIGHT,
 			allyTeam.color,
 			allyTeam.outlineColor
 		)
@@ -654,20 +712,44 @@ local function clampPanelPosition(panelPixelX, panelPixelY)
 	setPanelPosition(clampNumber(panelPixelX, 0, maximumX), clampNumber(panelPixelY, 0, maximumY))
 end
 
+local function isStoredPanelDocked()
+	local dockedString = Spring.GetConfigString(PANEL_DOCKED_KEY, "")
+	if dockedString == tostring(PANEL_DOCKED_VALUE) then
+		return true
+	end
+	if dockedString == tostring(PANEL_UNDOCKED_VALUE) then
+		return false
+	end
+
+	local positionXString = Spring.GetConfigString(PANEL_POSITION_X_KEY, "")
+	local positionYString = Spring.GetConfigString(PANEL_POSITION_Y_KEY, "")
+	if positionXString == "" or positionYString == "" then
+		return true
+	end
+
+	local storedPositionX = tonumber(positionXString)
+	local storedPositionY = tonumber(positionYString)
+	if not storedPositionX or not storedPositionY then
+		return true
+	end
+
+	return storedPositionX < 0 or storedPositionY < 0
+end
+
 local function savePanelPosition()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	if viewSizeX <= 0 or viewSizeY <= 0 then
 		return
 	end
 
+	Spring.SetConfigInt(PANEL_DOCKED_KEY, PANEL_UNDOCKED_VALUE)
 	Spring.SetConfigInt(PANEL_POSITION_X_KEY, roundNumber(widgetState.panelPixelX / viewSizeX * POSITION_SCALE))
 	Spring.SetConfigInt(PANEL_POSITION_Y_KEY, roundNumber(widgetState.panelPixelY / viewSizeY * POSITION_SCALE))
 	widgetState.hasUserPosition = true
 end
 
-local function clearSavedPanelPosition()
-	Spring.SetConfigInt(PANEL_POSITION_X_KEY, -1)
-	Spring.SetConfigInt(PANEL_POSITION_Y_KEY, -1)
+local function savePanelDocked()
+	Spring.SetConfigInt(PANEL_DOCKED_KEY, PANEL_DOCKED_VALUE)
 	widgetState.hasUserPosition = false
 end
 
@@ -728,17 +810,21 @@ local function positionPanelAtOrigin()
 end
 
 local function loadPanelPosition()
-	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
-	local storedPositionX = Spring.GetConfigInt(PANEL_POSITION_X_KEY, -1)
-	local storedPositionY = Spring.GetConfigInt(PANEL_POSITION_Y_KEY, -1)
-
-	if not REVERT_TO_ORIGIN_POSITION and storedPositionX >= 0 and storedPositionY >= 0 then
-		widgetState.hasUserPosition = true
-		clampPanelPosition(storedPositionX / POSITION_SCALE * viewSizeX, storedPositionY / POSITION_SCALE * viewSizeY)
+	if REVERT_TO_ORIGIN_POSITION or isStoredPanelDocked() then
+		positionPanelAtOrigin()
 		return
 	end
 
-	positionPanelAtOrigin()
+	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	local storedPositionX = Spring.GetConfigInt(PANEL_POSITION_X_KEY, -1)
+	local storedPositionY = Spring.GetConfigInt(PANEL_POSITION_Y_KEY, -1)
+	if storedPositionX < 0 or storedPositionY < 0 then
+		positionPanelAtOrigin()
+		return
+	end
+
+	widgetState.hasUserPosition = true
+	clampPanelPosition(storedPositionX / POSITION_SCALE * viewSizeX, storedPositionY / POSITION_SCALE * viewSizeY)
 end
 
 local function finishPanelDrag()
@@ -754,7 +840,7 @@ local function finishPanelDrag()
 	end
 	if shouldSnapToOrigin then
 		positionPanelAtOrigin()
-		clearSavedPanelPosition()
+		savePanelDocked()
 	else
 		savePanelPosition()
 	end
@@ -789,6 +875,13 @@ local function updatePanelDrag()
 	updateHaloState()
 end
 
+local function getTooltipElement()
+	if not widgetState.document then
+		return nil
+	end
+	return widgetState.document:GetElementById("td-tooltip")
+end
+
 local function positionTooltip()
 	if not widgetState.tooltipActive or not widgetState.dmHandle then
 		return
@@ -803,8 +896,12 @@ local function positionTooltip()
 
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	local dpRatio = getDpRatio()
+	local tooltipElement = getTooltipElement()
 	local tooltipWidth = widgetState.tooltipWidthDp * dpRatio
-	local tooltipHeight = (TOOLTIP_VERTICAL_PADDING_DP + widgetState.tooltipRowCount * TOOLTIP_ROW_HEIGHT_DP) * dpRatio
+	local tooltipHeight = tooltipElement and tooltipElement.offset_height or 0
+	if tooltipHeight < 1 then
+		tooltipHeight = (TOOLTIP_VERTICAL_PADDING_DP + widgetState.tooltipRowCount * TOOLTIP_ROW_HEIGHT_DP) * dpRatio
+	end
 	local tooltipX = clampNumber(mouseX + TOOLTIP_OFFSET_X, 0, math.max(0, viewSizeX - tooltipWidth))
 	local tooltipY = clampNumber(viewSizeY - mouseY + TOOLTIP_OFFSET_Y, 0, math.max(0, viewSizeY - tooltipHeight))
 
@@ -839,9 +936,7 @@ local function updateScoreTooltipContent(allyTeamID)
 
 	widgetState.tooltipIsSimple = false
 	widgetState.tooltipSimpleSource = nil
-	widgetState.tooltipWidthDp = TOOLTIP_WIDTH_DP
 	dataModel.tooltipIsSimple = false
-	dataModel.tooltipWidth = tostring(TOOLTIP_WIDTH_DP) .. "dp"
 	dataModel.tooltipPlayersRml = buildTooltipPlayersRml(allyTeam.players)
 	dataModel.tooltipTerritories =
 		I18N("ui.territorialDomination.tooltip.territories", { count = allyTeam.territoryCount })
@@ -862,29 +957,27 @@ local function updateScoreTooltipContent(allyTeamID)
 		I18N("ui.territorialDomination.tooltip.belowLeader", { points = formatScore(pointsBelowLeader) })
 	dataModel.tooltipLeaderColor = leader.color
 	dataModel.tooltipTitle = ""
-	widgetState.tooltipRowCount = #allyTeam.players + 5 + (showDeadline and 1 or 0) + (showLeader and 1 or 0)
-	return true
-end
-
-local function updateTeamTooltipContent(allyTeamID)
-	local dataModel = widgetState.dmHandle
-	local allyTeam = widgetState.allyTeamsByID[allyTeamID]
-	if not dataModel or not allyTeam then
-		return false
+	local lineWidths = {
+		getTooltipTextWidthDp(dataModel.tooltipTeamLabel) + TOOLTIP_TEAM_EXTRA_DP,
+		getTooltipTextWidthDp(dataModel.tooltipTerritories),
+		getTooltipTextWidthDp(dataModel.tooltipGainRate),
+		getTooltipTextWidthDp(dataModel.tooltipCurrentScore),
+		getTooltipTextWidthDp(dataModel.tooltipProjectedScore),
+	}
+	if allyTeam.players then
+		for playerIndex = 1, #allyTeam.players do
+			lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(allyTeam.players[playerIndex].name)
+		end
 	end
-
-	widgetState.tooltipIsSimple = false
-	widgetState.tooltipSimpleSource = nil
-	widgetState.tooltipWidthDp = TOOLTIP_WIDTH_DP
-	dataModel.tooltipIsSimple = false
-	dataModel.tooltipWidth = tostring(TOOLTIP_WIDTH_DP) .. "dp"
-	dataModel.tooltipPlayersRml = buildTooltipPlayersRml(allyTeam.players)
-	dataModel.tooltipTitle = ""
-	dataModel.tooltipShowTeam = true
-	dataModel.tooltipShowLeader = false
-	dataModel.tooltipTeamLabel = I18N("ui.territorialDomination.tooltip.team")
-	dataModel.tooltipTeamColor = allyTeam.color
-	widgetState.tooltipRowCount = math.max(2, #allyTeam.players + 1)
+	if showDeadline then
+		lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(dataModel.tooltipDeadlineDifference)
+	end
+	if showLeader then
+		lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(dataModel.tooltipLeaderDifference)
+			+ getTooltipTextWidthDp(dataModel.tooltipTeamLabel)
+			+ TOOLTIP_TEAM_EXTRA_DP
+	end
+	applyTooltipSize(dataModel, lineWidths)
 	return true
 end
 
@@ -895,35 +988,27 @@ local function updateSimpleTooltipContent()
 	end
 
 	local tooltipText
-	local tooltipWidthDp
 	if widgetState.tooltipSimpleSource == TOOLTIP_SOURCE_CURRENT_SCORE then
 		tooltipText = dataModel.footerScoreTooltip
-		tooltipWidthDp = TOOLTIP_CURRENT_SCORE_WIDTH_DP
 	elseif widgetState.tooltipSimpleSource == TOOLTIP_SOURCE_COUNTDOWN then
 		tooltipText = dataModel.footerCountdownTooltip
-		tooltipWidthDp = TOOLTIP_COUNTDOWN_WIDTH_DP
 	elseif widgetState.tooltipSimpleSource == TOOLTIP_SOURCE_TARGET then
 		tooltipText = dataModel.footerTargetTooltip
-		tooltipWidthDp = TOOLTIP_TARGET_WIDTH_DP
 	elseif widgetState.tooltipSimpleSource == TOOLTIP_SOURCE_DANGER then
 		tooltipText = dataModel.dangerMarkTooltip
-		tooltipWidthDp = TOOLTIP_DANGER_WIDTH_DP
 	elseif widgetState.tooltipSimpleSource == TOOLTIP_SOURCE_DEADLINE then
 		tooltipText = dataModel.deadlineLineTooltip
-		tooltipWidthDp = TOOLTIP_DEADLINE_WIDTH_DP
 	else
 		return false
 	end
 
-	widgetState.tooltipWidthDp = tooltipWidthDp
-	widgetState.tooltipRowCount = 1
 	dataModel.tooltipIsSimple = true
 	dataModel.tooltipIsScore = false
 	dataModel.tooltipText = tooltipText
 	dataModel.tooltipTitle = ""
 	dataModel.tooltipShowTeam = false
 	dataModel.tooltipShowLeader = false
-	dataModel.tooltipWidth = tostring(tooltipWidthDp) .. "dp"
+	applyTooltipSize(dataModel, { getTooltipTextWidthDp(tooltipText) })
 	return true
 end
 
@@ -941,11 +1026,8 @@ local function updateProjectedLeaderTooltipContent()
 	widgetState.tooltipIsSimple = false
 	widgetState.tooltipIsScore = false
 	widgetState.tooltipSimpleSource = TOOLTIP_SOURCE_TARGET
-	widgetState.tooltipWidthDp = TOOLTIP_TARGET_WIDTH_DP
-	widgetState.tooltipRowCount = 3 + math.max(1, #projectedLeader.players)
 	dataModel.tooltipIsSimple = false
 	dataModel.tooltipIsScore = false
-	dataModel.tooltipWidth = tostring(TOOLTIP_TARGET_WIDTH_DP) .. "dp"
 	dataModel.tooltipTitle = isSelectedProjectedLeader
 			and I18N("ui.territorialDomination.tooltip.highestProjectedScoreYou")
 		or I18N("ui.territorialDomination.tooltip.highestProjectedScore")
@@ -956,6 +1038,16 @@ local function updateProjectedLeaderTooltipContent()
 	dataModel.tooltipLeaderColor = projectedLeader.color
 	dataModel.tooltipPlayersRml = buildTooltipPlayersRml(projectedLeader.players)
 	dataModel.tooltipText = ""
+	local lineWidths = {
+		getTooltipTextWidthDp(dataModel.tooltipTitle),
+		getTooltipTextWidthDp(dataModel.tooltipTeamLabel) + TOOLTIP_TEAM_EXTRA_DP,
+	}
+	if projectedLeader.players then
+		for playerIndex = 1, #projectedLeader.players do
+			lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(projectedLeader.players[playerIndex].name)
+		end
+	end
+	applyTooltipSize(dataModel, lineWidths)
 	return true
 end
 
@@ -966,19 +1058,6 @@ local function showScoreTooltip(event, allyTeamID)
 
 	if widgetState.dmHandle then
 		widgetState.dmHandle.tooltipIsScore = true
-		widgetState.dmHandle.tooltipVisible = widgetState.tooltipActive and widgetState.shouldShow
-		applyTooltipPlayers(widgetState.dmHandle.tooltipPlayersRml)
-	end
-	positionTooltip()
-end
-
-local function showTeamTooltip(event, allyTeamID)
-	widgetState.tooltipIsScore = false
-	widgetState.tooltipAllyTeamID = tonumber(allyTeamID)
-	widgetState.tooltipActive = updateTeamTooltipContent(widgetState.tooltipAllyTeamID)
-
-	if widgetState.dmHandle then
-		widgetState.dmHandle.tooltipIsScore = false
 		widgetState.dmHandle.tooltipVisible = widgetState.tooltipActive and widgetState.shouldShow
 		applyTooltipPlayers(widgetState.dmHandle.tooltipPlayersRml)
 	end
@@ -1282,6 +1361,7 @@ local function initializeModel()
 		dockGhostLeft = "0px",
 		dockGhostTop = "0px",
 		distributionFillRml = "",
+		distributionHeight = DISTRIBUTION_HEIGHT,
 		selectedAllyTeamID = -1,
 		selectedProjectedWidth = "0%",
 		selectedDarkColor = makeColorString(DEFAULT_COLOR, DARK_COLOR_MULTIPLIER),
@@ -1309,7 +1389,7 @@ local function initializeModel()
 		tooltipVisible = false,
 		tooltipLeft = "0px",
 		tooltipTop = "0px",
-		tooltipWidth = tostring(TOOLTIP_WIDTH_DP) .. "dp",
+		tooltipWidth = tostring(TOOLTIP_MIN_WIDTH_DP) .. "dp",
 		tooltipIsScore = true,
 		tooltipIsSimple = false,
 		tooltipText = "",
@@ -1327,7 +1407,6 @@ local function initializeModel()
 		tooltipTeamColor = makeColorString(DEFAULT_COLOR),
 		tooltipLeaderDifference = "",
 		tooltipLeaderColor = makeColorString(DEFAULT_COLOR),
-		tooltipPlace = "",
 		footerScoreTooltip = I18N("ui.territorialDomination.tooltip.currentScore"),
 		footerCountdownTooltip = I18N("ui.territorialDomination.tooltip.timeUntilFirstDeadline"),
 		footerTargetTooltip = I18N("ui.territorialDomination.tooltip.highestScore"),
@@ -1342,7 +1421,6 @@ local function initializeModel()
 		toggleExpanded = toggleExpanded,
 		selectExpandedScore = selectExpandedScore,
 		hideTooltip = hideTooltip,
-		showTeamTooltip = showTeamTooltip,
 		showScoreTooltip = showScoreTooltip,
 		showDistributionTooltip = showDistributionTooltip,
 		showCurrentScoreTooltip = showCurrentScoreTooltip,
@@ -1701,8 +1779,6 @@ local function updateDataModel()
 			widgetState.tooltipActive = updateSimpleTooltipContent()
 		elseif widgetState.tooltipAllyTeamID and widgetState.tooltipIsScore then
 			widgetState.tooltipActive = updateScoreTooltipContent(widgetState.tooltipAllyTeamID)
-		elseif widgetState.tooltipAllyTeamID then
-			widgetState.tooltipActive = updateTeamTooltipContent(widgetState.tooltipAllyTeamID)
 		end
 		if widgetState.tooltipActive then
 			applyTooltipPlayers(dataModel.tooltipPlayersRml)
@@ -1735,6 +1811,7 @@ function WIDGET:Initialize()
 		return false
 	end
 
+	widgetState.document:ReloadStyleSheet(true)
 	widgetState.document:Show()
 	widgetState.document:AddEventListener("mouseup", function()
 		finishPanelDrag()

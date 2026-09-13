@@ -37,6 +37,7 @@
 			<div class="td-panel-gradient"></div>
 			<div class="td-panel-shine"></div>
 			<div class="td-panel-gloss"></div>
+			<div class="td-panel-top-edge"></div>
 			<div
 				class="td-panel-halo"
 				data-class-origin="showOriginHalo"
@@ -47,14 +48,15 @@
 			<div
 				class="td-distribution"
 				data-if="!isExpanded"
+				data-style-height="distributionHeight"
 				data-event-mousedown="blockPanelDrag()"
 				data-event-click="toggleExpanded()"
 				data-event-mouseover="showDistributionTooltip()"
 				data-event-mousemove="showDistributionTooltip()"
 				data-event-mouseout="hideTooltip()"
 			>
-				<div id="td-distribution-fill" class="td-distribution-fill" data-rml="distributionFillRml"></div>
-				<div class="td-bar-gloss"></div>
+				<div id="td-distribution-fill" class="td-distribution-fill" data-rml="distributionFillRml" data-style-height="distributionHeight"></div>
+				<div class="td-bar-gloss" data-style-height="distributionHeight"></div>
 			</div>
 
 			<div
@@ -185,31 +187,36 @@
 		</div>
 
 		<div
+			id="td-tooltip"
 			class="td-tooltip"
 			data-if="tooltipVisible"
 			data-style-left="tooltipLeft"
 			data-style-top="tooltipTop"
 			data-style-width="tooltipWidth"
 		>
-			<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
-			<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
-				<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
-				<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
-			</div>
-			<div id="td-tooltip-players" class="td-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
-			<div class="td-tooltip-score" data-if="tooltipIsScore">
-				<div class="td-tooltip-row">{{tooltipTerritories}}</div>
-				<div class="td-tooltip-row">{{tooltipGainRate}}</div>
-				<div class="td-tooltip-row">{{tooltipCurrentScore}}</div>
-				<div class="td-tooltip-row">{{tooltipProjectedScore}}</div>
-				<div class="td-tooltip-row" data-if="tooltipShowDeadline">{{tooltipDeadlineDifference}}</div>
-				<div class="td-tooltip-row td-tooltip-leader-row" data-if="tooltipShowLeader">
-					<span>{{tooltipLeaderDifference}}</span>
+			<div class="td-tooltip-texture"></div>
+			<div class="td-tooltip-gradient"></div>
+			<div class="td-tooltip-content">
+				<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
+				<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
 					<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
-					<span class="td-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
+					<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
 				</div>
+				<div id="td-tooltip-players" class="td-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
+				<div class="td-tooltip-score" data-if="tooltipIsScore">
+					<div class="td-tooltip-row">{{tooltipTerritories}}</div>
+					<div class="td-tooltip-row">{{tooltipGainRate}}</div>
+					<div class="td-tooltip-row">{{tooltipCurrentScore}}</div>
+					<div class="td-tooltip-row">{{tooltipProjectedScore}}</div>
+					<div class="td-tooltip-row" data-if="tooltipShowDeadline">{{tooltipDeadlineDifference}}</div>
+					<div class="td-tooltip-row td-tooltip-leader-row" data-if="tooltipShowLeader">
+						<span>{{tooltipLeaderDifference}}</span>
+						<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
+						<span class="td-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
+					</div>
+				</div>
+				<div class="td-tooltip-simple" data-if="tooltipIsSimple">{{tooltipText}}</div>
 			</div>
-			<div class="td-tooltip-simple" data-if="tooltipIsSimple">{{tooltipText}}</div>
 		</div>
 
 		<div class="td-popup" data-if="popupVisible">
