@@ -409,6 +409,10 @@ widgetState = { -- forward-declared above playSound so mute check works
 		perfMode = false, -- Settings > Performance
 		teamSync = false, -- Settings > General > Team Sync: the campaign team's map library; off for everyone else
 		clayStack = true, -- Settings > Stroke > Clay build-up (per-tick stacking), on by default
+		autosave = true, -- Settings > General > Autosave: timed snapshots while the project has unsaved changes
+		autosaveMinutes = 10,
+		autosaveKeepDays = 3,
+		autosaveKeepLatestDays = 10,
 		heightmapExportRangeMode = "auto",
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
@@ -531,6 +535,14 @@ function loadUiPrefs()
 	if type(data.clayStack) == "boolean" then
 		widgetState.uiPrefs.clayStack = data.clayStack
 	end
+	if type(data.autosave) == "boolean" then
+		widgetState.uiPrefs.autosave = data.autosave
+	end
+	for _, key in ipairs({ "autosaveMinutes", "autosaveKeepDays", "autosaveKeepLatestDays" }) do
+		if tonumber(data[key]) then
+			widgetState.uiPrefs[key] = tonumber(data[key])
+		end
+	end
 	if type(data.seenInstrumentsHint) == "boolean" then
 		widgetState.uiPrefs.seenInstrumentsHint = data.seenInstrumentsHint
 	end
@@ -622,7 +634,7 @@ function saveUiPrefs()
 	end
 	f:write(
 		string.format(
-			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tteamSync = %s,\n\tclayStack = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
+			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tteamSync = %s,\n\tclayStack = %s,\n\tautosave = %s,\n\tautosaveMinutes = %d,\n\tautosaveKeepDays = %d,\n\tautosaveKeepLatestDays = %d,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
 			tostring(widgetState.uiPrefs.disableTips and true or false),
 			tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 			tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
@@ -639,6 +651,10 @@ function saveUiPrefs()
 			tostring(widgetState.uiPrefs.perfMode and true or false),
 			tostring(widgetState.uiPrefs.teamSync and true or false),
 			tostring(widgetState.uiPrefs.clayStack and true or false),
+			tostring(widgetState.uiPrefs.autosave and true or false),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveMinutes) or 10),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveKeepDays) or 3),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveKeepLatestDays) or 10),
 			widgetState.uiPrefs.heightmapExportRangeMode or "auto",
 			tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
 			tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1
@@ -692,6 +708,18 @@ widgetState.saveUiPrefs = saveUiPrefs
 -- the widget. Idempotent; called on toggle, after the prefs load, and once
 -- from Update if the widget shows up after this panel (load order is not
 -- fixed between LuaUI widget folders).
+-- The autosave values cycle through short lists on click (Settings > General):
+-- a slider for a number that changes twice a year is not worth its wiring.
+widgetState.autosaveSteps = {
+	autosaveMinutes = { 5, 10, 15, 30, 60 },
+	autosaveKeepDays = { 1, 3, 7, 14 },
+	autosaveKeepLatestDays = { 3, 10, 30, 90 },
+}
+widgetState.autosaveDaysText = function(value, default)
+	local days = math.floor(tonumber(value) or tonumber(default) or 0)
+	return tostring(days) .. (days == 1 and " DAY" or " DAYS")
+end
+
 widgetState.pushPerfPrefs = function()
 	local up = widgetState.uiPrefs or {}
 	local perf = up.perfMode and true or false
@@ -711,11 +739,43 @@ widgetState.pushPerfPrefs = function()
 			d.teamSyncActive = team
 			d.teamSyncStr = team and "ON" or "OFF"
 		end
+		local auto = up.autosave and true or false
+		if d.autosaveActive ~= auto then
+			d.autosaveActive = auto
+			d.autosaveStr = auto and "ON" or "OFF"
+		end
+		local minutesStr = tostring(math.floor(tonumber(up.autosaveMinutes) or 10)) .. " MIN"
+		if d.autosaveMinutesStr ~= minutesStr then
+			d.autosaveMinutesStr = minutesStr
+		end
+		local keepStr = widgetState.autosaveDaysText(up.autosaveKeepDays, 3)
+		if d.autosaveKeepStr ~= keepStr then
+			d.autosaveKeepStr = keepStr
+		end
+		local keepLatestStr = widgetState.autosaveDaysText(up.autosaveKeepLatestDays, 10)
+		if d.autosaveKeepLatestStr ~= keepLatestStr then
+			d.autosaveKeepLatestStr = keepLatestStr
+		end
 	end
 	widgetState.perfMode = perf
 	-- The project browser's controller reads this every sync; off means the
 	-- windows are plain local browsers.
 	widgetState.teamSyncEnabled = up.teamSync and true or false
+	-- The project widget runs the autosave timer and the sweep; it may load
+	-- after this panel, so the push is retried from Update until it lands.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.setAutosave then
+		mp.setAutosave({
+			enabled = up.autosave and true or false,
+			minutes = tonumber(up.autosaveMinutes) or 10,
+			keepDays = tonumber(up.autosaveKeepDays) or 3,
+			keepLatestDays = tonumber(up.autosaveKeepLatestDays) or 10,
+		})
+		widgetState.autosavePrefsPushed = true
+	else
+		widgetState.autosavePrefsPushed = false
+	end
 	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.setPerfMode then
@@ -4197,6 +4257,22 @@ end
 -- disk, "team" what the library holds, "all" everything. Returns the list and
 -- the same entries keyed by slug.
 widgetState.projectUnionList = function(view)
+	-- The Autosaves view is its own list: the timed snapshots under
+	-- MapProjects/_autosave, which the normal views never show. Cached with
+	-- the local snapshot, so a filter keystroke does not re-read manifests.
+	if view == "autosave" then
+		local mp = WG.MapProject
+		if widgetState.projectLocalDirty or not widgetState.projectAutosaveList then
+			widgetState.projectSnapshotLocal()
+			widgetState.projectAutosaveList = (mp and mp.listAutosaves and mp.listAutosaves()) or {}
+		end
+		local list, bySlug = {}, {}
+		for _, entry in ipairs(widgetState.projectAutosaveList) do
+			list[#list + 1] = entry
+			bySlug[entry.slug] = entry
+		end
+		return list, bySlug
+	end
 	if not widgetState.teamSyncEnabled then
 		view = "local"
 	end
@@ -4255,6 +4331,7 @@ widgetState.projectSnapshotLocal = function()
 	local ui = widgetState.projectLibraryUi
 	local mp = WG.MapProject
 	widgetState.projectLocalDirty = false
+	widgetState.projectAutosaveList = nil
 	local bySlug = {}
 	for _, entry in ipairs((mp and mp.listDetailed and mp.listDetailed()) or {}) do
 		bySlug[entry.slug] = entry
@@ -4365,6 +4442,9 @@ widgetState.projectTreeRml = function(projects, opts)
 		local tags = {}
 		if opts.current and opts.current ~= "" and p.slug == opts.current then
 			tags[#tags + 1] = { text = BAR.I18N("ui.mapLibrary.currentTag") }
+		end
+		if p.autosave and p.autosave_of and p.autosave_of ~= "" then
+			tags[#tags + 1] = { text = BAR.I18N("ui.mapLibrary.autosaveOf", { name = p.autosave_of }) }
 		end
 		-- A staged team move rides on the row it applies to, rather than
 		-- redrawing the project under its future folder.
@@ -6325,6 +6405,10 @@ local initialModel = {
 	wiggleStr = "OFF",
 	perfModeStr = "OFF", -- Settings > Performance
 	teamSyncStr = "OFF", -- Settings > General > Team Sync (campaign team)
+	autosaveStr = "ON", -- Settings > General > Autosave, and its three value pills
+	autosaveMinutesStr = "10 MIN",
+	autosaveKeepStr = "3 DAYS",
+	autosaveKeepLatestStr = "10 DAYS",
 	clayStackStr = "OFF", -- Settings > Stroke > Clay build-up
 	disableTipsStr = "OFF",
 	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
@@ -6337,6 +6421,7 @@ local initialModel = {
 	wiggleActive = false,
 	perfModeActive = false,
 	teamSyncActive = false,
+	autosaveActive = true,
 	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
@@ -9820,12 +9905,18 @@ local initialModel = {
 			-- The team's folders are drawn even when empty: the structure is
 			-- fixed and worth seeing before anything is in it. Not in the disk
 			-- view, which lists what is here.
-			local treeFolders = (view ~= "local") and stages or {}
+			local treeFolders = (view ~= "local" and view ~= "autosave") and stages or {}
 			local hasLibraryFolders = #treeFolders > 0
 			if #all == 0 and not hasLibraryFolders then
 				-- rml-dom-escape: existing imperative tree; no model-bound row template.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-					.. esc(BAR.I18N(view == "team" and "ui.mapLibrary.empty" or "ui.mapLibrary.localEmpty"))
+					.. esc(
+						BAR.I18N(
+							view == "team" and "ui.mapLibrary.empty"
+								or view == "autosave" and "ui.mapLibrary.autosaveEmpty"
+								or "ui.mapLibrary.localEmpty"
+						)
+					)
 					.. "</div>"
 				if dm then
 					dm.projectOpenCount = ""
@@ -11062,6 +11153,40 @@ local initialModel = {
 		widgetState.projectSaveNeedsRebuild = true
 		if widgetState.projectLibraryUi then
 			widgetState.projectLibraryUi.sync()
+		end
+	end,
+	onGuideToggleAutosave = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.autosave
+		widgetState.uiPrefs.autosave = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+	end,
+	-- One handler for the three value pills: the key names the pref, the
+	-- click moves to the next step (a hand-edited value snaps to the step above).
+	onGuideCycleAutosave = function(_event, key)
+		---@type number[]?
+		local steps = widgetState.autosaveSteps[key]
+		if not steps then
+			return
+		end
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local cur = tonumber(widgetState.uiPrefs[key]) or steps[1]
+		local nextVal = steps[1]
+		for i = 1, #steps do
+			if steps[i] >= cur then
+				nextVal = (steps[i] == cur) and (steps[i + 1] or steps[1]) or steps[i]
+				break
+			end
+		end
+		widgetState.uiPrefs[key] = nextVal
+		playSound("toggleOn")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
 		end
 	end,
 	onGuideToggleClayStack = function(_event)
@@ -19337,6 +19462,9 @@ function widget:Update()
 		if not widgetState.perfPrefsPushed and WG.TerraformBrush and WG.TerraformBrush.setPerfMode then
 			widgetState.pushPerfPrefs()
 		end
+		if not widgetState.autosavePrefsPushed and WG.MapProject and WG.MapProject.setAutosave then
+			widgetState.pushPerfPrefs()
+		end
 
 		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
 		-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
@@ -21648,19 +21776,21 @@ function widget:Update()
 		do
 			local mp = WG.MapProject
 			local sumEl3 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
-			local step, total, stepName
+			local step, total, stepName, kind
 			if mp and mp.saveProgress then
-				step, total, stepName = mp.saveProgress()
+				step, total, stepName, kind = mp.saveProgress()
 			end
 			if step then
 				widgetState.saveWasRunning = true
+				widgetState.saveWasKind = kind
 				widgetState.saveDoneUntil = nil
 				widgetState.saveDoneInfo = nil
 				widgetState.saveFadeInStart = nil
 				if sumEl3 then
 					sumEl3.style.opacity = "1"
 					local buf = {
-						'<span class="tf-ss-mode" style="color: #35d07f;">SAVING</span>',
+						(kind == "autosave") and '<span class="tf-ss-mode" style="color: #7fb2ff;">AUTOSAVE</span>'
+							or '<span class="tf-ss-mode" style="color: #35d07f;">SAVING</span>',
 						'<span class="tf-ss-sep">|</span>',
 						'<div class="tf-ss-segwrap">',
 					}
@@ -21678,9 +21808,17 @@ function widget:Update()
 				widgetState.saveWasRunning = false
 				-- ... and the listing is stale.
 				widgetState.projectLocalDirty = true
-				local last = mp and mp.lastSave and mp.lastSave()
+				local last = nil
+				if mp then
+					if widgetState.saveWasKind == "autosave" then
+						last = mp.lastAutosave and mp.lastAutosave()
+					else
+						last = mp.lastSave and mp.lastSave()
+					end
+				end
 				if last and last.slug then
 					widgetState.saveDoneInfo = last
+					widgetState.saveDoneKind = widgetState.saveWasKind
 					widgetState.saveDoneUntil = os.clock() + 4
 				end
 			end
@@ -21695,15 +21833,23 @@ function widget:Update()
 					widgetState.saveFadeInStart = now
 				else
 					local rml
+					local auto = widgetState.saveDoneKind == "autosave"
+					-- A snapshot reads by its leaf: the folder is always _autosave.
+					local shown = auto and (tostring(info.slug):match("([^/]+)$") or info.slug) or info.slug
 					if info.ok then
-						rml = '<span class="tf-ss-mode" style="color: #35d07f;">SAVED:</span>'
+						rml = (
+							auto and '<span class="tf-ss-mode" style="color: #7fb2ff;">AUTOSAVED:</span>'
+							or '<span class="tf-ss-mode" style="color: #35d07f;">SAVED:</span>'
+						)
 							.. '<span class="tf-ss-val"> '
-							.. info.slug
+							.. shown
 							.. "</span>"
 					else
-						rml = '<span class="tf-ss-mode" style="color: #e05252;">SAVE FAILED:</span>'
+						rml = '<span class="tf-ss-mode" style="color: #e05252;">'
+							.. (auto and "AUTOSAVE FAILED:" or "SAVE FAILED:")
+							.. "</span>"
 							.. '<span class="tf-ss-val"> '
-							.. info.slug
+							.. shown
 							.. " (see console)</span>"
 					end
 					setInnerRmlIfChanged(sumEl3, "status-summary", rml)

@@ -9386,6 +9386,35 @@
 				</div>
 				<div id="pill-ui-clear-units" class="tf-dj-toggle-pill">RUN</div>
 			</div>
+			<!-- Autosave: timed snapshots of the open project into the Autosaves view of the Projects window. -->
+			<div id="btn-autosave" class="tf-dj-activate-row" data-class-active="autosaveActive" data-event-mousedown="onGuideToggleAutosave()">
+				<div>
+					<div class="tf-dj-activate-name">Autosave</div>
+					<div class="tf-dj-activate-desc">Saves a snapshot of the open project (or the New Map canvas) while it has unsaved changes, named project-YYYYMMDDHHMM under MapProjects/_autosave. Snapshots list under the Autosaves chip of the Projects window and never in the other views; opening one makes its project the Save target again. The status strip reads AUTOSAVE while one runs.</div>
+				</div>
+				<div id="pill-autosave" class="tf-dj-toggle-pill">{{autosaveStr}}</div>
+			</div>
+			<div id="btn-autosave-minutes" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveMinutes')">
+				<div>
+					<div class="tf-dj-activate-name">Autosave every</div>
+					<div class="tf-dj-activate-desc">Minutes between snapshots; click to cycle 5, 10, 15, 30, 60. A manual save starts the interval over, and a snapshot waits while the brush is down.</div>
+				</div>
+				<div id="pill-autosave-minutes" class="tf-dj-toggle-pill">{{autosaveMinutesStr}}</div>
+			</div>
+			<div id="btn-autosave-keep" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveKeepDays')">
+				<div>
+					<div class="tf-dj-activate-name">Keep autosaves for</div>
+					<div class="tf-dj-activate-desc">Older snapshots are deleted a minute after the editor starts and every half hour after; click to cycle 1, 3, 7, 14 days.</div>
+				</div>
+				<div id="pill-autosave-keep" class="tf-dj-toggle-pill">{{autosaveKeepStr}}</div>
+			</div>
+			<div id="btn-autosave-keep-latest" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveKeepLatestDays')">
+				<div>
+					<div class="tf-dj-activate-name">Keep the newest autosave of each project for</div>
+					<div class="tf-dj-activate-desc">The most recent snapshot of a project outlives the rest by this much, so a project left alone for a week still has one; click to cycle 3, 10, 30, 90 days.</div>
+				</div>
+				<div id="pill-autosave-keep-latest" class="tf-dj-toggle-pill">{{autosaveKeepLatestStr}}</div>
+			</div>
 			<!-- Team Sync: the BAR campaign team's private map library. Off for everyone else. -->
 			<div id="btn-team-sync" class="tf-dj-activate-row" data-class-active="teamSyncActive" data-event-mousedown="onGuideToggleTeamSync()">
 				<div>
@@ -9635,11 +9664,15 @@
 					<input type="text" id="tf-project-search" class="ll-search-input tf-preset-input" data-attr-title="libraryLabel_search" data-event-change="onProjectSearch()" />
 					<div id="btn-project-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 				</div>
-				<!-- Filter chips, in place of the two tabs: the same list, narrowed. -->
-				<div class="tf-project-chips" data-if="libraryConfigured">
+				<!-- Filter chips, in place of the two tabs: the same list, narrowed. The
+				     disk / team pair only means something once a companion has spoken;
+				     the Autosaves view (timed snapshots, kept out of every other view)
+				     is always there. -->
+				<div class="tf-project-chips">
 					<div class="tf-project-chip" data-class-active="libraryFilter == 'all'" data-event-click="librarySetFilter('all')">{{libraryLabel_filterAll}}</div>
-					<div class="tf-project-chip" data-class-active="libraryFilter == 'local'" data-event-click="librarySetFilter('local')">{{libraryLabel_filterLocal}}</div>
-					<div class="tf-project-chip" data-class-active="libraryFilter == 'team'" data-event-click="librarySetFilter('team')">{{libraryLabel_filterTeam}}</div>
+					<div class="tf-project-chip" data-if="libraryConfigured" data-class-active="libraryFilter == 'local'" data-event-click="librarySetFilter('local')">{{libraryLabel_filterLocal}}</div>
+					<div class="tf-project-chip" data-if="libraryConfigured" data-class-active="libraryFilter == 'team'" data-event-click="librarySetFilter('team')">{{libraryLabel_filterTeam}}</div>
+					<div class="tf-project-chip" data-class-active="libraryFilter == 'autosave'" data-event-click="librarySetFilter('autosave')">{{libraryLabel_filterAutosave}}</div>
 				</div>
 				<!-- Fetches every team project that is not on this disk yet, one at a
 				     time; the ones already here are left alone. -->

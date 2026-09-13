@@ -111,6 +111,7 @@ function M.new(widgetState, model, dependencies)
 		"filterAll",
 		"filterLocal",
 		"filterTeam",
+		"filterAutosave",
 		"mapCol",
 		"syncCol",
 		"syncName",
