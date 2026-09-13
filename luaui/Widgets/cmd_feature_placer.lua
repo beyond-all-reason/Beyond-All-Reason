@@ -21,7 +21,17 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
 local GetGameFrame = Spring.GetGameFrame
-local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+-- Every message this widget sends changes the feature set, so it is also
+-- where the project learns it has unsaved changes (a project load's own
+-- messages are ignored by markDirty while the load runs).
+local SendLuaRulesMsg = function(msg)
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("features")
+	end
+	return Spring.SendLuaRulesMsg(msg)
+end
 local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetFeatureDefID = Spring.GetFeatureDefID

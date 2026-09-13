@@ -76,6 +76,12 @@ local currentSlug = nil
 -- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
 -- running save disappears.
 local lastSaveInfo = nil
+-- Unsaved-changes flag: how many edits were reported since the last save or
+-- load. Tools report through WG.MapProject.markDirty; the count is cleared by
+-- a finished save or load, and ignored for a few seconds after either, while
+-- the engine's own heightmap updates are still trickling in.
+local dirtyCount = 0
+local dirtyGraceUntil = 0.0
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -1443,6 +1449,40 @@ local function stepAssets()
 			if not seenSource[name] then
 				seenSource[name] = tex
 				local data = VFS.LoadFile(tex, VFS.RAW_FIRST)
+				if not data then
+					-- The VFS cannot see a folder created this session (a project
+					-- moved or downloaded since the game started), but the file is
+					-- there: the engine is drawing it. Raw io reads it.
+					local f = io.open(tex, "rb")
+					if f then
+						data = f:read("*a")
+						f:close()
+					end
+				end
+				if not data then
+					-- The session references the texture where its project was when
+					-- the game started; a rename or a move since then took the file
+					-- with it. Look where the open project is now, then in this
+					-- project's own copy from an earlier save.
+					local candidates = {}
+					if currentSlug then
+						candidates[#candidates + 1] = PROJECTS_DIR .. currentSlug .. "/assets/dnts/" .. name
+					end
+					candidates[#candidates + 1] = job.dir .. "assets/dnts/" .. name
+					for _, candidate in ipairs(candidates) do
+						if candidate ~= tex then
+							local f = io.open(candidate, "rb")
+							if f then
+								data = f:read("*a")
+								f:close()
+								if data and #data > 0 then
+									break
+								end
+								data = nil
+							end
+						end
+					end
+				end
 				if data then
 					writeFile(job.dir .. "assets/dnts/" .. name, data)
 				else
@@ -1541,6 +1581,10 @@ end
 -- file-presence loader would resurrect deleted state.
 local SECTION_FILES = {
 	heightmap = { "heightmap.png" },
+	-- The thumbnail too: a save whose minimap step skipped (engine texture
+	-- not ready) used to keep the picture of two saves ago, so the browser
+	-- showed terrain the project no longer had.
+	minimap = { "minimap.png" },
 	splat = { "splat.png" },
 	metal = { "metal.lua" },
 	features = { "features.lua" },
@@ -1587,12 +1631,19 @@ local function stepManifest()
 	local mo = job.mapOptions
 	local prev = job.prev
 	local created = (prev and prev.created) or isoNow()
+	-- The name is the leaf: the folder is where the project is, not what it
+	-- is called. A manifest that carried the whole path listed as
+	-- "Random_maps/pojpjo"; one written that way is corrected on re-save.
+	local name = prev and prev.name
+	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
+		name = job.slug:match("([^/]+)$") or job.slug
+	end
 
 	local lines = {
 		"return {",
 		'\tkind = "bar-map-project",',
 		"\tformat_version = " .. FORMAT_VERSION .. ",",
-		string.format("\tname = %q,", (prev and prev.name) or job.slug),
+		string.format("\tname = %q,", name),
 		string.format("\tcreated = %q,", created),
 		string.format("\tmodified = %q,", isoNow()),
 		string.format("\tgame_version = %q,", Game.gameVersion or "unknown"),
@@ -1663,6 +1714,7 @@ local function stepManifest()
 	-- Fixed emission order (deterministic diffs); only sections actually written.
 	local order = {
 		"heightmap",
+		"minimap",
 		"splat",
 		"surface",
 		"tileset",
@@ -1706,6 +1758,9 @@ local function stepManifest()
 				end
 				if name == "surface" then
 					extraFields = ' meta = "surface.lua",'
+				end
+				if name == "minimap" and job.minimapSize then
+					extraFields = string.format(" width = %d, height = %d,", job.minimapSize.w, job.minimapSize.h)
 				end
 				if name == "grass" then
 					if job.grassPatchResolution then
@@ -1752,9 +1807,83 @@ local function stepManifest()
 	return true
 end
 
+-- Minimap thumbnail, so a project can be recognised by its picture in the
+-- browsers rather than by its name. The engine keeps the map's colour in
+-- $minimap and its lighting in $shading, and the minimap everyone knows is the
+-- two multiplied -- exactly what the in-game minimap shader computes
+-- (minimapColor.rgb * shadingColor.rgb) -- so a second pass with a multiply
+-- blend reproduces it without a shader of our own.
+--
+-- $minimap is square whatever the map's proportions are, so the thumbnail takes
+-- its aspect from the map and the whole texture is sampled into it. Blit
+-- conventions (TexRect coordinates, SaveImage yflip) are captureLiveTexture's,
+-- which is the pattern already writing correct images from this file.
+local MINIMAP_LONG_EDGE = 512
+
+local function stepMinimap()
+	local info = gl.TextureInfo("$minimap")
+	if not (info and (info.xsize or 0) > 1) then
+		-- Regenerating after a graphics change, or never drawn this session.
+		sectionSkip("minimap", "engine minimap texture not ready")
+		return true
+	end
+	local mapX, mapZ = Game.mapSizeX or 0, Game.mapSizeZ or 0
+	if mapX <= 0 or mapZ <= 0 then
+		sectionSkip("minimap", "map size unavailable")
+		return true
+	end
+	local w, h = MINIMAP_LONG_EDGE, MINIMAP_LONG_EDGE
+	if mapX >= mapZ then
+		h = math.max(16, math.floor(MINIMAP_LONG_EDGE * mapZ / mapX + 0.5))
+	else
+		w = math.max(16, math.floor(MINIMAP_LONG_EDGE * mapX / mapZ + 0.5))
+	end
+	local fbo = gl.CreateTexture(w, h, {
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+	})
+	if not fbo then
+		sectionSkip("minimap", "could not allocate the thumbnail buffer")
+		return true
+	end
+	local path = job.dir .. "minimap.png"
+	local ok
+	gl.RenderToTexture(fbo, function()
+		gl.Blending(false)
+		gl.Texture(0, "$minimap")
+		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		gl.Texture(0, false)
+		local shading = gl.TextureInfo("$shading")
+		if shading and (shading.xsize or 0) > 1 then
+			-- dst * src: the multiply the minimap shader does.
+			gl.Blending(GL.DST_COLOR, GL.ZERO)
+			gl.Texture(0, "$shading")
+			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+			gl.Texture(0, false)
+		end
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- No alpha: this is a picture of the map, and a thumbnail with an alpha
+		-- channel would only cost bytes in every project and every upload.
+		ok = gl.SaveImage(0, 0, w, h, path, { yflip = false, alpha = false })
+	end)
+	gl.DeleteTexture(fbo)
+	if ok then
+		job.minimapSize = { w = w, h = h }
+		sectionOk("minimap", "minimap.png", fileSize(path), string.format("%dx%d", w, h))
+	else
+		sectionSkip("minimap", "write failed")
+	end
+	return true
+end
+
 local STEPS = {
 	{ name = "prepare", run = stepPrepare },
 	{ name = "heightmap", run = stepHeightmap },
+	{ name = "minimap", run = stepMinimap },
 	{ name = "splat", run = stepSplat },
 	{ name = "surface", run = stepSurface },
 	{ name = "tileset", run = stepTileset },
@@ -1791,6 +1920,8 @@ local function finishSave()
 	end
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
 	currentSlug = job.slug
+	dirtyCount = 0
+	dirtyGraceUntil = os.clock() + 2
 	touchRecent(currentSlug)
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
@@ -1870,10 +2001,16 @@ end
 -- opened or saved through this widget).
 local function projectEntry(slug, manifest, touchedAt)
 	local m = manifest.map or {}
+	-- A manifest name that carries a path (saves made before the leaf rule)
+	-- lists by its leaf like every other project.
+	local name = manifest.name
+	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
+		name = slug:match("([^/]+)$") or slug
+	end
 	return {
 		slug = slug,
 		folder = slug:match("^(.*)/[^/]+$") or "",
-		name = manifest.name or slug:match("([^/]+)$") or slug,
+		name = name,
 		size_x = tonumber(m.size_x),
 		size_z = tonumber(m.size_z),
 		created = manifest.created,
@@ -1881,6 +2018,25 @@ local function projectEntry(slug, manifest, touchedAt)
 		last_touched = touchedAt,
 		format_version = tonumber(manifest.format_version),
 	}
+end
+
+-- One project's listing entry, read straight from its manifest, or nil if there
+-- is no project at that path. The listing walks folders with VFS.SubDirs, which
+-- cannot see a directory created during this session, so a project that has
+-- just been downloaded is missing from it until the next reload -- and the
+-- journal fallback does not cover it either, because a download is not an open
+-- or a save. Anything that knows the slug it wants can ask here instead: the
+-- manifest is read with raw io, which is disk truth.
+local function describeProject(slug)
+	local ok = validateSlug(slug)
+	if not ok then
+		return nil
+	end
+	local manifest = readPrevManifest(PROJECTS_DIR .. ok .. "/")
+	if not manifest or manifest.kind ~= "bar-map-project" then
+		return nil
+	end
+	return projectEntry(ok, manifest, nil)
 end
 
 -- Folder walk for the listing, MAX_SLUG_DEPTH deep: a folder with project.lua
@@ -1891,7 +2047,9 @@ local function walkProjects(rel, depth, out, seen, touchedAt)
 	local dirs = VFS.SubDirs(PROJECTS_DIR .. (rel ~= "" and (rel .. "/") or ""), "*", VFS.RAW) or {}
 	for _, d in ipairs(dirs) do
 		local seg = d:match("([^/\\]+)[/\\]*$")
-		if seg and seg:sub(1, 1) ~= "." then
+		-- _replaced holds the copies a Team Sync download replaced (newest
+		-- three per project), kept for a hand recovery; they are not projects.
+		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" then
 			local slug = rel == "" and seg or (rel .. "/" .. seg)
 			if validateSlug(slug) then
 				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
@@ -2033,6 +2191,242 @@ local function deleteProject(slug)
 		currentSlug = nil
 	end
 	return true
+end
+
+-- Delete a folder under MapProjects/ and every project inside it. The browser
+-- asks twice before calling this. Each project goes through deleteProject, so
+-- the same guards apply to every one of them (validated path, readable
+-- manifest, never a folder this widget did not write); the folders themselves
+-- are only removed once they are empty, so anything unexpected inside is left
+-- alone rather than swept away with it.
+local function deleteFolder(path)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot delete while the map library is transferring a project")
+		return false
+	end
+	if job or loadJob then
+		echoP("cannot delete a folder while a save or load is running")
+		return false
+	end
+	local folder, err = validateSlug(path)
+	if not folder then
+		echoP("cannot delete: " .. tostring(err))
+		return false
+	end
+	local dir = PROJECTS_DIR .. folder .. "/"
+	if readPrevManifest(dir) then
+		echoP("'" .. folder .. "' is a project, not a folder")
+		return false
+	end
+	local inside = {}
+	for _, p in ipairs(listProjectsDetailed()) do
+		if p.slug:sub(1, #folder + 1) == (folder .. "/") then
+			inside[#inside + 1] = p.slug
+		end
+	end
+	-- Deepest first: a nested project has to go before the folder holding it.
+	table.sort(inside, function(a, b)
+		return #a > #b
+	end)
+	local removed = 0
+	for _, slug in ipairs(inside) do
+		if deleteProject(slug) then
+			removed = removed + 1
+		end
+	end
+	if removed < #inside then
+		echoP(string.format("deleted %d of %d projects in '%s'; folder kept", removed, #inside, folder))
+		return false
+	end
+	-- Now the empty folders, deepest first. os.remove refuses a non-empty
+	-- directory, which is the guard: anything still in there stays.
+	local subs = VFS.SubDirs(dir, "*", VFS.RAW, true) or {}
+	table.sort(subs, function(a, b)
+		return #a > #b
+	end)
+	subs[#subs + 1] = dir
+	for _, d in ipairs(subs) do
+		os.remove((d:gsub("[/\\]+$", "")))
+	end
+	echoP(string.format("deleted folder '%s' (%d project%s)", folder, removed, removed == 1 and "" or "s"))
+	return true
+end
+
+-- Move a project to another folder under MapProjects/ (the browser's drag and
+-- drop). Both ends go through validateSlug, so source and destination are
+-- always folders under PROJECTS_DIR, never ".." and never absolute; the source
+-- must hold a readable manifest, so this never moves a folder this widget did
+-- not write; and the destination must not exist, so a move never overwrites a
+-- project. os.rename does the whole thing in one step where the filesystem
+-- allows it (same volume, no handle open); the copy path is the fallback, and
+-- it only deletes the source once every file has been written.
+local function moveProject(slug, target)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot move while the map library is transferring a project")
+		return false
+	end
+	if job or loadJob then
+		echoP("cannot move a project while a save or load is running")
+		return false
+	end
+	local from, fromErr = validateSlug(slug)
+	if not from then
+		echoP("cannot move: " .. tostring(fromErr))
+		return false
+	end
+	local to, toErr = validateSlug(target)
+	if not to then
+		echoP("cannot move: " .. tostring(toErr))
+		return false
+	end
+	if from == to then
+		return false
+	end
+	-- A project cannot be moved inside itself.
+	if to:sub(1, #from + 1) == (from .. "/") then
+		echoP("cannot move '" .. from .. "' into itself")
+		return false
+	end
+	local fromDir = PROJECTS_DIR .. from .. "/"
+	local toDir = PROJECTS_DIR .. to .. "/"
+	if not readPrevManifest(fromDir) then
+		echoP("cannot move '" .. from .. "': no readable project.lua in " .. fromDir)
+		return false
+	end
+	if readPrevManifest(toDir) then
+		echoP("cannot move: '" .. to .. "' already exists")
+		return false
+	end
+	-- Parent folders first: CreateDir makes one level at a time.
+	local walked = PROJECTS_DIR:gsub("/+$", "")
+	for segment in to:gmatch("[^/]+") do
+		walked = walked .. "/" .. segment
+		Spring.CreateDir(walked)
+	end
+	local renamed = false
+	pcall(function()
+		renamed = os.rename(fromDir:gsub("/+$", ""), toDir:gsub("/+$", "")) and true or false
+	end)
+	if not renamed then
+		-- Copy every file across, then take the source down the way delete does.
+		local files = VFS.DirList(fromDir, "*", VFS.RAW, true) or {}
+		files[#files + 1] = fromDir .. "project.lua"
+		local copied, seen, written = 0, {}, {}
+		for _, path in ipairs(files) do
+			local rel = path:gsub("\\", "/"):sub(#fromDir + 1)
+			if rel ~= "" and not seen[rel] then
+				seen[rel] = true
+				local input = io.open(path, "rb")
+				if input then
+					local data = input:read("*a")
+					input:close()
+					local sub = rel:match("^(.*)/[^/]+$")
+					if sub then
+						local dir = toDir:gsub("/+$", "")
+						for segment in sub:gmatch("[^/]+") do
+							dir = dir .. "/" .. segment
+							Spring.CreateDir(dir)
+						end
+					end
+					local output = io.open(toDir .. rel, "wb")
+					if not output then
+						echoP("cannot move '" .. from .. "': could not write " .. toDir .. rel)
+						-- Take the half-made copy back out. Without a project.lua it
+						-- never listed, but its files were in the way of the next
+						-- move to this path.
+						for _, done in ipairs(written) do
+							os.remove(done)
+						end
+						return false
+					end
+					output:write(data)
+					output:close()
+					written[#written + 1] = toDir .. rel
+					copied = copied + 1
+				end
+			end
+		end
+		if copied == 0 then
+			echoP("cannot move '" .. from .. "': nothing could be read from " .. fromDir)
+			return false
+		end
+		-- The copy is complete, so the source can go. Leftovers are inert: a
+		-- folder without project.lua no longer lists.
+		os.remove(fromDir .. "project.lua")
+		for _, path in ipairs(VFS.DirList(fromDir, "*", VFS.RAW, true) or {}) do
+			os.remove(path)
+		end
+		local subs = VFS.SubDirs(fromDir, "*", VFS.RAW, true) or {}
+		table.sort(subs, function(a, b)
+			return #a > #b
+		end)
+		subs[#subs + 1] = fromDir
+		for _, d in ipairs(subs) do
+			os.remove((d:gsub("[/\\]+$", "")))
+		end
+	end
+	if currentSlug == from then
+		currentSlug = to
+	end
+	-- The journal addresses projects by slug, so the entry has to follow.
+	local kept = {}
+	for _, e in ipairs(readRecent()) do
+		kept[#kept + 1] = { slug = e.slug == from and to or e.slug, at = e.at }
+	end
+	local parts = { "-- Recently opened or saved map projects, newest first (Terraform Brush).", "return {" }
+	for _, e in ipairs(kept) do
+		parts[#parts + 1] = string.format("\t{ slug = %q, at = %q },", e.slug, e.at)
+	end
+	parts[#parts + 1] = "}"
+	Spring.CreateDir("Terraform Brush")
+	writeFile(RECENT_PATH, table.concat(parts, "\n") .. "\n")
+	echoP(string.format("moved project '%s' to '%s'%s", from, to, renamed and "" or " (copied)"))
+	return true
+end
+
+-- Rename a project in place: a move within its own folder, and the
+-- manifest's name follows, since that is what the browser shows. Returns
+-- true and the new slug.
+local function renameProject(slug, newLeaf)
+	local ok = validateSlug(slug)
+	if not ok then
+		echoP("cannot rename: bad project path")
+		return false
+	end
+	local leaf = tostring(newLeaf or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if leaf == "" or leaf:find("[/\\]") then
+		echoP("cannot rename: the new name must be a single name, not a path")
+		return false
+	end
+	local folder = ok:match("^(.*)/[^/]+$")
+	local target = validateSlug((folder and (folder .. "/") or "") .. leaf)
+	if not target then
+		echoP("cannot rename: '" .. leaf .. "' is not a valid project name")
+		return false
+	end
+	if target == ok then
+		return true, target
+	end
+	if not moveProject(ok, target) then
+		return false
+	end
+	local path = PROJECTS_DIR .. target .. "/project.lua"
+	local f = io.open(path, "rb")
+	if f then
+		local text = f:read("*a")
+		f:close()
+		-- The name line stepManifest writes; the charset validateSlug allows
+		-- has no quotes, so the balanced match is exact.
+		local patched, n = text:gsub('\n\tname = %b"",', "\n\tname = " .. string.format("%q", leaf) .. ",", 1)
+		if n == 1 then
+			local out = io.open(path, "wb")
+			if out then
+				out:write(patched)
+				out:close()
+			end
+		end
+	end
+	return true, target
 end
 
 ----------------------------------------------------------------
@@ -2954,6 +3348,8 @@ local function finishLoad()
 	end
 	deletePointer()
 	loadJob = nil
+	dirtyCount = 0
+	dirtyGraceUntil = os.clock() + 8
 
 	-- Leave pregame, or the whole map is unclickable above the canvas base height.
 	--
@@ -3124,8 +3520,17 @@ local function maybeStartLoad()
 		echoP("phase journal was written by a different version; restarting the load from the beginning")
 		startPhase = 0
 	end
+	-- The pointer's path is PROJECTS_DIR .. slug .. "/". Take the slug back out
+	-- WHOLE: keeping only the leaf turned "Other/CM01Draft1" into "CM01Draft1",
+	-- so the next FILE > Save wrote a new root project and the OPEN badge never
+	-- found its row.
+	local pointerSlug = tostring(ptr.path):gsub("\\", "/"):gsub("/+$", "")
+	if pointerSlug:sub(1, #PROJECTS_DIR) == PROJECTS_DIR then
+		pointerSlug = pointerSlug:sub(#PROJECTS_DIR + 1)
+	end
+	pointerSlug = validateSlug(pointerSlug) or pointerSlug:match("([^/]+)$") or pointerSlug
 	loadJob = {
-		slug = ptr.path:match("([^/\\]+)[/\\]*$") or ptr.path,
+		slug = pointerSlug,
 		dir = ptr.path,
 		sizeX = ptr.size_x,
 		sizeZ = ptr.size_z,
@@ -3291,6 +3696,8 @@ function widget:Initialize()
 		end,
 	})
 	widgetHandler:AddAction("mapproject", mapProjectAction, nil, "t")
+	-- A fresh session's opening heightmap updates are not edits.
+	dirtyGraceUntil = os.clock() + 8
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
 	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
@@ -3316,16 +3723,46 @@ function widget:Initialize()
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		-- One known slug's entry, read from its manifest rather than found by
+		-- walking folders, so a project that landed this session is visible.
+		describe = describeProject,
 		-- { {slug, at}, ... } newest first: projects opened or saved through
 		-- this widget (the journal behind the dialog's RECENT order).
 		recent = readRecent,
 		delete = deleteProject,
+		deleteFolder = deleteFolder,
+		move = moveProject,
+		-- rename(slug, newLeaf) -> true, newSlug: a move within the folder,
+		-- and the manifest's name follows.
+		rename = renameProject,
 		hasUnitsSection = projectHasUnits,
 		exists = projectExists,
 		-- Slug of the project this session was loaded from or last saved to
 		-- (nil until one of those happens) — the FILE > Save target.
 		current = function()
 			return currentSlug
+		end,
+		-- Unsaved changes. Tools call markDirty when they change the map; the
+		-- terraform UI polls the terrain version for the heightmap. Cleared by
+		-- a finished save or load.
+		markDirty = function(_source)
+			if loadJob or job or os.clock() < dirtyGraceUntil then
+				return
+			end
+			dirtyCount = dirtyCount + 1
+		end,
+		isDirty = function()
+			return dirtyCount > 0
+		end,
+		-- (phase, total, phaseName) of the running load, nil when idle: the
+		-- status strip draws a LOADING bar from it after the restart.
+		loadProgress = function()
+			if not loadJob then
+				return nil
+			end
+			local index = math.min((tonumber(loadJob.phase) or 0) + 1, #LOAD_PHASES)
+			local entry = LOAD_PHASES[index] or {}
+			return index, #LOAD_PHASES, entry.name or ""
 		end,
 		-- (step, total, stepName) of the running save, nil when idle — drives
 		-- the status-strip segment bar in the terraform UI.

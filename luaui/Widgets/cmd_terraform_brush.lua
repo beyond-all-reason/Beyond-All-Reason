@@ -3376,6 +3376,11 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
+		-- Bumped on every heightmap update; the project widget's unsaved
+		-- changes flag watches it.
+		getTerrainVersion = function()
+			return extraState.terrainVersion
+		end,
 		importHeightmap = function(filename, fallbackMin, fallbackMax)
 			if not filename or filename == "" then
 				return false
@@ -3675,7 +3680,9 @@ function widget:Initialize()
 			if not tfUI or not tfUI.getPanelBounds then
 				return nil, nil
 			end
-			local bounds = tfUI.getPanelBounds()
+			-- A project dialog is an editor surface in front of the world too, so
+			-- the brush parks against it the way it parks against the panel.
+			local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 			if not bounds then
 				return nil, nil
 			end
@@ -7901,10 +7908,14 @@ extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 	local vsx, vsy = Spring.GetViewGeometry()
 	local brushSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
 	local midY = math.floor(vsy * 0.5)
+	-- Middle first, then the quarters, then the edges: a panel down one side
+	-- clears at the middle, and a window in the middle only clears near an edge.
 	local candidates = {
 		math.floor(vsx * 0.5),
 		math.floor(vsx * 0.25),
 		math.floor(vsx * 0.75),
+		math.floor(vsx * 0.05),
+		math.floor(vsx * 0.95),
 	}
 	for _, sx in ipairs(candidates) do
 		if not (sx >= bounds.left - brushSpan and sx <= bounds.right + brushSpan) then
@@ -7914,7 +7925,12 @@ extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 			end
 		end
 	end
-	local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
+	-- Nothing clears it. Take the side with the most room rather than the screen
+	-- centre, which would park the brush under the very thing it is stepping out
+	-- from behind.
+	local middle = (bounds.left + bounds.right) * 0.5
+	local fallbackX = middle > vsx * 0.5 and math.floor(vsx * 0.02) or math.floor(vsx * 0.98)
+	local _, pos = TraceScreenRay(fallbackX, midY, true)
 	return pos and pos[1] or nil, pos and pos[3] or nil
 end
 
@@ -7932,7 +7948,7 @@ extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthSc
 	if not tfUI or not tfUI.getPanelBounds then
 		return realX, realZ
 	end
-	local bounds = tfUI.getPanelBounds()
+	local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 	if not bounds then
 		return realX, realZ
 	end
@@ -8045,7 +8061,7 @@ extraState.applyUnmouse = function(worldX, worldZ)
 		extraState.unmouseActive = false
 		return worldX, worldZ
 	end
-	local bounds = tfUI.getPanelBounds()
+	local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 	if not bounds then
 		extraState.unmouseAnimT = 0
 		extraState.unmouseActive = false
