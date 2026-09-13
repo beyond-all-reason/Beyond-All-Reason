@@ -1370,6 +1370,8 @@ local function initializeModel()
 		showDangerMark = false,
 		showHorizontalDangerOutline = false,
 		dangerOverlayWidth = "100%",
+		showDeadlineExcessBackfill = false,
+		deadlineExcessBackfillWidth = "0%",
 		hasDeadline = false,
 		isBelowDeadline = false,
 		deadlineLineBottom = tostring(VERTICAL_TRACK_BOTTOM_DP) .. "dp",
@@ -1681,6 +1683,11 @@ local function updateDataModel()
 	end
 
 	local selectedProjectedPercent = clampNumber(selectedProjectedScore / horizontalScale * 100, 0, 100)
+	local deadlineExcessPercent = clampNumber(
+		(selectedProjectedScore - deadlineScore) / math.max(1, deadlineScore) * 100,
+		0,
+		100
+	)
 
 	local distributionFillRml, distributionHits, ascendingAllyTeams = buildDistributionData(allyTeams)
 
@@ -1733,6 +1740,8 @@ local function updateDataModel()
 	dataModel.showDangerMark = widgetState.isInDanger and selectedAllyTeam ~= nil and selectedAllyTeam.isAlive
 	dataModel.showHorizontalDangerOutline = dataModel.showDangerMark and not widgetState.isExpanded
 	dataModel.dangerOverlayWidth = formatPercentage(100 - selectedProjectedPercent)
+	dataModel.showDeadlineExcessBackfill = hasDeadline and isBelowDeadline and deadlineExcessPercent > 0
+	dataModel.deadlineExcessBackfillWidth = formatPercentage(deadlineExcessPercent)
 	dataModel.hasDeadline = hasDeadline
 	dataModel.isBelowDeadline = isBelowDeadline
 	dataModel.deadlineLineBottom = string.format(

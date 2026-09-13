@@ -308,6 +308,30 @@ body {
 	opacity: 1;
 }
 
+.td-deadline-excess-backfill {
+	position: absolute;
+	display: block;
+	right: 0;
+	top: 0;
+	height: 100%;
+	decorator: vertical-gradient(#FFFFFF78 #FFFFFF30);
+	pointer-events: none;
+	z-index: 6;
+	animation: 1.8s cubic-in-out infinite td-deadline-excess-pulse;
+}
+
+@keyframes td-deadline-excess-pulse {
+	0% {
+		opacity: 0.63;
+	}
+	50% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0.63;
+	}
+}
+
 .td-expanded-chart {
 	position: absolute;
 	display: block;

@@ -85,6 +85,11 @@
 					data-event-mouseover="showDangerMarkTooltip()"
 					data-event-mouseout="hideDangerMarkTooltip()"
 				></div>
+				<div
+					class="td-deadline-excess-backfill"
+					data-if="showDeadlineExcessBackfill"
+					data-style-width="deadlineExcessBackfillWidth"
+				></div>
 			</div>
 			<div class="td-horizontal-danger-outline" data-if="showHorizontalDangerOutline"></div>
 
