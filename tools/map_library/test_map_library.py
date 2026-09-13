@@ -42,6 +42,11 @@ class LibraryTests(unittest.TestCase):
         (seed / "README.md").write_text("Private map project library test fixture\n", encoding="utf-8")
         (seed / "02 Texture pass").mkdir()
         (seed / "02 Texture pass" / ".gitkeep").touch()
+        # A directory in the repository that no helper is configured for. The
+        # folder list is a statement of policy, not a scan, so this one must
+        # never appear in a catalogue or accept an upload.
+        (seed / "99 Stray").mkdir()
+        (seed / "99 Stray" / ".gitkeep").touch()
         git(seed, "add", ".")
         git(seed, "commit", "-m", "Initialize library")
         git(seed, "push", str(self.remote), "main")
@@ -52,7 +57,7 @@ class LibraryTests(unittest.TestCase):
     def client(self, name):
         return ml.Library(self.root / (name + "-data"), self.root / (name + "-state"),
                           str(self.remote), "main", name, name.lower() + "@example.invalid",
-                          ["01 Design pass"], True, local_test_remote=True)
+                          ["01 Design pass", "02 Texture pass"], True, local_test_remote=True)
 
     def project(self, client, source="arena", payload=b"original"):
         folder = client.projects / source
@@ -68,6 +73,22 @@ class LibraryTests(unittest.TestCase):
     def remote_files(self):
         return self.alice.tree(self.alice.fetch())
 
+    def payload_in_history(self, path, payload):
+        """Is this content still reachable from some commit on the branch?
+
+        The point of allowing overwrites is that nothing is actually lost, so
+        the tests assert recoverability rather than absence.
+        """
+        # The helper's own store, not the seed clone: the seed only ever pushed
+        # the first commit and never sees what the helpers push afterwards.
+        head = self.alice.fetch()
+        for commit in self.alice.git("rev-list", head).decode().split():
+            entries = self.alice.tree(commit)
+            info = entries.get(path)
+            if info and self.alice.blob(info[1]) == payload:
+                return True
+        return False
+
     def test_pull_preserves_local_files_and_reports_pipeline(self):
         source = self.project(self.alice)
         before = (source / "heightmap.png").read_bytes()
@@ -75,6 +96,23 @@ class LibraryTests(unittest.TestCase):
         catalog = ml.read_json(self.alice.bridge / "catalog.json")
         self.assertIn("02 Texture pass", catalog["stages"])
         self.assertEqual(before, (source / "heightmap.png").read_bytes())
+
+    def test_folder_list_is_the_configured_one_and_nothing_else(self):
+        """The structure is fixed, so the catalogue reports policy, not the tree.
+
+        A directory that is in the repository but not in the helper's
+        configuration is neither listed nor a destination, and publishing a
+        project does not turn its folder into one.
+        """
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        catalog = ml.read_json(self.alice.bridge / "catalog.json")
+        self.assertEqual(catalog["stages"], ["01 Design pass", "02 Texture pass"])
+        self.assertNotIn("99 Stray", catalog["stages"])
+        self.project(self.alice, source="stray")
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.alice.process(self.request(self.alice, source="stray", stage="99 Stray"))
+        self.assertEqual(str(caught.exception), "invalid_stage")
 
     def test_publish_is_additive_and_preserves_unrelated_files(self):
         source = self.project(self.alice)
@@ -85,7 +123,237 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(b"original", self.alice.blob(files[result["target"] + "/heightmap.png"][1]))
         self.assertEqual(b"original", (source / "heightmap.png").read_bytes())
 
-    def test_concurrent_same_name_uploads_keep_both_binary_maps(self):
+    # ---- remove -----------------------------------------------------------
+    # Deleting is the other operation that takes things off the remote, so the
+    # tests are about what it may not reach as much as what it removes.
+
+    def remove(self, client, source):
+        return client.process(self.request(client, operation="remove", source=source))
+
+    def test_remove_takes_the_project_and_nothing_else(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        self.project(self.alice, source="bystander", payload=b"untouched")
+        self.alice.process(self.request(self.alice, source="bystander"))
+        before = self.remote_files()
+        result = self.remove(self.alice, "01 Design pass/arena")
+        after = self.remote_files()
+        self.assertEqual(result["code"], "removed")
+        self.assertNotIn("01 Design pass/arena/project.lua", after)
+        self.assertIn("01 Design pass/bystander/project.lua", after)
+        self.assertIn("README.md", after)
+        for path, info in before.items():
+            if not path.startswith("01 Design pass/arena/"):
+                self.assertEqual(info, after.get(path), path)
+
+    def test_remove_refuses_a_folder_and_leaves_its_projects(self):
+        """Folders are structure, not content: only projects can be removed.
+
+        Emptying a folder is still possible, one project at a time, which is
+        the same work with the count of what is about to go visible.
+        """
+        self.project(self.alice, source="one")
+        self.alice.process(self.request(self.alice, source="one"))
+        self.project(self.alice, source="two")
+        self.alice.process(self.request(self.alice, source="two"))
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.remove(self.alice, "01 Design pass")
+        self.assertEqual(str(caught.exception), "missing_project")
+        after = self.remote_files()
+        self.assertIn("01 Design pass/one/project.lua", after)
+        self.assertIn("01 Design pass/two/project.lua", after)
+        self.remove(self.alice, "01 Design pass/one")
+        self.remove(self.alice, "01 Design pass/two")
+        emptied = self.remote_files()
+        self.assertFalse([path for path in emptied if path.startswith("01 Design pass/")])
+        self.assertIn("README.md", emptied)
+
+    def test_removed_files_are_still_in_history(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        self.remove(self.alice, "01 Design pass/arena")
+        self.assertNotIn("01 Design pass/arena/heightmap.png", self.remote_files())
+        self.assertTrue(self.payload_in_history("01 Design pass/arena/heightmap.png", b"original"))
+
+    def test_remove_refuses_without_push_permission(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        self.alice.allow_push = False
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.remove(self.alice, "01 Design pass/arena")
+        self.assertEqual(str(caught.exception), "read_only")
+
+    def test_remove_refuses_a_path_the_catalogue_does_not_know(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        for bad in ("README.md", "01 Design pass/ghost", "../..", "/", "Secret"):
+            with self.subTest(target=bad), self.assertRaises(ml.LibraryError):
+                self.remove(self.alice, bad)
+        self.assertIn("README.md", self.remote_files())
+
+    def test_replayed_remove_does_not_push_twice(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        request = self.request(self.alice, operation="remove", source="01 Design pass/arena")
+        first = self.alice.process(request)
+        count = git(self.remote, "rev-list", "--count", "main")
+        second = self.alice.process(dict(request))
+        self.assertEqual(first["target"], second["target"])
+        self.assertEqual(count, git(self.remote, "rev-list", "--count", "main"))
+
+    # ---- move -------------------------------------------------------------
+    # The one operation that removes anything from the remote, so what it may
+    # not do is worth as many tests as what it may.
+
+    def move(self, client, source, stage):
+        return client.process(self.request(client, operation="move", source=source, stage=stage))
+
+    def test_move_relocates_the_project_and_leaves_everything_else(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        result = self.move(self.alice, "01 Design pass/arena", "02 Texture pass")
+        files = self.remote_files()
+        self.assertEqual(result["code"], "moved")
+        self.assertEqual(result["target"], "02 Texture pass/arena")
+        self.assertNotIn("01 Design pass/arena/project.lua", files)
+        self.assertNotIn("01 Design pass/arena/heightmap.png", files)
+        self.assertIn("README.md", files)
+        self.assertIn("02 Texture pass/.gitkeep", files)
+        # The blob is re-used, not rewritten: same content, same object.
+        self.assertEqual(b"original", self.alice.blob(files["02 Texture pass/arena/heightmap.png"][1]))
+
+    def test_move_is_a_pure_rename_of_that_project_only(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        self.project(self.alice, source="bystander", payload=b"untouched")
+        self.alice.process(self.request(self.alice, source="bystander"))
+        before = self.remote_files()
+        self.move(self.alice, "01 Design pass/arena", "02 Texture pass")
+        after = self.remote_files()
+        for path, info in before.items():
+            if not path.startswith("01 Design pass/arena/"):
+                self.assertEqual(info, after.get(path), path)
+
+    def test_move_refuses_without_push_permission(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        reader = ml.Library(self.root / "reader-data", self.root / "reader-state", str(self.remote),
+                            "main", "Reader", "reader@example.invalid", ["01 Design pass"], False,
+                            local_test_remote=True)
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.move(reader, "01 Design pass/arena", "02 Texture pass")
+        self.assertEqual(str(caught.exception), "read_only")
+
+    def test_move_refuses_an_unknown_destination(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.move(self.alice, "01 Design pass/arena", "99 Nowhere")
+        self.assertEqual(str(caught.exception), "invalid_stage")
+
+    def test_move_collects_a_project_from_outside_the_pipeline(self):
+        """A project somewhere the pipeline does not cover can be moved into it.
+
+        This is how existing work reaches a folder structure that changed under
+        it. The destination is what is fenced; the source only has to be a
+        project the catalogue knows.
+        """
+        # Seed a project at the repository root, which no pipeline folder owns.
+        (self.seed / "loose").mkdir()
+        (self.seed / "loose" / "project.lua").write_bytes(MANIFEST)
+        git(self.seed, "add", ".")
+        git(self.seed, "commit", "-m", "Add a loose project")
+        git(self.seed, "push", str(self.remote), "main")
+        result = self.move(self.alice, "loose", "01 Design pass")
+        after = self.remote_files()
+        self.assertEqual(result["target"], "01 Design pass/loose")
+        self.assertIn("01 Design pass/loose/project.lua", after)
+        self.assertNotIn("loose/project.lua", after)
+
+    def test_move_refuses_a_source_that_is_not_a_project(self):
+        """Only published projects move. A folder full of them is not one.
+
+        A path that is not even shaped like a project is turned away earlier, by
+        slug(), which is why the two cases report different codes.
+        """
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        for bad, expected in (("01 Design pass", "missing_project"),
+                              ("nothing here", "missing_project"),
+                              ("README.md", "invalid_path")):
+            with self.subTest(source=bad), self.assertRaises(ml.LibraryError) as caught:
+                self.move(self.alice, bad, "02 Texture pass")
+            self.assertEqual(str(caught.exception), expected)
+        self.assertIn("01 Design pass/arena/project.lua", self.remote_files())
+
+    def test_move_refuses_a_source_that_is_not_there(self):
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.move(self.alice, "01 Design pass/ghost", "02 Texture pass")
+        self.assertEqual(str(caught.exception), "missing_project")
+
+    def test_move_refuses_a_path_escape(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        for bad in ("../secrets", "01 Design pass/../../etc", "/absolute"):
+            with self.assertRaises(ml.LibraryError):
+                self.move(self.alice, bad, "02 Texture pass")
+            with self.assertRaises(ml.LibraryError):
+                self.move(self.alice, "01 Design pass/arena", bad)
+
+    def test_move_into_the_same_folder_is_refused(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.move(self.alice, "01 Design pass/arena", "01 Design pass")
+        self.assertEqual(str(caught.exception), "invalid_request")
+
+    def test_replacing_a_project_drops_files_the_new_version_does_not_have(self):
+        # The reason an overwrite clears the destination first: a file the old
+        # version had and the new one does not must not survive in the project.
+        folder = self.project(self.alice)
+        (folder / "stale.lua").write_bytes(b"leftover")
+        self.alice.process(self.request(self.alice))
+        self.assertIn("01 Design pass/arena/stale.lua", self.remote_files())
+        (folder / "stale.lua").unlink()
+        self.alice.process(self.request(self.alice))
+        files = self.remote_files()
+        self.assertNotIn("01 Design pass/arena/stale.lua", files)
+        self.assertIn("01 Design pass/arena/project.lua", files)
+        self.assertTrue(self.payload_in_history("01 Design pass/arena/stale.lua", b"leftover"))
+
+    def test_move_replaces_a_project_already_at_the_destination(self):
+        self.project(self.alice, payload=b"first")
+        self.alice.process(self.request(self.alice))
+        self.project(self.bob, payload=b"second")
+        self.bob.process(self.request(self.bob, stage="02 Texture pass"))
+        result = self.move(self.alice, "01 Design pass/arena", "02 Texture pass")
+        files = self.remote_files()
+        self.assertEqual("02 Texture pass/arena", result["target"])
+        self.assertEqual(b"first", self.alice.blob(files["02 Texture pass/arena/heightmap.png"][1]))
+        self.assertNotIn("01 Design pass/arena/project.lua", files)
+        self.assertTrue(self.payload_in_history("02 Texture pass/arena/heightmap.png", b"second"))
+
+    def test_replayed_move_reports_the_same_result_without_moving_again(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        request = self.request(self.alice, operation="move", source="01 Design pass/arena",
+                               stage="02 Texture pass")
+        first = self.alice.process(request)
+        head = git(self.seed, "ls-remote", str(self.remote), "main")
+        second = self.alice.process(dict(request))
+        self.assertEqual(first["target"], second["target"])
+        self.assertEqual(head, git(self.seed, "ls-remote", str(self.remote), "main"))
+
+    def test_move_catalog_lists_the_project_at_its_new_path(self):
+        self.project(self.alice)
+        self.alice.process(self.request(self.alice))
+        self.move(self.alice, "01 Design pass/arena", "02 Texture pass")
+        catalog = self.alice.catalog(self.alice.fetch())
+        slugs = [entry["slug"] for entry in catalog["projects"]]
+        self.assertIn("02 Texture pass/arena", slugs)
+        self.assertNotIn("01 Design pass/arena", slugs)
+
+    def test_concurrent_same_name_uploads_end_at_one_project(self):
         self.project(self.alice, payload=b"alice terrain")
         self.project(self.bob, payload=b"bob terrain")
         barrier = threading.Barrier(2)
@@ -108,22 +376,30 @@ class LibraryTests(unittest.TestCase):
             one = pool.submit(racing, self.alice)
             two = pool.submit(racing, self.bob)
             results = [one.result(timeout=90), two.result(timeout=90)]
+        # Both uploads land, at the one path they both name: the second
+        # replaces the first rather than being pushed aside into a suffixed
+        # copy nobody can tell apart later.
         targets = {result["target"] for result in results}
-        self.assertEqual(2, len(targets))
-        self.assertIn("01 Design pass/arena", targets)
-        renamed = next(target for target in targets if target != "01 Design pass/arena")
-        self.assertRegex(renamed, r"arena--(Alice|Bob)-\d{8}-\d{6}-[a-f0-9]+$")
-        files = self.remote_files()
-        contents = {self.alice.blob(files[target + "/heightmap.png"][1]) for target in targets}
-        self.assertEqual({b"alice terrain", b"bob terrain"}, contents)
+        self.assertEqual({"01 Design pass/arena"}, targets)
         self.assertEqual("3", git(self.remote, "rev-list", "--count", "main"))
+        files = self.remote_files()
+        winner = self.alice.blob(files["01 Design pass/arena/heightmap.png"][1])
+        self.assertIn(winner, (b"alice terrain", b"bob terrain"))
+        # Nothing is lost, which is what makes replacing acceptable: the map
+        # that did not win is still reachable from the branch's history.
+        loser = b"bob terrain" if winner == b"alice terrain" else b"alice terrain"
+        self.assertTrue(self.payload_in_history("01 Design pass/arena/heightmap.png", loser))
 
-    def test_case_insensitive_name_collision_renames(self):
+    def test_case_insensitive_name_collision_is_refused(self):
+        # Two paths differing only by case cannot both exist on a Windows
+        # checkout, so the tree validation refuses the second before any push.
         self.project(self.alice, "Arena")
         self.project(self.bob, "arena")
         self.alice.process(self.request(self.alice, source="Arena"))
-        result = self.bob.process(self.request(self.bob))
-        self.assertIn("arena--Bob-", result["target"])
+        with self.assertRaises(ml.LibraryError) as caught:
+            self.bob.process(self.request(self.bob))
+        self.assertEqual(str(caught.exception), "case_collision")
+        self.assertEqual("2", git(self.remote, "rev-list", "--count", "main"))
 
     def test_duplicate_completed_request_never_pushes_twice(self):
         self.project(self.alice)
@@ -224,10 +500,17 @@ class LibraryTests(unittest.TestCase):
         with self.assertRaisesRegex(ml.LibraryError, "invalid_stage"):
             self.alice.process(self.request(self.alice, stage="Secret"))
 
-    def test_nested_project_collision_cannot_overwrite(self):
+    def test_a_project_may_not_be_nested_inside_another(self):
         entries = {"Design/parent/project.lua": ("100644", "abc", 10)}
         with self.assertRaises(ml.LibraryError):
-            self.alice.unique_target(entries, "Design/parent/arena", uuid.uuid4().hex)
+            self.alice.check_target(entries, "Design/parent/arena")
+        # And the other way round: a destination that would swallow a project.
+        entries = {"Design/parent/child/project.lua": ("100644", "abc", 10)}
+        with self.assertRaises(ml.LibraryError):
+            self.alice.check_target(entries, "Design/parent")
+        # Replacing the project that is already exactly there is allowed.
+        entries = {"Design/parent/project.lua": ("100644", "abc", 10)}
+        self.alice.check_target(entries, "Design/parent")
 
     def test_retargeting_state_directory_is_rejected(self):
         with self.assertRaisesRegex(ml.LibraryError, "state_mismatch"):
@@ -351,6 +634,94 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual([], errors)
         self.assertEqual(0, ml.read_json(self.alice.bridge / "status.json")["heartbeat"])
 
+
+    def test_catalog_carries_size_author_upload_time_and_fetch_time(self):
+        self.project(self.alice)
+        before = time.time() - 1
+        published = self.alice.process(self.request(self.alice))
+        self.bob.refresh()
+        catalog = ml.read_json(self.bob.bridge / "catalog.json")
+        self.assertGreaterEqual(catalog["fetched"], before)
+        entry = next(e for e in catalog["projects"] if e["slug"] == published["target"])
+        self.assertEqual(len(MANIFEST) + len(b"original"), entry["bytes"])
+        self.assertEqual("Alice", entry["author"])
+        self.assertGreaterEqual(entry["uploaded"], int(before))
+
+    def test_download_keeps_the_replaced_copy_and_prunes_to_three(self):
+        self.project(self.alice)
+        published = self.alice.process(self.request(self.alice))
+        self.bob.refresh()
+        catalog = ml.read_json(self.bob.bridge / "catalog.json")
+        for round_ in range(5):
+            local = self.bob.projects / published["target"]
+            if local.exists():
+                (local / "heightmap.png").write_bytes(b"edited %d" % round_)
+            self.bob.process(self.request(self.bob, "download", published["target"], revision=catalog["revision"]))
+        kept = sorted((self.bob.projects / "_replaced").iterdir())
+        self.assertEqual(3, len(kept))
+        self.assertEqual(b"edited 4", (kept[-1] / "heightmap.png").read_bytes())
+        self.assertEqual(b"original", (self.bob.projects / published["target"] / "heightmap.png").read_bytes())
+
+    def test_git_errors_are_classified_without_leaking_text(self):
+        self.assertEqual("no_access", ml.classify_git_error(
+            b"fatal: Authentication failed for 'https://x@github.com/a/b.git/'"))
+        self.assertEqual("no_access", ml.classify_git_error(b"remote: Repository not found."))
+        self.assertEqual("no_network", ml.classify_git_error(
+            b"fatal: unable to access 'https://github.com/a/b.git/': Could not resolve host: github.com"))
+        self.assertEqual("git_failed", ml.classify_git_error(b"error: something else"))
+
+    def test_startup_pulls_and_leaves_a_queued_request_for_processing(self):
+        stop = threading.Event()
+        errors = []
+        request = self.request(self.alice, "pull")
+        # In the mailbox before the helper starts: the startup pull must not
+        # take it out unprocessed.
+        ml.atomic_json(self.alice.bridge / "request.json", request)
+
+        def serve():
+            try:
+                self.alice.serve(stop)
+            except Exception as error:
+                errors.append(error)
+
+        thread = threading.Thread(target=serve, daemon=True)
+        thread.start()
+        try:
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                try:
+                    status = ml.read_json(self.alice.bridge / "status.json")
+                except (FileNotFoundError, PermissionError):
+                    status = {}
+                if (status.get("request_id") == request["id"] and not status.get("busy")
+                        and not (self.alice.bridge / "request.json").exists()):
+                    break
+                if errors:
+                    raise errors[0]
+                stop.wait(0.02)
+            else:
+                self.fail("Helper did not process the queued request")
+            self.assertEqual("pulled", status["code"])
+            self.assertGreater(status["last_pull"], 0)
+            self.assertGreater(status["started"], 0)
+            self.assertGreaterEqual(status["helper"], 2)
+        finally:
+            stop.set()
+            thread.join(timeout=10)
+        self.assertEqual([], errors)
+
+    def test_move_can_rename_within_the_same_folder(self):
+        self.project(self.alice)
+        published = self.alice.process(self.request(self.alice))
+        renamed = self.alice.process(self.request(self.alice, "move", published["target"], name="arena-2"))
+        self.assertEqual("01 Design pass/arena-2", renamed["target"])
+        listed = {entry["slug"] for entry in self.alice.catalog(self.alice.fetch())["projects"]}
+        self.assertIn("01 Design pass/arena-2", listed)
+        self.assertNotIn("01 Design pass/arena", listed)
+        with self.assertRaisesRegex(ml.LibraryError, "invalid_request"):
+            self.alice.process(self.request(self.alice, "move", renamed["target"], name="arena-2"))
+        with self.assertRaisesRegex(ml.LibraryError, "invalid_path"):
+            self.alice.process(self.request(self.alice, "move", renamed["target"], name="x/y"))
 
 
 class ShaderLibraryTests(unittest.TestCase):

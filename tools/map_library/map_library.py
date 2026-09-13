@@ -10,12 +10,12 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from datetime import datetime, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -25,12 +25,29 @@ import time
 import uuid
 
 VERSION = 1
+# The build, for the panel: it asks for a restart when an older one is serving.
+HELPER_VERSION = 2
 MAX_FILE = 95 * 1024 * 1024  # Below GitHub's 100 MiB hard limit; LFS is not implicit.
 MAX_PROJECT = 1024 * 1024 * 1024
 MAX_FILES = 10000
 MAX_CONTROL = 2 * 1024 * 1024
 RESERVED = {"con", "prn", "aux", "nul"} | {f"{p}{i}" for p in ("com", "lpt") for i in range(1, 10)}
 EXTENSIONS = {".lua", ".png", ".jpg", ".jpeg", ".tga", ".dds", ".bmp", ".json", ".txt", ".md"}
+# The team library's folder structure. Fixed, not discovered: these are the only
+# places a project may be uploaded or moved to, and the editor draws its tree
+# from this list whether or not anything has been put in them yet. The two
+# parents ("Map Prototypes", "Texture Pass") exist only as the shared prefix of
+# their children -- a project lives in a stage, never in the grouping above it.
+# --stage overrides the whole list for a helper pointed at a different library.
+DEFAULT_STAGES = [
+    "Map Prototypes/Drafts",
+    "Map Prototypes/Review",
+    "Map Prototypes/Done",
+    "Texture Pass/Drafts",
+    "Texture Pass/Review",
+    "Texture Pass/Done",
+    "Other",
+]
 # Shader library. Syncing writes widget code, so the write targets are an
 # allowlist rather than anything the manifest happens to name.
 SHADER_EXTENSIONS = EXTENSIONS | {".rml", ".rcss"}
@@ -44,6 +61,24 @@ LFS_HEADER = b"version https://git-lfs.github.com/spec/v1"
 
 class LibraryError(Exception):
     """A stable error code, translated in-game rather than exposing Git output."""
+
+
+# What Git's stderr means, as a code the game translates. The text itself is
+# never passed on: it can carry a URL with credentials in it.
+NO_ACCESS = ("authentication failed", "could not read username", "permission denied",
+             "repository not found", "access denied", "not authorized", " 403", " 401")
+NO_NETWORK = ("could not resolve host", "connection timed out", "connection refused",
+              "network is unreachable", "failed to connect", "unable to access",
+              "could not connect", "timed out")
+
+
+def classify_git_error(stderr: bytes) -> str:
+    text = stderr.decode("utf-8", errors="replace").lower()
+    if any(mark in text for mark in NO_ACCESS):
+        return "no_access"
+    if any(mark in text for mark in NO_NETWORK):
+        return "no_network"
+    return "git_failed"
 
 
 def slug(value: str, depth: int = 4) -> str:
@@ -224,7 +259,7 @@ class GitStore:
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise LibraryError("git_unavailable") from exc
         if result.returncode and check:
-            raise LibraryError("git_failed")
+            raise LibraryError(classify_git_error(result.stderr))
         return result.stdout if result.returncode == 0 else b""
 
     def fetch(self) -> str:
@@ -404,7 +439,11 @@ class Library(GitStore):
                 or not re.fullmatch(r"[^\s<>@]+@[^\s<>@]+", email)):
             raise LibraryError("invalid_identity")
         self.author, self.email = author, email
-        self.stages = sorted(set(slug(stage, 3) for stage in stages))
+        # Configured order, not sorted: the list is a pipeline, so Drafts comes
+        # before Review comes before Done, the chips draw in that order and a
+        # new project defaults to the first stage rather than the alphabetical
+        # one. Duplicates drop, the first mention wins.
+        self.stages = list(dict.fromkeys(slug(stage, 3) for stage in stages))
         if not self.stages:
             raise LibraryError("invalid_stage")
         self.allow_push = allow_push
@@ -425,8 +464,18 @@ class Library(GitStore):
         return result
 
     def catalog(self, revision: str) -> dict:
+        """Describe the library: its fixed folders and every project in it.
+
+        The folder list is exactly the configured one. It used to grow to fit
+        whatever the tree happened to contain -- a project's own folder, any
+        directory with a .gitkeep in it -- which made the pipeline whatever
+        anyone had last uploaded into. The team asked for a fixed structure, so
+        `stages` is now a statement of where work is allowed to go, not a
+        report of where it has been put. Projects outside it still list (they
+        carry their own path), they are simply not destinations any more.
+        """
         entries = self.tree(revision)
-        projects, stages = [], set(self.stages)
+        projects, stages = [], list(self.stages)
         for path in sorted(entries):
             if not path.endswith("/project.lua"):
                 continue
@@ -440,9 +489,8 @@ class Library(GitStore):
             if not re.search(r'kind\s*=\s*["\']bar-map-project["\']', raw):
                 raise LibraryError("missing_project")
             folder, _, name = project.rpartition("/")
-            if folder:
-                stages.add(slug(folder, 3))
-            entry = {"slug": project, "folder": folder, "name": name, "revision": revision}
+            entry = {"slug": project, "folder": folder, "name": name, "revision": revision,
+                     "bytes": sum(info[2] for info in files.values())}
             for key in ("size_x", "size_z"):
                 match = re.search(r"\b" + key + r"\s*=\s*(\d+)", raw)
                 if match:
@@ -450,18 +498,45 @@ class Library(GitStore):
             match = re.search(r'modified\s*=\s*["\']([0-9TZ:-]+)["\']', raw)
             entry["modified"] = match.group(1) if match else ""
             projects.append(entry)
-        # Preserve empty pipeline directories tracked using .gitkeep.
-        for path in entries:
-            if path.endswith("/.gitkeep"):
-                stages.add(slug(path[:-len("/.gitkeep")], 3))
         result = {"version": VERSION, "remote": self.remote, "branch": self.branch,
-                  "revision": revision, "projects": projects, "stages": sorted(stages)}
+                  "revision": revision, "projects": projects, "stages": stages,
+                  "fetched": time.time()}
         if len(json.dumps(result, ensure_ascii=True).encode()) > MAX_CONTROL:
             raise LibraryError("too_large")
         return result
 
+    def history(self, revision: str, projects: list) -> None:
+        """Stamp each catalogue entry with who last changed it and when.
+
+        One walk of the branch, newest first; a project takes the first commit
+        that touched anything under it. Only for a commit (publish validates a
+        proposed tree through catalog(), and a tree has no history).
+        """
+        by_prefix = {entry["slug"] + "/": entry for entry in projects}
+        if not by_prefix:
+            return
+        output = self.git("-c", "core.quotepath=false", "log", "-n", "5000", "--no-renames",
+                          "--format=%x01%an%x00%ct", "--name-only", revision, check=False)
+        author, stamp, pending = "", 0, len(by_prefix)
+        for line in output.decode("utf-8", errors="replace").splitlines():
+            if line.startswith("\x01"):
+                head = line[1:].split("\x00")
+                author = head[0][:32]
+                stamp = int(head[1]) if len(head) > 1 and head[1].isdigit() else 0
+                continue
+            if not line:
+                continue
+            for prefix, entry in by_prefix.items():
+                if "author" not in entry and line.startswith(prefix):
+                    entry["author"], entry["uploaded"] = author, stamp
+                    pending -= 1
+            if pending <= 0:
+                break
+
     def refresh(self) -> dict:
-        catalog = self.catalog(self.fetch())
+        head = self.fetch()
+        catalog = self.catalog(head)
+        self.history(head, catalog["projects"])
         atomic_json(self.bridge / "catalog.json", catalog)
         return {"code": "pulled", "revision": catalog["revision"]}
 
@@ -511,29 +586,49 @@ class Library(GitStore):
             raise LibraryError("source_changed")
         return first
 
-    def unique_target(self, entries: dict, target: str, request_id: str) -> str:
-        def occupied(candidate: str) -> bool:
-            candidate = candidate.casefold()
-            for path in entries:
-                path = path.casefold()
-                if path == candidate or path.startswith(candidate + "/") or candidate.startswith(path + "/"):
-                    return True
-                # A project cannot be nested inside another project.
-                if path.endswith("/project.lua") and candidate.startswith(path[:-len("project.lua")]):
-                    return True
-            return False
+    def check_target(self, entries: dict, target: str) -> None:
+        """Refuse a destination that would nest one project inside another.
 
-        if not occupied(target):
-            return target
-        parent, _, name = target.rpartition("/")
-        suffix = "--" + self.author.strip().replace(" ", "-")[:12] + "-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + request_id[:8]
-        budget = min(64, 128 - len(parent) - 1) - len(suffix)
-        if budget < 1:
-            raise LibraryError("invalid_path")
-        candidate = slug(parent + "/" + name[:budget].rstrip() + suffix)
-        if occupied(candidate):
-            raise LibraryError("name_collision")
-        return candidate
+        A project already at exactly this path is replaced rather than dodged:
+        the helper pushes fast-forward only and never rewrites history, so the
+        previous version stays reachable in the branch's history and `git
+        checkout <sha> -- <path>` brings it back. The old behaviour allocated a
+        suffixed copy instead, which never lost anything but left the library
+        full of near-duplicate names nobody could tell apart.
+
+        What is NOT negotiable is the shape of the tree: a project inside
+        another project has no meaning to the catalogue, so both directions are
+        still refused.
+        """
+        inside = target + "/"
+        for path in entries:
+            if path.startswith(inside):
+                # Under the target. Only the project being replaced may live
+                # here; a project nested deeper means the tree is already wrong
+                # or this upload would bury someone else's map.
+                rest = path[len(inside):]
+                if "/" in rest and rest.endswith("/project.lua"):
+                    raise LibraryError("invalid_path")
+                continue
+            if path.endswith("/project.lua"):
+                owner = path[: -len("/project.lua")]
+                if target.startswith(owner + "/"):
+                    raise LibraryError("invalid_path")
+
+    def remove_entries(self, entries: dict, target: str) -> bytearray:
+        """Index lines that drop everything currently under `target`.
+
+        An overwrite has to take the old files out in the same commit. Adding
+        the new ones over the top would leave whatever the previous version had
+        and this one does not -- a stale diffuse tile, a heightmap from two
+        shapes ago -- sitting in the project forever.
+        """
+        index = bytearray()
+        inside = target + "/"
+        for path in sorted(entries):
+            if path.startswith(inside):
+                index.extend(b"0 " + b"0" * 40 + b"\t" + path.encode() + b"\0")
+        return index
 
     def publish(self, request: dict) -> dict:
         if not self.allow_push:
@@ -567,12 +662,16 @@ class Library(GitStore):
                     self.refresh()
                     return {"code": "published", "target": journal["target"], "revision": head}
             entries = self.tree(head)
-            target = self.unique_target(entries, slug(stage + "/" + source.split("/")[-1]), request_id)
+            target = slug(stage + "/" + source.split("/")[-1])
+            self.check_target(entries, target)
+            replacing = any(path.startswith(target + "/") for path in entries)
             with tempfile.TemporaryDirectory(prefix="index-", dir=self.state) as temporary:
                 no_links(Path(temporary))
                 env = {"GIT_INDEX_FILE": str(Path(temporary) / "index")}
                 self.git("read-tree", head, extra_env=env)
-                index = bytearray()
+                # Clear the destination first, so a replaced project keeps no
+                # files the new version does not have.
+                index = self.remove_entries(entries, target)
                 for relative, expected in sorted(journal["hashes"].items()):
                     path = snapshot / asset_path(relative)
                     no_links(path)
@@ -588,8 +687,10 @@ class Library(GitStore):
                 self.catalog(tree)
                 identity = {"GIT_AUTHOR_NAME": self.author, "GIT_COMMITTER_NAME": self.author,
                             "GIT_AUTHOR_EMAIL": self.email, "GIT_COMMITTER_EMAIL": self.email}
+                verb = "Update" if replacing else "Add"
                 commit = self.git("-c", "commit.gpgSign=false", "commit-tree", tree, "-p", head,
-                                  input_data=f"Add map project {target}\n\nMap-Library-Request: {request_id}\n".encode(),
+                                  input_data=f"{verb} map project {target}\n\n"
+                                             f"Map-Library-Request: {request_id}\n".encode(),
                                   extra_env=identity).decode().strip()
             journal.update({"commit": commit, "target": target})
             self.git("update-ref", "refs/library-pending/" + request_id, commit)
@@ -604,6 +705,171 @@ class Library(GitStore):
             return {"code": "published", "target": journal["target"], "revision": head}
         raise LibraryError("push_rejected")
 
+    def move(self, request: dict) -> dict:
+        """Move a published project into another pipeline folder.
+
+        This is the one operation that removes anything from the remote, so it
+        is fenced in tightly. It only ever deletes paths under `source + "/"`,
+        and it re-adds every one of those blobs unchanged under the destination,
+        so the commit is a pure rename: the tree outside the project is copied
+        from HEAD untouched. Both ends are slug()-validated, the source has to
+        be a project the catalogue knows, the destination has to be a configured
+        pipeline folder, and check_target refuses a destination that would nest
+        one project inside another or alias an existing path by case. The source
+        deliberately does NOT have to be in a configured folder: moving work out
+        of somewhere that is no longer part of the pipeline and into somewhere
+        that is exactly the job, and the destination is what bounds this.
+        The proposed tree is validated before the
+        push, and the push is the same fast-forward-only one publish uses -- no
+        rebase, no merge, no force. Replay is safe: the journal records the
+        commit, and a rerun that finds it already an ancestor of HEAD reports
+        success instead of moving anything a second time.
+        """
+        if not self.allow_push:
+            raise LibraryError("read_only")
+        request_id = request["id"]
+        source = slug(request["source"])
+        stage = slug(request["stage"], 3)
+        catalog = self.catalog(self.fetch())
+        if stage not in catalog["stages"]:
+            raise LibraryError("invalid_stage")
+        # The catalogue is the fence on this end: a published project can be
+        # moved, anything else in the repository is not the helper's to touch.
+        if source not in {entry["slug"] for entry in catalog["projects"]}:
+            raise LibraryError("missing_project")
+        parent, _, leaf = source.rpartition("/")
+        # A move may rename: `name` is the new leaf, the old one otherwise.
+        name = request.get("name") or leaf
+        if not isinstance(name, str) or "/" in name:
+            raise LibraryError("invalid_path")
+        slug(name, 1)
+        if parent == stage and name == leaf:
+            raise LibraryError("invalid_request")
+        journal_path = self.state / (request_id + ".json")
+        journal = read_json(journal_path) if journal_path.exists() else {}
+        if journal and journal.get("request") != request:
+            raise LibraryError("invalid_request")
+        for _attempt in range(4):
+            head = self.fetch()
+            if journal.get("commit"):
+                ancestor = self.git("merge-base", head, journal["commit"], check=False).decode().strip()
+                if ancestor == journal["commit"]:
+                    self.refresh()
+                    return {"code": "moved", "target": journal["target"], "revision": head}
+            entries = self.tree(head)
+            # Raises missing_project when the source is gone (someone else moved
+            # or removed it), rather than committing an empty rename.
+            files = self.project_files(entries, source)
+            target = slug(stage + "/" + name)
+            self.check_target(entries, target)
+            with tempfile.TemporaryDirectory(prefix="index-", dir=self.state) as temporary:
+                no_links(Path(temporary))
+                env = {"GIT_INDEX_FILE": str(Path(temporary) / "index")}
+                self.git("read-tree", head, extra_env=env)
+                # Anything already at the destination goes, then the project's
+                # own blobs are re-added there.
+                index = self.remove_entries(entries, target)
+                for relative in sorted(files):
+                    mode, oid, _size = files[relative]
+                    # Mode 0 removes the old path; the same blob goes back in at
+                    # the new one, so no content is rewritten and none is lost.
+                    index.extend(b"0 " + b"0" * 40 + b"\t" + (source + "/" + relative).encode() + b"\0")
+                    index.extend(mode.encode() + b" " + oid.encode() + b"\t"
+                                 + (target + "/" + relative).encode() + b"\0")
+                self.git("update-index", "-z", "--index-info", input_data=bytes(index), extra_env=env)
+                tree = self.git("write-tree", extra_env=env).decode().strip()
+                # Validate the proposed tree BEFORE pushing, exactly as publish
+                # does: this catches a destination whose casing aliases an
+                # existing folder, and any project the rename would have nested.
+                moved_catalog = self.catalog(tree)
+                if any(entry["slug"] == source for entry in moved_catalog["projects"]):
+                    raise LibraryError("invalid_request")
+                if not any(entry["slug"] == target for entry in moved_catalog["projects"]):
+                    raise LibraryError("missing_project")
+                identity = {"GIT_AUTHOR_NAME": self.author, "GIT_COMMITTER_NAME": self.author,
+                            "GIT_AUTHOR_EMAIL": self.email, "GIT_COMMITTER_EMAIL": self.email}
+                message = (f"Move map project {source} to {target}\n\n"
+                           f"Map-Library-Request: {request_id}\n").encode()
+                commit = self.git("-c", "commit.gpgSign=false", "commit-tree", tree, "-p", head,
+                                  input_data=message, extra_env=identity).decode().strip()
+            journal.update({"request": request, "commit": commit, "target": target})
+            self.git("update-ref", "refs/library-pending/" + request_id, commit)
+            atomic_json(journal_path, journal)  # Before push: a lost acknowledgement is recoverable.
+            self.git("push", "--porcelain", "--no-verify", "--recurse-submodules=no", self.remote,
+                     commit + ":refs/heads/" + self.branch, check=False)
+        head = self.fetch()
+        if self.git("merge-base", head, journal["commit"], check=False).decode().strip() == journal["commit"]:
+            self.refresh()
+            return {"code": "moved", "target": journal["target"], "revision": head}
+        raise LibraryError("push_rejected")
+
+    def remove(self, request: dict) -> dict:
+        """Delete one published project from the library.
+
+        Destructive by intent, so it is bounded the same way move is: push
+        permission required, the target has to be a project the catalogue
+        already knows, and the commit only ever drops paths under `target/`.
+        The rest of the tree is carried over from HEAD untouched, the push stays
+        fast-forward only, and every deleted file remains reachable in the
+        branch's history -- `git checkout <sha> -- <path>` is the undo.
+
+        A folder is not a target. The structure is fixed (see DEFAULT_STAGES),
+        so there is no folder here that anyone is entitled to delete, and
+        emptying one a project at a time is the same work done visibly.
+        """
+        if not self.allow_push:
+            raise LibraryError("read_only")
+        request_id = request["id"]
+        target = slug(request["source"])
+        catalog = self.catalog(self.fetch())
+        known = {entry["slug"] for entry in catalog["projects"]}
+        if target not in known:
+            raise LibraryError("missing_project")
+        journal_path = self.state / (request_id + ".json")
+        journal = read_json(journal_path) if journal_path.exists() else {}
+        if journal and journal.get("request") != request:
+            raise LibraryError("invalid_request")
+        for _attempt in range(4):
+            head = self.fetch()
+            if journal.get("commit"):
+                ancestor = self.git("merge-base", head, journal["commit"], check=False).decode().strip()
+                if ancestor == journal["commit"]:
+                    self.refresh()
+                    return {"code": "removed", "target": target, "revision": head}
+            entries = self.tree(head)
+            index = self.remove_entries(entries, target)
+            if not index:
+                # Someone else already removed it; that is the requested state.
+                self.refresh()
+                return {"code": "removed", "target": target, "revision": head}
+            count = sum(1 for path in entries if path.startswith(target + "/") and path.endswith("/project.lua"))
+            count += 1 if (target + "/project.lua") in entries else 0
+            with tempfile.TemporaryDirectory(prefix="index-", dir=self.state) as temporary:
+                no_links(Path(temporary))
+                env = {"GIT_INDEX_FILE": str(Path(temporary) / "index")}
+                self.git("read-tree", head, extra_env=env)
+                self.git("update-index", "-z", "--index-info", input_data=bytes(index), extra_env=env)
+                tree = self.git("write-tree", extra_env=env).decode().strip()
+                # Same pre-push validation as every other write.
+                self.catalog(tree)
+                identity = {"GIT_AUTHOR_NAME": self.author, "GIT_COMMITTER_NAME": self.author,
+                            "GIT_AUTHOR_EMAIL": self.email, "GIT_COMMITTER_EMAIL": self.email}
+                message = (f"Remove {target} from the map library\n\n"
+                           f"Projects removed: {count}\n"
+                           f"Map-Library-Request: {request_id}\n").encode()
+                commit = self.git("-c", "commit.gpgSign=false", "commit-tree", tree, "-p", head,
+                                  input_data=message, extra_env=identity).decode().strip()
+            journal.update({"request": request, "commit": commit, "target": target})
+            self.git("update-ref", "refs/library-pending/" + request_id, commit)
+            atomic_json(journal_path, journal)
+            self.git("push", "--porcelain", "--no-verify", "--recurse-submodules=no", self.remote,
+                     commit + ":refs/heads/" + self.branch, check=False)
+        head = self.fetch()
+        if self.git("merge-base", head, journal["commit"], check=False).decode().strip() == journal["commit"]:
+            self.refresh()
+            return {"code": "removed", "target": journal["target"], "revision": head}
+        raise LibraryError("push_rejected")
+
     def download(self, request: dict) -> dict:
         catalog = read_json(self.bridge / "catalog.json")
         if (request.get("revision") != catalog.get("revision") or catalog.get("remote") != self.remote
@@ -613,35 +879,71 @@ class Library(GitStore):
         if project not in {entry["slug"] for entry in catalog["projects"]}:
             raise LibraryError("missing_project")
         entries = self.project_files(self.tree(catalog["revision"]), project)
-        # A fresh, editable local copy. Never replace the project currently open in-game.
-        name = project.split("/")[-1][:40].rstrip() + "--" + request["id"][:12]
-        local_slug = slug(name)
+        # The local copy lands at the repository's own path, so both sides share
+        # one structure and a team project is recognisable as the same project
+        # locally. A copy already there is replaced: the editor refuses to
+        # download over the project it currently has open, and every other
+        # version is still in the branch's history.
+        local_slug = slug(project)
         destination = self.projects / local_slug
         no_links(destination)
-        if any(path.name.casefold() == name.casefold() for path in self.projects.iterdir()):
-            raise LibraryError("name_collision")
         with tempfile.TemporaryDirectory(prefix="download-", dir=self.state) as temporary:
             staging = Path(temporary)
             for relative, (_mode, oid, _size) in entries.items():
                 path = staging / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(self.blob(oid))
-            # Exclusive directory creation + manifest last means partial downloads do
-            # not list. On failure the partial folder remains for manual inspection.
+            # Staged in full first, so a transfer that fails part way cannot
+            # leave a half-replaced project behind. The manifest is written last:
+            # until it lands the folder does not list as a project at all.
+            previous = destination.with_name(destination.name + ".replacing")
+            if destination.exists():
+                no_links(destination)
+                if previous.exists():
+                    shutil.rmtree(previous)
+                destination.rename(previous)
             try:
-                destination.mkdir()
-            except FileExistsError as exc:
-                raise LibraryError("name_collision") from exc
-            for relative in sorted(entries, key=lambda value: value == "project.lua"):
-                target = destination / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                with target.open("xb") as handle:
-                    handle.write((staging / relative).read_bytes())
+                destination.mkdir(parents=True)
+                for relative in sorted(entries, key=lambda value: value == "project.lua"):
+                    target = destination / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with target.open("xb") as handle:
+                        handle.write((staging / relative).read_bytes())
+            except Exception:
+                # Put the old copy back rather than leaving nothing at the path.
+                if previous.exists():
+                    if destination.exists():
+                        shutil.rmtree(destination)
+                    previous.rename(destination)
+                raise
+            if previous.exists():
+                self.retire(previous, local_slug)
         return {"code": "downloaded", "local_slug": local_slug}
+
+    def retire(self, previous: Path, local_slug: str) -> None:
+        """Keep the copy a download replaced, under MapProjects/_replaced.
+
+        Newest three per project. The editor's browser skips that folder, so
+        the copies are there for a hand recovery and never list as projects.
+        """
+        keep = self.projects / "_replaced"
+        no_links(keep)
+        keep.mkdir(parents=True, exist_ok=True)
+        key = local_slug.replace("/", "__")
+        stamp = time.strftime("%Y%m%d-%H%M%S", time.gmtime())
+        target = keep / f"{key}-{stamp}"
+        suffix = 0
+        while target.exists():
+            suffix += 1
+            target = keep / f"{key}-{stamp}-{suffix}"
+        previous.rename(target)
+        older = sorted(path for path in keep.iterdir() if path.is_dir() and path.name.startswith(key + "-"))
+        for path in older[:-3]:
+            shutil.rmtree(path)
 
     def process(self, request: dict) -> dict:
         if (request.get("version") != VERSION or not re.fullmatch(r"[a-f0-9]{16,64}", str(request.get("id", "")))
-                or request.get("operation") not in {"pull", "publish", "download",
+                or request.get("operation") not in {"pull", "publish", "download", "move", "remove",
                                                     "shader_check", "shader_sync"}):
             raise LibraryError("invalid_request")
         completed = self.state / (request["id"] + "-result.json")
@@ -664,33 +966,45 @@ class Library(GitStore):
             result = self.refresh()
         elif request["operation"] == "publish":
             result = self.publish(request)
+        elif request["operation"] == "move":
+            result = self.move(request)
+        elif request["operation"] == "remove":
+            result = self.remove(request)
         else:
             result = self.download(request)
         atomic_json(completed, {"request": request, "result": result})
         return result
 
-    def _startup_shader_check(self) -> dict:
-        try:
-            self.shader.check()
-        except LibraryError as exc:
-            self.shader.report.update(code=str(exc), checked=time.time())
-        except Exception:
-            self.shader.report.update(code="helper_error", checked=time.time())
-        return {"code": "ready"}
+    def _startup(self) -> dict:
+        """Answer "is my shader current?" and "what is in the library?" before
+        the panel ever asks: the connection is the moment both matter."""
+        if self.shader is not None:
+            try:
+                self.shader.check()
+            except LibraryError as exc:
+                self.shader.report.update(code=str(exc), checked=time.time())
+            except Exception:
+                self.shader.report.update(code="helper_error", checked=time.time())
+        return self.refresh()
 
     def serve(self, stop: threading.Event | None = None) -> None:
         status = {"version": VERSION, "session": self.session, "remote": self.remote,
                   "branch": self.branch, "allow_push": self.allow_push, "stages": self.stages,
-                  "busy": False, "code": "ready", "request_id": "",
+                  "busy": False, "code": "ready", "request_id": "", "started": time.time(),
+                  "last_pull": 0, "helper": HELPER_VERSION,
                   "shader": dict(self.shader.report) if self.shader else {"configured": False}}
         request_path = self.bridge / "request.json"
         stop = stop or threading.Event()
         future = None
+        # Whether the running future was started for a request in the mailbox.
+        # The startup work is not, and its completion must not take a request
+        # that arrived meanwhile out of the mailbox unprocessed.
+        consumes = False
         with ThreadPoolExecutor(max_workers=1) as worker:
-            if self.shader is not None:
-                # Answer "is my shader current?" before the panel ever asks.
-                future = worker.submit(self._startup_shader_check)
-                status.update(busy=True, code="working")
+            # Pull once (and check the shader) before the panel asks: the
+            # connection is the moment the library on screen should be today's.
+            future = worker.submit(self._startup)
+            status.update(busy=True, code="working")
             try:
                 while not stop.is_set():
                     if future is not None and future.done():
@@ -702,12 +1016,17 @@ class Library(GitStore):
                             status.update(code="helper_error")
                         if self.shader is not None:
                             status["shader"] = dict(self.shader.report)
+                        if status.get("code") in ("pulled", "published", "moved", "removed"):
+                            status["last_pull"] = time.time()
                         status["busy"] = False
+                        print(("%s %s %s" % (time.strftime("%H:%M"), status.get("code", ""),
+                                             status.get("target") or status.get("local_slug") or "")).rstrip())
                         # Publish acknowledgement first; readers never see an idle gap
                         # between removing their request and receiving its outcome.
                         atomic_json(self.bridge / "status.json", {**status, "heartbeat": time.time()})
-                        request_path.unlink(missing_ok=True)
-                        future = None
+                        if consumes:
+                            request_path.unlink(missing_ok=True)
+                        future, consumes = None, False
                     if future is None and request_path.exists():
                         try:
                             request = read_json(request_path)
@@ -716,7 +1035,7 @@ class Library(GitStore):
                         if request is not None:
                             status.update(busy=True, code="working", request_id=str(request.get("id", "")),
                                           local_slug="", target="")
-                            future = worker.submit(self.process, request)
+                            future, consumes = worker.submit(self.process, request), True
                     atomic_json(self.bridge / "status.json", {**status, "heartbeat": time.time()})
                     stop.wait(1)
             except KeyboardInterrupt:
@@ -753,20 +1072,21 @@ def main() -> None:
         # the same game queue even if configured with different repository URLs.
         with exclusive_lock(args.data_dir / "Terraform Brush" / "Map Library" / "service.lock"):
             library = Library(args.data_dir, state, args.remote, args.branch, args.author, args.email,
-                              args.stage or ["01 Design pass", "02 Texture pass", "03 Gameplay pass", "04 Review"], args.allow_push)
+                              args.stage or DEFAULT_STAGES, args.allow_push)
             if args.shader_remote:
                 shader_key = hashlib.sha256(
                     (str(args.data_dir.absolute()) + args.shader_remote + args.shader_branch).encode()
                 ).hexdigest()[:16]
                 library.shader = ShaderLibrary(args.data_dir, Path.home() / ".bar-map-library" / shader_key,
                                                args.shader_remote, args.shader_branch)
-            print(f"Map library: {args.remote} [{args.branch}] - {'uploads enabled' if args.allow_push else 'read only'}")
+            print("Team Sync for Terraform Brush")
+            print(f"Library: {args.remote} [{args.branch}] - {'uploads on' if args.allow_push else 'read only'}")
             if args.shader_remote:
-                print(f"Shader library: {args.shader_remote} [{args.shader_branch}] - read only")
-            print("Use Terraform Brush > File > Open Project. Ctrl+C stops the helper.")
+                print(f"Shader:  {args.shader_remote} [{args.shader_branch}] - read only")
+            print("Leave this window open while you work. Ctrl+C stops it.")
             library.serve()
     except LibraryError as exc:
-        parser.exit(1, f"Map library stopped: {exc}. See README troubleshooting.\n")
+        parser.exit(1, f"Team Sync stopped: {exc}. See the README's troubleshooting table.\n")
 
 
 if __name__ == "__main__":

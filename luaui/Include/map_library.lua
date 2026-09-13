@@ -13,6 +13,12 @@ local OPERATIONS = {
 	pull = "library",
 	publish = "project",
 	download = "project",
+	-- The two operations that take things off the remote: move renames a
+	-- published project into another pipeline folder, remove deletes a project
+	-- or a whole folder of them. Both need the same push permission as publish,
+	-- and both leave every version reachable in the branch's history.
+	move = "project",
+	remove = "project",
 	shader_check = "shader",
 	shader_sync = "shader",
 }
@@ -113,7 +119,7 @@ function M.new(options)
 	end
 
 	-- Optional confirmed destination is checked AFTER refreshing the heartbeat.
-	function client.request(operation, source, stage, expected)
+	function client.request(operation, source, stage, expected, name)
 		elapsed = POLL_SECONDS
 		client.update(0)
 		local state = client.state
@@ -140,10 +146,16 @@ function M.new(options)
 		if OPERATIONS[operation] == "project" and not options.validateSlug(source) then
 			return false, "invalid_path"
 		end
-		if operation == "publish" then
+		if operation == "publish" or operation == "move" or operation == "remove" then
 			if not state.allow_push then
 				return false, "read_only"
 			end
+		end
+		-- A destination belongs to the two operations that put a project
+		-- somewhere. `remove` names a project and takes it away, so it carries
+		-- no stage -- and checking one against the folder list refused every
+		-- remove before it was ever sent.
+		if operation == "publish" or operation == "move" then
 			local found = false
 			local stages = client.catalog.stages
 			if not stages or #stages == 0 then
@@ -174,6 +186,8 @@ function M.new(options)
 			operation = operation,
 			source = source or "",
 			stage = stage or "",
+			-- A move may rename: the new leaf, empty for the same name.
+			name = name or "",
 			revision = client.catalog.revision or "",
 		}
 		if not write("request", request) then
