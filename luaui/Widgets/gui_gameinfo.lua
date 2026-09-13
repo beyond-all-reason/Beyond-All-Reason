@@ -131,6 +131,14 @@ local metrics = {
 	-- How far the category column starts below the rows beside it, to leave the title room.
 	sidebarDrop = 8,
 	sidebarW = 240,
+	-- Where everything below the header band starts: the category column measures from it,
+	-- and so does the list, unless the unit strip is standing over it.
+	bandTop = 0,
+	-- The unit strip over a tweakunits listing: the room inside its card, the gap between it
+	-- and the rows under it, and the smallest a picture is shrunk to before it stops shrinking.
+	stripPad = 6,
+	stripGap = 8,
+	stripMin = 12,
 	barW = 14,
 	-- Rows the wheel moves per notch.
 	wheelRows = 3,
@@ -196,8 +204,19 @@ local codeColors = {
 	-- turns the highlighting into noise, so they stay close to the plain text.
 	punct = "\255\140\148\156",
 }
--- The zoom the build menu shows an idle cell at, so a unit reads the same in both.
-local iconZoom = 0.0375
+-- Texture zooms for the unit pictures. The ones beside the source take the zoom the build
+-- menu shows an idle cell at, so a unit reads the same in both; the smaller a picture is, the
+-- more of it the frame takes, so the smaller ones are zoomed in a little further to keep the
+-- unit readable. The strip's hovered zoom is the build menu's step up from idle.
+local iconZoom = {
+	idle = 0.075,
+	strip = 0.125,
+	stripHover = 0.18,
+	-- The picture after a buildoptions entry, the smallest of them all, and the zoom it takes
+	-- hovered when the unit it names has a block of its own to jump to.
+	option = 0.22,
+	optionHover = 0.3,
+}
 
 local L = {}
 
@@ -244,7 +263,23 @@ local changedOnly = false
 local searchBox
 -- What the cursor is over, in the terms the baked panel is painted with. Refilled in
 -- place each frame rather than allocated.
-local hover = { sb = 0, row = 0, tog = 0, bar = 0 }
+local hover = { sb = 0, row = 0, tog = 0, bar = 0, strip = 0, option = 0 }
+-- The units a tweakunits listing names, as pictures above it that jump the list to each one.
+-- `ids` and `rows` are parallel and reused between rebuilds; `count` says how much is live.
+-- Its functions live on it too: this chunk is at Lua's limit of 200 locals.
+local unitStrip = {
+	ids = {},
+	rows = {},
+	count = 0,
+	size = 0,
+	gap = 0,
+	cols = 1,
+	h = 0,
+	x1 = 0,
+	top = 0,
+	iconTop = 0,
+	bottom = 0,
+}
 
 -- Input ownership is taken once when the search field takes focus and given back when it
 -- loses it, rather than every frame, so chat's handling is restored exactly as it was
@@ -530,7 +565,10 @@ local function collectDefLines(t, lines, depth, path, was)
 			if old then
 				parts[#parts + 1] = { s = "  -- " .. changeNote(old, v), k = "comment" }
 			end
-			lines[#lines + 1] = { depth = depth, parts = parts }
+			-- A build option is a unit's name, and a name is not what most people know a unit
+			-- by, so the line ends in a picture of the unit it adds.
+			local option = path == "buildoptions" and type(v) == "string" and UnitDefNames[string.lower(v)]
+			lines[#lines + 1] = { depth = depth, parts = parts, optionUnitDefID = option and option.id or nil }
 		end
 	end
 end
@@ -1025,6 +1063,97 @@ local function setScroll(n)
 	clampScroll()
 end
 
+-- Lays the unit strip out over whatever the list is showing, and moves the top of the list
+-- down under it. One picture per unit per slot, in listing order, each pointing at the first
+-- row of that unit the list kept - which under a search can be a line rather than the opening.
+--
+-- Pictures take two thirds of the size they have beside the source, in up to three lines of
+-- that size; fewer lines take less room. More than three lines' worth shrinks them until they
+-- fit in that same room on four lines, then five, and so on.
+function unitStrip.layout()
+	local s = unitStrip
+	local n = 0
+	local listed = selectedCategory == "tweakunits"
+	-- The first row of each unit the list shows, per block and overall. Kept whatever the
+	-- category, since a buildoptions picture jumps to the unit it names through these too.
+	local blockRows, anyRow = {}, {}
+	for i = 1, #rows do
+		local row = rows[i]
+		local id = row.ownerUnitDefID
+		if id then
+			local named = blockRows[row.srcBlock]
+			if not named then
+				named = {}
+				blockRows[row.srcBlock] = named
+			end
+			if not named[id] then
+				named[id] = i
+				anyRow[id] = anyRow[id] or i
+				if listed then
+					n = n + 1
+					s.ids[n] = id
+					s.rows[n] = i
+				end
+			end
+		end
+	end
+	s.count = n
+	s.blockRows, s.anyRow = blockRows, anyRow
+
+	if n == 0 then
+		s.h = 0
+		listTop = metrics.bandTop
+		return
+	end
+
+	local width = listRight - listX1 - metrics.stripPad * 2
+	local base = mathMax(metrics.stripMin, mathFloor(metrics.iconSize * 2 / 3))
+	local gapShare = 0.12
+	local room = base * 3 + mathMax(1, mathFloor(base * gapShare)) * 2
+	local size, gap, cols, lines = base, 1, 1, 1
+	local fit = 3
+	while true do
+		gap = mathMax(1, mathFloor(size * gapShare))
+		cols = mathMax(1, mathFloor((width + gap) / (size + gap)))
+		lines = mathFloor((n + cols - 1) / cols)
+		if lines <= fit or size <= metrics.stripMin then
+			break
+		end
+		fit = fit + 1
+		size = mathMax(metrics.stripMin, mathFloor(room / (fit + (fit - 1) * gapShare)))
+	end
+
+	-- Only reached past the smallest size: a strip that still does not fit is cut off rather
+	-- than left to push the list out of the panel.
+	local h = mathMin(lines * size + (lines - 1) * gap, mathFloor((metrics.bandTop - listBottom) * 0.5))
+	s.size, s.gap, s.cols, s.h = size, gap, cols, h
+	s.x1 = listX1 + metrics.stripPad
+	-- Level with the top of the category card beside it.
+	s.top = metrics.bandTop - metrics.sidebarDrop + metrics.cardLip
+	s.iconTop = s.top - metrics.stripPad
+	s.bottom = s.iconTop - h - metrics.stripPad
+	listTop = s.bottom - metrics.stripGap
+end
+
+-- The strip picture under x,y, as its place in the strip, or nil. A picture's cell runs on
+-- over the gap after it, so moving between two never lights neither.
+function unitStrip.indexAt(x, y)
+	local s = unitStrip
+	if s.count == 0 or x < s.x1 or x > listRight or y > s.iconTop or y <= s.iconTop - s.h then
+		return nil
+	end
+
+	local step = s.size + s.gap
+	local col = mathFloor((x - s.x1) / step)
+	local line = mathFloor((s.iconTop - y) / step)
+	local i = line * s.cols + col + 1
+	if col >= s.cols or i > s.count or (line + 1) * step - s.gap > s.h then
+		return nil
+	end
+
+	return i
+end
+
 -- Indent per block level, and the extra step a line that had to be broken carries, so a
 -- continuation is never mistaken for a statement of its own.
 local codeIndent = "  "
@@ -1185,6 +1314,7 @@ rebuildRows = function()
 		end
 	end
 
+	unitStrip.layout()
 	clampScroll()
 end
 
@@ -1195,7 +1325,7 @@ end
 -- The category column starts below where the rows do, so the title above it is not
 -- crowded by the first entry. Everything in the column measures from here.
 local function sidebarTop()
-	return listTop - metrics.sidebarDrop
+	return metrics.bandTop - metrics.sidebarDrop
 end
 
 -- How many entries the column has room for, and how far it can be scrolled.
@@ -1285,6 +1415,9 @@ local function setLayout()
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(240 * s)
+	metrics.stripPad = mathMax(2, mathFloor(6 * s))
+	metrics.stripGap = mathMax(2, mathFloor(8 * s))
+	metrics.stripMin = mathMax(8, mathFloor(12 * s))
 	metrics.barW = mathFloor(14 * s)
 	metrics.catBarW = mathMax(3, mathFloor(6 * s))
 	-- Rounded like the settings panel's inner elements, which take a share of this too.
@@ -1292,7 +1425,8 @@ local function setLayout()
 	metrics.csSmall = mathFloor(elementCorner * 0.66)
 
 	listX1 = area.x1 + metrics.sidebarW + metrics.listGap
-	listTop = area.y2 - metrics.headerH - metrics.headerGap
+	metrics.bandTop = area.y2 - metrics.headerH - metrics.headerGap
+	listTop = metrics.bandTop
 	listBottom = area.y1 + metrics.edgeInset
 	-- The scrollbar owns a column of its own: its right edge lines up with the toggle
 	-- above it, and the rows stop a clear gap short of it rather than running up against
@@ -1337,6 +1471,8 @@ local function setLayout()
 
 	setCatScroll(catScroll)
 	layoutGen = layoutGen + 1
+	-- The strip is sized to the list's width, and where the list starts depends on it.
+	unitStrip.layout()
 	clampScroll()
 end
 
@@ -1358,6 +1494,11 @@ local function wrapSource(line, budget, out, gutter, block, srcLine, ownerWidth)
 	-- otherwise indent until there is no column left to write in.
 	local indent = string.rep(codeIndent, mathMin(line.depth, 12))
 	local cont = indent .. codeContinue
+	-- A line ending in a picture keeps room for it, so the picture is never pushed out past
+	-- the edge of the column.
+	if line.optionUnitDefID then
+		budget = mathMax(8, budget - metrics.optionChars)
+	end
 	-- Only the row the block opens on carries the picture; the rows it wraps onto must not
 	-- draw a second one over the first.
 	local unitDefID = line.unitDefID
@@ -1433,6 +1574,11 @@ local function wrapSource(line, budget, out, gutter, block, srcLine, ownerWidth)
 	if not empty then
 		emit()
 	end
+
+	-- After the last of the line's rows, which is where its text ends.
+	if line.optionUnitDefID and out[#out] then
+		out[#out].optionUnitDefID = line.optionUnitDefID
+	end
 end
 
 -- Code blocks become rows here rather than at build time, since how much of a line fits is
@@ -1445,6 +1591,8 @@ local function layoutCodeBlocks()
 
 	local charW = mathMax(1, fontMono:GetTextWidth("0") * metrics.codeFs)
 	local column = listRight - listX1 - metrics.rowPad * 4
+	-- What the picture after a buildoptions entry takes out of its line, gap included.
+	metrics.optionChars = mathFloor((metrics.tinyIcon + metrics.rowPad * 2) / charW) + 1
 
 	for _, block in ipairs(blocks) do
 		if block.source then
@@ -1522,6 +1670,15 @@ local function fitRow(row)
 			-- it still ends where every other line of the block does.
 			row.fitName = codeColors.call .. row.ownerLabel .. row.fitName
 		end
+		if row.optionUnitDefID and fontMono then
+			-- Measured rather than counted: the note in the comment is translated, and a
+			-- character count is only a width while every character is one byte.
+			local shown = owner and (row.ownerLabel .. row.plain) or row.plain
+			row.optionX = listX1
+				+ metrics.rowPad * 4
+				+ (row.gutter or 0)
+				+ mathFloor(fontMono:GetTextWidth(shown) * metrics.codeFs + 0.5)
+		end
 	else
 		-- Map and engine facts are neither adjusted nor left at a default, so they take the
 		-- plain reading colour rather than either of the two the options are told apart by.
@@ -1533,6 +1690,28 @@ local function fitRow(row)
 			.. text.fit(font, row.name, valueX1 - listX1 - metrics.rowPad * 3, metrics.rowFs)
 		row.fitValue = valueColor .. text.fit(font, row.value, listRight - valueX1 - metrics.rowPad * 2, metrics.rowFs)
 	end
+end
+
+-- The block a buildoptions picture under x,y jumps to, as the row it starts on, or nil. Only
+-- a unit the list itself shows a block for can be jumped to; one in the same tweak slot as
+-- the line is preferred over the same unit in another.
+function unitStrip.optionAt(x, y)
+	local r = rowAt(y)
+	local row = r and rows[scroll + r]
+	if not (row and row.optionUnitDefID) then
+		return nil
+	end
+
+	fitRow(row)
+	local x1 = row.optionX
+	if not x1 or x < x1 or x > x1 + metrics.tinyIcon then
+		return nil
+	end
+
+	local id = row.optionUnitDefID
+	local inBlock = unitStrip.blockRows and unitStrip.blockRows[row.srcBlock]
+
+	return (inBlock and inBlock[id]) or (unitStrip.anyRow and unitStrip.anyRow[id])
 end
 
 ----------------------------------------------------------------
@@ -1553,14 +1732,18 @@ local pendingCount = { 0, 0 }
 local pendingIcons = {}
 local iconCount = 0
 
-local function queueIcon(unitDefID, x, y, size)
-	local at = iconCount * 4
+local function queueIcon(unitDefID, x, y, size, zoom, hot)
+	local at = iconCount * 6
 	pendingIcons[at + 1] = x
 	pendingIcons[at + 2] = y
 	pendingIcons[at + 3] = unitDefID
 	-- Its own size: a block opens with a picture three rows tall, while a line a search
 	-- pulled out of one carries a picture small enough to sit on that line.
 	pendingIcons[at + 4] = size
+	pendingIcons[at + 5] = zoom or iconZoom.idle
+	-- The zoom a picture takes while hovered, or false. Only pictures that can be clicked are
+	-- ever given one.
+	pendingIcons[at + 6] = hot or false
 	iconCount = iconCount + 1
 end
 
@@ -1572,15 +1755,29 @@ local function drawIcons()
 
 	-- A picture is three rows tall and hangs off a row that can be the last one the band had
 	-- room for, so the band is what it is allowed to paint in.
-	gl.Scissor(listX1, listBottom, area.x2 - listX1, listTop - listBottom)
+	-- Up to the top of the band rather than of the list, which takes in the strip over it; the
+	-- list's own pictures only ever hang downwards, so they cannot reach up into it.
+	gl.Scissor(listX1, listBottom, area.x2 - listX1, metrics.bandTop - listBottom)
 	for i = 0, iconCount - 1 do
-		local at = i * 4
+		local at = i * 6
 		local x, y, size = pendingIcons[at + 1], pendingIcons[at + 2], pendingIcons[at + 4]
+		local hot = pendingIcons[at + 6]
+		local texture = "#" .. pendingIcons[at + 3]
 		-- Before every one of them, the way the build menu does it: the frame Draw.Unit lays
 		-- over the picture is a gradient, and it leaves its last colour behind. Setting white
 		-- once outside the loop leaves every picture after the first modulated by that.
 		glColor(1, 1, 1, 1)
-		UiUnit(x, y - size, x + size, y, nil, 1, 1, 1, 1, iconZoom, nil, nil, "#" .. pendingIcons[at + 3])
+		UiUnit(x, y - size, x + size, y, nil, 1, 1, 1, 1, hot or pendingIcons[at + 5], nil, nil, texture)
+		if hot then
+			-- The build menu's hover: zoomed in, and brightened by a second pass of the same
+			-- picture, so a picture that can be clicked answers the cursor the way a cell does.
+			gl.Blending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
+			glColor(0.63, 0.63, 0.63, 0)
+			glTexture(texture)
+			UiUnit(x, y - size, x + size, y, nil, 1, 1, 1, 1, hot)
+			glTexture(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end
 	end
 	gl.Scissor(false)
 	glColor(1, 1, 1, 1)
@@ -1691,6 +1888,17 @@ local function drawRow(row, top, bottom, hovered, selected)
 				listX1 + metrics.rowPad + (row.gutter or 0) - size,
 				mathFloor(cy + size * 0.5),
 				size
+			)
+		end
+		if row.optionX then
+			local size = metrics.tinyIcon
+			queueIcon(
+				row.optionUnitDefID,
+				row.optionX,
+				mathFloor(cy + size * 0.5),
+				size,
+				iconZoom.option,
+				hovered and hover.option > 0 and iconZoom.optionHover
 			)
 		end
 		queueText(row.fitName, listX1 + metrics.rowPad * 3 + (row.gutter or 0), cy, metrics.codeFs, "ov", 2)
@@ -1838,12 +2046,41 @@ local function drawHeader()
 	)
 end
 
+-- The unit strip: its own card over the list, the way the category column has one, with the
+-- pictures queued onto it to be drawn live with the rest.
+function unitStrip.draw()
+	local s = unitStrip
+	if s.count == 0 then
+		return
+	end
+
+	RectRound(listX1, s.bottom, listRight, s.top, metrics.csPanel, 1, 1, 1, 1, look.sidebarFill, look.sidebarFillTop)
+
+	local step = s.size + s.gap
+	for i = 1, s.count do
+		local line = mathFloor((i - 1) / s.cols)
+		-- A line the strip's height was capped short of.
+		if (line + 1) * step - s.gap > s.h then
+			break
+		end
+		queueIcon(
+			s.ids[i],
+			s.x1 + (i - 1 - line * s.cols) * step,
+			s.iconTop - line * step,
+			s.size,
+			iconZoom.strip,
+			hover.strip == i and iconZoom.stripHover
+		)
+	end
+end
+
 -- Everything inside the panel: the column, the header controls, the list and the
 -- scroller. Baked and replayed until the cursor, the list or the screen moves.
 local function drawPanel()
 	iconCount = 0
 	drawSidebar()
 	drawHeader()
+	unitStrip.draw()
 	drawRows()
 
 	local base = scrollOffset()
@@ -1916,11 +2153,14 @@ local function panelSignature(mx, my)
 	hover.row = 0
 	hover.tog = 0
 	hover.bar = 0
+	hover.strip = unitStrip.indexAt(mx, my) or 0
+	hover.option = 0
 
 	if toggleHit[1] and math_isInRect(mx, my, toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4]) then
 		hover.tog = 1
 	elseif mx >= listX1 and mx <= listRight then
 		hover.row = rowAt(my) or 0
+		hover.option = (hover.row > 0 and unitStrip.optionAt(mx, my)) and 1 or 0
 	elseif mx >= barX1 and mx <= area.x2 then
 		-- The thumb itself, not the track: it is the part that can be taken hold of, so it
 		-- is the part that lights up.
@@ -1937,6 +2177,10 @@ local function panelSignature(mx, my)
 		.. hover.tog
 		.. "|"
 		.. hover.bar
+		.. "|"
+		.. hover.strip
+		.. "|"
+		.. hover.option
 		.. "|"
 		.. scroll
 		.. "|"
@@ -2092,7 +2336,15 @@ function widget:DrawScreen()
 		-- Source says how to take it somewhere else, since nothing about a row of it looks
 		-- like something you could drag across.
 		local tip = row and (row.tooltip or (row.type == "code" and L.copyHint))
-		if tip and WG.tooltip then
+		if hover.strip > 0 and WG.tooltip then
+			-- A picture on its own does not say which unit it is to anyone who does not know
+			-- the art; the def name under it is the one the source beneath uses.
+			local def = UnitDefs[unitStrip.ids[hover.strip]]
+			WG.tooltip.ShowTooltip("gameinfo", colorDim .. def.name, nil, nil, def.translatedHumanName)
+		elseif hover.option > 0 and row and WG.tooltip then
+			local def = UnitDefs[row.optionUnitDefID]
+			WG.tooltip.ShowTooltip("gameinfo", colorDim .. def.name, nil, nil, def.translatedHumanName)
+		elseif tip and WG.tooltip then
 			WG.tooltip.ShowTooltip("gameinfo", tip.text, nil, nil, tip.title)
 		end
 	end
@@ -2252,6 +2504,7 @@ local function mouseEvent(x, y, button, release)
 				searchBox:blur()
 
 				local i = sidebarIndexAt(x, y)
+				local unit = unitStrip.indexAt(x, y)
 				if math_isInRect(x, y, toggleHit[1], toggleHit[2], toggleHit[3], toggleHit[4]) then
 					clearSelection()
 					changedOnly = not changedOnly
@@ -2262,6 +2515,13 @@ local function mouseEvent(x, y, button, release)
 					end
 				elseif i then
 					selectCategory(categories[i].key)
+				elseif unit then
+					-- The unit's first row to the top of the list. The selection stays: this is
+					-- only a scroll, the same as reaching the unit with the wheel would be.
+					setScroll(unitStrip.rows[unit] - 1)
+					if playSounds then
+						Spring.PlaySoundFile(buttonclick, 0.6, "ui")
+					end
 				elseif math_isInRect(x, y, barX1, listBottom, area.x2, listTop) then
 					-- The strip between the bar and the panel edge stays grabbable too. The
 					-- selection survives it: scrolling to reach more of the source is part of
@@ -2272,7 +2532,15 @@ local function mouseEvent(x, y, button, release)
 					-- thing that selects; a press on any other row puts the selection down.
 					local r = rowAt(y)
 					local row = r and rows[scroll + r]
-					if row and row.type == "code" then
+					local target = unitStrip.optionAt(x, y)
+					if target then
+						-- A buildoptions picture whose unit has a block here: the same jump the
+						-- strip makes, and the selection is left alone for the same reason.
+						setScroll(target - 1)
+						if playSounds then
+							Spring.PlaySoundFile(buttonclick, 0.6, "ui")
+						end
+					elseif row and row.type == "code" then
 						selFrom, selTo = scroll + r, scroll + r
 						selecting = true
 					else
