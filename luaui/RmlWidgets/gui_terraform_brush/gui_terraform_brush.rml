@@ -10096,6 +10096,29 @@
 	</div>
 
 	<div id="tf-guide-floating-tip" class="tf-guide-floating-tip hidden"></div>
+	<!-- QUIT GUARD: unsaved changes stand between the user and a quit, a lobby exit
+	     or a new map. The catcher spans the screen so nothing behind it takes the
+	     click; Esc cancels, Enter saves first (KeyPress). -->
+	<div id="tf-quit-guard" class="tf-quit-guard" data-if="quitGuardOpen">
+		<div class="tf-quit-card widget-shadow rounded-md bg-darkest p-2-5">
+			<div class="tf-quit-title">{{libraryLabel_quitTitle}}</div>
+			<div class="tf-quit-text">{{quitGuardText}}</div>
+			<div class="tf-quit-hint">{{quitGuardHint}}</div>
+			<div class="tf-quit-status" data-if="quitGuardStatus != ''">{{quitGuardStatus}}</div>
+			<div class="tf-quit-buttons">
+				<div id="btn-quit-guard-save" class="tf-action-btn tf-quit-primary" data-event-mousedown="onQuitGuardSave()">
+					<div class="tf-action-btn-text" data-if="quitGuardHasProject">{{libraryLabel_quitSaveAndGo}}</div>
+					<div class="tf-action-btn-text" data-if="!quitGuardHasProject">{{libraryLabel_quitSaveAs}}</div>
+				</div>
+				<div id="btn-quit-guard-discard" class="tf-action-btn tf-quit-discard" data-event-mousedown="onQuitGuardDiscard()">
+					<div class="tf-action-btn-text">{{libraryLabel_quitDiscard}}</div>
+				</div>
+				<div id="btn-quit-guard-cancel" class="tf-action-btn" data-event-mousedown="onQuitGuardCancel()">
+					<div class="tf-action-btn-text">{{libraryLabel_quitCancel}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<!-- The project being dragged, riding under the pointer (see projectDragUpdate). -->
 	<div id="tf-project-dragghost" class="tf-project-dragghost hidden"></div>
 </body>

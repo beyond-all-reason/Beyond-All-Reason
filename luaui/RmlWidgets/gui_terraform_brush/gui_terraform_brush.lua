@@ -708,6 +708,134 @@ widgetState.saveUiPrefs = saveUiPrefs
 -- the widget. Idempotent; called on toggle, after the prefs load, and once
 -- from Update if the widget shows up after this panel (load order is not
 -- fixed between LuaUI widget folders).
+-- QUIT GUARD. Unsaved changes stand between the user and anything that ends
+-- the session: the top bar's QuitForce (desktop) and ReloadForce / showLobby
+-- (lobby), Spring.Quit, and the editor's own New Map restart. The engine has
+-- no callin for the window's close button or Alt+F4, so those cannot be
+-- caught; autosave is the net under them. Everything Lua-side goes through
+-- the three globals wrapped below, for the life of this widget and handed
+-- back on shutdown, so a /luaui reload never stacks wrappers.
+widgetState.quitGuardWords = { quitforce = true, quit = true, reloadforce = true, reload = true }
+
+widgetState.quitGuardShouldAsk = function()
+	if widgetState.quitGuardBypassUntil and os.clock() < widgetState.quitGuardBypassUntil then
+		return false
+	end
+	---@type table?
+	local mp = WG.MapProject
+	return mp ~= nil and mp.isDirty ~= nil and mp.isDirty() == true
+end
+
+widgetState.quitGuardClose = function()
+	widgetState.quitGuardPending = nil
+	widgetState.quitGuardSaving = nil
+	local d = widgetState.dmHandle
+	if d then
+		d.quitGuardOpen = false
+		d.quitGuardStatus = ""
+	end
+end
+
+-- Opens the popup for `what` ("quit" | "leave" | "newmap") with `proceed` as
+-- the deferred action; true when the caller must stop, the popup owns it now.
+widgetState.quitGuardIntercept = function(what, proceed)
+	if not widgetState.quitGuardShouldAsk() then
+		return false
+	end
+	local d = widgetState.dmHandle
+	if not d then
+		return false
+	end
+	---@type table?
+	local mp = WG.MapProject
+	local current = mp and mp.current and mp.current() or nil
+	widgetState.quitGuardPending = proceed
+	widgetState.quitGuardSaving = nil
+	d.quitGuardHasProject = current ~= nil
+	d.quitGuardText = current and BAR.I18N("ui.mapLibrary.quitTextProject", { name = current })
+		or BAR.I18N("ui.mapLibrary.quitTextCanvas")
+	local hintKey = what == "leave" and "quitLoseLeave" or what == "newmap" and "quitLoseNewMap" or "quitLoseQuit"
+	d.quitGuardHint = BAR.I18N("ui.mapLibrary." .. hintKey)
+	d.quitGuardStatus = ""
+	d.quitGuardOpen = true
+	playSound("click")
+	return true
+end
+
+-- Runs the deferred action with the guard standing down for a moment, so a
+-- quit that turns into a second command (the lobby path) is not asked twice.
+widgetState.quitGuardProceed = function()
+	local go = widgetState.quitGuardPending
+	widgetState.quitGuardClose()
+	widgetState.quitGuardBypassUntil = os.clock() + 15
+	if go then
+		go()
+	end
+end
+
+widgetState.installQuitGuard = function()
+	if widgetState.quitGuardOriginals then
+		return
+	end
+	local sendCommands = Spring.SendCommands
+	local sendMenuMsg = Spring.SendLuaMenuMsg
+	local quit = Spring.Quit
+	widgetState.quitGuardOriginals = { sendCommands = sendCommands, sendMenuMsg = sendMenuMsg, quit = quit }
+	local function quitWordIn(first, ...)
+		local list = type(first) == "table" and first or { first, ... }
+		for i = 1, #list do
+			local word = tostring(list[i]):match("^%s*(%S+)")
+			if word and widgetState.quitGuardWords[word:lower()] then
+				return word:lower()
+			end
+		end
+		return nil
+	end
+	Spring.SendCommands = function(...)
+		local word = quitWordIn(...)
+		if word then
+			local n = select("#", ...)
+			local args = { ... }
+			local what = (word == "reloadforce" or word == "reload") and "leave" or "quit"
+			if widgetState.quitGuardIntercept(what, function()
+				sendCommands(unpack(args, 1, n))
+			end) then
+				return
+			end
+		end
+		return sendCommands(...)
+	end
+	Spring.SendLuaMenuMsg = function(msg, ...)
+		if msg == "showLobby" then
+			if widgetState.quitGuardIntercept("leave", function()
+				sendMenuMsg(msg)
+			end) then
+				return
+			end
+		end
+		return sendMenuMsg(msg, ...)
+	end
+	Spring.Quit = function()
+		if widgetState.quitGuardIntercept("quit", function()
+			quit()
+		end) then
+			return
+		end
+		return quit()
+	end
+end
+
+widgetState.removeQuitGuard = function()
+	local o = widgetState.quitGuardOriginals
+	if not o then
+		return
+	end
+	Spring.SendCommands = o.sendCommands
+	Spring.SendLuaMenuMsg = o.sendMenuMsg
+	Spring.Quit = o.quit
+	widgetState.quitGuardOriginals = nil
+end
+
 -- The autosave values cycle through short lists on click (Settings > General):
 -- a slider for a number that changes twice a year is not worth its wiring.
 widgetState.autosaveSteps = {
@@ -6409,6 +6537,9 @@ local initialModel = {
 	autosaveMinutesStr = "10 MIN",
 	autosaveKeepStr = "3 DAYS",
 	autosaveKeepLatestStr = "10 DAYS",
+	quitGuardText = "", -- the unsaved-changes popup (see installQuitGuard)
+	quitGuardHint = "",
+	quitGuardStatus = "",
 	clayStackStr = "OFF", -- Settings > Stroke > Clay build-up
 	disableTipsStr = "OFF",
 	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
@@ -6422,6 +6553,8 @@ local initialModel = {
 	perfModeActive = false,
 	teamSyncActive = false,
 	autosaveActive = true,
+	quitGuardOpen = false,
+	quitGuardHasProject = false,
 	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
@@ -10657,6 +10790,12 @@ local initialModel = {
 			ef:close()
 		end
 		playSound("exit")
+		-- Unsaved changes stand in the way of a new map like they do of a quit.
+		if widgetState.quitGuardIntercept("newmap", function()
+			Spring.Restart("", script)
+		end) then
+			return
+		end
 		Spring.Restart("", script)
 	end,
 	onGuideToggleSound = function(_event)
@@ -11187,6 +11326,50 @@ local initialModel = {
 		widgetState.pushPerfPrefs()
 		if widgetState.saveUiPrefs then
 			widgetState.saveUiPrefs()
+		end
+	end,
+	-- QUIT GUARD popup buttons.
+	onQuitGuardCancel = function(_event)
+		playSound("click")
+		widgetState.quitGuardClose()
+	end,
+	onQuitGuardDiscard = function(_event)
+		playSound("click")
+		widgetState.quitGuardProceed()
+	end,
+	-- Save first, then carry on: the quick save when a project is open (its
+	-- receipt is watched from Update and the deferred action follows), Save
+	-- As when there is none, which drops the pending action, so the user
+	-- quits again once the save has a name.
+	onQuitGuardSave = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle
+		---@type table?
+		local mp = WG.MapProject
+		local current = mp and mp.current and mp.current() or nil
+		if not (mp and current and mp.save) then
+			widgetState.quitGuardClose()
+			widgetState.openProjectSaveDialog()
+			return
+		end
+		if mp.isBusy and mp.isBusy() then
+			if d then
+				d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveBusy")
+			end
+			return
+		end
+		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
+		local accepted, receipt = mp.save(current, { saveUnits = keepUnits })
+		if not accepted then
+			if d then
+				d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveFailed")
+			end
+			return
+		end
+		playSound("save")
+		widgetState.quitGuardSaving = receipt
+		if d then
+			d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaving")
 		end
 	end,
 	onGuideToggleClayStack = function(_event)
@@ -18136,6 +18319,8 @@ function widget:Initialize()
 		end
 	end
 
+	widgetState.installQuitGuard()
+
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
 		-- Environment snapshot/apply, for the map-project orchestrator
@@ -19464,6 +19649,21 @@ function widget:Update()
 		end
 		if not widgetState.autosavePrefsPushed and WG.MapProject and WG.MapProject.setAutosave then
 			widgetState.pushPerfPrefs()
+		end
+
+		-- QUIT GUARD: the save started from the popup finished; carry on, or
+		-- keep the popup up with the failure.
+		local qs = widgetState.quitGuardSaving
+		if qs and qs.done then
+			widgetState.quitGuardSaving = nil
+			if qs.ok then
+				widgetState.quitGuardProceed()
+			else
+				local dq = widgetState.dmHandle
+				if dq then
+					dq.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveFailed")
+				end
+			end
 		end
 
 		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
@@ -22074,6 +22274,17 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
+	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
+	-- through while it is up.
+	local qd = widgetState.dmHandle
+	if qd and qd.quitGuardOpen then
+		if key == 27 then
+			initialModel.onQuitGuardCancel(nil)
+		elseif key == 13 or key == 271 then
+			initialModel.onQuitGuardSave(nil)
+		end
+		return true
+	end
 	-- Suppress all keys while the keybind editor is capturing a key press
 	if widgetState.settingsCapturing then
 		handleSettingsKeyCapture(key)
@@ -22217,6 +22428,7 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+	widgetState.removeQuitGuard()
 
 	-- Hand the game interface back before anything else: a /luaui reload with
 	-- focus mode on must not leave the user with no UI at all.

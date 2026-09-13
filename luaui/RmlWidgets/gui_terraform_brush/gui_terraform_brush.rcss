@@ -5635,3 +5635,78 @@ margin-top: 3dp;
 	image-color: #ffffff;
 }
 
+/* ===== Quit guard: unsaved changes stand between the user and a quit ===== */
+/* The body ignores the pointer, so the catcher takes it back over the whole
+   screen: nothing behind the card (the top bar's quit screen included) gets
+   the click while the question is open. */
+.tf-quit-guard {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1200;
+	background-color: #000000a0;
+	pointer-events: auto;
+}
+
+.tf-quit-card {
+	position: absolute;
+	left: 50vw;
+	top: 36vh;
+	width: 560dp;
+	margin-left: -280dp;
+	display: flex;
+	flex-direction: column;
+	gap: 8dp;
+	border: 1dp #e0a94c;
+	pointer-events: auto;
+}
+
+.tf-quit-title {
+	font-size: 1.6rem;
+	font-weight: bold;
+	color: #ffd27a;
+}
+
+.tf-quit-text {
+	font-size: 1.3rem;
+	font-weight: bold;
+	color: #e6edf5;
+}
+
+.tf-quit-hint {
+	font-size: 1.15rem;
+	color: #b8c2cf;
+}
+
+.tf-quit-status {
+	font-size: 1.15rem;
+	color: #ffd27a;
+}
+
+.tf-quit-buttons {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	gap: 8dp;
+	margin-top: 6dp;
+}
+
+.tf-quit-card .tf-action-btn {
+	min-width: 120dp;
+}
+
+.tf-quit-primary {
+	border-color: #35d07f;
+}
+
+.tf-quit-primary:hover {
+	border-color: #6ff0a8;
+}
+
+.tf-quit-discard:hover {
+	border-color: #e06c6c;
+	color: #ffd7d7;
+}
+
