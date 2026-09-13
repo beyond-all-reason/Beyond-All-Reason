@@ -50,7 +50,7 @@ end
 
 ---@param t table
 ---@return string[] keys sorted
-local function sortedKeys(t)
+local function sortedKeysCopy(t)
 	local keys = {}
 	for key in pairs(t) do
 		keys[#keys + 1] = key
@@ -138,7 +138,7 @@ function ModuleHandler.Resolve(manifests, refuse)
 		return verdict[name]
 	end
 
-	local categories = reduce(sortedKeys(manifests), function(acc, name)
+	local categories = reduce(sortedKeysCopy(manifests), function(acc, name)
 		local v = judge(name)
 		if v == true then
 			acc.loadable[name] = manifests[name]
@@ -148,7 +148,7 @@ function ModuleHandler.Resolve(manifests, refuse)
 		return acc
 	end, { loadable = {}, refused = {} })
 
-	for _, name in ipairs(sortedKeys(categories.refused)) do
+	for _, name in ipairs(sortedKeysCopy(categories.refused)) do
 		refuse(categories.refused[name])
 	end
 	return categories.loadable
