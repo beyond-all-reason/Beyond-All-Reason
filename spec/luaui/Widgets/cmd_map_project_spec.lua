@@ -59,6 +59,14 @@ local function fixture()
 				assert(path == "luaui/Widgets/cmd_terraform_brush_png.lua")
 				return f.codec
 			end,
+			-- The autosave listing walks its folder; the fixture holds no
+			-- folders, so this session's journal is the only source.
+			SubDirs = function()
+				return {}
+			end,
+			DirList = function()
+				return {}
+			end,
 		},
 		io = {
 			open = function(path, mode)
@@ -241,5 +249,55 @@ describe("map project completion receipts", function()
 			ui.sync()
 			assert(#f.requests == (failure and 0 or 1))
 		end
+	end)
+end)
+
+describe("map project autosave", function()
+	it("prunes old snapshots but spares the newest of each project for longer", function()
+		local f = fixture()
+		local day = 86400
+		local now = 100 * day
+		local entries = {
+			{ slug = "_autosave/a-1", autosave_base = "a", autosave_stamp = now - 1 * day },
+			{ slug = "_autosave/a-2", autosave_base = "a", autosave_stamp = now - 5 * day },
+			{ slug = "_autosave/b-1", autosave_base = "b", autosave_stamp = now - 5 * day },
+			{ slug = "_autosave/b-2", autosave_base = "b", autosave_stamp = now - 12 * day },
+			{ slug = "_autosave/c-1", autosave_base = "c", autosave_stamp = now - 11 * day },
+		}
+		local doomed = f.project.autosavePrunePlan(entries, now, 3, 10)
+		table.sort(doomed)
+		-- a-2 is old and not a's newest; b-1 is b's newest and inside 10 days;
+		-- b-2 is old; c-1 is c's newest but past 10 days.
+		assert(#doomed == 3, "expected 3 doomed, got " .. #doomed)
+		assert(doomed[1] == "_autosave/a-2" and doomed[2] == "_autosave/b-2" and doomed[3] == "_autosave/c-1")
+	end)
+
+	it("a snapshot records its origin and leaves the Save target and manual receipt alone", function()
+		local f = fixture()
+		local accepted, receipt = f.project.save("campaign/arena")
+		assert(accepted)
+		f.pump()
+		assert(f.project.current() == "campaign/arena")
+		local ok = f.project.autosaveNow(true)
+		assert(ok, "autosave refused")
+		local step, _, _, kind = f.project.saveProgress()
+		assert(step and kind == "autosave")
+		f.pump()
+		assert(f.project.current() == "campaign/arena", "autosave must not become the Save target")
+		assert(f.project.lastSave() == receipt, "autosave must not replace the manual receipt")
+		local last = f.project.lastAutosave()
+		assert(
+			last and last.ok and last.slug:match("^_autosave/arena%-%d%d%d%d%d%d%d%d%d%d%d%d$"),
+			tostring(last and last.slug)
+		)
+		local manifest = f.files["MapProjects/" .. last.slug .. "/project.lua"]
+		assert(manifest and manifest:find('autosave_of = "campaign/arena"', 1, true))
+		local list = f.project.listAutosaves()
+		assert(#list == 1 and list[1].slug == last.slug and list[1].autosave_of == "campaign/arena")
+		assert(list[1].folder == "" and list[1].autosave_base == "arena" and list[1].autosave_stamp > 0)
+		-- The same minute again is refused rather than overwritten.
+		local again, why = f.project.autosaveNow(true)
+		assert(again == false, "a second snapshot in the same minute must be refused")
+		assert(why == "a snapshot for this minute exists", tostring(why))
 	end)
 end)

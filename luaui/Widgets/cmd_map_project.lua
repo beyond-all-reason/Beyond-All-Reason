@@ -96,6 +96,22 @@ local dirtyGraceUntil = 0.0
 -- treat the painter's empty state as "no paint" and delete them.
 local diffuseLoadedSlug = nil
 
+-- Autosave (Settings > General): a snapshot of the open project every few
+-- minutes while it has unsaved changes, into MapProjects/_autosave/ as
+-- <project>-YYYYMMDDHHMM. The panel pushes the settings through setAutosave;
+-- until it does, the defaults stand (configureAutosave fills the table, so
+-- its fields type from that assignment rather than from literals here).
+local AUTOSAVE_DIR = "_autosave"
+local autosaveCfg = {}
+local autosaveNextAt = 0.0 -- os.clock() of the next attempt
+local autosavePruneAt = 0.0 -- os.clock() of the next sweep of old snapshots
+local autosaveDirtyMark = 0 -- dirtyCount when the last snapshot started
+local autosaveJournal = {} -- slugs written this session; VFS.SubDirs cannot see their folders yet
+---@type string?
+local autosaveLoadedSlug = nil -- the snapshot this session was opened from, spared by the sweep
+---@type table?
+local lastAutosaveInfo = nil
+
 ----------------------------------------------------------------
 -- Small helpers
 ----------------------------------------------------------------
@@ -776,7 +792,9 @@ local function stepDiffuse()
 			end
 			sectionSkip("diffuse", "no diffuse paint state")
 			job.diffuseStateEmpty = true -- the ONE case where cleanup may wipe diffuse/
-			diffuseLoadedSlug = job.slug -- an empty painter now matches an empty folder
+			if not job.autosave then
+				diffuseLoadedSlug = job.slug -- an empty painter now matches an empty folder
+			end
 			return true
 		end
 		Spring.CreateDir(job.dir .. "diffuse")
@@ -827,8 +845,10 @@ local function stepDiffuse()
 	end
 	if kept > 0 then
 		warn(string.format("kept %d unloaded diffuse square(s) beside the %d captured", kept, #res.squares))
-	else
-		diffuseLoadedSlug = job.slug -- the folder is exactly what the painter holds
+	elseif not job.autosave then
+		-- The folder is exactly what the painter holds. A snapshot's folder is
+		-- too, but the painter's project is still the one it was loaded from.
+		diffuseLoadedSlug = job.slug
 	end
 	local bytes = 0
 	for name in pairs(writtenSet) do
@@ -1699,6 +1719,12 @@ local function stepManifest()
 		"\tmap = {",
 		string.format("\t\tsize_x = %d, size_z = %d,", Game.mapSizeX / ELMOS_PER_UNIT, Game.mapSizeZ / ELMOS_PER_UNIT),
 	}
+	if job.autosave then
+		-- Which project the snapshot belongs to ("" for a canvas without one):
+		-- opening it makes that project the Save target again, and the
+		-- Autosaves view labels the row with it.
+		table.insert(lines, 5, string.format("\tautosave_of = %q,", currentSlug or ""))
+	end
 	local function add(line)
 		lines[#lines + 1] = line
 	end
@@ -1960,17 +1986,34 @@ local function finishSave()
 	job.result.done = true
 	job.result.ok = not job.failed
 	job.result.uploadReady = not job.failed and not job.uploadBlocked and findSection("heightmap") ~= nil
-	lastSaveInfo = job.result
+	if job.autosave then
+		lastAutosaveInfo = job.result
+	else
+		lastSaveInfo = job.result
+	end
 	if job.failed then
-		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
+		echoP(
+			(job.autosave and "AUTOSAVE FAILED for '" or "SAVE FAILED for project '") .. job.slug .. "': " .. job.failed
+		)
 		job = nil
 		return
 	end
-	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
-	currentSlug = job.slug
-	dirtyCount = 0
-	dirtyGraceUntil = os.clock() + 2
-	touchRecent(currentSlug)
+	-- Any finished save, either kind, starts the autosave interval over.
+	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
+	if job.autosave then
+		-- A snapshot changes nothing about the session: the project is still
+		-- the Save target and its unsaved changes are still unsaved.
+		echoP("autosaved to " .. job.dir)
+		autosaveJournal[#autosaveJournal + 1] = job.slug
+		autosavePruneAt = os.clock() + 2
+	else
+		echoP("saved project '" .. job.slug .. "' to " .. job.dir)
+		currentSlug = job.slug
+		dirtyCount = 0
+		autosaveDirtyMark = 0
+		dirtyGraceUntil = os.clock() + 2
+		touchRecent(currentSlug)
+	end
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -2018,8 +2061,14 @@ local function startSave(slug, opts)
 		skipped = {},
 		warnings = {},
 		saveUnits = (opts and opts.saveUnits) and true or false,
+		autosave = (opts and opts.autosave) and true or false,
 	}
-	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
+	echoP(
+		(job.autosave and "autosaving to '" or "saving project '")
+			.. slug
+			.. "'..."
+			.. (job.saveUnits and " (with units loadout)" or "")
+	)
 	return true, job.result
 end
 
@@ -2097,7 +2146,8 @@ local function walkProjects(rel, depth, out, seen, touchedAt)
 		local seg = d:match("([^/\\]+)[/\\]*$")
 		-- _replaced holds the copies a Team Sync download replaced (newest
 		-- three per project), kept for a hand recovery; they are not projects.
-		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" then
+		-- _autosave holds the timed snapshots, listed by their own view.
+		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" and seg ~= AUTOSAVE_DIR then
 			local slug = rel == "" and seg or (rel .. "/" .. seg)
 			if validateSlug(slug) then
 				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
@@ -2483,6 +2533,204 @@ end
 
 -- Raw io ONLY for the pointer: VFS caches stale content for files created or
 -- rewritten within a session (the reason pending_newmap.lua does the same).
+----------------------------------------------------------------
+-- Autosave
+----------------------------------------------------------------
+
+local function configureAutosave(cfg)
+	cfg = cfg or {}
+	local wasMinutes = autosaveCfg.minutes
+	autosaveCfg.enabled = cfg.enabled ~= false
+	autosaveCfg.minutes = math.max(1, math.floor(tonumber(cfg.minutes) or 10))
+	autosaveCfg.keepDays = math.max(0, tonumber(cfg.keepDays) or 3)
+	autosaveCfg.keepLatestDays = math.max(autosaveCfg.keepDays, tonumber(cfg.keepLatestDays) or 10)
+	if autosaveCfg.minutes ~= wasMinutes then
+		autosaveNextAt = os.clock() + autosaveCfg.minutes * 60
+	end
+end
+
+-- <project>-YYYYMMDDHHMM -> the project part and the stamp as os.time (local
+-- time, the way it was written). nil for a folder that is not one of ours.
+local function parseAutosaveLeaf(leaf)
+	local base, y, mo, d, h, mi = tostring(leaf):match("^(.+)%-(%d%d%d%d)(%d%d)(%d%d)(%d%d)(%d%d)$")
+	if not base then
+		return nil
+	end
+	local stamp = os.time({
+		year = tonumber(y) or 0,
+		month = tonumber(mo) or 0,
+		day = tonumber(d) or 0,
+		hour = tonumber(h) or 0,
+		min = tonumber(mi) or 0,
+		sec = 0,
+	})
+	return base, stamp
+end
+
+-- Every snapshot on disk, newest first: the folder walk plus this session's
+-- own writes, whose folders VFS.SubDirs cannot see yet. Entries are shaped
+-- like listDetailed's, flat (folder ""), plus the autosave fields.
+local function listAutosaves()
+	local out, seen = {}, {}
+	local function take(slug)
+		if seen[slug] then
+			return
+		end
+		local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+		if not manifest or manifest.kind ~= "bar-map-project" then
+			return
+		end
+		seen[slug] = true
+		local p = projectEntry(slug, manifest, nil)
+		local base, stamp = parseAutosaveLeaf(slug:match("([^/]+)$") or slug)
+		out[#out + 1] = {
+			slug = p.slug,
+			folder = "",
+			name = p.name,
+			size_x = p.size_x,
+			size_z = p.size_z,
+			created = p.created,
+			modified = p.modified,
+			format_version = p.format_version,
+			autosave = true,
+			autosave_of = type(manifest.autosave_of) == "string" and manifest.autosave_of or "",
+			autosave_base = base or p.name,
+			autosave_stamp = stamp or 0,
+		}
+	end
+	for _, d in ipairs(VFS.SubDirs(PROJECTS_DIR .. AUTOSAVE_DIR .. "/", "*", VFS.RAW) or {}) do
+		local seg = d:match("([^/\\]+)[/\\]*$")
+		if seg and validateSlug(AUTOSAVE_DIR .. "/" .. seg) then
+			take(AUTOSAVE_DIR .. "/" .. seg)
+		end
+	end
+	for _, slug in ipairs(autosaveJournal) do
+		take(slug)
+	end
+	table.sort(out, function(a, b)
+		if a.autosave_stamp ~= b.autosave_stamp then
+			return a.autosave_stamp > b.autosave_stamp
+		end
+		return a.slug < b.slug
+	end)
+	return out
+end
+
+-- Which snapshots to delete: older than keepDays, except the newest of each
+-- project, which lives keepLatestDays. Pure, so the spec can pin it down.
+local function autosavePrunePlan(entries, now, keepDays, keepLatestDays)
+	---@type table<string, number>
+	local newestStamp = {}
+	---@type table<string, string>
+	local newestSlug = {}
+	for _, e in ipairs(entries) do
+		local base = tostring(e.autosave_base or "")
+		local stamp = tonumber(e.autosave_stamp) or 0
+		if stamp >= (newestStamp[base] or 0) then
+			newestStamp[base] = stamp
+			newestSlug[base] = e.slug
+		end
+	end
+	local doomed = {}
+	for _, e in ipairs(entries) do
+		local base = tostring(e.autosave_base or "")
+		local limit = (newestSlug[base] == e.slug) and keepLatestDays or keepDays
+		if now - (tonumber(e.autosave_stamp) or 0) > limit * 86400 then
+			doomed[#doomed + 1] = e.slug
+		end
+	end
+	return doomed
+end
+
+-- Deletes what the plan says, through deleteProject's guards. Never the
+-- snapshot this session was opened from, never while a save or load runs.
+local function pruneAutosaves()
+	local busy = job ~= nil or loadJob ~= nil or (mapLibrary ~= nil and mapLibrary.isBusy())
+	if busy then
+		return false
+	end
+	local doomed = autosavePrunePlan(listAutosaves(), os.time(), autosaveCfg.keepDays, autosaveCfg.keepLatestDays)
+	local removed = 0
+	for _, slug in ipairs(doomed) do
+		if slug ~= autosaveLoadedSlug and deleteProject(slug) then
+			removed = removed + 1
+		end
+	end
+	if removed > 0 then
+		echoP(string.format("autosave: removed %d old snapshot(s)", removed))
+	end
+	return true
+end
+
+-- The name a snapshot carries: the open project's leaf, else the map's name.
+local function autosaveBaseName()
+	local leaf = currentSlug and currentSlug:match("([^/]+)$") or nil
+	if leaf and leaf ~= "" then
+		return leaf
+	end
+	local name = tostring(Game.mapName or "map"):gsub("[^%w_%- ]", "_"):gsub("^%s+", ""):gsub("%s+$", "")
+	if name == "" then
+		return "map"
+	end
+	return name
+end
+
+-- One snapshot now. force skips the unsaved-changes check (the console
+-- action); the timer never does.
+local function autosaveNow(force)
+	local busy = job ~= nil or loadJob ~= nil or (mapLibrary ~= nil and mapLibrary.isBusy())
+	if busy then
+		return false, "busy"
+	end
+	if not force and dirtyCount <= autosaveDirtyMark then
+		return false, "no unsaved changes"
+	end
+	local slug = AUTOSAVE_DIR .. "/" .. autosaveBaseName() .. "-" .. os.date("%Y%m%d%H%M")
+	if projectExists(slug) then
+		return false, "a snapshot for this minute exists"
+	end
+	local withUnits = currentSlug ~= nil and projectHasUnits(currentSlug)
+	local ok = startSave(slug, { autosave = true, saveUnits = withUnits })
+	if not ok then
+		return false, "save refused"
+	end
+	autosaveDirtyMark = dirtyCount
+	return true
+end
+
+-- The timer. The sweep runs whatever the switch says (retention is a setting
+-- too); a snapshot only in an editor session with something to snapshot (a
+-- project this session opened or saved, or a New Map canvas), never a normal
+-- game, never mid-stroke, never while a save or load runs.
+local function autosaveTick()
+	local now = os.clock()
+	if autosavePruneAt > 0 and now >= autosavePruneAt then
+		-- Half an hour between sweeps; a minute when one could not run (a save
+		-- or load was in flight), so the startup sweep is not lost to the load.
+		autosavePruneAt = now + (pruneAutosaves() and 1800 or 60)
+	end
+	if not autosaveCfg.enabled or now < autosaveNextAt then
+		return
+	end
+	---@type table?
+	local ui = WG.TerraformBrushUI
+	local mo = Spring.GetMapOptions() or {}
+	local canvas = (mo.blank_map_x or mo.blank_map_y) and true or false
+	if not ui or not (currentSlug or canvas) or Spring.GetGameFrame() <= 0 then
+		autosaveNextAt = now + 30
+		return
+	end
+	local _, _, lmb, _, rmb = Spring.GetMouseState()
+	if lmb or rmb then
+		autosaveNextAt = now + 5
+		return
+	end
+	local ok = autosaveNow(false)
+	-- Nothing to snapshot yet: look again soon, so the first edit after a
+	-- pause is covered within the minute rather than a whole interval later.
+	autosaveNextAt = now + (ok and autosaveCfg.minutes * 60 or 30)
+end
+
 local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
 	local content = string.format(
@@ -3397,9 +3645,15 @@ local function finishLoad()
 		echoP(#loadJob.skipped .. " section(s) skipped — reasons above")
 	end
 	deletePointer()
+	-- What was loaded from a snapshot differs from the project it belongs to
+	-- until it is saved back, so the session starts out with changes; the
+	-- timer waits for an edit on top of that before taking the next snapshot.
+	local fromAutosave = loadJob.autosaveOf ~= nil
 	loadJob = nil
-	dirtyCount = 0
+	dirtyCount = fromAutosave and 1 or 0
+	autosaveDirtyMark = dirtyCount
 	dirtyGraceUntil = os.clock() + 8
+	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
 
 	-- Leave pregame, or the whole map is unclickable above the canvas base height.
 	--
@@ -3593,6 +3847,20 @@ local function maybeStartLoad()
 		missingWarned = {},
 	}
 	currentSlug = loadJob.slug
+	-- A snapshot opens as the project it was taken from: FILE > Save writes
+	-- back to that project, the snapshot itself is never a Save target, and
+	-- the sweep spares it while it is the session's origin. A snapshot of a
+	-- canvas that had no project ("") leaves Save asking for a name.
+	if type(manifest.autosave_of) == "string" then
+		autosaveLoadedSlug = loadJob.slug
+		local origin = validateSlug(manifest.autosave_of)
+		loadJob.autosaveOf = origin or ""
+		currentSlug = origin
+		echoP(
+			origin and ("this is an autosave of '" .. origin .. "': FILE > Save writes there")
+				or "this is an autosave of an unsaved canvas: FILE > Save asks for a name"
+		)
+	end
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
 	else
@@ -3730,9 +3998,16 @@ local function mapProjectAction(_, optLine, params)
 		listProjects()
 	elseif sub == "delete" then
 		deleteProject(params[2])
+	elseif sub == "autosave" then
+		local ok, why = autosaveNow(true)
+		if not ok then
+			echoP("autosave not started: " .. tostring(why))
+		end
+	elseif sub == "prune" then
+		pruneAutosaves()
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune"
 		)
 	end
 end
@@ -3748,6 +4023,9 @@ function widget:Initialize()
 	widgetHandler:AddAction("mapproject", mapProjectAction, nil, "t")
 	-- A fresh session's opening heightmap updates are not edits.
 	dirtyGraceUntil = os.clock() + 8
+	configureAutosave({})
+	-- The first sweep of old snapshots a minute in, then every half hour.
+	autosavePruneAt = os.clock() + 60
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
 	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
@@ -3814,18 +4092,31 @@ function widget:Initialize()
 			local entry = LOAD_PHASES[index] or {}
 			return index, #LOAD_PHASES, entry.name or ""
 		end,
-		-- (step, total, stepName) of the running save, nil when idle — drives
-		-- the status-strip segment bar in the terraform UI.
+		-- (step, total, stepName, kind) of the running save, nil when idle —
+		-- drives the status-strip segment bar in the terraform UI; kind is
+		-- "save" or "autosave", which the strip labels differently.
 		saveProgress = function()
 			if not job then
 				return nil
 			end
 			local step = math.min(job.step, #STEPS)
-			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
+			return step, #STEPS, STEPS[step] and STEPS[step].name or "", job.autosave and "autosave" or "save"
 		end,
 		-- Completed receipt {done, ok, slug, uploadReady}; same object returned by save.
 		lastSave = function()
 			return lastSaveInfo
+		end,
+		-- Autosave (Settings > General). setAutosave({enabled, minutes, keepDays,
+		-- keepLatestDays}) from the panel; listAutosaves for the Projects
+		-- window's Autosaves view; autosaveNow(force) is the console action; the
+		-- prune plan is exposed for the spec. lastAutosave is the receipt of the
+		-- newest snapshot (the manual receipt in lastSave is never an autosave).
+		setAutosave = configureAutosave,
+		listAutosaves = listAutosaves,
+		autosaveNow = autosaveNow,
+		autosavePrunePlan = autosavePrunePlan,
+		lastAutosave = function()
+			return lastAutosaveInfo
 		end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
@@ -3843,6 +4134,7 @@ function widget:Update(dt)
 	if mapLibrary then
 		mapLibrary.update(dt)
 	end
+	autosaveTick()
 end
 
 function widget:Shutdown()

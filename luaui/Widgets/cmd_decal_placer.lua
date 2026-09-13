@@ -416,6 +416,12 @@ local function pushUndoBatch(ids)
 	if #ids == 0 then
 		return
 	end
+	-- Every decal edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
+	end
 	dp.redoStack = {}
 	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }
 	while #dp.undoStack > MAX_UNDO do
