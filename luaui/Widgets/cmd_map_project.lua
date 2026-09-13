@@ -4005,9 +4005,14 @@ local function mapProjectAction(_, optLine, params)
 		end
 	elseif sub == "prune" then
 		pruneAutosaves()
+	elseif sub == "dirty" then
+		-- Marks the session as having unsaved changes, for exercising the guards
+		-- (the quit popup, Open's confirm, the autosave timer) without an edit.
+		dirtyCount = dirtyCount + 1
+		echoP("session marked as changed (unsaved changes: " .. dirtyCount .. ")")
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune  |  /mapproject dirty"
 		)
 	end
 end
