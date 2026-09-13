@@ -516,6 +516,7 @@ Format: {
 --]]
 local scripts = {}
 
+-- Recursively collect files below UNITSCRIPT_DIR and ModuleHandler-defined paths
 local scriptFiles = {}
 
 -- Creates a new prototype environment for a unit script.
