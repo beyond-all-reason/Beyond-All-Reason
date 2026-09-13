@@ -81,9 +81,9 @@ local texture1 = "bitmaps/GPL/perlin_noise.jpg" -- noise texture
 local texture2 = "luaui/images/jet_atlas.tga" -- R=opacity(shape), G=perlin displacement strength (per jetType)
 
 -- jet2 atlas: 8 columns of 32x64; per-effect overrides below (defaults preserve the old look)
-local defaultJetType = 0         -- atlas column (0..7)
+local defaultJetType = 0 -- atlas column (0..7)
 local defaultXZVelSizeMult = 0.0 -- XZ velocity -> jet length multiplier (0 = off, keeps old look)
-local defaultYVelSizeMult = 1.0   -- Y  velocity -> jet length multiplier (1 = current behaviour)
+local defaultYVelSizeMult = 1.0 -- Y  velocity -> jet length multiplier (1 = current behaviour)
 
 local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
 
