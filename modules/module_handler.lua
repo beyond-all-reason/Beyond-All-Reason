@@ -33,7 +33,10 @@ end
 ---@param dir string directory with trailing slash
 ---@return string name
 local function dirBasename(dir)
-	return dir:gsub("/+$", ""):match("([^/]+)$") --[[@as string]]
+	-- strip trailing slashes
+	local noSlash = dir:gsub("/+$", "")
+	-- last path segment, "modules/<name>/" -> "<name>"
+	return noSlash:match("([^/]+)$") --[[@as string]]
 end
 
 ---@param dir string
