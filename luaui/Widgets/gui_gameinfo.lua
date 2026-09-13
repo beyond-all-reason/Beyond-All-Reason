@@ -1073,7 +1073,9 @@ end
 function unitStrip.layout()
 	local s = unitStrip
 	local n = 0
-	local listed = selectedCategory == "tweakunits"
+	-- Its own category, and All while only changes are listed: that view is mostly the tweaks,
+	-- and a unit block is as hard to find in it as it is in the tweakunits one.
+	local listed = selectedCategory == "tweakunits" or (selectedCategory == nil and changedOnly)
 	-- The first row of each unit the list shows, per block and overall. Kept whatever the
 	-- category, since a buildoptions picture jumps to the unit it names through these too.
 	local blockRows, anyRow = {}, {}
@@ -1096,6 +1098,11 @@ function unitStrip.layout()
 				end
 			end
 		end
+	end
+	-- Under All the list is shared with every other category, so a strip of a unit or three
+	-- would cost more room than the scrolling it saves.
+	if selectedCategory == nil and n < 4 then
+		n = 0
 	end
 	s.count = n
 	s.blockRows, s.anyRow = blockRows, anyRow
@@ -1712,6 +1719,45 @@ function unitStrip.optionAt(x, y)
 	local inBlock = unitStrip.blockRows and unitStrip.blockRows[row.srcBlock]
 
 	return (inBlock and inBlock[id]) or (unitStrip.anyRow and unitStrip.anyRow[id])
+end
+
+-- Whether x,y is in the picture column down the left of a tweakunits block, and the unit
+-- whose picture is under it when there is one. The column belongs to the pictures, not the
+-- source, so nothing in it selects.
+function unitStrip.gutterAt(x, y)
+	local r = rowAt(y)
+	local row = r and rows[scroll + r]
+	local gutter = row and row.type == "code" and row.gutter or 0
+	if gutter <= 0 or x < listX1 or x >= listX1 + metrics.rowPad * 2 + gutter then
+		return false
+	end
+
+	local x1 = listX1 + metrics.rowPad
+	-- The small picture a search puts against the right of the column, on its own row.
+	if row.needsOwner and x >= x1 + gutter - metrics.tinyIcon and x <= x1 + gutter then
+		return true, row.ownerUnitDefID
+	end
+	if x > x1 + metrics.iconSize then
+		return true
+	end
+
+	-- A block's picture hangs from its opening row over the rows under it, so it is found by
+	-- looking up from the hovered row for that opening, as far as a picture reaches.
+	local base = scrollOffset()
+	local reach = mathFloor((metrics.iconTop + metrics.iconSize) / mathMax(1, metrics.codeRowHeight)) + 1
+	for i = scroll + r, mathMax(scroll + 1, scroll + r - reach), -1 do
+		local above = rows[i]
+		if above.unitDefID then
+			local top = listTop - (above.off - base) - metrics.iconTop
+			if y <= top and y >= top - metrics.iconSize then
+				return true, above.unitDefID
+			end
+
+			return true
+		end
+	end
+
+	return true
 end
 
 ----------------------------------------------------------------
@@ -2333,17 +2379,29 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor("cursornormal")
 
 		local row = hover.row > 0 and rows[scroll + hover.row]
+		local inGutter, gutterUnit = false, nil
+		if row then
+			inGutter, gutterUnit = unitStrip.gutterAt(mx, my)
+		end
+		-- A picture on its own does not say which unit it is to anyone who does not know the
+		-- art, so every one of them names its unit and says what it is. Not the def name: the
+		-- source beside it already spells that out.
+		local unit = (hover.strip > 0 and unitStrip.ids[hover.strip])
+			or (hover.option > 0 and row and row.optionUnitDefID)
+			or gutterUnit
 		-- Source says how to take it somewhere else, since nothing about a row of it looks
-		-- like something you could drag across.
-		local tip = row and (row.tooltip or (row.type == "code" and L.copyHint))
-		if hover.strip > 0 and WG.tooltip then
-			-- A picture on its own does not say which unit it is to anyone who does not know
-			-- the art; the def name under it is the one the source beneath uses.
-			local def = UnitDefs[unitStrip.ids[hover.strip]]
-			WG.tooltip.ShowTooltip("gameinfo", colorDim .. def.name, nil, nil, def.translatedHumanName)
-		elseif hover.option > 0 and row and WG.tooltip then
-			local def = UnitDefs[row.optionUnitDefID]
-			WG.tooltip.ShowTooltip("gameinfo", colorDim .. def.name, nil, nil, def.translatedHumanName)
+		-- like something you could drag across. Not over the picture column, which does not
+		-- select.
+		local tip = row and not inGutter and (row.tooltip or (row.type == "code" and L.copyHint))
+		if unit and WG.tooltip then
+			local def = UnitDefs[unit]
+			WG.tooltip.ShowTooltip(
+				"gameinfo",
+				"\255\240\240\240" .. (def.translatedTooltip or ""),
+				nil,
+				nil,
+				def.translatedHumanName
+			)
 		elseif tip and WG.tooltip then
 			WG.tooltip.ShowTooltip("gameinfo", tip.text, nil, nil, tip.title)
 		end
@@ -2540,6 +2598,10 @@ local function mouseEvent(x, y, button, release)
 						if playSounds then
 							Spring.PlaySoundFile(buttonclick, 0.6, "ui")
 						end
+					elseif unitStrip.gutterAt(x, y) then
+						-- The picture column is not source, so a press in it selects nothing and
+						-- puts down whatever was selected, like a press on any other row.
+						clearSelection()
 					elseif row and row.type == "code" then
 						selFrom, selTo = scroll + r, scroll + r
 						selecting = true
@@ -2704,6 +2766,19 @@ function widget:Shutdown()
 	deleteGuishader()
 	if WG.tooltip then
 		WG.tooltip.RemoveTooltip("gameinfo")
+	end
+end
+
+-- The changed-only filter is kept between games: someone who only wants to see what a lobby
+-- adjusted wants that every time they open the panel, not only the first.
+function widget:GetConfigData()
+	return { changedOnly = changedOnly }
+end
+
+-- Runs before Initialize, so the first list built already honours it.
+function widget:SetConfigData(data)
+	if data and data.changedOnly ~= nil then
+		changedOnly = data.changedOnly == true
 	end
 end
 

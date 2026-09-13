@@ -70,8 +70,10 @@ widgetHandler = {
 	widgets = {},
 
 	configData = {},
-	-- Why each widget that failed to load did, keyed by its file. See loadFailed.
-	loadErrors = {},
+	-- Every error each widget has raised this session, kept against its file. See RecordError.
+	errorLog = {},
+	-- And how many in all, so a panel can notice a new one with a single comparison.
+	errorCount = 0,
 	orderList = {},
 
 	knownWidgets = {},
@@ -542,6 +544,51 @@ function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	return w
 end
 
+-- Every error a widget raises is kept against its file for the rest of the session: by
+-- file rather than by name, because most of the ways loading can fail happen before the
+-- widget has told anyone its name. The same error from the same place is one entry with
+-- a count, moved to the end, rather than an entry per time - a widget re-enabled into the
+-- same crash would otherwise push everything else out. At most twenty are kept.
+--
+-- `callin` is nil for a failure to load. `stops` says this error is why the widget is not
+-- running, and `stopped` holds it until the widget next loads. The handler's `errorCount`
+-- counts every error of every widget, repeats included, so a panel can tell a new one has
+-- arrived with one comparison instead of reading anybody's log.
+function widgetHandler:RecordError(basename, callin, message, stops)
+	local log = self.errorLog[basename]
+	if not log then
+		log = { entries = {} }
+		self.errorLog[basename] = log
+	end
+
+	local entries = log.entries
+	local entry
+	for i = 1, #entries do
+		if entries[i].callin == callin and entries[i].message == message then
+			entry = table.remove(entries, i)
+			break
+		end
+	end
+	local frame = Spring.GetGameFrame()
+	if entry then
+		entry.count = entry.count + 1
+		entry.lastFrame = frame
+	else
+		entry = { callin = callin, message = message, count = 1, frame = frame, lastFrame = frame }
+	end
+	entries[#entries + 1] = entry
+	if #entries > 20 then
+		table.remove(entries, 1)
+	end
+
+	self.errorCount = self.errorCount + 1
+	if stops then
+		log.stopped = entry
+	end
+
+	return entry
+end
+
 -- Why a widget did not load, keyed by its file.
 --
 -- These used to be echoed and forgotten, which left the widget selector able to say a
@@ -550,7 +597,7 @@ end
 -- happen before the widget has told anyone its name.
 local function loadFailed(basename, reason)
 	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
-	widgetHandler.loadErrors[basename] = reason
+	widgetHandler:RecordError(basename, nil, reason, true)
 
 	return nil
 end
@@ -706,8 +753,12 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		widget:SetConfigData(config)
 	end
 
-	-- It loaded, so whatever was wrong with it last time no longer is.
-	self.loadErrors[basename] = nil
+	-- It loaded, so whatever stopped it last time no longer is. What it raised stays in the
+	-- log: a widget that crashed and came back is still worth being able to look into.
+	local log = self.errorLog[basename]
+	if log then
+		log.stopped = nil
+	end
 
 	return widget
 end
@@ -909,6 +960,10 @@ end
 
 local function widgetFailure(w, funcName, errorMsg)
 	local name = w.whInfo.name
+	-- Kept against the widget as well as said, and before anything below can reload it: the
+	-- log is how the widget selector shows what went wrong once the line has scrolled out of
+	-- the console. Shutdown is the one callin whose failure does not take the widget down.
+	widgetHandler:RecordError(w.whInfo.basename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
@@ -1128,7 +1183,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
-		self.loadErrors[widget.whInfo.basename] = "missing capabilities"
+		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
@@ -1136,7 +1191,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
-			self.loadErrors[widget.whInfo.basename] = "user 'unit control' widgets are disabled for this game"
+			self:RecordError(
+				widget.whInfo.basename,
+				nil,
+				"user 'unit control' widgets are disabled for this game",
+				true
+			)
 		end
 		return
 	end
