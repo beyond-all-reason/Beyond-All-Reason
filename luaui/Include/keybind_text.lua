@@ -95,4 +95,22 @@ function M.wrap(font, text, maxWidth, size)
 	return lines
 end
 
+-- Starts each line of wrapped text in the colour the line before it ended in. A tooltip prints its
+-- text a line at a time, each line from the tooltip's own colour, so a colour set partway along one
+-- line would otherwise stop where the line does - and wrapping ends lines wherever it has to.
+function M.carryColors(str)
+	local out, current = {}, nil
+	for line in (str .. "\n"):gmatch("([^\n]*)\n") do
+		if current and line ~= "" and line:byte(1) ~= 255 then
+			line = current .. line
+		end
+		for code in line:gmatch("\255...") do
+			current = code
+		end
+		out[#out + 1] = line
+	end
+
+	return table.concat(out, "\n")
+end
+
 return M

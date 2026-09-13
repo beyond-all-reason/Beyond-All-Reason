@@ -1321,6 +1321,28 @@ rebuildRows = function()
 		end
 	end
 
+	-- How many rows of its own block each opening row has under its picture, itself included.
+	-- A block shows at least three unfiltered, but a search can leave it one or two, and a
+	-- picture three rows tall would then run down over the next unit's. Under a search none
+	-- goes past two: the results are a list of matches, not the blocks, and pictures at full
+	-- size down it read as the blocks again.
+	local searchText = searchBox and searchBox:getText() or ""
+	local maxRows = string.find(searchText, "%S") and 2 or 3
+	for i = 1, #rows do
+		local row = rows[i]
+		if row.unitDefID then
+			local k = 1
+			while k < maxRows do
+				local below = rows[i + k]
+				if not (below and below.srcBlock == row.srcBlock and below.ownerUnitDefID == row.ownerUnitDefID) then
+					break
+				end
+				k = k + 1
+			end
+			row.pictureRows = k
+		end
+	end
+
 	unitStrip.layout()
 	clampScroll()
 end
@@ -1721,6 +1743,24 @@ function unitStrip.optionAt(x, y)
 	return (inBlock and inBlock[id]) or (unitStrip.anyRow and unitStrip.anyRow[id])
 end
 
+-- Where the picture of a block's opening row goes, given that row's edges: left, top and
+-- size. Full size over three rows of its block, two rows tall over two, and the small
+-- single-row picture over one - always against the right of the column, where the full one
+-- ends, so they line up whatever size each came out at.
+function unitStrip.pictureFor(row, top, bottom)
+	local right = listX1 + metrics.rowPad + (row.gutter or metrics.iconSize)
+	local k = row.pictureRows or 3
+	if k >= 3 then
+		return right - metrics.iconSize, top - metrics.iconTop, metrics.iconSize
+	elseif k == 2 then
+		local size = metrics.codeRowHeight * 2 - metrics.iconTop - metrics.iconBottom
+		return right - size, top - metrics.iconTop, size
+	end
+
+	local size = metrics.tinyIcon
+	return right - size, mathFloor(mathFloor((top + bottom) * 0.5) + size * 0.5), size
+end
+
 -- Whether x,y is in the picture column down the left of a tweakunits block, and the unit
 -- whose picture is under it when there is one. The column belongs to the pictures, not the
 -- source, so nothing in it selects.
@@ -1737,10 +1777,6 @@ function unitStrip.gutterAt(x, y)
 	if row.needsOwner and x >= x1 + gutter - metrics.tinyIcon and x <= x1 + gutter then
 		return true, row.ownerUnitDefID
 	end
-	if x > x1 + metrics.iconSize then
-		return true
-	end
-
 	-- A block's picture hangs from its opening row over the rows under it, so it is found by
 	-- looking up from the hovered row for that opening, as far as a picture reaches.
 	local base = scrollOffset()
@@ -1748,8 +1784,9 @@ function unitStrip.gutterAt(x, y)
 	for i = scroll + r, mathMax(scroll + 1, scroll + r - reach), -1 do
 		local above = rows[i]
 		if above.unitDefID then
-			local top = listTop - (above.off - base) - metrics.iconTop
-			if y <= top and y >= top - metrics.iconSize then
+			local top = listTop - (above.off - base)
+			local px, py, size = unitStrip.pictureFor(above, top, top - rowHeightOf(above))
+			if x >= px and x <= px + size and y <= py and y >= py - size then
 				return true, above.unitDefID
 			end
 
@@ -1924,7 +1961,8 @@ local function drawRow(row, top, bottom, hovered, selected)
 			)
 		end
 		if row.unitDefID then
-			queueIcon(row.unitDefID, listX1 + metrics.rowPad, top - metrics.iconTop, metrics.iconSize)
+			local px, py, size = unitStrip.pictureFor(row, top, bottom)
+			queueIcon(row.unitDefID, px, py, size)
 		elseif row.needsOwner then
 			-- Against the right of the gutter, so it reads as belonging to the name it is in
 			-- front of rather than floating out at the panel edge.
@@ -2299,6 +2337,7 @@ function widget:ViewResize()
 	if not searchBox then
 		searchBox = Editbox.new({
 			placeholder = L.search,
+			clearable = true,
 			onChange = function()
 				setScroll(0)
 				rebuildRows()

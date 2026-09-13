@@ -55,6 +55,9 @@ function Editbox.new(opts)
 	-- every other widget and keeps whatever outline was set on it last; without one this takes
 	-- that, as it always has.
 	self.outline = opts.outline
+	-- A faint button at the right end that empties the field, shown while there is text. Asked
+	-- for rather than given: a field whose text is not a filter has nothing it should clear.
+	self.clearable = opts.clearable
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -270,10 +273,36 @@ function Editbox:keyPress(key)
 	return true
 end
 
+-- The clear button: a square the height of the field against its right end, inset like the
+-- caret and the selection are.
+local function clearRect(self)
+	local x2, y1, y2 = self.rect[3], self.rect[2], self.rect[4]
+	local inset = floor((y2 - y1) * 0.18)
+
+	return x2 - (y2 - y1) + inset, y1 + inset, x2 - inset, y2 - inset
+end
+
+local function overClear(self, x, y)
+	if not self.clearable or self.text == "" then
+		return false
+	end
+	local bx1, by1, bx2, by2 = clearRect(self)
+
+	return x >= bx1 and x <= bx2 and y >= by1 and y <= by2
+end
+
 -- Click to place the caret, or start a drag selection.
 function Editbox:mousePress(x, y)
 	if x < self.rect[1] or x > self.rect[3] or y < self.rect[2] or y > self.rect[4] then
 		return false
+	end
+
+	-- Focus stays, so the next thing typed starts a new search.
+	if overClear(self, x, y) then
+		self:focus()
+		self:setText("")
+
+		return true
 	end
 
 	local _, _, _, shift = Spring.GetModKeyState()
@@ -330,6 +359,30 @@ end
 
 -- Held rather than built per draw: a colour table a frame is an allocation a frame.
 local fieldFill = { 0, 0, 0, 0.35 }
+local clearFill = { 1, 1, 1, 0.04 }
+
+-- A thin cross, drawn as geometry rather than a glyph so it does not depend on the font
+-- carrying one. The second bar is two halves either side of the first, so the middle is not
+-- painted twice and does not show as a brighter dot.
+local function drawClear(self, hot, cs)
+	local bx1, by1, bx2, by2 = clearRect(self)
+	WG.FlowUI.Draw.RectRound(bx1, by1, bx2, by2, cs, 1, 1, 1, 1, clearFill)
+	if hot then
+		WG.FlowUI.Draw.SelectHighlight(bx1, by1, bx2, by2, cs, hoverOpacity, white)
+	end
+
+	local arm = math.max(2, floor((bx2 - bx1) * 0.24))
+	local half = math.max(1, floor((bx2 - bx1) * 0.035 + 0.5))
+	gl.Color(1, 1, 1, hot and 0.75 or 0.32)
+	gl.PushMatrix()
+	gl.Translate(floor((bx1 + bx2) * 0.5), floor((by1 + by2) * 0.5), 0)
+	gl.Rotate(45, 0, 0, 1)
+	gl.Rect(-arm, -half, arm, half)
+	gl.Rect(-half, half, half, arm)
+	gl.Rect(-half, -arm, half, -half)
+	gl.PopMatrix()
+	gl.Color(1, 1, 1, 1)
+end
 
 function Editbox:draw()
 	update(self)
@@ -386,6 +439,10 @@ function Editbox:draw()
 	end
 	font:Print(shown, tx, ty, self.fontSize, "o")
 	font:End()
+
+	if self.clearable and self.text ~= "" then
+		drawClear(self, overClear(self, mx, my), cs)
+	end
 
 	if self.focused then
 		-- Sharp bar rather than a rounded one, sized and placed off the font like chat's:

@@ -172,6 +172,48 @@ look.gradients = setmetatable({}, {
 		return pair
 	end,
 })
+-- The colour each prefix group is marked with: a small square ahead of its label in the
+-- column, and the same square ahead of the name on every row, so a list showing more than
+-- one group says which group each widget is in. The hues are spread round the wheel at a
+-- like lightness, and kept off the green, amber and red the row states are marked in.
+look.groups = {
+	interface = { 0.38, 0.62, 0.96, 1 },
+	commands = { 0.96, 0.6, 0.24, 1 },
+	units = { 0.3, 0.8, 0.68, 1 },
+	camera = { 0.7, 0.52, 0.96, 1 },
+	graphics = { 0.95, 0.5, 0.74, 1 },
+	sound = { 0.92, 0.84, 0.36, 1 },
+	map = { 0.62, 0.78, 0.3, 1 },
+	minimap = { 0.36, 0.82, 0.94, 1 },
+	api = { 0.74, 0.58, 0.44, 1 },
+	debug = { 0.9, 0.4, 0.42, 1 },
+	other = { 0.6, 0.6, 0.62, 1 },
+}
+-- The same colours faded, for a row that is off and a category the search left empty: both
+-- are drawn quieter than the rest, and a square at full strength would undo that. Derived
+-- once per colour and kept, like the gradients.
+look.faded = setmetatable({}, {
+	__index = function(self, color)
+		local faded = { color[1], color[2], color[3], 0.55 }
+		self[color] = faded
+
+		return faded
+	end,
+})
+-- A category the search found nothing in. It stays in the column, so the column does not
+-- jump about under the typing, but it reads quieter than the ones holding matches.
+look.emptyText = "\255\95\95\95"
+-- The row tooltip's colours. Every line there is a label and what it labels, and one grey for both
+-- made the lines a block to read through: the labels step back and the values come forward. The
+-- names of other widgets get a colour of their own, being what a reader follows from one tooltip to
+-- the next, and widgets that never check for what they use are in the warning colour, since those
+-- are the ones that would break.
+look.tip = {
+	label = "\255\140\140\140",
+	value = "\255\225\225\225",
+	name = "\255\175\205\240",
+	warn = "\255\235\195\125",
+}
 local colorTitle = "\255\235\235\235"
 local colorName = "\255\145\143\140"
 local colorNameOn = "\255\248\248\248"
@@ -438,6 +480,268 @@ function sweep.hasConfig(name)
 	return type(d) == "table" and next(d) ~= nil
 end
 
+-- What the widgets share with each other through WG, as barwidgets read it out of their sources
+-- when they loaded: which widget provides a key, which widgets use it, and whether they check it
+-- is there first. A table rather than a local per function, for the reason `sweep` is one. The
+-- reading is a static one, so everything said with it says "uses" rather than "requires".
+local deps = {}
+
+-- Rebuilt with the entries: key -> the names of the widgets that assign it, sorted, so a key two
+-- widgets both provide reads the same way every time.
+function deps.rebuild()
+	local providers = {}
+	for name, data in pairs(widgetHandler.knownWidgets) do
+		if data.deps then
+			for key in pairs(data.deps.provides) do
+				local list = providers[key]
+				if not list then
+					list = {}
+					providers[key] = list
+				end
+				list[#list + 1] = name
+			end
+		end
+	end
+	for _, list in pairs(providers) do
+		table.sort(list)
+	end
+	deps.providers = providers
+end
+
+function deps.keys(set)
+	local out = {}
+	for key in pairs(set) do
+		out[#out + 1] = key
+	end
+	table.sort(out)
+
+	return out
+end
+
+-- The running widget providing a key, if one is: nil when nothing known provides it at all, false
+-- when something does and none of them is running.
+function deps.provider(key)
+	local list = deps.providers and deps.providers[key]
+	if not list then
+		return nil
+	end
+	local known = widgetHandler.knownWidgets
+	for i = 1, #list do
+		if known[list[i]] and known[list[i]].active then
+			return list[i]
+		end
+	end
+
+	return false
+end
+
+-- The running widgets that use a key `name` provides, and those of them that never check it is
+-- there. With `sole`, only keys no other running widget provides as well: what switching `name`
+-- off would actually take away from them.
+function deps.users(name, sole)
+	local known = widgetHandler.knownWidgets
+	local own = known[name] and known[name].deps
+	local users, unchecked = {}, {}
+	if not (own and deps.providers) then
+		return users, unchecked
+	end
+	local keys = {}
+	for key in pairs(own.provides) do
+		local alone = true
+		if sole then
+			for _, other in ipairs(deps.providers[key] or {}) do
+				if other ~= name and known[other] and known[other].active then
+					alone = false
+				end
+			end
+		end
+		if alone then
+			keys[#keys + 1] = key
+		end
+	end
+	if #keys == 0 then
+		return users, unchecked
+	end
+	for other, data in pairs(known) do
+		if other ~= name and data.active and data.deps then
+			local uses, blind = false, false
+			for i = 1, #keys do
+				if data.deps.uses[keys[i]] then
+					uses = true
+					blind = blind or not data.deps.guards[keys[i]]
+				end
+			end
+			if uses then
+				users[#users + 1] = other
+				if blind then
+					unchecked[#unchecked + 1] = other
+				end
+			end
+		end
+	end
+	table.sort(users)
+	table.sort(unchecked)
+
+	return users, unchecked
+end
+
+-- A list of names cut to `limit`, with a count of the rest.
+function deps.names(list, limit, sep)
+	local shown = {}
+	for i = 1, math.min(#list, limit) do
+		shown[i] = list[i]
+	end
+
+	-- Given a colour for the separators, the entries carry colours of their own.
+	sep = sep or ""
+
+	return table.concat(shown, sep .. ", ") .. (#list > limit and (sep .. "  +" .. (#list - limit)) or "")
+end
+
+-- The dependency lines of a row's tooltip, each ending in a newline, or "". What the widget uses,
+-- by the widget providing it, with anything switched off marked - red where the widget never
+-- checks for it, quiet where it does. And, for a widget others use, how many running ones do.
+function deps.tooltip(row, maxWidth)
+	local own = row.data.deps
+	if not (own and deps.providers) then
+		return ""
+	end
+	local tip = look.tip
+	local out = ""
+
+	local names, state = {}, {}
+	for _, key in ipairs(deps.keys(own.uses)) do
+		local running = deps.provider(key)
+		if running ~= nil then
+			local shown = running or deps.providers[key][1]
+			if shown ~= row.name then
+				if not state[shown] then
+					names[#names + 1] = shown
+					state[shown] = "on"
+				end
+				if running == false then
+					state[shown] = (state[shown] == "blind" or not own.guards[key]) and "blind" or "off"
+				end
+			end
+		end
+	end
+	if #names > 0 then
+		-- What is off first: that is what the line is there to say.
+		local rank = { blind = 1, off = 2, on = 3 }
+		table.sort(names, function(a, b)
+			if rank[state[a]] ~= rank[state[b]] then
+				return rank[state[a]] < rank[state[b]]
+			end
+
+			return a < b
+		end)
+		local parts = {}
+		for i, name in ipairs(names) do
+			if state[name] == "blind" then
+				parts[i] = tagColors.iserror .. name .. " (" .. L.depsOff .. ")"
+			elseif state[name] == "off" then
+				parts[i] = "\255\130\130\130" .. name .. " (" .. L.depsOff .. ")"
+			else
+				parts[i] = tip.name .. name
+			end
+		end
+		local line = tip.label .. L.depsUses .. ":  " .. deps.names(parts, 8, tip.label)
+		out = out .. text.carryColors(font:WrapText(line, maxWidth)) .. "\n"
+	end
+
+	local users, unchecked = deps.users(row.name, false)
+	if #users > 0 then
+		-- The ones that never check first, since those are the ones that would break.
+		local blind = {}
+		for _, name in ipairs(unchecked) do
+			blind[name] = true
+		end
+		table.sort(users, function(a, b)
+			if (blind[a] or false) ~= (blind[b] or false) then
+				return blind[a] == true
+			end
+
+			return a < b
+		end)
+		local line = tip.label
+			.. L.depsUsedBy
+			.. ":  "
+			.. tip.value
+			.. #users
+			.. tip.label
+			.. " "
+			.. (#users == 1 and L.depsRunningOne or L.depsRunning)
+		if #unchecked > 0 then
+			line = line .. " (" .. tip.warn .. #unchecked .. " " .. L.depsUnchecked .. tip.label .. ")"
+		end
+		local parts = {}
+		for i, name in ipairs(users) do
+			parts[i] = (blind[name] and tip.warn or tip.name) .. name
+		end
+		line = line .. " - " .. deps.names(parts, 3, tip.label)
+		out = out .. text.carryColors(font:WrapText(line, maxWidth)) .. "\n"
+	end
+
+	return out
+end
+
+-- For a widget that has raised errors: the things it uses that are switched off, where that is a
+-- likely reason - it never checks the key is there, or one of its errors names the key.
+function deps.causes(row)
+	local own = row.data.deps
+	if not (own and row.errors and deps.providers) then
+		return ""
+	end
+	local out = ""
+	for _, key in ipairs(deps.keys(own.uses)) do
+		if deps.provider(key) == false then
+			local named = false
+			for _, e in ipairs(row.errors.entries) do
+				local message = tostring(e.message)
+				named = named
+					or string.find(message, "'" .. key .. "'", 1, true) ~= nil
+					or string.find(message, "WG." .. key, 1, true) ~= nil
+			end
+			if named or not own.guards[key] then
+				local what, provider = "WG." .. key, deps.providers[key][1]
+				-- Looked up with both values in hand: i18n fills placeholders at lookup. The gsubs
+				-- cover the fallback, which comes back untouched.
+				local text = BAR.I18N(
+					"ui.widgetselector.depscause",
+					{ key = what, provider = provider, default = L.depsCauseFallback }
+				)
+				text = string.gsub(text, "%%{key}", function()
+					return what
+				end)
+				text = string.gsub(text, "%%{provider}", function()
+					return provider
+				end)
+				out = out .. tagColors.iserrorSoft .. text .. "\n"
+			end
+		end
+	end
+
+	return out
+end
+
+-- What the switch-off warning says: how many running widgets use what `name` provides without
+-- checking, and which.
+function deps.warning(name, unchecked)
+	local count = #unchecked
+	local text = BAR.I18N(
+		"ui.widgetselector." .. (count == 1 and "depswarnone" or "depswarn"),
+		{ name = name, count = count, default = count == 1 and L.depsWarnOneFallback or L.depsWarnFallback }
+	)
+	text = string.gsub(text, "%%{name}", function()
+		return name
+	end)
+	text = string.gsub(text, "%%{count}", function()
+		return tostring(count)
+	end)
+
+	return text .. "  " .. deps.names(unchecked, 6)
+end
+
 -- What barwidgets has kept of a widget's errors this session, if there are any. Keyed by
 -- file, since most of the ways loading can fail happen before a widget has a name.
 function sweep.errors(data)
@@ -473,6 +777,8 @@ end
 local function buildEntries()
 	-- The handler's error count as these rows see it. contentMoved rebuilds when it moves.
 	sweep.errorCount = widgetHandler.errorCount or 0
+	-- Who provides what, for the tooltip lines and the switch-off warning.
+	deps.rebuild()
 	local myName = widget:GetInfo().name
 	entries = {}
 	entryByName = {}
@@ -692,23 +998,42 @@ rebuildRows = function()
 	-- Filled once and rewritten per widget rather than allocated for each of them.
 	local primary, secondary = { "" }, { "", "", "" }
 	local scored = not query.empty and {} or nil
+	-- While something is typed, the column counts what each category would show with it, so its
+	-- numbers say where the matches are rather than how much there is in all. That takes scoring
+	-- every widget the switches leave, not only the selected category's. The categories stay
+	-- put, empty or not, so the column does not jump about under the typing.
+	local found
+	if scored then
+		found = {}
+		for _, c in ipairs(categories) do
+			c.found, c.foundOn = 0, 0
+			if c.key then
+				found[c.key] = c
+			end
+		end
+	end
+	local function add(c, on)
+		if c then
+			c.found = c.found + 1
+			if on then
+				c.foundOn = c.foundOn + 1
+			end
+		end
+	end
 
 	for i = 1, #entries do
 		local e = entries[i]
-		if
+		if (not filters.enabledOnly or e.state > 0) and (not filters.errorsOnly or e.errors) then
 			-- `changed` and `local` are views of the whole list rather than filename prefixes, so
 			-- each is matched on what it means instead of on the group.
-			(
-				not selectedCategory
+			local inView = not selectedCategory
 				or (selectedCategory == "changed" and e.changed)
 				or (selectedCategory == "local" and e.isLocal)
 				or e.group == selectedCategory
-			)
-			and (not filters.enabledOnly or e.state > 0)
-			and (not filters.errorsOnly or e.errors)
-		then
-			if query.empty then
-				rows[#rows + 1] = e
+			if not scored then
+				if inView then
+					rows[#rows + 1] = e
+				end
 			else
 				primary[1] = e.searchName
 				secondary[1], secondary[2], secondary[3] = e.searchDesc, e.searchFile, e.searchAuthor
@@ -716,9 +1041,32 @@ rebuildRows = function()
 				-- is a guess, and a list of guesses is worse than a short list.
 				local score = Search.score(query, primary, secondary)
 				if score > 0 then
-					scored[#scored + 1] = { e = e, score = score }
+					if inView then
+						scored[#scored + 1] = { e = e, score = score }
+					end
+					local on = e.data.active
+					add(categories[1], on)
+					add(found[e.group], on)
+					add(e.changed and found.changed, on)
+					add(e.isLocal and found["local"], on)
 				end
 			end
+		end
+	end
+
+	-- What the column prints for each category: what is on out of what there is - the count of
+	-- enabled widgets is the thing worth knowing at a glance, the total is what says how much
+	-- there is to look through - or, while something is typed, the same of what it finds. Only
+	-- redone where the numbers moved.
+	for _, c in ipairs(categories) do
+		local n, on = c.count, c.active
+		if found then
+			n, on = c.found, c.foundOn
+		end
+		if c.shown ~= n or c.shownOn ~= on then
+			c.shown, c.shownOn = n, on
+			c.empty = n == 0
+			c.countText = (c.empty and look.emptyText or colorDim) .. on .. "/" .. n
 		end
 	end
 
@@ -1058,7 +1406,9 @@ end
 -- other table in this file is one: the chunk is at Lua's ceiling of 200.
 -- `indentChars` is how far one level of nesting steps in, in characters: the listing is
 -- drawn in a monospaced face, so everything about its layout is arithmetic on that.
-local dataView = { scroll = 0, lines = {}, rows = {}, rect = {}, close = {}, indentChars = 4 }
+-- `previewLines` and `previewChars` are how much of it the Show data button's tooltip shows.
+local dataView =
+	{ scroll = 0, lines = {}, rows = {}, rect = {}, close = {}, indentChars = 4, previewLines = 15, previewChars = 72 }
 
 -- The same lexer gui_gameinfo lists tweakdefs through. Optional, and kept on the table
 -- rather than in a local of its own: a /luaui reload runs without a file that was added
@@ -1162,24 +1512,79 @@ function dataView.write(value, depth, prefix)
 	dataView.emit(depth, "},")
 end
 
+-- What a widget has saved, as the listing's lines - none with nothing saved - written as the chunk
+-- it is stored as, so what is on screen is what is on disk. Built in dataView.lines, where emit
+-- writes, and handed back with what was there put back: the Show data tooltip reads it while the
+-- window is shut, and must leave nothing behind in it.
+function dataView.listing(name)
+	local keep = dataView.lines
+	dataView.lines = {}
+	local data = widgetHandler.configData[name]
+	if type(data) == "table" then
+		dataView.emit(0, "return {")
+		for _, k in ipairs(dataView.keys(data)) do
+			dataView.write(data[k], 1, dataView.key(k) .. " = ")
+		end
+		dataView.emit(0, "}")
+	end
+	local lines = dataView.lines
+	dataView.lines = keep
+
+	return lines
+end
+
 function dataView.open(name)
 	dataView.name = name
 	dataView.scroll = 0
-	dataView.lines = {}
 	dataView.rows = {}
 	-- The flow is keyed on the width and the widget; the settings themselves can have
 	-- changed under both, so opening always flows again.
 	dataView.wrappedFor = nil
-	local data = widgetHandler.configData[name]
-	if type(data) ~= "table" then
-		return
+	dataView.lines = dataView.listing(name)
+end
+
+-- The Show data button's tooltip: what the widget has saved, as the first lines of the listing the
+-- button opens, in its colours. A tooltip is one line after another in a proportional face, so
+-- nesting is shown with spaces rather than lined up, and a long line is cut rather than flowed - the
+-- window is there for reading all of it.
+function dataView.preview(name, maxWidth)
+	local lines = dataView.listing(name)
+	local out = text.carryColors("\255\255\255\255" .. font:WrapText(L.showdataDesc, maxWidth)) .. "\n"
+	for i = 1, math.min(#lines, dataView.previewLines) do
+		local line = lines[i]
+		local row, room = "", dataView.previewChars
+		for j, part in ipairs(line.parts) do
+			local piece = part.s
+			if #piece > room then
+				-- Cut between characters, not inside one: a saved string can hold anything.
+				local cut = room
+				while
+					cut > 0
+					and (string.byte(piece, cut + 1) or 0) >= 128
+					and (string.byte(piece, cut + 1) or 0) < 192
+				do
+					cut = cut - 1
+				end
+				piece = string.sub(piece, 1, cut) .. ".."
+			end
+			-- The colour ahead of the indent, so the line says its colour before anything is on it.
+			row = row
+				.. (codeColors[part.k] or codeColors.name)
+				.. (j == 1 and string.rep(" ", line.depth * 3) or "")
+				.. piece
+			room = room - #part.s
+			if room <= 0 then
+				break
+			end
+		end
+		out = out .. row .. "\n"
 	end
-	-- Written as the chunk it is stored as, so what is on screen is what is on disk.
-	dataView.emit(0, "return {")
-	for _, k in ipairs(dataView.keys(data)) do
-		dataView.write(data[k], 1, dataView.key(k) .. " = ")
+	if #lines > dataView.previewLines then
+		out = out .. look.tip.label .. "+" .. (#lines - dataView.previewLines) .. " " .. L.errorsMore .. "\n"
 	end
-	dataView.emit(0, "}")
+
+	-- Without the last line break, which a tooltip would draw as an empty line under the rest.
+	return (string.gsub(out, "\n$", ""))
 end
 
 function dataView.shut()
@@ -1569,7 +1974,13 @@ setLayout = function()
 	if filters.byOrder then
 		metrics.orderW = font and mathFloor(font:GetTextWidth("8888") * metrics.rowFs) or mathFloor(34 * s)
 	end
-	nameX1 = orderX1 + metrics.orderW + (metrics.orderW > 0 and metrics.rowPad * 2 or 0)
+	-- The square in the widget's group colour, just ahead of its name: the name is what the eye
+	-- lands on, so the colour beside it is read with it rather than looked for along the row.
+	metrics.swatch = mathMax(5, mathFloor(8 * s))
+	metrics.swatchGap = mathFloor(7 * s)
+	metrics.swatchCorner = mathMax(1, mathFloor(metrics.swatch * 0.25))
+	metrics.swatchX1 = orderX1 + metrics.orderW + (metrics.orderW > 0 and metrics.rowPad * 2 or 0)
+	nameX1 = metrics.swatchX1 + metrics.swatch + metrics.swatchGap
 	listTop = area.y2 - metrics.headerH - metrics.headerGap
 	local footerTop = area.y1 + metrics.footerH
 	listBottom = footerTop + metrics.footerGap
@@ -1703,14 +2114,18 @@ end
 -- Cuts the category captions to the column once per layout, rather than measuring them on
 -- every frame the panel is baked.
 local function fitCategories()
-	local avail = metrics.sidebarW - metrics.sidePad * 2 - mathFloor(46 * widgetScale)
+	-- Every entry leaves room for a group's colour ahead of its label, so the labels line up
+	-- whether an entry has one or not.
+	local avail = metrics.sidebarW
+		- metrics.sidePad * 2
+		- metrics.swatch
+		- metrics.swatchGap
+		- mathFloor(46 * widgetScale)
 	for _, c in ipairs(categories) do
 		local label = text.fit(font, c.label, avail, metrics.catFs)
 		c.textDim = colorDim .. label
 		c.textSel = colorSelected .. label
-		-- What is on out of what there is. The count of enabled widgets is the thing worth
-		-- knowing at a glance; the total is what says how much there is to look through.
-		c.countText = colorDim .. c.active .. "/" .. c.count
+		c.textEmpty = look.emptyText .. label
 		c.fitGen = layoutGen
 	end
 end
@@ -1812,6 +2227,25 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overDat
 	if metrics.orderW > 0 then
 		-- Right-aligned, so the ranks line up as a column however many digits they run to.
 		queueText(row.fitOrder, orderX1 + metrics.orderW, ty, metrics.rowFs, "rov")
+	end
+	-- The group the widget is in, in that group's colour from the column: in All, and in the
+	-- views and searches that cut across the groups, this is what says where a row belongs.
+	-- Faded on a row that is off, the way its name and description are.
+	local swatch = look.groups[row.group]
+	if swatch then
+		local swatchY = ty - mathFloor(metrics.swatch * 0.5)
+		RectRound(
+			metrics.swatchX1,
+			swatchY,
+			metrics.swatchX1 + metrics.swatch,
+			swatchY + metrics.swatch,
+			metrics.swatchCorner,
+			1,
+			1,
+			1,
+			1,
+			row.state == 0 and look.faded[swatch] or swatch
+		)
 	end
 	queueText(row.fitName, nameX1, ty, metrics.rowFs, "ov")
 	if row.fitDesc then
@@ -2037,7 +2471,9 @@ end
 -- The sets block at the foot of the column. The picker draws itself, live, since it can
 -- open over the list.
 local function drawSetsBlock()
-	queueText(colorDim .. L.sets, area.x1 + metrics.sidePad, metrics.setsCaptionY, metrics.catFs, "ov")
+	-- With how many there are, once there are any: the picker only ever shows the one picked.
+	local caption = #sets > 0 and (L.sets .. " (" .. #sets .. ")") or L.sets
+	queueText(colorDim .. caption, area.x1 + metrics.sidePad, metrics.setsCaptionY, metrics.catFs, "ov")
 
 	for _, b in ipairs(setButtons) do
 		-- Load and Delete are not drawn at all without a set picked: a button that can do
@@ -2130,7 +2566,26 @@ local function drawSidebar()
 			)
 		end
 		local ty = mathFloor((y1 + y2) * 0.5)
-		queueText(selected and c.textSel or c.textDim, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
+		-- A prefix group carries its colour ahead of its label, which is the key to the squares on
+		-- the rows. All, Changed and Your own cut across the groups, so they have none.
+		local swatch = c.key and look.groups[c.key]
+		if swatch then
+			local swatchY = ty - mathFloor(metrics.swatch * 0.5)
+			RectRound(
+				x1 + metrics.sidePad,
+				swatchY,
+				x1 + metrics.sidePad + metrics.swatch,
+				swatchY + metrics.swatch,
+				metrics.swatchCorner,
+				1,
+				1,
+				1,
+				1,
+				(c.empty and not selected) and look.faded[swatch] or swatch
+			)
+		end
+		local label = (selected and c.textSel) or (c.empty and c.textEmpty) or c.textDim
+		queueText(label, x1 + metrics.sidePad + metrics.swatch + metrics.swatchGap, ty, metrics.catFs, "ov")
 		queueText(c.countText, x2 - metrics.sidePad, ty, metrics.catFs, "rov")
 	end
 
@@ -2708,8 +3163,23 @@ local function loadLabels()
 	L.byLoad = tr("byload", "By cost")
 	L.cleardata = tr("cleardata", "Reset")
 	L.showdata = tr("showdata", "Show data")
+	L.showdataDesc =
+		tr("showdatadesc", "Everything this widget has saved, the way it is stored. Click to read all of it.")
 	L.errorsLoading = tr("errorsloading", "while loading")
 	L.errorsMore = tr("errorsmore", "more")
+	L.depsUses = tr("depsuses", "Uses")
+	L.depsUsedBy = tr("depsusedby", "Used by")
+	L.depsOff = tr("depsoff", "off")
+	L.depsRunningOne = tr("depsrunningone", "running widget")
+	L.depsRunning = tr("depsrunning", "running widgets")
+	L.depsUnchecked = tr("depsunchecked", "never check it is there")
+	-- Fallbacks only: these carry placeholders, which i18n fills in at lookup, so they are looked
+	-- up where the values are known.
+	L.depsWarnFallback =
+		"%{count} running widgets use what %{name} provides without checking it is there, so switching it off will most likely break them:"
+	L.depsWarnOneFallback =
+		"A running widget uses what %{name} provides without checking it is there, so switching it off will most likely break it:"
+	L.depsCauseFallback = "%{key} comes from %{provider}, which is off"
 	L.close = tr("close", "Close")
 	L.cleardataTitle = tr("cleardatatitle", "Clear saved settings")
 	-- The fallbacks only. These two carry the widget's name, and i18n fills a %{...} in
@@ -2842,6 +3312,7 @@ local function bindUi()
 		searchBox = Editbox.new({
 			outline = look.outline,
 			placeholder = L.search,
+			clearable = true,
 			onChange = function()
 				setScroll(0)
 				rebuildRows()
@@ -2878,6 +3349,18 @@ function widget:ViewResize()
 
 	if not (uiBound or bindUi()) then
 		return
+	end
+	-- Asked for again on every resize rather than kept from the first bind. The font handler deletes
+	-- every font it has handed out when the view changes size, and it sits on a far lower layer, so
+	-- its ViewResize has already run: the fonts from before are deleted fonts by now. Measuring with
+	-- one took this widget down - and /widgetselector, F11 and the top bar button with it - until
+	-- LuaUI was reloaded. FlowUI resizes its corner the same way, before any widget runs.
+	if WG.fonts and WG.fonts.getFont then
+		font = WG.fonts.getFont()
+		look.mono = WG.fonts.getFont(3)
+	end
+	if WG.FlowUI and WG.FlowUI.elementCorner then
+		elementCorner = WG.FlowUI.elementCorner
 	end
 
 	setLayout()
@@ -2923,6 +3406,18 @@ local function setShow(state)
 		Spring.SetConfigInt("widgetselector", 1)
 		if not uiBound then
 			widget:ViewResize()
+		end
+		-- Still nothing to draw with: FlowUI or the font handler is not running, which is what switching
+		-- one of them off leaves after the next reload. This panel draws with both and is the way to
+		-- switch them back on, so asking for it brings them back rather than opening a panel that can
+		-- never appear. Queued, so it shows a few frames on, on the first frame that has them.
+		if not uiBound then
+			for _, name in ipairs({ "FlowUI", "Font handler" }) do
+				local known = widgetHandler.knownWidgets[name]
+				if known and not known.active then
+					widgetHandler:EnableWidget(name)
+				end
+			end
 		end
 		refreshContent()
 	else
@@ -3221,6 +3716,51 @@ local function showTooltip(row)
 		return
 	end
 
+	local maxWidth = WG.tooltip.getFontsize() * 90
+
+	-- The row's two buttons come first, ahead of the row's own held tooltip below. That one is kept for
+	-- the row alone, and moving along the row onto a button does not change the row - so over the
+	-- buttons it went on showing the row's details.
+	-- Over the clear button the tooltip is about the button, not the widget: the row's
+	-- details are what the rest of the row already answers, and a button that throws
+	-- settings away should say so before it is pressed rather than only after. Word for
+	-- word what the confirmation asks, so nothing new turns up at the last step.
+	if hover.clr == 1 then
+		if not tipCache.same("clear", row.name, row.state, false) then
+			local warn = clearDataWarning(row.name, row.state == 1)
+			tipCache.keep(
+				"clear",
+				row.name,
+				row.state,
+				false,
+				colorDanger .. L.cleardataTitle .. "\n",
+				"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255")
+			)
+		end
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
+
+		return
+	end
+	-- Over Show data, what the widget has saved: the head of the listing the button opens, so a glance
+	-- answers what a click would, and a click is only needed for the rest. Held until what is saved
+	-- changes, which is when the handler stores a new table for the widget.
+	if hover.dat == 1 then
+		local data = widgetHandler.configData[row.name]
+		if not tipCache.same("data", row.name, data, false) then
+			tipCache.keep(
+				"data",
+				row.name,
+				data,
+				false,
+				colorTitle .. L.showdata .. "\n",
+				dataView.preview(row.name, maxWidth)
+			)
+		end
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
+
+		return
+	end
+
 	-- Everything below builds two strings with a wrap and a substitution in them, and none
 	-- of what they are built from moves while the cursor rests on one row. Held until the
 	-- row, its state or its place in the order changes. Keyed on the row itself rather than
@@ -3251,28 +3791,6 @@ local function showTooltip(row)
 
 	local title = stateColor .. row.name .. "\n"
 
-	local maxWidth = WG.tooltip.getFontsize() * 90
-
-	-- Over the clear button the tooltip is about the button, not the widget: the row's
-	-- details are what the rest of the row already answers, and a button that throws
-	-- settings away should say so before it is pressed rather than only after. Word for
-	-- word what the confirmation asks, so nothing new turns up at the last step.
-	if hover.clr == 1 then
-		if not tipCache.same("clear", row.name, row.state, false) then
-			local warn = clearDataWarning(row.name, row.state == 1)
-			tipCache.keep(
-				"clear",
-				row.name,
-				row.state,
-				false,
-				colorDanger .. L.cleardataTitle .. "\n",
-				"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255")
-			)
-		end
-		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
-
-		return
-	end
 	local tip = stateColor .. stateWord .. "\n"
 	-- Straight after the state, because for a widget that has raised errors they are the
 	-- thing worth reading. Newest first and at most three, each the message before where it
@@ -3305,6 +3823,7 @@ local function showTooltip(row)
 				.. where
 				.. ")\n"
 		end
+		tip = tip .. deps.causes(row)
 	end
 	if d.desc and d.desc ~= "" then
 		tip = tip
@@ -3312,29 +3831,36 @@ local function showTooltip(row)
 			.. string.gsub(font:WrapText(d.desc, maxWidth), "[\n]", "\n\255\255\255\255")
 			.. "\n"
 	end
+	local label, value = look.tip.label, look.tip.value
 	if d.author and d.author ~= "" then
-		tip = tip .. "\255\175\175\175" .. L.author .. ":  " .. d.author .. "\n"
+		tip = tip .. label .. L.author .. ":  " .. value .. d.author .. "\n"
 	end
 	if row.order then
 		tip = tip
-			.. "\255\175\175\175"
+			.. label
 			.. L.order
 			.. ":  "
+			.. value
 			.. row.order
+			.. label
 			.. "   ("
 			.. L.layer
 			.. " "
+			.. value
 			.. tostring(row.layer)
-			.. ")"
-			.. "\n"
+			.. label
+			.. ")\n"
 	end
 	tip = tip
-		.. "\255\175\175\175"
+		.. label
 		.. L.file
 		.. ":  "
+		.. value
 		.. (d.basename or "")
-		.. (row.isLocal and "   (" .. L.islocal .. ")" or "")
-		.. "\n\255\130\130\130"
+		.. (row.isLocal and (label .. "   (" .. tagColors.islocal .. L.islocal .. label .. ")") or "")
+		.. "\n"
+		.. deps.tooltip(row, maxWidth)
+		.. "\255\130\130\130"
 		.. L.hint
 	-- With the cost column on, what the widget is spending it on, broken down the way the
 	-- profiler breaks it down: time, allocations, callin. A tooltip is one string in a
@@ -3783,8 +4309,23 @@ local function mouseEvent(x, y, button, release)
 					click()
 				end
 			elseif button == 1 then
-				widgetHandler:ToggleWidget(overRow.name)
-				sweep.dirty = true
+				-- Switching off a widget that running widgets use without checking it is there asks
+				-- first: they will most likely break, and nothing on the row says so.
+				local name = overRow.name
+				local unchecked = {}
+				if overRow.data.active then
+					local _
+					_, unchecked = deps.users(name, true)
+				end
+				if #unchecked > 0 then
+					confirm(name, deps.warning(name, unchecked), function()
+						widgetHandler:ToggleWidget(name)
+						sweep.dirty = true
+					end, true)
+				else
+					widgetHandler:ToggleWidget(name)
+					sweep.dirty = true
+				end
 
 				click()
 			elseif button == 2 or button == 3 then
