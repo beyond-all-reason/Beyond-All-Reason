@@ -151,7 +151,7 @@ local options = {
 			{
 				key = "territorial_domination",
 				name = "Territorial Domination",
-				desc = "Teams continuously earn points from captured territory. At the final Deadline, the team with the most points wins.",
+				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.",
 				unlock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
 			},
 			{
