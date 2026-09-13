@@ -63,13 +63,20 @@ local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a
 
 local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
 
+-- The two job tables are declared nil and built by startSave / maybeStartLoad;
+-- every step function runs only while its job exists. Typed as tables so the
+-- analyzer reads the steps' field access as such rather than as nil.
+---@type table
 local job = nil -- active save job, nil when idle
+---@type table
 local loadJob = nil -- active load job, nil when idle (never both at once)
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
+---@type table?
 local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
 
 -- The project this session IS: set when a load starts (the session exists to
 -- replay that project) and when a save completes. FILE > Save targets it.
+---@type string?
 local currentSlug = nil
 
 -- Outcome of the most recent save ({ok, slug}), for the UI's transient
