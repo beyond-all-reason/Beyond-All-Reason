@@ -348,7 +348,21 @@ function widgetHandler:LoadConfigData()
 	end
 end
 
+-- Writes the widget config out.
+--
+-- A reset asked for on the way out is honoured here rather than at the call site,
+-- because this is called from more places than the shutdown: a widget's own Shutdown can
+-- call it (cmd_terraform_suite does, to leave its suite switched off), and those run
+-- after Shutdown has written - which put the whole config back and left a factory reset
+-- looking like it had done nothing at all.
 function widgetHandler:SaveConfigData()
+	if self.__blankOutConfig then
+		-- Everything goes: which widgets are on, and whatever each of them had saved.
+		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
+
+		return
+	end
+
 	local filetable = {}
 	for i, w in ipairs(self.widgets) do
 		if w.GetConfigData then
@@ -356,7 +370,11 @@ function widgetHandler:SaveConfigData()
 		end
 		self.orderList[w.whInfo.name] = i
 	end
-	filetable.order = self.orderList
+	-- Which widgets are on goes back to what the game enables by default; what each of
+	-- them has saved is kept.
+	if not self.__blankOutOrder then
+		filetable.order = self.orderList
+	end
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
 	table.save(filetable, CONFIG_FILENAME, "-- Widget Custom data and order, order = 0 disabled widget")
@@ -1479,12 +1497,9 @@ function widgetHandler:Shutdown()
 		self.allowUserWidgets = self.__allowUserWidgets
 	end
 
-	-- save config
-	if self.__blankOutConfig then
-		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
-	else
-		self:SaveConfigData()
-	end
+	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
+	-- Shutdown calling it below cannot put back what a reset just took out.
+	self:SaveConfigData()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()

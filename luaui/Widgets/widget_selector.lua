@@ -186,6 +186,8 @@ local tagColors = {
 	iserror = "\255\255\120\120",
 }
 local colorDanger = "\255\255\190\190"
+-- And the other half of that pair: a press that turns something on rather than off.
+local colorGood = "\255\190\255\190"
 -- How the two cost columns read. Quiet while a widget is cheap and warm once it is not,
 -- on the thresholds the profiler overlay marks a widget red at; `sample` is the widest
 -- each column ever prints and what its width is measured from.
@@ -224,6 +226,7 @@ local cost = {
 -- this list stays a curation of the game's own rather than a catch-all that grows a
 -- category out of every typo.
 local GROUPS = {
+
 	gui = "interface",
 	cmd = "commands",
 	unit = "units",
@@ -301,6 +304,16 @@ local selectedCategory
 -- `enabledOnly` keeps anything the config says
 -- to load, whether or not it is running. `byOrder` sorts by where each widget sits in the
 -- handler's list rather than by name, which is the only way the load order can be seen.
+-- The switches, and one field that is not a switch. A reload tears every widget down and
+-- builds it again, so a panel that does not say it was open comes back closed - which
+-- reads as the button having switched the panel off rather than reloaded the UI.
+-- `reopen` carries that across, and has two states rather than one because the panel
+-- that asks and the panel that answers are different panels: `"asked"` is set on this
+-- side of the reload and must survive every Update until the settings are taken, and
+-- `"restore"` is what the fresh panel reads back and opens on, once. One flag with two
+-- readings rather than two flags, and here rather than in a local of its own, because
+-- this chunk is at Lua's ceiling of 200 - and because this is the table the saved
+-- settings round-trip.
 local filters = { enabledOnly = false, byOrder = false, profiler = false, byLoad = false }
 ---@type table
 local searchBox
@@ -916,15 +929,10 @@ local function deleteSet(name)
 end
 
 local function reloadLuaUI()
+	-- Before the command, not after: the handler's Shutdown asks every widget for its
+	-- settings on the way out, and that is what carries this across.
+	filters.reopen = "asked"
 	spSendCommands("luarules reloadluaui")
-end
-
-local function disableAll()
-	for i = 1, #entries do
-		widgetHandler:DisableWidget(entries[i].name)
-		sweep.dirty = true
-	end
-	widgetHandler:SaveConfigData()
 end
 
 local function toggleUserWidgets()
@@ -938,8 +946,16 @@ local function toggleUserWidgets()
 	reloadLuaUI()
 end
 
+-- Back to the set of widgets the game enables by default, keeping what each of them has
+-- saved.
+--
+-- Not `luaui reset`: there is no such command - ConfigureLayout has no branch for it and
+-- never had, so this button has quietly done nothing since long before this panel was
+-- rewritten. The handler drops the load order on the way out instead, the same way
+-- Factory defaults drops the whole config.
 local function resetLuaUI()
-	spSendCommands("luaui reset")
+	widgetHandler.__blankOutOrder = true
+	reloadLuaUI()
 end
 
 local function factoryReset()
@@ -1375,15 +1391,12 @@ end
 local function buttonAction(id)
 	if id == "reload" then
 		reloadLuaUI()
-	elseif id == "disableall" then
-		confirm(L.disableAll, L.disableAllWarn, disableAll, true)
+
 	elseif id == "userwidgets" then
-		confirm(
-			widgetHandler.allowUserWidgets and L.disallowUser or L.allowUser,
-			widgetHandler.allowUserWidgets and L.disallowUserWarn or L.allowUserWarn,
-			toggleUserWidgets,
-			widgetHandler.allowUserWidgets
-		)
+		-- No confirmation. Nothing is thrown away either way, the same button puts it
+		-- straight back, and the panel returns after the reload; the wording that used to
+		-- be the question is still on the tooltip, where it is read before the press.
+		toggleUserWidgets()
 	elseif id == "reset" then
 		confirm(L.reset, L.resetWarn, resetLuaUI, true)
 	elseif id == "factory" then
@@ -2122,7 +2135,9 @@ local function drawFooter()
 		local r = b.rect
 		if r then
 			local hovered = hover.btn == b.id
-			local fill = b.danger and (hovered and look.dangerFillHover or look.dangerFill) or nil
+			local fill = b.danger and (hovered and look.dangerFillHover or look.dangerFill)
+				or b.good and (hovered and look.confirmFillHover or look.confirmFill)
+				or nil
 			drawButtonFace(r, fill or look.buttonFill)
 			-- A tinted button would lose its colour under the white overlay, so it brightens
 			-- its own fill above instead.
@@ -2130,7 +2145,7 @@ local function drawFooter()
 				Highlight(r[1], r[2], r[3], r[4], metrics.csButton, look.hoverOpacity, look.white)
 			end
 			queueText(
-				(b.danger and colorDanger or colorText) .. (b.label or ""),
+				(b.danger and colorDanger or b.good and colorGood or colorText) .. (b.label or ""),
 				mathFloor((r[1] + r[3]) * 0.5),
 				mathFloor((r[2] + r[4]) * 0.5),
 				metrics.buttonFs,
@@ -2160,7 +2175,7 @@ local function drawDialog(d)
 	local buttons = { { r = dialogCancel, id = "cancel" } }
 	if not blocked then
 		-- Green when the accept saves something, red when it takes something away.
-		buttons[2] = { r = dialogOk, id = "ok", danger = d.danger, confirm = d.field }
+		buttons[2] = { r = dialogOk, id = "ok", danger = d.danger, confirm = d.field or not d.danger }
 	end
 	for _, b in ipairs(buttons) do
 		local hovered = hover.dlg == b.id
@@ -2194,7 +2209,7 @@ local function drawDialog(d)
 	)
 	if not blocked then
 		font:Print(
-			(d.danger and colorDanger or colorText) .. (d.field and L.save or L.confirm),
+			(d.danger and colorDanger or colorGood) .. (d.field and L.save or L.confirm),
 			mathFloor((dialogOk[1] + dialogOk[3]) * 0.5),
 			mathFloor((dialogOk[2] + dialogOk[4]) * 0.5),
 			sfs,
@@ -2603,7 +2618,6 @@ local function loadLabels()
 	L.cancel = tr("cancel", "Cancel")
 	L.confirm = tr("confirm", "Confirm")
 	L.reload = tr("button_reloadluaui", "Reload LuaUI")
-	L.disableAll = tr("button_unloadallwidgets", "Unload All Widgets")
 	L.disallowUser = tr("button_disallowuserwidgets", "Disallow User Widgets")
 	L.allowUser = tr("button_allowuserwidgets", "Allow User Widgets")
 	L.reset = tr("button_resetluaui", "Reset LuaUI")
@@ -2611,10 +2625,6 @@ local function loadLabels()
 	L.factoryWarn = tr(
 		"factorydefaultswarn",
 		"This throws away every interface setting you have: which widgets are on, their positions, and anything you have configured in them. LuaUI reloads immediately. It cannot be undone."
-	)
-	L.disableAllWarn = tr(
-		"unloadallwarn",
-		"Switches off every widget in the list at once. Your settings are kept, and you can switch them back on one at a time."
 	)
 	L.disallowUserWarn = tr(
 		"disallowuserwarn",
@@ -2695,7 +2705,6 @@ local function loadLabels()
 			"reloaddesc",
 			"Loads every widget again from disk, keeping what is switched on. The quickest way to pick up a widget you have just edited."
 		),
-		disableall = L.disableAllWarn,
 		reset = L.resetWarn,
 		factory = L.factoryWarn,
 		loadset = tr(
@@ -2723,17 +2732,26 @@ end
 local function buildButtons()
 	buttons = {
 		{ id = "reload", label = L.reload },
-		{ id = "disableall", label = L.disableAll, danger = true },
 		{
 			id = "userwidgets",
 			label = widgetHandler.allowUserWidgets and L.disallowUser or L.allowUser,
+			-- Red while they are allowed, because the press takes them away; green while
+			-- they are not, because the press brings them back.
 			danger = widgetHandler.allowUserWidgets,
+			good = not widgetHandler.allowUserWidgets,
 		},
 		{ id = "reset", label = L.reset, danger = true },
 		{ id = "factory", label = L.factoryDefaults, danger = true },
 	}
 	if not allowuserwidgets then
-		table.remove(buttons, 3)
+		-- By id, not by position: the list has lost a button before now and the index
+		-- went stale with it, which took out the wrong one.
+		for i, b in ipairs(buttons) do
+			if b.id == "userwidgets" then
+				table.remove(buttons, i)
+				break
+			end
+		end
 	end
 end
 
@@ -2940,6 +2958,16 @@ function widget:Update()
 	-- enough along to wrap. Anything that leaves the two disagreeing is settled here.
 	if filters.profiler ~= profiling.subscribes(widget) then
 		applyProfiling()
+	end
+
+	-- Back up after a reload this panel asked for. Only `"restore"`, never `"asked"`: the
+	-- panel that asked is still open and still running, and clearing the flag here would
+	-- take it back before the handler ever gets to write it down. Waits for FlowUI the way
+	-- the first open does, and clears itself, so closing the panel cannot reopen it.
+	if filters.reopen == "restore" and (uiBound or bindUi()) then
+		filters.reopen = nil
+		widget:ViewResize()
+		setShow(true)
 	end
 
 	-- Only the row under the cursor is broken down per callin: the include smooths one
@@ -3724,6 +3752,8 @@ function widget:GetConfigData()
 		category = selectedCategory,
 		sets = sets,
 		pickedSet = pickedSet,
+		-- Only written while it is set, so it is not a line in everyone's config saying no.
+		reopen = filters.reopen ~= nil or nil,
 	}
 end
 
@@ -3759,4 +3789,5 @@ function widget:SetConfigData(data)
 	filters.profiler = data.profiler == true
 	filters.byLoad = filters.profiler and data.byLoad == true
 	selectedCategory = type(data.category) == "string" and data.category or nil
+	filters.reopen = data.reopen == true and "restore" or nil
 end
