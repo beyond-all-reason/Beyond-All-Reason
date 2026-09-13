@@ -6,6 +6,7 @@
   - Smuggler 48.3 -> 37 speed
   - Deceiver, Tiresias: 39 -> 35 speed, 1550 -> 1300 energycost
   - Umbra 33 -> 43 speed, 1700 -> 2000 energycost
+- [Heavy Ships] -15 -> -8 minimum water depth - Able to pass into same shallow waters as other ships.
 - [Scavenger Zombies]
   - After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
   - Zombies spawn with XP skewed to the minimum veterancy so they aren't so tanky so often.
