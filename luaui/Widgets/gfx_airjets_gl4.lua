@@ -860,7 +860,17 @@ function widget:Initialize()
 
 	WG.airjets = {}
 
-	WG.airjets.addAirJet = function(unitID, piecenum, width, length, color3, emitVector, xzVelSizeMult, yVelSizeMult, jetType) -- for WG external calls
+	WG.airjets.addAirJet = function(
+		unitID,
+		piecenum,
+		width,
+		length,
+		color3,
+		emitVector,
+		xzVelSizeMult,
+		yVelSizeMult,
+		jetType
+	) -- for WG external calls
 		local airjetkey = tostring(unitID) .. "_" .. tostring(piecenum)
 		if emitVector == nil then
 			emitVector = { 0, 0, -1 }
