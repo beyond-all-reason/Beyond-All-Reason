@@ -362,7 +362,19 @@ widgetState = { -- forward-declared above playSound so mute check works
 	projectOpenNeedsRebuild = false, -- set by a delete, consumed in Update
 	projectOpenFilter = "", -- search box text (lowercased substring match on name/path/size)
 	projectOpenSort = "recent", -- "recent" (last touched) | "name" | "size"
-	projectOpenCollapsed = {}, -- folder path -> true while its tree node is folded
+	projectOpenSortDesc = true, -- sort direction of the active column header
+	-- Save As browser: its own filter, rows and deferred rebuild (the two
+	-- dialogs share the sort, not the search).
+	projectSaveFilter = "",
+	projectSaveRowEls = {}, -- {{slug = ..., el = ...}, ...} for selection painting
+	projectSaveNeedsRebuild = false,
+	projectSaveBySlug = {}, -- last listing, keyed by slug, for the details pane
+	-- Drag and drop: the armed/active drag, and the drop targets both browsers
+	-- register (folder rows plus the list itself, which is the top level).
+	projectDrag = nil,
+	projectDropEls = {},
+	projectSaveFolderStr = "", -- destination beside the NAME box ("" = top level)
+	projectSaveNewFolders = {}, -- folders created this session (empty ones do not list)
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
@@ -395,11 +407,21 @@ widgetState = { -- forward-declared above playSound so mute check works
 		seenCloneLayersHint = false,
 		seenSceneSkyboxHint = false,
 		perfMode = false, -- Settings > Performance
-		clayStack = false, -- Settings > Stroke > Clay build-up (legacy per-tick stacking)
+		teamSync = false, -- Settings > General > Team Sync: the campaign team's map library; off for everyone else
+		clayStack = true, -- Settings > Stroke > Clay build-up (per-tick stacking), on by default
 		heightmapExportRangeMode = "auto",
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
 		windowPositions = {},
+		-- Folder paths folded shut in the project browsers. One set for both,
+		-- so a folder folded in Open Project is folded in Save As too, and it
+		-- holds only the folders actually folded: anything absent is open, which
+		-- is the default a first run wants and keeps the file to what changed.
+		projectCollapsed = {},
+		-- Team projects the browser has already shown. Absent (not empty)
+		-- until the first viewing, which is how a first run avoids flagging
+		-- the entire library as new.
+		librarySeen = nil,
 	},
 	-- ========================================================================
 	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
@@ -503,6 +525,9 @@ function loadUiPrefs()
 	if type(data.perfMode) == "boolean" then
 		widgetState.uiPrefs.perfMode = data.perfMode
 	end
+	if type(data.teamSync) == "boolean" then
+		widgetState.uiPrefs.teamSync = data.teamSync
+	end
 	if type(data.clayStack) == "boolean" then
 		widgetState.uiPrefs.clayStack = data.clayStack
 	end
@@ -569,6 +594,24 @@ function loadUiPrefs()
 		end
 		widgetState.uiPrefs.windowPositions = positions
 	end
+	if type(data.projectCollapsed) == "table" then
+		local folded = {}
+		for path, value in pairs(data.projectCollapsed) do
+			if type(path) == "string" and value == true then
+				folded[path] = true
+			end
+		end
+		widgetState.uiPrefs.projectCollapsed = folded
+	end
+	if type(data.librarySeen) == "table" then
+		local seen = {}
+		for path, value in pairs(data.librarySeen) do
+			if type(path) == "string" and value == true then
+				seen[path] = true
+			end
+		end
+		widgetState.uiPrefs.librarySeen = seen
+	end
 end
 
 function saveUiPrefs()
@@ -579,7 +622,7 @@ function saveUiPrefs()
 	end
 	f:write(
 		string.format(
-			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tclayStack = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
+			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tteamSync = %s,\n\tclayStack = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
 			tostring(widgetState.uiPrefs.disableTips and true or false),
 			tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 			tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
@@ -594,6 +637,7 @@ function saveUiPrefs()
 			tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
 			tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false),
 			tostring(widgetState.uiPrefs.perfMode and true or false),
+			tostring(widgetState.uiPrefs.teamSync and true or false),
 			tostring(widgetState.uiPrefs.clayStack and true or false),
 			widgetState.uiPrefs.heightmapExportRangeMode or "auto",
 			tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
@@ -610,7 +654,34 @@ function saveUiPrefs()
 		local pos = widgetState.uiPrefs.windowPositions[id]
 		f:write(string.format("\t\t[%q] = { x = %.8f, y = %.8f },\n", id, pos.x, pos.y))
 	end
-	f:write("\t},\n}\n")
+	f:write("\t},\n\tprojectCollapsed = {\n")
+	local folded = {}
+	for path, value in pairs(widgetState.uiPrefs.projectCollapsed or {}) do
+		if value then
+			folded[#folded + 1] = path
+		end
+	end
+	table.sort(folded)
+	for i = 1, #folded do
+		f:write(string.format("\t\t[%q] = true,\n", folded[i]))
+	end
+	f:write("\t},\n")
+	local seen = widgetState.uiPrefs.librarySeen
+	if seen then
+		f:write("\tlibrarySeen = {\n")
+		local slugs = {}
+		for path, value in pairs(seen) do
+			if value then
+				slugs[#slugs + 1] = path
+			end
+		end
+		table.sort(slugs)
+		for i = 1, #slugs do
+			f:write(string.format("\t\t[%q] = true,\n", slugs[i]))
+		end
+		f:write("\t},\n")
+	end
+	f:write("}\n")
 	f:close()
 end
 
@@ -635,8 +706,16 @@ widgetState.pushPerfPrefs = function()
 			d.clayStackActive = stack
 			d.clayStackStr = stack and "ON" or "OFF"
 		end
+		local team = up.teamSync and true or false
+		if d.teamSyncActive ~= team then
+			d.teamSyncActive = team
+			d.teamSyncStr = team and "ON" or "OFF"
+		end
 	end
 	widgetState.perfMode = perf
+	-- The project browser's controller reads this every sync; off means the
+	-- windows are plain local browsers.
+	widgetState.teamSyncEnabled = up.teamSync and true or false
 	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.setPerfMode then
@@ -3559,6 +3638,2007 @@ widgetState.relativeAge = function(iso, now)
 	return os.date("%Y-%m-%d", epoch)
 end
 
+-- ===== Project browser, shared by Save As and Open Project =====
+-- Both dialogs draw the same single-line rows in the same three columns, sort
+-- through the same comparator and share the header carets, so the two lists
+-- read as one browser. Everything here hangs off widgetState rather than being
+-- a chunk local: the main chunk is near the Lua 5.1 200-local ceiling.
+
+widgetState.rmlEsc = function(s)
+	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
+-- Is this file on disk right now? VFS answers first: it is the cheap probe and
+-- the same lookup RmlUi will make for the <img>. But VFS can be blind to files
+-- written during this session (cmd_map_project.lua documents the same thing and
+-- reads manifests with a raw handle for it), which is exactly a project that was
+-- just downloaded from the team library. A raw handle is the tiebreaker, so the
+-- preview offers what is actually there rather than what the cache remembers.
+-- The two floating project dialogs, and the model flag that says each is up.
+widgetState.projectDialogWindows = {
+	{ id = "tf-project-open-root", open = "projectOpenOpen" },
+	{ id = "tf-project-root", open = "projectSaveOpen" },
+}
+
+-- The editor panel's rectangle in Spring screen pixels (Y up from the bottom),
+-- or nil while it is hidden or not built. Tools that park their brush instead
+-- of working through the UI measure against this.
+widgetState.panelBounds = function()
+	local _, vsy = Spring.GetViewGeometry()
+	local root = widgetState.rootElement
+	if vsy <= 0 or not root or widgetState.panelHidden then
+		return nil
+	end
+	local leftPx, topPx = root.offset_left, root.offset_top
+	local widthPx, heightPx = root.offset_width, root.offset_height
+	if not leftPx or widthPx == 0 or heightPx == 0 then
+		return nil
+	end
+	return {
+		left = leftPx,
+		right = leftPx + widthPx,
+		topY = vsy - topPx,
+		bottomY = vsy - topPx - heightPx,
+	}
+end
+
+-- The project dialog under the pointer, as the same rectangle, or nil. A dialog
+-- covers the world the way the panel does, so the brush should park behind it
+-- rather than keep working through it. Both dialogs are windows the user can
+-- drag, so the rectangle is read each time rather than remembered.
+widgetState.projectDialogHoverBounds = function()
+	local d, doc = widgetState.dmHandle, widgetState.document
+	if not (d and doc) then
+		return nil
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	local mx, my = Spring.GetMouseState()
+	for _, window in ipairs(widgetState.projectDialogWindows) do
+		if d[window.open] then
+			local el = getCachedEl(doc, window.id)
+			local width = (el and el.offset_width) or 0
+			local height = (el and el.offset_height) or 0
+			if width > 0 and height > 0 then
+				local left, topPx = el.absolute_left, el.absolute_top
+				local topY, bottomY = vsy - topPx, vsy - topPx - height
+				if mx >= left and mx <= left + width and my >= bottomY and my <= topY then
+					return { left = left, right = left + width, topY = topY, bottomY = bottomY }
+				end
+			end
+		end
+	end
+	return nil
+end
+
+widgetState.projectFileOnDisk = function(path)
+	if VFS.FileExists(path, VFS.RAW) then
+		return true
+	end
+	local f = io.open(path, "rb")
+	if not f then
+		return false
+	end
+	f:close()
+	return true
+end
+
+-- RECENT means last touched: the newer of "opened or saved through the editor"
+-- (journal) and the manifest's modified stamp, both ISO-8601 so string order is
+-- time order.
+widgetState.projectTouched = function(p)
+	local a, b = tostring(p.last_touched or ""), tostring(p.modified or "")
+	return a > b and a or b
+end
+
+widgetState.projectLess = function(a, b)
+	local mode = widgetState.projectOpenSort or "recent"
+	local desc = widgetState.projectOpenSortDesc ~= false
+	local av, bv
+	if mode == "name" then
+		av, bv = tostring(a.name or a.slug):lower(), tostring(b.name or b.slug):lower()
+	elseif mode == "size" then
+		av = (tonumber(a.size_x) or 0) * (tonumber(a.size_z) or 0)
+		bv = (tonumber(b.size_x) or 0) * (tonumber(b.size_z) or 0)
+	else
+		av, bv = widgetState.projectTouched(a), widgetState.projectTouched(b)
+	end
+	if av ~= bv then
+		if desc then
+			return av > bv
+		end
+		return av < bv
+	end
+	return a.slug < b.slug
+end
+
+-- The indent, drawn as the tree's own lines. One tick per level in front of the
+-- row's content, so the whole row (disclosure glyph, folder icon and name) steps
+-- in together, and each tick is one indent step wide with its vertical rule
+-- sitting exactly under the parent's disclosure glyph.
+--
+-- `ancestors` is one character per level above this row: "1" where that level
+-- has more items below and its line carries on down, "0" where it does not and
+-- the column is blank. The row's own level is an elbow: the rule comes down the
+-- top half and turns right into the row, and the bottom half continues only
+-- when this is not the last item in its folder. That is what joins a subfolder
+-- to its parent instead of leaving two unrelated vertical strokes.
+widgetState.projectTicks = function(ancestors, isLast)
+	if not ancestors then
+		return ""
+	end
+	local out = {}
+	for i = 1, #ancestors do
+		out[#out + 1] = (ancestors:sub(i, i) == "1") and '<div class="tf-proj-tick"></div>'
+			or '<div class="tf-proj-tick blank"></div>'
+	end
+	out[#out + 1] = '<div class="tf-proj-tick elbow"><div class="tf-proj-elbow-top"></div>'
+		.. '<div class="tf-proj-elbow-bottom'
+		.. (isLast and " blank" or "")
+		.. '"></div></div>'
+	return table.concat(out)
+end
+
+-- One row: name (with its folder path and an OPEN tag when it is the loaded
+-- project) then the size and modified columns the header labels. The size wears
+-- the same framed badge the heightmap browser uses.
+widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sync, extraClass)
+	local esc = widgetState.rmlEsc
+	local tagRml = {}
+	for _, tag in ipairs(tags or {}) do
+		if tag.dot then
+			tagRml[#tagRml + 1] = '<div class="tf-proj-dot '
+				.. esc(tag.dot)
+				.. '" title="'
+				.. esc(tag.title or "")
+				.. '"></div>'
+		else
+			tagRml[#tagRml + 1] = '<div class="' .. (tag.cls or "tf-proj-tag") .. '">' .. esc(tag.text) .. "</div>"
+		end
+	end
+	-- The Sync column: a dot for the glance, a word for the meaning, the
+	-- sentence on hover.
+	local syncRml = ""
+	if sync then
+		syncRml = '<div class="tf-proj-c-sync sync-'
+			.. esc(sync.state)
+			.. '" title="'
+			.. esc(sync.title or "")
+			.. '"><div class="tf-proj-dot '
+			.. esc(sync.dot or sync.state)
+			.. '"></div><div class="tf-proj-sync-text">'
+			.. esc(sync.text or "")
+			.. "</div></div>"
+	end
+	return string.format(
+		'<div id="%s" class="tf-hm-row tf-proj-row%s" title="%s">%s'
+			.. '<div class="tf-proj-c-name"><div class="tf-proj-name-text">%s</div>%s%s</div>'
+			.. '<div class="tf-proj-c-size"><div class="tf-hm-badge">%s</div></div>'
+			.. '<div class="tf-proj-c-date">%s</div>%s</div>',
+		esc(id),
+		extraClass and (" " .. extraClass) or "",
+		-- The name column is narrow enough to clip a long slug, so the row
+		-- carries the whole thing as its tooltip.
+		esc(name),
+		ticks or "",
+		esc(name),
+		(path and path ~= "") and ('<div class="tf-proj-path">' .. esc(path) .. "</div>") or "",
+		table.concat(tagRml),
+		esc(size),
+		esc(date),
+		syncRml
+	)
+end
+
+-- Sort caret: "^" ascending, "v" descending, on the sorted column only. ASCII
+-- on purpose, the UI font is not guaranteed to carry the geometric arrows.
+widgetState.projectSyncSort = function()
+	local d = widgetState.dmHandle
+	if not d then
+		return
+	end
+	local mode = widgetState.projectOpenSort or "recent"
+	local caret = (widgetState.projectOpenSortDesc ~= false) and " v" or " ^"
+	d.projectOpenSort = mode
+	d.projectSortName = (mode == "name") and caret or ""
+	d.projectSortSize = (mode == "size") and caret or ""
+	d.projectSortDate = (mode == "recent") and caret or ""
+end
+
+-- What fits on the status strip: the first sentence of a message, capped.
+widgetState.projectStripShort = function(text)
+	text = tostring(text or "")
+	local first = text:match("^(.-)%. ") or text
+	if #first > 44 then
+		first = first:sub(1, 43) .. "\226\128\166"
+	end
+	return first
+end
+
+widgetState.projectCountText = function(shown, total)
+	if total and shown < total then
+		return BAR.I18N("ui.mapLibrary.countFiltered", { count = shown, total = total })
+	end
+	if shown == 1 then
+		return BAR.I18N("ui.mapLibrary.countOne")
+	end
+	return BAR.I18N("ui.mapLibrary.countMany", { count = shown })
+end
+
+-- "23 min ago (2026-09-09)". The date half stays as the manifest wrote it
+-- (UTC): relativeAge already does the timezone maths for the part that matters.
+widgetState.projectStampText = function(stamp, now)
+	local s = tostring(stamp or "")
+	local rel = widgetState.relativeAge(s, now)
+	local y, mo, d = s:match("^(%d+)%-(%d+)%-(%d+)")
+	if not y then
+		return rel
+	end
+	return string.format("%s (%s-%s-%s)", rel, y, mo, d)
+end
+
+-- Details pane for the selected row. The saved heightmap doubles as the
+-- thumbnail: it is the one image every project has, and relief alone is enough
+-- to recognise a map by. Only the selected project gets one, and only when it
+-- is small enough to be worth the memory -- RmlUi decompresses an <img> in full
+-- into TexMemPool, so a 32x32 map (4097^2 = 67 MB) is skipped.
+widgetState.projectShowDetails = function(p, save)
+	local d = widgetState.dmHandle
+	local doc = widgetState.document
+	if not d then
+		return
+	end
+	-- One writer, two panes: the field prefix and the preview host say which.
+	local key = save and "psaveInfo" or "projectInfo"
+	local prev = doc and doc:GetElementById(save and "tf-psave-preview" or "tf-proj-preview")
+	if not p then
+		d[key .. "Name"], d[key .. "Path"], d[key .. "Size"] = "", "", ""
+		d[key .. "Modified"], d[key .. "Created"], d[key .. "Units"] = "", "", ""
+		d[key .. "Legacy"], d[key .. "Current"] = false, false
+		d[key .. "Both"] = false
+		if save then
+			d.psaveInfoShown = false
+			widgetState.projectShownSave = nil
+		else
+			widgetState.projectShownOpen = nil
+		end
+		if prev then
+			prev.inner_rml = ""
+		end
+		return
+	end
+	local mp = WG.MapProject
+	local now = os.time()
+	local slug = tostring(p.slug or "")
+	-- A download lands at the repository's own path, so a team row's slug is
+	-- also its path on this disk. Whether there is a copy here is the question
+	-- worth asking: everything read off the files themselves keys on this, and
+	-- a row with no copy here is a catalogue row, metadata read as text.
+	local folder = "MapProjects/" .. slug .. "/"
+	local mine = widgetState.projectFileOnDisk(folder .. "project.lua")
+	local remote = not mine
+	d[key .. "Name"] = tostring(p.name or slug)
+	d[key .. "Path"] = (p.folder and p.folder ~= "") and (p.folder .. "/") or ""
+	d[key .. "Size"] = string.format("%s x %s", tostring(p.size_x or "?"), tostring(p.size_z or "?"))
+	d[key .. "Modified"] = widgetState.projectStampText(widgetState.projectTouched(p), now)
+	d[key .. "Created"] = (p.created and p.created ~= "") and widgetState.projectStampText(p.created, now) or ""
+	d[key .. "Units"] = ""
+	if mp and mp.hasUnitsSection and mine then
+		d[key .. "Units"] = BAR.I18N("ui.mapLibrary." .. (mp.hasUnitsSection(slug) and "unitsSaved" or "unitsNone"))
+	end
+	-- Team catalog rows carry no format_version (the helper reads the
+	-- manifest as text), so the flag is a local-project statement only.
+	d[key .. "Legacy"] = (not remote) and (tonumber(p.format_version) or 0) < 1
+	d[key .. "Current"] = (mp and mp.current and mp.current() == slug) or false
+	if not save then
+		-- TEAM: where this project stands against the library, in one line.
+		local team = widgetState.projectTeamBySlug()[slug]
+		local state = widgetState.projectSyncState(slug)
+		d.projectInfoTeam = team ~= nil
+		d.projectInfoMine = mine == true
+		d.projectInfoSync = state
+		local line
+		if not team then
+			line = BAR.I18N("ui.mapLibrary.teamNotShared")
+		else
+			local stage = tostring(team.folder or "")
+			local parts = {
+				BAR.I18N("ui.mapLibrary.teamIn", {
+					stage = stage ~= "" and stage or BAR.I18N("ui.mapLibrary.rootFolder"),
+				}),
+			}
+			-- Who uploaded it and when, once the companion reports it.
+			local uploaded = tonumber(team.uploaded)
+			if uploaded and uploaded > 0 then
+				local age = widgetState.relativeAge(os.date("!%Y-%m-%dT%H:%M:%SZ", uploaded), now)
+				parts[#parts + 1] = team.author
+						and BAR.I18N("ui.mapLibrary.teamUploadedBy", { age = age, author = tostring(team.author) })
+					or BAR.I18N("ui.mapLibrary.teamUploaded", { age = age })
+			end
+			if not mine then
+				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamNotHere")
+			elseif state == "synced" then
+				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamSynced")
+			elseif state == "mine" then
+				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamMine")
+			else
+				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamTheirs")
+			end
+			line = table.concat(parts, " \194\183 ")
+		end
+		if d.libraryConfigured and not d.libraryOnline then
+			line = line .. " " .. BAR.I18N("ui.mapLibrary.teamOffline")
+		end
+		d.projectInfoTeamLine = line
+	end
+	if save then
+		d.psaveInfoShown = true
+	end
+	-- Remember what this pane is showing so a change of preview mode can
+	-- redraw it without the caller having to hand the entry back.
+	if save then
+		widgetState.projectShownSave = p
+	else
+		widgetState.projectShownOpen = p
+	end
+	if not prev then
+		return
+	end
+	-- The minimap is the picture of the map, so it leads. The heightmap is the
+	-- fallback for projects saved before minimaps were written, and stays
+	-- available as a second view when both are there: relief answers different
+	-- questions than colour does.
+	-- Both tabs look in the same place (see `mine` above), so a downloaded team
+	-- project shows its picture; one that is not here has no files to find,
+	-- which is what its sync dot says too.
+	local minimap = mine and widgetState.projectFileOnDisk(folder .. "minimap.png") and (folder .. "minimap.png") or nil
+	-- RmlUi decompresses an <img> in full into TexMemPool, so a heightmap is
+	-- only offered while the map is small enough to be worth it (a 32x32 map is
+	-- 4097^2 = 67 MB). The minimap is a 512px thumbnail and always fits.
+	local sx, sz = tonumber(p.size_x) or 0, tonumber(p.size_z) or 0
+	local fits = sx > 0 and sz > 0 and (sx * 128 + 1) * (sz * 128 + 1) <= 10000000
+	local height = mine
+			and fits
+			and widgetState.projectFileOnDisk(folder .. "heightmap.png")
+			and (folder .. "heightmap.png")
+		or nil
+	d[key .. "Both"] = (minimap and height) and true or false
+	local chosen = minimap or height
+	if minimap and height and d.projectPreviewMode == "height" then
+		chosen = height
+	end
+	if chosen then
+		prev.inner_rml = '<img class="tf-proj-preview-img" src="/' .. widgetState.rmlEsc(chosen) .. '" />'
+	else
+		prev.inner_rml = '<div class="tf-proj-preview-none">'
+			.. widgetState.rmlEsc(BAR.I18N("ui.mapLibrary.noPreview"))
+			.. "</div>"
+	end
+end
+
+-- Enter in a dialog text field. RmlUi.key_identifier is a readonly_property
+-- that hands out a fresh table per access, so the id is resolved once and kept.
+widgetState.isReturnEvent = function(event)
+	if not widgetState.keyReturnId then
+		pcall(function()
+			widgetState.keyReturnId = RmlUi.key_identifier.RETURN
+		end)
+	end
+	local p = event and event.parameters
+	return (p and widgetState.keyReturnId and p.key_identifier == widgetState.keyReturnId) == true
+end
+
+-- Live readout under the NAME field: says whether SAVE is about to create a
+-- project or write over one before the button is pressed, instead of only
+-- after the first click has armed the confirm.
+widgetState.projectSyncTarget = function()
+	local d = widgetState.dmHandle
+	if not d then
+		return
+	end
+	local folder, leaf = widgetState.projectSaveSplitName()
+	local raw = widgetState.projectSaveFullName()
+	widgetState.projectSaveFolderStr = folder
+	widgetState.projectNameStr = raw
+	local mp = WG.MapProject
+	local slug = (raw ~= "" and mp and mp.validateSlug) and mp.validateSlug(raw) or nil
+	d.projectSaveDest = "MapProjects/" .. (folder ~= "" and (folder .. "/") or "")
+	-- The destination chip: the folder as a place, or the top level.
+	local stages = widgetState.projectTeamDestinations()
+	local isStage = folder ~= "" and stages[folder] == true
+	d.projectSaveIsStage = isStage
+	d.projectSaveDestLabel = folder ~= "" and (folder:gsub("/", " / ")) or BAR.I18N("ui.mapLibrary.rootFolder")
+	-- The upload switch: offered for a team stage, on by default while Team
+	-- Sync could carry it out, and remembered only until the folder changes.
+	local online, writable = d.libraryOnline == true, d.libraryWritable == true
+	local allowed = isStage and online and writable
+	d.projectSaveUploadAllowed = allowed
+	if folder ~= widgetState.projectSaveLastFolder then
+		widgetState.projectSaveLastFolder = folder
+		widgetState.projectSaveUploadChoice = nil
+	end
+	local choice = widgetState.projectSaveUploadChoice
+	if choice == nil then
+		choice = allowed
+	end
+	d.projectSaveUpload = (allowed and choice) and true or false
+	d.projectSaveUploadNote = (isStage and not allowed)
+			and BAR.I18N(online and "ui.mapLibrary.uploadAfterReadOnly" or "ui.mapLibrary.uploadAfterOff")
+		or ""
+	local upload = d.projectSaveUpload
+	d.projectSaveDestOk = true
+	d.projectSaveOverwrite = false
+	local taken = slug ~= nil and (mp.exists and mp.exists(slug)) == true
+	local teamHas = slug ~= nil and widgetState.projectTeamBySlug()[slug] ~= nil
+	local isCurrent = slug ~= nil and mp.current and mp.current() == slug
+	if raw == "" then
+		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetInvalid")
+	elseif not slug then
+		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.nameHint")
+	elseif isCurrent then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget =
+			BAR.I18N(upload and "ui.mapLibrary.targetCurrentUpload" or "ui.mapLibrary.targetCurrent", { name = slug })
+	elseif taken then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget = BAR.I18N(
+			upload and "ui.mapLibrary.targetOverwriteUpload" or "ui.mapLibrary.targetOverwrite",
+			{ name = slug }
+		)
+	elseif teamHas and upload then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetTeamOnly", { name = slug })
+	elseif upload then
+		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetNewUpload", { stage = folder })
+	else
+		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetNew")
+	end
+	-- The summary pane: what SAVE writes, read before it is pressed.
+	d.psaveSumFolder = d.projectSaveDestLabel
+	d.psaveSumMap = string.format(
+		"%d x %d",
+		math.floor((Game.mapSizeX or 0) / 512 + 0.5),
+		math.floor((Game.mapSizeZ or 0) / 512 + 0.5)
+	)
+	d.psaveSumUnits = BAR.I18N(widgetState.projectSaveUnits and "ui.mapLibrary.yes" or "ui.mapLibrary.no")
+	d.psaveSumUpload = upload and BAR.I18N("ui.mapLibrary.sumUploadTo", { stage = folder })
+		or BAR.I18N("ui.mapLibrary.no")
+	-- The existing project the name points at, if any, read from the listing
+	-- the browser already built: a fresh listDetailed() per keystroke would
+	-- walk the disk.
+	widgetState.projectShowDetails(slug and (widgetState.projectSaveBySlug or {})[slug] or nil, true)
+end
+
+-- Folding a folder: one set for both browsers, kept in ui_prefs so the tree
+-- comes back the way it was left rather than fully open every session. Both
+-- lists are rebuilt next frame, never from inside the click on a row the
+-- rebuild destroys.
+widgetState.projectToggleFolder = function(path)
+	local folded = widgetState.uiPrefs.projectCollapsed
+	folded[path] = (not folded[path]) and true or nil
+	widgetState.saveUiPrefs()
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+end
+
+-- The team catalogue keyed by slug, as last snapshotted (see
+-- projectSnapshotLocal): the union list and the Sync column both read it.
+widgetState.projectTeamBySlug = function()
+	return widgetState.projectTeamCache or {}
+end
+
+-- Where one project stands: "local" (only on this disk), "team" (only in the
+-- library), "synced", "mine" (this disk newer) or "theirs" (the team newer).
+-- The two manifests' modified stamps are compared: both ISO-8601, so string
+-- order is time order, and every save rewrites the stamp.
+widgetState.projectSyncState = function(slug)
+	slug = tostring(type(slug) == "table" and slug.slug or slug or "")
+	local mine = (widgetState.projectLocalBySlug or {})[slug]
+	local team = widgetState.projectTeamBySlug()[slug]
+	if team and not mine then
+		return "team"
+	end
+	if not team then
+		return "local"
+	end
+	local here, there = tostring(mine.modified or ""), tostring(team.modified or "")
+	if here ~= "" and here == there then
+		return "synced"
+	end
+	return here > there and "mine" or "theirs"
+end
+
+-- The Sync cell for one row: state, the word, the sentence, the dot.
+widgetState.projectSyncCell = function(p)
+	local state = widgetState.projectSyncState(p)
+	local slug = tostring(p.slug or "")
+	local dot, key, title = state, "syncLocal", "dotMissing"
+	if state == "team" then
+		key = "syncTeam"
+		title = (widgetState.libraryNewSlugs or {})[slug] and "dotNew" or "dotMissing"
+		dot = (widgetState.libraryNewSlugs or {})[slug] and "new" or "team"
+	elseif state == "synced" then
+		key, title = "syncSynced", "dotSynced"
+	elseif state == "mine" then
+		key, title = "syncMine", "dotMineNewer"
+	elseif state == "theirs" then
+		key, title = "syncTheirs", "dotTheirsNewer"
+	else
+		title = nil
+	end
+	return {
+		state = state,
+		dot = dot,
+		text = BAR.I18N("ui.mapLibrary." .. key),
+		title = title and BAR.I18N("ui.mapLibrary." .. title) or "",
+	}
+end
+
+-- The grouping rows over the team's stages: every prefix of a stage that is
+-- not a stage itself ("Map Prototypes" over Drafts / Review / Done).
+widgetState.projectStageGroups = function(stages)
+	local set, isStage = {}, {}
+	for _, path in ipairs(stages or {}) do
+		isStage[path] = true
+	end
+	for _, path in ipairs(stages or {}) do
+		local walked = nil
+		for segment in path:gmatch("[^/]+") do
+			walked = walked and (walked .. "/" .. segment) or segment
+			if not isStage[walked] then
+				set[walked] = true
+			end
+		end
+	end
+	return set
+end
+
+-- One list over this disk and the team library, keyed by path: a project on
+-- both sides is one row. `view` narrows it: "local" keeps what is on this
+-- disk, "team" what the library holds, "all" everything. Returns the list and
+-- the same entries keyed by slug.
+widgetState.projectUnionList = function(view)
+	if not widgetState.teamSyncEnabled then
+		view = "local"
+	end
+	if not widgetState.libraryNewSlugs then
+		widgetState.projectSnapshotLibrary()
+	elseif widgetState.projectLocalDirty or not widgetState.projectLocalBySlug then
+		widgetState.projectSnapshotLocal()
+	end
+	local mine = widgetState.projectLocalBySlug or {}
+	local team = widgetState.projectTeamBySlug()
+	local list, bySlug = {}, {}
+	for slug, entry in pairs(mine) do
+		if view ~= "team" or team[slug] then
+			list[#list + 1] = entry
+			bySlug[slug] = entry
+		end
+	end
+	if view ~= "local" then
+		for slug, entry in pairs(team) do
+			if not mine[slug] then
+				-- A catalogue row: what the companion read out of the manifest
+				-- as text, marked so the tree can dim it.
+				local row = {
+					slug = slug,
+					folder = entry.folder or (slug:match("^(.*)/[^/]+$") or ""),
+					name = entry.name or (slug:match("([^/]+)$") or slug),
+					size_x = entry.size_x,
+					size_z = entry.size_z,
+					modified = entry.modified,
+					remote = true,
+				}
+				list[#list + 1] = row
+				bySlug[slug] = row
+			end
+		end
+	end
+	return list, bySlug
+end
+
+-- Which team projects are new since the browser last showed the library,
+-- and the local manifests to compare the rest against. Both are snapshotted
+-- when the team list is about to be drawn, so they hold still while the
+-- list is filtered, sorted or folded; the seen set is written back when the
+-- dialog closes, so a project stays flagged for the whole of one viewing.
+-- What this disk holds, keyed by slug, for the team view's sync dots. Rebuilt
+-- every time the list is drawn: a download that has just landed has to be able
+-- to turn its own dot green, and this is the only thing that says so.
+--
+-- The folder walk behind listDetailed uses VFS.SubDirs, which cannot see a
+-- directory created during this session, so a project downloaded a moment ago
+-- is missing from it. Any catalogue slug it did not account for is therefore
+-- read straight from its own manifest, which is raw io and disk truth. Only the
+-- team's own slugs are looked up: this is about the rows that are on screen, not
+-- a second walk of everything.
+widgetState.projectSnapshotLocal = function()
+	local ui = widgetState.projectLibraryUi
+	local mp = WG.MapProject
+	widgetState.projectLocalDirty = false
+	local bySlug = {}
+	for _, entry in ipairs((mp and mp.listDetailed and mp.listDetailed()) or {}) do
+		bySlug[entry.slug] = entry
+	end
+	if mp and mp.describe then
+		for _, entry in ipairs((ui and ui.projects()) or {}) do
+			if not bySlug[entry.slug] then
+				bySlug[entry.slug] = mp.describe(entry.slug)
+			end
+		end
+	end
+	widgetState.projectLocalBySlug = bySlug
+	widgetState.projectTeamCache = (ui and ui.teamBySlug and ui.teamBySlug()) or {}
+end
+
+-- Which team projects are new since the browser last showed the library. This
+-- half IS held still for the whole of one viewing, so a project stays flagged
+-- while the list is filtered, sorted or folded.
+widgetState.projectSnapshotLibrary = function()
+	local ui = widgetState.projectLibraryUi
+	widgetState.projectSnapshotLocal()
+	local seen = widgetState.uiPrefs.librarySeen
+	local fresh = {}
+	if seen then
+		for _, entry in ipairs((ui and ui.projects()) or {}) do
+			if not seen[entry.slug] then
+				fresh[entry.slug] = true
+			end
+		end
+	end
+	widgetState.libraryNewSlugs = fresh
+end
+
+-- Everything on show has now been seen. Written on close rather than on
+-- draw, so a new project keeps its mark for as long as the browser is open.
+widgetState.projectCommitLibrarySeen = function()
+	local ui = widgetState.projectLibraryUi
+	local catalog = (ui and ui.projects()) or {}
+	if #catalog == 0 then
+		return
+	end
+	local seen = widgetState.uiPrefs.librarySeen or {}
+	local changed = widgetState.uiPrefs.librarySeen == nil
+	for _, entry in ipairs(catalog) do
+		if not seen[entry.slug] then
+			seen[entry.slug] = true
+			changed = true
+		end
+	end
+	widgetState.uiPrefs.librarySeen = seen
+	if changed then
+		widgetState.saveUiPrefs()
+	end
+end
+
+-- Stage icons mirror the tool rail: noise for design, the SURFACE tool's splat
+-- for texturing, UNITS for gameplay, decals for review.
+-- `name` is a folder's leaf, so the three stages read the same under either
+-- group and a folder nobody configured still gets the plain folder icon.
+-- Keyed by a folder's leaf, so the three stages look the same under either
+-- group and a folder nobody configured gets the plain folder icon.
+widgetState.projectStageIcons = {
+	["map prototypes"] = "mode_lights.png",
+	["texture pass"] = "mode_splat.png",
+	drafts = "mb_paint.png",
+	review = "mode_decals.png",
+	done = "env_sun.png",
+}
+
+-- Images whose mark sits in more transparent margin than the rest: the sun
+-- fills 64% of its square where the pen beside it fills 80%, so drawn in the
+-- same box it reads as the smaller icon. The box is what changes -- the artwork
+-- is shared with other panels and stays as it is.
+widgetState.projectStagePaddedIcons = { ["env_sun.png"] = true }
+
+-- Returns the image, and the class for the box to draw it in.
+widgetState.projectStageIcon = function(name)
+	local key = tostring(name):lower():gsub("^%s+", ""):gsub("%s+$", "")
+	local file = widgetState.projectStageIcons[key] or "folder.png"
+	return "/luaui/images/terraform_brush/" .. file,
+		widgetState.projectStagePaddedIcons[file] and " tf-proj-icon-padded" or ""
+end
+
+-- The browser body, shared by both dialogs so Save As and Open Project list the
+-- same projects in the same shape: a flat list while a filter is on (the folder
+-- path travels with each row), a folder tree otherwise. A folder's own projects
+-- come first in the chosen order, then its subfolders, and every intermediate
+-- folder gets a node even when it holds no project of its own, so a cloned
+-- repository's layout shows as it is on disk.
+-- opts: idRow / idFolder (element id prefixes), collapsed (path -> true), flat,
+-- extraFolders (paths to show even when empty), current (slug to tag OPEN),
+-- dest (folder path to paint as selected), moves (slug -> staged destination),
+-- order (the library's folders, in the order work moves through them).
+-- Returns the markup, the project entries in row order, and the folder paths in
+-- folder order; the caller wires both by index.
+widgetState.projectTreeRml = function(projects, opts)
+	local esc = widgetState.rmlEsc
+	local touched = widgetState.projectTouched
+	local sortMode = tostring(widgetState.projectOpenSort or "recent")
+	local desc = widgetState.projectOpenSortDesc ~= false
+	local collapsed = opts.collapsed or {}
+	local groups = opts.groups or {}
+	local stages = opts.stages or {}
+	local now = os.time()
+	local parts, rows, folders = {}, {}, {}
+	local function projectRow(p, ticks, showPath)
+		rows[#rows + 1] = p
+		local tags = {}
+		if opts.current and opts.current ~= "" and p.slug == opts.current then
+			tags[#tags + 1] = { text = BAR.I18N("ui.mapLibrary.currentTag") }
+		end
+		-- A staged team move rides on the row it applies to, rather than
+		-- redrawing the project under its future folder.
+		local moving = opts.moves and opts.moves(p.slug)
+		if moving then
+			tags[#tags + 1] = { text = "-> " .. moving, cls = "tf-proj-tag tf-proj-moving" }
+		end
+		parts[#parts + 1] = widgetState.projectRowRml(
+			opts.idRow .. #rows,
+			ticks,
+			p.name or p.slug,
+			(showPath and p.folder and p.folder ~= "") and (p.folder .. "/") or "",
+			tags,
+			string.format("%sx%s", tostring(p.size_x or "?"), tostring(p.size_z or "?")),
+			widgetState.relativeAge(touched(p), now),
+			opts.sync and opts.sync(p) or nil,
+			p.remote and "remote-only" or nil
+		)
+	end
+	if opts.flat then
+		for _, p in ipairs(projects) do
+			projectRow(p, nil, true)
+		end
+		return table.concat(parts), rows, folders
+	end
+	local byFolder, children, count, newest = { [""] = {} }, {}, {}, {}
+	local function parentOf(path)
+		return path:match("^(.*)/[^/]+$") or ""
+	end
+	local function ensureFolder(path)
+		if path == "" or rawget(byFolder, path) then
+			return
+		end
+		byFolder[path] = {}
+		local parent = parentOf(path)
+		ensureFolder(parent)
+		children[parent] = children[parent] or {}
+		children[parent][#children[parent] + 1] = path
+	end
+	for _, path in ipairs(opts.extraFolders or {}) do
+		ensureFolder(path)
+	end
+	for _, p in ipairs(projects) do
+		local f = p.folder or ""
+		ensureFolder(f)
+		byFolder[f][#byFolder[f] + 1] = p
+		local t = touched(p)
+		local anc = f
+		while anc ~= "" do
+			count[anc] = (count[anc] or 0) + 1
+			if t > (newest[anc] or "") then
+				newest[anc] = t
+			end
+			anc = parentOf(anc)
+		end
+	end
+	-- The library's folders are a pipeline, so they hold the order the
+	-- companion declares them in whatever the sort column says. A grouping row
+	-- takes the rank of its earliest child, and anything the library does not
+	-- name sorts after all of them the ordinary way.
+	local rank = {}
+	for index, path in ipairs(opts.order or {}) do
+		local walked = nil
+		for segment in path:gmatch("[^/]+") do
+			walked = walked and (walked .. "/" .. segment) or segment
+			if not rank[walked] then
+				rank[walked] = index
+			end
+		end
+	end
+	local function folderLess(a, b)
+		local ra, rb = rank[a], rank[b]
+		if ra and rb then
+			return ra < rb
+		elseif ra or rb then
+			return ra ~= nil
+		end
+		if sortMode == "recent" then
+			local na, nb = newest[a] or "", newest[b] or ""
+			if na ~= nb then
+				if desc then
+					return na > nb
+				end
+				return na < nb
+			end
+		elseif sortMode == "size" then
+			local ca, cb = count[a] or 0, count[b] or 0
+			if ca ~= cb then
+				if desc then
+					return ca > cb
+				end
+				return ca < cb
+			end
+		elseif desc then
+			return a:lower() > b:lower()
+		end
+		return a:lower() < b:lower()
+	end
+	-- The title is wrapped: this RmlUi build draws no bare text inside a flex
+	-- container, so a heading typed straight into the row came out blank.
+	local function sectionRow(title, note)
+		parts[#parts + 1] = '<div class="tf-proj-section"><div class="tf-proj-section-title">'
+			.. esc(title)
+			.. "</div>"
+			.. (note and ('<div class="tf-proj-section-note">' .. esc(note) .. "</div>") or "")
+			.. '<div class="tf-proj-section-rule"></div></div>'
+	end
+	-- Folders before loose projects at every level, the way a file browser
+	-- orders a directory. A grouping row over the team's stages is a heading,
+	-- not a folder: no glyph, no count, nothing to click, and the stages under
+	-- it sit at its own level. At the root, everything the library does not
+	-- name comes after a "This disk" heading of its own.
+	local diskHeaded, teamHeaded = false, false
+	local function render(path, ancestors)
+		local subs = children[path] or {}
+		table.sort(subs, folderLess)
+		local loose = byFolder[path] or {}
+		local total = #subs + #loose
+		local index = 0
+		local function diskHeading()
+			if opts.diskSection and path == "" and not diskHeaded then
+				diskHeaded = true
+				sectionRow(BAR.I18N("ui.mapLibrary.sectionDisk"))
+			end
+		end
+		for _, sub in ipairs(subs) do
+			index = index + 1
+			local isLast = index == total
+			if groups[sub] then
+				sectionRow(sub:match("([^/]+)$") or sub, BAR.I18N("ui.mapLibrary.sectionTeam"))
+				render(sub, ancestors)
+			else
+				if not rank[sub] then
+					diskHeading()
+				elseif stages[sub] and parentOf(sub) == "" and not teamHeaded then
+					-- A stage with no grouping row over it ("Other") gets the same
+					-- heading the grouped ones have, so every team folder sits
+					-- under one that says so.
+					teamHeaded = true
+					sectionRow(BAR.I18N("ui.mapLibrary.teamHeader"), BAR.I18N("ui.mapLibrary.sectionTeam"))
+				end
+				local open = not collapsed[sub]
+				folders[#folders + 1] = sub
+				local leaf = sub:match("([^/]+)$") or sub
+				local icon, iconClass = widgetState.projectStageIcon(leaf)
+				parts[#parts + 1] = string.format(
+					'<div id="%s%d" class="tf-proj-folder%s">%s'
+						.. '<div id="%s%d-g" class="tf-proj-folder-glyph">%s</div>'
+						.. '<img class="tf-proj-folder-icon%s" src="%s" />'
+						.. '<div class="tf-proj-folder-name">%s/</div>'
+						.. '<div class="tf-proj-folder-count">%d</div>'
+						.. '<div class="tf-proj-folder-fill"></div></div>',
+					esc(opts.idFolder),
+					#folders,
+					(opts.dest and opts.dest ~= "" and sub == opts.dest) and " selected" or "",
+					widgetState.projectTicks(ancestors, isLast),
+					esc(opts.idFolder),
+					#folders,
+					open and "-" or "+",
+					iconClass,
+					icon,
+					esc(leaf),
+					count[sub] or 0
+				)
+				if open then
+					render(sub, ancestors and (ancestors .. (isLast and "0" or "1")) or "")
+				end
+			end
+		end
+		if #loose > 0 then
+			diskHeading()
+		end
+		for _, p in ipairs(loose) do
+			index = index + 1
+			projectRow(p, widgetState.projectTicks(ancestors, index == total), false)
+		end
+	end
+	render("", nil)
+	return table.concat(parts), rows, folders
+end
+
+-- The folder half and the leaf half of what is in the NAME field. Save As has
+-- no separate "current directory": the field is the destination, so picking a
+-- folder rewrites its folder half and leaves the name the user typed alone.
+-- The destination folder, and the name being typed. A path typed into the box
+-- still splits, so pasting one works, but the folder it names is taken out and
+-- kept beside the field rather than left in it.
+widgetState.projectSaveSplitName = function()
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-name")
+	local raw = tostring((inp and inp:GetAttribute("value")) or "")
+	raw = raw:gsub("^%s+", ""):gsub("%s+$", "")
+	local typed, leaf = raw:match("^(.*)/([^/]*)$")
+	if typed then
+		return typed, leaf
+	end
+	return tostring(widgetState.projectSaveFolderStr or ""), raw
+end
+
+-- The whole slug a save aims at: the folder beside the field plus the name in
+-- it. Every caller that used to read the field is asking for this.
+widgetState.projectSaveFullName = function()
+	local folder, leaf = widgetState.projectSaveSplitName()
+	if folder == "" then
+		return leaf
+	end
+	if leaf == "" then
+		return folder
+	end
+	return folder .. "/" .. leaf
+end
+
+-- Takes a whole slug and puts each half where it belongs.
+widgetState.projectSaveSetName = function(name)
+	name = tostring(name or "")
+	local folder, leaf = name:match("^(.*)/([^/]*)$")
+	if not folder then
+		folder, leaf = "", name
+	end
+	widgetState.projectSaveFolderStr = folder
+	widgetState.projectNameStr = name
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-name")
+	if inp then
+		inp:SetAttribute("value", leaf)
+	end
+	widgetState.projectSaveUi.changed()
+	local d = widgetState.dmHandle
+	if d then
+		d.projectSaveHint = ""
+	end
+	widgetState.projectSyncTarget()
+end
+
+-- Clicking a folder in Save As saves into it: the folder half of the NAME field
+-- is replaced, the typed name is kept, and a folded node opens (a click on the
+-- disclosure glyph is what folds it again).
+widgetState.projectSavePickFolder = function(path)
+	local d = widgetState.dmHandle
+	if d and d.projectSavePending then
+		return
+	end
+	playSound("click")
+	local _, leaf = widgetState.projectSaveSplitName()
+	widgetState.projectSaveSetName((path ~= "" and (path .. "/") or "") .. leaf)
+	-- Picking a folder as the destination opens it; folding it again is the
+	-- disclosure glyph's job.
+	if widgetState.uiPrefs.projectCollapsed[path] then
+		widgetState.uiPrefs.projectCollapsed[path] = nil
+		widgetState.saveUiPrefs()
+	end
+	widgetState.projectSaveNeedsRebuild = true
+end
+
+-- "New folder" creates it under whatever folder the NAME field points at, then
+-- points the field into it. The folder is made on disk so the next session sees
+-- it, and remembered for this one because an empty folder holds no project and
+-- would otherwise vanish from the tree the moment it is drawn.
+widgetState.projectSaveCreateFolder = function()
+	local d = widgetState.dmHandle
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-newfolder")
+	local typed = tostring((inp and inp:GetAttribute("value")) or "")
+	typed = typed:gsub("^%s+", ""):gsub("%s+$", ""):gsub("^/+", ""):gsub("/+$", "")
+	if typed == "" then
+		return
+	end
+	local parent = widgetState.projectSaveSplitName()
+	local path = (parent ~= "" and (parent .. "/") or "") .. typed
+	local mp = WG.MapProject
+	local ok = mp and mp.validateSlug and mp.validateSlug(path)
+	if not ok then
+		if d then
+			d.projectSaveHint = BAR.I18N("ui.mapLibrary.invalid_path")
+			d.projectSaveError = true
+		end
+		return
+	end
+	-- One level at a time: CreateDir does not make parents.
+	local walked = "MapProjects"
+	for segment in tostring(ok):gmatch("[^/]+") do
+		walked = walked .. "/" .. segment
+		Spring.CreateDir(walked)
+	end
+	playSound("save")
+	widgetState.projectSaveNewFolders[tostring(ok)] = true
+	if inp then
+		inp:SetAttribute("value", "")
+		-- Blur before the row is hidden: focus stranded on a display:none
+		-- element leaves SDL text input running for the rest of the session.
+		inp:Blur()
+	end
+	if d then
+		d.projectSaveNewFolder = false
+		d.projectSaveHint = ""
+		d.projectSaveError = false
+	end
+	local _, leaf = widgetState.projectSaveSplitName()
+	widgetState.projectSaveSetName(tostring(ok) .. "/" .. leaf)
+	widgetState.projectSaveRebuild()
+end
+
+-- Rename, from the row under the Projects list. A project on this disk is
+-- renamed at once (a move within its folder; the manifest's name follows).
+-- One the team library holds has the rename staged into the moves plan, so
+-- CONFIRM MOVES renames the team copy too; until then the old name stays a
+-- team-only row beside the new local one, which is what is true.
+widgetState.projectRenameApply = function()
+	local d = widgetState.dmHandle
+	local slug = widgetState.projectOpenSelectedSlug
+	if not (d and slug) or widgetState.projectOpenIsFolder then
+		return
+	end
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-rename")
+	local typed = tostring((inp and inp:GetAttribute("value")) or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	local oldLeaf = slug:match("([^/]+)$") or slug
+	local folder = slug:match("^(.*)/[^/]+$") or ""
+	local function close()
+		if inp then
+			inp:Blur()
+		end
+		d.projectRenameOpen = false
+	end
+	if typed == "" or typed == oldLeaf then
+		close()
+		return
+	end
+	local mp = WG.MapProject
+	local target = typed:find("[/\\]") == nil
+		and mp
+		and mp.validateSlug
+		and mp.validateSlug((folder ~= "" and (folder .. "/") or "") .. typed)
+	if not target then
+		d.projectOpenHint = BAR.I18N("ui.mapLibrary.nameHint")
+		playSound("reset")
+		return
+	end
+	local mine = widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua")
+	local team = widgetState.projectTeamBySlug()[slug] ~= nil
+	if mine then
+		if mp.exists and mp.exists(target) then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameExists", { name = typed })
+			playSound("reset")
+			return
+		end
+		if mp.isBusy and mp.isBusy() then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
+			return
+		end
+		if not (mp.rename and mp.rename(slug, typed)) then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameFailed", { name = oldLeaf })
+			playSound("reset")
+			return
+		end
+		widgetState.projectLocalDirty = true
+	end
+	local staged = false
+	local ui = widgetState.projectLibraryUi
+	if team and ui and d.libraryWritable and widgetState.projectTeamDestinations()[folder] then
+		staged = ui.queueMove(slug, folder, typed) == true
+	end
+	if not mine and not staged then
+		d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameTeamUnavailable")
+		playSound("reset")
+		return
+	end
+	close()
+	playSound("save")
+	widgetState.projectOpenSelectedSlug = mine and target or slug
+	d.projectOpenHint = BAR.I18N(
+		staged and (mine and "ui.mapLibrary.renamedTeamStaged" or "ui.mapLibrary.renameTeamOnly")
+			or "ui.mapLibrary.renamed",
+		{ name = typed }
+	)
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+	if ui then
+		ui.sync()
+	end
+end
+
+-- Destination picker. The pipeline folders are a short, fixed list that comes
+-- from the helper, so they are drawn as one chip each: every destination is
+-- visible and one click away, where the two-arrow stepper showed one at a time
+-- and made the least important control in the tray the loudest.
+widgetState.projectStagesRebuild = function()
+	local doc = widgetState.document
+	local ui = widgetState.projectLibraryUi
+	if not (doc and ui) then
+		return
+	end
+	local stages = ui.folders() or {}
+	-- The library's folders are drawn where they belong -- in the team view of
+	-- either browser -- rather than copied onto this disk as empty directories.
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+	local active = widgetState.dmHandle and widgetState.dmHandle.libraryStage or ""
+	local esc = widgetState.rmlEsc
+	for _, host in ipairs({ "tf-popen-stages" }) do
+		local el = doc:GetElementById(host)
+		if el then
+			local parts = {}
+			for i, name in ipairs(stages) do
+				-- "Map Prototypes/Drafts" is a place, not a path: the group is
+				-- context for the stage beside it, so it is drawn quieter and the
+				-- stage keeps the chip's voice.
+				local group, leaf = name:match("^(.*)/([^/]+)$")
+				local icon, iconClass = widgetState.projectStageIcon(leaf or name)
+				parts[#parts + 1] = string.format(
+					'<div id="%s-%d" class="tf-project-stage-chip%s">'
+						.. '<img class="tf-project-stage-icon%s" src="%s" />'
+						.. '%s<div class="tf-project-stage-name">%s</div></div>',
+					esc(host),
+					i,
+					name == active and " active" or "",
+					iconClass,
+					icon,
+					group and ('<div class="tf-project-stage-group">' .. esc(group) .. "/</div>") or "",
+					esc(leaf or name)
+				)
+			end
+			if #stages == 0 then
+				parts[1] = '<div class="tf-project-stage-none">' .. esc(BAR.I18N("ui.mapLibrary.noStages")) .. "</div>"
+			end
+			el.inner_rml = table.concat(parts)
+			for i, name in ipairs(stages) do
+				local chip = doc:GetElementById(host .. "-" .. i)
+				if chip then
+					chip:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
+							return
+						end
+						playSound("click")
+						ui.setStage(name)
+						widgetState.projectStagesNeedsRebuild = true
+					end, false)
+				end
+			end
+		end
+	end
+end
+
+-- ===== Helper runner =====
+-- LuaUI cannot start a process. The engine's whole unsynced API offers exactly
+-- two launch calls, Spring.Restart and Spring.Start, and both start the spring
+-- executable; there is no shell, no os.execute and no URL opener. That is the
+-- same wall that keeps Git credentials and network access outside the game, so
+-- it is a property worth having rather than a gap to route around.
+--
+-- What the editor can do is take the typing out of it: unpack the helper next
+-- to the data directory and write a file the user double-clicks once. The
+-- runner resolves its own paths from %~dp0, so nothing absolute is baked in and
+-- it keeps working if the install moves.
+widgetState.projectHelperFiles = {
+	{ vfs = "tools/map_library/map_library.py", name = "map_library.py" },
+	{ vfs = "tools/map_library/start_campaign_maps.ps1", name = "start_campaign_maps.ps1" },
+}
+
+-- Re-extract the helper when the copy on disk no longer matches the one in
+-- the game files. The runner is double-clicked, not rebuilt, so without
+-- this it would go on running whatever snapshot was taken the day the
+-- button was first pressed -- which is exactly how a fixed helper went on
+-- behaving like the old one. Only ever touches a folder that already
+-- exists: nothing is written until the runner has been asked for once.
+widgetState.projectSyncHelperFiles = function()
+	if not widgetState.teamSyncEnabled then
+		return
+	end
+	local dir = "Terraform Brush/map library helper"
+	if not VFS.FileExists(dir .. "/map_library.py", VFS.RAW) then
+		return
+	end
+	local stale = false
+	for _, file in ipairs(widgetState.projectHelperFiles) do
+		local packaged = VFS.FileExists(file.vfs) and VFS.LoadFile(file.vfs)
+		local onDisk = VFS.FileExists(dir .. "/" .. file.name, VFS.RAW)
+			and VFS.LoadFile(dir .. "/" .. file.name, VFS.RAW)
+		if packaged and packaged ~= onDisk then
+			local out = io.open(dir .. "/" .. file.name, "wb")
+			if out then
+				out:write(packaged)
+				out:close()
+				stale = true
+			end
+		end
+	end
+	if stale then
+		Spring.Echo("[Terraform Brush] map library helper updated in " .. dir .. "; restart the helper to pick it up")
+		local d = widgetState.dmHandle
+		if d then
+			d.projectHelperHint = BAR.I18N("ui.mapLibrary.helperStale")
+			widgetState.projectHelperHintSticky = true
+		end
+	end
+end
+
+widgetState.projectWriteRunner = function()
+	local d = widgetState.dmHandle
+	local dir = "Terraform Brush/map library helper"
+	local function fail(key)
+		if d then
+			d.projectHelperHint = BAR.I18N("ui.mapLibrary." .. key)
+			widgetState.projectHelperHintSticky = false
+		end
+		playSound("reset")
+		return false
+	end
+	-- Read from the VFS, not from disk: the helper ships inside the game
+	-- archive on a normal install and is only loose in a development checkout.
+	local payload = {}
+	for _, file in ipairs(widgetState.projectHelperFiles) do
+		local raw = VFS.FileExists(file.vfs) and VFS.LoadFile(file.vfs)
+		if not raw or raw == "" then
+			return fail("helperMissing")
+		end
+		payload[file.name] = raw
+	end
+	Spring.CreateDir("Terraform Brush")
+	Spring.CreateDir(dir)
+	for name, raw in pairs(payload) do
+		local out = io.open(dir .. "/" .. name, "wb")
+		if not out then
+			return fail("helperWriteFailed")
+		end
+		out:write(raw)
+		out:close()
+	end
+	local windows = (Platform and Platform.osFamily) ~= "Linux" and (Platform and Platform.osFamily) ~= "MacOSX"
+	local runner = windows and "Terraform Brush/Start map library helper.bat"
+		or "Terraform Brush/start-map-library-helper.sh"
+	local body
+	if windows then
+		body = table.concat({
+			"@echo off",
+			"REM Starts the Terraform Brush map library helper (the Git companion).",
+			"REM Written by the editor's project browser. It runs nothing on its own;",
+			"REM delete it whenever you like and press the button again to get it back.",
+			"REM",
+			"REM -AllowPush lets confirmed in-game uploads and moves reach the team",
+			"REM repository. Remove it for a read-only helper.",
+			"REM",
+			'REM %~dp0 is this file\'s folder, so ".." is the BAR data directory.',
+			"setlocal",
+			'set "HELPER=%~dp0map library helper"',
+			'set "DATADIR=%~dp0.."',
+			'if not exist "%HELPER%\\start_campaign_maps.ps1" (',
+			"  echo Helper files are missing. Press the helper button in the project browser again.",
+			"  pause",
+			"  exit /b 1",
+			")",
+			'powershell -NoProfile -ExecutionPolicy Bypass -File "%HELPER%\\start_campaign_maps.ps1"'
+				.. ' -DataDir "%DATADIR%" -AllowPush %*',
+			"echo.",
+			"echo The helper has stopped. Run this file again to restart it.",
+			"pause",
+			"",
+		}, "\r\n")
+	else
+		-- No shell launcher ships for these platforms, so call the helper the
+		-- way the PowerShell one does: identity from the user's own Git config.
+		body = table.concat({
+			"#!/bin/sh",
+			"# Starts the Terraform Brush map library helper (the Git companion).",
+			"# Written by the editor's project browser; delete it whenever you like.",
+			"# Drop --allow-push for a read-only helper.",
+			"set -e",
+			'HERE="$(cd "$(dirname "$0")" && pwd)"',
+			'exec python3 -u "$HERE/map library helper/map_library.py" \\',
+			'  --data-dir "$HERE/.." \\',
+			"  --remote https://github.com/beyond-all-reason/CampaignMaps.git \\",
+			"  --branch main \\",
+			'  --author "$(git config user.name)" \\',
+			'  --email "$(git config user.email)" \\',
+			"  --shader-remote https://github.com/beyond-all-reason/tileset-shader.git \\",
+			"  --allow-push",
+			"",
+		}, "\n")
+	end
+	local out = io.open(runner, "wb")
+	if not out then
+		return fail("helperWriteFailed")
+	end
+	out:write(body)
+	out:close()
+	-- A replay path is the one absolute path this API hands out, so it is the
+	-- only way to tell the user where their data directory actually is.
+	local absolute = nil
+	-- The VFS names the file now that it is on disk. The replay recording
+	-- path below is the fallback; a session without a recording has none,
+	-- which used to leave the card with only the relative path.
+	pcall(function()
+		if VFS.GetFileAbsolutePath then
+			local found = VFS.GetFileAbsolutePath(runner, VFS.RAW)
+			if type(found) == "string" and found ~= "" then
+				absolute = found
+			end
+		end
+	end)
+	pcall(function()
+		if absolute then
+			return
+		end
+		local demo = Spring.GetReplayRecordingFilePath and Spring.GetReplayRecordingFilePath()
+		local root = demo and tostring(demo):match("^(.*)[/\\][Dd]emos[/\\]")
+		if root and root ~= "" then
+			absolute = root .. "/" .. runner
+		end
+	end)
+	if absolute then
+		Spring.SetClipboard(absolute)
+	end
+	playSound("save")
+	if d then
+		widgetState.projectHelperHintSticky = false
+		d.projectHelperHint = BAR.I18N(absolute and "ui.mapLibrary.helperReadyPath" or "ui.mapLibrary.helperReady", {
+			path = absolute or runner,
+		})
+	end
+	Spring.Echo("[Terraform Brush] map library runner written to " .. (absolute or runner))
+	return true, absolute or runner
+end
+
+-- ===== Drag and drop: move a project into a folder =====
+-- RmlUi's own drag events are not used anywhere in this UI. Window dragging
+-- polls the mouse instead (see makeWindowDraggable), so this does too: mousedown
+-- arms, the pointer has to travel a few pixels before it counts as a drag (a
+-- click still selects), Update paints the folder under the cursor, and the drag
+-- ends when the button comes back up -- polled rather than taken from a mouseup
+-- event, so releasing the button off the panel cannot strand a drag.
+
+widgetState.projectDragArm = function(slug, save)
+	if not slug then
+		return
+	end
+	-- Two kinds of drag share this code. In the local views a drop moves the
+	-- folder on this disk straight away. In the team view it stages a move in
+	-- the repository instead, so it needs a helper that is allowed to push;
+	-- without one the row simply does not drag, rather than dragging into a
+	-- refusal.
+	-- A project on this disk moves on this disk (and the team copy is offered
+	-- the same move afterwards); one that is only in the team library can only
+	-- be staged for a team move, which Save As does not do.
+	local mine = widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua")
+	local remote = not mine
+	local d = widgetState.dmHandle
+	-- A team-only row can only be planned, and a plan needs no companion at
+	-- hand: only CONFIRM MOVES waits for one that can push. A row on this disk
+	-- may move at once, which a running save or transfer must not interrupt.
+	if remote and not (d and d.libraryWritable) then
+		return
+	end
+	if not remote and WG.MapProject and WG.MapProject.isBusy and WG.MapProject.isBusy() then
+		return
+	end
+	local mx, my = Spring.GetMouseState()
+	widgetState.projectDragClickEaten = nil
+	widgetState.projectDrag = { slug = slug, save = save, remote = remote, x = mx, y = my, active = false }
+end
+
+-- `side` is the dialog the drag belongs to (the drop entries' `save` flag).
+-- Only that dialog's elements are touched: the other one's registrations
+-- outlive it in the list, and its rows are gone the moment it is rebuilt.
+widgetState.projectDragPaint = function(path, side)
+	for _, t in ipairs(widgetState.projectDropEls or {}) do
+		if side == nil or t.save == side then
+			t.el:SetClass("drop-target", path ~= nil and t.path == path and t.row == true)
+		end
+	end
+end
+
+-- The team library's folders are fixed by the helper, and only the ones it
+-- lists are destinations: a row above them ("Map Prototypes") is the shared
+-- prefix of its children, not a place a project can be. So a team drag can
+-- only land on one of these, and the root of the tree is not one either.
+widgetState.projectTeamDestinations = function()
+	local set = {}
+	local ui = widgetState.projectLibraryUi
+	for _, path in ipairs((ui and ui.folders()) or {}) do
+		set[path] = true
+	end
+	return set
+end
+
+-- The drag ghost element, looked up once per document.
+widgetState.projectDragGhost = function()
+	local doc = widgetState.document
+	if not doc then
+		return nil
+	end
+	local cache = widgetState.projectDragGhostCache
+	if cache and cache.doc == doc then
+		return cache.el
+	end
+	local el = doc:GetElementById("tf-project-dragghost")
+	widgetState.projectDragGhostCache = { doc = doc, el = el }
+	return el
+end
+
+widgetState.projectDragEnd = function(commit)
+	local drag = widgetState.projectDrag
+	widgetState.projectDrag = nil
+	local d = widgetState.dmHandle
+	if d then
+		d.projectDragLabel = ""
+	end
+	-- Both of these touch elements, and a list rebuilt while the button was
+	-- down has destroyed the ones this drag started from. Tidying up is not
+	-- allowed to be what stops the move from happening, so it is guarded and
+	-- kept ahead of the decision below.
+	-- The ghost first, on its own: the row below may already be gone (the
+	-- list rebuilds on release) and its SetClass would abort the block
+	-- before the ghost was reached, leaving it parked on screen.
+	pcall(function()
+		local ghost = widgetState.projectDragGhost()
+		if ghost then
+			ghost:SetClass("hidden", true)
+		end
+	end)
+	pcall(function()
+		widgetState.projectDragPaint(nil, drag and drag.save)
+		if drag and drag.el then
+			drag.el:SetClass("dragging", false)
+		end
+	end)
+	if not (commit and drag and drag.active) then
+		return
+	end
+	-- RmlUi turns the press and release into a click once this returns, and the
+	-- row it lands on is the one the project just left. A drag is not a pick.
+	widgetState.projectDragClickEaten = true
+	if not drag.target then
+		return
+	end
+	-- One rule: a project the team library holds, dropped on one of the
+	-- team's stages, is a staged team move (its local copy follows when
+	-- CONFIRM MOVES runs); anything else is a local move, done now. Nothing
+	-- is pushed until CONFIRM MOVES, and dropping a project back into the
+	-- folder it is already in cancels its part of the plan.
+	local inTeam = widgetState.projectTeamBySlug()[drag.slug] ~= nil
+	local ontoStage = widgetState.projectTeamDestinations()[drag.target] == true
+	if drag.remote or (inTeam and ontoStage) then
+		local ui = widgetState.projectLibraryUi
+		if ui and ui.queueMove and ui.queueMove(drag.slug, drag.target) then
+			playSound("click")
+			widgetState.projectOpenNeedsRebuild = true
+			widgetState.projectSaveNeedsRebuild = true
+			ui.sync()
+		end
+		return
+	end
+	local leaf = drag.slug:match("([^/]+)$") or drag.slug
+	local target = (drag.target ~= "" and (drag.target .. "/") or "") .. leaf
+	if target == drag.slug then
+		return
+	end
+	if WG.MapProject and WG.MapProject.move and WG.MapProject.move(drag.slug, target) then
+		playSound("save")
+		widgetState.projectLocalDirty = true
+		-- The selection and the Save As name follow the project to its new path.
+		if widgetState.projectOpenSelectedSlug == drag.slug then
+			widgetState.projectOpenSelectedSlug = target
+		end
+		if widgetState.projectNameStr == drag.slug then
+			widgetState.projectSaveSetName(target)
+		end
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+	else
+		playSound("reset")
+		if d then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.moveFailed", { name = leaf })
+		end
+	end
+end
+
+-- A local move only rearranges this disk. When the same project is in the
+-- team library at the path it just left, the same move can be made there --
+-- offered rather than done, because that request is the only one that removes
+-- anything from the remote. It is offered only when the helper could carry it
+-- out: connected, allowed to push, and with both folders in the pipeline.
+widgetState.projectOfferRemoteMove = function(oldSlug, newSlug)
+	local d = widgetState.dmHandle
+	local ui = widgetState.projectLibraryUi
+	if not (d and ui and d.libraryOnline and d.libraryWritable) then
+		return
+	end
+	local stage = newSlug:match("^(.*)/[^/]+$") or ""
+	local isStage = false
+	for _, path in ipairs(ui.folders() or {}) do
+		if path == stage then
+			isStage = true
+		end
+	end
+	if not isStage then
+		return
+	end
+	local published = false
+	for _, entry in ipairs(ui.projects() or {}) do
+		if entry.slug == oldSlug then
+			published = true
+		end
+	end
+	if not published then
+		return
+	end
+	widgetState.projectPendingMove = { source = oldSlug, stage = stage }
+	d.libraryMoveOpen = true
+	d.libraryMoveQuestion = BAR.I18N("ui.mapLibrary.moveQuestion", {
+		name = oldSlug:match("([^/]+)$") or oldSlug,
+		stage = stage,
+	})
+end
+
+widgetState.projectDragUpdate = function()
+	local drag = widgetState.projectDrag
+	if not drag then
+		return
+	end
+	local mx, my, lmb = Spring.GetMouseState()
+	-- The button is not what ends this drag. RmlUi consumes the press a row is
+	-- dragged from, so Spring's own button state can stay false for the whole
+	-- gesture -- reading it here ended every drag on its first frame, which is
+	-- why nothing could be dragged at all. The release arrives as the document's
+	-- mouseup instead, which is where makeWindowDraggable (the only other polled
+	-- drag in this widget, and one that works) has always taken it. What is left
+	-- here is the net for the other case: a press the engine did see, released
+	-- somewhere the document never hears about.
+	if lmb then
+		drag.sawButtonDown = true
+	elseif drag.sawButtonDown then
+		widgetState.projectDragEnd(true)
+		return
+	end
+	if not drag.active then
+		if math.abs(mx - drag.x) + math.abs(my - drag.y) < 6 then
+			return
+		end
+		drag.active = true
+	end
+	local vsx, vsy = Spring.GetViewGeometry()
+	-- Spring measures y from the bottom, RmlUi from the top.
+	local py = (vsy or 0) - my
+	-- The row rides along under the pointer: its name, and its sync dot when
+	-- the library is configured. Built once per drag, moved every poll.
+	local ghost = widgetState.projectDragGhost()
+	if ghost and vsx and vsx > 0 and vsy and vsy > 0 then
+		if not drag.ghostSet then
+			drag.ghostSet = true
+			local escG = widgetState.rmlEsc
+			local leafG = drag.slug:match("([^/]+)$") or drag.slug
+			local dotRml = ""
+			local dm = widgetState.dmHandle
+			if dm and dm.libraryConfigured and widgetState.projectSyncCell then
+				local cell = widgetState.projectSyncCell({ slug = drag.slug })
+				dotRml = '<div class="tf-proj-dot ' .. escG(cell.dot or cell.state) .. '"></div>'
+			end
+			ghost.inner_rml = dotRml .. '<div class="tf-project-dragghost-text">' .. escG(leafG) .. "</div>"
+		end
+		local leftPx = math.max(0, mx + 14)
+		local topPx = math.max(0, py + 12)
+		ghost:SetAttribute("style", string.format("left: %.2fvw; top: %.2fvh;", leftPx / vsx * 100, topPx / vsy * 100))
+		ghost:SetClass("hidden", false)
+	end
+	local hit = nil
+	-- A team drag has a short list of places it may land (see
+	-- projectTeamDestinations); a local one may land anywhere in the tree,
+	-- including its root.
+	for _, t in ipairs(widgetState.projectDropEls or {}) do
+		local el = t.el
+		if
+			t.save == drag.save
+			and (not drag.remote or t.dest)
+			and mx >= el.absolute_left
+			and mx <= el.absolute_left + el.offset_width
+			and py >= el.absolute_top
+			and py <= el.absolute_top + el.offset_height
+		then
+			-- Later entries win: the folder rows are registered after the list
+			-- they sit in, which is the top-level target.
+			hit = t
+		end
+	end
+	drag.target = hit and hit.path or nil
+	widgetState.projectDragPaint(hit and hit.row and hit.path or nil, drag.save)
+	local d = widgetState.dmHandle
+	if d then
+		local leaf = drag.slug:match("([^/]+)$") or drag.slug
+		if not hit then
+			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragHolding", { name = leaf })
+		elseif hit.path == (drag.slug:match("^(.*)/[^/]+$") or "") then
+			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragSameFolder", { name = leaf })
+		else
+			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragMove", {
+				name = leaf,
+				folder = hit.path ~= "" and hit.path or BAR.I18N("ui.mapLibrary.dragTopLevel"),
+			})
+		end
+	end
+end
+
+-- Selecting a folder in Open Project. A folder is a selection here as well as
+-- a disclosure, because DELETE acts on whatever is picked and a folder full of
+-- projects is a thing people want gone in one go. The glyph still folds it.
+widgetState.projectSelectFolder = function(path)
+	local d = widgetState.dmHandle
+	if widgetState.projectLibraryUi then
+		widgetState.projectLibraryUi.disarm()
+	end
+	widgetState.projectOpenSelectedSlug = path
+	widgetState.projectOpenIsFolder = true
+	widgetState.projectDeleteConfirmExpiry = 0
+	local count = 0
+	local list = widgetState.projectUnionList("all")
+	for _, p in ipairs(list) do
+		if tostring(p.slug):sub(1, #path + 1) == (path .. "/") then
+			count = count + 1
+		end
+	end
+	if d then
+		d.projectOpenSelected = path
+		d.projectOpenIsFolder = true
+		d.projectDeleteConfirming = false
+		d.projectOpenHint = ""
+		d.projectRenameOpen = false
+		d.projectInfoFolder = true
+		d.projectInfoName = path:match("([^/]+)$") or path
+		local parent = path:match("^(.*)/[^/]+$")
+		d.projectInfoPath = parent and (parent .. "/") or ""
+		d.projectInfoCount = BAR.I18N("ui.mapLibrary.folderCount", { count = count })
+	end
+	for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
+		r.el:SetClass("selected", false)
+	end
+	for _, f in ipairs(widgetState.projectOpenFolderEls or {}) do
+		f.el:SetClass("selected", f.path == path)
+	end
+	widgetState.projectShowDetails(nil)
+end
+
+-- Selecting a row in Open Project: paints the selection, disarms whatever the
+-- previous selection had armed, and refreshes the details pane.
+widgetState.projectSelectRow = function(rec)
+	if not rec then
+		return
+	end
+	if widgetState.projectLibraryUi then
+		widgetState.projectLibraryUi.disarm()
+	end
+	widgetState.projectOpenSelectedSlug = rec.slug
+	widgetState.projectOpenIsFolder = false
+	-- Picking a different project must not inherit the armed DELETE.
+	widgetState.projectDeleteConfirmExpiry = 0
+	widgetState.projectOpenArmed = nil
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.projectOpenSelected = rec.label
+		dm.projectOpenIsFolder = false
+		dm.projectInfoFolder = false
+		dm.projectDeleteConfirming = false
+		dm.projectOpenConfirming = false
+		dm.projectRenameOpen = false
+		dm.projectOpenHint = ""
+	end
+	for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
+		r.el:SetClass("selected", r.slug == rec.slug)
+	end
+	for _, f in ipairs(widgetState.projectOpenFolderEls or {}) do
+		f.el:SetClass("selected", false)
+	end
+	widgetState.projectShowDetails(rec.p)
+end
+
+-- Up/Down walk the list. Folder rows are skipped: only projects can be opened,
+-- so only projects are steps.
+widgetState.projectStepSelection = function(dir)
+	local rows = widgetState.projectOpenRowEls or {}
+	if #rows == 0 then
+		return
+	end
+	local idx = 0
+	for i, r in ipairs(rows) do
+		if r.slug == widgetState.projectOpenSelectedSlug then
+			idx = i
+			break
+		end
+	end
+	idx = math.max(1, math.min(#rows, idx + dir))
+	local rec = rows[idx]
+	if not rec then
+		return
+	end
+	widgetState.projectSelectRow(rec)
+	-- Keeps the keyboard cursor on screen; not every RmlUi build exposes it.
+	pcall(function()
+		rec.el:ScrollIntoView()
+	end)
+end
+
+-- Opens the selected project (LOAD button, double click and Enter all land
+-- here). Nothing to guard beyond the selection: the button is
+-- pointer-events:none while nothing is picked.
+-- `fromTeam` is the team view asking for the same open. Opening is a local act
+-- either way -- it loads the copy on this disk -- but it is reachable from both
+-- tabs, so the team view no longer has to pretend to be the Local tab to get
+-- past this guard.
+widgetState.projectOpenCommit = function(force)
+	local slug = widgetState.projectOpenSelectedSlug
+	if not slug or widgetState.projectOpenIsFolder then
+		return
+	end
+	local d = widgetState.dmHandle
+	local mp = WG.MapProject
+	if not (mp and mp.open) then
+		if d then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openUnavailable")
+		end
+		return
+	end
+	if mp.isBusy and mp.isBusy() then
+		if d then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
+		end
+		return
+	end
+	-- Not on this disk: fetch it first. Update takes it from there once the
+	-- download has landed (projectOpenChainReady), with force set, because
+	-- asking for the download was the confirmation.
+	if not widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
+		if widgetState.projectOpenAfterDownload == slug then
+			return
+		end
+		local ui = widgetState.projectLibraryUi
+		if not (ui and ui.download) or not (d and d.libraryOnline) then
+			if d then
+				d.projectOpenHint = BAR.I18N("ui.mapLibrary.offline")
+			end
+			return
+		end
+		playSound("click")
+		widgetState.projectOpenAfterDownload = slug
+		if d then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.downloadingThenOpen", { name = slug:match("([^/]+)$") or slug })
+		end
+		ui.download(slug)
+		return
+	end
+	-- The restart drops unsaved work, so it asks once -- unless nothing has
+	-- changed since the last save, when there is nothing to lose.
+	local dirty = not (mp.isDirty and not mp.isDirty())
+	if not force and dirty and widgetState.projectOpenArmed ~= slug then
+		widgetState.projectOpenArmed = slug
+		if d then
+			d.projectOpenConfirming = true
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openQuestion", { name = slug:match("([^/]+)$") or slug })
+		end
+		playSound("toggleOn")
+		return
+	end
+	widgetState.projectOpenArmed = nil
+	if d then
+		d.projectOpenConfirming = false
+	end
+	playSound("apply")
+	if not mp.open(slug) then
+		if d then
+			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openFailed", { name = slug })
+		end
+	end
+end
+
+-- Enter in the NAME field: same commit path as the SAVE button, including its
+-- overwrite and dropped-units confirms.
+widgetState.projectSaveFromField = function(_el)
+	widgetState.projectNameStr = widgetState.projectSaveFullName()
+	if widgetState.projectSaveUi.save(widgetState.projectNameStr) then
+		playSound("save")
+	end
+end
+
+-- Wires a dialog text field that commits on Enter (the NAME field saves, the
+-- Open search jumps to the first match).
+widgetState.wireProjectEnter = function(el, commit)
+	if not el then
+		return
+	end
+	widgetState.wireTextInput(el)
+	el:AddEventListener("keydown", function(event)
+		if widgetState.isReturnEvent(event) then
+			commit(el)
+		end
+	end, false)
+end
+
+-- Clicking a row in Save As reuses its name (pick-to-overwrite); SAVE still
+-- commits, and still asks its overwrite/units questions.
+widgetState.projectSavePick = function(slug, quiet)
+	local d = widgetState.dmHandle
+	if d and d.projectSavePending then
+		return
+	end
+	if not quiet then
+		playSound("click")
+	end
+	widgetState.projectSaveSetName(slug)
+	for _, r in ipairs(widgetState.projectSaveRowEls or {}) do
+		r.el:SetClass("selected", r.slug == slug)
+	end
+end
+
+-- Rebuilds the Save As browser (filter + sort + rows). Deferred through
+-- projectSaveNeedsRebuild whenever the caller is inside a row's own event.
+widgetState.projectSaveRebuild = function()
+	local doc = widgetState.document
+	local listEl = doc and doc:GetElementById("tf-project-save-list")
+	if not (doc and listEl) then
+		return
+	end
+	local esc = widgetState.rmlEsc
+	local d = widgetState.dmHandle
+	local mp = WG.MapProject
+	widgetState.projectSaveRowEls = {}
+	listEl.inner_rml = ""
+	if not (mp and mp.listDetailed) then
+		-- rml-dom-escape: existing imperative tree; no model-bound row template.
+		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+			.. esc(BAR.I18N("ui.mapLibrary.unavailable"))
+			.. "</div>"
+		if d then
+			d.projectSaveCount = ""
+		end
+		return
+	end
+	-- One tree for both libraries: a save can aim at a folder on this disk or
+	-- at one of the team's stages, and the team's projects are listed so a
+	-- name already taken there is seen before it is typed over.
+	local ui = widgetState.projectLibraryUi
+	local all, bySlug = widgetState.projectUnionList("all")
+	widgetState.projectSaveBySlug = bySlug
+	local filter = tostring(widgetState.projectSaveFilter or ""):lower()
+	local projects = {}
+	for _, p in ipairs(all) do
+		if filter == "" then
+			projects[#projects + 1] = p
+		else
+			local hay = string.format("%s %s %sx%s", p.name or "", p.slug or "", p.size_x or "", p.size_z or "")
+			if hay:lower():find(filter, 1, true) then
+				projects[#projects + 1] = p
+			end
+		end
+	end
+	if d then
+		d.projectSaveCount = widgetState.projectCountText(#projects, #all)
+	end
+	local stages = (ui and ui.folders()) or {}
+	if #projects == 0 then
+		-- rml-dom-escape: existing imperative tree; no model-bound row template.
+		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+			.. esc(BAR.I18N(#all == 0 and "ui.mapLibrary.localEmpty" or "ui.mapLibrary.noMatches"))
+			.. "</div>"
+		-- The team's folders draw even with nothing in them: they are where a
+		-- save is about to go.
+		if not (#stages > 0 and filter == "") then
+			return
+		end
+	end
+	table.sort(projects, widgetState.projectLess)
+	local extra = {}
+	for _, path in ipairs(stages) do
+		extra[#extra + 1] = path
+	end
+	local fresh = {}
+	for path in pairs(widgetState.projectSaveNewFolders or {}) do
+		fresh[#fresh + 1] = path
+	end
+	table.sort(fresh)
+	for _, path in ipairs(fresh) do
+		extra[#extra + 1] = path
+	end
+	local dest = widgetState.projectSaveSplitName()
+	local saveStageSet = widgetState.projectTeamDestinations()
+	local markup, rows, folders = widgetState.projectTreeRml(projects, {
+		idRow = "tf-psave-r",
+		idFolder = "tf-psave-f",
+		collapsed = widgetState.uiPrefs.projectCollapsed,
+		flat = filter ~= "",
+		extraFolders = extra,
+		current = mp.current and mp.current() or nil,
+		sync = (d and d.libraryConfigured) and widgetState.projectSyncCell or nil,
+		groups = widgetState.projectStageGroups(stages),
+		stages = widgetState.projectTeamDestinations(),
+		diskSection = #stages > 0,
+		dest = dest,
+		order = stages,
+		moves = ui and ui.pendingMove,
+	})
+	listEl.inner_rml = markup
+	for i = #widgetState.projectDropEls, 1, -1 do
+		if widgetState.projectDropEls[i].save == true then
+			table.remove(widgetState.projectDropEls, i)
+		end
+	end
+	widgetState.projectDropEls[#widgetState.projectDropEls + 1] = { path = "", el = listEl, row = false, save = true }
+	local selected = tostring(widgetState.projectNameStr or "")
+	for i, p in ipairs(rows) do
+		local row = doc:GetElementById("tf-psave-r" .. i)
+		if row then
+			-- Nested projects hand their full path to the NAME field: that is
+			-- the string the save writes to.
+			local slug = p.slug
+			widgetState.projectSaveRowEls[#widgetState.projectSaveRowEls + 1] = { slug = slug, el = row }
+			row:SetClass("selected", slug == selected)
+			row:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				if widgetState.projectDragClickEaten then
+					widgetState.projectDragClickEaten = nil
+					return
+				end
+				widgetState.projectSavePick(slug)
+			end, false)
+			row:AddEventListener("mousedown", function(ev)
+				local mp = ev.parameters
+				if mp and mp.button and mp.button ~= 0 then
+					return
+				end
+				widgetState.projectDragArm(slug, true)
+				if widgetState.projectDrag then
+					widgetState.projectDrag.el = row
+					row:SetClass("dragging", true)
+				end
+			end, false)
+			-- Double click saves straight over that project, the way a desktop
+			-- Save As does. The overwrite confirm still stands in the way.
+			row:AddEventListener("dblclick", function(ev)
+				ev:StopPropagation()
+				local dm = widgetState.dmHandle
+				if dm and dm.projectSavePending then
+					return
+				end
+				widgetState.projectSavePick(slug, true)
+				if widgetState.projectSaveUi.save(slug) then
+					playSound("save")
+				end
+			end, false)
+		end
+	end
+	for i, path in ipairs(folders) do
+		local fEl = doc:GetElementById("tf-psave-f" .. i)
+		local gEl = doc:GetElementById("tf-psave-f" .. i .. "-g")
+		if fEl then
+			widgetState.projectDropEls[#widgetState.projectDropEls + 1] =
+				{ path = path, el = fEl, row = true, save = true, dest = saveStageSet[path] == true }
+			-- Here a folder is a destination, so the row picks it and only the
+			-- disclosure glyph folds the node.
+			fEl:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				if widgetState.projectDragClickEaten then
+					widgetState.projectDragClickEaten = nil
+					return
+				end
+				widgetState.projectSavePickFolder(path)
+			end, false)
+		end
+		if gEl then
+			gEl:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				playSound("click")
+				widgetState.projectToggleFolder(path)
+			end, false)
+		end
+	end
+end
+
 -- Opens the Save Project As dialog: prefills the name (current project >
 -- last-typed > slugified map name) and rebuilds the existing-projects list,
 -- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
@@ -3569,6 +5649,13 @@ widgetState.openProjectSaveDialog = function()
 	local d = widgetState.dmHandle
 	if d then
 		d.fileMenuOpen = false
+		-- One browser at a time: both windows draw the same tree.
+		if d.projectOpenOpen then
+			d.projectOpenOpen = false
+			widgetState.projectCommitLibrarySeen()
+			widgetState.libraryNewSlugs = nil
+		end
+		widgetState.projectLocalDirty = true
 		d.projectSaveOpen = true
 		if widgetState.projectSaveUi and not widgetState.projectSaveUi.open() then
 			return
@@ -3577,6 +5664,9 @@ widgetState.openProjectSaveDialog = function()
 			widgetState.projectLibraryUi.sync()
 		end
 		d.projectSaveHint = ""
+		if not widgetState.projectHelperHintSticky then
+			d.projectHelperHint = ""
+		end
 		d.projectSaveUnits = widgetState.projectSaveUnits and true or false
 	end
 	local doc = widgetState.document
@@ -3587,79 +5677,20 @@ widgetState.openProjectSaveDialog = function()
 		if not name or name == "" then
 			name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
 		end
-		widgetState.projectNameStr = name
-		inp:SetAttribute("value", name)
+		widgetState.projectSaveSetName(name)
+		-- Focused on open: a save dialog that needs a click before it can be
+		-- typed into is a save dialog with an extra step in it.
+		pcall(function()
+			inp:Focus()
+		end)
 	end
-	local listEl = doc and doc:GetElementById("tf-project-save-list")
-	if not listEl then
-		return
-	end
-	listEl.inner_rml = ""
-	local function esc(s)
-		return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
-	end
-	if not (mp and mp.listDetailed) then
-		listEl.inner_rml = '<div class="tf-hm-empty">' .. esc(BAR.I18N("ui.mapLibrary.unavailable")) .. "</div>"
-		return
-	end
-	local projects = mp.listDetailed()
-	if #projects == 0 then
-		listEl.inner_rml = '<div class="tf-hm-empty">' .. esc(BAR.I18N("ui.mapLibrary.localEmpty")) .. "</div>"
-		return
-	end
-	-- Same imperative row build and tf-hm-* styling as the Open Project list
-	-- (see onFileOpenProject for why the rows are not data-model driven).
-	local parts = {}
-	local now = os.time()
-	for i, p in ipairs(projects) do
-		-- Nested projects show their path: that is what the NAME field receives.
-		local label = (p.folder and p.folder ~= "") and p.slug or (p.name or p.slug)
-		parts[#parts + 1] = string.format(
-			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-project-row-heading">'
-				.. '<div class="tf-hm-mapname">%s</div>'
-				.. '<div class="tf-hm-badge">%sx%s</div>'
-				.. '</div><div class="tf-project-row-meta"><div class="tf-hm-date">%s</div></div></div>',
-			i,
-			esc(label),
-			esc(p.size_x or "?"),
-			esc(p.size_z or "?"),
-			esc(widgetState.relativeAge(p.modified, now))
-		)
-	end
-	listEl.inner_rml = table.concat(parts)
-	for i, p in ipairs(projects) do
-		local row = doc:GetElementById("tf-psave-r" .. i)
-		if row then
-			local slug = p.slug
-			row:AddEventListener("click", function(ev)
-				ev:StopPropagation()
-				if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
-					return
-				end
-				playSound("click")
-				-- The row fills the NAME field; SAVE still commits (and still
-				-- asks its overwrite/units questions). A new target voids any
-				-- armed second-click confirm.
-				widgetState.projectNameStr = slug
-				widgetState.projectSaveUi.changed()
-				local doc2 = widgetState.document
-				local inp2 = doc2 and doc2:GetElementById("input-project-name")
-				if inp2 then
-					inp2:SetAttribute("value", slug)
-				end
-				local d2 = widgetState.dmHandle
-				if d2 then
-					d2.projectSaveHint = ""
-				end
-				for j = 1, #projects do
-					local r = doc2 and doc2:GetElementById("tf-psave-r" .. j)
-					if r then
-						r:SetClass("selected", j == i)
-					end
-				end
-			end, false)
-		end
-	end
+	widgetState.projectSyncSort()
+	widgetState.projectSyncHelperFiles()
+	widgetState.projectSaveRebuild()
+	-- After the rebuild: the target readout and the details pane both read the
+	-- listing it just cached.
+	widgetState.projectSyncTarget()
+	widgetState.projectStagesRebuild()
 end
 
 local initialModel = {
@@ -3716,7 +5747,65 @@ local initialModel = {
 	projectSaveOpen = false,
 	projectSaveHint = "",
 	projectSaveUnits = false, -- "save units loadout" toggle (position/team of every unit)
-	projectOpenSort = "recent", -- Open Project sort chip: recent | name | size
+	projectOpenSort = "recent", -- sorted column: recent | name | size
+	-- Sort carets, on the sorted column header only (see projectSyncSort)
+	projectSortName = "",
+	projectSortSize = "",
+	projectSortDate = " v",
+	-- Row counters under each browser
+	projectOpenCount = "",
+	projectSaveCount = "",
+	-- Save As: what the NAME field currently points at, read before the click
+	projectSaveTarget = "",
+	projectSaveOverwrite = false,
+	projectSaveNewFolder = false, -- inline "new folder" row open
+	projectSaveDest = "", -- folder the NAME field saves into, as a path label
+	projectSaveFolder = "", -- the same folder, drawn immediately before the NAME box
+	projectSaveDestOk = true, -- the team tab has a library folder picked to save into
+	-- Open Project details pane (filled from the selected row's manifest)
+	projectInfoName = "",
+	projectInfoPath = "",
+	projectInfoSize = "",
+	projectInfoModified = "",
+	projectInfoCreated = "",
+	projectInfoUnits = "",
+	projectInfoLegacy = false,
+	projectInfoCurrent = false,
+	projectInfoBoth = false, -- both a minimap and a heightmap are on disk
+	projectInfoFolder = false, -- a folder is selected rather than a project
+	projectInfoCount = "", -- how many projects the selected folder holds
+	projectOpenIsFolder = false, -- gates OPEN, and picks what DELETE removes
+	-- Which of the two the preview is showing, shared by both panes
+	projectPreviewMode = "map",
+	-- Save As details pane. Its own fields, not the Open Project ones: both
+	-- dialogs can be up at once, and each pane answers to its own list.
+	psaveInfoShown = false,
+	psaveInfoName = "",
+	psaveInfoPath = "",
+	psaveInfoSize = "",
+	psaveInfoModified = "",
+	psaveInfoCreated = "",
+	psaveInfoUnits = "",
+	psaveInfoLegacy = false,
+	psaveInfoCurrent = false,
+	psaveInfoBoth = false,
+	-- What the drag under way would do, said in words under the list
+	projectDragLabel = "",
+	-- Result of the "start helper" button (where the runner was written to)
+	projectHelperHint = "",
+	-- Details pane, TEAM block (see projectShowDetails)
+	projectInfoTeam = false, -- the team library holds this project
+	projectInfoMine = false, -- a copy is on this disk
+	projectInfoSync = "", -- local | team | synced | mine | theirs
+	projectInfoTeamLine = "",
+	projectOpenConfirming = false, -- OPEN armed, waiting for the second click
+	projectRenameOpen = false, -- the inline rename row under the list
+	-- Save As: the destination chip and the summary pane
+	projectSaveDestLabel = "",
+	psaveSumFolder = "",
+	psaveSumMap = "",
+	psaveSumUnits = "",
+	psaveSumUpload = "",
 	projectCurrentName = "", -- FILE > Save target ("" = none yet → Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
@@ -4235,6 +6324,7 @@ local initialModel = {
 	penPressureStr = "OFF",
 	wiggleStr = "OFF",
 	perfModeStr = "OFF", -- Settings > Performance
+	teamSyncStr = "OFF", -- Settings > General > Team Sync (campaign team)
 	clayStackStr = "OFF", -- Settings > Stroke > Clay build-up
 	disableTipsStr = "OFF",
 	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
@@ -4246,6 +6336,7 @@ local initialModel = {
 	penPressureActive = false,
 	wiggleActive = false,
 	perfModeActive = false,
+	teamSyncActive = false,
 	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
@@ -7636,9 +9727,9 @@ local initialModel = {
 	onProjectSaveConfirm = function(_event)
 		-- Read the input at click time (the change listener also tracks it, but
 		-- typed-and-not-yet-blurred text must not be lost).
-		local doc = widgetState.document
-		local inp = doc and doc:GetElementById("input-project-name")
-		local name = (inp and inp:GetAttribute("value")) or widgetState.projectNameStr or ""
+		-- Read the pair at click time, not from the mirror: typed-and-not-yet-
+		-- blurred text has not reached it.
+		local name = widgetState.projectSaveFullName()
 		widgetState.projectNameStr = name
 		if widgetState.projectSaveUi.save(name) then
 			playSound("save")
@@ -7656,7 +9747,23 @@ local initialModel = {
 			d.fileMenuOpen = false
 			d.projectOpenOpen = true
 			d.projectOpenHint = ""
+			d.projectOpenConfirming = false
+			-- A fresh look at the window is not the moment the runner was
+			-- written; the hint about it belonged to that moment.
+			if not widgetState.projectHelperHintSticky then
+				d.projectHelperHint = ""
+			end
+			-- One browser at a time: both windows draw the same tree.
+			if d.projectSaveOpen then
+				d.projectSaveOpen = false
+				if widgetState.projectSaveUi then
+					widgetState.projectSaveUi.close()
+				end
+			end
 		end
+		widgetState.projectOpenArmed = nil
+		-- What is on this disk may have changed since the last look.
+		widgetState.projectLocalDirty = true
 		-- Imperative DOM list build (same justification as the feature placer's
 		-- save list: rows are dynamic, data-model arrays are not used here).
 		-- Markup, styling and the date/name/badge layout are shared with the Load
@@ -7680,11 +9787,16 @@ local initialModel = {
 			-- The selection survives a folder toggle, a sort or a filter change;
 			-- it drops only when the selected project is no longer listed.
 			local keepSlug = tostring(widgetState.projectOpenSelectedSlug or "")
+			local keepFolder = widgetState.projectOpenIsFolder == true
 			widgetState.projectOpenRowEls = {}
+			widgetState.projectOpenFolderEls = {}
+			widgetState.projectOpenIsFolder = false
 			widgetState.projectOpenSelectedSlug = nil
 			widgetState.projectDeleteConfirmExpiry = 0
 			if widgetState.dmHandle then
 				widgetState.dmHandle.projectOpenSelected = ""
+				widgetState.dmHandle.projectOpenIsFolder = false
+				widgetState.dmHandle.projectInfoFolder = false
 				widgetState.dmHandle.projectDeleteConfirming = false
 			end
 			listEl.inner_rml = ""
@@ -7699,53 +9811,29 @@ local initialModel = {
 					.. "</div>"
 				return
 			end
-			local all = widgetState.projectLibraryRemote and widgetState.projectLibraryUi.projects()
-				or WG.MapProject.listDetailed()
-			local hasLibraryFolders = widgetState.projectLibraryRemote and #widgetState.projectLibraryUi.folders() > 0
+			-- One list over this disk and the team library, keyed by path, then
+			-- narrowed by the filter chip.
+			local view = tostring(widgetState.projectFilter or "all")
+			local all, bySlug = widgetState.projectUnionList(view)
+			widgetState.projectOpenBySlug = bySlug
+			local stages = (widgetState.projectLibraryUi and widgetState.projectLibraryUi.folders()) or {}
+			-- The team's folders are drawn even when empty: the structure is
+			-- fixed and worth seeing before anything is in it. Not in the disk
+			-- view, which lists what is here.
+			local treeFolders = (view ~= "local") and stages or {}
+			local hasLibraryFolders = #treeFolders > 0
 			if #all == 0 and not hasLibraryFolders then
-				if widgetState.projectLibraryRemote then
-					-- rml-dom-escape: existing imperative tree; Recoil child bindings cannot resolve struct iterators.
-					listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-						.. esc(BAR.I18N("ui.mapLibrary.empty"))
-						.. "</div>"
-					return
-				end
 				-- rml-dom-escape: existing imperative tree; no model-bound row template.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-					.. esc(BAR.I18N("ui.mapLibrary.localEmpty"))
+					.. esc(BAR.I18N(view == "team" and "ui.mapLibrary.empty" or "ui.mapLibrary.localEmpty"))
 					.. "</div>"
+				if dm then
+					dm.projectOpenCount = ""
+				end
+				widgetState.projectShowDetails(nil)
 				return
 			end
 			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
-			local sortMode = tostring(widgetState.projectOpenSort or "recent")
-			local now = os.time()
-			-- RECENT means last touched: the newer of "opened or saved through the
-			-- editor" (journal) and the manifest's modified stamp, both ISO-8601 so
-			-- string order is time order.
-			local function touched(p)
-				local a, b = tostring(p.last_touched or ""), tostring(p.modified or "")
-				return a > b and a or b
-			end
-			local function less(a, b)
-				if sortMode == "name" then
-					local an, bn = tostring(a.name or a.slug):lower(), tostring(b.name or b.slug):lower()
-					if an ~= bn then
-						return an < bn
-					end
-				elseif sortMode == "size" then
-					local aa = (tonumber(a.size_x) or 0) * (tonumber(a.size_z) or 0)
-					local bb = (tonumber(b.size_x) or 0) * (tonumber(b.size_z) or 0)
-					if aa ~= bb then
-						return aa > bb
-					end
-				else
-					local ta, tb = touched(a), touched(b)
-					if ta ~= tb then
-						return ta > tb
-					end
-				end
-				return a.slug < b.slug
-			end
 			-- Search: case-insensitive substring over the name, the path and the
 			-- NxN size, so "cm0", "campaign/" and "16x16" all work.
 			local projects = {}
@@ -7759,168 +9847,125 @@ local initialModel = {
 					end
 				end
 			end
+			if dm then
+				dm.projectOpenCount = widgetState.projectCountText(#projects, #all)
+			end
 			if #projects == 0 and (filter ~= "" or not hasLibraryFolders) then
 				-- rml-dom-escape: existing imperative tree; no model-bound row template.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
 					.. esc(BAR.I18N("ui.mapLibrary.noMatches"))
 					.. "</div>"
+				widgetState.projectShowDetails(nil)
 				return
 			end
-			table.sort(projects, less)
-			local parts, rows, folders = {}, {}, {}
-			local collapsed = widgetState.projectOpenCollapsed or {}
-			local function projectRow(p, depth, showPath)
-				rows[#rows + 1] = p
-				local pathHtml = ""
-				if showPath and p.folder and p.folder ~= "" then
-					pathHtml = '<div class="tf-proj-path">' .. esc(p.folder .. "/") .. "</div>"
+			table.sort(projects, widgetState.projectLess)
+			local stageSet = widgetState.projectTeamDestinations()
+			local markup, rows, folders = widgetState.projectTreeRml(projects, {
+				idRow = "tf-proj-r",
+				idFolder = "tf-proj-f",
+				collapsed = widgetState.uiPrefs.projectCollapsed,
+				flat = filter ~= "",
+				extraFolders = treeFolders,
+				current = WG.MapProject.current and WG.MapProject.current(),
+				sync = (dm and dm.libraryConfigured) and widgetState.projectSyncCell or nil,
+				groups = widgetState.projectStageGroups(stages),
+				stages = stageSet,
+				diskSection = hasLibraryFolders,
+				order = stages,
+				moves = widgetState.projectLibraryUi and widgetState.projectLibraryUi.pendingMove,
+			})
+			listEl.inner_rml = markup
+			-- Drop targets, list first so a folder row registered later wins the
+			-- hit test; the list itself is the top level. A project that is only
+			-- in the team library can only be dropped on one of the team's own
+			-- folders, so each row is registered with whether it is one.
+			for i = #widgetState.projectDropEls, 1, -1 do
+				if widgetState.projectDropEls[i].save == false then
+					table.remove(widgetState.projectDropEls, i)
 				end
-				parts[#parts + 1] = string.format(
-					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row tf-proj-depth-%d"><div class="tf-project-row-heading">'
-						.. '<div class="tf-hm-mapname">%s</div>'
-						.. '<div class="tf-hm-badge">%sx%s</div>'
-						.. '</div><div class="tf-project-row-meta"><div class="tf-hm-date">%s</div>%s'
-						.. "</div></div>",
-					#rows,
-					depth,
-					esc(p.name or p.slug),
-					esc(p.size_x or "?"),
-					esc(p.size_z or "?"),
-					esc(widgetState.relativeAge(touched(p), now)),
-					pathHtml
-				)
 			end
-			if filter ~= "" then
-				-- Flat while searching; the folder path travels with each row.
-				for _, p in ipairs(projects) do
-					projectRow(p, 0, true)
-				end
-			else
-				-- Tree: a folder's own projects first (in the chosen order), then its
-				-- subfolders. Every intermediate folder gets a node even when it
-				-- holds no project of its own, so a cloned repository's layout shows
-				-- as it is on disk.
-				local byFolder, children, count, newest = { [""] = {} }, {}, {}, {}
-				local function parentOf(path)
-					return path:match("^(.*)/[^/]+$") or ""
-				end
-				local function ensureFolder(path)
-					if path == "" or rawget(byFolder, path) then
-						return
-					end
-					byFolder[path] = {}
-					local parent = parentOf(path)
-					ensureFolder(parent)
-					children[parent] = children[parent] or {}
-					children[parent][#children[parent] + 1] = path
-				end
-				if widgetState.projectLibraryRemote then
-					for _, path in ipairs(widgetState.projectLibraryUi.folders()) do
-						ensureFolder(path)
-					end
-				end
-				for _, p in ipairs(projects) do
-					local f = p.folder or ""
-					ensureFolder(f)
-					byFolder[f][#byFolder[f] + 1] = p
-					local t = touched(p)
-					local anc = f
-					while anc ~= "" do
-						count[anc] = (count[anc] or 0) + 1
-						if t > (newest[anc] or "") then
-							newest[anc] = t
-						end
-						anc = parentOf(anc)
-					end
-				end
-				local function folderLess(a, b)
-					if sortMode == "recent" then
-						local na, nb = newest[a] or "", newest[b] or ""
-						if na ~= nb then
-							return na > nb
-						end
-					elseif sortMode == "size" then
-						local ca, cb = count[a] or 0, count[b] or 0
-						if ca ~= cb then
-							return ca > cb
-						end
-					end
-					return a:lower() < b:lower()
-				end
-				local function render(path, depth)
-					for _, p in ipairs(byFolder[path] or {}) do
-						projectRow(p, depth, false)
-					end
-					local subs = children[path] or {}
-					table.sort(subs, folderLess)
-					for _, sub in ipairs(subs) do
-						local open = not collapsed[sub]
-						folders[#folders + 1] = sub
-						parts[#parts + 1] = string.format(
-							'<div id="tf-proj-f%d" class="tf-proj-folder tf-proj-depth-%d">'
-								.. '<div class="tf-proj-folder-glyph">%s</div>'
-								.. '<div class="tf-proj-folder-name">%s/</div>'
-								.. '<div class="tf-proj-folder-count">%d</div></div>',
-							#folders,
-							depth,
-							open and "-" or "+",
-							esc(sub:match("([^/]+)$") or sub),
-							count[sub] or 0
-						)
-						if open then
-							render(sub, depth + 1)
-						end
-					end
-				end
-				render("", 0)
-			end
-			listEl.inner_rml = table.concat(parts)
+			widgetState.projectDropEls[#widgetState.projectDropEls + 1] =
+				{ path = "", el = listEl, row = false, save = false, dest = false }
 			for i, p in ipairs(rows) do
 				local row = doc:GetElementById("tf-proj-r" .. i)
 				if row then
-					-- Nested projects select by their path so "Selected:" and the
-					-- console echoes say exactly what will open.
-					local slug = p.slug
-					local label = slug
-					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] =
-						{ slug = slug, label = label, el = row }
+					-- Nested projects select by their path so the details pane and
+					-- the console echoes say exactly what will open.
+					local rec = { slug = p.slug, label = p.slug, el = row, p = p }
+					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = rec
 					row:AddEventListener("click", function(ev)
 						ev:StopPropagation()
+						if widgetState.projectDragClickEaten then
+							widgetState.projectDragClickEaten = nil
+							return
+						end
 						playSound("click")
-						if widgetState.projectLibraryUi then
-							widgetState.projectLibraryUi.disarm()
+						widgetState.projectSelectRow(rec)
+					end, false)
+					row:AddEventListener("mousedown", function(ev)
+						local mp = ev.parameters
+						if mp and mp.button and mp.button ~= 0 then
+							return
 						end
-						widgetState.projectOpenSelectedSlug = slug
-						-- Picking a different project must not inherit the armed DELETE.
-						widgetState.projectDeleteConfirmExpiry = 0
-						local dm2 = widgetState.dmHandle
-						if dm2 then
-							dm2.projectOpenSelected = label
-							dm2.projectDeleteConfirming = false
-							dm2.projectOpenHint = ""
+						widgetState.projectDragArm(rec.slug, false)
+						if widgetState.projectDrag then
+							widgetState.projectDrag.el = row
+							row:SetClass("dragging", true)
 						end
-						for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
-							r.el:SetClass("selected", r.slug == slug)
-						end
+					end, false)
+					-- Double click opens it, the way a file browser does. It still
+					-- goes through the same guards as the OPEN button.
+					row:AddEventListener("dblclick", function(ev)
+						ev:StopPropagation()
+						widgetState.projectSelectRow(rec)
+						widgetState.projectOpenCommit()
 					end, false)
 				end
 			end
 			for i, path in ipairs(folders) do
 				local fEl = doc:GetElementById("tf-proj-f" .. i)
+				local gEl = doc:GetElementById("tf-proj-f" .. i .. "-g")
 				if fEl then
+					widgetState.projectDropEls[#widgetState.projectDropEls + 1] = {
+						path = path,
+						el = fEl,
+						row = true,
+						save = false,
+						dest = stageSet[path] == true,
+					}
+					widgetState.projectOpenFolderEls[#widgetState.projectOpenFolderEls + 1] = { path = path, el = fEl }
+					-- The row picks the folder, because DELETE acts on whatever is
+					-- selected; only the glyph folds it.
 					fEl:AddEventListener("click", function(ev)
 						ev:StopPropagation()
+						if widgetState.projectDragClickEaten then
+							widgetState.projectDragClickEaten = nil
+							return
+						end
 						playSound("click")
-						local c = widgetState.projectOpenCollapsed or {}
-						c[path] = (not c[path]) and true or nil
-						widgetState.projectOpenCollapsed = c
+						widgetState.projectSelectFolder(path)
+					end, false)
+				end
+				if gEl then
+					gEl:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						playSound("click")
 						-- Rebuild next frame, not from inside the click on a row the
 						-- rebuild destroys.
-						widgetState.projectOpenNeedsRebuild = true
+						widgetState.projectToggleFolder(path)
 					end, false)
 				end
 			end
-			if keepSlug ~= "" then
+			local restored = false
+			if keepSlug ~= "" and keepFolder then
+				for _, f in ipairs(widgetState.projectOpenFolderEls) do
+					if f.path == keepSlug then
+						widgetState.projectSelectFolder(keepSlug)
+						restored = true
+					end
+				end
+			end
+			if keepSlug ~= "" and not keepFolder then
 				for _, r in ipairs(widgetState.projectOpenRowEls) do
 					if r.slug == keepSlug then
 						widgetState.projectOpenSelectedSlug = keepSlug
@@ -7928,44 +9973,55 @@ local initialModel = {
 						if dm then
 							dm.projectOpenSelected = r.label
 						end
+						widgetState.projectShowDetails(r.p)
+						restored = true
 					end
 				end
+			end
+			if not restored then
+				widgetState.projectShowDetails(nil)
 			end
 		end
 		-- Stashed on widgetState (not a chunk local) so the bottom buttons can
 		-- refresh the list after a delete.
 		widgetState.projectOpenRebuild = rebuild
+		widgetState.projectSyncSort()
+		widgetState.projectSyncHelperFiles()
 		rebuild()
 	end,
 	-- LOAD PROJECT / DELETE act on the selected row. Both are pointer-events:none
 	-- while nothing is selected (data-class-disabled), so neither needs its own
 	-- empty-selection branch beyond the guard below.
 	onProjectOpenLoad = function(_event)
-		if widgetState.projectLibraryRemote then
-			return
-		end
+		widgetState.projectOpenCommit()
+	end,
+	-- OPEN in the team view. A project already on this disk opens straight
+	-- away; one that is not is downloaded first and opened when it lands,
+	-- because opening restarts the session and there is nothing to restart
+	-- into until the files are here.
+	onProjectTeamOpen = function(_event)
 		local slug = widgetState.projectOpenSelectedSlug
-		if not slug then
+		if not slug or widgetState.projectOpenIsFolder then
 			return
 		end
-		playSound("apply")
-		local d = widgetState.dmHandle
-		if not (WG.MapProject and WG.MapProject.open) then
-			if d then
-				d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)."
-			end
-		elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
-			if d then
-				d.projectOpenHint = "A save or load is already running (see console)."
-			end
-		elseif not WG.MapProject.open(slug) then
-			if d then
-				d.projectOpenHint = "Could not open '" .. slug .. "' — see console for the reason."
-			end
+		playSound("click")
+		-- Opened from where it was picked. The view does not change under the
+		-- user for having pressed a button in it; the team library is a place to
+		-- work from, not a staging area to be shown the way out of.
+		if widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
+			widgetState.projectOpenCommit(true)
+			return
+		end
+		widgetState.projectOpenAfterDownload = slug
+		if widgetState.projectLibraryUi and widgetState.projectLibraryUi.download then
+			widgetState.projectLibraryUi.download(slug)
 		end
 	end,
 	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
 	-- disarms after 3 s.
+	-- DELETE acts on whatever is selected: a project, or a folder and every
+	-- project inside it. Two clicks either way, and the second one is what
+	-- actually removes anything.
 	onProjectOpenDelete = function(_event)
 		if widgetState.projectLibraryRemote then
 			return
@@ -7974,6 +10030,7 @@ local initialModel = {
 		if not slug then
 			return
 		end
+		local folder = widgetState.projectOpenIsFolder == true
 		local d = widgetState.dmHandle
 		local now = Spring.GetGameSeconds() or 0
 		if (widgetState.projectDeleteConfirmExpiry or 0) > now then
@@ -7982,24 +10039,33 @@ local initialModel = {
 				d.projectDeleteConfirming = false
 			end
 			playSound("reset")
+			widgetState.projectLocalDirty = true
 			if not (WG.MapProject and WG.MapProject.delete) then
 				if d then
-					d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)."
+					d.projectOpenHint = BAR.I18N("ui.mapLibrary.openUnavailable")
 				end
 			elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
 				if d then
-					d.projectOpenHint = "A save or load is already running (see console)."
+					d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
 				end
-			elseif WG.MapProject.delete(slug) then
+			elseif folder and WG.MapProject.deleteFolder and WG.MapProject.deleteFolder(slug) then
 				if d then
-					d.projectOpenHint = "Deleted '" .. slug .. "'."
+					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deletedFolder", { name = slug })
+				end
+				widgetState.projectOpenSelectedSlug = nil
+				widgetState.projectOpenIsFolder = false
+				widgetState.projectOpenNeedsRebuild = true
+				widgetState.projectSaveNeedsRebuild = true
+			elseif not folder and WG.MapProject.delete(slug) then
+				if d then
+					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deleted", { name = slug })
 				end
 				-- Rebuild next frame, not here: the rebuild destroys the rows while
 				-- this click is still being dispatched.
 				widgetState.projectOpenNeedsRebuild = true
 			else
 				if d then
-					d.projectOpenHint = "Could not delete '" .. slug .. "' — see console for the reason."
+					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deleteFailed", { name = slug })
 				end
 			end
 		else
@@ -8010,15 +10076,70 @@ local initialModel = {
 			playSound("toggleOn")
 		end
 	end,
+	-- Save As has the Team Sync line but not the start card: Start… there goes
+	-- to the Projects window with the card open (Update opens it, where the
+	-- handler is in scope; opening Projects closes Save As).
+	onProjectSaveStartSync = function(_event)
+		playSound("click")
+		widgetState.projectOpenRequest = { card = true }
+	end,
+	-- Rename: opens the row under the list with the current name in it.
+	onProjectRename = function(_event)
+		local d = widgetState.dmHandle
+		local slug = widgetState.projectOpenSelectedSlug
+		if not (d and slug) or widgetState.projectOpenIsFolder or d.libraryBusy then
+			return
+		end
+		playSound("click")
+		d.projectRenameOpen = not d.projectRenameOpen
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-rename")
+		if inp then
+			if d.projectRenameOpen then
+				inp:SetAttribute("value", slug:match("([^/]+)$") or slug)
+				pcall(function()
+					inp:Focus()
+				end)
+			else
+				inp:Blur()
+			end
+		end
+	end,
+	onProjectRenameApply = function(_event)
+		widgetState.projectRenameApply()
+	end,
+	onProjectRenameCancel = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-rename")
+		if inp then
+			inp:Blur()
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.projectRenameOpen = false
+		end
+	end,
 	onProjectOpenClose = function(_event)
 		playSound("click")
+		widgetState.projectCommitLibrarySeen()
+		widgetState.libraryNewSlugs = nil
 		local d = widgetState.dmHandle
 		if d then
 			d.projectOpenOpen = false
 			d.projectDeleteConfirming = false
+			d.projectRenameOpen = false
 		end
 		-- Never leave DELETE armed for the next time the dialog opens.
 		widgetState.projectDeleteConfirmExpiry = 0
+		-- Nor an OPEN waiting on a download nobody is watching any more.
+		widgetState.projectOpenAfterDownload = nil
+		widgetState.projectOpenArmed = nil
+		if d then
+			d.projectOpenConfirming = false
+		end
 	end,
 	-- Open Project search box (change fires per keystroke) and sort chips. All
 	-- three queue the deferred rebuild rather than rebuilding here: the list is
@@ -8041,15 +10162,103 @@ local initialModel = {
 		widgetState.projectOpenFilter = ""
 		widgetState.projectOpenNeedsRebuild = true
 	end,
+	-- Column header sort. A new column takes its natural direction (names read
+	-- A to Z, sizes and dates biggest and newest first); clicking the column
+	-- that is already sorted flips it. One sort drives both dialogs, so the two
+	-- browsers never disagree about the order of the same projects.
 	onProjectSort = function(_event, mode)
 		playSound("click")
-		widgetState.projectOpenSort = mode or "recent"
+		mode = mode or "recent"
+		if widgetState.projectOpenSort == mode then
+			widgetState.projectOpenSortDesc = not (widgetState.projectOpenSortDesc ~= false)
+		else
+			widgetState.projectOpenSort = mode
+			widgetState.projectOpenSortDesc = mode ~= "name"
+		end
+		widgetState.projectSyncSort()
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+	end,
+	-- Save As browser filter. Same deferred rebuild as the Open Project search:
+	-- the list is torn down and rebuilt, which must not happen inside a
+	-- dispatch on one of its own rows.
+	onProjectSaveSearch = function(_event)
 		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-save-search")
+		widgetState.projectSaveFilter = (inp and inp:GetAttribute("value")) or ""
+		widgetState.projectSaveNeedsRebuild = true
+	end,
+	-- MAP / HEIGHT under the preview. One setting for both panes, and both are
+	-- redrawn from the entry each is already showing.
+	onProjectPreviewMode = function(_event, mode)
+		local d = widgetState.dmHandle
+		if not d or d.projectPreviewMode == mode then
+			return
+		end
+		playSound("click")
+		d.projectPreviewMode = mode
+		widgetState.projectShowDetails(widgetState.projectShownOpen, false)
+		widgetState.projectShowDetails(widgetState.projectShownSave, true)
+	end,
+	-- New folder: opens the inline row under the toolbar, creates on Enter or
+	-- on the tick, and aims the NAME field into the folder it made.
+	onProjectNewFolder = function(_event)
+		local d = widgetState.dmHandle
+		if d and d.projectSavePending then
+			return
+		end
+		playSound("click")
+		if d then
+			d.projectSaveNewFolder = not d.projectSaveNewFolder
+		end
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-newfolder")
+		if inp then
+			if d and d.projectSaveNewFolder then
+				inp:SetAttribute("value", "")
+				pcall(function()
+					inp:Focus()
+				end)
+			else
+				inp:Blur()
+			end
+		end
+	end,
+	onProjectNewFolderCreate = function(_event)
+		widgetState.projectSaveCreateFolder()
+	end,
+	onProjectNewFolderCancel = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-newfolder")
+		if inp then
+			inp:Blur()
+		end
 		local d = widgetState.dmHandle
 		if d then
-			d.projectOpenSort = widgetState.projectOpenSort
+			d.projectSaveNewFolder = false
+			d.projectSaveError = false
 		end
-		widgetState.projectOpenNeedsRebuild = true
+	end,
+	-- "Helper offline" is a dead end without this: the editor cannot start a
+	-- process, so it writes the runner and points at it instead.
+	onProjectHelperSetup = function(_event)
+		playSound("click")
+		widgetState.projectWriteRunner()
+	end,
+	onProjectSaveSearchClear = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-save-search")
+		if inp then
+			inp:SetAttribute("value", "")
+		end
+		widgetState.projectSaveFilter = ""
+		widgetState.projectSaveNeedsRebuild = true
 	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
@@ -8829,6 +11038,30 @@ local initialModel = {
 		widgetState.pushPerfPrefs()
 		if widgetState.saveUiPrefs then
 			widgetState.saveUiPrefs()
+		end
+	end,
+	onGuideToggleTeamSync = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.teamSync
+		widgetState.uiPrefs.teamSync = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+		-- Both browsers change shape: the team's folders and projects come and
+		-- go, and a chip left on "Team" would show an empty list.
+		widgetState.projectFilter = "all"
+		local d = widgetState.dmHandle
+		if d then
+			d.libraryFilter = "all"
+		end
+		widgetState.projectLocalDirty = true
+		widgetState.libraryNewSlugs = nil
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.sync()
 		end
 	end,
 	onGuideToggleClayStack = function(_event)
@@ -11157,6 +13390,14 @@ local initialModel = {
 		end
 		local d = widgetState.dmHandle
 		local state = d and d.tsShaderSyncState
+		if state == "offline" then
+			-- Team Sync is not running: the Projects window's start card is the
+			-- way to get it running. Opened from Update, where the handler is
+			-- in scope.
+			playSound("click")
+			widgetState.projectOpenRequest = { card = true }
+			return
+		end
 		if state == "checking" or state == "mismatch" then
 			return
 		end
@@ -14988,16 +17229,30 @@ local function attachEventListeners()
 	-- The three search / name fields added later (Open Project filter, Light
 	-- Library filter and its preset name) shipped without the capture above and
 	-- could not be typed into at all.
-	widgetState.wireTextInput(getCachedEl(doc, "tf-project-search"))
 	widgetState.wireTextInput(getCachedEl(doc, "ll-search-input"))
 	widgetState.wireTextInput(getCachedEl(doc, "input-ll-preset-name"))
+	widgetState.wireTextInput(getCachedEl(doc, "tf-project-save-search"))
+	widgetState.wireProjectEnter(getCachedEl(doc, "input-project-newfolder"), function()
+		widgetState.projectSaveCreateFolder()
+	end)
+	widgetState.wireProjectEnter(getCachedEl(doc, "input-project-rename"), function()
+		widgetState.projectRenameApply()
+	end)
+	-- Enter in the Open Project search picks the first match, so a search can
+	-- be finished without reaching for the mouse.
+	widgetState.wireProjectEnter(getCachedEl(doc, "tf-project-search"), function()
+		widgetState.projectSelectRow((widgetState.projectOpenRowEls or {})[1])
+	end)
 
 	local projectNameInput = getCachedEl(doc, "input-project-name")
 	if projectNameInput then
-		widgetState.wireTextInput(projectNameInput)
-		projectNameInput:AddEventListener("change", function(event)
-			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+		-- Enter commits the save, as it does in every save dialog. The confirm
+		-- steps (overwrite, dropped units loadout) still apply.
+		widgetState.wireProjectEnter(projectNameInput, widgetState.projectSaveFromField)
+		projectNameInput:AddEventListener("change", function(_event)
+			widgetState.projectNameStr = widgetState.projectSaveFullName()
 			widgetState.projectSaveUi.changed()
+			widgetState.projectSyncTarget()
 		end, false)
 	end
 
@@ -15424,6 +17679,20 @@ local function attachEventListeners()
 			end, false)
 		end
 
+		-- A project row being dragged between folders ends here too, for the
+		-- same reason window dragging does: this is the only report of the button
+		-- coming back up that is guaranteed to arrive, because RmlUi consumed the
+		-- press that started it.
+		doc:AddEventListener("mouseup", function(_event)
+			if widgetState.projectDrag then
+				widgetState.projectDragEnd(true)
+			elseif widgetState.projectDragClickEaten then
+				-- A drag that ended on a folder produces no row click to consume the
+				-- flag, so it expires here instead of lying in wait for the next one.
+				widgetState.projectDragClickEaten = nil
+			end
+		end, false)
+
 		-- End drag on any mouseup in the document
 		doc:AddEventListener("mouseup", function(event)
 			if ds.active then
@@ -15807,34 +18076,22 @@ function widget:Initialize()
 		openEditor = function()
 			widgetState.openEditor()
 		end,
+		-- The editor surface the pointer is inside, for tools that park their
+		-- brush rather than work through the UI: the panel, or whichever project
+		-- dialog is open and under the cursor. Falls back to the panel's own
+		-- bounds, so a caller can use this wherever it used getPanelBounds and
+		-- keep the same behaviour everywhere else.
+		getHoverBounds = function()
+			local dialog = widgetState.projectDialogHoverBounds()
+			if dialog then
+				return dialog
+			end
+			return widgetState.panelBounds()
+		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
 		getPanelBounds = function()
-			local vsx, vsy = Spring.GetViewGeometry()
-			if vsx <= 0 then
-				return nil
-			end
-			local root = widgetState.rootElement
-			if not root then
-				return nil
-			end
-			if widgetState.panelHidden then
-				return nil
-			end
-			local leftPx = root.offset_left
-			local topPx = root.offset_top
-			local widthPx = root.offset_width
-			local heightPx = root.offset_height
-			if not leftPx or widthPx == 0 or heightPx == 0 then
-				return nil
-			end
-			-- Spring screen Y: 0=bottom, vsy=top
-			return {
-				left = leftPx,
-				right = leftPx + widthPx,
-				topY = vsy - topPx,
-				bottomY = vsy - topPx - heightPx,
-			}
+			return widgetState.panelBounds()
 		end,
 		-- Returns bounds of the light library floating window, or nil if not visible.
 		getLightLibraryBounds = function()
@@ -19253,12 +21510,43 @@ function widget:Update()
 				end
 			end
 		end
-		if
-			widgetState.projectLibraryUi
-			and widgetState.dmHandle
-			and (widgetState.dmHandle.projectOpenOpen or widgetState.dmHandle.projectSaveOpen)
-		then
+		-- Always, not only while a window is open: the strip, the auto pull on
+		-- connect and the status echo in the editor strip all live in it. It is
+		-- throttled to four times a second and only reads tables.
+		if widgetState.projectLibraryUi and widgetState.dmHandle then
 			widgetState.projectLibraryUi.sync(dt)
+		end
+		-- Somewhere without the handlers in scope asked for the Projects window
+		-- (the shader row, offline).
+		if widgetState.projectOpenRequest then
+			local request = widgetState.projectOpenRequest
+			widgetState.projectOpenRequest = nil
+			initialModel.onFileOpenProject(nil)
+			if request.card and widgetState.dmHandle then
+				widgetState.dmHandle.libraryCardOpen = true
+				widgetState.dmHandle.libraryCardCopied = false
+			end
+		end
+		-- Unsaved changes: terrain edits are noticed here (the terrain version
+		-- moves on every heightmap update); the painters report theirs. The
+		-- flag only decides whether OPEN asks before restarting.
+		widgetState.projectHeaderClock = (widgetState.projectHeaderClock or 0) + (dt or 0)
+		if widgetState.projectHeaderClock > 0.5 then
+			widgetState.projectHeaderClock = 0
+			local mp = WG.MapProject
+			local tb = WG.TerraformBrush
+			local tv = tb and tb.getTerrainVersion and tb.getTerrainVersion()
+			if tv and tv ~= widgetState.projectTerrainVersion then
+				if
+					widgetState.projectTerrainVersion ~= nil
+					and mp
+					and mp.markDirty
+					and not (mp.isLoading and mp.isLoading())
+				then
+					mp.markDirty("terrain")
+				end
+				widgetState.projectTerrainVersion = tv
+			end
 		end
 		-- Deferred Open Project list refresh (queued by a delete, which cannot
 		-- destroy its own row from inside the click handler)
@@ -19267,6 +21555,34 @@ function widget:Update()
 			if widgetState.projectOpenRebuild then
 				widgetState.projectOpenRebuild()
 			end
+		end
+		if widgetState.projectSaveNeedsRebuild then
+			widgetState.projectSaveNeedsRebuild = false
+			if widgetState.dmHandle and widgetState.dmHandle.projectSaveOpen then
+				widgetState.projectSaveRebuild()
+			end
+		end
+		if widgetState.projectDrag then
+			widgetState.projectDragUpdate()
+		end
+		-- A team-view OPEN whose download has landed: the model flags it, the
+		-- open happens here rather than inside the sync that noticed it.
+		if widgetState.projectOpenChainReady then
+			widgetState.projectOpenChainReady = false
+			local slug = widgetState.projectOpenAfterDownload
+			widgetState.projectOpenAfterDownload = nil
+			if slug then
+				-- Still in the team view, and opened from it: the download was
+				-- a step in opening, not a move to the other tab.
+				widgetState.projectOpenSelectedSlug = slug
+				widgetState.projectOpenCommit(true)
+			end
+		end
+		-- Destination chips: the helper's folder list arrives asynchronously and
+		-- changes on every pull, so the row is redrawn when it moves.
+		if widgetState.projectStagesNeedsRebuild then
+			widgetState.projectStagesNeedsRebuild = false
+			widgetState.projectStagesRebuild()
 		end
 		-- Slider keybind-scroll flash countdown
 		do
@@ -19360,6 +21676,8 @@ function widget:Update()
 			elseif widgetState.saveWasRunning then
 				-- The save just ended: latch its outcome and start the 4 s hold.
 				widgetState.saveWasRunning = false
+				-- ... and the listing is stale.
+				widgetState.projectLocalDirty = true
 				local last = mp and mp.lastSave and mp.lastSave()
 				if last and last.slug then
 					widgetState.saveDoneInfo = last
@@ -19396,6 +21714,74 @@ function widget:Update()
 					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
 				end
 			end
+			-- Library and load readouts share the strip with the save ones:
+			-- LOADING with the phase bar after a restart, UPLOADING while a
+			-- confirmed save + upload is in flight, and the last team outcome
+			-- held 4 s the way SAVED is. A running save always wins.
+			widgetState.libraryOwnsStrip = false
+			if sumEl3 and not step and not widgetState.saveDoneUntil then
+				local escS = widgetState.rmlEsc
+				local phase, phases, phaseName
+				if mp and mp.loadProgress then
+					phase, phases, phaseName = mp.loadProgress()
+				end
+				local out = widgetState.libraryOutcome
+				if out and os.clock() >= out.until_ then
+					widgetState.libraryOutcome = nil
+					out = nil
+				end
+				local rml
+				if phase then
+					local buf = {
+						'<span class="tf-ss-mode" style="color: #4d92c9;">LOADING</span>',
+						'<span class="tf-ss-sep">|</span>',
+						'<div class="tf-ss-segwrap">',
+					}
+					for i = 1, phases do
+						buf[#buf + 1] = (i < phase) and '<div class="tf-ss-seg done"></div>'
+							or (i == phase) and '<div class="tf-ss-seg cur"></div>'
+							or '<div class="tf-ss-seg"></div>'
+					end
+					buf[#buf + 1] = "</div>"
+					buf[#buf + 1] = '<span class="tf-ss-label">' .. escS(phaseName or "") .. "</span>"
+					rml = table.concat(buf)
+				elseif widgetState.libraryProgress then
+					-- Same shape as SAVED: the mode, then the value with its own
+					-- leading space. Short on purpose; the strip is one line.
+					rml = '<span class="tf-ss-mode" style="color: #35d07f;">UPLOADING:</span>'
+						.. '<span class="tf-ss-val"> '
+						.. escS(widgetState.projectStripShort(widgetState.libraryProgress))
+						.. "</span>"
+				elseif out then
+					rml = '<span class="tf-ss-mode" style="color: '
+						.. (out.ok and "#35d07f" or "#e05252")
+						.. ';">'
+						.. (out.ok and "TEAM:" or "TEAM FAILED:")
+						.. '</span><span class="tf-ss-val"> '
+						.. escS(widgetState.projectStripShort(out.text or ""))
+						.. "</span>"
+				end
+				if rml then
+					widgetState.libraryOwnsStrip = true
+					widgetState.saveFadeInStart = nil
+					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					local o = 1
+					if out and not phase and not widgetState.libraryProgress then
+						local left = out.until_ - os.clock()
+						if left < 0.6 then
+							o = left / 0.6
+						end
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
+				end
+				-- The readout has just let go: ease the tool's own text back in,
+				-- the way SAVED does. Without this the strip stayed at the
+				-- opacity the fade ended on, which is none.
+				if widgetState.libraryOwnedStrip and not widgetState.libraryOwnsStrip then
+					widgetState.saveFadeInStart = os.clock()
+				end
+			end
+			widgetState.libraryOwnedStrip = widgetState.libraryOwnsStrip
 			-- Ease the normal tool output back in after the SAVED text faded out.
 			if sumEl3 and widgetState.saveFadeInStart then
 				local t = (os.clock() - widgetState.saveFadeInStart) / 0.4
@@ -19410,7 +21796,10 @@ function widget:Update()
 			-- hold the OLD readout while fading out (the new tool already rewrote
 			-- the strip this frame, so replay last frame's snapshot), then let the
 			-- new readout fade in. Suppressed while the save display owns the strip.
-			local saveOwnsStrip = (step ~= nil) or widgetState.saveDoneUntil or widgetState.saveFadeInStart
+			local saveOwnsStrip = (step ~= nil)
+				or widgetState.saveDoneUntil
+				or widgetState.saveFadeInStart
+				or widgetState.libraryOwnsStrip
 			do
 				local dmT = widgetState.dmHandle
 				local toolKey = dmT and (tostring(dmT.activeTool or "") .. "/" .. tostring(dmT.activeMode or "")) or ""
@@ -19543,6 +21932,85 @@ function widget:KeyPress(key, mods, isRepeat)
 	if widgetState.settingsCapturing then
 		handleSettingsKeyCapture(key)
 		return true
+	end
+	-- Ctrl+S saves, Ctrl+Shift+S is Save As, Ctrl+O opens Projects: only while
+	-- the editor has the panel up and no text field owns the keys.
+	if mods and mods.ctrl and not isRepeat and widgetState.panelEngaged and not widgetState.focusedRmlInput then
+		if key == 115 then
+			if mods.shift then
+				initialModel.onFileSaveProject(nil)
+			else
+				initialModel.onFileSave(nil)
+			end
+			return true
+		elseif key == 111 then
+			initialModel.onFileOpenProject(nil)
+			return true
+		end
+	end
+	-- The project dialogs answer to the keys their desktop counterparts do:
+	-- Esc closes, Up/Down walk the list, Enter opens the selection. The list
+	-- keys stand down while a text field has focus, where SDL text input owns
+	-- the keystrokes and the NAME field has its own Enter handler; Esc does
+	-- not, because the caret starts in that field.
+	local pd = widgetState.dmHandle
+	if pd and (pd.projectSaveOpen or pd.projectOpenOpen) then
+		if key == 27 then
+			playSound("click")
+			-- Esc closes from inside the NAME field too, which is where the
+			-- caret starts. Blur first so SDL text input does not leak on.
+			if widgetState.focusedRmlInput then
+				widgetState.focusedRmlInput:Blur()
+			end
+			if pd.projectOpenOpen and not pd.projectSaveOpen and pd.projectRenameOpen then
+				pd.projectRenameOpen = false
+				return true
+			end
+			if pd.projectSaveOpen then
+				widgetState.projectSaveUi.close()
+				pd.projectSaveOpen = false
+			else
+				pd.projectOpenOpen = false
+				pd.projectDeleteConfirming = false
+				widgetState.projectDeleteConfirmExpiry = 0
+			end
+			return true
+		end
+		-- Save As sits on top of Open Project when both are up, and its list is
+		-- a name picker rather than a cursor, so list keys stay with Open.
+		if pd.projectOpenOpen and not pd.projectSaveOpen and not widgetState.focusedRmlInput then
+			if not widgetState.projectArrowKeys then
+				-- SDL2 keysyms for the arrows; the engine is asked first in case
+				-- this build reports different values.
+				widgetState.projectArrowKeys = { up = 1073741906, down = 1073741905, f2 = 1073741883 }
+				pcall(function()
+					-- 0 is Lua-truthy, and it is what an unknown key name
+					-- returns, so only a real code replaces the default.
+					local up, down = Spring.GetKeyCode("up"), Spring.GetKeyCode("down")
+					widgetState.projectArrowKeys.up = (tonumber(up) or 0) > 0 and up or widgetState.projectArrowKeys.up
+					widgetState.projectArrowKeys.down = (tonumber(down) or 0) > 0 and down
+						or widgetState.projectArrowKeys.down
+					local f2 = Spring.GetKeyCode("f2")
+					widgetState.projectArrowKeys.f2 = (tonumber(f2) or 0) > 0 and f2 or widgetState.projectArrowKeys.f2
+				end)
+			end
+			if key == widgetState.projectArrowKeys.f2 and widgetState.projectOpenSelectedSlug then
+				initialModel.onProjectRename(nil)
+				return true
+			end
+			if key == widgetState.projectArrowKeys.up then
+				widgetState.projectStepSelection(-1)
+				return true
+			end
+			if key == widgetState.projectArrowKeys.down then
+				widgetState.projectStepSelection(1)
+				return true
+			end
+			if (key == 13 or key == 1073741912) and widgetState.projectOpenSelectedSlug then
+				widgetState.projectOpenCommit()
+				return true
+			end
+		end
 	end
 	-- Space (key 32): pause/resume all active transports
 	if key == 32 then

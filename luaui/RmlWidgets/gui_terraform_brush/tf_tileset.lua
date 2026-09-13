@@ -806,11 +806,24 @@ function M.syncShader(doc, ctx)
 	local project = WG.MapProject
 	local client = project and project.library
 	local shader = client and client.shader and client.shader()
-	if not shader or not client.state.online then
+	if not shader or not ctx.widgetState.teamSyncEnabled then
 		dm.tsShaderSyncShown = false
 		return
 	end
 	dm.tsShaderSyncShown = true
+	if not client.state.online then
+		-- Team Sync is not running. The row stays and says what it needs, so
+		-- the update path is there to be found; clicking it opens the start
+		-- card in the Projects window.
+		if dm.tsShaderSyncState ~= "offline" then
+			dm.tsShaderSyncState = "offline"
+		end
+		local offline = BAR.I18N("ui.mapLibrary.shaderOffline")
+		if dm.tsShaderSyncLabel ~= offline then
+			dm.tsShaderSyncLabel = offline
+		end
+		return
+	end
 	local code = tostring(shader.code or "")
 	local version = tostring(shader.shader_version or "")
 	local state, label
