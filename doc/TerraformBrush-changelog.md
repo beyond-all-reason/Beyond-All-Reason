@@ -4,11 +4,31 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
-## Unreleased
+## 1.15 - 2026-09-13
+
+### New
+
+- FILE > Open Project is one **Projects** browser over the projects on this disk and, with Team Sync on, the campaign team's library: a Sync column with a dot per row (in sync, diverged with which side is newer on hover, team only, new since the last look), filter chips instead of tabs, column headers that sort (click the sorted column again to flip), a folder tree with guide lines whose folded state is remembered, and a details pane with the map size, dates, the units loadout and a mark on the open project. Every save now writes a minimap of the project and the pane leads with it (a MAP / HEIGHT switch where a project has both). Rows drag between folders with a ghost under the pointer; in the team view a drop stages a move and CONFIRM MOVES hands the plan to Team Sync one move at a time. RENAME (or F2) renames inline, NEW FOLDER creates one in place, DELETE takes projects and folders and asks twice, and the keyboard works: Up and Down, Enter, Esc, double click.
+- Save As is the same browser without tabs: the NAME box holds the name and the folder being saved into reads before it, clicking a folder retargets the save, a destination chip and a summary pane say whether the save will create a project or write over one, and an UPLOAD switch (Team Sync only) uploads exactly one copy once that save has finished. Failed or incomplete saves never upload, and an upload error leaves the local save alone. Quick Save stays local.
+- **Team Sync** (Settings > General, off by default): the BAR campaign team's private map library. Git runs in a companion process started outside the game from a start card in the Projects window, so credentials and the network never enter the engine; the editor talks to it through files. It pulls on connect, downloads, uploads, moves, renames and deletes from the team, keeps the copies it replaces under MapProjects/_replaced (newest three per project), shows the author and size of every team project, reports LOADING, UPLOADING and the last team outcome in the status strip, and gives the Tileset window a SHADER UPDATE row that pulls the tileset shader from its own private repository. The team workflow is documented for the team in the library repository.
+- The editor knows when the map has unsaved changes: the sculpt, LAYERS, DIFFUSE, METAL and feature tools report their edits, and Open asks before throwing them away. Ctrl+S saves, Ctrl+Shift+S opens Save As and Ctrl+O opens Projects, while the panel is up and no text field has the keyboard.
+
+### Improvements
+
+- The brush parks itself behind the Projects and Save As windows the way it does behind the panel, instead of working through the ground under them, and its resting spot prefers a side of the screen clear of the window it is stepping out from behind.
+- A project's manifest name is its leaf: a project saved into a folder lists by its own name rather than the whole path, and one written the old way is corrected on re-save.
+- Settings > Stroke > Clay build-up is on by default (the per-tick stacking from before 1.14; the single-layer clay is one click away).
+- In the status strip the save-progress bar gives way before the step name does; twenty saver steps used to clip the label.
+- The team library has a fixed folder structure, Map Prototypes and Texture Pass with Drafts / Review / Done each, plus Other. A project can be moved into it from anywhere the library already holds it, uploading over a project already there replaces it (fast-forward pushes only, so the previous version stays in the branch history), and downloads land at the repository's own path.
 
 ### Fixes
 
-- The WORLDSPACE TINT colour editor keeps a chip's hue while the colour is gray or black (reported by Moose). Most chips are stored as R/G/B, and a gray carries no hue at all, so dragging Sat down to 0 and back up read the colour back as hue 0 and turned the chip red. The editor now remembers the last hue and saturation each chip actually had and hands them back while the colour has none of its own, so a Sat or Value round trip returns the colour that was picked.
+- A save can no longer delete a project's diffuse squares that this session never loaded. When the load's diffuse phase was skipped, failed or timed out, the painter's empty state used to read as "no paint" and the cleanup step removed every square in diffuse/ (24 squares on one project). The project now remembers whose squares the painter holds; a save over the open project while its squares were never loaded keeps them, carries the previous diffuse section forward and warns, which also holds the upload back.
+- The WORLDSPACE TINT colour editor keeps a chip's hue while the colour is gray or black (reported by Moose). Most chips are stored as R/G/B, and a gray carries no hue at all, so dragging Sat down to 0 and back up read the colour back as hue 0 and turned the chip red. The editor now remembers the last hue and saturation each chip actually had and hands them back while the colour has none of its own.
+- A project opened from a subfolder saves back into that folder. The slug read from the load pointer was cut to its leaf, so the next FILE > Save wrote a new project at the root and the OPEN badge never lit.
+- Saving a project that was moved or renamed this session no longer warns about unreadable DNTS textures and then only saves locally: the map options still named the folder the project was in at game start, and the save now looks in the project's current folder first. The DNTS files are also read with a raw fallback, since the engine's VFS cannot see a folder created this session.
+- The sync dot no longer stays hollow after a download (a downloaded project is read from its own manifest when the folder walk cannot see it yet), DELETE FROM TEAM reaches the companion (the request was checked against the folder list although it names no destination), and dragging a row works at all (RmlUi consumes the press a row is dragged from, so the button state the drag polled never came true).
+- The minimap thumbnail no longer keeps the picture of two saves ago when a save's minimap step skipped.
 
 ## 1.14 - 2026-09-04
 

@@ -60,6 +60,7 @@ Full table in [Interaction → Keyboard](#interaction).
 
 ### Saving Your Work
 
+- **Full map projects / team library**: **File > Save / Save As** saves a project; **File > Open Project** is one browser over this disk and the campaign team's private library, with a Sync column, a Team Sync line at the top and a start card for the companion. The team workflow is documented for the team in the library repository itself.
 - **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
 - **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
 - **Environment**: Save/Load preset buttons in the env panel.
