@@ -197,12 +197,12 @@
 			<div class="td-tooltip-texture"></div>
 			<div class="td-tooltip-gradient"></div>
 			<div class="td-tooltip-content">
-				<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
 				<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
 					<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
 					<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
 				</div>
 				<div id="td-tooltip-players" class="td-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
+				<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
 				<div class="td-tooltip-score" data-if="tooltipIsScore">
 					<div class="td-tooltip-row">{{tooltipTerritories}}</div>
 					<div class="td-tooltip-row">{{tooltipGainRate}}</div>

@@ -675,7 +675,7 @@ body {
 .td-tooltip-title {
 	display: block;
 	min-height: 22dp;
-	margin-bottom: 4dp;
+	margin-top: 4dp;
 	white-space: nowrap;
 }
 
