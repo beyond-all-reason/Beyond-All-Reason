@@ -22273,6 +22273,25 @@ function widget:MouseWheel(up, value)
 	return true
 end
 
+-- The engine's AllowQuit callin (a window close request: the close button,
+-- Alt+F4) on engines that have it: the same popup as for the top bar's Quit,
+-- with Spring.Quit, which never asks, as the deferred action. SDL can report
+-- one click as two events, so a popup already up just keeps saying no.
+function widget:AllowQuit()
+	local d = widgetState.dmHandle
+	if d and d.quitGuardOpen then
+		return false
+	end
+	local originals = widgetState.quitGuardOriginals
+	local quit = (originals and originals.quit) or Spring.Quit
+	if widgetState.quitGuardIntercept("quit", function()
+		quit()
+	end) then
+		return false
+	end
+	return true
+end
+
 function widget:KeyPress(key, mods, isRepeat)
 	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
 	-- through while it is up.
