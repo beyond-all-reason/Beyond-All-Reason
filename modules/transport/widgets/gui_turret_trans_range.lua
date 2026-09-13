@@ -12,9 +12,6 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---vars
---------------------------------------------------------------------------------
 local circleDivisions = 96
 local range
 local isTransportableBuilding = {}
@@ -23,9 +20,6 @@ local transportWithBuilding = {}
 local isTurret = {}
 local color
 
---------------------------------------------------------------------------------
---speedups
---------------------------------------------------------------------------------
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 local spGetActiveCmd = Spring.GetActiveCommand
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
@@ -33,9 +27,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
 
---------------------------------------------------------------------------------
---configurations
---------------------------------------------------------------------------------
 local colors = {
 	tower = { 1.0, 0.22, 0.05, 0.5 },
 	turret = { 0.24, 1.0, 0.2, 0.40 },
@@ -53,9 +44,6 @@ for unitDefId, unitDef in pairs(UnitDefs) do
 	end
 end
 
---------------------------------------------------------------------------------
---Transported Turret Range
---------------------------------------------------------------------------------
 local function DrawNanoRange(x, y, z, range)
 	glLineWidth(1)
 	glColor(color[1], color[2], color[3], color[4])
@@ -108,7 +96,6 @@ function widget:DrawWorldPreUnit()
 	end
 	local turret = isTurret[ranges[1].unitDefID]
 	color = turret and colors.turret or colors.tower
-	--Spring.Echo(transportWithBuilding[unitId])
 	local mouseX, mouseY = Spring.GetMouseState()
 	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
 	if desc == nil then
