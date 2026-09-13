@@ -570,15 +570,20 @@ function gadget:Initialize()
 
 	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
 	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
-		scriptFiles[filename:lower()] = filename
-		scriptFiles[Basename(filename):lower()] = filename
+		scriptFiles[filename:lower()] = filename -- for exact match
+		scriptFiles[Basename(filename):lower()] = filename -- for basename match
 	end
 	for _, dir in ipairs(ModuleHandler.ScriptDirs(VFSMODE)) do
 		for _, filename in ipairs(VFS.DirList(dir, "*.lua", VFSMODE, true)) do
 			local name = filename:lower()
-			scriptFiles[name] = filename
-			scriptFiles[Basename(filename):lower()] = filename
-			scriptFiles[UNITSCRIPT_DIR .. name] = filename
+			scriptFiles[name] = filename -- for exact match `modules/<name>/scripts/<scriptName>.lua`
+			-- The engine hardcodes the assumption that unit scripts live under "scripts/",
+			-- so when a def names a module script by its real modules/ path,
+			-- UnitDefs[i].scriptName comes back with the prefix prepended — there's no way
+			-- to hand the engine a path it won't mangle. Registering the mangled spelling
+			-- ("scripts/modules/<name>/scripts/<scriptName>.lua") is the game-side
+			-- workaround; probe 1's scriptFiles[scriptName] then hits it directly.
+			scriptFiles[UNITSCRIPT_DIR .. name] = filename -- for module match
 		end
 	end
 
