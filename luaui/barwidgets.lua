@@ -15,6 +15,15 @@ VFS.Include(LUAUI_DIRNAME .. "system.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
 
+-- What each widget shares with others through WG, read out of its source as it loads, so the widget
+-- selector can say what depends on what. Optional: a file added to the game since it started is
+-- invisible to VFS until the next start, and that is no reason for LuaUI not to load.
+local widgetDependencies
+do
+	local ok, module = pcall(VFS.Include, LUAUI_DIRNAME .. "Include/widget_dependencies.lua", nil, VFS.ZIP)
+	widgetDependencies = ok and module or nil
+end
+
 local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
@@ -707,6 +716,12 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- Matched on the API being reached for rather than the word appearing, so a widget
 		-- that only mentions RmlUi in a comment is not mistaken for one.
 		knownInfo.rml = string.find(text, "RmlUi%s*[%.%[]") ~= nil or string.find(text, "not%s+RmlUi") ~= nil
+		-- And what it shares with other widgets through WG. The source is in hand here, and a source
+		-- the reading trips over must not stop the widget from loading.
+		if widgetDependencies then
+			local ok, deps = pcall(widgetDependencies.scan, text, VFS.LoadFile)
+			knownInfo.deps = ok and deps or nil
+		end
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -1808,19 +1823,38 @@ function widgetHandler:Update()
 	return
 end
 
+-- The widget selector is how widgets get switched back on from inside the game, so asking for it has to
+-- work when it is not running. An error in it removes the widget, and with it the /widgetselector action
+-- it registers - and so F11 - which left a LuaUI reload as the only way back. Switches it on again, and
+-- it opens itself once loaded, through the flag it reopens with after a reload it asked for. While it
+-- runs this does nothing, its own action answering instead; returns whether it did anything.
+function widgetHandler:RecoverWidgetSelector()
+	for name, ki in pairs(self.knownWidgets) do
+		if ki.basename == "widget_selector.lua" then
+			if ki.active then
+				return false
+			end
+			if type(self.configData[name]) ~= "table" then
+				self.configData[name] = {}
+			end
+			self.configData[name].reopen = true
+			self:EnableWidget(name)
+			return true
+		end
+	end
+	return false
+end
+
 function widgetHandler:ConfigureLayout(command)
 	if command == "reconf" then
 		self:SendConfigData()
 		return true
 	elseif command == "selector" then
-		for _, w in ipairs(self.widgets) do
-			if w.whInfo.basename == SELECTOR_BASENAME then
-				return true -- there can only be one
-			end
+		-- F11's original binding, which looked for LuaUI/selector.lua. This game ships no such file: its
+		-- selector is Widgets/widget_selector.lua, which binds F11 to /widgetselector itself once it runs.
+		if not self:RecoverWidgetSelector() and self.WG.widgetselector then
+			self.WG.widgetselector.toggle()
 		end
-		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
-		self:InsertWidgetRaw(sw)
-		self:RaiseWidgetRaw(sw)
 		return true
 	elseif string.find(command, "togglewidget") == 1 then
 		self:ToggleWidgetRaw(string.sub(command, 14))
@@ -1830,6 +1864,11 @@ function widgetHandler:ConfigureLayout(command)
 		return true
 	elseif string.find(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(string.sub(command, 15))
+		return true
+	end
+
+	-- Answered by the widget selector's own action while it runs.
+	if command == "widgetselector" and self:RecoverWidgetSelector() then
 		return true
 	end
 
@@ -2314,6 +2353,16 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
 		tracy.ZoneEnd()
 		return true
+	end
+
+	-- A key bound to /widgetselector - F11 - with no selector running to answer it.
+	if actions and not isRepeat then
+		for _, bound in ipairs(actions) do
+			if bound.command == "widgetselector" and self:RecoverWidgetSelector() then
+				tracy.ZoneEnd()
+				return true
+			end
+		end
 	end
 
 	for _, w in ipairs(self.KeyPressList) do

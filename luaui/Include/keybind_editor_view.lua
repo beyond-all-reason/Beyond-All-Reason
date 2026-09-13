@@ -1192,7 +1192,11 @@ local function ensureControls()
 		return
 	end
 
-	searchBox = Editbox.new({ placeholder = BAR.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
+	searchBox = Editbox.new({
+		placeholder = BAR.I18N("ui.keybinds.editor.search"),
+		clearable = true,
+		onChange = rebuildRows,
+	})
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
 	nameBox = Editbox.new({ maxChars = 40 })
 end
