@@ -56,11 +56,12 @@ local function sortedKeys(t)
 	return keys
 end
 
+---Reduces list to a value which is the accumulated result of running each element in list thru step, where each successive invocation is supplied the return value of the previous.
 ---@generic A, T
----@param list T[]
----@param step fun(acc: A, item: T): A
----@param acc A
----@return A
+---@param list T[] Collection
+---@param step fun(acc: A, item: T): A accepts a value (A) and an element (T) and returns a value (A)
+---@param acc A The initial accumulator value
+---@return A accumulatedResult
 local function reduce(list, step, acc)
 	for _, item in ipairs(list) do
 		acc = step(acc, item)
