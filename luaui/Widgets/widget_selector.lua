@@ -151,6 +151,11 @@ local look = {
 	confirmFill = { 0.17, 0.38, 0.21, 1 },
 	confirmFillHover = { 0.24, 0.52, 0.29, 1 },
 	scrim = { 0, 0, 0, 0.55 },
+	-- The outline every string the panel prints is drawn with, set on every batch rather than
+	-- inherited. The font objects are shared with every other widget, many of those set an
+	-- outline and leave it set, and text baked into a display list keeps whatever outline was
+	-- current when it was baked - so the panel's text went heavier and lighter as it re-baked.
+	outline = { 0, 0, 0, 0.4 },
 }
 -- FlowUI's Button gradients from a bottom stop to a top one. Left to its defaults it
 -- fades the fill up to a near-transparent white, which colours only the bottom edge and
@@ -184,6 +189,10 @@ local tagColors = {
 	islocal = "\255\130\175\230",
 	isrml = "\255\200\150\235",
 	iserror = "\255\255\120\120",
+	-- The same, once the widget runs again: it still raised something, it is just not what is
+	-- wrong with it now. Still red, so the tag reads as an error at a glance; softer, so the
+	-- widgets actually broken stand out from the ones that recovered.
+	iserrorSoft = "\255\220\150\150",
 }
 local colorDanger = "\255\255\190\190"
 -- And the other half of that pair: a press that turns something on rather than off.
@@ -276,6 +285,8 @@ local setCatScroll
 -- locals threaded through the layout, the draw, the hover test and the press.
 local switches = {
 	{ key = "enabledOnly" },
+	-- Beside it, the other switch that narrows the list rather than ordering it.
+	{ key = "errorsOnly" },
 	{ key = "byOrder" },
 	{ key = "profiler" },
 	-- Only offered while the column it orders by is showing. `sub` is what keeps it out
@@ -304,6 +315,9 @@ local selectedCategory
 -- `enabledOnly` keeps anything the config says
 -- to load, whether or not it is running. `byOrder` sorts by where each widget sits in the
 -- handler's list rather than by name, which is the only way the load order can be seen.
+-- `errorsOnly` keeps the widgets that have raised an error this session - the rows tagged
+-- error. Remembered like the rest, though the log it goes by starts again with every reload,
+-- so it can come back to a shorter list than it left.
 -- The switches, and one field that is not a switch. A reload tears every widget down and
 -- builds it again, so a panel that does not say it was open comes back closed - which
 -- reads as the button having switched the panel off rather than reloaded the UI.
@@ -314,7 +328,7 @@ local selectedCategory
 -- readings rather than two flags, and here rather than in a local of its own, because
 -- this chunk is at Lua's ceiling of 200 - and because this is the table the saved
 -- settings round-trip.
-local filters = { enabledOnly = false, byOrder = false, profiler = false, byLoad = false }
+local filters = { enabledOnly = false, errorsOnly = false, byOrder = false, profiler = false, byLoad = false }
 ---@type table
 local searchBox
 ---@type table
@@ -359,7 +373,7 @@ local dialogBox = {}
 ---@type string?
 local pressedRow
 local pressedButton = 0
-local pressedClear, pressedData = false, false
+local pressedOn
 
 local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, btn = "", dlg = "" }
 
@@ -409,7 +423,7 @@ end
 -- `dirty` is set whenever this panel asks the handler for something. Those changes do
 -- not have to be discovered by looking: the panel already knows it asked, and the answer
 -- lands once the queued operation has run, which is before the next Update.
-local sweep = { at = 1, order = 1, slice = 16, dirty = false, now = {}, was = {} }
+local sweep = { at = 1, order = 1, slice = 16, dirty = false, now = {}, was = {}, errorCount = 0 }
 
 -- `now` and `was` are the other half of the same job: what the baked panel is painted
 -- from this frame against what it was painted from last frame. Filled in place and never
@@ -422,6 +436,15 @@ function sweep.hasConfig(name)
 	local d = widgetHandler.configData[name]
 
 	return type(d) == "table" and next(d) ~= nil
+end
+
+-- What barwidgets has kept of a widget's errors this session, if there are any. Keyed by
+-- file, since most of the ways loading can fail happen before a widget has a name.
+function sweep.errors(data)
+	local logs = widgetHandler.errorLog
+	local log = logs and data.basename and logs[data.basename]
+
+	return (log and log.entries[1]) and log or nil
 end
 
 -- Which column a widget belongs in, from the prefix on its filename.
@@ -448,6 +471,8 @@ end
 -- Walks what the handler knows and builds the rows from it. Called when the handler says
 -- its list changed, which covers a widget being toggled, loaded or removed.
 local function buildEntries()
+	-- The handler's error count as these rows see it. contentMoved rebuilds when it moves.
+	sweep.errorCount = widgetHandler.errorCount or 0
 	local myName = widget:GetInfo().name
 	entries = {}
 	entryByName = {}
@@ -470,6 +495,7 @@ local function buildEntries()
 		-- def exporter is a build tool rather than something to switch on in a game.
 		if name ~= myName and name ~= "Write customparam.__def to files" and not data.hidden then
 			local desc = oneLine(data.desc)
+			local log = sweep.errors(data)
 			entries[#entries + 1] = {
 				name = name,
 				data = data,
@@ -488,10 +514,13 @@ local function buildEntries()
 				-- Switched to something other than what it ships as. `enabled` is what the GetInfo
 				-- block asked for, which barwidgets keeps for every widget it has ever seen.
 				changed = (stateOf(name, data) > 0) ~= (data.enabled == true),
-				-- Why it did not load, if it did not. Until barwidgets kept this the panel could
-				-- say a widget was asked for and is not running, and nothing about why - the reason
+				-- Everything it has raised this session. Until barwidgets kept these the panel could
+				-- say a widget was asked for and is not running, and nothing about why: the reason
 				-- was in infolog.txt and nowhere else.
-				loadError = widgetHandler.loadErrors and widgetHandler.loadErrors[data.basename] or nil,
+				errors = log,
+				-- And the error that is why it is not running, while it is not. A widget running
+				-- again says nothing about whatever stopped it last time.
+				stoppedBy = log and log.stopped and not data.active and log.stopped.message or nil,
 				-- Lowercased once here rather than per keystroke: a search walks every one of
 				-- these on every letter typed.
 				searchName = string.lower(name),
@@ -510,16 +539,16 @@ end
 -- The column: All, then the game's own prefixes in a fixed order, then Other. A category
 -- with nothing in it is left out rather than shown empty.
 --
--- The counts follow the local filter, so each one says what clicking it would show. They
--- do not follow the search: that is transient, and a column of numbers flickering on
--- every letter typed is noise rather than information.
+-- The counts follow the switches that narrow the list, so each one says what clicking it
+-- would show. They do not follow the search: that is transient, and a column of numbers
+-- flickering on every letter typed is noise rather than information.
 local function buildCategories()
 	local counts, active, total, on = {}, {}, 0, 0
 	local changed, changedOn = 0, 0
 	local mine, mineOn = 0, 0
 	for i = 1, #entries do
 		local e = entries[i]
-		if not filters.enabledOnly or e.state > 0 then
+		if (not filters.enabledOnly or e.state > 0) and (not filters.errorsOnly or e.errors) then
 			counts[e.group] = (counts[e.group] or 0) + 1
 			total = total + 1
 			if e.data.active then
@@ -652,7 +681,7 @@ function sortBy.pick()
 	return filters.byOrder and sortBy.order or sortBy.name
 end
 
--- The rows the list shows: what the column, the search box and the filter toggle left.
+-- The rows the list shows: what the column, the search box and the filter switches left.
 -- A search ranks what it finds, so the closest answer is at the top; with no search the
 -- authored order stands, since a list that reshuffles as it is read loses the reader.
 rebuildRows = function()
@@ -674,7 +703,9 @@ rebuildRows = function()
 				or (selectedCategory == "changed" and e.changed)
 				or (selectedCategory == "local" and e.isLocal)
 				or e.group == selectedCategory
-			) and (not filters.enabledOnly or e.state > 0)
+			)
+			and (not filters.enabledOnly or e.state > 0)
+			and (not filters.errorsOnly or e.errors)
 		then
 			if query.empty then
 				rows[#rows + 1] = e
@@ -1657,6 +1688,8 @@ setLayout = function()
 	metrics.localTagW = font and mathFloor(font:GetTextWidth(L.islocal) * metrics.rowFs) or mathFloor(30 * s)
 	-- And what the RmlUi tag takes beside it. Both can be on the same row.
 	metrics.rmlTagW = font and mathFloor(font:GetTextWidth(L.isrml) * metrics.rowFs) or mathFloor(22 * s)
+	-- And the error tag, on rows that have raised anything this session.
+	metrics.errorTagW = font and mathFloor(font:GetTextWidth(L.iserror) * metrics.rowFs) or mathFloor(26 * s)
 
 	if dialog then
 		dialogGeometry()
@@ -1707,6 +1740,9 @@ local function fitRow(row)
 		-- A local row ends with its tag, so the description stops short of it rather than
 		-- running underneath.
 		local descW = metrics.dataX1 - descX1 - metrics.rowPad * 2
+		if row.errors then
+			descW = descW - metrics.errorTagW - metrics.rowPad
+		end
 		if row.isLocal then
 			descW = descW - metrics.localTagW - metrics.rowPad
 		end
@@ -1734,6 +1770,7 @@ local function flushText()
 		return
 	end
 	font:Begin()
+	font:SetOutlineColor(look.outline)
 	for i = 1, #textQueue do
 		local t = textQueue[i]
 		font:Print(t[1], t[2], t[3], t[4], t[5])
@@ -1750,13 +1787,12 @@ end
 local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overData)
 	fitRow(row)
 
-	-- A widget that was asked for and would not load reads as its own state rather than
-	-- as the amber one: it is not waiting for anything, it is broken, and the panel knows
-	-- what is wrong with it.
-	local fill = (row.loadError and look.errorFill)
+	-- A widget an error stopped reads as its own state rather than as the amber one: it is
+	-- not waiting for anything, it is broken, and the panel knows what broke it.
+	local fill = (row.stoppedBy and look.errorFill)
 		or (row.state == 1 and look.activeFill)
 		or (row.state == 0.5 and look.pendingFill)
-	local accent = (row.loadError and look.errorAccent)
+	local accent = (row.stoppedBy and look.errorAccent)
 		or (row.state == 1 and look.activeAccent)
 		or (row.state == 0.5 and look.pendingAccent)
 	if fill then
@@ -1785,6 +1821,15 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overDat
 	-- file it is, and whether it draws through RmlUi rather than through this UI. Both
 	-- right to left from the buttons, so a row with both still reads in order.
 	local tagX = metrics.dataX1 - metrics.rowPad
+	-- A widget that has raised an error this session says so first, nearest the buttons: red
+	-- while an error is what stopped it, a softer red once it runs again. What the errors were
+	-- is in its tooltip - each is nearly always one short line, which a tooltip shows at a
+	-- glance and a window of its own made a click and a close out of.
+	if row.errors then
+		local tint = row.stoppedBy and tagColors.iserror or tagColors.iserrorSoft
+		queueText(tint .. L.iserror, tagX, ty, metrics.rowFs, "rov")
+		tagX = tagX - metrics.errorTagW - metrics.rowPad
+	end
 	if row.isLocal then
 		queueText(tagColors.islocal .. L.islocal, tagX, ty, metrics.rowFs, "rov")
 		tagX = tagX - metrics.localTagW - metrics.rowPad
@@ -1792,9 +1837,6 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overDat
 	if row.isRml then
 		queueText(tagColors.isrml .. L.isrml, tagX, ty, metrics.rowFs, "rov")
 		tagX = tagX - metrics.rmlTagW - metrics.rowPad
-	end
-	if row.loadError then
-		queueText(tagColors.iserror .. L.iserror, tagX, ty, metrics.rowFs, "rov")
 	end
 
 	-- Only where there is something to clear. Quiet until it is pointed at, and red then:
@@ -1842,6 +1884,7 @@ local function drawCostColumns()
 	end
 
 	look.mono:Begin()
+	look.mono:SetOutlineColor(look.outline)
 	for i = 1, #rows - scroll do
 		local row = rows[scroll + i]
 		if not row then
@@ -1939,6 +1982,7 @@ function dataView.draw()
 	end
 
 	font:Begin()
+	font:SetOutlineColor(look.outline)
 	font:Print(colorTitle .. dataView.name, x1 + pad, dataView.titleY, dataView.titleFs, "ov")
 	font:Print(
 		colorText .. L.close,
@@ -1954,6 +1998,7 @@ function dataView.draw()
 	-- width by geometry, so a row here is a row on screen.
 	local code = look.mono or font
 	code:Begin()
+	code:SetOutlineColor(look.outline)
 	for i = 1, dataView.page do
 		local row = dataView.rows[dataView.scroll + i]
 		if not row then
@@ -2189,6 +2234,7 @@ local function drawDialog(d)
 	end
 
 	font:Begin()
+	font:SetOutlineColor(look.outline)
 	font:Print(colorText .. d.title, cx, by2 - mathFloor(26 * s), tfs, "cov")
 	local lines = text.wrap(font, d.message, bx2 - bx1 - mathFloor(32 * s), sfs)
 	local step = mathFloor(sfs * 1.45)
@@ -2515,6 +2561,14 @@ local function contentMoved()
 		return true
 	end
 
+	-- Then an error raised anywhere since the rows were built. One that does not stop its
+	-- widget changes nothing the sweep below looks at, and still gives a row a button. The
+	-- handler keeps one count for all of them, so noticing is a comparison a frame rather
+	-- than a look at every row's log - and a row off screen hears of it as soon as one on it.
+	if (widgetHandler.errorCount or 0) ~= sweep.errorCount then
+		return true
+	end
+
 	-- Then what is on screen, which is what is being looked at.
 	local page = mathFloor((listTop - listBottom) / metrics.rowHeight)
 	for i = 1, page do
@@ -2593,6 +2647,7 @@ local function loadLabels()
 	L.search = tr("search", "Search...")
 	L.mine = tr("category.local", "Your own")
 	L.enabledOnly = tr("enabledonly", "Enabled only")
+	L.errorsOnly = tr("errorsonly", "Errors only")
 	L.byOrder = tr("byorder", "By load order")
 	L.sets = tr("sets", "Widget sets")
 	L.noSet = tr("noset", "No set")
@@ -2653,6 +2708,8 @@ local function loadLabels()
 	L.byLoad = tr("byload", "By cost")
 	L.cleardata = tr("cleardata", "Reset")
 	L.showdata = tr("showdata", "Show data")
+	L.errorsLoading = tr("errorsloading", "while loading")
+	L.errorsMore = tr("errorsmore", "more")
 	L.close = tr("close", "Close")
 	L.cleardataTitle = tr("cleardatatitle", "Clear saved settings")
 	-- The fallbacks only. These two carry the widget's name, and i18n fills a %{...} in
@@ -2688,6 +2745,10 @@ local function loadLabels()
 		enabledOnly = tr(
 			"enabledonlydesc",
 			"Show only the widgets the config says to load - running or not - so what is off stays out of the way."
+		),
+		errorsOnly = tr(
+			"errorsonlydesc",
+			"Show only the widgets that have raised an error this session - the ones tagged error - whether an error stopped them or they are running again."
 		),
 		byOrder = tr(
 			"byorderdesc",
@@ -2779,14 +2840,16 @@ local function bindUi()
 
 	if not searchBox then
 		searchBox = Editbox.new({
+			outline = look.outline,
 			placeholder = L.search,
 			onChange = function()
 				setScroll(0)
 				rebuildRows()
 			end,
 		})
-		nameBox = Editbox.new({})
+		nameBox = Editbox.new({ outline = look.outline })
 		setPicker = Dropdown.new({
+			outline = look.outline,
 			placeholder = L.noSet,
 			onSelect = function(name)
 				-- Picked, not loaded: Load is its own button, so choosing a set to delete does
@@ -3160,11 +3223,13 @@ local function showTooltip(row)
 
 	-- Everything below builds two strings with a wrap and a substitution in them, and none
 	-- of what they are built from moves while the cursor rests on one row. Held until the
-	-- row, its state or its place in the order changes.
+	-- row, its state or its place in the order changes. Keyed on the row itself rather than
+	-- its name: a new error rebuilds the rows, and a tooltip held by name would go on showing
+	-- the errors it was built with.
 	-- With the breakdown showing, the reading changes once per sample rather than never,
 	-- so the sample counter joins what the cache is keyed on.
 	local gen = filters.profiler and profiling.gen or 0
-	if tipCache.same("row", row.name, row.state, (row.order or 0) + gen * 100000) then
+	if tipCache.same("row", row, row.state, (row.order or 0) + gen * 100000) then
 		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
 
 		return
@@ -3209,10 +3274,37 @@ local function showTooltip(row)
 		return
 	end
 	local tip = stateColor .. stateWord .. "\n"
-	-- Straight after the state, because for a widget that would not load it is the only
-	-- thing worth reading: what the handler said when it tried.
-	if row.loadError then
-		tip = tip .. "\255\255\120\120" .. L.iserror .. ":  " .. row.loadError .. "\n"
+	-- Straight after the state, because for a widget that has raised errors they are the
+	-- thing worth reading. Newest first and at most three, each the message before where it
+	-- happened, with Lua's [string "LuaUI/Widgets/x.lua"] cut down to the file name - the path
+	-- is on the File line below, and a glance wants the line number. The one that stopped the
+	-- widget is in the tag's red; any others, or all of them once it runs again, quieter.
+	if row.errors then
+		local entries = row.errors.entries
+		local shown = 0
+		for i = #entries, 1, -1 do
+			if shown == 3 then
+				tip = tip .. "\255\150\150\150+" .. i .. " " .. L.errorsMore .. "\n"
+				break
+			end
+			shown = shown + 1
+			local e = entries[i]
+			local msg = string.match(tostring(e.message), "^[^\n]*")
+			msg = string.gsub(msg, '%[string "([^"]*)"%]', function(path)
+				return string.match(path, "([^/]+)$") or path
+			end)
+			local where = e.callin and (e.callin .. "()") or L.errorsLoading
+			if e.count > 1 then
+				where = where .. ", x" .. e.count
+			end
+			local color = (row.stoppedBy and e == row.errors.stopped) and tagColors.iserror or tagColors.iserrorSoft
+			tip = tip
+				.. color
+				.. string.gsub(font:WrapText(L.iserror .. ":  " .. msg, maxWidth), "[\n]", "\n" .. color)
+				.. "\255\140\140\140  ("
+				.. where
+				.. ")\n"
+		end
 	end
 	if d.desc and d.desc ~= "" then
 		tip = tip
@@ -3278,7 +3370,7 @@ local function showTooltip(row)
 		end
 	end
 
-	tipCache.keep("row", row.name, row.state, (row.order or 0) + gen * 100000, title, tip)
+	tipCache.keep("row", row, row.state, (row.order or 0) + gen * 100000, title, tip)
 	WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
 end
 
@@ -3658,33 +3750,36 @@ local function mouseEvent(x, y, button, release)
 			overRow = r and rows[scroll + r] or nil
 		end
 
-		-- The clear button is part of the row, so the press has to remember which of the two
-		-- was under the cursor: releasing over the row after pressing the button would
-		-- otherwise toggle the widget.
-		local onClear = overRow and overRow.hasConfig and x >= clearX1 and x <= listRight or false
-		local onData = overRow and overRow.hasConfig and x >= metrics.dataX1 and x < clearX1 or false
+		-- The buttons are part of the row, so the press has to remember which of them was under
+		-- the cursor: releasing over the row after pressing one would otherwise toggle the
+		-- widget. One value rather than a flag per button, since only one can be under it.
+		local onButton
+		if overRow and overRow.hasConfig and x >= clearX1 and x <= listRight then
+			onButton = "clear"
+		elseif overRow and overRow.hasConfig and x >= metrics.dataX1 and x < clearX1 then
+			onButton = "data"
+		end
 		if not release then
 			pressedRow = overRow and overRow.name or nil
 			pressedButton = button
-			pressedClear = onClear
-			pressedData = onData
+			pressedOn = onButton
 		elseif overRow and overRow.name == pressedRow and button == pressedButton then
 			-- A click, rather than a drag that happened to finish over a row.
-			if button == 1 and (onData or pressedData) then
-				-- Both halves on the button, the same as the one beside it.
-				if onData and pressedData then
-					dataView.open(overRow.name)
-					click()
-				end
-			elseif button == 1 and (onClear or pressedClear) then
-				-- Both halves of the click have to be on the button. Pressing it and sliding off
-				-- before letting go is how a player takes an accidental press back.
-				if onClear and pressedClear then
-					local name = overRow.name
-					local running = overRow.state == 1
-					confirm(L.cleardataTitle, clearDataWarning(name, running), function()
-						clearConfigData(name)
-					end, true)
+			if button == 1 and (onButton or pressedOn) then
+				-- Both halves of the click have to be on the same button. Pressing one and sliding
+				-- off before letting go is how a player takes an accidental press back.
+				if onButton == pressedOn then
+					if onButton == "data" then
+						dataView.open(overRow.name)
+					-- Named rather than left as an else: this is the branch that throws settings
+					-- away, and a button added later must not fall through into it.
+					elseif onButton == "clear" then
+						local name = overRow.name
+						local running = overRow.state == 1
+						confirm(L.cleardataTitle, clearDataWarning(name, running), function()
+							clearConfigData(name)
+						end, true)
+					end
 					click()
 				end
 			elseif button == 1 then
@@ -3707,7 +3802,7 @@ local function mouseEvent(x, y, button, release)
 			end
 		end
 		if release then
-			pressedRow, pressedButton, pressedClear, pressedData = nil, 0, false, false
+			pressedRow, pressedButton, pressedOn = nil, 0, nil
 		end
 
 		return true
@@ -3746,6 +3841,7 @@ end
 function widget:GetConfigData()
 	return {
 		enabledOnly = filters.enabledOnly,
+		errorsOnly = filters.errorsOnly,
 		byOrder = filters.byOrder,
 		profiler = filters.profiler,
 		byLoad = filters.byLoad,
@@ -3779,6 +3875,7 @@ function widget:SetConfigData(data)
 	end
 	pickedSet = type(data.pickedSet) == "string" and data.pickedSet or nil
 	filters.enabledOnly = data.enabledOnly == true
+	filters.errorsOnly = data.errorsOnly == true
 	filters.byOrder = data.byOrder == true
 	-- Restored like the rest of the switches. It is not free - the column costs every
 	-- widget in the game a wrapper round every callin for as long as it is on - but a

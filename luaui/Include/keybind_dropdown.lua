@@ -42,6 +42,10 @@ function Dropdown.new(opts)
 	self.onSelect = opts.onSelect
 	self.selected = opts.selected or 1
 	self.placeholder = opts.placeholder
+	-- An outline to draw the text with, for a panel that pins its own. The font is shared with
+	-- every other widget and keeps whatever outline was set on it last; without one this takes
+	-- that, as it always has.
+	self.outline = opts.outline
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}
@@ -151,6 +155,9 @@ function Dropdown:draw()
 	end
 
 	font:Begin()
+	if self.outline then
+		font:SetOutlineColor(self.outline)
+	end
 	local current = self.options[self.selected]
 	local label = self.placeholder or (current and optionLabel(current) or "")
 	-- A profile name is free text and can outrun the control, which is fixed width so the
@@ -180,6 +187,7 @@ function Dropdown:draw()
 			end
 		end
 
+		-- Still the caption's outline: it was set on this same font a moment ago, in this draw.
 		font:Begin()
 		for i, opt in ipairs(self.options) do
 			local r = self.optRects[i]

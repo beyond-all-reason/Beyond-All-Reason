@@ -51,6 +51,10 @@ function Editbox.new(opts)
 	self.placeholder = opts.placeholder or ""
 	self.maxChars = opts.maxChars or 127
 	self.onChange = opts.onChange
+	-- An outline to draw the text with, for a panel that pins its own. The font is shared with
+	-- every other widget and keeps whatever outline was set on it last; without one this takes
+	-- that, as it always has.
+	self.outline = opts.outline
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -377,6 +381,9 @@ function Editbox:draw()
 	end
 
 	font:Begin()
+	if self.outline then
+		font:SetOutlineColor(self.outline)
+	end
 	font:Print(shown, tx, ty, self.fontSize, "o")
 	font:End()
 
