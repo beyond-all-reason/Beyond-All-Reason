@@ -4,6 +4,7 @@
 	"profiles": [
 		{
 			"name": "Grid",
+			"description": "ui.keybinds.presets.grid",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -1337,6 +1338,7 @@
 		},
 		{
 			"name": "Grid (60% Keyboard)",
+			"description": "ui.keybinds.presets.grid60",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -2582,6 +2584,7 @@
 		},
 		{
 			"name": "Legacy",
+			"description": "ui.keybinds.presets.legacy",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -4367,6 +4370,7 @@
 		},
 		{
 			"name": "Legacy (60% Keyboard)",
+			"description": "ui.keybinds.presets.legacy60",
 			"binds": [
 				{
 					"keyset": "esc",

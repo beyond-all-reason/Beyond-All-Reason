@@ -107,6 +107,41 @@ local function displayKeyset(raw, layout)
 	return table.concat(parts, chainSep)
 end
 
+-- A keyset as the editor's chip for it reads. A paired action holds one key as two binds, bare
+-- and Shift+, and that Shift is the action's rather than the player's, so the Shift half reads
+-- as the bare key and both halves share one chip.
+local function displayWithoutShift(raw, layout)
+	local parts = splitChain(raw)
+	parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
+
+	return displayKeyset(table.concat(parts, ","), layout)
+end
+
+-- Whether a displayed keyset holds every one of the keys given, in any order: whole keys as the
+-- chip prints them, modifiers included, lowercased. Split once per display string, of which a
+-- keymap has a few hundred at most.
+local keySets = {}
+local function holdsKeys(display, keys)
+	if #keys == 0 then
+		return false
+	end
+	local set = keySets[display]
+	if not set then
+		set = {}
+		for key in display:lower():gmatch("[^%s%+]+") do
+			set[key] = true
+		end
+		keySets[display] = set
+	end
+	for i = 1, #keys do
+		if not set[keys[i]] then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function canonicalKeyset(raw)
 	local parts = splitChain(raw)
 	for i = 1, #parts do
@@ -164,6 +199,8 @@ end
 return {
 	build = build,
 	displayKeyset = displayKeyset,
+	displayWithoutShift = displayWithoutShift,
+	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
 	splitChain = splitChain,
 	chainSep = chainSep,

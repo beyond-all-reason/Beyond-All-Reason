@@ -494,7 +494,7 @@ function M.load()
 	store = decoded
 	store.version = store.version or STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
-	local seen, kept = {}, {}
+	local seen, kept, inferred = {}, {}, false
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			seen[p.name] = true
@@ -502,10 +502,21 @@ function M.load()
 			if type(p.fakeMeta) ~= "string" or p.fakeMeta == "" or p.fakeMeta:find("%s") then
 				p.fakeMeta = nil
 			end
+			-- Which shipped profile it was forked from. Only a name that still ships means
+			-- anything: a retired one would have the editor comparing against nothing, so a
+			-- profile without a usable one is given the closest shipped profile instead, and
+			-- that is written back so every surface reads the same origin from then on.
+			if type(p.basedOn) ~= "string" or not M.isBuiltin(p.basedOn) then
+				p.basedOn = M.inferBase(p)
+				inferred = inferred or p.basedOn ~= nil
+			end
 			kept[#kept + 1] = p
 		end
 	end
 	store.profiles = kept
+	if inferred then
+		M.save()
+	end
 
 	return store
 end
@@ -596,13 +607,97 @@ function M.adoptEditedKeymap()
 	return name
 end
 
+-- The shipped profile a player's profile is closest to: the one it differs from on the
+-- fewest actions, comparing each action's keysets as written. For a profile with no recorded
+-- origin - imported, or made before origins were recorded - this stands in for one: a fork
+-- of Grid differs from Grid on a handful of actions and from Legacy on a hundred, so the
+-- closest is the right answer, and even a layout written from scratch is best measured
+-- against whatever it most resembles.
+function M.inferBase(profile)
+	local ownSets = {}
+	for _, b in ipairs(profile.binds or {}) do
+		local set = ownSets[b.action]
+		if not set then
+			set = {}
+			ownSets[b.action] = set
+		end
+		set[b.keyset:lower()] = true
+	end
+
+	local best, bestDiff
+	for _, builtin in ipairs(builtins) do
+		local theirSets = {}
+		for _, b in ipairs(builtin.binds or {}) do
+			local set = theirSets[b.action]
+			if not set then
+				set = {}
+				theirSets[b.action] = set
+			end
+			set[b.keyset:lower()] = true
+		end
+
+		local diff = 0
+		for action, set in pairs(ownSets) do
+			local theirs = theirSets[action]
+			if not theirs then
+				diff = diff + 1
+			else
+				for keyset in pairs(set) do
+					if not theirs[keyset] then
+						diff = diff + 1
+						break
+					end
+				end
+				if diff == 0 or theirs then
+					for keyset in pairs(theirs) do
+						if not set[keyset] then
+							diff = diff + 1
+							break
+						end
+					end
+				end
+			end
+		end
+		for action in pairs(theirSets) do
+			if not ownSets[action] then
+				diff = diff + 1
+			end
+		end
+
+		if not bestDiff or diff < bestDiff then
+			best, bestDiff = builtin, diff
+		end
+	end
+
+	return best and best.name or nil
+end
+
+-- The shipped profile a profile descends from: itself for a shipped one, the recorded fork
+-- for the player's own. What an editor compares against to say which keys the player
+-- changed. Every profile of the player's carries one: recorded when it was forked or
+-- duplicated, inferred as the closest shipped profile otherwise.
+function M.baseOf(name)
+	local builtin = M.isBuiltin(name)
+	if builtin then
+		return builtin
+	end
+
+	local own = M.get(name)
+
+	return own and own.basedOn and M.isBuiltin(own.basedOn) or nil
+end
+
 -- Adds a profile of the player's own, without selecting it: whether it becomes the live one
 -- depends on the keymap reaching disk, which only the caller finds out. Selecting it up front
 -- would leave the picker naming a profile the engine never loaded when that write fails.
-function M.create(name, binds, fakeMeta)
+-- `basedOn` names the shipped profile it was forked from; without one, the closest shipped
+-- profile stands in.
+function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
-	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMeta }
+	local profile = { name = name, binds = binds, fakeMeta = fakeMeta }
+	profile.basedOn = (basedOn and M.isBuiltin(basedOn)) and basedOn or M.inferBase(profile)
+	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
 		Spring.Echo(
 			"[keybind_profiles] Error: could not write "
@@ -656,6 +751,71 @@ function M.delete(name)
 	end
 
 	return M.save()
+end
+
+-- A profile as text a player can paste anywhere: the same bind-file form the engine loads,
+-- headed by the profile's name, so what is shared is what would be applied.
+function M.exportText(profile)
+	return toBindFile(profile)
+end
+
+-- Every line of bind-file text with what the reader makes of it, for showing a player what
+-- an import will take before it does: "bind" for a binding, "directive" for anything else
+-- the reader acts on, "comment" for a comment or a blank line, "error" for a line it cannot
+-- read and will drop. Follows readBindFile line for line, and counts the binds and the
+-- errors with it.
+function M.classifyBindFile(text)
+	local lines, binds, errors = {}, 0, 0
+	if type(text) ~= "string" then
+		return lines, binds, errors
+	end
+
+	for raw in (text:gsub("\r\n", "\n"):gsub("\r", "\n") .. "\n"):gmatch("([^\n]*)\n") do
+		local line = raw:gsub("//.*", ""):gsub("%s+$", "")
+		local kind
+		if line:match("^%s*$") then
+			kind = "comment"
+		elseif line:match("^%s*bind%s+%S+%s+%S") then
+			kind = "bind"
+			binds = binds + 1
+		elseif
+			line:match("^%s*unbindall%s*$")
+			or line:match("^%s*unbindaction%s+%S")
+			or line:match("^%s*unbindkeyset%s+%S")
+			or line:match("^%s*unbind%s+%S+%s+%S")
+			or line:match("^%s*keysym%s+%S+%s+%S")
+			or line:match("^%s*keyload%s+%S")
+			or line:match("^%s*fakemeta")
+		then
+			kind = "directive"
+		else
+			kind = "error"
+			errors = errors + 1
+		end
+		lines[#lines + 1] = { text = raw, kind = kind }
+	end
+
+	-- The split above leaves one empty line after a trailing newline, which is no line.
+	if #lines > 0 and lines[#lines].text == "" then
+		lines[#lines] = nil
+	end
+
+	return lines, binds, errors
+end
+
+-- The reverse: bind-file text, however it was produced, as binds plus the fakemeta key and
+-- the profile name our own output is stamped with. nil binds when the text holds none.
+function M.parseBindFile(text)
+	if type(text) ~= "string" or text == "" then
+		return nil
+	end
+
+	local binds = readBindFile(text)
+	if not binds or #binds == 0 then
+		return nil
+	end
+
+	return binds, readFakeMeta(text), generatedName(text)
 end
 
 -- Write a profile out where the engine can keyreload it, and return that path.

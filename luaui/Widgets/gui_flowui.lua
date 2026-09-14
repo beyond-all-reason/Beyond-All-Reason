@@ -2947,9 +2947,18 @@ WG.FlowUI.Draw.ScrollerGeometry = function(px, py, sx, sy, contentHeight, positi
 
 	local thumbHeight = mathFloor((fraction * trackHeight) + 0.5)
 	local trackTop = sy - padding
+	local travel = trackHeight - thumbHeight
 	local top = trackTop - mathFloor((trackHeight * ((position or 0) / contentHeight)) + 0.5)
+	-- Held inside the track whatever the position says: a list scrolled to its end shows
+	-- whole rows only, so its position can run a little past what the track height allows,
+	-- and a thumb drawn past the track's end lands on whatever sits under it.
+	if top > trackTop then
+		top = trackTop
+	elseif top < trackTop - travel then
+		top = trackTop - travel
+	end
 
-	return top, thumbHeight, trackTop, trackHeight - thumbHeight
+	return top, thumbHeight, trackTop, travel
 end
 
 ---Draws a vertical scrollbar.
