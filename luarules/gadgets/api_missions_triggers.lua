@@ -315,12 +315,16 @@ function gadget:GameFrame(frameNumber)
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
 		teamReclaimIncomeSnapshot = teamReclaimIncome
 		teamReclaimIncome = {}
+	end
 
-		-- All countdowns tick down together (see Decrement() in countdowns.lua):
-		local endedCountdownIDs = countdowns.Decrement()
-		for i = 1, #endedCountdownIDs do
-			dispatchTriggerCallin("CountdownEnded", endedCountdownIDs[i])
-		end
+	-- Displayed countdowns tick together on whole seconds, non-displayed ones
+	-- relative to their creation frame (see Decrement() in countdowns.lua):
+	local endedCountdownIDs, countdownTicks = countdowns.Decrement(frameNumber)
+	for i = 1, #countdownTicks do
+		dispatchTriggerCallin("CountdownTick", countdownTicks[i].id, countdownTicks[i].timeRemaining)
+	end
+	for i = 1, #endedCountdownIDs do
+		dispatchTriggerCallin("CountdownEnded", endedCountdownIDs[i])
 	end
 
 	dispatchTriggerCallin("GameFrame", frameNumber)
