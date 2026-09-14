@@ -45,7 +45,6 @@ return {
 			[11] = "cormabm",
 			[12] = "coreter",
 			[13] = "corvrad",
-			[14] = "corforge",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 0.01,

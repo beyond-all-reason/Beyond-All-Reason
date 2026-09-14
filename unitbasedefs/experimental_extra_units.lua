@@ -114,7 +114,8 @@ local function experimentalExtraUnits(name, unitDef)
 		buildoptions[numBuildoptions + 1] = "corvac" -- Printer - Armored Field Engineer
 		buildoptions[numBuildoptions + 2] = "corphantom" -- Phantom - Amphibious Stealth Scout
 		buildoptions[numBuildoptions + 3] = "corsiegebreaker" -- Siegebreaker - Heavy Long Range Destroyer
-		buildoptions[numBuildoptions + 4] = "cortorch" -- Torch - Fast Flamethrower Tank
+		buildoptions[numBuildoptions + 4] = "corforge" -- Forge - Flamethrower Combat Engineer
+		buildoptions[numBuildoptions + 5] = "cortorch" -- Torch - Fast Flamethrower Tank
 	end
 
 	-- Cortex T2 Aircraft Plant
